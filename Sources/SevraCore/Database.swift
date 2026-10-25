@@ -81,6 +81,29 @@ final class Database {
   func scalar(_ sql: String, _ values: [Value] = []) throws -> Value {
     try execute(sql, values).first?.values.first ?? .null
   }
+  func budget<T>(cancellation: Cancellation, seconds: TimeInterval, _ body: () throws -> T) throws
+    -> T
+  {
+    let control = Cancellation(parent: cancellation, deadlineAfterSeconds: seconds)
+    try control.check()
+    let pointer = Unmanaged.passUnretained(control).toOpaque()
+    sqlite3_progress_handler(
+      handle, 5000,
+      { context in
+        guard let context else { return 1 }
+        let control = Unmanaged<Cancellation>.fromOpaque(context).takeUnretainedValue()
+        return (try? control.check()) == nil ? 1 : 0
+      }, pointer)
+    defer { sqlite3_progress_handler(handle, 0, nil, nil) }
+    do {
+      let result = try body()
+      try control.check()
+      return result
+    } catch {
+      try control.check()
+      throw error
+    }
+  }
   func failure() -> SevraError { .init("database", String(cString: sqlite3_errmsg(handle))) }
   func transaction<T>(_ body: () throws -> T) throws -> T {
     try execute("BEGIN IMMEDIATE")
@@ -115,7 +138,9 @@ final class Database {
     defer { if !finished { sqlite3_backup_finish(backup) } }
     while true {
       try cancellation.check()
-      try require(ProcessInfo.processInfo.systemUptime < deadline, "backup_busy", "The workbook remained busy while taking a snapshot. Retry when other writers finish.")
+      try require(
+        ProcessInfo.processInfo.systemUptime < deadline, "backup_busy",
+        "The workbook remained busy while taking a snapshot. Retry when other writers finish.")
       let rc = sqlite3_backup_step(backup, 256)
       if rc == SQLITE_DONE {
         let result = sqlite3_backup_finish(backup)
@@ -123,7 +148,9 @@ final class Database {
         try require(result == SQLITE_OK, "backup", "Could not finish a coherent snapshot.")
         break
       }
-      try require([SQLITE_OK, SQLITE_BUSY, SQLITE_LOCKED].contains(rc), "backup", "Could not copy the workbook snapshot.")
+      try require(
+        [SQLITE_OK, SQLITE_BUSY, SQLITE_LOCKED].contains(rc), "backup",
+        "Could not copy the workbook snapshot.")
       if rc != SQLITE_OK { Thread.sleep(forTimeInterval: 0.01) }
     }
   }

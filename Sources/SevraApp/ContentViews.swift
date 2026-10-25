@@ -5,9 +5,9 @@ import SwiftUI
 
 struct SearchView: View {
   @ObservedObject var state: WorkspaceState
-  @State private var hits: [SearchHit] = []
-  @State private var next: String?
-  @State private var incomplete = 0
+  private var hits: [SearchHit] { state.searchHits }
+  private var next: String? { state.searchNext }
+  private var incomplete: Int { state.searchIncomplete }
   @State private var searching = false
   @State private var failure: String?
   @State private var facets: Value = .null
@@ -68,9 +68,10 @@ struct SearchView: View {
               ).foregroundStyle(.secondary).padding(.top, 20)
             }
           }
-        }.onChange(of: hits.count) { _, _ in
-          if let id = state.searchAnchor { proxy.scrollTo(id, anchor: .center) }
-        }
+        }.onAppear { if let id = state.searchAnchor { proxy.scrollTo(id, anchor: .center) } }
+          .onChange(of: hits.count) { _, _ in
+            if let id = state.searchAnchor { proxy.scrollTo(id, anchor: .center) }
+          }
       }
       if let failure { Text(failure).foregroundStyle(.red) }
     }.padding(22).task { focused = true }
@@ -100,8 +101,8 @@ struct SearchView: View {
   }
   func search(more: Bool) async {
     guard let book = state.workbook, !state.searchQuery.isEmpty else {
-      hits = []
-      next = nil
+      state.searchHits = []
+      state.searchNext = nil
       return
     }
     let key = identity
@@ -122,9 +123,10 @@ struct SearchView: View {
       }.value
       try Task.checkCancellation()
       guard key == identity else { return }
-      hits = more ? hits + found.hits : found.hits
-      next = found.nextCursor
-      incomplete = found.incomplete
+      state.searchHits = more ? hits + found.hits : found.hits
+      state.searchNext = found.nextCursor
+      state.searchIncomplete = found.incomplete
+      state.searchReceivedIdentity = key
       failure = nil
     } catch is CancellationError {} catch {
       if key == identity { failure = error.localizedDescription }
@@ -202,8 +204,10 @@ struct SpaceView: View {
               let title = job["title"].text
               let completed = job["completed"].text
               let total = job["total"].text
-              Text("\(title): \(completed) of \(total) rows imported. Resume from the original source.")
-                .font(.callout).foregroundStyle(.secondary)
+              Text(
+                "\(title): \(completed) of \(total) rows imported. Resume from the original source."
+              )
+              .font(.callout).foregroundStyle(.secondary)
             }
           }
           sectionTitle("Recent sources and drafts")

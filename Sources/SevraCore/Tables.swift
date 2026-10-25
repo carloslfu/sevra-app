@@ -137,7 +137,7 @@ extension Workbook {
       !columns.isEmpty && columns.count <= 500 && Set(columns.map(\.id)).count == columns.count,
       "columns", "Columns require unique identifiers.")
     let id = identifier()
-    let columnsJSON = String(decoding: try JSONEncoder().encode(columns), as: UTF8.self)
+    let columnsJSON = try encoded(columns).json()
     let result = try mutation(
       "dataset", token: token,
       request: .object([
@@ -412,7 +412,7 @@ extension Workbook {
   }
   public func setColumns(_ id: String, columns: [Column]) throws {
     try validateColumns(columns)
-    let data = String(decoding: try JSONEncoder().encode(columns), as: UTF8.self)
+    let data = try encoded(columns).json()
     _ = try mutation("columns", request: .object(["id": .string(id), "columns": .string(data)])) {
       let old = try dataset(id)
       try require(

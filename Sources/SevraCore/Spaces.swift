@@ -132,7 +132,7 @@ extension Workbook {
       for child in c.children ?? [] { try validate(child, depth: depth + 1) }
     }
     for component in definition.components { try validate(component, depth: 1) }
-    let data = String(decoding: try JSONEncoder().encode(definition), as: UTF8.self)
+    let data = try encoded(definition).json()
     _ = try mutation(
       "space", token: token,
       request: .object(["id": .string(id), "title": .string(title), "definition": .string(data)])

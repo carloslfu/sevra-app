@@ -21,6 +21,13 @@ with tempfile.TemporaryDirectory(prefix='sevra-concurrency-') as temporary:
         results=[job.result() for job in work];export.result()
     assert len({r['id'] for r in results})==30
     assert add(0)['id']==results[0]['id']
+    csv=folder/'resume.csv';csv.write_text('part,price\nbolt,2.40\nwasher,1.25\n')
+    imported=run('import',book,csv)
+    source=imported['source']['id'];table_id=imported['dataset']['id']
+    run('resume-intake',book,source)
+    run('resume-intake',book,source)
+    assert [t['id'] for t in run('tables',book)].count(table_id)==1
+    assert len(run('rows',book,table_id))==2
     assert run('verify',book)['ok']
     reopened=folder/'Reopened.sevra';run('open-archive',archive,reopened)
     assert run('verify',reopened)['ok']
@@ -28,4 +35,4 @@ with tempfile.TemporaryDirectory(prefix='sevra-concurrency-') as temporary:
     table=run('tables',book)[0];row=run('rows',book,table['id'])[0]
     failure=run('edit-row',book,row['id'],json.dumps(row['data']),0,success=False)
     assert failure['error']['code']=='stale_revision',failure
-    print(json.dumps({'concurrentWriters':30,'snapshotVerified':True,'idempotentRetry':True,'staleWriteRefused':True,'inventoryPreserved':True}))
+    print(json.dumps({'crossProcessIntakeRetry':True,'concurrentWriters':30,'snapshotVerified':True,'idempotentRetry':True,'staleWriteRefused':True,'inventoryPreserved':True}))

@@ -59,24 +59,37 @@ extension Workbook {
   @discardableResult public func pinSpace(
     _ id: String, title: String? = nil, token: String = identifier()
   ) throws -> String {
-    let result = try mutation("pin_space", token: token, request: .object(["id": .string(id), "title": title.map(Value.string) ?? .null])) {
-      guard let space = try spaces().first(where: { $0.id == id }) else { throw SevraError("view", "Space not found.") }
+    let result = try mutation(
+      "pin_space", token: token,
+      request: .object(["id": .string(id), "title": title.map(Value.string) ?? .null])
+    ) {
+      guard let space = try spaces().first(where: { $0.id == id }) else {
+        throw SevraError("view", "Space not found.")
+      }
       func pin(_ component: Component) throws -> Component {
         var copy = component
         if component.datasetID != nil {
           let snapshot = try componentData(component)
-          try require(snapshot.totalRows == snapshot.rows.count, "view_limit", "Pinning currently supports complete tables of up to 1,000 rows.")
+          try require(
+            snapshot.totalRows == snapshot.rows.count, "view_limit",
+            "Pinning currently supports complete tables of up to 1,000 rows.")
           copy.snapshot = snapshot
         }
         copy.children = try component.children?.map(pin)
         return copy
       }
       let definition = SpaceDefinition(components: try space.definition.components.map(pin))
-      let data = String(decoding: try JSONEncoder().encode(definition), as: UTF8.self)
-      let saved = identifier(), date = timestamp(), name = title ?? space.title + " · " + timestamp()
-      let values: [Value] = [.string(saved), .string(name), .string(data), .number(1), .string(date)]
+      let data = try encoded(definition).json()
+      let saved = identifier()
+      let date = timestamp()
+      let name = title ?? space.title + " · " + timestamp()
+      let values: [Value] = [
+        .string(saved), .string(name), .string(data), .number(1), .string(date),
+      ]
       try db.execute("INSERT INTO spaces VALUES(?,?,?,?,?)", values)
-      try db.execute("INSERT INTO space_versions VALUES(?,?,?,?,?)", [.string(saved), .number(1), .string(name), .string(data), .string(date)])
+      try db.execute(
+        "INSERT INTO space_versions VALUES(?,?,?,?,?)",
+        [.string(saved), .number(1), .string(name), .string(data), .string(date)])
       return .string(saved)
     }
     return result.text

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-25T03:00:40.328483+00:00
+updated: 2026-10-25T03:05:15.036022+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -45,18 +45,18 @@ every requirement or supported hardware profile has passed.
 
 ## Verification checkpoint, October 24 local / October 25 UTC, 2026
 
-38 executable core checks pass. They cover lineage, actual/estimate separation,
+40 executable core checks pass. They cover lineage, actual/estimate separation,
 acceptance/withdrawal, unique effects, stale revisions, immutable imports, changed
 and missing links, cancellation, quoted CSV, atomic editing/undo, spaces,
 conversations, XLSX, index recovery, unsafe paths/schema/archives, lazy formulas,
-precision, cursors, deterministic percentages, CSV snapshots, live versus pinned
+precision, cursors, search cancellation/deadline cleanup, pin retry identity, deterministic percentages, CSV snapshots, live versus pinned
 values, type/history checks, resumed intake and real PDF text/image OCR locators.
 
 Packaged-binary checks also pass:
 
 - Isolated install, update, standalone CLI, demo, verification and uninstall,
   preservation of workbooks and refusal to replace an unrelated CLI.
-- Thirty concurrent CLI writers, idempotent retry, stale-write refusal and coherent
+- Thirty concurrent CLI writers, cross-process structured-intake retry, idempotent retry, stale-write refusal and coherent
   export/reopen with preserved inventory and asset verification.
 - Loopback HTTP fixture: capture through redirect, indexed content, refusal of a
   redirect loop, explicit access failure, non-HTTP refusal and origin-token redaction.
@@ -87,8 +87,7 @@ measurements. Runs overlapping inference are not performance qualification.
    The Mac is currently locked; computer use needs the owner to unlock it.
 2. Corrected real-model comparison/view creation, adversarial evidence, no-match
    honesty, cancellation/recovery and measured whole-task latency.
-3. Search scale/recall with many chunks per document; query deadline/cancellation
-   coverage and further broad-query optimization.
+3. Search scale/recall with many chunks per document; further broad-query optimization and cancellation during actual long-running searches.
 4. Remaining extraction crash/isolation tests, timestamped on-device media
    transcription capability handling, failed-URL reference recovery and explicit
    archive-member intake. Parser deadlines are cooperative, not process isolation.

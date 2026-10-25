@@ -557,7 +557,8 @@ check("archive traversal entries cannot escape their destination") {
   let file = temp.appendingPathComponent("hostile.sevraz")
   let archive = try Archive(url: file, accessMode: .create)
   try archive.addEntry(
-    with: "../escaped.txt", type: .file, uncompressedSize: Int64(3), provider: { _, _ in Data("bad".utf8) }
+    with: "../escaped.txt", type: .file, uncompressedSize: Int64(3),
+    provider: { _, _ in Data("bad".utf8) }
   )
   try refuses {
     _ = try Workbook.openArchive(file, at: temp.appendingPathComponent("Hostile.sevra"))
@@ -566,5 +567,25 @@ check("archive traversal entries cannot escape their destination") {
     !FileManager.default.fileExists(atPath: temp.appendingPathComponent("escaped.txt").path))
 }
 
+check("search cancellation and deadline preserve the next query") {
+  let cancelled = Cancellation()
+  cancelled.cancel()
+  try refuses("cancelled") { _ = try book.search("brass", cancellation: cancelled) }
+  try refuses("deadline") { _ = try book.search("brass", deadlineSeconds: 0) }
+  try expect(try !book.search("brass").hits.isEmpty)
+}
+check("pinning retries return the original snapshot") {
+  let id = try book.saveSpace(
+    title: "Pin retry",
+    definition: .init(components: [.init(type: "text", title: "Memo", text: "Original")]))
+  let first = try book.pinSpace(id, title: "Saved", token: "pin-once")
+  _ = try book.saveSpace(
+    id: id, title: "Changed",
+    definition: .init(components: [.init(type: "text", title: "Memo", text: "Changed")]))
+  let retried = try book.pinSpace(id, title: "Saved", token: "pin-once")
+  try expect(first == retried)
+  try expect(
+    try book.spaces().first { $0.id == first }?.definition.components[0].text == "Original")
+}
 print("\(passed) passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

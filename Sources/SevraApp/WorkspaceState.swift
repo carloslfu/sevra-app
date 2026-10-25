@@ -38,6 +38,10 @@ import SwiftUI
   @Published var searchMeaning = ""
   @Published var searchStatus = ""
   @Published var searchScenario = ""
+  @Published var searchHits: [SearchHit] = []
+  @Published var searchNext: String?
+  @Published var searchIncomplete = 0
+  @Published var searchReceivedIdentity = ""
   @Published var searchAnchor: String?
   @Published var tableOffsets: [String: Int] = [:]
   @Published var tableFilters: [String: String] = [:]

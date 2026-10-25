@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-25T02:59:23.400315+00:00
+updated: 2026-10-25T03:05:15.050363+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -82,3 +82,9 @@ formula history, resumable 1,000-row intake batches, checksums for Office parts,
 cooperative extraction deadlines, Vision request cancellation, search paging and
 facets, and explicit linked-file recovery. Native interaction qualification remains
 separate from compilation and core tests.
+
+CI found noncanonical JSON key ordering in a resumable-import request. The same
+column definition could serialize differently and be rejected as a changed retry.
+Serialized column/view definitions now use canonical sorted-key JSON. A real
+cross-process intake retry test passes, along with 40 core checks. Search reads
+now use a coherent read transaction and SQLite progress deadlines/cancellation.

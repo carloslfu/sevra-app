@@ -19,7 +19,8 @@ extension Workbook {
     try fm.createDirectory(at: snapshot, withIntermediateDirectories: true)
     try synchronized {
       // The backup captures one revision; assets are immutable and retained after unlock.
-      try db.backup(to: snapshot.appendingPathComponent("workbook.sqlite"), cancellation: cancellation)
+      try db.backup(
+        to: snapshot.appendingPathComponent("workbook.sqlite"), cancellation: cancellation)
       try fm.copyItem(
         at: url.appendingPathComponent("manifest.json"),
         to: snapshot.appendingPathComponent("manifest.json"))
