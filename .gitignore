@@ -1,0 +1,8 @@
+.build/
+.swiftpm/
+.build-*/
+output/
+.DS_Store
+*.sevra/
+*.sevraz
+.env*
