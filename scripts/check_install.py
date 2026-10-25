@@ -1,0 +1,32 @@
+"""Isolated install, update, conflict refusal, standalone CLI and uninstall."""
+from pathlib import Path
+import json, os, subprocess, tempfile
+root=Path(__file__).resolve().parent.parent
+with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
+    folder=Path(path)
+    env={**os.environ,"SEVRA_APP_INSTALL_DIR":str(folder/"Applications"),"SEVRA_CLI_INSTALL_DIR":str(folder/"bin"),"SEVRA_UNINSTALL_TRASH_DIR":str(folder/"Trash")}
+    def script(name,*args,success=True):
+        result=subprocess.run([str(root/"scripts"/name),*args],env=env,capture_output=True,text=True)
+        assert (result.returncode==0)==success,result.stdout+result.stderr
+        return result
+    script("install.sh","--no-build")
+    cli=folder/"bin/sevra"
+    def command(*args):
+        result=subprocess.run([str(cli),*map(str,args)],cwd=folder,capture_output=True,text=True,check=True)
+        value=json.loads(result.stdout)
+        assert value["ok"],value
+        return value["result"]
+    assert command("version")["version"]=="0.1.0-dev"
+    workbook=folder/"Owned.sevra"
+    command("demo",workbook)
+    assert command("balance",workbook,"brass bolts")["quantity"]=="18"
+    script("install.sh","--no-build")
+    assert command("verify",workbook)["ok"]
+    script("uninstall.sh")
+    assert workbook.exists() and not cli.exists()
+    assert list((folder/"Trash").glob("Sevra-*.app"))
+    (folder/"bin/sevra").write_text("unrelated sentinel")
+    script("install.sh","--no-build",success=False)
+    assert (folder/"bin/sevra").read_text()=="unrelated sentinel"
+    assert not (folder/"Applications/Sevra.app").exists()
+    print(json.dumps({"installed":True,"updated":True,"standaloneCLI":True,"uninstalled":True,"workbookPreserved":True,"unrelatedCLIProtected":True}))

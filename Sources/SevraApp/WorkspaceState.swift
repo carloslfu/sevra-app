@@ -1,0 +1,308 @@
+import AVKit
+import AppKit
+import Foundation
+import SevraAI
+import SevraCore
+import SwiftUI
+
+@MainActor final class WorkspaceState: ObservableObject {
+  enum Route: Equatable {
+    case space(String)
+    case item(String)
+    case table(String)
+    case search
+  }
+  @Published var workbook: Workbook?
+  @Published var spaces: [Space] = []
+  @Published var items: [Item] = []
+  @Published var datasets: [Dataset] = []
+  @Published var messages: [Message] = []
+  @Published var conversations: [Value] = []
+  @Published var conversation = "main"
+  @Published var route: Route = .space("home")
+  @Published var navigation: [Route] = []
+  @Published var prompt = ""
+  @Published var busy = false
+  @Published var status = ""
+  @Published var error: String?
+  @Published var selectedContext = ""
+  @Published var itemLocators: [String: String] = [:]
+  @Published var messageAnchor: String?
+  @Published var revision = 0
+  @Published var focus = false
+  @Published var backgroundPlayer: AVPlayer?
+  @Published var backgroundMediaTitle = ""
+  @Published var searchQuery = ""
+  @Published var searchHistorical = false
+  @Published var searchKind = ""
+  @Published var searchMeaning = ""
+  @Published var searchStatus = ""
+  @Published var searchScenario = ""
+  @Published var searchAnchor: String?
+  @Published var tableOffsets: [String: Int] = [:]
+  @Published var tableFilters: [String: String] = [:]
+  @Published var tableSorts: [String: String] = [:]
+  @Published var tableDescending: [String: Bool] = [:]
+  @Published var tableUndo: [String: String] = [:]
+  @Published var tableRedo: [String: String] = [:]
+  @Published var spaceScroll: [String: String] = [:]
+  var cancellation = Cancellation()
+  let speech = SpeechInput()
+  func open(_ url: URL) throws {
+    workbook = try Workbook(url)
+    refresh()
+  }
+  func refresh() {
+    guard let book = workbook else { return }
+    do {
+      revision = try book.revision()
+      spaces = try book.spaces()
+      items = try book.items(excludingRows: true, limit: 100)
+      datasets = try book.datasets()
+      messages =
+        try messageAnchor.map { try book.messages(around: $0) }
+        ?? book.messages(conversation: conversation)
+      conversations = try book.conversations()
+    } catch { self.error = error.localizedDescription }
+  }
+  func poll() {
+    guard !busy, let book = workbook else { return }
+    if (try? book.revision()) != revision { refresh() }
+  }
+  func navigate(_ new: Route) {
+    if route != new {
+      navigation.append(route)
+      if navigation.count > 20 { navigation.removeFirst() }
+      route = new
+      selectedContext = ""
+    }
+  }
+  func openEvidence(_ id: String, locator: String? = nil) {
+    if let locator { itemLocators[id] = locator }
+    navigate(.item(id))
+  }
+  func jumpToMessage(_ id: String) {
+    do {
+      let location = try workbook?.messageLocation(id)
+      conversation = location?["conversation_id"].text ?? "main"
+      messageAnchor = id
+      refresh()
+    } catch { self.error = error.localizedDescription }
+  }
+  func back() {
+    if let prior = navigation.popLast() {
+      route = prior
+      selectedContext = ""
+    }
+  }
+  func run(_ title: String, operation: @escaping @Sendable (Workbook, Cancellation) throws -> Void)
+  {
+    guard let book = workbook, !busy else { return }
+    busy = true
+    status = title
+    error = nil
+    cancellation = Cancellation()
+    let cancel = cancellation
+    Task {
+      do {
+        try await Task.detached(priority: .userInitiated) { try operation(book, cancel) }.value
+      } catch { self.error = error.localizedDescription }
+      busy = false
+      status = ""
+      refresh()
+    }
+  }
+  func importPanel(linked: Bool = false) {
+    let panel = NSOpenPanel()
+    panel.allowsMultipleSelection = true
+    if panel.runModal() == .OK { importFiles(panel.urls, linked: linked) }
+  }
+  func importFiles(_ urls: [URL], linked: Bool = false) {
+    run(linked ? "Linking files" : "Including files") { book, cancel in
+      var failures: [String] = []
+      for url in urls {
+        try cancel.check()
+        do {
+          let item = try book.importFile(url, linked: linked, cancellation: cancel)
+          try book.extract(item.id, cancellation: cancel)
+          if ["csv", "tsv"].contains(url.pathExtension.lowercased()) {
+            _ = try book.importCSV(item.id, cancellation: cancel)
+          }
+          if url.pathExtension.lowercased() == "xlsx" {
+            _ = try book.importXLSX(item.id, cancellation: cancel)
+          }
+        } catch {
+          if cancel.isCancelled { throw error }
+          failures.append(url.lastPathComponent + ": " + error.localizedDescription)
+        }
+      }
+      if !failures.isEmpty { throw SevraError("import_partial", failures.joined(separator: "\n")) }
+    }
+  }
+  func exportPanel() {
+    let panel = NSSavePanel()
+    panel.title = "Make a shareable copy"
+    panel.nameFieldStringValue = (workbook?.title ?? "Workbook") + ".sevraz"
+    if panel.runModal() == .OK, let url = panel.url {
+      run("Making a shareable copy") { book, cancel in
+        try book.export(to: url, cancellation: cancel)
+      }
+    }
+  }
+  func send() {
+    guard let book = workbook, !busy,
+      !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    else { return }
+    let input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+    prompt = ""
+    error = nil
+    messageAnchor = nil
+    if let target = URL(string: input), ["http", "https"].contains(target.scheme ?? "") {
+      busy = true
+      status = "Capturing source"
+      cancellation = Cancellation()
+      let cancel = cancellation
+      Task {
+        do {
+          let source = try await book.captureURL(target, cancellation: cancel)
+          navigate(.item(source.id))
+        } catch { self.error = error.localizedDescription }
+        busy = false
+        status = ""
+        refresh()
+      }
+      return
+    }
+    if localCommand(input, book: book) {
+      refresh()
+      return
+    }
+    busy = true
+    status = "Preparing local AI"
+    cancellation = Cancellation()
+    let cancel = cancellation
+    let chat = conversation
+    let context = routeContext + (selectedContext.isEmpty ? "" : "\nSelection: " + selectedContext)
+    let path =
+      UserDefaults.standard.string(forKey: "modelDirectory").map { URL(fileURLWithPath: $0) }
+      ?? LocalModel.defaultDirectory
+    Task {
+      do {
+        _ = try await WorkbookAgent.run(
+          input, workbook: book, conversation: chat, context: context, modelDirectory: path,
+          cancellation: cancel,
+          progress: { value in
+            Task { @MainActor in
+              self.status = value
+              self.refresh()
+            }
+          })
+      } catch { self.error = error.localizedDescription }
+      busy = false
+      status = ""
+      refresh()
+    }
+  }
+  var routeContext: String {
+    switch route {
+    case .space(let id): return "Space: " + (spaces.first { $0.id == id }?.title ?? id)
+    case .item(let id): return "Item: " + ((try? workbook?.item(id).title) ?? id)
+    case .table(let id): return "Table: " + (datasets.first { $0.id == id }?.title ?? id)
+    case .search: return "Workbook search"
+    }
+  }
+  func localCommand(_ input: String, book: Workbook) -> Bool {
+    let lower = input.lowercased()
+    do {
+      if lower == "go home" || lower == "home" {
+        navigate(.space("home"))
+        return true
+      }
+      if lower == "back" {
+        back()
+        return true
+      }
+      if lower == "import files" || lower == "add files" {
+        importPanel()
+        return true
+      }
+      if lower == "link files" {
+        importPanel(linked: true)
+        return true
+      }
+      if lower == "make a shareable copy" || lower == "export workbook" {
+        exportPanel()
+        return true
+      }
+      if lower == "back to main" {
+        conversation = "main"
+        return true
+      }
+      if lower.hasPrefix("open "),
+        let space = spaces.first(where: { $0.title.lowercased() == String(lower.dropFirst(5)) })
+      {
+        navigate(.space(space.id))
+        return true
+      }
+      if ["accept this", "accept that"].contains(lower), case .item(let id) = route {
+        _ = try book.accept(id)
+        return true
+      }
+      if ["undo this", "undo that"].contains(lower), case .item(let id) = route {
+        _ = try book.undoItem(id)
+        return true
+      }
+      if lower == "include this", case .item(let id) = route {
+        run("Including original") { book, cancel in
+          _ = try book.includeLinked(id, cancellation: cancel)
+        }
+        return true
+      }
+      if lower.hasPrefix("accept ") {
+        let id = String(input.dropFirst(7))
+        _ = try book.accept(id)
+        _ = try book.addMessage(
+          "Accepted record \(id). Its meaning is unchanged.", role: "assistant",
+          conversation: conversation)
+        return true
+      }
+      if lower.hasPrefix("undo ") {
+        _ = try book.undoItem(String(input.dropFirst(5)))
+        return true
+      }
+      if lower.hasPrefix("chapter "), let message = messages.last {
+        try book.chapter(title: String(input.dropFirst(8)), message: message.id)
+        return true
+      }
+      if lower.hasPrefix("tangent "), let message = messages.last {
+        conversation = try book.tangent(
+          title: String(input.dropFirst(8)), parentMessage: message.id)
+        return true
+      }
+    } catch {
+      self.error = error.localizedDescription
+      return true
+    }
+    return false
+  }
+  func stop() {
+    cancellation.cancel()
+    status = "Stopping…"
+  }
+  func changeConversation(_ id: String) {
+    conversation = id
+    messageAnchor = nil
+    refresh()
+  }
+  func voice() {
+    if speech.active {
+      speech.stop()
+      return
+    }
+    speech.start { [weak self] text in
+      self?.prompt = text
+    } failure: { [weak self] error in
+      self?.error = error
+    }
+  }
+}

@@ -3,8 +3,10 @@
 A native Mac workbook for working with documents, tables and business information
 through conversation. Local AI, inspectable calculations, and files you own.
 
-**In development.** This repository starts with a reviewed specification and
-will record implemented features and verification as the first version is built.
+**Development preview.** The native app, shared core, CLI and real local-model
+integration are implemented. Release qualification is still in progress; see the
+[verification register](db/records/operations/implementation.md) for tested behavior
+and pending work.
 It is MIT licensed from the first commit. It is separate from Sevra Websites.
 
 Start with [the project knowledge map](db/records/overview/start-here.md),
@@ -15,3 +17,19 @@ The app uses SwiftUI, AppKit, SQLite and Slotstream (Swift/MLX/Metal). A workboo
 contains a database and ordinary asset files. The repository's `db/` is its
 independent [db.md](https://github.com/carloslfu/db.md) knowledge store, not the
 workbook storage format.
+
+## Try the development build
+
+Read [Build and run](db/records/operations/build-and-run.md) for prerequisites,
+installation, model setup, the synthetic example and uninstall.
+
+~~~sh
+git clone https://github.com/carloslfu/sevra-app.git
+cd sevra-app
+./scripts/build.sh
+./scripts/install.sh --no-build
+~~~
+
+Source builds require Apple Silicon, a recent Swift toolchain and initial
+network access for dependencies. Model weights are a separate optional setup.
+There is no hosted-model fallback or in-app telemetry.

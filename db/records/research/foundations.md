@@ -3,7 +3,7 @@ type: research
 meta-type: conclusion
 id: 01m5rbxzbx5q4atmjp4471w04d
 created: 2026-10-25T01:48:47.357164+00:00
-updated: 2026-10-25T01:48:47.357164+00:00
+updated: 2026-10-25T02:59:23.416227+00:00
 summary: Primary sources for SQLite retrieval/durability, native readers, on-device voice and current Slotstream integration.
 title: Foundation research
 ---
@@ -44,3 +44,10 @@ Speech language availability, actual model tool reliability, file-format coverag
 search corpus latency and app memory remain measurements to collect. An API's
 existence does not establish that a complete UX works. The reference machine is
 Apple Silicon with 48 GiB unified memory; published results must record chip and OS.
+
+## Native cancellation follow-up
+
+Apple documents [VNRequest.cancel()](https://developer.apple.com/documentation/vision/vnrequest/cancel%28%29)
+as cancellation before a request completes. Sevra monitors cancellation and its
+processing deadline during Vision OCR. Other parser deadlines are cooperative at
+bounded stages; an in-process PDFKit call is not a hard process-isolation boundary.

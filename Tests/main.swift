@@ -1,0 +1,570 @@
+import CoreText
+import Darwin
+import Foundation
+import ImageIO
+import SevraCore
+import ZIPFoundation
+
+setbuf(stdout, nil)
+
+var passed = 0
+var failed = 0
+func check(_ name: String, _ body: () throws -> Void) {
+  do {
+    try body()
+    passed += 1
+    print("PASS \(name)")
+  } catch {
+    failed += 1
+    print("FAIL \(name): \(error)")
+  }
+}
+func expect(_ condition: @autoclosure () throws -> Bool, _ message: String = "Expectation failed")
+  throws
+{ if try !condition() { throw SevraError("test", message) } }
+func refuses(_ code: String? = nil, _ body: () throws -> Void) throws {
+  do { try body() } catch {
+    if let code {
+      try expect((error as? SevraError)?.code == code, "Expected \(code), got \(error)")
+    }
+    return
+  }
+  throw SevraError("test", "Expected refusal")
+}
+let temp = FileManager.default.temporaryDirectory.appendingPathComponent(
+  "sevra-checks-" + identifier())
+try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
+defer { try? FileManager.default.removeItem(at: temp) }
+var book: Workbook!
+var source: Item!
+var movement: Item!
+var table: Dataset!
+var fileItem: Item!
+check("create/open canonical package") {
+  book = try Workbook.create(at: temp.appendingPathComponent("Shop.sevra"), title: "Shop")
+  try expect(book.title == "Shop")
+  try expect(try Workbook(book.url).revision() == 0)
+}
+guard book != nil else { exit(1) }
+check("decimal arithmetic and error propagation") {
+  try expect(try Numbers.calculate("0.1+0.2") == "0.3")
+  try expect(try Numbers.calculate("(2+3)*4-SUM(1,2)") == "17")
+  try expect(
+    try Numbers.calculate(
+      "[unit cost]*quantity", values: ["unit cost": .string("2.45"), "quantity": .string("3")])
+      == "7.35")
+  try refuses("division_by_zero") { _ = try Numbers.calculate("1/0") }
+  try refuses("missing_value") { _ = try Numbers.calculate("missing+1") }
+  try refuses { _ = try Numbers.calculate("system('ls')") }
+}
+check("source, lineage and current heads") {
+  source = try book.addItem(
+    category: "source", kind: "observation", title: "Opening count", text: "We counted 20 bolts.",
+    status: "accepted")
+  try book.setOpeningBalance(
+    subject: "bolts", quantity: "20", effective: "2026-01-01T00:00:00Z", sourceID: source.id)
+  let derived = try book.addItem(
+    category: "record", kind: "analysis", title: "Stock observation", text: "20 bolts",
+    inputs: [source.id])
+  try expect(try book.lineage(derived.id).count == 1)
+  try refuses("lineage") {
+    _ = try book.addItem(category: "record", kind: "analysis", title: "Unfounded")
+  }
+}
+check("draft has no inventory effect; acceptance applies once") {
+  let handover = try book.addItem(
+    category: "source", kind: "observation", title: "Handover", text: "Two bolts handed over.",
+    status: "accepted")
+  movement = try book.movement(
+    subject: "bolts", quantity: "-2", occurrence: "sale-1", effective: "2026-01-02T00:00:00Z",
+    input: handover.id)
+  try expect(try book.balance(subject: "bolts")["quantity"].text == "20")
+  movement = try book.accept(movement.id, token: "accept-1")
+  try expect(try book.balance(subject: "bolts")["quantity"].text == "18")
+}
+check("duplicate evidence cannot duplicate effect") {
+  try refuses("duplicate_effect") {
+    _ = try book.movement(
+      subject: "bolts", quantity: "-2", occurrence: "sale-1", effective: "2026-01-02T00:00:00Z",
+      input: source.id, status: "accepted")
+  }
+  try expect(try book.balance(subject: "bolts")["quantity"].text == "18")
+}
+check("accepted forecast remains estimate") {
+  let forecast = try book.movement(
+    subject: "bolts", quantity: "-100", occurrence: "forecast-1", effective: "2026-01-03T00:00:00Z",
+    input: source.id, meaning: "estimate")
+  let accepted = try book.accept(forecast.id)
+  try expect(accepted.meaning == "estimate" && accepted.status == "accepted")
+  try expect(try book.balance(subject: "bolts")["quantity"].text == "18")
+}
+check("correction supersedes rather than adds") {
+  let correction = try book.addItem(
+    category: "source", kind: "correction", title: "Handover correction",
+    text: "Only one bolt handed over.", status: "accepted")
+  movement = try book.movement(
+    subject: "bolts", quantity: "-1", occurrence: "sale-1", effective: "2026-01-02T00:00:00Z",
+    input: correction.id, status: "accepted", supersedes: movement.id)
+  try expect(try book.balance(subject: "bolts")["quantity"].text == "19")
+}
+check("unknown basis does not become zero") {
+  try refuses("unknown_basis") { _ = try book.balance(subject: "unknown") }
+}
+check("idempotency requires identical request") {
+  let a = try book.addItem(
+    category: "source", kind: "note", title: "Once", text: "same", token: "once")
+  let b = try book.addItem(
+    category: "source", kind: "note", title: "Once", text: "same", token: "once")
+  try expect(a.id == b.id)
+  try refuses("idempotency") {
+    _ = try book.addItem(category: "source", kind: "note", title: "Changed", token: "once")
+  }
+}
+check("stale concurrent revision rejected") {
+  let rev = try book.revision()
+  let second = try Workbook(book.url)
+  _ = try second.addItem(category: "source", kind: "note", title: "Concurrent writer")
+  try refuses("stale_revision") {
+    _ = try book.addItem(
+      category: "source", kind: "note", title: "Old state", expectedRevision: rev)
+  }
+}
+check("include file, extract, Unicode FTS and filename substring") {
+  let file = temp.appendingPathComponent("invoice-cafe-8324.txt")
+  try "Café shipment includes brass bolts and delivery costs.".write(
+    to: file, atomically: true, encoding: .utf8)
+  fileItem = try book.importFile(file)
+  try book.extract(fileItem.id)
+  try FileManager.default.removeItem(at: file)
+  try expect(try book.search("cafe bolts").hits.contains { $0.itemID == fileItem.id })
+  try expect(try book.search("8324").hits.contains { $0.itemID == fileItem.id })
+  try expect(try book.assetURL(fileItem.assetID!, verify: true).path.hasPrefix(book.url.path))
+}
+check("FTS escaping and empty queries") {
+  _ = try book.search("\" OR * - : [ ]")
+  try expect(try book.search("").hits.isEmpty)
+  try refuses("query_limit") { _ = try book.search(String(repeating: "x", count: 3000)) }
+}
+check("external references detect changed and missing bytes") {
+  let file = temp.appendingPathComponent("external.txt")
+  try "original".write(to: file, atomically: true, encoding: .utf8)
+  let linked = try book.importFile(file, linked: true)
+  _ = try book.assetURL(linked.assetID!)
+  try "changed".write(to: file, atomically: true, encoding: .utf8)
+  try refuses("changed_asset") { _ = try book.assetURL(linked.assetID!) }
+  try FileManager.default.removeItem(at: file)
+  try refuses("missing_asset") { _ = try book.assetURL(linked.assetID!) }
+}
+check("cancelled import creates no reference") {
+  let file = temp.appendingPathComponent("cancel.txt")
+  try "cancel".write(to: file, atomically: true, encoding: .utf8)
+  let before = try book.counts()
+  let cancel = Cancellation()
+  cancel.cancel()
+  try refuses("cancelled") { _ = try book.importFile(file, cancellation: cancel) }
+  try expect(try book.counts() == before)
+}
+check("CSV quoted newlines, escaped quotes and CRLF") {
+  let rows = try CSV.parse("name,note\r\nA,\"one\ntwo\"\r\nB,\"say \"\"yes\"\"\"\r\n")
+  try expect(rows.count == 3 && rows[1][1] == "one\ntwo" && rows[2][1] == "say \"yes\"")
+  try expect(try CSV.parse(CSV.encode(rows)) == rows)
+  try refuses("csv") { _ = try CSV.parse("a,\"unterminated") }
+}
+check("table values, formulas, edits, undo and reopen") {
+  table = try book.createDataset(
+    title: "Purchases",
+    columns: [
+      .init(id: "name", title: "Name"), .init(id: "quantity", title: "Quantity", type: "decimal"),
+      .init(id: "unit_cost", title: "Unit cost", type: "decimal"),
+      .init(id: "total", title: "Total", type: "decimal", formula: "quantity*unit_cost"),
+    ], rows: [["name": .string("Bolts"), "quantity": .string("3"), "unit_cost": .string("2.45")]],
+    sourceID: source.id)
+  let row = try book.rows(table.id)[0]
+  try expect(book.calculatedValues(row, columns: table.columns)["total"]?.text == "7.35")
+  var values = row.data.object
+  values["quantity"] = .string("4")
+  let edited = try book.editRow(row.id, values: values)
+  try expect(book.calculatedValues(edited, columns: table.columns)["total"]?.text == "9.8")
+  _ = try book.undoItem(edited.id)
+  try expect(try Workbook(book.url).rows(table.id)[0].data["quantity"].text == "3")
+}
+check("native space validation and persistence") {
+  let id = try book.saveSpace(
+    title: "Purchases",
+    definition: .init(components: [
+      .init(type: "table", title: "Purchases", datasetID: table.id),
+      .init(type: "chart", title: "Cost", datasetID: table.id, x: "name", y: "total"),
+    ]))
+  try expect(try Workbook(book.url).spaces().contains { $0.id == id })
+  try refuses("view") {
+    _ = try book.saveSpace(
+      title: "Unsafe", definition: .init(components: [.init(type: "javascript", title: "Code")]))
+  }
+}
+check("main conversation, chapter, tangent and bookmark") {
+  let id = try book.addMessage("Plan purchasing", role: "user")
+  try book.chapter(title: "Purchasing", message: id)
+  try book.chapter(title: "Useful question", message: id, bookmark: true)
+  let tangent = try book.tangent(title: "Hiring", parentMessage: id)
+  _ = try book.addMessage("Hypothetical discussion", role: "user", conversation: tangent)
+  try expect(try book.messages().count == 1)
+  try expect(try book.messages(conversation: tangent).count == 1)
+}
+
+check("undo acceptance withdraws effect; later draft does not erase accepted state") {
+  let b = try Workbook.create(at: temp.appendingPathComponent("Undo.sevra"), title: "Undo")
+  let s = try b.addItem(category: "source", kind: "observation", title: "Count", status: "accepted")
+  try b.setOpeningBalance(subject: "stock", quantity: "20", effective: "2026-01-01", sourceID: s.id)
+  let draft = try b.movement(
+    subject: "stock", quantity: "-2", occurrence: "one", effective: "2026-01-02", input: s.id)
+  let accepted = try b.accept(draft.id)
+  _ = try b.undoItem(accepted.id)
+  try expect(try b.balance(subject: "stock")["quantity"].text == "20")
+  let second = try b.movement(
+    subject: "stock", quantity: "-2", occurrence: "two", effective: "2026-01-03", input: s.id,
+    status: "accepted")
+  _ = try b.movement(
+    subject: "stock", quantity: "-1", occurrence: "two", effective: "2026-01-03", input: s.id,
+    supersedes: second.id)
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  _ = try b.movement(
+    subject: "stock", quantity: "-2", occurrence: "three", effective: "2026-01-04", input: s.id,
+    status: "accepted")
+  try expect(try b.balance(subject: "stock")["quantity"].text == "16")
+  try refuses("date") {
+    _ = try b.movement(
+      subject: "stock", quantity: "1", occurrence: "bad-date", effective: "tomorrow", input: s.id)
+  }
+  try expect(
+    try BusinessTime.normalized("2026-01-01T19:00:00-05:00")
+      == BusinessTime.normalized("2026-01-02"))
+}
+check("atomic paste, typed validation, one-step undo and redo") {
+  let t = try book.createDataset(
+    title: "Paste",
+    columns: [
+      .init(id: "name", title: "Name"), .init(id: "price", title: "Price", type: "decimal"),
+    ],
+    rows: [
+      ["name": .string("A"), "price": .string("10")],
+      ["name": .string("B"), "price": .string("2")],
+    ], sourceID: source.id)
+  let rows = try book.rows(t.id)
+  let rev = try book.revision()
+  try refuses("number") {
+    _ = try book.editRows(
+      t.id,
+      edits: [
+        .init(id: rows[0].id, values: ["name": .string("changed"), "price": .string("12")]),
+        .init(id: rows[1].id, values: ["price": .string("wrong")]),
+      ])
+  }
+  try expect(try book.revision() == rev)
+  try expect(try book.rows(t.id)[0].data["name"].text == "A")
+  let change = try book.editRows(
+    t.id,
+    edits: [
+      .init(id: rows[0].id, values: ["name": .string("changed"), "price": .string("12")]),
+      .init(id: rows[1].id, values: ["name": .string("second"), "price": .string("3")]),
+    ])
+  try expect(try book.rows(t.id, query: "changed").count == 1)
+  try expect(try book.rows(t.id, sort: "price")[0].data["price"].text == "3")
+  let inverse = try book.undoTableChange(change.id)
+  try expect(try book.rows(t.id)[0].data["name"].text == "A")
+  _ = try book.undoTableChange(inverse.id)
+  try expect(try book.rows(t.id)[0].data["name"].text == "changed")
+  try refuses("stale_revision") { _ = try book.undoTableChange(change.id) }
+}
+check("include linked evidence preserves indexed content and original history") {
+  let file = temp.appendingPathComponent("include-linked.txt")
+  try "Copper washers SKU-X94".write(to: file, atomically: true, encoding: .utf8)
+  let linked = try book.importFile(file, linked: true)
+  try book.extract(linked.id)
+  let included = try book.includeLinked(linked.id)
+  try FileManager.default.removeItem(at: file)
+  try expect(try book.asset(included.assetID!).mode == "included")
+  try expect(try book.search("copper").hits.contains { $0.itemID == included.id })
+  try expect(included.supersedes == linked.id)
+}
+check("cancelled extraction retains the last usable index") {
+  let c = Cancellation()
+  c.cancel()
+  try refuses("cancelled") { try book.extract(fileItem.id, cancellation: c) }
+  try expect(try book.search("brass").hits.contains { $0.itemID == fileItem.id })
+  try expect(try book.extractionStatus(fileItem.id)["state"].text == "partial")
+}
+check("XLSX shared strings, inline text, sparse cells, dates and cached formulas") {
+  let path = temp.appendingPathComponent("sample.xlsx")
+  let archive = try Archive(url: path, accessMode: .create)
+  let parts = [
+    "xl/workbook.xml":
+      #"<workbook xmlns:r="r"><workbookPr date1904="0"/><sheets><sheet name="Orders" r:id="rId1"/></sheets></workbook>"#,
+    "xl/_rels/workbook.xml.rels":
+      #"<Relationships><Relationship Id="rId1" Type="x/worksheet" Target="worksheets/sheet1.xml"/></Relationships>"#,
+    "xl/sharedStrings.xml":
+      #"<sst><si><t>Café parts</t></si><si><r><t>Brass</t></r><r><t> bolts</t></r></si></sst>"#,
+    "xl/styles.xml":
+      #"<styleSheet><cellXfs><xf numFmtId="0"/><xf numFmtId="14"/></cellXfs></styleSheet>"#,
+    "xl/worksheets/sheet1.xml":
+      #"<worksheet><sheetData><row r="1"><c r="A1" t="s"><v>0</v></c><c r="C1" t="inlineStr"><is><t>Quantity</t></is></c></row><row r="3"><c r="A3" t="s"><v>1</v></c><c r="B3" s="1"><v>61</v></c><c r="C3"><v>2</v></c><c r="D3"><f>C3*3</f><v>6</v></c></row></sheetData></worksheet>"#,
+  ]
+  for (name, text) in parts {
+    let bytes = Data(text.utf8)
+    try archive.addEntry(
+      with: name, type: .file, uncompressedSize: Int64(bytes.count),
+      provider: { position, count in bytes.subdata(in: Int(position)..<Int(position) + count) })
+  }
+  let sheets = try XLSX.read(path)
+  try expect(sheets.count == 1 && sheets[0].rows[0] == ["Café parts", "", "Quantity"])
+  try expect(sheets[0].rows[1] == ["Brass bolts", "1900-03-01T00:00:00Z", "2", "6"])
+  try expect(sheets[0].rowNumbers == [1, 3] && sheets[0].formulas["D3"] == "C3*3")
+  let item = try book.importFile(path)
+  try book.extract(item.id)
+  let tables = try book.importXLSX(item.id)
+  try expect(tables.count == 1 && tables[0].rowCount == 2)
+  try expect(try book.search("cafe").hits.contains { $0.itemID == item.id })
+}
+check("package metadata symlinks are refused before opening SQLite") {
+  let folder = temp.appendingPathComponent("Symlink.sevra")
+  try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+  try FileManager.default.createSymbolicLink(
+    at: folder.appendingPathComponent("manifest.json"),
+    withDestinationURL: book.url.appendingPathComponent("manifest.json"))
+  try refuses("package_path") { _ = try Workbook(folder) }
+}
+
+check("rebuild search preserves results") {
+  let hits = try book.search("brass").hits
+  try book.rebuildSearch()
+  try expect(try book.search("brass").hits.map(\.itemID) == hits.map(\.itemID))
+}
+check("coherent export and reopen with included bytes") {
+  let archive = temp.appendingPathComponent("Shop.sevraz")
+  try book.export(to: archive)
+  let reopened = try Workbook.openArchive(archive, at: temp.appendingPathComponent("Shared.sevra"))
+  try expect(try reopened.balance(subject: "bolts")["quantity"].text == "19")
+  try expect(try reopened.search("brass").hits.count > 0)
+  _ = try reopened.assetURL(fileItem.assetID!, verify: true)
+}
+check("archive expansion budget") {
+  try refuses("archive_limit") {
+    _ = try Workbook.openArchive(
+      temp.appendingPathComponent("Shop.sevraz"), at: temp.appendingPathComponent("TooSmall.sevra"),
+      maxBytes: 10)
+  }
+}
+check("reject unexpected schema before writes") {
+  let bad = temp.appendingPathComponent("bad.sevra")
+  try FileManager.default.copyItem(at: book.url, to: bad)
+  let process = Process()
+  process.executableURL = URL(fileURLWithPath: "/usr/bin/sqlite3")
+  process.arguments = [
+    bad.appendingPathComponent("workbook.sqlite").path, "CREATE TABLE unexpected(secret TEXT);",
+  ]
+  try process.run()
+  process.waitUntilExit()
+  try refuses("schema") { _ = try Workbook(bad) }
+}
+
+check("conditional formulas are lazy, ranges resolve and rounding is explicit") {
+  try expect(try Numbers.calculate("IF(2>1,ROUND(2.455,2),1/0)") == "2.46")
+  try expect(try Numbers.calculate("IF(0,missing,7)") == "7")
+  try refuses("precision") { _ = try Numbers.decimal("1.123456789012345678901234567890123456789") }
+  let t = try book.createDataset(
+    title: "Cell references",
+    columns: [
+      .init(id: "a", title: "A", type: "decimal"),
+      .init(id: "b", title: "B", type: "decimal", formula: "A1+A2"),
+    ], rows: [["a": .string("2")], ["a": .string("3")]], sourceID: source.id)
+  try expect(try book.cellValue(t.id, address: "B1") == "5")
+  try expect(
+    try Numbers.calculate(
+      "SUM(A1:A2)", resolve: { try Numbers.decimal(book.cellValue(t.id, address: $0)) }) == "5")
+  try book.setColumns(
+    t.id,
+    columns: [
+      .init(id: "a", title: "A", type: "decimal", formula: "B1"),
+      .init(id: "b", title: "B", type: "decimal", formula: "A1"),
+    ])
+  try refuses("formula_cycle") { _ = try book.cellValue(t.id, address: "A1") }
+}
+check("search deduplicates chunks, paginates and rejects a stale cursor") {
+  let s = try book.addItem(
+    category: "source", kind: "note", title: "Pagination source",
+    text: String(repeating: "pagination needle ", count: 500))
+  let second = try book.addItem(
+    category: "source", kind: "note", title: "Pagination second", text: "pagination needle")
+  let first = try book.search("pagination", limit: 1)
+  try expect(first.hits.count == 1 && first.nextCursor != nil)
+  let next = try book.search("pagination", limit: 1, cursor: first.nextCursor)
+  try expect(
+    next.hits.count == 1 && next.hits[0].itemID != first.hits[0].itemID && next.nextCursor == nil)
+  try expect(Set([first.hits[0].itemID, next.hits[0].itemID]) == Set([s.id, second.id]))
+  _ = try book.addItem(category: "source", kind: "note", title: "Another source")
+  try refuses("stale_cursor") { _ = try book.search("pagination", cursor: first.nextCursor) }
+}
+
+check("supplier comparison uses the expensive quote as its percentage denominator") {
+  let t = try book.createDataset(
+    title: "Prices",
+    columns: [
+      .init(id: "name", title: "Name"), .init(id: "price", title: "Price", type: "decimal"),
+    ],
+    rows: [
+      ["name": .string("Oak"), "price": .string("24")],
+      ["name": .string("Cedar"), "price": .string("27.5")],
+    ], sourceID: source.id)
+  let comparison = try book.compareRows(t.id, labelColumn: "name", valueColumn: "price")
+  try expect(comparison["minimum"]["label"].text == "Oak")
+  try expect(comparison["difference"].text == "3.5")
+  try expect(comparison["percentageDenominator"].text == "27.5")
+  try expect(comparison["percentCheaper"].text.hasPrefix("12.727272"))
+  try expect(comparison["inputs"].array.count == 2)
+}
+check("CSV export preserves calculated values and quoted multiline cells") {
+  let t = try book.createDataset(
+    title: "Export",
+    columns: [
+      .init(id: "name", title: "Name"), .init(id: "price", title: "Price", type: "decimal"),
+      .init(id: "total", title: "Total", type: "decimal", formula: "B1+B2"),
+    ],
+    rows: [
+      ["name": .string("A, \"quoted\"\nname"), "price": .string("2.4")],
+      ["name": .string("B"), "price": .string("2.75")],
+    ], sourceID: source.id)
+  let csv = temp.appendingPathComponent("calculated.csv")
+  try book.exportCSV(t.id, to: csv)
+  let rows = try CSV.parse(String(contentsOf: csv, encoding: .utf8))
+  try expect(rows.count == 3 && rows[1][0] == "A, \"quoted\"\nname")
+  try expect(rows[1][2] == "5.15" && rows[2][2] == "5.15")
+  try refuses("exists") { try book.exportCSV(t.id, to: csv) }
+}
+
+check("live metric changes while a pinned result preserves values and evidence") {
+  let t = try book.createDataset(
+    title: "Metric", columns: [.init(id: "value", title: "Value", type: "decimal", unit: "kg")],
+    rows: [["value": .string("2")], ["value": .string("3")]], sourceID: source.id)
+  let c = Component(
+    type: "metric", title: "Weight", datasetID: t.id, y: "value", aggregation: "SUM")
+  let space = try book.saveSpace(title: "Live", definition: .init(components: [c]))
+  let pinnedID = try book.pinSpace(space)
+  let pinned = try book.spaces().first { $0.id == pinnedID }!.definition.components[0]
+  let first = try book.rows(t.id)[0]
+  _ = try book.editRow(first.id, values: ["value": .string("7")])
+  try expect(try book.componentMetric(c, data: book.componentData(c)) == "10")
+  try expect(try book.componentMetric(pinned, data: book.componentData(pinned)) == "5")
+  try expect(pinned.snapshot?.rows[0].id == first.id)
+  try expect(pinned.snapshot?.columns[0].unit == "kg")
+}
+check("column type changes validate existing data and formula history restores") {
+  let t = try book.createDataset(
+    title: "Types",
+    columns: [.init(id: "name", title: "Name"), .init(id: "n", title: "Number", type: "decimal")],
+    rows: [["name": .string("Oak"), "n": .string("2")]], sourceID: source.id)
+  try refuses {
+    try book.setColumns(
+      t.id,
+      columns: [
+        .init(id: "name", title: "Name", type: "decimal"),
+        .init(id: "n", title: "Number", type: "decimal"),
+      ])
+  }
+  try book.setColumns(
+    t.id,
+    columns: [
+      .init(id: "name", title: "Name"),
+      .init(id: "n", title: "Number", type: "decimal", formula: "2+3"),
+    ])
+  try expect(try book.columnHistory(t.id).count == 2)
+  try book.restoreColumns(t.id, version: 1)
+  try expect(try book.dataset(t.id).columns[1].formula == nil)
+}
+check("structured import resumes committed batches without duplicating rows") {
+  let s = try book.addItem(category: "source", kind: "fixture", title: "Resumable intake")
+  let data = (0..<2500).map { ["n": Value.string(String($0))] }
+  let columns = [Column(id: "n", title: "N", type: "decimal")]
+  let cancel = Cancellation()
+  try refuses("cancelled") {
+    _ = try book.importDataset(
+      title: "Resumable", columns: columns, rows: data, sourceID: s.id, cancellation: cancel,
+      progress: { done, _ in if done == 1000 { cancel.cancel() } })
+  }
+  let partial = try book.intakeStatus().first { $0["sourceID"].text == s.id }!
+  try expect(partial["completed"].int == 1000 && partial["state"].text == "partial")
+  let resumed = try book.importDataset(
+    title: "Resumable", columns: columns, rows: data, sourceID: s.id)
+  let retried = try book.importDataset(
+    title: "Resumable", columns: columns, rows: data, sourceID: s.id)
+  try expect(resumed.rowCount == 2500 && resumed.id == retried.id && retried.rowCount == 2500)
+}
+check("copy cancellation and extraction deadlines leave the workbook usable") {
+  let file = temp.appendingPathComponent("cancel-large.bin")
+  try Data(repeating: 42, count: 4_000_000).write(to: file)
+  let cancel = Cancellation()
+  let before = try book.items(limit: 500).count
+  try refuses("cancelled") {
+    _ = try book.importFile(file, cancellation: cancel, progress: { _, _ in cancel.cancel() })
+  }
+  try expect(try book.items(limit: 500).count == before)
+  try expect(
+    try FileManager.default.contentsOfDirectory(
+      atPath: book.url.appendingPathComponent("staging").path
+    ).isEmpty)
+  try refuses("deadline") {
+    _ = try Extractor.extract(file, cancellation: Cancellation(deadlineAfterSeconds: 0))
+  }
+}
+check("native PDF text and image OCR create searchable exact source locators") {
+  func draw(_ context: CGContext) {
+    context.setFillColor(CGColor(gray: 1, alpha: 1))
+    context.fill(CGRect(x: 0, y: 0, width: 1000, height: 300))
+    context.textPosition = CGPoint(x: 40, y: 150)
+    let line = CTLineCreateWithAttributedString(
+      NSAttributedString(
+        string: "INVOICE BRASS 1042",
+        attributes: [
+          NSAttributedString.Key(kCTFontAttributeName as String): CTFontCreateWithName(
+            "Helvetica" as CFString, 48, nil),
+          NSAttributedString.Key(kCTForegroundColorAttributeName as String): CGColor(
+            gray: 0, alpha: 1),
+        ]))
+    CTLineDraw(line, context)
+  }
+  let pdf = temp.appendingPathComponent("invoice.pdf")
+  var box = CGRect(x: 0, y: 0, width: 1000, height: 300)
+  let context = CGContext(pdf as CFURL, mediaBox: &box, nil)!
+  context.beginPDFPage(nil)
+  draw(context)
+  context.endPDFPage()
+  context.closePDF()
+  let pdfSource = try book.importFile(pdf)
+  try book.extract(pdfSource.id)
+  let bitmap = CGContext(
+    data: nil, width: 1000, height: 300, bitsPerComponent: 8, bytesPerRow: 4000,
+    space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+  draw(bitmap)
+  let png = temp.appendingPathComponent("receipt.png")
+  let destination = CGImageDestinationCreateWithURL(png as CFURL, "public.png" as CFString, 1, nil)!
+  CGImageDestinationAddImage(destination, bitmap.makeImage()!, nil)
+  try expect(CGImageDestinationFinalize(destination))
+  let imageSource = try book.importFile(png)
+  try book.extract(imageSource.id)
+  let hits = try book.search("invoice brass").hits
+  try expect(hits.contains { $0.itemID == pdfSource.id && $0.locator.contains("page=1") })
+  try expect(hits.contains { $0.itemID == imageSource.id && $0.locator.contains("image") })
+}
+check("archive traversal entries cannot escape their destination") {
+  let file = temp.appendingPathComponent("hostile.sevraz")
+  let archive = try Archive(url: file, accessMode: .create)
+  try archive.addEntry(
+    with: "../escaped.txt", type: .file, uncompressedSize: Int64(3), provider: { _, _ in Data("bad".utf8) }
+  )
+  try refuses {
+    _ = try Workbook.openArchive(file, at: temp.appendingPathComponent("Hostile.sevra"))
+  }
+  try expect(
+    !FileManager.default.fileExists(atPath: temp.appendingPathComponent("escaped.txt").path))
+}
+
+print("\(passed) passed; \(failed) failed")
+exit(failed == 0 ? 0 : 1)

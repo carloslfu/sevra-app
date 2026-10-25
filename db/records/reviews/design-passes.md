@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-25T01:48:47.371698+00:00
+updated: 2026-10-25T02:59:23.400315+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -59,3 +59,26 @@ Specification revision 1 is ready for implementation, with measured acceptance
 pending. Further passes occur after core tests, real-model evaluation and rendered
 UI inspection. Failures change the implementation/spec and remain in verification
 history; they must not be hidden by reducing the requirements retroactively.
+
+## Implementation review: observed failures and corrections
+
+The first model view task repeatedly omitted a chart dataset binding. Native typed
+tools replaced the initial JSON-in-text protocol and the view was created in a real
+run. That run then invented currency and used the wrong percentage denominator.
+A deterministic comparison tool and finish validation now address those specific
+failures. Another process currently owns Slotstream; the corrected model workflow
+still requires a successful repeat before qualification. These checks are not a
+proof that arbitrary model statements are correct.
+
+A synthetic 4.3 GB archive round trip initially peaked above 8 GB resident memory.
+Streaming alone did not bound Objective-C temporary buffers. Per-chunk autorelease
+pools reduced the repeated measured peak below 40 MB. ZIP64 export, reopen and
+hash verification passed. This is a synthetic sparse-file fixture, not a media
+playback or SSD throughput benchmark.
+
+Further review added coherent pinned values plus exact inputs, unknown/error
+handling in charts and metrics, validation before changing existing column types,
+formula history, resumable 1,000-row intake batches, checksums for Office parts,
+cooperative extraction deadlines, Vision request cancellation, search paging and
+facets, and explicit linked-file recovery. Native interaction qualification remains
+separate from compilation and core tests.

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-25T01:48:47.259629+00:00
+updated: 2026-10-25T02:34:12.654922+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -35,3 +35,5 @@ an independent engine and product; this app consumes its public library.
 All examples and test data are synthetic. No dependency on the founder's private
 brain is required. The product design is adopted from the owner's conversation;
 concrete engineering choices are implementer decisions, open to measured revision.
+
+[[records/operations/build-and-run]]

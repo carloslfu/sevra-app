@@ -1,0 +1,41 @@
+name: Checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select current Xcode
+        run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+      - name: Check documentation links
+        run: python3 scripts/check_links.py
+      - name: Build core checks
+        run: swift build --product sevra-checks -j 3
+      - name: Run invariant and integration checks
+        run: .build/debug/sevra-checks
+      - name: Validate independent knowledge store
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/dbmd"
+          cd "$RUNNER_TEMP/dbmd"
+          ARCH=$(uname -m)
+          if [ "$ARCH" = arm64 ]; then ARCH=aarch64; fi
+          ASSET="dbmd-0.14.7-darwin-$ARCH.tar.gz"
+          gh release download v0.14.7 --repo carloslfu/db.md --pattern "$ASSET" --pattern SHA256SUMS
+          awk -v name="$ASSET" '$2 == name { print }' SHA256SUMS > selected.sha256
+          test -s selected.sha256
+          shasum -a 256 -c selected.sha256
+          tar -xzf "$ASSET"
+          ./dbmd validate --all "$GITHUB_WORKSPACE/db" --json
+      - name: Build native app and CLI
+        env:
+          SEVRA_BUILD_JOBS: 3
+        run: ./scripts/build.sh
+      - name: Exercise packaged CLI and installation
+        run: |
+          python3 scripts/check_install.py
+          python3 scripts/check_concurrency.py
+          python3 scripts/check_urls.py

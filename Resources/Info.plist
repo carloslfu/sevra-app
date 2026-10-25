@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>com.sevra.workbooks</string>
+<key>CFBundleName</key><string>Sevra</string>
+<key>CFBundleDisplayName</key><string>Sevra</string>
+<key>CFBundleExecutable</key><string>Sevra</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleShortVersionString</key><string>0.1.0</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>LSMinimumSystemVersion</key><string>14.0</string>
+<key>NSHighResolutionCapable</key><true/>
+<key>NSMicrophoneUsageDescription</key><string>Sevra uses your microphone for on-device dictation when you choose to speak.</string>
+<key>NSSpeechRecognitionUsageDescription</key><string>Sevra converts speech to text on this Mac. Dictated text is sent only when you choose Send.</string>
+<key>CFBundleDocumentTypes</key><array><dict><key>CFBundleTypeName</key><string>Sevra Workbook</string><key>CFBundleTypeRole</key><string>Editor</string><key>LSItemContentTypes</key><array><string>com.sevra.workbook</string></array><key>LSTypeIsPackage</key><true/></dict><dict><key>CFBundleTypeName</key><string>Portable Sevra Workbook</string><key>CFBundleTypeRole</key><string>Editor</string><key>LSItemContentTypes</key><array><string>com.sevra.workbook.archive</string></array></dict></array>
+<key>UTExportedTypeDeclarations</key><array>
+<dict><key>UTTypeIdentifier</key><string>com.sevra.workbook</string><key>UTTypeDescription</key><string>Sevra Workbook</string><key>UTTypeConformsTo</key><array><string>com.apple.package</string></array><key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>sevra</string></array></dict></dict>
+<dict><key>UTTypeIdentifier</key><string>com.sevra.workbook.archive</string><key>UTTypeDescription</key><string>Portable Sevra Workbook</string><key>UTTypeConformsTo</key><array><string>public.zip-archive</string></array><key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>sevraz</string></array></dict></dict>
+</array>
+</dict></plist>
