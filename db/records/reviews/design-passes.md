@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-25T03:05:15.050363+00:00
+updated: 2026-10-25T03:27:49.843890+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -88,3 +88,20 @@ column definition could serialize differently and be rejected as a changed retry
 Serialized column/view definitions now use canonical sorted-key JSON. A real
 cross-process intake retry test passes, along with 40 core checks. Search reads
 now use a coherent read transaction and SQLite progress deadlines/cancellation.
+
+## Acceptance, recovery and packaging pass
+
+Table proposals leave accepted cells unchanged until review. Acceptance applies
+all rows in one transaction; stale row versions roll back the entire operation.
+The first undo implementation lost its inverse table-change identity. Repeated
+undo/redo now retains each inverse and tests cover conflicting edits and retries.
+
+Failed URL retrieval preserves an explicit failed reference with no fabricated
+asset or searchable content. Sensitive query fields are redacted in captured and
+explicit-link metadata. Cancellation and invalid schemes do not create a source.
+
+The standard sealed app layout rejects resource bundles at its root. Preserve
+Contents/Resources, require the Fast pack's explicit tokenizer class, and test
+packaged resources independently of the build tree. Do not claim generic upstream
+tokenizer fallback support. CI's dbmd download extracts into a versioned directory;
+its validation command now uses that actual path.

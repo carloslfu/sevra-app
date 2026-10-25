@@ -28,14 +28,19 @@ try:
         captured=run('capture-url',book,base+'/redirect')['result']
         assert captured['assetID']
         assert run('search',book,'brass invoice')['result']['hits']
-        run('capture-url',book,base+'/loop',success=False)
-        run('capture-url',book,base+'/auth',success=False)
+        loop=run('capture-url',book,base+'/loop')['result']
+        auth=run('capture-url',book,base+'/auth')['result']
+        assert loop['data']['captureState']=='failed' and auth['data']['captureState']=='failed'
+        assert not auth.get('assetID') and 'No file was captured' in auth['text']
+        assert run('read',book,auth['id'])['result']['extraction']['state']=='failed'
+        linked=run('link-url',book,base+'/auth?token=private-fixture-token')['result']
+        assert 'private-fixture-token' not in json.dumps(linked)
         run('capture-url',book,'file:///etc/passwd',success=False)
         # Query only synthetic metadata created by this test.
         import sqlite3
         database=sqlite3.connect(book/'workbook.sqlite')
         origins=database.execute('SELECT origin FROM assets').fetchall();database.close()
         assert len(origins)==1 and 'private-fixture-token' not in origins[0][0] and 'REDACTED' in origins[0][0]
-        print(json.dumps({'redirectCaptured':True,'contentIndexed':True,'redirectLoopRefused':True,'accessFailureVisible':True,'nonHTTPRefused':True,'originCredentialRedacted':True}))
+        print(json.dumps({'redirectCaptured':True,'contentIndexed':True,'redirectLoopRefused':True,'accessFailureVisible':True,'failedReferencePreserved':True,'nonHTTPRefused':True,'originCredentialRedacted':True}))
 finally:
     server.shutdown();server.server_close()

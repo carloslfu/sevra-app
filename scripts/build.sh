@@ -20,7 +20,7 @@ cp "$METAL" "$ROOT/output/bin/mlx.metallib"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 for bundle in "$BIN/"*.bundle; do
   [ -d "$bundle" ] || continue
-  # Privacy resource bundles use the standard macOS resource location.
+  # All app resources stay in the standard sealed macOS resource location.
   ditto "$bundle" "$APP/Contents/Resources/$(basename "$bundle")"
   ditto "$bundle" "$ROOT/output/bin/$(basename "$bundle")"
 done

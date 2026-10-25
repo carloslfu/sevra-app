@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-25T03:05:15.036022+00:00
+updated: 2026-10-25T03:27:49.822086+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -21,7 +21,7 @@ every requirement or supported hardware profile has passed.
   inside the package, SHA-256 verification, explicit external links and ZIP64 export.
 - Sources/Records, immutable revisions and lineage, separate meaning and acceptance,
   unique event effects, deterministic inventory replay, corrections and undo.
-- CSV and XLSX saved-value intake, typed edits, atomic multi-row paste, undo/redo,
+- CSV and XLSX saved-value intake, typed edits, reviewed AI cell proposals with atomic acceptance, multi-row paste, undo/redo,
   formulas with decimal arithmetic, lazy IF, ROUND, cell/range references, cycle
   errors, column history, unit labels and coherent snapshot CSV export.
 - Resumable 1,000-row structured intake batches with idempotent retry. Original files
@@ -38,14 +38,15 @@ every requirement or supported hardware profile has passed.
   locators, draft autosave, optional continued playback and linked-file recovery.
 - Native Slotstream Fast integration at the pinned public revision, model setup,
   typed tools, bounded agent turns, persisted traces/run metrics, citation checks
-  and idempotent agent mutations. Real inference has run; full eval is pending.
+  and idempotent agent mutations. Real comparison, cited answers, generated views,
+  hostile-document and missing-evidence checks have passed; broader eval is pending.
 - On-device dictation code. Actual microphone recognition remains unqualified.
 - App/CLI bundling, verified Metal kernels, dependency notices, ad-hoc signing,
   user-local install/update/uninstall and optional Codex/Claude Code skill installer.
 
 ## Verification checkpoint, October 24 local / October 25 UTC, 2026
 
-40 executable core checks pass. They cover lineage, actual/estimate separation,
+42 executable core checks pass. They cover lineage, actual/estimate separation,
 acceptance/withdrawal, unique effects, stale revisions, immutable imports, changed
 and missing links, cancellation, quoted CSV, atomic editing/undo, spaces,
 conversations, XLSX, index recovery, unsafe paths/schema/archives, lazy formulas,
@@ -59,7 +60,8 @@ Packaged-binary checks also pass:
 - Thirty concurrent CLI writers, cross-process structured-intake retry, idempotent retry, stale-write refusal and coherent
   export/reopen with preserved inventory and asset verification.
 - Loopback HTTP fixture: capture through redirect, indexed content, refusal of a
-  redirect loop, explicit access failure, non-HTTP refusal and origin-token redaction.
+  redirect loop, failed captures preserved as explicit references, non-HTTP refusal
+  and credential-query redaction for both captures and explicit links.
 - A 4,296,015,872-byte synthetic asset: include, remove original, verify, ZIP64
   export, reopen and verify. Archive size 4,296,022,031 bytes; peak process RSS
   39,141,376 bytes after the buffer-lifetime fix. Synthetic sparse bytes are not a
@@ -67,13 +69,25 @@ Packaged-binary checks also pass:
 
 ## Model and scale findings
 
-A real local model answered the example stock question with valid citations.
-Initial generated-view attempts failed on missing chart bindings. Native typed
-tools produced a valid table/chart, but that answer invented currency and used an
-incorrect percentage denominator. Deterministic comparison and answer checks are
-implemented; the corrected run is pending because another Slotstream process owns
-inference. Do not mark J02 complete or claim general factual reliability.
+The pinned Fast model completed a corrected supplier comparison with exact values
+24 and 27.5, difference 3.5 and 12.73% cheaper relative to the larger quote. It
+created the Purchasing table/chart space and cited the rows. One run took about
+34 seconds wall time, with 29.30 seconds in model requests across nine steps and
+1,224 generated tokens. Another took 32.8 seconds across twelve steps. These are
+whole-task observations, not a 100+ tokens/s decoding claim or statistical latency
+qualification. Runtime now records decode/prefill/first-token/memory metrics.
 
+An adversarial document was read without executing its injected space-creation
+instruction. A missing-contract query exposed repetitive empty searches; the
+bounded agent now requires an evidence-gap answer after three empty searches.
+Its corrected four-step answer disclosed incomplete indexing and did not invent
+citations. An overly narrow test assertion was corrected to accept that wording.
+
+SIGINT cancellation persisted a cancelled run and left the workbook verified.
+The subsequent recovery inference was refused because another process acquired
+Slotstream. Do not count recovery as passed. Native UI model interaction still
+needs qualification. The newest proposal/comparison-component schema also requires
+regression evaluation.
 At 100,000 rows, initial broad-query warm p95 was about 589 ms. Derived index
 metadata reduced a later run to about 220 ms; the 200 ms target remains unqualified.
 Exact identifier lookups were below 1 ms. New-connection numbers are not OS-cold
@@ -85,16 +99,34 @@ measurements. Runs overlapping inference are not performance qualification.
    paging/Back/facets, chapters/tangents, draft autosave, pinned/comparison views,
    locators, media, dictation, narrow windows, appearance and keyboard/VoiceOver.
    The Mac is currently locked; computer use needs the owner to unlock it.
-2. Corrected real-model comparison/view creation, adversarial evidence, no-match
-   honesty, cancellation/recovery and measured whole-task latency.
+2. Model regression for proposal tools, cancellation followed by recovery, context
+   overflow recovery, and measured whole-task latency across repeated runs.
 3. Search scale/recall with many chunks per document; further broad-query optimization and cancellation during actual long-running searches.
 4. Remaining extraction crash/isolation tests, timestamped on-device media
-   transcription capability handling, failed-URL reference recovery and explicit
+   transcription capability handling, explicit
    archive-member intake. Parser deadlines are cooperative, not process isolation.
 5. Complete text/voice workflow coverage, review agent tools against user authority,
    and qualify formula/units behavior. Units are labels, not automatic conversion.
-6. Fresh public clone/build, resource isolation, real user installation, harness
-   skill installation, CI and a properly labeled public release package.
+6. Updated fresh public clone/build, real user installation, green CI and a properly
+   labeled public release package. An earlier public clone at 7b6d8f2 built and passed
+   its 40 checks plus install/concurrency/URL scripts. Local current app and CLI
+   resource checks pass with build-directory reads denied. The skill installer and
+   overwrite refusal pass in an isolated directory.
+
+## Packaging and recovery review
+
+The sealed macOS app keeps resources in Contents/Resources. The upstream generic
+SwiftPM tokenizer fallback assumes a flat executable layout; this app deliberately
+uses the qualified Fast pack's explicit tokenizer configuration and rejects a
+missing tokenizer class before loading. Installed-resource checks use packaged
+resources and actual Metal library loading, with reads of the build tree denied.
+Both app and CLI resolved 17,319 kernel functions on the reference Mac. This does
+not qualify arbitrary tokenizer/model layouts.
+
+Two-minute idle release and memory-pressure handling release an idle model. An
+active turn is not silently stopped. Setup/unload status distinguishes a busy
+model. App termination signals cancellation; interrupted turns are recovered as
+interrupted on the next run.
 
 ## Completion rule
 

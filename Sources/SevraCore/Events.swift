@@ -92,8 +92,19 @@ extension Workbook {
         text: "The user accepted this interpretation.", data: .object(["record": .string(id)]),
         meaning: "actual", status: "accepted", scenario: "actual", inputs: [],
         transformation: "human-accept-v1")
+      var acceptedData = old.data
+      if old.kind == "table-change" {
+        let edits = try JSONDecoder().decode(
+          [RowEdit].self, from: Data(old.data["edits"].json().utf8))
+        let change = try applyRows(
+          old.data["datasetID"].text, edits: edits, request: old.data, proposalID: old.id)
+        var values = old.data.object
+        values["tableChangeID"] = change["id"]
+        acceptedData = .object(values)
+      }
       let newID = try insertItem(
-        category: old.category, kind: old.kind, title: old.title, text: old.text, data: old.data,
+        category: old.category, kind: old.kind, title: old.title, text: old.text,
+        data: acceptedData,
         meaning: old.meaning, status: "accepted", scenario: old.scenario,
         inputs: [old.id, evidence], transformation: "accept-v1", assetID: old.assetID,
         supersedes: old.id)

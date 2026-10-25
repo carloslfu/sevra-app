@@ -275,6 +275,59 @@ check("atomic paste, typed validation, one-step undo and redo") {
   try expect(try book.rows(t.id)[0].data["name"].text == "changed")
   try refuses("stale_revision") { _ = try book.undoTableChange(change.id) }
 }
+check("table proposal acceptance, retry, undo and redo preserve exact values") {
+  let t = try book.createDataset(
+    title: "Reviewed changes",
+    columns: [
+      .init(id: "quantity", title: "Quantity", type: "decimal"),
+      .init(id: "cost", title: "Cost", type: "decimal"),
+      .init(id: "total", title: "Total", type: "decimal", formula: "quantity*cost"),
+    ], rows: [["quantity": .string("2"), "cost": .string("3")]], sourceID: source.id)
+  let row = try book.rows(t.id)[0]
+  let edits = [RowEdit(id: row.id, values: ["quantity": .string("4")])]
+  let proposal = try book.proposeTableEdit(t.id, edits: edits, token: "proposal-retry")
+  try expect(
+    try book.proposeTableEdit(t.id, edits: edits, token: "proposal-retry").id == proposal.id)
+  try expect(try book.rows(t.id)[0].data["quantity"].text == "2")
+  let accepted = try book.accept(proposal.id, token: "accept-proposal-retry")
+  try expect(try book.accept(proposal.id, token: "accept-proposal-retry").id == accepted.id)
+  let changed = try book.rows(t.id)[0]
+  try expect(changed.data["cost"].text == "3")
+  try expect(book.calculatedValues(changed, columns: t.columns)["total"]?.text == "12")
+  let undone = try book.undoItem(accepted.id)
+  try expect(undone.status == "rejected")
+  try expect(try book.rows(t.id)[0].data["quantity"].text == "2")
+  let redone = try book.undoItem(undone.id)
+  try expect(redone.status == "accepted")
+  try expect(try book.rows(t.id)[0].data["quantity"].text == "4")
+  _ = try book.undoItem(redone.id)
+  try expect(try book.rows(t.id)[0].data["quantity"].text == "2")
+}
+check("stale table proposal and stale undo roll back every change") {
+  let t = try book.createDataset(
+    title: "Concurrent proposal", columns: [.init(id: "n", title: "Number", type: "decimal")],
+    rows: [["n": .string("1")], ["n": .string("2")]], sourceID: source.id)
+  let rows = try book.rows(t.id)
+  let proposal = try book.proposeTableEdit(
+    t.id,
+    edits: [
+      .init(id: rows[0].id, values: ["n": .string("10")]),
+      .init(id: rows[1].id, values: ["n": .string("20")]),
+    ])
+  let other = try book.editRow(rows[1].id, values: ["n": .string("3")])
+  let revision = try book.revision()
+  try refuses("stale_revision") { _ = try book.accept(proposal.id) }
+  try expect(try book.revision() == revision)
+  try expect(try book.rows(t.id)[0].id == rows[0].id)
+  let valid = try book.proposeTableEdit(
+    t.id, edits: [.init(id: other.id, values: ["n": .string("4")])])
+  let accepted = try book.accept(valid.id)
+  _ = try book.editRow(book.rows(t.id)[1].id, values: ["n": .string("5")])
+  let latest = try book.revision()
+  try refuses("stale_revision") { _ = try book.undoItem(accepted.id) }
+  try expect(try book.revision() == latest)
+  try expect(try book.rows(t.id)[1].data["n"].text == "5")
+}
 check("include linked evidence preserves indexed content and original history") {
   let file = temp.appendingPathComponent("include-linked.txt")
   try "Copper washers SKU-X94".write(to: file, atomically: true, encoding: .utf8)

@@ -319,44 +319,53 @@ extension Workbook {
     let result = try mutation(
       "edit_rows", token: token, request: request, expected: expectedRevision
     ) {
-      let table = try dataset(datasetID)
-      let evidence = try insertItem(
-        category: "source", kind: "correction", title: "Edit \(table.title)",
-        text: "User updated \(edits.count) table rows.", data: request, meaning: "actual",
-        status: "accepted", scenario: "actual", inputs: [], transformation: "human-table-edit-v1")
-      var ids: [String] = []
-      for edit in edits {
-        let old = try item(edit.id)
-        try require(
-          try db.scalar(
-            "SELECT count(*) FROM dataset_rows WHERE dataset_id=? AND logical_id=?",
-            [.string(datasetID), .string(old.logicalID)]
-          ).int == 1, "row", "Row does not belong to this table.")
-        try validateValues(edit.values, columns: table.columns)
-        for c in table.columns where c.formula != nil {
-          try require(
-            edit.values[c.id] == old.data.object[c.id], "calculated_cell",
-            "Edit the formula or its inputs, not its calculated value.")
-        }
-        let new = try insertItem(
-          category: "record", kind: old.kind, title: old.title,
-          text: edit.values.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.text)" }.joined(
-            separator: "\n"), data: .object(edit.values), meaning: old.meaning, status: old.status,
-          scenario: old.scenario, inputs: [old.id, evidence], transformation: "table-edit-v1",
-          supersedes: old.id)
-        ids.append(new)
-      }
-      let change = identifier()
-      try db.execute(
-        "INSERT INTO table_changes VALUES(?,?,?,?,?)",
-        [
-          .string(change), .string(datasetID), .string(try encoded(edits.map(\.id)).json()),
-          .string(try encoded(ids).json()), .string(timestamp()),
-        ])
-      return .object(["id": .string(change), "items": .array(ids.map(Value.string))])
+      try applyRows(datasetID, edits: edits, request: request)
     }
     return TableEdit(
       id: result["id"].text, items: try result["items"].array.map { try item($0.text) })
+  }
+  func applyRows(_ datasetID: String, edits: [RowEdit], request: Value, proposalID: String? = nil)
+    throws -> Value
+  {
+    try require(
+      !edits.isEmpty && edits.count <= 10_000 && Set(edits.map(\.id)).count == edits.count,
+      "paste_limit", "An edit needs distinct rows within the edit limit.")
+    let table = try dataset(datasetID)
+    let evidence = try insertItem(
+      category: "source", kind: "correction", title: "Edit \(table.title)",
+      text: "User updated \(edits.count) table rows.", data: request, meaning: "actual",
+      status: "accepted", scenario: "actual", inputs: [], transformation: "human-table-edit-v1")
+    var ids: [String] = []
+    for edit in edits {
+      let old = try item(edit.id)
+      try require(
+        try db.scalar(
+          "SELECT count(*) FROM dataset_rows WHERE dataset_id=? AND logical_id=?",
+          [.string(datasetID), .string(old.logicalID)]
+        ).int == 1, "row", "Row does not belong to this table.")
+      try validateValues(edit.values, columns: table.columns)
+      for c in table.columns where c.formula != nil {
+        try require(
+          edit.values[c.id] == old.data.object[c.id], "calculated_cell",
+          "Edit the formula or its inputs, not its calculated value.")
+      }
+      let new = try insertItem(
+        category: "record", kind: old.kind, title: old.title,
+        text: edit.values.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.text)" }.joined(
+          separator: "\n"), data: .object(edit.values), meaning: old.meaning, status: old.status,
+        scenario: old.scenario, inputs: [old.id, evidence] + (proposalID.map { [$0] } ?? []),
+        transformation: "table-edit-v1",
+        supersedes: old.id)
+      ids.append(new)
+    }
+    let change = identifier()
+    try db.execute(
+      "INSERT INTO table_changes VALUES(?,?,?,?,?)",
+      [
+        .string(change), .string(datasetID), .string(try encoded(edits.map(\.id)).json()),
+        .string(try encoded(ids).json()), .string(timestamp()),
+      ])
+    return .object(["id": .string(change), "items": .array(ids.map(Value.string))])
   }
   @discardableResult public func editRow(
     _ id: String, values: [String: Value], expectedRevision: Int? = nil,
@@ -392,6 +401,24 @@ extension Workbook {
         throw SevraError("undo", "No previous version exists.")
       }
       let old = try item(prior)
+      var restoredData = old.data
+      if current.kind == "table-change", let change = current.data["tableChangeID"].string {
+        guard
+          let row = try db.execute("SELECT * FROM table_changes WHERE id=?", [.string(change)])
+            .first
+        else { throw SevraError("undo", "The accepted table change is missing.") }
+        let before = try Value.parse(row["before_ids"]!.text).array
+        let after = try Value.parse(row["after_ids"]!.text).array
+        let edits = try zip(before, after).map {
+          RowEdit(id: $1.text, values: try item($0.text).data.object)
+        }
+        let inverse = try applyRows(
+          row["dataset_id"]!.text, edits: edits, request: .object(["undo": .string(change)]),
+          proposalID: current.id)
+        var values = old.data.object
+        values["tableChangeID"] = inverse["id"]
+        restoredData = .object(values)
+      }
       let evidence = try insertItem(
         category: "source", kind: "decision", title: "Undo \(current.title)",
         text: "The user requested restoration of the prior version.",
@@ -399,7 +426,7 @@ extension Workbook {
         scenario: "actual", inputs: [], transformation: "human-undo-v1")
       let restored = try insertItem(
         category: current.category, kind: current.kind, title: old.title, text: old.text,
-        data: old.data, meaning: old.meaning,
+        data: restoredData, meaning: old.meaning,
         status: current.status == "accepted" && old.status == "draft" ? "rejected" : old.status,
         scenario: old.scenario, inputs: [current.id, old.id, evidence], transformation: "undo-v1",
         assetID: old.assetID, supersedes: current.id)

@@ -60,11 +60,14 @@ extension Workbook {
     try synchronized {
       try db.execute("SELECT * FROM spaces ORDER BY CASE WHEN id='home' THEN 0 ELSE 1 END,title")
         .map { row in
-          Space(
+          guard let version = row["version"]?.int, version > 0 else {
+            throw SevraError("integrity", "Invalid space version.")
+          }
+          return Space(
             id: row["id"]!.text, title: row["title"]!.text,
             definition: try JSONDecoder().decode(
               SpaceDefinition.self, from: Data(row["definition"]!.text.utf8)),
-            version: row["version"]!.int!)
+            version: version)
         }
     }
   }

@@ -16,33 +16,50 @@ enum NativeTools {
     "type": .string("array"),
     "items": schema("string", "Exact item version ID from retrieved evidence."),
   ])
+  static func componentSchema(depth: Int) -> JSONValue {
+    var fields: [String: JSONValue] = [
+
+      "id": schema("string", "A unique short component ID."),
+      "type": .object([
+        "type": .string("string"),
+        "enum": .array(
+          ["table", "chart", "metric", "document", "asset", "search", "text"].map(
+            JSONValue.string)),
+      ]),
+      "title": schema("string", "Visible title."),
+      "datasetID": schema(
+        "string",
+        "REQUIRED on each table and each chart. Use the datasetID from datasets, even when another component uses the same table."
+      ),
+      "itemID": schema("string", "REQUIRED for document/asset. Exact evidence item ID."),
+      "chartStyle": schema("string", "bar or line; default bar."),
+      "aggregation": schema(
+        "string",
+        "Metric aggregation: SUM, AVERAGE, MIN, MAX or COUNT. Metrics require datasetID and y."),
+      "unit": schema("string", "Optional unit ONLY when explicitly specified in evidence."),
+      "x": schema("string", "REQUIRED for chart. Existing dataset column ID for categories."),
+      "y": schema("string", "REQUIRED for chart. Existing numeric or calculated column ID."),
+      "query": schema("string", "Search component query. Not used by charts."),
+      "text": schema("string", "Text component content."),
+    ]
+    if depth < 3 {
+      fields["type"] = .object([
+        "type": .string("string"),
+        "enum": .array(
+          ["table", "chart", "metric", "comparison", "document", "asset", "search", "text"].map(
+            JSONValue.string)),
+      ])
+      fields["children"] = .object([
+        "type": .string("array"), "minItems": .int(2), "maxItems": .int(3),
+        "description": .string(
+          "Required only for comparison; two or three native components side by side. Total tree limit is 16 components."
+        ), "items": componentSchema(depth: depth + 1),
+      ])
+    }
+    return object(fields, required: ["id", "type", "title"])
+  }
   static let components: JSONValue = .object([
-    "type": .string("array"), "maxItems": .int(16),
-    "items": object(
-      [
-        "id": schema("string", "A unique short component ID."),
-        "type": .object([
-          "type": .string("string"),
-          "enum": .array(
-            ["table", "chart", "metric", "document", "asset", "search", "text"].map(
-              JSONValue.string)),
-        ]),
-        "title": schema("string", "Visible title."),
-        "datasetID": schema(
-          "string",
-          "REQUIRED on each table and each chart. Use the datasetID from datasets, even when another component uses the same table."
-        ),
-        "itemID": schema("string", "REQUIRED for document/asset. Exact evidence item ID."),
-        "chartStyle": schema("string", "bar or line; default bar."),
-        "aggregation": schema(
-          "string",
-          "Metric aggregation: SUM, AVERAGE, MIN, MAX or COUNT. Metrics require datasetID and y."),
-        "unit": schema("string", "Optional unit ONLY when explicitly specified in evidence."),
-        "x": schema("string", "REQUIRED for chart. Existing dataset column ID for categories."),
-        "y": schema("string", "REQUIRED for chart. Existing numeric or calculated column ID."),
-        "query": schema("string", "Search component query. Not used by charts."),
-        "text": schema("string", "Text component content."),
-      ], required: ["id", "type", "title"]),
+    "type": .string("array"), "maxItems": .int(16), "items": componentSchema(depth: 1),
   ])
   static let definitions: [ToolDefinition] = [
     .init(
@@ -101,6 +118,26 @@ enum NativeTools {
           "id": schema("string", "Existing space ID."),
           "title": schema("string", "Name of pinned copy."),
         ], required: ["id", "title"])),
+    .init(
+      name: "propose_table_edit",
+      description:
+        "Propose changed cells for human review. Read rows first, then supply exact row version IDs and only fields to change. Does not alter accepted values until the user accepts the visible proposal.",
+      parameters: object(
+        [
+          "datasetID": schema("string", "Existing table ID."),
+          "edits": .object([
+            "type": .string("array"), "maxItems": .int(100),
+            "items": object(
+              [
+                "id": schema("string", "Exact inspected row version ID."),
+                "values": .object([
+                  "type": .string("object"),
+                  "description": .string(
+                    "Changed column IDs mapped to new values. Decimal values are strings."),
+                ]),
+              ], required: ["id", "values"]),
+          ]),
+        ], required: ["datasetID", "edits"])),
     .init(
       name: "calculate",
       description: "Deterministic decimal arithmetic. Use for arithmetic claims.",

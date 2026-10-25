@@ -74,3 +74,49 @@ for count in [10_000, 100_000] {
   reports.append(report)
   print(try report.json())
 }
+
+// A document corpus exercises best-passage deduplication, not only table rows.
+if ProcessInfo.processInfo.environment["SEVRA_BENCH_DOCUMENTS"] == "1" {
+  for count in [10_000, 100_000] {
+    let documents = 1000
+    let perDocument = count / 1000
+    let book = try Workbook.create(
+      at: base.appendingPathComponent("documents-\(count).sevra"), title: "Synthetic documents")
+    let (_, ingest) = try elapsed {
+      for n in 0..<documents {
+        let source = try book.addItem(
+          category: "source", kind: "document", title: "invoice-\(n)-café.pdf")
+        try book.index(
+          source.id,
+          chunks: (0..<perDocument).map { page in
+            Chunk(
+              "Invoice document SKU\(n)Z. Page \(page+1). Brass bolts and steel washers. Supplier \(n%100). Café Bogotá. \(String(repeating: "Delivery terms and purchase details. ", count: 8))",
+              locator: "page=\(page+1)")
+          })
+      }
+    }
+    let queries = [
+      "SKU999Z", "invoice", "brass bolts", "cafe bogota", "supplier 42", "999-caf",
+      "missingunrelated",
+    ]
+    var times: [Double] = []
+    var recall = true
+    for _ in 0..<5 {
+      for query in queries {
+        let (result, time) = try elapsed { try book.search(query) }
+        times.append(time)
+        if query == "SKU999Z" { recall = recall && result.hits.count == 1 }
+        if query == "invoice" {
+          recall = recall && Set(result.hits.map(\.itemID)).count == result.hits.count
+        }
+      }
+    }
+    print(
+      try Value.object([
+        "corpus": .string("documents"), "chunks": .number(Double(count)),
+        "documents": .number(Double(documents)), "ingestMilliseconds": .number(ingest),
+        "warmP50ms": .number(percentile(times, 0.5)), "warmP95ms": .number(percentile(times, 0.95)),
+        "recallAndDeduplication": .bool(recall),
+      ]).json())
+  }
+}

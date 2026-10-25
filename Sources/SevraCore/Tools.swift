@@ -79,6 +79,9 @@ public struct WorkbookTools {
             ])
           }),
       ])
+    case "propose_table_edit":
+      let edits = try JSONDecoder().decode([RowEdit].self, from: Data(a["edits"].json().utf8))
+      return try encoded(workbook.proposeTableEdit(string("datasetID"), edits: edits, token: token))
     case "compare_rows":
       return try workbook.compareRows(
         string("datasetID"), labelColumn: string("labelColumn"), valueColumn: string("valueColumn"))

@@ -1,12 +1,20 @@
+import Darwin
 import Foundation
 import SevraAI
 import SevraCore
 
 @main struct CLI {
   static func main() async {
+    let cancellation = Cancellation()
+    signal(SIGINT, SIG_IGN)
+    let interrupt = DispatchSource.makeSignalSource(
+      signal: SIGINT, queue: .global(qos: .userInitiated))
+    interrupt.setEventHandler { cancellation.cancel() }
+    interrupt.resume()
+    defer { interrupt.cancel() }
     do {
       let args = Array(CommandLine.arguments.dropFirst())
-      let result = try await run(args)
+      let result = try await run(args, cancellation: cancellation)
       print(
         try Value.object(["schemaVersion": .number(1), "ok": .bool(true), "result": result]).json())
     } catch {
@@ -19,8 +27,9 @@ import SevraCore
       exit(1)
     }
   }
-  static func run(_ args: [String]) async throws -> Value {
+  static func run(_ args: [String], cancellation: Cancellation) async throws -> Value {
     guard let command = args.first else { return .string(help) }
+    if command == "check-resources" { return try await PackageResources.check() }
     if command == "help" || command == "--help" { return .string(help) }
     if command == "version" || command == "--version" {
       return .object(["version": .string("0.1.0-dev"), "engine": .string(LocalModel.revision)])
@@ -37,7 +46,7 @@ import SevraCore
       return .object(["path": .string(book.url.path)])
     }
     if command == "open-archive" {
-      let book = try Workbook.openArchive(url(1), at: url(2))
+      let book = try Workbook.openArchive(url(1), at: url(2), cancellation: cancellation)
       return .object(["path": .string(book.url.path)])
     }
     if command == "calculate" {
@@ -55,7 +64,7 @@ import SevraCore
     if command == "model-setup" {
       let dir = args.count > 1 ? try url(1) : LocalModel.defaultDirectory
       try await LocalModel.shared.setup(
-        at: dir, cancellation: .init(), progress: { fputs($0 + "\n", stderr) })
+        at: dir, cancellation: cancellation, progress: { fputs($0 + "\n", stderr) })
       return .bool(true)
     }
     if command == "demo" { return try Demo.create(at: url(1)) }
@@ -68,7 +77,7 @@ import SevraCore
         "extraction": .array(try book.pendingExtractions()),
       ])
     case "resume-intake":
-      try book.resumeIntake(arg(2))
+      try book.resumeIntake(arg(2), cancellation: cancellation)
       return .bool(true)
     case "runs": return .array(try book.agentRuns())
     case "pin-space":
@@ -76,27 +85,30 @@ import SevraCore
     case "column-history": return .array(try book.columnHistory(arg(2)))
     case "verify": return try book.verify()
     case "import":
-      let item = try book.importFile(url(2), linked: args.contains("--link"))
-      try book.extract(item.id)
+      let item = try book.importFile(
+        url(2), linked: args.contains("--link"), cancellation: cancellation)
+      try book.extract(item.id, cancellation: cancellation)
       if ["csv", "tsv"].contains(try url(2).pathExtension.lowercased()) {
         return .object([
-          "source": try encoded(item), "dataset": try encoded(book.importCSV(item.id)),
+          "source": try encoded(item),
+          "dataset": try encoded(book.importCSV(item.id, cancellation: cancellation)),
         ])
       }
       if try url(2).pathExtension.lowercased() == "xlsx" {
         return .object([
-          "source": try encoded(item), "datasets": try encoded(book.importXLSX(item.id)),
+          "source": try encoded(item),
+          "datasets": try encoded(book.importXLSX(item.id, cancellation: cancellation)),
         ])
       }
       return try encoded(item)
     case "capture-url":
       guard let target = URL(string: try arg(2)) else { throw SevraError("url", "Invalid URL.") }
-      return try encoded(await book.captureURL(target))
+      return try encoded(await book.captureURL(target, cancellation: cancellation))
     case "link-url":
       guard let target = URL(string: try arg(2)) else { throw SevraError("url", "Invalid URL.") }
       return try encoded(
         book.linkURL(target, title: args.count > 3 ? args[3] : target.host ?? "Link"))
-    case "include": return try encoded(book.includeLinked(arg(2)))
+    case "include": return try encoded(book.includeLinked(arg(2), cancellation: cancellation))
     case "relink":
       try book.relinkAsset(arg(2), to: url(3))
       return .bool(true)
@@ -153,7 +165,7 @@ import SevraCore
       try book.rebuildSearch()
       return .bool(true)
     case "export":
-      try book.export(to: url(2))
+      try book.export(to: url(2), cancellation: cancellation)
       return .bool(true)
     case "export-csv":
       try book.exportCSV(arg(2), to: url(3))
@@ -165,6 +177,7 @@ import SevraCore
       let result = try await WorkbookAgent.run(
         arg(2), workbook: book,
         modelDirectory: args.count > 3 ? url(3) : LocalModel.defaultDirectory,
+        cancellation: cancellation,
         progress: { fputs($0 + "\n", stderr) })
       return .object([
         "answer": .string(result.answer), "citations": .array(result.citations.map(Value.string)),

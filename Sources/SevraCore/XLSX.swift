@@ -44,6 +44,10 @@ public enum XLSX {
       guard let bytes = try data(path) else {
         throw SevraError("xlsx", "Missing Office part: " + path)
       }
+      try require(
+        String(decoding: bytes.filter { $0 != 0 }, as: UTF8.self).range(
+          of: "<!DOCTYPE", options: .caseInsensitive)
+          == nil, "xlsx", "Office XML document types and entity declarations are not supported.")
       let parser = XMLParser(data: bytes)
       parser.delegate = delegate
       parser.shouldResolveExternalEntities = false

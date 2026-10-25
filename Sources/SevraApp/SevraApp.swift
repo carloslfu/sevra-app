@@ -4,6 +4,19 @@ import SevraCore
 import SwiftUI
 
 @main struct SevraApp: App {
+  init() {
+    if CommandLine.arguments.contains("--check-resources") {
+      Task.detached {
+        do {
+          print(try await PackageResources.check().json())
+          exit(0)
+        } catch {
+          fputs(error.localizedDescription + "\n", stderr)
+          exit(1)
+        }
+      }
+    }
+  }
   @NSApplicationDelegateAdaptor(DocumentDelegate.self) private var documentDelegate
   @AppStorage("appearance") private var appearance = "system"
   var body: some Scene {
@@ -36,9 +49,22 @@ import SwiftUI
 
 @MainActor final class DocumentDelegate: NSObject, NSApplicationDelegate, ObservableObject {
   @Published var pending: [URL] = []
+  private var memoryPressure: DispatchSourceMemoryPressure?
+  func applicationDidFinishLaunching(_ notification: Notification) {
+    let source = DispatchSource.makeMemoryPressureSource(
+      eventMask: [.warning, .critical], queue: .global(qos: .utility))
+    source.setEventHandler { Task { await LocalModel.shared.unload() } }
+    source.resume()
+    memoryPressure = source
+  }
+  func applicationWillTerminate(_ notification: Notification) {
+    NotificationCenter.default.post(name: .sevraStopping, object: nil)
+    memoryPressure?.cancel()
+  }
   func application(_ application: NSApplication, open urls: [URL]) { pending += urls }
 }
 extension Notification.Name {
+  static let sevraStopping = Notification.Name("sevraStopping")
   static let sevraNew = Notification.Name("sevraNew"), sevraOpen = Notification.Name("sevraOpen"),
     sevraImport = Notification.Name("sevraImport"), sevraSearch = Notification.Name("sevraSearch"),
     sevraExport = Notification.Name("sevraExport")
@@ -57,7 +83,7 @@ struct WorkspaceWindow: View {
     .frame(minWidth: 820, minHeight: 600)
     .background(
       WindowAccessor { window in
-        ownWindow = window
+        if ownWindow !== window { ownWindow = window }
         window?.representedURL = state.workbook?.url
         window?.title = state.workbook?.title ?? "Sevra"
       }
@@ -73,6 +99,10 @@ struct WorkspaceWindow: View {
           welcomeError = error.localizedDescription
         }
       }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .sevraStopping)) { _ in
+      state.cancellation.cancel()
+      state.speech.stop()
     }
     .onReceive(inbox.$pending) { pending in
       guard !pending.isEmpty else { return }

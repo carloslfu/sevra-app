@@ -123,7 +123,7 @@ extension Workbook {
     let free =
       try parent.resourceValues(forKeys: [.volumeAvailableCapacityKey]).volumeAvailableCapacity ?? 0
     try require(
-      UInt64(max(0, free)) > total + 16_777_216, "disk_full",
+      UInt64(max(0, free)) > total && UInt64(max(0, free)) - total > 16_777_216, "disk_full",
       "There is not enough free space to open this workbook.")
     let staging = parent.appendingPathComponent(".sevra-open-" + identifier())
     try fm.createDirectory(at: staging, withIntermediateDirectories: true)

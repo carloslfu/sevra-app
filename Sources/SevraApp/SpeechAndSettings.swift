@@ -122,8 +122,11 @@ struct ModelSettingsView: View {
         }
         Button("Unload model from memory") {
           Task {
-            await LocalModel.shared.unload()
-            status = "Idle model released."
+            let released = await LocalModel.shared.unload()
+            status =
+              released
+              ? "Idle model released."
+              : "The model is working. Cancel its current turn before unloading."
           }
         }.disabled(busy)
         if busy {

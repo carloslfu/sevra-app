@@ -135,34 +135,58 @@ extension Workbook {
     _ url: URL, cancellation: Cancellation = .init(),
     progress: @escaping @Sendable (Int64, Int64) -> Void = { _, _ in }
   ) async throws -> Item {
-    let (file, response) = try await CaptureDownload(
-      maximum: 512_000_000, cancellation: cancellation, progress: progress
-    ).fetch(url)
-    defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
-    var components = URLComponents(url: response.url ?? url, resolvingAgainstBaseURL: false)
-    let originalQuery = components?.queryItems
-    components?.queryItems = originalQuery?.map { item in
-      let sensitive =
-        [
-          "token", "signature", "sig", "key", "api_key", "access_token", "authorization",
-          "password", "credential",
-        ].contains(item.name.lowercased()) || item.name.lowercased().hasPrefix("x-amz-")
-        || item.name.lowercased().hasPrefix("x-goog-")
-      return sensitive ? URLQueryItem(name: item.name, value: "REDACTED") : item
+    try CaptureDownload.validate(url)
+    try cancellation.check()
+    let file: URL
+    let response: URLResponse
+    do {
+      (file, response) = try await CaptureDownload(
+        maximum: 512_000_000, cancellation: cancellation, progress: progress
+      ).fetch(url)
+    } catch {
+      try cancellation.check()
+      let reason = (error as? SevraError)?.message ?? "The download could not be completed."
+      let reference = try addItem(
+        category: "source", kind: "link", title: "Uncaptured source: " + (url.host ?? "Website"),
+        text: Self.safeOrigin(url) + "\n\nReference only. No file was captured. " + reason,
+        data: .object([
+          "url": .string(Self.safeOrigin(url)), "captureState": .string("failed"),
+          "detail": .string(reason),
+        ]), status: "accepted")
+      try index(
+        reference.id, chunks: [], state: "failed",
+        detail: "Reference preserved; source content is not searchable. " + reason)
+      return reference
     }
-    components?.fragment = nil
-    components?.user = nil
-    components?.password = nil
-    let origin = components?.url?.absoluteString
+    defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+    let origin = Self.safeOrigin(response.url ?? url)
     let captured = try importFile(file, origin: origin, cancellation: cancellation)
-    try extract(captured.id, cancellation: cancellation)
+    do { try extract(captured.id, cancellation: cancellation) } catch { try cancellation.check() }
     return captured
   }
   @discardableResult public func linkURL(_ url: URL, title: String) throws -> Item {
     try CaptureDownload.validate(url)
     return try addItem(
-      category: "source", kind: "link", title: title, text: url.absoluteString,
-      data: .object(["url": .string(url.absoluteString)]), status: "accepted")
+      category: "source", kind: "link", title: title, text: Self.safeOrigin(url),
+      data: .object(["url": .string(Self.safeOrigin(url)), "captureState": .string("reference")]),
+      status: "accepted")
+  }
+  public static func safeOrigin(_ url: URL) -> String {
+    var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+    let query = components?.queryItems
+    components?.queryItems = query?.map { item in
+      let name = item.name.lowercased()
+      let sensitive =
+        [
+          "token", "signature", "sig", "key", "api_key", "access_token", "authorization",
+          "password", "credential",
+        ].contains(name) || name.hasPrefix("x-amz-") || name.hasPrefix("x-goog-")
+      return sensitive ? URLQueryItem(name: item.name, value: "REDACTED") : item
+    }
+    components?.fragment = nil
+    components?.user = nil
+    components?.password = nil
+    return components?.url?.absoluteString ?? "URL unavailable"
   }
   @discardableResult public func includeLinked(_ id: String, cancellation: Cancellation = .init())
     throws -> Item

@@ -27,7 +27,30 @@ struct ItemView: View {
         Spacer()
         if item.status == "draft" {
           Button("Accept") {
-            state.run("Accepting record") { book, _ in _ = try book.accept(item.id) }
+            guard let book = state.workbook, !state.busy else { return }
+            state.busy = true
+            state.status = "Accepting changes"
+            Task {
+              do {
+                let accepted = try await Task.detached { try book.accept(item.id) }.value
+                state.refresh()
+                state.navigate(.item(accepted.id))
+              } catch { state.error = error.localizedDescription }
+              state.busy = false
+              state.status = ""
+            }
+          }
+        }
+        if item.supersedes != nil {
+          Button("Undo") {
+            guard let book = state.workbook else { return }
+            Task {
+              do {
+                let undone = try await Task.detached { try book.undoItem(item.id) }.value
+                state.refresh()
+                state.navigate(.item(undone.id))
+              } catch { state.error = error.localizedDescription }
+            }
           }
         }
         if item.assetID != nil {
@@ -87,6 +110,10 @@ struct ItemView: View {
           let image = NSImage(contentsOf: file)
         {
           ImageViewer(image: image)
+        } else if [
+          "html", "htm", "svg", "xml", "js", "swift", "py", "json", "txt", "md", "csv", "tsv",
+        ].contains(ext) {
+          SafeTextViewer(file: file)
         } else {
           QuickLookViewer(url: file)
         }
@@ -249,4 +276,33 @@ struct ImageViewer: View {
 @MainActor final class MediaPlayback {
   static let shared = MediaPlayback()
   var player: AVPlayer?
+}
+
+struct SafeTextViewer: View {
+  let file: URL
+  @State private var text = ""
+  @State private var detail = ""
+  var body: some View {
+    ScrollView {
+      Text(text).font(.system(.body, design: .monospaced)).textSelection(.enabled).frame(
+        maxWidth: .infinity, alignment: .leading
+      ).padding(20)
+      if !detail.isEmpty { Text(detail).font(.caption).foregroundStyle(.secondary).padding(10) }
+    }.task(id: file) {
+      do {
+        let result = try await Task.detached { () -> (String, String) in
+          let handle = try FileHandle(forReadingFrom: file)
+          defer { try? handle.close() }
+          let bytes = try handle.read(upToCount: 1_000_001) ?? Data()
+          return (
+            String(decoding: bytes.prefix(1_000_000), as: UTF8.self),
+            bytes.count > 1_000_000
+              ? "Previewing the first 1 MB. The original file remains intact." : ""
+          )
+        }.value
+        text = result.0
+        detail = result.1
+      } catch { detail = error.localizedDescription }
+    }
+  }
 }

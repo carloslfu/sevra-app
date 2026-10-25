@@ -17,6 +17,10 @@ public enum Extractor {
     let ext = url.pathExtension.lowercased()
     let bytes = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
     if ext == "pdf" {
+      try require(
+        bytes <= 512_000_000, "pdf_limit",
+        "The PDF is included, but automatic extraction is limited to 512 MB. Use a smaller excerpt for content search."
+      )
       guard let pdf = PDFDocument(url: url) else { throw SevraError("pdf", "Cannot read PDF.") }
       try require(
         !pdf.isLocked, "encrypted", "Unlock this PDF in another app before importing its text.")
@@ -165,6 +169,10 @@ public enum Extractor {
       }
       try require(checksum == entry.checksum, "checksum", "The document failed its checksum check.")
       let parser = XMLTextCollector(cancellation: cancellation)
+      try require(
+        String(decoding: data.filter { $0 != 0 }, as: UTF8.self).range(
+          of: "<!DOCTYPE", options: .caseInsensitive)
+          == nil, "xml", "Office XML document types and entity declarations are not supported.")
       let xml = XMLParser(data: data)
       xml.delegate = parser
       xml.shouldResolveExternalEntities = false
@@ -202,6 +210,17 @@ extension Workbook {
     let record = try item(id)
     guard let assetID = record.assetID else { return }
     let bounded = Cancellation(parent: cancellation, deadlineAfterSeconds: 60)
+    let previous = try extractionStatus(id)
+    _ = try mutation("extraction_start", request: .string(id)) {
+      try db.execute(
+        "INSERT INTO extraction VALUES(?,?,?,?,?) ON CONFLICT(item_id) DO UPDATE SET state=excluded.state,detail=excluded.detail,updated=excluded.updated",
+        [
+          .string(id), .string("running"),
+          .string("Indexing content; the previous index remains available."), .string("native-v1"),
+          .string(timestamp()),
+        ])
+      return .string(id)
+    }
     do {
       let result = try Extractor.extract(assetURL(assetID), cancellation: bounded)
       try bounded.check()
@@ -209,7 +228,6 @@ extension Workbook {
       try index(id, chunks: result.chunks, state: result.state, detail: result.detail)
     } catch {
       _ = try mutation("extraction_failure", request: .string(id)) {
-        let previous = try extractionStatus(id)
         let hadIndex = ["ready", "partial"].contains(previous["state"].text)
         let state = hadIndex ? "partial" : (cancellation.isCancelled ? "cancelled" : "failed")
         let detail =

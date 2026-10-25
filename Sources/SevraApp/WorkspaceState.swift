@@ -186,13 +186,13 @@ import SwiftUI
     cancellation = Cancellation()
     let cancel = cancellation
     let chat = conversation
-    let context = routeContext + (selectedContext.isEmpty ? "" : "\nSelection: " + selectedContext)
+    let context = agentContext + (selectedContext.isEmpty ? "" : "\nSelection: " + selectedContext)
     let path =
       UserDefaults.standard.string(forKey: "modelDirectory").map { URL(fileURLWithPath: $0) }
       ?? LocalModel.defaultDirectory
     Task {
       do {
-        _ = try await WorkbookAgent.run(
+        let result = try await WorkbookAgent.run(
           input, workbook: book, conversation: chat, context: context, modelDirectory: path,
           cancellation: cancel,
           progress: { value in
@@ -201,10 +201,22 @@ import SwiftUI
               self.refresh()
             }
           })
+        refresh()
+        if let focus = result.focus {
+          navigate(focus.kind == "space" ? .space(focus.id) : .item(focus.id))
+        }
       } catch { self.error = error.localizedDescription }
       busy = false
       status = ""
       refresh()
+    }
+  }
+  var agentContext: String {
+    switch route {
+    case .space(let id): return routeContext + "\nActive space ID: " + id
+    case .item(let id): return routeContext + "\nActive item version ID: " + id
+    case .table(let id): return routeContext + "\nActive dataset ID: " + id
+    case .search: return routeContext
     }
   }
   var routeContext: String {
@@ -249,11 +261,13 @@ import SwiftUI
         return true
       }
       if ["accept this", "accept that"].contains(lower), case .item(let id) = route {
-        _ = try book.accept(id)
+        let accepted = try book.accept(id)
+        navigate(.item(accepted.id))
         return true
       }
       if ["undo this", "undo that"].contains(lower), case .item(let id) = route {
-        _ = try book.undoItem(id)
+        let undone = try book.undoItem(id)
+        navigate(.item(undone.id))
         return true
       }
       if lower == "include this", case .item(let id) = route {

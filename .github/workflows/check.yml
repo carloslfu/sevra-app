@@ -29,7 +29,7 @@ jobs:
           test -s selected.sha256
           shasum -a 256 -c selected.sha256
           tar -xzf "$ASSET"
-          ./dbmd validate --all "$GITHUB_WORKSPACE/db" --json
+          "./dbmd-0.14.7-darwin-$ARCH/dbmd" validate --all "$GITHUB_WORKSPACE/db" --json
       - name: Build native app and CLI
         env:
           SEVRA_BUILD_JOBS: 3

@@ -29,4 +29,10 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     script("install.sh","--no-build",success=False)
     assert (folder/"bin/sevra").read_text()=="unrelated sentinel"
     assert not (folder/"Applications/Sevra.app").exists()
-    print(json.dumps({"installed":True,"updated":True,"standaloneCLI":True,"uninstalled":True,"workbookPreserved":True,"unrelatedCLIProtected":True}))
+    skill_env={**env,"SEVRA_SKILL_ROOT":str(folder/"skills")}
+    installed=subprocess.run([str(root/"scripts/install_skill.sh"),"codex"],env=skill_env,capture_output=True,text=True)
+    assert installed.returncode==0,installed.stderr
+    skill=(folder/"skills/sevra/SKILL.md").read_bytes()
+    conflict=subprocess.run([str(root/"scripts/install_skill.sh"),"claude"],env=skill_env,capture_output=True,text=True)
+    assert conflict.returncode!=0 and (folder/"skills/sevra/SKILL.md").read_bytes()==skill
+    print(json.dumps({"skillInstallAndConflict":True,"installed":True,"updated":True,"standaloneCLI":True,"uninstalled":True,"workbookPreserved":True,"unrelatedCLIProtected":True}))
