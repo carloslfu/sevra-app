@@ -1,6 +1,7 @@
 import CryptoKit
 import Foundation
 import SevraAI
+import SevraNativeAI
 import SevraSplash
 import SevraSplashGrammar
 import SevraSplashText
@@ -86,6 +87,23 @@ final class ToolPolicyChecks {
             ("title", "Large ID"), ("text", "Preserve exactly"), ("kind", "analysis"),
             ("meaning", "estimate"), ("inputs", "[]"), ("data", "{\"id\":9007199254740993}"),
           ], policy: policy)))
+    let emptyEvidence = try NativeCitationPolicy.make([])
+    try emptyEvidence.validate(
+      candidate("finish", [("answer", "Saved space"), ("citations", "[]")], policy: emptyEvidence))
+    try expectThrows(
+      try emptyEvidence.validate(
+        candidate(
+          "finish", [("answer", "Saved"), ("citations", "[\"space-id\"]")], policy: emptyEvidence)))
+    let knownEvidence = try NativeCitationPolicy.make(["source-one"])
+    try knownEvidence.validate(
+      candidate(
+        "finish", [("answer", "Observed"), ("citations", "[\"source-one\"]")], policy: knownEvidence
+      ))
+    try expectThrows(
+      try knownEvidence.validate(
+        candidate(
+          "finish", [("answer", "Observed"), ("citations", "[\"stale-id\"]")], policy: knownEvidence
+        )))
     try expectThrows(
       try policy.validate(candidate("finish", [("answer", "Ready")], policy: policy)))
     try expectThrows(
@@ -169,6 +187,7 @@ func expectValue<T>(_ value: T?) throws -> T {
   return value
 }
 do {
+  try await checkAgentLifecycle()
   let checks = ToolPolicyChecks()
   try checks.testActualWorkbookSchemas()
   try checks.testWorkbookArguments()
@@ -176,7 +195,11 @@ do {
   print(
     "PASS actual workbook schemas, open row/record data, full argument validation and schema refusals"
   )
-  if [3, 5].contains(CommandLine.arguments.count) {
+  if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--autonomous" {
+    try await runNativeAgentProbe(
+      modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], modelsRoot: CommandLine.arguments[5])
+  } else if [3, 5].contains(CommandLine.arguments.count) {
     let frontend = try SplashTextFrontend(
       modelFolder: URL(fileURLWithPath: CommandLine.arguments[1]))
     let library = URL(fileURLWithPath: CommandLine.arguments[2])
@@ -192,7 +215,8 @@ do {
     }
   } else if CommandLine.arguments.count != 1 {
     throw SplashError(
-      "Usage: sevra-agent-checks [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]]")
+      "Usage: sevra-agent-checks [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT"
+    )
   }
 } catch {
   fputs("\(error)\n", stderr)

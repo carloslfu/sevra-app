@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-26T20:39:53.630815+00:00
+updated: 2026-10-26T21:12:54.138494+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
 ---
 # Native Splash integration and upgrades
 
-Revision 4, October 26, 2026. Owner-approved direction; integration not yet qualified.
+Revision 5, October 26, 2026. Owner-approved direction; integration not yet qualified.
 Authority: [[sources/notes/2026/10/workbook-primary-splash-direction]].
 The existing Slotstream build is a preserved baseline, not the future architecture.
 
@@ -155,6 +155,55 @@ separate operation. Cancellation/truncation cannot dispatch a previously closed 
 Tool-history rendering must preserve nested nulls. Bridge NSNull to the maintained
 Swift Jinja library's boxed-nil representation, after input bounds validation,
 and verify exact prompt token IDs against the upstream template.
+
+## Workbook inference and conversation state
+
+I17. The workbook owns its conversation messages, tool-call values and agent loop.
+Keep a package-internal inference boundary for qualifying the native candidate
+against the preserved backend. This is not a provider catalog, user backend
+selector or public compatibility API. The production app continues to depend on
+the baseline until the adoption gates pass.
+
+The native candidate runs blocking engine pipes, tokenizer and grammar work on
+one serial worker, outside the main actor and Swift cooperative pool. Verify the
+executable and both Metal files before launch, use verified model preparation,
+and validate the native grammar library. Keep one process-wide inference lease
+across app/CLI backends. Close and reap the owned helper before releasing that
+lease; cancel, unload, failure and owner disposal obey the same ownership rule.
+A failed stream discards the session. The next request explicitly initializes a
+verified helper. Normal idle release remains two minutes.
+
+Constrain the native finish tool's citation array to exact Source/Record versions
+inspected during this request. With no inspected evidence, its maximum length is
+zero. Space and table IDs, earlier-turn citations and invented UUIDs cannot pass
+this field merely because they look valid. Keep the existing host validator too;
+a schema-valid reference does not prove that the cited text supports a claim.
+The candidate bounds this enum to 256 references and the same context budget;
+larger retrieval histories need further context/retrieval qualification.
+
+Use all actual workbook tools with a required single-call grammar. Only a complete,
+successful, grammar-checked and schema-validated terminal reaches the agent.
+Check cancellation again before dispatch. Preserve existing evidence, calculations,
+proposal review, citations and persisted run state. The selected candidate uses
+an 8,192-token context and an output allowance of at most 1,800 tokens, reduced
+to the remaining context capacity. Refuse when fewer than 256 output tokens remain;
+a length-limited response cannot execute a tool. Longer-job context management
+and its wider workload qualification remain open.
+
+Conversation history includes needs-review receipts. When its saved structured
+tool result is available, resolve the proposal's current version through the
+workbook's head and include its actual acceptance status, meaning and dataset ID.
+Do not infer acceptance from assistant prose. Preserve the original receipt and
+history. An accepted forecast remains an estimate, and historical acceptance does
+not authorize a new action. Keep the existing bounded tangent parent excerpt and
+last eight local user/assistant messages.
+
+After three consecutive successful searches with no hits, stop with an app-owned
+receipt containing the searched queries and actual incomplete-source count. Do not
+let a model invent an indexing problem or infer a missing document's contents.
+This is a completed evidence-gap response, not proof that a document does not exist.
+Record the search tools and terminal result. Counts greater than zero explicitly
+state that available evidence is partial. A successful search resets this budget.
 
 ## Verification and performance
 

@@ -1,7 +1,8 @@
 import Foundation
 
-public struct SplashError: Error, CustomStringConvertible, Sendable {
+public struct SplashError: LocalizedError, CustomStringConvertible, Sendable {
   public let description: String
+  public var errorDescription: String? { description }
   public init(_ message: String) { description = message }
 }
 
@@ -173,7 +174,7 @@ public enum SplashWire {
     public let cycles: UInt32
     public let logits: [Float]
   }
-  public struct Failure: Error, Sendable, Equatable, CustomStringConvertible {
+  public struct Failure: LocalizedError, Sendable, Equatable, CustomStringConvertible {
     public let classification: UInt8
     public let retryable: Bool
     public let retryAfter: UInt32
@@ -183,6 +184,7 @@ public enum SplashWire {
     public var description: String {
       String(decoding: code, as: UTF8.self) + ": " + String(decoding: message, as: UTF8.self)
     }
+    public var errorDescription: String? { description }
   }
   public enum Event: Sendable, Equatable {
     case ready(concurrent: UInt32, context: UInt32, vision: Bool)

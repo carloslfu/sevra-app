@@ -109,16 +109,23 @@
       "swift": [
         "Sources/SevraSplashText/OutputParser.swift",
         "Sources/SevraSplashText/OutputStream.swift",
-        "Sources/SevraSplashGrammar/ToolPolicy.swift"
+        "Sources/SevraSplashGrammar/ToolPolicy.swift",
+        "Sources/SevraAI/WorkbookAgent.swift",
+        "Sources/SevraAI/WorkbookInference.swift",
+        "Sources/SevraAI/ConversationHistory.swift",
+        "Sources/SevraNativeAI/NativeWorkbookModel.swift",
+        "Sources/SevraNativeAI/NativeCitationPolicy.swift"
       ],
-      "status": "projection-full-workbook-schema-validation-and-native-dispatcher-probe-passed-autonomous-actor-pending",
+      "status": "full-workbook-schema-and-autonomous-native-jobs-passed-production-adoption-pending",
       "checks": [
         "IntegrationTests/Text/OutputChecks.swift",
         "IntegrationTests/Text/output-fixtures.json",
         "IntegrationTests/Grammar/NativeProbe.swift",
         "scripts/generate_splash_output_fixtures.py",
         "IntegrationTests/Agent/main.swift",
-        "IntegrationTests/Agent/NativeWorkbookProbe.swift"
+        "IntegrationTests/Agent/NativeWorkbookProbe.swift",
+        "IntegrationTests/Agent/AgentLifecycleChecks.swift",
+        "IntegrationTests/Agent/NativeAgentProbe.swift"
       ]
     },
     {

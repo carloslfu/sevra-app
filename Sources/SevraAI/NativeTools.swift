@@ -263,7 +263,3 @@ package enum NativeTools {
         ], required: ["answer", "citations"])),
   ]
 }
-struct NativeReply {
-  let text: String
-  let calls: [ParsedToolCall]
-}

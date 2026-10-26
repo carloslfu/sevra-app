@@ -70,3 +70,12 @@ Full check.sh passed with 15 exact prompts, 80 decode cases, 31 projections/3216
 ## [2026-10-26 20:46] verification | records/operations/implementation.md
 Actual-tool checkpoint: release scripts/build.sh and scripts/check_install.py passed after full core/transport/text/grammar/tool checks; no product backend switch.
 
+## [2026-10-26 21:18] implementation | records/specs/splash-integration.md
+Revision 5: internal native inference boundary, serial worker lifecycle, current proposal history, deterministic search coverage and constrained evidence citations. Native candidate remains outside production targets.
+
+## [2026-10-26 21:18] verification | records/operations/implementation.md
+Three native autonomous cycles passed 21 synthetic jobs after retained context/history/coverage/citation failures were fixed. Full checks, app/CLI release build, isolated installer and upgrade skill validation passed. Sanitized source-bound receipt: integration/evidence/2026-10-26-native-autonomous.json. Matched performance and product adoption remain pending.
+
+## [2026-10-26 21:24] verification | records/operations/implementation.md
+Retained real Slotstream failures: combined missing-evidence turn model_format; post-cancellation inventory answer_validation. Isolated missing coverage, table review/acceptance/undo, comparison/space, hostile document and cancellation persistence passed. Found missing admission of balance basis/effect versions into inspected evidence; qualification remains open.
+

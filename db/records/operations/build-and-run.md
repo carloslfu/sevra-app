@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-26T20:39:53.646273+00:00
+updated: 2026-10-26T21:03:05.359890+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -250,3 +250,37 @@ version is frozen. Preserve original documents and exported snapshots while
 evaluating. XLSX import preserves saved values and evidence, not Excel macros,
 external connections or full formula fidelity. Image/PDF OCR can be wrong.
 See [[records/operations/implementation]] for the complete pending release gates.
+
+## Autonomous native workbook qualification
+
+The package-internal SevraNativeAI target connects the candidate to the actual
+WorkbookAgent. It is linked by development checks, not the production app/CLI.
+Run from the repository root after preparing the pinned native engine and grammar.
+Use the selected full model folder, containing dflash/, rather than the tokenizer-only
+fixture folder. These commands do not download model weights:
+
+~~~sh
+swift build --product sevra-agent-checks
+.build/debug/sevra-agent-checks
+.build/debug/sevra-agent-checks --autonomous \
+  /path/to/qwen36-35b-a3b-4bit \
+  .build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib \
+  .build/upstream/splash-native-1.4.1/engine/splash \
+  .build/splash-models
+~~~
+
+The first command without arguments checks the actual schemas and workbook actor
+lifecycle without loading weights. It covers cancellation before dispatch, terminal
+run history, exact baseline history types, proposal draft/acceptance/withdrawal
+context, meaning preservation and the deterministic three-search coverage response.
+The full grammar script also runs these checks, so they are part of regular CI.
+
+The opt-in autonomous probe uses the shared inference lease and a 12 GiB native
+engine budget. Unload any model already held by another Sevra app/CLI process.
+It creates and removes only its own temporary synthetic workbooks, checks proposals
+before separate fixture acceptance, comparisons and citations, native table/chart
+spaces, a hostile document, missing evidence, cancellation/retry and lease release.
+Its emitted metrics are correctness diagnostics, not a matched speed benchmark.
+The candidate validates runtime/Metal digests and selected model preparation before
+launch. Production packaging, resumable downloads and wider application acceptance
+remain open.

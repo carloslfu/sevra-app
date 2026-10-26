@@ -28,7 +28,8 @@ let package = Package(
       name: "SevraSplashGrammar", dependencies: ["SevraSplash", "SevraSplashText", "CLLGuidance"],
       resources: [.copy("Resources/json-slices.json")], swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
-      name: "SevraSplashGrammarChecks", dependencies: ["SevraSplashGrammar", "SevraSplashText", "SevraSplash"],
+      name: "SevraSplashGrammarChecks",
+      dependencies: ["SevraSplashGrammar", "SevraSplashText", "SevraSplash"],
       path: "IntegrationTests/Grammar", resources: [.copy("fixtures.json")],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
@@ -47,7 +48,8 @@ let package = Package(
       resources: [.copy("Resources/template-patch.json")], swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraSplashTextChecks", dependencies: ["SevraSplashText", "SevraSplash"],
-      path: "IntegrationTests/Text", resources: [.copy("fixtures.json"), .copy("output-fixtures.json")],
+      path: "IntegrationTests/Text",
+      resources: [.copy("fixtures.json"), .copy("output-fixtures.json")],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraCore", dependencies: ["CSQLite", "ZIPFoundation"],
@@ -55,6 +57,12 @@ let package = Package(
     .target(
       name: "SevraAI",
       dependencies: ["SevraCore", .product(name: "Slotstream", package: "slotstream")],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
+    .target(
+      name: "SevraNativeAI",
+      dependencies: [
+        "SevraAI", "SevraCore", "SevraSplash", "SevraSplashText", "SevraSplashGrammar",
+      ],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraApp", dependencies: ["SevraCore", "SevraAI"],
@@ -68,7 +76,13 @@ let package = Package(
     .executableTarget(
       name: "SevraChecks", dependencies: ["SevraCore"], path: "Tests",
       swiftSettings: [.swiftLanguageMode(.v5)]),
-    .executableTarget(name: "SevraAgentChecks", dependencies: ["SevraAI", "SevraCore", "SevraSplashGrammar", "SevraSplashText", "SevraSplash"],
-      path: "IntegrationTests/Agent", resources: [.copy("workbook-tools.json"), .copy("tool-grammar-fixtures.json")],
+    .executableTarget(
+      name: "SevraAgentChecks",
+      dependencies: [
+        "SevraNativeAI", "SevraAI", "SevraCore", "SevraSplashGrammar", "SevraSplashText",
+        "SevraSplash",
+      ],
+      path: "IntegrationTests/Agent",
+      resources: [.copy("workbook-tools.json"), .copy("tool-grammar-fixtures.json")],
       swiftSettings: [.swiftLanguageMode(.v5)]),
   ])

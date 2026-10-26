@@ -47,7 +47,7 @@ with tempfile.TemporaryDirectory(prefix='sevra-real-model-') as temporary:
         unknown=folder/'unsearchable.bin';unknown.write_bytes(b'Synthetic unsupported content')
         run('import',book,unknown)
         answer,seconds=run('ask',book,'Find the signed Lakehouse contract and its renewal price. If the evidence is missing or cannot be searched, say so clearly and do not guess.')
-        lower=answer['answer'].lower()
+        lower=answer['answer'].lower().replace("’", "'")
         assert not answer['citations'] and (re.search(r"no .* was found",lower) or any(s in lower for s in ['not find','no supporting','no evidence','could not','couldn\'t','unable'])),answer
         assert any(s in lower for s in ['incomplete','unsupported','not indexed','not fully','cannot be searched']),answer
         assert answer['steps']<=7,answer

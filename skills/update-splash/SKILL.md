@@ -48,6 +48,12 @@ edits, named calculation values and record data retain their fields. Compare
 required, automatic, named and reasoning grammar masks with the pinned reference.
 Unsupported schema keywords must fail setup, never silently weaken validation.
 
+Run the opt-in autonomous WorkbookAgent probe as well as forced-tool fixtures.
+Preserve conversation review/acceptance state, citation and calculation checks,
+truthful search coverage, native generated spaces and cancellation/lease recovery.
+The internal candidate boundary must not become a user backend picker. Keep the
+production baseline until the packaging, performance and application gates pass.
+
 Implement affected Swift behavior in small steps. Test protocol bytes against
 the pinned upstream goldens, then exact prompt token IDs and parsed results.
 Reference Python may run in an isolated evaluation environment. A Python-created

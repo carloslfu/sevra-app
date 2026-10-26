@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-26T20:46:27.202426+00:00
+updated: 2026-10-26T21:24:20.046785+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -18,7 +18,7 @@ every requirement or supported hardware profile has passed.
 Workbook is now Sevra's primary product/homepage, with Websites secondary.
 [[records/specs/splash-integration]] supersedes the Slotstream architecture for the
 next version. The installed/published build still uses Slotstream. The isolated Splash adapter now passes protocol, local-preparation and real-engine
-smoke checks. Full frontend, performance, packaging and app adoption remain pending.
+smoke checks. Native prompts, streaming, actual tool schemas and autonomous workbook integration now have passing synthetic checks as detailed below. Resumable setup, matched performance, packaging and app adoption remain pending.
 
 The expanded baseline `5aef111` has green GitHub CI, 46 passing local core
 checks and passing packaged installation checks. Native UI and engine work below
@@ -217,9 +217,10 @@ window and appearance qualification.
 
 - Implement native resumable downloads and setup integration; local preparation
   and its selected-model reference comparison now pass.
-- Wire the autonomous workbook agent to the qualified native frontend components.
-  Actual tool-schema construction/validation and a real native dispatcher/proposal
-  slice now pass; full actor/history/authority workflows remain unqualified.
+- Broaden qualification of the autonomous workbook agent connected to the qualified native frontend components.
+  Actual tool schemas and synthetic autonomous proposal, review, evidence, space,
+  hostile-document and cancellation jobs now pass. Broader authority and application
+  qualification remain open, including current review-state presentation in the UI.
 - Expand real-model tests to complete text/tool workflows, resource failures and
   restoration after release. Preserve the current baseline during qualification.
 - Qualify with identical requests, failure/recovery cases and matched performance.
@@ -383,3 +384,66 @@ native backend with the autonomous actor and its existing evidence/permission/ru
 history rules, implement resumable setup/downloads, compare matched performance,
 then complete packaging/adoption and the remaining J01–J09/UI/search/release gates.
 The release app and CLI build also pass for this checkpoint. Isolated installer checks cover install, update, uninstall, standalone CLI, skill installation/conflicts, workbook preservation and unrelated-CLI protection.
+## Autonomous native workbook checkpoint, October 26
+
+The actual WorkbookAgent now runs through a package-internal inference boundary
+using app-owned messages and tool calls. SevraNativeAI supplies the candidate
+Swift frontend and native Splash helper. Production still uses LocalModel and the
+preserved Slotstream dependency; the candidate is linked only by development checks.
+The existing baseline bridge preserves JSON types and exact integer history values.
+
+The native actor owns an exclusive run and cross-process lease, while one serial
+worker owns blocking pipes, tokenizer and grammar state. It verifies the executable,
+both Metal libraries, native grammar library and selected model preparation before
+loading. Failure discards the session; cancellation suppresses calls; a retry
+initializes a verified helper. Unload and owner disposal reap it before releasing
+the lease. Idle release remains two minutes. Native errors retain readable diagnostics.
+
+Three repeat cycles passed all seven synthetic jobs through the actual autonomous
+agent, with the model choosing tools and arguments. Each cycle checks table creation
+as a draft, separate fixture human acceptance, exact values, lineage and reopen;
+a cited deterministic supplier comparison; a saved native table/bar-chart space
+with unchanged values and a reopened definition; a hostile document whose injected
+mutation is ignored; missing evidence with actual index coverage; cancellation
+with no dispatched tool; and successful calculation after cancellation. Each cycle
+also verifies that the baseline can acquire the lease after native unload.
+
+The resulting 21 persisted jobs comprise 15 complete answers, three proposals
+requiring review, and three deliberate cancellations. They are not 21 distinct
+use cases or a general reliability claim. The reference host remains M5 Pro,
+48 GiB, macOS 26.6.2, with a 12 GiB native engine budget. The sanitized receipt is
+integration/evidence/2026-10-26-native-autonomous.json. It records exact source
+hashes, pins, prompts, results and metrics. Development builds may overlap these
+correctness runs, so timing fields do not establish performance parity or speed.
+
+The integration uncovered and corrected four real problems:
+
+- A fixed 1,800-token reservation could reject a possible short final response.
+  The candidate now uses the remaining context allowance, with an explicit minimum
+  and refusal of all truncated tool output. Long-job context management is still open.
+- Needs-review receipts were missing from model history, making earlier creation
+  requests look unfinished. History now includes those receipts and derives current
+  status/meaning/dataset from the preserved tool result and the item's current head.
+  Draft, accepted and withdrawn states are checked; an accepted forecast stays an estimate.
+- A model guessed that indexing might be incomplete when the index reported zero.
+  The host now ends three consecutive empty searches with exact queries and coverage.
+  Checks cover both zero and one incomplete source, without a fourth model request.
+- Repeated runs could save a native space successfully and then fail final-answer
+  validation by citing space/table IDs or previous-turn evidence. The native grammar
+  now permits only Source/Record versions inspected in this request. No inspected
+  evidence means an empty citation array. The host's citation/calculation checks remain.
+
+The full scripts/check.sh suite passes, including lifecycle/coverage checks,
+15 exact prompts, 80 streamed-output fixtures, 31 output projections across 3,216
+chunk layouts, all 248,320 vocabulary entries, 105 base masks and 217 actual-tool
+masks. The release app/CLI build and isolated install/update/uninstall checks pass.
+The upgrade skill validator passes. The preceding actual-tool checkpoint c14284a
+has complete green public CI.
+
+Still open: native resumable downloads and setup/capability UI; matched upstream
+performance; signed native packaging and transitive notices; removal of production
+Slotstream/MLX dependencies only after adoption gates; broader authority/long-context
+workloads; current proposal-status presentation in the UI; full J01–J09, search
+scale, accessibility, voice/media, clean installation and website deployment.
+The app and complete specification are not marked finished.
+Preserved-backend follow-up: the current Slotstream release binary passed comparison with a native space, hostile-document handling, isolated missing-evidence coverage, table proposal/acceptance, cell proposal/acceptance/undo, and cancellation persistence. The combined conversation failed the missing-evidence turn with model_format; cancellation recovery later failed answer_validation. These are retained failures, not a clean end-to-end baseline pass. The inventory trace exposed a concrete shared-agent gap: balance results return a basis and effect versions, but those versions are not yet admitted to the current inspected-evidence set. Fix and qualify that path next. Opaque IDs in generated prose and longer unconstrained conversations also remain under review. Keep the installed earlier baseline intact; this checkpoint is not a release.
