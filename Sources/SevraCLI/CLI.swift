@@ -184,6 +184,22 @@ import SevraCore
         "message": try encoded(book.historyMessage(arg(3), conversation: arg(2))),
         "payload": try book.messagePayload(arg(3), conversation: arg(2)),
       ])
+    case "unresolved-calls":
+      return .array(
+        try book.unresolvedToolCalls(conversation: args.count > 2 ? args[2] : "main", limit: 20))
+    case "tool-receipt":
+      return try book.toolCall(arg(3), conversation: arg(2))
+    case "tool-result":
+      let positional = args.filter { $0 != "--raw-json" }
+      let pathValue = positional.count > 4 ? try Value.parse(positional[4]) : .array([])
+      guard case .array(let values) = pathValue, values.allSatisfy({ $0.string != nil }) else {
+        throw SevraError("result_path", "A result path must be a JSON array of strings.")
+      }
+      let path = values.compactMap(\.string)
+      return try book.toolResultPage(
+        arg(3), conversation: arg(2), path: path,
+        offset: positional.count > 5 ? Int(positional[5]) ?? -1 : 0,
+        rawJSON: args.contains("--raw-json"), cancellation: cancellation)
     case "checkpoints":
       return .array(try book.contextCheckpoints(conversation: args.count > 2 ? args[2] : "main"))
     case "checkpoint":
@@ -235,6 +251,8 @@ import SevraCore
     conversation WORKBOOK [CONVERSATION_ID] | chapter WORKBOOK TITLE MESSAGE_ID
     history WORKBOOK [CONVERSATION_ID [AFTER_MESSAGE_ID]]
     history-search WORKBOOK CONVERSATION_ID QUERY [CURSOR] | history-read WORKBOOK CONVERSATION_ID MESSAGE_ID
+    unresolved-calls WORKBOOK [CONVERSATION_ID] | tool-receipt WORKBOOK CONVERSATION_ID RECEIPT_ID
+    tool-result WORKBOOK CONVERSATION_ID RECEIPT_ID [PATH_JSON [OFFSET]] [--raw-json]
     checkpoints WORKBOOK [CONVERSATION_ID] | checkpoint WORKBOOK CONVERSATION_ID CHECKPOINT_ID
     tangent WORKBOOK TITLE MESSAGE_ID | reindex WORKBOOK
     export WORKBOOK PATH.sevraz | open-archive PATH.sevraz DEST.sevra

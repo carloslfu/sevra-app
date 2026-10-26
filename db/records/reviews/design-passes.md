@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-26T21:43:43.504157+00:00
+updated: 2026-10-26T22:52:51.608710+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -143,3 +143,27 @@ Three passes informed [[records/specs/conversation-context]]:
    tangents, not just startup or an isolated summary. Keep 8K as a development
    reference until a larger profile is measured. These are reviewed requirements;
    automatic compaction has not yet been implemented.
+
+## Tool journal and retrieval review, October 26
+
+Pass 1, continuity and meaning: a question about older conversation must retrieve
+original messages instead of treating its current question as evidence. Exclude the
+current request from history search. A saved result is historical information; only
+fresh inspected fields enter the current citation vocabulary. Acceptance still comes
+from current records. Automatic summarization and action resumption remain separate.
+
+Pass 2, interruption and atomicity: preserving only a final tool message leaves an
+unobservable mutation interval. Save intent first; complete the result and message
+in one transaction. Repeated call IDs are refused. A missing receipt means uncertain,
+not rejected or undone. Expose exact committed-operation proof, keep draft/estimate
+meaning unchanged, and retain ambiguity for partially completed archive intake.
+A controlled reopen at this interval is tested; broad process-kill recovery remains.
+
+Pass 3, retrieval and portability: never cut JSON or throw away a large result after
+an action succeeds. Save it exactly and return navigable bounded pages. Include raw
+JSON segments for unusual keys and Unicode-scalar offsets for text. Atomic receipts
+travel in portable snapshots. Append-safe history cursors must survive the agent's
+own writes. Read-only CLI/core checks verify identity, precision, scope, tampering and
+offline reopening. Projection bounds are not a memory-bound claim for huge structured
+results. Scope-safe tangent search, full unresolved-call browsing, memory scale and
+repeated compaction remain explicit follow-up gates.

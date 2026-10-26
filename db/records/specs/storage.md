@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-26T22:27:33.046561+00:00
+updated: 2026-10-26T22:54:59.150110+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -113,9 +113,9 @@ recovery checks are required before this storage change ships.
 
 ## Current physical context storage
 
-Database schema 2 adds message_fts, message_payloads, run_requests,
-context_checkpoints and checkpoint_inputs. The package manifest version remains 1.
-Canonical schema-1 packages migrate transactionally under the workbook write lock.
+Database schema 3 includes message_fts, message_payloads, run_requests,
+context_checkpoints, checkpoint_inputs and tool_calls. The package manifest version remains 1.
+Canonical schema-1 and schema-2 packages migrate transactionally under the workbook write lock.
 Validate the exact old schema before enabling its triggers, then build the history
 index, advance the database version/revision and record the migration in one
 transaction. Unknown/future schemas are refused. Older app builds cannot open the
@@ -144,3 +144,35 @@ Original messages, payloads, run links and checkpoints travel in coherent SQLite
 snapshots and portable archives. History indexes are rebuildable. Automatic
 summarization, compaction scheduling and general pending-action recovery remain
 separate unfinished work under [[records/specs/conversation-context]].
+
+Tool calls are journaled before execution with the exact arguments, response text,
+run/call identity and the deterministic operation token computed by the host.
+A repeated call identity is refused, including a prepared call whose process ended.
+Completion stores the full structured JSON result and hash together with its
+conversation message in one transaction. Results larger than 16,000 encoded bytes
+receive valid JSON projections with explicit omitted fields and receipt IDs; no
+character-prefix truncation is used. The original result remains in SQLite as
+structured operational data. File assets remain outside SQLite inside the package.
+Tool-result reads navigate exact keys/indexes, page containers, or return labeled
+Unicode-scalar text segments; raw JSON segments support lossless unusual-key recovery.
+Message arguments and assistant text are checked before execution so the bounded
+receipt fits its message ceiling. Integrity checks bind the call, result and message.
+
+A prepared call is an uncertain outcome, never a claim of no changes. Inspection
+shows a matching committed operation when present and never replays a call.
+Multi-operation intake can be partially complete without a single operation token;
+absence of that token does not prove absence of effects. Failed calls retain their
+receipts and explain this distinction. Automatic recovery/resume and a user-facing
+resolution flow are still pending. Exact result retrieval currently loads the
+structured result before projecting a bounded response; streaming huge structured
+receipts and large-result memory qualification remain work, not bounded-memory proof.
+
+Conversation FTS uses append-safe descending keyset cursors bound to query, scope
+and the optional current-request boundary. Appending journal/messages does not
+invalidate older pages. Agent history search excludes its current request and
+later messages. It searches only the selected conversation; tangents retain their
+existing explicit parent excerpt, without a new cross-conversation search privilege.
+
+The history FTS indexes original messages and bounded receipt projections, not every
+field of an oversized journal result. Full results remain addressable by receipt ID
+and exact path. Full-result content indexing is still a retrieval qualification item.

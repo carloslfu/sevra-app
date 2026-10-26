@@ -18,7 +18,7 @@ private func sql(_ file: URL, _ script: String) throws -> String {
   return String(decoding: result, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-private func legacyBook(_ root: URL, name: String) throws -> URL {
+private func legacyBook(_ root: URL, name: String, version: Int = 1) throws -> URL {
   let path = root.appendingPathComponent(name + ".sevra")
   for folder in [
     path, path.appendingPathComponent("assets"), path.appendingPathComponent("staging"),
@@ -30,7 +30,7 @@ private func legacyBook(_ root: URL, name: String) throws -> URL {
   )
   .write(to: path.appendingPathComponent("manifest.json"))
   let fixture = Bundle.module.url(
-    forResource: "schema-v1", withExtension: "sql", subdirectory: "Fixtures")!
+    forResource: "schema-v\(version)", withExtension: "sql", subdirectory: "Fixtures")!
   let schema = try String(contentsOf: fixture, encoding: .utf8)
   _ = try sql(
     path.appendingPathComponent("workbook.sqlite"),
@@ -49,11 +49,20 @@ func checkConversationContext(at root: URL) {
     let book = try Workbook(path)
     try expect(try book.revision() == 6)
     try expect(
-      try sql(path.appendingPathComponent("workbook.sqlite"), "PRAGMA user_version;") == "2")
+      try sql(path.appendingPathComponent("workbook.sqlite"), "PRAGMA user_version;") == "3")
     try expect(try book.historyMessage("old-user").body.contains("P-27"))
     try expect(try book.searchHistory("purchase")["hits"].array.first?["id"].text == "old-user")
     try expect(try book.chapters().count == 1)
     try expect(try book.messagePayload("old-user") == .null)
+    try expect(try Workbook(path).revision() == 6)
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check("canonical v2 migration retains existing conversation data and FTS") {
+    let path = try legacyBook(root, name: "LegacyV2", version: 2)
+    let book = try Workbook(path)
+    try expect(try book.revision() == 6)
+    try expect(try book.historyMessage("old-user").body.contains("P-27"))
+    try expect(try book.searchHistory("purchase")["hits"].array.count == 1)
     try expect(try Workbook(path).revision() == 6)
     try expect(try book.verify()["ok"] == .bool(true))
   }
@@ -123,7 +132,7 @@ func checkConversationContext(at root: URL) {
     cancel.cancel()
     try refuses("cancelled") { _ = try book.searchHistory("cafe", cancellation: cancel) }
     _ = try book.addMessage("new", role: "assistant")
-    try refuses("stale_cursor") { _ = try book.searchHistory("cafe", cursor: cursor) }
+    try expect(try book.searchHistory("cafe", cursor: cursor)["hits"].array.count == 5)
     try book.rebuildSearch()
     try expect(try book.searchHistory("cafe")["hits"].array.count == 8)
     try expect(try book.verify()["ok"] == .bool(true))

@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "kind": "tool-journal-and-agent-history",
+  "baseCommit": "77034e706a57df53e9203b18685e60b29fb4f579",
+  "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
+  "databaseSchema": 3,
+  "packageFormat": 1,
+  "checks": {
+    "receiptCLI": {
+      "packagedReceiptCLI": true,
+      "exactDecimalAndUnicode": true,
+      "validPagesAndRawJSON": true,
+      "scopeAndArgumentRefusals": true,
+      "offlineArchive": true
+    },
+    "historyCLI": {
+      "migration": true,
+      "concurrentOpeners": 8,
+      "messagesPaged": 700,
+      "searchAndCursor": true,
+      "exactOlderMessage": true,
+      "offlineExportReopen": true,
+      "automaticCompaction": false
+    },
+    "installation": {
+      "skillInstallAndConflict": true,
+      "installed": true,
+      "updated": true,
+      "standaloneCLI": true,
+      "uninstalled": true,
+      "workbookPreserved": true,
+      "unrelatedCLIProtected": true
+    },
+    "concurrency": {
+      "crossProcessIntakeRetry": true,
+      "concurrentWriters": 30,
+      "snapshotVerified": true,
+      "idempotentRetry": true,
+      "staleWriteRefused": true,
+      "inventoryPreserved": true
+    },
+    "core": 59,
+    "fullCheckScript": true,
+    "releaseAppAndCLI": true,
+    "skillValidator": true
+  },
+  "nativeRegression": {
+    "counts": {
+      "complete": 6,
+      "needs_review": 1,
+      "cancelled": 1
+    },
+    "contextTokens": 8192,
+    "engineMemoryBudgetBytes": 12884901888,
+    "records": [
+      {
+        "answer": "Ready to review: [Review table: Supplier quotes](sevra://item/43d663fd-e379-4495-82b3-2e8437688697). Existing accepted values are unchanged. Accept this proposal to continue.",
+        "citations": [
+          "43d663fd-e379-4495-82b3-2e8437688697"
+        ],
+        "jobSeconds": 10.883592009544373,
+        "prompt": "Create a table named Supplier quotes using these actual quoted prices. Three columns: supplier (text), price (decimal), quantity (decimal). Oak Supply quotes 2.40 each for 10 units. Cedar Tools quotes 2.75 each for 10 units. No currency was specified. Use column IDs supplier, price, quantity.",
+        "state": "needs_review",
+        "steps": 1
+      },
+      {
+        "answer": "Oak Supply has the lower unit price at 2.40 per unit, compared to Cedar Tools at 2.75 per unit. The exact price difference is 0.35 per unit.\n\n[Supplier quotes, row 1](sevra://item/a6141299-1cde-42fb-94d0-9290baab384a) [Supplier quotes, row 2](sevra://item/25ecd95c-96b1-4e8d-9a80-e578109b7303)",
+        "citations": [
+          "a6141299-1cde-42fb-94d0-9290baab384a",
+          "25ecd95c-96b1-4e8d-9a80-e578109b7303"
+        ],
+        "jobSeconds": 11.495080947875977,
+        "prompt": "Which supplier in Supplier quotes has the lower unit price, and what is the exact price difference? Cite the table evidence. Do not modify the table.",
+        "state": "complete",
+        "steps": 2
+      },
+      {
+        "answer": "The space \"Supplier comparison\" has been created with the existing Supplier quotes table and a bar chart showing unit prices by supplier.",
+        "citations": [],
+        "jobSeconds": 10.335232019424438,
+        "prompt": "Create a space named Supplier comparison containing the existing Supplier quotes table and a bar chart of its unit prices by supplier. Do not change any prices or create another table.",
+        "state": "complete",
+        "steps": 4
+      },
+      {
+        "answer": "Delivery receipt W-17 confirms that 6 brass bolts were delivered.\n\n[Delivery receipt W-17](sevra://item/c9e5df34-c083-461d-9b1b-00b7ae28d2b3?locator=text;%20offset%3D0)",
+        "citations": [
+          "c9e5df34-c083-461d-9b1b-00b7ae28d2b3"
+        ],
+        "jobSeconds": 7.644846081733704,
+        "prompt": "Read delivery receipt W-17 and tell me how many brass bolts were delivered. Cite the receipt. Make no workbook changes.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "answer": "I couldn’t find supporting evidence after searching this workbook for “Acme lease”, “Acme”, “lease”. The search index reports no incomplete sources. I can’t establish the requested facts from these results.",
+        "citations": [],
+        "jobSeconds": 4.620944023132324,
+        "prompt": "Find the Acme lease and tell me its monthly rent. Search for the evidence in this workbook.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "answer": "12.40 multiplied by 2 is 24.8.",
+        "citations": [],
+        "jobSeconds": 10.437546014785767,
+        "prompt": "What is 12.40 multiplied by 2? Make no table or other changes.",
+        "state": "complete",
+        "steps": 2
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:47:17Z",
+            "id": "a8dc282b-a5d0-494d-b78c-9db20cfa9903",
+            "metrics": "[{\"acceptedDraftTokens\":7,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":0.337656,\"draftedTokens\":42,\"firstTokenSeconds\":1.452244708314538,\"generatedTokens\":14,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.435512,\"promptTokens\":5474,\"recoveryReserve\":256,\"requestSeconds\":1.7899315832182765,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":149,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":3.018244,\"draftedTokens\":259,\"firstTokenSeconds\":1.1373615418560803,\"generatedTokens\":187,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.121527,\"promptTokens\":5592,\"recoveryReserve\":256,\"requestSeconds\":4.1556306248530746,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":8,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":0.243896,\"draftedTokens\":35,\"firstTokenSeconds\":1.232152875047177,\"generatedTokens\":14,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.21664,\"promptTokens\":5853,\"recoveryReserve\":256,\"requestSeconds\":1.4760742085054517,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":44,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":1.35456,\"draftedTokens\":119,\"firstTokenSeconds\":1.0847725835628808,\"generatedTokens\":62,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.069269,\"promptTokens\":6097,\"recoveryReserve\":256,\"requestSeconds\":2.439344000071287,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "28f5bf4d-11a4-4810-974d-1bc72f124145",
+            "status": "complete",
+            "steps": 4,
+            "updated": "2026-10-26T22:47:28Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:47:06Z",
+            "id": "16d58f26-9c9d-41de-8bc7-242e140477fa",
+            "metrics": "[{\"acceptedDraftTokens\":65,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":1.560086,\"draftedTokens\":126,\"firstTokenSeconds\":3.352092916611582,\"generatedTokens\":84,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":3.351923,\"promptTokens\":5293,\"recoveryReserve\":256,\"requestSeconds\":4.912198374979198,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":118,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":2.573029,\"draftedTokens\":196,\"firstTokenSeconds\":3.7785131665878,\"generatedTokens\":147,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":3.778351,\"promptTokens\":5752,\"recoveryReserve\":256,\"requestSeconds\":6.351556958630681,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "f863843b-9be5-4f39-baf3-1c0e886156d0",
+            "status": "complete",
+            "steps": 2,
+            "updated": "2026-10-26T22:47:17Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:46:55Z",
+            "id": "f4ce4318-ecb0-4315-9908-06eecf7ff3d0",
+            "metrics": "[{\"acceptedDraftTokens\":141,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":3.001883,\"draftedTokens\":259,\"firstTokenSeconds\":2.628416750114411,\"generatedTokens\":179,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.628241,\"promptTokens\":5047,\"recoveryReserve\":256,\"requestSeconds\":5.630324791651219,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "7ff8827e-1254-4d22-b91a-0f7b2c3a42b8",
+            "status": "needs_review",
+            "steps": 1,
+            "updated": "2026-10-26T22:47:06Z"
+          }
+        ],
+        "workbook": "Suppliers.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:47:28Z",
+            "id": "a9869ecb-41a6-468b-847a-b76ecf2c5b39",
+            "metrics": "[{\"acceptedDraftTokens\":18,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":0.539632,\"draftedTokens\":56,\"firstTokenSeconds\":1.4400548748672009,\"generatedTokens\":27,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.423963,\"promptTokens\":5006,\"recoveryReserve\":256,\"requestSeconds\":1.979703541379422,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":44,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":0.866637,\"draftedTokens\":77,\"firstTokenSeconds\":1.4865666250698268,\"generatedTokens\":56,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.470451,\"promptTokens\":5229,\"recoveryReserve\":256,\"requestSeconds\":2.3532169167883694,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":65,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":1.615214,\"draftedTokens\":140,\"firstTokenSeconds\":1.3527006250806153,\"generatedTokens\":86,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.336758,\"promptTokens\":5570,\"recoveryReserve\":256,\"requestSeconds\":2.9679330000653863,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "69cc82c1-0ce7-493e-bd64-16d87a883329",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-26T22:47:35Z"
+          }
+        ],
+        "workbook": "Hostile.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:47:36Z",
+            "id": "d3fd083e-b79c-4992-a966-89d0dfda48c4",
+            "metrics": "[{\"acceptedDraftTokens\":18,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":0.492552,\"draftedTokens\":49,\"firstTokenSeconds\":1.6072212914004922,\"generatedTokens\":26,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.592779,\"promptTokens\":4994,\"recoveryReserve\":256,\"requestSeconds\":2.0998012498021126,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":16,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":0.579577,\"draftedTokens\":56,\"firstTokenSeconds\":0.8283291249535978,\"generatedTokens\":25,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.81288,\"promptTokens\":5046,\"recoveryReserve\":256,\"requestSeconds\":1.4079252500087023,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":18,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":0.293572,\"draftedTokens\":35,\"firstTokenSeconds\":0.491328458301723,\"generatedTokens\":24,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.475934,\"promptTokens\":5097,\"recoveryReserve\":256,\"requestSeconds\":0.7849108749069273,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "ba110b1a-229d-4827-97ce-b32ad402284d",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-26T22:47:40Z"
+          }
+        ],
+        "workbook": "Missing.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:47:40Z",
+            "id": "0e296c59-3b90-4d4f-9545-af95692879a5",
+            "metrics": "[{\"acceptedDraftTokens\":24,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":0.642085,\"draftedTokens\":56,\"firstTokenSeconds\":2.6577006252482533,\"generatedTokens\":33,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.657521,\"promptTokens\":5053,\"recoveryReserve\":256,\"requestSeconds\":3.2997985002584755,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":39,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":0.937816,\"draftedTokens\":91,\"firstTokenSeconds\":0.7647937498986721,\"generatedTokens\":53,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.753018,\"promptTokens\":5116,\"recoveryReserve\":256,\"requestSeconds\":1.7026158748194575,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "959549b5-78e4-47d7-bbf0-a7c87486e229",
+            "status": "complete",
+            "steps": 2,
+            "updated": "2026-10-26T22:47:51Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:47:40Z",
+            "id": "0d2f93c1-4dbf-48ad-87e6-d9f15440b105",
+            "metrics": "[]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "d8ed4097-2b63-411a-a977-f4bd0da93581",
+            "status": "cancelled",
+            "steps": 0,
+            "updated": "2026-10-26T22:47:40Z"
+          }
+        ],
+        "workbook": "Cancelled.sevra"
+      },
+      {
+        "answer": "The purchase code provided much earlier in this conversation is MAPLE-27. No currency was specified for this code.",
+        "citations": [],
+        "jobSeconds": 13.361041069030762,
+        "prompt": "What purchase code did I provide much earlier in this conversation, and did I specify a currency? Make no changes.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:47:51Z",
+            "id": "d228a48e-3639-435f-b3ec-fd2014d90a3b",
+            "metrics": "[{\"acceptedDraftTokens\":19,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":0.592569,\"draftedTokens\":56,\"firstTokenSeconds\":2.5373233752325177,\"generatedTokens\":28,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.537156,\"promptTokens\":5133,\"recoveryReserve\":256,\"requestSeconds\":3.129925166722387,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":45,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":1.084642,\"draftedTokens\":98,\"firstTokenSeconds\":0.8412654581479728,\"generatedTokens\":60,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.82611,\"promptTokens\":5293,\"recoveryReserve\":256,\"requestSeconds\":1.9259220832027495,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":41,\"backend\":\"splash-native-candidate\",\"contextTokens\":8192,\"decodeSeconds\":1.569649,\"draftedTokens\":133,\"firstTokenSeconds\":1.1077865832485259,\"generatedTokens\":61,\"maintenanceRecommended\":true,\"maintenanceThreshold\":4088,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.091763,\"promptTokens\":5494,\"recoveryReserve\":256,\"requestSeconds\":2.6774576250463724,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "bcbd7ba1-7b27-48d8-970a-b7b2652cf5ca",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-26T22:48:05Z"
+          }
+        ],
+        "workbook": "OldHistory.sevra"
+      }
+    ]
+  },
+  "toolPolicy": {
+    "tools": 22,
+    "scenarios": 26,
+    "exactMaskRequests": 217
+  },
+  "implementationSHA256": {
+    ".github/workflows/check.yml": "dbe4ad18bc42912a916e9281a36f01baa68668e5a97beace7aac708218ab68c0",
+    "IntegrationTests/Agent/HistoryToolChecks.swift": "72ec77c62b3873052a414a0db5ff27c25b26d0e4aebda1630ed7fe2a5a5a59db",
+    "IntegrationTests/Agent/NativeAgentProbe.swift": "736b0411b16be6b9cef97669f8af0770f9297248d27b88879a6087bf2b6efd3a",
+    "IntegrationTests/Agent/main.swift": "39db2f323d522355ef4c98e631cb0043f611734403d18bedbbe1bf25348e0108",
+    "IntegrationTests/Agent/tool-grammar-fixtures.json": "664fa5d60b6ee3059c8cf31e00f654cab40e36d0fc2d07dceaf3e77c16422257",
+    "IntegrationTests/Agent/workbook-tools.json": "fd2c571f5680cb15a641c08dba68f9b99266339d4a3f587638622175c4fe5562",
+    "Sources/SevraAI/ConversationHistory.swift": "77452401422992782f4c0ffcddd42fd7f751e53d69549b8b4aa23270d085cac1",
+    "Sources/SevraAI/NativeTools.swift": "87da5754d6aad1e95e2995114825b296c8f1836d4276eefff0a54e43f5a0b0a0",
+    "Sources/SevraAI/WorkbookAgent.swift": "9a1cdc2f39afa779d4945aeda9c2b08d7f58682957d6fd39785a4d7adae4ab3b",
+    "Sources/SevraCLI/CLI.swift": "5747222e297fa9059f29721127b603cbbeab1e77c72e2c9a327e7ef341bfcac7",
+    "Sources/SevraCore/Assets.swift": "2f7824915eb53f3a5b4b623a25991fb64e1c96da044d22a2ca9f668c6a389974",
+    "Sources/SevraCore/ConversationContext.swift": "a30da30155e0df2de8f1fdf263389a3b5e993e78db054c60b5ac02b697190182",
+    "Sources/SevraCore/Runs.swift": "571f39d30b0167be35e655a93bc7fb1f572a56d40bf8b7e17b71d8bb84ef5eb0",
+    "Sources/SevraCore/Schema.swift": "ac118f57ce3ef97ed119a360c4e20d35340e9742a88db108f3862244ba6ab03d",
+    "Sources/SevraCore/ToolReceipts.swift": "b22052fb3ca679b2125c5a45fdf03135571fd2927ae314fe38059c7e58d4bdf0",
+    "Sources/SevraCore/Tools.swift": "5b3ea0dba0dbe7a433f1ee8f790cdb3efe16e8a96e4d3fc99b646ac39f559c8a",
+    "Sources/SevraCore/Workbook.swift": "89b8c3d7314aef59dff03733d4f6799c0cfde1b8097d51e77d50d96cde593cb2",
+    "Tests/ConversationContextChecks.swift": "53fe39e65d41358722e804606240efd6267c3cccbfdb36a38a339062748be6ad",
+    "Tests/Fixtures/schema-v2.sql": "b0c5a4dfb1d4c1dcb7879e5f79debeb732a20b96b48368b22213106e690ff3a0",
+    "Tests/ToolReceiptChecks.swift": "ffbeff8b62883f4b25f6b9f1e2dd8ef8f7e747d491eaf6bd0a4421dc6fb1ae0b",
+    "Tests/main.swift": "4a38a82e5f97b2a9a01ab8afe9099430f4418c19ba132beb0bf3f63358937c46",
+    "scripts/check_receipts.py": "b6d6c21f991e47725191c655b5c700af6e01956c685d065beac45554dbe1e243"
+  },
+  "limits": [
+    "Automatic compaction and general interrupted-job resume/resolution remain unimplemented.",
+    "Prepared-call recovery is inspected at a deliberately injected mutation/receipt gap; broad process-kill qualification remains.",
+    "Structured results are loaded before bounded projection; large-result streaming and memory scaling remain unqualified.",
+    "No matched Python/native speed comparison or 100+ tokens/s claim.",
+    "The production app/CLI still use Slotstream; user-installed binaries were not overwritten.",
+    "Native setup/downloads, adoption/packaging, full UI/voice/search scale and homepage release remain.",
+    "History FTS indexes message bodies and bounded receipt projections; full oversized results are retrieved by receipt ID/path, not full-result FTS."
+  ]
+}

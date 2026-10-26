@@ -55,7 +55,7 @@ public final class Workbook: @unchecked Sendable {
       "This is not a Sevra workbook.")
     let incomingVersion = try db.scalar("PRAGMA user_version").int
     try require(
-      incomingVersion == 1 || incomingVersion == Schema.version, "schema",
+      [1, 2, Schema.version].contains(incomingVersion ?? 0), "schema",
       "This workbook needs another version of Sevra.")
     let descriptor = Darwin.open(
       url.appendingPathComponent(".write-lock").path,
@@ -77,24 +77,27 @@ public final class Workbook: @unchecked Sendable {
     try db.transaction {
       let version = try db.scalar("PRAGMA user_version").int
       try require(
-        version == 1 || version == Schema.version, "schema",
+        [1, 2, Schema.version].contains(version ?? 0), "schema",
         "This workbook needs another version of Sevra.")
       let reference = try Database(URL(fileURLWithPath: "/:memory:"), create: true)
-      try reference.script(version == 1 ? Schema.version1SQL : Schema.sql)
+      try reference.script(
+        version == 1 ? Schema.version1SQL : version == 2 ? Schema.version2SQL : Schema.sql)
       let query =
         "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY name"
       try require(
         try db.execute(query) == reference.execute(query), "schema",
         "Unrecognized workbook schema. Open only a canonical Sevra package.")
       try db.execute("PRAGMA trusted_schema=ON")
-      if version == 1 {
-        try db.script(Schema.migration2)
+      if version != Schema.version {
+        if version == 1 { try db.script(Schema.migration2) }
+        try db.script(Schema.migration3)
         let revision = (try db.scalar("SELECT value FROM meta WHERE key='revision'").int ?? 0) + 1
         try db.execute("UPDATE meta SET value=? WHERE key='revision'", [.string(String(revision))])
         try db.execute(
           "INSERT INTO operations VALUES(?,?,?,?,?,?)",
           [
-            .string(identifier()), .string("schema_migration"), .string("{\"from\":1,\"to\":2}"),
+            .string(identifier()), .string("schema_migration"),
+            .string("{\"from\":\(version!),\"to\":\(Schema.version)}"),
             .string("true"), .string(timestamp()), .number(Double(revision)),
           ])
         try require(

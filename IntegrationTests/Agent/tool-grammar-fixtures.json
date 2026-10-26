@@ -1,8 +1,614 @@
 {
   "schemaVersion": 1,
   "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
-  "toolsSHA256": "6f56b0f2aa2ceb989af5b138a114b64bf4a3b389bef3e3e330e8ef3f36693be8",
+  "toolsSHA256": "fd2c571f5680cb15a641c08dba68f9b99266339d4a3f587638622175c4fe5562",
   "cases": [
+    {
+      "name": "required_history_search",
+      "choice": "required",
+      "thinking": false,
+      "output": "<tool_call>\n<function=history_search>\n<parameter=query>\nexample\n</parameter>\n</function>\n</tool_call>",
+      "arguments": {
+        "query": "example"
+      },
+      "tokens": [
+        248058,
+        198,
+        27,
+        1628,
+        28,
+        18274,
+        10400,
+        29,
+        198,
+        27,
+        15704,
+        76478,
+        29,
+        198,
+        8422,
+        198,
+        510,
+        15704,
+        29,
+        198,
+        510,
+        1628,
+        29,
+        198,
+        248059
+      ],
+      "steps": [
+        {
+          "committed": [],
+          "simulation": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18274,
+            10400,
+            29
+          ],
+          "maskSHA256": "3d92f1d049087df428ca4f2df5efff3856ee61788f17f80ad144f613b4f2ba8d"
+        },
+        {
+          "committed": [
+            248058
+          ],
+          "simulation": [
+            198,
+            27,
+            1628,
+            28,
+            18274,
+            10400,
+            29,
+            198
+          ],
+          "maskSHA256": "5c081111843581f6cb803e6074ec4a670c571a29598a82f8883129b560532413"
+        },
+        {
+          "committed": [
+            248058,
+            198
+          ],
+          "simulation": [
+            27,
+            1628,
+            28,
+            18274,
+            10400,
+            29,
+            198,
+            27
+          ],
+          "maskSHA256": "85b66a597556c8d6350f4616e336d9a0d1d56ab236ce8747cba20232a704b3ed"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18274,
+            10400,
+            29
+          ],
+          "simulation": [
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            8422,
+            198
+          ],
+          "maskSHA256": "4f4832f022ab0dcbe748e9d5971bd3723e785ed78a8c6c3dc89ca45e57345e99"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18274,
+            10400,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            8422,
+            198
+          ],
+          "simulation": [
+            510,
+            15704,
+            29,
+            198,
+            510,
+            1628,
+            29,
+            198
+          ],
+          "maskSHA256": "85eaef9dd8be1eabd22c62c3562abf86d3ca210c7d0606893aa83262e5628146"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18274,
+            10400,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            510,
+            1628,
+            29,
+            198
+          ],
+          "simulation": [
+            248059
+          ],
+          "maskSHA256": "00e2072df14e4102fa6ff7186797203523c9913e872bf4c767c024140f3cca00"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18274,
+            10400,
+            29,
+            198,
+            27,
+            15704,
+            76478,
+            29,
+            198,
+            8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            510,
+            1628,
+            29,
+            198,
+            248059
+          ],
+          "simulation": [],
+          "maskSHA256": "033f3556ec53b9e3b6a40c953213bd9fd273faac720196891d8b109790ebdf1e"
+        }
+      ]
+    },
+    {
+      "name": "required_history_read",
+      "choice": "required",
+      "thinking": false,
+      "output": "<tool_call>\n<function=history_read>\n<parameter=id>\nexample\n</parameter>\n</function>\n</tool_call>",
+      "arguments": {
+        "id": "example"
+      },
+      "tokens": [
+        248058,
+        198,
+        27,
+        1628,
+        28,
+        18274,
+        6241,
+        29,
+        198,
+        27,
+        15704,
+        44485,
+        29,
+        198,
+        8422,
+        198,
+        510,
+        15704,
+        29,
+        198,
+        510,
+        1628,
+        29,
+        198,
+        248059
+      ],
+      "steps": [
+        {
+          "committed": [],
+          "simulation": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18274,
+            6241,
+            29
+          ],
+          "maskSHA256": "3d92f1d049087df428ca4f2df5efff3856ee61788f17f80ad144f613b4f2ba8d"
+        },
+        {
+          "committed": [
+            248058
+          ],
+          "simulation": [
+            198,
+            27,
+            1628,
+            28,
+            18274,
+            6241,
+            29,
+            198
+          ],
+          "maskSHA256": "5c081111843581f6cb803e6074ec4a670c571a29598a82f8883129b560532413"
+        },
+        {
+          "committed": [
+            248058,
+            198
+          ],
+          "simulation": [
+            27,
+            1628,
+            28,
+            18274,
+            6241,
+            29,
+            198,
+            27
+          ],
+          "maskSHA256": "85b66a597556c8d6350f4616e336d9a0d1d56ab236ce8747cba20232a704b3ed"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18274,
+            6241,
+            29
+          ],
+          "simulation": [
+            198,
+            27,
+            15704,
+            44485,
+            29,
+            198,
+            8422,
+            198
+          ],
+          "maskSHA256": "022d9a3736da8e2121fa6d208285dc7efa6c7d01f8b6c0e92e281a4322aa2498"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18274,
+            6241,
+            29,
+            198,
+            27,
+            15704,
+            44485,
+            29,
+            198,
+            8422,
+            198
+          ],
+          "simulation": [
+            510,
+            15704,
+            29,
+            198,
+            510,
+            1628,
+            29,
+            198
+          ],
+          "maskSHA256": "85eaef9dd8be1eabd22c62c3562abf86d3ca210c7d0606893aa83262e5628146"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18274,
+            6241,
+            29,
+            198,
+            27,
+            15704,
+            44485,
+            29,
+            198,
+            8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            510,
+            1628,
+            29,
+            198
+          ],
+          "simulation": [
+            248059
+          ],
+          "maskSHA256": "00e2072df14e4102fa6ff7186797203523c9913e872bf4c767c024140f3cca00"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18274,
+            6241,
+            29,
+            198,
+            27,
+            15704,
+            44485,
+            29,
+            198,
+            8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            510,
+            1628,
+            29,
+            198,
+            248059
+          ],
+          "simulation": [],
+          "maskSHA256": "033f3556ec53b9e3b6a40c953213bd9fd273faac720196891d8b109790ebdf1e"
+        }
+      ]
+    },
+    {
+      "name": "required_tool_result",
+      "choice": "required",
+      "thinking": false,
+      "output": "<tool_call>\n<function=tool_result>\n<parameter=id>\nexample\n</parameter>\n</function>\n</tool_call>",
+      "arguments": {
+        "id": "example"
+      },
+      "tokens": [
+        248058,
+        198,
+        27,
+        1628,
+        28,
+        13766,
+        5119,
+        29,
+        198,
+        27,
+        15704,
+        44485,
+        29,
+        198,
+        8422,
+        198,
+        510,
+        15704,
+        29,
+        198,
+        510,
+        1628,
+        29,
+        198,
+        248059
+      ],
+      "steps": [
+        {
+          "committed": [],
+          "simulation": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            13766,
+            5119,
+            29
+          ],
+          "maskSHA256": "46b3a991b965882b41d0f6ab7613ab65a4b3898032d200bba9ce796518e5a59e"
+        },
+        {
+          "committed": [
+            248058
+          ],
+          "simulation": [
+            198,
+            27,
+            1628,
+            28,
+            13766,
+            5119,
+            29,
+            198
+          ],
+          "maskSHA256": "3addd8ad015d4229ddba71a0e29eeee2228b00648f2a4a2f3ac5f3b22618a7d0"
+        },
+        {
+          "committed": [
+            248058,
+            198
+          ],
+          "simulation": [
+            27,
+            1628,
+            28,
+            13766,
+            5119,
+            29,
+            198,
+            27
+          ],
+          "maskSHA256": "6c09c91b45bd92424c357cb66e6556c5d15ee8a15fcc2e0c585b7fc09e306d37"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            13766,
+            5119,
+            29
+          ],
+          "simulation": [
+            198,
+            27,
+            15704,
+            44485,
+            29,
+            198,
+            8422,
+            198
+          ],
+          "maskSHA256": "022d9a3736da8e2121fa6d208285dc7efa6c7d01f8b6c0e92e281a4322aa2498"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            13766,
+            5119,
+            29,
+            198,
+            27,
+            15704,
+            44485,
+            29,
+            198,
+            8422,
+            198
+          ],
+          "simulation": [
+            510,
+            15704,
+            29,
+            198,
+            510,
+            1628,
+            29,
+            198
+          ],
+          "maskSHA256": "b4ca19770c6695aab6d3b8b436f6009be1131146983cf3f96a0cbbe8ef77dfbb"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            13766,
+            5119,
+            29,
+            198,
+            27,
+            15704,
+            44485,
+            29,
+            198,
+            8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            510,
+            1628,
+            29,
+            198
+          ],
+          "simulation": [
+            248059
+          ],
+          "maskSHA256": "00e2072df14e4102fa6ff7186797203523c9913e872bf4c767c024140f3cca00"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            13766,
+            5119,
+            29,
+            198,
+            27,
+            15704,
+            44485,
+            29,
+            198,
+            8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            510,
+            1628,
+            29,
+            198,
+            248059
+          ],
+          "simulation": [],
+          "maskSHA256": "033f3556ec53b9e3b6a40c953213bd9fd273faac720196891d8b109790ebdf1e"
+        }
+      ]
+    },
     {
       "name": "required_propose_table",
       "choice": "required",
@@ -150,7 +756,7 @@
             930,
             5070
           ],
-          "maskSHA256": "dd73225dca93f2fe5bcfaaef42596b7f9440c223269b39d4e74c3d057ac84fdb"
+          "maskSHA256": "44b2190d2ca737e496b0f01812ae39d26b0918b3ecd3345ab0127fcdc556f327"
         },
         {
           "committed": [
@@ -166,7 +772,7 @@
             5070,
             29
           ],
-          "maskSHA256": "fe075b90624b3ab260055906518dda22bdfc4eb5dd6da452d27926d7e4c1bebf"
+          "maskSHA256": "14d442c5136ffce98e6bdd80adc74340dbaf305df2ec887a7ce9144b5ead8336"
         },
         {
           "committed": [
@@ -183,7 +789,7 @@
             29,
             198
           ],
-          "maskSHA256": "f3cac4a6c3152a5725f69337f17ee3240d4c51e1cd0218a4baa12cb6c85ec940"
+          "maskSHA256": "b8b74af3556ede1ffdb19be40874db2fd4e3b98463d0e72d93a1fc2c715eda18"
         },
         {
           "committed": [
@@ -1266,7 +1872,7 @@
             29407,
             29
           ],
-          "maskSHA256": "f1108df06aaf252e949438da4e6e51936721f92ab84e0d95d9fcef1a0d5358a1"
+          "maskSHA256": "8d0e15b044f0f4fe4f21aaa6a3982b3e8ca4a421a375d7c0e407783c89a8ba3f"
         },
         {
           "committed": [
@@ -1282,7 +1888,7 @@
             29,
             198
           ],
-          "maskSHA256": "60cf64a75e9bfa8c051cf54f335ec95adcbc1e0d17cb1bd14c2ba2c2446b974c"
+          "maskSHA256": "5f4a9e09f72d731bb80a53c02ca0808100114023c722844a37f55e4ebe7706da"
         },
         {
           "committed": [
@@ -1299,7 +1905,7 @@
             198,
             27
           ],
-          "maskSHA256": "1404151c79ba9d0fce16904af08b2a80bb4cf186ed19f8d246e1c13d16294d28"
+          "maskSHA256": "b7f2b148d89c10ff123e65d49fd13ec76bff24a31857009545fcafb23a56159c"
         },
         {
           "committed": [
@@ -1486,7 +2092,7 @@
             41454,
             29407
           ],
-          "maskSHA256": "b00f3c8c68702295808f61a5284b23f5d6fa02c711f4797fd2a6d7657d1c7eff"
+          "maskSHA256": "81cac6ab1047e993ff7ad1c9d9b9e9052ccf4a34e132ba106d99b54650be3e7f"
         },
         {
           "committed": [
@@ -1502,7 +2108,7 @@
             29407,
             29
           ],
-          "maskSHA256": "2c1df7779d2d78341e0ff6115fa91ab61ab8a350de0f06309506ed9fe0350993"
+          "maskSHA256": "846d88ae8b59b1a0e8dcc6a6af37e9d0a6b83625373bbb6350714afd8da7aa6c"
         },
         {
           "committed": [
@@ -1519,7 +2125,7 @@
             29,
             198
           ],
-          "maskSHA256": "63ab789e8adc90654d21257ee25330b1ffc86e602b36fd8ddc3d5ee0913b915f"
+          "maskSHA256": "5c221e26f1ec155b27d84b3c53c81554eae93357a65560445415551265f6c38b"
         },
         {
           "committed": [
@@ -1755,7 +2361,7 @@
             198,
             27
           ],
-          "maskSHA256": "f4b591ed389c6cc14a8bc465b58da5fff19cfb882d7be75f0a92daad9d6f0af5"
+          "maskSHA256": "2949d65aa7261acbf74b200071c289ef4d55c202e8dfeb608e1475fe8d88ae90"
         },
         {
           "committed": [
@@ -1771,7 +2377,7 @@
             27,
             15704
           ],
-          "maskSHA256": "59cc7b974bdc1ef1dc23203ac4ebc2062f570b26d637bd3265326a72389715eb"
+          "maskSHA256": "bb62855e2a7351c318dbd2b3fd6f16ea6e860f754031132a5d6ba323bd9997c6"
         },
         {
           "committed": [
@@ -1788,7 +2394,7 @@
             15704,
             76478
           ],
-          "maskSHA256": "cf6928d09e7d7593ab8add7d4bc28b93f85842a6232a58c4ae194d3825572fd4"
+          "maskSHA256": "814ab65fdaefc5ed8c5174d41a584a8a446ce5814effa410f69658040bd85805"
         },
         {
           "committed": [
@@ -1920,7 +2526,7 @@
             198,
             27
           ],
-          "maskSHA256": "f4b591ed389c6cc14a8bc465b58da5fff19cfb882d7be75f0a92daad9d6f0af5"
+          "maskSHA256": "2949d65aa7261acbf74b200071c289ef4d55c202e8dfeb608e1475fe8d88ae90"
         },
         {
           "committed": [
@@ -1936,7 +2542,7 @@
             27,
             15704
           ],
-          "maskSHA256": "2ca1c41ab1c9a676dad7539d1ee291f2c0e39d80e38f63fb37d3d2e2d9968504"
+          "maskSHA256": "0b7916ece184a22686321300df534f8130961fa14e7e02a3a7a8712ae955b6d9"
         },
         {
           "committed": [
@@ -1953,7 +2559,7 @@
             15704,
             44485
           ],
-          "maskSHA256": "e13de2ef60482e90937aa37a75d31a963d8f5e67e036091efb0e5e0650f1b14c"
+          "maskSHA256": "8050c36c509feb473e0c9bb5df7a5700633787c62b7b284ca3e8bf3c7a83c3e0"
         },
         {
           "committed": [
@@ -2086,7 +2692,7 @@
             29,
             198
           ],
-          "maskSHA256": "8dcd37e6863abafcbc462c7f5fcb23ae57bba8758212fdf9cc8f49ca3a503f06"
+          "maskSHA256": "5f56c94b42baf714fb9423fb21be24ad449670fbc3697907d7e3abf7aa9d1210"
         },
         {
           "committed": [
@@ -2102,7 +2708,7 @@
             198,
             27
           ],
-          "maskSHA256": "cc03ae5fe2285adc443167243e1cf8c3f410b1b588c1b2f372d8d6f68fc4afac"
+          "maskSHA256": "476be0d6afe2368ceb4fd8f65e0aa3bf7a14b7a51d81a76e9539399bf19dd8b0"
         },
         {
           "committed": [
@@ -2119,7 +2725,7 @@
             27,
             15704
           ],
-          "maskSHA256": "ce636afc74fa54c1fd79476a32690d3c20ecb8a812c53e154884b4a24d6fa579"
+          "maskSHA256": "b336524fe7b3dbdfc8a0742ae4da1848f2736e226293b24fbf5b06c98fcac03b"
         },
         {
           "committed": [
@@ -2241,7 +2847,7 @@
             29,
             198
           ],
-          "maskSHA256": "b464dbddf7efa3315a9eddbb62a69916747261222a4d5715364db8d7b858721f"
+          "maskSHA256": "65f34e4d6fd479dcca8311e517b0eed8cdbe12066195513a8e49c0abac0f86bc"
         },
         {
           "committed": [
@@ -2257,7 +2863,7 @@
             198,
             510
           ],
-          "maskSHA256": "772539c9c658c2e5dd1619e07a11a8c637d0c61a7a48994443256e995d6b6205"
+          "maskSHA256": "037f4a84abb3bec15d4f0db91c2a496a421f12059cc4f764eae7ab39d06b1a08"
         },
         {
           "committed": [
@@ -2274,7 +2880,7 @@
             510,
             1628
           ],
-          "maskSHA256": "7bf9c197503380de2efb642347380166726e5b06c2b604e71ac0656f38a9912d"
+          "maskSHA256": "222f6b51d32e135a4a4068e9e5564439f2ecebb10ec452a18b9bc8f1f01288fe"
         },
         {
           "committed": [
@@ -2366,7 +2972,7 @@
             29,
             198
           ],
-          "maskSHA256": "f20fa56855f4c2f51208a084e1a3d0b5f8482ec949cbcc7210205a571a5b28bf"
+          "maskSHA256": "9b26c5f0803ca3d1132cb2e803360db3b44a46b57f4ec32516607d2a9eeadf0f"
         },
         {
           "committed": [
@@ -2382,7 +2988,7 @@
             198,
             27
           ],
-          "maskSHA256": "7e0a31c0f70492179b2c715174f7d11b4e2f71de44c7f37ec8d30acf451ae6fe"
+          "maskSHA256": "354f7812103c6c70287d77e91f9c8d7cfae6f935e5f20bbd911f117054d0925d"
         },
         {
           "committed": [
@@ -2399,7 +3005,7 @@
             27,
             15704
           ],
-          "maskSHA256": "7c2f6fe3c06c5c52ad3f19d9e7590f3d2efcbab2b5df9e7a3e771b74bec5e954"
+          "maskSHA256": "eed35235a469bea24ba5587c2fedb046cb605eb5e9b0eee23f4c8014ce8fa3d3"
         },
         {
           "committed": [
@@ -2598,7 +3204,7 @@
             10630,
             29
           ],
-          "maskSHA256": "4f640fd2e69e57a9052dc5af5051162c7a02ca6ca520dac6404b39f044a7b90c"
+          "maskSHA256": "4aa206dc6261852d124433de3d421a1bec422590fb8cd1f72b7f948baa715263"
         },
         {
           "committed": [
@@ -2614,7 +3220,7 @@
             29,
             198
           ],
-          "maskSHA256": "9e7ff39935ac1acbd64689c9d9fa84cc35359d578fd177312e4b2b4553c2fc0e"
+          "maskSHA256": "59f6d4ee697b956f95431cf0d31d733cc243be000ec7160951e0d9a48b376c12"
         },
         {
           "committed": [
@@ -2631,7 +3237,7 @@
             198,
             27
           ],
-          "maskSHA256": "a1b9e27e0430d98fd8e042afa86e5e00866cd3bb6f2306d79cc9b977698ed4a2"
+          "maskSHA256": "4a106f8382159871509bf74d2f0a993578c331e6e1b53dde77bea1b359e0c567"
         },
         {
           "committed": [
@@ -3005,7 +3611,7 @@
             14242,
             29
           ],
-          "maskSHA256": "92a4a0917de6a61f9962b7f4f3149fecd0c0a13ed852656b63d037ee90e22341"
+          "maskSHA256": "f9809957fc6c381719bfc702998a944fdf067f1da9b5fd1e64311c9cb807b67c"
         },
         {
           "committed": [
@@ -3021,7 +3627,7 @@
             29,
             198
           ],
-          "maskSHA256": "47a057f740ed018ac91c84938459d19ddca1714e8b1d5af2955521c1b3c01699"
+          "maskSHA256": "166bdc5ae78398739cabed7bbcbe999b618fef8cd10b5b60cb6693bb69ffba6d"
         },
         {
           "committed": [
@@ -3038,7 +3644,7 @@
             198,
             27
           ],
-          "maskSHA256": "f854e7535ad82618812ad64b3209499a0dd7a2f06bc12849d5b7f4d7aa799e20"
+          "maskSHA256": "94c992235f3d2c48e5db72087ae1a4e6a1761f2cf1d77aa091cc33d273ab366c"
         },
         {
           "committed": [
@@ -3318,7 +3924,7 @@
             930,
             5070
           ],
-          "maskSHA256": "dd73225dca93f2fe5bcfaaef42596b7f9440c223269b39d4e74c3d057ac84fdb"
+          "maskSHA256": "44b2190d2ca737e496b0f01812ae39d26b0918b3ecd3345ab0127fcdc556f327"
         },
         {
           "committed": [
@@ -3334,7 +3940,7 @@
             5070,
             12774
           ],
-          "maskSHA256": "c5a86ba114630e8c0bbe7f76c6b14430084a98459a3e8a3888d1482a5f66e437"
+          "maskSHA256": "3dc56a623ad837d74db91285c299be5acda9f7799e0cd3c6ff76ba572dd6cf90"
         },
         {
           "committed": [
@@ -3351,7 +3957,7 @@
             12774,
             29
           ],
-          "maskSHA256": "d6b5305ddd74ed4b6c07801b25ffc13b3d1229b821193fa3453388d51a913d9e"
+          "maskSHA256": "f4509aa0680d3acd52d1550f812e6245f059cad583498dfc001b022a1556d566"
         },
         {
           "committed": [
@@ -3903,7 +4509,7 @@
             29,
             198
           ],
-          "maskSHA256": "f20fa56855f4c2f51208a084e1a3d0b5f8482ec949cbcc7210205a571a5b28bf"
+          "maskSHA256": "9b26c5f0803ca3d1132cb2e803360db3b44a46b57f4ec32516607d2a9eeadf0f"
         },
         {
           "committed": [
@@ -3919,7 +4525,7 @@
             198,
             27
           ],
-          "maskSHA256": "7e0a31c0f70492179b2c715174f7d11b4e2f71de44c7f37ec8d30acf451ae6fe"
+          "maskSHA256": "354f7812103c6c70287d77e91f9c8d7cfae6f935e5f20bbd911f117054d0925d"
         },
         {
           "committed": [
@@ -3936,7 +4542,7 @@
             27,
             15704
           ],
-          "maskSHA256": "7c2f6fe3c06c5c52ad3f19d9e7590f3d2efcbab2b5df9e7a3e771b74bec5e954"
+          "maskSHA256": "eed35235a469bea24ba5587c2fedb046cb605eb5e9b0eee23f4c8014ce8fa3d3"
         },
         {
           "committed": [
@@ -4237,7 +4843,7 @@
             29,
             198
           ],
-          "maskSHA256": "f20fa56855f4c2f51208a084e1a3d0b5f8482ec949cbcc7210205a571a5b28bf"
+          "maskSHA256": "9b26c5f0803ca3d1132cb2e803360db3b44a46b57f4ec32516607d2a9eeadf0f"
         },
         {
           "committed": [
@@ -4253,7 +4859,7 @@
             198,
             27
           ],
-          "maskSHA256": "7e0a31c0f70492179b2c715174f7d11b4e2f71de44c7f37ec8d30acf451ae6fe"
+          "maskSHA256": "354f7812103c6c70287d77e91f9c8d7cfae6f935e5f20bbd911f117054d0925d"
         },
         {
           "committed": [
@@ -4270,7 +4876,7 @@
             27,
             15704
           ],
-          "maskSHA256": "7c2f6fe3c06c5c52ad3f19d9e7590f3d2efcbab2b5df9e7a3e771b74bec5e954"
+          "maskSHA256": "eed35235a469bea24ba5587c2fedb046cb605eb5e9b0eee23f4c8014ce8fa3d3"
         },
         {
           "committed": [
@@ -4425,7 +5031,7 @@
             29,
             198
           ],
-          "maskSHA256": "b464dbddf7efa3315a9eddbb62a69916747261222a4d5715364db8d7b858721f"
+          "maskSHA256": "65f34e4d6fd479dcca8311e517b0eed8cdbe12066195513a8e49c0abac0f86bc"
         },
         {
           "committed": [
@@ -4441,7 +5047,7 @@
             198,
             510
           ],
-          "maskSHA256": "772539c9c658c2e5dd1619e07a11a8c637d0c61a7a48994443256e995d6b6205"
+          "maskSHA256": "037f4a84abb3bec15d4f0db91c2a496a421f12059cc4f764eae7ab39d06b1a08"
         },
         {
           "committed": [
@@ -4458,7 +5064,7 @@
             510,
             1628
           ],
-          "maskSHA256": "7bf9c197503380de2efb642347380166726e5b06c2b604e71ac0656f38a9912d"
+          "maskSHA256": "222f6b51d32e135a4a4068e9e5564439f2ecebb10ec452a18b9bc8f1f01288fe"
         },
         {
           "committed": [
@@ -4599,7 +5205,7 @@
             14242,
             29
           ],
-          "maskSHA256": "92a4a0917de6a61f9962b7f4f3149fecd0c0a13ed852656b63d037ee90e22341"
+          "maskSHA256": "f9809957fc6c381719bfc702998a944fdf067f1da9b5fd1e64311c9cb807b67c"
         },
         {
           "committed": [
@@ -4615,7 +5221,7 @@
             29,
             198
           ],
-          "maskSHA256": "47a057f740ed018ac91c84938459d19ddca1714e8b1d5af2955521c1b3c01699"
+          "maskSHA256": "166bdc5ae78398739cabed7bbcbe999b618fef8cd10b5b60cb6693bb69ffba6d"
         },
         {
           "committed": [
@@ -4632,7 +5238,7 @@
             198,
             27
           ],
-          "maskSHA256": "f854e7535ad82618812ad64b3209499a0dd7a2f06bc12849d5b7f4d7aa799e20"
+          "maskSHA256": "94c992235f3d2c48e5db72087ae1a4e6a1761f2cf1d77aa091cc33d273ab366c"
         },
         {
           "committed": [
@@ -5111,7 +5717,7 @@
             29,
             198
           ],
-          "maskSHA256": "b04057eb04373b1c4efa92faeccd2884868cb345aa429b9913d65f2def02001b"
+          "maskSHA256": "5a0e0c85a605d15b5d79c4052b0119a8852124254812b6c9710532832182815f"
         },
         {
           "committed": [
@@ -5127,7 +5733,7 @@
             198,
             27
           ],
-          "maskSHA256": "f86e553ecba8e85c55b5a2c2d78e47ca7dcadfd9b26195613b794832cb42ef48"
+          "maskSHA256": "e5ff83a9dc2a31c89c50bdba4da9115eb3c53ee2dc2daa445fc9ddcd54367652"
         },
         {
           "committed": [
@@ -5144,7 +5750,7 @@
             27,
             15704
           ],
-          "maskSHA256": "7ec4bb014f57940818ccb8e4b6b096395ef5005cb38003040ceabcd6de8374c9"
+          "maskSHA256": "be283e154adfbaeac671e7559f61bf8aa982f77e5edaaab4dc5d10d68627c7a1"
         },
         {
           "committed": [
@@ -5582,7 +6188,7 @@
             930,
             13786
           ],
-          "maskSHA256": "9bb3295ec63b99ae9e9e28b4b0b3596e630732865f69aefcfffddad77cbcd10f"
+          "maskSHA256": "6243565d1a8d11d946e43a438daff36f0addf4e8e19eb376cf2d1c1b41ae5402"
         },
         {
           "committed": [
@@ -5598,7 +6204,7 @@
             13786,
             29
           ],
-          "maskSHA256": "c0bde52652cfc7dcca73d9713ab39c897cf87a5dc9e300afde4a5c5c2d02ddef"
+          "maskSHA256": "2eac4cea70f65d365fd2ecb9fd49d33928019e743caef1f342677a20a14a2f36"
         },
         {
           "committed": [
@@ -5615,7 +6221,7 @@
             29,
             198
           ],
-          "maskSHA256": "9b936ffe44a4efbd92084754bf3e87577fc447fa49af7fdc7bc81a21b4831d2e"
+          "maskSHA256": "4a0a17ebffcbdebac97f07b4677a6a200a79a98e00996fe40dd0a2aeced57494"
         },
         {
           "committed": [
@@ -6514,7 +7120,7 @@
             930,
             67945
           ],
-          "maskSHA256": "9bb3295ec63b99ae9e9e28b4b0b3596e630732865f69aefcfffddad77cbcd10f"
+          "maskSHA256": "6243565d1a8d11d946e43a438daff36f0addf4e8e19eb376cf2d1c1b41ae5402"
         },
         {
           "committed": [
@@ -6530,7 +7136,7 @@
             67945,
             29
           ],
-          "maskSHA256": "c0bde52652cfc7dcca73d9713ab39c897cf87a5dc9e300afde4a5c5c2d02ddef"
+          "maskSHA256": "2eac4cea70f65d365fd2ecb9fd49d33928019e743caef1f342677a20a14a2f36"
         },
         {
           "committed": [
@@ -6547,7 +7153,7 @@
             29,
             198
           ],
-          "maskSHA256": "9b936ffe44a4efbd92084754bf3e87577fc447fa49af7fdc7bc81a21b4831d2e"
+          "maskSHA256": "4a0a17ebffcbdebac97f07b4677a6a200a79a98e00996fe40dd0a2aeced57494"
         },
         {
           "committed": [
@@ -7187,7 +7793,7 @@
             29,
             198
           ],
-          "maskSHA256": "f20fa56855f4c2f51208a084e1a3d0b5f8482ec949cbcc7210205a571a5b28bf"
+          "maskSHA256": "9b26c5f0803ca3d1132cb2e803360db3b44a46b57f4ec32516607d2a9eeadf0f"
         },
         {
           "committed": [
@@ -7203,7 +7809,7 @@
             198,
             27
           ],
-          "maskSHA256": "7e0a31c0f70492179b2c715174f7d11b4e2f71de44c7f37ec8d30acf451ae6fe"
+          "maskSHA256": "354f7812103c6c70287d77e91f9c8d7cfae6f935e5f20bbd911f117054d0925d"
         },
         {
           "committed": [
@@ -7220,7 +7826,7 @@
             27,
             15704
           ],
-          "maskSHA256": "7c2f6fe3c06c5c52ad3f19d9e7590f3d2efcbab2b5df9e7a3e771b74bec5e954"
+          "maskSHA256": "eed35235a469bea24ba5587c2fedb046cb605eb5e9b0eee23f4c8014ce8fa3d3"
         },
         {
           "committed": [
@@ -7474,26 +8080,9 @@
       "name": "auto_tool",
       "choice": "auto",
       "thinking": false,
-      "output": "Looking.\n<tool_call>\n<function=propose_table>\n<parameter=columns>\n[{\"id\":\"price\",\"title\":\"Price\",\"type\":\"decimal\"}]\n</parameter>\n<parameter=inputs>\n[\"source-1\"]\n</parameter>\n<parameter=meaning>\nplan\n</parameter>\n<parameter=rows>\n[{\"note\":null,\"price\":\"12.40\"}]\n</parameter>\n<parameter=title>\nSuppliers\n</parameter>\n</function>\n</tool_call>",
+      "output": "Looking.\n<tool_call>\n<function=history_search>\n<parameter=query>\nexample\n</parameter>\n</function>\n</tool_call>",
       "arguments": {
-        "title": "Suppliers",
-        "columns": [
-          {
-            "id": "price",
-            "title": "Price",
-            "type": "decimal"
-          }
-        ],
-        "rows": [
-          {
-            "price": "12.40",
-            "note": null
-          }
-        ],
-        "meaning": "plan",
-        "inputs": [
-          "source-1"
-        ]
+        "query": "example"
       },
       "tokens": [
         21765,
@@ -7504,98 +8093,16 @@
         27,
         1628,
         28,
-        2587,
-        930,
-        5070,
+        18274,
+        10400,
         29,
         198,
         27,
         15704,
-        28,
-        15888,
+        76478,
         29,
         198,
-        58,
-        4754,
-        306,
-        3147,
-        6352,
-        2129,
-        2034,
-        3147,
-        6755,
-        2129,
-        1267,
-        3147,
-        22565,
-        8934,
-        60,
-        198,
-        510,
-        15704,
-        29,
-        198,
-        27,
-        15704,
-        28,
-        24151,
-        29,
-        198,
-        1143,
-        2348,
-        12,
-        16,
-        1293,
-        198,
-        510,
-        15704,
-        29,
-        198,
-        27,
-        15704,
-        28,
-        54867,
-        29,
-        198,
-        10083,
-        198,
-        510,
-        15704,
-        29,
-        198,
-        27,
-        15704,
-        28,
-        1748,
-        29,
-        198,
-        58,
-        4754,
-        9679,
-        763,
-        2827,
-        1288,
-        6352,
-        3147,
-        16,
-        17,
-        13,
-        19,
-        15,
-        8934,
-        60,
-        198,
-        510,
-        15704,
-        29,
-        198,
-        27,
-        15704,
-        87393,
-        29,
-        198,
-        9751,
-        14736,
+        8422,
         198,
         510,
         15704,
@@ -7620,7 +8127,7 @@
             1628,
             28
           ],
-          "maskSHA256": "cdf875d2683bb92c5472df20c3461e742ec06cd2c8cefa286ed67ac1180f4cbb"
+          "maskSHA256": "b270f103b26a73d5d47f9280963cfec572f5295ceb6f91b54a7d6b2a0670a404"
         },
         {
           "committed": [
@@ -7634,9 +8141,9 @@
             27,
             1628,
             28,
-            2587
+            18274
           ],
-          "maskSHA256": "2baa03101f0e4ed2241b702787d39c354b6eaac2982e60bbefc673200f67aa4f"
+          "maskSHA256": "df5c04e61f3686b5667c06c4db7525eb112e903f7ed45e85effc215ebdd2b757"
         },
         {
           "committed": [
@@ -7650,10 +8157,10 @@
             27,
             1628,
             28,
-            2587,
-            930
+            18274,
+            10400
           ],
-          "maskSHA256": "176316843752d5ad654d698fb29eb5c99896863342f873914195cfc8944c9745"
+          "maskSHA256": "35f44d0465d2aa0657c583080a936063af3e946355e812a5f6ab6a9efe9f6c7d"
         },
         {
           "committed": [
@@ -7667,16 +8174,16 @@
             28
           ],
           "simulation": [
-            2587,
-            930,
-            5070,
+            18274,
+            10400,
             29,
             198,
             27,
             15704,
-            28
+            76478,
+            29
           ],
-          "maskSHA256": "eda4aade554092e5028b57e64cad5dcb12a654ec9a803c339f28a95a348b6b82"
+          "maskSHA256": "a188540cecb04b2b9d755a1f5bcd4d45b5477a59df0ffb4ab61e9807b27838ab"
         },
         {
           "committed": [
@@ -7688,301 +8195,26 @@
             27,
             1628,
             28,
-            2587,
-            930,
-            5070,
+            18274,
+            10400,
             29,
             198,
             27,
             15704,
-            28
+            76478,
+            29
           ],
           "simulation": [
-            15888,
-            29,
             198,
-            58,
-            4754,
-            306,
-            3147,
-            6352
-          ],
-          "maskSHA256": "f46a353f7ca8dc3af9b3da4b3823c61394b22261982b20feb1abd2d4b670f814"
-        },
-        {
-          "committed": [
-            21765,
-            13,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352
-          ],
-          "simulation": [
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565
-          ],
-          "maskSHA256": "28f3e2cb6c0031f3c8891288101c420b5d3247da0c7879cd9a1a7cb7ae3d1e2f"
-        },
-        {
-          "committed": [
-            21765,
-            13,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565
-          ],
-          "simulation": [
-            8934,
-            60,
+            8422,
             198,
             510,
             15704,
             29,
-            198,
-            27
-          ],
-          "maskSHA256": "9f4e8e0fcc6da362fb0f9bb0b0c7db973422a36ede0b7c006bf98df7e8d1065d"
-        },
-        {
-          "committed": [
-            21765,
-            13,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27
-          ],
-          "simulation": [
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12
-          ],
-          "maskSHA256": "67fc325ae4dab58ba622e75a9c3e20306cd3b84ed358e07b9f35f4245f29fed0"
-        },
-        {
-          "committed": [
-            21765,
-            13,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12
-          ],
-          "simulation": [
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27
-          ],
-          "maskSHA256": "71d72e73488fe08b5423c7cea28a4e513b6fa0762a6e08eb4c9f8186661a1868"
-        },
-        {
-          "committed": [
-            21765,
-            13,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27
-          ],
-          "simulation": [
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
             198,
             510
           ],
-          "maskSHA256": "61221e20d89cf85f61ff93fc68217f55512731e1bbd0602460b035b4b5411d33"
+          "maskSHA256": "4870a030b2da92f6f839cdd158841ef4f6f952f25d521d98f8f47966be75d650"
         },
         {
           "committed": [
@@ -7994,587 +8226,30 @@
             27,
             1628,
             28,
-            2587,
-            930,
-            5070,
+            18274,
+            10400,
             29,
             198,
             27,
             15704,
-            28,
-            15888,
+            76478,
             29,
             198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
+            8422,
             198,
             510,
             15704,
             29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
             198,
             510
           ],
           "simulation": [
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29
-          ],
-          "maskSHA256": "7098703cc50f68b535685ed4abe9bb8e225b0683886f2cf30d851b474d265567"
-        },
-        {
-          "committed": [
-            21765,
-            13,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29
-          ],
-          "simulation": [
-            198,
-            58,
-            4754,
-            9679,
-            763,
-            2827,
-            1288,
-            6352
-          ],
-          "maskSHA256": "02a43f65750f47005afabaff68644bf834e72d9786eae9083109b47bc7c77cde"
-        },
-        {
-          "committed": [
-            21765,
-            13,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29,
-            198,
-            58,
-            4754,
-            9679,
-            763,
-            2827,
-            1288,
-            6352
-          ],
-          "simulation": [
-            3147,
-            16,
-            17,
-            13,
-            19,
-            15,
-            8934,
-            60
-          ],
-          "maskSHA256": "671e951b0de080270812bf5007bc797ee7ada13d9fda4eabecae66af4fb33431"
-        },
-        {
-          "committed": [
-            21765,
-            13,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29,
-            198,
-            58,
-            4754,
-            9679,
-            763,
-            2827,
-            1288,
-            6352,
-            3147,
-            16,
-            17,
-            13,
-            19,
-            15,
-            8934,
-            60
-          ],
-          "simulation": [
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            87393
-          ],
-          "maskSHA256": "22b417f81fdf8a107e0ee7a52df654b03a1d2039eade7ddaa281195679f453eb"
-        },
-        {
-          "committed": [
-            21765,
-            13,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29,
-            198,
-            58,
-            4754,
-            9679,
-            763,
-            2827,
-            1288,
-            6352,
-            3147,
-            16,
-            17,
-            13,
-            19,
-            15,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            87393
-          ],
-          "simulation": [
-            29,
-            198,
-            9751,
-            14736,
-            198,
-            510,
-            15704,
-            29
-          ],
-          "maskSHA256": "c88aef9f031567938fc2622c36cb318bb08f699ff48b65975464fa31e10e31e8"
-        },
-        {
-          "committed": [
-            21765,
-            13,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29,
-            198,
-            58,
-            4754,
-            9679,
-            763,
-            2827,
-            1288,
-            6352,
-            3147,
-            16,
-            17,
-            13,
-            19,
-            15,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            87393,
-            29,
-            198,
-            9751,
-            14736,
-            198,
-            510,
-            15704,
-            29
-          ],
-          "simulation": [
-            198,
-            510,
             1628,
             29,
             198,
             248059
           ],
-          "maskSHA256": "961cfecf7b3b85efcf1bd865186ccafd7f3ea24323e7bbeede392a37f2e4b851"
+          "maskSHA256": "d90d5daefc9cc66df8c77976a1837a7e2d53e0408e36a519581392a45016446b"
         },
         {
           "committed": [
@@ -8586,98 +8261,16 @@
             27,
             1628,
             28,
-            2587,
-            930,
-            5070,
+            18274,
+            10400,
             29,
             198,
             27,
             15704,
-            28,
-            15888,
+            76478,
             29,
             198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29,
-            198,
-            58,
-            4754,
-            9679,
-            763,
-            2827,
-            1288,
-            6352,
-            3147,
-            16,
-            17,
-            13,
-            19,
-            15,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            87393,
-            29,
-            198,
-            9751,
-            14736,
+            8422,
             198,
             510,
             15704,
@@ -8984,26 +8577,9 @@
       "name": "thinking_reasoned",
       "choice": "thinking",
       "thinking": true,
-      "output": "Read the evidence.</think>\n<tool_call>\n<function=propose_table>\n<parameter=columns>\n[{\"id\":\"price\",\"title\":\"Price\",\"type\":\"decimal\"}]\n</parameter>\n<parameter=inputs>\n[\"source-1\"]\n</parameter>\n<parameter=meaning>\nplan\n</parameter>\n<parameter=rows>\n[{\"note\":null,\"price\":\"12.40\"}]\n</parameter>\n<parameter=title>\nSuppliers\n</parameter>\n</function>\n</tool_call>",
+      "output": "Read the evidence.</think>\n<tool_call>\n<function=history_search>\n<parameter=query>\nexample\n</parameter>\n</function>\n</tool_call>",
       "arguments": {
-        "title": "Suppliers",
-        "columns": [
-          {
-            "id": "price",
-            "title": "Price",
-            "type": "decimal"
-          }
-        ],
-        "rows": [
-          {
-            "price": "12.40",
-            "note": null
-          }
-        ],
-        "meaning": "plan",
-        "inputs": [
-          "source-1"
-        ]
+        "query": "example"
       },
       "tokens": [
         4274,
@@ -9017,98 +8593,16 @@
         27,
         1628,
         28,
-        2587,
-        930,
-        5070,
+        18274,
+        10400,
         29,
         198,
         27,
         15704,
-        28,
-        15888,
+        76478,
         29,
         198,
-        58,
-        4754,
-        306,
-        3147,
-        6352,
-        2129,
-        2034,
-        3147,
-        6755,
-        2129,
-        1267,
-        3147,
-        22565,
-        8934,
-        60,
-        198,
-        510,
-        15704,
-        29,
-        198,
-        27,
-        15704,
-        28,
-        24151,
-        29,
-        198,
-        1143,
-        2348,
-        12,
-        16,
-        1293,
-        198,
-        510,
-        15704,
-        29,
-        198,
-        27,
-        15704,
-        28,
-        54867,
-        29,
-        198,
-        10083,
-        198,
-        510,
-        15704,
-        29,
-        198,
-        27,
-        15704,
-        28,
-        1748,
-        29,
-        198,
-        58,
-        4754,
-        9679,
-        763,
-        2827,
-        1288,
-        6352,
-        3147,
-        16,
-        17,
-        13,
-        19,
-        15,
-        8934,
-        60,
-        198,
-        510,
-        15704,
-        29,
-        198,
-        27,
-        15704,
-        87393,
-        29,
-        198,
-        9751,
-        14736,
+        8422,
         198,
         510,
         15704,
@@ -9166,7 +8660,7 @@
             27,
             1628
           ],
-          "maskSHA256": "37383bbf41a72b9f8527db103c76541da96162863ab1e8152d92afca62c2120f"
+          "maskSHA256": "6975c25c9e89a58ca6fecc2ac9c672f1a3e854a336dcaaf8aca05e8778f57c03"
         },
         {
           "committed": [
@@ -9183,13 +8677,13 @@
             27,
             1628,
             28,
-            2587,
-            930,
-            5070,
+            18274,
+            10400,
             29,
-            198
+            198,
+            27
           ],
-          "maskSHA256": "f3cac4a6c3152a5725f69337f17ee3240d4c51e1cd0218a4baa12cb6c85ec940"
+          "maskSHA256": "85b66a597556c8d6350f4616e336d9a0d1d56ab236ce8747cba20232a704b3ed"
         },
         {
           "committed": [
@@ -9204,109 +8698,23 @@
             27,
             1628,
             28,
-            2587,
-            930,
-            5070,
+            18274,
+            10400,
             29,
-            198
+            198,
+            27
           ],
           "simulation": [
-            27,
             15704,
-            28,
-            15888,
+            76478,
             29,
             198,
-            58,
-            4754
-          ],
-          "maskSHA256": "8fc5119fc28e578d8b459dd53b4402cee205972ea46fdff22efc8fff852048a1"
-        },
-        {
-          "committed": [
-            4274,
-            279,
-            5721,
-            13,
-            248069,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754
-          ],
-          "simulation": [
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129
-          ],
-          "maskSHA256": "03031134fd0a14218d3cabd8af6bce98bb19a90900539b59396c5c2e946a355d"
-        },
-        {
-          "committed": [
-            4274,
-            279,
-            5721,
-            13,
-            248069,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129
-          ],
-          "simulation": [
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
+            8422,
             198,
             510,
             15704
           ],
-          "maskSHA256": "3e8405694a7a7bd1b9e12bc6f34ee6a3263ad0475ab330c3640ba5bc43459a37"
+          "maskSHA256": "82e6b8feb15c30ae021d348cdd9a41aa88fd3fa2b611c9ea950d24ba70d11a0a"
         },
         {
           "committed": [
@@ -9321,32 +8729,16 @@
             27,
             1628,
             28,
-            2587,
-            930,
-            5070,
+            18274,
+            10400,
             29,
             198,
             27,
             15704,
-            28,
-            15888,
+            76478,
             29,
             198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
+            8422,
             198,
             510,
             15704
@@ -9354,862 +8746,13 @@
           "simulation": [
             29,
             198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198
-          ],
-          "maskSHA256": "0a1da11f2f26baf74230a354f83a3eb659d273e267fbc56c7fed3dd47334eada"
-        },
-        {
-          "committed": [
-            4274,
-            279,
-            5721,
-            13,
-            248069,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198
-          ],
-          "simulation": [
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704
-          ],
-          "maskSHA256": "ac6eb2406684d4f44b0d6405a778daa137b8926cd06d4167444e865e9a59c075"
-        },
-        {
-          "committed": [
-            4274,
-            279,
-            5721,
-            13,
-            248069,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704
-          ],
-          "simulation": [
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198
-          ],
-          "maskSHA256": "836b7c3307406bb4dcbb3dabbe72c18b51ffba648f97ca884165532ddee0e16d"
-        },
-        {
-          "committed": [
-            4274,
-            279,
-            5721,
-            13,
-            248069,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198
-          ],
-          "simulation": [
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704
-          ],
-          "maskSHA256": "d55b36446bb0854b4d640bc59b4573549b382d62f786414a41be3337b716c573"
-        },
-        {
-          "committed": [
-            4274,
-            279,
-            5721,
-            13,
-            248069,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704
-          ],
-          "simulation": [
-            28,
-            1748,
-            29,
-            198,
-            58,
-            4754,
-            9679,
-            763
-          ],
-          "maskSHA256": "14c2a8207c21bf595f05e627b7a151a22f510664bfda3f89aa33530b8a607b11"
-        },
-        {
-          "committed": [
-            4274,
-            279,
-            5721,
-            13,
-            248069,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29,
-            198,
-            58,
-            4754,
-            9679,
-            763
-          ],
-          "simulation": [
-            2827,
-            1288,
-            6352,
-            3147,
-            16,
-            17,
-            13,
-            19
-          ],
-          "maskSHA256": "d8e4543bb2facbdbb2b1a2c0e8b02aac8b3d20639820c41936290d121d88844b"
-        },
-        {
-          "committed": [
-            4274,
-            279,
-            5721,
-            13,
-            248069,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29,
-            198,
-            58,
-            4754,
-            9679,
-            763,
-            2827,
-            1288,
-            6352,
-            3147,
-            16,
-            17,
-            13,
-            19
-          ],
-          "simulation": [
-            15,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198
-          ],
-          "maskSHA256": "236f3fbdcce1ffcc0e9e3729a66d18ca033803b6078e0e3e3bdbc46f16f27ef2"
-        },
-        {
-          "committed": [
-            4274,
-            279,
-            5721,
-            13,
-            248069,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29,
-            198,
-            58,
-            4754,
-            9679,
-            763,
-            2827,
-            1288,
-            6352,
-            3147,
-            16,
-            17,
-            13,
-            19,
-            15,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198
-          ],
-          "simulation": [
-            27,
-            15704,
-            87393,
-            29,
-            198,
-            9751,
-            14736,
-            198
-          ],
-          "maskSHA256": "b68b8ed0f6e21b60a7fd3079331fb9629ad4383e54e08e125a8cb7b3179af64f"
-        },
-        {
-          "committed": [
-            4274,
-            279,
-            5721,
-            13,
-            248069,
-            198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29,
-            198,
-            58,
-            4754,
-            9679,
-            763,
-            2827,
-            1288,
-            6352,
-            3147,
-            16,
-            17,
-            13,
-            19,
-            15,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            87393,
-            29,
-            198,
-            9751,
-            14736,
-            198
-          ],
-          "simulation": [
-            510,
-            15704,
-            29,
-            198,
             510,
             1628,
             29,
-            198
-          ],
-          "maskSHA256": "85eaef9dd8be1eabd22c62c3562abf86d3ca210c7d0606893aa83262e5628146"
-        },
-        {
-          "committed": [
-            4274,
-            279,
-            5721,
-            13,
-            248069,
             198,
-            248058,
-            198,
-            27,
-            1628,
-            28,
-            2587,
-            930,
-            5070,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            15888,
-            29,
-            198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29,
-            198,
-            58,
-            4754,
-            9679,
-            763,
-            2827,
-            1288,
-            6352,
-            3147,
-            16,
-            17,
-            13,
-            19,
-            15,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            87393,
-            29,
-            198,
-            9751,
-            14736,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            510,
-            1628,
-            29,
-            198
-          ],
-          "simulation": [
             248059
           ],
-          "maskSHA256": "00e2072df14e4102fa6ff7186797203523c9913e872bf4c767c024140f3cca00"
+          "maskSHA256": "91d682cb3885db57a32d9ced75dac3b104b6bbf28fcc66fcb0ee9819bc633f7a"
         },
         {
           "committed": [
@@ -10224,98 +8767,16 @@
             27,
             1628,
             28,
-            2587,
-            930,
-            5070,
+            18274,
+            10400,
             29,
             198,
             27,
             15704,
-            28,
-            15888,
+            76478,
             29,
             198,
-            58,
-            4754,
-            306,
-            3147,
-            6352,
-            2129,
-            2034,
-            3147,
-            6755,
-            2129,
-            1267,
-            3147,
-            22565,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            24151,
-            29,
-            198,
-            1143,
-            2348,
-            12,
-            16,
-            1293,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            54867,
-            29,
-            198,
-            10083,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            28,
-            1748,
-            29,
-            198,
-            58,
-            4754,
-            9679,
-            763,
-            2827,
-            1288,
-            6352,
-            3147,
-            16,
-            17,
-            13,
-            19,
-            15,
-            8934,
-            60,
-            198,
-            510,
-            15704,
-            29,
-            198,
-            27,
-            15704,
-            87393,
-            29,
-            198,
-            9751,
-            14736,
+            8422,
             198,
             510,
             15704,

@@ -25,10 +25,16 @@ is a user document, not this repository's db.md knowledge store.
 
 Use `history` to page original conversation messages, `history-search` for scoped
 full-text retrieval and `history-read` for an exact message and its preserved
-receipt. Follow the returned history cursor; a stale cursor requires a fresh
-search. `checkpoints` and `checkpoint` inspect derived context and current input
+receipt. Follow the returned history cursor; append-only messages do not invalidate
+older pages. A changed query or conversation requires a fresh search. `checkpoints` and `checkpoint` inspect derived context and current input
 state. A digest is not evidence of acceptance or permission for a new action.
 Use the workbook's current records and operation state, and cite original versions.
+Use `unresolved-calls` and `tool-receipt` to inspect unfinished calls and committed
+operation proof. Never assume a missing result means no changes occurred or replay
+an unresolved call automatically. `tool-result` reads exact saved results using a
+receipt ID, a JSON array path and an optional offset. Follow nextOffset; --raw-json
+provides labeled text segments for exact reconstruction. Omitted fields are not
+proof of missing data. Inspect current records before acting on an older result.
 Check `help` for availability in older installed development builds.
 
 The app may be closed. The same engine enforces transactions, versions, lineage

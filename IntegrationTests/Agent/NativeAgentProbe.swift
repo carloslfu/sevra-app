@@ -9,7 +9,7 @@ import SevraSplashText
 /// maintained tool set; no test supplies the next tool, arguments or answer.
 func runNativeAgentProbe(
   modelFolder: String, library: String, engine: String, modelsRoot: String,
-  inventoryOnly: Bool = false, occupiedContext: Bool = false
+  inventoryOnly: Bool = false, occupiedContext: Bool = false, historyOnly: Bool = false
 )
   async throws
 {
@@ -90,6 +90,41 @@ func runNativeAgentProbe(
     return result
   }
   do {
+    if historyOnly {
+      let book = try Workbook.create(
+        at: root.appendingPathComponent("OldHistory.sevra"), title: "Historical constraint")
+      let original = try book.addMessage(
+        "Our purchase code is MAPLE-27. No currency has been specified. Keep it that way unless I supply one.",
+        role: "user")
+      for index in 0..<110 {
+        _ = try book.addMessage(
+          "Closed maintenance note \(index). No pending work.", role: "assistant")
+      }
+      let answer = try await run(
+        "What purchase code did I provide much earlier in this conversation, and did I specify a currency? Make no changes.",
+        book)
+      try expectEqual(answer.state, "complete")
+      try expectEqual(answer.answer.contains("MAPLE-27"), true)
+      try expectEqual(answer.answer.contains(where: { "$€£".contains($0) }), false)
+      let receipts = try book.messages().filter { $0.role == "tool" }.map {
+        try Value.parse($0.body)
+      }
+      try expectEqual(
+        receipts.contains {
+          $0["tool"].text == "history_read" && $0["arguments"]["id"].text == original
+        }, true)
+      try expectEqual(try book.unresolvedToolCalls().isEmpty, true)
+      try expectEqual(try book.verify()["ok"], .bool(true))
+      print(
+        try Value.object([
+          "workbook": .string("OldHistory.sevra"), "runs": .array(try book.agentRuns()),
+        ]).json())
+      try expectEqual(await model.unload(), true)
+      print(
+        "PASS native agent retrieves an original message beyond recent context with durable receipts"
+      )
+      return
+    }
     if inventoryOnly {
       let path = root.appendingPathComponent("Inventory.sevra")
       _ = try Demo.create(at: path)

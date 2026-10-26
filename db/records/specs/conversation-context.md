@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-26T22:27:33.065083+00:00
+updated: 2026-10-26T22:52:51.595523+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -162,14 +162,27 @@ the shared core and CLI. Schema-1 migration and offline export/reopen are tested
 New runs link to their request messages and completed native receipts preserve
 call/run identity. Legacy messages remain intact without invented metadata.
 
-The agent still uses bounded recent history and explicit closed outcomes. It does
-not yet create summaries, schedule compaction, use older-history retrieval tools
-or resume a persisted multi-step job after process death. The interval between a
-business mutation and its tool-receipt write needs explicit recovery from operation
-state. Oversized tool results also need a bounded valid projection and durable
-retrieval instead of the current character-prefix projection; the 128,000-byte
-message ceiling must not lose a successful action receipt. These are required
-remaining work, not claims about the installed app.
+The agent still starts with bounded recent history and explicit closed outcomes,
+but can now call history_search/history_read for older originals in its conversation.
+Search excludes the current run's request and subsequent messages so a question
+cannot masquerade as the earlier answer. Append-safe cursors survive receipt writes.
+A real native 8K probe retrieves an original beyond 110 closed messages, reads it
+and answers the exact purchase code without inventing a currency.
+
+Prepared tool-call journals precede execution. Completion atomically saves the
+full result and a bounded conversation projection. Large results are navigable with
+tool_result and remain exact; the model never receives cut JSON. Only whole fields/elements actually shown from
+fresh tool results grant the existing citation/calculation evidence automatically.
+Older receipts require refreshed evidence before reusing claims. Prepared calls
+with missing final receipts expose real committed-operation proof, retain uncertainty
+for partial intake and cannot be replayed under the same call identity. Resumed
+conversation includes a bounded host report of unresolved calls, not authorization.
+
+The agent does not yet create summaries, schedule compaction or automatically
+resume a persisted multi-step job after process death. A prepared journal makes
+an uncertain interval inspectable; it is not the complete action-recovery controller.
+A resolution flow, streamed large-result memory checks, repeated compaction,
+kill/restart injection and full long-task J10 qualification remain required.
 
 See [[records/specs/intelligence]], [[records/specs/storage]],
 [[records/specs/product]], [[records/specs/splash-integration]] and

@@ -120,6 +120,7 @@ extension Workbook {
   /// deliberately not substituted for the evidence being searched.
   public func searchHistory(
     _ query: String, conversation: String = "main", cursor: String? = nil, limit: Int = 30,
+    beforeMessage: String? = nil,
     cancellation: Cancellation = .init()
   ) throws -> Value {
     try synchronized {
@@ -129,29 +130,37 @@ extension Workbook {
           let terms = try Self.searchTerms(query)
           let revision = try revision()
           let count = min(max(limit, 1), 100)
+          let ceiling =
+            try beforeMessage.map { try historyPosition($0, conversation: conversation) } ?? .null
           var before: Value = .null
           if let cursor {
             guard cursor.utf8.count <= 8192, let data = Data(base64Encoded: cursor),
               let saved = try? Value.parse(String(decoding: data, as: UTF8.self))
             else { throw SevraError("cursor", "Invalid history cursor.") }
             try require(
-              saved["revision"].int == revision && saved["query"].text == query
-                && saved["conversation"].text == conversation, "stale_cursor",
-              "The workbook or history query changed. Start a fresh search.")
+              saved["version"].int == 1 && saved["query"].text == query
+                && saved["conversation"].text == conversation
+                && saved["beforeMessage"] == (beforeMessage.map(Value.string) ?? .null),
+              "stale_cursor",
+              "The history cursor or query changed. Start a fresh search.")
             before = try historyPosition(saved["before"].text, conversation: conversation)
           }
           let rows =
             terms.isEmpty
             ? []
             : try db.execute(
-              "SELECT m.rowid,m.id,m.role,m.state,m.created,snippet(message_fts,0,'','', ' … ',40) AS excerpt FROM message_fts JOIN messages m ON m.rowid=message_fts.rowid WHERE message_fts MATCH ? AND m.conversation_id=? AND (? IS NULL OR m.rowid<?) ORDER BY m.rowid DESC LIMIT ?",
-              [.string(terms), .string(conversation), before, before, .number(Double(count + 1))])
+              "SELECT m.rowid,m.id,m.role,m.state,m.created,snippet(message_fts,0,'','', ' … ',40) AS excerpt FROM message_fts JOIN messages m ON m.rowid=message_fts.rowid WHERE message_fts MATCH ? AND m.conversation_id=? AND (? IS NULL OR m.rowid<?) AND (? IS NULL OR m.rowid<?) ORDER BY m.rowid DESC LIMIT ?",
+              [
+                .string(terms), .string(conversation), before, before, ceiling, ceiling,
+                .number(Double(count + 1)),
+              ])
           let page = Array(rows.prefix(count))
           let next: Value
           if rows.count > count, let last = page.last {
             let saved: Value = .object([
-              "revision": .number(Double(revision)), "query": .string(query),
+              "version": .number(1), "query": .string(query),
               "conversation": .string(conversation), "before": last["id"]!,
+              "beforeMessage": beforeMessage.map(Value.string) ?? .null,
             ])
             next = .string(Data(try saved.json().utf8).base64EncodedString())
           } else {

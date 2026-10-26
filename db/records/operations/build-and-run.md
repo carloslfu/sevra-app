@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-26T22:18:41.487830+00:00
+updated: 2026-10-26T22:43:08.505938+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -320,9 +320,9 @@ hardware/memory budgets require separate recorded qualification.
 
 ## Conversation history and checkpoint storage
 
-Newly built app/CLI binaries use database schema 2. Opening a canonical schema-1
+Newly built app/CLI binaries use database schema 3. Opening a canonical schema-1 or schema-2
 workbook migrates its database transactionally and builds the history index.
-The package manifest remains version 1; older binaries refuse schema 2 on opening.
+The package manifest remains version 1; older binaries refuse schema 3 on opening.
 Use matching app and CLI builds. The installed earlier baseline has not been
 replaced as part of this development checkpoint.
 
@@ -337,7 +337,7 @@ sevra checkpoint Workbook.sevra main CHECKPOINT_ID
 ~~~
 
 History pages preserve whole messages and optional original receipts. Search is
-scoped to one conversation and returns newest matches with a revision-bound cursor.
+scoped to one conversation and returns newest matches with an append-safe keyset cursor bound to the query and conversation.
 Checkpoint inspection projects current input acceptance and meaning from records;
 it does not trust the digest's wording. Checkpoint creation is currently a core
 API used in checks, not an automatic agent feature or a user-facing manual step.
@@ -347,3 +347,23 @@ synthetic schema-1 fixture, pages 700 messages, reads an older exact message, te
 search pagination and verifies a portable copy offline. Core checks additionally
 cover rollback/refusal, cancellation, stale checkpoint publication, chains, exact
 references, payload preservation and altered-history detection.
+
+## Tool journal and older conversation retrieval
+
+~~~sh
+sevra unresolved-calls Workbook.sevra main
+sevra tool-receipt Workbook.sevra main RECEIPT_ID
+sevra tool-result Workbook.sevra main RECEIPT_ID '["rows","0"]'
+sevra tool-result Workbook.sevra main RECEIPT_ID '[]' 0 --raw-json
+~~~
+
+Use nextOffset on result pages. A prepared call has no final result; inspect its
+committed operation and current workbook state rather than automatically replaying it.
+The result's hash is stable across pages. History and tool receipts are operational
+history, not permission or proof of current acceptance. Failed calls may retain
+completed sub-operations. Original results travel in portable snapshots.
+
+The native --history check uses 110 closed messages and an earlier constraint;
+it requires autonomous history search/read and the exact original purchase code.
+Use the same arguments as --autonomous. These retrieval checks do not prove
+automatic compaction or restart/resume qualification.

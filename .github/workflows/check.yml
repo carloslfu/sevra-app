@@ -53,5 +53,6 @@ jobs:
         run: |
           python3 scripts/check_install.py
           python3 scripts/check_history.py
+          python3 scripts/check_receipts.py
           python3 scripts/check_concurrency.py
           python3 scripts/check_urls.py

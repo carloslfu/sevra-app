@@ -1,6 +1,12 @@
 import Foundation
 
 extension Workbook {
+  func runRequestMessage(_ id: String) throws -> String? {
+    try synchronized {
+      try db.scalar("SELECT message_id FROM run_requests WHERE run_id=?", [.string(id)]).string
+    }
+  }
+
   public func startAgentRun(conversation: String, model: String, requestMessageID: String? = nil)
     throws -> String
   {

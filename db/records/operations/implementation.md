@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-26T22:27:33.081234+00:00
+updated: 2026-10-26T22:52:51.576410+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -34,10 +34,14 @@ real-model creation/acceptance twice (26.23 and 26.71 seconds). A cell proposal 
 correct but its closing model response failed; needs-review receipts address that
 failure and still require real-model regression.
 
-Latest storage checkpoint: database schema 2 now supports scoped history FTS,
-whole-message paging, exact original receipts and chained context checkpoints.
-Automatic compaction and agent history retrieval are still pending; see the
-conversation-storage checkpoint below and [[records/specs/conversation-context]].
+Latest storage checkpoint: schema 3 adds durable prepared tool calls and exact
+results, atomic conversation receipts, valid bounded result pages and operation
+proof for uncertain outcomes. The agent can search/read older conversation and
+retrieve saved result pages. There are 59 core checks and eight passing native
+jobs (six complete, one needs-review, one deliberately cancelled). Release build,
+packaged history/receipt CLI, concurrent writers and isolated installation pass.
+Automatic compaction and general restart/resume remain pending; see the journal
+checkpoint below and [[records/specs/conversation-context]].
 
 ## Implemented
 
@@ -600,3 +604,61 @@ next dependencies, not waived gates. Native setup/downloads, packaging/adoption,
 matched performance, full UI/voice/search scale and website release work remain.
 The existing user-installed app and CLI were not overwritten. New schema-2
 packages require the newly built app/CLI; older binaries refuse them on opening.
+
+## Tool journal and agent retrieval checkpoint, October 26
+
+Schema 3 adds tool_calls and migrates canonical schema 1 or 2 in one transaction.
+The native/shared agent saves a prepared call with host-computed operation identity
+before execution. Completion stores the exact structured result/hash and its
+conversation receipt atomically. The same run/call identity cannot execute again.
+An interrupted prepared call exposes any matching committed operation without
+replay; lack of an operation is not proof of no effects for multi-step intake.
+Failures preserve receipts and acknowledge possible completed sub-operations.
+
+Large results no longer use a 16,000-character JSON prefix or overflow a 128KB
+message after a successful action. Full results remain durable; model-facing pages
+fit 16,000 encoded bytes with explicit omissions, exact paths and stable hashes.
+Unicode-scalar text pages and raw JSON pages allow exact reconstruction. Only shown
+fresh evidence enters this run's citation set. Older receipts grant no authority
+and require refreshed evidence. Tool results and file assets remain distinct:
+structured journals are SQLite data, file assets stay in the package asset folder.
+
+Added history_search, history_read and tool_result to both native tool policies.
+History search is scoped to the selected conversation and excludes the current
+request/newer receipts. Descending keyset cursors survive append-only history writes.
+Explicit tangent parent excerpts remain unchanged; the new tools cannot search a
+sibling or the rest of a parent conversation. Conversation reconstruction reports
+recent unresolved calls with operation proof rather than silently repeating them.
+The bounded unresolved list is not the future complete recovery/resolution UI.
+
+Verification: 59 core checks, including canonical v1/v2 migration, large result and
+Unicode/NUL/decimal preservation, exact paged/raw reads, scope/argument refusals,
+idempotent completion, call identity refusal, an injected mutation/receipt gap,
+checkpoint/export/reopen and result-tamper detection. The shared-agent checks retrieve
+an original beyond 110 recent messages and page an oversized table description.
+The full check script passes, including 26 actual-tool grammar scenarios with 217
+exact pinned reference masks, plus existing transport/prompt/streaming/grammar gates.
+The repo-owned CLI skill validates.
+
+Native qualification passes the existing seven autonomous jobs and a new three-step
+history job on the 8K development context: six complete results, one proposal for
+review and one deliberate cancellation. The history job retrieves MAPLE-27 from an
+old original and does not invent currency. Evidence and source hashes are in
+integration/evidence/2026-10-26-tool-journal-and-history.json. These are workflow
+qualification runs, not a matched upstream performance comparison or speed claim.
+
+Release app/CLI build, ad-hoc signature checks, isolated install/update/uninstall,
+700-message migration/history CLI checks, packaged receipt CLI and 30 concurrent
+writers pass. The packaged receipt check consumes an archive produced by the Swift
+core and tests exact decimal/Unicode/raw pages, scope and argument failures, and
+integrity. CI now includes it; the preceding 77034e7 public checkpoint has green CI.
+The real installed app/CLI and user workbooks were not overwritten. New schema-3
+packages need matching new binaries; older builds refuse them.
+
+Next: automatic tool-free summary generation and exact-token compaction scheduling,
+then long multi-step and repeated-compaction restart/kill qualification. Prepared
+journals make outcomes inspectable; they do not yet resume or resolve a lost job.
+Large structured results are loaded before projection, so streamed-result memory
+qualification remains. Native downloads/setup, matched performance, production
+backend packaging/adoption, complete UI/voice/search-scale and Workbook homepage
+release work remain required. This checkpoint does not complete the app goal.

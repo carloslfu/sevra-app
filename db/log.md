@@ -100,3 +100,12 @@ Added schema-2 transactional migration, scoped history FTS/keyset reads, immutab
 ## [2026-10-26 22:28] verification | records/operations/implementation.md
 54 core checks, full check.sh, release app/CLI, eight simultaneous legacy openers, 700-message CLI paging/search/export/reopen, isolated installation, 30 writers and seven autonomous native jobs passed. Retained receipt-size/crash-gap and compaction work.
 
+## [2026-10-26 22:54] implementation | records/operations/implementation.md
+Added schema-3 tool journals, atomic result/message completion, exact bounded result retrieval and agent history tools; preserved uncertainty across a prepared-call interruption. Updated current design and next work.
+
+## [2026-10-26 22:54] verification | records/operations/implementation.md
+59 core checks; full adapter/text/grammar suite; eight native jobs; release app/CLI; packaged receipt and history checks; 30 writers; isolated install/update/uninstall; CLI skill validation passed. Evidence: integration/evidence/2026-10-26-tool-journal-and-history.json. No production Splash switch or automatic compaction claim.
+
+## [2026-10-26 22:54] design | records/reviews/design-passes.md
+Reviewed continuity/authority, interrupted execution, exact paged results, append-safe history cursors and unresolved limits.
+

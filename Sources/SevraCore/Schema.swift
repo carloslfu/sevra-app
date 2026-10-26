@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 2
+  static let version = 3
   static let version1SQL = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=1;
@@ -68,5 +68,11 @@ enum Schema {
     INSERT INTO message_fts(message_fts) VALUES('rebuild');
     PRAGMA user_version=2;
     """
-  static let sql = version1SQL + "\n" + migration2
+  static let version2SQL = version1SQL + "\n" + migration2
+  static let migration3 = """
+    CREATE TABLE tool_calls(id TEXT PRIMARY KEY,run_id TEXT NOT NULL REFERENCES agent_runs(id),call_id TEXT NOT NULL,tool TEXT NOT NULL,arguments TEXT NOT NULL,operation_token TEXT NOT NULL,assistant_text TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('prepared','completed','failed')),result TEXT,result_hash TEXT,message_id TEXT UNIQUE REFERENCES messages(id),created TEXT NOT NULL,UNIQUE(run_id,call_id),CHECK((state='prepared' AND result IS NULL AND result_hash IS NULL AND message_id IS NULL) OR (state!='prepared' AND result IS NOT NULL AND result_hash IS NOT NULL AND message_id IS NOT NULL)));
+    CREATE INDEX tool_calls_run ON tool_calls(run_id);
+    PRAGMA user_version=3;
+    """
+  static let sql = version2SQL + "\n" + migration3
 }

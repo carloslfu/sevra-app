@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-26T21:43:43.416470+00:00
+updated: 2026-10-26T22:43:08.523475+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -61,3 +61,14 @@ history and reconstruct action/acceptance status from workbook state. Qualify
 32K first and 64K where practical rather than treating the current 8K candidate
 setting as the product default. Detailed contract and gates C01–C13 are in
 [[records/specs/conversation-context]]; implementation remains open.
+
+## Durable execution receipts and history tools
+
+The shared agent journals nonterminal tool calls before dispatch, then atomically
+records their exact result and conversation receipt. Oversized responses are valid
+bounded JSON views with explicit retrieval paths, not truncated output. The tool_result
+reader supplies exact saved pages; history_search/history_read retrieve older messages
+within the selected conversation. Current requests are excluded from history search.
+Historical output cannot grant action authority or acceptance. Failed/unfinished calls
+retain operation evidence and uncertainty. The same prepared call ID is never replayed.
+This storage boundary is implemented; automatic recovery and context compaction are not.

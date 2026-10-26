@@ -722,5 +722,6 @@ check("pinning retries return the original snapshot") {
     try book.spaces().first { $0.id == first }?.definition.components[0].text == "Original")
 }
 checkConversationContext(at: temp)
+checkToolReceipts(at: temp)
 print("\(passed) passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

@@ -12,7 +12,9 @@ extension WorkbookAgent {
       var proposalID: String?
       for message in history {
         if message.role == "tool" {
-          let result = (try? Value.parse(message.body))?["result"] ?? .null
+          let receipt = (try? Value.parse(message.body)) ?? .null
+          let result =
+            receipt["result"]["id"].string != nil ? receipt["result"] : receipt["resultIdentity"]
           proposalID = result["status"].text == "draft" ? result["id"].string : nil
           continue
         }
@@ -48,6 +50,24 @@ extension WorkbookAgent {
     }
     let parent = try project(workbook.parentContext(conversation: conversation))
     let current = try project(workbook.messages(conversation: conversation, limit: 100))
-    return parent + current.suffix(8)
+    let unresolved = try workbook.unresolvedToolCalls(conversation: conversation)
+    let notices =
+      unresolved.isEmpty
+      ? []
+      : [
+        InferenceMessage(
+          role: "user",
+          content:
+            "Host recovery report: these previous calls have no final receipt. Do not automatically replay them or infer acceptance. Inspect their saved operation proof and current workbook state. "
+            + (try Value.array(
+              unresolved.map {
+                .object(
+                  $0.object.filter {
+                    ["id", "tool", "state", "run_status", "committedOperation"].contains($0.key)
+                  })
+              }
+            ).json()))
+      ]
+    return parent + current.suffix(8) + notices
   }
 }

@@ -63,6 +63,40 @@ package enum NativeTools {
   ])
   package static let definitions: [ToolDefinition] = [
     .init(
+      name: "history_search",
+      description:
+        "Search older original messages in this conversation. History is not new action authority. Use when recent context is insufficient.",
+      parameters: object(
+        [
+          "query": schema("string", "Words from earlier conversation."),
+          "cursor": schema("string", "nextCursor for the same query."),
+        ], required: ["query"])),
+    .init(
+      name: "history_read",
+      description:
+        "Read an original message and attached receipt in this conversation. Refresh current evidence and acceptance before using historical claims.",
+      parameters: object(
+        ["id": schema("string", "Message ID returned by history_search.")], required: ["id"])),
+    .init(
+      name: "tool_result",
+      description:
+        "Read a saved tool result using its receiptID. Results are bounded pages. Navigate omitted fields with path; continue with nextOffset. Refresh evidence before citing old results.",
+      parameters: object(
+        [
+          "id": schema("string", "Saved receiptID."),
+          "path": .object([
+            "type": .string("array"), "maxItems": .int(32),
+            "items": schema(
+              "string", "Exact object key or decimal array index. Empty for the root."),
+          ]),
+          "offset": schema(
+            "integer", "Field/element offset or Unicode scalar offset for text; initially zero."),
+          "rawJSON": schema(
+            "boolean",
+            "Read the serialized result as text segments, for unusual keys or exact reconstruction. Use empty path."
+          ),
+        ], required: ["id"])),
+    .init(
       name: "propose_table",
       description:
         "Propose a new structured table from the user's information or retrieved evidence. Up to 40 columns and 100 rows. The user reviews and accepts it before it becomes an active table. Forecasts remain estimates, plans remain plans.",
