@@ -63,6 +63,55 @@ enum NativeTools {
   ])
   static let definitions: [ToolDefinition] = [
     .init(
+      name: "propose_table",
+      description:
+        "Propose a new structured table from the user's information or retrieved evidence. Up to 40 columns and 100 rows. The user reviews and accepts it before it becomes an active table. Forecasts remain estimates, plans remain plans.",
+      parameters: object(
+        [
+          "title": schema("string", "Table name."),
+          "meaning": schema(
+            "string",
+            "actual, estimate, plan, commitment, rule or assumption. Use plan for a new planning table."
+          ), "inputs": evidenceList,
+          "columns": .object([
+            "type": .string("array"), "maxItems": .int(40),
+            "items": object(
+              [
+                "id": schema("string", "Unique column ID."),
+                "title": schema("string", "Column label."),
+                "type": schema("string", "text, decimal, boolean or date."),
+                "formula": schema(
+                  "string", "Optional deterministic formula referring to column IDs."),
+                "unit": schema("string", "Optional explicit unit label."),
+              ], required: ["id", "title", "type"]),
+          ]),
+          "rows": .object([
+            "type": .string("array"), "maxItems": .int(100),
+            "items": .object([
+              "type": .string("object"),
+              "description": .string(
+                "Column IDs mapped to values; decimals are strings. Never invent missing facts."),
+            ]),
+          ]),
+        ], required: ["title", "columns", "rows", "meaning", "inputs"])),
+    .init(
+      name: "archive_members",
+      description:
+        "List ZIP file members without extracting them. Requires an existing archive source ID.",
+      parameters: object(["id": schema("string", "ZIP source item ID.")], required: ["id"])),
+    .init(
+      name: "include_archive_members",
+      description:
+        "Include selected ZIP files only when the user explicitly asks to unpack them. Preserves the original archive and member lineage, with resumable retry. Never automatically recurse into archives.",
+      parameters: object(
+        [
+          "id": schema("string", "ZIP source item ID."),
+          "paths": .object([
+            "type": .string("array"), "maxItems": .int(50),
+            "items": schema("string", "Exact member path returned by archive_members."),
+          ]),
+        ], required: ["id", "paths"])),
+    .init(
       name: "search",
       description:
         "Find workbook evidence. No match is not proof of absence when indexing is incomplete.",

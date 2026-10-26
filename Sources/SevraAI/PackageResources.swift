@@ -1,14 +1,26 @@
 import Foundation
 import Hub
+import MLX
 import Metal
 import SevraCore
 
 /// Checks installed resources and explicit local tokenizer configuration without loading weights.
 public enum PackageResources {
-  public static func check() async throws -> Value {
+  public static var executableDirectory: URL {
+    (Bundle.main.executableURL ?? URL(fileURLWithPath: CommandLine.arguments[0]))
+      .resolvingSymlinksInPath().deletingLastPathComponent()
+  }
+  public static func configureMetal() throws {
+    let path = executableDirectory.appendingPathComponent("mlx.metallib")
+    try require(
+      FileManager.default.fileExists(atPath: path.path), "resources",
+      "The installed Metal library is missing. Rebuild or reinstall Sevra.")
+    GPU.metallib = path
+  }
+  public static func check(validateMetal: Bool = true) async throws -> Value {
     let resourceRoot =
       Bundle.main.bundleURL.pathExtension == "app"
-      ? Bundle.main.resourceURL! : Bundle.main.bundleURL
+      ? Bundle.main.resourceURL! : executableDirectory
     let bundle = resourceRoot.appendingPathComponent("swift-transformers_Hub.bundle")
     try require(
       FileManager.default.fileExists(atPath: bundle.path), "resources",
@@ -27,13 +39,21 @@ public enum PackageResources {
     try require(
       config?.tokenizerClass?.string() == "GPT2Tokenizer", "resources",
       "Explicit local tokenizer configuration did not resolve.")
-    guard let executable = Bundle.main.executableURL, let device = MTLCreateSystemDefaultDevice()
+    if !validateMetal {
+      return .object(["tokenizerResources": .bool(true), "metalLibrary": .null])
+    }
+    try configureMetal()
+    guard let device = MTLCreateSystemDefaultDevice()
     else { throw SevraError("metal", "A Metal-capable device is required.") }
     let library = try device.makeLibrary(
-      URL: executable.deletingLastPathComponent().appendingPathComponent("mlx.metallib"))
+      URL: executableDirectory.appendingPathComponent("mlx.metallib"))
     try require(!library.functionNames.isEmpty, "metal", "The Metal kernel library is empty.")
+    try require(
+      (MLXArray([1, 2, 3]) + 1).sum().item(Int.self) == 9, "metal",
+      "Installed MLX kernel execution failed.")
     return .object([
-      "tokenizerResources": .bool(true), "metalLibrary": .bool(true),
+      "mlxKernelExecution": .bool(true), "tokenizerResources": .bool(true),
+      "metalLibrary": .bool(true),
       "kernelCount": .number(Double(library.functionNames.count)),
     ])
   }

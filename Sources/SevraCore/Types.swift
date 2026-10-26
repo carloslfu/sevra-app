@@ -182,3 +182,12 @@ public struct Chunk: Codable, Sendable {
     self.locator = locator
   }
 }
+
+extension Item {
+  public var referenceMarkdown: String {
+    let label = title.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(
+      of: "[", with: "\\["
+    ).replacingOccurrences(of: "]", with: "\\]")
+    return "[" + label + "](sevra://item/" + id + ")"
+  }
+}

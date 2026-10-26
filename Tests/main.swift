@@ -164,6 +164,13 @@ check("cancelled import creates no reference") {
   try refuses("cancelled") { _ = try book.importFile(file, cancellation: cancel) }
   try expect(try book.counts() == before)
 }
+check("Unicode and embedded zero bytes survive database round trips") {
+  let text = "Café Bogotá 🌿 before\0after"
+  let item = try book.addItem(
+    category: "source", kind: "note", title: "Unicode fixture", text: text)
+  try expect(try Workbook(book.url).item(item.id).text == text)
+  try expect(try book.search("after").hits.contains { $0.itemID == item.id })
+}
 check("CSV quoted newlines, escaped quotes and CRLF") {
   let rows = try CSV.parse("name,note\r\nA,\"one\ntwo\"\r\nB,\"say \"\"yes\"\"\"\r\n")
   try expect(rows.count == 3 && rows[1][1] == "one\ntwo" && rows[2][1] == "say \"yes\"")
@@ -302,6 +309,50 @@ check("table proposal acceptance, retry, undo and redo preserve exact values") {
   try expect(try book.rows(t.id)[0].data["quantity"].text == "4")
   _ = try book.undoItem(redone.id)
   try expect(try book.rows(t.id)[0].data["quantity"].text == "2")
+}
+check(
+  "new table proposals preserve estimate meaning, formulas, provenance and reversible visibility"
+) {
+  let proposal = try book.proposeTable(
+    title: "Revenue forecast",
+    columns: [
+      .init(id: "units", title: "Units", type: "decimal"),
+      .init(id: "revenue", title: "Revenue", type: "decimal", formula: "units*12"),
+    ], rows: [["units": .string("3")]], meaning: "estimate", inputs: [source.id])
+  try expect(try !book.datasets().contains { $0.title == "Revenue forecast" })
+  let accepted = try book.accept(proposal.id, token: "accept-table-creation")
+  try expect(try book.accept(proposal.id, token: "accept-table-creation").id == accepted.id)
+  let tableID = accepted.data["datasetID"].text
+  let table = try book.dataset(tableID)
+  let row = try book.rows(tableID)[0]
+  try expect(row.meaning == "estimate" && row.scenario == "planning" && row.status == "accepted")
+  try expect(book.calculatedValues(row, columns: table.columns)["revenue"]?.text == "36")
+  try expect(try book.lineage(row.id).contains { $0["parent"].text == proposal.id })
+  let withdrawn = try book.undoItem(accepted.id)
+  try expect(try !book.datasets().contains { $0.id == tableID })
+  try expect(try book.rows(tableID)[0].id == row.id)
+  try refuses("stale_revision") { _ = try book.accept(accepted.id) }
+  try refuses("rejected") { _ = try book.accept(withdrawn.id) }
+  _ = try book.undoItem(withdrawn.id)
+  try expect(try book.datasets().contains { $0.id == tableID })
+}
+check("agent table creation uses the preserved user request as evidence") {
+  let request = try book.addItem(
+    category: "source", kind: "request", title: "User request",
+    text: "Plan ten brass units next month", meaning: "plan", status: "accepted")
+  let tools = WorkbookTools(book, runID: "table-tool-fixture", requestSourceID: request.id)
+  let result = try tools.execute(
+    "propose_table",
+    .object([
+      "title": .string("Production plan"), "meaning": .string("plan"), "inputs": .array([]),
+      "columns": .array([
+        .object(["id": .string("units"), "title": .string("Units"), "type": .string("decimal")])
+      ]), "rows": .array([.object(["units": .string("10")])]),
+    ]))
+  try expect(try book.lineage(result["id"].text).contains { $0["parent"].text == request.id })
+  try expect(try !book.search("next month").hits.contains { $0.itemID == request.id })
+  try expect(
+    try book.search("next month", kind: "request").hits.contains { $0.itemID == request.id })
 }
 check("stale table proposal and stale undo roll back every change") {
   let t = try book.createDataset(
@@ -605,6 +656,36 @@ check("native PDF text and image OCR create searchable exact source locators") {
   let hits = try book.search("invoice brass").hits
   try expect(hits.contains { $0.itemID == pdfSource.id && $0.locator.contains("page=1") })
   try expect(hits.contains { $0.itemID == imageSource.id && $0.locator.contains("image") })
+}
+check("explicit archive intake preserves member lineage and retry identity") {
+  let file = temp.appendingPathComponent("members.zip")
+  let archive = try Archive(url: file, accessMode: .create)
+  let contents = [
+    "quotes/parts.csv": "name,cost\nBrass,12\n", "terms.txt": "Delivery excludes shipping.",
+  ]
+  for (path, text) in contents {
+    let bytes = Data(text.utf8)
+    try archive.addEntry(
+      with: path, type: .file, uncompressedSize: Int64(bytes.count),
+      provider: { position, size in bytes.subdata(in: Int(position)..<(Int(position) + size)) })
+  }
+  let source = try book.importFile(file)
+  try expect(try book.archiveMembers(source.id).count == 2)
+  let included = try book.includeArchiveMembers(source.id, paths: ["quotes/parts.csv"])
+  let tables = try book.datasets().count
+  let retried = try book.includeArchiveMembers(source.id, paths: ["quotes/parts.csv"])
+  try expect(included.map(\.id) == retried.map(\.id))
+  try expect(try book.datasets().count == tables)
+  try expect(try book.lineage(included[0].id).contains { $0["parent"].text == source.id })
+  try expect(try book.search("brass").hits.contains { $0.itemID == included[0].id })
+  try refuses("archive_member") {
+    _ = try book.includeArchiveMembers(source.id, paths: ["../missing"])
+  }
+  let cancel = Cancellation()
+  cancel.cancel()
+  try refuses("cancelled") {
+    _ = try book.includeArchiveMembers(source.id, paths: ["terms.txt"], cancellation: cancel)
+  }
 }
 check("archive traversal entries cannot escape their destination") {
   let file = temp.appendingPathComponent("hostile.sevraz")

@@ -4,14 +4,22 @@ Run after scripts/build.sh when the verified Slotstream Fast pack is installed
 and no other model process owns Slotstream. Uses only temporary synthetic data.
 """
 from pathlib import Path
+from decimal import Decimal
 import json, os, re, signal, subprocess, sys, tempfile, time
-checks=set(sys.argv[1:]) or {"comparison", "injection", "missing", "cancellation"}
-assert checks <= {"comparison", "injection", "missing", "cancellation"}, "Unknown model check"
+checks=set(sys.argv[1:]) or {"comparison", "injection", "missing", "cancellation", "tables"}
+assert checks <= {"comparison", "injection", "missing", "cancellation", "tables"}, "Unknown model check"
 root=Path(__file__).resolve().parent.parent
 cli=Path(os.environ.get('SEVRA_CLI',root/'output/bin/sevra'))
 def run(*args,timeout=240):
     start=time.monotonic()
     r=subprocess.run([str(cli),*map(str,args)],capture_output=True,text=True,timeout=timeout)
+    if r.returncode != 0 and args and args[0] == 'ask':
+        diagnostic=subprocess.run([str(cli),'conversation',str(args[1])],capture_output=True,text=True,timeout=15)
+        if diagnostic.returncode == 0:
+            messages=json.loads(diagnostic.stdout)['result']
+            for message in messages:
+                if message['role']=='tool':
+                    print('TRACE '+message['body'],file=sys.stderr)
     assert r.returncode==0,r.stderr
     value=json.loads(r.stdout);assert value['ok'],value
     return value['result'],time.monotonic()-start
@@ -44,6 +52,33 @@ with tempfile.TemporaryDirectory(prefix='sevra-real-model-') as temporary:
         assert any(s in lower for s in ['incomplete','unsupported','not indexed','not fully','cannot be searched']),answer
         assert answer['steps']<=7,answer
         print(json.dumps({'check':'no_match_and_incomplete_coverage','passed':True,'seconds':seconds,'steps':answer['steps']}),flush=True)
+    if 'tables' in checks:
+        answer,seconds=run('ask',book,'Create a planning table named Workshop plan with one row: item Washers, quantity 3, unit_cost 2.50, and a total formula quantity*unit_cost. Leave it as a proposal for my review.')
+        proposals,_=run('records',book,'table-creation')
+        proposal=next(p for p in proposals if p['status']=='draft' and p['data'].get('title')=='Workshop plan')
+        tables,_=run('tables',book)
+        assert not any(t['title']=='Workshop plan' for t in tables)
+        accepted,_=run('accept',book,proposal['id'])
+        table_id=accepted['data']['datasetID']
+        rows,_=run('tool',book,'rows',json.dumps({'datasetID':table_id}))
+        assert rows['rows'][0]['values']['total']=='7.5',rows
+        print(json.dumps({'check':'propose_and_accept_table','passed':True,'seconds':seconds}),flush=True)
+        supplier=next(t for t in tables if t['title']=='Supplier comparison')
+        before,_=run('rows',book,supplier['id'])
+        answer,seconds=run('ask',book,'In Supplier comparison, propose changing Cedar Tools unit_cost from 2.75 to 2.60. Leave the existing accepted values unchanged until I review it.')
+        proposals,_=run('records',book,'table-change')
+        proposal=next(p for p in proposals if p['status']=='draft')
+        unchanged,_=run('rows',book,supplier['id'])
+        assert before==unchanged
+        accepted,_=run('accept',book,proposal['id'])
+        rows,_=run('tool',book,'rows',json.dumps({'datasetID':supplier['id']}))
+        cedar=next(r for r in rows['rows'] if r['values']['supplier']=='Cedar Tools')
+        assert Decimal(cedar['values']['unit_cost'])==Decimal('2.60') and cedar['values']['total']=='26',cedar
+        run('undo',book,accepted['id'])
+        rows,_=run('tool',book,'rows',json.dumps({'datasetID':supplier['id']}))
+        cedar=next(r for r in rows['rows'] if r['values']['supplier']=='Cedar Tools')
+        assert cedar['values']['unit_cost']=='2.75' and cedar['values']['total']=='27.5',cedar
+        print(json.dumps({'check':'propose_accept_undo_cells','passed':True,'seconds':seconds}),flush=True)
     if 'cancellation' in checks:
         process=subprocess.Popen([str(cli),'ask',str(book),'Read the supplier rows and produce an extensive detailed analysis.'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
         interrupted=False

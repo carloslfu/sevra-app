@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzbe4pdmde0k72e3j6n6
 created: 2026-10-25T01:48:47.342811+00:00
-updated: 2026-10-25T01:48:47.342811+00:00
+updated: 2026-10-26T18:15:34.499698+00:00
 summary: Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 title: Distribution and verification
 status: reviewed
@@ -14,10 +14,11 @@ D01. Public MIT repository from bootstrap. No proprietary assets, credentials,
 private repository links or absolute developer paths required. Preserve upstream
 licenses/notices for redistributed dependencies. Product trademark is not licensed
 as endorsement by a fork. Synthetic sample workbook is generated deterministically.
-D02. Native Apple Silicon macOS 14+ baseline, subject to actual dependency/runtime
-qualification. Build uses Swift Package Manager and Command Line Tools where
-possible; bundle required MLX Metal kernels with verified digests and correct OS
-compatibility. Never tell users to install Python for the app runtime.
+D02. The Splash integration targets Apple M3+ and macOS 26.4+, subject to physical
+runtime qualification. The earlier macOS 14 declaration described the Slotstream
+baseline, not future Splash support. Package pinned native engine and Metal
+resources with verified hashes and licenses. Source builds may use upstream
+development tools; the shipped app's setup and inference must not need Python.
 D03. `scripts/build.sh` builds CLI/app/check runner, stages a valid `.app`, required
 resources, Info.plist document types, microphone/speech usage strings and signatures.
 `scripts/install.sh` installs to user Applications plus a user-owned CLI bin folder,

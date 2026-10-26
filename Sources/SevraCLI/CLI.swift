@@ -29,7 +29,9 @@ import SevraCore
   }
   static func run(_ args: [String], cancellation: Cancellation) async throws -> Value {
     guard let command = args.first else { return .string(help) }
-    if command == "check-resources" { return try await PackageResources.check() }
+    if command == "check-resources" {
+      return try await PackageResources.check(validateMetal: !args.contains("--paths-only"))
+    }
     if command == "help" || command == "--help" { return .string(help) }
     if command == "version" || command == "--version" {
       return .object(["version": .string("0.1.0-dev"), "engine": .string(LocalModel.revision)])
@@ -108,6 +110,16 @@ import SevraCore
       guard let target = URL(string: try arg(2)) else { throw SevraError("url", "Invalid URL.") }
       return try encoded(
         book.linkURL(target, title: args.count > 3 ? args[3] : target.host ?? "Link"))
+    case "transcribe":
+      try await book.transcribe(arg(2), cancellation: cancellation)
+      return try book.extractionStatus(arg(2))
+    case "archive-members":
+      return try encoded(book.archiveMembers(arg(2), cancellation: cancellation))
+    case "include-members":
+      return try encoded(
+        book.includeArchiveMembers(
+          arg(2), paths: Value.parse(arg(3)).array.compactMap(\.string), cancellation: cancellation)
+      )
     case "include": return try encoded(book.includeLinked(arg(2), cancellation: cancellation))
     case "relink":
       try book.relinkAsset(arg(2), to: url(3))
@@ -181,7 +193,7 @@ import SevraCore
         progress: { fputs($0 + "\n", stderr) })
       return .object([
         "answer": .string(result.answer), "citations": .array(result.citations.map(Value.string)),
-        "steps": .number(Double(result.steps)),
+        "steps": .number(Double(result.steps)), "state": .string(result.state),
       ])
     default: throw SevraError("usage", help)
     }
@@ -189,6 +201,8 @@ import SevraCore
   static let help = """
     Sevra 0.1.0 development CLI. Every result is JSON; errors exit nonzero.
     create PATH.sevra [TITLE] | demo PATH.sevra | inspect WORKBOOK | verify WORKBOOK
+    transcribe WORKBOOK ITEM_ID
+    archive-members WORKBOOK ITEM_ID | include-members WORKBOOK ITEM_ID JSON_PATHS
     capture-url WORKBOOK URL | link-url WORKBOOK URL [TITLE] | include WORKBOOK ITEM_ID | relink WORKBOOK ASSET_ID FILE
     import WORKBOOK FILE [--link] | search WORKBOOK QUERY [OFFSET] | read WORKBOOK ID
     records WORKBOOK [KIND] | tables WORKBOOK | rows WORKBOOK TABLE_ID [OFFSET]

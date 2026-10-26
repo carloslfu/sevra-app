@@ -3,15 +3,19 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-25T01:48:47.282868+00:00
+updated: 2026-10-26T18:15:34.513563+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
 ---
 # Product and interaction
 
-Revision 1, October 24, 2026. Status refers to specification review, not delivery.
+Revision 2, October 26, 2026. Status refers to specification review, not delivery.
 Normative requirements use IDs so implementation and verification can map back.
+
+Sevra Workbook is the primary product and homepage. A small Websites link in the
+top navigation leads to the secondary managed service. Separate offer terms and
+explicit data connections remain. This is a direction, not a deployed-page claim.
 
 ## Goal and first complete job
 

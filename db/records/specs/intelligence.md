@@ -3,24 +3,22 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-25T01:48:47.328971+00:00
-summary: Pinned native Slotstream integration, bounded tools, proposal acceptance, on-device voice and declarative native spaces.
+updated: 2026-10-26T18:15:34.485386+00:00
+summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
 ---
 # Local intelligence
 
-A01. Use the latest reviewed public Slotstream revision at implementation start,
-currently `7578fb21e57ec362d19f5050922e0f583914935d` (after v0.2.30). Pin it and
-transitive Package.resolved. Revisit upgrades deliberately; do not depend on a
-moving branch. Native Swift API, Swift/MLX/Metal and the engine's Fast pack
-(Qwen3.6-35B-A3B 4-bit with DFlash2) are the first configuration to qualify.
-No universal 100–150 tok/s claim. Measure time to first useful result, tool success,
-context latency, memory and throughput on this app's tasks and reference hardware.
-A02. Setup explains model download size, disk and memory before starting. Download
-is resumable/cancellable and digest verified using Slotstream's pinned deployment.
-Reuse an explicitly selected existing compatible model directory without copying
-its weights into workbooks. Model discovery/absence must not crash normal browsing.
+A01. Adopt upstream Splash C++/Metal with the Python-free Swift adapter described
+in [[records/specs/splash-integration]]. Pin and qualify upgrades; preserve the
+existing Slotstream build as a comparison baseline until adoption passes. First
+model remains Qwen3.6-35B-A3B 4-bit with matching DFlash2. No universal 100–150 tok/s
+claim. Measure complete workbook jobs, tool success, context latency and memory.
+A02. Setup explains download size, disk, memory and hardware before starting.
+Native download is resumable/cancellable and digest verified. Reuse explicitly
+selected compatible model files; never copy weights into workbooks. Model absence
+must not crash normal browsing. Final setup and inference require no Python.
 A03. A single serialized inference service owns engine/model lifecycle. Loading and
 generation stay off the main actor. Cancellation reaches engine callbacks. Validate
 terminal error/truncation before storing an answer as completed. App shutdown

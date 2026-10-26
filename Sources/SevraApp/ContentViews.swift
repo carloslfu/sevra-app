@@ -191,10 +191,14 @@ struct SpaceView: View {
                   Text(job["detail"].text).font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
-                Button("Resume") {
-                  state.run("Resuming intake") { book, cancel in
-                    try book.resumeIntake(job["item_id"].text, cancellation: cancel)
+                if job["asset_id"].string != nil {
+                  Button("Resume") {
+                    state.run("Resuming intake") { book, cancel in
+                      try book.resumeIntake(job["item_id"].text, cancellation: cancel)
+                    }
                   }
+                } else {
+                  Button("Review reference") { state.navigate(.item(job["item_id"].text)) }
                 }
               }
             }
@@ -211,7 +215,7 @@ struct SpaceView: View {
             }
           }
           sectionTitle("Recent sources and drafts")
-          let recent = state.items.filter { $0.kind != "row" }.prefix(20)
+          let recent = state.items.filter { $0.kind != "row" && $0.kind != "request" }.prefix(20)
           if recent.isEmpty {
             Text("Included files and saved work will appear here.").foregroundStyle(.secondary)
           }
@@ -233,8 +237,10 @@ struct SpaceView: View {
             }.buttonStyle(.plain)
           }
         }
-      }.padding(26).frame(maxWidth: .infinity, alignment: .leading)
-    }
+      }.scrollTargetLayout().padding(26).frame(maxWidth: .infinity, alignment: .leading)
+    }.scrollPosition(
+      id: Binding(get: { state.spaceScroll[space.id] }, set: { state.spaceScroll[space.id] = $0 }),
+      anchor: .top)
   }
   func sectionTitle(_ title: String) -> some View {
     Text(title).font(.title3.weight(.medium)).padding(.top, 10)

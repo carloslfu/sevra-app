@@ -187,10 +187,13 @@ struct WorkbookView: View {
             ForEach(state.messages.filter { $0.role != "tool" }) { message in
               VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                  Text(message.role == "user" ? "You" : "Sevra").font(.caption.weight(.semibold))
+                  Text(
+                    message.role == "user" ? "You" : message.role == "event" ? "Activity" : "Sevra"
+                  ).font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                   if message.state != "complete" {
-                    Text(message.state).font(.caption).foregroundStyle(.orange)
+                    Text(message.state == "needs_review" ? "Needs your review" : message.state)
+                      .font(.caption).foregroundStyle(.orange)
                   }
                 }
                 Text(
@@ -286,7 +289,7 @@ struct WorkbookView: View {
       switch state.route {
       case .space(let id):
         if let space = state.spaces.first(where: { $0.id == id }) {
-          SpaceView(space: space, state: state)
+          SpaceView(space: space, state: state).id(space.id)
         }
       case .item(let id):
         if let item = try? book.item(id) { ItemView(item: item, state: state).id(id) }

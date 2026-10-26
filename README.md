@@ -13,7 +13,11 @@ Start with [the project knowledge map](db/records/overview/start-here.md),
 [the specification](db/records/specs/product.md) and
 [the implementation plan](db/records/operations/implementation.md).
 
-The app uses SwiftUI, AppKit, SQLite and Slotstream (Swift/MLX/Metal). A workbook
+The app uses SwiftUI, AppKit and SQLite. The current build uses Slotstream;
+the adopted [inference design](db/records/specs/splash-integration.md) integrates
+Splash's C++/Metal engine through Swift, with no Python runtime. That migration
+is being qualified. Sevra Workbook is the primary product; Sevra Websites is
+the separate managed service. A workbook
 contains a database and ordinary asset files. The repository's `db/` is its
 independent [db.md](https://github.com/carloslfu/db.md) knowledge store, not the
 workbook storage format.

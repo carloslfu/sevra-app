@@ -56,7 +56,11 @@ final class Database {
       case .null: sqlite3_bind_null(stmt, n)
       case .number(let d): sqlite3_bind_double(stmt, n, d)
       case .bool(let b): sqlite3_bind_int(stmt, n, b ? 1 : 0)
-      default: sqlite3_bind_text(stmt, n, v.text, -1, transient)
+      default:
+        let text = v.text
+        try require(
+          text.utf8.count <= Int(Int32.max), "value_limit", "A database value is too large.")
+        sqlite3_bind_text(stmt, n, text, Int32(text.utf8.count), transient)
       }
     }
     var result: [[String: Value]] = []
@@ -71,7 +75,14 @@ final class Database {
         case SQLITE_NULL: row[key] = .null
         case SQLITE_INTEGER: row[key] = .number(Double(sqlite3_column_int64(stmt, i)))
         case SQLITE_FLOAT: row[key] = .number(sqlite3_column_double(stmt, i))
-        default: row[key] = .string(String(cString: sqlite3_column_text(stmt, i)))
+        default:
+          let count = Int(sqlite3_column_bytes(stmt, i))
+          if let bytes = sqlite3_column_text(stmt, i) {
+            row[key] = .string(
+              String(decoding: UnsafeBufferPointer(start: bytes, count: count), as: UTF8.self))
+          } else {
+            row[key] = .string("")
+          }
         }
       }
       result.append(row)

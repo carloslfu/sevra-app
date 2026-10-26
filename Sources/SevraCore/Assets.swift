@@ -6,7 +6,8 @@ import UniformTypeIdentifiers
 extension Workbook {
   @discardableResult public func importFile(
     _ source: URL, linked: Bool = false, origin: String? = nil,
-    cancellation: Cancellation = .init(), progress: @escaping (Int64, Int64) -> Void = { _, _ in }
+    cancellation: Cancellation = .init(), token: String = identifier(), inputs: [String] = [],
+    progress: @escaping (Int64, Int64) -> Void = { _, _ in }
   ) throws -> Item {
     let info = try source.resourceValues(forKeys: [
       .isRegularFileKey, .fileSizeKey, .isSymbolicLinkKey, .contentModificationDateKey,
@@ -19,7 +20,7 @@ extension Workbook {
       let free =
         try url.resourceValues(forKeys: [.volumeAvailableCapacityKey]).volumeAvailableCapacity ?? 0
       try require(
-        Int64(free) > count + 16_777_216, "disk_full",
+        Int64(free) > count && Int64(free) - count > 16_777_216, "disk_full",
         "There is not enough room to include this file. Free space or explicitly link it.")
     }
     let temp = url.appendingPathComponent("staging/\(identifier())")
@@ -68,7 +69,11 @@ extension Workbook {
       UTType(filenameExtension: source.pathExtension)?.preferredMIMEType
       ?? "application/octet-stream"
     let result = try mutation(
-      "import", request: .object(["hash": .string(hash), "linked": .bool(linked)])
+      "import", token: token,
+      request: .object([
+        "hash": .string(hash), "linked": .bool(linked), "name": .string(source.lastPathComponent),
+        "origin": origin.map(Value.string) ?? .null, "inputs": .array(inputs.map(Value.string)),
+      ])
     ) {
       try cancellation.check()
       if !linked {
@@ -98,7 +103,7 @@ extension Workbook {
       let id = try insertItem(
         category: "source", kind: "document", title: source.lastPathComponent, text: "",
         data: .object(["bytes": .string(String(copied)), "mediaType": .string(media)]),
-        meaning: "actual", status: "accepted", scenario: "actual", inputs: [],
+        meaning: "actual", status: "accepted", scenario: "actual", inputs: inputs,
         transformation: "import-v1", assetID: assetID)
       try db.execute(
         "INSERT INTO extraction VALUES(?,?,?,?,?)",

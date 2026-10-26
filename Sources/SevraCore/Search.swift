@@ -96,7 +96,7 @@ extension Workbook {
             return SearchPage(hits: [], incomplete: incomplete, nextOffset: nil, nextCursor: nil)
           }
           let current = historical ? "" : " AND c.is_current=1 "
-          var filters = ""
+          var filters = kind == nil ? " AND c.kind!='request' " : ""
           var filtersArgs: [Value] = []
           for (column, value) in [
             ("kind", kind), ("meaning", meaning), ("status", status), ("scenario", scenario),

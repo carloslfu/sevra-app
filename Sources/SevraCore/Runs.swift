@@ -19,7 +19,7 @@ extension Workbook {
   }
   public func finishAgentRun(_ id: String, status: String, steps: Int, metrics: Value) throws {
     try require(
-      ["complete", "failed", "cancelled", "interrupted"].contains(status), "run",
+      ["complete", "needs_review", "failed", "cancelled", "interrupted"].contains(status), "run",
       "Invalid terminal state.")
     _ = try mutation(
       "agent_terminal", request: .object(["id": .string(id), "status": .string(status)])
@@ -35,7 +35,7 @@ extension Workbook {
   }
   public func agentRuns() throws -> [Value] {
     try synchronized {
-      try db.execute("SELECT * FROM agent_runs ORDER BY created DESC LIMIT 100").map(Value.object)
+      try db.execute("SELECT * FROM agent_runs ORDER BY rowid DESC LIMIT 100").map(Value.object)
     }
   }
 }

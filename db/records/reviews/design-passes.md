@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-25T03:27:49.843890+00:00
+updated: 2026-10-26T18:15:34.542311+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -66,8 +66,8 @@ The first model view task repeatedly omitted a chart dataset binding. Native typ
 tools replaced the initial JSON-in-text protocol and the view was created in a real
 run. That run then invented currency and used the wrong percentage denominator.
 A deterministic comparison tool and finish validation now address those specific
-failures. Another process currently owns Slotstream; the corrected model workflow
-still requires a successful repeat before qualification. These checks are not a
+failures. The corrected supplier comparison subsequently passed; its evidence is in
+[[records/operations/implementation]]. These checks are not a
 proof that arbitrary model statements are correct.
 
 A synthetic 4.3 GB archive round trip initially peaked above 8 GB resident memory.
@@ -105,3 +105,22 @@ Contents/Resources, require the Fast pack's explicit tokenizer class, and test
 packaged resources independently of the build tree. Do not claim generic upstream
 tokenizer fallback support. CI's dbmd download extracts into a versioned directory;
 its validation command now uses that actual path.
+
+## October 26 direction and integration review
+
+Owner changes Workbook to primary and Websites to secondary. Replace only the
+inference integration, preserving workbook semantics and UI/CLI data boundaries.
+Retain Splash's C++/Metal engine; replace needed Python-layer behavior in Swift.
+Use its existing native helper first. A static library is feasible but not a
+stable Swift SDK, and direct linking adds ownership and crash coupling.
+
+The adapter cannot discard tokenization, model layout checks, stop/tool parsing
+or grammar masks merely because the engine generates tokens. Map each surface
+and test it against the pinned upstream. Publish no automatic size/speed benefit.
+Hardware floor changes to M3+/26.4+ for Splash; old support claims must follow.
+
+New table creation preserves estimate/plan meaning after acceptance. User requests
+become Source inputs for proposals without contaminating ordinary evidence search.
+Validated proposals terminate a turn as needs_review; the app supplies its receipt
+instead of requiring another model sentence after a successful tool. Real-model
+requalification of that last change remains pending.

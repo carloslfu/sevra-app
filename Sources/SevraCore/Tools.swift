@@ -7,9 +7,16 @@ public func encoded<T: Encodable>(_ value: T) throws -> Value {
 public struct WorkbookTools {
   public let workbook: Workbook
   public let runID: String
-  public init(_ workbook: Workbook, runID: String = identifier()) {
+  public let cancellation: Cancellation
+  public let requestSourceID: String?
+  public init(
+    _ workbook: Workbook, runID: String = identifier(), cancellation: Cancellation = .init(),
+    requestSourceID: String? = nil
+  ) {
     self.workbook = workbook
     self.runID = runID
+    self.cancellation = cancellation
+    self.requestSourceID = requestSourceID
   }
   public static let instructions = """
     Return one JSON object per turn, no markdown fences:
@@ -40,6 +47,9 @@ public struct WorkbookTools {
       }
       return v
     }
+    let inputs = Array(
+      Set(a["inputs"].array.compactMap(\.string) + (requestSourceID.map { [$0] } ?? []))
+    ).sorted()
     let token =
       runID + "-"
       + SHA256.hash(data: Data((tool + (try a.json())).utf8)).prefix(12).map {
@@ -51,7 +61,13 @@ public struct WorkbookTools {
         workbook.search(
           string("query"), kind: a["kind"].string, meaning: a["meaning"].string,
           offset: a["offset"].int ?? 0, cursor: a["cursor"].string, status: a["status"].string,
-          scenario: a["scenario"].string))
+          scenario: a["scenario"].string, cancellation: cancellation))
+    case "archive_members":
+      return try encoded(workbook.archiveMembers(string("id"), cancellation: cancellation))
+    case "include_archive_members":
+      return try encoded(
+        workbook.includeArchiveMembers(
+          string("id"), paths: a["paths"].array.compactMap(\.string), cancellation: cancellation))
     case "read":
       let item = try workbook.item(string("id"))
       var info = try encoded(item).object
@@ -79,6 +95,13 @@ public struct WorkbookTools {
             ])
           }),
       ])
+    case "propose_table":
+      let columns = try JSONDecoder().decode([Column].self, from: Data(a["columns"].json().utf8))
+      return try encoded(
+        workbook.proposeTable(
+          title: string("title"), columns: columns, rows: a["rows"].array.map(\.object),
+          meaning: a["meaning"].string ?? "plan", inputs: inputs,
+          token: token))
     case "propose_table_edit":
       let edits = try JSONDecoder().decode([RowEdit].self, from: Data(a["edits"].json().utf8))
       return try encoded(workbook.proposeTableEdit(string("datasetID"), edits: edits, token: token))
@@ -108,7 +131,7 @@ public struct WorkbookTools {
         title: string("title"), text: string("text"),
         data: a["data"] == .null ? .object([:]) : a["data"],
         meaning: a["meaning"].string ?? "estimate", status: "draft",
-        inputs: a["inputs"].array.compactMap(\.string),
+        inputs: inputs,
         transformation: "local-agent-v1; run=" + runID, token: token)
       return try encoded(item)
     case "propose_movement":

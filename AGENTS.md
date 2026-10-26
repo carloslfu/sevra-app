@@ -4,7 +4,11 @@ This is the open-source native local-AI workbook app, separate from Sevra's
 website service and Slotstream's app/engine. Read db/DB.md and
 [Start here](db/records/overview/start-here.md) before changing the project.
 
-Swift/SwiftUI/AppKit; shared Swift core and CLI; native Slotstream inference.
+Swift/SwiftUI/AppKit; shared Swift core and CLI. Adopt upstream Splash C++/Metal
+through a Python-free Swift adapter. The current Slotstream build is a preserved
+baseline until the [integration gates](db/records/specs/splash-integration.md) pass.
+Use the repo-owned [update-splash skill](skills/update-splash/SKILL.md) for engine
+upgrades. Keep the unchanged native engine separate from the Swift frontend.
 Every file asset is outside SQLite inside the workbook unless explicitly linked.
 Use deterministic calculations, immutable input versions, lineage, bounded
 retrieval, and truthful completion. No hidden hosted model or telemetry.

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-25T02:34:12.654922+00:00
+updated: 2026-10-26T18:15:34.450478+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -18,8 +18,11 @@ Token throughput is useful but cannot replace correctness or useful interaction.
 
 The product name is Sevra; Sevra Workbooks is a descriptive offer. This public
 repository is `sevra-app` because the separate website business already uses
-`sevra`. Website pricing/support does not apply to this app. Slotstream remains
-an independent engine and product; this app consumes its public library.
+`sevra`. Workbook is Sevra's primary product and homepage; a small Websites top-navigation link
+leads to the secondary service. Website pricing/support does not apply to this app.
+Slotstream remains independent. The existing build uses its public library; the
+adopted direction replaces it with a Swift integration of upstream Splash C++/Metal,
+with no Python runtime. See [[records/specs/splash-integration]].
 
 ## Reading order
 

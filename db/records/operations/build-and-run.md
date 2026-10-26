@@ -2,11 +2,16 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-25T02:59:23.380130+00:00
+updated: 2026-10-26T18:15:34.571178+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
 # Build and run
+
+The commands below describe the current Slotstream development baseline. The
+adopted Python-free Splash integration is being implemented under
+[[records/specs/splash-integration]]; do not claim these commands already use it.
+
 
 The development app targets Apple Silicon Macs. macOS 14 is the declared minimum;
 the current verified host is macOS 26.6.2, 48 GB unified memory, Swift 6.3.3.

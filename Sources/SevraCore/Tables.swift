@@ -145,28 +145,38 @@ extension Workbook {
         "rows": .string(try Self.rowDigest(rows)),
       ])
     ) {
-      try validateColumns(columns)
-      try db.execute(
-        "INSERT INTO datasets VALUES(?,?,?,?)",
-        [.string(id), .string(title), .string(columnsJSON), .string(sourceID)])
-      try db.execute(
-        "INSERT INTO column_versions VALUES(?,?,?,?)",
-        [.string(id), .number(1), .string(columnsJSON), .string(timestamp())])
-      for (n, values) in rows.enumerated() {
-        try validateValues(values, columns: columns)
-        let itemID = try insertItem(
-          category: "record", kind: "row", title: "\(title), row \(n+1)",
-          text: values.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.text)" }.joined(
-            separator: "\n"), data: .object(values), meaning: "actual", status: "accepted",
-          scenario: "actual", inputs: [sourceID], transformation: "csv-v1")
-        let row = try item(itemID)
-        try db.execute(
-          "INSERT INTO dataset_rows VALUES(?,?,?,?)",
-          [.string(id), .string(identifier()), .number(Double(n)), .string(row.logicalID)])
-      }
+      try insertDataset(
+        id: id, title: title, columns: columns, rows: rows, sourceID: sourceID, inputs: [sourceID],
+        meaning: "actual")
       return .string(id)
     }
     return try dataset(result.text)
+  }
+  func insertDataset(
+    id: String, title: String, columns: [Column], rows: [[String: Value]], sourceID: String,
+    inputs: [String], meaning: String
+  ) throws {
+    let columnsJSON = try encoded(columns).json()
+    try validateColumns(columns)
+    try db.execute(
+      "INSERT INTO datasets VALUES(?,?,?,?)",
+      [.string(id), .string(title), .string(columnsJSON), .string(sourceID)])
+    try db.execute(
+      "INSERT INTO column_versions VALUES(?,?,?,?)",
+      [.string(id), .number(1), .string(columnsJSON), .string(timestamp())])
+    for (n, values) in rows.enumerated() {
+      try validateValues(values, columns: columns)
+      let itemID = try insertItem(
+        category: "record", kind: "row", title: "\(title), row \(n+1)",
+        text: values.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.text)" }.joined(
+          separator: "\n"), data: .object(values), meaning: meaning, status: "accepted",
+        scenario: meaning == "actual" ? "actual" : "planning", inputs: inputs,
+        transformation: "table-intake-v1")
+      let row = try item(itemID)
+      try db.execute(
+        "INSERT INTO dataset_rows VALUES(?,?,?,?)",
+        [.string(id), .string(identifier()), .number(Double(n)), .string(row.logicalID)])
+    }
   }
   public func dataset(_ id: String) throws -> Dataset {
     try synchronized {
@@ -184,7 +194,9 @@ extension Workbook {
   }
   public func datasets() throws -> [Dataset] {
     try synchronized {
-      try db.execute("SELECT id FROM datasets ORDER BY title LIMIT 500").map {
+      try db.execute(
+        "SELECT id FROM datasets WHERE NOT EXISTS(SELECT 1 FROM meta WHERE key='archived-dataset:'||datasets.id AND value='1') ORDER BY title LIMIT 500"
+      ).map {
         try dataset($0["id"]!.text)
       }
     }
@@ -402,6 +414,17 @@ extension Workbook {
       }
       let old = try item(prior)
       var restoredData = old.data
+      if current.kind == "table-creation", let datasetID = current.data["datasetID"].string {
+        try db.execute(
+          "INSERT INTO meta VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+          [
+            .string("archived-dataset:" + datasetID),
+            .string(current.status == "accepted" ? "1" : "0"),
+          ])
+        var values = old.data.object
+        values["datasetID"] = .string(datasetID)
+        restoredData = .object(values)
+      }
       if current.kind == "table-change", let change = current.data["tableChangeID"].string {
         guard
           let row = try db.execute("SELECT * FROM table_changes WHERE id=?", [.string(change)])

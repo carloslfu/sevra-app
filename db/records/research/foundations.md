@@ -3,7 +3,7 @@ type: research
 meta-type: conclusion
 id: 01m5rbxzbx5q4atmjp4471w04d
 created: 2026-10-25T01:48:47.357164+00:00
-updated: 2026-10-25T02:59:23.416227+00:00
+updated: 2026-10-26T18:15:34.528007+00:00
 summary: Primary sources for SQLite retrieval/durability, native readers, on-device voice and current Slotstream integration.
 title: Foundation research
 ---
@@ -51,3 +51,28 @@ Apple documents [VNRequest.cancel()](https://developer.apple.com/documentation/v
 as cancellation before a request completes. Sevra monitors cancellation and its
 processing deadline during Vision OCR. Other parser deadlines are cooperative at
 bounded stages; an in-process PDFKit call is not a hard process-isolation boundary.
+
+## Splash integration review, October 26
+
+[Splash 1.4.1](https://github.com/incoai/splash/releases/tag/1.4.1) at
+`1744cfafee415fb463b289449cec59a864e768e9` is the initial reviewed candidate.
+The [Makefile](https://github.com/incoai/splash/blob/1.4.1/Makefile) builds
+`libsplash.a` and a native engine. Its [entry point](https://github.com/incoai/splash/blob/1.4.1/runtime/main.mm)
+offers `serve-native` through pipes; [protocol v11](https://github.com/incoai/splash/blob/1.4.1/runtime/engine/Protocol.hpp)
+carries token IDs, requests, cancellation, masks and terminal results.
+The [Python frontend](https://github.com/incoai/splash/blob/1.4.1/server/frontend.py)
+and [constraints](https://github.com/incoai/splash/blob/1.4.1/server/constraints.py)
+show that tokenization/templates, output parsing and grammar masks need equivalents.
+The [local installer](https://github.com/incoai/splash/blob/1.4.1/install/local.py)
+documents that prepared layout is private to a release. Pin and compare it.
+
+[Swift C++ interoperability](https://www.swift.org/documentation/cxx-interop/)
+supports a bridge, but an existing native helper initially minimizes lifecycle
+changes. This is an engineering choice, not measured superiority. The native
+core uses custom Metal; a model's MLX file format does not require MLX execution.
+
+Apple file transcription checks both on-device recognition support and
+requiresOnDeviceRecognition. The development implementation limits inputs to
+60 seconds and publishes timestamped chunks only after final success.
+[Capability](https://developer.apple.com/documentation/speech/sfspeechrecognizer/supportsondevicerecognition),
+[request](https://developer.apple.com/documentation/speech/sfspeechrecognitionrequest/requiresondevicerecognition).

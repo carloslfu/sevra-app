@@ -3,6 +3,7 @@ import AppKit
 import Foundation
 import SevraAI
 import SevraCore
+import Speech
 import SwiftUI
 
 @MainActor final class WorkspaceState: ObservableObject {
@@ -122,12 +123,16 @@ import SwiftUI
     if panel.runModal() == .OK { importFiles(panel.urls, linked: linked) }
   }
   func importFiles(_ urls: [URL], linked: Bool = false) {
+    let chat = conversation
     run(linked ? "Linking files" : "Including files") { book, cancel in
       var failures: [String] = []
       for url in urls {
         try cancel.check()
         do {
           let item = try book.importFile(url, linked: linked, cancellation: cancel)
+          _ = try book.addMessage(
+            (linked ? "Linked " : "Included ") + item.referenceMarkdown, role: "event",
+            conversation: chat)
           try book.extract(item.id, cancellation: cancel)
           if ["csv", "tsv"].contains(url.pathExtension.lowercased()) {
             _ = try book.importCSV(item.id, cancellation: cancel)
@@ -169,6 +174,9 @@ import SwiftUI
       Task {
         do {
           let source = try await book.captureURL(target, cancellation: cancel)
+          _ = try book.addMessage(
+            (source.assetID == nil ? "Saved reference: " : "Captured ") + source.referenceMarkdown,
+            role: "event", conversation: conversation)
           navigate(.item(source.id))
         } catch { self.error = error.localizedDescription }
         busy = false
@@ -178,6 +186,7 @@ import SwiftUI
       return
     }
     if localCommand(input, book: book) {
+      _ = try? book.addMessage(input, role: "user", conversation: conversation)
       refresh()
       return
     }
@@ -261,13 +270,15 @@ import SwiftUI
         return true
       }
       if ["accept this", "accept that"].contains(lower), case .item(let id) = route {
-        let accepted = try book.accept(id)
-        navigate(.item(accepted.id))
+        review(id, accepting: true)
         return true
       }
       if ["undo this", "undo that"].contains(lower), case .item(let id) = route {
-        let undone = try book.undoItem(id)
-        navigate(.item(undone.id))
+        review(id, accepting: false)
+        return true
+      }
+      if lower == "transcribe this", case .item(let id) = route {
+        transcribe(id)
         return true
       }
       if lower == "include this", case .item(let id) = route {
@@ -302,6 +313,50 @@ import SwiftUI
       return true
     }
     return false
+  }
+  func review(_ id: String, accepting: Bool) {
+    guard let book = workbook, !busy else { return }
+    busy = true
+    status = accepting ? "Accepting changes" : "Undoing changes"
+    let chat = conversation
+    Task {
+      do {
+        let record = try await Task.detached {
+          accepting ? try book.accept(id) : try book.undoItem(id)
+        }.value
+        _ = try book.addMessage(
+          (accepting ? "Accepted " : "Undid the last change to ") + record.referenceMarkdown,
+          role: "event", conversation: chat)
+        refresh()
+        navigate(.item(record.id))
+      } catch { self.error = error.localizedDescription }
+      busy = false
+      status = ""
+    }
+  }
+  func transcribe(_ id: String) {
+    guard let book = workbook, !busy else { return }
+    busy = true
+    status = "Preparing on-device transcription"
+    cancellation = Cancellation()
+    let cancel = cancellation
+    speech.stop()
+    MediaPlayback.shared.player?.pause()
+    SFSpeechRecognizer.requestAuthorization { authorization in
+      Task { @MainActor in
+        do {
+          try require(
+            authorization == .authorized, "speech_permission",
+            "Speech recognition permission was not granted. The original remains available.")
+          try cancel.check()
+          self.status = "Transcribing on this Mac"
+          try await book.transcribe(id, cancellation: cancel)
+          self.refresh()
+        } catch { self.error = error.localizedDescription }
+        self.busy = false
+        self.status = ""
+      }
+    }
   }
   func stop() {
     cancellation.cancel()

@@ -86,6 +86,14 @@ extension Workbook {
   @discardableResult public func accept(_ id: String, token: String = identifier()) throws -> Item {
     let result = try mutation("accept", token: token, request: .string(id)) {
       let old = try item(id)
+      try require(
+        try db.scalar("SELECT item_id FROM heads WHERE logical_id=?", [.string(old.logicalID)]).text
+          == id, "stale_revision",
+        "This record has a newer version. Review the current version before accepting.")
+      try require(
+        old.status != "rejected", "rejected",
+        "This interpretation was withdrawn. Undo that withdrawal or create a revised proposal before accepting."
+      )
       if old.status == "accepted" { return .string(old.id) }
       let evidence = try insertItem(
         category: "source", kind: "decision", title: "Accept \(old.title)",
@@ -93,6 +101,18 @@ extension Workbook {
         meaning: "actual", status: "accepted", scenario: "actual", inputs: [],
         transformation: "human-accept-v1")
       var acceptedData = old.data
+      if old.kind == "table-creation" {
+        let columns = try JSONDecoder().decode(
+          [Column].self, from: Data(old.data["columns"].json().utf8))
+        let datasetID = identifier()
+        try insertDataset(
+          id: datasetID, title: old.data["title"].text, columns: columns,
+          rows: old.data["rows"].array.map(\.object), sourceID: evidence,
+          inputs: [old.id, evidence], meaning: old.meaning)
+        var values = old.data.object
+        values["datasetID"] = .string(datasetID)
+        acceptedData = .object(values)
+      }
       if old.kind == "table-change" {
         let edits = try JSONDecoder().decode(
           [RowEdit].self, from: Data(old.data["edits"].json().utf8))

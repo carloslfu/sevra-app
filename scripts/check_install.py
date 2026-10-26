@@ -17,6 +17,7 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
         assert value["ok"],value
         return value["result"]
     assert command("version")["version"]=="0.1.0-dev"
+    assert command("check-resources","--paths-only")["tokenizerResources"]
     workbook=folder/"Owned.sevra"
     command("demo",workbook)
     assert command("balance",workbook,"brass bolts")["quantity"]=="18"

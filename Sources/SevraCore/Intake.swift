@@ -78,7 +78,7 @@ extension Workbook {
   public func pendingExtractions() throws -> [Value] {
     try synchronized {
       try db.execute(
-        "SELECT e.*,i.title FROM extraction e JOIN items i ON i.id=e.item_id JOIN heads h ON h.item_id=i.id WHERE e.state IN ('queued','running','failed','cancelled') ORDER BY e.updated LIMIT 500"
+        "SELECT e.*,i.title,i.asset_id FROM extraction e JOIN items i ON i.id=e.item_id JOIN heads h ON h.item_id=i.id WHERE e.state IN ('queued','running','failed','cancelled') ORDER BY e.updated LIMIT 500"
       ).map(Value.object)
     }
   }

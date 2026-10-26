@@ -45,3 +45,27 @@ extension Workbook {
       token: token)
   }
 }
+
+extension Workbook {
+  public func proposeTable(
+    title: String, columns: [Column], rows: [[String: Value]], meaning: String = "plan",
+    inputs: [String], token: String = identifier()
+  ) throws -> Item {
+    try require(
+      !title.isEmpty && columns.count <= 40 && rows.count <= 100, "table_proposal_limit",
+      "Propose at most 40 columns and 100 rows per review.")
+    try validateColumns(columns)
+    for row in rows { try validateValues(row, columns: columns) }
+    let preview =
+      columns.map(\.title).joined(separator: " · ") + "\n\n"
+      + rows.map { row in columns.map { row[$0.id]?.text ?? "Unknown" }.joined(separator: " · ") }
+      .joined(separator: "\n")
+    return try addItem(
+      category: "record", kind: "table-creation", title: "Review table: " + title, text: preview,
+      data: .object([
+        "title": .string(title), "columns": try encoded(columns),
+        "rows": .array(rows.map(Value.object)),
+      ]), meaning: meaning, status: "draft", inputs: inputs, transformation: "proposed-table-v1",
+      token: token)
+  }
+}
