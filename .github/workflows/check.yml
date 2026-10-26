@@ -19,7 +19,7 @@ jobs:
         run: |
           swift build --product sevra-splash-checks -j 3
           .build/debug/sevra-splash-checks
-      - name: Check pinned native prompt tokens
+      - name: Check pinned native prompts and streamed outputs
         run: |
           swift build --product sevra-splash-text-checks -j 3
           python3 scripts/check_splash_text.py

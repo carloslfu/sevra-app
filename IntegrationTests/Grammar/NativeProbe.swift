@@ -71,16 +71,53 @@ func runNativeGrammar(
     request.generationTokens = prompt.generationTokens
     request.tokenMask = true
     request.maxOutput = 256
+    let outputStream = try SplashOutputStream(
+      frontend: frontend,
+      tools: id == 3
+        ? [
+          SplashOutputTool(
+            name: "find_evidence", parameters: ["query": ["string"], "limit": ["integer"]])
+        ] : [],
+      structured: id != 3)
+    var deltas: [SplashOutputDelta] = []
     let result = try helper.generate(
       request, cancelled: { id == 4 },
       mask: { committed, simulation, words in
         maskCalls += 1
         return try grammar.masks(committed: committed, simulation: simulation, words: words)
+      },
+      event: { event in
+        if case .tokens(_, _, let tokens) = event {
+          deltas += try outputStream.append(tokens: tokens)
+        }
       })
     let cancelled = result.done.reason == .cancelled
     guard cancelled == (id == 4) else { throw SplashError("Native cancellation state differs") }
     try grammar.finish(committed: result.tokens, requireComplete: !cancelled)
     let output = frontend.decode(result.tokens, skipSpecialTokens: true)
+    let (parsedOutput, tail) = try outputStream.finish(result.done.reason)
+    deltas += tail
+    let displayed = deltas.compactMap {
+      if case .text(let text) = $0 { return text }
+      return nil
+    }.joined()
+    guard displayed.utf8.elementsEqual(parsedOutput.text.utf8) else {
+      throw SplashError("Streamed display differs from completed native output")
+    }
+    if id == 3 {
+      guard parsedOutput.calls.count == 1, parsedOutput.calls[0].name == "find_evidence",
+        let values = try JSONSerialization.jsonObject(with: parsedOutput.calls[0].arguments)
+          as? [String: Any],
+        values["query"] as? String == "invoice 1042", values["limit"] as? Int == 4,
+        parsedOutput.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      else {
+        throw SplashError("Native tool output was not projected correctly")
+      }
+    } else {
+      guard parsedOutput.calls.isEmpty, parsedOutput.text.utf8.elementsEqual(output.utf8) else {
+        throw SplashError("Native text output did not stream correctly")
+      }
+    }
     if !cancelled && id != 3 {
       guard let parsed = try JSONSerialization.jsonObject(with: Data(output.utf8)) as? [String: Any]
       else {
@@ -103,6 +140,10 @@ func runNativeGrammar(
       "finish": result.done.reason.rawValue, "seconds": result.requestSeconds,
       "firstTokenSeconds": result.firstTokenSeconds as Any? ?? NSNull(),
       "decodeMicros": result.done.decodeMicros, "prefillMicros": result.done.prefillMicros,
+      "projectedText": parsedOutput.text,
+      "projectedCalls": try parsedOutput.calls.map {
+        ["name": $0.name, "arguments": try JSONSerialization.jsonObject(with: $0.arguments)]
+      }, "streamedDeltas": deltas.count,
     ]
     print(
       String(

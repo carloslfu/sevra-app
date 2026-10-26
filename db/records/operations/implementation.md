@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-26T19:54:03.499390+00:00
+updated: 2026-10-26T20:15:58.642241+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -217,8 +217,9 @@ window and appearance qualification.
 
 - Implement native resumable downloads and setup integration; local preparation
   and its selected-model reference comparison now pass.
-- Finish streaming output/tool parsing and native tool-grammar construction.
-  Exact prompt/vocabulary/mask fixtures now pass, as does native constrained generation.
+- Implement native tool-schema validation/grammar construction and wire the
+  workbook agent. Prompt, streaming output, tool projection and native grammar
+  fixtures now pass; complete tool dispatch remains unqualified.
 - Expand real-model tests to complete text/tool workflows, resource failures and
   restoration after release. Preserve the current baseline during qualification.
 - Qualify with identical requests, failure/recovery cases and matched performance.
@@ -243,7 +244,8 @@ scripts/check_splash_text.py obtains only the three pinned tokenizer files for
 CI, verifies their hashes and runs the Swift fixtures. Clean download and the
 complete local scripts/check.sh pass. scripts/generate_splash_text_fixtures.py
 rebuilds the reference in an isolated Python development environment. Streaming
-decoding and complete native-model/tool workflows remain to be qualified.
+decoding was still pending at this checkpoint; the later streaming checkpoint
+below supersedes that gap. Complete workbook-agent workflows remain unqualified.
 The prior public checkpoint 1e8d47a passed its complete GitHub Actions workflow.
 
 ## Observer identity checkpoint, October 26
@@ -297,3 +299,44 @@ install/update/uninstall and actual Metal/resource checks with source-tree reads
 denied also pass. Both reference generators reproduce their fixtures without
 changes and verify the selected source/tokenizer identities first. The repo-owned
 upgrade skill validates, and dbmd/link checks report no findings.
+
+## Native streamed output checkpoint, October 26
+
+SplashTextStream incrementally decodes the exact selected byte vocabulary without
+redecoding the whole answer on each token. Its immutable offsets/vocabulary are
+shared across requests. Eighty pinned-reference fixtures match every text delta,
+final flush and stop match, including raw/random byte sequences, split Unicode,
+literal replacement characters, special/padded tokens and overlapping stops.
+The reference decoder's trailing replacement-character behavior is preserved.
+
+SplashOutputParser separates reasoning, text and complete Qwen XML calls. Thirty-one
+upstream projections match text, reasoning and typed argument values across 3,216
+chunk layouts. These include multiple calls, structured JSON containing tags,
+embedded tag strings in parameters, Unicode, union types and framing whitespace.
+The differential checks caught two implementation errors: ordinary byte 0xff was
+mistaken for a grammar sentinel, and closing-tag whitespace trimming removed a
+newline from the next call at certain chunk boundaries. Both are fixed.
+
+Sevra intentionally refuses unknown/duplicate/malformed calls instead of repairing
+them. Every truncation/cancellation boundary in the test call returns no candidates;
+limits, parser/decoder reuse, invalid tokens, stop cuts and oversized integers are
+also refused. The integrated SplashOutputStream returns only terminal candidates;
+full schema/authority validation remains the workbook agent's responsibility.
+See I15 in [[records/specs/splash-integration]] for bounds and deliberate differences.
+
+The real native probe now passes the same five synthetic requests through Swift
+stream decoding and output projection: JSON, Unicode JSON, find_evidence with the
+exact query and integer limit, cancellation and successful retry. No Python runs
+in this generation path. The previous 12 GiB engine budget and exact pins remain;
+this is correctness evidence, not a matched speed result or full agent acceptance.
+The sanitized receipt is integration/evidence/2026-10-26-native-output.json.
+The full scripts/check.sh suite and default reference regeneration pass; the
+preceding grammar checkpoint a6b65e5 passed its complete GitHub Actions workflow,
+including the release app/CLI build and installation checks. This output checkpoint
+does not replace full release UI and fresh-install acceptance.
+
+Remaining frontend work: construct native grammars from the workbook's actual tool
+schemas, validate full arguments, connect dispatch/history and qualify complete
+workbook jobs. Native resumable download/setup, packaging/adoption, matched speed
+comparisons and the documented product release gates remain open. The production
+app still uses the preserved Slotstream baseline.

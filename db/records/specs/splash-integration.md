@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-26T19:52:47.669223+00:00
+updated: 2026-10-26T20:12:56.505476+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
 ---
 # Native Splash integration and upgrades
 
-Revision 2, October 26, 2026. Owner-approved direction; integration not yet qualified.
+Revision 3, October 26, 2026. Owner-approved direction; integration not yet qualified.
 Authority: [[sources/notes/2026/10/workbook-primary-splash-direction]].
 The existing Slotstream build is a preserved baseline, not the future architecture.
 
@@ -90,6 +90,36 @@ packaging, all transitive license notices, signed-library identity and productio
 app wiring remain part of I12's adoption gate. Current app installation does not
 need Rust or the candidate library. A direct C ABI does not imply that arbitrary
 upstream Python tool/schema semantics have already been ported.
+
+## Streaming output and tool candidates
+
+I15. Decode committed tokens incrementally using the selected ByteLevel vocabulary.
+Match the pinned reference's special-token rules, incomplete UTF-8 behavior and
+stop sequences. Grammar-special markers are not necessarily tokenizer-special
+markers; an ordinary 0xff byte is not a grammar sentinel. Preserve exact Unicode
+bytes and avoid full-response redecoding on every token. Share the immutable
+vocabulary across requests and bound output to 2 MiB.
+
+Separate reasoning from visible text and parse Qwen's XML tool framing across
+arbitrary chunk boundaries. Structured JSON keeps marker strings as data. Keep
+string parameters verbatim and project typed values according to their declared
+types. The initial workbook projection supports app-owned ASCII names, explicit
+parameter types and no undeclared parameters. It is not an implementation of
+all upstream schema composition, arbitrary tool metadata or API protocols.
+
+Only a verified successful native terminal can return tool candidates. Cancellation,
+truncation, errors and caller stop sequences authorize no calls, including calls
+that closed before the interruption. Refuse unfinished framing, unknown names and
+duplicate parameters instead of applying upstream's permissive repair. Cap calls
+at 16, each argument object/parameter at 256 KiB and JSON nesting at 32. Integer
+tool inputs must fit Int64; exact decimals and larger identifiers use strings.
+Reject lossy integer conversion before Foundation JSON parsing.
+
+A projected candidate is not yet a validated or authorized action. Validate the
+complete schema, required fields, semantic limits, evidence references and workbook
+permissions before dispatch. The existing proposal/review/accept contracts remain
+in force. Native tool-grammar construction and the workbook agent adapter must
+complete this gate before production adoption.
 
 ## Verification and performance
 

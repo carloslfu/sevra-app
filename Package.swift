@@ -46,7 +46,7 @@ let package = Package(
       resources: [.copy("Resources/template-patch.json")], swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraSplashTextChecks", dependencies: ["SevraSplashText", "SevraSplash"],
-      path: "IntegrationTests/Text", resources: [.copy("fixtures.json")],
+      path: "IntegrationTests/Text", resources: [.copy("fixtures.json"), .copy("output-fixtures.json")],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraCore", dependencies: ["CSQLite", "ZIPFoundation"],

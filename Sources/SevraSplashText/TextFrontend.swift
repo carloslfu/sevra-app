@@ -23,9 +23,11 @@ public final class SplashTextFrontend {
   private let lock = NSLock()
   private var addedGrammarTokens: [UInt32: [UInt8]] = [:]
   private var grammarVocabularyCache: ByteVocabulary?
+  private var outputSpecialTokens: Set<UInt32> = []
   public struct ByteVocabulary {
     public let lengths: [UInt32]
     public let bytes: [UInt8]
+    let offsets: [Int]
   }
   public static let vocabularySize: UInt32 = 248320
   public static let stopTokens: [UInt32] = [248044, 248046]
@@ -101,6 +103,7 @@ public final class SplashTextFrontend {
         entry.special.boolean(or: false)
         || (content.hasPrefix("<") && content.hasSuffix(">"))
       addedGrammarTokens[UInt32(id)] = (special ? [0xff] : []) + Array(content.utf8)
+      if entry.special.boolean(or: false) { outputSpecialTokens.insert(UInt32(id)) }
     }
     for (text, id) in [
       "<|endoftext|>": 248044, "<|im_end|>": 248046,
@@ -200,6 +203,15 @@ public final class SplashTextFrontend {
     defer { lock.unlock() }
     return tokenizer.encode(text: text, addSpecialTokens: false).map(UInt32.init)
   }
+  /// A decoder owns only per-request buffers; its immutable vocabulary shares
+  /// storage with the grammar frontend. Grammar-special markers still display
+  /// unless the selected tokenizer itself marks them special.
+  public func makeDecoder(stopSequences: [String] = []) throws -> SplashTextStream {
+    let vocabulary = try grammarVocabulary()
+    return try SplashTextStream(
+      vocabulary: vocabulary, special: outputSpecialTokens,
+      added: Set(addedGrammarTokens.keys), stopSequences: stopSequences)
+  }
   /// Matches the pinned LLGuidance HF byte vocabulary, including padded special
   /// tokens. Ordinary token keys remain byte distinct in the maintained loader.
   public func grammarVocabulary() throws -> ByteVocabulary {
@@ -218,7 +230,9 @@ public final class SplashTextFrontend {
     }
     var lengths: [UInt32] = []
     var bytes: [UInt8] = []
+    var offsets = [0]
     lengths.reserveCapacity(Int(Self.vocabularySize))
+    offsets.reserveCapacity(Int(Self.vocabularySize) + 1)
     for id in 0..<Self.vocabularySize {
       let value: [UInt8]
       if let added = addedGrammarTokens[id] {
@@ -230,11 +244,13 @@ public final class SplashTextFrontend {
         }
       } else {
         value = [0xff] + Array("<[\(id)]>".utf8)
+        outputSpecialTokens.insert(id)
       }
       lengths.append(UInt32(value.count))
       bytes += value
+      offsets.append(bytes.count)
     }
-    let vocabulary = ByteVocabulary(lengths: lengths, bytes: bytes)
+    let vocabulary = ByteVocabulary(lengths: lengths, bytes: bytes, offsets: offsets)
     grammarVocabularyCache = vocabulary
     return vocabulary
   }

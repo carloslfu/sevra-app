@@ -55,3 +55,9 @@ Record native grammar C ABI, pinned contributor build, exact vocabulary/mask par
 ## [2026-10-26 19:54] verification | records/operations/implementation.md
 Exact grammar parity, real native constrained generation/cancellation/release, full check suite, reference regeneration, packaging/install/resource isolation and skill validation passed. Performance and production adoption remain open.
 
+## [2026-10-26 20:15] implementation | records/specs/splash-integration.md
+Added bounded native streaming decoder, Qwen reasoning/tool projection and terminal-gated candidates; documented deliberate malformed-output refusals and remaining schema/dispatch gates.
+
+## [2026-10-26 20:15] verification | records/operations/implementation.md
+Full check.sh passes: 46 core checks, 20 transport/setup groups, 14 prompt cases, 80 exact decode streams, 31 projections across 3216 chunk layouts, all 248320 vocabulary entries and 105 masks. Real native five-request streaming/tool/cancel/retry probe passed with healthy release; receipt integration/evidence/2026-10-26-native-output.json. Reference output generator reproduced unchanged.
+

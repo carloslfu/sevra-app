@@ -35,6 +35,12 @@ both EOS tokens and complete speculative masks, not only parsed JSON. The C and
 Python binding defaults have differed; a matching library version alone does not
 prove behavioral parity. Preserve native build and transitive-license gates.
 
+For output changes, regenerate the pinned streaming/projection fixtures. Compare
+every decoded delta, UTF-8 bytes, special/padded-token behavior, stop cuts and all
+marker split points. Preserve Sevra's explicit refusal of incomplete/duplicate or
+unknown calls; permissive reference parsing must not grant workbook authority.
+Require successful native completion and full schema validation before dispatch.
+
 Implement affected Swift behavior in small steps. Test protocol bytes against
 the pinned upstream goldens, then exact prompt token IDs and parsed results.
 Reference Python may run in an isolated evaluation environment. A Python-created
