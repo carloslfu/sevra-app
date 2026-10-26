@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-25T01:48:47.299215+00:00
+updated: 2026-10-26T21:43:43.448716+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -98,3 +98,14 @@ S16. Recovery checks SQLite integrity/foreign keys, missing bytes, orphan stagin
 invalid lineage and stale indexes. Rebuild derived indexes from authoritative rows.
 Report external dependencies accurately. No silent destructive repair. A workbook
 on a network drive/sync folder is not supported for concurrent multi-host editing.
+
+## Conversation continuity
+
+S17. Preserve original conversation and complete executed tool receipts. Store
+versioned derived context checkpoints with exact covered history, hashes, model
+and transform identity, evidence references and workbook snapshot revision.
+Publish atomically; preserve the prior checkpoint on failure. Checkpoints travel
+with the workbook, while their indexes remain rebuildable. Reconstruct acceptance,
+meaning and completed operations from authoritative state, never from a summary.
+See C06–C11 in [[records/specs/conversation-context]]. Migration, retention and
+recovery checks are required before this planned storage change ships.

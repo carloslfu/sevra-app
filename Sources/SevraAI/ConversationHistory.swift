@@ -16,10 +16,19 @@ extension WorkbookAgent {
           proposalID = result["status"].text == "draft" ? result["id"].string : nil
           continue
         }
+        let ended =
+          message.role == "assistant"
+          && ["cancelled", "failed", "interrupted"].contains(message.state)
         guard ["user", "assistant"].contains(message.role),
-          ["complete", "needs_review"].contains(message.state)
+          ["complete", "needs_review"].contains(message.state) || ended
         else { continue }
         var content = String(message.body.prefix(1600))
+        if ended {
+          content =
+            "The previous request ended with status " + message.state
+            + ". It is not pending. Do not resume it unless the user asks. Any completed changes remain saved. Diagnostic: "
+            + content
+        }
         if message.state == "needs_review", let id = proposalID {
           let original = try workbook.item(id)
           let current = try workbook.item(original.logicalID)

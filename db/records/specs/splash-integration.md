@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-26T21:12:54.138494+00:00
+updated: 2026-10-26T21:43:43.467309+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -176,8 +176,9 @@ verified helper. Normal idle release remains two minutes.
 Constrain the native finish tool's citation array to exact Source/Record versions
 inspected during this request. With no inspected evidence, its maximum length is
 zero. Space and table IDs, earlier-turn citations and invented UUIDs cannot pass
-this field merely because they look valid. Keep the existing host validator too;
-a schema-valid reference does not prove that the cited text supports a claim.
+this field merely because they look valid. Balance results admit their exact opening-basis and accepted effect versions to
+this inspected set, just as deterministic row comparisons admit their inputs.
+Keep the existing host validator too; a schema-valid reference does not prove that the cited text supports a claim.
 The candidate bounds this enum to 256 references and the same context budget;
 larger retrieval histories need further context/retrieval qualification.
 
@@ -185,12 +186,13 @@ Use all actual workbook tools with a required single-call grammar. Only a comple
 successful, grammar-checked and schema-validated terminal reaches the agent.
 Check cancellation again before dispatch. Preserve existing evidence, calculations,
 proposal review, citations and persisted run state. The selected candidate uses
-an 8,192-token context and an output allowance of at most 1,800 tokens, reduced
+an 8,192-token development context and an output allowance of at most 1,800 tokens, reduced
 to the remaining context capacity. Refuse when fewer than 256 output tokens remain;
 a length-limited response cannot execute a tool. Longer-job context management
-and its wider workload qualification remain open.
+and its wider workload qualification remain open under [[records/specs/conversation-context]].
 
-Conversation history includes needs-review receipts. When its saved structured
+Conversation history includes needs-review receipts and explicit cancelled, failed
+and interrupted outcomes. Closed requests are not pending instructions to resume. When its saved structured
 tool result is available, resolve the proposal's current version through the
 workbook's head and include its actual acceptance status, meaning and dataset ID.
 Do not infer acceptance from assistant prose. Preserve the original receipt and
@@ -256,9 +258,11 @@ verified upstream prebuilt kernels/runtime are allowed where tools are unavailab
 3. Implement/test native framing and lifecycle with upstream protocol goldens.
 4. Implement selected-model preparation, tokenization and streaming equivalence.
 5. Integrate agent tools and native constraints; exercise failures and recovery.
-6. Run matched model/workbook comparisons; fix regressions before adoption.
-7. Remove Slotstream/MLX product dependencies, package, test a clean install and UI.
-8. Publish honest measured support/limits and an explicitly qualified release.
+6. Add proactive context maintenance and durable checkpoints; qualify complete
+   32K and practical 64K workloads under C01–C13, then select measured defaults.
+7. Run matched model/workbook comparisons; fix regressions before adoption.
+8. Remove Slotstream/MLX product dependencies, package, test a clean install and UI.
+9. Publish honest measured support/limits and an explicitly qualified release.
 
 Record each checkpoint in [[records/operations/implementation]] and the append-only
-log. This plan does not remove existing product acceptance journeys J01–J09.
+log. This plan does not remove existing product acceptance journeys J01–J10.

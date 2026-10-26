@@ -12,10 +12,15 @@ private actor ScriptedInference: WorkbookInference {
   let cancelAfterResponse: Bool
   let fail: Bool
   let searchesOnly: Bool
-  init(cancelAfterResponse: Bool = false, fail: Bool = false, searchesOnly: Bool = false) {
+  let balanceOnly: Bool
+  init(
+    cancelAfterResponse: Bool = false, fail: Bool = false, searchesOnly: Bool = false,
+    balanceOnly: Bool = false
+  ) {
     self.cancelAfterResponse = cancelAfterResponse
     self.fail = fail
     self.searchesOnly = searchesOnly
+    self.balanceOnly = balanceOnly
   }
   func beginRun() throws { begins += 1 }
   func endRun() { ends += 1 }
@@ -26,6 +31,31 @@ private actor ScriptedInference: WorkbookInference {
     responses += 1
     if fail { throw SevraError("fixture_failure", "Synthetic failure") }
     if cancelAfterResponse { cancellation.cancel() }
+    if balanceOnly {
+      if responses == 1 {
+        return NativeReply(
+          text: "",
+          calls: [
+            InferenceCall(
+              id: "balance-call", name: "balance",
+              inputJSON: "{\"subject\":\"brass bolts\"}")
+          ])
+      }
+      try expectEqual(responses, 2)
+      let balance = try Value.parse(messages.last!.content)
+      let ids = [balance["basis"].text] + balance["effects"].array.map { $0["item_id"].text }
+      try expectEqual(ids.allSatisfy { citationIDs.contains($0) && !$0.isEmpty }, true)
+      return NativeReply(
+        text: "",
+        calls: [
+          InferenceCall(
+            id: "balance-finish", name: "finish",
+            inputJSON: try Value.object([
+              "answer": .string("The current stock is 18 brass bolts."),
+              "citations": .array(ids.map(Value.string)),
+            ]).json())
+        ])
+    }
     if searchesOnly {
       try expectEqual(responses <= 3, true)
       return NativeReply(
@@ -75,6 +105,12 @@ func checkAgentLifecycle() async throws {
     try expectEqual(assistant.count, 1)
     try expectEqual(assistant[0].state, expected)
     if cancel { try expectEqual(assistant[0].body.contains("No changes requested"), false) }
+    if cancel || fail {
+      let history = try WorkbookAgent.conversationHistory(book, conversation: "main")
+      try expectEqual(history.count, 2)
+      try expectEqual(history.last!.content.contains("status " + expected), true)
+      try expectEqual(history.last!.content.contains("It is not pending"), true)
+    }
   }
 
   // The preserved backend must retain JSON types and exact Int64 values in
@@ -142,6 +178,17 @@ func checkAgentLifecycle() async throws {
       result.answer.contains(incomplete ? "1 incomplete source" : "no incomplete sources"), true)
     try expectEqual(result.answer.contains("missing evidence 3"), true)
   }
+  let inventoryPath = root.appendingPathComponent("Inventory.sevra")
+  _ = try Demo.create(at: inventoryPath)
+  let inventory = try Workbook(inventoryPath)
+  let balanceModel = ScriptedInference(balanceOnly: true)
+  let balanceAnswer = try await WorkbookAgent.run(
+    "What is the brass bolt stock? Cite the basis and movements.",
+    workbook: inventory, model: balanceModel)
+  try expectEqual(balanceAnswer.state, "complete")
+  try expectEqual(balanceAnswer.steps, 2)
+  try expectEqual(balanceAnswer.citations.count, 2)
+  try expectEqual(await balanceModel.ends, 1)
   print(
     "PASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit"
   )

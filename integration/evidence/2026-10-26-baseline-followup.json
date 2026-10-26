@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "kind": "retained-baseline-followup",
+  "baseline": "Slotstream Fast 7578fb21e57ec362d19f5050922e0f583914935d",
+  "outcomes": [
+    {
+      "scenario": "combined-before-followup",
+      "outcomes": [
+        {
+          "check": "comparison_and_native_space",
+          "passed": true,
+          "seconds": 47.039638374999996,
+          "steps": 10
+        },
+        {
+          "check": "untrusted_document",
+          "passed": true,
+          "seconds": 29.031271708000006
+        },
+        {
+          "error": {
+            "code": "model_format",
+            "message": "The model did not produce one valid tool call. No action from this response was applied."
+          },
+          "ok": false,
+          "schemaVersion": 1
+        }
+      ]
+    },
+    {
+      "scenario": "isolated-missing",
+      "outcomes": [
+        {
+          "check": "no_match_and_incomplete_coverage",
+          "passed": true,
+          "seconds": 18.720168208999997,
+          "steps": 3
+        }
+      ]
+    },
+    {
+      "scenario": "review-before-followup",
+      "outcomes": [
+        {
+          "check": "propose_and_accept_table",
+          "passed": true,
+          "seconds": 18.401682083
+        },
+        {
+          "check": "propose_accept_undo_cells",
+          "passed": true,
+          "seconds": 25.283523624999997
+        },
+        {
+          "check": "cancel_persist_and_verify",
+          "passed": true
+        },
+        {
+          "error": {
+            "code": "answer_validation",
+            "message": "The model could not produce an answer consistent with inspected evidence and calculations."
+          },
+          "ok": false,
+          "schemaVersion": 1
+        }
+      ]
+    },
+    {
+      "scenario": "recovery-after-balance-only",
+      "outcomes": [
+        {
+          "check": "cancel_persist_and_verify",
+          "passed": true
+        },
+        {
+          "error": {
+            "code": "step_limit",
+            "message": "The exploration reached its step limit. Completed changes are saved; narrow the question to continue."
+          },
+          "ok": false,
+          "schemaVersion": 1
+        }
+      ]
+    },
+    {
+      "scenario": "recovery-after-closed-history",
+      "outcomes": [
+        {
+          "check": "cancel_persist_and_verify",
+          "passed": true
+        },
+        {
+          "check": "cancel_persist_and_restart",
+          "passed": true,
+          "recoverySeconds": 24.297435542
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Synthetic developer checks, not a full release qualification",
+    "Different inference memory budgets and paths: do not compare these timings to the native candidate",
+    "Combined-conversation model_format failure remains unresolved; no matched pre-change comparison established its cause"
+  ],
+  "currentImplementationSHA256": {
+    "Sources/SevraAI/WorkbookAgent.swift": "e0403c68babebeaeef5f98a5f174a65e678234362cf595b0ed862296c7ebb852",
+    "Sources/SevraAI/ConversationHistory.swift": "9bc4871d317d645ff1e8903982043a2294e090c89ca5d1215feb97fa8b8123cb",
+    "scripts/check_model.py": "824049b643d544a27e3c5786575aea07aef16c489719725274760ad5f22fb3de"
+  }
+}

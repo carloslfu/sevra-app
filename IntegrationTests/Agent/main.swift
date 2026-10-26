@@ -195,10 +195,13 @@ do {
   print(
     "PASS actual workbook schemas, open row/record data, full argument validation and schema refusals"
   )
-  if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--autonomous" {
+  if CommandLine.arguments.count == 6
+    && ["--autonomous", "--inventory"].contains(CommandLine.arguments[1])
+  {
     try await runNativeAgentProbe(
       modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
-      engine: CommandLine.arguments[4], modelsRoot: CommandLine.arguments[5])
+      engine: CommandLine.arguments[4], modelsRoot: CommandLine.arguments[5],
+      inventoryOnly: CommandLine.arguments[1] == "--inventory")
   } else if [3, 5].contains(CommandLine.arguments.count) {
     let frontend = try SplashTextFrontend(
       modelFolder: URL(fileURLWithPath: CommandLine.arguments[1]))
@@ -215,7 +218,7 @@ do {
     }
   } else if CommandLine.arguments.count != 1 {
     throw SplashError(
-      "Usage: sevra-agent-checks [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT"
+      "Usage: sevra-agent-checks [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT"
     )
   }
 } catch {

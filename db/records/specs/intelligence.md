@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-26T18:15:34.485386+00:00
+updated: 2026-10-26T21:43:43.416470+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -54,3 +54,10 @@ separate from live dictation and must label supported limits.
 A10. A small decision model is a research opportunity, not a hidden v1 dependency.
 No unverified model marketed as a Jev replacement. Versioned deterministic scenario
 calculations and explicit assumptions provide the initial decision support.
+
+A11. Preserve one continuing conversation with proactive automatic compaction,
+exact token budgeting and recoverable context checkpoints. Retain all original
+history and reconstruct action/acceptance status from workbook state. Qualify
+32K first and 64K where practical rather than treating the current 8K candidate
+setting as the product default. Detailed contract and gates C01–C13 are in
+[[records/specs/conversation-context]]; implementation remains open.

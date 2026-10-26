@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
+  "llguidanceCommit": "dbaf504d498b6aeede06ae57adc6f7c2c4848c59",
+  "nativeGrammarLibrary": "c98dfddb2d92d4f2573f0f7bc432eeadfe857e683e942225b211d339e7184571",
+  "target": {
+    "repository": "mlx-community/Qwen3.6-35B-A3B-4bit",
+    "revision": "38740b847e4cb78f352aba30aa41c76e08e6eb46"
+  },
+  "draft": {
+    "repository": "incoai/Qwen3.6-35B-A3B-DFlash2",
+    "revision": "51ef7b6923ad6c14cb1bb41c37a9041446496ab6"
+  },
+  "host": {
+    "chip": "Apple M5 Pro",
+    "physicalMemoryBytes": 51539607552,
+    "macOS": "26.6.2",
+    "swift": "6.3.3"
+  },
+  "configuration": {
+    "contextTokens": 8192,
+    "engineMemoryBudgetBytes": 12884901888,
+    "temperature": 0,
+    "seed": 42,
+    "verifyRows": "all",
+    "persistentCache": false,
+    "maxOutputTokens": 1800,
+    "minimumOutputAllowance": 256,
+    "toolChoice": "required, all actual tools",
+    "citationPolicy": "current inspected Source/Record versions only",
+    "runtimePython": false
+  },
+  "kind": "native-inventory-citation-regression",
+  "baseCommit": "d35fb51b64cef4924e0b0a33c58204c7e82e2085",
+  "results": [
+    {
+      "answer": "The current stock of brass bolts is 18.\n\nThis is calculated from:\n- Opening basis: 20 brass bolts on 1 January 2026 (source: Workshop inventory note, accepted).\n- One accepted inventory movement: -2 brass bolts on 2 January 2026 (delivery-1042).\n\n20 - 2 = 18 brass bolts remaining.\n\n[Workshop inventory](sevra://item/b6984b46-7b96-47e0-ae86-2e5be11131f3) [brass bolts: -2](sevra://item/fc5b132b-5e80-4471-a280-5cd46ed4c51b)",
+      "citations": [
+        "b6984b46-7b96-47e0-ae86-2e5be11131f3",
+        "fc5b132b-5e80-4471-a280-5cd46ed4c51b"
+      ],
+      "prompt": "What is the current stock of brass bolts? Use the balance and cite the opening basis and accepted movements. Make no changes.",
+      "state": "complete",
+      "steps": 4
+    },
+    {
+      "runs": [
+        {
+          "conversation_id": "main",
+          "created": "2026-10-26T21:25:34Z",
+          "id": "3aab60e4-ae01-4d5b-8fda-b8e867581474",
+          "metrics": [
+            {
+              "acceptedDraftTokens": 19,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 0.527557,
+              "draftedTokens": 56,
+              "firstTokenSeconds": 2.223971541505307,
+              "generatedTokens": 28,
+              "outputBudget": 1800,
+              "prefillSeconds": 2.223779,
+              "promptTokens": 4574,
+              "requestSeconds": 2.7515687914565206,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 40,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 1.007502,
+              "draftedTokens": 112,
+              "firstTokenSeconds": 2.9385472503490746,
+              "generatedTokens": 57,
+              "outputBudget": 1800,
+              "prefillSeconds": 2.938386,
+              "promptTokens": 4890,
+              "requestSeconds": 3.946079125162214,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 45,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 0.587868,
+              "draftedTokens": 63,
+              "firstTokenSeconds": 0.8528766250237823,
+              "generatedTokens": 55,
+              "outputBudget": 1800,
+              "prefillSeconds": 0.835326,
+              "promptTokens": 5165,
+              "requestSeconds": 1.4407615414820611,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 151,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 2.82231,
+              "draftedTokens": 287,
+              "firstTokenSeconds": 1.0445823334157467,
+              "generatedTokens": 193,
+              "outputBudget": 1800,
+              "prefillSeconds": 1.027258,
+              "promptTokens": 5508,
+              "requestSeconds": 3.866905541624874,
+              "speculativeMethod": "DFlash2"
+            }
+          ],
+          "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+          "status": "complete",
+          "steps": 4,
+          "updated": "2026-10-26T21:25:52Z"
+        }
+      ],
+      "workbook": "Inventory.sevra"
+    }
+  ],
+  "passed": true,
+  "checks": [
+    "Balance basis and accepted effect versions become inspected evidence",
+    "Deterministic actor fixture finishes with both references without an extra read",
+    "Real native model returns stock 18 with exactly the opening/effect references",
+    "Inventory state is unchanged"
+  ],
+  "limits": [
+    "One synthetic native inventory workflow; not a full baseline or UI qualification",
+    "Long unconstrained Slotstream conversations still have retained format/answer-validation failures"
+  ],
+  "implementationSHA256": {
+    "Sources/SevraAI/WorkbookAgent.swift": "e0403c68babebeaeef5f98a5f174a65e678234362cf595b0ed862296c7ebb852",
+    "IntegrationTests/Agent/AgentLifecycleChecks.swift": "6c94281aa3fdc7bfa01b94c4fa4956c006dc9c39791f0f0f49f0ea0b4763c945",
+    "IntegrationTests/Agent/NativeAgentProbe.swift": "46957fd806a926d33609410b0ff25e89379471d3511821e65a05318754707892",
+    "IntegrationTests/Agent/main.swift": "f9c435856e41f8ce24e2a11e960c4df76ebfe5685440a1aefa7b18faf8e419e5"
+  }
+}

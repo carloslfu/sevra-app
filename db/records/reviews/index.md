@@ -2,7 +2,7 @@
 type: index
 scope: type-folder
 folder: records/reviews
-updated: 2026-10-26T18:15:34.542311Z
+updated: 2026-10-26T21:43:43.504157Z
 ---
 
 # records/reviews

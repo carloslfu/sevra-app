@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-26T18:15:34.542311+00:00
+updated: 2026-10-26T21:43:43.504157+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -124,3 +124,22 @@ become Source inputs for proposals without contaminating ordinary evidence searc
 Validated proposals terminate a turn as needs_review; the app supplies its receipt
 instead of requiring another model sentence after a successful tool. Real-model
 requalification of that last change remains pending.
+
+## Conversation continuity review, October 26
+
+Three passes informed [[records/specs/conversation-context]]:
+
+1. User-job pass: last-eight-message trimming can forget a decision even if a
+   larger window exists. Adopt proactive compaction plus recoverable original
+   history and retrieval. Keep one conversation and no context-size controls.
+2. Integrity pass: a summary can falsely resume a cancelled request, claim a draft
+   was accepted, or repeat a completed movement. Separate model-written digest
+   from host-reconstructed current status and operation identities. Preserve exact
+   source references, atomic checkpoints and all original receipts. Never treat
+   a digest as permission or as a newly inspected business source.
+3. Resource/recovery pass: larger allocations can slow input processing or exceed
+   practical memory. Qualify 32K and practical 64K using occupied contexts and full
+   jobs, including compaction time. Test repeated maintenance, interruption and
+   tangents, not just startup or an isolated summary. Keep 8K as a development
+   reference until a larger profile is measured. These are reviewed requirements;
+   automatic compaction has not yet been implemented.

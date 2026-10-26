@@ -230,6 +230,13 @@ public enum WorkbookAgent {
             computed = true
             if let n = try? Numbers.decimal(result["result"].text) { percentages.append(n) }
           }
+          if tool == "balance" {
+            computed = true
+            if let basis = result["basis"].string { inspected.insert(basis) }
+            for effect in result["effects"].array {
+              if let id = effect["item_id"].string { inspected.insert(id) }
+            }
+          }
           if tool == "compare_rows" {
             computed = true
             for id in result["inputs"].array.compactMap(\.string) { inspected.insert(id) }

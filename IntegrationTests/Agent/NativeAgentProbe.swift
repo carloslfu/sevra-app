@@ -6,7 +6,10 @@ import SevraSplash
 
 /// Opt-in, actual WorkbookAgent. The model chooses freely among the complete
 /// maintained tool set; no test supplies the next tool, arguments or answer.
-func runNativeAgentProbe(modelFolder: String, library: String, engine: String, modelsRoot: String)
+func runNativeAgentProbe(
+  modelFolder: String, library: String, engine: String, modelsRoot: String,
+  inventoryOnly: Bool = false
+)
   async throws
 {
   let pin = try Value.parse(String(contentsOfFile: "integration/splash.json", encoding: .utf8))
@@ -53,6 +56,28 @@ func runNativeAgentProbe(modelFolder: String, library: String, engine: String, m
     return result
   }
   do {
+    if inventoryOnly {
+      let path = root.appendingPathComponent("Inventory.sevra")
+      _ = try Demo.create(at: path)
+      let book = try Workbook(path)
+      let balance = try book.balance(subject: "brass bolts")
+      let expected = Set(
+        [balance["basis"].text] + balance["effects"].array.map { $0["item_id"].text })
+      let result = try await run(
+        "What is the current stock of brass bolts? Use the balance and cite the opening basis and accepted movements. Make no changes.",
+        book)
+      try expectEqual(result.state, "complete")
+      try expectEqual(result.answer.contains("18"), true)
+      try expectEqual(Set(result.citations), expected)
+      try expectEqual(try book.balance(subject: "brass bolts"), balance)
+      print(
+        try Value.object([
+          "workbook": .string("Inventory.sevra"), "runs": .array(try book.agentRuns()),
+        ]).json())
+      try expectEqual(await model.unload(), true)
+      print("PASS native inventory answer with exact opening/effect citations and unchanged state")
+      return
+    }
     let book = try Workbook.create(
       at: root.appendingPathComponent("Suppliers.sevra"), title: "Synthetic suppliers")
     let proposal = try await run(

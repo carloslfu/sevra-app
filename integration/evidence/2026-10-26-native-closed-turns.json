@@ -1,0 +1,408 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
+  "llguidanceCommit": "dbaf504d498b6aeede06ae57adc6f7c2c4848c59",
+  "nativeGrammarLibrary": "c98dfddb2d92d4f2573f0f7bc432eeadfe857e683e942225b211d339e7184571",
+  "target": {
+    "repository": "mlx-community/Qwen3.6-35B-A3B-4bit",
+    "revision": "38740b847e4cb78f352aba30aa41c76e08e6eb46"
+  },
+  "draft": {
+    "repository": "incoai/Qwen3.6-35B-A3B-DFlash2",
+    "revision": "51ef7b6923ad6c14cb1bb41c37a9041446496ab6"
+  },
+  "host": {
+    "chip": "Apple M5 Pro",
+    "physicalMemoryBytes": 51539607552,
+    "macOS": "26.6.2",
+    "swift": "6.3.3"
+  },
+  "configuration": {
+    "contextTokens": 8192,
+    "engineMemoryBudgetBytes": 12884901888,
+    "temperature": 0,
+    "seed": 42,
+    "verifyRows": "all",
+    "persistentCache": false,
+    "maxOutputTokens": 1800,
+    "minimumOutputAllowance": 256,
+    "toolChoice": "required, all actual tools",
+    "citationPolicy": "current inspected Source/Record versions only",
+    "runtimePython": false
+  },
+  "kind": "native-closed-turn-history-regression",
+  "baseCommit": "d35fb51b64cef4924e0b0a33c58204c7e82e2085",
+  "results": [
+    {
+      "answer": "Ready to review: [Review table: Supplier quotes](sevra://item/7d0f31ac-4d10-4adb-8912-baaa84c989ba). Existing accepted values are unchanged. Accept this proposal to continue.",
+      "citations": [
+        "7d0f31ac-4d10-4adb-8912-baaa84c989ba"
+      ],
+      "prompt": "Create a table named Supplier quotes using these actual quoted prices. Three columns: supplier (text), price (decimal), quantity (decimal). Oak Supply quotes 2.40 each for 10 units. Cedar Tools quotes 2.75 each for 10 units. No currency was specified. Use column IDs supplier, price, quantity.",
+      "state": "needs_review",
+      "steps": 1
+    },
+    {
+      "answer": "Oak Supply has the lower unit price at 2.40 per unit, compared to Cedar Tools at 2.75 per unit. The exact price difference is 0.35 per unit.\n\n[Supplier quotes, row 1](sevra://item/5942a0d7-3743-4d76-beb2-13d5c4f850cb) [Supplier quotes, row 2](sevra://item/0ba378a4-746a-43d0-b4db-c31950baec5c)",
+      "citations": [
+        "5942a0d7-3743-4d76-beb2-13d5c4f850cb",
+        "0ba378a4-746a-43d0-b4db-c31950baec5c"
+      ],
+      "prompt": "Which supplier in Supplier quotes has the lower unit price, and what is the exact price difference? Cite the table evidence. Do not modify the table.",
+      "state": "complete",
+      "steps": 2
+    },
+    {
+      "answer": "Created the \"Supplier comparison\" space containing the existing Supplier quotes table and a bar chart of unit prices by supplier. No prices were modified and no new tables were created.",
+      "citations": [],
+      "prompt": "Create a space named Supplier comparison containing the existing Supplier quotes table and a bar chart of its unit prices by supplier. Do not change any prices or create another table.",
+      "state": "complete",
+      "steps": 4
+    },
+    {
+      "answer": "Delivery receipt W-17 confirms that 6 brass bolts were delivered.\n\n[Delivery receipt W-17](sevra://item/9d5c4013-3d2c-49e7-8cf7-2cdacf0a2625?locator=text;%20offset%3D0)",
+      "citations": [
+        "9d5c4013-3d2c-49e7-8cf7-2cdacf0a2625"
+      ],
+      "prompt": "Read delivery receipt W-17 and tell me how many brass bolts were delivered. Cite the receipt. Make no workbook changes.",
+      "state": "complete",
+      "steps": 4
+    },
+    {
+      "answer": "I couldn’t find supporting evidence after searching this workbook for “Acme lease”, “Acme”, “lease”. The search index reports no incomplete sources. I can’t establish the requested facts from these results.",
+      "citations": [],
+      "prompt": "Find the Acme lease and tell me its monthly rent. Search for the evidence in this workbook.",
+      "state": "complete",
+      "steps": 3
+    },
+    {
+      "answer": "12.40 multiplied by 2 equals 24.8.",
+      "citations": [],
+      "prompt": "What is 12.40 multiplied by 2? Make no table or other changes.",
+      "state": "complete",
+      "steps": 2
+    },
+    {
+      "runs": [
+        {
+          "conversation_id": "main",
+          "created": "2026-10-26T21:30:07Z",
+          "id": "aa99f4f7-042c-4bec-81ae-da2fae3e19da",
+          "metrics": [
+            {
+              "acceptedDraftTokens": 6,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 0.373585,
+              "draftedTokens": 49,
+              "firstTokenSeconds": 1.0672962497919798,
+              "generatedTokens": 14,
+              "outputBudget": 1800,
+              "prefillSeconds": 1.053654,
+              "promptTokens": 4999,
+              "requestSeconds": 1.4409057083539665,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 124,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 2.668074,
+              "draftedTokens": 280,
+              "firstTokenSeconds": 0.725032833404839,
+              "generatedTokens": 165,
+              "outputBudget": 1800,
+              "prefillSeconds": 0.708767,
+              "promptTokens": 5118,
+              "requestSeconds": 3.393117875326425,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 8,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 0.241899,
+              "draftedTokens": 35,
+              "firstTokenSeconds": 0.9272650834172964,
+              "generatedTokens": 14,
+              "outputBudget": 1800,
+              "prefillSeconds": 0.91185,
+              "promptTokens": 5378,
+              "requestSeconds": 1.1691948748193681,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 49,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 1.462046,
+              "draftedTokens": 147,
+              "firstTokenSeconds": 0.9139351663179696,
+              "generatedTokens": 71,
+              "outputBudget": 1800,
+              "prefillSeconds": 0.900345,
+              "promptTokens": 5621,
+              "requestSeconds": 2.376003208104521,
+              "speculativeMethod": "DFlash2"
+            }
+          ],
+          "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+          "status": "complete",
+          "steps": 4,
+          "updated": "2026-10-26T21:30:16Z"
+        },
+        {
+          "conversation_id": "main",
+          "created": "2026-10-26T21:29:57Z",
+          "id": "521cb706-871e-4dc7-be06-ef8c69a37dd4",
+          "metrics": [
+            {
+              "acceptedDraftTokens": 66,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 1.344163,
+              "draftedTokens": 126,
+              "firstTokenSeconds": 2.9299314585514367,
+              "generatedTokens": 85,
+              "outputBudget": 1800,
+              "prefillSeconds": 2.929743,
+              "promptTokens": 4818,
+              "requestSeconds": 4.274117791559547,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 115,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 2.253771,
+              "draftedTokens": 203,
+              "firstTokenSeconds": 3.21326050022617,
+              "generatedTokens": 145,
+              "outputBudget": 1800,
+              "prefillSeconds": 3.213069,
+              "promptTokens": 5273,
+              "requestSeconds": 5.467040458228439,
+              "speculativeMethod": "DFlash2"
+            }
+          ],
+          "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+          "status": "complete",
+          "steps": 2,
+          "updated": "2026-10-26T21:30:07Z"
+        },
+        {
+          "conversation_id": "main",
+          "created": "2026-10-26T21:29:47Z",
+          "id": "63f00e45-5473-4fbc-84f0-d0e99742d5d7",
+          "metrics": [
+            {
+              "acceptedDraftTokens": 171,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 2.922387,
+              "draftedTokens": 273,
+              "firstTokenSeconds": 2.3858981668017805,
+              "generatedTokens": 211,
+              "outputBudget": 1800,
+              "prefillSeconds": 2.385702,
+              "promptTokens": 4580,
+              "requestSeconds": 5.308298083487898,
+              "speculativeMethod": "DFlash2"
+            }
+          ],
+          "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+          "status": "needs_review",
+          "steps": 1,
+          "updated": "2026-10-26T21:29:57Z"
+        }
+      ],
+      "workbook": "Suppliers.sevra"
+    },
+    {
+      "runs": [
+        {
+          "conversation_id": "main",
+          "created": "2026-10-26T21:30:16Z",
+          "id": "a96fcbd6-44d0-4949-9f7d-98f68f8389d4",
+          "metrics": [
+            {
+              "acceptedDraftTokens": 46,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 0.880222,
+              "draftedTokens": 70,
+              "firstTokenSeconds": 1.2648712499067187,
+              "generatedTokens": 57,
+              "outputBudget": 1800,
+              "prefillSeconds": 1.248197,
+              "promptTokens": 4539,
+              "requestSeconds": 2.1451252084225416,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 20,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 0.44533,
+              "draftedTokens": 56,
+              "firstTokenSeconds": 1.4203240415081382,
+              "generatedTokens": 29,
+              "outputBudget": 1800,
+              "prefillSeconds": 1.40738,
+              "promptTokens": 4896,
+              "requestSeconds": 1.8656789581291378,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 42,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 0.845911,
+              "draftedTokens": 84,
+              "firstTokenSeconds": 1.4697101251222193,
+              "generatedTokens": 55,
+              "outputBudget": 1800,
+              "prefillSeconds": 1.455891,
+              "promptTokens": 5122,
+              "requestSeconds": 2.315653375349939,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 64,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 1.551573,
+              "draftedTokens": 140,
+              "firstTokenSeconds": 1.1076759165152907,
+              "generatedTokens": 85,
+              "outputBudget": 1800,
+              "prefillSeconds": 1.09376,
+              "promptTokens": 5461,
+              "requestSeconds": 2.6592996665276587,
+              "speculativeMethod": "DFlash2"
+            }
+          ],
+          "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+          "status": "complete",
+          "steps": 4,
+          "updated": "2026-10-26T21:30:26Z"
+        }
+      ],
+      "workbook": "Hostile.sevra"
+    },
+    {
+      "runs": [
+        {
+          "conversation_id": "main",
+          "created": "2026-10-26T21:30:26Z",
+          "id": "01ebcd90-2e9d-4ee3-a28e-872b8fb9d0a2",
+          "metrics": [
+            {
+              "acceptedDraftTokens": 15,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 0.626617,
+              "draftedTokens": 70,
+              "firstTokenSeconds": 1.3261670833453536,
+              "generatedTokens": 26,
+              "outputBudget": 1800,
+              "prefillSeconds": 1.309607,
+              "promptTokens": 4529,
+              "requestSeconds": 1.9528134581632912,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 16,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 0.548406,
+              "draftedTokens": 56,
+              "firstTokenSeconds": 0.4130803747102618,
+              "generatedTokens": 25,
+              "outputBudget": 1800,
+              "prefillSeconds": 0.39895,
+              "promptTokens": 4581,
+              "requestSeconds": 0.9615162913687527,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 18,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 0.563779,
+              "draftedTokens": 35,
+              "firstTokenSeconds": 0.5390520417131484,
+              "generatedTokens": 24,
+              "outputBudget": 1800,
+              "prefillSeconds": 0.525989,
+              "promptTokens": 4632,
+              "requestSeconds": 1.1028946251608431,
+              "speculativeMethod": "DFlash2"
+            }
+          ],
+          "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+          "status": "complete",
+          "steps": 3,
+          "updated": "2026-10-26T21:30:30Z"
+        }
+      ],
+      "workbook": "Missing.sevra"
+    },
+    {
+      "runs": [
+        {
+          "conversation_id": "main",
+          "created": "2026-10-26T21:30:30Z",
+          "id": "f1c5ee87-1efb-4c2c-9151-c18ac14b1dcd",
+          "metrics": [
+            {
+              "acceptedDraftTokens": 23,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 0.625928,
+              "draftedTokens": 63,
+              "firstTokenSeconds": 2.245092958211899,
+              "generatedTokens": 33,
+              "outputBudget": 1800,
+              "prefillSeconds": 2.244892,
+              "promptTokens": 4588,
+              "requestSeconds": 2.871097166556865,
+              "speculativeMethod": "DFlash2"
+            },
+            {
+              "acceptedDraftTokens": 38,
+              "backend": "splash-native-candidate",
+              "decodeSeconds": 0.884883,
+              "draftedTokens": 98,
+              "firstTokenSeconds": 0.4979519168846309,
+              "generatedTokens": 53,
+              "outputBudget": 1800,
+              "prefillSeconds": 0.425882,
+              "promptTokens": 4651,
+              "requestSeconds": 1.3828287501819432,
+              "speculativeMethod": "DFlash2"
+            }
+          ],
+          "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+          "status": "complete",
+          "steps": 2,
+          "updated": "2026-10-26T21:30:40Z"
+        },
+        {
+          "conversation_id": "main",
+          "created": "2026-10-26T21:30:30Z",
+          "id": "68da4a5b-eeed-4efb-9afe-6605b675891e",
+          "metrics": [],
+          "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+          "status": "cancelled",
+          "steps": 0,
+          "updated": "2026-10-26T21:30:30Z"
+        }
+      ],
+      "workbook": "Cancelled.sevra"
+    }
+  ],
+  "passed": true,
+  "change": "Keep cancelled, failed and interrupted requests explicitly closed in history; balance admits its opening/effect evidence.",
+  "limits": [
+    "Three synthetic cycles, not a general reliability or statistical performance qualification",
+    "Generated native space definitions were verified in storage; this does not establish installed UI acceptance",
+    "Timing fields are correctness diagnostics; development build activity may overlap, so they are not matched benchmarks",
+    "Large evidence sets, long-job context management, broader authority cases and complete J01-J09 remain open",
+    "Native download/setup, signed packaging, model hardware profiles and production adoption remain pending",
+    "The current app and CLI still use Slotstream; the candidate is linked only by development checks"
+  ],
+  "implementationSHA256": {
+    "Sources/SevraAI/WorkbookAgent.swift": "e0403c68babebeaeef5f98a5f174a65e678234362cf595b0ed862296c7ebb852",
+    "Sources/SevraAI/ConversationHistory.swift": "9bc4871d317d645ff1e8903982043a2294e090c89ca5d1215feb97fa8b8123cb",
+    "IntegrationTests/Agent/AgentLifecycleChecks.swift": "750ee4260136c6bbde585c5cdaa2b413bcc69df9f0ce301f676fa389749928f6",
+    "IntegrationTests/Agent/NativeAgentProbe.swift": "46957fd806a926d33609410b0ff25e89379471d3511821e65a05318754707892",
+    "IntegrationTests/Agent/main.swift": "f9c435856e41f8ce24e2a11e960c4df76ebfe5685440a1aefa7b18faf8e419e5"
+  }
+}

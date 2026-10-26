@@ -79,3 +79,12 @@ Three native autonomous cycles passed 21 synthetic jobs after retained context/h
 ## [2026-10-26 21:24] verification | records/operations/implementation.md
 Retained real Slotstream failures: combined missing-evidence turn model_format; post-cancellation inventory answer_validation. Isolated missing coverage, table review/acceptance/undo, comparison/space, hostile document and cancellation persistence passed. Found missing admission of balance basis/effect versions into inspected evidence; qualification remains open.
 
+## [2026-10-26 21:34] implementation | records/operations/implementation.md
+Fix inventory balance evidence admission and preserve cancelled/failed/interrupted outcomes as closed conversation history. Add deterministic regressions and focused native inventory probe.
+
+## [2026-10-26 21:34] verification | records/operations/implementation.md
+Focused native inventory and full seven-job native probe passed. Packaged Slotstream cancellation and stock-answer recovery passed after closed-history fix. Release rebuild passed. Earlier combined-conversation model_format failure retained as unresolved; native adoption/full product acceptance still open.
+
+## [2026-10-26 21:43] design | records/specs/conversation-context.md
+Reviewed C01-C13, S17, P18 and J10: automatic context maintenance, preserved history and host-owned status. 32K and 64K remain proposed evaluation targets; implementation pending.
+

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-26T21:03:05.359890+00:00
+updated: 2026-10-26T21:28:22.823413+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -284,3 +284,9 @@ Its emitted metrics are correctness diagnostics, not a matched speed benchmark.
 The candidate validates runtime/Metal digests and selected model preparation before
 launch. Production packaging, resumable downloads and wider application acceptance
 remain open.
+
+For the focused inventory regression, replace --autonomous with --inventory in
+the same command. It checks that a computed stock answer cites exactly the opening
+basis and accepted movement versions and leaves inventory unchanged. The actor
+fixture also proves that those references are eligible immediately after balance,
+without requiring a redundant read of each version.

@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-26T19:32:57.591594+00:00
+updated: 2026-10-26T21:43:43.433714+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
 ---
 # Product and interaction
 
-Revision 2, October 26, 2026. Status refers to specification review, not delivery.
+Revision 3, October 26, 2026. Status refers to specification review, not delivery.
 Normative requirements use IDs so implementation and verification can map back.
 
 Sevra Workbook is the primary product and homepage. A small Websites link in the
@@ -66,6 +66,11 @@ P09. Text/voice can invoke all core workflows; native menu/toolbar controls offe
 convenient equivalents. Include progress and cancellation for inference, downloads,
 copying and indexing. Keyboard shortcuts must not conflict with text editing.
 
+P18. Maintain one continuing conversation through automatic context maintenance.
+Preserve original history and recover older details without manual token management
+or forced new chats. Show progress only when useful; retain cancellation, browsing
+and completed work. See [[records/specs/conversation-context]].
+
 ## Spaces and native components
 
 P10. Persist versioned declarative compositions: table, bar/line chart, metric,
@@ -105,3 +110,7 @@ J06 Edit/paste cells → recompute → undo → inspect versions → close and r
 J07 Export during concurrent CLI writes → open elsewhere → verify hashes/lineage.
 J08 Cancel import/model run → recover → restart → last valid document remains usable.
 J09 Fresh checkout → documented install → launch app/CLI → demo → uninstall safely.
+
+J10 Long multi-step conversation → repeated automatic compaction → recover earlier
+evidence and latest constraints → tangent/return → cancel/restart → correct pending
+status and unchanged accepted effects → portable export/reopen with full history.

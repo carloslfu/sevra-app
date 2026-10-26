@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-26T21:24:20.046785+00:00
+updated: 2026-10-26T21:43:43.519501+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -120,8 +120,8 @@ measurements. Runs overlapping inference are not performance qualification.
    paging/Back/facets, chapters/tangents, draft autosave, pinned/comparison views,
    locators, media, dictation, narrow windows, appearance and keyboard/VoiceOver.
    The Mac is accessible again; the interaction results below are verified.
-2. Model regression for the latest review receipts and proposal tools, context
-   overflow recovery, and measured whole-task latency across repeated runs.
+2. Model regression for the latest review receipts and proposal tools, automatic compaction and larger-context qualification under
+   [[records/specs/conversation-context]], context overflow recovery, and measured whole-task latency across repeated runs.
 3. Search scale/recall with many chunks per document; further broad-query optimization and cancellation during actual long-running searches.
 4. Remaining extraction crash/isolation tests and hardware qualification of file
    transcription and archive selection. These implementations now exist, but actual
@@ -447,3 +447,41 @@ workloads; current proposal-status presentation in the UI; full J01–J09, searc
 scale, accessibility, voice/media, clean installation and website deployment.
 The app and complete specification are not marked finished.
 Preserved-backend follow-up: the current Slotstream release binary passed comparison with a native space, hostile-document handling, isolated missing-evidence coverage, table proposal/acceptance, cell proposal/acceptance/undo, and cancellation persistence. The combined conversation failed the missing-evidence turn with model_format; cancellation recovery later failed answer_validation. These are retained failures, not a clean end-to-end baseline pass. The inventory trace exposed a concrete shared-agent gap: balance results return a basis and effect versions, but those versions are not yet admitted to the current inspected-evidence set. Fix and qualify that path next. Opaque IDs in generated prose and longer unconstrained conversations also remain under review. Keep the installed earlier baseline intact; this checkpoint is not a release.
+## Inventory evidence follow-up, October 26
+
+The shared agent now admits balance results' exact opening-basis and accepted
+effect versions into inspected evidence and recognizes balance as deterministic
+calculation. It changes neither inventory effects nor acceptance rules. A scripted
+actor regression finishes with both citations in two steps without rereading them;
+the real native agent returns 18 bolts with exactly the opening/effect citations,
+while the stored balance remains byte-equivalent as a Value. The source-bound
+receipt is integration/evidence/2026-10-26-native-inventory.json, based on the
+published autonomous checkpoint d35fb51. The release app/CLI rebuild passes.
+This resolves the missing evidence-admission bug; it does not erase the retained
+unconstrained-model formatting failures or establish the full product acceptance.
+
+Recovery testing then exposed the matching history defect for cancelled/failed
+requests: their terminal assistant messages were omitted while their original user
+instructions remained. The model could resume a cancelled supplier analysis during
+a subsequent inventory question. History now includes those terminal outcomes and
+explicitly marks the old request closed. Unit checks cover cancellation and failure.
+The complete seven-job native probe passed again after this change, recorded in
+integration/evidence/2026-10-26-native-closed-turns.json. The rebuilt packaged
+Slotstream CLI also passed cancellation persistence and stock-answer recovery in
+three model steps. The earlier combined-conversation model_format failure remains
+retained and unresolved; this is not a claim of a completely clean model suite.
+The installed earlier app remains intact while native adoption and release work continue.
+
+## Continuing-conversation requirements, October 26
+
+Added C01–C13 in [[records/specs/conversation-context]], linked from product,
+intelligence, storage and Splash integration. A related design conversation relayed
+the owner's request for automatic compaction, preserved original history and larger
+working-context tests. Proposed evaluation order is 32K then practical 64K; neither
+is a verified capability or selected product default. The 8K native setting remains
+a development reference. A three-pass review covers continuity, action/state
+integrity and resource/recovery risks. J10 is a new required long-conversation
+acceptance journey. Implementation sequence is explicit: profile/budget metrics,
+durable checkpoints and history retrieval, tool-free compaction with host-owned
+continuation state, repeated real-model qualification, then app adoption. Automatic
+compaction and arbitrary older-history retrieval remain unimplemented.
