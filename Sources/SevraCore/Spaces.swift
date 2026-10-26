@@ -159,9 +159,13 @@ extension Workbook {
     return id
   }
   @discardableResult public func addMessage(
-    _ body: String, role: String, conversation: String = "main", state: String = "complete"
+    _ body: String, role: String, conversation: String = "main", state: String = "complete",
+    payload: Value = .null
   ) throws -> String {
     try require(body.utf8.count <= 128_000, "message_limit", "Message is too long.")
+    let metadata = payload == .null ? nil : try payload.json()
+    try require(
+      (metadata?.utf8.count ?? 0) <= 128_000, "message_limit", "Message receipt is too long.")
     let id = identifier()
     _ = try mutation("message", request: .string(id)) {
       try db.execute(
@@ -170,6 +174,10 @@ extension Workbook {
           .string(id), .string(conversation), .string(role), .string(body), .string(state),
           .string(timestamp()),
         ])
+      if let metadata {
+        try db.execute(
+          "INSERT INTO message_payloads VALUES(?,?)", [.string(id), .string(metadata)])
+      }
       return .string(id)
     }
     return id

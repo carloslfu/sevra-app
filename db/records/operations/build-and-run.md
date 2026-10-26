@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-26T21:48:32.927178+00:00
+updated: 2026-10-26T22:18:41.487830+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -317,3 +317,33 @@ This synthetic stress case is not a realistic long-conversation or repeated
 compaction qualification. Run --autonomous with the same environment setting to
 check all seven shorter jobs at that allocation. Memory remains 12 GiB; wider
 hardware/memory budgets require separate recorded qualification.
+
+## Conversation history and checkpoint storage
+
+Newly built app/CLI binaries use database schema 2. Opening a canonical schema-1
+workbook migrates its database transactionally and builds the history index.
+The package manifest remains version 1; older binaries refuse schema 2 on opening.
+Use matching app and CLI builds. The installed earlier baseline has not been
+replaced as part of this development checkpoint.
+
+~~~sh
+sevra history Workbook.sevra main
+sevra history Workbook.sevra main AFTER_MESSAGE_ID
+sevra history-search Workbook.sevra main 'supplier quote'
+sevra history-search Workbook.sevra main 'supplier quote' CURSOR
+sevra history-read Workbook.sevra main MESSAGE_ID
+sevra checkpoints Workbook.sevra main
+sevra checkpoint Workbook.sevra main CHECKPOINT_ID
+~~~
+
+History pages preserve whole messages and optional original receipts. Search is
+scoped to one conversation and returns newest matches with a revision-bound cursor.
+Checkpoint inspection projects current input acceptance and meaning from records;
+it does not trust the digest's wording. Checkpoint creation is currently a core
+API used in checks, not an automatic agent feature or a user-facing manual step.
+
+After scripts/build.sh, run python3 scripts/check_history.py. It uses only its own
+synthetic schema-1 fixture, pages 700 messages, reads an older exact message, tests
+search pagination and verifies a portable copy offline. Core checks additionally
+cover rollback/refusal, cancellation, stale checkpoint publication, chains, exact
+references, payload preservation and altered-history detection.

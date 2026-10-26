@@ -75,6 +75,7 @@ let package = Package(
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraChecks", dependencies: ["SevraCore"], path: "Tests",
+      resources: [.copy("Fixtures")],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraAgentChecks",

@@ -94,3 +94,9 @@ Added internal 8K/32K/64K profiles and exact rendered-token allowance/maintenanc
 ## [2026-10-26 21:56] verification | records/operations/implementation.md
 Occupied inventory jobs passed at 32K and 64K; all seven autonomous jobs passed at 32K. Retained the first envelope failure. Full check.sh, skill validation, zero-warning dbmd validation and links passed. No production adoption or default promotion.
 
+## [2026-10-26 22:28] implementation | records/specs/conversation-context.md
+Added schema-2 transactional migration, scoped history FTS/keyset reads, immutable payloads, exact request/run links and chained history-hashed checkpoints at completed turn or tool-result boundaries. Automatic compaction remains pending.
+
+## [2026-10-26 22:28] verification | records/operations/implementation.md
+54 core checks, full check.sh, release app/CLI, eight simultaneous legacy openers, 700-message CLI paging/search/export/reopen, isolated installation, 30 writers and seven autonomous native jobs passed. Retained receipt-size/crash-gap and compaction work.
+

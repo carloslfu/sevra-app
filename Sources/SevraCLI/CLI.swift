@@ -169,6 +169,25 @@ import SevraCore
       return .string(try book.saveSpace(title: arg(2), definition: definition))
     case "conversation":
       return try encoded(book.messages(conversation: args.count > 2 ? args[2] : "main"))
+    case "history":
+      return try encoded(
+        book.historySlice(
+          conversation: args.count > 2 ? args[2] : "main",
+          after: args.count > 3 ? args[3] : nil,
+          cancellation: cancellation))
+    case "history-search":
+      return try book.searchHistory(
+        arg(3), conversation: arg(2),
+        cursor: args.count > 4 ? args[4] : nil, cancellation: cancellation)
+    case "history-read":
+      return .object([
+        "message": try encoded(book.historyMessage(arg(3), conversation: arg(2))),
+        "payload": try book.messagePayload(arg(3), conversation: arg(2)),
+      ])
+    case "checkpoints":
+      return .array(try book.contextCheckpoints(conversation: args.count > 2 ? args[2] : "main"))
+    case "checkpoint":
+      return try book.contextCheckpoint(arg(3), conversation: arg(2))
     case "chapter":
       try book.chapter(title: arg(2), message: arg(3))
       return .bool(true)
@@ -214,6 +233,9 @@ import SevraCore
     column-history WORKBOOK TABLE_ID | intake-status WORKBOOK | resume-intake WORKBOOK SOURCE_ID
     runs WORKBOOK
     conversation WORKBOOK [CONVERSATION_ID] | chapter WORKBOOK TITLE MESSAGE_ID
+    history WORKBOOK [CONVERSATION_ID [AFTER_MESSAGE_ID]]
+    history-search WORKBOOK CONVERSATION_ID QUERY [CURSOR] | history-read WORKBOOK CONVERSATION_ID MESSAGE_ID
+    checkpoints WORKBOOK [CONVERSATION_ID] | checkpoint WORKBOOK CONVERSATION_ID CHECKPOINT_ID
     tangent WORKBOOK TITLE MESSAGE_ID | reindex WORKBOOK
     export WORKBOOK PATH.sevraz | open-archive PATH.sevraz DEST.sevra
     export-csv WORKBOOK TABLE_ID PATH.csv | tool WORKBOOK TOOL [ARGS_JSON]

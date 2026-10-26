@@ -210,6 +210,8 @@ extension Workbook {
       }
       try db.execute("INSERT INTO search_fts(search_fts,rank) VALUES('integrity-check',1)")
       try db.execute("INSERT INTO names_fts(names_fts,rank) VALUES('integrity-check',1)")
+      try db.execute("INSERT INTO message_fts(message_fts,rank) VALUES('integrity-check',1)")
+      try verifyContextCheckpoints()
       return .object([
         "database": .string("ok"), "assetIssues": .array(missing), "ok": .bool(missing.isEmpty),
       ])

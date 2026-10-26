@@ -1,0 +1,491 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "kind": "conversation-storage-and-migration",
+  "baseCommit": "3e61b62c7cdcff10eea7baf40c3676fe33ce879d",
+  "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
+  "databaseSchema": 2,
+  "packageFormat": 1,
+  "checks": {
+    "core": 54,
+    "fullCheckScript": true,
+    "releaseAppAndCLI": true,
+    "historyCLI": {
+      "migration": true,
+      "concurrentOpeners": 8,
+      "messagesPaged": 700,
+      "searchAndCursor": true,
+      "exactOlderMessage": true,
+      "offlineExportReopen": true,
+      "automaticCompaction": false
+    },
+    "isolatedInstall": {
+      "skillInstallAndConflict": true,
+      "installed": true,
+      "updated": true,
+      "standaloneCLI": true,
+      "uninstalled": true,
+      "workbookPreserved": true,
+      "unrelatedCLIProtected": true
+    },
+    "concurrentWriters": 30,
+    "skillValidator": true
+  },
+  "storageCases": [
+    "Canonical schema-1 migration preserves messages/chapters and rebuilds history FTS once",
+    "Future schemas and unexpected triggers refused without changing database bytes",
+    "Foreign-key failure rolls back the complete migration",
+    "Whole-message keyset paging, Unicode/NUL, payload round trips and conversation isolation",
+    "History FTS cursor scope, staleness, cancellation and rebuild",
+    "Checkpoint publication refuses incomplete boundaries, altered hashes, stale revisions, logical/missing version IDs and pre-cancelled requests",
+    "Checkpoint retries are idempotent and chains preserve originals",
+    "A misleading summary cannot accept a draft; current input state preserves accepted estimate meaning",
+    "Portable export/reopen preserves checkpoints, history and payloads; altered payloads invalidate checkpoints",
+    "Exact request/run linkage and complete recorded tool-group checkpoint boundaries, with the task still running"
+  ],
+  "nativeRegression": {
+    "counts": {
+      "complete": 5,
+      "needs_review": 1,
+      "cancelled": 1
+    },
+    "contextTokens": 8192,
+    "engineMemoryBudgetBytes": 12884901888,
+    "records": [
+      {
+        "answer": "Ready to review: [Review table: Supplier quotes](sevra://item/0e9eff86-b05e-4ce4-a956-4c5859b47e66). Existing accepted values are unchanged. Accept this proposal to continue.",
+        "citations": [
+          "0e9eff86-b05e-4ce4-a956-4c5859b47e66"
+        ],
+        "jobSeconds": 11.30649995803833,
+        "prompt": "Create a table named Supplier quotes using these actual quoted prices. Three columns: supplier (text), price (decimal), quantity (decimal). Oak Supply quotes 2.40 each for 10 units. Cedar Tools quotes 2.75 each for 10 units. No currency was specified. Use column IDs supplier, price, quantity.",
+        "state": "needs_review",
+        "steps": 1
+      },
+      {
+        "answer": "Oak Supply has the lower unit price at 2.40 per unit, compared to Cedar Tools at 2.75 per unit. The exact price difference is 0.35 per unit.\n\n[Supplier quotes, row 1](sevra://item/d403e4b0-8b96-4847-818a-a686766111d4) [Supplier quotes, row 2](sevra://item/8e8b8ec1-64c8-4fdd-83f5-788003dff0ec)",
+        "citations": [
+          "d403e4b0-8b96-4847-818a-a686766111d4",
+          "8e8b8ec1-64c8-4fdd-83f5-788003dff0ec"
+        ],
+        "jobSeconds": 10.779905080795288,
+        "prompt": "Which supplier in Supplier quotes has the lower unit price, and what is the exact price difference? Cite the table evidence. Do not modify the table.",
+        "state": "complete",
+        "steps": 2
+      },
+      {
+        "answer": "Created space \"Supplier comparison\" containing the existing Supplier quotes table and a bar chart of unit prices by supplier. No prices were modified and no new tables were created.",
+        "citations": [],
+        "jobSeconds": 8.348749995231628,
+        "prompt": "Create a space named Supplier comparison containing the existing Supplier quotes table and a bar chart of its unit prices by supplier. Do not change any prices or create another table.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "answer": "Delivery receipt W-17 confirms that 6 brass bolts were delivered.\n\n[Delivery receipt W-17](sevra://item/0aed9a43-a577-4325-a51e-dd80862732de?locator=text;%20offset%3D0)",
+        "citations": [
+          "0aed9a43-a577-4325-a51e-dd80862732de"
+        ],
+        "jobSeconds": 7.375862956047058,
+        "prompt": "Read delivery receipt W-17 and tell me how many brass bolts were delivered. Cite the receipt. Make no workbook changes.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "answer": "I couldn\u2019t find supporting evidence after searching this workbook for \u201cAcme lease\u201d, \u201cAcme\u201d, \u201clease\u201d. The search index reports no incomplete sources. I can\u2019t establish the requested facts from these results.",
+        "citations": [],
+        "jobSeconds": 3.905467987060547,
+        "prompt": "Find the Acme lease and tell me its monthly rent. Search for the evidence in this workbook.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "answer": "12.40 multiplied by 2 is 24.8.",
+        "citations": [],
+        "jobSeconds": 9.677058935165405,
+        "prompt": "What is 12.40 multiplied by 2? Make no table or other changes.",
+        "state": "complete",
+        "steps": 2
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:24:41Z",
+            "id": "7bf1f8b3-6f9a-4fd0-9065-2d6f74f2d152",
+            "metrics": [
+              {
+                "acceptedDraftTokens": 144,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 2.954725,
+                "draftedTokens": 266,
+                "firstTokenSeconds": 1.1726345415227115,
+                "generatedTokens": 183,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 1.15716,
+                "promptTokens": 5000,
+                "recoveryReserve": 256,
+                "requestSeconds": 4.127383083105087,
+                "speculativeMethod": "DFlash2"
+              },
+              {
+                "acceptedDraftTokens": 7,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 0.320857,
+                "draftedTokens": 42,
+                "firstTokenSeconds": 0.8888199999928474,
+                "generatedTokens": 14,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 0.8733,
+                "promptTokens": 5262,
+                "recoveryReserve": 256,
+                "requestSeconds": 1.2097150417976081,
+                "speculativeMethod": "DFlash2"
+              },
+              {
+                "acceptedDraftTokens": 48,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 1.528293,
+                "draftedTokens": 147,
+                "firstTokenSeconds": 1.162172167096287,
+                "generatedTokens": 70,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 1.14704,
+                "promptTokens": 5507,
+                "recoveryReserve": 256,
+                "requestSeconds": 2.69049512501806,
+                "speculativeMethod": "DFlash2"
+              }
+            ],
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "9c40352c-5335-4334-bf9e-6d97188903b5",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-26T22:24:50Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:24:31Z",
+            "id": "0964c156-6c38-47b2-930f-bfa993d32c28",
+            "metrics": [
+              {
+                "acceptedDraftTokens": 64,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 1.434817,
+                "draftedTokens": 119,
+                "firstTokenSeconds": 3.185566958039999,
+                "generatedTokens": 82,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 3.185393,
+                "promptTokens": 4821,
+                "recoveryReserve": 256,
+                "requestSeconds": 4.620412541553378,
+                "speculativeMethod": "DFlash2"
+              },
+              {
+                "acceptedDraftTokens": 119,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 2.491589,
+                "draftedTokens": 196,
+                "firstTokenSeconds": 3.454973957967013,
+                "generatedTokens": 148,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 3.454791,
+                "promptTokens": 5279,
+                "recoveryReserve": 256,
+                "requestSeconds": 5.946597999893129,
+                "speculativeMethod": "DFlash2"
+              }
+            ],
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "aa8e6a1b-1368-48d9-990e-ed5425bb652f",
+            "status": "complete",
+            "steps": 2,
+            "updated": "2026-10-26T22:24:41Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:24:19Z",
+            "id": "2c4f9836-07ee-4876-895a-e008bbc56958",
+            "metrics": [
+              {
+                "acceptedDraftTokens": 173,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 3.120579,
+                "draftedTokens": 259,
+                "firstTokenSeconds": 2.5612616250291467,
+                "generatedTokens": 211,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 2.561074,
+                "promptTokens": 4581,
+                "recoveryReserve": 256,
+                "requestSeconds": 5.681866291444749,
+                "speculativeMethod": "DFlash2"
+              }
+            ],
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "8f1eaf2f-ef85-453f-b309-0d857c91154d",
+            "status": "needs_review",
+            "steps": 1,
+            "updated": "2026-10-26T22:24:31Z"
+          }
+        ],
+        "workbook": "Suppliers.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:24:50Z",
+            "id": "6f5c07fb-199d-4728-a575-41b4bc17bfa8",
+            "metrics": [
+              {
+                "acceptedDraftTokens": 19,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 0.598736,
+                "draftedTokens": 63,
+                "firstTokenSeconds": 1.4008430419489741,
+                "generatedTokens": 29,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 1.384663,
+                "promptTokens": 4536,
+                "recoveryReserve": 256,
+                "requestSeconds": 1.999599500093609,
+                "speculativeMethod": "DFlash2"
+              },
+              {
+                "acceptedDraftTokens": 40,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 0.842911,
+                "draftedTokens": 77,
+                "firstTokenSeconds": 1.4004064165055752,
+                "generatedTokens": 52,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 1.385477,
+                "promptTokens": 4752,
+                "recoveryReserve": 256,
+                "requestSeconds": 2.2433450832031667,
+                "speculativeMethod": "DFlash2"
+              },
+              {
+                "acceptedDraftTokens": 61,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 1.542591,
+                "draftedTokens": 140,
+                "firstTokenSeconds": 1.2761010001413524,
+                "generatedTokens": 82,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 1.26093,
+                "promptTokens": 5084,
+                "recoveryReserve": 256,
+                "requestSeconds": 2.8187113334424794,
+                "speculativeMethod": "DFlash2"
+              }
+            ],
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "16894c35-fc9f-41ed-9314-c4013898916e",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-26T22:24:57Z"
+          }
+        ],
+        "workbook": "Hostile.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:24:57Z",
+            "id": "e755711d-e5df-4228-b420-8b47bcdf582f",
+            "metrics": [
+              {
+                "acceptedDraftTokens": 17,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 0.537856,
+                "draftedTokens": 56,
+                "firstTokenSeconds": 1.3808763748966157,
+                "generatedTokens": 26,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 1.365405,
+                "promptTokens": 4532,
+                "recoveryReserve": 256,
+                "requestSeconds": 1.9187583336606622,
+                "speculativeMethod": "DFlash2"
+              },
+              {
+                "acceptedDraftTokens": 16,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 0.558387,
+                "draftedTokens": 56,
+                "firstTokenSeconds": 0.5052253748290241,
+                "generatedTokens": 25,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 0.488536,
+                "promptTokens": 4584,
+                "recoveryReserve": 256,
+                "requestSeconds": 1.063629999756813,
+                "speculativeMethod": "DFlash2"
+              },
+              {
+                "acceptedDraftTokens": 18,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 0.257476,
+                "draftedTokens": 35,
+                "firstTokenSeconds": 0.3733183750882745,
+                "generatedTokens": 24,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 0.358239,
+                "promptTokens": 4635,
+                "recoveryReserve": 256,
+                "requestSeconds": 0.6308149583637714,
+                "speculativeMethod": "DFlash2"
+              }
+            ],
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "9a5c910d-4c02-4809-ba5a-5b85eaed70e8",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-26T22:25:01Z"
+          }
+        ],
+        "workbook": "Missing.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:25:01Z",
+            "id": "4a67d28d-375e-466e-bd48-5beea080a2a0",
+            "metrics": [
+              {
+                "acceptedDraftTokens": 24,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 0.607184,
+                "draftedTokens": 56,
+                "firstTokenSeconds": 2.3679964165203273,
+                "generatedTokens": 33,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 2.367821,
+                "promptTokens": 4589,
+                "recoveryReserve": 256,
+                "requestSeconds": 2.975209708325565,
+                "speculativeMethod": "DFlash2"
+              },
+              {
+                "acceptedDraftTokens": 39,
+                "backend": "splash-native-candidate",
+                "contextTokens": 8192,
+                "decodeSeconds": 0.864879,
+                "draftedTokens": 91,
+                "firstTokenSeconds": 0.5259142499417067,
+                "generatedTokens": 53,
+                "maintenanceRecommended": true,
+                "maintenanceThreshold": 4088,
+                "nextToolResultReserve": 2048,
+                "outputBudget": 1800,
+                "prefillSeconds": 0.510779,
+                "promptTokens": 4652,
+                "recoveryReserve": 256,
+                "requestSeconds": 1.3908178750425577,
+                "speculativeMethod": "DFlash2"
+              }
+            ],
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "72d82af3-25a0-49af-aa51-b6e47c1c40d4",
+            "status": "complete",
+            "steps": 2,
+            "updated": "2026-10-26T22:25:11Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T22:25:01Z",
+            "id": "22364deb-8780-41f7-b63d-22043125b3c6",
+            "metrics": [],
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "9da08b3d-0237-4fe8-9d57-19c95ef8b999",
+            "status": "cancelled",
+            "steps": 0,
+            "updated": "2026-10-26T22:25:01Z"
+          }
+        ],
+        "workbook": "Cancelled.sevra"
+      }
+    ]
+  },
+  "implementationSHA256": {
+    "Sources/SevraCore/Schema.swift": "0fa95728e89881c64333d483f3c24c570978ce34c7711aa62fd06d55ec443a3a",
+    "Sources/SevraCore/Workbook.swift": "b059ee20d42e22b28c6ea249c9779a8b12f24ba48f2b3b66aa63b2c3aa343d56",
+    "Sources/SevraCore/ConversationContext.swift": "60c14061de3ac5a38602f0e142e59a42e81580b326328aba0ace26a861a41690",
+    "Sources/SevraCore/Spaces.swift": "c7665fb9f950abd25e23597d0c1cb85e2e8e7874c596bcf40b5a6da210232809",
+    "Sources/SevraCore/Runs.swift": "5507008c5a642b8ed2f92cd2131a3ccf1af393702b1d9a7a0d32149738f1a75f",
+    "Sources/SevraCore/Search.swift": "1b2b207392a331bb5a9610d174a6e348088f4491bba9f48d5540859902ba84dd",
+    "Sources/SevraCore/Assets.swift": "a83d9da80fc22e7b82be072429b497eab608c192359105898024d3deb2f8bb38",
+    "Sources/SevraAI/WorkbookAgent.swift": "fbfadcbd30fafd857d10b2330a361fb17f65d6e51ad255e9db571ca987456bb7",
+    "Sources/SevraCLI/CLI.swift": "7d1dcf62c8c3aa2fea11376bb1a452369595de00369e611cb79a55a8b60238e7",
+    "Tests/ConversationContextChecks.swift": "d7c9f88ef5cc81d6b6d912036669702baa44da35c519419fe9a62f855a45e506",
+    "Tests/Fixtures/schema-v1.sql": "7865b931b7ac1200276bed389aceeb2f60d8ea1a0b16dd291c60810758ee6971",
+    "IntegrationTests/Agent/AgentLifecycleChecks.swift": "e5e0d8ff38219daf63d700475fe18632469e5af564a2d4a6e18be16321df27fc",
+    "scripts/check_history.py": "e70db98c8d83ee9578a35d7814a50b422949c2297760c2c226ed2c58c318ef2e"
+  },
+  "limits": [
+    "Checkpoint storage is implemented; automatic summarization and compaction scheduling are not",
+    "History core/CLI retrieval exists; native agent retrieval tools are pending",
+    "New receipts preserve run/call identity; legacy metadata is not invented",
+    "Oversized tool-result projection and mutation/receipt crash-gap recovery remain unresolved before compaction adoption",
+    "No process-kill-during-commit, prolonged real-model compaction or history-scale qualification beyond the recorded fixtures",
+    "Current packaged product uses Slotstream and was tested in isolated installation; the existing user-installed app was not replaced",
+    "Synthetic correctness observations, not a performance parity or general reliability claim"
+  ]
+}

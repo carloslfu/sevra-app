@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-26T21:43:43.448716+00:00
+updated: 2026-10-26T22:27:33.046561+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -13,7 +13,8 @@ status: reviewed
 ## Package and ownership
 
 S01. A workbook is `Name.sevra/{manifest.json,workbook.sqlite,assets/,staging/}`.
-The manifest identifies format, UUID and schema version. SQLite owns structured
+The manifest identifies package format/version and UUID; SQLite user_version
+identifies the independent database schema. SQLite owns structured
 state, extracted text, provenance, conversations and views. Every file asset is
 an ordinary file under assets, never a BLOB. Caches are disposable and excluded
 from authority. Credentials/model weights are device state outside the package.
@@ -108,4 +109,38 @@ Publish atomically; preserve the prior checkpoint on failure. Checkpoints travel
 with the workbook, while their indexes remain rebuildable. Reconstruct acceptance,
 meaning and completed operations from authoritative state, never from a summary.
 See C06–C11 in [[records/specs/conversation-context]]. Migration, retention and
-recovery checks are required before this planned storage change ships.
+recovery checks are required before this storage change ships.
+
+## Current physical context storage
+
+Database schema 2 adds message_fts, message_payloads, run_requests,
+context_checkpoints and checkpoint_inputs. The package manifest version remains 1.
+Canonical schema-1 packages migrate transactionally under the workbook write lock.
+Validate the exact old schema before enabling its triggers, then build the history
+index, advance the database version/revision and record the migration in one
+transaction. Unknown/future schemas are refused. Older app builds cannot open the
+migrated database; keep app and CLI versions together. No existing installed app
+or user workbook was upgraded during development qualification.
+
+Original message text remains unchanged. Optional message payloads retain native
+terminal-call arguments and response text; tool receipts retain their run/call IDs.
+Older history has no invented receipt metadata. Current runs link to their exact
+request message. Message text and tool-message bodies are indexed; attached terminal payloads are
+retrieved by exact message ID. History slices contain complete messages and payloads, a snapshot
+revision and SHA-256 over canonical JSON including conversation/range identity.
+Use bounded keyset paging and an independent FTS index; no recent-message cap limits
+retrieval. Message bodies and optional payloads each have a 128,000-byte ceiling.
+
+Checkpoints cover contiguous ranges ending at complete turns or recorded tool results, chain to their previous
+checkpoint, and record exact input versions, transformation/model/template identity
+and source revision. Expected revision, recomputed history hash, exact-ID checks,
+foreign keys and one transaction protect publication. Idempotent retry returns the
+same checkpoint. Loading checks the original-history hash; integrity verification
+also checks the chain. Summary text cannot mutate Sources, Records or acceptance.
+Current input heads, status and meaning are projected afresh when inspected.
+These are operational artifacts, not a third category of business information.
+
+Original messages, payloads, run links and checkpoints travel in coherent SQLite
+snapshots and portable archives. History indexes are rebuildable. Automatic
+summarization, compaction scheduling and general pending-action recovery remain
+separate unfinished work under [[records/specs/conversation-context]].

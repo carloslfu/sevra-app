@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-26T21:56:57.240676+00:00
+updated: 2026-10-26T22:27:33.081234+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -33,6 +33,11 @@ yet verified against microphone/speech permissions. New table proposals passed
 real-model creation/acceptance twice (26.23 and 26.71 seconds). A cell proposal was
 correct but its closing model response failed; needs-review receipts address that
 failure and still require real-model regression.
+
+Latest storage checkpoint: database schema 2 now supports scoped history FTS,
+whole-message paging, exact original receipts and chained context checkpoints.
+Automatic compaction and agent history retrieval are still pending; see the
+conversation-storage checkpoint below and [[records/specs/conversation-context]].
 
 ## Implemented
 
@@ -543,3 +548,55 @@ The upgrade skill validator passes. Full db.md validation has zero errors/warnin
 and repository links pass. No production-backend switch or installed-app overwrite
 was performed. Next implementation dependency is durable conversation/checkpoint
 storage and exact history retrieval, followed by the compaction controller.
+
+## Conversation storage and migration checkpoint, October 26
+
+Added database schema 2 with an additive, transactional schema-1 migration. The
+package manifest remains version 1. Validate the exact old schema before enabling
+triggers or changing data; advance database version and revision with a recorded
+migration. Failed foreign-key validation rolls back all changes. Unknown/future
+schemas are refused. The canonical version-1 SQL fixture is preserved in Tests
+and requires no earlier installed binary or private repository.
+
+The shared core and CLI now provide conversation-scoped FTS, exact message/payload
+reads, bounded whole-message keyset paging and revision-bound search cursors.
+The recent-message display cap no longer limits explicit history retrieval.
+New agent runs link to their user request; native tool/terminal receipts retain
+run/call IDs, arguments and response text. Legacy metadata remains absent rather
+than fabricated. Source message bodies and attached receipts remain unchanged.
+
+Context checkpoints retain a contiguous original-history hash, exact input version
+references, parent checkpoint, source revision, run and model/template/transform
+identity. They may end at a completed turn or a complete recorded tool result,
+which permits future compaction during a multi-step job without marking it done.
+Publication is atomic, revision-checked, scope-checked and idempotent. It validates
+the actual stored boundary, not caller-supplied message metadata. Loading verifies
+history hashes; integrity checks also verify the chain. Current input heads,
+acceptance and meaning are read from workbook state. A test digest falsely saying
+an estimate is accepted does not accept it; later genuine acceptance stays estimate.
+
+Verification: 54 core checks pass, including migration preservation/refusal/rollback,
+Unicode/NUL and payload paging, scope/cursor/cancellation/index rebuild, stale and
+invalid checkpoint rejection, exact references, chains, idempotence, run linkage,
+mid-run boundaries, portable reopen and altered-history detection. The full
+scripts/check.sh suite passes. Release app/CLI build and isolated installation
+checks pass. Packaged CLI qualification opens a schema-1 workbook concurrently in
+eight processes, verifies one migration, pages all 700 messages, retrieves older
+content, searches with cursors and exports/reopens offline. Thirty writer and
+snapshot/retry checks pass. The Sevra CLI skill validator passes.
+
+The native autonomous seven-job regression passes again against these core changes:
+five complete answers, one reviewed proposal and one deliberate cancellation, all
+linked to exact request messages. This checks proposal/reopen/lineage, comparison,
+space creation, hostile evidence, coverage and cancellation/retry/lease release.
+Evidence with source hashes is integration/evidence/2026-10-26-conversation-storage.json.
+The previous public checkpoints f7ff739 and 3e61b62 have green CI.
+
+Still unfinished: model-driven summaries and automatic compaction scheduling,
+agent tools for older history, recovery across the mutation/receipt-write interval,
+valid bounded projections and durable retrieval for oversized tool results, and
+process-death/repeated-compaction/long-conversation J10 qualification. These are
+next dependencies, not waived gates. Native setup/downloads, packaging/adoption,
+matched performance, full UI/voice/search scale and website release work remain.
+The existing user-installed app and CLI were not overwritten. New schema-2
+packages require the newly built app/CLI; older binaries refuse them on opening.

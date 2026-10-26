@@ -63,7 +63,7 @@ public enum WorkbookAgent {
     let runID: String
     do {
       runID = try workbook.startAgentRun(
-        conversation: conversation, model: await model.identity)
+        conversation: conversation, model: await model.identity, requestMessageID: requestMessage)
     } catch {
       await model.endRun()
       throw error
@@ -186,6 +186,8 @@ public enum WorkbookAgent {
             _ = try workbook.addMessage(
               try Value.object([
                 "tool": .string("finish"), "validation": .string(problems.joined(separator: " ")),
+                "arguments": a, "runID": .string(runID), "callID": .string(call.id),
+                "assistantText": .string(response.text), "receiptVersion": .number(1),
               ]).json(), role: "tool", conversation: conversation)
             continue
           }
@@ -206,7 +208,12 @@ public enum WorkbookAgent {
                   "[\(title.replacingOccurrences(of:"[",with:"").replacingOccurrences(of:"]",with:""))](\(link.url!.absoluteString))"
               }.joined(separator: " ")
           _ = try workbook.addMessage(
-            answer + suffix, role: "assistant", conversation: conversation)
+            answer + suffix, role: "assistant", conversation: conversation,
+            payload: .object([
+              "receiptVersion": .number(1), "tool": .string("finish"), "arguments": a,
+              "runID": .string(runID), "callID": .string(call.id),
+              "assistantText": .string(response.text),
+            ]))
           try workbook.finishAgentRun(
             runID, status: "complete", steps: step, metrics: .array(metrics))
           await model.endRun()
@@ -286,7 +293,11 @@ public enum WorkbookAgent {
         }
         let encoded = try result.json()
         _ = try workbook.addMessage(
-          try Value.object(["tool": .string(tool), "arguments": a, "result": result]).json(),
+          try Value.object([
+            "tool": .string(tool), "arguments": a, "result": result,
+            "runID": .string(runID), "callID": .string(call.id),
+            "assistantText": .string(response.text), "receiptVersion": .number(1),
+          ]).json(),
           role: "tool", conversation: conversation)
         if tool == "search", emptySearches >= 3, let incomplete = result["incomplete"].int {
           try cancellation.check()

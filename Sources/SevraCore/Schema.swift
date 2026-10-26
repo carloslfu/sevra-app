@@ -2,8 +2,8 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 1
-  static let sql = """
+  static let version = 2
+  static let version1SQL = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=1;
     PRAGMA journal_mode=DELETE;
@@ -53,4 +53,20 @@ enum Schema {
     CREATE TABLE space_versions(id TEXT NOT NULL,version INTEGER NOT NULL,title TEXT NOT NULL,definition TEXT NOT NULL,updated TEXT NOT NULL,PRIMARY KEY(id,version));
     INSERT INTO spaces VALUES('home','Home','{"version":1,"components":[]}',1,'');
     """
+
+  static let migration2 = """
+    CREATE INDEX messages_sequence ON messages(conversation_id);
+    CREATE VIRTUAL TABLE message_fts USING fts5(body,content='messages',content_rowid='rowid',tokenize='unicode61 remove_diacritics 2',prefix='2 3 4');
+    CREATE TRIGGER messages_ai AFTER INSERT ON messages BEGIN
+      INSERT INTO message_fts(rowid,body) VALUES(new.rowid,new.body);
+    END;
+    CREATE TABLE context_checkpoints(id TEXT PRIMARY KEY,conversation_id TEXT NOT NULL REFERENCES conversations(id),schema_version INTEGER NOT NULL CHECK(schema_version=1),first_message TEXT NOT NULL REFERENCES messages(id),last_message TEXT NOT NULL REFERENCES messages(id),message_count INTEGER NOT NULL,history_hash TEXT NOT NULL,source_revision INTEGER NOT NULL,summary TEXT NOT NULL,model TEXT NOT NULL,template TEXT NOT NULL,transformation TEXT NOT NULL,parent_id TEXT REFERENCES context_checkpoints(id),run_id TEXT REFERENCES agent_runs(id),created TEXT NOT NULL);
+    CREATE INDEX checkpoints_conversation ON context_checkpoints(conversation_id);
+    CREATE TABLE checkpoint_inputs(checkpoint_id TEXT NOT NULL REFERENCES context_checkpoints(id),item_id TEXT NOT NULL REFERENCES items(id),PRIMARY KEY(checkpoint_id,item_id));
+    CREATE TABLE run_requests(run_id TEXT PRIMARY KEY REFERENCES agent_runs(id),message_id TEXT NOT NULL UNIQUE REFERENCES messages(id));
+    CREATE TABLE message_payloads(message_id TEXT PRIMARY KEY REFERENCES messages(id),payload TEXT NOT NULL);
+    INSERT INTO message_fts(message_fts) VALUES('rebuild');
+    PRAGMA user_version=2;
+    """
+  static let sql = version1SQL + "\n" + migration2
 }

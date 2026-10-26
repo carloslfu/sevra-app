@@ -101,9 +101,18 @@ func checkAgentLifecycle() async throws {
     let run = try expectValue(book.agentRuns().first)
     try expectEqual(run["status"].text, expected)
     try expectEqual(run["model"].text, model.identity)
+    let request = try expectValue(book.messages().first { $0.role == "user" })
+    try expectEqual(run["request_message_id"].text, request.id)
     let assistant = try book.messages().filter { $0.role == "assistant" }
     try expectEqual(assistant.count, 1)
     try expectEqual(assistant[0].state, expected)
+    if name == "success" {
+      let payload = try book.messagePayload(assistant[0].id)
+      try expectEqual(payload["tool"].text, "finish")
+      try expectEqual(payload["runID"].text, run["id"].text)
+      try expectEqual(payload["arguments"]["answer"].text, assistant[0].body)
+      try expectEqual(payload["receiptVersion"].int, 1)
+    }
     if cancel { try expectEqual(assistant[0].body.contains("No changes requested"), false) }
     if cancel || fail {
       let history = try WorkbookAgent.conversationHistory(book, conversation: "main")

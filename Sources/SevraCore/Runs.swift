@@ -1,9 +1,19 @@
 import Foundation
 
 extension Workbook {
-  public func startAgentRun(conversation: String, model: String) throws -> String {
+  public func startAgentRun(conversation: String, model: String, requestMessageID: String? = nil)
+    throws -> String
+  {
     let id = identifier()
     _ = try mutation("agent_run", request: .string(id)) {
+      if let requestMessageID {
+        try require(
+          try db.scalar(
+            "SELECT count(*) FROM messages WHERE id=? AND conversation_id=? AND role='user'",
+            [.string(requestMessageID), .string(conversation)]
+          ).int == 1,
+          "run_request", "The run needs a user message in this conversation.")
+      }
       try db.execute(
         "UPDATE agent_runs SET status='interrupted',updated=? WHERE status='running'",
         [.string(timestamp())])
@@ -13,6 +23,10 @@ extension Workbook {
           .string(id), .string(conversation), .string("running"), .string(model), .number(0),
           .string("[]"), .string(timestamp()), .string(timestamp()),
         ])
+      if let requestMessageID {
+        try db.execute(
+          "INSERT INTO run_requests VALUES(?,?)", [.string(id), .string(requestMessageID)])
+      }
       return .string(id)
     }
     return id
@@ -35,7 +49,9 @@ extension Workbook {
   }
   public func agentRuns() throws -> [Value] {
     try synchronized {
-      try db.execute("SELECT * FROM agent_runs ORDER BY rowid DESC LIMIT 100").map(Value.object)
+      try db.execute(
+        "SELECT a.*,r.message_id AS request_message_id FROM agent_runs a LEFT JOIN run_requests r ON r.run_id=a.id ORDER BY a.rowid DESC LIMIT 100"
+      ).map(Value.object)
     }
   }
 }
