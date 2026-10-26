@@ -11,6 +11,7 @@ let package = Package(
     .executable(name: "sevra-benchmark", targets: ["SevraBenchmark"]),
     .executable(name: "sevra-splash-checks", targets: ["SevraSplashChecks"]),
     .executable(name: "sevra-splash-text-checks", targets: ["SevraSplashTextChecks"]),
+    .executable(name: "sevra-splash-grammar-checks", targets: ["SevraSplashGrammarChecks"]),
   ],
   dependencies: [
     .package(
@@ -21,6 +22,14 @@ let package = Package(
   ],
   targets: [
     .systemLibrary(name: "CSQLite"),
+    .systemLibrary(name: "CLLGuidance"),
+    .target(
+      name: "SevraSplashGrammar", dependencies: ["SevraSplash", "SevraSplashText", "CLLGuidance"],
+      resources: [.copy("Resources/json-slices.json")], swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(
+      name: "SevraSplashGrammarChecks", dependencies: ["SevraSplashGrammar", "SevraSplashText", "SevraSplash"],
+      path: "IntegrationTests/Grammar", resources: [.copy("fixtures.json")],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraSplash", resources: [.copy("Resources/selected-model.json")],
       swiftSettings: [.swiftLanguageMode(.v5)]),

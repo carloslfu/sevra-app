@@ -110,8 +110,18 @@
       "upstream": [
         "server/constraints.py"
       ],
-      "swift": null,
-      "status": "pending"
+      "swift": [
+        "Sources/SevraSplashGrammar/NativeGrammar.swift",
+        "Sources/SevraSplashText/TextFrontend.swift"
+      ],
+      "status": "byte-vocabulary-105-mask-fixtures-native-generation-passed-tool-grammar-builder-pending",
+      "checks": [
+        "IntegrationTests/Grammar/main.swift",
+        "IntegrationTests/Grammar/NativeProbe.swift",
+        "scripts/build_guidance.py",
+        "scripts/check_splash_grammar.py",
+        "scripts/generate_splash_grammar_fixtures.py"
+      ]
     },
     {
       "area": "packaging",
@@ -129,5 +139,6 @@
     "upstream": "dev/tests/engine/protocol_golden.txt",
     "sha256": "18993e7fe69af875cf8c7727f8af1a0805151ea8f4b498894d005c1b3e67f966"
   },
-  "nativeSmokeEvidence": "integration/evidence/2026-10-26-native-smoke.json"
+  "nativeSmokeEvidence": "integration/evidence/2026-10-26-native-smoke.json",
+  "grammarPin": "integration/llguidance.json"
 }

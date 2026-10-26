@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-26T18:15:17.996137+00:00
+updated: 2026-10-26T19:52:47.669223+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -62,6 +62,34 @@ memory-pressure handling, context limits and model status. The native engine's
 allocation limit is not total process footprint: measure the Swift process plus
 helper and remaining host headroom. Native failure and restart preserve proposals
 and last accepted data. Never silently replay an accepted mutation.
+
+## Native grammar implementation
+
+I14. The candidate uses pinned LLGuidance 1.8.0 through its C ABI. This is the
+native Rust grammar library already used by the Splash reference, not another
+inference engine. Swift owns its tokenizer callback, byte vocabulary, per-request
+matcher state, cache and speculative masks. No Python extension or interpreter
+loads in the native process. Pin source, Cargo.lock, Rust toolchain and copied
+header in integration/llguidance.json. The C header and MIT notice are retained.
+
+The default C tokenizer.json path and the reference HF adapter do not have
+identical special-token rules. Swift must reproduce the latter, including added
+<...> tokens and padded vocabulary entries. Compare the byte vocabulary for every
+token and the full bitmask bytes. Match the reference's stopped-EOS handling.
+Speculative prefixes use cloned state; rejected proposals never advance committed
+state. Every final generated batch is checked after the last mask.
+
+The candidate is loaded only from an explicit trusted, hash-verified native library
+path. Never accept that path from workbook content or model output. Cache at most
+32 immutable grammar states within an 8 MiB source budget; each run gets its own
+clone. Compiler limits remain enabled; suppress detailed grammar/output dumps in
+errors. Bound simulation to eight tokens and validate mask dimensions exactly.
+
+The pinned Rust toolchain is a contributor build/check dependency. Native library
+packaging, all transitive license notices, signed-library identity and production
+app wiring remain part of I12's adoption gate. Current app installation does not
+need Rust or the candidate library. A direct C ABI does not imply that arbitrary
+upstream Python tool/schema semantics have already been ported.
 
 ## Verification and performance
 

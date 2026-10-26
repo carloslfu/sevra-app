@@ -43,3 +43,15 @@ Record native Swift prompt parity and Observer branding implementation; preserve
 ## [2026-10-26 19:35] verification | records/specs/identity.md
 Installed System/light and Dark welcome/header, standard About, Finder icon, packaged resource and installation checks passed. System restored.
 
+## [2026-10-26 19:52] implementation | records/specs/splash-integration.md
+Record native grammar C ABI, pinned contributor build, exact vocabulary/mask parity and real-engine constrained generation; keep production adoption pending.
+
+## [2026-10-26 19:52] implementation | records/operations/build-and-run.md
+Record native grammar C ABI, pinned contributor build, exact vocabulary/mask parity and real-engine constrained generation; keep production adoption pending.
+
+## [2026-10-26 19:52] implementation | records/operations/implementation.md
+Record native grammar C ABI, pinned contributor build, exact vocabulary/mask parity and real-engine constrained generation; keep production adoption pending.
+
+## [2026-10-26 19:54] verification | records/operations/implementation.md
+Exact grammar parity, real native constrained generation/cancellation/release, full check suite, reference regeneration, packaging/install/resource isolation and skill validation passed. Performance and production adoption remain open.
+

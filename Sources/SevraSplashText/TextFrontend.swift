@@ -20,6 +20,15 @@ public final class SplashTextFrontend {
   }
   private let tokenizer: any Tokenizer
   private let template: String
+  private let lock = NSLock()
+  private var addedGrammarTokens: [UInt32: [UInt8]] = [:]
+  private var grammarVocabularyCache: ByteVocabulary?
+  public struct ByteVocabulary {
+    public let lengths: [UInt32]
+    public let bytes: [UInt8]
+  }
+  public static let vocabularySize: UInt32 = 248320
+  public static let stopTokens: [UInt32] = [248044, 248046]
 
   public init(modelFolder: URL) throws {
     let pack = try SplashModelPack.selected()
@@ -76,12 +85,44 @@ public final class SplashTextFrontend {
     }
     tokenizer = try AutoTokenizer.from(
       tokenizerConfig: tokenizerConfig, tokenizerData: tokenizerData, strict: true)
+    guard tokenizerData.decoder.type.string() == "ByteLevel" else {
+      throw SplashError("Selected tokenizer byte decoder changed")
+    }
+    for entry in tokenizerData["addedTokens"].array(or: []) {
+      guard let id = entry.id.integer(), id >= 0, id < Self.vocabularySize,
+        let content = entry.content.string()
+      else {
+        throw SplashError("Selected tokenizer has an invalid added token")
+      }
+      // LLGuidance's HF adapter treats every added <...> token as special,
+      // including the model's non-special tool and reasoning markers. Its C
+      // tokenizer_json path differs, so supply this exact byte vocabulary.
+      let special =
+        entry.special.boolean(or: false)
+        || (content.hasPrefix("<") && content.hasSuffix(">"))
+      addedGrammarTokens[UInt32(id)] = (special ? [0xff] : []) + Array(content.utf8)
+    }
+    for (text, id) in [
+      "<|endoftext|>": 248044, "<|im_end|>": 248046,
+      "</think>": 248069, "<tool_call>": 248058,
+    ] {
+      guard tokenizer.convertTokenToId(text) == id,
+        tokenizer.encode(text: text, addSpecialTokens: false) == [id]
+      else {
+        throw SplashError("Tokenizer special tokens do not match the native model")
+      }
+    }
+    guard let eos = tokenizer.eosTokenId, Self.stopTokens.contains(UInt32(eos)) else {
+      throw SplashError("Tokenizer EOS does not match the native model")
+    }
   }
 
   public func prepare(
     messages: [Message], tools: [ToolSpec]? = nil,
     thinking: Bool = false, preserveThinking: Bool = false, contextLimit: Int = 8192
   ) throws -> Prompt {
+    lock.lock()
+    defer { lock.unlock() }
     guard !messages.isEmpty, messages.count <= 512, contextLimit > 0,
       contextLimit <= SplashWire.maxTokens
     else {
@@ -120,11 +161,10 @@ public final class SplashTextFrontend {
     for message in messages {
       guard let role = message["role"] as? String,
         ["system", "user", "assistant", "tool"].contains(role),
-        let content = message["content"] as? String
+        message["content"] is String
       else {
         throw SplashError("Text frontend requires text message content and a supported role")
       }
-      _ = content
       try account(message)
     }
     if let tools { try account(tools) }
@@ -141,7 +181,7 @@ public final class SplashTextFrontend {
     guard tokens.count <= contextLimit, !tokens.isEmpty else {
       throw SplashError("Prompt exceeds the native context limit")
     }
-    guard tokens.allSatisfy({ $0 >= 0 && $0 <= Int(UInt32.max) }) else {
+    guard tokens.allSatisfy({ $0 >= 0 && $0 < Self.vocabularySize }) else {
       throw SplashError("Tokenizer produced an invalid token")
     }
     let without = try render(false)
@@ -150,7 +190,53 @@ public final class SplashTextFrontend {
   }
 
   public func decode(_ tokens: [UInt32], skipSpecialTokens: Bool = false) -> String {
-    tokenizer.decode(tokens: tokens.map(Int.init), skipSpecialTokens: skipSpecialTokens)
+    lock.lock()
+    defer { lock.unlock() }
+    return tokenizer.decode(tokens: tokens.map(Int.init), skipSpecialTokens: skipSpecialTokens)
+  }
+  /// Exact tokenization callback for the native grammar, without added BOS/EOS.
+  public func encode(_ text: String) -> [UInt32] {
+    lock.lock()
+    defer { lock.unlock() }
+    return tokenizer.encode(text: text, addSpecialTokens: false).map(UInt32.init)
+  }
+  /// Matches the pinned LLGuidance HF byte vocabulary, including padded special
+  /// tokens. Ordinary token keys remain byte distinct in the maintained loader.
+  public func grammarVocabulary() throws -> ByteVocabulary {
+    lock.lock()
+    defer { lock.unlock() }
+    if let cached = grammarVocabularyCache { return cached }
+    var map: [Unicode.Scalar: UInt8] = [:]
+    var extra: UInt32 = 256
+    for byte in UInt32(0)...255 {
+      if (33...126).contains(byte) || (161...172).contains(byte) || (174...255).contains(byte) {
+        map[Unicode.Scalar(byte)!] = UInt8(byte)
+      } else {
+        map[Unicode.Scalar(extra)!] = UInt8(byte)
+        extra += 1
+      }
+    }
+    var lengths: [UInt32] = []
+    var bytes: [UInt8] = []
+    lengths.reserveCapacity(Int(Self.vocabularySize))
+    for id in 0..<Self.vocabularySize {
+      let value: [UInt8]
+      if let added = addedGrammarTokens[id] {
+        value = added
+      } else if let label = tokenizer.convertIdToToken(Int(id)) {
+        value = try label.unicodeScalars.map {
+          guard let byte = map[$0] else { throw SplashError("Tokenizer byte mapping changed") }
+          return byte
+        }
+      } else {
+        value = [0xff] + Array("<[\(id)]>".utf8)
+      }
+      lengths.append(UInt32(value.count))
+      bytes += value
+    }
+    let vocabulary = ByteVocabulary(lengths: lengths, bytes: bytes)
+    grammarVocabularyCache = vocabulary
+    return vocabulary
   }
   private static func sha256(_ bytes: Data) -> String {
     SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()

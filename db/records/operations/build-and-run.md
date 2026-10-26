@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-26T19:11:40.325597+00:00
+updated: 2026-10-26T19:52:47.685923+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -82,7 +82,12 @@ while the app is open.
 
 ## Verification and development
 
+Full checks also build the candidate native grammar. Install the pinned Rust
+1.96.0 toolchain through rustup once; it is a development dependency, not required
+by the installed app or by the current baseline's ordinary build command.
+
 ~~~sh
+rustup toolchain install 1.96.0 --profile minimal
 ./scripts/check.sh
 swift build -c release --product sevra-benchmark
 .build/release/sevra-benchmark
@@ -126,6 +131,54 @@ It compares model.json bytes with upstream, then checks short generation,
 cancellation/recovery, context preflight and weight release. It does not compare
 whole frontend behavior or performance with the Python server. See
 [[records/specs/splash-integration]] for the remaining qualification gates.
+
+## Native tokenizer and grammar checks
+
+~~~sh
+swift build --product sevra-splash-text-checks
+python3 scripts/check_splash_text.py
+python3 scripts/build_guidance.py
+swift build --product sevra-splash-grammar-checks
+python3 scripts/check_splash_grammar.py
+~~~
+
+These download only the three pinned tokenizer resources, not model weights.
+The grammar builder verifies its public source commit, Cargo.lock, C header and
+JSON-slice resource, then builds only the native llguidance crate with the pinned
+Rust toolchain. It records the local library digest in .build/llguidance-receipt.json.
+The installed product contains neither that development toolchain nor Python.
+
+The native fixtures compare 14 exact prompts, every byte-vocabulary entry and
+105 complete speculative masks for JSON, Unicode, reasoning and strict tools.
+To regenerate reference fixtures after reviewing an upstream change, use the
+isolated reference environment above:
+
+~~~sh
+.build/splash-reference/bin/python scripts/generate_splash_text_fixtures.py /path/to/verified/model
+.build/splash-reference/bin/python scripts/generate_splash_grammar_fixtures.py /path/to/verified/model
+~~~
+
+Both commands compare without editing by default; --write replaces fixtures for
+review. The native grammar probe can also run the real engine using the original
+weights and a Swift-prepared assembly:
+
+~~~sh
+.build/debug/sevra-splash-checks --prepare \
+  /path/to/verified/model /path/to/verified/model/dflash .build/splash-models
+.build/debug/sevra-splash-grammar-checks \
+  /path/to/verified/model \
+  .build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib \
+  .build/upstream/splash-native-1.4.1/engine/splash \
+  /path/to/the/assembly/printed/by/prepare
+~~~
+
+This opt-in probe acquires Sevra's inference lock. It uses Swift prompt preparation,
+native grammar masks and the unchanged Splash executable, with no runtime Python.
+It checks JSON/Unicode output, a schema-constrained tool call, cancellation/retry
+and healthy weight release. Its default 12 GiB engine budget can be changed with
+SEVRA_SPLASH_PROBE_MEMORY_BYTES. The host still needs the qualified hardware and
+memory headroom; that budget is not a claim of physical 12 GiB device support.
+These synthetic checks are not the full workbook agent or a matched speed test.
 
 ## Harness integration
 

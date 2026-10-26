@@ -7,7 +7,8 @@ parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('model',type=Path)
 parser.add_argument('--write',action='store_true',help='Replace reviewed fixtures; default compares without changing files')
 args=parser.parse_args()
-sys.path.insert(0,str(root/'.build/upstream/splash-1.4.1'))
+from splash_reference_identity import verify
+sys.path.insert(0,str(verify(root, args.model)))
 from transformers import AutoTokenizer
 from server.chat_templates import ChatTemplates,template_options,render_chat_template
 from server.frontend import _generation_prompt

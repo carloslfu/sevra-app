@@ -28,6 +28,13 @@ counterpart and its checks. Add a mapping when a newly relevant surface appears.
 Keep unsupported features explicit. Reuse Splash C++/Metal unchanged; do not
 translate its inference engine, scheduler or memory governor into Swift.
 
+For grammar changes, compare Splash's pinned LLGuidance requirement with
+`integration/llguidance.json`. Keep the Rust grammar library unchanged behind its
+C ABI. Check every token's byte vocabulary, added/special/padded token semantics,
+both EOS tokens and complete speculative masks, not only parsed JSON. The C and
+Python binding defaults have differed; a matching library version alone does not
+prove behavioral parity. Preserve native build and transitive-license gates.
+
 Implement affected Swift behavior in small steps. Test protocol bytes against
 the pinned upstream goldens, then exact prompt token IDs and parsed results.
 Reference Python may run in an isolated evaluation environment. A Python-created

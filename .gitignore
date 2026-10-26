@@ -9,3 +9,5 @@ output/
 **/.index.lock
 **/.dbmd.transaction.lock
 **/log.md.lock
+__pycache__/
+*.pyc

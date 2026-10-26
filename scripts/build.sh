@@ -6,7 +6,8 @@ python3 scripts/generate_brand.py --check
 CONFIG=${SEVRA_CONFIGURATION:-release}
 JOBS=${SEVRA_BUILD_JOBS:-4}
 [ "$(uname -m)" = arm64 ] || { echo 'Sevra currently requires Apple Silicon.' >&2; exit 1; }
-swift build -c "$CONFIG" -j "$JOBS"
+swift build -c "$CONFIG" --product SevraDesktop -j "$JOBS"
+swift build -c "$CONFIG" --product sevra -j "$JOBS"
 BIN=$(swift build -c "$CONFIG" --show-bin-path)
 METAL="$ROOT/.build/metal/mlx.metallib"
 OUT="$METAL" /bin/bash "$ROOT/.build/checkouts/slotstream/Tools/fetch_metallib.sh"
@@ -20,8 +21,15 @@ cp "$METAL" "$APP/Contents/MacOS/mlx.metallib"
 cp "$METAL" "$ROOT/output/bin/mlx.metallib"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp Resources/Sevra.icns "$APP/Contents/Resources/Sevra.icns"
-for bundle in "$BIN/"*.bundle; do
-  [ -d "$bundle" ] || continue
+# Remove resource bundles left in the generated CLI output by older builds.
+for bundle in "$ROOT/output/bin/"*.bundle; do
+  [ ! -d "$bundle" ] || rm -rf "$bundle"
+done
+# Only resources used by the active Slotstream baseline. Candidate adapters and
+# test fixtures remain in .build until the production integration is qualified.
+for resource in swift-transformers_Hub ZIPFoundation_ZIPFoundation swift-crypto_Crypto; do
+  bundle="$BIN/$resource.bundle"
+  [ -d "$bundle" ] || { echo "Required resource bundle missing: $resource" >&2; exit 1; }
   # All app resources stay in the standard sealed macOS resource location.
   ditto "$bundle" "$APP/Contents/Resources/$(basename "$bundle")"
   ditto "$bundle" "$ROOT/output/bin/$(basename "$bundle")"

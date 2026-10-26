@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-26T19:35:02.264525+00:00
+updated: 2026-10-26T19:54:03.499390+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -190,8 +190,9 @@ performance parity or physical 16 GiB hardware support. See the sanitized receip
 at integration/evidence/2026-10-26-native-smoke.json and the reproducible reference
 procedure in [[records/operations/build-and-run]].
 
-The production app still uses Slotstream. Swift model downloads, output/tool parsing, native grammar masks and integrated
-workbook behavior remain pending. The following checkpoint adds tokenizer/template
+The production app still uses Slotstream. Swift model downloads, output/tool parsing, native tool-grammar construction and
+integrated workbook behavior remain pending. Native grammar-mask fixture and
+real-engine checks now pass as recorded below. The following checkpoint adds tokenizer/template
 fixture parity, independently of production adoption. The release archive is a verified upstream artifact;
 this is not a claim of a reproducible source-to-binary build.
 
@@ -216,8 +217,8 @@ window and appearance qualification.
 
 - Implement native resumable downloads and setup integration; local preparation
   and its selected-model reference comparison now pass.
-- Finish streaming output/tool parsing and native constraints; prompt token parity
-  now passes the selected-model fixture suite.
+- Finish streaming output/tool parsing and native tool-grammar construction.
+  Exact prompt/vocabulary/mask fixtures now pass, as does native constrained generation.
 - Expand real-model tests to complete text/tool workflows, resource failures and
   restoration after release. Preserve the current baseline during qualification.
 - Qualify with identical requests, failure/recovery cases and matched performance.
@@ -257,3 +258,42 @@ Finder Get Info show the original icon. Installer checks verify its exact digest
 The full core/adapter/text suite, knowledge validation, packaged resources with
 build-tree reads denied, and isolated install/update/uninstall all pass. See
 [[records/specs/identity]].
+
+## Native grammar checkpoint, October 26
+
+SevraSplashGrammar calls the pinned LLGuidance 1.8.0 native C ABI, with Swift-owned
+state and an exact tokenization callback. Its source/toolchain/header/lock are
+pinned in integration/llguidance.json and built by scripts/build_guidance.py.
+No Python participates in native grammar checking or real-engine generation.
+Rust remains development tooling for this candidate; the production baseline is
+unchanged. Native grammar packaging and transitive license collection remain open.
+
+The differential suite caught and fixed two real API differences: the HF adapter
+marks added <...> tokens as special even when tokenizer.json does not, and the
+Python matcher's stopped-EOS handling differs from the C API. Swift now matches
+all 248,320 byte-vocabulary entries and 105 full mask requests across four grammars.
+Checks include Unicode/escaped strings, typed arrays, reasoning, strict tools,
+invalid speculative suffixes, cache isolation, both EOS IDs, malformed schemas,
+invalid committed tokens, stale prefixes and dimension/size refusals.
+
+The native engine completed four requests and cancelled one with a 12 GiB budget
+on the reference 48 GiB M5 Pro. Prompts were prepared in Swift, masks came through
+the native grammar and output decoded through Swift. The synthetic jobs covered
+exact JSON, Unicode JSON, a find_evidence tool call, immediate cancellation and a
+successful subsequent request. Weights released and Metal remained healthy. This
+proves the native constrained-generation path, not the full workbook tool parser,
+schema builder or matched performance. See the sanitized receipt at
+integration/evidence/2026-10-26-native-grammar.json. Development build activity
+may overlap these correctness checks, so their timings are not a speed benchmark.
+
+Packaging now builds only the app and CLI products and copies only resources
+required by the active backend. Candidate adapter resources and test fixtures
+are excluded from the shipped bundle, with an installation check for that list.
+
+The updated full scripts/check.sh suite passes: 46 workbook/core checks, 20 native
+transport/setup checks, 14 prompt fixtures and the exact grammar suite. The
+current packaged app/CLI build, installed icon/resource whitelist, isolated
+install/update/uninstall and actual Metal/resource checks with source-tree reads
+denied also pass. Both reference generators reproduce their fixtures without
+changes and verify the selected source/tokenizer identities first. The repo-owned
+upgrade skill validates, and dbmd/link checks report no findings.

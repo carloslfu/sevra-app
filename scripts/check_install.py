@@ -14,6 +14,8 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     info = plistlib.loads((app/"Info.plist").read_bytes())
     assert info["CFBundleIconFile"] == "Sevra.icns"
     assert hashlib.sha256((app/"Resources/Sevra.icns").read_bytes()).hexdigest() == "b28f2df8e40cafc2e89fb3ae5a0e361b5470851d833495df9b3dd4ca0395471d"
+    assert {p.name for p in (app/"Resources").glob("*.bundle")} == {
+        "swift-transformers_Hub.bundle", "ZIPFoundation_ZIPFoundation.bundle", "swift-crypto_Crypto.bundle"}
     cli=folder/"bin/sevra"
     def command(*args):
         result=subprocess.run([str(cli),*map(str,args)],cwd=folder,capture_output=True,text=True,check=True)

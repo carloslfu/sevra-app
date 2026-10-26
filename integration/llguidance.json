@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "state": "candidate",
+  "repository": "https://github.com/guidance-ai/llguidance.git",
+  "version": "1.8.0",
+  "commit": "dbaf504d498b6aeede06ae57adc6f7c2c4848c59",
+  "rustToolchain": "1.96.0",
+  "cargoLockSHA256": "3150f34f7c0e99afab360efe61c28d0ceddc98015e6320993ce7baaaed853e3c",
+  "headerSHA256": "5b2aa56c04421c2f846ab742bd547f15079be98e280b1a7d89838421cc077978",
+  "jsonSlicesSHA256": "f33478978e9e32bf4470cbbe9a732a75073cb81b0cf41ca8a420b3594bdc9b9e",
+  "license": "MIT",
+  "productionDependency": false,
+  "upstreamReference": "Splash 1.4.1 install/requirements.txt and server/constraints.py",
+  "limits": "Native constraints are under qualification; the production app remains on Slotstream."
+}
