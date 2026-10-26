@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-26T18:15:34.571178+00:00
+updated: 2026-10-26T19:11:40.325597+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -92,6 +92,40 @@ The checks use a standalone executable so they work with command line tools alon
 dbmd 0.14.7 or later is required for the final knowledge-store validation.
 See the official [db.md repository](https://github.com/carloslfu/db.md) for
 installation. The benchmark is synthetic and creates temporary workbooks.
+
+## Candidate Splash checks
+
+These are development checks for the candidate adapter, not the app's active
+engine. Native transport/setup checks use Swift and need no model or Python:
+
+~~~sh
+python3 scripts/fetch_splash.py
+swift build --product sevra-splash-checks
+.build/debug/sevra-splash-checks
+~~~
+
+The fetch step is build tooling. It verifies the pinned upstream source/archive
+and retains only the native executable, Metal kernels and licenses as candidate
+runtime files. Real-engine tests require supported hardware and the exact selected
+Qwen target plus matching DFlash2 weights. The original files are only read.
+
+For the differential preparation/reference-token smoke check, use an isolated
+Python environment with the pinned upstream dependencies. It is never shipped:
+
+~~~sh
+python3 -m venv .build/splash-reference
+.build/splash-reference/bin/python -m pip install -r .build/upstream/splash-1.4.1/install/requirements.txt
+.build/splash-reference/bin/python scripts/check_splash_reference.py \
+  /path/to/qwen36-35b-a3b-4bit /path/to/qwen36-35b-a3b-4bit/dflash \
+  --output output/splash-checks/my-run --run-engine --memory-bytes 12884901888
+~~~
+
+Use a new output path. Omit --run-engine for preparation/token fixtures only.
+The script preserves local evidence and refuses an unexpected source revision.
+It compares model.json bytes with upstream, then checks short generation,
+cancellation/recovery, context preflight and weight release. It does not compare
+whole frontend behavior or performance with the Python server. See
+[[records/specs/splash-integration]] for the remaining qualification gates.
 
 ## Harness integration
 

@@ -9,6 +9,7 @@ let package = Package(
     .executable(name: "sevra", targets: ["SevraCLI"]),
     .executable(name: "sevra-checks", targets: ["SevraChecks"]),
     .executable(name: "sevra-benchmark", targets: ["SevraBenchmark"]),
+    .executable(name: "sevra-splash-checks", targets: ["SevraSplashChecks"]),
   ],
   dependencies: [
     .package(
@@ -18,6 +19,12 @@ let package = Package(
   ],
   targets: [
     .systemLibrary(name: "CSQLite"),
+    .target(
+      name: "SevraSplash", resources: [.copy("Resources/selected-model.json")],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(
+      name: "SevraSplashChecks", dependencies: ["SevraSplash"], path: "IntegrationTests/Splash",
+      resources: [.copy("protocol_golden.txt")], swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraCore", dependencies: ["CSQLite", "ZIPFoundation"],
       swiftSettings: [.swiftLanguageMode(.v5)]),

@@ -50,7 +50,9 @@ struct SearchView: View {
                 VStack(alignment: .leading, spacing: 6) {
                   Text(hit.title).font(.headline)
                   Text(hit.snippet).lineLimit(4).foregroundStyle(.secondary)
-                  Text(hit.locator).font(.caption).foregroundStyle(.tertiary)
+                  if let location = DisplayText.location(hit.locator) {
+                    Text(location).font(.caption).foregroundStyle(.tertiary)
+                  }
                 }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 14)
               }.buttonStyle(.plain).id(hit.itemID)
               Divider()
@@ -145,7 +147,9 @@ struct SpaceView: View {
             Spacer()
             Button("Save a pinned copy") {
               do {
-                if let id = try state.workbook?.pinSpace(space.id) {
+                let title =
+                  space.title + " · " + Date().formatted(date: .abbreviated, time: .shortened)
+                if let id = try state.workbook?.pinSpace(space.id, title: title) {
                   state.refresh()
                   state.navigate(.space(id))
                 }
@@ -256,7 +260,8 @@ struct NativeComponent: View {
     VStack(alignment: .leading, spacing: 12) {
       Text(component.title).font(.title3.weight(.medium))
       if let snapshot = component.snapshot {
-        Text("Pinned as of " + snapshot.captured).font(.caption).foregroundStyle(.secondary)
+        Text("Pinned as of " + DisplayText.date(snapshot.captured)).font(.caption).foregroundStyle(
+          .secondary)
       }
       switch component.type {
       case "text": Text(component.text ?? "").textSelection(.enabled).foregroundStyle(.secondary)
@@ -281,7 +286,8 @@ struct NativeComponent: View {
         if component.snapshot == nil, let id = component.datasetID,
           let table = state.datasets.first(where: { $0.id == id })
         {
-          DatasetView(table: table, state: state, compact: true).frame(height: 280)
+          DatasetView(table: table, state: state, compact: true)
+            .frame(height: min(280, CGFloat(max(1, table.rowCount)) * 32 + 108))
         } else if let data {
           ScrollView([.horizontal, .vertical]) {
             Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 10) {
@@ -416,6 +422,16 @@ struct DatasetView: View {
           column = c
           if let n = indexes.first, rows.indices.contains(n) {
             state.selectedContext = "\(table.title), data row \(offset+n+1): \(rows[n].data.text)"
+            let values =
+              state.workbook?.calculatedValues(rows[n], columns: table.columns)
+              ?? rows[n].data.object
+            let selectedColumn = table.columns.indices.contains(c) ? table.columns[c] : nil
+            if let selectedColumn {
+              state.selectionLabel =
+                "\(table.title), row \(offset+n+1) · \(selectedColumn.title): \(values[selectedColumn.id]?.text ?? "Empty")"
+            } else {
+              state.selectionLabel = "\(table.title), row \(offset+n+1)"
+            }
           }
         },
         onSort: { id, descending in
@@ -727,7 +743,14 @@ struct NativeTable: NSViewRepresentable {
       cell.identifier = .init(c.id)
       cell.tag = row
       cell.stringValue = values[row][c.id]?.text ?? ""
-      cell.setAccessibilityLabel(c.title + ", row \(row+1)")
+      cell.setAccessibilityLabel(
+        c.title + ", row \(row+1)" + (c.formula == nil ? "" : ": " + cell.stringValue))
+      cell.setAccessibilityElement(true)
+      if c.formula != nil {
+        cell.setAccessibilityRole(.staticText)
+        cell.setAccessibilityValue(cell.stringValue)
+        cell.setAccessibilityHelp("Calculated from " + (c.formula ?? ""))
+      }
       return cell
     }
     func controlTextDidBeginEditing(_ notification: Notification) {

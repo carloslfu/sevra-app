@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-26T18:15:34.557058+00:00
+updated: 2026-10-26T19:11:40.306439+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -17,15 +17,15 @@ every requirement or supported hardware profile has passed.
 
 Workbook is now Sevra's primary product/homepage, with Websites secondary.
 [[records/specs/splash-integration]] supersedes the Slotstream architecture for the
-next version. The installed/published build still uses Slotstream. No Splash parity,
-performance, packaging or runtime integration is claimed yet.
+next version. The installed/published build still uses Slotstream. The isolated Splash adapter now passes protocol, local-preparation and real-engine
+smoke checks. Full frontend, performance, packaging and app adoption remain pending.
 
-The source at published commit `4dfdcf3` has green GitHub CI. Later local changes
-have now rebuilt with 46 passing core checks, but need a new published checkpoint
-and relevant integration/real-model/UI checks. Installed resource verification
+The expanded baseline `5aef111` has green GitHub CI, 46 passing local core
+checks and passing packaged installation checks. Native UI and engine work below
+is a subsequent checkpoint; broader qualification remains pending. Installed resource verification
 executes an actual MLX kernel and passes through the installed CLI symlink.
 
-Added after that public checkpoint: explicit safe ZIP member intake, short
+Included in that public checkpoint: explicit safe ZIP member intake, short
 on-device file transcription, reviewed table creation, request provenance,
 native needs-review receipts, PDF navigation/search and SQLite embedded-NUL text
 round trips. File transcription is capability-gated, at most 60 seconds, and not
@@ -119,7 +119,7 @@ measurements. Runs overlapping inference are not performance qualification.
 1. Native end-to-end interaction: cell editing/paste/undo, Finder opening, search
    paging/Back/facets, chapters/tangents, draft autosave, pinned/comparison views,
    locators, media, dictation, narrow windows, appearance and keyboard/VoiceOver.
-   The prior interaction attempt was blocked by the locked Mac; recheck access.
+   The Mac is accessible again; the interaction results below are verified.
 2. Model regression for the latest review receipts and proposal tools, context
    overflow recovery, and measured whole-task latency across repeated runs.
 3. Search scale/recall with many chunks per document; further broad-query optimization and cancellation during actual long-running searches.
@@ -155,13 +155,70 @@ J01–J09 in [[records/specs/product]] require recorded outcomes, not inferred
 success. Keep this register current. Do not label the whole app or full
 specification complete while required work remains.
 
+## Splash checkpoint, October 26
+
+Completed: public design/progress reconciliation, personal and website ownership
+pointers, preserved baseline `5aef111`, repo-owned update-splash skill, immutable
+1.4.1 source/runtime pin, verified native-only candidate extraction and license
+retention. The skill validator passed in an isolated Python development environment.
+The candidate executable's `device-check` succeeds on the reference M5 Pro. Its
+`model-check` accepts the installed Qwen3.6 target and matching DFlash2 configuration.
+This is configuration/device validation, not a model load or throughput result.
+
+`Sources/SevraSplash` builds independently of MLX/Slotstream. Protocol v11
+matches eight upstream client frame fixtures and all 15 engine event fixtures.
+Text is supported; image requests remain outside this first adapter. Twenty
+checks cover framing, sequencing, recovery, cancellation, bounded diagnostics,
+pinned model identity, immutable preparation, damaged/missing files and atomic
+selection. Exact upstream fixtures have attribution and a recorded digest.
+
+Swift prepares the original selected target/draft bytes without copying the
+weights. Its immutable model.json is byte-identical to the pinned upstream
+Python preparation API, verified twice in an isolated reference environment.
+Full first preparation hashes approximately 21.5 GB with bounded reads; later
+preparation checks metadata and reuses verified digests. Interrupted or invalid
+preparation preserves the prior selection. The native model downloader is pending.
+
+Real Splash generation through the Swift-owned native helper passed with 22 GiB
+and 12 GiB engine budgets on the M5 Pro / 48 GiB / macOS 26.6.2 reference host.
+Both runs completed four requests, cancelled one, recovered after cancellation
+and local context-limit refusal, and released weights with healthy Metal status.
+The 12 GiB run reported expert streaming. Prompt token IDs came from the pinned
+Python reference tokenizer, so this does not establish Swift frontend parity.
+These six-token answers establish transport/recovery only, not throughput,
+performance parity or physical 16 GiB hardware support. See the sanitized receipt
+at integration/evidence/2026-10-26-native-smoke.json and the reproducible reference
+procedure in [[records/operations/build-and-run]].
+
+The production app still uses Slotstream. Swift model downloads, tokenization,
+templates, output/tool parsing, native grammar masks and integrated workbook
+behavior remain pending. The release archive is a verified upstream artifact;
+this is not a claim of a reproducible source-to-binary build.
+
+## Native UI checkpoint, October 26
+
+The installed app opened a newly saved synthetic workbook from Recent workbooks.
+Editing a supplier cost recalculated its formula and chart; Undo restored the
+values and preserved correction history. Search opened the delivery evidence and
+Back restored the query/results. Tangent creation and return to Main preserved
+both conversations; named chapters appeared in the navigation menu. The space
+picker and pinned Home copy worked, and a reopen preserved workbook contents.
+
+Polish from these checks: compact tables now fit their row count, selection
+context uses readable table/row/column/value labels, search hides internal locator
+syntax, dates use localized display, and computed values appear in accessibility
+labels. Chapter/tangent menu actions use a focused name sheet instead of a command
+prefix that typing could overwrite. Voice/text commands remain available. These
+interaction checks do not replace full VoiceOver, dictation, media, PDF, narrow
+window and appearance qualification.
+
 ## Next work in dependency order
 
-- Reconcile public specifications, personal ownership pointers and website brand
-  authority. Preserve the current working code as a tested checkpoint.
-- Fetch Splash 1.4.1 source/runtime, create the repo-owned upgrade skill and record
-  the exact upstream-to-Swift mapping. Source and binary hashes must agree.
-- Implement native transport/model setup/tokenization, then tools and constraints.
+- Implement native resumable downloads and setup integration; local preparation
+  and its selected-model reference comparison now pass.
+- Add Swift tokenization/templates, output/tool parsing and native constraints.
+- Expand real-model tests to complete text/tool workflows, resource failures and
+  restoration after release. Preserve the current baseline during qualification.
 - Qualify with identical requests, failure/recovery cases and matched performance.
 - Adopt Splash only after gates pass; remove Slotstream/MLX shipped dependencies.
 - Finish J01–J09, search scale, native accessibility/voice/media and clean install.

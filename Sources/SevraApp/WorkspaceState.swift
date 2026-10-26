@@ -26,7 +26,10 @@ import SwiftUI
   @Published var busy = false
   @Published var status = ""
   @Published var error: String?
-  @Published var selectedContext = ""
+  @Published var selectedContext = "" {
+    didSet { selectionLabel = nil }
+  }
+  @Published var selectionLabel: String?
   @Published var itemLocators: [String: String] = [:]
   @Published var messageAnchor: String?
   @Published var revision = 0

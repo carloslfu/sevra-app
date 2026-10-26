@@ -7,6 +7,8 @@ struct WorkbookView: View {
   @ObservedObject var state: WorkspaceState
   @State private var showSpaces = false
   @State private var spaceSearch = ""
+  @State private var conversationDraft: ConversationDraft?
+  @FocusState private var composerFocused: Bool
   let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
   var body: some View {
     VStack(spacing: 0) {
@@ -80,6 +82,20 @@ struct WorkbookView: View {
         }.font(.callout).padding(12).background(Color.red.opacity(0.07))
       }
     }.background(Color(nsColor: .windowBackgroundColor))
+      .sheet(item: $conversationDraft) { draft in
+        ConversationNameSheet(draft: draft) { name in
+          guard let book = state.workbook else { return }
+          if draft.tangent {
+            let id = try book.tangent(title: name, parentMessage: draft.message)
+            state.changeConversation(id)
+          } else {
+            try book.chapter(title: name, message: draft.message)
+            state.refresh()
+          }
+          conversationDraft = nil
+          composerFocused = true
+        }
+      }
       .onReceive(timer) { _ in state.poll() }.onDisappear { state.speech.stop() }
       .onDrop(of: ["public.file-url"], isTargeted: nil) { providers in
         Task {
@@ -140,8 +156,16 @@ struct WorkbookView: View {
         }
         Spacer()
         Menu {
-          Button("Start a chapter") { state.prompt = "Chapter " }
-          Button("Explore a tangent") { state.prompt = "Tangent " }
+          Button("Start a chapter") {
+            if let message = state.messages.last {
+              conversationDraft = .init(tangent: false, message: message.id)
+            }
+          }.disabled(state.messages.isEmpty)
+          Button("Explore a tangent") {
+            if let message = state.messages.last {
+              conversationDraft = .init(tangent: true, message: message.id)
+            }
+          }.disabled(state.messages.isEmpty)
           if state.conversation != "main" {
             Button("Return to main") { state.changeConversation("main") }
             Button("Bring last answer to main") {
@@ -208,11 +232,7 @@ struct WorkbookView: View {
                     title: String(message.body.prefix(60)), message: message.id, bookmark: true)
                 }
                 Button("Explore a tangent") {
-                  if let id = try? state.workbook?.tangent(
-                    title: "Exploration", parentMessage: message.id)
-                  {
-                    state.changeConversation(id)
-                  }
+                  conversationDraft = .init(tangent: true, message: message.id)
                 }
               }
             }
@@ -235,12 +255,15 @@ struct WorkbookView: View {
   var composer: some View {
     VStack(alignment: .leading, spacing: 8) {
       if !state.selectedContext.isEmpty {
-        Text("About: " + String(state.selectedContext.prefix(100))).font(.caption).foregroundStyle(
+        Text("About: " + (state.selectionLabel ?? String(state.selectedContext.prefix(100)))).font(
+          .caption
+        ).foregroundStyle(
           .secondary
         ).lineLimit(2)
       }
       TextField("Type or speak…", text: $state.prompt, axis: .vertical).textFieldStyle(.plain)
-        .lineLimit(2...7).onSubmit { state.send() }.accessibilityLabel("Message Sevra")
+        .focused($composerFocused).lineLimit(2...7).onSubmit { state.send() }.accessibilityLabel(
+          "Message Sevra")
       HStack {
         VoiceButton(speech: state.speech, action: state.voice)
         Spacer()
@@ -300,5 +323,44 @@ struct WorkbookView: View {
       case .search: SearchView(state: state)
       }
     }
+  }
+}
+
+private struct ConversationDraft: Identifiable {
+  let id = UUID()
+  let tangent: Bool
+  let message: String
+}
+
+private struct ConversationNameSheet: View {
+  let draft: ConversationDraft
+  let create: (String) throws -> Void
+  @Environment(\.dismiss) private var dismiss
+  @State private var name = ""
+  @State private var failure: String?
+  @FocusState private var focused: Bool
+  private var title: String { draft.tangent ? "Explore a tangent" : "Start a chapter" }
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      Text(title).font(.title2.weight(.medium))
+      Text(
+        draft.tangent
+          ? "Explore from this point in a separate conversation. You can return to the main conversation at any time."
+          : "Name this point so you can find it later in the conversation."
+      )
+      .foregroundStyle(.secondary)
+      TextField("Name", text: $name).textFieldStyle(.roundedBorder).focused($focused)
+      if let failure { Text(failure).foregroundStyle(.red).font(.callout) }
+      HStack {
+        Spacer()
+        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+        Button(draft.tangent ? "Explore" : "Create chapter") {
+          do { try create(name.trimmingCharacters(in: .whitespacesAndNewlines)) } catch {
+            failure = error.localizedDescription
+          }
+        }.keyboardShortcut(.defaultAction)
+          .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+      }
+    }.padding(24).frame(width: 400).onAppear { focused = true }
   }
 }

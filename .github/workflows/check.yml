@@ -15,6 +15,10 @@ jobs:
         run: swift build --product sevra-checks -j 3
       - name: Run invariant and integration checks
         run: .build/debug/sevra-checks
+      - name: Check the native Splash adapter
+        run: |
+          swift build --product sevra-splash-checks -j 3
+          .build/debug/sevra-splash-checks
       - name: Validate independent knowledge store
         env:
           GH_TOKEN: ${{ github.token }}

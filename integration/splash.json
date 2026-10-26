@@ -9,17 +9,116 @@
   "runtime": {
     "url": "https://github.com/incoai/splash/releases/download/1.4.1/splash-1.4.1-arm64-macos26.tar.gz",
     "sha256": "5746068dc652a4998267d55b1c6d59b545f1bc1e018131c6d8025022f7000d5c",
-    "archiveBytes": 78669011
+    "archiveBytes": 78669011,
+    "files": {
+      "engine/splash": "532732b0fef256d08e683fc1b50d132e4946d25a8d4f878d0451bebba0385a9a",
+      "engine/splash.metallib": "1933cf46cbcae8349640bbcfc3875f46b5be4630e13b42804cb5cf7070bce46d",
+      "engine/host-step.metallib": "8e177c753e2051cd8a31c79bf031b3fae8daf04f5564ced9fc37db064bdfe51a",
+      "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "THIRD_PARTY_NOTICES": "2fedf1277bf732f8435c3e3be2798f52f25f7e2bd4155865cb366da55b88e50b"
+    }
   },
-  "requirements": {"architecture": "arm64", "appleChipMinimum": "M3", "macOSMinimum": "26.4"},
-  "model": {"target": "Qwen3.6-35B-A3B", "quantization": "4-bit", "draft": "DFlash2"},
+  "requirements": {
+    "architecture": "arm64",
+    "appleChipMinimum": "M3",
+    "macOSMinimum": "26.4"
+  },
+  "model": {
+    "target": "Qwen3.6-35B-A3B",
+    "quantization": "4-bit",
+    "draft": "DFlash2"
+  },
   "surfaces": [
-    {"area": "wire", "upstream": ["server/protocol.py", "runtime/engine/Protocol.hpp", "dev/tests/engine/protocol_golden.txt"], "swift": "Sources/SevraSplash", "status": "pending"},
-    {"area": "lifecycle", "upstream": ["server/runtime.py", "runtime/main.mm", "runtime/engine/Bootstrap.hpp"], "swift": "Sources/SevraSplash", "status": "pending"},
-    {"area": "model-preparation", "upstream": ["install/local.py", "install/models.py", "install/assembly.py", "install/upstream.py"], "swift": null, "status": "pending"},
-    {"area": "templates-tokenizer", "upstream": ["server/frontend.py", "server/chat_format.py", "server/chat_templates.py"], "swift": null, "status": "pending"},
-    {"area": "outputs-tools", "upstream": ["server/backend.py", "server/output.py", "server/tool_schema.py"], "swift": null, "status": "pending"},
-    {"area": "grammar", "upstream": ["server/constraints.py"], "swift": null, "status": "pending"},
-    {"area": "packaging", "upstream": ["Makefile", "LICENSE", "THIRD_PARTY_NOTICES"], "swift": null, "status": "pending"}
-  ]
+    {
+      "area": "wire",
+      "upstream": [
+        "server/protocol.py",
+        "runtime/engine/Protocol.hpp",
+        "dev/tests/engine/protocol_golden.txt"
+      ],
+      "swift": [
+        "Sources/SevraSplash/Wire.swift",
+        "Sources/SevraSplash/StreamState.swift"
+      ],
+      "status": "fixture-verified",
+      "checks": "IntegrationTests/Splash/main.swift"
+    },
+    {
+      "area": "lifecycle",
+      "upstream": [
+        "server/runtime.py",
+        "runtime/main.mm",
+        "runtime/engine/Bootstrap.hpp"
+      ],
+      "swift": "Sources/SevraSplash/NativeProcess.swift",
+      "status": "native-smoke-recovery-passed-full-qualification-pending",
+      "checks": [
+        "IntegrationTests/Splash/main.swift",
+        "IntegrationTests/Splash/NativeProbe.swift",
+        "scripts/check_splash_reference.py"
+      ]
+    },
+    {
+      "area": "model-preparation",
+      "upstream": [
+        "install/local.py",
+        "install/models.py",
+        "install/assembly.py",
+        "install/upstream.py"
+      ],
+      "swift": [
+        "Sources/SevraSplash/ModelPreparation.swift",
+        "Sources/SevraSplash/Resources/selected-model.json"
+      ],
+      "status": "local-preparation-byte-parity-passed-download-pending",
+      "checks": [
+        "IntegrationTests/Splash/ModelChecks.swift",
+        "scripts/check_splash_reference.py"
+      ]
+    },
+    {
+      "area": "templates-tokenizer",
+      "upstream": [
+        "server/frontend.py",
+        "server/chat_format.py",
+        "server/chat_templates.py"
+      ],
+      "swift": null,
+      "status": "pending"
+    },
+    {
+      "area": "outputs-tools",
+      "upstream": [
+        "server/backend.py",
+        "server/output.py",
+        "server/tool_schema.py"
+      ],
+      "swift": null,
+      "status": "pending"
+    },
+    {
+      "area": "grammar",
+      "upstream": [
+        "server/constraints.py"
+      ],
+      "swift": null,
+      "status": "pending"
+    },
+    {
+      "area": "packaging",
+      "upstream": [
+        "Makefile",
+        "LICENSE",
+        "THIRD_PARTY_NOTICES"
+      ],
+      "swift": null,
+      "status": "pending"
+    }
+  ],
+  "golden": {
+    "path": "IntegrationTests/Splash/protocol_golden.txt",
+    "upstream": "dev/tests/engine/protocol_golden.txt",
+    "sha256": "18993e7fe69af875cf8c7727f8af1a0805151ea8f4b498894d005c1b3e67f966"
+  },
+  "nativeSmokeEvidence": "integration/evidence/2026-10-26-native-smoke.json"
 }

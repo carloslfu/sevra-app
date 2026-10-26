@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "purpose": "Native adapter and preparation smoke qualification; not production adoption or performance comparison.",
+  "upstream": {
+    "release": "1.4.1",
+    "commit": "1744cfafee415fb463b289449cec59a864e768e9"
+  },
+  "host": {
+    "device": "Apple M5 Pro",
+    "unifiedMemoryBytes": 51539607552,
+    "macOS": "26.6.2",
+    "swift": "6.3.3"
+  },
+  "reference": {
+    "python": "3.12.9 (main, Feb 12 2025, 15:09:19) [Clang 19.1.6 ]",
+    "requirements": ".build/upstream/splash-1.4.1/install/requirements.txt",
+    "tokenSource": "Pinned reference tokenizer; Swift frontend not yet implemented"
+  },
+  "parameters": {
+    "context": 8192,
+    "memoryBudgetBytes": 12884901888,
+    "persistentCache": false,
+    "verifyRows": "all",
+    "temperature": 0,
+    "seed": 42
+  },
+  "preparation": {
+    "preparationByteIdentical": true,
+    "recordBytes": 4618,
+    "nativePreparationSeconds": 6.986593541689217
+  },
+  "prompt": {
+    "prompt": [
+      248045,
+      8678,
+      198,
+      2523,
+      513,
+      264,
+      61446,
+      17313,
+      13,
+      248046,
+      198,
+      248045,
+      846,
+      198,
+      20206,
+      440,
+      6681,
+      1439,
+      2943,
+      4105,
+      25,
+      561,
+      43648,
+      369,
+      5354,
+      13,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      248068,
+      271,
+      248069,
+      271
+    ],
+    "maxOutput": 48,
+    "generationTokens": 7
+  },
+  "results": [
+    {
+      "context": 8192,
+      "readySeconds": 2.8496288335882127,
+      "vision": false
+    },
+    {
+      "accepted": 4,
+      "bounded": false,
+      "completionTokens": 6,
+      "decodeMicros": 80199,
+      "drafted": 7,
+      "finish": 0,
+      "firstTokenSeconds": 0.24233429180458188,
+      "prefillMicros": 242151,
+      "promptTokens": 35,
+      "request": 1,
+      "seconds": 0.3225335832685232,
+      "tokens": [
+        760,
+        43648,
+        369,
+        5354,
+        13,
+        248046
+      ]
+    },
+    {
+      "accepted": 4,
+      "bounded": false,
+      "completionTokens": 6,
+      "decodeMicros": 35130,
+      "drafted": 7,
+      "finish": 0,
+      "firstTokenSeconds": 0.05806887522339821,
+      "prefillMicros": 57944,
+      "promptTokens": 35,
+      "request": 2,
+      "seconds": 0.09321762528270483,
+      "tokens": [
+        760,
+        43648,
+        369,
+        5354,
+        13,
+        248046
+      ]
+    },
+    {
+      "accepted": 0,
+      "bounded": false,
+      "completionTokens": 0,
+      "decodeMicros": 0,
+      "drafted": 0,
+      "finish": 2,
+      "firstTokenSeconds": null,
+      "prefillMicros": 3,
+      "promptTokens": 35,
+      "request": 3,
+      "seconds": 9.72081907093525e-05,
+      "tokens": []
+    },
+    {
+      "accepted": 4,
+      "bounded": false,
+      "completionTokens": 6,
+      "decodeMicros": 32305,
+      "drafted": 7,
+      "finish": 0,
+      "firstTokenSeconds": 0.05910612503066659,
+      "prefillMicros": 58974,
+      "promptTokens": 35,
+      "request": 4,
+      "seconds": 0.09142108354717493,
+      "tokens": [
+        760,
+        43648,
+        369,
+        5354,
+        13,
+        248046
+      ]
+    },
+    {
+      "accepted": 4,
+      "bounded": false,
+      "completionTokens": 6,
+      "decodeMicros": 31629,
+      "drafted": 7,
+      "finish": 0,
+      "firstTokenSeconds": 0.058717167004942894,
+      "prefillMicros": 58492,
+      "promptTokens": 35,
+      "request": 6,
+      "seconds": 0.09029150009155273,
+      "tokens": [
+        760,
+        43648,
+        369,
+        5354,
+        13,
+        248046
+      ]
+    }
+  ],
+  "observed": {
+    "requests": {
+      "cancelled": 1,
+      "completed": 4,
+      "failed": 0,
+      "submitted": 5
+    },
+    "weights": {
+      "idle_release_seconds": 600,
+      "released": true,
+      "restore_failures": 0,
+      "restores": 0,
+      "restoring": false
+    },
+    "memoryActual": {
+      "allocated_bytes": 1642391184,
+      "current_bytes": 1646493696,
+      "peak_bytes": 12083298304
+    },
+    "streamedExperts": {
+      "experts": 10240,
+      "slots": 4538,
+      "resident": 0,
+      "failure": ""
+    },
+    "metal": {
+      "failure_reason": "",
+      "healthy": true
+    }
+  },
+  "limits": [
+    "Six-token responses are too short for a throughput or latency-performance claim.",
+    "48 GiB physical host with a 12 GiB engine cap does not qualify a 16 GiB machine.",
+    "Reported memory is engine Metal allocation, not combined Swift/helper RSS.",
+    "Context refusal was local preflight; direct native overflow remains a separate gate.",
+    "Downloader, Swift frontend/grammar and whole-workbook Splash integration are pending."
+  ],
+  "adapterSourceSHA256": {
+    "Sources/SevraSplash/ModelPreparation.swift": "2cc0e9f57ac99a9a8dd09c7cfdf4437d77ead2417ba970fe4c21010984c552a5",
+    "Sources/SevraSplash/NativeProcess.swift": "1bda919685a8d5201ab58b132c9edb97245ae875ca7de3f63d9fa762ae89f14f",
+    "Sources/SevraSplash/Resources/selected-model.json": "ae579728d860e4f361e3976910690eb345a489f241e686e8f54d039bfc246b4d",
+    "Sources/SevraSplash/StreamState.swift": "7b9bfefa306dac739fabcf0f8d316e15dc92315d3994b62a361acfe72416cf35",
+    "Sources/SevraSplash/Wire.swift": "279189bfdc6e5ca323fd5c3c570bafc9e6643ff5e9573f6684ba01422a2a466e"
+  }
+}

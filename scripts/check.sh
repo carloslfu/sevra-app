@@ -5,5 +5,7 @@ cd "$ROOT"
 swift build --product sevra-checks -j "${SEVRA_BUILD_JOBS:-4}"
 BIN=$(swift build --show-bin-path)
 "$BIN/sevra-checks"
+swift build --product sevra-splash-checks -j "${SEVRA_BUILD_JOBS:-4}"
+"$BIN/sevra-splash-checks"
 python3 scripts/check_links.py
 if command -v dbmd >/dev/null; then dbmd validate --all db --json; else echo 'dbmd is required for specification validation.' >&2; exit 1; fi

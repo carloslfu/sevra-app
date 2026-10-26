@@ -88,8 +88,11 @@ def main():
                 raise RuntimeError("Existing native candidate differs; preserve it for inspection.")
             if sorted(str(p.relative_to(destination)) for p in destination.rglob("*") if p.is_file()) != sorted([*wanted, "receipt.json"]):
                 raise RuntimeError("Existing native candidate contains unexpected files.")
+            if json.loads((destination / "receipt.json").read_text()) != receipt:
+                raise RuntimeError("Existing native candidate receipt does not match the pin.")
         else:
-            shutil.copytree(stage, destination)
+            # Same filesystem; consumers see all native artifacts together.
+            os.rename(stage, destination)
     print(json.dumps({"source": str(source), "native": str(destination), **receipt}, indent=2))
 
 
