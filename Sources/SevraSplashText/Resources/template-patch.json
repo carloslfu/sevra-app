@@ -1,0 +1,7 @@
+{
+  "source": "Splash 1.4.1 server/chat_templates.py ChatTemplates, selected Qwen template",
+  "originalSHA256": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259",
+  "patchedSHA256": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+  "before": "{{- raise_exception('System message must be at the beginning.') }}",
+  "after": "{{- '<|im_start|>system\\n' + (message.content|trim) + '<|im_end|>\\n' -}}"
+}

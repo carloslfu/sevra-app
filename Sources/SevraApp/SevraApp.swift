@@ -135,7 +135,10 @@ struct WorkspaceWindow: View {
   var isKey: Bool { ownWindow != nil && NSApp.keyWindow === ownWindow }
   var welcome: some View {
     VStack(alignment: .leading, spacing: 26) {
-      Text("Sevra").font(.system(size: 48, weight: .medium, design: .rounded))
+      HStack(spacing: 13) {
+        ObserverMark().fill(.primary).frame(width: 70, height: 70)
+        SevraWordmark().fill(.primary).frame(width: 189, height: 40)
+      }.accessibilityElement(children: .ignore).accessibilityLabel("Sevra")
       Text("A workbook for the work in front of you.").font(.title2)
       Text(
         "Bring your documents and tables together. Explore them through conversation, keep the evidence, and make the result your own."

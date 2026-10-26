@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-26T18:15:34.450478+00:00
+updated: 2026-10-26T19:32:57.605712+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -26,6 +26,7 @@ with no Python runtime. See [[records/specs/splash-integration]].
 
 ## Reading order
 
+- [[records/specs/identity]]: approved Sevra logo, app icon and native appearance.
 - [[records/specs/product]]: requirements and user experience.
 - [[records/specs/storage]]: package, data, transactions, history and calculations.
 - [[records/specs/search]]: intake, extraction, indexes, retrieval and scaling.

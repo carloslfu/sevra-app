@@ -28,3 +28,18 @@ Verified Splash 1.4.1 source/runtime pin and native artifact hashes; 14 Swift ad
 ## [2026-10-26 19:11] implementation | records/operations/implementation.md
 Native Splash protocol/process and local model preparation implemented; 20 adapter checks, byte-identical upstream preparation and real-engine resident/streaming smoke recovery pass. Native UI editing, undo, search, chapters, tangents and accessibility polish checked. App remains on Slotstream; download, frontend, grammar and full release gates remain.
 
+## [2026-10-26 19:32] design | records/specs/identity.md
+Record owner-selected Observer identity and native app placement.
+
+## [2026-10-26 19:32] design | records/specs/product.md
+Record owner-selected Observer identity and native app placement.
+
+## [2026-10-26 19:32] design | records/overview/start-here.md
+Record owner-selected Observer identity and native app placement.
+
+## [2026-10-26 19:32] implementation | records/operations/implementation.md
+Record native Swift prompt parity and Observer branding implementation; preserve remaining qualification gates.
+
+## [2026-10-26 19:35] verification | records/specs/identity.md
+Installed System/light and Dark welcome/header, standard About, Finder icon, packaged resource and installation checks passed. System restored.
+

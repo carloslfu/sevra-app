@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-26T18:15:34.513563+00:00
+updated: 2026-10-26T19:32:57.591594+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -46,6 +46,10 @@ a file must not wait for inference or create a space/conversation automatically.
 P05. System/light/dark appearance, Dynamic Type where applicable, keyboard focus,
 VoiceOver labels and reduced-motion compatibility. Native semantic colors on dense
 work surfaces; restrained warm identity. No decorative dashboard metrics.
+
+P17. Reuse the existing Sevra Observer zebra, outlined lowercase wordmark and
+original Mac icon. See [[records/specs/identity]] for placement, appearance and
+self-contained asset provenance.
 
 ## Conversation
 

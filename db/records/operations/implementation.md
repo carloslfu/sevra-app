@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-26T19:11:40.306439+00:00
+updated: 2026-10-26T19:35:02.264525+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -190,9 +190,9 @@ performance parity or physical 16 GiB hardware support. See the sanitized receip
 at integration/evidence/2026-10-26-native-smoke.json and the reproducible reference
 procedure in [[records/operations/build-and-run]].
 
-The production app still uses Slotstream. Swift model downloads, tokenization,
-templates, output/tool parsing, native grammar masks and integrated workbook
-behavior remain pending. The release archive is a verified upstream artifact;
+The production app still uses Slotstream. Swift model downloads, output/tool parsing, native grammar masks and integrated
+workbook behavior remain pending. The following checkpoint adds tokenizer/template
+fixture parity, independently of production adoption. The release archive is a verified upstream artifact;
 this is not a claim of a reproducible source-to-binary build.
 
 ## Native UI checkpoint, October 26
@@ -216,7 +216,8 @@ window and appearance qualification.
 
 - Implement native resumable downloads and setup integration; local preparation
   and its selected-model reference comparison now pass.
-- Add Swift tokenization/templates, output/tool parsing and native constraints.
+- Finish streaming output/tool parsing and native constraints; prompt token parity
+  now passes the selected-model fixture suite.
 - Expand real-model tests to complete text/tool workflows, resource failures and
   restoration after release. Preserve the current baseline during qualification.
 - Qualify with identical requests, failure/recovery cases and matched performance.
@@ -224,3 +225,35 @@ window and appearance qualification.
 - Finish J01–J09, search scale, native accessibility/voice/media and clean install.
 - Workbook-first marketing implementation belongs to the website repository;
   its updated brand decision must distinguish planned direction from deployment.
+
+## Swift text frontend checkpoint, October 26
+
+SevraSplashText uses pinned swift-transformers 1.3.5 and swift-jinja 2.5.2,
+without an MLX inference dependency. The selected model's tokenizer files and
+actual chat template are checked by hash. The exact upstream late-system-message
+patch is also hash checked. Fourteen upstream-generated fixtures match every
+prompt token ID, generation-prefix token count and decoded prompt, covering
+Unicode, multi-turn history, reasoning modes, tools/results, literal special
+markers, trimming and empty content. Input/context/modality bounds also pass.
+JSON object keys are normalized recursively before both reference and native
+frontends; this is not a byte-parity claim for arbitrary unsorted JSON inputs.
+
+scripts/check_splash_text.py obtains only the three pinned tokenizer files for
+CI, verifies their hashes and runs the Swift fixtures. Clean download and the
+complete local scripts/check.sh pass. scripts/generate_splash_text_fixtures.py
+rebuilds the reference in an isolated Python development environment. Streaming
+decoding and complete native-model/tool workflows remain to be qualified.
+The prior public checkpoint 1e8d47a passed its complete GitHub Actions workflow.
+
+## Observer identity checkpoint, October 26
+
+Carlos explicitly selected the existing Sevra website and historical native-app
+identity. The app now includes the exact original Observer ICNS, local source
+vectors, deterministic native shapes, a welcome lockup and a small workbook-header
+mark. The standard About panel uses the bundle icon. The logo adapts through
+native semantic colors; the icon retains its approved cream tile. The installed welcome lockup and workbook header were visually verified in
+System/light and Dark, then System was restored. The standard About panel and
+Finder Get Info show the original icon. Installer checks verify its exact digest.
+The full core/adapter/text suite, knowledge validation, packaged resources with
+build-tree reads denied, and isolated install/update/uninstall all pass. See
+[[records/specs/identity]].

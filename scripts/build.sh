@@ -2,6 +2,7 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
+python3 scripts/generate_brand.py --check
 CONFIG=${SEVRA_CONFIGURATION:-release}
 JOBS=${SEVRA_BUILD_JOBS:-4}
 [ "$(uname -m)" = arm64 ] || { echo 'Sevra currently requires Apple Silicon.' >&2; exit 1; }
@@ -18,6 +19,7 @@ cp "$BIN/sevra" "$ROOT/output/bin/sevra"
 cp "$METAL" "$APP/Contents/MacOS/mlx.metallib"
 cp "$METAL" "$ROOT/output/bin/mlx.metallib"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+cp Resources/Sevra.icns "$APP/Contents/Resources/Sevra.icns"
 for bundle in "$BIN/"*.bundle; do
   [ -d "$bundle" ] || continue
   # All app resources stay in the standard sealed macOS resource location.

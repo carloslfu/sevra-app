@@ -13,6 +13,7 @@ struct WorkbookView: View {
   var body: some View {
     VStack(spacing: 0) {
       HStack {
+        ObserverMark().fill(.primary).frame(width: 28, height: 28).accessibilityHidden(true)
         Text(state.workbook?.title ?? "Sevra").font(.headline)
         Spacer()
         if state.busy {

@@ -83,8 +83,17 @@
         "server/chat_format.py",
         "server/chat_templates.py"
       ],
-      "swift": null,
-      "status": "pending"
+      "swift": [
+        "Sources/SevraSplashText/TextFrontend.swift",
+        "Sources/SevraSplashText/Resources/template-patch.json"
+      ],
+      "status": "14-exact-prompt-fixtures-passed-streaming-pending",
+      "checks": [
+        "IntegrationTests/Text/main.swift",
+        "IntegrationTests/Text/fixtures.json",
+        "scripts/check_splash_text.py",
+        "scripts/generate_splash_text_fixtures.py"
+      ]
     },
     {
       "area": "outputs-tools",

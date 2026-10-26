@@ -1,6 +1,6 @@
 """Isolated install, update, conflict refusal, standalone CLI and uninstall."""
 from pathlib import Path
-import json, os, subprocess, tempfile
+import hashlib, json, os, plistlib, subprocess, tempfile
 root=Path(__file__).resolve().parent.parent
 with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     folder=Path(path)
@@ -10,6 +10,10 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
         assert (result.returncode==0)==success,result.stdout+result.stderr
         return result
     script("install.sh","--no-build")
+    app = folder/"Applications/Sevra.app/Contents"
+    info = plistlib.loads((app/"Info.plist").read_bytes())
+    assert info["CFBundleIconFile"] == "Sevra.icns"
+    assert hashlib.sha256((app/"Resources/Sevra.icns").read_bytes()).hexdigest() == "b28f2df8e40cafc2e89fb3ae5a0e361b5470851d833495df9b3dd4ca0395471d"
     cli=folder/"bin/sevra"
     def command(*args):
         result=subprocess.run([str(cli),*map(str,args)],cwd=folder,capture_output=True,text=True,check=True)

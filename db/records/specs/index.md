@@ -2,12 +2,13 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-26T18:15:34.513563Z
+updated: 2026-10-26T19:32:57.591594Z
 ---
 
 # records/specs
 
 - [[records/specs/product]] — Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
+- [[records/specs/identity]] — Approved Observer zebra, exact original Mac icon, native outlined wordmark and restrained light/dark placement.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 - [[records/specs/intelligence]] — Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 - [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.

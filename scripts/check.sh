@@ -2,10 +2,13 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
+python3 scripts/generate_brand.py --check
 swift build --product sevra-checks -j "${SEVRA_BUILD_JOBS:-4}"
 BIN=$(swift build --show-bin-path)
 "$BIN/sevra-checks"
 swift build --product sevra-splash-checks -j "${SEVRA_BUILD_JOBS:-4}"
 "$BIN/sevra-splash-checks"
+swift build --product sevra-splash-text-checks -j "${SEVRA_BUILD_JOBS:-4}"
+python3 scripts/check_splash_text.py
 python3 scripts/check_links.py
 if command -v dbmd >/dev/null; then dbmd validate --all db --json; else echo 'dbmd is required for specification validation.' >&2; exit 1; fi

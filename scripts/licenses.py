@@ -5,6 +5,7 @@ root=Path(__file__).resolve().parent.parent
 out=root/"output/Sevra.app/Contents/Resources/Licenses"
 out.mkdir(parents=True,exist_ok=True)
 shutil.copy2(root/"LICENSE",out/"Sevra.txt")
+shutil.copy2(root/"Resources/Brand/Poppins-OFL.txt",out/"Poppins-OFL.txt")
 for package in (root/".build/checkouts").iterdir():
     for source in package.rglob("*"):
         if not source.is_file() or ".git" in source.parts:
