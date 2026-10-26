@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
+  "llguidanceCommit": "dbaf504d498b6aeede06ae57adc6f7c2c4848c59",
+  "nativeGrammarLibrary": "c98dfddb2d92d4f2573f0f7bc432eeadfe857e683e942225b211d339e7184571",
+  "target": {
+    "repository": "mlx-community/Qwen3.6-35B-A3B-4bit",
+    "revision": "38740b847e4cb78f352aba30aa41c76e08e6eb46"
+  },
+  "draft": {
+    "repository": "incoai/Qwen3.6-35B-A3B-DFlash2",
+    "revision": "51ef7b6923ad6c14cb1bb41c37a9041446496ab6"
+  },
+  "host": {
+    "chip": "Apple M5 Pro",
+    "physicalMemoryBytes": 51539607552,
+    "macOS": "26.6.2",
+    "swift": "6.3.3"
+  },
+  "configuration": {
+    "contextTokens": 8192,
+    "engineMemoryBudgetBytes": 12884901888,
+    "temperature": 0,
+    "seed": 42,
+    "verifyRows": "all",
+    "persistentCache": false
+  },
+  "kind": "native-workbook-dispatch-correctness",
+  "fixtures": {
+    "actualWorkbookTools": 19,
+    "toolGrammarCases": 23,
+    "toolMaskRequests": 217,
+    "promptCases": 15
+  },
+  "requests": [
+    {
+      "finish": 0,
+      "outputTokens": 49,
+      "promptTokens": 4058,
+      "request": 1,
+      "result": {
+        "arithmetic": "decimal",
+        "result": "24.8"
+      },
+      "seconds": 3.1455900836735964,
+      "tool": "calculate",
+      "toolCalls": 1
+    },
+    {
+      "finish": 0,
+      "outputTokens": 179,
+      "promptTokens": 4133,
+      "request": 2,
+      "result": {
+        "category": "record",
+        "created": "2026-10-26T20:38:42Z",
+        "data": {
+          "columns": [
+            {
+              "id": "supplier",
+              "title": "supplier",
+              "type": "text"
+            },
+            {
+              "id": "price",
+              "title": "price",
+              "type": "decimal"
+            },
+            {
+              "id": "quantity",
+              "title": "quantity",
+              "type": "decimal"
+            }
+          ],
+          "rows": [
+            {
+              "price": "2.40",
+              "quantity": "10",
+              "supplier": "Oak Supply"
+            },
+            {
+              "price": "2.75",
+              "quantity": "10",
+              "supplier": "Cedar Tools"
+            }
+          ],
+          "title": "Supplier quotes"
+        },
+        "id": "6c0c8fc1-75ec-4815-90dd-a7bc310a7967",
+        "kind": "table-creation",
+        "logicalID": "8359709c-0451-46a3-827e-a53735285272",
+        "meaning": "actual",
+        "scenario": "actual",
+        "status": "draft",
+        "text": "supplier · price · quantity\n\nOak Supply · 2.40 · 10\nCedar Tools · 2.75 · 10",
+        "title": "Review table: Supplier quotes",
+        "version": 1
+      },
+      "seconds": 5.772904250305146,
+      "tool": "propose_table",
+      "toolCalls": 1
+    },
+    {
+      "finish": 2,
+      "outputTokens": 0,
+      "promptTokens": 4133,
+      "request": 3,
+      "result": null,
+      "seconds": 0.00012179184705018997,
+      "tool": "propose_table",
+      "toolCalls": 0
+    },
+    {
+      "finish": 0,
+      "outputTokens": 49,
+      "promptTokens": 4058,
+      "request": 4,
+      "result": {
+        "arithmetic": "decimal",
+        "result": "24.8"
+      },
+      "seconds": 0.9974092915654182,
+      "tool": "calculate",
+      "toolCalls": 1
+    }
+  ],
+  "terminal": {
+    "acceptedTableRows": 2,
+    "completed": true,
+    "datasetCount": 1,
+    "engineMemoryActual": {
+      "allocated_bytes": 1642391184,
+      "current_bytes": 1646493696,
+      "peak_bytes": 12083298304
+    },
+    "lineage": true,
+    "metalHealthy": true,
+    "reopen": true,
+    "requests": {
+      "cancelled": 1,
+      "completed": 3,
+      "failed": 0,
+      "submitted": 4
+    },
+    "weightsReleased": true
+  },
+  "sourceSHA256": {
+    "Sources/SevraAI/NativeTools.swift": "eb1c759874e277da2857431bc2725d9fc73bdb4bb6de96aa9ab6fb609fb03820",
+    "Sources/SevraSplashText/TextFrontend.swift": "537940a2352eb1ef7e00b6e4ad4082b38dba1ef278161846f1b153ac253ab41c",
+    "Sources/SevraSplashGrammar/ToolPolicy.swift": "51c0aad366c0e9a115ab0c8fa14b2c4a793eda5c649e72a52698bb754f2a7866",
+    "IntegrationTests/Agent/NativeWorkbookProbe.swift": "ab2b2a4133a9a42a9eac28bc07d1e988bca9d3fe26e5925da1fedf5e6739e491",
+    "IntegrationTests/Agent/GrammarChecks.swift": "65d7f93aff0f3684b226789e69505a1fa3936ab781f6c3cc2e860fa72829db57",
+    "IntegrationTests/Agent/main.swift": "35d89fc360785cbf28bbf80c19dc82e395245f8a6749a87b8d066e5d40057365",
+    "IntegrationTests/Agent/workbook-tools.json": "6f56b0f2aa2ceb989af5b138a114b64bf4a3b389bef3e3e330e8ef3f36693be8",
+    "IntegrationTests/Agent/tool-grammar-fixtures.json": "e8f8a3a601a8e1f8d4c876213c5db1a6da730f7adeb08191f7849a274e744b61",
+    "scripts/generate_splash_tool_fixtures.py": "4e1492b4d879119d3219fe7e0adce347a3a5d0ed8b0bca9f132414392bfce7e9"
+  },
+  "limits": [
+    "Explicitly named tools in a synthetic temporary workbook; autonomous WorkbookAgent migration and installed UI acceptance remain pending.",
+    "The fixture performs the separate acceptance operation after checking a draft; model generation does not accept the proposal.",
+    "Normalized tool declarations preserve default-open nested objects and are identical in native/reference comparisons.",
+    "No native model downloader or production-backend promotion is established by this probe.",
+    "The 48 GiB host uses a 12 GiB engine budget. Physical low-memory qualification and matched Python/native performance comparisons remain open.",
+    "Timings are correctness-run observations, not a throughput or speedup claim.",
+    "The production application remains on the preserved Slotstream baseline."
+  ]
+}

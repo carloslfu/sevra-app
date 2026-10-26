@@ -61,3 +61,12 @@ Added bounded native streaming decoder, Qwen reasoning/tool projection and termi
 ## [2026-10-26 20:15] verification | records/operations/implementation.md
 Full check.sh passes: 46 core checks, 20 transport/setup groups, 14 prompt cases, 80 exact decode streams, 31 projections across 3216 chunk layouts, all 248320 vocabulary entries and 105 masks. Real native five-request streaming/tool/cancel/retry probe passed with healthy release; receipt integration/evidence/2026-10-26-native-output.json. Reference output generator reproduced unchanged.
 
+## [2026-10-26 20:41] implementation | records/specs/splash-integration.md
+Added native policy/grammar construction from all 19 actual workbook tools, preserved open nested data, full argument validation and exact-number limits; fixed nested-null prompt rendering. Production backend unchanged.
+
+## [2026-10-26 20:41] verification | records/operations/implementation.md
+Full check.sh passed with 15 exact prompts, 80 decode cases, 31 projections/3216 layouts, 105 base masks and 217 actual-tool masks over 23 cases. Reference generators reproduce unchanged. Native four-request workbook probe passed calculation, draft-before-accept, rows/prices/quantities, reopened values, explicit source lineage, cancellation with zero dispatch, retry and healthy release. Receipt integration/evidence/2026-10-26-native-workbook.json.
+
+## [2026-10-26 20:46] verification | records/operations/implementation.md
+Actual-tool checkpoint: release scripts/build.sh and scripts/check_install.py passed after full core/transport/text/grammar/tool checks; no product backend switch.
+

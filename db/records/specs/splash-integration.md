@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-26T20:12:56.505476+00:00
+updated: 2026-10-26T20:39:53.630815+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
 ---
 # Native Splash integration and upgrades
 
-Revision 3, October 26, 2026. Owner-approved direction; integration not yet qualified.
+Revision 4, October 26, 2026. Owner-approved direction; integration not yet qualified.
 Authority: [[sources/notes/2026/10/workbook-primary-splash-direction]].
 The existing Slotstream build is a preserved baseline, not the future architecture.
 
@@ -112,14 +112,49 @@ truncation, errors and caller stop sequences authorize no calls, including calls
 that closed before the interruption. Refuse unfinished framing, unknown names and
 duplicate parameters instead of applying upstream's permissive repair. Cap calls
 at 16, each argument object/parameter at 256 KiB and JSON nesting at 32. Integer
-tool inputs must fit Int64; exact decimals and larger identifiers use strings.
-Reject lossy integer conversion before Foundation JSON parsing.
+tokens must first fit Int64; workbook arguments also obey I16's exact-range gate.
+Exact decimals and larger identifiers use strings. Reject lossy conversion before
+Foundation JSON parsing and before dispatch into workbook storage.
 
 A projected candidate is not yet a validated or authorized action. Validate the
 complete schema, required fields, semantic limits, evidence references and workbook
 permissions before dispatch. The existing proposal/review/accept contracts remain
-in force. Native tool-grammar construction and the workbook agent adapter must
-complete this gate before production adoption.
+in force. The workbook agent adapter must complete this gate before production adoption.
+
+## Workbook tool schema contract
+
+I16. Build grammars from the actual NativeTools declarations. The prompt, grammar,
+output projection and terminal validator share one normalized schema. Keep the
+normalized fixture checked against those declarations so a copied schema cannot
+drift. Apply the selected Qwen XML framing and pinned upstream grammar conventions,
+including required, automatic and named single-call choices and optional reasoning.
+
+Preserve JSON Schema's default-open nested objects explicitly before strict
+normalization. Table rows, cell edits, named calculation values and record data
+must retain arbitrary application data keys. Top-level tool arguments remain
+closed. These normalized inputs are identical in the Swift/reference comparison.
+No implicit closure of a nested row may discard or prohibit its columns.
+
+The native dialect supports explicit JSON types, nested properties/required and
+additionalProperties, arrays/items, enum/const, string and array size bounds,
+and numeric bounds. Schema depth is at most 24 with 32,768 visited nodes; tool
+names and top-level parameter names use the app's bounded ASCII identifiers.
+References, composition and unknown keywords fail setup instead of being ignored.
+This bounded contract covers all current workbook tools; it is not a general
+replacement for a complete JSON Schema validator.
+
+After successful generation and final grammar validation, check required fields,
+exact types, bounds, enums, constants and additional properties before dispatch.
+Booleans must not compare equal to numeric constants. The workbook's current JSON
+Value representation uses Double, so integer arguments beyond ±9,007,199,254,740,991
+are refused before dispatch; larger identifiers and precise decimal values must
+be strings. Domain rules, evidence checks and user authority remain separate and
+are still required. Model calls can create proposals; human acceptance remains a
+separate operation. Cancellation/truncation cannot dispatch a previously closed call.
+
+Tool-history rendering must preserve nested nulls. Bridge NSNull to the maintained
+Swift Jinja library's boxed-nil representation, after input bounds validation,
+and verify exact prompt token IDs against the upstream template.
 
 ## Verification and performance
 

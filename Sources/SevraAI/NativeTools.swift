@@ -2,7 +2,7 @@ import Foundation
 import SevraCore
 import Slotstream
 
-enum NativeTools {
+package enum NativeTools {
   static func schema(_ type: String, _ description: String) -> JSONValue {
     .object(["type": .string(type), "description": .string(description)])
   }
@@ -61,7 +61,7 @@ enum NativeTools {
   static let components: JSONValue = .object([
     "type": .string("array"), "maxItems": .int(16), "items": componentSchema(depth: 1),
   ])
-  static let definitions: [ToolDefinition] = [
+  package static let definitions: [ToolDefinition] = [
     .init(
       name: "propose_table",
       description:

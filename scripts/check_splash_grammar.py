@@ -14,3 +14,4 @@ if receipt["commit"] != pin["commit"] or hashlib.sha256(library.read_bytes()).he
 pack = json.loads((ROOT / "Sources/SevraSplash/Resources/selected-model.json").read_text())
 model = ROOT / ".build/text-fixture" / pack["target"]["revision"]
 subprocess.run([str(ROOT / ".build/debug/sevra-splash-grammar-checks"), str(model), str(library)], check=True)
+subprocess.run([str(ROOT / ".build/debug/sevra-agent-checks"), str(model), str(library)], check=True)

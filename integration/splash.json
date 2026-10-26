@@ -88,7 +88,7 @@
         "Sources/SevraSplashText/Resources/template-patch.json",
         "Sources/SevraSplashText/StreamingDecoder.swift"
       ],
-      "status": "14-exact-prompt-and-80-streaming-fixtures-passed",
+      "status": "15-exact-prompt-and-80-streaming-fixtures-passed",
       "checks": [
         "IntegrationTests/Text/main.swift",
         "IntegrationTests/Text/fixtures.json",
@@ -108,14 +108,17 @@
       ],
       "swift": [
         "Sources/SevraSplashText/OutputParser.swift",
-        "Sources/SevraSplashText/OutputStream.swift"
+        "Sources/SevraSplashText/OutputStream.swift",
+        "Sources/SevraSplashGrammar/ToolPolicy.swift"
       ],
-      "status": "31-projections-3216-chunk-layouts-and-native-probe-passed-full-schema-dispatch-pending",
+      "status": "projection-full-workbook-schema-validation-and-native-dispatcher-probe-passed-autonomous-actor-pending",
       "checks": [
         "IntegrationTests/Text/OutputChecks.swift",
         "IntegrationTests/Text/output-fixtures.json",
         "IntegrationTests/Grammar/NativeProbe.swift",
-        "scripts/generate_splash_output_fixtures.py"
+        "scripts/generate_splash_output_fixtures.py",
+        "IntegrationTests/Agent/main.swift",
+        "IntegrationTests/Agent/NativeWorkbookProbe.swift"
       ]
     },
     {
@@ -125,15 +128,18 @@
       ],
       "swift": [
         "Sources/SevraSplashGrammar/NativeGrammar.swift",
-        "Sources/SevraSplashText/TextFrontend.swift"
+        "Sources/SevraSplashText/TextFrontend.swift",
+        "Sources/SevraSplashGrammar/ToolPolicy.swift"
       ],
-      "status": "byte-vocabulary-105-mask-fixtures-native-generation-passed-tool-grammar-builder-pending",
+      "status": "vocabulary-105-base-and-217-workbook-mask-fixtures-native-dispatcher-passed",
       "checks": [
         "IntegrationTests/Grammar/main.swift",
         "IntegrationTests/Grammar/NativeProbe.swift",
         "scripts/build_guidance.py",
         "scripts/check_splash_grammar.py",
-        "scripts/generate_splash_grammar_fixtures.py"
+        "scripts/generate_splash_grammar_fixtures.py",
+        "IntegrationTests/Agent/GrammarChecks.swift",
+        "scripts/generate_splash_tool_fixtures.py"
       ]
     },
     {

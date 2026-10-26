@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-26T20:15:58.642241+00:00
+updated: 2026-10-26T20:46:27.202426+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -217,9 +217,9 @@ window and appearance qualification.
 
 - Implement native resumable downloads and setup integration; local preparation
   and its selected-model reference comparison now pass.
-- Implement native tool-schema validation/grammar construction and wire the
-  workbook agent. Prompt, streaming output, tool projection and native grammar
-  fixtures now pass; complete tool dispatch remains unqualified.
+- Wire the autonomous workbook agent to the qualified native frontend components.
+  Actual tool-schema construction/validation and a real native dispatcher/proposal
+  slice now pass; full actor/history/authority workflows remain unqualified.
 - Expand real-model tests to complete text/tool workflows, resource failures and
   restoration after release. Preserve the current baseline during qualification.
 - Qualify with identical requests, failure/recovery cases and matched performance.
@@ -340,3 +340,46 @@ schemas, validate full arguments, connect dispatch/history and qualify complete
 workbook jobs. Native resumable download/setup, packaging/adoption, matched speed
 comparisons and the documented product release gates remain open. The production
 app still uses the preserved Slotstream baseline.
+
+## Actual workbook tool checkpoint, October 26
+
+SplashToolPolicy now constructs the Qwen native grammar from all 19 actual app
+tool declarations. Its normalized schema drives the prompt, parser and complete
+argument validator. The preserved Slotstream baseline has no behavior changes;
+NativeTools declarations gained package visibility for these independent checks.
+
+The integration identified a consequential strict-schema mismatch: upstream strict
+normalization closes unspecified nested objects. Rows, edits, named calculation
+values and record data need arbitrary keys, so the native policy preserves their
+original JSON Schema semantics by making default-open objects explicit. Root tool
+arguments remain closed. The normalized fixture is compared with actual code.
+
+The reference suite covers 23 actual-tool scenarios and 217 full masks for required,
+automatic, named and reasoning output. Native output parsing, schema validation and
+prompt preparation pass for these cases. Wrong types, missing fields, unsupported
+schema keywords, unavailable enum values, extra closed-object fields, wrong version
+constants and lossy large integers are refused. The validator distinguishes booleans
+from numeric constants. Exact integer limits reflect the workbook's current Double
+JSON representation; large IDs and financial decimals travel as strings.
+
+A new tool-history fixture exposed NSNull failing Swift Jinja rendering. The Swift
+frontend now bridges nested nulls to boxed nil after input validation. All 15
+prompt fixtures match the upstream's exact tokens, including that history case.
+
+The opt-in real-engine workbook probe uses the actual tool declarations and core
+dispatcher. It completes decimal calculation, creates a two-row supplier proposal,
+checks that no table exists before separate fixture acceptance, verifies prices and
+quantities, reopens the saved values, checks source-to-proposal-to-acceptance lineage,
+cancels a further proposal with no call dispatched, then calculates successfully
+again. Three requests complete and one cancels; weights release and Metal is healthy.
+These are explicitly selected tools in a synthetic workbook, not a claim that the
+autonomous WorkbookAgent or installed UI has migrated. The sanitized receipt at
+integration/evidence/2026-10-26-native-workbook.json records the exact implementation
+and limits.
+
+The full scripts/check.sh suite and default reference regeneration pass. The prior
+streaming checkpoint c12318a also passed complete public CI. Next: integrate the
+native backend with the autonomous actor and its existing evidence/permission/run
+history rules, implement resumable setup/downloads, compare matched performance,
+then complete packaging/adoption and the remaining J01–J09/UI/search/release gates.
+The release app and CLI build also pass for this checkpoint. Isolated installer checks cover install, update, uninstall, standalone CLI, skill installation/conflicts, workbook preservation and unrelated-CLI protection.

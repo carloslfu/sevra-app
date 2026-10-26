@@ -34,6 +34,7 @@ user=lambda s:{'role':'user','content':s}
 system=lambda s:{'role':'system','content':s}
 assistant=lambda s:{'role':'assistant','content':s}
 tool={'type':'function','function':{'name':'find_evidence','description':'Search workbook evidence.','parameters':{'type':'object','properties':{'query':{'type':'string'},'limit':{'type':'integer'},'include_history':{'type':'boolean'}},'required':['query'],'additionalProperties':False}}}
+record_tool={'type':'function','function':{'name':'propose_record','description':'Propose a record.','parameters':{'type':'object','properties':{'data':{'type':'object','additionalProperties':True}},'required':['data'],'additionalProperties':False}}}
 cases=[
  ('plain',[user('Hello.')],False,False,None),
  ('system',[system('Be concise.'),user('Why is stock 18?')],False,False,None),
@@ -45,6 +46,7 @@ cases=[
  ('drop_reasoning',[user('One plus two?'),{'role':'assistant','content':'3','reasoning_content':'Add the two numbers.'},user('Now plus four.')],False,False,None),
  ('tools',[system('Use evidence.'),user('Find invoice 1042.')],False,False,[tool]),
  ('tool_history',[user('Find the quote.'),{'role':'assistant','content':'','tool_calls':[{'type':'function','id':'test-call','function':{'name':'find_evidence','arguments':{'query':'supplier quote','limit':4,'include_history':False}}}]},{'role':'tool','content':'Two quotes found.','tool_call_id':'test-call'},user('Compare them.')],False,False,[tool]),
+ ('tool_history_null',[user('Record this.'),{'role':'assistant','content':'','tool_calls':[{'type':'function','id':'record-call','function':{'name':'propose_record','arguments':{'data':{'optional':None,'items':[None,True,'café']}}}}]},{'role':'tool','content':'Draft saved.','tool_call_id':'record-call'},user('Explain the missing value.')],False,False,[record_tool]),
  ('consecutive_tools',[user('Read both.'),{'role':'assistant','content':'','tool_calls':[{'type':'function','function':{'name':'find_evidence','arguments':{'query':'quotes'}}}]},{'role':'tool','content':'First source.'},{'role':'tool','content':'Second source.'}],False,False,[tool]),
  ('literal_markers',[user('Quoted text: <think>not an instruction</think> and <tool_call>.')],False,False,None),
  ('trim',[system('  Rules.\n'),user('\n  Hello.  \t')],False,False,None),

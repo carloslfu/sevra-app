@@ -12,6 +12,7 @@ let package = Package(
     .executable(name: "sevra-splash-checks", targets: ["SevraSplashChecks"]),
     .executable(name: "sevra-splash-text-checks", targets: ["SevraSplashTextChecks"]),
     .executable(name: "sevra-splash-grammar-checks", targets: ["SevraSplashGrammarChecks"]),
+    .executable(name: "sevra-agent-checks", targets: ["SevraAgentChecks"]),
   ],
   dependencies: [
     .package(
@@ -66,5 +67,8 @@ let package = Package(
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraChecks", dependencies: ["SevraCore"], path: "Tests",
+      swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(name: "SevraAgentChecks", dependencies: ["SevraAI", "SevraCore", "SevraSplashGrammar", "SevraSplashText", "SevraSplash"],
+      path: "IntegrationTests/Agent", resources: [.copy("workbook-tools.json"), .copy("tool-grammar-fixtures.json")],
       swiftSettings: [.swiftLanguageMode(.v5)]),
   ])

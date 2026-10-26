@@ -171,13 +171,23 @@ public final class SplashTextFrontend {
       try account(message)
     }
     if let tools { try account(tools) }
+    // swift-jinja represents JSON null through a boxed nil optional. NSNull
+    // reaches its unsupported-object path, including in nested tool history.
+    func templateValue(_ value: any Sendable) -> any Sendable {
+      if value is NSNull { return Optional<String>.none as any Sendable }
+      if let object = value as? [String: any Sendable] { return object.mapValues(templateValue) }
+      if let array = value as? [any Sendable] { return array.map(templateValue) }
+      return value
+    }
+    let templateMessages = messages.map { $0.mapValues(templateValue) }
+    let templateTools = tools?.map { $0.mapValues(templateValue) }
     let context: [String: any Sendable] = [
       "enable_thinking": thinking, "preserve_thinking": preserveThinking,
     ]
     func render(_ generation: Bool) throws -> [Int] {
       try tokenizer.applyChatTemplate(
-        messages: messages, chatTemplate: .literal(template),
-        addGenerationPrompt: generation, truncation: false, maxLength: nil, tools: tools,
+        messages: templateMessages, chatTemplate: .literal(template),
+        addGenerationPrompt: generation, truncation: false, maxLength: nil, tools: templateTools,
         additionalContext: context)
     }
     let tokens = try render(true)

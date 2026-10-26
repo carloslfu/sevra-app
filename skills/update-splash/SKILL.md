@@ -41,6 +41,13 @@ marker split points. Preserve Sevra's explicit refusal of incomplete/duplicate o
 unknown calls; permissive reference parsing must not grant workbook authority.
 Require successful native completion and full schema validation before dispatch.
 
+Check all actual workbook tool declarations, not only a small sample. Their
+normalized fixture is compared with NativeTools.definitions by sevra-agent-checks.
+Keep default-open nested objects explicit before strict normalization, so rows,
+edits, named calculation values and record data retain their fields. Compare
+required, automatic, named and reasoning grammar masks with the pinned reference.
+Unsupported schema keywords must fail setup, never silently weaken validation.
+
 Implement affected Swift behavior in small steps. Test protocol bytes against
 the pinned upstream goldens, then exact prompt token IDs and parsed results.
 Reference Python may run in an isolated evaluation environment. A Python-created

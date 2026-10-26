@@ -76,7 +76,7 @@ do {
     guard rejected else { throw SplashError("Invalid frontend input was accepted") }
   }
   print("PASS context, modality, role, size and numeric input limits")
-  print("All 14 pinned-reference text checks passed")
+  print("All \((fixtures["cases"] as! [Any]).count) pinned-reference text checks passed")
   try checkOutput(frontend: frontend)
 } catch {
   fputs("\(error)\n", stderr)

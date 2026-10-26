@@ -28,6 +28,7 @@ jobs:
           rustup toolchain install 1.96.0 --profile minimal
           python3 scripts/build_guidance.py
           swift build --product sevra-splash-grammar-checks -j 3
+          swift build --product sevra-agent-checks -j 3
           python3 scripts/check_splash_grammar.py
       - name: Validate independent knowledge store
         env:
