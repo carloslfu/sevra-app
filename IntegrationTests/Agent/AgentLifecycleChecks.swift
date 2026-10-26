@@ -184,7 +184,8 @@ func checkAgentLifecycle() async throws {
   let balanceModel = ScriptedInference(balanceOnly: true)
   let balanceAnswer = try await WorkbookAgent.run(
     "What is the brass bolt stock? Cite the basis and movements.",
-    workbook: inventory, model: balanceModel)
+    workbook: inventory, context: String(repeating: "Closed archive note. ", count: 5000),
+    model: balanceModel)
   try expectEqual(balanceAnswer.state, "complete")
   try expectEqual(balanceAnswer.steps, 2)
   try expectEqual(balanceAnswer.citations.count, 2)

@@ -30,6 +30,9 @@ public enum WorkbookAgent {
     progress: @escaping @Sendable (String) -> Void = { _ in }, model: any WorkbookInference
   ) async throws -> AgentResult {
     try require(prompt.utf8.count <= 16000, "prompt_limit", "Please shorten this message.")
+    try require(
+      context.utf8.count <= ContextBudget.maximumMessageBytes, "context_structure",
+      "The selected context exceeds its preparation limit.")
     let history = try conversationHistory(workbook, conversation: conversation)
     let requestMessage = try workbook.addMessage(prompt, role: "user", conversation: conversation)
     let policy = """
@@ -93,6 +96,7 @@ public enum WorkbookAgent {
       )
       for step in 1...12 {
         try cancellation.check()
+        try ContextBudget.validateEnvelope(messages)
         let response = try await model.respond(
           messages: messages, directory: modelDirectory, cancellation: cancellation,
           progress: progress, finishOnly: false, citationIDs: inspected.sorted())
@@ -322,10 +326,6 @@ public enum WorkbookAgent {
           InferenceMessage(
             role: "tool", content: String(encoded.prefix(16000)), toolCallId: call.id,
             toolName: call.name))
-        try require(
-          messages.reduce(0) { $0 + $1.content.utf8.count } <= 96000, "context_limit",
-          "This exploration reached its context budget. Continue with a narrower question; completed changes are saved."
-        )
       }
       throw SevraError(
         "step_limit",

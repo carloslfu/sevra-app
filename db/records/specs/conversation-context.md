@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-26T21:43:43.399273+00:00
+updated: 2026-10-26T21:52:34.911224+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -143,6 +143,15 @@ faster decode number.
    native model, then qualify 32K and practical 64K on complete workbook jobs.
 5. Select a measured product profile, integrate progress/recovery in the app, and
    verify J10 plus the existing J01–J09 before adoption.
+
+The first instrumentation stage now provides internal 8K/32K/64K evaluation
+profiles. Native startup and prompt rendering use the same configured capacity.
+Exact prompt counts determine output allowance and a maintenance recommendation
+with provisional reserves of 1,800 output, 2,048 next-result and 256 recovery tokens.
+The recommendation is currently diagnostic; no controller acts on it yet. The 8K
+profile's tool policy can itself exceed that provisional threshold. A controller
+must detect this irreducible floor rather than repeatedly compact unchanged
+history; reserve sizes or supported profiles require measured selection.
 
 Current implementation keeps bounded recent history and closes failed/cancelled
 requests explicitly. It does not yet perform automatic compaction, retain a

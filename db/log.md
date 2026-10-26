@@ -88,3 +88,9 @@ Focused native inventory and full seven-job native probe passed. Packaged Slotst
 ## [2026-10-26 21:43] design | records/specs/conversation-context.md
 Reviewed C01-C13, S17, P18 and J10: automatic context maintenance, preserved history and host-owned status. 32K and 64K remain proposed evaluation targets; implementation pending.
 
+## [2026-10-26 21:56] implementation | records/specs/conversation-context.md
+Added internal 8K/32K/64K profiles and exact rendered-token allowance/maintenance metrics. Replaced the incorrect shared 96KB context guard with a separate bounded preparation envelope; compaction remains pending.
+
+## [2026-10-26 21:56] verification | records/operations/implementation.md
+Occupied inventory jobs passed at 32K and 64K; all seven autonomous jobs passed at 32K. Retained the first envelope failure. Full check.sh, skill validation, zero-warning dbmd validation and links passed. No production adoption or default promotion.
+

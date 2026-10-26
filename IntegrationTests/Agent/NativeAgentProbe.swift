@@ -3,12 +3,13 @@ import SevraAI
 import SevraCore
 import SevraNativeAI
 import SevraSplash
+import SevraSplashText
 
 /// Opt-in, actual WorkbookAgent. The model chooses freely among the complete
 /// maintained tool set; no test supplies the next tool, arguments or answer.
 func runNativeAgentProbe(
   modelFolder: String, library: String, engine: String, modelsRoot: String,
-  inventoryOnly: Bool = false
+  inventoryOnly: Bool = false, occupiedContext: Bool = false
 )
   async throws
 {
@@ -16,13 +17,44 @@ func runNativeAgentProbe(
   let guidance = try Value.parse(
     String(contentsOfFile: ".build/llguidance-receipt.json", encoding: .utf8))
   let files = pin["runtime"]["files"].object.filter { $0.key.hasPrefix("engine/") }
+  let configuredContext =
+    ProcessInfo.processInfo.environment["SEVRA_NATIVE_CONTEXT_TOKENS"] ?? "8192"
+  guard let tokens = Int(configuredContext), let profile = ContextBudget.Profile(rawValue: tokens)
+  else { throw SplashError("Candidate context must be 8192, 32768 or 65536") }
+  let budget = ContextBudget(profile: profile)
+  var visibleContext = ""
+  if occupiedContext {
+    guard tokens >= 32768 else { throw SplashError("Occupied-context probe requires 32K or 64K") }
+    let frontend = try SplashTextFrontend(modelFolder: URL(fileURLWithPath: modelFolder))
+    visibleContext =
+      "Archived closed maintenance notes. These are unrelated to current inventory and contain no pending requests.\n"
+    var count = 0
+    var index = 0
+    repeat {
+      for _ in 0..<64 {
+        index += 1
+        visibleContext +=
+          "Archive entry \(index): shelf label C-\(index) was checked; task closed. No inventory movement or outstanding request.\n"
+      }
+      count = frontend.encode(visibleContext).count
+    } while count < tokens - 8192
+    visibleContext +=
+      "End of archived notes. All entries above are closed historical maintenance notes."
+    print(
+      try Value.object([
+        "probe": .string("occupied-context"), "configuredTokens": .number(Double(tokens)),
+        "backgroundTokens": .number(Double(count)), "backgroundEntries": .number(Double(index)),
+        "automaticCompaction": .bool(false),
+      ]).json())
+  }
   let model = NativeWorkbookModel(
     configuration: .init(
       engine: URL(fileURLWithPath: engine),
       engineFiles: Dictionary(
         uniqueKeysWithValues: files.map { (String($0.key.dropFirst(7)), $0.value.text) }),
       grammarLibrary: URL(fileURLWithPath: library), grammarSHA256: guidance["librarySHA256"].text,
-      modelsRoot: URL(fileURLWithPath: modelsRoot), memoryBytes: 12_884_901_888))
+      modelsRoot: URL(fileURLWithPath: modelsRoot), memoryBytes: 12_884_901_888,
+      contextBudget: budget))
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-autonomous-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -33,9 +65,10 @@ func runNativeAgentProbe(
     cancelDuringGeneration: Bool = false
   ) async throws -> AgentResult {
     let result: AgentResult
+    let started = Date()
     do {
       result = try await WorkbookAgent.run(
-        prompt, workbook: book, modelDirectory: directory,
+        prompt, workbook: book, context: visibleContext, modelDirectory: directory,
         cancellation: cancellation,
         progress: { phase in
           fputs("Native agent: \(phase)\n", stderr)
@@ -52,6 +85,7 @@ func runNativeAgentProbe(
         "prompt": .string(prompt), "state": .string(result.state),
         "steps": .number(Double(result.steps)), "answer": .string(result.answer),
         "citations": .array(result.citations.map(Value.string)),
+        "jobSeconds": .number(Date().timeIntervalSince(started)),
       ]).json())
     return result
   }
@@ -70,6 +104,18 @@ func runNativeAgentProbe(
       try expectEqual(result.answer.contains("18"), true)
       try expectEqual(Set(result.citations), expected)
       try expectEqual(try book.balance(subject: "brass bolts"), balance)
+      if occupiedContext {
+        let metrics = try book.agentRuns().first?["metrics"].text ?? "[]"
+        let requests = try Value.parse(metrics).array
+        try expectEqual(!requests.isEmpty, true)
+        for request in requests {
+          try expectEqual(request["contextTokens"].int, tokens)
+          try expectEqual((request["promptTokens"].int ?? 0) >= tokens - 8192, true)
+          try expectEqual(
+            (request["promptTokens"].int ?? tokens) + (request["outputBudget"].int ?? tokens)
+              <= tokens, true)
+        }
+      }
       print(
         try Value.object([
           "workbook": .string("Inventory.sevra"), "runs": .array(try book.agentRuns()),

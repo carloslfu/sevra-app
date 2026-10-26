@@ -114,7 +114,8 @@
         "Sources/SevraAI/WorkbookInference.swift",
         "Sources/SevraAI/ConversationHistory.swift",
         "Sources/SevraNativeAI/NativeWorkbookModel.swift",
-        "Sources/SevraNativeAI/NativeCitationPolicy.swift"
+        "Sources/SevraNativeAI/NativeCitationPolicy.swift",
+        "Sources/SevraAI/ContextBudget.swift"
       ],
       "status": "full-workbook-schema-and-autonomous-native-jobs-passed-production-adoption-pending",
       "checks": [
@@ -125,7 +126,8 @@
         "IntegrationTests/Agent/main.swift",
         "IntegrationTests/Agent/NativeWorkbookProbe.swift",
         "IntegrationTests/Agent/AgentLifecycleChecks.swift",
-        "IntegrationTests/Agent/NativeAgentProbe.swift"
+        "IntegrationTests/Agent/NativeAgentProbe.swift",
+        "IntegrationTests/Agent/ContextBudgetChecks.swift"
       ]
     },
     {

@@ -51,6 +51,12 @@ Unsupported schema keywords must fail setup, never silently weaken validation.
 Run the opt-in autonomous WorkbookAgent probe as well as forced-tool fixtures.
 Preserve conversation review/acceptance state, citation and calculation checks,
 truthful search coverage, native generated spaces and cancellation/lease recovery.
+Review the [conversation continuity contract](../../db/records/specs/conversation-context.md)
+when context, templates or memory planning changes. Exact rendered tokens must
+include tool schemas/history. Keep output and tool-result recovery headroom,
+original conversation receipts and current workbook authority through maintenance.
+An engine accepting 32K or 64K is not a qualified context profile. Exercise occupied
+contexts and complete jobs, including repeated compaction when implemented.
 The internal candidate boundary must not become a user backend picker. Keep the
 production baseline until the packaging, performance and application gates pass.
 

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-26T21:28:22.823413+00:00
+updated: 2026-10-26T21:48:32.927178+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -290,3 +290,30 @@ the same command. It checks that a computed stock answer cites exactly the openi
 basis and accepted movement versions and leaves inventory unchanged. The actor
 fixture also proves that those references are eligible immediately after balance,
 without requiring a redundant read of each version.
+
+## Candidate context profiles
+
+Only development checks read SEVRA_NATIVE_CONTEXT_TOKENS. Supported evaluation
+values are 8192 (the default), 32768 and 65536. This does not change the installed
+app or declare a qualified hardware default. Exact rendered prompt counts,
+output allowance and a proactive maintenance recommendation are recorded in each
+native request's metrics. The current implementation records the recommendation;
+automatic compaction is still pending under [[records/specs/conversation-context]].
+
+For an occupied 32K inventory probe, use:
+
+~~~sh
+SEVRA_NATIVE_CONTEXT_TOKENS=32768 .build/debug/sevra-agent-checks --occupied \
+  /path/to/qwen36-35b-a3b-4bit \
+  .build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib \
+  .build/upstream/splash-native-1.4.1/engine/splash \
+  .build/splash-models
+~~~
+
+The fixture includes at least context-size minus 8192 tokens of closed archive
+notes, then runs the actual inventory agent and requires exact balance citations
+and unchanged inventory. It checks actual per-request occupancy and output bounds.
+This synthetic stress case is not a realistic long-conversation or repeated
+compaction qualification. Run --autonomous with the same environment setting to
+check all seven shorter jobs at that allocation. Memory remains 12 GiB; wider
+hardware/memory budgets require separate recorded qualification.

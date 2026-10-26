@@ -17,9 +17,11 @@ package actor NativeWorkbookModel: WorkbookInference {
     package let grammarSHA256: String
     package let modelsRoot: URL
     package let memoryBytes: UInt64
+    package let contextBudget: ContextBudget
     package init(
       engine: URL, engineFiles: [String: String], grammarLibrary: URL,
-      grammarSHA256: String, modelsRoot: URL, memoryBytes: UInt64
+      grammarSHA256: String, modelsRoot: URL, memoryBytes: UInt64,
+      contextBudget: ContextBudget = .init()
     ) {
       self.engine = engine
       self.engineFiles = engineFiles
@@ -27,6 +29,7 @@ package actor NativeWorkbookModel: WorkbookInference {
       self.grammarSHA256 = grammarSHA256
       self.modelsRoot = modelsRoot
       self.memoryBytes = memoryBytes
+      self.contextBudget = contextBudget
     }
   }
   package let identity =
@@ -165,7 +168,8 @@ private final class NativeWorker: @unchecked Sendable {
       helper = try SplashNativeProcess(
         executable: configuration.engine,
         arguments: [
-          "serve-native", assembly.path, "8192", String(configuration.memoryBytes),
+          "serve-native", assembly.path, String(configuration.contextBudget.contextTokens),
+          String(configuration.memoryBytes),
           "--persistent-cache", "off", "--idle-sleep", "allow", "--verify-rows", "all",
         ],
         timeout: 180, cancelled: { cancellation.isCancelled || cancellation.isExpired })
@@ -243,13 +247,12 @@ private final class NativeWorker: @unchecked Sendable {
     _ finishOnly: Bool, _ citationIDs: [String]
   ) throws -> (NativeReply, Value) {
     let policy = try NativeCitationPolicy.make(citationIDs, finishOnly: finishOnly)
+    let budget = configuration.contextBudget
     let prompt = try session.frontend.prepare(
-      messages: messages.map(Self.templateMessage), tools: policy.promptTools())
-    let outputBudget = min(1800, 8192 - prompt.tokens.count)
-    try require(
-      outputBudget >= 256, "context_limit",
-      "This exploration reached its context budget. Continue with a narrower question; completed changes are saved."
-    )
+      messages: messages.map(Self.templateMessage), tools: policy.promptTools(),
+      contextLimit: budget.contextTokens)
+    let allowance = try budget.allowance(promptTokens: prompt.tokens.count)
+    let outputBudget = allowance.outputTokens
     let constraint = try session.factory.create(grammar: policy.grammar)
     let output = try SplashOutputStream(frontend: session.frontend, tools: policy.outputTools)
     session.requestID += 1
@@ -289,6 +292,11 @@ private final class NativeWorker: @unchecked Sendable {
       "requestSeconds": .number(generated.requestSeconds),
       "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
       "promptTokens": .number(Double(prompt.tokens.count)),
+      "contextTokens": .number(Double(budget.contextTokens)),
+      "maintenanceThreshold": .number(Double(budget.maintenanceThreshold)),
+      "maintenanceRecommended": .bool(allowance.maintenanceRecommended),
+      "nextToolResultReserve": .number(Double(budget.nextToolResultReserve)),
+      "recoveryReserve": .number(Double(budget.recoveryReserve)),
       "outputBudget": .number(Double(outputBudget)),
       "generatedTokens": .number(Double(generated.tokens.count)),
       "prefillSeconds": .number(Double(generated.done.prefillMicros) / 1e6),

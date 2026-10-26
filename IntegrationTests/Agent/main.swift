@@ -187,6 +187,7 @@ func expectValue<T>(_ value: T?) throws -> T {
   return value
 }
 do {
+  try checkContextBudget()
   try await checkAgentLifecycle()
   let checks = ToolPolicyChecks()
   try checks.testActualWorkbookSchemas()
@@ -196,12 +197,13 @@ do {
     "PASS actual workbook schemas, open row/record data, full argument validation and schema refusals"
   )
   if CommandLine.arguments.count == 6
-    && ["--autonomous", "--inventory"].contains(CommandLine.arguments[1])
+    && ["--autonomous", "--inventory", "--occupied"].contains(CommandLine.arguments[1])
   {
     try await runNativeAgentProbe(
       modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], modelsRoot: CommandLine.arguments[5],
-      inventoryOnly: CommandLine.arguments[1] == "--inventory")
+      inventoryOnly: CommandLine.arguments[1] != "--autonomous",
+      occupiedContext: CommandLine.arguments[1] == "--occupied")
   } else if [3, 5].contains(CommandLine.arguments.count) {
     let frontend = try SplashTextFrontend(
       modelFolder: URL(fileURLWithPath: CommandLine.arguments[1]))
@@ -218,7 +220,7 @@ do {
     }
   } else if CommandLine.arguments.count != 1 {
     throw SplashError(
-      "Usage: sevra-agent-checks [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT"
+      "Usage: sevra-agent-checks [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory/--occupied MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536 in development checks."
     )
   }
 } catch {

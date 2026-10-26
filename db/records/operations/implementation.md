@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-26T21:43:43.519501+00:00
+updated: 2026-10-26T21:56:57.240676+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -485,3 +485,61 @@ acceptance journey. Implementation sequence is explicit: profile/budget metrics,
 durable checkpoints and history retrieval, tool-free compaction with host-owned
 continuation state, repeated real-model qualification, then app adoption. Automatic
 compaction and arbitrary older-history retrieval remain unimplemented.
+
+## Context profile instrumentation and occupied probes, October 26
+
+The candidate now has explicit internal 8K/32K/64K evaluation profiles. Engine
+startup and prompt rendering use one configured capacity. Exact rendered tokens
+control output allowance; request metrics record capacity, token counts and a
+provisional maintenance recommendation. Output/result/recovery reserves are
+1,800/2,048/256 tokens. These are instrumentation, not an implemented compactor.
+The 8K development default is unchanged. The tool-policy floor can already exceed
+its provisional maintenance threshold, so a future controller must detect an
+irreducible prompt instead of repeatedly compacting unchanged history.
+
+The first occupied 32K attempt executed balance, then failed on an old shared
+96,000-byte guard that was incorrectly presented as a context limit. The fix keeps
+a separate 1 MiB UTF-8 preparation envelope, accounts for tool arguments and message
+count before each request, and leaves exact token limits to the backend. No message
+or tool pair is truncated by this envelope check. Boundary tests include Unicode,
+oversized call arguments, exhausted output space and a complete two-step inventory
+answer with over 96,000 bytes of context. The original failed attempt is retained.
+
+After that fix, one occupied inventory task passed at each allocation:
+
+- 32K: 24,891 background tokens, actual rendered requests from 29,482 to 30,411
+  tokens, four model steps and about 45.81 seconds for the complete job.
+- 64K: 59,245 background tokens, actual rendered requests from 63,831 to 64,767
+  tokens, four model steps and about 108.91 seconds for the complete job.
+
+Both returned 18 brass bolts with exactly the opening-basis and accepted-movement
+citations; stored inventory was unchanged. The synthetic background consists of
+closed archive notes. This is an occupancy stress check, not realistic prolonged
+conversation memory or a qualified product default. The reference host is M5 Pro
+48 GiB; engine budget is 12 GiB. The source-bound sanitized receipt is
+integration/evidence/2026-10-26-native-context-profiles.json.
+
+Input processing dominates these observations: the first two prefill phases were
+about 13/17 seconds at 32K and 40/50 seconds at 64K. Inspection shows that adding
+inspected citation IDs changes the tools embedded at the prompt start; prefix
+cache reuse is therefore a specific follow-up hypothesis to measure. Do not claim
+that cause or a speedup without a controlled comparison. Full-engine memory,
+pressure, SSD and thermal qualification remain open, as do automatic compaction,
+durable checkpoints, history retrieval and J10. Neither allocation is promoted.
+
+The complete seven-job autonomous probe also passed at the 32K allocation after
+the envelope fix: five complete answers, one proposal requiring review, and one
+deliberate cancellation. These shorter prompts check table review/reopen/lineage,
+comparison, native space, hostile evidence, missing evidence, cancellation/retry
+and lease release. They are distinct from the occupied inventory probes and do
+not establish repeated compaction or general long-conversation quality. Their
+results are included in the same context-profile evidence file.
+
+Verification for this checkpoint: the full scripts/check.sh suite passes, including
+46 core checks, 20 native transport/preparation groups, 15 exact prompts, 80 streamed
+decodes, 31 projections/3,216 layouts, all 248,320 vocabulary entries, 105 base and
+217 actual-tool masks, shared-agent lifecycle and the new context boundaries.
+The upgrade skill validator passes. Full db.md validation has zero errors/warnings
+and repository links pass. No production-backend switch or installed-app overwrite
+was performed. Next implementation dependency is durable conversation/checkpoint
+storage and exact history retrieval, followed by the compaction controller.
