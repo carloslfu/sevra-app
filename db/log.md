@@ -250,3 +250,15 @@ Retain failed incomplete W1 cohort after both frontends bypassed exact search-ga
 ## [2026-10-27 13:09] implementation | records/operations/implementation.md
 Reproduce current-request citation escape, repair host missing-evidence presentation, pass six new and existing shared-agent checks, prepare exact block-3 real-model replay. All 15 document checks pass locally.
 
+## [2026-10-27 13:19] verification | records/operations/implementation.md
+Local full suite and both document CLI checks pass; native draft failure/conflict/close/reopen verified. Hosted checkpoint artifact downloaded/hash-checked; fixed model replay running, adoption still gated.
+
+## [2026-10-27 13:25] design | records/specs/product.md
+Clarify exact/logical document bindings and atomic pinned search pages with coverage limits; separate implementation prepared, runtime verification pending.
+
+## [2026-10-27 13:26] implementation | records/operations/implementation.md
+Pinned document/search correction and five tests prepared on isolated 3b5eda2; no local compile/runtime claim while primary model replay remains frozen.
+
+## [2026-10-27 13:28] verification | records/operations/implementation.md
+Frozen current-request regression passed 16 jobs plus 2 primes and 37 exact request/token pairs; processes closed and hashes unchanged. Functional repair only, fresh full W1 still required.
+

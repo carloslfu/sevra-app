@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T12:52:28.900328+00:00
+updated: 2026-10-27T13:25:06.785804+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -84,6 +84,20 @@ Edits target the exact displayed version. Autosave publishes the submitted text 
 its derived draft atomically, preserving meaning, scenario and metadata. Accept,
 Undo and the conversation context use the newly saved version. Earlier citations
 remain pinned to their original version.
+A document or asset binding may name a logical item to follow its current version,
+or an exact item version to preserve that reference. Pinning resolves every logical
+binding, including comparison children, in the same transaction as the saved copy.
+A pinned search stores the visible first eight results with exact versions and
+locators, its query, capture time, index-gap count and whether more results existed.
+It does not rerun later or imply an exhaustive result when only a page was saved.
+Empty results retain their search limits. Live searches refresh off the UI thread;
+errors and incomplete indexing must not disappear as an unexplained blank view.
+The whole copy labels its capture time; pinning an already pinned copy preserves
+the earlier results and time. An unpinnable child refuses the complete operation.
+External asset links remain references with visible changed/missing-file checks;
+pinning metadata does not silently import or freeze externally owned file bytes.
+Earlier partially pinned spaces retain their stored data without fabricated
+historical search results. New optional snapshot metadata keeps them readable.
 P12. Tables support column types, stable row identity, scrolling/virtualization,
 selection, sorting, filtering, editing, copy/paste, undo and CSV export. Edits
 append source information and new versions. Multi-cell paste is one atomic change.

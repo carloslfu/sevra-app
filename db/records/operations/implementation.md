@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T13:09:52.930935+00:00
+updated: 2026-10-27T13:28:24.604922+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -14,58 +14,46 @@ specifications remain the acceptance contract. A source commit does not imply th
 every requirement or supported hardware profile has passed.
 
 ## Current direction, October 27
-
 This remains a development build. The installed app uses the preserved Slotstream
 baseline; the separate native preview uses the Python-free Swift adapter and
 unchanged pinned Splash C++/Metal engine. Automatic compaction and native
 production adoption remain disabled pending their recorded gates.
 
-- Search overclaims and exact reference selection have host-side safeguards and
-  real-model regression evidence. Empty searches report the actual queries and
-  incomplete-source count; they do not establish that a document does not exist.
-  These are bounded checks, not general semantic truth verification.
+- The frozen W1 cohort on ed6ffd0 failed the missing-evidence assertion on both
+  frontends. Its current-request citation bypassed the exact search-gap receipt.
+  The failed cohort and partial timings remain preserved and cannot qualify speed.
+- The host correction now rejects the current request as independent evidence for
+  requested external facts and retains valid user-supplied inputs. Six regression
+  cases and the complete local suite pass. The actual block-3 replay on frozen
+  8d0bb6e passes all sixteen jobs and both Ready primes, with exact paired request
+  and generated-token equality. This repairs that case; it is not a speed gate.
 - Native setup has completed a fresh 21.48 GB download, cancellation/resume,
   digest verification and atomic publication. Settings cancellation, explicit
-  reuse and reverification pass. Both packaged variants and isolated installation
-  pass on the recorded Mac; broader hardware remains unqualified.
-- The corrected W1 pilot passed. The full cohort on frozen ed6ffd0 subsequently
-  failed its missing-evidence assertion on both frontends in block 3, sequence 4.
-  It was stopped after five complete pairs and one further warmup; all owned
-  processes exited and frozen source/binary hashes matched. The partial timings
-  are not a performance pass. See W1 current-request evidence failure below.
+  reuse and reverification pass on the recorded Mac; wider hardware remains
+  unqualified. Both app/CLI variants rebuilt after the current correction.
+- All 15 document durability checks pass locally, and both packaged CLIs pass
+  atomic edit/retry/stale/copy/file-boundary checks. Visible native checks now
+  verify edited-version acceptance, pinned earlier references, retained text after
+  failed saves, close/quit refusal, concurrent-edit recovery through conversation,
+  and immediate-close/reopen durability. Narrow layout and large-text behavior
+  remain separate checks.
+- The 14 injected voice lifecycle checks and four checkpoint process-death,
+  cancellation and concurrency checks pass locally and in their recorded hosted
+  runs. The hosted checkpoint artifact was downloaded, hash-verified and inspected.
+  Hardware recognition, actual-model C12/C13 and broader UI journeys remain open.
 - Native table identity/stale edits, paginated search/Back, PDF/OCR/CSV intake,
-  inherited citations and long-conversation navigation have focused automated
-  and visual evidence. Six native continuity requests pass across three
-  checkpoints, including current acceptance/withdrawal and portable recovery.
-  That does not complete C12/C13 or the full J01–J10 journeys.
-- The isolated codex/voice-lifecycle branch repairs permission/recognition races,
-  typed draft replacement and incomplete playback cleanup. The 14-check voice
-  step and complete workflow passed on 7f93617 in hosted CI run 40502209056. Run 40501522585 on superseded 04ce5c2 was cancelled before the
-  voice step. Local execution, hardware recognition and native visual replay
-  remain pending. See Voice and media lifecycle repair below.
-- The descendant codex/context-durability branch adds four checkpoint publication
-  checks at real transaction/process-death boundaries. All four passed on c0ac40f
-  in hosted CI 40503178418; its complete workflow also passed. Local
-  replay and actual-model C12/C13 qualification remain separate. See Checkpoint
-  publication process-death checks below.
+  inherited citations and long-conversation navigation have focused evidence.
+  Six native continuity requests pass across three checkpoints, including current
+  acceptance/withdrawal and portable recovery. That does not complete J01-J10.
 
-- The descendant codex/document-drafts branch prepares atomic document revisions,
-  current-version acceptance/context, retained text after refused saves, native
-  close/quit guards and a matching CLI command. All 14 initial document checks
-  passed on 9bc7ab4 in hosted CI 40507262611; the rest of that workflow is still
-  running. A fifteenth storage-fault check and narrow conflict-action layout are
-  prepared for local execution. See Document draft durability below.
-
-Next, fix the current-request citation escape from the missing-evidence receipt,
-then run the actual failed case and packaged regressions. Locally integrate and
-replay the voice/media, checkpoint and document repairs, including native UI now
-that the Mac is unlocked. Continue occupied-context and repeated-compaction
-recovery, whole-app memory/headroom, search scale/interruption and installation
-journeys. A fresh complete W1 cohort is required after the candidate is corrected.
-Native production adoption, baseline removal and release remain gated.
-[[records/specs/splash-integration]], [[records/specs/conversation-context]] and
-[[records/operations/build-and-run]] own the contracts and reproduction commands.
-
+Next, integrate and verify the prepared pinned document/search correction, then
+run a fresh complete W1 cohort on the corrected frozen candidate. Continue whole-app memory/headroom,
+occupied-context and repeated-compaction recovery, search scale/interruption,
+live/pinned document and search semantics, and native media/voice/accessibility
+and installation journeys. Native production adoption, baseline removal and
+release remain gated. [[records/specs/splash-integration]],
+[[records/specs/conversation-context]] and [[records/operations/build-and-run]] own
+the contracts and reproduction commands.
 ## Earlier checkpoint summaries, October 27
 
 The following passages retain earlier development states. Statements about tests
@@ -1422,3 +1410,79 @@ All 15 document checks now pass locally, including the new forced second-insert
 failure, rollback and retry case. Local logs are .build/document-verification/.
 The narrow layout change still needs visible replay. The previous freeze is over;
 local builds and UI checks may resume, with no performance claim from overlap.
+
+## Local lifecycle and visible document verification
+The full scripts/check.sh suite passes locally on 8d0bb6e, including all 15
+document checks, 14 injected voice checks and the four checkpoint publication
+process-death/cancellation/concurrency checks. Both app/CLI variants rebuilt;
+the native package paths check and both packaged document CLI runners pass.
+The complete hosted workflow for 9bc7ab4 also passed as 40507262611; the newer
+0ad35e3 and 8d0bb6e runs are still in progress at this checkpoint.
+
+On the unlocked Mac, a synthetic native workbook accepted the just-edited 0.25 kg
+text while preserving estimate meaning. A saved exact reference still opened its
+original 0.10 kg version with an earlier-version notice; only the explicit newer
+version action navigated forward. A fixture SQLite trigger rejected the second
+insert after the Source insert: Done retained text, window close refused and the
+actual native Quit menu refused. After removing the fixture trigger and writing
+0.45 kg through the CLI, Retry reported the competing head without losing the
+editor's 0.35 kg text. The conversation command Keep my changes as a separate draft
+preserved both. Typing 0.55 kg and immediately closing the window persisted it;
+reopening displayed that text and SQLite integrity passed. Native Quit succeeded
+once saves were complete. Cmd-Q first returned to the welcome window, so shortcut
+termination is not claimed from that observation.
+
+Hosted checkpoint artifact 12734101119 was downloaded and independently matched
+its recorded SHA256 1dc8f4bb13bc2299e1313eb134832bf367dffc224d48360efca3073613b3ebf5.
+Its result.json confirms all four checks. This supersedes the earlier pending
+artifact-inspection/local-replay status without erasing that historical checkpoint.
+The public archive integration/evidence/2026-10-27-document-lifecycle-qualification.json.gz
+contains 17 retained logs, source/binary identities, synthetic item versions,
+visible observations and inspected hosted evidence. Its 173,905 uncompressed
+bytes have SHA256 06a857bbe3c01a004778f5b6f29c68127e1ab065c78dac689e69e66b0d74fb00.
+These are focused checks, not complete keyboard/VoiceOver, narrow layout, hardware
+voice/media, large-text responsiveness, all spaces or release qualification.
+The fixed actual-model missing-evidence replay is running separately with frozen
+sources and has no final result yet.
+
+## Complete pinned-space bindings prepared
+Source review confirmed that pinSpace only captured table-derived values. A logical
+document/asset binding could advance after pinning, and search components reran
+against current indexes while the space implied a saved result. The separate
+codex/space-snapshots branch (3b5eda2) prepares one atomic copy with resolved exact
+item versions, nested comparison bindings and the bounded first search page.
+Saved query/time/versions/locators, index-gap count and a more-results flag preserve
+its scope. Re-pinning keeps original results/time. Live searches move off view
+rendering through the existing stale-result-safe session, with explicit errors,
+empty results and coverage limits. External file references remain references.
+
+Five new core checks cover changes after capture, exact old references, reopened
+and portable workbooks, original empty-search gaps, idempotent re-pinning, bounded
+search pages, invalid pinned/live declarations and atomic refusal of an oversized
+child. Formatting passes. This branch is prepared but has not compiled or run
+locally; no runtime pass is claimed. The fixed current-request replay continues
+against untouched primary-checkout sources. Merge and execute this work only after
+that replay is terminal, retaining both source identities and failed attempts.
+
+## Current-request real-model replay passed
+The fixed original block-3 schedule completed on both frontends using frozen
+8d0bb6e sources and the unchanged engine/model/grammar pins. All sixteen workflow
+jobs and both Ready primes passed. All 37 paired actual requests and generated
+outputs match exactly. Both workers confirmed clean closure, all recorded processes
+were absent afterward and every frozen source/binary hash still matched.
+
+The original seed-3005 missing-evidence case still needed one host correction on
+each frontend. Its final answer now reports the actual two empty queries, exactly
+one incomplete source and that those searches do not establish the requested facts,
+with no displayed citation to the current request. Seed 3006 also retains its
+currency correction on both frontends. Corrections and their latency are retained;
+this is not a claim that every raw model answer was correct or that unrelated
+semantic grounding is solved.
+
+Public evidence is integration/evidence/2026-10-27-current-request-replay.json.gz,
+including original request/prompt/generated-token data, sampling, exact source
+snapshots, summary and post-run verification. Its 5,090,684 uncompressed bytes have
+SHA256 cea200bd696e4fd22c8f11f9d046ec7aac9561fb6129f81ca4ce00b1cb915047.
+The earlier failed cohort remains unchanged. This focused regression is not the
+complete ten-block W1 performance cohort, an occupied-context qualification or
+production adoption. Measured-source editing and local builds may resume now.
