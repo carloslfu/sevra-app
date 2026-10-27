@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-27T14:45:36.358521+00:00
+updated: 2026-10-27T15:23:23.441985+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -160,3 +160,37 @@ effect. Leaving the search view cancels active work while retaining completed
 pages, cursor and anchor for Back. Cancelling a continuation preserves its earlier
 pages and allows retry with a fresh token. A cooperative cancellation is not a
 search failure or a new empty-result claim.
+
+## Search-scale protocol v2
+The maintained benchmark runs 10,000 and 100,000 dataset rows and document chunks,
+with at most 1,000 multi-chunk documents. Both corpora are required for Q14. A
+first pass uses one reopened connection; it is not an OS-cold measurement. Five
+warm repetitions retain every query, elapsed time, result identity and failure.
+Report pooled first-pass/warm p50 and p95 using the explicit nearest-rank method;
+raw samples remain available for per-query inspection. The full 100k warm p95
+target remains below 200 ms. Do not compare the revised query matrix and percentile
+method as if they were identical to earlier benchmark runs.
+
+Check exact SKU/version matches, accent normalization and expected first-page
+shape, partial filenames, empty results and duplicate-free evidence. Traverse all
+multi-chunk document pages and compare the exact complete ID set with the fixture.
+Retain the earlier numeric-sort measurement and check its maximum fixture value.
+These checks do not establish semantic/agent recall across arbitrary wording.
+
+A cancellation probe signals Stop 5 ms after the public search call starts, then
+records whether that call had already returned, its outcome and stop-to-return
+time. A completed fast call is an uncovered interruption case, never a pass for
+interruption. Full 100k cases require an observed cancellation returning in less
+than one second, an unchanged workbook revision and a successful following query.
+This observes the public call, not the exact SQLite instruction at cancellation.
+The 200-entry CI self-check does not enforce or qualify large-workload latency or
+interruption. Its skipped cancellation target is null, with explicit required=false.
+
+Keep unique output folders with fixtures, per-corpus reports, raw samples, source
+and executable hashes, commit/dirty state, OS, processor and physical memory.
+Compare final source/binary hashes with the initial identities. Failures and
+missing coverage remain in the result and cause a failed full protocol check.
+A source-level self-check cannot qualify physical hardware, native UI, occupied
+model contexts or OS-cold performance. Run the full release binary without other
+inference/build activity and review power/thermal conditions before declaring Q14
+qualified. The output itself does not automatically declare performance adoption.

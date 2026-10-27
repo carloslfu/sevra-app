@@ -346,3 +346,6 @@ Record full composer checkpoint pass, retained search-fixture failures/correctio
 ## [2026-10-27 15:03] verification | records/operations/implementation.md
 Corrected 426dd2d search runtime passed with earlier core/catalog/lifecycle checks; full app and native interaction checks remain pending.
 
+## [2026-10-27 15:23] implementation | records/operations/implementation.md
+Prepare versioned 10k/100k search-scale evidence, exact recall/paging and call-level cancellation qualification; small CI and full hardware runs pending.
+

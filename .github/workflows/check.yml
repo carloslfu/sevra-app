@@ -19,6 +19,22 @@ jobs:
         run: swift build --product sevra-checks -j 3
       - name: Run invariant and integration checks
         run: .build/debug/sevra-checks
+      - name: Check search-scale fixture recall, paging and reports
+        run: |
+          swift build --product sevra-benchmark -j 3
+          .build/debug/sevra-benchmark --self-check
+      - name: Retain search-scale fixture evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: search-scale-self-check
+          path: |
+            .build/search-scale-*/identity.json
+            .build/search-scale-*/result.json
+            .build/search-scale-*/rows-200.json
+            .build/search-scale-*/documents-200.json
+          include-hidden-files: true
+          if-no-files-found: ignore
       - name: Check document draft durability and native close guards
         run: |
           swift build --product sevra-document-checks -j 3

@@ -6,6 +6,8 @@ python3 scripts/generate_brand.py --check
 swift build --product sevra-checks -j "${SEVRA_BUILD_JOBS:-4}"
 BIN=$(swift build --show-bin-path)
 "$BIN/sevra-checks"
+swift build --product sevra-benchmark -j "${SEVRA_BUILD_JOBS:-4}"
+"$BIN/sevra-benchmark" --self-check
 swift build --product sevra-document-checks -j "${SEVRA_BUILD_JOBS:-4}"
 "$BIN/sevra-document-checks"
 swift build --product sevra-preview-checks -j "${SEVRA_BUILD_JOBS:-4}"

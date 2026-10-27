@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T15:03:30.138679+00:00
+updated: 2026-10-27T15:23:23.473630+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1887,3 +1887,28 @@ do not establish native large-query interruption latency or final visible UI.
 The prior af702ee full run 40525067058 failed after its passing core/catalog and
 preview steps, before the test-helper correction. Retain that failed checkpoint;
 the passing corrected search result belongs to 426dd2d, not to the earlier source.
+
+## Search-scale qualification strengthened, prepared
+The old benchmark reported aggregate times and limited recall booleans without
+refusing a failed recall result, retained no complete warm sample set and ran the
+document corpus only under an environment flag. The prepared v2 default covers
+both 10k/100k corpora, preserves every sample and fixture, checks exact IDs and
+complete multi-chunk paging, and fails its protocol result on semantic errors or
+missed 100k latency/interruption targets. Hardware, actual source/binary hashes and
+initial/final identity are recorded. Numeric sorting remains measured.
+
+The cancellation probe reports a fast already-finished call as uncovered, retains
+that observation and verifies that subsequent reads still work. It does not claim
+to trace SQLite instructions or solve native MainActor responsiveness. The small
+200-entry self-check now runs in CI/shared checks and uploads bounded JSON reports,
+not large fixture databases. It cannot qualify 100k performance. The nearest-rank
+percentile and changed query matrix are versioned rather than silently treated as
+the earlier roughly 220 ms observation.
+
+Formatting, shell syntax and diff checks pass. New compilation and small-fixture
+runtime remain pending hosted CI; full reference-Mac measurement stays deferred
+until the independently frozen W1 cohort ends. No local build, scale corpus or
+model workload was started alongside W1. The complete workspace-ownership build
+9044e5e has meanwhile passed hosted run 40523815521. The current 426dd2d workflow
+has passed its baseline app/install checks and is building the isolated native
+preview; its final result remains pending.

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T14:24:52.013790+00:00
+updated: 2026-10-27T15:23:23.400802+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -96,8 +96,12 @@ swift build -c release --product sevra-benchmark
 The checks use a standalone executable so they work with command line tools alone.
 dbmd 0.14.7 or later is required for the final knowledge-store validation.
 See the official [db.md repository](https://github.com/carloslfu/db.md) for
-installation. The benchmark is synthetic and creates temporary workbooks.
-
+installation. The benchmark retains synthetic workbooks and JSON evidence in a
+new .build/search-scale-<id> directory printed at startup. It runs both row and
+multi-chunk document corpora at 10k and 100k by default. Use --rows-only or
+--documents-only for an explicitly narrower diagnostic, or --self-check for the
+small fixture/regression run included in CI. Neither a small run nor a single
+corpus qualifies the complete scale requirement. See [[records/specs/search]].
 ## Candidate Splash checks
 
 These are development checks for the candidate adapter, not the app's active
