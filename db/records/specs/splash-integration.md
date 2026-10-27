@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T06:04:09.068142+00:00
+updated: 2026-10-27T07:33:44.076707+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -313,3 +313,21 @@ LLGuidance fixes JSON object property order to the order supplied in each schema
 For JSON-valued tool arguments, Sevra now emits nested properties in declared required-field order followed by optional fields in alphabetical order. XML argument order remains unchanged. This keeps column identity/type before optional formula and unit metadata. Required properties, types, additional-property rules and terminal validation are unchanged. The pinned reference receives the same application-owned schema order; the grammar engine itself is unchanged.
 
 The fixture generator records required-first nested ordering and includes a planning-table formula case. All 28 actual-tool cases and 249 speculative mask comparisons match the pinned reference. These fixture results establish grammar parity for the declared inputs, not model success on every request.
+
+## Complete-workbook comparison W1
+W1 runs the actual shared WorkbookAgent, typed tools, SQLite persistence and validation against two frontends: the native Swift candidate and a development-only private-pipe adapter to the pinned Python reference. Both use the same unchanged Splash C++/Metal helper and selected model bytes. The reference target is absent from the installed app and CLI. This is an internal qualification boundary, not a user backend selection.
+
+A package-internal task-local fixture context gives paired workbooks identical synthetic UUIDs and timestamps. No product setting or environment variable enables it. Ordinary production IDs and time retain their existing sources. Call IDs are normalized in both test wrappers before the shared host receives them. An optional native observation callback records actual prompt arrays, generation prefixes and generated tokens without changing inference. Its production default is nil. The internal actor protocol permits asynchronous lease acquisition so the observation wrapper forwards real admission rather than bypassing it.
+
+The preregistered protocol is integration/performance/workflow-protocol.json. Four jobs cover supplier comparison and native table/chart composition, a reviewed formula proposal followed by scripted acceptance/edit/undo, cited stock replay, and a missing contract with an explicit unsupported source. Complete job time includes validation, any model corrections, tools and persisted completion. Fixture setup and result assertions are outside timing. Scripted human actions are included; human deliberation is excluded. Reference pipe/serialization cost remains in the wall time and is separately observable.
+
+Each worker first completes an identical Ready job to load the model. Ten alternating paired blocks rotate workflow order, with one warmup and two measured jobs per workflow/backend/block. This yields twenty measured observations per workflow and frontend. The same 32K allocation, 24K maximum actual prompt, 1800-token output budget, bounded512 reasoning, greedy seed 42, 12 GiB engine budget, disabled persistent cache and required-first nested grammar ordering apply. Workers own the real shared inference lease and run sequentially. No overlapping builds, downloads or model runs are permitted during qualification.
+
+The gate requires every priming, warmup and measured job to pass, exact paired starting evidence and prompt/prefix/generated-token sequences, full declared sampling, successful cleanup, all expected jobs and no more than 5% median or 10% p95 complete-job regression. Corrected invalid model answers are allowed only after host validation succeeds; their latency stays included. Lost AC power or serious/critical thermal pressure excludes the whole paired block and prevents the fixed-size cohort from passing. Preserve partial and failed attempts. A pilot cannot qualify adoption.
+
+Sample physical footprint every 0.2 seconds for the Swift host and helper; include the Python bridge as a third process on the reference side. Record thermal state, power and swap around each worker. Priming has separately reported launch-to-ready time; OS file caches are uncontrolled and startup does not have simultaneous footprint qualification. These four jobs do not establish full UI responsiveness, all model behavior, full occupied 32K/64K support, a hardware envelope or a general Python-removal speedup. R1 raw-model failures remain failures, regardless of W1 results.
+
+## Request-priority comparison correction, October 27
+During W1 pilot review, code inspection found a request parameter omitted from the earlier matching checks: Swift SplashWire.Request defaults to foreground priority (wire 0), while the pinned Python Frontend defaults to normal (wire 1). The earlier R1 reference body did not override it. R1 retains its recorded token equality, raw timings and failed currency outcomes, but it does not establish performance under fully identical request parameters. The original frozen protocol, receipts and failures remain preserved; do not promote its latency result as a completed matched-configuration gate. A newly preregistered request cohort with verified actual parameter bytes is required for that claim.
+
+W1 now explicitly supplies foreground priority to the reference and captures each actual serialized request frame on both sides. Normalize only the request ID and deadline stamps, then compare every remaining byte, including prompts, sampling, thinking terminators, flags, cache salt and priority. Preserve unmatched frames. Record matched-prefix token counts to investigate cache-related variation. The earlier W1 pilot had some differing reasoning sequences despite identical input prompts; the priority discrepancy is a verified confound, not yet a proven explanation for that divergence.

@@ -150,6 +150,17 @@ func checkAgentLifecycle() async throws {
   try expectEqual(
     WorkbookAgent.containsOpaqueReference(
       "Batch WILLOW-12, quantity 0.20 kg", inspected: [reference]), false)
+  let unknown = "10000000-1000-4000-8000-100000000001"
+  let mixed = "Source: (" + reference + ") row " + unknown + " Message:97EC6562"
+  try expectEqual(
+    WorkbookAgent.opaqueReferences(mixed, inspected: ["message:" + reference]),
+    [unknown, "97EC6562", reference].sorted())
+  let feedback = WorkbookAgent.opaqueReferenceFeedback(mixed, inspected: [reference])!
+  for literal in [reference, unknown, "97EC6562", "source IDs in parentheses", "citations array"] {
+    try expectEqual(feedback.contains(literal), true)
+  }
+  try expectEqual(
+    WorkbookAgent.opaqueReferenceFeedback("Batch WILLOW-12, 0.20 kg", inspected: [reference]), nil)
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-agent-lifecycle-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

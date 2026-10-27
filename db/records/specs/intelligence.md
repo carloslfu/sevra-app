@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T07:01:03.960895+00:00
+updated: 2026-10-27T07:29:21.325261+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -188,3 +188,8 @@ Acquire the exclusive inference lease before recovering abandoned runs. Persist 
 A model-lease refusal or cancellation before acquisition saves the original request, a linked terminal run and its assistant diagnostic atomically, without interrupting another run. Keep the original failure visible. A storage failure is an error, not evidence that the request was saved.
 
 With exclusive ownership, the admission transaction also marks earlier running jobs interrupted. Assemble historical context only after that transaction commits. Exclude the current request and later messages from earlier history using a conversation-validated message boundary. Stopped requests remain status/reference entries; the new request is the only live user turn. Preserve unfinished tool receipts and committed operation proof. Recovery must not automatically repeat an uncertain action.
+
+## Actionable answer correction and terminal evidence
+When a final answer exposes full UUIDs or inspected abbreviated references, the host identifies the exact offending text, including source IDs in parentheses and Supporting evidence sections. Correction feedback names up to sixteen offending references and requires checking the whole answer; more matches remain invalid. Use human source names in prose and exact IDs only in the citation field. Do not silently remove or rewrite unverified factual claims, weaken currency/calculation/evidence checks, or accept a bad answer to improve completion rates.
+
+Preserve every rejected finish candidate with its validation feedback and original arguments. If the fourth candidate still fails, save that final rejection before ending the run with answer_validation. The existing three correction opportunities remain bounded. A failed final answer must not erase committed workbook actions or publish invalid assistant prose. Test both corrected completion and exhausted correction, including the final durable receipt. This policy applies to both inference adapters.

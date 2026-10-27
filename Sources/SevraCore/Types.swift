@@ -85,8 +85,12 @@ public func require(_ condition: @autoclosure () throws -> Bool, _ code: String,
 {
   if try !condition() { throw SevraError(code, message) }
 }
-public func identifier() -> String { UUID().uuidString.lowercased() }
-public func timestamp() -> String { ISO8601DateFormatter().string(from: Date()) }
+public func identifier() -> String {
+  FixtureContext.current?.identifier() ?? UUID().uuidString.lowercased()
+}
+public func timestamp() -> String {
+  FixtureContext.current?.date ?? ISO8601DateFormatter().string(from: Date())
+}
 public final class Cancellation: @unchecked Sendable {
   private let lock = NSLock()
   private var cancelled = false

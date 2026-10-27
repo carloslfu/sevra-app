@@ -275,9 +275,8 @@ public enum WorkbookAgent {
                 + calculationInputs.sorted().joined(separator: ", ")
                 + ". Do not put these IDs in answer prose.")
           }
-          if containsOpaqueReference(modelAnswer, inspected: inspected) {
-            problems.append(
-              "Remove opaque IDs from answer prose. Use human names; IDs belong only in citations.")
+          if let feedback = opaqueReferenceFeedback(modelAnswer, inspected: inspected) {
+            problems.append(feedback)
           }
           if !currencyEvidence && modelAnswer.contains(where: { "$€£".contains($0) }) {
             problems.append("No currency was specified. Remove invented currency symbols.")
@@ -315,10 +314,6 @@ public enum WorkbookAgent {
           }
           if !problems.isEmpty {
             finalFailures += 1
-            try require(
-              finalFailures <= 3, "answer_validation",
-              "The model could not produce an answer consistent with inspected evidence and calculations."
-            )
             let feedback = try Value.object(["error": .string(problems.joined(separator: " "))])
               .json()
             messages.append(
@@ -331,6 +326,12 @@ public enum WorkbookAgent {
                 "arguments": a, "runID": .string(runID), "callID": .string(call.id),
                 "assistantText": .string(response.text), "receiptVersion": .number(1),
               ]).json(), role: "tool", conversation: conversation)
+            // Preserve the final rejected candidate even when no correction
+            // remains. A failed run must retain why its last answer was refused.
+            try require(
+              finalFailures <= 3, "answer_validation",
+              "The model could not produce an answer consistent with inspected evidence and calculations."
+            )
             if let maintenance {
               let updated = try await maintenance.maintain(
                 through: validationMessage,
@@ -623,20 +624,36 @@ public enum WorkbookAgent {
       throw failure
     }
   }
+  package static func opaqueReferences(_ answer: String, inspected: Set<String>) -> [String] {
+    let prefixes = Set(
+      inspected.compactMap { reference -> String? in
+        let id = reference.hasPrefix("message:") ? String(reference.dropFirst(8)) : reference
+        return UUID(uuidString: id) == nil ? nil : String(id.prefix(8)).lowercased()
+      }
+    ).sorted()
+    // Match full IDs first, so a UUID does not also report its own abbreviation.
+    let pattern =
+      "(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+      + (prefixes.isEmpty ? "" : "|\\b(?:" + prefixes.joined(separator: "|") + ")\\b")
+    let regex = try! NSRegularExpression(pattern: pattern)
+    return Set(
+      regex.matches(in: answer, range: NSRange(answer.startIndex..., in: answer))
+        .compactMap { match in Range(match.range, in: answer).map { String(answer[$0]) } }
+    ).sorted()
+  }
+
   package static func containsOpaqueReference(_ answer: String, inspected: Set<String>) -> Bool {
-    if answer.range(
-      of: "(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
-      options: .regularExpression) != nil
-    {
-      return true
-    }
-    // Abbreviating an inspected UUID still exposes an opaque reference.
-    return inspected.contains { reference in
-      let id = reference.hasPrefix("message:") ? String(reference.dropFirst(8)) : reference
-      guard UUID(uuidString: id) != nil else { return false }
-      return answer.range(of: "(?i)\\b" + String(id.prefix(8)) + "\\b", options: .regularExpression)
-        != nil
-    }
+    !opaqueReferences(answer, inspected: inspected).isEmpty
+  }
+
+  package static func opaqueReferenceFeedback(_ answer: String, inspected: Set<String>) -> String? {
+    let references = opaqueReferences(answer, inspected: inspected)
+    guard !references.isEmpty else { return nil }
+    return
+      "Remove every opaque ID from the answer field, including source IDs in parentheses and in Supporting evidence. Keep IDs only in the citations array. Use human source names in answer. The answer still contains: "
+      + references.prefix(16).joined(separator: ", ")
+      + (references.count > 16 ? "; additional IDs are also present." : ".")
+      + " Recheck the entire answer: no listed ID may remain even once."
   }
 
   /// A narrow numeric-grounding check, not a semantic verifier of prose or units.

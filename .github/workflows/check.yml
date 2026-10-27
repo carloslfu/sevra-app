@@ -35,6 +35,11 @@ jobs:
           swift build --product sevra-splash-text-checks -j 3
           python3 scripts/check_splash_text.py
           python3 scripts/check_performance_harness.py
+      - name: Check complete-workbook performance fixtures and evidence gate
+        run: |
+          swift build --product sevra-workflow-performance -j 3
+          .build/debug/sevra-workflow-performance --self-check
+          python3 scripts/check_workflow_performance.py
       - name: Check native speculative grammar masks
         run: |
           rustup toolchain install 1.96.0 --profile minimal

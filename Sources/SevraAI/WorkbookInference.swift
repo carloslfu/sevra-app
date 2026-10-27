@@ -71,7 +71,7 @@ package protocol WorkbookInference: Actor {
     messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
     cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
   ) async throws -> String
-  func beginRun() throws
+  func beginRun() async throws
   func endRun() async
   func releaseResources() async -> Bool
   func respond(

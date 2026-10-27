@@ -22,11 +22,13 @@ package actor NativeWorkbookModel: WorkbookInference {
     package let reasoning: NativeReasoning
     package let modelLayout: ModelLayout
     package let contextMaintenanceEnabled: Bool
+    package let observeRequest: (@Sendable (Value) -> Void)?
     package init(
       engine: URL, engineFiles: [String: String], grammarLibrary: URL,
       grammarSHA256: String, modelsRoot: URL, memoryBytes: UInt64,
       contextBudget: ContextBudget = .init(), reasoning: NativeReasoning = .off,
-      modelLayout: ModelLayout = .localPack, contextMaintenanceEnabled: Bool = true
+      modelLayout: ModelLayout = .localPack, contextMaintenanceEnabled: Bool = true,
+      observeRequest: (@Sendable (Value) -> Void)? = nil
     ) {
       self.engine = engine
       self.engineFiles = engineFiles
@@ -38,6 +40,7 @@ package actor NativeWorkbookModel: WorkbookInference {
       self.reasoning = reasoning
       self.modelLayout = modelLayout
       self.contextMaintenanceEnabled = contextMaintenanceEnabled
+      self.observeRequest = observeRequest
     }
   }
   package let identity: String
@@ -387,6 +390,7 @@ private final class NativeWorker: @unchecked Sendable {
         mask: { try constraint.masks(committed: $0, simulation: $1, words: $2) },
         event: { event in
           if case .tokens(_, _, let tokens) = event { _ = try output.append(tokens: tokens) }
+
         })
       try cancellation.check()
       try require(
@@ -440,12 +444,14 @@ private final class NativeWorker: @unchecked Sendable {
     request.thinking = try reasoning.budget(outputTokens: outputBudget)
     try cancellation.check()
     progress("Thinking locally")
+    var matchedPromptTokens = 0
     let generated = try session.helper.generate(
       request,
       cancelled: { cancellation.isCancelled || cancellation.isExpired },
       mask: { try constraint.masks(committed: $0, simulation: $1, words: $2) },
       event: { event in
         if case .tokens(_, _, let tokens) = event { _ = try output.append(tokens: tokens) }
+        if case .start(_, _, let matched) = event { matchedPromptTokens = Int(matched) }
       })
     try cancellation.check()
     try require(
@@ -469,6 +475,7 @@ private final class NativeWorker: @unchecked Sendable {
       "requestSeconds": .number(generated.requestSeconds),
       "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
       "promptTokens": .number(Double(prompt.tokens.count)),
+      "matchedPromptTokens": .number(Double(matchedPromptTokens)),
       "contextTokens": .number(Double(budget.contextTokens)),
       "maintenanceThreshold": .number(Double(budget.maintenanceThreshold)),
       "maintenanceRecommended": .bool(allowance.maintenanceRecommended),
@@ -486,6 +493,21 @@ private final class NativeWorker: @unchecked Sendable {
       "acceptedDraftTokens": .number(Double(generated.done.accepted)),
       "speculativeMethod": .string("DFlash2"),
     ])
+    // Opt-in qualification observation is absent from product configurations.
+    if let observe = configuration.observeRequest {
+      var normalized = request
+      normalized.id = 1
+      normalized.absoluteDeadline = 1
+      normalized.remainingDeadline = 180_000_000
+      observe(
+        .object([
+          "promptTokens": .array(prompt.tokens.map { .number(Double($0)) }),
+          "generationTokens": .number(Double(prompt.generationTokens)),
+          "tokens": .array(generated.tokens.map { .number(Double($0)) }),
+          "requestFrame": .string(try normalized.encoded().base64EncodedString()),
+          "metrics": metrics,
+        ]))
+    }
     return (NativeReply(text: parsed.text, calls: calls, reasoning: parsed.reasoning), metrics)
   }
 

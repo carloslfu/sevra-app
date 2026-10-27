@@ -8,6 +8,7 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path, required=True)
+parser.add_argument('--scope', default='Matched request performance evidence; not production adoption.')
 parser.add_argument('runs', type=Path, nargs='+')
 args = parser.parse_args()
 
@@ -23,7 +24,7 @@ def sanitize(value):
     return value
 
 
-result = {'schemaVersion': 1, 'scope': 'Matched request performance evidence; not production adoption.',
+result = {'schemaVersion': 1, 'scope': args.scope,
           'sanitization': 'Repository, home and randomized temporary paths replaced. Raw-file hashes precede sanitization.',
           'runs': {}}
 for folder in args.runs:

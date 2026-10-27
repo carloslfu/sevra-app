@@ -269,6 +269,8 @@ def main():
     parser.add_argument('--models-root',type=Path,required=True)
     parser.add_argument('--pilot',action='store_true')
     args=parser.parse_args()
+    if not args.pilot:
+        raise RuntimeError('R1 qualification is suspended: the reference used normal request priority while Swift used foreground. Preserve the frozen receipts; preregister a replacement request protocol with actual wire-parameter verification before another qualifying cohort. Historical pilot reproduction remains available with --pilot.')
     args.output=args.output.resolve();args.output.mkdir(parents=True,exist_ok=False)
     protocol=json.loads((ROOT/'integration/performance/protocol.json').read_text())
     workloads=json.loads((ROOT/'integration/performance/workloads.json').read_text())

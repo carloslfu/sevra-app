@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "name": "Shared workbook agent with native and pinned reference frontends W1",
+  "date": "2026-10-27",
+  "state": "preregistered-before-pilot",
+  "contextTokens": 32768,
+  "maximumPromptTokens": 24000,
+  "memoryBytes": 12884901888,
+  "reasoningTokens": 512,
+  "maximumOutputTokens": 1800,
+  "seed": 42,
+  "temperature": 0,
+  "blocks": 10,
+  "repetitionsPerWorkloadPerBlock": 2,
+  "warmupPerWorkloadPerProcess": 1,
+  "order": "Alternate native/reference order by block; rotate the four workflows identically. One identical Ready priming job loads each process, followed by declared workflow warmups and measured jobs.",
+  "identity": "Fresh synthetic workbook per job. A package-internal task-local context freezes fixture UUIDs and dates for paired jobs; both adapters normalize host-generated call IDs. No product environment variable or user setting activates it. Exact prompt arrays and generated tokens are recorded at the actual frontend boundary. Divergent prompts fail the paired-workflow gate. Both generated-token sequences and prompt prefixes must also match; preserve any divergence rather than selectively pairing requests. Compare actual serialized native request frames after normalizing only request ID and deadline stamps; all prompt, sampling, priority, cache-salt, flag and thinking fields must agree.",
+  "timing": "Complete job includes the actual shared WorkbookAgent loop, all tools, validation/recovery and persisted completion, plus scripted human acceptance/edit/undo for the proposal case. Fixture construction and result assertions are outside timing. Human deliberation time is excluded. Reference uses a development-only private pipe to the pinned Python frontend; pipe/serialization overhead remains included and is separately observable. No HTTP server or product Python dependency. Priming startup is reported separately; OS file caches are uncontrolled.",
+  "workloads": [
+    "supplier_space",
+    "formula_review",
+    "inventory_evidence",
+    "missing_evidence"
+  ],
+  "gate": {
+    "maximumMedianRegression": 0.05,
+    "maximumP95Regression": 0.1,
+    "requiredSuccessfulFraction": 1.0
+  },
+  "conditions": "Same unchanged engine, verified target/draft bytes, 32K allocation, 12 GiB budget, greedy seed 42, verify-rows all and persistent cache off. Sequential workers; each inference adapter owns the shared model lease. AC power required. No overlapping inference, builds or downloads during a cohort. Native memory includes Swift host/helper; reference includes the same Swift host, Python frontend and helper. Both frontends explicitly use foreground request priority (wire value 0).",
+  "sampling": "Sample every 0.2 seconds after priming. Record frontend/bridge/helper physical footprints, summed peak, thermal/power/swap before and after. Startup has separate elapsed time and no concurrent-footprint qualification.",
+  "exclusions": "A lost AC supply, serious/critical thermal pressure or verified external overlapping inference excludes the whole paired block and prevents this fixed-size cohort from qualifying. Preserve all outputs and failures. Swap growth is a finding, not a selective exclusion. Any failed priming, warmup, job, mismatch or sampling failure fails the gate.",
+  "pilot": "One paired block, one warmup and one measured job per workload/backend. Pilot cannot pass the gate or support speed/adoption claims. Preserve failed pilots; commit the tested harness and protocol before a clean qualifying cohort.",
+  "limits": "This compares validated workbook jobs with the same host and two frontends, not full UI responsiveness or universal model competence. It does not erase failed R1 raw-model outputs, qualify full occupied 32K/64K contexts, broader hardware or production adoption. Twenty observations per workload/backend are not a population-tail guarantee. Python removal alone establishes no speedup."
+}

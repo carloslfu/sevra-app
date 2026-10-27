@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T06:57:15.526986+00:00
+updated: 2026-10-27T07:40:13.453063+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -466,6 +466,8 @@ For actual-model checks without changing any user settings, use `SEVRA_CLI=outpu
 The preview uses a provisional 32K context, bounded512 reasoning and 12 GiB engine budget. Automatic compaction remains disabled. It is a qualification artifact until matched performance, memory, setup, application and hardware gates pass.
 
 ## Matched request performance
+R1 is retained for historical reproduction only. Its reference used normal priority while Swift used foreground. The current coordinator refuses a non-pilot R1 cohort. The qualifying command below describes the historical procedure and must not be treated as a current release gate. Preregister a replacement request protocol with actual wire-byte verification before rerunning qualification. See [[records/specs/splash-integration]] Request-priority comparison correction.
+
 
 The request comparison is development tooling. First prepare the pinned reference
 environment and native model assembly as described above, and build the worker:
@@ -569,3 +571,34 @@ python3 scripts/check_native_recovery.py --models /path/to/Models
 The probe creates a temporary synthetic workbook, starts inference through the packaged native CLI and kills only that spawned CLI after generation starts. It checks that the observed native helper exits and that the model lease becomes available. It then holds the lease to force a second request to fail and verifies that this records its own terminal outcome without interrupting the earlier run. After releasing the lease, a new Ready request must complete, close the abandoned run, preserve original history and leave business items/spaces unchanged. All stages are printed before assertions; retain failures.
 
 This checks process death during inference and a fresh request. It does not cover every filesystem failure or a crash at every mutation boundary. Synthetic request-admission checks in sevra-agent-checks separately cover atomic rollback, cancelled acquisition, history boundaries and a saved draft with an unfinished tool receipt that must not be replayed.
+
+## Complete-workbook performance comparison
+Prepare the pinned native helper, grammar library, selected model assembly and reference environment described above. Then build and run the no-model checks:
+
+~~~sh
+swift build -c release --product sevra-workflow-performance -j 4
+.build/release/sevra-workflow-performance --self-check
+python3 scripts/check_workflow_performance.py
+~~~
+
+The same fixture and gate checks run in scripts/check.sh and hosted CI without downloading model weights. The self-check verifies identical complete starting state, task inheritance, concurrent fixture isolation and ordinary production IDs/time. Gate checks reject missing warmups, failed priming/jobs, divergent prompts/tokens, incomplete process sampling, thermal/power exclusions, cleanup failures and median/tail latency regressions.
+
+With no other model job, build or download active, run a fresh pilot:
+
+~~~sh
+python3 scripts/compare_workflow_performance.py \
+  --models-root /path/to/sevra-native-models \
+  --output .build/workflow-performance/pilot-new --pilot
+~~~
+
+The output directory must not already exist. This runs one paired block, one warmup and one measured job per workflow/backend. Review every error and exact paired prompt before continuing. The installed product never loads the reference adapter or Python.
+
+After reviewing the pilot, commit the tested harness and frozen protocol. Build the matching release executable before starting a clean qualifying cohort. Omit --pilot and use a new output directory:
+
+~~~sh
+python3 scripts/compare_workflow_performance.py \
+  --models-root /path/to/sevra-native-models \
+  --output .build/workflow-performance/cohort-new
+~~~
+
+Each actual inference adapter owns the cross-process model lease. The coordinator checks availability but does not hold it over the worker. Jobs use the shared agent and include validation/recovery, persisted completion and scripted formula acceptance/edit/undo. Keep all per-step prompt arrays, tokens, receipts, samples and failures. The native process footprint includes host/helper; the reference adds its Python bridge. Only a full clean cohort can pass the fixed sample-count and latency gate. Automatic compaction and production adoption remain separate gates.

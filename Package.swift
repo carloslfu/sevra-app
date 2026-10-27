@@ -22,6 +22,7 @@ let package = Package(
     .executable(name: "sevra-agent-checks", targets: ["SevraAgentChecks"]),
     .executable(name: "sevra-native-setup", targets: ["SevraNativeSetup"]),
     .executable(name: "sevra-inference-performance", targets: ["SevraInferencePerformance"]),
+    .executable(name: "sevra-workflow-performance", targets: ["SevraWorkflowPerformance"]),
   ],
   dependencies: [
     .package(
@@ -31,6 +32,13 @@ let package = Package(
     .package(url: "https://github.com/huggingface/swift-transformers.git", exact: "1.3.5"),
   ],
   targets: [
+    .executableTarget(
+      name: "SevraWorkflowPerformance",
+      dependencies: [
+        "SevraCore", "SevraAI", "SevraNativeAI", "SevraSplash", "SevraSplashText",
+        "SevraSplashGrammar",
+      ],
+      path: "IntegrationTests/WorkflowPerformance", swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraInferencePerformance",
       dependencies: ["SevraSplash", "SevraSplashText", "SevraSplashGrammar"],

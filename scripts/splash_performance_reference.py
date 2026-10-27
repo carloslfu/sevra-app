@@ -49,6 +49,8 @@ def workbook_grammar(grammar):
 
 def main():
     import os
+    import base64
+    import dataclasses
     config = json.loads(Path(sys.argv[1]).read_text())
     from splash_reference_identity import verify
     sys.path.insert(0, str(verify(ROOT, Path(config['assembly']) / 'tokenizer')))
@@ -73,6 +75,14 @@ def main():
     class ObservedBackend(NativeBackend):
         # Observation only; all preparation, admission, masks, decoding,
         # finalization and tool validation remain upstream code.
+        def _generation_request(self, job):
+            request = super()._generation_request(job)
+            if config.get('workflowQualification'):
+                frame = dataclasses.replace(request.frame, request_id=1,
+                    absolute_deadline_unix_micros=1, remaining_deadline_micros=180_000_000)
+                self.request_frame = base64.b64encode(wire.serialize_message(frame)).decode('ascii')
+            return request
+
         def _on_event(self, state, event):
             if isinstance(event, wire.TokensEvent):
                 if self.first_token is None:
@@ -112,11 +122,16 @@ def main():
                 backend.close()
                 emit({'closed': True})
                 break
-            index = command['case']
-            case = config['cases'][index]
+            index = command.get('case', -1)
+            # Development-only whole-workbook harness supplies the live host
+            # envelope. The frozen R1 case path remains unchanged.
+            case = ({'id': command['id'], 'body': command['body']}
+                    if command.get('op') == 'workflow' else config['cases'][index])
             body = copy.deepcopy(case['body'])
             started = time.monotonic()
             job = frontend.prepare(body, deadline=started + 180)
+            if command.get('op') == 'workflow' and len(job.prompt_tokens) > 24000:
+                raise ValueError('Workflow qualification exceeds its declared 24000-token prompt bound')
             prepared = time.monotonic()
             backend.tokens, backend.first_token = [], None
             backend.submit(job)
@@ -135,6 +150,7 @@ def main():
                   'promptTokens': job.prompt_tokens, 'generationTokens': job.generation_prompt_tokens,
                   'matchedPromptTokens': result.cache.matched_tokens,
                   'tokens': backend.tokens, 'text': collected.content,
+                  **({'requestFrame': backend.request_frame} if config.get('workflowQualification') else {}),
                   'reasoning': collected.reasoning, 'calls': calls,
                   'finish': {'stop': 0, 'length': 1, 'cancelled': 2}[result.reason],
                   'bounded': result.bounded, 'drafted': result.drafted_tokens,

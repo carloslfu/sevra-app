@@ -9,11 +9,18 @@ private actor CurrencyFault: WorkbookInference {
   let identity = "Injected currency error followed by workbook validation and recovery"
   private let base: (any WorkbookInference)?
   private let datasetID: String
+  let opaqueOnly: Bool
+  private let persistent: Bool
   private var responses = 0
   private var inputs: [String] = []
   private(set) var sawRejection = false
   private(set) var lastMetrics: Value = .null
-  init(datasetID: String, base: (any WorkbookInference)? = nil) {
+  init(
+    datasetID: String, base: (any WorkbookInference)? = nil, opaqueOnly: Bool = false,
+    persistent: Bool = false
+  ) {
+    self.persistent = persistent
+    self.opaqueOnly = opaqueOnly
     self.datasetID = datasetID
     self.base = base
   }
@@ -26,25 +33,47 @@ private actor CurrencyFault: WorkbookInference {
   ) async throws -> NativeReply {
     responses += 1
     if responses == 1 {
-      return NativeReply(text: "", calls: [.init(
-        id: "injected-comparison", name: "compare_rows",
-        inputJSON: try Value.object([
-          "datasetID": .string(datasetID), "labelColumn": .string("supplier"),
-          "valueColumn": .string("total"),
-        ]).json())])
+      return NativeReply(
+        text: "",
+        calls: [
+          .init(
+            id: "injected-comparison", name: "compare_rows",
+            inputJSON: try Value.object([
+              "datasetID": .string(datasetID), "labelColumn": .string("supplier"),
+              "valueColumn": .string("total"),
+            ]).json())
+        ])
     }
     if responses == 2 {
       let result = try Value.parse(messages.last!.content)
       inputs = result["inputs"].array.compactMap(\.string)
       try expectEqual(inputs.count, 2)
       try expectEqual(Set(inputs).isSubset(of: Set(citationIDs)), true)
+      if opaqueOnly {
+        return try finish(
+          "Oak Supply is 3.5 cheaper, or 12.73%. Supporting evidence: (" + inputs[0] + "), row "
+            + inputs[1].uppercased())
+      }
       return try finish(
-        "Oak Supply is $3.50 cheaper than Cedar Tools, representing a 12.73% savings relative to Cedar Tools' quote of 27.5.")
+        "Oak Supply is $3.50 cheaper than Cedar Tools, representing a 12.73% savings relative to Cedar Tools' quote of 27.5."
+      )
     }
     if responses == 3 {
       try expectEqual(messages.last!.toolName, "finish")
-      try expectEqual(messages.last!.content.contains("Remove invented currency symbols"), true)
+      if opaqueOnly {
+        for id in inputs {
+          try expectEqual(messages.last!.content.lowercased().contains(id.lowercased()), true)
+        }
+        try expectEqual(messages.last!.content.contains("source IDs in parentheses"), true)
+      } else {
+        try expectEqual(messages.last!.content.contains("Remove invented currency symbols"), true)
+      }
       sawRejection = true
+    }
+    if persistent {
+      return try finish(
+        "Oak Supply is 3.5 cheaper, or 12.73%. Supporting evidence: "
+          + inputs.joined(separator: ", "))
     }
     if let base {
       let reply = try await base.respond(
@@ -57,18 +86,22 @@ private actor CurrencyFault: WorkbookInference {
     return try finish("Oak Supply is 3.5 cheaper than Cedar Tools, or 12.73% relative to 27.5.")
   }
   private func finish(_ answer: String) throws -> NativeReply {
-    NativeReply(text: "", calls: [.init(
-      id: "currency-finish-\(responses)", name: "finish",
-      inputJSON: try Value.object([
-        "answer": .string(answer), "basis": .string("evidence"),
-        "citations": .array(inputs.map(Value.string)),
-      ]).json())])
+    NativeReply(
+      text: "",
+      calls: [
+        .init(
+          id: "currency-finish-\(responses)", name: "finish",
+          inputJSON: try Value.object([
+            "answer": .string(answer), "basis": .string("evidence"),
+            "citations": .array(inputs.map(Value.string)),
+          ]).json())
+      ])
   }
 }
 
 private func checkCurrencyResult(
   _ result: AgentResult, book: Workbook, before: [Item], expectedInputs: Set<String>,
-  model: CurrencyFault
+  model: CurrencyFault, opaqueOnly: Bool = false
 ) async throws {
   try expectEqual(await model.sawRejection, true)
   try expectEqual(result.state, "complete")
@@ -83,16 +116,22 @@ private func checkCurrencyResult(
   try expectEqual(added.count, 1)
   try expectEqual(added[0].category, "source")
   try expectEqual(added[0].kind, "request")
-  try expectEqual(added[0].text,
-    "Compare supplier costs, report the difference and percentage. No currency was specified. Make no changes.")
+  try expectEqual(
+    added[0].text,
+    "Compare supplier costs, report the difference and percentage. No currency was specified. Make no changes."
+  )
   try expectEqual(try book.verify()["ok"], .bool(true))
   let messages = try book.messages()
-  try expectEqual(messages.filter {
-    $0.role == "assistant" && $0.body.contains("$3.50")
-  }.isEmpty, true)
-  try expectEqual(messages.filter {
-    $0.role == "tool" && $0.body.contains("Remove invented currency symbols")
-  }.count, 1)
+  try expectEqual(
+    messages.filter {
+      $0.role == "assistant" && $0.body.contains("$3.50")
+    }.isEmpty, true)
+  try expectEqual(
+    messages.filter {
+      $0.role == "tool"
+        && $0.body.contains(
+          opaqueOnly ? "Remove every opaque ID" : "Remove invented currency symbols")
+    }.count, 1)
 }
 
 func checkCurrencyRejection() async throws {
@@ -108,9 +147,55 @@ func checkCurrencyRejection() async throws {
   let result = try await WorkbookAgent.run(
     "Compare supplier costs, report the difference and percentage. No currency was specified. Make no changes.",
     workbook: book, model: model)
-  try await checkCurrencyResult(result, book: book, before: before, expectedInputs: inputs, model: model)
+  try await checkCurrencyResult(
+    result, book: book, before: before, expectedInputs: inputs, model: model)
   try expectEqual(result.steps, 3)
-  print("PASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data")
+  let secondPath = path.deletingLastPathComponent().appendingPathComponent(
+    "sevra-opaque-" + identifier() + ".sevra")
+  defer { try? FileManager.default.removeItem(at: secondPath) }
+  let secondDemo = try Demo.create(at: secondPath)
+  let secondBook = try Workbook(secondPath)
+  let secondBefore = try secondBook.items()
+  let secondTable = secondDemo["datasetID"].text
+  let secondInputs = Set(try secondBook.rows(secondTable).map(\.id))
+  let opaque = CurrencyFault(datasetID: secondTable, opaqueOnly: true)
+  let repaired = try await WorkbookAgent.run(
+    "Compare supplier costs, report the difference and percentage. No currency was specified. Make no changes.",
+    workbook: secondBook, model: opaque)
+  try await checkCurrencyResult(
+    repaired, book: secondBook, before: secondBefore,
+    expectedInputs: secondInputs, model: opaque, opaqueOnly: true)
+  try expectEqual(repaired.steps, 3)
+  let presentation = repaired.answer.components(separatedBy: "\n\n")[0]
+  try expectEqual(
+    WorkbookAgent.containsOpaqueReference(presentation, inspected: secondInputs), false)
+  try expectEqual(
+    try secondBook.messages().filter {
+      $0.role == "assistant" && $0.body.contains("Supporting evidence:")
+    }.isEmpty, true)
+  let failuresBefore = try secondBook.messages().filter {
+    $0.role == "tool" && $0.body.contains("Remove every opaque ID")
+  }.count
+  do {
+    _ = try await WorkbookAgent.run(
+      "Compare suppliers again. Make no changes.", workbook: secondBook,
+      model: CurrencyFault(datasetID: secondTable, opaqueOnly: true, persistent: true))
+    throw SevraError("test", "Persistent invalid answers unexpectedly completed")
+  } catch let error as SevraError {
+    try expectEqual(error.code, "answer_validation")
+  }
+  let rejections = try secondBook.messages().filter {
+    $0.role == "tool" && $0.body.contains("Remove every opaque ID")
+  }
+  try expectEqual(rejections.count - failuresBefore, 4)
+  try expectEqual(try secondBook.agentRuns().filter { $0["status"].text == "failed" }.count, 1)
+  print("PASS exhausted correction retains all four rejected candidates and a failed run")
+  print(
+    "PASS opaque source and row IDs are explicitly rejected before publication; corrected prose preserves citation navigation"
+  )
+  print(
+    "PASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data"
+  )
 }
 
 func runCurrencyRecoveryProbe(
@@ -131,12 +216,13 @@ func runCurrencyRecoveryProbe(
       let original = try nativeProbeConfiguration(
         library: library, engine: engine, modelsRoot: modelsRoot,
         budget: .init(profile: .evaluation32K), reasoning: reasoning)
-      let base = NativeWorkbookModel(configuration: .init(
-        engine: original.engine, engineFiles: original.engineFiles,
-        grammarLibrary: original.grammarLibrary, grammarSHA256: original.grammarSHA256,
-        modelsRoot: original.modelsRoot, memoryBytes: original.memoryBytes,
-        contextBudget: original.contextBudget, reasoning: reasoning, modelLayout: .installed,
-        contextMaintenanceEnabled: false))
+      let base = NativeWorkbookModel(
+        configuration: .init(
+          engine: original.engine, engineFiles: original.engineFiles,
+          grammarLibrary: original.grammarLibrary, grammarSHA256: original.grammarSHA256,
+          modelsRoot: original.modelsRoot, memoryBytes: original.memoryBytes,
+          contextBudget: original.contextBudget, reasoning: reasoning, modelLayout: .installed,
+          contextMaintenanceEnabled: false))
       let model = CurrencyFault(datasetID: table, base: base)
       try await base.beginRun()
       let began = Date()
@@ -145,26 +231,32 @@ func runCurrencyRecoveryProbe(
           "Compare supplier costs, report the difference and percentage. No currency was specified. Make no changes.",
           workbook: book, modelDirectory: URL(fileURLWithPath: modelsRoot),
           progress: { fputs("Currency recovery: \($0)\n", stderr) }, model: model)
-        print(try Value.object([
-          "faultInjected": .bool(true), "reasoningBudget": .number(Double(reasoning.rawValue)),
-          "trial": .number(Double(trial)), "elapsedSeconds": .number(Date().timeIntervalSince(began)),
-          "answer": .string(result.answer), "steps": .number(Double(result.steps)),
-          "citations": .array(result.citations.map(Value.string)),
-          "trace": try encoded(book.messages().filter { $0.role == "tool" }),
-          "runs": .array(try book.agentRuns()),
-        ]).json())
-        try await checkCurrencyResult(result, book: book, before: before, expectedInputs: inputs, model: model)
+        print(
+          try Value.object([
+            "faultInjected": .bool(true), "reasoningBudget": .number(Double(reasoning.rawValue)),
+            "trial": .number(Double(trial)),
+            "elapsedSeconds": .number(Date().timeIntervalSince(began)),
+            "answer": .string(result.answer), "steps": .number(Double(result.steps)),
+            "citations": .array(result.citations.map(Value.string)),
+            "trace": try encoded(book.messages().filter { $0.role == "tool" }),
+            "runs": .array(try book.agentRuns()),
+          ]).json())
+        try await checkCurrencyResult(
+          result, book: book, before: before, expectedInputs: inputs, model: model)
         try expectEqual(await base.unload(), true)
       } catch {
-        print(try Value.object([
-          "faultInjected": .bool(true), "reasoningBudget": .number(Double(reasoning.rawValue)),
-          "trial": .number(Double(trial)), "error": .string(String(describing: error)),
-          "trace": try encoded(book.messages().filter { $0.role == "tool" }),
-        ]).json())
+        print(
+          try Value.object([
+            "faultInjected": .bool(true), "reasoningBudget": .number(Double(reasoning.rawValue)),
+            "trial": .number(Double(trial)), "error": .string(String(describing: error)),
+            "trace": try encoded(book.messages().filter { $0.role == "tool" }),
+          ]).json())
         _ = await base.unload()
         throw error
       }
     }
   }
-  print("PASS four real-model recoveries from injected currency errors; off and bounded512, fresh helper per trial")
+  print(
+    "PASS four real-model recoveries from injected currency errors; off and bounded512, fresh helper per trial"
+  )
 }
