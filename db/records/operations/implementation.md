@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T14:32:59.304232+00:00
+updated: 2026-10-27T14:42:57.578720+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1738,3 +1738,28 @@ uniform late-completion ownership checks, and closing a workbook currently stops
 media/dictation/preview without consistently cancelling its general operation.
 Review and qualify that lifecycle next, preserving completed mutations and avoiding
 old callbacks appearing after a workbook switch. This finding is not a tested fix.
+
+## Workspace operation lifecycle prepared
+
+Code inspection confirmed that imports, export, URL capture, review, transcription
+and model callbacks did not share a reliable window ownership boundary. The
+prepared change gives each operation a cancellation token and unique owner.
+Closing/switching invalidates that owner; late progress, errors and completion
+cannot clear a newer operation. Completed mutations and event messages remain in
+the original workbook/conversation. Result navigation also checks the original
+conversation and navigation identity, preserving a user's intervening exploration.
+
+Stop keeps ordinary operations busy until they finish. Waiting for an OS speech
+permission response is different: Stop releases the UI immediately, and a late
+response cannot start transcription or stop a newer operation. No microphone or
+speech permission was requested during these checks. Import/export pickers reject
+a changed workbook on return. Opening another workbook resets its conversation,
+route, search and table state; closing invalidates outstanding search callbacks.
+
+The added asynchronous regression uses two real temporary workbooks and a delayed
+completion to check durable save isolation, stale progress/focus/completion, Stop
+ownership, duplicate completion and a delayed permission callback. The search
+suite adds reset-during-read coverage. These are prepared regressions, not proof
+of native app lifecycle behavior. Swift formatting and diff checks pass; hosted
+compilation/runtime and focused native close/switch checks remain pending. Local
+builds and inference remain deferred during the frozen full W1 cohort.

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T14:30:57.399047+00:00
+updated: 2026-10-27T14:42:57.546615+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -165,3 +165,14 @@ J09 Fresh checkout → documented install → launch app/CLI → demo → uninst
 J10 Long multi-step conversation → repeated automatic compaction → recover earlier
 evidence and latest constraints → tangent/return → cancel/restart → correct pending
 status and unchanged accepted effects → portable export/reopen with full history.
+
+## Workspace operation ownership
+
+Closing or switching a workbook cancels cooperative work and invalidates its UI
+callbacks. A completed mutation remains saved in the workbook and conversation
+where it began; a late result must not change another window's progress, errors,
+selection or navigation. Stop retains operation ownership until ordinary work
+finishes, preventing overlapping actions. A cancelled system permission wait
+releases the waiting UI immediately, and its eventual response cannot start work.
+Opening another workbook resets search, navigation, selections and table state.
+File pickers must still belong to the same active workbook when they return.

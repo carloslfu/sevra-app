@@ -42,6 +42,18 @@ public struct SearchQuery: Hashable, Sendable {
   private var request = UUID()
   public init() {}
 
+  public func reset() {
+    request = UUID()
+    query = nil
+    loadedQuery = nil
+    hits = []
+    nextCursor = nil
+    incomplete = 0
+    anchor = nil
+    failure = nil
+    loading = false
+  }
+
   public func load(
     _ query: SearchQuery, more: Bool = false, debounce: Bool = false,
     read: @escaping @Sendable (String?) async throws -> SearchPage

@@ -112,7 +112,6 @@ struct WorkspaceWindow: View {
       }
     }
     .onReceive(NotificationCenter.default.publisher(for: .sevraStopping)) { _ in
-      state.cancellation.cancel()
       state.endInteraction()
     }
     .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { event in

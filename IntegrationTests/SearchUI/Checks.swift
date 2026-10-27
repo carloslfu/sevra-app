@@ -14,7 +14,7 @@ actor ReadGate {
     try await withCheckedThrowingContinuation { continuation in
       result = continuation
       started = true
-      waiting.forEach { $0.resume() }
+      for continuation in waiting { continuation.resume() }
       waiting = []
     }
   }
@@ -186,5 +186,16 @@ actor ReadGate {
       "Initial failure looked complete")
     await session.load(empty) { _ in other }
     try expect(session.failure == nil && !session.loading, "Empty query retained a previous error")
+
+    let oldWorkbook = ReadGate()
+    let switching = Task { await session.load(amber) { _ in try await oldWorkbook.read() } }
+    await oldWorkbook.waitForRead()
+    session.reset()
+    await oldWorkbook.finish(first)
+    await switching.value
+    try expect(
+      session.query == nil && session.loadedQuery == nil && session.hits.isEmpty
+        && !session.loading && session.failure == nil,
+      "An old workbook search repopulated results after reset")
   }
 }

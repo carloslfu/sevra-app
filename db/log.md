@@ -325,3 +325,6 @@ Prepare composer Stop/Retry/Find original controls and immediate preview retry o
 ## [2026-10-27 14:32] verification | records/operations/implementation.md
 Inspect hash-verified CI artifact: >2 GiB preview verification passed at 6,489,600-byte lifetime physical footprint; preserve precise scope and raw report.
 
+## [2026-10-27 14:42] implementation | records/operations/implementation.md
+Prepare workspace operation ownership and delayed completion/permission/search regressions; runtime and native lifecycle checks pending.
+

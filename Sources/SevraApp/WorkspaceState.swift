@@ -64,7 +64,8 @@ import SwiftUI
   @Published var tableUndo: [String: String] = [:]
   @Published var tableRedo: [String: String] = [:]
   @Published var spaceScroll: [String: String] = [:]
-  var cancellation = Cancellation()
+  private let operations = WorkspaceOperationScope()
+  private var awaitingSpeechPermission: WorkspaceOperation?
   let mediaOwner = UUID()
   private(set) var interactionActive = false
   private var applyingDictation = false
@@ -76,7 +77,31 @@ import SwiftUI
       "Save or preserve the current draft before opening another workbook.")
     endInteraction()
     workbook = opened
+    conversation = "main"
+    route = .space("home")
+    navigation = []
+    itemPreviewIdentity = UUID()
     viewedItemVersion = nil
+    activeDocument = nil
+    prompt = ""
+    selectedContext = ""
+    itemLocators = [:]
+    messageAnchor = nil
+    error = nil
+    searchQuery = ""
+    searchHistorical = false
+    searchKind = ""
+    searchMeaning = ""
+    searchStatus = ""
+    searchScenario = ""
+    searchResults.reset()
+    tableOffsets = [:]
+    tableFilters = [:]
+    tableSorts = [:]
+    tableDescending = [:]
+    tableUndo = [:]
+    tableRedo = [:]
+    spaceScroll = [:]
     beginInteraction()
     refresh()
   }
@@ -133,50 +158,65 @@ import SwiftUI
   }
   func run(_ title: String, operation: @escaping @Sendable (Workbook, Cancellation) throws -> Void)
   {
-    guard let book = workbook, !busy else { return }
+    guard let (book, ticket) = beginOperation(title) else { return }
+    Task {
+      defer { finishOperation(ticket, in: book) }
+      do {
+        try await Task.detached(priority: .userInitiated) {
+          try ticket.cancellation.check()
+          try operation(book, ticket.cancellation)
+        }.value
+      } catch { report(error, for: ticket, in: book) }
+    }
+  }
+  private func beginOperation(_ title: String) -> (Workbook, WorkspaceOperation)? {
+    guard interactionActive, let book = workbook, !busy, let ticket = operations.begin() else {
+      return nil
+    }
     busy = true
     status = title
     error = nil
-    cancellation = Cancellation()
-    let cancel = cancellation
-    Task {
-      do {
-        try await Task.detached(priority: .userInitiated) { try operation(book, cancel) }.value
-      } catch { self.error = error.localizedDescription }
-      busy = false
-      status = ""
-      refresh()
-    }
+    return (book, ticket)
+  }
+  private func owns(_ ticket: WorkspaceOperation, in book: Workbook) -> Bool {
+    interactionActive && workbook === book && operations.owns(ticket)
+  }
+  private func finishOperation(_ ticket: WorkspaceOperation, in book: Workbook) {
+    guard owns(ticket, in: book), operations.finish(ticket) else { return }
+    busy = false
+    status = ""
+    refresh()
+  }
+  private func report(_ failure: Error, for ticket: WorkspaceOperation, in book: Workbook) {
+    guard owns(ticket, in: book) else { return }
+    error = failure.localizedDescription
   }
   func pinSpace(_ id: String, title: String) {
-    guard let book = workbook, !busy, documentDrafts.flush() else { return }
-    busy = true
-    status = "Saving a pinned copy"
-    error = nil
-    cancellation = Cancellation()
-    let cancel = cancellation
+    guard !busy, documentDrafts.flush(), let (book, ticket) = beginOperation("Saving a pinned copy")
+    else { return }
+    let navigationID = itemPreviewIdentity
+    let chat = conversation
     Task {
-      defer {
-        busy = false
-        status = ""
-      }
+      defer { finishOperation(ticket, in: book) }
       do {
         let saved = try await Task.detached(priority: .userInitiated) {
-          try book.pinSpace(id, title: title, cancellation: cancel)
+          try book.pinSpace(id, title: title, cancellation: ticket.cancellation)
         }.value
-        guard workbook === book, interactionActive else { return }
+        guard owns(ticket, in: book) else { return }
         refresh()
-        navigate(.space(saved))
-      } catch {
-        guard workbook === book, interactionActive else { return }
-        self.error = error.localizedDescription
-      }
+        if conversation == chat, itemPreviewIdentity == navigationID { navigate(.space(saved)) }
+      } catch { report(error, for: ticket, in: book) }
     }
   }
   func importPanel(linked: Bool = false) {
+    guard interactionActive, !busy, let book = workbook else { return }
+    let chat = conversation
     let panel = NSOpenPanel()
     panel.allowsMultipleSelection = true
-    if panel.runModal() == .OK { importFiles(panel.urls, linked: linked) }
+    guard panel.runModal() == .OK, interactionActive, workbook === book,
+      conversation == chat
+    else { return }
+    importFiles(panel.urls, linked: linked)
   }
   func importFiles(_ urls: [URL], linked: Bool = false) {
     let chat = conversation
@@ -205,11 +245,11 @@ import SwiftUI
     }
   }
   func exportPanel() {
-    guard documentDrafts.flush() else { return }
+    guard interactionActive, !busy, let book = workbook, documentDrafts.flush() else { return }
     let panel = NSSavePanel()
     panel.title = "Make a shareable copy"
-    panel.nameFieldStringValue = (workbook?.title ?? "Workbook") + ".sevraz"
-    if panel.runModal() == .OK, let url = panel.url {
+    panel.nameFieldStringValue = book.title + ".sevraz"
+    if panel.runModal() == .OK, let url = panel.url, interactionActive, workbook === book {
       run("Making a shareable copy") { book, cancel in
         try book.export(to: url, cancellation: cancel)
       }
@@ -219,7 +259,7 @@ import SwiftUI
     WorkspaceControlCommand.allowsSubmission(prompt, busy: busy)
   }
   func send() {
-    guard let book = workbook, canSend,
+    guard interactionActive, let book = workbook, canSend,
       !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     else { return }
     speech.stop()
@@ -239,21 +279,21 @@ import SwiftUI
     error = nil
     messageAnchor = nil
     if let target = URL(string: input), ["http", "https"].contains(target.scheme ?? "") {
-      busy = true
-      status = "Capturing source"
-      cancellation = Cancellation()
-      let cancel = cancellation
+      guard let (_, ticket) = beginOperation("Capturing source") else { return }
+      let chat = conversation
+      let navigationID = itemPreviewIdentity
       Task {
+        defer { finishOperation(ticket, in: book) }
         do {
-          let source = try await book.captureURL(target, cancellation: cancel)
+          let source = try await book.captureURL(target, cancellation: ticket.cancellation)
           _ = try book.addMessage(
             (source.assetID == nil ? "Saved reference: " : "Captured ") + source.referenceMarkdown,
-            role: "event", conversation: conversation)
-          navigate(.item(source.id))
-        } catch { self.error = error.localizedDescription }
-        busy = false
-        status = ""
-        refresh()
+            role: "event", conversation: chat)
+          guard owns(ticket, in: book) else { return }
+          if conversation == chat, itemPreviewIdentity == navigationID {
+            navigate(.item(source.id))
+          }
+        } catch { report(error, for: ticket, in: book) }
       }
       return
     }
@@ -262,34 +302,34 @@ import SwiftUI
       refresh()
       return
     }
-    busy = true
-    status = "Preparing local AI"
-    cancellation = Cancellation()
-    let cancel = cancellation
+    guard let (_, ticket) = beginOperation("Preparing local AI") else { return }
     let chat = conversation
+    let navigationID = itemPreviewIdentity
     let context = agentContext + (selectedContext.isEmpty ? "" : "\nSelection: " + selectedContext)
     let path =
       UserDefaults.standard.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
       ?? ProductAI.defaultDirectory
     Task {
+      defer { finishOperation(ticket, in: book) }
       do {
         let result = try await ProductAI.shared.run(
           input, workbook: book, conversation: chat, context: context, modelDirectory: path,
-          cancellation: cancel,
+          cancellation: ticket.cancellation,
           progress: { value in
             Task { @MainActor in
+              guard self.owns(ticket, in: book), self.operations.acceptsProgress(ticket) else {
+                return
+              }
               self.status = value
               self.refresh()
             }
           })
+        guard owns(ticket, in: book) else { return }
         refresh()
-        if let focus = result.focus {
+        if conversation == chat, itemPreviewIdentity == navigationID, let focus = result.focus {
           navigate(focus.kind == "space" ? .space(focus.id) : .item(focus.id))
         }
-      } catch { self.error = error.localizedDescription }
-      busy = false
-      status = ""
-      refresh()
+      } catch { report(error, for: ticket, in: book) }
     }
   }
   var agentContext: String {
@@ -362,15 +402,11 @@ import SwiftUI
         return true
       }
       if lower.hasPrefix("accept ") {
-        let id = String(input.dropFirst(7))
-        _ = try book.accept(id)
-        _ = try book.addMessage(
-          "Accepted record \(id). Its meaning is unchanged.", role: "assistant",
-          conversation: conversation)
+        review(String(input.dropFirst(7)), accepting: true)
         return true
       }
       if lower.hasPrefix("undo ") {
-        _ = try book.undoItem(String(input.dropFirst(5)))
+        review(String(input.dropFirst(5)), accepting: false)
         return true
       }
       if lower.hasPrefix("chapter "), let message = messages.last {
@@ -407,52 +443,56 @@ import SwiftUI
     return true
   }
   func review(_ id: String, accepting: Bool) {
-    guard let book = workbook, !busy else { return }
-    busy = true
-    status = accepting ? "Accepting changes" : "Undoing changes"
+    guard let (book, ticket) = beginOperation(accepting ? "Accepting changes" : "Undoing changes")
+    else { return }
     let chat = conversation
+    let navigationID = itemPreviewIdentity
     Task {
+      defer { finishOperation(ticket, in: book) }
       do {
         let record = try await Task.detached {
-          accepting ? try book.accept(id) : try book.undoItem(id)
+          try ticket.cancellation.check()
+          return accepting ? try book.accept(id) : try book.undoItem(id)
         }.value
         _ = try book.addMessage(
           (accepting ? "Accepted " : "Undid the last change to ") + record.referenceMarkdown,
           role: "event", conversation: chat)
+        guard owns(ticket, in: book) else { return }
         refresh()
-        navigate(.item(record.id))
-      } catch { self.error = error.localizedDescription }
-      busy = false
-      status = ""
+        if conversation == chat, itemPreviewIdentity == navigationID { navigate(.item(record.id)) }
+      } catch { report(error, for: ticket, in: book) }
     }
   }
   func transcribe(_ id: String) {
-    guard let book = workbook, !busy else { return }
-    busy = true
-    status = "Preparing on-device transcription"
-    cancellation = Cancellation()
-    let cancel = cancellation
+    guard let (book, ticket) = beginOperation("Preparing on-device transcription") else { return }
     speech.stop()
     PlaybackRegistry.shared.pauseAll()
+    awaitingSpeechPermission = ticket
     SFSpeechRecognizer.requestAuthorization { authorization in
       Task { @MainActor in
+        guard self.owns(ticket, in: book) else { return }
+        self.awaitingSpeechPermission = nil
+        defer { self.finishOperation(ticket, in: book) }
         do {
+          try ticket.cancellation.check()
           try require(
             authorization == .authorized, "speech_permission",
             "Speech recognition permission was not granted. The original remains available.")
-          try cancel.check()
           self.status = "Transcribing on this Mac"
-          try await book.transcribe(id, cancellation: cancel)
-          self.refresh()
-        } catch { self.error = error.localizedDescription }
-        self.busy = false
-        self.status = ""
+          try await book.transcribe(id, cancellation: ticket.cancellation)
+        } catch { self.report(error, for: ticket, in: book) }
       }
     }
   }
   func stop() {
     speech.stop()
-    cancellation.cancel()
+    operations.cancel()
+    // A system permission prompt cannot be dismissed programmatically. Release
+    // our waiting UI immediately; its late response no longer owns this window.
+    if let pending = awaitingSpeechPermission, operations.owns(pending), let book = workbook {
+      awaitingSpeechPermission = nil
+      finishOperation(pending, in: book)
+    }
     if activePreview?.loading == true { activePreview?.stop() }
     if busy { status = "Stopping…" }
   }
@@ -535,8 +575,13 @@ import SwiftUI
   func beginInteraction() { interactionActive = true }
   func endInteraction() {
     interactionActive = false
+    operations.invalidate()
+    awaitingSpeechPermission = nil
+    busy = false
+    status = ""
     activePreview?.cancel()
     activePreview = nil
+    searchResults.reset()
     speech.stop()
     PlaybackRegistry.shared.close(owner: mediaOwner)
     backgroundPlayer?.pause()

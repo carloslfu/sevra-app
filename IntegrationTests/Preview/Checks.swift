@@ -49,6 +49,7 @@ private actor ReadGate {
         CommandLine.arguments.count == 1, "arguments",
         "Use --large-asset NEW_DIRECTORY or no arguments.")
       try await run()
+      try await checkWorkspaceOperations()
       print(
         "PASS preview ownership, stale success/error/progress, stop/retry, and task cancellation")
     } catch {
