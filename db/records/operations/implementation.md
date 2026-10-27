@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T11:41:57.696384+00:00
+updated: 2026-10-27T11:52:54.364215+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -12,6 +12,9 @@ title: Implementation and acceptance
 This is a working development build, not a qualified release. Requirements in the
 specifications remain the acceptance contract. A source commit does not imply that
 every requirement or supported hardware profile has passed.
+
+## Current direction, October 27
+Latest checkpoint: I2 passes both cache arms, and the corrected normal-cache W1 pilot passes all sixteen jobs plus two Ready primes with 32 exact paired requests. Full regression and both packaged builds/resources/install checks pass. The preregistered ten-block W1 performance cohort is the next step; no speed or adoption claim follows from the pilot. See Corrected complete-workflow pilot below.
 
 ## Current direction, October 27
 Workbook is Sevra's primary product/homepage, with Websites secondary. The installed app remains the preserved Slotstream baseline. A separate Python-free native Splash preview now uses the shared workbook agent through SevraProduct, with the unchanged pinned C++/Metal helper, native grammar library and Swift setup. It is not yet the production default.
@@ -1148,3 +1151,15 @@ Review also found an extra status request after every Python reference workflow 
 
 ## I2 validation and W1 pilot preparation
 The full local scripts/check.sh regression passed after the request-cache diagnostic addition. After the reference-only status and source-freeze corrections, the performance/diagnostic/isolation evidence tests, Python compilation, release-worker self-check, full dbmd validation (zero errors/warnings), Markdown links and diff checks pass again. No product caching behavior changed. The next W1 pilot uses the already built native worker with the corrected development reference and controller; its own results remain pending.
+
+## Corrected complete-workflow pilot, October 27
+The normal-cache W1 pilot on frozen fda029e passed all sixteen workbook jobs and both Ready primes. Native and reference each made 32 requests; exact prompt/prefix/request bytes and generated tokens matched for every pair. Both workers exited zero and confirmed release, with complete sampling and no power/thermal exclusions or source changes. Warmup steps were 8/1/2/3; measured steps were 9/1/4/3, in supplier/formula/inventory/missing order, identical on both frontends. Each measured supplier job had one currency rejection before the successful finish. Formula acceptance/edit/recalculation/undo and missing-evidence limits passed.
+
+One measured observation per workload is not performance qualification. The observed native/reference time ratios were 0.912, 0.947, 0.984 and 1.014, but no speed claim follows from this pilot. The recorded performance gate correctly remains false because pilot=true. The exact cause of earlier mismatches remains unresolved; updated tool prompts and removal of reference-only status telemetry are different conditions, not a controlled causal diagnosis. Historical failures remain intact.
+
+Evidence is integration/evidence/2026-10-27-current-workflow-pilot.json.gz, uncompressed SHA256 98d8a40998bd6dd07b807c50918dff4ae8488512671f1771161cd634824b957a. All 32 unique prompt arrays were decoded and checked for private paths; saved request hashes, embedded prompt tokens and zero cache salts were verified. The existing ten-block, twenty-measured-observation-per-workload/backend W1 cohort can now run on the committed tested harness. Native adoption, automatic compaction, wider hardware/context and remaining app acceptance remain gated.
+
+Hosted CI passed for both prior checkpoints: 48dc398 (40495894340) and 3738a56 (40496781537), including isolated native preview packaging. The fda029e check is still running.
+
+## Current workflow packaging and evidence
+Both final local app/CLI builds pass. Native installed-resource checks, nine missing-resource refusals, altered Metal refusal, missing-model guidance and strict signatures pass. Baseline resources and isolated installation/update/uninstall/skill/conflict/workbook preservation pass. Verification logs and final source/binary hashes are retained in integration/evidence/2026-10-27-current-workflow-qualification.json. The tested harness and protocol are ready for the full W1 cohort; all product adoption limits remain.

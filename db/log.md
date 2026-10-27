@@ -217,3 +217,9 @@ I2 passes both supplier cache arms; retain 29 exact request pairs, currency corr
 ## [2026-10-27 11:41] verification | records/operations/implementation.md
 Full local regression and final benchmark guard checks pass; prepare corrected uninstrumented W1 pilot.
 
+## [2026-10-27 11:52] verification | records/operations/implementation.md
+Corrected normal-cache W1 pilot passes all 16 jobs and 32 exact paired requests; full qualifying cohort remains pending.
+
+## [2026-10-27 11:52] verification | records/operations/implementation.md
+Final native/baseline packaging and installation pass; retain I2/W1 pilot evidence, logs and exact source/binary identities.
+

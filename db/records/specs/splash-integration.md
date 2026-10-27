@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T11:41:30.133288+00:00
+updated: 2026-10-27T11:52:11.846575+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -363,3 +363,6 @@ Require actual saved wire frames with verified hashes, expected distinct salts, 
 The complete-workflow reference must not add a status request after each response solely for benchmark telemetry when the native product does not make that request. Such a probe changes command history and adds work inside the timed reference bridge. The request-level R1 harness is separate: both sides obtain status outside its request timing. Preserve earlier W1/I1/I2 results with their original source identities; removing this asymmetry does not establish the cause of historical token divergence.
 
 Freeze measured sources, model manifest and release worker binary. Verify their identities before every worker and when finalizing, and refuse qualification or another worker after any change. A clean worktree at startup alone is insufficient. I2 passed both current supplier arms, but its newer prompts and one sample per frontend do not qualify performance. Continue with an uninstrumented W1 pilot under normal caching before considering a qualifying cohort.
+
+## Current W1 pilot boundary
+The corrected normal-cache W1 pilot on fda029e completed sixteen jobs plus two Ready primes with 32 exact paired requests and generated outputs, no sampling/condition failures, and retained currency correction latency. This satisfies the pilot prerequisite only. Run the already preregistered complete cohort on committed frozen sources before assessing the recorded latency gate. Keep I1 and earlier W1 divergences as historical evidence; a newer passing prompt set and telemetry correction do not establish a universal determinism claim or a single root cause.
