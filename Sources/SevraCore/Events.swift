@@ -44,19 +44,28 @@ extension Workbook {
   @discardableResult public func movement(
     subject: String, quantity: String, occurrence: String, effective: String, input: String,
     meaning: String = "actual", status: String = "draft", supersedes: String? = nil,
-    token: String = identifier()
+    token: String = identifier(), requestSourceID: String? = nil
   ) throws -> Item {
     let effective = try BusinessTime.normalized(effective)
     try require(
       !subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !occurrence.isEmpty,
       "movement", "Subject and occurrence must not be empty.")
     _ = try Numbers.decimal(quantity)
-    let request: Value = .object([
+    var fields: [String: Value] = [
       "subject": .string(subject), "quantity": .string(quantity), "occurrence": .string(occurrence),
       "effective": .string(effective), "input": .string(input), "meaning": .string(meaning),
       "status": .string(status), "supersedes": supersedes.map(Value.string) ?? .null,
-    ])
+    ]
+    // Preserve legacy idempotency bytes when no host request accompanies a call.
+    if let requestSourceID { fields["requestSourceID"] = .string(requestSourceID) }
+    let request = Value.object(fields)
     let result = try mutation("movement", token: token, request: request) {
+      if let requestSourceID {
+        let source = try item(requestSourceID)
+        try require(
+          source.category == "source" && source.kind == "request", "movement_request",
+          "The movement request must reference its captured user submission.")
+      }
       let logical = try supersedes.map { try item($0).logicalID }
       let existing = try db.execute(
         "SELECT DISTINCT i.logical_id FROM effects e JOIN items i ON i.id=e.item_id WHERE e.occurrence=? AND e.subject=? AND e.kind='inventory'",
@@ -71,7 +80,10 @@ extension Workbook {
         category: "record", kind: "movement", title: "\(subject): \(quantity)",
         text: "\(quantity) inventory movement for \(subject)", data: request, meaning: meaning,
         status: status, scenario: meaning == "actual" ? "actual" : "planning",
-        inputs: [input] + (supersedes.map { [$0] } ?? []), transformation: "inventory-movement-v1",
+        inputs: Array(
+          Set([input] + (supersedes.map { [$0] } ?? []) + (requestSourceID.map { [$0] } ?? []))
+        ).sorted(),
+        transformation: "inventory-movement-v1",
         supersedes: supersedes)
       try db.execute(
         "INSERT INTO effects VALUES(?,?,?,?,?,?)",

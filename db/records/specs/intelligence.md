@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T21:20:27.241166+00:00
+updated: 2026-10-27T22:17:29.396281+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -255,8 +255,9 @@ must not trigger these actions.
 Start/rename use the same core operations as native controls and CLI. Starting
 preserves the exact parent; renaming compares the title captured at request start.
 Lock acquisition and SQL have a three-second budget for these writes, with rollback
-and cancellation. A successful action ends the current model turn with a host-owned
+and cancellation. A successful standalone action ends the current model turn with a host-owned
 confirmation and saved receipt; model-authored success prose is not published.
+The explicit branch-and-continue action follows A13 below.
 Creation/rename are committed operations. Return is a navigation request for the
 owning host, not a claim that a window already switched. Review is an editable
 summary with an exact origin, not a shared message. Current read-only restrictions
@@ -274,10 +275,10 @@ its calling client; it does not claim to operate a native window.
 Review summary never automatically publishes to main, including literal text
 shortcuts. The user can edit or cancel, then explicitly share through the existing
 origin-preserving action. Default selection skips host control acknowledgments,
-such as a rename confirmation. No business acceptance, sibling-history admission,
-scenario creation or new model request follows automatically. Compound instructions
-that request both branching and further work need a separate continuation contract;
-terminal navigation alone does not fulfill the requested follow-up analysis.
+such as a rename confirmation. No business acceptance, sibling-history admission or scenario creation follows
+automatically. Standalone navigation does not start another model request.
+Compound branching and further work follow the explicit A13 continuation contract;
+terminal navigation alone does not fulfill that follow-up analysis.
 
 Qualification includes exact host refusals/cancellation and actual-model paraphrase,
 Spanish, hypothetical, negated, ambiguous-target and imported-instruction cases.
@@ -286,8 +287,9 @@ comprehensive language or uncoached-usability qualification. Keep failures and r
 identities in [[records/operations/implementation]].
 
 The model receives the current conversation identity/title and only the conversation
-actions available in that host state. Main can start a thread; a side discussion
-can also rename, return or prepare review. Explicit read-only mode removes the
+actions available in that host state. Main can start a thread, with or without explicitly requested follow-up work;
+a side discussion can also rename, return or prepare review. A carried request
+has no further conversation-action capability. Explicit read-only mode removes the
 action tool. Both backends use the same declarations for measurement and generation;
 reference annotations and compaction preserve this host metadata. These are
 capability limits, not proof that a requested action was interpreted correctly.
@@ -354,5 +356,69 @@ still owns the scoped capability set and the same internal action result. Named
 tools cannot override their operation through an action argument. The earlier
 conversation_action entry remains a host compatibility alias for existing clients
 and receipts, but is not advertised in model schemas. Negative-case checks inspect
-all four named operations as well as the alias; they must not miss an attempted
+all named conversation operations, including the A13 continuation action, as well as the alias; they must not miss an attempted
 action after a tool rename. Qualify the unchanged requests, not just new names.
+
+
+### A13. Branch and continue one explicit request
+
+Implemented in development with a passing fixed model cohort; native interaction
+qualification remains open. Expose a distinct
+start_thread_and_continue action for a current request that explicitly asks both
+to branch and to perform further work. Pure start_thread remains terminal. The
+compound action requires a verbatim span of the current request identifying its
+additional task. The entire request, a paraphrase, a thread title or inferred work
+from earlier history is not a substitute. Exact-span validation proves origin,
+not correct semantic interpretation; keep negative intent cases in qualification.
+
+The host carries the exact submitted text, original request Source and visible
+selection into the new thread. It never invents a second human instruction from
+a model paraphrase. A child user message is explicitly marked as a carried request
+with the original message, run, receipt and Source IDs, plus the quoted remaining
+task and selected terminal tool. The original request and receipts remain in their
+originating conversation. A single atomic, idempotent handoff records the child run
+and parent acknowledgement; the parent is marked continued, not complete. Existing
+request, payload and operation journals preserve this relation without migration.
+
+Prefer branching before evidence work. Earlier read/calculation calls may precede
+it and be repeated within the same total budget. An earlier attempted change,
+including one with an uncertain result, prevents a handoff. A failed handoff call
+may be corrected only when it has no committed creation operation. Only one
+handoff is allowed. Never restart already completed mutations in another phase.
+
+The compound action inherits the latest completed exchange; explicit earlier-message
+selection remains with standalone start_thread. The child receives only that
+explicit inherited parent excerpt and carried request,
+not unrestricted parent or sibling history. It cannot navigate or branch again.
+Both phases share the inference lease, cancellation and twelve-response budget.
+The selected work bounds its tools: answer permits only reads, calculations and
+finish. A requested draft, save_space, propose_movement, propose_record,
+propose_table or propose_table_edit additionally admits exactly that named tool.
+The model must select work and quote task; trusted older calls that omit work
+default to answer. Every write selection requires that work in the current request. A thread title does not request a same-named space
+or table. Semantic selection still requires qualification; the capability mask
+and host refusal enforce the selected bound on both inference backends.
+
+Business acceptance, citation checks, deterministic arithmetic, bounded retrieval
+and proposal review remain unchanged. Continuation does not create another request
+Source. Failure/cancellation preserves the created thread and exact completed
+receipts, without claiming the remaining task finished. Restart never replays it.
+
+The final native result identifies the new thread and any generated view/proposal.
+Apply navigation and focus only while the original window and navigation generation
+still own the result. CLI clients receive the same typed result. Qualification
+covers pure branching, compound calculation and evidence retrieval, one Source,
+exact lineage, prior-change/repeated-handoff refusal, inherited-history isolation,
+cancellation, failure, total budget, unfinished reopen and original negative cases.
+Retain failed cohorts and distinguish corrected fixture ambiguity from product fixes.
+
+### A14. References extend retrieval without granting authority
+
+Apply [[records/specs/references-and-relationships]] to future reference tools and
+native generated views. Explicit mentions/backlinks and bounded indexed traversal
+come first. Navigation references, possible associations, accepted business claims
+and exact-version derivations remain distinct. The model must inspect resolved
+original evidence before citing it; a backlink is neither proof of a business fact
+nor permission to access another conversation. Substantive inferred relationships
+are derived Records with evidence, meaning and status, never automatically accepted
+facts. This is an adopted requirement, not completed implementation.

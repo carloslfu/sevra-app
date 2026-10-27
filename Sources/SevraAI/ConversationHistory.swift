@@ -6,7 +6,7 @@ extension WorkbookAgent {
     -> Value?
   {
     guard message.role == "user", let status = try workbook.requestRunStatus(message.id),
-      ["cancelled", "failed", "interrupted"].contains(status)
+      ["cancelled", "failed", "interrupted", "continued"].contains(status)
     else { return nil }
     return .object([
       "runStatus": .string(status), "referenceOnly": .bool(true),

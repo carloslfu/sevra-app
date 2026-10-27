@@ -62,9 +62,32 @@ package enum NativeTools {
   ])
   package static let definitions: [WorkbookToolDefinition] = [
     .init(
+      name: "start_thread_and_continue",
+      description:
+        "Use when the current user explicitly asks to start a new side discussion AND specifies an additional task there. Prefer this before evidence work; it is refused after attempted changes. Quote that separate task verbatim in task. A request just to take a discussion into a new thread has NO additional task: use start_thread. Never infer further work from the thread title or earlier conversation. Creates the thread and continues once, without accepting proposals or creating a scenario.",
+      parameters: object(
+        [
+          "title": schema("string", "Optional title requested for the new discussion."),
+          "task": schema(
+            "string",
+            "The exact verbatim span of the current user request specifying additional work, such as calculate the difference between 14.80 and 12.40. Exclude the branching instruction. Never invent or paraphrase a task or take it from earlier messages. Required."
+          ),
+          "work": .object([
+            "type": .string("string"),
+            "enum": .array(
+              [
+                "answer", "draft", "save_space", "propose_movement", "propose_record",
+                "propose_table", "propose_table_edit",
+              ].map(Value.string)),
+            "description": .string(
+              "The remaining task: answer for research/calculation/explanation with no changes; propose_movement for an inventory movement proposal; propose_record for another business Record; propose_table for new structured data; propose_table_edit for changed existing values; draft for a document; save_space for a saved view. Select the requested operation exactly. An inventory proposal is propose_movement, not answer or draft. A thread title is not a request for a space/table."
+            ),
+          ]),
+        ], required: ["task", "work"])),
+    .init(
       name: "start_thread",
       description:
-        "Create a NEW side discussion only when the current user explicitly asks to branch this discussion. Never use this to rename an existing thread, return to main, review findings, or answer a hypothetical question. If another requested action or target is unavailable, use finish to clarify, not this tool. Ends this turn; does not create a business scenario.",
+        "Create a NEW side discussion and STOP, only for a branch-only request with no further task. When the request also asks to compare, calculate, draft or do work there, use start_thread_and_continue FIRST instead. Never use this to rename an existing thread, return to main, review findings, or answer a hypothetical question. If another requested action or target is unavailable, use finish to clarify. Does not create a business scenario.",
       parameters: object(
         [
           "title": schema("string", "Optional title for the new discussion."),

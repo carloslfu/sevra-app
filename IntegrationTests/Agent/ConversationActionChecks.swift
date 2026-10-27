@@ -53,7 +53,8 @@ private actor ConversationActionModel: WorkbookInference {
 
 func checkConversationActions() async throws {
   let checks = ToolPolicyChecks()
-  let mainPolicy = try NativeCitationPolicy.make([], conversationActions: ["start_thread"])
+  let mainPolicy = try NativeCitationPolicy.make(
+    [], conversationActions: ["start_thread", "start_thread_and_continue"])
   try mainPolicy.validate(
     checks.candidate("start_thread", [], policy: mainPolicy))
   try expectThrows(
@@ -64,8 +65,12 @@ func checkConversationActions() async throws {
   let restrictedTools = try NativeTools.referenceDefinitions(conversationActions: [])
   try expectEqual(
     restrictedTools.contains { WorkbookTools.conversationTools[$0.name] != nil }, false)
-  let baseline = try LocalModel.baselineDefinitions(conversationActions: ["start_thread"])
-  let native = try NativeTools.referenceDefinitions(conversationActions: ["start_thread"])
+  let baseline = try LocalModel.baselineDefinitions(conversationActions: [
+    "start_thread", "start_thread_and_continue",
+  ])
+  let native = try NativeTools.referenceDefinitions(conversationActions: [
+    "start_thread", "start_thread_and_continue",
+  ])
   try expectEqual(
     try Value.parse(baseline.first { $0.name == "start_thread" }!.parameters.jsonText),
     native.first { $0.name == "start_thread" }!.parameters)
@@ -145,20 +150,29 @@ func checkConversationActionGrammar(
 ) throws {
   for thinking in [false, true] {
     let main = try NativeCitationPolicy.make(
-      [], thinking: thinking, conversationActions: ["start_thread"])
+      [], thinking: thinking, conversationActions: ["start_thread", "start_thread_and_continue"])
     let thread = try NativeCitationPolicy.make(
       [], thinking: thinking,
-      conversationActions: ["start_thread", "rename_thread", "return_to_main", "review_summary"])
+      conversationActions: [
+        "start_thread", "start_thread_and_continue", "rename_thread", "return_to_main",
+        "review_summary",
+      ])
     let restricted = try NativeCitationPolicy.make(
       [], thinking: thinking, conversationActions: [])
     func output(_ action: String) -> [UInt32] {
       let tool = WorkbookTools.conversationTools.first { $0.value == action }!.key
       return frontend.encode(
         (thinking ? "Use the available interface action.</think>\n" : "")
-          + "<tool_call>\n<function=" + tool + ">\n</function>\n</tool_call>")
+          + "<tool_call>\n<function=" + tool + ">\n"
+          + (action == "start_thread_and_continue"
+            ? "<parameter=task>\ncalculate the difference\n</parameter>\n<parameter=work>\nanswer\n</parameter>\n"
+            : "")
+          + "</function>\n</tool_call>")
     }
     let create = try factory.create(grammar: main.grammar)
     try create.finish(committed: output("start_thread"), requireComplete: true)
+    let compound = try factory.create(grammar: main.grammar)
+    try compound.finish(committed: output("start_thread_and_continue"), requireComplete: true)
     let review = try factory.create(grammar: thread.grammar)
     try review.finish(committed: output("review_summary"), requireComplete: true)
     let wrongScope = try factory.create(grammar: main.grammar)

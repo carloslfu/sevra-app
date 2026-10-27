@@ -463,14 +463,15 @@ import SwiftUI
           })
         guard owns(ticket, in: book) else { return }
         refresh()
-        if conversation == chat, itemPreviewIdentity == navigationID,
-          conversationNavigationIdentity == conversationOrigin,
-          !ticket.cancellation.isCancelled, !changingConversation,
+        let present = conversation == chat && itemPreviewIdentity == navigationID
+          && conversationNavigationIdentity == conversationOrigin
+          && !ticket.cancellation.isCancelled && !changingConversation
+        if present,
           let action = result.conversationAction, action.originConversation == chat
         {
           applyConversationAction(action)
         }
-        if conversation == chat, itemPreviewIdentity == navigationID, let focus = result.focus {
+        if present, let focus = result.focus {
           navigate(focus.kind == "space" ? .space(focus.id) : .item(focus.id))
         }
       } catch { report(error, for: ticket, in: book) }

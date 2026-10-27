@@ -3,13 +3,18 @@ import SevraCore
 
 /// Host-selected scope, never inferred from untrusted retrieved content.
 package enum InferenceToolScope: String, Sendable {
-  case all, finish, inspection
+  case all, finish, inspection, answer, draft, save_space, propose_movement, propose_record,
+    propose_table, propose_table_edit
 
   package func allows(_ tool: String) -> Bool {
     switch self {
     case .all: return true
     case .finish: return tool == "finish"
     case .inspection: return WorkbookTools.readOnlyTools.contains(tool)
+    case .answer: return tool == "finish" || WorkbookTools.readOnlyTools.contains(tool)
+    case .draft, .save_space, .propose_movement, .propose_record, .propose_table,
+      .propose_table_edit:
+      return Self.answer.allows(tool) || tool == rawValue
     }
   }
 }

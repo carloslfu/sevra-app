@@ -451,3 +451,6 @@ Final 5-case guidance and 8-case conversation cohorts pass; retain prior structu
 ## [2026-10-27 21:45] design | records/specs/references-and-relationships
 Adopt owner-approved inline references/backlinks and bounded traversal; integrate storage/search/UI/distribution and pending LJ01-LJ10 acceptance.
 
+## [2026-10-27 22:18] implementation | records/operations/implementation.md
+Implemented scoped compound thread handoff, exact request provenance and movement request lineage. Eighteen native model cases, packaged CLI, full local suite and package/install checks pass. Visual navigation remains pending because the Mac is locked; retained all failed cohorts.
+

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T21:45:28.788412+00:00
+updated: 2026-10-27T22:17:29.420959+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -17,6 +17,12 @@ every requirement or supported hardware profile has passed.
 This remains a development build. The preserved Slotstream app is the baseline;
 the separate native preview uses the Python-free Swift adapter and pinned Splash
 C++/Metal. Native adoption and automatic compaction remain gated.
+
+- Compound branch-and-work requests pass five native model cases, all thirteen
+  existing conversation/guidance regressions and a packaged CLI check. Original
+  requests, bounded capabilities and movement lineage survive the handoff. The
+  final native UI check is pending because the Mac was locked; repeated evidence
+  reads, wider UX/accessibility and production release remain open.
 
 - Search-grounding repairs pass deterministic regressions and the actual paired
   block-3 replay. Empty searches cannot establish exhaustive absence, and the
@@ -2898,3 +2904,112 @@ native/voice/text/CLI operations, bounded agent traversal and LJ01-LJ10 checks.
 Optional inferred associations require separate evaluation. This checkpoint changes
 no runtime code or active engine work. The main agent owns delivery and the pointer
 from its concurrently edited intelligence specification.
+
+
+## Compound thread requests, October 27: qualification in progress
+
+Implemented a single live handoff from a compound branch-and-work request into
+its new thread. The host preserves the exact submission and original request
+Source, records a carried-message payload and linked child run, marks the parent
+continued, and retains one lease, cancellation control and twelve-response budget.
+The requested additional task must be quoted from the current submission. The
+compound action inherits the latest exchange; standalone branching retains its
+explicit earlier-message selection. Child capabilities admit read/calculation tools
+plus finish and, when selected for requested work, exactly one named write tool.
+Attempted earlier changes prevent a handoff. Earlier read-only calls are allowed;
+repeating them remains within the total budget. Restart never resumes unfinished
+work, and original inputs are not rewritten.
+
+Synthetic checks pass cancellation before/after handoff, exact request and one
+Source, idempotent replay without execution, original/child history separation,
+invalid task correction, prior-change refusal, repeated-handoff refusal, shared
+step limits, unfinished reopen and independent movement-request lineage. Native
+fixtures now cover 28 tools, 33 grammars and 283 exact masks. A malformed new XML
+fixture omitted required parameter newlines; the corrected fixture passes. One
+early history-isolation fixture put its sentinel inside the intentionally inherited
+excerpt; it was corrected to put it outside. Neither is product qualification.
+
+Keep every failed actual-model cohort:
+
+- v1: supplied-price continuation repeatedly searched prior history; quote
+  comparison proposed an unrequested table; inventory work ended at creation.
+- v2: improved continuation prompting fixed stored quote comparison, but supplied
+  arithmetic still tried a view/table; inventory branching happened after reads
+  and was refused by the initial first-call-only rule; branch-only inferred work.
+- v3: exact task quotation and capability limits fixed branch-only and arithmetic.
+  The abstract proposal category was still misclassified as answer, and the model
+  selected an unintended earlier message. The inventory fixture now explicitly
+  says the units left stock for a sale; the earlier handover wording was ambiguous.
+- v4: exact named write-tool selection and latest-exchange inheritance completed
+  all requested model operations, but the inventory acceptance check caught a real
+  core omission: movement lineage kept its observation but omitted the captured
+  user request. The movement API now preserves that host request alongside the
+  observation, without changing legacy idempotency arguments when no request is
+  supplied. It remains draft; no accepted inventory effect occurs.
+
+v5 is running against that lineage fix, followed by the unchanged conversation
+and interface-guidance cohorts. Builds, package installation and visible UI checks
+will be recorded below before this checkpoint is accepted. Quote cases can consume
+the full twelve responses because evidence is read on both sides of the handoff;
+this is functional qualification work, not a latency or production-adoption claim.
+
+The adopted reference/backlink requirements from 00662f6 are linked from intelligence
+A14 to [[records/specs/references-and-relationships]]. Their implementation remains
+pending and does not replace the open Splash, context, accessibility or release gates.
+
+
+### Compound request checkpoint results
+
+Final v5 passes all five fixed cases: supplied arithmetic 3 responses, stored
+quote comparison 12, proposed inventory movement 6, branch-only 1 and hypothetical
+question 1. The movement is draft with quantity -2, exact observation and original
+request lineage, and accepted stock still 20. Its changed observation wording
+was frozen in protocol v2 before v3; the final v4/v5 prompts and fixture are the
+same. v4 remains a failed lineage check, not a reported pass. All eight unchanged
+conversation cases pass (the first seven in one response; imported instruction
+in four). All five unchanged guidance cases pass in 1, 1, 1, 2 and 6 responses.
+Answers were reviewed for the Source/Record distinction, shared workbook effects,
+price difference, exact citations and no invented currency. Explanations remain
+more verbose than desired; structural checks alone do not prove semantic quality.
+
+Independent SQLite audit confirms exact carried request/source bytes, preserved
+original heads, no unresolved prepared calls, foreign keys and integrity across
+all eighteen successful fixtures. The final debug executable matches the recorded
+v5 and guidance executable identities. No engine revision or model changed.
+
+Commands completed successfully:
+
+- ./scripts/check.sh, including 79 core checks, extraction, documents, preview,
+  voice lifecycle, history/context, agent and grammar suites, db.md and link gates.
+- ./scripts/build.sh and python3 scripts/check_install.py: optimized baseline,
+  isolated install/update, standalone CLI, skill conflict and recoverable uninstall.
+- Native release builds of SevraDesktop, sevra and sevra-extract with
+  SEVRA_NATIVE_CANDIDATE=1, then scripts/package_native.py,
+  scripts/check_native_package.py and scripts/check_extraction_package.py.
+  Resource/signature, ten missing-resource refusals, altered-resource refusal and
+  extraction with build-tree reads denied pass; no Python runtime is introduced.
+- Packaged output/native/bin/sevra created a fresh workbook and fulfilled a request
+  to start CLI calculation and compute 20 minus 8. It answered 12 in three responses,
+  returned its typed created-thread result, stored one request Source and zero
+  business Records, and passed verify. The parent is continued; its child complete.
+
+The Mac was locked when the UI tool tried opening the rebuilt preview. The tool
+refused before app launch; no preview process was running afterward. An unlock
+request is pending. Do not report automatic navigation or away-and-back late-result
+behavior as visually qualified by this checkpoint. Dictation was not restarted;
+the earlier approved human phrase remains the existing hardware evidence.
+
+Evidence: integration/evidence/2026-10-27-request-handoff.json.gz, 275207 bytes,
+uncompressed SHA-256
+0da6a352328048cb471464366174d2b5ff5128788a7ad58b63f1e45a2ea68f9a.
+It preserves seven cohorts, 38 synthetic workbook exports, the packaged CLI audit,
+47 logs and source/executable identities. Diagnostic model reasoning is retained
+only for these synthetic tests; product workbooks do not save it. a0ced3a hosted
+CI completed successfully; this new checkpoint's hosted CI is not yet qualified.
+
+Next: finish the two native navigation checks after unlock, reduce duplicate
+read-only work across the handoff, then continue the outstanding plan. No native
+adoption, automatic compaction, 100-150 tokens/s all-device claim, full accessibility
+qualification or public-release completion is established here. The new explicit
+reference/backlink specification remains adopted work to implement, not a completed
+feature.

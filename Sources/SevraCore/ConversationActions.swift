@@ -61,33 +61,53 @@ extension Workbook {
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
     try require(
       arguments.object.keys.allSatisfy {
-        ["action", "title", "message", "summary"].contains($0)
+        ["action", "title", "message", "summary", "work", "task"].contains($0)
       }, "arguments", "Unknown conversation action field.")
-    for key in ["title", "message", "summary"] {
+    for key in ["title", "message", "summary", "work", "task"] {
       try require(
         arguments[key] == .null || arguments[key].string != nil, "arguments",
         "Use text for " + key + ".")
     }
     let action = arguments["action"].text
     try require(
-      ["start_thread", "rename_thread", "return_to_main", "review_summary"].contains(action),
+      [
+        "start_thread", "start_thread_and_continue", "rename_thread", "return_to_main",
+        "review_summary",
+      ].contains(action),
       "arguments", "Choose a supported conversation action.")
     let allowed: Set<String> =
-      action == "start_thread"
-      ? ["action", "title", "message"]
-      : action == "rename_thread"
-        ? ["action", "title"]
-        : action == "review_summary" ? ["action", "message", "summary"] : ["action"]
+      action == "start_thread_and_continue"
+      ? ["action", "title", "work", "task"]
+      : action == "start_thread"
+        ? ["action", "title", "message"]
+        : action == "rename_thread"
+          ? ["action", "title"]
+          : action == "review_summary" ? ["action", "message", "summary"] : ["action"]
     try require(
       Set(arguments.object.keys).isSubset(of: allowed), "arguments",
       "These fields do not apply to this action.")
+    if action == "start_thread_and_continue" {
+      try require(
+        ContinuedWork(rawValue: arguments["work"].string ?? "answer") != nil,
+        "arguments",
+        "Choose answer or the exact supported write tool for the explicitly requested follow-up.")
+    }
     let selected: Message? = try synchronized(cancellation: control) {
       try db.budget(cancellation: control, seconds: 3) {
         try db.readTransaction {
           let request = try historyMessage(requestMessage, conversation: conversation)
           try require(
             request.role == "user", "conversation", "The action needs its current user request.")
-          guard ["start_thread", "review_summary"].contains(action) else { return nil }
+          if action == "start_thread_and_continue" {
+            let task = arguments["task"].text.trimmingCharacters(in: .whitespacesAndNewlines)
+            try require(
+              !task.isEmpty && task != request.body.trimmingCharacters(in: .whitespacesAndNewlines)
+                && request.body.contains(task), "handoff_task",
+              "Quote the additional task verbatim from the current request, separately from its branching instruction. If no additional task was requested, use start_thread only."
+            )
+          }
+          guard ["start_thread", "start_thread_and_continue", "review_summary"].contains(action)
+          else { return nil }
           let ceiling = try messageLocation(requestMessage)["rowid"]
           let source: String
           if let id = arguments["message"].string {
@@ -100,7 +120,7 @@ extension Workbook {
                 + roles
                 + " AND rowid<? ORDER BY rowid DESC LIMIT 1",
               [.string(conversation), ceiling])
-            source = last.string ?? (action == "start_thread" ? requestMessage : "")
+            source = last.string ?? (action != "review_summary" ? requestMessage : "")
           }
           try require(
             !source.isEmpty, "summary",
@@ -116,7 +136,7 @@ extension Workbook {
       }
     }
     switch action {
-    case "start_thread":
+    case "start_thread", "start_thread_and_continue":
       let id = try startThread(
         parentMessage: selected!.id, title: arguments["title"].string,
         token: token, cancellation: control)
