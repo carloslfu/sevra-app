@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T22:49:39.918409+00:00
+updated: 2026-10-27T23:44:23.873465+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -18,13 +18,24 @@ This remains a development build. The preserved Slotstream app is the baseline;
 the separate native preview uses the Python-free Swift adapter and pinned Splash
 C++/Metal. Native adoption and automatic compaction remain gated.
 
-- Compound requests retain exact, bounded evidence from the same live request.
-  Six native handoff cases, thirteen conversation/guidance regressions and the
-  rebuilt packaged CLI pass. The quote case uses seven responses instead of
-  twelve; explicit read-first/branch/report also passes. Original requests, scope
-  and movement lineage remain intact. Retain the failed packaged predecessor.
-  Native navigation checks await the pending Mac unlock. Model wording,
-  unnecessary request-Source reads, wider UX/accessibility and release remain open.
+- Compound requests preserve exact same-request evidence and show the completed
+  thread-creation result before continuing. Current user text stays intact;
+  host storage/progress metadata is separate. Ordinary help uses voice/text
+  language. The acceptance-versus-accuracy explanation and its direct contrast
+  now pass focused manual review, with the original context budget unchanged.
+  Earlier model/context failures remain preserved. Non-blocking example wording
+  is logged instead of triggering another broad qualification loop.
+- The owner unlocked the Mac. Normal completion and away-and-back navigation
+  pass native checks. Proposal details hide routing IDs and redundant status;
+  native Accept/Undo preserves history and stock 20 -> 18 -> 20. The current chat
+  proposal badge still needs a version-aware status projection, and request
+  context still needs readable selection labels. These are the next product fixes.
+- Owner-approved focused verification now governs development. Reuse unchanged
+  evidence, check the actual fix and one nearby counterexample, and reserve broad
+  reruns for a concrete boundary change or meaningful integration/release point.
+  The queued action cohort and package/install/rebuild/full-suite reruns were
+  cancelled. One already-running handoff cohort finished safely before its
+  orchestration shell was terminated. See [[records/specs/distribution]].
 
 - Search-grounding repairs pass deterministic regressions and the actual paired
   block-3 replay. Empty searches cannot establish exhaustive absence, and the
@@ -88,20 +99,23 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   bounded earlier/later windows and conversation-scoped search, with exact original
   navigation and preserved drafts. Search paging/retry and stale-scope refusal pass.
 
-The final local suite passes with 79 core, 19 extraction and 16 document checks,
+At the preceding integration checkpoint, the full local suite passed with 79 core,
+19 extraction and 16 document checks,
 plus the expanded conversation/preview checks. Both package builds, native
 resource/signature checks, packaged extraction and isolated baseline
 install/update/uninstall pass. Hosted workflows 40562440542 on e27ae39,
 40564561986 on 75511b8, 40568212108 on 03163ed and 40571572539 on 3dcc924 pass.
-Workflow 40575358833 on 3313016 is still running at this checkpoint; this new
-navigation change still needs its own hosted result after push.
+The following checkpoints also passed hosted CI: 00662f6 (40589578202) and
+92b08c3 (40593888059) and e1c9b49 (40597871434). The latter includes successful
+installation and the isolated native preview build. The present focused checkpoint uses the checks below; current release packages
+were not rebuilt for the final wording change. Its own hosted result is not yet known.
 The owner adopted [[records/specs/references-and-relationships]] on October 27.
 Inline references, backlinks and bounded traversal are planned, not implemented.
 L01-L14 and LJ01-LJ10 define delivery and verification. Keep the active checkpoint
 and engine qualification in place; inferred associations follow measured value.
 
-Next, continue the coherent UX pass with ordinary voice/text host actions and
-Home/recent/pinned spaces, then the full J11 journey. Thread creation/rename still
+Next, fix the current proposal badge and request-context presentation, then
+continue ordinary voice/text host actions, Home/recent/pinned spaces and J11. Thread creation/rename still
 use the existing generic writer lock; add a bounded writer path before treating
 interruption under competing writers as qualified. Continue engine repeatability
 review and remaining context, keyboard/VoiceOver, archive/transcription, whole-app
@@ -3100,3 +3114,190 @@ polish concise user-facing language and unnecessary request-Source reads; contin
 references/backlinks and the remaining product, accessibility, context, engine and
 release gates. Baseline/native selection, model revision, engine pin and disabled
 automatic-compaction default are unchanged.
+
+## Conversation language and unlocked native checks, October 27
+The owner unlocked the Mac, resolving the pending navigation check. On the built
+e1c9b49 native preview, a request to create UI automatic and calculate 9 minus 2
+opened the new thread and answered 7. During a second compound request, switching
+to UI automatic and back to Conversation kept Conversation and Home visible after
+the late result. UI receiving contained the requested draft movement, with the
+original request and Handover note linked; accepted inventory was still 20.
+Normal navigation and the away-and-back generation boundary now have native UI
+proof. No microphone recording was started in this check.
+
+The next build separates host request metadata from submitted text, clarifies
+ordinary voice/text explanations, and removes internal routing fields and
+redundant movement meaning/status from the default detail view. The original
+request remains exact and is automatically retained in proposal lineage. New
+synthetic checks cover ordinary requests and typed child continuations without
+rereading the already visible Source. Existing missing-external-evidence checks
+still refuse treating that Source as proof of a document being sought.
+
+The first expanded prompt failed the existing synthetic running-compaction check
+with context_limit. The fix condensed repeated conversation policy by 977
+characters. It did not increase the context budget or relax refusal tests. The
+corrected synthetic suite passes, including repeated active compaction.
+
+All ten actual native interface-guidance v2 cases pass: seven explanation cases
+in one response each, a draft estimate forecast in one, supplied arithmetic in two,
+and cited stored quotes in six. Fixed simple answers are 57-92 words, with no
+internal function names, headings or lists. Spanish stays Spanish; the technical
+answer distinguishes the two branch tools. The detailed answer keeps an accepted
+forecast an estimate. Its phrase "validated estimate" is not an independent
+accuracy claim or proof that acceptance validates a forecast. Broader language
+and semantic reliability remain open. No case rereads its current request Source.
+
+On the rebuilt app, the same thread-help question answered in three plain sentences
+(56 words), one response and zero tool calls, without creating a thread. A normal
+pointer click and the named accessible Open action both opened the proposal.
+Details showed one authoritative Record/Actual/Draft header, business fields and
+named lineage, with no raw request ID. The original User request opened intact
+without internal conversation/message IDs. Accept changed stock to 18 and showed
+Accepted; Undo restored 20 and showed Rejected. Both exact versions/history and
+workbook integrity were preserved, as confirmed independently through the CLI.
+
+Two remaining UI findings are explicit in [[records/specs/product]]: the original
+chat proposal retains its historical Needs your review badge, and request context
+shows a technical Active space ID line. Do not mark these presentation fixes done.
+The complete ordinary-language/keyboard/VoiceOver journeys also remain open.
+
+The six-case compound-request and eight-case conversation-action regressions are
+running against the revised prompt. Their final outcome, package/full-suite
+checks and immutable evidence archive will be recorded before committing this
+checkpoint. Engine pin, model revisions, preserved baseline and disabled automatic
+compaction defaults are unchanged.
+
+### Retained continuation-progress failure and correction
+The first revised six-case handoff cohort passed five cases but failed the exact
+read/calculate-first then branch/report case. The child could see the completed
+quote reads and calculation, but saw no completed creation call after them. It
+repeated history searches while reasoning that thread creation was still pending,
+and exhausted the shared twelve-response budget. Only one thread was created;
+the host correctly refused repeated branching. The answer was not delivered.
+Preserve the failed workbook, trace, protocol and binary hash. No budget was raised.
+
+The correction carries the exact completed creation call/result as an in-memory
+progress pair after the qualified business evidence, with empty assistant prose
+and reasoning. It does not execute that action again or give its result business
+citation authority. New synthetic assertions verify the real created conversation,
+paired call identity, unchanged user request, no additional durable tool receipt,
+unchanged scope and later-history exclusion. The full synthetic suite passes.
+The exact report-prices case now passes in seven responses: two searches, both
+original reads, deterministic calculation, the completed creation, and a cited
+finish in its child. The earlier failed run remains retained. The remaining fixed
+handoff/conversation/guidance cases and package checks are still running; their
+results will be recorded separately.
+
+The second fixed cohort passes the corrected report case, supplied arithmetic,
+stored quotes, proposed movement and hypothetical explanation. Branch-only still
+fails its one-response UX gate: it attempted a compound call using the whole
+branching instruction as its task. The host rejected that before creation, and
+the model corrected to one ordinary new thread on response two. No follow-up work
+or duplicate thread occurred. The original failure wording overstated this as
+continued work; the check now reports an unnecessary extra response separately
+without weakening the same conditions. The next prompt restores the explicit
+rule that taking a discussion into a named thread supplies no additional task.
+The third fixed cohort and unchanged regressions are running. Preserve both
+failed cohorts; do not infer whole-model reliability from the corrected examples.
+
+### Manual meaning review caught an overstatement
+The third handoff cohort passes all six cases (3, 7, 4, 7, 1 and 1 responses),
+and all eight conversation-action cases pass. The ten interface-guidance cases
+also pass their automated checks, but manual semantic review refuses overall
+qualification of the detailed-meaning answer: it describes acceptance as proving
+reliability and rejection as meaning incorrect/invalid. A draft Source was also
+portrayed as unavailable for calculations. Those claims exceed the actual model.
+The earlier answer's "validated estimate" wording also deserved stronger correction.
+
+The full package/check sequence was deliberately stopped during the local suite
+before rebuilding release packages, so it is not a passing final check. Its log
+is retained as conversation-language-full-check-interrupted-for-meaning.log.
+The prompt now states the workflow/accuracy distinction, draft exploration,
+withdrawal/nonselection and independent Record review explicitly. Protocol v3
+adds an eleventh direct acceptance-boundaries question, retaining every earlier
+prompt and limit. The eleven guidance, six handoff and eight action cases are
+running on that revision. Automated output and manual semantic approval remain
+separate; no test bounds or model budgets were relaxed.
+
+The first acceptance-policy addition again exceeded the original synthetic
+running-compaction budget. No actual-model v4 run had started. Keep the failed
+v5 synthetic log. The revised text removes 521 duplicated characters from the
+interface-facts and conceptual-help paragraphs, preserving the product facts and
+new acceptance distinctions. It does not alter context size, compaction thresholds
+or refusal tests. The next synthetic suite and model cohorts use that revision.
+
+## Verification course correction, October 27
+Carlos explicitly approved "Okay course correct" after reviewing a proposal to
+reduce verification to the minimum checks that demonstrate the changed behavior.
+The approved direction was delivered to this active implementation conversation;
+this repo owns the durable update. [[records/specs/distribution]] now defines the
+focused verification policy, and AGENTS.md points future work to it.
+
+Applied immediately: the shell orchestrating the broad command chain was stopped
+without signaling its already-running handoff check. Let that bounded in-flight
+check finish its workbook transactions, then terminate only the stopped shell so
+it cannot start the queued conversation-action cohort. No new package, install,
+baseline/native rebuild, extraction or full-suite run is justified by the final
+acceptance wording change. The earlier interrupted full-suite log is preserved.
+
+Focused evidence already obtained: the exact detailed-meaning question now
+separates approval from truth, keeps an accepted forecast an estimate, and does
+not make it actual inventory. The direct acceptance-boundaries contrast also
+allows draft exploration and says rejection need not mean false. Both used one
+response with no action. The existing running-compaction/context checks pass at
+the original budget. This fixes the observed acceptance-versus-accuracy issue;
+it does not establish general model truthfulness.
+
+The detailed answer's illustrative Source/plan versus derived-forecast example
+can still be clearer. This non-blocking wording limitation is retained, not a
+reason for another prompt/requalification loop. Automated passes and manual
+semantic review remain separate. No business data, lineage, acceptance or Undo
+assertion was relaxed. Close this focused checkpoint, then implement the concrete
+native chat proposal-status and request-context presentation issues, followed by
+the remaining product plan. The app goal remains active.
+
+### Focused conversation checkpoint results
+The final focused acceptance check uses the exact detailed-meaning prompt that
+previously overstated reliability and one direct acceptance-boundaries contrast.
+Both finish in one response without actions. Manual review confirms that approval
+is not proof of truth, estimates stay estimates, draft exploration remains
+available, and rejection need not mean false. The detailed Source/plan example
+could be clearer; this is a retained non-blocking wording limit, not a claim of
+universal semantic reliability.
+
+The existing deterministic agent suite passes on the final code, including the
+original context-budget/running-compaction regression, unchanged current-request
+and missing-external-evidence boundaries, exact handoff, lineage and arithmetic
+checks. The final guided model cohort had already completed eleven automated
+cases before the course correction. Earlier corrected handoff/action cohorts are
+retained as reusable evidence; they are not prerequisites to repeat after every
+wording adjustment.
+
+At the course correction, the next handoff cohort was already running. Its six
+cases finished with 3, 7, 4, 9, 1 and 1 responses, all passing existing checks.
+The report case made extra searches, so do not generalize the earlier seven-step
+result. The orchestration shell alone was stopped while its child completed,
+then terminated after the child exited. No workbook transaction was interrupted.
+The intentional shell exit 137 is not an app/model crash. The queued final action
+cohort never started. Final package/install, both-backend rebuild, extraction and
+full-suite reruns were skipped; the earlier full-suite interruption is retained.
+No unperformed gate is marked passed. Release and native-adoption gates remain.
+
+Native observations apply to their recorded executables: e1c9b49 for normal and
+away-and-back navigation, and the interim language/viewer build for help, proposal
+navigation, acceptance and Undo. No new microphone session occurred. Those GUI
+mechanisms were not changed by the final acceptance wording fix. The final source
+is committed; release binaries are not claimed to contain that last wording yet.
+
+Evidence: integration/evidence/2026-10-27-conversation-language.json.gz,
+320792 bytes; uncompressed SHA-256
+7ef9402dba09a2418e046908456e4fe87183276aa4991919173b6bfc9a79930c.
+It retains eight cohorts, 63 synthetic workbook exports, two failed handoff runs,
+failed/interrupted checks, separate manual review, native UI observations, 27 logs
+and source/binary identities. Earlier archives remain unchanged. Product history
+does not save model reasoning; these synthetic qualification traces may contain it.
+
+Final small checks: Swift formatting, repository links, full db.md validation and
+Git whitespace review. Commit/push this focused checkpoint, then resume the native
+proposal-status/context-label slice under the focused policy. The overall app
+objective stays active.

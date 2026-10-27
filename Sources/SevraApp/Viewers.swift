@@ -196,6 +196,10 @@ import SwiftUI
               Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 8) {
                 ForEach(item.data.object.keys.sorted(), id: \.self) { key in
                   if !["input", "inputs", "supersedes", "datasetID", "url"].contains(key),
+                    !(item.kind == "movement"
+                      && ["requestSourceID", "status", "meaning"].contains(key)),
+                    !(item.category == "source" && item.kind == "request"
+                      && ["conversationID", "messageID"].contains(key)),
                     let value = item.data.object[key], value != .null, value.array.isEmpty,
                     value.object.isEmpty
                   {

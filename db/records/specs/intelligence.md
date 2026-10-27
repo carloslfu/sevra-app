@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T22:38:11.920036+00:00
+updated: 2026-10-27T23:33:41.493505+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -361,9 +361,8 @@ action after a tool rename. Qualify the unchanged requests, not just new names.
 
 
 ### A13. Branch and continue one explicit request
-
-Implemented in development with a passing fixed model cohort; native interaction
-qualification remains open. Expose a distinct
+Implemented in development. Normal completion and away-and-back native navigation
+now pass focused checks; full interaction qualification remains open. Expose a distinct
 start_thread_and_continue action for a current request that explicitly asks both
 to branch and to perform further work. Pure start_thread remains terminal. The
 compound action requires a verbatim span of the current request identifying its
@@ -399,6 +398,15 @@ original tool calls/results, without assistant prose or reasoning, and restore
 citation/calculation eligibility only with those visible values. Do not execute
 the calls again or manufacture duplicate tool receipts. A later independent
 request must inspect its own evidence; reopening never resumes this handoff.
+
+After the carried business-evidence pairs, show the exact completed creation call
+and its actual result from the current live run. This separate progress receipt
+makes the already-created thread visible after the unchanged original request.
+Use an empty assistant tool-call envelope, without its prose or reasoning. Do not
+execute the creation again, grant citation/calculation authority from its result,
+expand available tools, or manufacture another durable receipt. Persisted original
+creation and continuation records remain the authority. A later independent
+request does not replay these in-memory call pairs.
 
 Limit retained entries to eight and their serialized payload to 32,000 bytes.
 Only results shown whole within the 16,000-byte tool projection bound qualify.
@@ -439,7 +447,6 @@ covers pure branching, compound calculation and evidence retrieval, one Source,
 exact lineage, prior-change/repeated-handoff refusal, inherited-history isolation,
 cancellation, failure, total budget, unfinished reopen and original negative cases.
 Retain failed cohorts and distinguish corrected fixture ambiguity from product fixes.
-
 ### A14. References extend retrieval without granting authority
 
 Apply [[records/specs/references-and-relationships]] to future reference tools and
@@ -450,3 +457,37 @@ original evidence before citing it; a backlink is neither proof of a business fa
 nor permission to access another conversation. Substantive inferred relationships
 are derived Records with evidence, meaning and status, never automatically accepted
 facts. This is an adopted requirement, not completed implementation.
+
+## Conversation language and request metadata
+Use ordinary voice/text language for interface help. Simple conceptual answers
+normally take two to four short sentences, without headings, lists, a repeated
+summary, internal function names, IDs or finish-basis instructions. Give an example
+of what the user can say or type. Use the user's language. Explicit requests for
+technical integration details, examples or a longer explanation take precedence;
+brevity must not remove important distinctions or evidence limits.
+
+Preserve the submitted user text exactly in its captured Source and in the current
+user turn, apart from the separately labeled visible selection context. Put the
+request Source identifier and continuation progress in structured host context.
+The already visible request is not another document to retrieve. It is available
+for provenance and automatically contributes to proposal/document lineage, but
+cannot prove that an external document exists or contains the requested facts.
+A continuation retains the same original Source and exact remaining task; it must
+not repeat thread creation or substitute an earlier discussion.
+
+Qualify these changes against both the shared agent and the actual local model.
+The eleven-case interface-guidance protocol covers English and Spanish explanations,
+explicit technical and detailed exceptions, acceptance boundaries, a request-only forecast proposal,
+supplied arithmetic and stored quote retrieval. Its 100-word bound for the fixed
+simple explanation cases is a test criterion, not a global product truncation rule.
+No post-generation rewriting or silent removal of claims makes answers pass.
+Preserve the original context budgets and refusal checks when changing prompts.
+Automated checks do not establish the semantic quality of every future answer.
+
+Acceptance is a workflow decision about use, not proof that information is true
+or a forecast is accurate. Draft Sources remain inspectable and can support
+exploratory calculations. Rejection can mean withdrawal or nonselection; it does
+not necessarily mean the information is false. Accepting an input does not
+implicitly accept its derived Records, and accepted estimates do not become actual
+inventory. Explicitly review both short and detailed model explanations against
+these distinctions, not only length, tool names and tool-call counts.

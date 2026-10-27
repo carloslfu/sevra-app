@@ -56,7 +56,15 @@ private actor EvidenceHandoffModel: WorkbookInference {
       try expectEqual(messages.map(\.content).joined().contains("Outside selected excerpt"), false)
       try expectEqual(messages.map(\.content).joined().contains("Untrusted assistant prose"), false)
       let carried = messages.flatMap(\.toolCalls).map(\.name)
-      try expectEqual(carried, stale ? ["read"] : ["read", "read", "calculate"])
+      try expectEqual(
+        carried,
+        (stale ? ["read"] : ["read", "read", "calculate"])
+          + ["start_thread_and_continue"])
+      let creation = try Value.parse(messages.last!.content)
+      try expectEqual(messages.last!.toolName, "start_thread_and_continue")
+      try expectEqual(creation["kind"].text, "created")
+      try expectEqual(
+        try book.conversations().contains { $0["id"] == creation["conversation"] }, true)
       try expectEqual(messages[0].conversationActions, [])
       try expectEqual(toolScope, .answer)
       tool = "finish"

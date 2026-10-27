@@ -166,7 +166,10 @@ func runRequestHandoffProbe(modelsRoot: String, library: String, engine: String,
         let childMessages = try book.messages(conversation: action.conversation)
         if name == "branch-only" {
           try require(
-            result.steps == 1 && runs.count == 1 && childMessages.isEmpty
+            result.steps == 1, "handoff",
+            "Branch-only request needed an unnecessary extra response.")
+          try require(
+            runs.count == 1 && childMessages.isEmpty
               && mainCalls.first?["tool"].text == "start_thread",
             "handoff", "Branch-only request continued work.")
         } else {

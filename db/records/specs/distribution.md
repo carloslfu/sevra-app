@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzbe4pdmde0k72e3j6n6
 created: 2026-10-25T01:48:47.342811+00:00
-updated: 2026-10-27T21:45:28.693657+00:00
+updated: 2026-10-27T23:40:55.478575+00:00
 summary: Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 title: Distribution and verification
 status: reviewed
@@ -72,3 +72,36 @@ skill only with implemented commands and limits. Qualify migrations, rebuilds,
 competing writers, portable offline reopen and installed app/CLI behavior.
 Optional inferred associations and a graph view are not first-slice prerequisites.
 Existing engine, context and release gates remain in force.
+
+## Focused verification policy
+Owner-approved course correction, October 27, 2026: use the smallest checks that
+establish the changed behavior so development time goes toward the app. This
+policy controls routine development; it does not weaken release requirements or
+permit claiming untested gates passed.
+
+- For a localized fix, reproduce the actual failure, verify the correction and
+  one nearby counterexample, then run relevant deterministic checks for affected
+  code. Preserve data integrity, arithmetic, permissions, lineage, acceptance and
+  Undo invariants. A UI-only wording/presentation change needs one inspection of
+  the affected interaction.
+- Reuse evidence where the relevant behavior is unchanged. A different prompt or
+  executable hash alone does not require rerunning unrelated conversation,
+  handoff, guidance, both backends, installation or packaging suites.
+- Run the full relevant suite once at a meaningful integration/release milestone.
+  Broaden or repeat checks only for a concrete failure, changed boundary or an
+  explicit evaluation question. State what a repetition will establish before
+  running it. Keep model reliability experiments separate from normal development.
+- Bound minor model-language polishing. Record non-blocking wording limitations
+  and proceed with product work. Data corruption, unauthorized actions and
+  material correctness failures require correction or a safe deterministic
+  boundary before release. Never relax assertions or erase failed evidence.
+- Safely prevent unnecessary queued verification stages when scope changes.
+  Preserve partial logs and completed work, and do not interrupt a workbook
+  transaction. Do not build another testing framework merely to apply this rule.
+- Close focused checkpoints with appropriate small checks, documentation and a
+  commit. Keep the overall app objective and genuinely outstanding gates active.
+
+For the present acceptance/accuracy fix, the relevant evidence is the previously
+failing detailed explanation, one direct acceptance-boundaries contrast, and the
+existing context-budget regression because this change actually exposed it.
+Broader cohorts already performed remain evidence, not a reason to repeat them.

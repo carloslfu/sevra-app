@@ -15,6 +15,10 @@ retrieval, and truthful completion. No hidden hosted model or telemetry.
 
 Keep specifications and work records in this repo's db.md store. No private
 paths, private repository requirements, credentials, or real business fixtures.
-Use meaningful invariant/integration tests. Run scripts/check.sh before release.
+Use meaningful invariant/integration tests. Follow the owner-approved
+[focused verification policy](db/records/specs/distribution.md#focused-verification-policy):
+verify the actual fix plus a nearby counterexample, reuse unchanged evidence, and
+reserve broad reruns for concrete boundary changes or integration/release milestones.
+Run scripts/check.sh before release.
 Preserve unrelated changes. Do not change the website business or Slotstream
 repository as a side effect. Keep public claims tied to measured acceptance.

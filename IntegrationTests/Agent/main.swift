@@ -235,6 +235,7 @@ do {
   try await checkRequestHandoffs()
   try await checkHandoffEvidence()
   try await checkInterfaceGuidance()
+  try await checkRequestEnvelopes()
   try await checkRequestAdmission()
   try await checkCurrencyRejection()
   try await checkHistoryTools()

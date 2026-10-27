@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T21:45:28.676274+00:00
+updated: 2026-10-27T23:17:56.152986+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -351,3 +351,29 @@ Distinguish 'Mentioned in', 'Used to calculate' and later 'Possibly related'.
 Resolve necessary ambiguity without blocking unrelated saves or requiring graph
 maintenance. Keyboard, VoiceOver, narrow-window and draft-preservation checks
 remain required. LJ07 is pending. No extra primary pane or automatic space.
+
+## Proposal history and current review state
+Conversation receipts preserve what happened at the time. A proposal's original
+message must not be rewritten after acceptance, withdrawal or correction. Its
+exact original-version link remains useful evidence.
+
+Current review UI must be a separate, version-aware projection. Resolve the
+proposal's current head within the same bounded background window snapshot, and
+label newer versions explicitly instead of suggesting that the original content
+was approved unchanged. A reviewed or withdrawn proposal must not keep a current
+"Needs your review" indication. Unknown or unresolved associations must not invent
+a review status. Keep the original and current versions navigable and preserve
+conversation scope, stale-result refusal, reopen and cancellation behavior.
+
+Implementation of that conversation status projection remains pending. The
+October 27 native check verified correct record headers and inventory effects,
+but found that the chat retains the historical needs_review badge. This is not a
+failure of acceptance or Undo, and it is not yet a completed presentation fix.
+
+Built-in movement details show meaning/status once, from authoritative item
+metadata, and use the named User request lineage link instead of a raw request ID.
+Captured request details omit internal conversation/message routing identifiers.
+Keep those fields in the stored evidence and CLI. A future context presentation
+should show the selected item, space or table by name without losing the original
+selection or exact version. The present viewer still exposes its Active space ID
+context line; that refinement is pending.
