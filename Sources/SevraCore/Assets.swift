@@ -131,6 +131,19 @@ extension Workbook {
     progress: (Int64, Int64) -> Void = { _, _ in }
   ) throws -> URL {
     try cancellation.check()
+    let (a, file) = try resolvedAsset(id)
+    if verify || a.mode == "linked" {
+      try require(
+        try Self.hashFile(file, cancellation: cancellation) { progress($0, a.bytes) } == a.hash,
+        "changed_asset",
+        "The original has changed. Capture it as a new source version.")
+    }
+    try cancellation.check()
+    return file
+  }
+  // Resolution alone is internal. Public reads verify linked originals, and
+  // copying hashes the actual bytes while writing, without a redundant full read.
+  func resolvedAsset(_ id: String) throws -> (Asset, URL) {
     // Snapshot database metadata only. Hashing a multi-gigabyte external file
     // must not keep unrelated workbook reads or UI refreshes waiting on this lock.
     let (a, bookmark) = try synchronized {
@@ -157,14 +170,7 @@ extension Workbook {
     try require(
       FileManager.default.fileExists(atPath: file.path), "missing_asset",
       "\(a.name) is unavailable. Reconnect or relink its original.")
-    if verify || a.mode == "linked" {
-      try require(
-        try Self.hashFile(file, cancellation: cancellation) { progress($0, a.bytes) } == a.hash,
-        "changed_asset",
-        "The original has changed. Capture it as a new source version.")
-    }
-    try cancellation.check()
-    return file
+    return (a, file)
   }
   public func safePath(_ relative: String, mayNotExist: Bool = false) throws -> URL {
     try require(

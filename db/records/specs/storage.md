@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-27T14:50:41.393039+00:00
+updated: 2026-10-27T16:01:01.512046+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -40,6 +40,15 @@ committing a relink. Full hashes remain mandatory for external reads. Included
 files open without hashing the complete asset unless verification is requested.
 This does not promise interruption of an operating-system file read that is
 already blocked, or instant decode/rendering of every supported file format.
+
+External applications receive copies, never included evidence paths. Copy and
+hash in one pass with 1 MiB chunks, outside the workbook lock. Match the recorded
+SHA-256 and byte count before atomically publishing with no replacement. Check
+free space and reject workbook destinations, including directory aliases; keep
+existing files and remove partial staging on cancellation or error. A completed
+copy is user-owned and remains after Stop or window closure. Process death may
+leave an unreferenced hidden staging file in the selected directory, never a
+partly published destination. Reimport is an explicit new source operation.
 ## Durable entities
 
 S05. Sources and Records are categories of immutable item versions. Each version

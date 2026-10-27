@@ -69,8 +69,10 @@ import SwiftUI
             Button("Find original…") { state.findOriginal() }
           }
         }
-        if let file {
-          Button("Open in another app") { NSWorkspace.shared.open(file) }
+        if file != nil {
+          Button("Open a copy…") { state.openAssetCopy() }
+            .disabled(state.busy)
+            .help("Save a copy for another app. The workbook original stays unchanged.")
         } else if document.editable {
           Button(document.editing ? "Done" : "Edit draft") {
             if document.editing { document.end() } else { document.begin() }

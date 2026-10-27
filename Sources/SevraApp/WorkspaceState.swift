@@ -11,6 +11,14 @@ import SevraVoice
 import Speech
 import SwiftUI
 
+@MainActor private final class AssetCopySaveDelegate: NSObject, NSOpenSavePanelDelegate {
+  let workbook: Workbook
+  init(workbook: Workbook) { self.workbook = workbook }
+  func panel(_ sender: Any, validate url: URL) throws {
+    _ = try workbook.assetCopyDestination(url)
+  }
+}
+
 @MainActor final class WorkspaceState: ObservableObject {
   enum Route: Equatable {
     case space(String)
@@ -538,6 +546,9 @@ import SwiftUI
     case .findOriginal:
       findOriginal()
       notice = "Find original requested. The selected file must match the recorded bytes."
+    case .openCopy:
+      openAssetCopy(input: input)
+      return
     }
     do {
       _ = try book.addMessage(input, role: "user", conversation: conversation)
@@ -558,6 +569,70 @@ import SwiftUI
       activePreview === preview, workbook === book, interactionActive
     else { return }
     preview.reconnect(to: url)
+  }
+  func openAssetCopy(input: String? = nil) {
+    guard interactionActive, !busy, let book = workbook,
+      case .item = route, let source = activeDocument?.current, let assetID = source.assetID
+    else {
+      error = "Open a file preview first, then ask to open a copy."
+      return
+    }
+    let identity = interactionIdentity
+    let navigationID = itemPreviewIdentity
+    let chat = conversation
+    do {
+      let asset = try book.asset(assetID)
+      let name = URL(fileURLWithPath: asset.name).lastPathComponent
+      let fileName = URL(fileURLWithPath: name)
+      let suffix = fileName.pathExtension.isEmpty ? "" : "." + fileName.pathExtension
+      let panel = NSSavePanel()
+      panel.title = "Open a copy in another app"
+      panel.prompt = "Save and Open"
+      panel.message =
+        "The workbook original stays unchanged. Edits to this copy are not added to the workbook."
+      panel.nameFieldStringValue =
+        fileName.deletingPathExtension().lastPathComponent + " copy" + suffix
+      panel.canCreateDirectories = true
+      let validation = AssetCopySaveDelegate(workbook: book)
+      panel.delegate = validation
+      if let input { _ = try book.addMessage(input, role: "user", conversation: chat) }
+      guard withExtendedLifetime(validation, { panel.runModal() }) == .OK,
+        let destination = panel.url, interactionActive, workbook === book,
+        interactionIdentity == identity, itemPreviewIdentity == navigationID,
+        let (_, ticket) = beginOperation("Preparing file copy")
+      else { return }
+      Task {
+        defer { finishOperation(ticket, in: book) }
+        do {
+          let copy = try await Task.detached(priority: .userInitiated) { [weak self] in
+            var lastProgress = -Double.infinity
+            return try book.copyAsset(assetID, to: destination, cancellation: ticket.cancellation) {
+              bytes, total in
+              let now = ProcessInfo.processInfo.systemUptime
+              guard now - lastProgress >= 0.1 else { return }
+              lastProgress = now
+              let message =
+                "Copying " + ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+                + " of " + ByteCountFormatter.string(fromByteCount: total, countStyle: .file)
+              Task { @MainActor [weak self] in
+                guard let self, self.owns(ticket, in: book), self.operations.acceptsProgress(ticket)
+                else { return }
+                self.status = message
+              }
+            }
+          }.value
+          _ = try book.addMessage(
+            "Saved a copy of " + source.referenceMarkdown + " as " + copy.lastPathComponent
+              + ". Edits to the copy are not added to this workbook.", role: "event",
+            conversation: chat)
+          guard owns(ticket, in: book), !ticket.cancellation.isCancelled else { return }
+          if !NSWorkspace.shared.open(copy) {
+            error =
+              "The copy was saved, but no app opened it. You can find it in the folder you chose."
+          }
+        } catch { report(error, for: ticket, in: book) }
+      }
+    } catch { self.error = error.localizedDescription }
   }
   func changeConversation(_ id: String) {
     conversation = id

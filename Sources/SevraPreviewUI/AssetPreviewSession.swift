@@ -99,7 +99,7 @@ import SwiftUI
 /// Explicit shell controls work without waiting for inference. Match complete
 /// submissions only, so requests such as "don't stop" cannot become cancellation.
 public enum WorkspaceControlCommand: Equatable {
-  case stop, stopPreview, retryPreview, findOriginal
+  case stop, stopPreview, retryPreview, findOriginal, openCopy
 
   public static func parse(_ input: String) -> Self? {
     let text = input.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
@@ -110,13 +110,19 @@ public enum WorkspaceControlCommand: Equatable {
     case "stop preview", "cancel preview", "stop opening this file": return .stopPreview
     case "retry preview", "retry this preview", "open this file again": return .retryPreview
     case "find original", "find the original", "find the original file": return .findOriginal
+    case "open a copy", "open a copy in another app", "open in another app",
+      "open this in another app", "open this file in another app":
+      return .openCopy
     default: return nil
     }
   }
 
   public static func allowsSubmission(_ input: String, busy: Bool) -> Bool {
-    !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      && (!busy || parse(input) != nil)
+    guard !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+    if !busy { return true }
+    guard let command = parse(input) else { return false }
+    // Copying owns the workspace operation slot; recovery/Stop stay available.
+    return command != .openCopy
   }
 }
 

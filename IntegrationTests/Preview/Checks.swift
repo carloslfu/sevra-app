@@ -198,5 +198,13 @@ private actor ReadGate {
     try expect(
       WorkspaceControlCommand.allowsSubmission("Compare the suppliers", busy: false),
       "Ordinary model requests were disabled while idle")
+    for input in ["Open a copy.", "open in another app", "open this file in another app"] {
+      try expect(WorkspaceControlCommand.parse(input) == .openCopy)
+      try expect(WorkspaceControlCommand.allowsSubmission(input, busy: false))
+      try expect(
+        !WorkspaceControlCommand.allowsSubmission(input, busy: true),
+        "Copying bypassed operation ownership")
+    }
+    try expect(WorkspaceControlCommand.parse("don't open this in another app") == nil)
   }
 }

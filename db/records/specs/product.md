@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T14:42:57.546615+00:00
+updated: 2026-10-27T16:01:01.483127+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -125,7 +125,15 @@ reads cannot update a view. Removing a selected row from the view clears selecti
 
 P13. PDFKit page navigation/search/selection; images zoom and pan; AVKit audio/video
 playback; Quick Look fallback for supported formats. Unsupported files retain
-metadata and an explicit Open in Other App action. A preview is not an editor.
+metadata and an explicit Open a copy action. A preview is not an editor.
+The button and exact text/voice commands such as "open this in another app" use
+the same native save picker, then open a verified copy in its associated app.
+The user chooses a persistent destination outside any workbook, with a new
+filename. Explain that external edits do not automatically enter the workbook.
+Keep the original evidence intact. Copying is cancellable, reports bounded
+progress, and cannot start while another workspace operation owns the window.
+Closing or switching workbooks prevents a late completion from opening an app;
+a completed copy remains at the chosen destination.
 P14. Evidence links navigate to version plus page, text range, row or timestamp when
 supported. If no locator is available show the exact item version with that limit.
 P15. Media opens paused; explicit play starts it. Voice input pauses playback.

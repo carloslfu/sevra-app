@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T15:40:28.856947+00:00
+updated: 2026-10-27T16:01:01.555848+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -107,6 +107,18 @@ journeys. Native production adoption, baseline removal and
 release remain gated. [[records/specs/splash-integration]],
 [[records/specs/conversation-context]] and [[records/operations/build-and-run]] own
 the contracts and reproduction commands.
+
+- The full 9043fff hosted workflow passed (40530670227), including both package
+  builds and installation. This confirms the search-scale self-check integration,
+  not the pending physical 100k search target.
+- External-opening integrity repair is prepared: the native action and exact
+  composer commands save/open a verified independent copy instead of giving an
+  editor the included asset path. Streaming, cancellation, no-overwrite, alias
+  and changed-original regressions are added. Local execution and hosted CI
+  remain pending until recorded below; frozen W1 sources are unchanged.
+- The owner explicitly approved microphone and speech-recognition permissions
+  for local dictation. Grant and test after W1; a human phrase and actual hardware
+  recognition are still required. No permission re-approval is needed.
 ## Earlier checkpoint summaries, October 27
 
 The following passages retain earlier development states. Statements about tests
@@ -1951,3 +1963,15 @@ failure. Cumulatively the first seven paired blocks contain 182 valid jobs.
 The measured source hashes still match identity.json. The coordinator was
 confirmed live with native block 7 in progress. No full-cohort latency or adoption
 conclusion follows before the final three pairs and terminal conditions complete.
+
+## External file copy integrity, October 27
+The previous Open in another app action supplied the canonical included file
+URL to NSWorkspace, allowing an external editor to overwrite saved evidence.
+The replacement uses a persistent user-chosen copy, checks its streamed SHA-256
+and byte count, and atomically publishes without overwriting. Native Save and
+Open and exact composer commands share the operation. Copy completion is guarded
+by workspace identity and cancellation before launching another app. Tests cover
+included/linked copies, editing isolation, empty files, interruption and staging
+cleanup, same-size corruption, package aliases, existing or competing files and
+changed linked originals. These are prepared changes; compilation, execution and
+visible native save/open behavior are not yet claimed.
