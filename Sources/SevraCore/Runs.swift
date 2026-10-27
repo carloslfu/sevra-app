@@ -1,6 +1,71 @@
 import Foundation
 
+public struct AgentRequest: Sendable {
+  public let runID: String
+  public let messageID: String
+}
+
 extension Workbook {
+  /// Call only after acquiring the exclusive inference lease. The request and
+  /// its run become durable together, before any model work or context assembly.
+  public func startAgentRequest(_ prompt: String, conversation: String, model: String) throws
+    -> AgentRequest
+  {
+    try recordAgentRequest(prompt, conversation: conversation, model: model, status: "running")
+  }
+
+  /// A lease refusal must preserve the submitted request without closing a run
+  /// owned by another process. No inference ownership is required for this write.
+  @discardableResult public func rejectAgentRequest(
+    _ prompt: String, conversation: String, model: String, cancelled: Bool, reason: String
+  ) throws -> AgentRequest {
+    try recordAgentRequest(
+      prompt, conversation: conversation, model: model,
+      status: cancelled ? "cancelled" : "failed", diagnostic: reason)
+  }
+
+  private func recordAgentRequest(
+    _ prompt: String, conversation: String, model: String, status: String, diagnostic: String? = nil
+  ) throws -> AgentRequest {
+    try require(prompt.utf8.count <= 128_000, "message_limit", "Message is too long.")
+    try require(
+      (diagnostic?.utf8.count ?? 0) <= 128_000, "message_limit", "Message is too long.")
+    let request = AgentRequest(runID: identifier(), messageID: identifier())
+    _ = try mutation("agent_request", request: .string(request.runID)) {
+      let now = timestamp()
+      try db.execute(
+        "INSERT INTO messages VALUES(?,?,?,?,?,?)",
+        [
+          .string(request.messageID), .string(conversation), .string("user"), .string(prompt),
+          .string("complete"), .string(now),
+        ])
+      if status == "running" {
+        try db.execute(
+          "UPDATE agent_runs SET status='interrupted',updated=? WHERE status='running'",
+          [.string(now)])
+      }
+      try db.execute(
+        "INSERT INTO agent_runs VALUES(?,?,?,?,?,?,?,?)",
+        [
+          .string(request.runID), .string(conversation), .string(status), .string(model),
+          .number(0), .string("[]"), .string(now), .string(now),
+        ])
+      try db.execute(
+        "INSERT INTO run_requests VALUES(?,?)",
+        [.string(request.runID), .string(request.messageID)])
+      if let diagnostic {
+        try db.execute(
+          "INSERT INTO messages VALUES(?,?,?,?,?,?)",
+          [
+            .string(identifier()), .string(conversation), .string("assistant"), .string(diagnostic),
+            .string(status), .string(now),
+          ])
+      }
+      return .object(["runID": .string(request.runID), "messageID": .string(request.messageID)])
+    }
+    return request
+  }
+
   /// Exact request-to-run linkage, independent of recent-run pagination and prose.
   public func requestRunStatus(_ messageID: String) throws -> String? {
     try synchronized {

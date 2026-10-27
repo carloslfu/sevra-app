@@ -18,7 +18,9 @@ extension WorkbookAgent {
   }
   /// Reconstruct conversational outcomes from saved messages and current item
   /// heads. Never infer acceptance from an assistant's wording or a document.
-  package static func conversationHistory(_ workbook: Workbook, conversation: String) throws
+  package static func conversationHistory(
+    _ workbook: Workbook, conversation: String, beforeMessage: String? = nil
+  ) throws
     -> [InferenceMessage]
   {
     func project(_ history: [Message]) throws -> [Value] {
@@ -69,7 +71,8 @@ extension WorkbookAgent {
       return projected
     }
     let parent = try project(workbook.parentContext(conversation: conversation))
-    let current = try project(workbook.messages(conversation: conversation, limit: 100))
+    let current = try project(
+      workbook.messages(conversation: conversation, limit: 100, beforeMessage: beforeMessage))
     // Match the candidate's explicit historical envelope without enabling
     // automatic compaction in the preserved backend. Past user imperatives
     // must not be reintroduced as live requests. Preserve their authorship and

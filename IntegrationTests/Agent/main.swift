@@ -231,6 +231,7 @@ do {
   try checkReasoningBudget()
   try await checkReasoningHistory()
   try await checkAgentLifecycle()
+  try await checkRequestAdmission()
   try await checkCurrencyRejection()
   try await checkHistoryTools()
   try await checkScopedSearch()

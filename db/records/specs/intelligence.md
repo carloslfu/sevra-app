@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T06:27:03.158288+00:00
+updated: 2026-10-27T07:01:03.960895+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -181,3 +181,10 @@ Search matches and complete structured counts have different authority. The host
 When an uncited unresolved response follows empty searches, the host renders their actual query receipts and the most recent search's incomplete-source count. The same search report accompanies a count-only response after empty searches, so an unrelated total cannot hide the retrieval limitation. Original model arguments stay in the diagnostic payload, separate from the displayed answer. Query text is escaped and treated as quoted search input, not a factual claim or executable link. A report of no incomplete sources describes the search's indexing status, not proof that the requested document does not exist.
 
 Before comparing, displaying or proposing tabular data, inspect existing datasets even when the user has not supplied a table name. Reuse existing rows for analysis and space components. A request to show a table does not itself call for a duplicate data-entry proposal. Calculations still use deterministic tools.
+
+## Request admission and restart
+Acquire the exclusive inference lease before recovering abandoned runs. Persist the original user message, its run and their exact linkage in one workbook transaction. If admission fails, roll back the complete write and release any lease actually acquired. Do not call endRun for a lease that was refused.
+
+A model-lease refusal or cancellation before acquisition saves the original request, a linked terminal run and its assistant diagnostic atomically, without interrupting another run. Keep the original failure visible. A storage failure is an error, not evidence that the request was saved.
+
+With exclusive ownership, the admission transaction also marks earlier running jobs interrupted. Assemble historical context only after that transaction commits. Exclude the current request and later messages from earlier history using a conversation-validated message boundary. Stopped requests remain status/reference entries; the new request is the only live user turn. Preserve unfinished tool receipts and committed operation proof. Recovery must not automatically repeat an uncertain action.

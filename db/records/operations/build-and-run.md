@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T06:42:05.211665+00:00
+updated: 2026-10-27T06:57:15.526986+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -558,3 +558,14 @@ cp .build/metal/mlx.metallib .build/debug/mlx.metallib
 ~~~
 
 These probes inject the same policy event used by the OS observer without exhausting RAM. They check terminal status, preserved business items, native helper reaping, inference-lock release, a new Ready request and a subsequent cited stock answer. They do not prove actual OS pressure delivery or whole-app physical-memory headroom. The runner keeps request semantics separate from resource lifecycle and exits nonzero if either fails; a baseline follow-up failure must remain a failure even if resources release correctly.
+
+## Native process-death and request recovery
+Run this opt-in probe after building the native preview and installing its selected model. No other local model process may be active:
+
+~~~sh
+python3 scripts/check_native_recovery.py --models /path/to/Models
+~~~
+
+The probe creates a temporary synthetic workbook, starts inference through the packaged native CLI and kills only that spawned CLI after generation starts. It checks that the observed native helper exits and that the model lease becomes available. It then holds the lease to force a second request to fail and verifies that this records its own terminal outcome without interrupting the earlier run. After releasing the lease, a new Ready request must complete, close the abandoned run, preserve original history and leave business items/spaces unchanged. All stages are printed before assertions; retain failures.
+
+This checks process death during inference and a fresh request. It does not cover every filesystem failure or a crash at every mutation boundary. Synthetic request-admission checks in sevra-agent-checks separately cover atomic rollback, cancelled acquisition, history boundaries and a saved draft with an unfinished tool receipt that must not be replayed.

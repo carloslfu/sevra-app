@@ -182,11 +182,20 @@ extension Workbook {
     }
     return id
   }
-  public func messages(conversation: String = "main", limit: Int = 100) throws -> [Message] {
+  public func messages(
+    conversation: String = "main", limit: Int = 100, beforeMessage: String? = nil
+  ) throws -> [Message] {
     try synchronized {
-      try db.execute(
-        "SELECT * FROM (SELECT rowid,* FROM messages WHERE conversation_id=? ORDER BY rowid DESC LIMIT ?) ORDER BY rowid",
-        [.string(conversation), .number(Double(min(max(limit, 1), 500)))]
+      var boundary: Value = .null
+      if let beforeMessage {
+        boundary = try db.scalar(
+          "SELECT rowid FROM messages WHERE id=? AND conversation_id=?",
+          [.string(beforeMessage), .string(conversation)])
+        try require(boundary != .null, "history_scope", "The message is not in this conversation.")
+      }
+      return try db.execute(
+        "SELECT * FROM (SELECT rowid,* FROM messages WHERE conversation_id=? AND (? IS NULL OR rowid<?) ORDER BY rowid DESC LIMIT ?) ORDER BY rowid",
+        [.string(conversation), boundary, boundary, .number(Double(min(max(limit, 1), 500)))]
       ).map {
         Message(
           id: $0["id"]!.text, role: $0["role"]!.text, body: $0["body"]!.text,
