@@ -1,30 +1,29 @@
 import Foundation
 import SevraCore
-import Slotstream
 
 package enum NativeTools {
-  static func schema(_ type: String, _ description: String) -> JSONValue {
+  static func schema(_ type: String, _ description: String) -> Value {
     .object(["type": .string(type), "description": .string(description)])
   }
-  static func object(_ fields: [String: JSONValue], required: [String]) -> JSONValue {
+  static func object(_ fields: [String: Value], required: [String]) -> Value {
     .object([
       "type": .string("object"), "properties": .object(fields),
-      "required": .array(required.map(JSONValue.string)), "additionalProperties": .bool(false),
+      "required": .array(required.map(Value.string)), "additionalProperties": .bool(false),
     ])
   }
-  static let evidenceList: JSONValue = .object([
+  static let evidenceList: Value = .object([
     "type": .string("array"),
     "items": schema("string", "Exact item version ID from retrieved evidence."),
   ])
-  static func componentSchema(depth: Int) -> JSONValue {
-    var fields: [String: JSONValue] = [
+  static func componentSchema(depth: Int) -> Value {
+    var fields: [String: Value] = [
 
       "id": schema("string", "A unique short component ID."),
       "type": .object([
         "type": .string("string"),
         "enum": .array(
           ["table", "chart", "metric", "document", "asset", "search", "text"].map(
-            JSONValue.string)),
+            Value.string)),
       ]),
       "title": schema("string", "Visible title."),
       "datasetID": schema(
@@ -47,10 +46,10 @@ package enum NativeTools {
         "type": .string("string"),
         "enum": .array(
           ["table", "chart", "metric", "comparison", "document", "asset", "search", "text"].map(
-            JSONValue.string)),
+            Value.string)),
       ])
       fields["children"] = .object([
-        "type": .string("array"), "minItems": .int(2), "maxItems": .int(3),
+        "type": .string("array"), "minItems": .number(2), "maxItems": .number(3),
         "description": .string(
           "Required only for comparison; two or three native components side by side. Total tree limit is 16 components."
         ), "items": componentSchema(depth: depth + 1),
@@ -58,10 +57,10 @@ package enum NativeTools {
     }
     return object(fields, required: ["id", "type", "title"])
   }
-  static let components: JSONValue = .object([
-    "type": .string("array"), "maxItems": .int(16), "items": componentSchema(depth: 1),
+  static let components: Value = .object([
+    "type": .string("array"), "maxItems": .number(16), "items": componentSchema(depth: 1),
   ])
-  package static let definitions: [ToolDefinition] = [
+  package static let definitions: [WorkbookToolDefinition] = [
     .init(
       name: "history_search",
       description:
@@ -86,7 +85,7 @@ package enum NativeTools {
         [
           "id": schema("string", "Saved receiptID."),
           "path": .object([
-            "type": .string("array"), "maxItems": .int(32),
+            "type": .string("array"), "maxItems": .number(32),
             "items": schema(
               "string", "Exact object key or decimal array index. Empty for the root."),
           ]),
@@ -109,7 +108,7 @@ package enum NativeTools {
             "actual, estimate, plan, commitment, rule or assumption. Use plan for a new planning table."
           ), "inputs": evidenceList,
           "columns": .object([
-            "type": .string("array"), "maxItems": .int(40),
+            "type": .string("array"), "maxItems": .number(40),
             "items": object(
               [
                 "id": schema("string", "Unique column ID."),
@@ -121,7 +120,7 @@ package enum NativeTools {
               ], required: ["id", "title", "type"]),
           ]),
           "rows": .object([
-            "type": .string("array"), "maxItems": .int(100),
+            "type": .string("array"), "maxItems": .number(100),
             "items": .object([
               "type": .string("object"),
               "description": .string(
@@ -142,7 +141,7 @@ package enum NativeTools {
         [
           "id": schema("string", "ZIP source item ID."),
           "paths": .object([
-            "type": .string("array"), "maxItems": .int(50),
+            "type": .string("array"), "maxItems": .number(50),
             "items": schema("string", "Exact member path returned by archive_members."),
           ]),
         ], required: ["id", "paths"])),
@@ -225,7 +224,7 @@ package enum NativeTools {
         [
           "datasetID": schema("string", "Existing table ID."),
           "edits": .object([
-            "type": .string("array"), "maxItems": .int(100),
+            "type": .string("array"), "maxItems": .number(100),
             "items": object(
               [
                 "id": schema("string", "Exact inspected row version ID."),
@@ -266,7 +265,7 @@ package enum NativeTools {
           "title": schema("string", "Name of the space."),
           "definition": object(
             [
-              "version": .object(["type": .string("integer"), "const": .int(1)]),
+              "version": .object(["type": .string("integer"), "const": .number(1)]),
               "components": components,
             ], required: ["version", "components"]),
         ], required: ["title", "definition"])),
@@ -310,7 +309,7 @@ package enum NativeTools {
         [
           "answer": schema("string", "Plain-language answer. Do not print opaque IDs in prose."),
           "coverage": .object([
-            "type": .string("array"), "maxItems": .int(4),
+            "type": .string("array"), "maxItems": .number(4),
             "items": schema(
               "string",
               "Optional current-run count_records receipt ID. The host validates and renders each exact count and scope. No search or old receipt IDs."
@@ -320,7 +319,7 @@ package enum NativeTools {
             "type": .string("string"),
             "enum": .array(
               ["evidence", "current_request", "completed_action", "general", "unresolved"].map(
-                JSONValue.string)),
+                Value.string)),
             "description": .string(
               "evidence: workbook/history facts, requires inspected citations. current_request: only information supplied in this request or arithmetic calculated from it. completed_action: only confirm a successful action in this run. general: guidance, greeting, clarification or verified interface labels; no business or earlier-conversation facts. unresolved: explicitly cannot establish the requested facts; no guessed answer."
             ),

@@ -16,8 +16,8 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def run(*args, cwd=None):
-    subprocess.run(args, cwd=cwd, check=True)
+def run(*args, cwd=None, env=None):
+    subprocess.run(args, cwd=cwd, env=env, check=True)
 
 
 def main():
@@ -49,7 +49,11 @@ def main():
         ]:
             if digest(path) != expected:
                 raise RuntimeError("Grammar source/resource identity changed: " + path.name)
-        run("cargo", "+" + pin["rustToolchain"], "build", "--release", "--locked", "-p", "llguidance", cwd=source)
+        env = os.environ.copy()
+        # The dylib is opened by its trusted installed path. Give it a portable
+        # identity too; never encode the contributor's build folder as LC_ID_DYLIB.
+        env["RUSTFLAGS"] = "-C link-arg=-Wl,-install_name,@rpath/libllguidance.dylib"
+        run("cargo", "+" + pin["rustToolchain"], "build", "--release", "--locked", "-p", "llguidance", cwd=source, env=env)
         library = source / "target/release/libllguidance.dylib"
         if not library.is_file():
             raise RuntimeError("The native macOS grammar library was not built")

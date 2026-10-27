@@ -21,7 +21,8 @@ private actor DigestFixture: WorkbookInference {
   func endRun() {}
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
   ) throws -> NativeReply {
     throw SevraError("fixture", "The maintenance controller must not dispatch workbook tools.")
   }
@@ -296,7 +297,8 @@ private actor RunningJobFixture: WorkbookInference {
   }
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
   ) throws -> NativeReply {
     responses += 1
     try expectEqual(
@@ -304,10 +306,15 @@ private actor RunningJobFixture: WorkbookInference {
         $0.role == "user"
           && $0.content.contains("Save one draft, inspect the supplied source, then finish.")
       }, true)
-    if summaries > 0 {
+    if summaries > 0 && responses > (arithmetic ? 2 : 1) {
       try expectEqual(
         messages.contains {
-          $0.content.contains("committedOperation") && $0.content.contains("draft")
+          ($0.content.contains("committedOperation") && $0.content.contains("draft"))
+            // A policy-size change can trigger maintenance before the draft.
+            // Until that new call is compacted, its original live receipt is
+            // the authoritative proof instead of the earlier host-state view.
+            || ($0.role == "tool" && $0.toolName == "draft"
+              && (try? Value.parse($0.content)["id"].string) != nil)
         }, true)
       try expectEqual(messages.last?.role, "tool")
       try expectEqual(messages[messages.count - 2].toolCalls.first?.id, messages.last?.toolCallId)

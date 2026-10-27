@@ -58,10 +58,8 @@ public final class SplashTextFrontend {
     let configuration = try readVerified("tokenizer_config.json")
     let vocabulary = try readVerified("tokenizer.json")
     let source = try readVerified("chat_template.jinja")
-    guard let patchURL = Bundle.module.url(forResource: "template-patch", withExtension: "json")
-    else {
-      throw SplashError("Selected template adaptation is missing")
-    }
+    let patchURL = try SplashRuntimeResources.resource(
+      "template-patch", extension: "json", bundle: "Sevra_SevraSplashText")
     let patch = try JSONDecoder().decode(Patch.self, from: Data(contentsOf: patchURL))
     let original = String(decoding: source, as: UTF8.self)
     guard Self.sha256(source) == patch.originalSHA256,

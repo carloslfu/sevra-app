@@ -59,3 +59,9 @@ jobs:
           python3 scripts/check_receipts.py
           python3 scripts/check_concurrency.py
           python3 scripts/check_urls.py
+      - name: Build and check the isolated Splash preview
+        env:
+          SEVRA_BUILD_JOBS: 3
+        run: |
+          bash scripts/build_native.sh
+          python3 scripts/check_native_package.py --paths-only

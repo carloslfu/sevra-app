@@ -2,6 +2,7 @@ import AVKit
 import AppKit
 import Foundation
 import SevraAI
+import SevraProduct
 import SevraCore
 import Speech
 import SwiftUI
@@ -200,11 +201,11 @@ import SwiftUI
     let chat = conversation
     let context = agentContext + (selectedContext.isEmpty ? "" : "\nSelection: " + selectedContext)
     let path =
-      UserDefaults.standard.string(forKey: "modelDirectory").map { URL(fileURLWithPath: $0) }
-      ?? LocalModel.defaultDirectory
+      UserDefaults.standard.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
+      ?? ProductAI.defaultDirectory
     Task {
       do {
-        let result = try await WorkbookAgent.run(
+        let result = try await ProductAI.shared.run(
           input, workbook: book, conversation: chat, context: context, modelDirectory: path,
           cancellation: cancel,
           progress: { value in

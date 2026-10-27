@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T04:24:25.321625+00:00
+updated: 2026-10-27T05:06:04.031394+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -453,3 +453,14 @@ Synthetic transfer/preparation/hardware checks run with sevra-splash-checks in s
 For search scope qualification, --coverage takes the same four paths as --reasoning-comparison. It runs the frozen accepted-forecast case and exact movement-count cases with reasoning off and bounded512. A hidden movement deliberately lacks the search term in its text, and the zero-count workbook has an unreadable Source. The checks require host-rendered counts with every filter, unchanged business state and clean unload. Save stdout and stderr separately so complete JSON evidence cannot interleave with progress messages.
 
 The preserved-backend real-weight suite now includes explicit positive and zero scoped-count cases. Run python3 scripts/check_model.py coverage for those two cases alone, or omit the argument for the complete suite. It requires host-only rendered counts, all stated filters, unchanged business records and successful completion. These tests use the selected local weights and temporary synthetic workbooks, without hosted inference.
+
+## Isolated native app and CLI preview
+Build the separate preview with `bash scripts/build_native.sh`, then run `python3 scripts/check_native_package.py`. This uses the pinned Rust toolchain to build the native grammar library and Python for contributor packaging only. The installed preview, its model setup and CLI use no Python runtime. The unchanged upstream helper and Metal kernels remain hash checked after signing.
+
+The output is `output/native/Sevra Native Preview.app` and `output/native/bin/sevra`. This command does not install the preview or replace `output/Sevra.app`. The preview has separate settings and does not register Finder associations. The package check denies build-folder reads, verifies both Metal libraries and the grammar dylib, checks that baseline modules are absent, and refuses missing or altered packaged resources. It also exercises a missing-model run, so run it when no other Sevra model job is active. CI uses `python3 scripts/check_native_package.py --paths-only` to verify packaging without qualifying its GPU or executing a model run.
+
+Run `output/native/bin/sevra model-setup MODELS_ROOT` to download the pinned target and draft. To reuse the original weights from an existing verified Fast folder, run `output/native/bin/sevra model-setup MODELS_ROOT --reuse EXISTING_FAST_DIRECTORY`; that directory must contain its matching `dflash` folder and must remain available. `MODELS_ROOT` is the parent of the selected assembly, not a legacy raw target folder. The preview Settings offers the same setup and reuse flows.
+
+For actual-model checks without changing any user settings, use `SEVRA_CLI=output/native/bin/sevra SEVRA_MODEL_DIRECTORY=MODELS_ROOT python3 scripts/check_model.py`. Those environment variables select qualification inputs for the test script, not a runtime backend preference. Run only one real model workload at a time. Capture failures and tool receipts. Background downloads/builds make these behavior checks unsuitable for controlled performance claims.
+
+The preview uses a provisional 32K context, bounded512 reasoning and 12 GiB engine budget. Automatic compaction remains disabled. It is a qualification artifact until matched performance, memory, setup, application and hardware gates pass.

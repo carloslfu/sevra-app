@@ -225,4 +225,39 @@ func checkNativeSetup() {
       }
     }
   }
+  test("installed native selection reopens only exact pinned sources and verifies originals") {
+    let f = try ModelFixture()
+    defer { f.remove() }
+    _ = try f.prepare()
+    try rejects { _ = try SplashModelPreparation.installed(pack: f.pack, modelsRoot: f.cache) }
+    let installed = try SplashModelSetup.install(
+      pack: f.pack, modelsRoot: f.cache, reusingTarget: f.target, reusingDraft: f.draft,
+      configuration: configuration(), capacity: { _ in 1_000_000_000 })
+    let reopened = try SplashModelPreparation.installed(pack: f.pack, modelsRoot: f.cache)
+    try expect(installed == reopened)
+    try rejects {
+      _ = try SplashModelPreparation.installed(
+        pack: f.pack, modelsRoot: f.cache, cancelled: { true })
+    }
+    let original = f.target.appendingPathComponent("config.json")
+    let bytes = try Data(contentsOf: original)
+    try Data("corrupted".utf8).write(to: original)
+    try rejects { _ = try SplashModelPreparation.installed(pack: f.pack, modelsRoot: f.cache) }
+    try bytes.write(to: original)
+    _ = try SplashModelPreparation.installed(pack: f.pack, modelsRoot: f.cache)
+  }
+  test("verifying an installed reused model does not download duplicate weights") {
+    let f = try ModelFixture()
+    defer { f.remove() }
+    reset("normal")
+    let first = try SplashModelSetup.install(
+      pack: f.pack, modelsRoot: f.cache, reusingTarget: f.target, reusingDraft: f.draft,
+      configuration: configuration(), capacity: { _ in 1_000_000_000 })
+    let again = try SplashModelSetup.install(
+      pack: f.pack, modelsRoot: f.cache, configuration: configuration(),
+      capacity: { _ in 1_000_000_000 })
+    try expect(first == again && ModelHTTPFixture.requests.isEmpty)
+    let snapshots = f.cache.appendingPathComponent(".snapshots")
+    try expect(try FileManager.default.contentsOfDirectory(atPath: snapshots.path).isEmpty)
+  }
 }

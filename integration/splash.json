@@ -71,9 +71,10 @@
         "Sources/SevraSplash/Resources/selected-model.json",
         "Sources/SevraSplash/ModelDownload.swift",
         "Sources/SevraSplash/ModelSetup.swift",
-        "Sources/SevraNativeSetup/main.swift"
+        "Sources/SevraNativeSetup/main.swift",
+        "Sources/SevraProduct/ProductAI.swift"
       ],
-      "status": "native-download-failure-fixtures-and-live-metadata-passed-full-clean-install-and-app-adoption-pending",
+      "status": "fresh-21gb-download-resume-installed-jobs-and-settings-reuse-passed-adoption-pending",
       "checks": [
         "IntegrationTests/Splash/ModelChecks.swift",
         "scripts/check_splash_reference.py",
@@ -144,7 +145,7 @@
         "Sources/SevraSplashText/TextFrontend.swift",
         "Sources/SevraSplashGrammar/ToolPolicy.swift"
       ],
-      "status": "vocabulary-105-base-and-228-workbook-mask-fixtures-native-dispatcher-passed",
+      "status": "vocabulary-105-base-and-249-workbook-mask-fixtures-formula-job-passed",
       "checks": [
         "IntegrationTests/Grammar/main.swift",
         "IntegrationTests/Grammar/NativeProbe.swift",
@@ -162,8 +163,17 @@
         "LICENSE",
         "THIRD_PARTY_NOTICES"
       ],
-      "swift": null,
-      "status": "pending"
+      "swift": [
+        "Sources/SevraProduct/ProductAI.swift",
+        "Sources/SevraProduct/NativeProductResources.swift",
+        "Sources/SevraSplash/RuntimeResources.swift"
+      ],
+      "status": "isolated-native-preview-resource-signature-and-failure-checks-passed-production-adoption-pending",
+      "checks": [
+        "scripts/build_native.sh",
+        "scripts/package_native.py",
+        "scripts/check_native_package.py"
+      ]
     },
     {
       "area": "bounded-reasoning",
@@ -193,5 +203,6 @@
   },
   "nativeSmokeEvidence": "integration/evidence/2026-10-26-native-smoke.json",
   "grammarPin": "integration/llguidance.json",
-  "boundedReasoningEvidence": "integration/evidence/2026-10-26-bounded-reasoning.json"
+  "boundedReasoningEvidence": "integration/evidence/2026-10-26-bounded-reasoning.json",
+  "nativeProductEvidence": "integration/evidence/2026-10-27-native-product.json"
 }

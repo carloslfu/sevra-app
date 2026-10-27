@@ -152,6 +152,34 @@ public final class SplashToolPolicy {
   private static func quote(_ string: String) throws -> String {
     String(decoding: try json(string), as: UTF8.self)
   }
+
+  /// LLGuidance fixes JSON property order to the schema's insertion order.
+  /// Put identity/type fields before optional metadata so choosing `id` does
+  /// not irreversibly exclude a later formula. The reference receives this same
+  /// app-owned ordering; no grammar-library behavior is changed or weakened.
+  private static func nestedSchemaJSON(_ value: Any) throws -> String {
+    if let object = value as? [String: Any] {
+      let fields = try object.keys.sorted().map { key -> String in
+        let body: String
+        if key == "properties", let properties = object[key] as? [String: Any] {
+          let required = (object["required"] as? [String] ?? []).filter { properties[$0] != nil }
+          let names = required + properties.keys.filter { !required.contains($0) }.sorted()
+          body =
+            "{"
+            + (try names.map { try quote($0) + ":" + nestedSchemaJSON(properties[$0]!) }).joined(
+              separator: ",") + "}"
+        } else {
+          body = try nestedSchemaJSON(object[key]!)
+        }
+        return try quote(key) + ":" + body
+      }
+      return "{" + fields.joined(separator: ",") + "}"
+    }
+    if let array = value as? [Any] {
+      return "[" + (try array.map(nestedSchemaJSON)).joined(separator: ",") + "]"
+    }
+    return String(decoding: try json(value), as: UTF8.self)
+  }
   private static func typeNames(_ node: [String: Any]) -> Set<String>? {
     if let type = node["type"] as? String { return [type] }
     if let types = node["type"] as? [String] { return Set(types) }
@@ -292,7 +320,7 @@ public final class SplashToolPolicy {
       } else {
         var compatible = value
         compatible["x-guidance"] = ["lenient": true, "whitespace_pattern": whitespace]
-        let json = String(decoding: try json(compatible), as: UTF8.self)
+        let json = try nestedSchemaJSON(compatible)
         rules.append("\(rule): \(prefix) (%json \(json)) \(try quote("\n</parameter>\n"))")
       }
       sequence.append(rule + (required.contains(name) ? "" : "?"))

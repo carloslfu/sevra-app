@@ -10,6 +10,7 @@ import SevraSplashText
 /// Internal qualification backend. Production does not depend on this target
 /// until native setup, packaging and application acceptance gates have passed.
 package actor NativeWorkbookModel: WorkbookInference {
+  package enum ModelLayout: Sendable { case localPack, installed }
   package struct Configuration: Sendable {
     package let engine: URL
     package let engineFiles: [String: String]
@@ -19,10 +20,13 @@ package actor NativeWorkbookModel: WorkbookInference {
     package let memoryBytes: UInt64
     package let contextBudget: ContextBudget
     package let reasoning: NativeReasoning
+    package let modelLayout: ModelLayout
+    package let contextMaintenanceEnabled: Bool
     package init(
       engine: URL, engineFiles: [String: String], grammarLibrary: URL,
       grammarSHA256: String, modelsRoot: URL, memoryBytes: UInt64,
-      contextBudget: ContextBudget = .init(), reasoning: NativeReasoning = .off
+      contextBudget: ContextBudget = .init(), reasoning: NativeReasoning = .off,
+      modelLayout: ModelLayout = .localPack, contextMaintenanceEnabled: Bool = true
     ) {
       self.engine = engine
       self.engineFiles = engineFiles
@@ -32,17 +36,21 @@ package actor NativeWorkbookModel: WorkbookInference {
       self.memoryBytes = memoryBytes
       self.contextBudget = contextBudget
       self.reasoning = reasoning
+      self.modelLayout = modelLayout
+      self.contextMaintenanceEnabled = contextMaintenanceEnabled
     }
   }
   package let identity: String
   package private(set) var lastMetrics: Value = .null
   private let worker: NativeWorker
+  private let contextMaintenanceEnabled: Bool
   private var leased = false
   private var active = false
   private var processLock: Int32 = -1
   private var idleRelease: Task<Void, Never>?
   package init(configuration: Configuration) {
     worker = NativeWorker(configuration)
+    contextMaintenanceEnabled = configuration.contextMaintenanceEnabled
     identity =
       "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate"
       + "; reasoning budget \(configuration.reasoning.rawValue); within-request reasoning retained"
@@ -107,7 +115,7 @@ package actor NativeWorkbookModel: WorkbookInference {
     worker.shutdown(releasing: processLock)
   }
 
-  package var supportsCompaction: Bool { true }
+  package var supportsCompaction: Bool { contextMaintenanceEnabled }
   package func measureContext(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
@@ -148,7 +156,8 @@ package actor NativeWorkbookModel: WorkbookInference {
 
   package func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
   ) async throws -> NativeReply {
     try require(leased && !active, "busy", "The native model needs an exclusive workbook run.")
     active = true
@@ -202,12 +211,31 @@ private final class NativeWorker: @unchecked Sendable {
         "Invalid native executable.")
       progress("Checking local model files")
       let pack = try SplashModelPack.selected()
-      let assembly = try SplashModelPreparation.prepare(
-        pack: pack, target: directory, draft: directory.appendingPathComponent("dflash"),
-        modelsRoot: configuration.modelsRoot,
-        cancelled: { cancellation.isCancelled || cancellation.isExpired })
+      let assembly: URL
+      let tokenizer: URL
+      switch configuration.modelLayout {
+      case .localPack:
+        assembly = try SplashModelPreparation.prepare(
+          pack: pack, target: directory, draft: directory.appendingPathComponent("dflash"),
+          modelsRoot: configuration.modelsRoot,
+          cancelled: { cancellation.isCancelled || cancellation.isExpired })
+        tokenizer = directory
+      case .installed:
+        do {
+          assembly = try SplashModelPreparation.installed(
+            pack: pack, modelsRoot: directory,
+            cancelled: { cancellation.isCancelled || cancellation.isExpired })
+        } catch {
+          try cancellation.check()
+          throw SevraError(
+            "model_setup",
+            "Local AI needs setup or repair. Open Model Settings to download, verify or reuse the selected model. "
+              + error.localizedDescription)
+        }
+        tokenizer = assembly.appendingPathComponent("tokenizer")
+      }
       try cancellation.check()
-      frontend = try SplashTextFrontend(modelFolder: directory)
+      frontend = try SplashTextFrontend(modelFolder: tokenizer)
       factory = try SplashGrammarFactory(
         frontend: frontend, library: configuration.grammarLibrary,
         librarySHA256: configuration.grammarSHA256)
@@ -268,7 +296,8 @@ private final class NativeWorker: @unchecked Sendable {
 
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
   ) async throws -> (NativeReply, Value) {
     try await perform(directory: directory, cancellation: cancellation, progress: progress) {
       session in

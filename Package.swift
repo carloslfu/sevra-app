@@ -1,5 +1,10 @@
 // swift-tools-version: 6.0
+import Foundation
 import PackageDescription
+
+// Qualification builds use an isolated product directory. This is a build-time
+// migration switch, never a user-selectable runtime backend.
+let nativeCandidate = ProcessInfo.processInfo.environment["SEVRA_NATIVE_CANDIDATE"] == "1"
 
 let package = Package(
   name: "Sevra", platforms: [.macOS(.v14)],
@@ -59,8 +64,11 @@ let package = Package(
       name: "SevraCore", dependencies: ["CSQLite", "ZIPFoundation"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
-      name: "SevraAI",
-      dependencies: ["SevraCore", .product(name: "Slotstream", package: "slotstream")],
+      name: "SevraAI", dependencies: ["SevraCore"],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
+    .target(
+      name: "SevraBaseline",
+      dependencies: ["SevraAI", "SevraCore", .product(name: "Slotstream", package: "slotstream")],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraNativeAI",
@@ -68,11 +76,21 @@ let package = Package(
         "SevraAI", "SevraCore", "SevraSplash", "SevraSplashText", "SevraSplashGrammar",
       ],
       swiftSettings: [.swiftLanguageMode(.v5)]),
+    .target(
+      name: "SevraProduct",
+      dependencies: nativeCandidate
+        ? [
+          "SevraCore", "SevraAI", "SevraNativeAI", "SevraSplash", "SevraSplashText",
+          "SevraSplashGrammar",
+        ]
+        : ["SevraCore", "SevraAI", "SevraBaseline"],
+      swiftSettings: [.swiftLanguageMode(.v5)]
+        + (nativeCandidate ? [.define("SEVRA_NATIVE_CANDIDATE")] : [])),
     .executableTarget(
-      name: "SevraApp", dependencies: ["SevraCore", "SevraAI"],
+      name: "SevraApp", dependencies: ["SevraCore", "SevraAI", "SevraProduct"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
-      name: "SevraCLI", dependencies: ["SevraCore", "SevraAI"],
+      name: "SevraCLI", dependencies: ["SevraCore", "SevraAI", "SevraProduct"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraBenchmark", dependencies: ["SevraCore"], path: "Benchmarks",
@@ -84,7 +102,8 @@ let package = Package(
     .executableTarget(
       name: "SevraAgentChecks",
       dependencies: [
-        "SevraNativeAI", "SevraAI", "SevraCore", "SevraSplashGrammar", "SevraSplashText",
+        "SevraNativeAI", "SevraAI", "SevraBaseline", "SevraCore", "SevraSplashGrammar",
+        "SevraSplashText",
         "SevraSplash",
       ],
       path: "IntegrationTests/Agent",

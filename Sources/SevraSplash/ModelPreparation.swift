@@ -22,9 +22,8 @@ public struct SplashModelPack: Codable {
   public let draft: Source
 
   public static func selected() throws -> Self {
-    guard let url = Bundle.module.url(forResource: "selected-model", withExtension: "json") else {
-      throw SplashError("Selected model manifest is missing")
-    }
+    let url = try SplashRuntimeResources.resource(
+      "selected-model", extension: "json", bundle: "Sevra_SevraSplash")
     return try JSONDecoder().decode(Self.self, from: Data(contentsOf: url))
   }
 
@@ -86,6 +85,30 @@ private func safeRelativePath(_ value: String) -> Bool {
 /// Matches Splash 1.4.1's immutable text-only MLX-affine assembly contract.
 /// This verifies/links original weights; it never changes or deletes their source.
 public enum SplashModelPreparation {
+  /// Open the selected installed pack without assuming the draft lives inside
+  /// a legacy target folder. Revalidate the pinned originals before use.
+  public static func installed(
+    pack: SplashModelPack, modelsRoot: URL, cancelled: () -> Bool = { false }
+  ) throws -> URL {
+    try pack.validate()
+    let selection = modelsRoot.appendingPathComponent(pack.name).resolvingSymlinksInPath()
+    let record = try readRecord(selection.appendingPathComponent("model.json"))
+    guard record.version == 1, record.family == pack.family,
+      record.target_format == "mlx-affine", record.vision_format == "none",
+      record.sources["target"]?.repo == pack.target.repository,
+      record.sources["target"]?.revision == pack.target.revision,
+      record.sources["draft"]?.repo == pack.draft.repository,
+      record.sources["draft"]?.revision == pack.draft.revision,
+      let target = record.files["target/config.json"]?.path,
+      let draft = record.files["draft/config.json"]?.path
+    else { throw SplashError("The installed model does not match the selected target and draft") }
+    return try prepare(
+      pack: pack,
+      target: URL(fileURLWithPath: target).deletingLastPathComponent(),
+      draft: URL(fileURLWithPath: draft).deletingLastPathComponent(),
+      modelsRoot: modelsRoot, pinnedSources: true, cancelled: cancelled)
+  }
+
   public struct Progress {
     public let file: String
     public let verifiedBytes: Int64

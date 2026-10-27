@@ -1,5 +1,6 @@
 import Darwin
 import Foundation
+import SevraAI
 import SevraCore
 import Slotstream
 
@@ -153,7 +154,7 @@ public actor LocalModel: WorkbookInference {
     let engine = try await load(directory, cancellation: cancellation, progress: progress)
     let tokens = try engine.encodeChat(
       try Self.baselineMessages(messages),
-      tools: summary ? [] : NativeTools.definitions, thinking: false, effort: nil)
+      tools: summary ? [] : try Self.baselineDefinitions(), thinking: false, effort: nil)
     try cancellation.check()
     guard let capacity = engine.contextPolicyJSON["configured_window"] as? Int else {
       throw SevraError("context_limit", "The configured context capacity is unavailable.")
@@ -214,7 +215,7 @@ public actor LocalModel: WorkbookInference {
     defer { active = false }
     let engine = try await load(directory, cancellation: cancellation, progress: progress)
     let available =
-      NativeTools.definitions.filter { toolScope.allows($0.name) }
+      try Self.baselineDefinitions().filter { toolScope.allows($0.name) }
     let tokens = try engine.encodeChat(
       try Self.baselineMessages(messages), tools: available, thinking: false, effort: nil)
     if let problem = engine.contextError(promptTokens: tokens.count) {

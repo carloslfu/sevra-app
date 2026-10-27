@@ -39,8 +39,16 @@ private actor CoverageInference: WorkbookInference {
           "citations": .array([]), "coverage": coverage,
         ]))
     }
-    if mode == "overclaim" || mode == "general" {
-      if step == 1 { return try call("search", .object(["query": .string("movement")])) }
+    if mode == "overclaim" || mode == "general" || mode == "gap" {
+      if step == 1 {
+        return try call(
+          "search",
+          .object([
+            "query": .string(
+              mode == "gap"
+                ? "no invoices 10% [claim](https://example.test)" : "movement")
+          ]))
+      }
       if step == 2 {
         return try finish(
           "There are no inventory movements recorded in the workbook.",
@@ -51,6 +59,15 @@ private actor CoverageInference: WorkbookInference {
       return try finish(
         "The search for ‘movement’ returned no matches. That does not establish the inventory state.",
         "unresolved")
+    }
+    if mode == "count_after_search" && step == 1 {
+      return try call("search", .object(["query": .string("missing contract")]))
+    }
+    if mode == "count_after_search" && step == 2 { return try count() }
+    if mode == "count_after_search" {
+      receipt = try Value.parse(messages.last!.content)["receiptID"].text
+      return try finish(
+        "The contract was signed and paid.", "evidence", coverage: .array([.string(receipt)]))
     }
     if step == 1 { return try count() }
     if step == 2 {
@@ -132,15 +149,31 @@ func checkSearchCoverage() async throws {
   try expectEqual(try book.countRecords(.object(["category": .string("source")]))["count"].int, 2)
   try expectEqual(try book.countRecords(filters)["count"].int, 1)
   try expectEqual(try book.item(current.id).meaning, "estimate")
-  for mode in ["overclaim", "general", "valid", "forged", "malformed", "stale"] {
+  for mode in [
+    "overclaim", "general", "valid", "forged", "malformed", "stale", "gap", "count_after_search",
+  ] {
     let scenario = try Workbook.create(
       at: root.appendingPathComponent(mode + ".sevra"), title: mode)
+    if mode == "gap" || mode == "count_after_search" { _ = try scenario.importFile(unindexed) }
     let reply = try await WorkbookAgent.run(
       "Check the workbook without making changes.", workbook: scenario,
       model: CoverageInference(scenario, mode))
     try expectEqual(reply.state, "complete")
     try expectEqual(reply.answer.contains("There are no inventory"), false)
-    if mode != "overclaim" && mode != "general" {
+    if mode == "gap" || mode == "count_after_search" {
+      try expectEqual(reply.answer.hasPrefix("I found no matches for these searches:"), true)
+      try expectEqual(reply.answer.contains("1 incomplete source"), true)
+      try expectEqual(
+        reply.answer.contains("These searches do not establish the requested facts"), true)
+      try expectEqual(reply.answer.contains("contract was signed"), false)
+      if mode == "gap" { try expectEqual(reply.answer.contains("\\[claim\\]"), true) }
+      let message = try scenario.messages(limit: 100).last { $0.role == "assistant" }!
+      try expectEqual(
+        try scenario.messagePayload(message.id)["searchEvidence"]["incomplete"].int, 1)
+      if mode == "count_after_search" {
+        try expectEqual(reply.answer.contains("Current workbook Records: 0"), true)
+      }
+    } else if mode != "overclaim" && mode != "general" {
       try expectEqual(
         reply.answer.contains("Current workbook Records: " + (mode == "stale" ? "1" : "0") + " ("),
         true)

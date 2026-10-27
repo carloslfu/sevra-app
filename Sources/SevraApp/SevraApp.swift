@@ -1,6 +1,7 @@
 import AppKit
 import SevraAI
 import SevraCore
+import SevraProduct
 import SwiftUI
 
 @main struct SevraApp: App {
@@ -8,7 +9,10 @@ import SwiftUI
     if CommandLine.arguments.contains("--check-resources") {
       Task.detached {
         do {
-          print(try await PackageResources.check().json())
+          print(
+            try await ProductAI.checkResources(
+              validateMetal: !CommandLine.arguments.contains("--paths-only")
+            ).json())
           exit(0)
         } catch {
           fputs(error.localizedDescription + "\n", stderr)
@@ -53,7 +57,7 @@ import SwiftUI
   func applicationDidFinishLaunching(_ notification: Notification) {
     let source = DispatchSource.makeMemoryPressureSource(
       eventMask: [.warning, .critical], queue: .global(qos: .utility))
-    source.setEventHandler { Task { await LocalModel.shared.unload() } }
+    source.setEventHandler { Task { await ProductAI.shared.unload() } }
     source.resume()
     memoryPressure = source
   }

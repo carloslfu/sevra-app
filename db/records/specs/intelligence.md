@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T04:05:51.136506+00:00
+updated: 2026-10-27T04:54:14.713521+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -169,3 +169,7 @@ Spelled-out arithmetic remains possible: the model can use calculate to establis
 
 ## Search claim boundaries
 Search matches and complete structured counts have different authority. The host rejects recognized unsupported absence/exhaustiveness wording and renders exact current-record counts only from visible current-run count_records receipts, revalidated before finish. See [[records/specs/search]] for scope, cancellation, history and language limits. This rule applies to the preserved baseline and native candidate. A valid citation alone does not prove a global absence claim.
+
+When an uncited unresolved response follows empty searches, the host renders their actual query receipts and the most recent search's incomplete-source count. The same search report accompanies a count-only response after empty searches, so an unrelated total cannot hide the retrieval limitation. Original model arguments stay in the diagnostic payload, separate from the displayed answer. Query text is escaped and treated as quoted search input, not a factual claim or executable link. A report of no incomplete sources describes the search's indexing status, not proof that the requested document does not exist.
+
+Before comparing, displaying or proposing tabular data, inspect existing datasets even when the user has not supplied a table name. Reuse existing rows for analysis and space components. A request to show a table does not itself call for a duplicate data-entry proposal. Calculations still use deterministic tools.

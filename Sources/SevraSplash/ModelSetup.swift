@@ -61,6 +61,22 @@ public enum SplashModelSetup {
     let lock = try ModelFileLock(
       root.appendingPathComponent(".sevra-download.lock"), cancelled: cancelled)
     defer { lock.unlock() }
+    // A previously reused pack is already an installation. Verify it in place
+    // instead of downloading a second 21 GB copy when the user clicks Verify.
+    if reusingTarget == nil && reusingDraft == nil,
+      fm.fileExists(atPath: root.appendingPathComponent(pack.name + "/model.json").path)
+    {
+      progress(
+        .init(phase: "Checking existing model", file: pack.name, completedBytes: 0, totalBytes: 0))
+      do {
+        return try SplashModelPreparation.installed(
+          pack: pack, modelsRoot: root, cancelled: cancelled)
+      } catch {
+        if cancelled() { throw SplashError("Model setup cancelled") }
+        // A missing or changed original can be repaired into managed snapshots.
+        // Keep its old selection until the replacement verifies completely.
+      }
+    }
     let snapshots = root.appendingPathComponent(".snapshots")
     try directory(snapshots)
     var directories: [URL] = []

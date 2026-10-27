@@ -160,3 +160,12 @@ Implemented exact current-record counts, visible current-run coverage receipts, 
 ## [2026-10-27 04:25] verification | records/operations/implementation.md
 Final native coverage 6/6; full rebuilt baseline model suite nine checks passed. Core 59, native/setup 28, text 15, streaming fixtures, base grammar and 27 workbook cases/228 masks passed. Autonomous native and continuity/reopen/cancellation passed before isolated count-only rendering, retested through final focused suite. Native setup reused 21,481,463,614 bytes, live HTTPS configuration resume passed, new assembly loaded and recovered with healthy Metal/released weights. Release/install/resources/history/receipts/concurrency/URL checks pass. Prior failures and limits retained in integration/evidence/2026-10-27-search-coverage-setup.json. Production remains Slotstream.
 
+## [2026-10-27 04:41] implementation | records/operations/implementation.md
+Native app/CLI isolation in progress; 29 setup checks pass; real fresh download cancelled and resumed, completion pending.
+
+## [2026-10-27 04:54] verification | records/operations/implementation.md
+Native package/resource/signature checks pass; Settings reuse verified. Preserved two real workbook failures and tightened dataset reuse and host-rendered search gaps; full rerun and fresh download remain active.
+
+## [2026-10-27 05:12] verification | records/operations/implementation
+October 27 native product checkpoint: host-owned search-gap replies; required-first nested schema ordering; 59 core and 30 adapter/setup checks, 15 prompt and 80 stream fixtures, 105 base and 249 workbook masks passed. Fresh 21.48 GB native download cancelled/resumed and verified; packaged native and baseline nine-check workbook suites passed, plus live formula recalculation and native UI comparison/citation/Back. Packaging, missing/corrupt resources, offline verification, strict signing and Python/MLX absence checks passed. Updated design, reproduction instructions and retained failed trials in integration/evidence/2026-10-27-native-product.json. Performance, broader grounding/UI/hardware and production adoption remain open.
+

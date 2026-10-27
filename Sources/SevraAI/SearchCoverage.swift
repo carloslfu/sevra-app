@@ -28,7 +28,23 @@ package enum SearchCoverage {
   }
 
   package static let feedback =
-    "Do not infer absence or exhaustive coverage from search, an empty table list, or selected citations. Remove the unsupported claim. You may report what a named search returned. For an exact structured count, call count_records and put its current-run receipt ID in finish.coverage; do not restate its count as a broader claim in prose. Keep the answer focused on the user's question."
+    "Do not infer absence or exhaustive coverage from search, an empty table list, or selected citations. Remove the unsupported claim. For missing evidence, use basis=unresolved and report what the named searches returned and their actual indexing limits. Only when the question asks for a structured count, call count_records and put its current-run receipt ID in finish.coverage. A count cannot establish a document's contents or replace an answer about missing evidence."
+
+  package static func renderSearchGap(
+    queries: [String], incomplete: Int, includesHistory: Bool
+  ) -> String {
+    let coverage =
+      incomplete == 0
+      ? "The most recent search reported no incomplete sources."
+      : "The most recent search reported \(incomplete) incomplete source\(incomplete == 1 ? "" : "s"), so the available evidence is partial."
+    let history =
+      includesHistory
+      ? "These queries also searched earlier messages in this conversation."
+      : "One or more queries were limited to business evidence; earlier conversation may still contain relevant information."
+    return "I found no matches for these searches: "
+      + queries.map { "“" + escape($0) + "”" }.joined(separator: ", ") + ". "
+      + coverage + " " + history + " These searches do not establish the requested facts."
+  }
 
   private static func escape(_ text: String) -> String {
     text.reduce("") { result, character in

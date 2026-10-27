@@ -2,6 +2,7 @@ import Darwin
 import Foundation
 import SevraAI
 import SevraCore
+import SevraProduct
 
 @main struct CLI {
   static func main() async {
@@ -30,11 +31,11 @@ import SevraCore
   static func run(_ args: [String], cancellation: Cancellation) async throws -> Value {
     guard let command = args.first else { return .string(help) }
     if command == "check-resources" {
-      return try await PackageResources.check(validateMetal: !args.contains("--paths-only"))
+      return try await ProductAI.checkResources(validateMetal: !args.contains("--paths-only"))
     }
     if command == "help" || command == "--help" { return .string(help) }
     if command == "version" || command == "--version" {
-      return .object(["version": .string("0.1.0-dev"), "engine": .string(LocalModel.revision)])
+      return .object(["version": .string("0.1.0-dev"), "engine": .string(ProductAI.revision)])
     }
     func arg(_ i: Int) throws -> String {
       guard args.count > i else { throw SevraError("usage", help) }
@@ -56,17 +57,28 @@ import SevraCore
         try Numbers.calculate(arg(1), values: args.count > 2 ? Value.parse(args[2]).object : [:]))
     }
     if command == "model-status" {
-      let dir = args.count > 1 ? try url(1) : LocalModel.defaultDirectory
+      try require(
+        args.count <= 2 && (args.count == 1 || !args[1].hasPrefix("--")), "usage",
+        "model-status [MODEL_DIRECTORY]")
+      let dir = args.count > 1 ? try url(1) : ProductAI.defaultDirectory
       return .object([
         "directory": .string(dir.path),
-        "present": .bool(await LocalModel.shared.installed(at: dir)),
-        "downloadBytes": .string(String(LocalModel.downloadBytes)),
+        "present": .bool(await ProductAI.shared.installed(at: dir)),
+        "downloadBytes": .string(String(ProductAI.downloadBytes)),
       ])
     }
     if command == "model-setup" {
-      let dir = args.count > 1 ? try url(1) : LocalModel.defaultDirectory
-      try await LocalModel.shared.setup(
-        at: dir, cancellation: cancellation, progress: { fputs($0 + "\n", stderr) })
+      try require(
+        args.count <= 2 || (args.count == 4 && args[2] == "--reuse"), "usage",
+        "model-setup [MODEL_DIRECTORY] [--reuse EXISTING_FAST_DIRECTORY]")
+      try require(
+        (args.count == 1 || !args[1].hasPrefix("--"))
+          && (args.count != 4 || !args[3].hasPrefix("--")), "usage",
+        "Model setup needs a folder path, not an option.")
+      let dir = args.count > 1 ? try url(1) : ProductAI.defaultDirectory
+      try await ProductAI.shared.setup(
+        at: dir, reusing: args.count == 4 ? try url(3) : nil,
+        cancellation: cancellation, progress: { fputs($0 + "\n", stderr) })
       return .bool(true)
     }
     if command == "demo" { return try Demo.create(at: url(1)) }
@@ -221,9 +233,9 @@ import SevraCore
       return try WorkbookTools(book).execute(
         arg(2), args.count > 3 ? Value.parse(args[3]) : .object([:]))
     case "ask":
-      let result = try await WorkbookAgent.run(
+      let result = try await ProductAI.shared.run(
         arg(2), workbook: book,
-        modelDirectory: args.count > 3 ? url(3) : LocalModel.defaultDirectory,
+        modelDirectory: args.count > 3 ? url(3) : ProductAI.defaultDirectory,
         cancellation: cancellation,
         progress: { fputs($0 + "\n", stderr) })
       return .object([
@@ -257,7 +269,7 @@ import SevraCore
     tangent WORKBOOK TITLE MESSAGE_ID | reindex WORKBOOK
     export WORKBOOK PATH.sevraz | open-archive PATH.sevraz DEST.sevra
     export-csv WORKBOOK TABLE_ID PATH.csv | tool WORKBOOK TOOL [ARGS_JSON]
-    model-status [MODEL_DIRECTORY] | model-setup [MODEL_DIRECTORY]
+    model-status [MODEL_DIRECTORY] | model-setup [MODEL_DIRECTORY] [--reuse EXISTING_FAST_DIRECTORY]
     ask WORKBOOK QUESTION [MODEL_DIRECTORY]
     """
 }

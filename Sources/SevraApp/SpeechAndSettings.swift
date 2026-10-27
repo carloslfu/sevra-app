@@ -1,6 +1,7 @@
 import AVFoundation
 import SevraAI
 import SevraCore
+import SevraProduct
 import Speech
 import SwiftUI
 
@@ -92,7 +93,7 @@ import SwiftUI
 }
 struct ModelSettingsView: View {
   @AppStorage("appearance") private var appearance = "system"
-  @AppStorage("modelDirectory") private var modelDirectory = LocalModel.defaultDirectory.path
+  @AppStorage(ProductAI.preferenceKey) private var modelDirectory = ProductAI.defaultDirectory.path
   @State private var busy = false
   @State private var status = ""
   @State private var error: String?
@@ -105,24 +106,41 @@ struct ModelSettingsView: View {
         Text("Dark").tag("dark")
       }
       Section("Local AI") {
-        Text("Slotstream Fast").font(.headline)
-        Text("Qwen3.6 35B · MLX · DFlash 2").foregroundStyle(.secondary)
+        Text(ProductAI.name).font(.headline)
+        Text(ProductAI.detail).foregroundStyle(.secondary)
         Text(
-          "The model stays on this Mac and is shared across workbooks. Setup downloads approximately \(ByteCountFormatter.string(fromByteCount:LocalModel.downloadBytes,countStyle:.file))."
+          "The model stays on this Mac and is shared across workbooks. Setup downloads approximately \(ByteCountFormatter.string(fromByteCount:ProductAI.downloadBytes,countStyle:.file))."
         )
-        TextField("Model folder", text: $modelDirectory)
+        TextField(
+          ProductAI.canReuseModel ? "Model storage folder" : "Model folder", text: $modelDirectory
+        )
+        .disabled(busy)
         HStack {
-          Button("Choose existing folder…") {
+          Button("Choose folder…") {
             let panel = NSOpenPanel()
             panel.canChooseDirectories = true
             panel.canChooseFiles = false
             if panel.runModal() == .OK, let url = panel.url { modelDirectory = url.path }
-          }
-          Button("Download / verify model", action: setup).disabled(busy)
+          }.disabled(busy)
+          Button("Download / verify model") { setup() }.disabled(busy)
+        }
+        if ProductAI.canReuseModel {
+          Button("Reuse an existing Fast model…") {
+            let panel = NSOpenPanel()
+            panel.title = "Choose the Fast model folder containing its dflash folder"
+            panel.directoryURL = ProductAI.suggestedReuseDirectory
+            panel.canChooseDirectories = true
+            panel.canChooseFiles = false
+            if panel.runModal() == .OK, let source = panel.url { setup(reusing: source) }
+          }.disabled(busy)
+          Text(
+            "Existing weights are verified and reused in place. Keep their original folder available."
+          )
+          .font(.caption).foregroundStyle(.secondary)
         }
         Button("Unload model from memory") {
           Task {
-            let released = await LocalModel.shared.unload()
+            let released = await ProductAI.shared.unload()
             status =
               released
               ? "Idle model released."
@@ -141,9 +159,10 @@ struct ModelSettingsView: View {
           "Dictation uses on-device speech recognition. Microphone permission is requested when you first use it. Review dictated text before sending."
         ).foregroundStyle(.secondary)
       }
-    }.formStyle(.grouped).padding(12).frame(width: 560, height: 500)
+    }.formStyle(.grouped).padding(12).frame(width: 600, height: 580)
+      .onDisappear { cancellation.cancel() }
   }
-  func setup() {
+  func setup(reusing source: URL? = nil) {
     busy = true
     error = nil
     cancellation = Cancellation()
@@ -151,8 +170,8 @@ struct ModelSettingsView: View {
     let folder = URL(fileURLWithPath: modelDirectory)
     Task {
       do {
-        try await LocalModel.shared.setup(
-          at: folder, cancellation: cancel,
+        try await ProductAI.shared.setup(
+          at: folder, reusing: source, cancellation: cancel,
           progress: { text in Task { @MainActor in status = text } })
         status = "Model files are ready."
       } catch { self.error = error.localizedDescription }

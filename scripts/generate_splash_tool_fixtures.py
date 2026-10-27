@@ -23,6 +23,28 @@ from server.tool_schema import normalize_tools, tool_grammar
 tokenizer = AutoTokenizer.from_pretrained(str(args.model.resolve()), local_files_only=True)
 factory = ConstraintFactory(tokenizer, QWEN)
 tools = json.loads((ROOT/'IntegrationTests/Agent/workbook-tools.json').read_text())
+# LLGuidance preserves schema property order. Match the app's required-first
+# ordering for nested JSON while leaving XML argument order unchanged.
+def required_first(value):
+    if isinstance(value, list): return [required_first(v) for v in value]
+    if not isinstance(value, dict): return value
+    result = {k: required_first(v) for k, v in sorted(value.items())}
+    if 'properties' in result:
+        props = result['properties']
+        names = [k for k in result.get('required', []) if k in props]
+        names += sorted(k for k in props if k not in names)
+        result['properties'] = {k: props[k] for k in names}
+    return result
+for tool in tools:
+    props = tool['function']['parameters']['properties']
+    for key in props: props[key] = required_first(props[key])
+functions = {tool['function']['name']: tool['function']['parameters'] for tool in tools}
+def ordered_value(value, schema):
+    if isinstance(value, list): return [ordered_value(v, schema.get('items', {})) for v in value]
+    if not isinstance(value, dict): return value
+    props = schema.get('properties', {})
+    names = [k for k in props if k in value] + sorted(k for k in value if k not in props)
+    return {k: ordered_value(value[k], props.get(k, {})) for k in names}
 def example(schema):
     if 'const' in schema: return schema['const']
     if 'enum' in schema: return schema['enum'][0]
@@ -38,7 +60,7 @@ def example(schema):
 def xml(name, arguments):
     fields = ''
     for key, value in sorted(arguments.items()):
-        text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, separators=(',', ':'), sort_keys=True)
+        text = value if isinstance(value, str) else json.dumps(ordered_value(value, functions[name]['properties'][key]), ensure_ascii=False, separators=(',', ':'))
         fields += f'<parameter={key}>\n{text}\n</parameter>\n'
     return f'<tool_call>\n<function={name}>\n{fields}</function>\n</tool_call>'
 
@@ -56,6 +78,12 @@ for tool in tools:
     elif name == 'save_space':
         values.update(title='Overview', definition={'version':1,'components':[{'id':'table','type':'table','title':'Suppliers','datasetID':'table-1'}]})
     outputs.append((name, xml(name, values), values))
+    if name == 'propose_table':
+        formulas = dict(values, columns=[{'id':'quantity','title':'Quantity','type':'decimal'},
+                         {'id':'unit_cost','title':'Unit cost','type':'decimal'},
+                         {'id':'total','title':'Total','type':'decimal','formula':'quantity*unit_cost'}],
+                        rows=[{'quantity':'3','unit_cost':'2.50'}])
+        outputs.append(('propose_table_formula', xml(name, formulas), formulas))
 
 cases = []
 choices = [('required', 'required', False, outputs),
@@ -81,7 +109,7 @@ for choice_name, choice, thinking, examples in choices:
         assert constraint.matcher.is_accepting()
         cases.append(dict(name=choice_name+'_'+name, choice=choice_name, thinking=thinking,
                           output=output, arguments=arguments, tokens=tokens, steps=steps))
-result = dict(schemaVersion=1, splashCommit='1744cfafee415fb463b289449cec59a864e768e9',
+result = dict(schemaVersion=1, nestedPropertyOrder='required-first', splashCommit='1744cfafee415fb463b289449cec59a864e768e9',
               toolsSHA256=hashlib.sha256((ROOT/'IntegrationTests/Agent/workbook-tools.json').read_bytes()).hexdigest(),
               cases=cases)
 path = ROOT/'IntegrationTests/Agent/tool-grammar-fixtures.json'

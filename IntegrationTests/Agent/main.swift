@@ -1,6 +1,7 @@
 import CryptoKit
 import Foundation
 import SevraAI
+import SevraBaseline
 import SevraCore
 import SevraNativeAI
 import SevraSplash
@@ -14,7 +15,7 @@ final class ToolPolicyChecks {
         "type": "function",
         "function": [
           "name": $0.name, "description": $0.description,
-          "parameters": try JSONSerialization.jsonObject(with: Data($0.parameters.jsonText.utf8)),
+          "parameters": try JSONSerialization.jsonObject(with: Data(try $0.parameters.json().utf8)),
         ],
       ]
     }

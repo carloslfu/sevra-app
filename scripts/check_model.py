@@ -10,9 +10,15 @@ checks=set(sys.argv[1:]) or {"comparison", "injection", "missing", "cancellation
 assert checks <= {"comparison", "injection", "missing", "cancellation", "tables", "coverage"}, "Unknown model check"
 root=Path(__file__).resolve().parent.parent
 cli=Path(os.environ.get('SEVRA_CLI',root/'output/bin/sevra'))
+model_directory=os.environ.get('SEVRA_MODEL_DIRECTORY')
+def invocation(args):
+    result=[str(cli),*map(str,args)]
+    if args and args[0]=='ask' and len(args)==3 and model_directory:
+        result.append(model_directory)
+    return result
 def run(*args,timeout=240):
     start=time.monotonic()
-    r=subprocess.run([str(cli),*map(str,args)],capture_output=True,text=True,timeout=timeout)
+    r=subprocess.run(invocation(args),capture_output=True,text=True,timeout=timeout)
     if r.returncode != 0 and args and args[0] == 'ask':
         diagnostic=subprocess.run([str(cli),'conversation',str(args[1])],capture_output=True,text=True,timeout=15)
         if diagnostic.returncode == 0:
@@ -76,8 +82,15 @@ with tempfile.TemporaryDirectory(prefix='sevra-real-model-') as temporary:
         accepted,_=run('accept',book,proposal['id'])
         table_id=accepted['data']['datasetID']
         rows,_=run('tool',book,'rows',json.dumps({'datasetID':table_id}))
-        assert rows['rows'][0]['values']['total']=='7.5',rows
-        print(json.dumps({'check':'propose_and_accept_table','passed':True,'seconds':seconds}),flush=True)
+        assert Decimal(rows['rows'][0]['values']['total'])==Decimal('7.5'),rows
+        assert next(c for c in rows['dataset']['columns'] if c['id']=='total').get('formula'),rows
+        stored,_=run('rows',book,table_id)
+        changed=dict(stored[0]['data']);changed['quantity']='4'
+        run('edit-row',book,stored[0]['id'],json.dumps(changed))
+        recalculated,_=run('tool',book,'rows',json.dumps({'datasetID':table_id}))
+        assert Decimal(recalculated['rows'][0]['values']['total'])==Decimal('10'),recalculated
+        print(json.dumps({'check':'propose_and_accept_table','passed':True,'seconds':seconds,
+                          'formulaRecalculatesAfterEdit':True}),flush=True)
         supplier=next(t for t in tables if t['title']=='Supplier comparison')
         before,_=run('rows',book,supplier['id'])
         answer,seconds=run('ask',book,'In Supplier comparison, propose changing Cedar Tools unit_cost from 2.75 to 2.60. Leave the existing accepted values unchanged until I review it.')
@@ -111,7 +124,7 @@ with tempfile.TemporaryDirectory(prefix='sevra-real-model-') as temporary:
             assert [r for r in current_records if r['kind']!='request']==original_records
             print(json.dumps({'check':'scoped_count_'+kind,'passed':True,'seconds':seconds,'steps':answer['steps']}),flush=True)
     if 'cancellation' in checks:
-        process=subprocess.Popen([str(cli),'ask',str(book),'Read the supplier rows and produce an extensive detailed analysis.'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+        process=subprocess.Popen(invocation(['ask',book,'Read the supplier rows and produce an extensive detailed analysis.']),stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
         interrupted=False
         try:
             for line in process.stderr:

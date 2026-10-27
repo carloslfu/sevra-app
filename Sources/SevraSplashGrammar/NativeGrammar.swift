@@ -106,9 +106,8 @@ public final class SplashGrammarFactory {
       }
       return tokens.count
     }
-    guard let resource = Bundle.module.url(forResource: "json-slices", withExtension: "json") else {
-      throw SplashError("Native grammar slices are missing")
-    }
+    let resource = try SplashRuntimeResources.resource(
+      "json-slices", extension: "json", bundle: "Sevra_SevraSplashGrammar")
     let slices = try JSONDecoder().decode([String].self, from: Data(contentsOf: resource))
     let strings = slices.map { strdup($0) }
     defer { strings.forEach { free($0) } }

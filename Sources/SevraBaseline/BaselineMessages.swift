@@ -1,9 +1,25 @@
 import CoreFoundation
 import Foundation
+import SevraAI
 import SevraCore
 import Slotstream
 
 extension LocalModel {
+  package static func baselineDefinitions() throws -> [Slotstream.ToolDefinition] {
+    func schemaValue(_ value: Value) -> JSONValue {
+      switch value {
+      case .string(let s): return .string(s)
+      case .number(let n): return Int(exactly: n).map(JSONValue.int) ?? .double(n)
+      case .bool(let b): return .bool(b)
+      case .array(let values): return .array(values.map(schemaValue))
+      case .object(let values): return .object(values.mapValues(schemaValue))
+      case .null: return .null
+      }
+    }
+    return NativeTools.definitions.map {
+      .init(name: $0.name, description: $0.description, parameters: schemaValue($0.parameters))
+    }
+  }
   package static func baselineMessages(_ messages: [InferenceMessage]) throws -> [ChatMessage] {
     func convert(_ value: Any) throws -> JSONValue {
       switch value {
@@ -32,23 +48,5 @@ extension LocalModel {
         role: message.role, content: message.content, toolCalls: calls,
         toolCallId: message.toolCallId, toolName: message.toolName)
     }
-  }
-}
-
-extension NativeTools {
-  /// The same maintained declarations feed both backend boundaries.
-  package static func serializedDefinitions(toolScope: InferenceToolScope = .all) throws -> Data {
-    let definitions = definitions.filter { toolScope.allows($0.name) }
-    let values: [[String: Any]] = try definitions.map {
-      [
-        "type": "function",
-        "function": [
-          "name": $0.name, "description": $0.description,
-          "parameters": try JSONSerialization.jsonObject(with: Data($0.parameters.jsonText.utf8)),
-        ],
-      ]
-    }
-    return try JSONSerialization.data(
-      withJSONObject: values, options: [.sortedKeys, .withoutEscapingSlashes])
   }
 }

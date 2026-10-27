@@ -2,6 +2,7 @@ import Foundation
 import Hub
 import MLX
 import Metal
+import SevraAI
 import SevraCore
 
 /// Checks installed resources and explicit local tokenizer configuration without loading weights.

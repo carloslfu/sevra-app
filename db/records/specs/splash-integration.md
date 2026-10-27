@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T04:24:25.299643+00:00
+updated: 2026-10-27T05:06:04.008046+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
 ---
 # Native Splash integration and upgrades
 
-Revision 6, October 26 local / October 27 UTC, 2026. Owner-approved direction; integration not yet qualified.
+Revision 7, October 27 UTC, 2026. Owner-approved direction; integration not yet qualified.
 Authority: [[sources/notes/2026/10/workbook-primary-splash-direction]].
 The existing Slotstream build is a preserved baseline, not the future architecture.
 
@@ -185,8 +185,8 @@ larger retrieval histories need further context/retrieval qualification.
 Use all actual workbook tools with a required single-call grammar. Only a complete,
 successful, grammar-checked and schema-validated terminal reaches the agent.
 Check cancellation again before dispatch. Preserve existing evidence, calculations,
-proposal review, citations and persisted run state. The selected candidate uses
-an 8,192-token development context and an output allowance of at most 1,800 tokens, reduced
+proposal review, citations and persisted run state. The original probes use an 8,192-token development context; the isolated product
+preview uses the provisional 32K profile. Both have an output allowance of at most 1,800 tokens, reduced
 to the remaining context capacity. Refuse when fewer than 256 output tokens remain;
 a length-limited response cannot execute a tool. Longer-job context management
 and its wider workload qualification remain open under [[records/specs/conversation-context]].
@@ -270,6 +270,22 @@ log. This plan does not remove existing product acceptance journeys J01–J10.
 ## Native setup candidate
 Native setup now has a candidate Swift-only service and a standalone sevra-native-setup executable, depending only on SevraSplash. It downloads the selected immutable target/draft files with URLSession into private snapshot folders, streams bytes to disk, resumes by verified Content-Range, restarts when a server ignores Range, checks pinned byte counts and SHA-256, keeps partial data on interruption/cancellation, checks available storage and atomically publishes the existing verified assembly format. Compatible explicitly selected target/draft folders can be reused without downloading weights. Failed setup leaves the prior selection intact.
 
-The initial preflight enforces the pinned engine floor of Apple M3 and macOS 26.4. That does not qualify every such Mac for a particular context/memory profile. Production application wiring, packaged native helper/grammar libraries, real clean-download qualification, memory/performance comparison and broader hardware remain gates. The candidate CLI does not switch the installed app.
+The initial preflight enforces the pinned engine floor of Apple M3 and macOS 26.4. That does not qualify every such Mac for a particular context/memory profile. The isolated native app and CLI now package the helper/grammar and share this setup service. A fresh 21,481,463,614-byte download, deliberate cancellation/resume, jobs using those files and native Settings reuse have passed on the reference Mac. These checks do not qualify all hardware, the complete UI, or performance. Production adoption still requires those gates. The candidate CLI does not switch the installed app.
 
 Implementation references: pinned install/local.py, install/models.py, install/assembly.py and install/upstream.py; Apple URLSessionDataDelegate https://developer.apple.com/documentation/foundation/urlsessiondatadelegate ; HTTP range response semantics https://www.rfc-editor.org/rfc/rfc9110.html#name-range-requests . No dynamic model catalog, remote manifest trust or Python setup process is added.
+
+## Native product isolation
+The workbook agent owns tool schemas and conversation values without importing Slotstream or MLX. The preserved engine and history conversion live in SevraBaseline. SevraProduct is the single app/CLI entry point for setup, status, unload and workbook runs. The migration build switch is internal; users do not choose a backend.
+
+The native candidate uses the verified installed assembly, including its separate tokenizer and draft folders. Settings downloads into managed storage by default and can explicitly reuse a complete existing Fast pack in place. Reused originals must remain available. Setup and inference are serialized; cancellation preserves resumable bytes and never publishes an incomplete selection. New sessions validate selected source identities and original files. Repeating setup verifies an existing pinned assembly before considering a download; this preserves explicit reuse without creating a second weight copy. Broken originals can be repaired into managed snapshots, with the previous selection retained until the replacement verifies.
+
+An isolated preview app and CLI package the unchanged Splash helper and Metal files, native grammar library, resource bundles and dependency notices. Runtime lookups resolve only installed locations. Missing packaged resources must fail even when the contributor build tree exists. The preview has a distinct bundle identifier and does not register workbook associations or replace the installed baseline. Candidate builds keep automatic compaction disabled until its adoption gate passes. The 32K context, bounded512 reasoning and 12 GiB engine budget remain qualification settings, not a broad hardware performance claim.
+
+The native product must be tested with build-folder access denied, missing and altered resources, actual model setup and complete workbook jobs. Code signatures and runtime hashes must agree after packaging. CI additionally builds the preview from a fresh checkout and checks installed paths, grammar loading, signatures and missing resources without GPU qualification. Local checks separately exercise Metal and missing-model guidance. SwiftPM still resolves baseline source packages for comparative tests; they are absent from the native product binary. Performance adoption still requires the matched reference comparison in this specification.
+
+## Nested schema property order
+LLGuidance fixes JSON object property order to the order supplied in each schema. Canonically sorting every nested property alphabetically placed optional formula before required id; once a model emitted id it could no longer add a formula. A real native planning-table test exposed both a fixed numeric replacement and a missing total. Prompt-only changes did not repair this constraint.
+
+For JSON-valued tool arguments, Sevra now emits nested properties in declared required-field order followed by optional fields in alphabetical order. XML argument order remains unchanged. This keeps column identity/type before optional formula and unit metadata. Required properties, types, additional-property rules and terminal validation are unchanged. The pinned reference receives the same application-owned schema order; the grammar engine itself is unchanged.
+
+The fixture generator records required-first nested ordering and includes a planning-table formula case. All 28 actual-tool cases and 249 speculative mask comparisons match the pinned reference. These fixture results establish grammar parity for the declared inputs, not model success on every request.
