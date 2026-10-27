@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T14:20:09.153079+00:00
+updated: 2026-10-27T14:24:52.034744+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1668,3 +1668,20 @@ compaction documentation and linked-asset preview changes are now combined in on
 development branch. Both branches' source changes and log entries are preserved;
 only generated catalogs were rebuilt after the merge. This does not change the
 primary checkout's frozen measured code, production defaults or upstream pins.
+
+## Large linked-file verification check prepared
+
+The combined development branch adds a real 2 GiB-plus linked-file verification
+probe to the shared check script and hosted CI. It exercises the production
+preview session and streaming hash path, including cancellation after 8 MiB,
+complete retry, same-size changed-original refusal and unchanged workbook evidence.
+A parent process measures lifetime peak physical footprint before allowing exit,
+with a fixed 256 MiB headless-process ceiling. The report records executable and
+source identities and retains failures. The sparse input is synthetic data, not
+playable media; no rendering or whole-app performance claim follows.
+
+Swift formatting, Python syntax, command help, link and dbmd checks pass.
+Compilation and execution of this new large-input probe remain pending hosted
+CI; local builds and file-intensive tests remain deferred during the frozen W1
+measurement. Earlier passing small core/session regressions do not qualify this
+new fixture. Reproduction is in [[records/operations/build-and-run]].

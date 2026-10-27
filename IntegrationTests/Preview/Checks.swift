@@ -41,6 +41,13 @@ private actor ReadGate {
 @main private struct Checks {
   @MainActor static func main() async {
     do {
+      if CommandLine.arguments.count == 3, CommandLine.arguments[1] == "--large-asset" {
+        try await checkLargePreview(at: URL(fileURLWithPath: CommandLine.arguments[2]))
+        return
+      }
+      try require(
+        CommandLine.arguments.count == 1, "arguments",
+        "Use --large-asset NEW_DIRECTORY or no arguments.")
       try await run()
       print(
         "PASS preview ownership, stale success/error/progress, stop/retry, and task cancellation")

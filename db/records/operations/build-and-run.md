@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T13:58:52.663118+00:00
+updated: 2026-10-27T14:24:52.013790+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -946,3 +946,30 @@ not download models. Inspect result.json and both arm files, exact draft text,
 original records, checkpoint boundaries and native helper cleanup. A passing
 functional result does not enable product compaction or qualify whole-app memory.
 See [[records/specs/conversation-context]] for the frozen job and acceptance scope.
+
+## Large linked-file preview verification
+
+Build sevra-preview-checks, then run:
+
+~~~sh
+python3 scripts/check_large_preview.py --binary .build/debug/sevra-preview-checks
+~~~
+
+An optional --output NEW_DIRECTORY keeps the result at a chosen new path; existing
+directories are refused. The default makes a unique .build/large-preview-* folder.
+This creates a 2,148,532,224-byte synthetic sparse original, imports an explicit
+link, cancels verification after 8 MiB, retries a complete verification, then
+changes bytes without changing length and requires the saved evidence to be
+refused. Workbook revision and recorded hash must remain unchanged. It exercises
+AssetPreviewSession and the production hash reader, without a native renderer or
+model. It is included in scripts/check.sh and the hosted workflow.
+
+The parent measures Darwin process lifetime peak physical footprint while the
+worker is still alive after the checks. The fixed ceiling is 256 MiB for this
+headless verification process, including fixture setup and imported frameworks.
+The bound detects whole-file materialization; it does not qualify full-app memory,
+media decoding, filesystem cold performance, remote-volume interruption or UI
+responsiveness. Record complete reported bytes, cancellation offset, original
+refusal, OS/machine, commit, executable/source hashes, stdout, stderr and failures.
+The real native large-file interaction remains a separate check. The existing
+scripts/check_large_assets.py covers a different included-asset/ZIP64 round trip.

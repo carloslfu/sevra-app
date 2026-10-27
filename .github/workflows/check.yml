@@ -27,6 +27,19 @@ jobs:
         run: |
           swift build --product sevra-preview-checks -j 3
           .build/debug/sevra-preview-checks
+      - name: Check large linked-file verification and memory bound
+        run: python3 scripts/check_large_preview.py --binary .build/debug/sevra-preview-checks --output .build/large-preview
+      - name: Retain large-file verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: large-file-preview
+          path: |
+            .build/large-preview/result.json
+            .build/large-preview/stdout.jsonl
+            .build/large-preview/stderr.log
+          include-hidden-files: true
+          if-no-files-found: ignore
       - name: Check checkpoint publication across process death
         run: |
           swift build --product sevra-context-durability -j 3

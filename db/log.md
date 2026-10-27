@@ -310,3 +310,9 @@ Merge prepared context probe with preview correction; preserve both branch logs 
 ## [2026-10-27 14:20] implementation | records/specs/storage.md
 Merge prepared context probe with preview correction; preserve both branch logs and record full 6886540 CI success. Actual-model qualification pending.
 
+## [2026-10-27 14:24] implementation | records/operations/build-and-run.md
+Prepare >2 GiB linked-file verification/cancellation and 256 MiB headless footprint gate; runtime qualification pending.
+
+## [2026-10-27 14:24] implementation | records/operations/implementation.md
+Prepare >2 GiB linked-file verification/cancellation and 256 MiB headless footprint gate; runtime qualification pending.
+
