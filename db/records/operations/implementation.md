@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T13:48:18.913073+00:00
+updated: 2026-10-27T13:50:47.820350+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1565,3 +1565,26 @@ invocation and media crash remain findings; only a sanitized relevant crash
 excerpt/hash is public. Raw device/session metadata and vendor documentation are
 not republished. These focused checks do not complete VoiceOver, all keyboard
 paths, full W1, occupied contexts, whole-app memory or release qualification.
+
+## Corrected full W1 cohort started
+A fresh complete W1 cohort started from clean commit 0e45190d886ba84889261614820b58ed03035ff1 with
+a rebuilt release workflow worker and the unchanged model/engine/protocol pins.
+It uses ten paired blocks, alternating frontend order and rotating workflows,
+with one warmup and two measured repetitions per workload in each worker.
+The native preview was quit, AC power was confirmed and local builds, downloads
+and other inference stopped before launch. The first native warmups passed.
+
+Command:
+
+~~~sh
+python3 scripts/compare_workflow_performance.py \
+  --models-root .build/native-fresh-setup \
+  --output .build/workflow-performance/current-cohort2
+~~~
+
+The console is .build/workflow-performance/current-cohort2.console.log. Its
+identity.json freezes all measured source/binary hashes. Preserve every worker,
+request, generated output, memory trace, failure and exclusion. Do not edit the
+measured sources or rebuild while it runs. Documentation-only updates do not
+change those inputs. This is running evidence, not a passed performance gate.
+Inspect the terminal result, all paired conditions and cleanup before adoption.
