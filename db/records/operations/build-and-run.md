@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T13:48:18.927527+00:00
+updated: 2026-10-27T13:58:52.663118+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -297,8 +297,9 @@ Only development checks read SEVRA_NATIVE_CONTEXT_TOKENS. Supported evaluation
 values are 8192 (the default), 32768 and 65536. This does not change the installed
 app or declare a qualified hardware default. Exact rendered prompt counts,
 output allowance and a proactive maintenance recommendation are recorded in each
-native request's metrics. The shared agent now performs automatic context maintenance. The 8K adaptive
-threshold and larger-profile qualification limits are described in
+native request's metrics. Dedicated evaluation probes enable the shared agent's
+automatic context maintenance; both packaged app/CLI paths still disable it. The
+8K adaptive threshold and larger-profile qualification limits are described in
 [[records/specs/conversation-context]].
 
 For an occupied 32K inventory probe, use:
@@ -923,3 +924,25 @@ failed-save recovery controls and Light/Dark text contrast. Restore the previous
 appearance after testing. Dictation hardware testing requires separate explicit
 microphone/speech permission. See [[records/operations/implementation]] for the
 recorded candidate and its remaining limits.
+
+## Active-job context comparison
+Prepared C12 subset; compilation and real-model execution are pending. Run only
+when no other model or performance cohort owns the host:
+
+~~~sh
+swift build --product sevra-agent-checks -j 4
+.build/debug/sevra-agent-checks --active-context \
+  /path/to/native-models \
+  /path/to/libllguidance.dylib \
+  /path/to/engine/splash \
+  .build/new-active-context-run
+~~~
+
+The output directory must not exist; its parent must exist. Run from a prepared
+checkout containing integration/splash.json and .build/llguidance-receipt.json.
+The probe uses installed native weights, runs the maintained32K and uncompressed64K
+arms sequentially, and preserves both failures and successful workbooks. It does
+not download models. Inspect result.json and both arm files, exact draft text,
+original records, checkpoint boundaries and native helper cleanup. A passing
+functional result does not enable product compaction or qualify whole-app memory.
+See [[records/specs/conversation-context]] for the frozen job and acceptance scope.

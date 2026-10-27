@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T14:17:49.776692+00:00
+updated: 2026-10-27T14:20:09.153079+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -65,6 +65,11 @@ production adoption remain disabled pending their recorded gates.
   cancellation reaches file readers and stale results cannot replace another
   preview. Core and dedicated preview regression checks pass in hosted CI on 57e9fd1.
   Full packaging and native large-file UI qualification remain pending.
+
+- The repeated-active-job context probe and preview correction now share one
+  development branch. The probe's 6886540 hosted workflow passed completely
+  (40516968758). Actual 32K maintenance/64K reference arms still await the end of
+  W1; compilation and unrelated checks do not establish context reliability.
 
 Next, finish the frozen W1 measurement and qualify the prepared asset preview.
 Continue whole-app memory/headroom, occupied-context and repeated-compaction recovery,
@@ -1639,3 +1644,27 @@ The independently frozen W1 cohort has completed its first two native/reference
 pairs. All 52 jobs including four Ready primes passed, with exact paired requests
 and generated outputs and successful worker closure. This is partial progress
 through the fixed ten-block protocol, not a passed performance/adoption gate.
+
+## Active-job continuity comparison prepared
+The separate codex/continuity-release checkout prepares --active-context to test
+repeated maintenance inside one mutating job, against the same fixture without
+maintenance at 64K. It preserves real model choice, original source versions,
+normal tool/output/step bounds and actual token measurements. Both functional arms
+must succeed, with at least two active checkpoints in the 32K arm; missing coverage
+and all failures remain explicit. This is a C12 subset, not a C13 performance claim.
+
+Source formatting passes. Compilation and execution are deliberately deferred
+while the frozen full W1 cohort runs in the primary checkout. No product code,
+model pin, threshold or frozen source/binary was changed. Documentation now states
+explicitly that both packaged product paths disable automatic maintenance; only
+dedicated native probes opt in. The previous wording could be mistaken for an
+enabled native-preview feature. See [[records/specs/conversation-context]] and
+[[records/operations/build-and-run]] for the protocol and command.
+
+The probe compiled and the complete hosted workflow for 6886540 passed in run
+40516968758, including baseline and native package builds. Its actual-model arms
+remain unexecuted while the frozen W1 cohort runs. The prepared probe, corrected
+compaction documentation and linked-asset preview changes are now combined in one
+development branch. Both branches' source changes and log entries are preserved;
+only generated catalogs were rebuilt after the merge. This does not change the
+primary checkout's frozen measured code, production defaults or upstream pins.

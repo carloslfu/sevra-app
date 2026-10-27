@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-27T12:28:00.151029+00:00
+updated: 2026-10-27T13:58:52.637905+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -283,3 +283,38 @@ core durability boundaries on that runner. Local replay remains pending while W1
 runs. Actual model compaction quality, repeated compactions within one long
 request, occupied contexts, pending tool recovery and the uncompressed comparison
 remain separate acceptance work. The result does not enable automatic compaction.
+
+## Active-job qualification protocol
+This is a focused C12 probe, not a substitute for the complete C12/C13/J10 matrix.
+Use one frozen synthetic workbook for two sequential native arms: automatic
+maintenance at 32K, then a 64K arm with maintenance disabled. Both retain bounded512
+reasoning, the original 12 GiB engine budget, unchanged pins and the normal
+12-step agent limit. The larger reference is a functional comparison; one job per
+arm does not qualify latency, memory, occupied-context support or adoption.
+
+The job first saves one named working space, then reads eight inspection reports,
+then creates one receiving memo and confirms that it is saved. Each report carries
+an exact labeled clearance/unit/disposition and fixed synthetic inspection
+fingerprints. They create real token occupancy without altering the threshold,
+injecting tool replies or supplying model choices. Preflight requires every full
+read to fit the existing 16,000-byte tool result bound. The request preserves an
+earlier purchase code and original/corrected packing quantities from conversation.
+No acceptance or inventory change is permitted.
+
+The maintained arm must publish at least two checkpoints ending at tool receipts
+within this one active job, after the working space already exists. Both arms must
+read all eight exact source versions, produce exactly one space and one draft,
+preserve each labeled value/unit and both original/corrected quantities, retain all
+original heads/history and leave accepted inventory unchanged. The draft's lineage
+must contain every report. Export/reopen must preserve the draft, checkpoints,
+inventory and integrity. Fewer than two active checkpoints is missing coverage,
+not a pass and not permission to lower the maintenance threshold. A failed 64K
+reference stays a failure; do not silently increase its capacity or hide it.
+
+Retain both workbooks, original fixture archive, exact request, per-response context
+metrics, summarization boundaries, complete history, runs, failures and unload
+results. The wrapper observes real inference only. Token occupancy comes from the
+native metrics; configured capacity is not occupancy. Cancellation/process death,
+concurrent acceptance changes, tangents, hostile content and sustained memory
+remain separate C12/C13 cases. Existing passing continuity/checkpoint checks do not
+waive this new single-job coverage requirement.
