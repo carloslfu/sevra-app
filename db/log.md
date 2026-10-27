@@ -283,3 +283,9 @@ Prepare cancellable linked-asset preview verification outside the workbook lock;
 ## [2026-10-27 14:09] implementation | records/operations/implementation.md
 Prepare cancellable linked-asset preview verification outside the workbook lock; qualification pending.
 
+## [2026-10-27 14:16] verification | records/operations/implementation.md
+Record full 0e45190 hosted CI success, running frozen W1 and prepared linked-file preview checks.
+
+## [2026-10-27 14:17] verification | records/operations/implementation.md
+57e9fd1 hosted core and preview regressions passed; full workflow pending. First two frozen W1 pairs match and pass, cohort incomplete.
+

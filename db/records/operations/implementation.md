@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T14:09:51.398733+00:00
+updated: 2026-10-27T14:17:49.776692+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -55,8 +55,19 @@ production adoption remain disabled pending their recorded gates.
   isolation and baseline install/update/uninstall checks pass. Hardware voice
   and broader accessibility remain unqualified.
 
-Next, run a fresh complete W1 cohort on the corrected frozen candidate. Continue
-whole-app memory/headroom, occupied-context and repeated-compaction recovery,
+- The new complete ten-block W1 cohort is running on frozen 0e45190. Its first two
+  completed pairs passed every job and matched the actual requests and generated
+  tokens. All frozen source hashes remain unchanged. Full performance/cleanup
+  qualification requires the complete cohort; no speed claim follows yet.
+- The 0e45190 hosted workflow passed completely (40515342232), including both
+  package builds and installation checks. The linked-file preview correction is
+  prepared on the asset-preview branch: hashing releases the workbook lock,
+  cancellation reaches file readers and stale results cannot replace another
+  preview. Core and dedicated preview regression checks pass in hosted CI on 57e9fd1.
+  Full packaging and native large-file UI qualification remain pending.
+
+Next, finish the frozen W1 measurement and qualify the prepared asset preview.
+Continue whole-app memory/headroom, occupied-context and repeated-compaction recovery,
 search scale/interruption, native voice/accessibility and fresh-clone installation
 journeys. Native production adoption, baseline removal and
 release remain gated. [[records/specs/splash-integration]],
@@ -1614,3 +1625,17 @@ shared check script and CI. Formatting and diff checks pass. Compilation, runtim
 checks and native large-file UI qualification remain pending; local builds stay
 paused during the frozen full W1 cohort. No multi-gigabyte memory or rendering
 performance result is claimed from source inspection.
+
+On 57e9fd1, hosted run 40518997102 passed the core invariant/integration suite,
+document lifecycle checks and the new preview cancellation/stale-read executable.
+This executes the workbook-read-during-hash regression and cancellation/relink
+checks rather than relying on source inspection. A follow-up fixture ensures a
+first late progress callback cannot be hidden by the producer's throttle. Voice
+lifecycle and checkpoint process-death checks also passed in that run. The full
+workflow and app build are still running, so this is focused runtime evidence,
+not final packaging or a large-file native interaction result.
+
+The independently frozen W1 cohort has completed its first two native/reference
+pairs. All 52 jobs including four Ready primes passed, with exact paired requests
+and generated outputs and successful worker closure. This is partial progress
+through the fixed ten-block protocol, not a passed performance/adoption gate.
