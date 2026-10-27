@@ -1,23 +1,31 @@
 import AppKit
 import Charts
 import SevraCore
+import SevraSearchUI
 import SevraTableUI
 import SwiftUI
 
 struct SearchView: View {
   @ObservedObject var state: WorkspaceState
-  private var hits: [SearchHit] { state.searchHits }
-  private var next: String? { state.searchNext }
-  private var incomplete: Int { state.searchIncomplete }
-  @State private var searching = false
-  @State private var failure: String?
+  @ObservedObject var results: SearchSession
+  private var hits: [SearchHit] { results.loadedQuery == query ? results.hits : [] }
+  private var next: String? { results.loadedQuery == query ? results.nextCursor : nil }
+  private var incomplete: Int { results.loadedQuery == query ? results.incomplete : 0 }
+  private var searching: Bool { results.loading }
+  private var failure: String? { results.query == query ? results.failure : nil }
   @State private var facets: Value = .null
   @FocusState private var focused: Bool
-  var identity: String {
-    [
-      state.searchQuery, String(state.searchHistorical), state.searchKind, state.searchMeaning,
-      state.searchStatus, state.searchScenario, String(state.revision),
-    ].joined(separator: "\u{1f}")
+  var query: SearchQuery {
+    SearchQuery(
+      workbook: state.workbook?.url, revision: state.revision, text: state.searchQuery,
+      historical: state.searchHistorical,
+      kind: state.searchKind.isEmpty ? nil : state.searchKind,
+      meaning: state.searchMeaning.isEmpty ? nil : state.searchMeaning,
+      status: state.searchStatus.isEmpty ? nil : state.searchStatus,
+      scenario: state.searchScenario.isEmpty ? nil : state.searchScenario)
+  }
+  var facetIdentity: SearchQuery {
+    SearchQuery(workbook: state.workbook?.url, revision: state.revision, text: "")
   }
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
@@ -45,7 +53,7 @@ struct SearchView: View {
           LazyVStack(alignment: .leading, spacing: 0) {
             ForEach(hits) { hit in
               Button {
-                state.searchAnchor = hit.itemID
+                results.anchor = hit.itemID
                 state.openEvidence(hit.itemID, locator: hit.locator)
               } label: {
                 VStack(alignment: .leading, spacing: 6) {
@@ -62,33 +70,33 @@ struct SearchView: View {
               Button("Show more results") { Task { await search(more: true) } }.disabled(searching)
                 .padding(.vertical, 14)
             }
-            if hits.isEmpty && !state.searchQuery.isEmpty && !searching {
+            if hits.isEmpty && !query.isEmpty && !searching && failure == nil
+              && results.loadedQuery == query
+            {
               ContentUnavailableView.search(text: state.searchQuery).padding(.top, 30)
             }
-            if state.searchQuery.isEmpty {
+            if query.isEmpty {
               Text(
                 "Search evidence directly, or ask Sevra to investigate across sources in the conversation."
               ).foregroundStyle(.secondary).padding(.top, 20)
             }
           }
-        }.onAppear { if let id = state.searchAnchor { proxy.scrollTo(id, anchor: .center) } }
+        }.onAppear { if let id = results.anchor { proxy.scrollTo(id, anchor: .center) } }
           .onChange(of: hits.count) { _, _ in
-            if let id = state.searchAnchor { proxy.scrollTo(id, anchor: .center) }
+            if let id = results.anchor { proxy.scrollTo(id, anchor: .center) }
           }
       }
       if let failure { Text(failure).foregroundStyle(.red) }
     }.padding(22).task { focused = true }
-      .task(id: state.revision) {
+      .task(id: facetIdentity) {
+        let identity = facetIdentity
         if let book = state.workbook {
-          facets = (try? await Task.detached { try book.searchFacets() }.value) ?? .null
+          let found = try? await Task.detached { try book.searchFacets() }.value
+          guard !Task.isCancelled, facetIdentity == identity else { return }
+          facets = found ?? .null
         }
       }
-      .task(id: identity) {
-        do {
-          try await Task.sleep(nanoseconds: 180_000_000)
-          await search(more: false)
-        } catch {}
-      }
+      .task(id: query) { await search(more: false) }
   }
   @ViewBuilder var filters: some View {
     facet("Kind", key: "kind", selection: $state.searchKind)
@@ -103,38 +111,16 @@ struct SearchView: View {
     }.font(.caption).frame(maxWidth: 190)
   }
   func search(more: Bool) async {
-    guard let book = state.workbook, !state.searchQuery.isEmpty else {
-      state.searchHits = []
-      state.searchNext = nil
-      return
-    }
-    let key = identity
-    let query = state.searchQuery
-    let old = state.searchHistorical
-    let kind = state.searchKind
-    let meaning = state.searchMeaning
-    let status = state.searchStatus
-    let scenario = state.searchScenario
-    let cursor = more ? next : nil
-    searching = true
-    do {
-      let found = try await Task.detached {
+    guard let book = state.workbook else { return }
+    let request = query
+    await results.load(request, more: more, debounce: !more) { cursor in
+      try await Task.detached {
         try book.search(
-          query, kind: kind.isEmpty ? nil : kind, meaning: meaning.isEmpty ? nil : meaning,
-          historical: old, cursor: cursor, status: status.isEmpty ? nil : status,
-          scenario: scenario.isEmpty ? nil : scenario)
+          request.text, kind: request.kind, meaning: request.meaning,
+          historical: request.historical, cursor: cursor, status: request.status,
+          scenario: request.scenario)
       }.value
-      try Task.checkCancellation()
-      guard key == identity else { return }
-      state.searchHits = more ? hits + found.hits : found.hits
-      state.searchNext = found.nextCursor
-      state.searchIncomplete = found.incomplete
-      state.searchReceivedIdentity = key
-      failure = nil
-    } catch is CancellationError {} catch {
-      if key == identity { failure = error.localizedDescription }
     }
-    if key == identity { searching = false }
   }
 }
 struct SpaceView: View {

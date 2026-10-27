@@ -28,7 +28,7 @@ package enum SearchCoverage {
   }
 
   package static let feedback =
-    "Do not infer absence or exhaustive coverage from search, an empty table list, or selected citations. Remove the unsupported claim. For missing evidence, use basis=unresolved and report what the named searches returned and their actual indexing limits. Only when the question asks for a structured count, call count_records and put its current-run receipt ID in finish.coverage. A count cannot establish a document's contents or replace an answer about missing evidence."
+    "Do not infer absence or exhaustive coverage from search, an empty table list, or selected citations. Remove the unsupported claim. For missing evidence, use basis=unresolved and report what the named searches returned and their actual indexing limits. Only when the question asks for a structured count, call count_records and put its current-run receipt ID in finish.counts. A count cannot establish a document's contents or replace an answer about missing evidence."
 
   package static func renderSearchGap(
     queries: [String], incomplete: Int, includesHistory: Bool

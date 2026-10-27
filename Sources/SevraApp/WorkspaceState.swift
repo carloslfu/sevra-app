@@ -4,6 +4,7 @@ import Foundation
 import SevraAI
 import SevraProduct
 import SevraCore
+import SevraSearchUI
 import Speech
 import SwiftUI
 
@@ -43,11 +44,7 @@ import SwiftUI
   @Published var searchMeaning = ""
   @Published var searchStatus = ""
   @Published var searchScenario = ""
-  @Published var searchHits: [SearchHit] = []
-  @Published var searchNext: String?
-  @Published var searchIncomplete = 0
-  @Published var searchReceivedIdentity = ""
-  @Published var searchAnchor: String?
+  let searchResults = SearchSession()
   @Published var tableOffsets: [String: Int] = [:]
   @Published var tableFilters: [String: String] = [:]
   @Published var tableSorts: [String: String] = [:]

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-27T04:15:39.659766+00:00
+updated: 2026-10-27T10:37:22.180251+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -130,6 +130,14 @@ A lexical query establishes only matches for its terms and filters. An empty res
 
 The read-only count_records tool counts current heads in SQLite using an explicit Source/Record category and optional exact kind, status, meaning and scenario filters. Every result reports all filters and its workbook revision. It includes classified entries even when their text is not indexed. It does not count facts hidden inside documents, external files, historical versions or real-world events. Accepted estimates remain estimates.
 
-finish.coverage can reference up to four visible count receipts from the current run. The host rechecks the count, refuses changed/unknown receipts, renders the exact count and scope itself, and saves the verified result with the answer. Compaction invalidates count eligibility when the corresponding result leaves working context. A count receipt is not a Source/Record citation. When an evidence answer has counts and no inspected citations, the displayed answer consists solely of host-rendered counts. Discard the model prose in that presentation so a valid count cannot authorize unrelated factual claims. The original finish arguments remain in the diagnostic payload, explicitly marked host_counts; they are not the displayed answer.
+finish.counts can reference up to four visible count receipts from the current run. The host rechecks the count, refuses changed/unknown receipts, renders the exact count and scope itself, and saves the verified result with the answer. Compaction invalidates count eligibility when the corresponding result leaves working context. A count receipt is not a Source/Record citation. When an evidence answer has counts and no inspected citations, the displayed answer consists solely of host-rendered counts. Discard the model prose in that presentation so a valid count cannot authorize unrelated factual claims. The original finish arguments remain in the diagnostic payload, explicitly marked host_counts; they are not the displayed answer.
 
 A conservative final-answer guard rejects recognized English and Spanish absence/exhaustiveness claims after retrieval or under the evidence answer basis. It requests scoped query wording or the host-rendered count instead. This catches the observed inventory overclaim; it is not a universal semantic verifier or a guarantee across all paraphrases and languages. Preserve semantic review alongside deterministic and real-model tests.
+
+Counts answer requested entry-count questions. They do not verify a balance, validate citations or establish general search coverage. The active model schema refuses the retired coverage field; historical receipts retain their original bytes and validated coverageEvidence payload. See [[records/specs/intelligence]].
+## Native search result continuity
+Q16. The native search view retains loaded pages, filters and the opened-result anchor when returning from a preview with the same workbook revision and query. A changed workbook, query, filter or history setting starts a new result set and invalidates the old cursor. Do not show results from one query as matches for another.
+
+Each asynchronous read has a unique request identity in addition to its typed query. Late successes, errors and cancellation from a superseded read cannot alter the current result set or loading state. Clearing a query clears results, incomplete-index notices and errors without leaving a spinner. More-results requests cannot overlap or append an old page to a new query. A failed next page retains the already loaded evidence and offers retry.
+
+These requirements implement the existing stable preview/Back contract in [[records/specs/product]]. They do not change search matching, index completeness, cursor validation or citation authority.

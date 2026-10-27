@@ -164,7 +164,7 @@ package enum NativeTools {
     .init(
       name: "count_records",
       description:
-        "Count current classified workbook Sources or Records using exact metadata filters, independent of search wording or extraction. This does not count facts inside documents or real-world events. Put this call's receiptID in finish.coverage for the host to display its precise scope. Do not broaden it in prose.",
+        "Use when the requested answer needs a count of classified Source/Record entries matching metadata filters. This counts entries, not inventory units, facts inside documents or real-world events. It is not needed to verify a balance, validate citations or finish an ordinary answer. Put the receiptID in finish.counts for the exact scoped count.",
       parameters: object(
         [
           "category": .object([
@@ -308,11 +308,11 @@ package enum NativeTools {
       parameters: object(
         [
           "answer": schema("string", "Plain-language answer. Do not print opaque IDs in prose."),
-          "coverage": .object([
+          "counts": .object([
             "type": .string("array"), "maxItems": .number(4),
             "items": schema(
               "string",
-              "Optional current-run count_records receipt ID. The host validates and renders each exact count and scope. No search or old receipt IDs."
+              "Optional current-run count_records receipt ID, only for entry counts needed by the requested answer. Omit for inventory quantities, calculations and ordinary cited answers. The host renders the exact count and scope. No search or historical receipt IDs."
             ),
           ]),
           "basis": .object([

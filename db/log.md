@@ -199,3 +199,9 @@ I1 finished all 16 workbook jobs and 8 primes but failed supplier parity even at
 ## [2026-10-27 10:17] verification | records/operations/implementation.md
 Implemented exact visible item-reference candidates, separate citation admission and native/shared validation. Full local regression and actual grammar checks pass. Fixed R2 completed 12 inventory jobs and 2 primes with correct evidence and unchanged state, but failed both seed-6 unnecessary-count/step gates; retained full traces and failed attempts. Native Settings fresh start/partial resume/cancel/error/verified-ready checks pass after fixing stale progress. Final native/baseline builds, resources, isolated install and fresh-ID inventory checks pass; native missing-evidence check passes. Prior CI 6995a89 green. Native adoption and remaining app qualification stay open.
 
+## [2026-10-27 10:45] verification | records/operations/implementation.md
+Count-purpose R2 replay passes 12 inventory jobs and 2 primes; native/baseline scoped-count and missing-evidence checks pass. Fixed and visibly verified search Back/paging and PDF selected-page context; added controlled search race checks and synthetic UI fixture generator. Preserved documentation-gate failure and repair, 31 logs, source/binary identities and qualification limits in public evidence. Native adoption remains gated.
+
+## [2026-10-27 10:48] verification | records/operations/implementation.md
+Final review reproduced cancelled-before-entry search state loss. Added admission cancellation guard; failing-then-passing controlled test and final native/baseline build/package/install checks retained in search-entry qualification evidence. Model CLI binaries unchanged. Final guard visual replay remains pending because the Mac locked; prior UI journey is preserved at its tested build.
+

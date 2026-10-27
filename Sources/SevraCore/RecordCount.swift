@@ -45,7 +45,7 @@ extension Workbook {
             "scope": .string("current-classified-workbook-items"), "filters": filters,
             "count": count, "snapshotRevision": .number(Double(try revision())),
             "notice": .string(
-              "Exact count of current classified workbook items matching every filter, including items without extracted text. Not a count of real-world events, unclassified information inside documents, historical versions, or external files. Use this call's receipt ID in finish.coverage; the host renders the scoped count. Do not turn it into a broader absence claim."
+              "Exact count of current classified workbook items matching every filter, including items without extracted text. Not a count of real-world events, unclassified information inside documents, historical versions, or external files. Use this call's receipt ID in finish.counts; the host renders the scoped count. Do not turn it into a broader absence claim."
             ),
           ])
         }

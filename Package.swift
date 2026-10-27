@@ -14,6 +14,7 @@ let package = Package(
     .executable(name: "sevra", targets: ["SevraCLI"]),
     .executable(name: "sevra-checks", targets: ["SevraChecks"]),
     .executable(name: "sevra-table-ui-checks", targets: ["SevraTableUIChecks"]),
+    .executable(name: "sevra-search-ui-checks", targets: ["SevraSearchUIChecks"]),
     .executable(name: "sevra-product-checks", targets: ["SevraProductChecks"]),
     .executable(name: "sevra-benchmark", targets: ["SevraBenchmark"]),
     .executable(name: "sevra-splash-checks", targets: ["SevraSplashChecks"]),
@@ -104,6 +105,12 @@ let package = Package(
     .target(
       name: "SevraTableUI", dependencies: ["SevraCore"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
+    .target(
+      name: "SevraSearchUI", dependencies: ["SevraCore"],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(
+      name: "SevraSearchUIChecks", dependencies: ["SevraSearchUI", "SevraCore"],
+      path: "IntegrationTests/SearchUI", swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraTableUIChecks", dependencies: ["SevraTableUI", "SevraCore"],
       path: "IntegrationTests/TableUI", swiftSettings: [.swiftLanguageMode(.v5)]),
@@ -116,7 +123,8 @@ let package = Package(
       swiftSettings: [.swiftLanguageMode(.v5)]
         + (nativeCandidate ? [.define("SEVRA_NATIVE_CANDIDATE")] : [])),
     .executableTarget(
-      name: "SevraApp", dependencies: ["SevraCore", "SevraAI", "SevraProduct", "SevraTableUI"],
+      name: "SevraApp",
+      dependencies: ["SevraCore", "SevraAI", "SevraProduct", "SevraTableUI", "SevraSearchUI"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraCLI", dependencies: ["SevraCore", "SevraAI", "SevraProduct"],

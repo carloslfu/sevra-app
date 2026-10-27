@@ -8,6 +8,8 @@ BIN=$(swift build --show-bin-path)
 "$BIN/sevra-checks"
 swift build --product sevra-table-ui-checks -j "${SEVRA_BUILD_JOBS:-4}"
 "$BIN/sevra-table-ui-checks"
+swift build --product sevra-search-ui-checks -j "${SEVRA_BUILD_JOBS:-4}"
+"$BIN/sevra-search-ui-checks"
 swift build --product sevra-product-checks -j "${SEVRA_BUILD_JOBS:-4}"
 "$BIN/sevra-product-checks"
 swift build --product sevra-splash-checks -j "${SEVRA_BUILD_JOBS:-4}"

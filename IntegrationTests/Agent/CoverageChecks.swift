@@ -36,7 +36,7 @@ private actor CoverageInference: WorkbookInference {
         "finish",
         .object([
           "answer": .string(answer), "basis": .string(basis),
-          "citations": .array([]), "coverage": coverage,
+          "citations": .array([]), "counts": coverage,
         ]))
     }
     if mode == "overclaim" || mode == "general" || mode == "gap" {
@@ -73,6 +73,17 @@ private actor CoverageInference: WorkbookInference {
     if step == 2 {
       receipt = try Value.parse(messages.last!.content)["receiptID"].text
       try expectEqual(receipt.isEmpty, false)
+      if mode == "legacy" || mode == "legacy_mixed" {
+        var arguments: [String: Value] = [
+          "answer": .string("The scoped count follows."), "basis": .string("evidence"),
+          "citations": .array([]), "coverage": .array([.string(receipt)]),
+        ]
+        if mode == "legacy_mixed" {
+          arguments["counts"] = .array([.string(receipt)])
+          arguments["coverage"] = .null
+        }
+        return try call("finish", .object(arguments))
+      }
       if mode == "stale" {
         let source = try book.addItem(category: "source", kind: "note", title: "Handover")
         _ = try book.addItem(
@@ -91,11 +102,14 @@ private actor CoverageInference: WorkbookInference {
       receipt = try Value.parse(messages.last!.content)["receiptID"].text
     }
     // Evidence failure forces one inspection before another finish.
-    if (mode == "forged" || mode == "malformed") && step == 3 {
+    if mode.hasPrefix("legacy") && step == 3 {
+      try expectEqual(messages.last!.content.contains("active finish field is counts"), true)
+    }
+    if ["forged", "malformed", "legacy"].contains(mode) && step == 3 {
       try expectEqual(toolScope, .inspection)
       return try count()
     }
-    if mode == "forged" || mode == "malformed" {
+    if ["forged", "malformed", "legacy"].contains(mode) {
       receipt = try Value.parse(messages.last!.content)["receiptID"].text
     }
     return try finish("The scoped count follows.", "evidence", coverage: .array([.string(receipt)]))
@@ -151,6 +165,7 @@ func checkSearchCoverage() async throws {
   try expectEqual(try book.item(current.id).meaning, "estimate")
   for mode in [
     "overclaim", "general", "valid", "forged", "malformed", "stale", "gap", "count_after_search",
+    "legacy", "legacy_mixed",
   ] {
     let scenario = try Workbook.create(
       at: root.appendingPathComponent(mode + ".sevra"), title: mode)

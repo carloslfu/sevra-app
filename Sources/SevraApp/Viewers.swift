@@ -345,9 +345,20 @@ struct PDFViewer: NSViewRepresentable {
       token = NotificationCenter.default.addObserver(
         forName: .PDFViewSelectionChanged, object: view, queue: .main
       ) { [weak self, weak view] _ in
-        guard let view, let text = view.currentSelection?.string else { return }
-        let page = view.currentPage.flatMap { view.document?.index(for: $0) } ?? 0
-        self?.callback("Page \(page+1): " + String(text.prefix(4000)))
+        guard let view, let selection = view.currentSelection, let text = selection.string,
+          let document = view.document
+        else { return }
+        // Selection notifications can precede scrolling to a search match.
+        // Use the selected pages, never the previously visible page.
+        let pages = selection.pages.map { document.index(for: $0) }.filter { $0 != NSNotFound }
+          .sorted()
+        let location: String
+        if let first = pages.first, let last = pages.last {
+          location = first == last ? "Page \(first + 1)" : "Pages \(first + 1)–\(last + 1)"
+        } else {
+          location = "PDF selection"
+        }
+        self?.callback(location + ": " + String(text.prefix(4000)))
       }
     }
     deinit {

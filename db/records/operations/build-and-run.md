@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T10:13:13.637545+00:00
+updated: 2026-10-27T10:42:31.184516+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -738,3 +738,37 @@ Use the actual native setup root if different. The output folder must not exist.
 The final packaged native inventory check passed with fresh identifiers in four steps and no corrections. Native Settings started/cancelled/resumed partial downloads and reverified the existing model. Cancellation now reports resumable data, clears stale progress, and leaves controls usable. A deliberate ordinary setup failure also clears progress; success replaces the error. The model folder preference was restored after testing. A full 21.48 GB fresh download only through the UI remains separately unmeasured, while the underlying native downloader has earlier full-download/cancel/resume verification. Broader UI, voice, context, hardware and performance gates remain open.
 
 The retained R2 archive is integration/evidence/2026-10-27-exact-item-references.json.gz. Commands, final build identities, failed test attempts, setup observations and packaged checks are recorded in integration/evidence/2026-10-27-exact-reference-qualification.json.
+
+## Count purpose and native search verification
+The active model finish schema uses counts for exact current-run count receipts. Historical assistant payloads retain coverageEvidence. Supplying the retired coverage argument is refused, including null or mixed old/new fields.
+
+Replay the full fixed R2 schedule, without overlapping builds, downloads or another model job:
+
+```sh
+python3 scripts/probe_item_references.py --models-root .build/native-fresh-setup --output .build/count-purpose-replay
+```
+
+Use a new output folder. The retained successful run is integration/evidence/2026-10-27-count-purpose-replay.json.gz; the original failed seed-6 runs remain in integration/evidence/2026-10-27-exact-item-references.json.gz. This is a functional check, not a performance qualification. Preserve every failed run and do not reroll identifiers.
+
+After building the native preview, test requested counts and missing evidence separately:
+
+```sh
+SEVRA_CLI=output/native/bin/sevra SEVRA_MODEL_DIRECTORY=.build/native-fresh-setup python3 scripts/check_model.py coverage
+SEVRA_CLI=output/native/bin/sevra SEVRA_MODEL_DIRECTORY=.build/native-fresh-setup python3 scripts/check_model.py missing
+swift build --product sevra-search-ui-checks -j 4
+.build/debug/sevra-search-ui-checks
+```
+
+The search state check is also in scripts/check.sh and hosted CI. It covers retained pages/anchor on Back, typed workbook/revision/filter identity, stale successes and failures, same-query cancellation/retry, clearing, failed continuation retry and refusal to append an old continuation to a new query.
+
+For native UI verification, generate synthetic files in a new directory:
+
+```sh
+swift scripts/make_ui_fixture.swift .build/ui-fixture
+```
+
+Create a disposable workbook and include the three imports files through the native picker. The CSV must produce two rows, with Sierra 2.50 and Vega 2.75. Search quartz and open the PDF at page 2. Search Sierra inside the PDF: the view and composer selection must both identify page 1. Search fulfillment to find locally recognized image text, open the original image and exercise zoom. Search nandu to check the accented filename. Original files remain included and verify must report no asset or database issues.
+
+Include the 35 paging notes. Search amber, load more results, open Amber_35.txt, and use Back. The last five results and opened-item position must remain. Changing the query or workbook revision must discard obsolete pages/cursors. Clearing must leave no results, error or loading indicator. Inspect filters and previews without waiting for AI. Native setup reverification should report Model files are ready without changing the selected folder or copying existing weights.
+
+These journeys cover synthetic text/PDF/image/CSV intake and search. They do not qualify all media formats, real microphone dictation, VoiceOver, hardware/context envelopes or production adoption.

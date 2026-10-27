@@ -321,7 +321,7 @@ struct WorkbookView: View {
         if let table = state.datasets.first(where: { $0.id == id }) {
           DatasetView(table: table, state: state)
         }
-      case .search: SearchView(state: state)
+      case .search: SearchView(state: state, results: state.searchResults)
       }
     }
   }
