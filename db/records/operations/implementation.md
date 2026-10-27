@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T12:21:19.717340+00:00
+updated: 2026-10-27T12:24:37.149678+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -30,7 +30,7 @@ production adoption remain disabled pending their recorded gates.
   pass on the recorded Mac; broader hardware remains unqualified.
 - The latest corrected W1 pilot passes all sixteen jobs, two Ready primes and
   32 exact paired requests/outputs. The full ten-block cohort is running on frozen
-  ed6ffd0. Its first completed pair matched all jobs, requests and generated
+  ed6ffd0. Its first two completed pairs matched all jobs, requests and generated
   tokens. This partial run is not a performance result. Preserve the earlier
   failed W1/I1 and R1 attempts and all correction latency.
 - Native table identity/stale edits, paginated search/Back, PDF/OCR/CSV intake,
@@ -39,10 +39,15 @@ production adoption remain disabled pending their recorded gates.
   checkpoints, including current acceptance/withdrawal and portable recovery.
   That does not complete C12/C13 or the full J01–J10 journeys.
 - The isolated codex/voice-lifecycle branch repairs permission/recognition races,
-  typed draft replacement and incomplete playback cleanup. Commit 04ce5c2 has
-  14 injected lifecycle checks prepared; hosted CI run 40501522585 is running.
-  Local compilation, hardware recognition and native visual replay remain pending.
-  See Voice and media lifecycle repair below.
+  typed draft replacement and incomplete playback cleanup. The 14-check voice
+  step passed on 7f93617 in hosted CI run 40502209056; its remaining checks are
+  still running. Run 40501522585 on superseded 04ce5c2 was cancelled before the
+  voice step. Local execution, hardware recognition and native visual replay
+  remain pending. See Voice and media lifecycle repair below.
+- The descendant codex/context-durability branch adds four checkpoint publication
+  checks at real transaction/process-death boundaries. Commit c0ac40f is running
+  in hosted CI 40503178418. No durability result is claimed yet; see Checkpoint
+  publication process-death checks below.
 
 Next, finish and assess the frozen W1 cohort, then locally test and integrate the
 voice/media repair. Continue occupied-context and repeated-compaction recovery,
@@ -1259,3 +1264,22 @@ and process-death boundaries only, not actual-model summary quality, repeated
 mid-job compaction, occupied 32K/64K contexts or the complete C12/C13/J10 gates.
 Automatic compaction remains disabled. See [[records/specs/conversation-context]]
 and [[records/operations/build-and-run]].
+
+## Hosted verification while W1 runs
+The previously frozen primary checkpoints all passed their full hosted workflow,
+including packaged baseline installation and native preview resources:
+ed6ffd0 / 40499506612, f14eb26 / 40499594284 and e66bca6 / 40499641407.
+
+The 14-check injected voice lifecycle step passed for 7f93617 in run 40502209056.
+Its remaining job is still running; no whole-branch pass is claimed. The earlier
+04ce5c2 run 40501522585 was cancelled after a replacement source revision started,
+not reported as a pass. The descendant checkpoint-durability commit c0ac40f is
+running as 40503178418 and awaits its own result. Both branches remain separate
+from the frozen primary checkout. No local build, inference or test run overlapped
+W1; only lightweight source/docs work and hosted CI were added.
+
+W1 blocks 0 and 1 have complete native/reference workers, successful Ready primes,
+48 successful workload jobs and exact paired request/generated-token equality.
+The remaining eight pairs are required before the full gate can be assessed.
+Frozen source/binary identities still match. This is progress, not a speed or
+adoption claim. Preserve live local evidence until the complete report is final.

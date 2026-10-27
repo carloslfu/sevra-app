@@ -235,3 +235,6 @@ Separate current acceptance status and next actions from earlier checkpoint summ
 ## [2026-10-27 12:21] implementation | records/operations/implementation.md
 Prepare isolated checkpoint transaction/process-death, cancellation, concurrent acceptance and exact-retry checks; no local execution during frozen W1.
 
+## [2026-10-27 12:24] verification | records/operations/implementation.md
+Record green frozen-main CI, passed hosted voice step, superseded-run cancellation and pending checkpoint CI; first two W1 pairs match with sources frozen.
+
