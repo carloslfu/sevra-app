@@ -41,6 +41,7 @@ python3 scripts/check_performance_harness.py
 swift build --product sevra-workflow-performance -j "${SEVRA_BUILD_JOBS:-4}"
 "$BIN/sevra-workflow-performance" --self-check
 python3 scripts/check_workflow_diagnostics.py
+python3 scripts/check_workflow_prefix.py
 python3 scripts/check_workflow_isolation.py
 python3 scripts/check_request_cache_isolation.py
 python3 scripts/check_item_reference_probe.py

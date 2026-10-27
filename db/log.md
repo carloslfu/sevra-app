@@ -373,3 +373,6 @@ Native release compilation passes; snapshot file action IDs before background wo
 ## [2026-10-27 16:24] verification | records/operations/implementation.md
 75cb253 native release rebuild and 14 voice lifecycle checks pass; stop pending UI dictation while owner completes macOS permission step. Hardware recognition and latest CI remain unqualified.
 
+## [2026-10-27 16:33] verification | records/operations/implementation.md
+Preserve complete 10k/100k search-scale run: recall and cancellation pass but 100k latency fails. Preregister and test D9 fixed-prefix repeatability diagnosis without changing the W1 gate.
+

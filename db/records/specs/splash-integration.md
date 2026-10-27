@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T16:15:57.123083+00:00
+updated: 2026-10-27T16:33:08.774063+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -375,3 +375,16 @@ subsequent prompt differences are consequences. Preserve the entire cohort and
 isolate this discrepancy with a focused replay before considering another
 qualification run. No native production adoption or passed W1 speed gate follows.
 See [[records/operations/implementation]] and the preserved cohort2 evidence.
+
+## D9 fixed-prefix repeatability diagnostic
+D9 is preregistered in integration/performance/workflow-prefix-repeatability.json.
+It reuses the preserved 0e45190 worker and verifies its recorded original source
+tree, actual engine/grammar/model manifest and reference script/dependencies.
+Run four fresh workers in reference/native/native/reference order. Each performs
+Ready, formula_review seed 9001, and inventory_evidence seed 9002, preserving the
+complete per-worker cache history before the first W1 divergence. Compare every
+repeat with both historical prefixes and within/across frontends. Keep different
+tokens as evidence; missing/invalid jobs, samples or cleanup invalidate the probe.
+Do not infer a root cause from equal cache counters. This cannot qualify speed,
+relax W1 parity, or authorize production adoption. No measured worker rebuild,
+extra masks/status calls or cache intervention is allowed.

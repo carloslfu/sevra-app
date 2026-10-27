@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T16:24:21.074320+00:00
+updated: 2026-10-27T16:33:08.804585+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -2059,3 +2059,32 @@ proof of microphone capture.
 Hosted 6bac991 run 40538012306 and latest 75cb253 run 40540174787 remain pending
 at this checkpoint. The intervening a58903b run 40539699089 was superseded and
 cancelled, not passed.
+
+## D9 prefix diagnosis prepared, October 27
+Prepare scripts/probe_workflow_prefix.py and its frozen protocol for the exact
+W1 block-9 failing prefix, using the preserved worker and independent controller
+identity. The helper now optionally accepts an explicit worker executable;
+ordinary W1 callers retain the same default. Meaningful report checks pass for
+incomplete/reordered schedules, bad jobs, power/thermal/roles, missing cache
+counters, source drift, unexpected interventions and cleanup. Token divergence
+remains visible without mislabeling a valid diagnostic as a passing W1 gate.
+Actual D9 execution has not occurred at this checkpoint.
+
+## Full search-scale-v2 baseline, October 27
+Run the release sevra-benchmark from clean 4ac137d on the M5 Pro 48 GiB Mac,
+with no overlapping local build or inference. The native app was idle with
+dictation stopped. Capture power/thermal/process memory before, during and after;
+maximum observed thermal state is nominal. All 36 recorded source/binary inputs
+remain unchanged. The new 10k and 100k row and document-chunk fixtures retain
+correct recall, exact unique evidence across all 34 document pages, and observed
+cancellation with a following successful read and unchanged revision.
+
+The 100k row warm p95 is 203.990 ms; 100k document chunks are 275.292 ms. Both
+miss the 200 ms target. Their observed Stop-to-return times are 0.101 ms and
+0.061 ms. The 10k row/document warm p95 values are 15.738/24.314 ms. Broad
+queries dominate; exact identifiers stay sub-millisecond in these synthetic
+fixtures. No UI, cold-cache or general-device qualification follows. Preserve
+the failing results before optimizing the query.
+
+Public raw reports and conditions: integration/evidence/2026-10-27-search-scale-v2-first-full.json.gz.
+Compressed SHA-256: 06c2ca06553d79930b87cca2a52a0f8018ef10303df5c107223b0883f1048472.
