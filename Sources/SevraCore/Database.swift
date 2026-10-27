@@ -116,6 +116,11 @@ final class Database {
     }
   }
   func failure() -> SevraError { .init("database", String(cString: sqlite3_errmsg(handle))) }
+  func shortWait<T>(_ body: () throws -> T) rethrows -> T {
+    sqlite3_busy_timeout(handle, 100)
+    defer { sqlite3_busy_timeout(handle, 5000) }
+    return try body()
+  }
   func transaction<T>(_ body: () throws -> T) throws -> T {
     try execute("BEGIN IMMEDIATE")
     do {

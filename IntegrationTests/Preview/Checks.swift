@@ -52,6 +52,7 @@ private actor ReadGate {
       try await checkWorkspaceOperations()
       try await checkWorkspaceRefresh()
       try checkConversationPresentation()
+      try await checkConversationState()
       print(
         "PASS preview ownership, stale success/error/progress, stop/retry, and task cancellation")
     } catch {

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T19:42:25.815600+00:00
+updated: 2026-10-27T20:02:51.413909+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -277,3 +277,34 @@ windows. Record exact results and open gaps. Automated or agent-operated checks 
 not establish that an uncoached everyday user finds the product intuitive.
 
 Request and evidence limits: [[sources/notes/2026/10/ux-consistency-review]].
+
+
+## Conversation drafts and reading state
+
+P06b. A composer draft belongs to one conversation in one workbook. Persist it as
+presentation state, outside messages, Sources, Records, search and agent input.
+Autosave after 600 ms of inactivity, and await pending saves before switching a
+conversation, following an original-message link, closing the workbook or quitting.
+A save failure keeps the text visible and prevents losing the editor. Dictation
+stops before a switch; delayed results also check the window and conversation.
+The last active conversation is a device preference for that workbook. Drafts and
+reading positions travel with the workbook, including its current portable export.
+A workbook copy is not a redacted publication; a selective sharing mode remains a
+separate future contract. A hard process kill can lose edits inside the debounce
+interval; successful normal close/quit must not.
+
+Store an exact message identifier and a fractional offset within it, or an explicit
+follow-latest state. Restore that position through thread switches, provenance jumps,
+layout changes and reopen. Refresh around the reader when new messages arrive;
+Return to latest deliberately resumes the newest window without clearing the draft.
+This does not complete the older-history paging/search controls in P06a.
+
+Competing windows compare the saved draft they originally read. A different new
+draft refuses silent overwrite and offers Keep both drafts. The current text stays
+in the composer; the competing text becomes a saved alternative. Restoring an
+alternative preserves the previous composer too. Each draft is limited to 128 KB,
+with eight alternatives and a 1.2 MB encoded-state bound. Limit errors preserve
+text, and an explicitly removed alternative can make room for another. Reading-only
+changes preserve and expose a newer externally saved draft rather than overwriting
+it. Native conflict controls exist in this slice; ordinary voice/text equivalents
+remain part of P09a qualification.

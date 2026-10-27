@@ -6,7 +6,17 @@ import AppKit
   private weak var previous: (any NSWindowDelegate)?
   private weak var window: NSWindow?
   private let flush: () -> Bool
-  public init(flush: @escaping () -> Bool) { self.flush = flush }
+  private let asyncFlush: (() async -> Bool)?
+  private var closing = false
+  private var permitted = false
+  public init(flush: @escaping () -> Bool) {
+    self.flush = flush
+    asyncFlush = nil
+  }
+  public init(asyncFlush: @escaping () async -> Bool) {
+    flush = { true }
+    self.asyncFlush = asyncFlush
+  }
   public func attach(to window: NSWindow) {
     if self.window !== window {
       if self.window?.delegate === self { self.window?.delegate = previous }
@@ -18,6 +28,21 @@ import AppKit
     }
   }
   public func windowShouldClose(_ sender: NSWindow) -> Bool {
+    if let asyncFlush, !permitted {
+      guard !closing else { return false }
+      closing = true
+      Task { [weak self, weak sender] in
+        let saved = await asyncFlush()
+        guard let self, let sender else { return }
+        closing = false
+        if saved {
+          permitted = true
+          sender.performClose(nil)
+          permitted = false
+        }
+      }
+      return false
+    }
     guard flush() else { return false }
     return previous?.windowShouldClose?(sender) ?? true
   }

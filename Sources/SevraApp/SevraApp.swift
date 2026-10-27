@@ -2,6 +2,7 @@ import AppKit
 import SevraAI
 import SevraCore
 import SevraDocumentUI
+import SevraPreviewUI
 import SevraProduct
 import SwiftUI
 
@@ -56,7 +57,12 @@ import SwiftUI
 @MainActor final class DocumentDelegate: NSObject, NSApplicationDelegate, ObservableObject {
   @Published var pending: [URL] = []
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-    DocumentDraftScope.flushAll() ? .terminateNow : .terminateCancel
+    guard DocumentDraftScope.flushAll() else { return .terminateCancel }
+    Task {
+      let saved = await ConversationSession.flushAll()
+      sender.reply(toApplicationShouldTerminate: saved && DocumentDraftScope.flushAll())
+    }
+    return .terminateLater
   }
   func applicationWillTerminate(_ notification: Notification) {
     NotificationCenter.default.post(name: .sevraStopping, object: nil)
@@ -87,14 +93,16 @@ struct WorkspaceWindow: View {
         if ownWindow !== window { ownWindow = window }
         if let window {
           if closeGuard == nil {
-            closeGuard = DocumentCloseGuard { [weak state] in state?.documentDrafts.flush() ?? true
-            }
+            closeGuard = DocumentCloseGuard(asyncFlush: { [weak state] in
+              await state?.saveBeforeClosing() ?? true
+            })
           }
           closeGuard?.attach(to: window)
           state.documentDrafts.revealFailure = { [weak window] in
             window?.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
           }
+          state.conversationSession.revealFailure = state.documentDrafts.revealFailure
         }
         window?.representedURL = state.workbook?.url
         window?.title = state.workbook?.title ?? "Sevra"
@@ -103,7 +111,7 @@ struct WorkspaceWindow: View {
     .task(id: path) {
       if let path {
         do {
-          try state.open(URL(fileURLWithPath: path))
+          try await state.open(URL(fileURLWithPath: path))
           let previous = UserDefaults.standard.stringArray(forKey: "recentWorkbooks") ?? []
           UserDefaults.standard.set(
             Array(([path] + previous.filter { $0 != path }).prefix(10)), forKey: "recentWorkbooks")

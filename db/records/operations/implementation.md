@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T19:42:25.837068+00:00
+updated: 2026-10-27T20:08:08.946511+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -68,17 +68,24 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   navigation and closed-window isolation pass in the native app. Spoken VoiceOver
   and the complete keyboard-only journey remain unqualified.
 
-The final local suite passes with 77 core and 19 extraction checks. Both package
-builds, native resource/signature checks, installed extraction and baseline
-install/update/uninstall checks pass. Native file-list CSV/XLSX import, malformed
-file preservation, persistent structured errors, Resume and close/reopen pass.
-Hosted extraction workflow 40562440542 on e27ae39 and Threads workflow 40564561986
-on 75511b8 pass. Accessibility workflow 40568212108 on 03163ed is still running at
-this checkpoint. The new structured-intake changes need their own hosted result.
-Next, carry out the coherent UX pass below, starting with per-conversation draft
-and reading-state ownership. Continue engine repeatability review and remaining
-context, keyboard/VoiceOver, archive/transcription, whole-app memory and release
-gates alongside that work. Do not restart the architecture or weaken adoption gates.
+- Each Conversation/Thread now owns its unsent draft and reading position.
+  Background autosave, normal close/quit, reopen, original-message navigation and
+  a burst of 120 new messages preserve the right text and place. Competing edits
+  refuse silent overwrite and support Keep both/restore. The final package passed
+  those visible paths; drafts never entered messages, evidence search or business
+  revisions. Native actions are implemented; ordinary language equivalents remain.
+
+The final local suite passes with 77 core, 19 extraction and 16 document checks,
+plus the expanded conversation/preview checks. Both package builds, native
+resource/signature checks, installed extraction and isolated baseline
+install/update/uninstall pass. Hosted workflows 40562440542 on e27ae39,
+40564561986 on 75511b8, 40568212108 on 03163ed and 40571572539 on 3dcc924 pass.
+This conversation-state checkpoint still needs its own hosted result after push.
+Next, continue the coherent UX pass with immediate, editable provisional thread
+creation, clear return controls and bounded older-history browsing/search. Continue
+engine repeatability review and remaining context, keyboard/VoiceOver,
+archive/transcription, whole-app memory and release gates alongside that work.
+Do not restart the architecture or weaken adoption gates.
 [[records/specs/splash-integration]], [[records/specs/conversation-context]] and
 [[records/operations/build-and-run]] retain the contracts and failed evidence.
 ## Earlier checkpoint summaries, October 27
@@ -2545,3 +2552,80 @@ Keep actual observations separate from targets. J11, equivalent voice/text paths
 keyboard and narrow-window context remain open. Uncoached everyday-user usability
 remains unvalidated until observed. Continue reliability, extraction, native-engine,
 context and packaging work without treating the Threads label change as completion.
+
+
+## Scoped composer and reading-state checkpoint, October 27
+
+Implemented P06b/S16a in the shared core, the native conversation coordinator and
+the existing SwiftUI workspace. Each conversation has versioned presentation
+metadata, a 128 KB draft, at most eight saved alternatives, and an exact message
+plus intra-message fraction or follow-latest state. The envelope is bounded to
+1.2 MB before loading and before publication. Normal typing debounces for 600 ms;
+switching, provenance navigation, close, quit and portable-copy export await the
+pending writes. Neither keystrokes nor scrolling advance business revisions,
+append messages or create searchable evidence. Portable snapshots preserve saved
+drafts and the native copy dialog states that explicitly.
+
+Small persistence transactions run off the UI actor with bounded process-lock
+acquisition and short SQLite busy waits. Writes serialize later keystrokes before
+acknowledging a flush. Compare the originally read draft before changing text.
+Conflict or storage failure leaves the composer visible and blocks losing it;
+Keep both preserves the other text. Restoring an alternative preserves the current
+one. A full alternative list refuses another save without losing text; removing
+an explicit old alternative permits the pending save. A reading-only update
+preserves and exposes a newer external draft. Dictation callbacks also check
+window ownership and changing-conversation state.
+
+Native scrolling observes the clip view without replacing its keyboard/scroll
+behavior. Thread changes and reopen restore the same message and fraction. Polling
+loads around the reader when new messages arrive, and rejects a pending window
+that no longer contains the reader's current anchor. Return to latest is explicit.
+The last active conversation is a local preference for that workbook, while drafts
+and positions remain in the package. Existing preview/document state is separate.
+
+Verification:
+
+- Final scripts/check.sh passes: 77 core, 19 extraction, 16 document checks and the
+  expanded preview suite, plus the existing deterministic voice, grammar, workflow,
+  search, context and integrity checks. Focused coverage includes concurrent flush
+  callers and a later edit, exact Unicode, independent main/thread drafts, reopen,
+  external conflict, keep-both/restore, reading-only merge, three-second busy refusal
+  and retry, invalid scope/size/fraction rollback, FTS exclusion, portable roundtrip
+  and recovery when eight alternatives are already retained.
+- Both optimized app/CLI/helper builds and packages pass. Isolated baseline install,
+  update, unrelated-file refusal, skill install and uninstall preserve the workbook.
+  Native installed resource/signature and document/table extraction checks pass
+  with build-tree reads denied. The final export-dialog-only change was rebuilt,
+  repackaged, checked for resources and observed in the native app after the full
+  suite; it did not change the core or extraction helper.
+- The visible native fixture returned to the exact unsent main draft and scrollbar
+  0.7472084724300679 after a thread roundtrip. It restored exchange 21 through a
+  message action and a real pointer click on the inline link. Return to latest
+  reached scrollbar 1 without clearing text. Immediate Command-W and Command-Q
+  after edits retained the exact drafts; reopen restored the last thread or main
+  and saved reading position. The final build remained on exchange 21 after 120
+  new synthetic messages, rather than switching to the latest 100.
+- An external synthetic writer and local editor produced different drafts. The
+  native close was refused with the local text visible; Keep both retained the
+  external text, and Restore to composer preserved the preceding local text as an
+  alternative. Final SQLite audit found both drafts, 167 fixture messages exactly
+  as inserted by the fixture, and integrity ok. None of the composer text was sent.
+  The portable-copy disclosure was visible; Cancel retained the draft, and the app
+  quit cleanly. No microphone or model request ran during this checkpoint.
+
+Retained failures and limits: the first new async assertions used the synchronous
+require autoclosure and failed compilation; corrected explicit Boolean assertions
+pass. An initially malformed synthetic link was ignored, then a separate correctly
+formed link was added. An accessibility-tool link click produced no navigation;
+native menu and screenshot-based pointer clicks worked. This is not evidence of
+spoken VoiceOver or uncoached usability. A hard kill can lose the last debounce
+interval; no new forced-kill or physical disk-full test was run. OS writes/fsync
+can outlast the lock deadline. Older-history paging/search controls, immediate
+thread creation, ordinary-language recovery, complete keyboard/VoiceOver and J11
+remain open. Engine parity, compaction, broader memory/hardware and release gates
+are unchanged.
+
+Evidence: [conversation-state verification](../../../integration/evidence/2026-10-27-conversation-state.json.gz),
+30 retained logs, source/binary identities and synthetic UI/SQLite observations.
+Uncompressed SHA-256:
+`e55a79c6337995908c2ce0bf76a7866a36f620e11b2f9fefa83354fc6df05eb3`.

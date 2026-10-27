@@ -49,8 +49,15 @@ import SwiftUI
   weak var activeDocument: DocumentDraft?
   weak var activePreview: AssetPreviewSession?
   let documentDrafts = DocumentDraftScope()
+  let conversationSession = ConversationSession()
+  @Published private(set) var changingConversation = false
+  @Published var readingRequest = UUID()
+  private var restoringConversation = false
   @Published var prompt = "" {
-    didSet { if prompt != oldValue && !applyingDictation { speech.stop() } }
+    didSet {
+      if prompt != oldValue && !applyingDictation { speech.stop() }
+      if !restoringConversation { conversationSession.updateDraft(prompt) }
+    }
   }
   @Published var busy = false
   @Published var status = ""
@@ -88,11 +95,19 @@ import SwiftUI
   private(set) var interactionIdentity = UUID()
   private var applyingDictation = false
   let speech = SpeechInput(pausePlayback: { PlaybackRegistry.shared.pauseAll() })
-  func open(_ url: URL) throws {
+  func open(_ url: URL) async throws {
     let opened = try Workbook(url)
     try require(
       documentDrafts.flush(), "document_save",
       "Save or preserve the current draft before opening another workbook.")
+    speech.stop()
+    let restored = await conversationSession.open(
+      opened,
+      conversation: UserDefaults.standard.string(forKey: "lastConversation:" + opened.url.path)
+        ?? "main")
+    try require(
+      restored, "conversation_save",
+      conversationSession.failure ?? "Could not restore the conversation draft.")
     endInteraction()
     workbook = opened
     spaces = []
@@ -105,16 +120,16 @@ import SwiftUI
     pendingExtractions = []
     intakeStatus = []
     revision = 0
-    conversation = "main"
+    conversation = conversationSession.conversation
     route = .space("home")
     navigation = []
     itemPreviewIdentity = UUID()
     viewedItemVersion = nil
     activeDocument = nil
-    prompt = ""
+    restoreConversationPresentation()
     selectedContext = ""
     itemLocators = [:]
-    messageAnchor = nil
+    messageAnchor = conversationSession.state.reading.message
     error = nil
     searchQuery = ""
     searchHistorical = false
@@ -133,6 +148,22 @@ import SwiftUI
     beginInteraction()
     refresh()
   }
+  init() {
+    conversationSession.changed = { [weak self] in self?.objectWillChange.send() }
+    conversationSession.restoredDraft = { [weak self] draft in
+      guard let self else { return }
+      self.restoringConversation = true
+      self.prompt = draft
+      self.restoringConversation = false
+    }
+  }
+  private func restoreConversationPresentation() {
+    restoringConversation = true
+    prompt = conversationSession.state.draft
+    restoringConversation = false
+    messageAnchor = conversationSession.state.reading.message
+    readingRequest = UUID()
+  }
   func refresh() { requestRefresh(polling: false) }
   func poll() {
     guard !busy else { return }
@@ -145,10 +176,11 @@ import SwiftUI
       messageAnchor: messageAnchor)
     let changedView = refreshSession.identity != identity
     if changedView { messages = [] }
+    let readingAnchor = conversationSession.state.reading.message
     let knownRevision = polling && loadedRefreshIdentity == identity ? revision : nil
     refreshSession.request(identity: identity, onlyWhenIdle: polling && !changedView) { control in
       try book.workspaceSnapshot(
-        conversation: identity.conversation, messageAnchor: identity.messageAnchor,
+        conversation: identity.conversation, messageAnchor: readingAnchor,
         ifChangedFrom: knownRevision, cancellation: control)
     } complete: { [weak self] result in
       guard let self, self.interactionActive, self.workbook === book,
@@ -158,6 +190,14 @@ import SwiftUI
       switch result {
       case .success(let snapshot):
         guard let snapshot else { return }
+        if let current = self.conversationSession.state.reading.message,
+          !snapshot.messages.contains(where: { $0.id == current })
+        {
+          // The user scrolled beyond this pending window. Read the current
+          // position instead of replacing it with an obsolete bounded window.
+          self.refresh()
+          return
+        }
         self.loadedRefreshIdentity = identity
         self.revision = snapshot.revision
         self.spaces = snapshot.spaces
@@ -198,9 +238,7 @@ import SwiftUI
   func jumpToMessage(_ id: String) {
     do {
       let location = try workbook?.messageLocation(id)
-      conversation = location?["conversation_id"].text ?? "main"
-      messageAnchor = id
-      refresh()
+      changeConversation(location?["conversation_id"].text ?? "main", anchor: id)
     } catch { self.error = error.localizedDescription }
   }
   func back() {
@@ -314,17 +352,25 @@ import SwiftUI
     let identity = interactionIdentity
     let panel = NSSavePanel()
     panel.title = "Make a shareable copy"
+    panel.message =
+      "Includes the workbook, conversations and saved unsent drafts. Review them before sharing."
     panel.nameFieldStringValue = book.title + ".sevraz"
     if panel.runModal() == .OK, let url = panel.url, interactionActive, workbook === book,
       interactionIdentity == identity
     {
-      run("Making a shareable copy") { book, cancel in
-        try book.export(to: url, cancellation: cancel)
+      Task {
+        guard await conversationSession.flush(), interactionActive,
+          workbook === book, interactionIdentity == identity, documentDrafts.flush()
+        else { return }
+        run("Making a shareable copy") { book, cancel in
+          try book.export(to: url, cancellation: cancel)
+        }
       }
     }
   }
   var canSend: Bool {
-    WorkspaceControlCommand.allowsSubmission(prompt, busy: busy)
+    conversationSession.ready && !changingConversation && !conversationSession.loading
+      && WorkspaceControlCommand.allowsSubmission(prompt, busy: busy)
   }
   func send() {
     guard interactionActive, let book = workbook, canSend,
@@ -346,6 +392,8 @@ import SwiftUI
     prompt = ""
     error = nil
     messageAnchor = nil
+    conversationSession.updateReading(.init())
+    readingRequest = UUID()
     if let target = URL(string: input), ["http", "https"].contains(target.scheme ?? "") {
       guard let (_, ticket) = beginOperation("Capturing source") else { return }
       let chat = conversation
@@ -731,24 +779,65 @@ import SwiftUI
     }
     summaryDraft = .init(id: selected.id, text: selected.body)
   }
-  func changeConversation(_ id: String) {
-    conversationDraft = nil
-    summaryDraft = nil
-    conversation = id
+  func changeConversation(_ id: String, anchor: String? = nil) {
+    guard interactionActive, !changingConversation else { return }
+    speech.stop()
+    changingConversation = true
+    let owner = interactionIdentity
+    Task {
+      defer { changingConversation = false }
+      guard await conversationSession.select(id), interactionActive,
+        interactionIdentity == owner
+      else { return }
+      conversationDraft = nil
+      summaryDraft = nil
+      conversation = id
+      if let workbook {
+        UserDefaults.standard.set(id, forKey: "lastConversation:" + workbook.url.path)
+      }
+      selectedContext = ""
+      if let anchor { conversationSession.updateReading(.init(message: anchor)) }
+      restoreConversationPresentation()
+      refresh()
+    }
+  }
+  func latestConversationMessages() {
+    guard !changingConversation else { return }
+    conversationSession.updateReading(.init())
     messageAnchor = nil
+    readingRequest = UUID()
     refresh()
   }
+  func saveBeforeClosing() async -> Bool {
+    speech.stop()
+    guard !changingConversation, documentDrafts.flush() else { return false }
+    let saved = await conversationSession.flush()
+    return saved && documentDrafts.flush()
+  }
+  func restoreSavedConversationDraft(_ id: String) {
+    guard !changingConversation else { return }
+    changingConversation = true
+    Task {
+      defer { changingConversation = false }
+      _ = await conversationSession.restoreSaved(id)
+      restoreConversationPresentation()
+    }
+  }
   func voice() {
-    guard interactionActive else { return }
+    guard interactionActive, conversationSession.ready, !changingConversation else { return }
     if speech.active {
       speech.stop()
       return
     }
     var draft = DictationDraft(prompt)
     let chat = conversation
+    let owner = interactionIdentity
     speech.start { [weak self] text in
       guard let self else { return }
-      guard self.conversation == chat, let rendered = draft.apply(text, to: self.prompt) else {
+      guard self.interactionActive, self.interactionIdentity == owner,
+        !self.changingConversation, self.conversation == chat,
+        let rendered = draft.apply(text, to: self.prompt)
+      else {
         self.speech.stop()
         return
       }
@@ -756,7 +845,10 @@ import SwiftUI
       self.prompt = rendered
       self.applyingDictation = false
     } failure: { [weak self] error in
-      self?.error = error
+      guard let self, self.interactionActive, self.interactionIdentity == owner,
+        self.conversation == chat, !self.changingConversation
+      else { return }
+      self.error = error
     }
   }
   func beginInteraction() { interactionActive = true }

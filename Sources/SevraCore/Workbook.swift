@@ -162,6 +162,23 @@ public final class Workbook: @unchecked Sendable {
       }
     }
   }
+  /// Small UI-state writes share the package lock, but do not journal keystrokes
+  /// or advance business revisions. Call off the main actor. Lock acquisition is
+  /// bounded, including writers in other processes.
+  func presentationMutation<T>(_ body: () throws -> T) throws -> T {
+    let control = Cancellation(deadlineAfterSeconds: 3)
+    return try synchronized(cancellation: control) {
+      while flock(lockFD, LOCK_EX | LOCK_NB) != 0 {
+        try require(errno == EWOULDBLOCK || errno == EAGAIN, "lock", "Cannot lock workbook.")
+        try control.check()
+        Thread.sleep(forTimeInterval: 0.01)
+      }
+      defer { flock(lockFD, LOCK_UN) }
+      return try db.shortWait {
+        try db.budget(cancellation: control, seconds: 3) { try db.transaction(body) }
+      }
+    }
+  }
   public func item(_ id: String) throws -> Item {
     try synchronized {
       guard

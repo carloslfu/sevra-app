@@ -346,6 +346,35 @@ private func fixtureSQL(_ workbook: Workbook, _ statement: String) throws {
         !window.isVisible && original.requests == 2 && original.closes == 1,
         "Original close notification was not forwarded")
     }
+    await checkAsync("Asynchronous close waits for durable state and preserves a failed window") {
+      let window = window()
+      let original = PreviousDelegate()
+      var continuation: CheckedContinuation<Bool, Never>?
+      var attempts = 0
+      let guarder = DocumentCloseGuard(asyncFlush: {
+        attempts += 1
+        return await withCheckedContinuation { continuation = $0 }
+      })
+      window.delegate = original
+      guarder.attach(to: window)
+      window.orderFront(nil)
+      window.performClose(nil)
+      await Task.yield()
+      window.performClose(nil)
+      try expect(
+        window.isVisible && attempts == 1 && original.requests == 0,
+        "Close did not await the save or started duplicate saves")
+      continuation?.resume(returning: false)
+      await Task.yield()
+      try expect(window.isVisible && original.requests == 0, "Failed save closed the window")
+      window.performClose(nil)
+      await Task.yield()
+      continuation?.resume(returning: true)
+      await Task.yield()
+      try expect(
+        !window.isVisible && original.requests == 1 && original.closes == 1,
+        "Successful asynchronous flush did not close through the original delegate")
+    }
     check("Moving a close guard restores the first window delegate") {
       let first = window()
       let second = window()

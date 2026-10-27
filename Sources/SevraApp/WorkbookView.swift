@@ -9,6 +9,7 @@ struct WorkbookView: View {
   @ObservedObject var state: WorkspaceState
   @State private var showSpaces = false
   @State private var spaceSearch = ""
+  @State private var conversationFrames: [String: CGRect] = [:]
   @FocusState private var composerFocused: Bool
   let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
   var body: some View {
@@ -204,7 +205,7 @@ struct WorkbookView: View {
         }.menuStyle(.borderlessButton).frame(width: 20)
       }.padding(16)
       Divider()
-      ScrollViewReader { proxy in
+      Group {
         ScrollView {
           // The core loads a bounded history window. Measure the actual row
           // heights so scrollTo reaches the newest or cited message reliably;
@@ -219,19 +220,35 @@ struct WorkbookView: View {
             }
             ForEach(state.messages.filter { $0.role != "tool" }) { message in
               ConversationMessageRow(state: state, message: message).id(message.id)
+                .background(
+                  GeometryReader { geometry in
+                    Color.clear.preference(
+                      key: ConversationRowFrames.self,
+                      value: [message.id: geometry.frame(in: .named("conversation-content"))])
+                  })
             }
             if state.busy {
               Text(state.status).font(.callout).foregroundStyle(.secondary).id("working")
             }
           }.padding(20)
-        }.onChange(of: state.messages.last(where: { $0.role != "tool" })?.id, initial: true) {
-          _, id in
-          if state.messageAnchor == nil, let id {
-            proxy.scrollTo(id, anchor: .bottom)
-          }
-        }.onChange(of: state.messageAnchor, initial: true) { _, id in
-          if let id { proxy.scrollTo(id, anchor: .top) }
+            .coordinateSpace(name: "conversation-content")
+            .background(
+              ConversationScrollObserver(
+                frames: conversationFrames,
+                position: state.conversationSession.state.reading, request: state.readingRequest,
+                canFollowLatest: state.messageAnchor == nil
+              ) { [chat = state.conversation, owner = state.interactionIdentity] position in
+                guard state.interactionActive, !state.changingConversation,
+                  state.conversation == chat, state.interactionIdentity == owner
+                else { return }
+                state.conversationSession.updateReading(position)
+              }
+            )
+            .onPreferenceChange(ConversationRowFrames.self) { conversationFrames = $0 }
         }
+      }.id(state.conversation)
+      if state.messageAnchor != nil || state.conversationSession.state.reading.message != nil {
+        Button("Return to latest", action: state.latestConversationMessages).padding(.bottom, 8)
       }
       Divider()
       composer.padding(14)
@@ -239,6 +256,31 @@ struct WorkbookView: View {
   }
   var composer: some View {
     VStack(alignment: .leading, spacing: 8) {
+      if state.changingConversation {
+        Text("Opening conversation…").font(.caption).foregroundStyle(.secondary)
+      }
+      if let failure = state.conversationSession.failure {
+        Text(failure).font(.caption).foregroundStyle(.red).textSelection(.enabled)
+        HStack {
+          if state.conversationSession.conflict {
+            Button("Keep both drafts") { Task { _ = await state.conversationSession.keepBoth() } }
+          } else {
+            Button("Retry saving draft") { Task { _ = await state.conversationSession.flush() } }
+          }
+        }
+      }
+      if !state.conversationSession.state.savedDrafts.isEmpty {
+        Menu("Saved drafts") {
+          ForEach(state.conversationSession.state.savedDrafts) { draft in
+            Menu(String(draft.text.prefix(60))) {
+              Button("Restore to composer") { state.restoreSavedConversationDraft(draft.id) }
+              Button("Remove saved draft") {
+                Task { _ = await state.conversationSession.discardSaved(draft.id) }
+              }
+            }
+          }
+        }
+      }
       if !state.selectedContext.isEmpty {
         Text("About: " + (state.selectionLabel ?? String(state.selectedContext.prefix(100)))).font(
           .caption
@@ -248,9 +290,12 @@ struct WorkbookView: View {
       }
       TextField("Type or speak…", text: $state.prompt, axis: .vertical).textFieldStyle(.plain)
         .focused($composerFocused).lineLimit(2...7).onSubmit { state.send() }.accessibilityLabel(
-          "Message Sevra")
+          "Message Sevra"
+        )
+        .disabled(state.changingConversation || !state.conversationSession.ready)
       HStack {
         VoiceButton(speech: state.speech, action: state.voice)
+          .disabled(state.changingConversation || !state.conversationSession.ready)
         Spacer()
         VoiceStatus(speech: state.speech)
         Button(action: state.send) { Image(systemName: "arrow.up") }.buttonStyle(.borderedProminent)

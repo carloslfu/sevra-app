@@ -427,3 +427,9 @@ Isolate CSV/TSV/XLSX parsing, enforce expanded result/coordinate limits and pers
 ## [2026-10-27 19:42] design | records/specs/product
 Reconcile relayed UX consistency review against current code; specify scoped drafts, immediate threads, bounded history browsing, space/context navigation and coherent J11 acceptance while preserving completed sharing work.
 
+## [2026-10-27 20:08] implementation | records/operations/implementation.md
+Persist per-conversation drafts and reading positions with background flush, conflict preservation, native close/quit recovery and truthful portable-copy disclosure. Full regression and both package checks pass; retain failed compilation/tool-click observations and remaining UX/engine gates.
+
+## [2026-10-27 20:08] design | records/specs/product.md
+Specify P06b/S16a presentation-state ownership, bounds, conflict recovery, saved-draft export semantics and hard-kill limits.
+

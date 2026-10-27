@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-27T16:01:01.512046+00:00
+updated: 2026-10-27T20:02:51.450222+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -209,3 +209,24 @@ original version explicitly. Exclude internal requests and dataset rows before
 applying the recent-item limit, so a busy conversation cannot hide all evidence.
 Use a distinct summary type rather than representing omitted content as a complete
 empty Item. Full item and lineage APIs retain their existing evidence semantics.
+
+
+## Conversation presentation persistence
+
+S16a. Use versioned JSON in meta under conversation-view:<conversation-id> for the
+unsent composer, saved draft alternatives and message/fraction reading position.
+Validate the conversation and require any anchor message to belong to it. Read the
+encoded byte count before loading the envelope, then validate decoded bounds.
+A small transaction under the workbook process lock compares the expected draft,
+merges current alternatives and atomically writes the state. These presentation
+writes do not increment the business revision or journal each keystroke, and do not
+enter FTS, lineage, Sources, Records, conversation history or model context. This
+is an explicit exception to S10's business-operation journaling requirement.
+
+The UI coordinator serializes background writes, waits for later edits before a
+flush completes, and awaits durability at thread/close/quit boundaries. Process
+lock acquisition has a three-second deadline; SQLite busy waits use 100 ms within
+this presentation operation. The OS may still delay a filesystem write or fsync.
+A failed save preserves the draft in memory and refuses destructive navigation.
+Conflicting text requires explicit preservation of both versions. The package's
+coherent portable snapshot retains this state; it is not a privacy-redacted export.
