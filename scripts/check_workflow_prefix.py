@@ -1,8 +1,26 @@
 """D9 refuses incomplete provenance and preserves same-frontend variation."""
 import copy
+from pathlib import Path
+import tempfile
 
 from check_workflow_performance import results, protocol
-from probe_workflow_prefix import audit, report
+from probe_workflow_prefix import audit, report, resource_files
+
+with tempfile.TemporaryDirectory(prefix='sevra-prefix-resources-') as folder:
+    binary = Path(folder) / 'frozen-worker'
+    binary.touch()
+    try:
+        resource_files(binary)
+        raise AssertionError('An executable without native resources was admitted')
+    except ValueError:
+        pass
+    for name in ['Sevra_SevraSplash.bundle/selected-model.json',
+                 'Sevra_SevraSplashText.bundle/template-patch.json',
+                 'Sevra_SevraSplashGrammar.bundle/json-slices.json']:
+        file = Path(folder) / name
+        file.parent.mkdir()
+        file.write_text('{}')
+    assert len(resource_files(binary)) == 3
 
 
 def prefix(backend):

@@ -376,3 +376,6 @@ Native release compilation passes; snapshot file action IDs before background wo
 ## [2026-10-27 16:33] verification | records/operations/implementation.md
 Preserve complete 10k/100k search-scale run: recall and cancellation pass but 100k latency fails. Preregister and test D9 fixed-prefix repeatability diagnosis without changing the W1 gate.
 
+## [2026-10-27 16:37] verification | records/operations/implementation.md
+D9 first reference replay changes tokens under identical inputs; native archive copy refuses missing resources. Preserve the failed attempt, validate all adjacent resources and retain full 6bac991 CI pass.
+

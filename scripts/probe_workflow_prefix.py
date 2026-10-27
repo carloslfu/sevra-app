@@ -14,6 +14,20 @@ from compare_workflow_performance import valid_job, worker
 from probe_workflow_observation import compare
 
 
+def resource_files(binary):
+    root = binary.resolve().parent
+    names = {
+        'Sevra_SevraSplash.bundle/selected-model.json': 'Sources/SevraSplash/Resources/selected-model.json',
+        'Sevra_SevraSplashText.bundle/template-patch.json': 'Sources/SevraSplashText/Resources/template-patch.json',
+        'Sevra_SevraSplashGrammar.bundle/json-slices.json': 'Sources/SevraSplashGrammar/Resources/json-slices.json',
+    }
+    resources = {root / name: source for name, source in names.items()}
+    for file in resources:
+        if not file.is_file():
+            raise ValueError('Preserved worker is missing an adjacent resource: ' + file.name)
+    return resources
+
+
 def audit(result, protocol):
     errors = []
     backend = result.get('backend')
@@ -103,6 +117,11 @@ def main():
         raise ValueError('Use the recorded clean W1 baseline')
     if sha(binary) != identity['workerSHA256']:
         raise ValueError('The preserved worker differs from W1')
+    resources = resource_files(binary)
+    for file, source in resources.items():
+        content = subprocess.check_output(['git', 'show', identity['baseCommit'] + ':' + source], cwd=ROOT)
+        if sha(file) != hashlib.sha256(content).hexdigest():
+            raise ValueError('Preserved worker resource differs from its recorded source: ' + source)
     # Application sources may now be newer. Bind the old executable to its
     # recorded committed tree, rather than pretending it was rebuilt from HEAD.
     for name, checksum in identity['sourceSHA256'].items():
@@ -133,7 +152,7 @@ def main():
     files = [Path(__file__), plan_path, ROOT / 'scripts/compare_workflow_performance.py',
              ROOT / 'scripts/compare_splash_performance.py', ROOT / 'scripts/probe_workflow_observation.py',
              reference, binary, Path(config['engine']), Path(config['grammarLibrary']),
-             ROOT / 'Sources/SevraSplash/Resources/selected-model.json']
+             ROOT / 'Sources/SevraSplash/Resources/selected-model.json'] + list(resources)
     frozen = {str(p): sha(p) for p in files}
     def changed():
         return [p for p, checksum in frozen.items() if not Path(p).is_file() or sha(Path(p)) != checksum]

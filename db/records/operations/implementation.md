@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T16:33:08.804585+00:00
+updated: 2026-10-27T16:37:51.286105+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -2070,6 +2070,23 @@ counters, source drift, unexpected interventions and cleanup. Token divergence
 remains visible without mislabeling a valid diagnostic as a passing W1 gate.
 Actual D9 execution has not occurred at this checkpoint.
 
+
+The first D9 attempt completed the reference prefix with valid jobs and clean
+shutdown. At the same inventory request, its output differs from its own W1
+reference baseline after token 19 (and from the W1 native baseline after token
+22). This is observed within-reference variation, not evidence of a Swift-only
+parsing difference or a proven numerical cause. The native Ready prime then
+refused because copying the executable alone omitted its adjacent selected-model
+resource. Preserve that incomplete attempt in
+integration/evidence/2026-10-27-prefix-d9-missing-resource.json.gz.
+
+The original release worker still has the exact frozen binary hash and complete
+resource bundles. Add preflight checks for all three native JSON resources and
+verify their bytes against the original Git tree before running any frontend.
+The corrected D9 command will use that unchanged original executable and a new
+output folder. Resource-missing regression checks pass. No product resource
+fallback is added and no failed run is discarded. Full 6bac991 CI (40538012306)
+has also passed, including both packages and installation checks.
 ## Full search-scale-v2 baseline, October 27
 Run the release sevra-benchmark from clean 4ac137d on the M5 Pro 48 GiB Mac,
 with no overlapping local build or inference. The native app was idle with
