@@ -3,7 +3,7 @@ type: research
 meta-type: conclusion
 id: 01m5rbxzbx5q4atmjp4471w04d
 created: 2026-10-25T01:48:47.357164+00:00
-updated: 2026-10-27T16:50:00.231319+00:00
+updated: 2026-10-27T18:42:11.633130+00:00
 summary: Primary sources for SQLite retrieval/durability, native readers, on-device voice and current Slotstream integration.
 title: Foundation research
 ---
@@ -92,3 +92,20 @@ Local profiling on the retained synthetic 100k corpus found repeated snippet
 cursor initialization expensive. Range-bounded membership filtering reused a
 cursor while producing identical excerpts in the focused checks. This is a local
 query-plan observation, not a general SQLite or whole-app speed claim.
+
+## Native extraction fault containment
+
+Apple's [Process terminationHandler](https://developer.apple.com/documentation/foundation/process/terminationhandler)
+and [waitUntilExit](https://developer.apple.com/documentation/foundation/process/waituntilexit())
+contracts distinguish process termination from completion of its handler. Sevra
+uses bounded termination signalling and retains a concurrency slot until reap.
+Its Swift helper also watches parent liveness so a blocked output pipe cannot
+leave an orphan parser indefinitely after the app exits.
+
+Apple describes separate service processes in its
+[XPC service guide](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingXPCServices.html).
+A shared standalone helper keeps app and CLI extraction independent of a running
+desktop. This is an implementation choice for failure containment and cancellation;
+it does not supply XPC entitlement separation or an OS security sandbox. Do not
+claim protection from arbitrary code execution solely because parsing moved out
+of the host.

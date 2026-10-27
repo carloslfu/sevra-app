@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-27T18:11:48.253975+00:00
+updated: 2026-10-27T18:42:11.590135+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -221,3 +221,31 @@ whole-app responsiveness, all corpora, semantic recall or other hardware. Preser
 the earlier failed 204/275 ms baseline and both raw archives in
 integration/evidence/2026-10-27-search-scale-v2-first-full.json.gz and
 integration/evidence/2026-10-27-search-scale-v2-batched-snippets.json.gz.
+
+## Native extraction process contract
+
+Q11a. Text, PDF/PDFKit, image/Vision OCR and document/XML text extraction run in
+an adjacent native sevra-extract helper. The parent alone records extraction state
+and publishes validated chunks, after checking source identity. It passes only the
+source path, no workbook database or lock descriptors. This is fault isolation,
+not an operating-system security sandbox. Structured table ingestion, archives,
+file transcription and viewer rendering are separate paths and retain their own
+qualification requirements.
+
+At most two extraction workers run per host process. A 60-second parent deadline
+includes queue time; queued cancellation starts no child. The helper checks parent
+liveness and a 70-second lifetime even while writing output. Cancellation or timeout
+requests termination, then force-kills; a process still awaiting reap retains its
+slot. Do not block the UI indefinitely waiting for kernel IO or release a slot early.
+
+The host samples each worker's physical footprint against 1 GiB, bounds its result
+stream at 64 MiB and retains at most 16 KiB of stderr. A sampled guard is not an
+absolute peak-memory limit. Successful publication requires normal exit, complete
+versioned JSON, exactly one result or error, bounded locators and at most 100,000
+chunks / 16,000,000 UTF-8 text bytes. Invalid output, process failure or a missing
+helper refuses explicitly, with no in-process fallback. Original bytes and any
+previous searchable index survive failure; retry can replace only the derived index.
+
+Before/after source filesystem operations remain cooperatively cancellable. Remote
+volume stalls, concurrent inference headroom and wider hardware remain unqualified.
+See [[records/operations/implementation]] for failure-injection and packaged UI evidence.

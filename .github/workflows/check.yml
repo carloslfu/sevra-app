@@ -16,7 +16,13 @@ jobs:
           swift build --product sevra-voice-checks -j 3
           .build/debug/sevra-voice-checks
       - name: Build core checks
-        run: swift build --product sevra-checks -j 3
+        run: |
+          swift build --product sevra-extract -j 3
+          swift build --product sevra-checks -j 3
+      - name: Check isolated extraction and parser failure recovery
+        run: |
+          swift build --product sevra-extraction-checks -j 3
+          .build/debug/sevra-extraction-checks
       - name: Run invariant and integration checks
         run: .build/debug/sevra-checks
       - name: Check search-scale fixture recall, paging and reports
@@ -135,9 +141,13 @@ jobs:
           python3 scripts/check_receipts.py
           python3 scripts/check_concurrency.py
           python3 scripts/check_urls.py
+          python3 scripts/check_extraction_package.py --product output
       - name: Build and check the isolated Splash preview
         env:
           SEVRA_BUILD_JOBS: 3
         run: |
           bash scripts/build_native.sh
           python3 scripts/check_native_package.py --paths-only
+          python3 scripts/check_extraction_package.py
+          SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra-extraction-checks -j 3
+          .build/native-product/release/sevra-extraction-checks

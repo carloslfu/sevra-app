@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T18:12:53.303662+00:00
+updated: 2026-10-27T18:42:11.664046+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -48,11 +48,16 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   refusal and close now pass. Media teardown releases retained players, and
   extraction status no longer mislabels linked files as included. App-process peak
   was 99.56 MiB for this audio-only fixture; broader media/inference/memory,
-  keyboard/VoiceOver, extraction isolation and release journeys remain.
+  keyboard/VoiceOver and release journeys remain.
+- Native document text/OCR extraction now runs in bounded helper processes. Twelve
+  crash/deadline/cancellation/memory/output/concurrency/orphan/descriptor checks
+  pass in debug and optimized release. Packaged app/CLI intake works without the
+  build tree. Structured import and other parser paths still need qualification.
 
 The complete local suite and native release app/CLI build and package checks pass
-for this checkpoint. The full hosted workflow 40553848961 on a3f1272 also passes,
-including both product packages. The new media repair needs its own CI result.
+for the extraction checkpoint, with the last added descriptor check run separately
+in both configurations. Hosted workflow 40557861669 on media repair 26b3936 also
+passes, including both packages. The new extraction changes need their own CI result.
 Next, finish native accessibility and
 extraction coverage, review the engine repeatability evidence before its next
 qualification step, and complete remaining context/hardware/release gates.
@@ -179,9 +184,10 @@ measurements. Runs overlapping inference are not performance qualification.
 2. Model regression for the latest review receipts and proposal tools, automatic compaction and larger-context qualification under
    [[records/specs/conversation-context]], context overflow recovery, and measured whole-task latency across repeated runs.
 3. Search scale/recall with many chunks per document; further broad-query optimization and cancellation during actual long-running searches.
-4. Remaining extraction crash/isolation tests and hardware qualification of file
-   transcription and archive selection. These implementations now exist, but actual
-   speech hardware/permissions remain unqualified. Parser deadlines are cooperative.
+4. Extend fault containment/qualification to structured XLSX/CSV ingestion, archive
+   selection and file transcription as appropriate. Native document text/OCR worker
+   isolation now passes; this does not qualify every ingestion or viewer path.
+   Live single-phrase dictation passes; file transcription hardware remains open.
 5. Complete text/voice workflow coverage, review agent tools against user authority,
    and qualify formula/units behavior. Units are labels, not automatic conversion.
 6. Updated fresh public clone/build, real user installation, green CI and a properly
@@ -2281,3 +2287,42 @@ Its uncompressed SHA256 is
 9b4a8464281b6f85aaa50599780154d93303e000e6e60ddaf344b61ed9a1d126.
 The repaired app executable SHA256 is
 cd43caa3a6275ead7e38d3f934ed438c1ab4ae57754b6440a6d9ddec43275312.
+
+## Isolated native extraction checkpoint, October 27
+
+Document text/PDF/OCR/XML extraction now runs in a dedicated Swift helper shared
+by desktop and CLI. The parent controls index publication and source validation;
+no database or workbook lock descriptors are inherited. Two per-host parser slots,
+a parent deadline, a sampled memory guard, bounded streams and an orphan watchdog
+contain parser faults and allow cancellation of uncooperative synchronous work.
+The helper remains alive through stdout writing so its watchdog also covers a
+blocked result pipe. Missing helpers and incomplete/invalid terminal results fail
+explicitly. Original bytes and any prior index survive failure and support retry.
+
+Twelve focused checks pass in debug and optimized native release, including a
+real helper whose parent dies with stdout blocked. The complete scripts/check.sh
+suite passed with the first eleven checks; the twelfth descriptor-inheritance check
+was added afterward and then passed in both configurations. No production code
+changed after that full regression. Baseline build/install/update/uninstall and
+skill/conflict checks pass. Both packaged helper layouts extract text/PDF/DOCX
+with build-tree reads denied. Native resource/signature checks pass, including ten
+missing-resource cases and altered-resource refusal. No Python/model runtime is
+linked into the extractor.
+
+The rebuilt native app included a text file, found MARIGOLD-427 and opened its
+original with Text indexed. An intentionally invalid PDF produced Cannot read PDF;
+Home retained the original with Intake needs attention, and the previous source
+remained usable/searchable. Workbook verification and byte hashes pass; app quit
+left no parser process. This UI check does not establish every supported format.
+
+Q11 remains partly open: this is process fault isolation, not a security sandbox;
+structured table ingestion, archives, file transcription and native viewers are
+separate paths. The memory limit is sampled; source filesystem IO outside parsing
+is cooperative. Concurrent maximum extraction plus inference and wider hardware
+are not qualified. Native adoption and automatic compaction remain gated.
+
+Evidence: integration/evidence/2026-10-27-isolated-extraction.json.gz, uncompressed
+SHA256 e1667c89b8efa36ec8836e37d5609d86d0cba6a7045d14223a2f82ddb75f3b6d.
+It retains source/binary identities, sanitized logs, package checks and UI audits.
+The previous media commit's hosted CI 40557861669 passed. This extraction checkpoint
+has not yet received a hosted CI result.

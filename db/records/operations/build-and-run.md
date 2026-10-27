@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T18:11:48.293385+00:00
+updated: 2026-10-27T18:42:11.618771+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1041,3 +1041,30 @@ inference, dictation, build or download. Shared OS media services are excluded.
 Do not extrapolate a pass to all codecs, video/images, cold storage, whole-system
 memory or media with an active model. Preserve failed runs and exact app/source
 identities; the 2026-10-27 repair evidence retains both sides of this comparison.
+
+## Isolated document extraction
+
+Both build scripts now package the native sevra-extract executable beside the app
+and standalone CLI. Python is build/test tooling only; extraction uses Swift and
+Apple frameworks. A raw SwiftPM executable that imports files needs its adjacent
+helper built first:
+
+~~~sh
+swift build --product sevra-extract -j 4
+swift build --product sevra-extraction-checks -j 4
+.build/debug/sevra-extraction-checks
+python3 scripts/check_extraction_package.py --product output
+python3 scripts/check_extraction_package.py
+~~~
+
+The package checks need their respective baseline/native build output. They deny
+build-tree reads, extract synthetic text/PDF/DOCX through both packaged helper
+locations and exercise standalone CLI import/read/integrity. scripts/check.sh and
+hosted CI include the worker tests; native CI also runs the optimized release checks.
+
+The worker tests cover crashes, uncooperative hangs, cancellation, output floods,
+sampled memory refusal, malformed terminal results, stderr pressure, missing
+helpers, bounded concurrency, database descriptor exclusion and parent death while
+stdout is blocked. Failure preserves originals and prior search results. No helper
+is given a workbook mutation API. This process boundary is not a security sandbox.
+The precise limits and remaining parsing paths are in [[records/specs/search]].

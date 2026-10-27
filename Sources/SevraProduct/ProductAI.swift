@@ -88,13 +88,20 @@ public actor ProductAI {
   }
 
   public static func checkResources(validateMetal: Bool = true) async throws -> Value {
+    try require(
+      FileManager.default.isExecutableFile(atPath: ExtractionWorker.bundledExecutable.path),
+      "resources", "The installed document extractor is missing.")
+    let result: Value
     #if SEVRA_NATIVE_CANDIDATE
-      return try await Task.detached {
+      result = try await Task.detached {
         try NativeProductResources.check(validateMetal: validateMetal)
       }.value
     #else
-      return try await PackageResources.check(validateMetal: validateMetal)
+      result = try await PackageResources.check(validateMetal: validateMetal)
     #endif
+    var fields = result.object
+    fields["extractionWorker"] = .bool(true)
+    return .object(fields)
   }
 
   /// Presence is a quick UI hint. Setup and every new native session perform

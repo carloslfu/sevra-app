@@ -12,6 +12,8 @@ let package = Package(
     .library(name: "SevraCore", targets: ["SevraCore"]),
     .executable(name: "SevraDesktop", targets: ["SevraApp"]),
     .executable(name: "sevra", targets: ["SevraCLI"]),
+    .executable(name: "sevra-extract", targets: ["SevraExtractionWorker"]),
+    .executable(name: "sevra-extraction-checks", targets: ["SevraExtractionChecks"]),
     .executable(name: "sevra-checks", targets: ["SevraChecks"]),
     .executable(name: "sevra-table-ui-checks", targets: ["SevraTableUIChecks"]),
     .executable(name: "sevra-search-ui-checks", targets: ["SevraSearchUIChecks"]),
@@ -101,6 +103,12 @@ let package = Package(
     .target(
       name: "SevraCore", dependencies: ["CSQLite", "ZIPFoundation"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(
+      name: "SevraExtractionWorker", dependencies: ["SevraCore"],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(
+      name: "SevraExtractionChecks", dependencies: ["SevraCore"],
+      path: "IntegrationTests/Extraction", swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraAI", dependencies: ["SevraCore"],
       swiftSettings: [.swiftLanguageMode(.v5)]),

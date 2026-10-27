@@ -4,7 +4,7 @@ import PDFKit
 import Vision
 import ZIPFoundation
 
-public struct ExtractionResult {
+public struct ExtractionResult: Codable, Sendable {
   public let chunks: [Chunk]
   public let state: String
   public let detail: String
@@ -39,6 +39,9 @@ public enum Extractor {
   public static func extract(_ url: URL, cancellation: Cancellation = .init()) throws
     -> ExtractionResult
   {
+    try ExtractionWorker().extract(url, cancellation: cancellation)
+  }
+  static func extractInProcess(_ url: URL, cancellation: Cancellation) throws -> ExtractionResult {
     try cancellation.check()
     let ext = url.pathExtension.lowercased()
     let bytes = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
@@ -231,7 +234,9 @@ final class XMLTextCollector: NSObject, XMLParserDelegate {
   ) { text += " " }
 }
 extension Workbook {
-  public func extract(_ id: String, cancellation: Cancellation = .init()) throws {
+  public func extract(
+    _ id: String, cancellation: Cancellation = .init(), worker: ExtractionWorker = .init()
+  ) throws {
     let record = try item(id)
     guard let assetID = record.assetID else { return }
     let bounded = Cancellation(parent: cancellation, deadlineAfterSeconds: 60)
@@ -247,7 +252,7 @@ extension Workbook {
       return .string(id)
     }
     do {
-      let result = try Extractor.extract(
+      let result = try worker.extract(
         assetURL(assetID, cancellation: bounded), cancellation: bounded)
       try bounded.check()
       if try asset(assetID).mode == "linked" {

@@ -23,9 +23,14 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
         assert value["ok"],value
         return value["result"]
     assert command("version")["version"]=="0.1.0-dev"
-    assert command("check-resources","--paths-only")["tokenizerResources"]
+    resources = command("check-resources","--paths-only")
+    assert resources["tokenizerResources"] and resources["extractionWorker"]
+    original = folder / "Installed extraction.txt"
+    original.write_text("Installed source invoice 1042")
     workbook=folder/"Owned.sevra"
     command("demo",workbook)
+    imported = command("import", workbook, original)
+    assert command("tool", workbook, "read", json.dumps({"id": imported["id"]}))["extraction"]["state"] == "ready"
     assert command("balance",workbook,"brass bolts")["quantity"]=="18"
     script("install.sh","--no-build")
     assert command("verify",workbook)["ok"]

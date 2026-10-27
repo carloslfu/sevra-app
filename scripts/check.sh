@@ -3,6 +3,9 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 python3 scripts/generate_brand.py --check
+swift build --product sevra-extract -j "${SEVRA_BUILD_JOBS:-4}"
+swift build --product sevra-extraction-checks -j "${SEVRA_BUILD_JOBS:-4}"
+"$(swift build --show-bin-path)/sevra-extraction-checks"
 swift build --product sevra-checks -j "${SEVRA_BUILD_JOBS:-4}"
 BIN=$(swift build --show-bin-path)
 "$BIN/sevra-checks"

@@ -27,7 +27,7 @@ def main():
         assert result.returncode == 0, result.stdout + result.stderr
         response = json.loads(result.stdout)
         value = response.get('result', response)
-        assert value['runtimeDigests'] and value['grammarLibrary'], value
+        assert value['runtimeDigests'] and value['grammarLibrary'] and value['extractionWorker'], value
         assert (value['kernelCount'] == 0 if options.paths_only else value['kernelCount'] > 0), value
         symbols = subprocess.check_output(['nm', '-j', str(binary)], text=True)
         demangled = subprocess.run(['xcrun', 'swift-demangle'], input=symbols, capture_output=True, text=True, check=True).stdout
@@ -47,7 +47,7 @@ def main():
                  'Sevra_SevraSplashGrammar.bundle', 'swift-transformers_Hub.bundle',
                  'NativeRuntime/engine/splash', 'NativeRuntime/engine/splash.metallib',
                  'NativeRuntime/engine/host-step.metallib', 'NativeRuntime/libllguidance.dylib',
-                 'native-runtime.json']
+                 'native-runtime.json', 'sevra-extract']
         for relative in cases:
             path = folder / relative
             hidden = path.with_name(path.name + '.held')
