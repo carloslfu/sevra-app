@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T14:56:42.438926+00:00
+updated: 2026-10-27T15:01:00.483600+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -55,9 +55,9 @@ production adoption remain disabled pending their recorded gates.
   isolation and baseline install/update/uninstall checks pass. Hardware voice
   and broader accessibility remain unqualified.
 
-- The new complete ten-block W1 cohort is running on frozen 0e45190. Four paired blocks have
-  completed and the fifth is running. Earlier verified pairs passed every job and
-  matched actual requests and generated tokens; the full cohort remains open. All frozen source hashes remain unchanged. Full performance/cleanup
+- The new complete ten-block W1 cohort is running on frozen 0e45190. Five paired blocks have
+  completed with 130 valid jobs, exact paired requests/generated tokens and closed
+  workers. Block 5 is running; the remaining pairs and final conditions stay open. All frozen source hashes remain unchanged. Full performance/cleanup
   qualification requires the complete cohort; no speed claim follows yet.
 - The 0e45190 hosted workflow passed completely (40515342232), including both
   package builds and installation checks. The linked-file preview correction is
@@ -76,17 +76,22 @@ production adoption remain disabled pending their recorded gates.
   cancellation, full retry and changed-original rejection. Its inspected lifetime
   physical footprint peaks at 6,489,600 bytes. This is headless hash/session
   evidence; real large-file viewers and full-app memory remain unqualified.
-- Composer Stop/Retry preview/Find original controls are prepared on 202d513.
-  They preserve control access while inference is busy and share native preview
-  ownership. Native interaction verification remains pending.
+- Composer Stop/Retry preview/Find original controls pass the complete 202d513
+  hosted workflow (40521849734), including both app packages. They preserve
+  control access while inference is busy and share native preview ownership.
+  Native interaction verification remains pending.
 - Workspace operation ownership is implemented on 9044e5e. Its delayed completion,
   Stop and permission regression passed in hosted run 40523815521; full app builds
   and native close/switch verification remain pending. Table edits, delayed drops
   and text-viewer callbacks have follow-up wiring awaiting their own checks.
 - Search cancellation now reaches the SQLite reader token on 20f90f2. Query
   replacement, task cancellation, clearing, leaving and workbook reset preserve
-  completed pages while refusing stale results. Its expanded runtime suite and
-  large-workload/native cancellation measurement remain pending.
+  completed pages while refusing stale results. The expanded test fixture failed
+  compilation because it lacked an explicit return; 426dd2d corrects that fixture.
+  The corrected runtime suite and large-workload/native measurement remain pending.
+- Home now reads bounded ItemSummary metadata instead of complete document bodies
+  and payloads. Its large-document/current-version/accepted-estimate regression
+  passed on af702ee. The latest app wiring and whole-app memory remain unqualified.
 
 Next, finish the frozen W1 measurement and qualify the prepared asset preview.
 Continue whole-app memory/headroom, occupied-context and repeated-compaction recovery,
@@ -1850,3 +1855,21 @@ same search-fixture compilation error until this correction. Separately, the
 complete 96b8528 workflow finished successfully (40520881612), including baseline
 and native package builds and installation. That is the older large-file
 checkpoint, not proof of the newer workspace/search/catalog app wiring.
+
+## Current focused verification follow-up
+The complete composer-control checkpoint 202d513 passed hosted run 40521849734,
+including baseline/native package builds and install checks. Later workspace,
+search and metadata changes remain tied to their own runs. Run 40524689438 on
+e4f7225 failed at the same missing-return search fixture as 40524238057; the exact
+compiler finding was inspected and remains retained. The correction is 426dd2d,
+with run 40526063413 in progress. Newer runs must not inherit an older full pass.
+
+The first five frozen W1 pairs have now been independently inspected: 130 jobs
+including ten Ready primes pass validity checks, request hashes and generated
+tokens match in each pair, all ten workers report closed, and no worker failure
+is recorded. Block 5 is running. The full ten-block performance/condition gate
+remains incomplete. Frozen sources were checked unchanged during this work.
+
+This follow-up changes only documentation. Repository links and full dbmd
+validation pass locally; the ongoing 426dd2d code workflow remains the relevant
+compilation/runtime check rather than launching another identical app build.
