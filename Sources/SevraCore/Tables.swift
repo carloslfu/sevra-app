@@ -34,6 +34,15 @@ public struct TableEdit: Codable, Sendable {
   public let id: String
   public let items: [Item]
 }
+/// The grid's rows, totals, schema and calculated values belong to one read snapshot.
+public struct TablePage: Sendable {
+  public let dataset: Dataset
+  public let rows: [Item]
+  public let values: [[String: Value]]
+  public let total: Int
+  public let revision: Int
+  public let offset: Int
+}
 public enum CSV {
   public static func parse(_ text: String, delimiter: Character = ",") throws -> [[String]] {
     var result: [[String]] = []
@@ -244,6 +253,24 @@ extension Workbook {
         "SELECT count(*) FROM dataset_rows r JOIN heads h ON h.logical_id=r.logical_id WHERE r.dataset_id=? AND h.item_id IN(SELECT c.item_id FROM search_fts JOIN chunks c ON c.id=search_fts.rowid WHERE search_fts MATCH ?)",
         [.string(datasetID), .string(term)]
       ).int ?? 0
+    }
+  }
+  public func tablePage(
+    _ datasetID: String, offset: Int = 0, limit: Int = 200, query: String = "",
+    sort: String? = nil, descending: Bool = false
+  ) throws -> TablePage {
+    try synchronized {
+      try db.readTransaction {
+        let table = try dataset(datasetID)
+        let rows = try rows(
+          datasetID, offset: offset, limit: limit, query: query, sort: sort,
+          descending: descending)
+        return TablePage(
+          dataset: table, rows: rows,
+          values: rows.map { calculatedValues($0, columns: table.columns) },
+          total: try filteredRowCount(datasetID, query: query), revision: try revision(),
+          offset: max(0, offset))
+      }
     }
   }
   public func calculatedValues(_ row: Item, columns: [Column]) -> [String: Value] {

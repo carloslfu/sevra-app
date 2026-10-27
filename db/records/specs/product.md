@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-26T21:43:43.433714+00:00
+updated: 2026-10-27T06:14:40.615706+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -84,6 +84,14 @@ P12. Tables support column types, stable row identity, scrolling/virtualization,
 selection, sorting, filtering, editing, copy/paste, undo and CSV export. Edits
 append source information and new versions. Multi-cell paste is one atomic change.
 Formula values must show errors, units and provenance, never silently become zero.
+Table selection follows stable logical row and column IDs through sorting and refresh.
+An in-progress cell edit keeps the immutable row version and workbook revision the
+user saw. A concurrent correction must refuse a stale edit, never retarget it to a
+screen position. Copy uses the displayed snapshot; paste is based on its revision.
+Rows, schema, calculated values and total count load from one SQLite read snapshot.
+Only the latest table query may publish results or errors; query identity includes
+workbook, dataset, revision, filter, offset, sort column and direction. Cancelled
+reads cannot update a view. Removing a selected row from the view clears selection.
 
 ## Viewers
 

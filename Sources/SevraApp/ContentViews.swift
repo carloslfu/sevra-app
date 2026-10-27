@@ -1,6 +1,7 @@
 import AppKit
 import Charts
 import SevraCore
+import SevraTableUI
 import SwiftUI
 
 struct SearchView: View {
@@ -376,9 +377,17 @@ struct DatasetView: View {
   let table: Dataset
   @ObservedObject var state: WorkspaceState
   var compact = false
-  @State private var rows: [Item] = []
-  @State private var total = 0
-  @State private var selection = IndexSet()
+  @StateObject private var loader = TablePageLoader()
+  @State private var selection = Set<String>()
+  private var rows: [Item] { loader.page?.rows ?? [] }
+  private var total: Int { loader.page?.total ?? 0 }
+  private var displayedOffset: Int { loader.page?.offset ?? offset }
+  private var query: TableQuery {
+    TableQuery(
+      workbook: state.workbook?.url, dataset: table.id, revision: state.revision,
+      offset: offset, filter: filter, sort: state.tableSorts[table.id],
+      descending: state.tableDescending[table.id] ?? false)
+  }
   @State private var column = 0
   @State private var showColumns = false
   private var offset: Int { state.tableOffsets[table.id] ?? 0 }
@@ -409,84 +418,71 @@ struct DatasetView: View {
           Image(systemName: "ellipsis.circle")
         }.menuStyle(.borderlessButton).frame(width: 22).help("Table actions")
       }.padding(compact ? 8 : 14)
-      NativeTable(
-        columns: table.columns, rows: rows, book: state.workbook,
-        onEdit: { rowID, c, value in
-          guard let row = rows.first(where: { $0.id == rowID }) else { return }
-          var values = row.data.object
-          values[c] = value.isEmpty ? .null : .string(value)
-          apply([RowEdit(id: row.id, values: values)])
-        },
-        onSelect: { indexes, c in
-          selection = indexes
-          column = c
-          if let n = indexes.first, rows.indices.contains(n) {
-            state.selectedContext = "\(table.title), data row \(offset+n+1): \(rows[n].data.text)"
-            let values =
-              state.workbook?.calculatedValues(rows[n], columns: table.columns)
-              ?? rows[n].data.object
-            let selectedColumn = table.columns.indices.contains(c) ? table.columns[c] : nil
+      if let page = loader.page {
+        NativeTable(
+          page: page,
+          onEdit: { edit, revision in apply([edit], expectedRevision: revision) },
+          onSelect: { selected, c in
+            selection = Set(selected.map(\.logicalID))
+            column = c
+            guard let row = selected.first,
+              let n = page.rows.firstIndex(where: { $0.logicalID == row.logicalID })
+            else {
+              state.selectedContext = ""
+              return
+            }
+            state.selectedContext = "\(table.title), data row \(page.offset+n+1): \(row.data.text)"
+            let selectedColumn =
+              page.dataset.columns.indices.contains(c) ? page.dataset.columns[c] : nil
             if let selectedColumn {
               state.selectionLabel =
-                "\(table.title), row \(offset+n+1) · \(selectedColumn.title): \(values[selectedColumn.id]?.text ?? "Empty")"
+                "\(table.title), row \(page.offset+n+1) · \(selectedColumn.title): \(page.values[n][selectedColumn.id]?.text ?? "Empty")"
             } else {
-              state.selectionLabel = "\(table.title), row \(offset+n+1)"
+              state.selectionLabel = "\(table.title), row \(page.offset+n+1)"
             }
-          }
-        },
-        onSort: { id, descending in
-          state.tableSorts[table.id] = id
-          state.tableDescending[table.id] = descending
-          state.tableOffsets[table.id] = 0
-          load()
-        }, onCopy: copyRows, onPaste: pasteCells)
+          },
+          onSort: { id, descending in
+            state.tableSorts[table.id] = id
+            state.tableDescending[table.id] = descending
+            state.tableOffsets[table.id] = 0
+          }, onCopy: copyRows, onPaste: pasteCells)
+      } else {
+        ProgressView("Loading table").frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
       HStack {
         Button("Previous") {
           state.tableOffsets[table.id] = max(0, offset - 200)
-          load()
         }.disabled(offset == 0)
-        Text("\(min(offset+1,total))–\(min(offset+rows.count,total)) of \(total)").font(.caption)
+        Text("\(min(displayedOffset+1,total))–\(min(displayedOffset+rows.count,total)) of \(total)")
+          .font(.caption)
         Button("Next") {
           state.tableOffsets[table.id] = offset + 200
-          load()
         }.disabled(offset + rows.count >= total)
         Spacer()
         if state.tableUndo[table.id] != nil { Button("Undo") { undo(false) } }
         if compact { Button("Open table") { state.navigate(.table(table.id)) } }
       }.padding(10)
     }
-    .task(id: table.id + String(state.revision) + filter) {
-      do {
-        if !filter.isEmpty { try await Task.sleep(nanoseconds: 180_000_000) }
-        load()
-      } catch {}
+    .task(id: query) {
+      let request = query
+      guard let book = state.workbook else { return }
+      await loader.load(request, debounce: !request.filter.isEmpty) {
+        try await Task.detached {
+          try book.tablePage(
+            request.dataset, offset: request.offset, query: request.filter,
+            sort: request.sort, descending: request.descending)
+        }.value
+      }
+      guard !Task.isCancelled, query == request else { return }
+      if let failure = loader.failure { state.error = failure }
+      if let page = loader.page, page.revision != state.revision { state.refresh() }
     }
     .sheet(isPresented: $showColumns) { ColumnEditor(table: table, state: state) }
   }
-  func load() {
-    guard let book = state.workbook else { return }
-    let offset = offset
-    let filter = filter
-    let sort = state.tableSorts[table.id]
-    let desc = state.tableDescending[table.id] ?? false
-    Task {
-      do {
-        let result = try await Task.detached {
-          (
-            try book.rows(
-              table.id, offset: offset, limit: 200, query: filter, sort: sort, descending: desc),
-            try book.filteredRowCount(table.id, query: filter)
-          )
-        }.value
-        guard self.filter == filter, self.offset == offset else { return }
-        rows = result.0
-        total = result.1
-      } catch { state.error = error.localizedDescription }
-    }
-  }
-  func apply(_ edits: [RowEdit]) {
-    guard let book = state.workbook, !state.busy else { return }
-    let revision = state.revision
+  func apply(_ edits: [RowEdit], expectedRevision: Int? = nil) {
+    guard let book = state.workbook, !state.busy,
+      let revision = expectedRevision ?? loader.page?.revision
+    else { return }
     Task {
       do {
         let change = try await Task.detached {
@@ -495,7 +491,6 @@ struct DatasetView: View {
         state.tableUndo[table.id] = change.id
         state.tableRedo[table.id] = nil
         state.refresh()
-        load()
       } catch { state.error = error.localizedDescription }
     }
   }
@@ -514,16 +509,13 @@ struct DatasetView: View {
           state.tableUndo[table.id] = nil
         }
         state.refresh()
-        load()
       } catch { state.error = error.localizedDescription }
     }
   }
   func copyRows() {
-    guard let book = state.workbook else { return }
-    let data = selection.compactMap { n -> [String]? in
-      guard rows.indices.contains(n) else { return nil }
-      let values = book.calculatedValues(rows[n], columns: table.columns)
-      return table.columns.map { values[$0.id]?.text ?? "" }
+    guard let page = loader.page else { return }
+    let data = page.rows.indices.filter { selection.contains(page.rows[$0].logicalID) }.map { n in
+      page.dataset.columns.map { page.values[n][$0.id]?.text ?? "" }
     }
     let text = data.map {
       $0.map { v in
@@ -535,8 +527,12 @@ struct DatasetView: View {
     NSPasteboard.general.setString(text, forType: .string)
   }
   func pasteCells() {
-    guard let start = selection.first, let text = NSPasteboard.general.string(forType: .string)
+    guard let page = loader.page,
+      let start = page.rows.firstIndex(where: { selection.contains($0.logicalID) }),
+      let text = NSPasteboard.general.string(forType: .string)
     else { return }
+    let rows = page.rows
+    let columns = page.dataset.columns
     do {
       try require(text.utf8.count <= 4_000_000, "paste_limit", "Paste at most 4 MB at a time.")
       let cells = try CSV.parse(text, delimiter: "\t")
@@ -546,18 +542,18 @@ struct DatasetView: View {
       var edits: [RowEdit] = []
       for (r, values) in cells.enumerated() {
         try require(
-          column + values.count <= table.columns.count, "paste_range",
+          column >= 0 && column + values.count <= columns.count, "paste_range",
           "The paste exceeds the table columns.")
         var data = rows[start + r].data.object
         for (c, value) in values.enumerated() {
-          let target = table.columns[column + c]
+          let target = columns[column + c]
           try require(
             target.formula == nil, "calculated_cell", "The paste includes a calculated column.")
           data[target.id] = value.isEmpty ? .null : .string(value)
         }
         edits.append(.init(id: rows[start + r].id, values: data))
       }
-      apply(edits)
+      apply(edits, expectedRevision: page.revision)
     } catch { state.error = error.localizedDescription }
   }
   func export() {
@@ -626,158 +622,5 @@ struct ColumnEditor: View {
         }.buttonStyle(.borderedProminent)
       }
     }.padding(24).frame(width: 680, height: 420).onAppear { columns = table.columns }
-  }
-}
-final class GridTable: NSTableView {
-  var copyAction: (() -> Void)?, pasteAction: (() -> Void)?
-  var activeColumn = 0
-  override func mouseDown(with event: NSEvent) {
-    let c = column(at: convert(event.locationInWindow, from: nil))
-    if c >= 0 { activeColumn = c }
-    super.mouseDown(with: event)
-    if event.clickCount == 2 { beginCellEditing() }
-  }
-  func beginCellEditing() {
-    guard selectedRow >= 0,
-      let field = view(atColumn: activeColumn, row: selectedRow, makeIfNecessary: true)
-        as? NSTextField,
-      field.isEditable
-    else { return }
-    window?.makeFirstResponder(field)
-    field.selectText(nil)
-  }
-  @objc func copy(_ sender: Any?) { copyAction?() }
-  @objc func paste(_ sender: Any?) { pasteAction?() }
-  override func keyDown(with event: NSEvent) {
-    if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers == "c" {
-      copyAction?()
-      return
-    }
-    if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers == "v" {
-      pasteAction?()
-      return
-    }
-    if event.keyCode == 36 || event.keyCode == 76 {
-      beginCellEditing()
-      return
-    }
-    super.keyDown(with: event)
-  }
-}
-struct NativeTable: NSViewRepresentable {
-  let columns: [Column], rows: [Item]
-  let book: Workbook?
-  let onEdit: (String, String, String) -> Void
-  let onSelect: (IndexSet, Int) -> Void
-  let onSort: (String, Bool) -> Void
-  let onCopy: () -> Void, onPaste: () -> Void
-  func makeCoordinator() -> Coordinator { Coordinator(self) }
-  func makeNSView(context: Context) -> NSScrollView {
-    let table = GridTable()
-    table.delegate = context.coordinator
-    table.dataSource = context.coordinator
-    table.rowHeight = 30
-    table.usesAlternatingRowBackgroundColors = true
-    table.allowsMultipleSelection = true
-    table.columnAutoresizingStyle = .noColumnAutoresizing
-    table.headerView = NSTableHeaderView()
-    table.gridStyleMask = [.solidHorizontalGridLineMask]
-    let scroll = NSScrollView()
-    scroll.hasVerticalScroller = true
-    scroll.hasHorizontalScroller = true
-    scroll.documentView = table
-    return scroll
-  }
-  func updateNSView(_ scroll: NSScrollView, context: Context) {
-    context.coordinator.parent = self
-    guard let table = scroll.documentView as? GridTable else { return }
-    table.copyAction = onCopy
-    table.pasteAction = onPaste
-    let columnSignature = columns.map { $0.id + $0.title + $0.type + ($0.formula ?? "") }.joined()
-    if context.coordinator.columnSignature != columnSignature {
-      for column in table.tableColumns { table.removeTableColumn(column) }
-      for c in columns {
-        let column = NSTableColumn(identifier: .init(c.id))
-        column.title = c.title
-        column.isEditable = c.formula == nil
-        column.width = 160
-        column.minWidth = 80
-        if c.formula == nil {
-          column.sortDescriptorPrototype = NSSortDescriptor(key: c.id, ascending: true)
-        }
-        table.addTableColumn(column)
-      }
-      context.coordinator.columnSignature = columnSignature
-    }
-    let signature = rows.map(\.id).joined() + columnSignature
-    if context.coordinator.signature != signature {
-      context.coordinator.values = rows.map {
-        book?.calculatedValues($0, columns: columns) ?? $0.data.object
-      }
-      let selection = table.selectedRowIndexes.filter { $0 < rows.count }
-      table.reloadData()
-      table.selectRowIndexes(IndexSet(selection), byExtendingSelection: false)
-      context.coordinator.signature = signature
-    }
-  }
-  final class Coordinator: NSObject, NSTableViewDataSource, NSTableViewDelegate, NSTextFieldDelegate
-  {
-    var parent: NativeTable, signature = "", columnSignature = ""
-    var values: [[String: Value]] = []
-    init(_ parent: NativeTable) { self.parent = parent }
-    func numberOfRows(in tableView: NSTableView) -> Int { parent.rows.count }
-    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int)
-      -> NSView?
-    {
-      guard let column = tableColumn,
-        let c = parent.columns.first(where: { $0.id == column.identifier.rawValue }),
-        values.indices.contains(row)
-      else { return nil }
-      let cell = NSTextField()
-      cell.isBordered = false
-      cell.backgroundColor = .clear
-      cell.font = .systemFont(ofSize: 13)
-      cell.isEditable = c.formula == nil
-      cell.isSelectable = true
-      cell.delegate = self
-      cell.identifier = .init(c.id)
-      cell.tag = row
-      cell.stringValue = values[row][c.id]?.text ?? ""
-      cell.setAccessibilityLabel(
-        c.title + ", row \(row+1)" + (c.formula == nil ? "" : ": " + cell.stringValue))
-      cell.setAccessibilityElement(true)
-      if c.formula != nil {
-        cell.setAccessibilityRole(.staticText)
-        cell.setAccessibilityValue(cell.stringValue)
-        cell.setAccessibilityHelp("Calculated from " + (c.formula ?? ""))
-      }
-      return cell
-    }
-    func controlTextDidBeginEditing(_ notification: Notification) {
-      guard let cell = notification.object as? NSTextField,
-        let c = parent.columns.firstIndex(where: { $0.id == cell.identifier?.rawValue })
-      else { return }
-      parent.onSelect(IndexSet(integer: cell.tag), c)
-    }
-    func controlTextDidEndEditing(_ notification: Notification) {
-      guard let cell = notification.object as? NSTextField, parent.rows.indices.contains(cell.tag),
-        let column = cell.identifier?.rawValue
-      else { return }
-      let row = parent.rows[cell.tag]
-      if row.data[column].text != cell.stringValue {
-        parent.onEdit(row.id, column, cell.stringValue)
-      }
-    }
-    func tableViewSelectionDidChange(_ notification: Notification) {
-      guard let table = notification.object as? GridTable else { return }
-      parent.onSelect(table.selectedRowIndexes, table.activeColumn)
-    }
-    func tableView(
-      _ tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]
-    ) {
-      if let sort = tableView.sortDescriptors.first, let key = sort.key {
-        parent.onSort(key, !sort.ascending)
-      }
-    }
   }
 }

@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-27",
+  "baseCommit": "31ea247af6bf77003e8b3e6c0d9b295a9757a96e",
+  "scope": "Native table row/edit identity, coherent read snapshots and asynchronous refresh. No inference performance or production adoption qualification.",
+  "sourceSHA256": {
+    "Package.swift": "404be90595f0cbfe77ff038676ccbc4baad0cc7d888e2c41f4c7baa1f986b368",
+    "Sources/SevraApp/ContentViews.swift": "3a1c3f5864174958e3d3efc475a9e73ed54f731a1b9159d0bec6c2b5739af753",
+    "Sources/SevraCore/Tables.swift": "9f09f226216afb18af3c2dd94631aa31c4a356228af15206cb5e4d2958c3ab22",
+    "Sources/SevraTableUI/NativeTable.swift": "67b3dc7affb3e86a5369a3b9cfa1ed274ac26ba9a6822ee4dce5cf4336801683",
+    "Sources/SevraTableUI/TablePageLoader.swift": "d03478edca3c1e51d54a9b9b7ecb2d2333c672e50c3edaf99ac693537261b9df",
+    "IntegrationTests/TableUI/Checks.swift": "1037d8ee731bf7fdf55849c4b2c697b836e99db084a9ee8cb59f2125b1872273",
+    "scripts/check.sh": "67e4b1f6d1d7d5d10b46f7c222ec8e101c1999675c07643c64fca970dafb1191",
+    ".github/workflows/check.yml": "369ac3d84c9a37479ebbb7aaada0836b6ec451d5894512b7b33588259e34d383"
+  },
+  "binarySHA256": {
+    "output/native/Sevra Native Preview.app/Contents/MacOS/Sevra": "bb5fef8fbb9208d37ce4d8f6dbe6c2bf72a48bca4801391a79e0fda3796bebf6",
+    "output/native/bin/sevra": "516fa171e2938d2483e878ffe88ee42f7bbac756a6f0230e658da7d97182b715",
+    ".build/debug/sevra-table-ui-checks": "ec51afa732c763e87943d19bdd9fc43c6b74c9d9519959444fd4bc4751ca665d"
+  },
+  "reproduction": {
+    "description": "The prior AppKit grid was extracted without changing its selection/edit behavior. Reversing two rows left selection at index zero and directed the original field edit to the other row. The reproduction process exited 1.",
+    "exitCode": 1,
+    "log": {
+      "rawSHA256": "af085a8f760c18eaa26487ef087307abdb5f6e7694d6cda7748f861365a95511",
+      "content": "Selection stayed on the original row: false\nEdit stayed on the original row version: false\n"
+    }
+  },
+  "initialTestCompileFailure": {
+    "rawSHA256": "ae9d2104142bc4d268057d6e64d88321c859805c4a258a7f8aa99ad1be15e3f0",
+    "content": "[0/1] Planning build\nBuilding for debugging...\n[0/7] Write sources\n[3/7] Write swift-version--1AB21518FC5DEDBE.txt\n[5/9] Emitting module SevraCore\n[6/9] Compiling SevraCore Tables.swift\n[7/33] Compiling SevraCore ComponentData.swift\n[8/33] Compiling SevraCore ContinuationState.swift\n[9/33] Compiling SevraCore ConversationContext.swift\n[10/33] Compiling SevraCore Demo.swift\n[11/33] Compiling SevraCore Events.swift\n[12/33] Compiling SevraCore Extractor.swift\n[13/33] Compiling SevraCore Intake.swift\n[14/33] Compiling SevraCore RecordCount.swift\n[15/33] Compiling SevraCore Runs.swift\n[16/33] Compiling SevraCore Search.swift\n[17/33] Compiling SevraCore Spaces.swift\n[18/33] Compiling SevraCore TableProposals.swift\n[19/33] Compiling SevraCore AgentSearch.swift\n[20/33] Compiling SevraCore Archive.swift\n[21/33] Compiling SevraCore ArchiveIntake.swift\n[22/33] Compiling SevraCore Assets.swift\n[23/33] Compiling SevraCore Calculations.swift\n[24/33] Compiling SevraCore Comparisons.swift\n[25/33] Compiling SevraCore ToolReceipts.swift\n[26/33] Compiling SevraCore Tools.swift\n[27/33] Compiling SevraCore Transcription.swift\n[28/33] Compiling SevraCore URLCapture.swift\n[29/33] Compiling SevraCore Workbook.swift\n[30/33] Compiling SevraCore XLSX.swift\n[31/36] Emitting module SevraTableUI\n[32/36] Compiling SevraTableUI TablePageLoader.swift\n[33/36] Compiling SevraTableUI NativeTable.swift\n[34/38] Emitting module SevraTableUIChecks\n[35/38] Compiling SevraTableUIChecks Checks.swift\n<repo>/IntegrationTests/TableUI/Checks.swift:116:95: error: value of optional type 'Value?' must be unwrapped to refer to member 'text' of wrapped base type 'Value'\n114 |     _ = try other.editRow(formulaPage.rows[1].id, values: neighborValues)\n115 |     let formulaChanged = try book.tablePage(id)\n116 |     try expect(formulaChanged.rows[0].id == unchangedRowID && formulaChanged.values[0][\"total\"].text == \"3.1\", \"Formula snapshot did not include a referenced-row change\")\n    |                                                                                               |- error: value of optional type 'Value?' must be unwrapped to refer to member 'text' of wrapped base type 'Value'\n    |                                                                                               |- note: chain the optional using '?' to access member 'text' only for non-'nil' base values\n    |                                                                                               `- note: force-unwrap using '!' to abort execution if the optional value contains 'nil'\n117 |     view(formulaChanged).update(table, coordinator: coordinator)\n118 |     let formulaCell = coordinator.tableView(table, viewFor: table.tableColumns[3], row: 0) as! NSTextField\n\n<repo>/IntegrationTests/TableUI/Checks.swift:71:20: error: call can throw, but it is executed in a non-throwing autoclosure\n 69 |     let updated = try book.item(firstPage.rows[0].logicalID)\n 70 |     try expect(updated.data[\"quantity\"].text == \"99\", \"Intended row was not edited\")\n 71 |     try expect(try book.item(firstPage.rows[1].logicalID) == firstPage.rows[1], \"Neighbor row was changed\")\n    |                    `- error: call can throw, but it is executed in a non-throwing autoclosure\n 72 |     coordinator.controlTextDidEndEditing(Notification(name: NSControl.textDidEndEditingNotification, object: originalCell))\n 73 |     try expect(submissions.count == 1, \"Duplicate AppKit end notification resubmitted an edit\")\n\n<repo>/IntegrationTests/TableUI/Checks.swift:90:20: error: call can throw, but it is executed in a non-throwing autoclosure\n 88 |     coordinator.controlTextDidEndEditing(Notification(name: NSControl.textDidEndEditingNotification, object: staleCell))\n 89 |     try expect(failures.count == 1 && failures[0].contains(\"changed\"), \"Stale edit was not reported\")\n 90 |     try expect(try book.revision() == revisionBefore && book.items() == itemsBefore, \"Stale edit mutated evidence\")\n    |                    |                                    `- note: call is to 'rethrows' function, but argument function can throw\n    |                    `- error: call can throw, but it is executed in a non-throwing autoclosure\n 91 |     try expect(try book.item(current.rows[0].logicalID).data[\"quantity\"].text == \"7\", \"Concurrent correction lost\")\n 92 |     print(\"PASS refresh keeps logical selection; concurrent edits refuse the captured stale revision without changing data\")\n\n<repo>/IntegrationTests/TableUI/Checks.swift:90:20: error: call can throw, but it is executed in a non-throwing autoclosure\n 88 |     coordinator.controlTextDidEndEditing(Notification(name: NSControl.textDidEndEditingNotification, object: staleCell))\n 89 |     try expect(failures.count == 1 && failures[0].contains(\"changed\"), \"Stale edit was not reported\")\n 90 |     try expect(try book.revision() == revisionBefore && book.items() == itemsBefore, \"Stale edit mutated evidence\")\n    |                    `- error: call can throw, but it is executed in a non-throwing autoclosure\n 91 |     try expect(try book.item(current.rows[0].logicalID).data[\"quantity\"].text == \"7\", \"Concurrent correction lost\")\n 92 |     print(\"PASS refresh keeps logical selection; concurrent edits refuse the captured stale revision without changing data\")\n\n<repo>/IntegrationTests/TableUI/Checks.swift:91:20: error: call can throw, but it is executed in a non-throwing autoclosure\n 89 |     try expect(failures.count == 1 && failures[0].contains(\"changed\"), \"Stale edit was not reported\")\n 90 |     try expect(try book.revision() == revisionBefore && book.items() == itemsBefore, \"Stale edit mutated evidence\")\n 91 |     try expect(try book.item(current.rows[0].logicalID).data[\"quantity\"].text == \"7\", \"Concurrent correction lost\")\n    |                    `- error: call can throw, but it is executed in a non-throwing autoclosure\n 92 |     print(\"PASS refresh keeps logical selection; concurrent edits refuse the captured stale revision without changing data\")\n 93 | \n\n<repo>/IntegrationTests/TableUI/Checks.swift:155:20: error: call can throw, but it is executed in a non-throwing autoclosure\n153 |     try expect(loader.failure?.contains(\"Current query failed\") == true, \"Latest failure was hidden\")\n154 |     print(\"PASS deterministic out-of-order reads, stale errors and cancellation cannot replace the latest page\")\n155 |     try expect(try book.verify()[\"ok\"] == .bool(true), \"Workbook integrity failed\")\n    |                    `- error: call can throw, but it is executed in a non-throwing autoclosure\n156 |   }\n157 | }\n"
+  },
+  "fullRegression": {
+    "rawSHA256": "632a07243952d683d2234020743f66dbe8c0bc061fd965703b4dfbf7bedbe921",
+    "content": "Native brand paths match the approved source vectors.\n[0/1] Planning build\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\n[2/8] Compiling SevraChecks ToolReceiptChecks.swift\n[3/8] Emitting module SevraChecks\n[4/8] Compiling SevraChecks main.swift\n[5/8] Compiling SevraChecks ConversationContextChecks.swift\n[5/8] Write Objects.LinkFileList\n[6/8] Linking sevra-checks\n[7/8] Applying sevra-checks\nBuild of product 'sevra-checks' complete! (5.01s)\nPASS create/open canonical package\nPASS decimal arithmetic and error propagation\nPASS source, lineage and current heads\nPASS draft has no inventory effect; acceptance applies once\nPASS duplicate evidence cannot duplicate effect\nPASS accepted forecast remains estimate\nPASS correction supersedes rather than adds\nPASS unknown basis does not become zero\nPASS idempotency requires identical request\nPASS stale concurrent revision rejected\nPASS include file, extract, Unicode FTS and filename substring\nPASS FTS escaping and empty queries\nPASS external references detect changed and missing bytes\nPASS cancelled import creates no reference\nPASS Unicode and embedded zero bytes survive database round trips\nPASS CSV quoted newlines, escaped quotes and CRLF\nPASS table values, formulas, edits, undo and reopen\nPASS native space validation and persistence\nPASS main conversation, chapter, tangent and bookmark\nPASS undo acceptance withdraws effect; later draft does not erase accepted state\nPASS atomic paste, typed validation, one-step undo and redo\nPASS table proposal acceptance, retry, undo and redo preserve exact values\nPASS new table proposals preserve estimate meaning, formulas, provenance and reversible visibility\nPASS agent table creation uses the preserved user request as evidence\nPASS stale table proposal and stale undo roll back every change\nPASS include linked evidence preserves indexed content and original history\nPASS cancelled extraction retains the last usable index\nPASS XLSX shared strings, inline text, sparse cells, dates and cached formulas\nPASS package metadata symlinks are refused before opening SQLite\nPASS rebuild search preserves results\nPASS coherent export and reopen with included bytes\nPASS archive expansion budget\nPASS reject unexpected schema before writes\nPASS conditional formulas are lazy, ranges resolve and rounding is explicit\nPASS search deduplicates chunks, paginates and rejects a stale cursor\nPASS supplier comparison uses the expensive quote as its percentage denominator\nPASS CSV export preserves calculated values and quoted multiline cells\nPASS live metric changes while a pinned result preserves values and evidence\nPASS column type changes validate existing data and formula history restores\nPASS structured import resumes committed batches without duplicating rows\nPASS copy cancellation and extraction deadlines leave the workbook usable\nPASS native PDF text and image OCR create searchable exact source locators\nPASS explicit archive intake preserves member lineage and retry identity\nPASS archive traversal entries cannot escape their destination\nPASS search cancellation and deadline preserve the next query\nPASS pinning retries return the original snapshot\nPASS canonical v1 migration preserves history and builds its index once\nPASS canonical v2 migration retains existing conversation data and FTS\nPASS future or untrusted schemas are refused; failed migration rolls back\nPASS history paging preserves Unicode, NUL, payloads and conversation scope\nPASS conversation FTS uses bounded scoped cursors and supports rebuilding\nPASS checkpoint publication validates range, revision, cancellation and exact inputs\nPASS checkpoint chain retains originals and derives current meaning/acceptance\nPASS run request linkage is scoped and preserved across reopen\nPASS mid-run checkpoint retains a complete tool group and refuses an invented boundary\nPASS journal preserves large exact results with valid bounded Unicode pages\nPASS prepared call survives mutation gap without replay or false acceptance\nPASS oversized keys have lossless raw JSON recovery and failed calls retain receipts\nPASS agent history tools find old originals and exclude tangent messages\n59 passed; 0 failed\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\n[1/4] Write sources\n[3/7] Compiling SevraTableUI NativeTable.swift\n[4/7] Emitting module SevraTableUI\n[5/7] Compiling SevraTableUI TablePageLoader.swift\n[5/9] Write sources\n[7/11] Emitting module SevraTableUIChecks\n[8/11] Compiling SevraTableUIChecks Checks.swift\n[8/11] Write Objects.LinkFileList\n[9/11] Linking sevra-table-ui-checks\n[10/11] Applying sevra-table-ui-checks\nBuild of product 'sevra-table-ui-checks' complete! (1.24s)\nPASS sort preserves logical selection and original edit version; repeated end notification is harmless\nPASS refresh keeps logical selection; concurrent edits refuse the captured stale revision without changing data\nPASS cancelled editing does not write and filtered-out selection clears\nPASS referenced-row formulas refresh without changing the visible row version; active column retains identity\nPASS deterministic out-of-order reads, stale errors and cancellation cannot replace the latest page\nPASS all native table checks\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-splash-checks' complete! (0.20s)\nPASS upstream text request byte parity\nPASS upstream request variants and control frames\nPASS every upstream engine golden, fragmented at every byte\nPASS bad header rejects before allocating a payload and remains failed\nPASS partial EOF and malformed event bodies are refused\nPASS invalid client configuration is rejected\nPASS request state refuses gap, duplicate, wrong id and progress after tokens\nPASS native pipes run multiple requests, status and idle release\nPASS request refusal preserves the helper for a succeeding request\nPASS cancellation without start then recovery\nPASS native timeout kills and reaps only the owned helper\nPASS serial worker teardown is bounded, repeatable and reaps a stubborn helper\nPASS malformed stream, duplicate completion and child exit fail closed\nPASS startup failure, partial frame and timeout clean up\nPASS stderr is continuously drained with a bounded diagnostic tail\nPASS selected model has immutable target and matching draft pins\nPASS native assembly verifies, publishes atomically and reuses original bytes\nPASS changed, missing and linked bytes refuse without replacing a prior selection\nPASS cancelled preparation publishes nothing and preserves source data\nPASS damaged assemblies and real files at selection paths are preserved and refused\nPASS unsafe and duplicated manifest paths are rejected\nPASS native download resumes, verifies and reuses completed bytes without network\nPASS ignored ranges restart, unexpected ranges and HTTP failures preserve partial bytes\nPASS corrupt, oversized and linked downloads cannot become a model\nPASS interrupted and cancelled model transfers retain resumable partial bytes\nPASS Swift setup downloads both synthetic packs and atomically prepares exact source identities\nPASS storage and cancellation refusals preserve the previous usable selection\nPASS native hardware preflight refuses unsupported chip and OS combinations\nPASS installed native selection reopens only exact pinned sources and verifies originals\nPASS verifying an installed reused model does not download duplicate weights\n30 Splash checks passed; 0 failed\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-native-setup' complete! (0.21s)\nUsage: sevra-native-setup MODELS_ROOT [--reuse TARGET_FOLDER DRAFT_FOLDER]. Candidate setup only; does not change the installed app.\nUsage: sevra-native-setup MODELS_ROOT [--reuse TARGET_FOLDER DRAFT_FOLDER]. Candidate setup only; does not change the installed app.\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-splash-text-checks' complete! (0.22s)\nPASS plain exact prompt and generation-prefix tokens\nPASS system exact prompt and generation-prefix tokens\nPASS unicode exact prompt and generation-prefix tokens\nPASS multi_turn exact prompt and generation-prefix tokens\nPASS later_system exact prompt and generation-prefix tokens\nPASS thinking exact prompt and generation-prefix tokens\nPASS preserve_reasoning exact prompt and generation-prefix tokens\nPASS drop_reasoning exact prompt and generation-prefix tokens\nPASS tools exact prompt and generation-prefix tokens\nPASS tool_history exact prompt and generation-prefix tokens\nPASS tool_history_null exact prompt and generation-prefix tokens\nPASS consecutive_tools exact prompt and generation-prefix tokens\nPASS literal_markers exact prompt and generation-prefix tokens\nPASS trim exact prompt and generation-prefix tokens\nPASS empty exact prompt and generation-prefix tokens\nPASS occupied_False_False exact prompt and generation-prefix tokens\nPASS occupied_True_False exact prompt and generation-prefix tokens\nPASS occupied_False_True exact prompt and generation-prefix tokens\nPASS occupied_True_True exact prompt and generation-prefix tokens\nPASS occupied_changed exact prompt and generation-prefix tokens\nPASS occupied_numeric_integer exact prompt and generation-prefix tokens\nPASS occupied_numeric_double exact prompt and generation-prefix tokens\nPASS occupied_numeric_zero exact prompt and generation-prefix tokens\nPASS occupied_numeric_negative_zero exact prompt and generation-prefix tokens\nPASS context, modality, role, size and numeric input limits\nAll 24 pinned-reference text checks passed\nPASS 80 exact upstream streaming decodes, UTF-8, special tokens and stops\nPASS 31 upstream output projections across 3216 chunk layouts\nPASS unknown/duplicate/malformed/oversized tool refusal and every cancellation/truncation boundary\nPASS decoder lifecycle, invalid token and stop limits\n    Finished `release` profile [optimized + debuginfo] target(s) in 0.05s\n{\"schemaVersion\": 1, \"commit\": \"dbaf504d498b6aeede06ae57adc6f7c2c4848c59\", \"rustToolchain\": \"1.96.0\", \"cargoLockSHA256\": \"3150f34f7c0e99afab360efe61c28d0ceddc98015e6320993ce7baaaed853e3c\", \"librarySHA256\": \"5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1\", \"libraryBytes\": 3559168, \"library\": \".build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib\", \"shipped\": false}\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-splash-grammar-checks' complete! (0.21s)\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\n[2/12] Emitting module SevraAI\n[3/12] Compiling SevraAI ToolSerialization.swift\n[4/12] Compiling SevraAI WorkbookAgent.swift\n[5/12] Compiling SevraAI ContextBudget.swift\n[6/12] Compiling SevraAI ContextDigest.swift\n[7/12] Compiling SevraAI ContextMaintenance.swift\n[8/12] Compiling SevraAI ConversationHistory.swift\n[9/12] Compiling SevraAI NativeTools.swift\n[10/12] Compiling SevraAI SearchCoverage.swift\n[11/14] Compiling SevraAI WorkbookInference.swift\n[12/14] Compiling SevraAI WorkbookToolDefinition.swift\n[13/22] Emitting module SevraBaseline\n[14/22] Compiling SevraBaseline BaselineMessages.swift\n[15/23] Compiling SevraBaseline PackageResources.swift\n[16/23] Compiling SevraBaseline LocalModel.swift\n[17/23] Compiling SevraBaseline WorkbookAgent.swift\n[18/23] Emitting module SevraNativeAI\n[19/23] Compiling SevraNativeAI NativeCitationPolicy.swift\n[20/23] Compiling SevraNativeAI NativeReasoning.swift\n[21/23] Compiling SevraNativeAI NativeWorkbookModel.swift\n[22/36] Compiling SevraAgentChecks CurrencyRecoveryProbe.swift\n[23/36] Compiling SevraAgentChecks GrammarChecks.swift\n[24/36] Compiling SevraAgentChecks HistoryToolChecks.swift\n[25/36] Compiling SevraAgentChecks InspectionRecoveryProbe.swift\n[26/40] Compiling SevraAgentChecks NativeAgentProbe.swift\n[27/40] Compiling SevraAgentChecks NativeContinuityProbe.swift\n[28/40] Compiling SevraAgentChecks NativeWorkbookProbe.swift\n[29/40] Compiling SevraAgentChecks ReasoningBoundaryProbe.swift\n[30/40] Emitting module SevraAgentChecks\n[31/40] Compiling SevraAgentChecks AgentLifecycleChecks.swift\n[32/40] Compiling SevraAgentChecks CompactionChecks.swift\n[33/40] Compiling SevraAgentChecks CoverageChecks.swift\n[34/40] Compiling SevraAgentChecks CoverageProbe.swift\n[35/40] Compiling SevraAgentChecks ReasoningChecks.swift\n[36/40] Compiling SevraAgentChecks ReasoningProbe.swift\n[37/40] Compiling SevraAgentChecks ScopedSearchChecks.swift\n[38/40] Compiling SevraAgentChecks main.swift\n[38/41] Write Objects.LinkFileList\n[39/41] Linking sevra-agent-checks\n[40/41] Applying sevra-agent-checks\nBuild of product 'sevra-agent-checks' complete! (3.88s)\nPASS exact byte vocabulary for all 248320 tokens\nPASS json: exact speculative masks, cache isolation, EOS and refusals\nPASS unicode: exact speculative masks, cache isolation, EOS and refusals\nPASS reasoning_json: exact speculative masks, cache isolation, EOS and refusals\nPASS strict_tool: exact speculative masks, cache isolation, EOS and refusals\nPASS 105 exact upstream mask requests across 4 grammars\nPASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\nPASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data\nPASS shared agent retrieves old originals and pages oversized saved results\nPASS scoped search spans business evidence and earlier conversation without mixing citations, filters, cursors or branches\nPASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery\nPASS repeated context maintenance, exact original references, current acceptance, cancellation, invalid summaries and portable continuation\nPASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance\nPASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations\nPASS actual workbook schemas, open row/record data, full argument validation and schema refusals\nPASS 28 actual-tool grammars, 249 exact reference masks, completed argument validation and prompts\nPASS reasoning prompt, dynamic citation grammar and stream projection agree; unfinished reasoning cannot dispatch\nPASS: performance gate rejects pilot, incomplete, mismatched, failed, overheated and slower evidence\nRepository Markdown links: passed\n{\n  \"issues\": [],\n  \"scope\": \"all\",\n  \"store\": \"db\",\n  \"summary\": {\n    \"errors\": 0,\n    \"info\": 0,\n    \"total\": 0,\n    \"warnings\": 0\n  }\n}\n"
+  },
+  "finalTableChecks": {
+    "rawSHA256": "d8cd04ec2e7448c09bab806c77285662efa4e3054fc0b83aba13e972638c7d20",
+    "content": "PASS sort preserves logical selection and original edit version; repeated end notification is harmless\nPASS refresh keeps logical selection; concurrent edits refuse the captured stale revision without changing data\nPASS cancelled editing does not write and filtered-out selection clears\nPASS referenced-row formulas refresh without changing the visible row version; active column retains identity\nPASS deterministic out-of-order reads, stale errors and cancellation cannot replace the latest page\nPASS all native table checks\n"
+  },
+  "nativeBuild": {
+    "rawSHA256": "b5a20b9e82b9aafa871396bf8853e8e08775e559db0bf1cd72c87356f07c902e",
+    "content": "Native brand paths match the approved source vectors.\n{\n  \"source\": \"<repo>/.build/upstream/splash-1.4.1\",\n  \"native\": \"<repo>/.build/upstream/splash-native-1.4.1\",\n  \"release\": \"1.4.1\",\n  \"commit\": \"1744cfafee415fb463b289449cec59a864e768e9\",\n  \"archiveSHA256\": \"5746068dc652a4998267d55b1c6d59b545f1bc1e018131c6d8025022f7000d5c\",\n  \"files\": {\n    \"engine/splash\": \"532732b0fef256d08e683fc1b50d132e4946d25a8d4f878d0451bebba0385a9a\",\n    \"engine/splash.metallib\": \"1933cf46cbcae8349640bbcfc3875f46b5be4630e13b42804cb5cf7070bce46d\",\n    \"engine/host-step.metallib\": \"8e177c753e2051cd8a31c79bf031b3fae8daf04f5564ced9fc37db064bdfe51a\",\n    \"LICENSE\": \"cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30\",\n    \"THIRD_PARTY_NOTICES\": \"2fedf1277bf732f8435c3e3be2798f52f25f7e2bd4155865cb366da55b88e50b\"\n  }\n}\n    Finished `release` profile [optimized + debuginfo] target(s) in 0.04s\n{\"schemaVersion\": 1, \"commit\": \"dbaf504d498b6aeede06ae57adc6f7c2c4848c59\", \"rustToolchain\": \"1.96.0\", \"cargoLockSHA256\": \"3150f34f7c0e99afab360efe61c28d0ceddc98015e6320993ce7baaaed853e3c\", \"librarySHA256\": \"5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1\", \"libraryBytes\": 3559168, \"library\": \".build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib\", \"shipped\": false}\n[0/1] Planning build\nBuilding for production...\n[0/6] Write sources\n[3/6] Write swift-version--1AB21518FC5DEDBE.txt\n[5/7] Compiling SevraCore AgentSearch.swift\n[6/9] Compiling SevraTableUI NativeTable.swift\n[7/9] Compiling SevraAI ContextBudget.swift\n[8/10] Compiling SevraNativeAI NativeCitationPolicy.swift\n[9/11] Compiling SevraProduct NativeProductResources.swift\n[10/12] Compiling SevraApp ArchiveMemberPicker.swift\n[10/12] Write Objects.LinkFileList\n[11/12] Linking SevraDesktop\nBuild of product 'SevraDesktop' complete! (24.49s)\n[0/1] Planning build\nBuilding for production...\n[0/2] Write swift-version--1AB21518FC5DEDBE.txt\n[2/4] Compiling SevraCLI CLI.swift\n[2/4] Write Objects.LinkFileList\n[3/4] Linking sevra\nBuild of product 'sevra' complete! (2.57s)\n<repo>/output/native/Sevra Native Preview.app: replacing existing signature\n{\"app\": \"output/native/Sevra Native Preview.app\", \"cli\": \"output/native/bin/sevra\", \"candidate\": true, \"unchangedEngine\": true}\n"
+  },
+  "nativePackage": {
+    "rawSHA256": "4551a33d2593b4bb5d450833dd89507ac23a98a25382be248fd4ef76bf218acf",
+    "content": "{\"check\": \"installed_resources\", \"product\": \"bin/sevra\", \"buildTreeDenied\": true, \"noBaselineSymbols\": true, \"backend\": \"splash-native-candidate\", \"grammarLibrary\": true, \"kernelCount\": 1888, \"metalLibrary\": true, \"runtimeDigests\": true, \"selectedModel\": \"qwen36-35b-a3b-4bit\", \"tokenizerResources\": true}\n{\"check\": \"installed_resources\", \"product\": \"Sevra Native Preview.app/Contents/MacOS/Sevra\", \"buildTreeDenied\": true, \"noBaselineSymbols\": true, \"backend\": \"splash-native-candidate\", \"grammarLibrary\": true, \"kernelCount\": 1888, \"metalLibrary\": true, \"runtimeDigests\": true, \"selectedModel\": \"qwen36-35b-a3b-4bit\", \"tokenizerResources\": true}\n{\"check\": \"native_setup_refusal\", \"invalidOptionsRefused\": true, \"missingModelGuidance\": true, \"failedRunSaved\": true, \"workbookPreserved\": true}\n{\"check\": \"installed_resource_failures\", \"missingRefused\": 9, \"alteredRefused\": true}\n{\"check\": \"native_signature\", \"passed\": true}\n"
+  },
+  "visibleUI": {
+    "method": "Native app actions and accessibility/screenshot observations through cua_repl; separate CLI writer used only the synthetic workbook.",
+    "steps": [
+      "Opened fresh synthetic Willow Workshop workbook and full Supplier comparison table.",
+      "Selected Oak Supply quantity in row 1; supplier ascending sort moved it to row 2 while selection and conversation context followed Oak.",
+      "Edited Oak quantity to 11; visible total became 26.4, Cedar stayed at 10 / 27.5.",
+      "Began typing 13 without committing. A separate CLI writer changed the same original row version to quantity 7.",
+      "After ending the pending edit, the app showed The workbook changed. Refresh and try again.; Oak remained 7 / 16.8 and Cedar remained 10 / 27.5.",
+      "Filtered to Cedar; the Oak selection and About context disappeared. Clearing the filter restored both rows without selecting a neighbor.",
+      "Inspected final layout and quit the preview."
+    ],
+    "databaseResult": {
+      "rows": [
+        {
+          "category": "record",
+          "created": "2026-10-27T06:16:02Z",
+          "data": {
+            "quantity": "7",
+            "supplier": "Oak Supply",
+            "unit_cost": "2.40"
+          },
+          "id": "1cbfda56-032c-4eb9-84b1-7789509a9cce",
+          "kind": "row",
+          "logicalID": "ea8c8986-9c4b-4284-8c45-77de7cb4a63e",
+          "meaning": "actual",
+          "scenario": "actual",
+          "status": "accepted",
+          "supersedes": "85e799ed-2f8c-4340-b67e-ed3e0c4c7f20",
+          "text": "quantity: 7\nsupplier: Oak Supply\nunit_cost: 2.40",
+          "title": "Supplier comparison, row 1",
+          "version": 3
+        },
+        {
+          "category": "record",
+          "created": "2026-10-27T06:14:40Z",
+          "data": {
+            "quantity": "10",
+            "supplier": "Cedar Tools",
+            "unit_cost": "2.75"
+          },
+          "id": "9a6611dd-c84d-4baa-a219-cffdcd6f5a9b",
+          "kind": "row",
+          "logicalID": "1b3f3160-9877-4756-a282-e35be5c68709",
+          "meaning": "actual",
+          "scenario": "actual",
+          "status": "accepted",
+          "text": "quantity: 10\nsupplier: Cedar Tools\nunit_cost: 2.75",
+          "title": "Supplier comparison, row 2",
+          "version": 1
+        }
+      ],
+      "corrections": [
+        {
+          "category": "source",
+          "created": "2026-10-27T06:16:02Z",
+          "data": {
+            "dataset": "665894f7-c6ca-43e1-891a-1a9d8ea20ffb",
+            "edits": [
+              {
+                "id": "85e799ed-2f8c-4340-b67e-ed3e0c4c7f20",
+                "values": {
+                  "quantity": "7",
+                  "supplier": "Oak Supply",
+                  "unit_cost": "2.40"
+                }
+              }
+            ]
+          },
+          "id": "108bf282-21b2-4704-805f-0b70c90c56ab",
+          "kind": "correction",
+          "logicalID": "5efc1256-4902-484d-9acb-c23d585f032f",
+          "meaning": "actual",
+          "scenario": "actual",
+          "status": "accepted",
+          "text": "User updated 1 table rows.",
+          "title": "Edit Supplier comparison",
+          "version": 1
+        },
+        {
+          "category": "source",
+          "created": "2026-10-27T06:15:46Z",
+          "data": {
+            "dataset": "665894f7-c6ca-43e1-891a-1a9d8ea20ffb",
+            "edits": [
+              {
+                "id": "fd73e783-bf19-412a-8bd7-fe06d301fec2",
+                "values": {
+                  "quantity": "11",
+                  "supplier": "Oak Supply",
+                  "unit_cost": "2.40"
+                }
+              }
+            ]
+          },
+          "id": "4d2f2017-61de-4e38-b534-9e1fdbfd0275",
+          "kind": "correction",
+          "logicalID": "b03b9f6d-07df-40eb-9309-9b4428293a07",
+          "meaning": "actual",
+          "scenario": "actual",
+          "status": "accepted",
+          "text": "User updated 1 table rows.",
+          "title": "Edit Supplier comparison",
+          "version": 1
+        }
+      ],
+      "verification": {
+        "assetIssues": [],
+        "database": "ok",
+        "ok": true
+      },
+      "staleThirteenNotWritten": true
+    }
+  },
+  "commands": [
+    "bash scripts/check.sh",
+    "swift build --product sevra-table-ui-checks -j 4",
+    ".build/debug/sevra-table-ui-checks",
+    "bash scripts/build_native.sh",
+    "python3 scripts/check_native_package.py"
+  ],
+  "limits": [
+    "No new real-model performance run after table changes. The preceding separate nine-job native workbook evidence remains dated and scoped.",
+    "Automatic context compaction and production native adoption remain disabled/unqualified.",
+    "This covers targeted table interactions, not all UI, accessibility, voice, media, hardware or search scale.",
+    "Native idle-only unload still needs an active-memory-pressure reproduction and recovery policy."
+  ]
+}

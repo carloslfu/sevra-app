@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T06:04:09.084079+00:00
+updated: 2026-10-27T06:17:36.981237+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -526,3 +526,7 @@ It checks refusal before assistant publication, corrected citations, unchanged
 business data, the expected request Source, integrity and helper unload. Run it
 with no other model process active. The deterministic rejection case also runs in
 the ordinary agent checks. This is not an autonomous workflow benchmark.
+
+## Native table reliability checks
+
+Run `swift build --product sevra-table-ui-checks` followed by `.build/debug/sevra-table-ui-checks` on macOS. This uses synthetic temporary workbooks and the actual AppKit table coordinator, requires no model download, and is included in `scripts/check.sh` and hosted CI. It covers sorting while an edit is pending, stable selection, concurrent correction refusal, cancelled/duplicate editing notifications, filtered-out selection, referenced-row formulas, column identity, and deterministically reordered async results/errors. See [[records/specs/product]] P12 and [[records/operations/implementation]].

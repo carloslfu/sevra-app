@@ -13,6 +13,7 @@ let package = Package(
     .executable(name: "SevraDesktop", targets: ["SevraApp"]),
     .executable(name: "sevra", targets: ["SevraCLI"]),
     .executable(name: "sevra-checks", targets: ["SevraChecks"]),
+    .executable(name: "sevra-table-ui-checks", targets: ["SevraTableUIChecks"]),
     .executable(name: "sevra-benchmark", targets: ["SevraBenchmark"]),
     .executable(name: "sevra-splash-checks", targets: ["SevraSplashChecks"]),
     .executable(name: "sevra-splash-text-checks", targets: ["SevraSplashTextChecks"]),
@@ -91,8 +92,14 @@ let package = Package(
         : ["SevraCore", "SevraAI", "SevraBaseline"],
       swiftSettings: [.swiftLanguageMode(.v5)]
         + (nativeCandidate ? [.define("SEVRA_NATIVE_CANDIDATE")] : [])),
+    .target(
+      name: "SevraTableUI", dependencies: ["SevraCore"],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
-      name: "SevraApp", dependencies: ["SevraCore", "SevraAI", "SevraProduct"],
+      name: "SevraTableUIChecks", dependencies: ["SevraTableUI", "SevraCore"],
+      path: "IntegrationTests/TableUI", swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(
+      name: "SevraApp", dependencies: ["SevraCore", "SevraAI", "SevraProduct", "SevraTableUI"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraCLI", dependencies: ["SevraCore", "SevraAI", "SevraProduct"],
