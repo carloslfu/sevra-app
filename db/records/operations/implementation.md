@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T13:50:47.820350+00:00
+updated: 2026-10-27T13:58:52.680475+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1588,3 +1588,19 @@ request, generated output, memory trace, failure and exclusion. Do not edit the
 measured sources or rebuild while it runs. Documentation-only updates do not
 change those inputs. This is running evidence, not a passed performance gate.
 Inspect the terminal result, all paired conditions and cleanup before adoption.
+
+## Active-job continuity comparison prepared
+The separate codex/continuity-release checkout prepares --active-context to test
+repeated maintenance inside one mutating job, against the same fixture without
+maintenance at 64K. It preserves real model choice, original source versions,
+normal tool/output/step bounds and actual token measurements. Both functional arms
+must succeed, with at least two active checkpoints in the 32K arm; missing coverage
+and all failures remain explicit. This is a C12 subset, not a C13 performance claim.
+
+Source formatting passes. Compilation and execution are deliberately deferred
+while the frozen full W1 cohort runs in the primary checkout. No product code,
+model pin, threshold or frozen source/binary was changed. Documentation now states
+explicitly that both packaged product paths disable automatic maintenance; only
+dedicated native probes opt in. The previous wording could be mistaken for an
+enabled native-preview feature. See [[records/specs/conversation-context]] and
+[[records/operations/build-and-run]] for the protocol and command.

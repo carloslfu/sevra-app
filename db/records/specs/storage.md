@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-27T12:52:28.920488+00:00
+updated: 2026-10-27T13:58:52.619594+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -147,9 +147,10 @@ Current input heads, status and meaning are projected afresh when inspected.
 These are operational artifacts, not a third category of business information.
 
 Original messages, payloads, run links and checkpoints travel in coherent SQLite
-snapshots and portable archives. History indexes are rebuildable. Automatic
-summarization, compaction scheduling and general pending-action recovery remain
-separate unfinished work under [[records/specs/conversation-context]].
+snapshots and portable archives. History indexes are rebuildable. Summarization
+and compaction scheduling are implemented for dedicated evaluation probes but
+remain disabled in both packaged product paths pending qualification. General
+pending-action recovery remains unfinished under [[records/specs/conversation-context]].
 
 Tool calls are journaled before execution with the exact arguments, response text,
 run/call identity and the deterministic operation token computed by the host.
