@@ -379,3 +379,9 @@ Preserve complete 10k/100k search-scale run: recall and cancellation pass but 10
 ## [2026-10-27 16:37] verification | records/operations/implementation.md
 D9 first reference replay changes tokens under identical inputs; native archive copy refuses missing resources. Preserve the failed attempt, validate all adjacent resources and retain full 6bac991 CI pass.
 
+## [2026-10-27 16:48] verification | records/operations/implementation.md
+Completed D9: 12 correct jobs, 4 closed workers, reference output varies under identical requests; native repeats match one reference. No speed/adoption qualification. Archived raw evidence and independent audit.
+
+## [2026-10-27 16:50] implementation | records/operations/implementation.md
+Batch snippets within bounded FTS row ranges, preserving exact passages and ranking. 70 core checks pass; full 100k and regression run pending. Refresh current status after D9.
+

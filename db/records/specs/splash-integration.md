@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T16:33:08.774063+00:00
+updated: 2026-10-27T16:48:37.593299+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -388,3 +388,16 @@ tokens as evidence; missing/invalid jobs, samples or cleanup invalidate the prob
 Do not infer a root cause from equal cache counters. This cannot qualify speed,
 relax W1 parity, or authorize production adoption. No measured worker rebuild,
 extra masks/status calls or cache intervention is allowed.
+
+The completed replay on controller 22cca90 retained four valid workers and twelve
+correct jobs. Both native repeats match each other and the second reference
+repeat. The first reference repeat differs at output token 19 for the same second
+inventory request and identical preceding requests/outputs. Thus the current
+reference also fails exact repeatability. This rules out treating the W1 mismatch
+alone as proof of a Swift frontend defect; it does not identify a numerical root
+cause, prove universal native determinism, or qualify production adoption.
+Preserve the failed W1 and first incomplete D9 attempt. The next engine review
+must distinguish frontend request/tokenizer/grammar equivalence from upstream
+numerical repeatability before choosing another experiment or revising a gate.
+Do not blindly repeat the full cohort until one happens to pass. Complete replay
+and independent hash/process audit: integration/evidence/2026-10-27-prefix-d9-repeatability.json.gz.

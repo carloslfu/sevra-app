@@ -139,18 +139,16 @@ extension Workbook {
             .number(Double(cursor == nil ? skip : 0)),
           ]
           let rows = try db.execute(sql, args)
+          let snippets = try searchSnippets(
+            rows.prefix(count).compactMap { $0["id"]?.int }, terms: terms)
           let hits = try rows.prefix(count).map { r -> SearchHit in
             guard let id = r["id"]?.int, let rank = Double(r["score"]?.text ?? ""), rank.isFinite
             else {
               throw SevraError("integrity", "Invalid search index row.")
             }
-            let snippet =
-              try db.scalar(
-                "SELECT snippet(search_fts,1,\'\',\'\',\' … \',36) FROM search_fts WHERE rowid=? AND search_fts MATCH ?",
-                [.number(Double(id)), .string(terms)]
-              ).string ?? r["snippet"]!.text
             return SearchHit(
-              id: id, itemID: r["item_id"]!.text, title: r["title"]!.text, snippet: snippet,
+              id: id, itemID: r["item_id"]!.text, title: r["title"]!.text,
+              snippet: snippets[id] ?? r["snippet"]!.text,
               locator: r["locator"]!.text, rank: rank)
           }
           var next: String?
@@ -169,6 +167,31 @@ extension Workbook {
         }
       }
     }
+  }
+
+  /// Reuse one FTS cursor for nearby hits. Equality/IN on rowid makes SQLite
+  /// reopen the full-text query for every hit; unary + keeps membership as a
+  /// filter while the ordinary bounds still seek through the FTS index. Cap each
+  /// span so sparse hits cannot force an unbounded scan between their IDs.
+  private func searchSnippets(_ ids: [Int], terms: String) throws -> [Int: String] {
+    let sorted = ids.sorted()
+    var snippets: [Int: String] = [:]
+    var start = 0
+    while start < sorted.count {
+      var end = start + 1
+      while end < sorted.count && sorted[end] - sorted[start] < 4096 { end += 1 }
+      let group = sorted[start..<end]
+      let placeholders = Array(repeating: "?", count: group.count).joined(separator: ",")
+      let rows = try db.execute(
+        "SELECT rowid AS id,snippet(search_fts,1,'','',' … ',36) AS snippet FROM search_fts WHERE search_fts MATCH ? AND rowid>=? AND rowid<=? AND +rowid IN (\(placeholders))",
+        [.string(terms), .number(Double(sorted[start])), .number(Double(sorted[end - 1]))]
+          + group.map { .number(Double($0)) })
+      for row in rows {
+        if let id = row["id"]?.int, let snippet = row["snippet"]?.string { snippets[id] = snippet }
+      }
+      start = end
+    }
+    return snippets
   }
 
   /// Receipt persistence and context maintenance cannot change business ranking.

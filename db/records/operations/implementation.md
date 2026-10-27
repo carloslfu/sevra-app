@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T16:37:51.286105+00:00
+updated: 2026-10-27T16:50:00.216784+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -14,115 +14,48 @@ specifications remain the acceptance contract. A source commit does not imply th
 every requirement or supported hardware profile has passed.
 
 ## Current direction, October 27
-This remains a development build. The installed app uses the preserved Slotstream
-baseline; the separate native preview uses the Python-free Swift adapter and
-unchanged pinned Splash C++/Metal engine. Automatic compaction and native
-production adoption remain disabled pending their recorded gates.
+This remains a development build. The preserved Slotstream app is the baseline;
+the separate native preview uses the Python-free Swift adapter and pinned Splash
+C++/Metal. Native adoption and automatic compaction remain gated.
 
-- The frozen W1 cohort on ed6ffd0 failed the missing-evidence assertion on both
-  frontends. Its current-request citation bypassed the exact search-gap receipt.
-  The failed cohort and partial timings remain preserved and cannot qualify speed.
-- The host correction now rejects the current request as independent evidence for
-  requested external facts and retains valid user-supplied inputs. Six regression
-  cases and the complete local suite pass. The actual block-3 replay on frozen
-  8d0bb6e passes all sixteen jobs and both Ready primes, with exact paired request
-  and generated-token equality. This repairs that case; it is not a speed gate.
-- Native setup has completed a fresh 21.48 GB download, cancellation/resume,
-  digest verification and atomic publication. Settings cancellation, explicit
-  reuse and reverification pass on the recorded Mac; wider hardware remains
-  unqualified. Both app/CLI variants rebuilt after the current correction.
-- All 15 document durability checks pass locally, and both packaged CLIs pass
-  atomic edit/retry/stale/copy/file-boundary checks. Visible native checks now
-  verify edited-version acceptance, pinned earlier references, retained text after
-  failed saves, close/quit refusal, concurrent-edit recovery through conversation,
-  and immediate-close/reopen durability. Minimum-width save recovery also passes;
-  large-text responsiveness remains unmeasured.
-- The 14 injected voice lifecycle checks and four checkpoint process-death,
-  cancellation and concurrency checks pass locally and in their recorded hosted
-  runs. The hosted checkpoint artifact was downloaded, hash-verified and inspected.
-  Hardware recognition, actual-model C12/C13 and broader UI journeys remain open.
-- Native table identity/stale edits, paginated search/Back, PDF/OCR/CSV intake,
-  inherited citations and long-conversation navigation have focused evidence.
-  Six native continuity requests pass across three checkpoints, including current
-  acceptance/withdrawal and portable recovery. That does not complete J01-J10.
+- Search-grounding repairs pass deterministic regressions and the actual paired
+  block-3 replay: sixteen jobs, two Ready primes and 37 exact request pairs.
+  Empty searches cannot establish exhaustive absence, and the current request
+  cannot serve as independent evidence for the facts being sought.
+- Native setup passed fresh download, cancellation/resume, verification and
+  explicit reuse on the recorded M5 Pro. Document editing/durability, generated
+  spaces, pinned versions, PDF/OCR/CSV intake and native media playback have
+  focused passing checks. They do not complete all end-to-end journeys.
+- Full W1 completed 260 correct jobs in twenty closed workers and met all four
+  timing thresholds, but exact token parity failed in one inventory warmup.
+  It remains a failed qualification. D9 now demonstrates variation within the
+  reference itself for an identical request/history; both new native repeats
+  match one reference. The evidence narrows diagnosis, not the release gate.
+- External asset opening now saves and opens an independent verified copy.
+  The 70 current core checks pass, including copy integrity/cancellation and
+  newly batched search snippets. Earlier full native builds and hosted checks
+  passed; the newest search change still needs its full suite/build.
+- Linked-file hashing passed a headless >2 GiB test with bounded cancellation
+  and changed-original rejection. Workspace ownership, stale callback refusal,
+  live search cancellation and bounded Home metadata have regression coverage.
+  Native large-file, close/switch and external-copy journeys remain pending.
+- The first physical 100k search run had correct recall/paging and prompt
+  cancellation, but warm p95 was 204 ms for rows and 275 ms for document chunks,
+  above the 200 ms target. Bounded snippet batching is implemented and tested;
+  a fresh full measurement is next. No scale-latency pass is claimed yet.
+- Microphone/speech-recognition access is approved. Computer Use cannot operate
+  the macOS permission dialog, so the already-requested manual Allow step is
+  pending. Dictation is stopped. Actual human-phrase recognition remains open;
+  no repeated approval is needed. Fourteen injected lifecycle checks pass.
+- Actual-model occupied-context and repeated-compaction probes are prepared but
+  not qualified. Broader accessibility, whole-app responsiveness/memory and
+  fresh public-clone/release journeys remain open.
 
-- Pinned copies now capture nested document versions and bounded search results
-  atomically. All 64 core checks pass; visible live/pinned divergence after edits
-  behaves correctly. Pinning runs off the UI thread and supports cancellation.
-- A real packaged native video crash was repaired by embedding AVPlayerView
-  directly. Video/audio, compact playback, workbook-close/reset and minimum-width
-  System/Dark checks pass on the recorded host. Both packages build, native resource
-  isolation and baseline install/update/uninstall checks pass. Hardware voice
-  and broader accessibility remain unqualified.
-
-- The complete ten-block W1 cohort on frozen 0e45190 finished with 260 valid
-  jobs, 20 closed workers, no exclusions, unchanged 93 source/binary identities
-  and no surviving worker processes. All four timing thresholds were met, but
-  exact parity failed in block 9 inventory warmup, seed 9002. Its second request
-  had identical serialized bytes and prompt tokens but produced 230 versus 234
-  output tokens; later requests consequently differed. Both jobs still returned
-  the correct cited balance. This is a failed qualification, not native adoption
-  or a speed claim. Preserve it and isolate the first divergence before a rerun.
-- The 0e45190 hosted workflow passed completely (40515342232), including both
-  package builds and installation checks. The linked-file preview correction is
-  prepared on the asset-preview branch: hashing releases the workbook lock,
-  cancellation reaches file readers and stale results cannot replace another
-  preview. Core and dedicated preview regression checks pass in hosted CI on 57e9fd1.
-  Full packaging passed on 9a2f58a in run 40519770358; native large-file UI
-  qualification remains pending.
-
-- The repeated-active-job context probe and preview correction now share one
-  development branch. The probe's 6886540 hosted workflow passed completely
-  (40516968758). Actual 32K maintenance/64K reference arms still await the end of
-  W1; compilation and unrelated checks do not establish context reliability.
-
-- Hosted >2 GiB linked-file verification passes on 96b8528, including bounded
-  cancellation, full retry and changed-original rejection. Its inspected lifetime
-  physical footprint peaks at 6,489,600 bytes. This is headless hash/session
-  evidence; real large-file viewers and full-app memory remain unqualified.
-- Composer Stop/Retry preview/Find original controls pass the complete 202d513
-  hosted workflow (40521849734), including both app packages. They preserve
-  control access while inference is busy and share native preview ownership.
-  Native interaction verification remains pending.
-- Workspace operation ownership is implemented on 9044e5e. Its delayed completion,
-  Stop and permission regression and complete app builds passed in hosted run
-  40523815521. Follow-up table/drop/text-viewer wiring is included in the complete
-  passing 426dd2d run (40526063413). Native close/switch checks remain pending.
-- Search cancellation now reaches the SQLite reader token on 20f90f2. Query
-  replacement, task cancellation, clearing, leaving and workbook reset preserve
-  completed pages while refusing stale results. The expanded test fixture failed
-  compilation because it lacked an explicit return; 426dd2d corrects that fixture.
-  The corrected runtime suite and complete app/package/install workflow passed
-  in run 40526063413. Large-workload/native cancellation measurement remains open.
-- Home now reads bounded ItemSummary metadata instead of complete document bodies
-  and payloads. Its large-document/current-version/accepted-estimate regression
-  passed on af702ee and the later complete 426dd2d workflow. Native responsiveness
-  and whole-app memory remain unqualified.
-- The strengthened search-scale v2 self-check passed on 9043fff in hosted run
-  40530670227. Its inspected artifact contains 42 correct sampled reads, complete
-  paging over 20 documents and 35 commit-matched source hashes. This small virtual
-  runner result does not qualify 100k latency or cancellation; both remain open.
-
-Next, finish the frozen W1 measurement and qualify the prepared asset preview.
-Continue whole-app memory/headroom, occupied-context and repeated-compaction recovery,
-search scale/interruption, native voice/accessibility and fresh-clone installation
-journeys. Native production adoption, baseline removal and
-release remain gated. [[records/specs/splash-integration]],
-[[records/specs/conversation-context]] and [[records/operations/build-and-run]] own
-the contracts and reproduction commands.
-
-- The full 9043fff hosted workflow passed (40530670227), including both package
-  builds and installation. This confirms the search-scale self-check integration,
-  not the pending physical 100k search target.
-- External opening now saves/opens a verified independent copy instead of
-  giving an editor the included asset path. The full local suite passes on
-  21a8cd2, including 69 core checks and copy cancellation/no-overwrite/alias/
-  changed-original cases. The native release target builds on 75cb253 without
-  the file-action actor warnings. Visible save/open checks and newest CI remain
-  pending; the frozen W1 run was archived before integration.
-- The owner explicitly approved microphone and speech-recognition permissions
-  for local dictation. Grant and test after W1; a human phrase and actual hardware
-  recognition are still required. No permission re-approval is needed.
+Next, measure the search repair, complete the visible asset and voice checks when
+macOS access is available, and review the engine repeatability evidence before
+choosing the next native qualification step. Keep the design and failed evidence
+intact. [[records/specs/splash-integration]], [[records/specs/conversation-context]]
+and [[records/operations/build-and-run]] own the contracts and reproduction steps.
 ## Earlier checkpoint summaries, October 27
 
 The following passages retain earlier development states. Statements about tests
@@ -2105,3 +2038,43 @@ the failing results before optimizing the query.
 
 Public raw reports and conditions: integration/evidence/2026-10-27-search-scale-v2-first-full.json.gz.
 Compressed SHA-256: 06c2ca06553d79930b87cca2a52a0f8018ef10303df5c107223b0883f1048472.
+
+## Complete D9 repeatability result, October 27
+The corrected diagnostic on controller 22cca90 used the preserved 0e45190 worker
+and original adjacent resources. All twelve jobs in four fresh workers completed
+correctly, with no sampling/condition/cleanup failures. Independent audit rehashed
+all thirteen frozen inputs, twenty-two observed requests, six unique wire frames
+and six unique prompt arrays, recomputed the summary exactly and confirmed every
+recorded worker/helper/reference PID closed.
+
+Both native repeats matched each other and the last reference repeat completely.
+The first reference repeat diverged from the last reference at inventory request
+two, output token 19, despite identical request bytes and preceding history. The
+first reference finished in two requests while the others used four; all gave the
+correct cited stock balance. This demonstrates reference repeatability failure,
+not a proven Swift bug or a root cause in any particular kernel/cache operation.
+Timing/adoption qualification stays false. No full W1 rerun or gate weakening
+followed this result.
+
+Archive: integration/evidence/2026-10-27-prefix-d9-repeatability.json.gz, 406932
+bytes; uncompressed SHA-256
+5296c2925f62e95b7975d673122238d21c2900ecda521b1a1e728b2e398a5523.
+It contains the full four worker arms, root summary, identities, request/prompt
+artifacts, sampling and independent audit, with local paths sanitized. The first
+missing-resource attempt is retained separately. Search profiling began only
+after all D9 workers had exited.
+
+## Bounded snippet retrieval, October 27
+Search keeps the existing lexical/filename ranking, filters, best passage and
+revision-bound pagination. It fetches snippets for only the displayed IDs using
+one FTS cursor per nearby group. Each group spans fewer than 4096 row IDs; sparse
+hits split into separate groups. Unary + on rowid membership prevents SQLite from
+restarting the full-text query per hit, while ordinary lower/upper bounds still
+seek the index. Membership remains explicit so neighboring evidence never leaks
+into the page. Filename-only matches retain their stored excerpt. The existing
+read transaction and cancellation/deadline budget cover all groups.
+
+Seventy core checks pass, including a new sparse/dense/filename-only/diacritic
+fixture comparing exact snippets, locators and ranks across page sizes. The
+full 100k measurement remains pending at this checkpoint. The earlier failed
+latency result is preserved.
