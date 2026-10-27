@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T14:50:41.413771+00:00
+updated: 2026-10-27T14:56:42.438926+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1835,3 +1835,18 @@ diff checks pass; the new runtime check and app compilation await hosted CI. Thi
 is not a full-app memory result. Synchronous metadata refresh can still contend
 with database work; native responsiveness under active large queries remains an
 explicit measurement/follow-up, not a completed claim.
+
+## Search test compilation correction
+Hosted run 40524238057 compiled the changed SearchSession but failed compiling its
+delayed-read fixture: adding a token assignment made its continuation expression
+require an explicit return. The fixture is corrected without changing product
+behavior or assertions. The search check now runs before the slower product-model
+module build so this inexpensive boundary reports earlier. Preserve that failed
+run; no passing search runtime result is claimed until the corrected check runs.
+
+The new recent-item catalog regression and the core/preview suites passed on
+af702ee in run 40525067058. Its full workflow remains unqualified and inherits the
+same search-fixture compilation error until this correction. Separately, the
+complete 96b8528 workflow finished successfully (40520881612), including baseline
+and native package builds and installation. That is the older large-file
+checkpoint, not proof of the newer workspace/search/catalog app wiring.

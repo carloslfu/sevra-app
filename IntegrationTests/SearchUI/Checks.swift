@@ -14,7 +14,7 @@ actor ReadGate {
   func wasCancelled() -> Bool { cancellation?.isCancelled == true }
   func read(_ cancellation: Cancellation? = nil) async throws -> SearchPage {
     self.cancellation = cancellation
-    try await withCheckedThrowingContinuation { continuation in
+    return try await withCheckedThrowingContinuation { continuation in
       result = continuation
       started = true
       for continuation in waiting { continuation.resume() }

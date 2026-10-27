@@ -56,14 +56,14 @@ jobs:
         run: |
           swift build --product sevra-table-ui-checks -j 3
           .build/debug/sevra-table-ui-checks
-      - name: Check active model memory-pressure lifecycle
-        run: |
-          swift build --product sevra-product-checks -j 3
-          .build/debug/sevra-product-checks
       - name: Check native search navigation and stale reads
         run: |
           swift build --product sevra-search-ui-checks -j 3
           .build/debug/sevra-search-ui-checks
+      - name: Check active model memory-pressure lifecycle
+        run: |
+          swift build --product sevra-product-checks -j 3
+          .build/debug/sevra-product-checks
       - name: Check the native Splash adapter
         run: |
           swift build --product sevra-splash-checks -j 3
