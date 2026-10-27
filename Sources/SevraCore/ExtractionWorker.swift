@@ -26,6 +26,26 @@ public struct ExtractionWorker: Sendable {
   }
 
   public func extract(_ url: URL, cancellation: Cancellation = .init()) throws -> ExtractionResult {
+    let result: ExtractionResult = try run(url, mode: [], cancellation: cancellation)
+    try result.validate()
+    return result
+  }
+
+  public func readTable(
+    _ url: URL, format: StructuredFormat, cancellation: Cancellation = .init()
+  ) throws -> StructuredResult {
+    let result: StructuredResult = try run(
+      url, mode: ["--structured=" + format.rawValue], cancellation: cancellation)
+    try result.validate()
+    try require(
+      format == .xlsx || result.sheets.count == 1, "structured_output",
+      "Delimited text must return one table.")
+    return result
+  }
+
+  private func run<Result: Codable>(
+    _ url: URL, mode: [String], cancellation: Cancellation
+  ) throws -> Result {
     try require(
       timeout.isFinite && timeout > 0 && maximumMemoryBytes > 0, "extraction_policy",
       "Invalid extraction limits.")
@@ -46,7 +66,7 @@ public struct ExtractionWorker: Sendable {
     var bytes = Data()
     var diagnostic = Data()
     process.executableURL = executable
-    process.arguments = arguments + [url.path]
+    process.arguments = arguments + mode + [url.path]
     process.standardInput = FileHandle.nullDevice
     process.standardOutput = output
     process.standardError = errors
@@ -157,7 +177,7 @@ public struct ExtractionWorker: Sendable {
       process.terminationReason == .exit && process.terminationStatus == 0, "extraction_crash",
       "The document extractor stopped unexpectedly. The original and any previous index are kept. Retry intake."
     )
-    guard let response = try? JSONDecoder().decode(ExtractionReply.self, from: bytes),
+    guard let response = try? JSONDecoder().decode(ParserReply<Result>.self, from: bytes),
       response.version == 1,
       (response.result == nil) != (response.error == nil)
     else {
@@ -171,14 +191,23 @@ public struct ExtractionWorker: Sendable {
         "The document extractor returned an invalid error.")
       throw error
     }
-    let result = response.result!
-    try result.validate()
-    return result
+    return response.result!
   }
 
   /// Dedicated helper entry point. No workbook or network service is opened.
   public static func runMain() -> Never {
-    guard CommandLine.arguments.count == 2 else { exit(64) }
+    let arguments = Array(CommandLine.arguments.dropFirst())
+    let format: StructuredFormat?
+    if arguments.count == 1 {
+      format = nil
+    } else if arguments.count == 2, arguments[0].hasPrefix("--structured="),
+      let selected = StructuredFormat(rawValue: String(arguments[0].dropFirst(13)))
+    {
+      format = selected
+    } else {
+      exit(64)
+    }
+    let url = URL(fileURLWithPath: arguments.last!)
     let parent = getppid()
     guard parent > 1 else { exit(75) }
     let started = ProcessInfo.processInfo.systemUptime
@@ -189,39 +218,51 @@ public struct ExtractionWorker: Sendable {
     }
     watchdog.resume()
     let status: Int32 = withExtendedLifetime(watchdog) {
-      let reply: ExtractionReply
-      do {
-        let result = try Extractor.extractInProcess(
-          URL(fileURLWithPath: CommandLine.arguments[1]),
-          cancellation: Cancellation(deadlineAfterSeconds: 60))
-        try result.validate()
-        reply = ExtractionReply(version: 1, result: result, error: nil)
-      } catch {
-        let failure =
-          error as? SevraError
-          ?? SevraError(
-            "extraction_failed",
-            "This document could not be indexed. The original is kept; retry intake or use a smaller excerpt."
-          )
-        reply = ExtractionReply(
-          version: 1, result: nil,
-          error: SevraError(String(failure.code.prefix(128)), String(failure.message.prefix(1024))))
+      if let format {
+        return writeReply {
+          let result = try StructuredResult.readInProcess(
+            url, format: format, cancellation: Cancellation(deadlineAfterSeconds: 60))
+          try result.validate()
+          return result
+        }
       }
-      do {
-        let data = try JSONEncoder().encode(reply)
-        guard data.count <= maximumOutputBytes else { return 74 }
-        try FileHandle.standardOutput.write(contentsOf: data)
-        return 0
-      } catch { return 74 }
+      return writeReply {
+        let result = try Extractor.extractInProcess(
+          url, cancellation: Cancellation(deadlineAfterSeconds: 60))
+        try result.validate()
+        return result
+      }
     }
     watchdog.cancel()
     exit(status)
   }
+  private static func writeReply<Result: Codable>(_ parse: () throws -> Result) -> Int32 {
+    let reply: ParserReply<Result>
+    do {
+      reply = ParserReply(version: 1, result: try parse(), error: nil)
+    } catch {
+      let failure =
+        error as? SevraError
+        ?? SevraError(
+          "extraction_failed",
+          "This file could not be read. The original is kept; retry intake or use a smaller excerpt."
+        )
+      reply = ParserReply(
+        version: 1, result: nil,
+        error: SevraError(String(failure.code.prefix(128)), String(failure.message.prefix(1024))))
+    }
+    do {
+      let data = try JSONEncoder().encode(reply)
+      guard data.count <= maximumOutputBytes else { return 74 }
+      try FileHandle.standardOutput.write(contentsOf: data)
+      return 0
+    } catch { return 74 }
+  }
 }
 
-private struct ExtractionReply: Codable {
+private struct ParserReply<Result: Codable>: Codable {
   let version: Int
-  let result: ExtractionResult?
+  let result: Result?
   let error: SevraError?
 }
 

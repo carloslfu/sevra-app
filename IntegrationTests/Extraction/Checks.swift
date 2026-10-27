@@ -175,7 +175,7 @@ private final class Failures: @unchecked Sendable {
         }
       }
       defer {
-        cancellations.forEach { $0.cancel() }
+        for cancellation in cancellations { cancellation.cancel() }
         _ = group.wait(timeout: .now() + 4)
       }
       let paths = (0..<2).map { root.appendingPathComponent("slot-\($0).pid").path }
@@ -192,12 +192,153 @@ private final class Failures: @unchecked Sendable {
       try expect(
         !FileManager.default.fileExists(atPath: root.appendingPathComponent("queued.pid").path),
         "A third parser was launched")
-      cancellations.forEach { $0.cancel() }
+      for cancellation in cancellations { cancellation.cancel() }
       try expect(group.wait(timeout: .now() + 4) == .success, "Concurrent parsers did not stop")
       try expect(
         results.values() == ["cancelled", "cancelled"], "Concurrent cancellation lost its cause")
       for index in 0..<2 { try reaped("slot-\(index)") }
       _ = try ExtractionWorker().extract(source)
+    }
+    check("structured parsing preserves UTF-8, quoted newlines, empty quoted rows and TSV") {
+      let csv = root.appendingPathComponent("Table.csv")
+      let input = "\u{feff}name,note\r\nCafé,\"one\ntwo\"\r\nB,\"say \"\"yes\"\"\"\r\n"
+      try Data(input.utf8).write(to: csv)
+      let rows = try ExtractionWorker().readTable(csv, format: .csv).sheets[0].rows
+      try expect(
+        rows == [["name", "note"], ["Café", "one\ntwo"], ["B", "say \"yes\""]], "CSV values changed"
+      )
+      try expect(try CSV.parse("\"\"") == [[""]], "Quoted empty row disappeared")
+      try Data("name\tquantity\r\nBrass\t12\r\n".utf8).write(to: csv)
+      try expect(
+        try ExtractionWorker().readTable(csv, format: .tsv).sheets[0].rows == [
+          ["name", "quantity"], ["Brass", "12"],
+        ], "TSV values changed")
+    }
+    check("CSV enforces exact terminal column, row and field limits") {
+      let width = Array(repeating: "x", count: 500).joined(separator: ",")
+      try expect(try CSV.parse(width)[0].count == 500, "500 columns were refused")
+      try refuses("csv_limit") { _ = try CSV.parse(width + ",x") }
+      try expect(
+        try CSV.parse(String(repeating: "x\n", count: 100_000)).count == 100_000,
+        "100,000 rows were refused")
+      try refuses("csv_limit") { _ = try CSV.parse(String(repeating: "x\n", count: 100_000) + "x") }
+      try expect(
+        try CSV.parse(String(repeating: "x", count: 1_000_000))[0][0].utf8.count == 1_000_000,
+        "1 MB field was refused")
+      try refuses("csv_limit") { _ = try CSV.parse(String(repeating: "x", count: 1_000_001)) }
+      let cancelled = Cancellation()
+      cancelled.cancel()
+      try refuses("cancelled") { _ = try CSV.parse("a,b", cancellation: cancelled) }
+    }
+    check("structured worker failure publishes no dataset and original remains searchable") {
+      let csv = root.appendingPathComponent("Failure.csv")
+      try Data("part,quantity\nBrass,12\n".utf8).write(to: csv)
+      let book = try Workbook.create(
+        at: root.appendingPathComponent("Structured failure.sevra"), title: "Failure")
+      let item = try book.importFile(csv)
+      try book.extract(item.id)
+      for mode in ["crash", "invalid-json", "missing-result", "wrong-version", "stderr"] {
+        try refuses(mode == "crash" ? "extraction_crash" : "extraction_protocol") {
+          _ = try book.importCSV(item.id, worker: worker(mode))
+        }
+        try reaped(mode)
+        try expect(try book.datasets().isEmpty, "Failed parser published table data")
+        try expect(
+          try book.extractionStatus(item.id)["state"].text == "ready",
+          "Structured failure hid the content index")
+        let pending = try Workbook(book.url).pendingExtractions()
+        try expect(
+          pending.contains {
+            $0["item_id"].text == item.id && $0["parser"].text == "structured-v1"
+              && $0["state"].text == "failed"
+          }, "Failure did not survive reopen")
+      }
+      let table = try book.importCSV(item.id)
+      let retry = try book.importCSV(item.id)
+      try expect(table.id == retry.id && retry.rowCount == 1, "Retry duplicated table data")
+      try expect(try book.pendingExtractions().isEmpty, "Recovered intake kept a stale error")
+      try expect(
+        try book.search("Brass").hits.contains { $0.itemID == item.id }, "Original search was lost")
+      try expect(
+        try Workbook.hashFile(book.assetURL(item.assetID!)) == book.asset(item.assetID!).hash,
+        "Original changed")
+    }
+    check("late cancelled parser cannot replace a newer successful intake status") {
+      let csv = root.appendingPathComponent("Concurrent.csv")
+      try Data("part,quantity\nBrass,12\n".utf8).write(to: csv)
+      let book = try Workbook.create(
+        at: root.appendingPathComponent("Concurrent.sevra"), title: "Concurrent")
+      let item = try book.importFile(csv)
+      try book.extract(item.id)
+      let cancelled = Cancellation()
+      let group = DispatchGroup()
+      let result = Failures()
+      let parser = worker("older-parse", timeout: 5)
+      group.enter()
+      DispatchQueue.global().async {
+        defer { group.leave() }
+        do { _ = try book.importCSV(item.id, cancellation: cancelled, worker: parser) } catch {
+          result.record(error)
+        }
+      }
+      defer {
+        cancelled.cancel()
+        _ = group.wait(timeout: .now() + 4)
+      }
+      let pid = root.appendingPathComponent("older-parse.pid")
+      let until = ProcessInfo.processInfo.systemUptime + 2
+      while !FileManager.default.fileExists(atPath: pid.path)
+        && ProcessInfo.processInfo.systemUptime < until
+      {
+        Thread.sleep(forTimeInterval: 0.01)
+      }
+      try expect(FileManager.default.fileExists(atPath: pid.path), "Older parser did not start")
+      _ = try book.importCSV(item.id)
+      cancelled.cancel()
+      try expect(group.wait(timeout: .now() + 4) == .success, "Older parser did not stop")
+      try reaped("older-parse")
+      try expect(result.values() == ["cancelled"], "Cancellation lost its cause")
+      try expect(
+        try book.datasets().count == 1 && book.pendingExtractions().isEmpty,
+        "Late completion replaced the current status")
+    }
+    check("structured import refuses source bytes changed during parsing") {
+      let csv = root.appendingPathComponent("Changing.csv")
+      try Data("part,quantity\nBrass,12\n".utf8).write(to: csv)
+      let book = try Workbook.create(
+        at: root.appendingPathComponent("Changing.sevra"), title: "Changing")
+      let item = try book.importFile(csv, linked: true)
+      try refuses("changed_asset") {
+        _ = try book.importCSV(item.id, worker: worker("change-source"))
+      }
+      try reaped("change-source")
+      try expect(try book.datasets().isEmpty, "Changed-source parser published rows")
+    }
+    check("structured cancellation and missing helper retain the same process boundary") {
+      try refuses("deadline") {
+        _ = try worker("hang", timeout: 0.3).readTable(source, format: .xlsx)
+      }
+      try reaped("hang")
+      let cancel = Cancellation()
+      DispatchQueue.global().asyncAfter(deadline: .now() + 0.3) { cancel.cancel() }
+      try refuses("cancelled") {
+        _ = try worker("cancel").readTable(source, format: .csv, cancellation: cancel)
+      }
+      try reaped("cancel")
+      try refuses("extraction_worker") {
+        _ = try ExtractionWorker(executable: root.appendingPathComponent("missing")).readTable(
+          source, format: .csv)
+      }
+    }
+    check("structured limits reject dense blank expansion and invalid UTF-8 before publication") {
+      let csv = root.appendingPathComponent("Wide.csv")
+      let text =
+        Array(repeating: "column", count: 500).joined(separator: ",") + "\n"
+        + String(repeating: "x\n", count: 2000)
+      try Data(text.utf8).write(to: csv)
+      try refuses("structured_output") { _ = try ExtractionWorker().readTable(csv, format: .csv) }
+      try Data([0xff, 0xfe, 0x61]).write(to: csv)
+      try refuses("encoding") { _ = try ExtractionWorker().readTable(csv, format: .csv) }
     }
     check("real helper exits after parent death while its output pipe is blocked") {
       let big = root.appendingPathComponent("Large text.txt")
@@ -248,7 +389,7 @@ private final class Failures: @unchecked Sendable {
       "{\"version\":1,\"result\":{\"chunks\":[],\"state\":\"unsupported\",\"detail\":\"Synthetic fixture\"}}"
     switch mode {
     case "crash": kill(getpid(), SIGKILL)
-    case "hang", "cancel", "slot-0", "slot-1":
+    case "hang", "cancel", "slot-0", "slot-1", "older-parse":
       signal(SIGTERM, SIG_IGN)
       while true { Thread.sleep(forTimeInterval: 0.1) }
     case "memory":
@@ -280,6 +421,13 @@ private final class Failures: @unchecked Sendable {
       let data = Data(repeating: 0x41, count: 65_536)
       for _ in 0..<100 { try FileHandle.standardError.write(contentsOf: data) }
       try FileHandle.standardOutput.write(contentsOf: Data(valid.utf8))
+    case "change-source":
+      try Data("part,quantity\nBrass,99\n".utf8).write(
+        to: URL(fileURLWithPath: CommandLine.arguments.last!))
+      try FileHandle.standardOutput.write(
+        contentsOf: Data(
+          #"{"version":1,"result":{"sheets":[{"name":"","rows":[["part","quantity"],["Brass","12"]],"rowNumbers":[1,2],"notes":[],"formulas":{}}]}}"#
+            .utf8))
     case "descriptors":
       for fd in 3..<getdtablesize() {
         var path = [CChar](repeating: 0, count: Int(PATH_MAX))

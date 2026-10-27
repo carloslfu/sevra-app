@@ -421,3 +421,9 @@ Implement Conversation/Threads, text navigation and reviewed provenance-preservi
 ## [2026-10-27 19:20] verification | records/operations/implementation
 Expose per-message evidence and origin actions, focused Conversation menu and Command-L; pass regression, package, install and native UI checks while preserving keyboard/VoiceOver limits.
 
+## [2026-10-27 19:40] implementation | records/operations/implementation
+Isolate CSV/TSV/XLSX parsing, enforce expanded result/coordinate limits and persist structured intake recovery; pass 77 core and 19 isolation checks, both packages/install and native UI, retaining failures and open gates.
+
+## [2026-10-27 19:42] design | records/specs/product
+Reconcile relayed UX consistency review against current code; specify scoped drafts, immediate threads, bounded history browsing, space/context navigation and coherent J11 acceptance while preserving completed sharing work.
+

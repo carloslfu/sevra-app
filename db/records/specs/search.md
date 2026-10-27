@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-27T18:42:11.590135+00:00
+updated: 2026-10-27T19:34:51.069755+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -228,9 +228,9 @@ Q11a. Text, PDF/PDFKit, image/Vision OCR and document/XML text extraction run in
 an adjacent native sevra-extract helper. The parent alone records extraction state
 and publishes validated chunks, after checking source identity. It passes only the
 source path, no workbook database or lock descriptors. This is fault isolation,
-not an operating-system security sandbox. Structured table ingestion, archives,
-file transcription and viewer rendering are separate paths and retain their own
-qualification requirements.
+not an operating-system security sandbox. CSV/TSV and XLSX structured parsing use
+the same helper boundary under Q11b below. Archives, file transcription and viewer
+rendering remain separate paths with their own qualification requirements.
 
 At most two extraction workers run per host process. A 60-second parent deadline
 includes queue time; queued cancellation starts no child. The helper checks parent
@@ -249,3 +249,42 @@ previous searchable index survive failure; retry can replace only the derived in
 Before/after source filesystem operations remain cooperatively cancellable. Remote
 volume stalls, concurrent inference headroom and wider hardware remain unqualified.
 See [[records/operations/implementation]] for failure-injection and packaged UI evidence.
+
+## Structured parsing process contract
+
+Q11b. CSV/TSV and XLSX table parsers run in the same adjacent native helper as text
+extraction, sharing its two-worker limit, deadline, memory/output guards, orphan
+watchdog and bounded termination. Text indexing of XLSX calls the parser inside
+its existing worker; it must not recursively launch another helper. The helper
+returns a versioned typed result containing saved cell strings, original row
+numbers, worksheet names, formula evidence and interpretation notes. It receives
+no workbook database. The host validates the whole result before creating datasets
+or committing resumable batches. Recheck original hashes after parsing and before
+publication, including included assets. A changed original requires a new source
+version. A parser failure cannot publish partial table results.
+
+CSV/TSV accepts UTF-8 with an optional BOM, quoted multiline fields, escaped quotes
+and native CRLF/LF/CR records. Preserve quoted empty records. Enforce at most 32 MB
+input, 1 MB per field, 500 columns and 100,000 rows at EOF as well as delimiters.
+Iterate without materializing a second character array; check cancellation during
+parsing. Clipboard text still uses the bounded in-process parser, not file intake.
+
+A complete structured result has at most 100 worksheets, 100,000 rows per worksheet,
+500 columns, one million dense cell positions across all sheets and 32 MB of expanded
+UTF-8 values, formulas and notes. Blank cells introduced to make rectangular tables
+count toward the cell budget; repeated shared strings count at every occurrence.
+Retain XLSX's 10,000-entry, 32 MB single-entry and 64 MB expanded-archive limits.
+Validate row coordinates within 1...1,048,576 and bound column accumulation before
+integer overflow. Missing or malformed helpers, incomplete results and limits fail
+explicitly without an in-process fallback or silently truncated tables.
+
+The host still performs typed-column inference and existing 1,000-row transactional
+publication. Cancellation after committed batches preserves those batches for retry;
+parsing success does not accept inferred business events. Persist running, failed
+and cancelled structured-intake status independently from text-index status, expose
+it in Home/CLI with Resume, and retain the current attempt identity. An older parser
+finishing after a newer successful import cannot replace that newer status. Preserve
+ready markers for this race; do not list them as pending. Process interruption leaves
+a resumable running entry. Parsing isolation does not by itself qualify whole-app memory, all filesystem IO, archives, transcription
+or viewers. Larger-than-budget files remain preserved assets with an actionable
+intake error; they are not reported as fully imported tables.

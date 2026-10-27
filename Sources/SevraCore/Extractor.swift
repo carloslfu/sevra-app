@@ -105,7 +105,7 @@ public enum Extractor {
         state: "ready", detail: "On-device OCR; check the original for accuracy.")
     }
     if ext == "xlsx" {
-      let sheets = try XLSX.read(url, cancellation: cancellation)
+      let sheets = try XLSX.readInProcess(url, cancellation: cancellation)
       let chunks = sheets.flatMap { sheet in
         zip(sheet.rows, sheet.rowNumbers).map { row, n in
           Chunk(

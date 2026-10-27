@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T19:16:07.184253+00:00
+updated: 2026-10-27T19:26:40.101213+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1100,3 +1100,14 @@ menu presence. Run sevra-preview-checks for formatted/Unicode labels, deduplicat
 2,000 distinct links and unsupported-route refusal. The full local suite includes
 these checks. Real UI coverage and remaining VoiceOver/keyboard limits are recorded
 in [[records/operations/implementation]].
+
+## Structured CSV/XLSX helper checks
+
+File table parsing shares sevra-extract with text indexing. Keep the helper next
+to both the app and CLI executable. The existing extraction check executable now
+also covers CSV/TSV fidelity, exact EOF limits, failed structured publication,
+source changes during parsing, dense blank expansion and cancellation. Core checks
+exercise XLSX saved values, formulas, dates, overflow and shared-string expansion.
+Run scripts/check_extraction_package.py for each built product directory to verify
+both installed helper layouts and actual CLI table import with build-tree reads
+denied. The public CLI does not require Python; this script is development tooling.

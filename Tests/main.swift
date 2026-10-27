@@ -482,6 +482,46 @@ check("XLSX shared strings, inline text, sparse cells, dates and cached formulas
   try expect(tables.count == 1 && tables[0].rowCount == 2)
   try expect(try book.search("cafe").hits.contains { $0.itemID == item.id })
 }
+check("XLSX refuses overflowing coordinates and expanded shared-string output") {
+  func fixture(_ name: String, rows: String, shared: String = "") throws -> URL {
+    let path = temp.appendingPathComponent(name + ".xlsx")
+    let archive = try Archive(url: path, accessMode: .create)
+    let parts = [
+      "xl/workbook.xml":
+        #"<workbook xmlns:r="r"><sheets><sheet name="Input" r:id="r1"/></sheets></workbook>"#,
+      "xl/_rels/workbook.xml.rels":
+        #"<Relationships><Relationship Id="r1" Type="x/worksheet" Target="worksheets/sheet1.xml"/></Relationships>"#,
+      "xl/worksheets/sheet1.xml": "<worksheet><sheetData>" + rows + "</sheetData></worksheet>",
+      "xl/sharedStrings.xml": "<sst><si><t>" + shared + "</t></si></sst>",
+    ]
+    for (name, text) in parts {
+      let bytes = Data(text.utf8)
+      try archive.addEntry(
+        with: name, type: .file, uncompressedSize: Int64(bytes.count),
+        provider: { position, count in bytes.subdata(in: Int(position)..<Int(position) + count) })
+    }
+    return path
+  }
+  let column = try fixture(
+    "overflow-column",
+    rows: "<row r=\"1\"><c r=\"" + String(repeating: "Z", count: 100) + "1\"><v>2</v></c></row>")
+  try refuses("xlsx_limit") { _ = try XLSX.read(column) }
+  let row = try fixture(
+    "overflow-row",
+    rows:
+      "<row r=\"9223372036854775807\"><c r=\"A1\"><v>2</v></c></row><row><c r=\"A2\"><v>3</v></c></row>"
+  )
+  try refuses("xlsx_limit") { _ = try XLSX.read(row) }
+  let invalidRow = try fixture(
+    "noninteger-row",
+    rows: "<row r=\"99999999999999999999999999999\"><c r=\"A1\"><v>2</v></c></row>")
+  try refuses("xlsx_limit") { _ = try XLSX.read(invalidRow) }
+  let rows = (1...1000).map { "<row r=\"\($0)\"><c r=\"A\($0)\" t=\"s\"><v>0</v></c></row>" }
+    .joined()
+  let expanded = try fixture(
+    "expanded-text", rows: rows, shared: String(repeating: "x", count: 33_000))
+  try refuses("structured_output") { _ = try XLSX.read(expanded) }
+}
 check("package metadata symlinks are refused before opening SQLite") {
   let folder = temp.appendingPathComponent("Symlink.sevra")
   try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

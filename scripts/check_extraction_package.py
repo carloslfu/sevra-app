@@ -36,6 +36,13 @@ with tempfile.TemporaryDirectory(prefix='sevra-extraction-package-') as director
     for offset in offsets[1:]: data.extend(f'{offset:010d} 00000 n \n'.encode())
     data.extend(f'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n{start}\n%%EOF\n'.encode())
     pdf.write_bytes(data)
+    csv = folder / 'Parts.csv'
+    csv.write_text('part,quantity\nBrass,12\n', encoding='utf-8')
+    xlsx = folder / 'Parts.xlsx'
+    with zipfile.ZipFile(xlsx, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr('xl/workbook.xml', '<workbook xmlns:r="r"><sheets><sheet name="Parts" r:id="r1"/></sheets></workbook>')
+        archive.writestr('xl/_rels/workbook.xml.rels', '<Relationships><Relationship Id="r1" Type="x/worksheet" Target="worksheets/sheet1.xml"/></Relationships>')
+        archive.writestr('xl/worksheets/sheet1.xml', '<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Brass</t></is></c><c r="B1"><f>6*2</f><v>12</v></c></row></sheetData></worksheet>')
     for helper in [product / 'bin/sevra-extract', apps[0] / 'Contents/MacOS/sevra-extract']:
         for source in [plain, office, pdf]:
             run = subprocess.run(['sandbox-exec', '-p', profile, str(helper), str(source)], capture_output=True, text=True, timeout=75)
@@ -43,10 +50,18 @@ with tempfile.TemporaryDirectory(prefix='sevra-extraction-package-') as director
             reply = json.loads(run.stdout)
             assert reply['version'] == 1 and 'error' not in reply and reply['result']['state'] == 'ready', reply
             assert any('Package invoice 1042' in c['text'] for c in reply['result']['chunks']), reply
+        for source, format, expected in [(csv, 'csv', [['part', 'quantity'], ['Brass', '12']]), (xlsx, 'xlsx', [['Brass', '12']])]:
+            run = subprocess.run(['sandbox-exec', '-p', profile, str(helper), '--structured=' + format, str(source)], capture_output=True, text=True, timeout=75)
+            assert run.returncode == 0, run.stderr
+            reply = json.loads(run.stdout)
+            assert reply['version'] == 1 and 'error' not in reply, reply
+            assert reply['result']['sheets'][0]['rows'] == expected, reply
+            if format == 'xlsx':
+                assert reply['result']['sheets'][0]['formulas'] == {'B1': '6*2'}, reply
         libraries = subprocess.check_output(['otool', '-L', str(helper)], text=True).lower()
         assert not any(name in libraries for name in ['python', 'mlx', 'slotstream'])
         print(json.dumps({'helper': str(helper.relative_to(product)), 'buildTreeDenied': True,
-                          'textPDFDOCX': True, 'noPythonOrModelRuntime': True}), flush=True)
+                          'textPDFDOCX': True, 'structuredCSVXLSX': True, 'cachedFormulaPreserved': True, 'noPythonOrModelRuntime': True}), flush=True)
     cli = product / 'bin/sevra'
     workbook = folder / 'Intake.sevra'
     def command(*arguments):
@@ -59,5 +74,9 @@ with tempfile.TemporaryDirectory(prefix='sevra-extraction-package-') as director
         item = command('import', workbook, source)
         result = command('tool', workbook, 'read', json.dumps({'id': item['id']}))
         assert result['extraction']['state'] == 'ready', result
+    for source in [csv, xlsx]:
+        imported = command('import', workbook, source)
+        tables = imported['datasets'] if source == xlsx else [imported['dataset']]
+        assert len(tables) == 1 and tables[0]['rowCount'] == 1, imported
     assert command('verify', workbook)['ok']
-    print(json.dumps({'packagedCLIIntake': True, 'originalsVerified': True}), flush=True)
+    print(json.dumps({'packagedCLIIntake': True, 'structuredCSVXLSX': True, 'originalsVerified': True}), flush=True)

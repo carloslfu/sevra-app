@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T19:16:07.169439+00:00
+updated: 2026-10-27T19:42:25.815600+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -237,3 +237,43 @@ HTTP(S)/mail links. Malformed workbook routes and arbitrary application/file sch
 remain plain text, with no action. Navigation does not imply evidence acceptance or
 widen the agent's retrieval scope. System keyboard preferences still apply to native
 controls; keyboard and spoken VoiceOver qualification remain explicit UI gates.
+
+## Coherent conversation and workspace flow
+
+P06a. Preserve a separate unsent composer draft and reading position for each
+Conversation/Thread and restore them on navigation and workbook reopen. Switching,
+following provenance or returning to main cannot move unsent text into another
+conversation. Delayed dictation/refresh callbacks remain bound to their origin.
+Expose older messages through bounded paging and scoped history search, with an
+explicit return to the latest exchange. Preserve the current reading position when
+new messages arrive or older pages load; message retrieval is not action authority.
+
+P07a. Starting a thread is immediate, using a useful editable provisional title
+without a mandatory naming sheet. Preserve its parent/context and show the current
+thread identity plus a visible Back to conversation control. This supersedes the
+initial naming-sheet implementation, not historical thread identifiers or scoped
+retrieval. Chapters remain optional. Share summary keeps an editable selection,
+original author/role and exact origin links, with no automatic business acceptance.
+
+P08a. Keep active conversation, relevant workspace/selection and scenario clear in
+both-pane, workspace-focus and narrow-window modes. A temporary evidence preview
+returns to the preceding result; it does not silently create a saved space. Complete
+P03's Home/recent/pinned navigation, distinguishing a live view from an immutable
+saved snapshot without a sprawling tab strip.
+
+P09a. Native controls and interpreted local voice/text requests use the same scoped
+host actions and truthful terminal results. Direct Stop/Back remain responsive
+without inference. Ordinary requests to branch, return and share must not require
+memorizing command literals. Ask when the requested target or consequential effect
+is ambiguous. A thread changes discussion context only; what-if work must visibly
+use a scenario or proposal and cannot silently alter accepted actuals.
+
+J11. Exercise one coherent journey: import invoices, compare suppliers, open cited
+evidence, return to the result, explore supplier/pricing options in a thread, return
+to Conversation, review/share selected findings, explicitly review/apply one change,
+undo, close/reopen and resume the right drafts, reading positions and business state.
+Exercise voice/text and native equivalents, interruption, keyboard access and narrow
+windows. Record exact results and open gaps. Automated or agent-operated checks do
+not establish that an uncoached everyday user finds the product intuitive.
+
+Request and evidence limits: [[sources/notes/2026/10/ux-consistency-review]].

@@ -44,44 +44,71 @@ public struct TablePage: Sendable {
   public let offset: Int
 }
 public enum CSV {
-  public static func parse(_ text: String, delimiter: Character = ",") throws -> [[String]] {
+  public static func parse(
+    _ text: String, delimiter: Character = ",", cancellation: Cancellation = .init()
+  ) throws -> [[String]] {
+    try cancellation.check()
+    try require(text.utf8.count <= 32_000_000, "csv_limit", "CSV exceeds the 32 MB text limit.")
     var result: [[String]] = []
     var row: [String] = []
     var field = ""
     var quoted = false
-    let chars = Array(text.hasPrefix("\u{feff}") ? String(text.dropFirst()) : text)
-    var i = 0
-    while i < chars.count {
-      let c = chars[i]
+    var started = false
+    var i = text.hasPrefix("\u{feff}") ? text.index(after: text.startIndex) : text.startIndex
+    var fieldBytes = 0
+    var processed = 0
+    var cells = 0
+    func appendRow() throws {
+      try require(
+        row.count <= 500 && result.count < 100_000, "csv_limit",
+        "CSV exceeds the column or row limit.")
+      cells += row.count
+      try require(cells <= 1_000_000, "csv_limit", "CSV exceeds one million cells.")
+      result.append(row)
+    }
+    while i < text.endIndex {
+      if processed % 4096 == 0 { try cancellation.check() }
+      processed += 1
+      let c = text[i]
+      var next = text.index(after: i)
       if c == "\"" {
-        if quoted && i + 1 < chars.count && chars[i + 1] == "\"" {
+        started = true
+        if quoted && next < text.endIndex && text[next] == "\"" {
           field.append("\"")
-          i += 1
+          fieldBytes += 1
+          next = text.index(after: next)
         } else if quoted || field.isEmpty {
           quoted.toggle()
         } else {
           throw SevraError("csv", "Unexpected quote inside an unquoted field.")
         }
       } else if c == delimiter && !quoted {
+        started = true
         row.append(field)
         field = ""
+        fieldBytes = 0
       } else if (c == "\n" || c == "\r" || c == "\r\n") && !quoted {
         row.append(field)
-        result.append(row)
+        try appendRow()
+        started = false
         row = []
         field = ""
+        fieldBytes = 0
       } else {
+        started = true
         field.append(c)
+        fieldBytes += c.utf8.count
       }
       try require(
-        field.utf8.count <= 1_000_000 && row.count <= 500 && result.count <= 100_000, "csv_limit",
+        fieldBytes <= 1_000_000 && row.count < 500 && result.count <= 100_000, "csv_limit",
         "CSV exceeds the current field, column or row limit.")
-      i += 1
+      i = next
     }
+    try cancellation.check()
     try require(!quoted, "csv", "Unclosed quoted CSV field.")
-    if !field.isEmpty || !row.isEmpty {
+    if started || !field.isEmpty || !row.isEmpty {
       row.append(field)
-      result.append(row)
+      try appendRow()
     }
     return result
   }
@@ -93,19 +120,24 @@ public enum CSV {
   }
 }
 extension Workbook {
-  @discardableResult public func importCSV(_ sourceID: String, cancellation: Cancellation = .init())
-    throws -> Dataset
-  {
+  @discardableResult public func importCSV(
+    _ sourceID: String, cancellation: Cancellation = .init(), worker: ExtractionWorker = .init()
+  ) throws -> Dataset {
+    try trackStructuredIntake(sourceID, cancellation: cancellation) {
+      try importCSVRows(sourceID, cancellation: cancellation, worker: worker)
+    }
+  }
+  private func importCSVRows(
+    _ sourceID: String, cancellation: Cancellation, worker: ExtractionWorker
+  ) throws -> Dataset {
     try cancellation.check()
     let source = try item(sourceID)
     guard let asset = source.assetID else { throw SevraError("csv", "CSV source has no file.") }
-    let file = try assetURL(asset, cancellation: cancellation)
-    try require(
-      try file.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0 <= 32_000_000, "csv_limit",
-      "Structured CSV import is limited to 32 MB per file in this version.")
-    let rows = try CSV.parse(
-      String(contentsOf: file, encoding: .utf8),
-      delimiter: file.pathExtension.lowercased() == "tsv" ? "\t" : ",")
+    let file = try assetURL(asset, verify: true, cancellation: cancellation)
+    let format: StructuredFormat = file.pathExtension.lowercased() == "tsv" ? .tsv : .csv
+    let rows = try worker.readTable(file, format: format, cancellation: cancellation)
+      .sheets.first!.rows
+    _ = try assetURL(asset, verify: true, cancellation: cancellation)
     guard let header = rows.first, !header.isEmpty else {
       throw SevraError("csv", "This CSV is empty.")
     }

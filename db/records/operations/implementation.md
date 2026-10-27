@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T19:20:17.075732+00:00
+updated: 2026-10-27T19:42:25.837068+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -49,10 +49,13 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   extraction status no longer mislabels linked files as included. App-process peak
   was 99.56 MiB for this audio-only fixture; broader media/inference/memory,
   keyboard/VoiceOver and release journeys remain.
-- Native document text/OCR extraction now runs in bounded helper processes. Twelve
-  crash/deadline/cancellation/memory/output/concurrency/orphan/descriptor checks
-  pass in debug and optimized release. Packaged app/CLI intake works without the
-  build tree. Structured import and other parser paths still need qualification.
+- Native document text/OCR and CSV/TSV/XLSX parsing now run in bounded helper
+  processes. Nineteen isolation/fidelity/recovery checks pass in debug and optimized
+  release. Both packaged app/CLI layouts read documents and tables with build-tree
+  reads denied. Table failures persist independently from a successful text index,
+  survive reopen and offer Resume. Source changes, coordinate overflow and expanded
+  cell budgets refuse before publishing rows. Archives, file transcription, viewers
+  and whole-app memory retain separate qualification requirements.
 
 - Conversation and optional named Threads replace visible tangent terminology.
   Text/menu creation and return, summary review/cancellation, exact provenance and
@@ -65,15 +68,17 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   navigation and closed-window isolation pass in the native app. Spoken VoiceOver
   and the complete keyboard-only journey remain unqualified.
 
-The full local suite passes with 76 core and 12 extraction checks. Native release
-app/CLI/helper builds and package checks pass. Final conversation link deduplication
-and its 2,000-link case pass focused checks, both package builds, baseline install
-and the native UI recheck. Hosted extraction workflow 40562440542 on e27ae39 passes;
-Threads workflow 40564561986 on 75511b8 is still running at this checkpoint. The new
-accessibility changes need their own hosted result.
-Next, finish native accessibility and extraction coverage, review the engine
-repeatability evidence before its next qualification step, and complete remaining
-context/hardware/release gates.
+The final local suite passes with 77 core and 19 extraction checks. Both package
+builds, native resource/signature checks, installed extraction and baseline
+install/update/uninstall checks pass. Native file-list CSV/XLSX import, malformed
+file preservation, persistent structured errors, Resume and close/reopen pass.
+Hosted extraction workflow 40562440542 on e27ae39 and Threads workflow 40564561986
+on 75511b8 pass. Accessibility workflow 40568212108 on 03163ed is still running at
+this checkpoint. The new structured-intake changes need their own hosted result.
+Next, carry out the coherent UX pass below, starting with per-conversation draft
+and reading-state ownership. Continue engine repeatability review and remaining
+context, keyboard/VoiceOver, archive/transcription, whole-app memory and release
+gates alongside that work. Do not restart the architecture or weaken adoption gates.
 [[records/specs/splash-integration]], [[records/specs/conversation-context]] and
 [[records/operations/build-and-run]] retain the contracts and failed evidence.
 ## Earlier checkpoint summaries, October 27
@@ -2435,3 +2440,108 @@ observations and limits, not raw AX transcripts or a screenshot collection. All
 recorded source and binary hashes were reverified before the documentation
 checkpoint. Hosted extraction CI 40562440542 passed, superseding earlier pending
 entries. Threads CI 40564561986 is still running; this checkpoint is not yet pushed.
+
+## Structured intake isolation and persistent recovery, October 27
+
+CSV/TSV and XLSX file parsing now use the same bounded native helper and shared
+per-host worker slots as text/PDF/OCR extraction. The generic typed reply keeps
+old text extraction compatible. XLSX text indexing calls its parser within the
+existing helper, without recursive worker spawning. The host validates complete
+structured results, rechecks original hashes and alone publishes datasets, lineage
+and resumable batches. Failure keeps originals and existing searchable content.
+This is fault isolation, not a security sandbox.
+
+Bounds include 32 MB CSV input, one MB fields, 500 columns, 100,000 rows per sheet,
+one million dense cell positions across all sheets and 32 MB of expanded values,
+formulas and notes. Repeated shared strings and inserted blanks count. CSV parsing
+checks cancellation without constructing a character array; EOF row/column limits
+and quoted empty records are corrected. XLSX column arithmetic and supplied row
+numbers refuse overflow or invalid ranges instead of trapping or inventing a row.
+Existing shared strings, sparse rows, dates and cached formula evidence still pass.
+
+A retained failure demonstrated that successful text indexing followed by refused
+table parsing disappeared from pending intake. Structured attempts now persist
+running/failed/cancelled/ready state separately. Home and CLI retain the error and
+Resume action after reopen. Ready attempt identities prevent a late cancelled
+parser from overwriting a newer successful import. Operational status updates are
+recorded; a failed parse does not publish table rows or inferred business events.
+
+Nineteen focused checks pass in debug and optimized native release, including
+structured crashes, deadline/cancellation, invalid replies, source changes during
+parsing, exact CSV boundaries, malformed encoding, dense expansion, reopen/retry
+and concurrent status ownership. Shared text-worker checks retain memory, output,
+descriptor, two-slot and real orphan termination coverage. The full scripts/check.sh
+suite passes with 77 core checks, including XLSX coordinate/shared-string limits.
+Both packaged app and CLI helper layouts pass text/PDF/DOCX and CSV/XLSX reads with
+the build tree denied, preserving cached formulas. Baseline installation/update,
+standalone CLI, skill conflicts and uninstall/workbook preservation pass. Native
+resources, ten missing-resource refusals, altered resource refusal and signatures
+pass. New production/parser sources pass strict Swift formatting checks.
+
+The first visible package imported the synthetic CSV and XLSX through native
+file-list selection. Tables displayed Copper washers, quantity 12, the multiline
+note, Brass bolt A442 and saved value 12. An invalid-coordinate XLSX remained as
+an original with an explicit error; both good tables stayed usable. Initial Go to
+Folder automation repeatedly reset to a slash. Quit/reopen and file-list selection
+completed the imports; no root cause is claimed for the path-entry failure.
+
+The final package opens the retained wide-CSV fixture with a persisted table error
+and Resume. Retry preserves that error and creates no dataset. Its original opens
+with Text indexed. Close/reopen retains the pending issue, and the light-mode
+layout was visually checked. Workbook integrity and original hashes pass. No model
+or microphone turn ran; the app was quit and no parser process remained.
+
+Earlier build failures are preserved: a -j4 command typo, optional dictionary
+access during the status implementation, and a concurrency fixture that still had
+its text extraction queued. The corrected fixture indexes its source before racing
+two table attempts; the unchanged no-pending-status assertion then passes. The
+initial package's missing persistent table-error result remains in the evidence.
+
+Evidence: integration/evidence/2026-10-27-structured-intake-isolation.json.gz,
+29,324 compressed bytes; uncompressed SHA256
+da480fca877d81b268ab1af8cc806e44c232914f32b502451dd9351366a6f62a.
+It retains 50 build/test logs, exact final source and binary identities, initial
+failure receipts and native UI/audit observations. Some builds overlapped functional
+checks; no speed or whole-app memory qualification is inferred. Host column inference
+and row-dictionary materialization remain outside parser isolation. The new running
+status marker has no dedicated host-kill test yet. Archives, file transcription,
+viewers, full keyboard/VoiceOver, C12/C13 and engine adoption/release gates remain
+open. No production native-engine switch or automatic compaction was enabled.
+
+## Coherent UX consistency pass, October 27
+
+A further owner-requested review was relayed from the design discussion and is
+preserved in [[sources/notes/2026/10/ux-consistency-review]]. The ephemeral chat's
+history API was unavailable; the relay is not a new human usability study. Its
+requirements refine the existing plan, with no engine, storage or authority reset.
+
+Rechecked latest code: WorkspaceState still has one shared prompt and clears the
+message anchor on conversation change, so per-thread drafts/reading positions are
+open. Thread creation still opens naming; Back to conversation is in menus. The
+normal message window is bounded to 100 without an older-history browsing control.
+The space picker remains a flat searchable list, and thread orchestration is not
+exposed in the current model tool definitions. These remain implementation gaps.
+
+The sharing observation is partly superseded: 75511b8 already added editable
+selected-summary review/cancellation with exact origin payload/link, no automatic
+acceptance and no model turn. 03163ed exposes its links/actions accessibly. Historical
+shared messages retain their original representation and authority envelope; verify
+clear original attribution in the complete journey rather than rewriting evidence.
+
+Execute as one flow, in this order:
+1. Persist scoped composer drafts and reading positions; cover switching, provenance
+   jumps, delayed dictation, interruptions and reopen without draft migration.
+2. Immediate provisional-title thread creation, visible identity/return, and shared
+   scoped host actions for natural voice/text and native controls. Basic controls
+   bypass inference; ambiguous/consequential actions retain review and honest failure.
+3. Bounded older-history browsing/search and reliable return-to-latest, then complete
+   Home/recent/pinned space navigation and context in focus/narrow layouts.
+4. Verify scenario/proposal labeling, selected-summary attribution, explicit acceptance,
+   correction and undo across the full J11 invoice/supplier journey in
+   [[records/specs/product]]. Reuse passed lower-level checks and add meaningful
+   ownership/navigation regressions, not a duplicate implementation-only test suite.
+
+Keep actual observations separate from targets. J11, equivalent voice/text paths,
+keyboard and narrow-window context remain open. Uncoached everyday-user usability
+remains unvalidated until observed. Continue reliability, extraction, native-engine,
+context and packaging work without treating the Threads label change as completion.

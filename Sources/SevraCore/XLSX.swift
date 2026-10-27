@@ -1,7 +1,7 @@
 import Foundation
 import ZIPFoundation
 
-public struct ImportedSheet: Sendable {
+public struct ImportedSheet: Codable, Sendable {
   public let name: String
   public let rows: [[String]]
   public let rowNumbers: [Int]
@@ -12,6 +12,9 @@ public enum XLSX {
   public static func read(_ url: URL, cancellation: Cancellation = .init()) throws
     -> [ImportedSheet]
   {
+    try ExtractionWorker().readTable(url, format: .xlsx, cancellation: cancellation).sheets
+  }
+  static func readInProcess(_ url: URL, cancellation: Cancellation) throws -> [ImportedSheet] {
     let archive = try Archive(url: url, accessMode: .read)
     var entries: [String: Entry] = [:]
     var budget: UInt64 = 0
@@ -87,6 +90,7 @@ public enum XLSX {
           name: name, rows: sheet.rows, rowNumbers: sheet.rowNumbers,
           notes: Array(sheet.notes).sorted(), formulas: sheet.formulas))
     }
+    try StructuredResult(sheets: result).validate()
     return result
   }
 }
@@ -177,13 +181,26 @@ private final class SheetXML: NSObject, XMLParserDelegate {
     }
     if name == "row" {
       current = [:]
-      number = Int(a["r"] ?? "") ?? number + 1
+      let next = a["r"].map { Int($0) } ?? (number < 1_048_576 ? number + 1 : nil)
+      guard let next, (1...1_048_576).contains(next) else {
+        failure = SevraError(
+          "xlsx_limit", "Worksheet row reference is outside the supported range.")
+        parser.abortParsing()
+        return
+      }
+      number = next
     }
     if name == "c" {
       reference = a["r"] ?? ""
       column = 0
       for char in reference.uppercased().unicodeScalars where (65...90).contains(Int(char.value)) {
+        // Check while parsing, before an adversarial reference can overflow Int.
         column = column * 26 + Int(char.value) - 64
+        if column > 500 {
+          failure = SevraError("xlsx_limit", "Worksheet exceeds 500 columns.")
+          parser.abortParsing()
+          return
+        }
       }
       column = max(1, column)
       type = a["t"] ?? ""
@@ -253,14 +270,25 @@ private final class SheetXML: NSObject, XMLParserDelegate {
 }
 extension Workbook {
   @discardableResult public func importXLSX(
-    _ sourceID: String, cancellation: Cancellation = .init()
+    _ sourceID: String, cancellation: Cancellation = .init(), worker: ExtractionWorker = .init()
+  ) throws -> [Dataset] {
+    try trackStructuredIntake(sourceID, cancellation: cancellation) {
+      try importXLSXSheets(sourceID, cancellation: cancellation, worker: worker)
+    }
+  }
+  private func importXLSXSheets(
+    _ sourceID: String, cancellation: Cancellation, worker: ExtractionWorker
   ) throws -> [Dataset] {
     let source = try item(sourceID)
     guard let asset = source.assetID else {
       throw SevraError("xlsx", "Workbook source has no asset.")
     }
-    let sheets = try XLSX.read(
-      assetURL(asset, cancellation: cancellation), cancellation: cancellation)
+    let sheets = try worker.readTable(
+      assetURL(asset, verify: true, cancellation: cancellation), format: .xlsx,
+      cancellation: cancellation
+    ).sheets
+    // Recheck linked/included original bytes after parsing and before publication.
+    _ = try assetURL(asset, verify: true, cancellation: cancellation)
     var tables: [Dataset] = []
     for sheet in sheets where !sheet.rows.isEmpty {
       try cancellation.check()

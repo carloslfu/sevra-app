@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-10-27T18:47:21.405968Z
+updated: 2026-10-27T19:42:25.793386Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/10/ux-consistency-review]] — Owner-requested coherent UX pass relayed by the design discussion, with explicit verification limits.
 - [[sources/notes/2026/10/conversation-threads-refinement]] — Owner-approved Conversation and Threads terminology, relayed from a parallel design discussion.
 - [[sources/notes/2026/10/observer-workbook-identity]] — Carlos requests the existing Sevra website and historical native-app logo for the workbook app, including its app icon.
 - [[sources/notes/2026/10/workbook-primary-splash-direction]] — Owner direction: Workbook is primary; reuse Splash C++/Metal with Swift integration and a tested repo-owned maintenance skill.
