@@ -79,7 +79,7 @@ extension Workbook {
     try synchronized {
       try db.execute(
         "SELECT e.*,i.title,i.asset_id FROM extraction e JOIN items i ON i.id=e.item_id JOIN heads h ON h.item_id=i.id WHERE e.state IN ('queued','running','failed','cancelled') ORDER BY e.updated LIMIT 500"
-      ).map(Value.object)
+      ).map(Extractor.displayStatus)
     }
   }
   public func resumeIntake(_ sourceID: String, cancellation: Cancellation = .init()) throws {

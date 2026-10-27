@@ -137,6 +137,7 @@ import SwiftUI
         } else if ["mp4", "mov", "m4v", "mp3", "wav", "m4a", "aiff"].contains(ext) {
           VStack {
             NativeMediaPlayer(player: player).onAppear {
+              guard state.interactionActive, state.workbook === workbook else { return }
               if player == nil {
                 player = AVPlayer(url: file)
                 if let locator = state.itemLocators[item.id],
@@ -153,9 +154,10 @@ import SwiftUI
             Toggle("Keep playing while I explore", isOn: $keepPlaying).padding(10)
           }.onDisappear {
             if !keepPlaying || !state.interactionActive {
-              player?.pause()
+              player?.releasePlayback()
+              player = nil
             } else {
-              if state.backgroundPlayer !== player { state.backgroundPlayer?.pause() }
+              if state.backgroundPlayer !== player { state.backgroundPlayer?.releasePlayback() }
               state.backgroundPlayer = player
               state.backgroundMediaTitle = item.title
             }
@@ -244,6 +246,11 @@ import SwiftUI
       guard !Task.isCancelled, let assetID = item.assetID,
         state.workbook === workbook, state.interactionActive
       else { return }
+      // Retry/relink must not retain or continue playing the previously verified
+      // file while a new verification is pending or has failed.
+      player?.releasePlayback()
+      player = nil
+      keepPlaying = false
       // Keep external-file recovery available even when the original is missing.
       asset = try? workbook.asset(assetID)
       preview.isExternal = asset?.mode == "linked"

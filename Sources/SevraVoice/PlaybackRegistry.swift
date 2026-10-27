@@ -1,8 +1,16 @@
 import AVFoundation
 import Foundation
 
-@MainActor public protocol PlaybackParticipant: AnyObject { func pause() }
-extension AVPlayer: PlaybackParticipant {}
+@MainActor public protocol PlaybackParticipant: AnyObject {
+  func pause()
+  func releasePlayback()
+}
+extension AVPlayer: PlaybackParticipant {
+  public func releasePlayback() {
+    pause()
+    replaceCurrentItem(with: nil)
+  }
+}
 
 /// Tracks all live players without extending a viewer/window's lifetime.
 @MainActor public final class PlaybackRegistry {
@@ -22,7 +30,9 @@ extension AVPlayer: PlaybackParticipant {}
     for entry in entries.values { entry.player?.pause() }
   }
   public func close(owner: UUID) {
-    for entry in entries.values where entry.owner == owner { entry.player?.pause() }
+    // SwiftUI may retain a closed window's state. Pausing alone leaves its
+    // AVPlayerItem and file descriptors alive even though playback has stopped.
+    for entry in entries.values where entry.owner == owner { entry.player?.releasePlayback() }
     entries = entries.filter { $0.value.owner != owner && $0.value.player != nil }
   }
 }

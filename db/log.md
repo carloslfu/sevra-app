@@ -406,3 +406,6 @@ Both real maintained32K repair replays pass exact v1 assertions; preserve first 
 ## [2026-10-27 17:46] verification | records/operations/implementation.md
 Full regression/native app+CLI packaging passed. Visible text-command copy into TextEdit preserves original hashes; Home polling, tangent/main scope and close/reopen pass. Basic live dictation completed.
 
+## [2026-10-27 18:12] verification | records/operations/implementation.md
+Qualified native >2 GiB audio playback, seeking, linked verification Stop/Retry, changed-original refusal and media release on close. Preserved failed retained-player/ownership-copy findings; fixed explicit AVPlayerItem teardown and legacy extraction-status projection. Complete local suite, native app/CLI builds, package checks, native handle audits and 99.56 MiB app-process peak pass. Broad media/context/hardware/native-adoption gates remain open; evidence and reproducible fixture recipe recorded.
+

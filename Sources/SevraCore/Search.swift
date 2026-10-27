@@ -50,7 +50,7 @@ extension Workbook {
   }
   public func extractionStatus(_ id: String) throws -> Value {
     try synchronized {
-      .object(
+      Extractor.displayStatus(
         try db.execute("SELECT * FROM extraction WHERE item_id=?", [.string(id)]).first ?? [:])
     }
   }

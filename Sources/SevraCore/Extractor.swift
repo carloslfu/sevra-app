@@ -10,6 +10,32 @@ public struct ExtractionResult {
   public let detail: String
 }
 public enum Extractor {
+  private static let unsupportedDetail =
+    "Content search is unavailable for this format; filename search and native preview remain available."
+  private static let pdfLimitDetail =
+    "Automatic PDF text extraction is limited to 512 MB. Use a smaller excerpt for content search."
+
+  /// Extraction describes searchable content, never asset ownership. Normalize
+  /// the two older native messages on read without rewriting stored history.
+  static func displayStatus(_ row: [String: Value]) -> Value {
+    guard row["parser"]?.text == "native-v1", let original = row["detail"]?.string else {
+      return .object(row)
+    }
+    let prefix = "Previous index retained. Retry failed: "
+    let retained = original.hasPrefix(prefix)
+    let detail = retained ? String(original.dropFirst(prefix.count)) : original
+    let corrected: String
+    switch detail {
+    case "File included. " + unsupportedDetail: corrected = unsupportedDetail
+    case "The PDF is included, but automatic extraction is limited to 512 MB. Use a smaller excerpt for content search.":
+      corrected = pdfLimitDetail
+    default: return .object(row)
+    }
+    var result = row
+    result["detail"] = .string((retained ? prefix : "") + corrected)
+    return .object(result)
+  }
+
   public static func extract(_ url: URL, cancellation: Cancellation = .init()) throws
     -> ExtractionResult
   {
@@ -19,7 +45,7 @@ public enum Extractor {
     if ext == "pdf" {
       try require(
         bytes <= 512_000_000, "pdf_limit",
-        "The PDF is included, but automatic extraction is limited to 512 MB. Use a smaller excerpt for content search."
+        pdfLimitDetail
       )
       guard let pdf = PDFDocument(url: url) else { throw SevraError("pdf", "Cannot read PDF.") }
       try require(
@@ -118,8 +144,7 @@ public enum Extractor {
     }
     return .init(
       chunks: [], state: "unsupported",
-      detail:
-        "File included. Content search is unavailable for this format; filename search and native preview remain available."
+      detail: unsupportedDetail
     )
   }
   static func recognize(_ image: CGImage, cancellation: Cancellation) throws -> String {

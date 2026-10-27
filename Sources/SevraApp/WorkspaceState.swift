@@ -720,7 +720,7 @@ import SwiftUI
     searchResults.reset()
     speech.stop()
     PlaybackRegistry.shared.close(owner: mediaOwner)
-    backgroundPlayer?.pause()
+    backgroundPlayer?.releasePlayback()
     backgroundPlayer = nil
     backgroundMediaTitle = ""
   }

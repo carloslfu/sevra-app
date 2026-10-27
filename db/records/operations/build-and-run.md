@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T17:40:48.912688+00:00
+updated: 2026-10-27T18:11:48.293385+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1004,3 +1004,40 @@ unchanged polling, chapter/bookmark contents, conversation anchors, cancellation
 deadline refusal and the subsequent successful read. The native app uses this same
 session and core snapshot API. These checks supplement, rather than replace,
 visible app and whole-process responsiveness measurements.
+
+## Native large-media playback and teardown
+After packaging the candidate, create a new synthetic workbook with:
+
+```sh
+python3 scripts/prepare_large_media.py
+```
+
+Optional --cli and --output arguments select a packaged CLI and a new fixture
+folder. Existing output folders are refused. This writes a real 2,148,532,224-byte
+silent PCM WAV, imports it as a link and a separate included copy, and verifies the
+workbook. It needs about 4.3 GB of disk space. The extra original filename is a
+hard link within the disposable fixture; the workbook's included asset is an
+independent streamed copy. Fixture preparation is not UI qualification.
+
+Open Large media.sevra in the native preview. Check included and linked playback,
+seek near 03:03:20 of the 03:06:30 duration, Stop while linked verification shows
+progress, and retry. Keep playing while returning Home, then close the compact
+player. Also close the entire workbook during active playback with keep-playing
+enabled, and during linked verification. Observe fresh accessible UI state after
+each action. Use lsof -p PID -Fn to confirm the fixture WAV is no longer open after
+close; paused-but-retained media is a failure, even if the window vanished.
+
+For changed-original refusal, change one byte halfway through the synthetic linked
+WAV without changing its length. Retry must reject it and preserve the included
+asset. Restore only that synthetic byte, verify both hashes, and reopen. Never use
+customer media for this destructive test. Older fixtures must show corrected
+extraction wording without reindexing or changing asset mode.
+
+Sample the app's Darwin physical footprint using footprint(pid) from
+scripts/compare_splash_performance.py at 100 ms intervals. Record initial and
+lifetime peak as well as samples, phase, process identity and final exit. The
+reference audio-only test has a 512 MiB app-process ceiling and no simultaneous
+inference, dictation, build or download. Shared OS media services are excluded.
+Do not extrapolate a pass to all codecs, video/images, cold storage, whole-system
+memory or media with an active model. Preserve failed runs and exact app/source
+identities; the 2026-10-27 repair evidence retains both sides of this comparison.

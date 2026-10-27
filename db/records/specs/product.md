@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T17:40:48.879068+00:00
+updated: 2026-10-27T18:11:48.226467+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -138,8 +138,11 @@ P14. Evidence links navigate to version plus page, text range, row or timestamp 
 supported. If no locator is available show the exact item version with that limit.
 P15. Media opens paused; explicit play starts it. Voice input pauses playback.
 Keep-playing mode retains a compact player while switching spaces. Closing its
-workbook stops playback; dictation pauses every live workbook player and leaves
-resumption explicit. A transcript is searchable only when actually extracted;
+workbook stops playback and detaches the media item even if SwiftUI retains its
+player. Closing the compact player or an ordinary preview releases its media;
+explicit keep-playing navigation preserves it until closed. Retry/relink releases
+the prior preview before verifying another file. Dictation pauses every live
+workbook player while retaining its position and leaves resumption explicit. A transcript is searchable only when actually extracted;
 unavailable audio semantics stay visible.
 P16. Comparisons compose viewers in the right pane. Draft edits save as new versions.
 Closing a viewer does not delete a draft. Pending text flushes before navigation,

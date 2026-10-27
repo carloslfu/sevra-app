@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T17:46:28.965946+00:00
+updated: 2026-10-27T18:12:53.303662+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -44,13 +44,17 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   tangent/main histories separate, and restores the workbook after close/reopen.
 - The text-driven Open a copy flow passed through Save and Open into TextEdit.
   Editing the copy leaves the included asset byte-identical and workbook verified.
-  Headless >2 GiB linked verification also passes; real large-file/whole-app memory,
-  broader keyboard/VoiceOver, extraction isolation and release journeys remain.
+  Native 2.15 GB included/linked audio playback, seeking, Stop/Retry, changed-byte
+  refusal and close now pass. Media teardown releases retained players, and
+  extraction status no longer mislabels linked files as included. App-process peak
+  was 99.56 MiB for this audio-only fixture; broader media/inference/memory,
+  keyboard/VoiceOver, extraction isolation and release journeys remain.
 
 The complete local suite and native release app/CLI build and package checks pass
-for this checkpoint. The latest hosted result remains 40544819323 on 48b1a30;
-newer source needs its own CI result. Next, finish native large-file/accessibility
-and extraction coverage, review the engine repeatability evidence before its next
+for this checkpoint. The full hosted workflow 40553848961 on a3f1272 also passes,
+including both product packages. The new media repair needs its own CI result.
+Next, finish native accessibility and
+extraction coverage, review the engine repeatability evidence before its next
 qualification step, and complete remaining context/hardware/release gates.
 [[records/specs/splash-integration]], [[records/specs/conversation-context]] and
 [[records/operations/build-and-run]] retain the contracts and failed evidence.
@@ -2224,3 +2228,56 @@ Logs, exact commands, binary hashes and focused UI/audit observations are retain
 in integration/evidence/2026-10-27-context-refresh-ui-verification.json.gz. These
 checks do not qualify large-file rendering/memory, every synchronous editor action,
 VoiceOver, all keyboard journeys or release installation.
+
+## Native large-media qualification and release repair, October 27
+The visible app was exercised with a fully written 2,148,532,224-byte, 48 kHz stereo
+PCM WAV containing silence, as both an included asset and an external reference.
+It is not a sparse file or a padded video. Playback and seeking to 03:03:20 within
+03:06:30 passed; linked verification showed progress, Stop/Retry worked, and a
+same-size one-byte external change was rejected. The included copy retained its
+original hash. This initial pass exposed two failures: the linked source's generic
+extraction text said File included, and a paused AVPlayer still held the WAV open
+after its workbook closed. The initial result remains failed in the evidence.
+
+PlaybackRegistry now separates pause from release. Closing an owner detaches the
+AVPlayerItem even while SwiftUI retains the player. Normal viewer exit, explicit
+compact-player close and replacement release media; keep-playing navigation
+preserves the intended compact player. Retry/relink releases the prior preview,
+and an inactive workbook cannot register a late player. Dictation only pauses,
+retaining the item for explicit resumption. A real AVPlayer regression failed
+before the fix and passes afterward, including isolation from another owner.
+
+Extraction messages no longer assert inclusion. A narrow compatibility projection
+also fixes the two older native unsupported/PDF-limit messages for existing books,
+including retained-index failures, without changing their stored history. Other
+parser messages remain unchanged. The same projection serves viewer/tool status
+and pending intake. The new core check verifies both ownership modes, reopen,
+unchanged revision and custom-parser preservation.
+
+The rebuilt preview passed both large-file playback/seek paths, compact playback
+while navigating, compact-player close, Stop/Retry, same-size changed-original
+refusal, workbook close with keep-playing enabled, and close during active hash
+verification. Native lsof checks found no fixture WAV descriptors after those
+close actions. The final app process exited, and packaged CLI integrity checks
+passed with both original hashes. UI status was corrected without reindexing the
+old fixture. No model, build, download or dictation ran during either UI sampling.
+
+The repaired app had 1,247 process-footprint observations and a lifetime peak of
+104,399,952 bytes, about 99.56 MiB, below the declared 512 MiB ceiling. This measures
+the app process, excluding shared macOS media services. It does not establish
+all-codec/video/image behavior, simultaneous inference, cold-storage latency,
+remote-volume hard deadlines, every retained window object's release, or wider
+hardware. Keep broader J01–J10, context and production-adoption gates open.
+
+The complete scripts/check.sh suite passes, including 74 core and 15 voice/media
+checks, document/preview/search/agent/native frontend/grammar/performance evidence
+checks. Native release app and CLI builds plus installed resources, missing/altered
+resource refusals and signature checks pass. The preparer script also completed a
+fresh independent fixture and integrity check. Reproduction is in
+[[records/operations/build-and-run]]. Source hashes, both app identities, original
+failures, native observations, per-sample memory, byte/handle audits and build/test
+logs are preserved in integration/evidence/2026-10-27-large-media-ui-repair.json.gz.
+Its uncompressed SHA256 is
+9b4a8464281b6f85aaa50599780154d93303e000e6e60ddaf344b61ed9a1d126.
+The repaired app executable SHA256 is
+cd43caa3a6275ead7e38d3f934ed438c1ab4ae57754b6440a6d9ddec43275312.

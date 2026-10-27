@@ -17,6 +17,38 @@ private final class AssetReadResult: @unchecked Sendable {
 }
 
 func checkAssetPreview(at root: URL) {
+  check("extraction status keeps linked and included asset ownership separate") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("ExtractionOwnership.sevra"), title: "Extraction ownership")
+    let source = root.appendingPathComponent("unsupported-content.bin")
+    try Data("Synthetic unsupported content".utf8).write(to: source)
+    let linked = try book.importFile(source, linked: true)
+    let included = try book.importFile(source)
+    let neutral =
+      "Content search is unavailable for this format; filename search and native preview remain available."
+    for item in [linked, included] {
+      try book.extract(item.id)
+      try expect(try book.extractionStatus(item.id)["detail"].text == neutral)
+    }
+    try book.index(linked.id, chunks: [], state: "unsupported", detail: "File included. " + neutral)
+    let pdfLegacy =
+      "The PDF is included, but automatic extraction is limited to 512 MB. Use a smaller excerpt for content search."
+    let retained = "Previous index retained. Retry failed: "
+    try book.index(included.id, chunks: [], state: "failed", detail: retained + pdfLegacy)
+    let revision = try book.revision()
+    let reopened = try Workbook(book.url)
+    try expect(try reopened.extractionStatus(linked.id)["detail"].text == neutral)
+    let pdfStatus = try reopened.extractionStatus(included.id)["detail"].text
+    try expect(pdfStatus.hasPrefix(retained + "Automatic PDF text extraction"))
+    try expect(try reopened.pendingExtractions().first?["detail"].text == pdfStatus)
+    try expect(try reopened.revision() == revision, "Displaying status rewrote workbook history")
+    try expect(try reopened.asset(linked.assetID!).mode == "linked")
+    try expect(try reopened.asset(included.assetID!).mode == "included")
+    // Only known native messages are compatibility projections, not arbitrary text.
+    try book.index(linked.id, chunks: [], state: "failed", detail: pdfLegacy, parser: "custom-v1")
+    try expect(try book.extractionStatus(linked.id)["detail"].text == pdfLegacy)
+    try expect(try book.pendingExtractions().contains { $0["detail"].text == pdfLegacy })
+  }
   check("linked-file verification releases the workbook lock during hashing") {
     let book = try Workbook.create(
       at: root.appendingPathComponent("Preview.sevra"), title: "Preview")

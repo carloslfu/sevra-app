@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 import SevraVoice
 
@@ -56,7 +57,12 @@ private func expect(_ value: @autoclosure () -> Bool, _ message: String) throws 
 
 @MainActor private final class Player: PlaybackParticipant {
   var pauses = 0
+  var releases = 0
   func pause() { pauses += 1 }
+  func releasePlayback() {
+    pause()
+    releases += 1
+  }
 }
 
 @main private struct VoiceChecks {
@@ -276,6 +282,8 @@ private func expect(_ value: @autoclosure () -> Bool, _ message: String) throws 
         first.pauses == 1 && second.pauses == 1, "Background player continued through dictation")
       registry.close(owner: owner)
       try expect(first.pauses == 2 && second.pauses == 1, "Closing one window paused another")
+      try expect(
+        first.releases == 1 && second.releases == 0, "Close did not release only its owner")
       registry.pauseAll()
       try expect(first.pauses == 2 && second.pauses == 2, "Closed owner remained registered")
       input.stop()
@@ -288,6 +296,23 @@ private func expect(_ value: @autoclosure () -> Bool, _ message: String) throws 
       player = nil
       try expect(reference == nil, "Registry retained its player")
       registry.pauseAll()
+    }
+    check("Closing playback releases media even while a view still retains the player") {
+      let registry = PlaybackRegistry()
+      let owner = UUID()
+      let first = AVPlayer(playerItem: AVPlayerItem(asset: AVMutableComposition()))
+      let other = AVPlayer(playerItem: AVPlayerItem(asset: AVMutableComposition()))
+      registry.register(first, owner: owner)
+      registry.register(other, owner: UUID())
+      registry.pauseAll()
+      try expect(
+        first.currentItem != nil && other.currentItem != nil,
+        "Dictation discarded media instead of pausing it")
+      registry.close(owner: owner)
+      try expect(first.currentItem == nil, "Closed workbook retained its media asset")
+      try expect(other.currentItem != nil, "Closing a workbook released another window's media")
+      registry.close(owner: owner)
+      try expect(first.currentItem == nil, "Repeated close reattached media")
     }
     let abandonedDriver = Driver()
     var abandoned: SpeechInput? = SpeechInput(driverFactory: { abandonedDriver })

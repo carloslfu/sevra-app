@@ -1,6 +1,7 @@
 import AVKit
 import AppKit
 import SevraCore
+import SevraVoice
 import SwiftUI
 
 struct WorkbookView: View {
@@ -62,8 +63,9 @@ struct WorkbookView: View {
               Text(state.backgroundMediaTitle).lineLimit(2)
               Spacer()
               Button("Close player") {
-                player.pause()
+                player.releasePlayback()
                 state.backgroundPlayer = nil
+                state.backgroundMediaTitle = ""
               }
             }.padding(10)
           }

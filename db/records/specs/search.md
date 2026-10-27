@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-27T16:53:26.748466+00:00
+updated: 2026-10-27T18:11:48.253975+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -25,6 +25,10 @@ Q03. External-content FTS tables are maintained transactionally by canonical
 triggers. Explicit rebuild and integrity checks exist. No stale result claims:
 indexing status is queued/running/ready/partial/unsupported/failed, with version
 and parser identity. New metadata becomes searchable immediately; content follows.
+Extraction status describes content coverage independently of included/linked
+asset ownership. It must not claim a file was copied just because extraction ran.
+Known legacy native status messages are normalized on read across UI, tools and
+intake listings without rewriting stored evidence or operation history.
 Q04. Each chunk points to an immutable item/asset version and locator (page, row
 range, text offset, time range). Chunk limits bound per-tool output, not silently
 claimed document coverage. Deduplicate results by evidence version, return offsets
