@@ -72,6 +72,10 @@ func runRequestHandoffProbe(modelsRoot: String, library: String, engine: String,
       "proposal",
       "Start a new thread called Receiving and propose an inventory movement for the two fittings handed over, using the Handover note. Leave it as a proposal for my review."
     ),
+    (
+      "report-prices",
+      "Read the Birch and Cedar quotes and calculate their unit-cost difference. Then start a new thread called Supplier comparison and tell me which quote is lower and by how much there."
+    ),
     ("branch-only", "Take this discussion into a new thread called Delivery dates."),
     (
       "hypothetical",
@@ -79,7 +83,7 @@ func runRequestHandoffProbe(modelsRoot: String, library: String, engine: String,
     ),
   ]
   let protocolValue: Value = .object([
-    "version": .number(2),
+    "version": .number(4),
     "cases": .array(cases.map { .object(["name": .string($0.0), "prompt": .string($0.1)]) }),
     "checks": .string(
       "Compound cases create exactly one thread, start_thread_and_continue before attempted changes (prior reads allowed), exact carried request, one Source, two linked runs, original continued and child terminal, total <=12 steps. Prices require deterministic calculation and result 2.4. Stored prices cite both originals. Proposal remains draft with original request and Handover note lineage; accepted inventory stays 20. Branch-only remains one terminal step. Hypothetical has no action. Verify unchanged originals and workbook integrity. Review answer semantics separately."
@@ -184,15 +188,42 @@ func runRequestHandoffProbe(modelsRoot: String, library: String, engine: String,
           let calls = try childMessages.filter { $0.role == "tool" }.map {
             try Value.parse($0.body)
           }
+          let childRequest = childMessages.first { $0.role == "user" }!
+          let carried = try book.messagePayload(childRequest.id, conversation: action.conversation)[
+            "evidence"]["entries"].array
+          for entry in carried {
+            guard let original = mainCalls.first(where: { $0["receiptID"] == entry["receiptID"] })
+            else {
+              throw SevraError("handoff", "Carried evidence is outside the live originating run.")
+            }
+            try require(
+              ["read", "calculate"].contains(entry["tool"].text)
+                && original["result"] == entry["result"]
+                && original["resultHash"] == entry["resultHash"]
+                && original["arguments"] == entry["arguments"],
+              "handoff", "Carried proof differs from its exact original receipt.")
+          }
           if name.contains("prices") {
             try require(
-              calls.contains { ["calculate", "compare_rows"].contains($0["tool"].text) }
+              (carried + calls).contains {
+                ["calculate", "compare_rows"].contains($0["tool"].text)
+              }
                 && result.answer.contains("2.4"), "handoff", "Missing checked price difference.")
-            if name == "stored-prices" {
+            if ["stored-prices", "report-prices"].contains(name) {
               try require(
                 Set([birch.id, cedar.id]).isSubset(of: Set(result.citations))
                   && result.answer.lowercased().contains("cedar"),
                 "handoff", "Wrong supplier or missing original citations.")
+            }
+            if name == "report-prices" {
+              let readIDs = Set(
+                mainCalls.filter { $0["tool"].text == "read" }.map {
+                  $0["result"]["item"]["id"].text
+                })
+              try require(
+                Set([birch.id, cedar.id]).isSubset(of: readIDs)
+                  && mainCalls.contains { $0["tool"].text == "calculate" },
+                "handoff", "The explicit read/calculate-before-branch order was not honored.")
             }
           } else {
             try require(

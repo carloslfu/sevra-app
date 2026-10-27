@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T22:17:29.396281+00:00
+updated: 2026-10-27T22:38:11.920036+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -368,7 +368,11 @@ start_thread_and_continue action for a current request that explicitly asks both
 to branch and to perform further work. Pure start_thread remains terminal. The
 compound action requires a verbatim span of the current request identifying its
 additional task. The entire request, a paraphrase, a thread title or inferred work
-from earlier history is not a substitute. Exact-span validation proves origin,
+from earlier history is not a substitute. Reporting an answer in the new thread
+is remaining work even when reads and calculations have already completed; a
+calculation receipt is not an answer delivered to the user. Respect an explicit
+request to read/calculate first, then branch and report using the retained proof.
+Exact-span validation proves origin,
 not correct semantic interpretation; keep negative intent cases in qualification.
 
 The host carries the exact submitted text, original request Source and visible
@@ -381,15 +385,39 @@ and parent acknowledgement; the parent is marked continued, not complete. Existi
 request, payload and operation journals preserve this relation without migration.
 
 Prefer branching before evidence work. Earlier read/calculation calls may precede
-it and be repeated within the same total budget. An earlier attempted change,
+it within the same total budget. An earlier attempted change,
 including one with an uncertain result, prevents a handoff. A failed handoff call
 may be corrected only when it has no committed creation operation. Only one
 handoff is allowed. Never restart already completed mutations in another phase.
+
+
+At that atomic handoff, preserve a bounded set of complete read and calculate
+results already shown in this same live request. Verify each completed journal
+entry against its original receipt and result hash. The child request payload
+records their original receipt/run IDs and exact values. Feed the model only the
+original tool calls/results, without assistant prose or reasoning, and restore
+citation/calculation eligibility only with those visible values. Do not execute
+the calls again or manufacture duplicate tool receipts. A later independent
+request must inspect its own evidence; reopening never resumes this handoff.
+
+Limit retained entries to eight and their serialized payload to 32,000 bytes.
+Only results shown whole within the 16,000-byte tool projection bound qualify.
+Check each read's current-head pointer again during the handoff transaction;
+discard changed reads. If any read is failed, omitted, oversized or changed,
+discard carried calculations too because calculate does not declare a versioned
+input graph. Historical versions retain their explicit historical notice when
+the head pointer is unchanged. Searches, history reads, paged results, counts,
+balances and table snapshots are not transferred. Their evidence and current-state
+checks must be obtained again if needed. This bounded carry is not new retrieval
+permission, business acceptance, compaction or a general cross-thread receipt API.
 
 The compound action inherits the latest completed exchange; explicit earlier-message
 selection remains with standalone start_thread. The child receives only that
 explicit inherited parent excerpt and carried request,
 not unrestricted parent or sibling history. It cannot navigate or branch again.
+A separate thread can hold a separate discussion or analysis of the shared
+workbook data. Do not confuse conversation separation with an independent
+business scenario.
 Both phases share the inference lease, cancellation and twelve-response budget.
 The selected work bounds its tools: answer permits only reads, calculations and
 finish. A requested draft, save_space, propose_movement, propose_record,

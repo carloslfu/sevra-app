@@ -233,6 +233,7 @@ do {
   try await checkAgentLifecycle()
   try await checkConversationActions()
   try await checkRequestHandoffs()
+  try await checkHandoffEvidence()
   try await checkInterfaceGuidance()
   try await checkRequestAdmission()
   try await checkCurrencyRejection()

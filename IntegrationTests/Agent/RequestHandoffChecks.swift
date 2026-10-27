@@ -52,7 +52,7 @@ private actor HandoffModel: WorkbookInference {
       tool = "datasets"
       arguments = .object([:])
     } else if (calls == 2 && mode != "late") || (mode == "after_read" && calls == 1)
-      || (["after_read", "invalid_task"].contains(mode) && calls == 3)
+      || (mode == "invalid_task" && calls == 3)
     {
       tool = "calculate"
       arguments = .object(["expression": .string("14.80-12.40")])
@@ -164,7 +164,7 @@ func checkRequestHandoffs() async throws {
       try expectEqual(try book.agentRuns().count, 2)
       if let result {
         try expectEqual(result.conversationAction?.conversation, target)
-        try expectEqual(result.steps, ["after_read", "invalid_task"].contains(mode) ? 4 : 3)
+        try expectEqual(result.steps, mode == "invalid_task" ? 4 : 3)
         try expectEqual(child["status"].text, "complete")
         try expectEqual(try book.messages(conversation: target).last?.body, result.answer)
       } else {

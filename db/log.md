@@ -454,3 +454,6 @@ Adopt owner-approved inline references/backlinks and bounded traversal; integrat
 ## [2026-10-27 22:18] implementation | records/operations/implementation.md
 Implemented scoped compound thread handoff, exact request provenance and movement request lineage. Eighteen native model cases, packaged CLI, full local suite and package/install checks pass. Visual navigation remains pending because the Mac is locked; retained all failed cohorts.
 
+## [2026-10-27 22:49] implementation | records/operations/implementation.md
+Carry exact bounded same-request evidence into compound threads. Preserved a packaged dropped-answer counterexample and fixed reporting-after-calculation routing. Nineteen final native cases, full local checks, baseline/native builds, installation and packaged replay pass; native UI and broader language/release gates remain open.
+

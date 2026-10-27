@@ -13,12 +13,13 @@ public struct AgentRequestHandoff: Sendable {
   public let conversation: String
   public let work: ContinuedWork
   public let task: String
+  public let evidence: Value
 }
 
 extension Workbook {
   /// Check before creating a thread. A fresh phase cannot replay earlier work,
   /// inherit a second handoff, or use an unjournaled model call. Earlier read-only
-  /// calls may be repeated within the same total response budget.
+  /// calls may precede it within the same total response budget.
   public func validateRequestHandoff(
     runID: String, conversation: String, cancellation: Cancellation = .init()
   ) throws {
@@ -119,12 +120,14 @@ extension Workbook {
         "Continue with the exact original request Source.")
       let child = AgentRequest(runID: identifier(), messageID: identifier())
       let now = timestamp()
+      let evidence = try handoffEvidence(runID: runID, conversation: conversation)
       let payload: Value = .object([
         "kind": .string("continued_request"), "originMessageID": origin["message_id"]!,
         "originRunID": .string(runID), "sourceID": .string(sourceID),
         "receiptID": .string(receiptID),
         "work": .string(work.rawValue),
         "task": .string(task),
+        "evidence": evidence,
         "notice": .string(
           "Exact request carried by the host from its original conversation, not a new submission or a model paraphrase."
         ),
@@ -167,12 +170,14 @@ extension Workbook {
         "conversation": .string(target),
         "work": .string(work.rawValue),
         "task": .string(task),
+        "evidence": evidence,
       ])
     }
     return .init(
       request: .init(runID: value["runID"].text, messageID: value["messageID"].text),
       sourceID: value["sourceID"].text, originMessage: value["originMessage"].text,
       conversation: value["conversation"].text,
-      work: ContinuedWork(rawValue: value["work"].text) ?? .answer, task: value["task"].text)
+      work: ContinuedWork(rawValue: value["work"].text) ?? .answer, task: value["task"].text,
+      evidence: value["evidence"])
   }
 }

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "nestedPropertyOrder": "required-first",
   "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
-  "toolsSHA256": "0a82472da5f1e2aa227c9f48a4648018f6e64a7043a09ea0ae5b08106b2554bd",
+  "toolsSHA256": "6554c377fe17c5f7cf63f27e2f95a9347b44c9558c8b870ae9f4bf0a1733f015",
   "cases": [
     {
       "name": "required_start_thread_and_continue",

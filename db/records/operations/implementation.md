@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T22:17:29.420959+00:00
+updated: 2026-10-27T22:49:39.918409+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -18,11 +18,13 @@ This remains a development build. The preserved Slotstream app is the baseline;
 the separate native preview uses the Python-free Swift adapter and pinned Splash
 C++/Metal. Native adoption and automatic compaction remain gated.
 
-- Compound branch-and-work requests pass five native model cases, all thirteen
-  existing conversation/guidance regressions and a packaged CLI check. Original
-  requests, bounded capabilities and movement lineage survive the handoff. The
-  final native UI check is pending because the Mac was locked; repeated evidence
-  reads, wider UX/accessibility and production release remain open.
+- Compound requests retain exact, bounded evidence from the same live request.
+  Six native handoff cases, thirteen conversation/guidance regressions and the
+  rebuilt packaged CLI pass. The quote case uses seven responses instead of
+  twelve; explicit read-first/branch/report also passes. Original requests, scope
+  and movement lineage remain intact. Retain the failed packaged predecessor.
+  Native navigation checks await the pending Mac unlock. Model wording,
+  unnecessary request-Source reads, wider UX/accessibility and release remain open.
 
 - Search-grounding repairs pass deterministic regressions and the actual paired
   block-3 replay. Empty searches cannot establish exhaustive absence, and the
@@ -3013,3 +3015,88 @@ adoption, automatic compaction, 100-150 tokens/s all-device claim, full accessib
 qualification or public-release completion is established here. The new explicit
 reference/backlink specification remains adopted work to implement, not a completed
 feature.
+
+
+## Same-request evidence handoff, October 27
+
+The previous fixed stored-quote run used all twelve responses: search both quotes,
+read both originals, calculate, create the thread, then repeat all five evidence
+steps before finishing. A13 now specifies exact same-request read/calculation
+carry with receipt verification, changed-head refusal, eight-entry/32,000-byte
+bounds, and no additional history access. Development implementation is under
+qualification. The five-case native cohort is running; do not treat this entry
+as a passing result. No model, engine, tool schema or production default changed.
+
+
+### Retained packaged counterexample and targeted correction
+
+The first packaged check used a fresh workbook and explicitly asked to read and
+calculate before creating a thread and reporting the answer there. It completed
+the reads/calculation, then selected terminal start_thread and discarded the
+requested answer. Preserve `.build/handoff-evidence-packaged.sevra` and its trace;
+this check failed. The fixed five-case cohort did not cover that ordering.
+
+The next revision clarifies that delivering the requested answer is remaining
+work even when calculation is already complete, adds the exact failed prompt to
+the fixed cohort, and clarifies that shared workbook data still permits a separate
+thread discussion/analysis. Protocol v4 has six cases. The exact packaged prompt
+will be checked again on a fresh workbook after the targeted change; no passing
+result is claimed here yet.
+
+
+### Same-request evidence checkpoint results
+
+The final protocol-v4 cohort passes all six cases: supplied arithmetic (3 responses),
+stored quotes (7), review-only inventory proposal (4), explicit read/calculate-first
+then branch/report (8), branch-only (1), and hypothetical explanation (1). Original
+quotes remain unchanged; the movement stays draft with observation/request lineage;
+accepted stock remains 20; all workbooks verify. The quote result includes both
+originals and the deterministic 2.40 difference. The reporting case requires both
+reads and calculation before branching, then requires child proof or exact carried
+receipts. The child finishes directly from that proof. The seven-versus-twelve
+comparison uses the same prompt/fixture with fresh IDs, not a controlled latency
+measurement or universal reliability claim.
+
+All eight unchanged conversation-action and five unchanged interface-guidance
+cases pass on the final code. Branch/rename/return/review, negation, hypothetical
+intent, ambiguity and imported instructions keep their boundaries. Manual review
+confirms that the revised explanation distinguishes separate conversation/analysis
+from shared business data. Explanations can still be verbose and expose internal
+tool names; language polish remains open. The ambiguity case takes two responses;
+most other direct actions take one.
+
+The exact failed packaged request was rerun after the targeted prompt/tool
+clarification and added regression. The rebuilt native CLI completes in eight
+responses, retains three reads and a calculation, reports Cedar's lower cost with
+both original citations, creates no business Record, preserves one request Source
+and passes workbook integrity. The failed predecessor and its binary hash remain
+in the evidence archive. No success is attributed to that predecessor.
+
+Final verification:
+
+- `./scripts/check.sh`: full local suite passes. New checks cover exact proof reuse,
+  history/prose/reasoning exclusion, changed heads, projected/failed reads,
+  byte/count limits, replay, reopen and later-history bounds.
+- `./scripts/build.sh` and `python3 scripts/check_install.py`: baseline release,
+  isolated install/update, standalone CLI, skill conflict and safe uninstall pass.
+- Native release app/CLI rebuild, `scripts/package_native.py`,
+  `scripts/check_native_package.py`, and `scripts/check_extraction_package.py` pass.
+  Signatures/resources, ten missing-resource refusals, altered resources, absence
+  of baseline/Python/MLX runtime symbols, and packaged extraction remain checked.
+- Handoff/guidance execution hashes match the final debug binary. Conversation
+  regression ran between them with the same executable; its existing harness does
+  not emit a separate execution-hash file.
+- No new GUI or microphone check was performed while the Mac remained locked.
+  Keep the existing verified dictation evidence and pending navigation checks.
+
+Evidence: `integration/evidence/2026-10-27-handoff-evidence.json.gz`, 153775 bytes;
+uncompressed SHA-256 `be2d2e1b4be2b26f1c6d980d3d867d6e277a0733c3578994a3be3fcf23d0565f`.
+It preserves four cohorts, 24 synthetic workbook exports, failed/corrected packaged
+cases, 23 logs and source/binary hashes. Earlier archives are unchanged. Product
+workbooks do not persist reasoning; only synthetic qualification traces do.
+
+Next: finish normal/away-and-back native navigation checks after the pending unlock;
+polish concise user-facing language and unnecessary request-Source reads; continue
+references/backlinks and the remaining product, accessibility, context, engine and
+release gates. Baseline/native selection, model revision, engine pin and disabled
+automatic-compaction default are unchanged.
