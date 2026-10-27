@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T05:32:32.818554+00:00
+updated: 2026-10-27T06:04:09.068142+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -254,6 +254,8 @@ A pilot cannot pass the gate. Power/thermal exclusions affect both members of a
 paired block and prevent this fixed-size cohort from qualifying; requests and
 swap growth cannot be silently dropped. Actual WorkbookAgent job timing and the
 remaining adoption gates are independent of this request benchmark.
+
+Keep raw-model request semantics separate from application completion. The R1 cohort matched tokens and met request latency thresholds, but its four warmup currency errors fail its recorded success gate. Matching invalid outputs are not correct answers. The workbook host rejects that observed error, and four separately labeled recovery probes pass; release qualification still needs complete validated workflows, including correction latency. Preserve both results rather than converting the raw failure into a pass.
 ## Upstream maintenance
 
 I11. `skills/update-splash/SKILL.md` owns the agent workflow. Keep a machine-readable

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T05:32:32.834598+00:00
+updated: 2026-10-27T06:04:09.084079+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -504,3 +504,25 @@ thresholds. An excluded block cannot qualify this fixed-size cohort. Preserve
 failed attempts. Review and sanitize local paths before publishing receipts.
 This is a request/frontend comparison; actual workbook jobs, full UI and hardware
 qualification remain separate release gates.
+
+## Currency correction recovery
+
+After building sevra-agent-checks and preparing the native assembly, run the labeled
+fault-injection probe. Keep stdout and stderr separate so progress cannot split
+long JSON evidence lines:
+
+```sh
+swift build --product sevra-agent-checks -j 4
+.build/debug/sevra-agent-checks --currency-recovery \
+  /path/to/sevra-native-models \
+  .build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib \
+  .build/upstream/splash-native-1.4.1/engine/splash \
+  > .build/currency-recovery.log 2> .build/currency-recovery.stderr
+```
+
+It injects a comparison and the observed invalid dollar-denominated finish, then
+lets the actual native model recover twice in off and twice in bounded512 mode.
+It checks refusal before assistant publication, corrected citations, unchanged
+business data, the expected request Source, integrity and helper unload. Run it
+with no other model process active. The deterministic rejection case also runs in
+the ordinary agent checks. This is not an autonomous workflow benchmark.

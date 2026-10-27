@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T05:32:32.852022+00:00
+updated: 2026-10-27T06:09:25.268293+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -29,7 +29,7 @@ Next: matched reference/native request and workbook performance, total memory/he
 
 The matched native/reference request harness now has three retained pilots in integration/evidence/2026-10-27-native-performance-pilots.json. Pilot 1 exposed an NFC expectation error, an ambiguous title and mismatched tool prompt ordering. Pilot 2 matched prompts but missed nested property normalization inside wrapped reference grammars. Pilot 3 passed all five workloads with identical prompts and generated tokens, no semantic/sampling failures and no power/thermal exclusions. It is one sample per workload/backend, not a performance qualification.
 
-Swift now probes the pinned template's generation suffix once and reuses exact large envelopes in a bounded four-entry, 8 MiB payload cache. Scalar type identity, signed zero, reasoning flags, changed histories and current context limits are preserved. The full local regression passes 24 exact prompt fixtures, the existing 80 stream/105 base-mask/249 actual-tool-mask checks, core and setup checks, plus benchmark gate failure tests. Native assembly reverification passes. The fixed ten-block cohort is next; the installed baseline remains unchanged.
+Swift now probes the pinned template's generation suffix once and reuses exact large envelopes in a bounded four-entry, 8 MiB payload cache. Scalar type identity, signed zero, reasoning flags, changed histories and current context limits are preserved. The full local regression passes 24 exact prompt fixtures, the existing 80 stream/105 base-mask/249 actual-tool-mask checks, core and setup checks, plus benchmark gate failure tests. Native assembly reverification passes. The fixed ten-block cohort is complete: latency and token parity passed, but its overall gate failed on four matching raw-model currency errors in warmups. Four labeled actual-model currency recovery trials now pass in off/bounded512 modes. This does not erase the raw-model failure; complete validated-workflow performance remains open. The installed baseline remains unchanged; see Matched request cohort below.
 ## Implemented
 
 - Native SwiftUI/AppKit document windows with conversation and workspace panes,
@@ -917,3 +917,31 @@ All nine fresh-install native workbook checks and all nine rebuilt baseline chec
 The separate live-formula runs pass on both backends: accepting the planning table yields 7.5, changing quantity from 3 to 4 recalculates 10, and the supplier edit still supports acceptance and undo. The actual native app completed an eleven-step comparison, displayed 3.5 and 12.73%, opened the Purchasing table/chart, and navigated to the cited original and back. Its persisted run and workbook integrity checks pass. It also appended an unnecessary scoped note count, which remains an answer-focus/polish issue. The preview was closed after inspection and its helper exited.
 
 This checkpoint does not replace the installed baseline, enable automatic compaction, qualify arbitrary Macs, establish a speedup or complete the application. Remaining gates are listed in Current direction above.
+
+## Matched request cohort, October 27
+
+The frozen R1 cohort at f74164048bc8fddff87a4726ff907e55ee826c44 completed ten alternating paired blocks on the M5 Pro / 48 GiB reference Mac. The unchanged Splash helper, selected target/draft bytes, 32K allocation, 12 GiB engine budget, greedy seed 42, cache setting and inputs were shared. There were 300 total requests: 100 warmups and 200 measured requests, twenty measured samples per workload and frontend. The largest rendered prompt had 13254 tokens. This does not qualify a full 32K or 64K occupied conversation.
+
+All 150 paired prompt/prefix/generated-token sequences matched, including warmups. All measured requests passed their declared semantics. Every workload met the fixed latency thresholds. Complete request seconds:
+
+| Workload | Swift median | Reference median | Swift p95 | Reference p95 |
+| --- | ---: | ---: | ---: | ---: |
+| plain_copy | 1.819 | 1.827 | 1.878 | 1.846 |
+| unicode_json | 0.919 | 0.916 | 0.937 | 0.926 |
+| occupied_lookup | 0.701 | 0.703 | 0.713 | 0.717 |
+| workbook_table | 3.517 | 3.523 | 4.030 | 4.036 |
+| workbook_finish_history | 12.575 | 12.550 | 13.767 | 13.705 |
+
+The overall preregistered request gate FAILED. Four warmups, two per frontend, invented a dollar sign in the comparison answer. They occurred in blocks 4 and 9, where the history/finish request came first after startup. Both frontends produced the same invalid answer. Preserve the failure; do not relabel the cohort as a full pass or weaken its success requirement. This is raw-model behavior, not evidence of a Swift parity regression. The workbook host already refuses that unsupported symbol; four separately labeled fault-injection trials now verify actual-model recovery through that guard.
+
+Process-launch-to-ready medians were 4.698 seconds for Swift and 5.683 seconds for the reference. These are process-cold with uncontrolled OS file caches, not SSD-cold loads. Observed request-time sums of frontend/helper physical footprints peaked at 11.896 GiB and 12.179 GiB respectively. Sampling was every 0.2 seconds; startup has individual process lifetime peaks, not a simultaneous sampled total. This is not whole-app memory qualification. Preexisting swap stayed at 411.94 MiB. Thermal state reached fair, never serious/critical; no paired blocks were excluded and no helpers or sampling calls failed.
+
+The cohort exited 1 as required. Full sanitized configuration, identities, prompt arrays, outputs, status, memory traces and environment receipts are in integration/evidence/2026-10-27-native-performance-cohort1.json. Checkpoint f741640 also passed hosted CI run 40455955224. These measurements support matched request latency and token parity on this one profile. They do not establish a general speedup, complete workbook-job performance, broader hardware support, automatic compaction or production adoption.
+
+## Currency recovery after the matched cohort
+
+The replay test now exercises the existing workbook host with the observed invalid comparison answer. It first injects a deterministic compare_rows call and the invalid finish, then delegates correction to the real native model. Two reasoning-off and two bounded512 trials each start a fresh helper against the freshly downloaded native model assembly. All four pass: one recorded validation rejection, no invalid assistant message, a corrected complete answer with both row citations, unchanged original business items, exactly one expected user-request Source, workbook integrity and successful unload.
+
+The first deterministic test attempt incorrectly forbade the host-owned request Source and failed before model inference. That assertion was corrected to require exactly that expected addition while preserving every original item. Both the failed preflight and successful traces remain in integration/evidence/2026-10-27-currency-recovery.json. These are labeled fault-injection/recovery results, not autonomous task or latency qualification. Three trials used three steps; one bounded trial used five. Correction has a real latency cost. The existing symbol guard required no production change, and this evidence does not turn the failed R1 raw-model cohort into a pass.
+
+Read-only review during the cohort identified follow-up cases to reproduce: stale asynchronous table results after rapid sort changes; row selection/edit identity after refresh or reordering; and memory pressure during an active model operation, when idle-only unload currently returns false. These are review findings, not completed fixes. The native app/CLI rebuild, packaged resource/signature/refusal checks and all nine packaged real-workbook checks pass after the prompt-cache change. The comparison job naturally produced the same unsupported currency and opaque IDs; the host refused them and obtained a valid answer before publication. Cancellation preserved integrity and the subsequent stock-balance request completed. Full sanitized traces and binary identities are in integration/evidence/2026-10-27-native-post-cohort-workbooks.json. These are behavioral checks, not matched complete-workflow latency qualification.

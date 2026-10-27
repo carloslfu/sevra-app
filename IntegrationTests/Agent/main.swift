@@ -231,6 +231,7 @@ do {
   try checkReasoningBudget()
   try await checkReasoningHistory()
   try await checkAgentLifecycle()
+  try await checkCurrencyRejection()
   try await checkHistoryTools()
   try await checkScopedSearch()
   try await checkSearchCoverage()
@@ -257,6 +258,10 @@ do {
       _ = await model.unload()
       throw error
     }
+  } else if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--currency-recovery" {
+    try await runCurrencyRecoveryProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--coverage" {
     try await runCoverageProbe(
       modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],

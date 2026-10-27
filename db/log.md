@@ -172,3 +172,6 @@ October 27 native product checkpoint: host-owned search-gap replies; required-fi
 ## [2026-10-27 05:32] verification | records/operations/implementation
 Retained three matched-request pilots, including fixture and reference-adapter failures. Pilot 3 has identical prompts and outputs on all five workloads but is not qualification. Added bounded exact-prompt reuse and startup generation-suffix probes; full local check.sh passes, including 24 exact prompts and benchmark gate failures. Prior checkpoint hosted CI passed. Freeze the tested protocol before the twenty-sample-per-workload cohort.
 
+## [2026-10-27 06:09] verification | native-cohort-and-currency-recovery
+R1 f741640: 300 requests, all 150 paired prompt/prefix/output sequences equal; 200 measured semantic passes and all latency limits passed. Overall request gate FAILED on four currency-inventing warmups, preserved. Existing host guard recovered in four fault-injection trials and all nine packaged native workbook checks passed, including natural currency rejection, search-gap limits and cancellation/restart. Packaged resources/signature/refusals pass. python3 scripts/check_splash_grammar.py passes with new currency rejection test. Full public evidence and limits recorded; no adoption or speedup claim.
+
