@@ -367,3 +367,6 @@ Archive full W1: all 260 jobs valid and all timing limits met, but one exact-req
 ## [2026-10-27 16:18] verification | records/operations/implementation.md
 Complete local suite passes after W1. Native voice permission UI needs the owner’s OS clicks because computer use cannot operate UserNotificationCenter; add distinct waiting/start/listening status.
 
+## [2026-10-27 16:21] implementation | records/operations/implementation.md
+Native release compilation passes; snapshot file action IDs before background work and retain editor binding isolation after compiler review.
+

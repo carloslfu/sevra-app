@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T16:18:32.229155+00:00
+updated: 2026-10-27T16:21:50.051948+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -2033,3 +2033,10 @@ Hardware capture/transcription is not yet established. The previous UI showed
 only Stop for every active phase; a follow-up adds visible waiting/starting/
 listening state and the same accessible value. The source change still needs
 compilation and native visual verification.
+
+The native release target compiles successfully with the phase indicator. Its
+compiler also identified two file-action closures reading a main-actor item
+property from background work; capture the immutable item ID at the button
+action instead. The editor binding uses an explicit closure to retain inferred
+isolation. This is a source correction; a rebuilt package and visual pass are
+still pending the permission handoff.

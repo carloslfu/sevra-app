@@ -53,8 +53,9 @@ import SwiftUI
               Button("Choose files from ZIP…") { choosingArchiveMembers = true }
             }
             Button("Resume or retry intake") {
+              let id = item.id
               state.run("Resuming intake") { book, cancel in
-                try book.resumeIntake(item.id, cancellation: cancel)
+                try book.resumeIntake(id, cancellation: cancel)
               }
             }
           }
@@ -62,8 +63,9 @@ import SwiftUI
         if asset?.mode == "linked" {
           Menu("External file") {
             Button("Include in workbook") {
+              let id = item.id
               state.run("Including original") { book, cancel in
-                _ = try book.includeLinked(item.id, cancellation: cancel)
+                _ = try book.includeLinked(id, cancellation: cancel)
               }
             }
             Button("Find original…") { state.findOriginal() }
@@ -170,10 +172,11 @@ import SwiftUI
           QuickLookViewer(url: file)
         }
       } else if document.editing {
-        TextEditor(text: Binding(get: { document.text }, set: document.update)).font(.body).padding(
-          16
-        )
-        .accessibilityLabel("Document draft")
+        TextEditor(text: Binding(get: { document.text }, set: { document.update($0) })).font(.body)
+          .padding(
+            16
+          )
+          .accessibilityLabel("Document draft")
       } else {
         ScrollView {
           VStack(alignment: .leading, spacing: 18) {
