@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-27T00:26:44.099422+00:00
+updated: 2026-10-27T00:57:12.985826+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -224,3 +224,21 @@ kill/restart injection, sustained larger-context jobs and full J10 remain requir
 See [[records/specs/intelligence]], [[records/specs/storage]],
 [[records/specs/product]], [[records/specs/splash-integration]] and
 [[records/operations/implementation]].
+
+## Native continuity search follow-up
+The shared agent now searches business evidence and original conversation together
+on an unfiltered first page, preserving separate types, citations, filters and
+cursors. See [[records/specs/search]]. Three consecutive native 32K continuity
+probes passed the long-history, original-citation, portable-reopen,
+false-digest/current-acceptance and cancellation/retry sequence. A final repeat
+after the pagination repair passed recall/reopen but reached the step limit while
+inspecting the draft forecast, after reading its real record. Later acceptance
+and cancellation stages were not reached in that final trial. All four attempts
+are retained in integration/evidence/2026-10-26-scoped-search.json. The earlier
+routing failure remains in its original context-maintenance evidence.
+
+The host retrieval and receipt-stable pagination checks pass. Repeated general
+model completion does not. This is not C12/J10 qualification, a statistical
+reliability claim or a production context-size decision. Longer jobs, different
+wording, many durable constraints, process death, hardware and performance gates
+remain open. Native adoption and baseline automatic compaction remain disabled.

@@ -6,8 +6,12 @@ private actor HistoryToolInference: WorkbookInference {
   let identity = "scripted history retrieval"
   let lastMetrics: Value = .object([:])
   let large: Bool
+  let unified: Bool
   var steps = 0
-  init(large: Bool) { self.large = large }
+  init(large: Bool, unified: Bool = false) {
+    self.large = large
+    self.unified = unified
+  }
   func beginRun() {}
   func endRun() {}
   func respond(
@@ -15,13 +19,23 @@ private actor HistoryToolInference: WorkbookInference {
     progress: @escaping @Sendable (String) -> Void, finishOnly: Bool, citationIDs: [String]
   ) throws -> NativeReply {
     steps += 1
+    if unified && steps <= 2 {
+      return NativeReply(
+        text: "",
+        calls: [
+          InferenceCall(
+            id: "empty-\(steps)", name: "search",
+            inputJSON: "{\"query\":\"nonexistentword\(steps)\"}")
+        ])
+    }
+    let phase = steps - (unified ? 2 : 0)
     let tool: String
     let args: Value
-    if steps == 1 {
+    if phase == 1 {
       try expectEqual(messages.contains { $0.content.contains("MAPLE-27") }, false)
-      tool = large ? "datasets" : "history_search"
+      tool = large ? "datasets" : unified ? "search" : "history_search"
       args = large ? .object([:]) : .object(["query": .string("purchase code")])
-    } else if steps == 2 {
+    } else if phase == 2 {
       let result = try Value.parse(messages.last!.content)
       try expectEqual(messages.last!.content.utf8.count <= 16_000, true)
       if large {
@@ -32,12 +46,13 @@ private actor HistoryToolInference: WorkbookInference {
           "id": result["receiptID"], "path": .array([.string("0"), .string("title")]),
         ])
       } else {
-        let hit = try expectValue(result["hits"].array.first)
+        let hit = try expectValue((unified ? result["conversation"] : result)["hits"].array.first)
+        try expectEqual(citationIDs.contains("message:" + hit["id"].text), false)
         tool = "history_read"
         args = .object(["id": hit["id"]])
       }
     } else {
-      try expectEqual(steps, 3)
+      try expectEqual(phase, 3)
       let result = try Value.parse(messages.last!.content)
       if large {
         try expectEqual(result["value"].text, "Large table")
@@ -65,9 +80,9 @@ func checkHistoryTools() async throws {
     "sevra-history-tools-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   defer { try? FileManager.default.removeItem(at: root) }
-  for large in [false, true] {
+  for (large, unified) in [(false, false), (false, true), (true, false)] {
     let book = try Workbook.create(
-      at: root.appendingPathComponent("\(large).sevra"), title: "History")
+      at: root.appendingPathComponent("\(large)-\(unified).sevra"), title: "History")
     if large {
       let source = try book.addItem(category: "source", kind: "note", title: "Table input")
       _ = try book.createDataset(
@@ -80,12 +95,12 @@ func checkHistoryTools() async throws {
         "Our purchase code is MAPLE-27. Do not invent a currency.", role: "user")
       for index in 0..<110 { _ = try book.addMessage("Closed note \(index)", role: "assistant") }
     }
-    let model = HistoryToolInference(large: large)
+    let model = HistoryToolInference(large: large, unified: unified)
     let result = try await WorkbookAgent.run(
       large ? "Find the name of the table." : "What purchase code did I supply earlier?",
       workbook: book, model: model)
     try expectEqual(result.state, "complete")
-    try expectEqual(result.steps, 3)
+    try expectEqual(result.steps, unified ? 5 : 3)
     if !large {
       try expectEqual(result.citations.first?.hasPrefix("message:"), true)
       try expectEqual(result.answer.contains("sevra://conversation/main?message="), true)
@@ -102,7 +117,7 @@ func checkHistoryTools() async throws {
     try expectEqual(try book.unresolvedToolCalls().isEmpty, true)
     try expectEqual(try book.verify()["ok"], .bool(true))
     let receipts = try book.messages().filter { $0.role == "tool" }
-    try expectEqual(receipts.count, 2)
+    try expectEqual(receipts.count, unified ? 4 : 2)
     for receipt in receipts {
       let body = try Value.parse(receipt.body)
       try expectEqual(try book.toolCall(body["receiptID"].text)["state"].text, "completed")

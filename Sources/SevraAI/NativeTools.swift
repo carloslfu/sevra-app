@@ -76,7 +76,8 @@ package enum NativeTools {
       description:
         "Read an original message and attached receipt in this conversation. Refresh current evidence and acceptance before using historical claims.",
       parameters: object(
-        ["id": schema("string", "Message ID returned by history_search.")], required: ["id"])),
+        ["id": schema("string", "Message ID from history_search or search.conversation.hits.")],
+        required: ["id"])),
     .init(
       name: "tool_result",
       description:
@@ -148,7 +149,7 @@ package enum NativeTools {
     .init(
       name: "search",
       description:
-        "Find workbook evidence. No match is not proof of absence when indexing is incomplete.",
+        "Search business evidence and older messages in this conversation. Business hits use itemID; conversation.hits use id and require history_read before citation. Business filters/pagination search only business evidence. No match is not proof of absence.",
       parameters: object(
         [
           "query": schema("string", "Words or a filename fragment."),

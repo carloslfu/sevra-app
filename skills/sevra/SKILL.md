@@ -29,6 +29,11 @@ receipt. Follow the returned history cursor; append-only messages do not invalid
 older pages. A changed query or conversation requires a fresh search. `checkpoints` and `checkpoint` inspect derived context and current input
 state. A digest is not evidence of acceptance or permission for a new action.
 Use the workbook's current records and operation state, and cite original versions.
+`search` searches business evidence. The agent-facing `tool PATH search ARGS_JSON`
+also offers older main-conversation candidates in `conversation.hits` on an
+unfiltered first page. Business filters and continuation pages do not search
+conversation. Read a message candidate with `history-read` before citing it;
+continue its separate cursor with `history-search`, never business `search`.
 An answer citation starting with `message:` refers to an original conversation
 message, not an item ID. Inspect it with `history-read PATH CONVERSATION MESSAGE_ID`
 after removing that prefix. It supports what was said earlier, not current business

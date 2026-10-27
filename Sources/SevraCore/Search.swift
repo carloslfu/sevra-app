@@ -66,6 +66,9 @@ extension Workbook {
           let count = min(max(limit, 1), 100)
           let skip = min(max(offset, 0), 10_000)
           let rev = try revision()
+          let journal = try db.execute(
+            "SELECT rowid,id,revision FROM operations ORDER BY rowid DESC LIMIT 1"
+          ).first
           let identity = try Value.object([
             "q": .string(query), "kind": kind.map(Value.string) ?? .null,
             "meaning": meaning.map(Value.string) ?? .null, "historical": .bool(historical),
@@ -79,7 +82,8 @@ extension Workbook {
               let token = try? Value.parse(String(decoding: data, as: UTF8.self))
             else { throw SevraError("cursor", "Invalid search cursor.") }
             try require(
-              token["revision"].int == rev && token["query"].text == identity, "stale_cursor",
+              token["query"].text == identity
+                && searchCursorIsCurrent(token, revision: rev, journal: journal), "stale_cursor",
               "The workbook or query changed. Start a fresh search.")
             guard case .number(let rank) = token["rank"], rank.isFinite, let id = token["id"].int
             else {
@@ -155,6 +159,7 @@ extension Workbook {
               try Value.object([
                 "query": .string(identity), "revision": .number(Double(rev)),
                 "rank": .number(last.rank), "id": .number(Double(last.id)),
+                "journal": journal.map(Value.object) ?? .null,
               ]).json().utf8
             ).base64EncodedString()
           }
@@ -165,6 +170,33 @@ extension Workbook {
       }
     }
   }
+
+  /// Receipt persistence and context maintenance cannot change business ranking.
+  /// Inspect only a bounded indexed journal suffix; every unknown mutation refuses
+  /// continuation. Legacy cursors keep their strict whole-workbook revision check.
+  private func searchCursorIsCurrent(
+    _ cursor: Value, revision: Int, journal: [String: Value]?
+  ) throws -> Bool {
+    if cursor["revision"].int == revision { return true }
+    guard let previousRevision = cursor["revision"].int,
+      let anchor = cursor["journal"]["rowid"].int,
+      let identity = cursor["journal"]["id"].string,
+      let latest = journal?["rowid"]?.int,
+      journal?["revision"]?.int == revision,
+      previousRevision < revision, anchor > 0, latest >= anchor, latest - anchor <= 4096
+    else { return false }
+    guard
+      try db.scalar(
+        "SELECT revision FROM operations WHERE rowid=? AND id=?",
+        [.number(Double(anchor)), .string(identity)]
+      ).int == previousRevision
+    else { return false }
+    return try db.scalar(
+      "SELECT EXISTS(SELECT 1 FROM operations WHERE rowid>? AND kind NOT IN ('message','tool_prepare','tool_complete','context_checkpoint') LIMIT 1)",
+      [.number(Double(anchor))]
+    ).int == 0
+  }
+
   public func readChunks(_ id: String, offset: Int = 0, limit: Int = 8) throws -> [Value] {
     try synchronized {
       try db.execute(

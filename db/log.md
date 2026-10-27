@@ -118,3 +118,12 @@ Implemented candidate automatic context maintenance, exact-original conversation
 ## [2026-10-27 00:28] design | records/specs/conversation-context.md
 Separate original-message citations from business item versions and tool-only digest references from host-owned current status. Preserve legacy text and durable user constraints; retain observed failed attempts and incomplete qualification.
 
+## [2026-10-27 00:57] implementation | records/operations/implementation.md
+Scoped agent search and receipt-stable business pagination. Final checks/build/install pass; native continuity retains three prior passes and one final step-limit failure. Candidate not adopted.
+
+## [2026-10-27 00:57] design | records/specs/search.md
+Keep business evidence and original conversation distinct within shared discovery; preserve filters, cutoffs, citations and bounded journal-anchored pagination.
+
+## [2026-10-27 00:57] verification | records/reviews/design-passes.md
+Deterministic scope/cursor regressions pass. Record all four native continuity attempts, autonomous and preserved-backend results in integration/evidence/2026-10-26-scoped-search.json.
+

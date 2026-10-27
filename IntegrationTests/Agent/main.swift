@@ -206,6 +206,7 @@ do {
   try checkContextBudget()
   try await checkAgentLifecycle()
   try await checkHistoryTools()
+  try await checkScopedSearch()
   try await checkCompaction()
   try await checkRunningCompaction()
   let checks = ToolPolicyChecks()

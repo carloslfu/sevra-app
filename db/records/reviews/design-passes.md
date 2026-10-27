@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-27T00:14:10.337811+00:00
+updated: 2026-10-27T00:53:53.853342+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -215,3 +215,27 @@ The current request and later messages cannot qualify as earlier evidence. It
 renders a link to the original exchange and cannot become a business-record input.
 Clarified conversation versus document search and existing table components versus
 new datasets after a generated-space probe omitted its requested table component.
+
+## Search scope review, October 26 local / October 27 UTC
+
+The native continuity failure revealed a routing trap: business search returned
+no evidence even though the exact answer existed in original conversation.
+Adding another prompt instruction left the model responsible for choosing the
+right index before discovery. The shared agent search now offers separately typed
+results from both indexes on an unfiltered first page. This is a host retrieval
+change; reasoning mode and model weights remain unchanged for the comparison.
+
+Adversarial checks preserve explicit business filters, branch isolation, the
+active-request cutoff, distinct cursors, cancellation and incomplete extraction.
+A conversation candidate cannot mint a citation until its original is read.
+A third search that finds only conversation must not trigger the empty-business
+termination path. Deterministic integration checks cover all these cases. Actual
+model continuity must be repeated separately; one pass cannot qualify release.
+
+Pagination review found an older integration defect: the nextCursor carried the
+whole workbook revision, but persisting a search receipt incremented that revision
+before the next tool call. Direct core pagination tests did not exercise that
+journal boundary. Added a real shared-agent two-page fixture with twenty evidence
+items and a conservative operation-journal anchor. Context checkpoints also keep
+unchanged pages valid; an independent writer changing evidence refuses the same
+cursor. Unknown mutation types and long journal intervals still invalidate it.

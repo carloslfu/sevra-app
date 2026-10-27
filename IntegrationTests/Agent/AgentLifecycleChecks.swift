@@ -12,15 +12,17 @@ private actor ScriptedInference: WorkbookInference {
   let cancelAfterResponse: Bool
   let fail: Bool
   let searchesOnly: Bool
+  let filteredSearches: Bool
   let balanceOnly: Bool
   let violateReadOnly: Bool
   init(
     cancelAfterResponse: Bool = false, fail: Bool = false, searchesOnly: Bool = false,
-    balanceOnly: Bool = false, violateReadOnly: Bool = false
+    balanceOnly: Bool = false, violateReadOnly: Bool = false, filteredSearches: Bool = false
   ) {
     self.cancelAfterResponse = cancelAfterResponse
     self.fail = fail
     self.searchesOnly = searchesOnly
+    self.filteredSearches = filteredSearches
     self.balanceOnly = balanceOnly
     self.violateReadOnly = violateReadOnly
   }
@@ -78,7 +80,11 @@ private actor ScriptedInference: WorkbookInference {
         calls: [
           InferenceCall(
             id: "search-\(responses)", name: "search",
-            inputJSON: "{\"query\":\"missing evidence \(responses)\"}")
+            inputJSON: try Value.object(
+              filteredSearches
+                ? ["query": .string("missing evidence \(responses)"), "kind": .string("note")]
+                : ["query": .string("missing evidence \(responses)")]
+            ).json())
         ])
     }
     return NativeReply(
@@ -216,15 +222,15 @@ func checkAgentLifecycle() async throws {
   _ = try reviewBook.undoItem(accepted.id)
   let withdrawnHistory = try WorkbookAgent.conversationHistory(reviewBook, conversation: "main")
   try expectEqual(withdrawnHistory.last!.content.contains("\"status\":\"rejected\""), true)
-  for incomplete in [false, true] {
+  for (incomplete, filtered) in [(false, false), (true, false), (false, true), (true, true)] {
     let missing = try Workbook.create(
-      at: root.appendingPathComponent("Missing-\(incomplete).sevra"), title: "Missing")
+      at: root.appendingPathComponent("Missing-\(incomplete)-\(filtered).sevra"), title: "Missing")
     if incomplete {
       let file = root.appendingPathComponent("Unreadable.fixture")
       try Data([0, 1, 2, 3]).write(to: file)
       _ = try missing.importFile(file)
     }
-    let model = ScriptedInference(searchesOnly: true)
+    let model = ScriptedInference(searchesOnly: true, filteredSearches: filtered)
     let result = try await WorkbookAgent.run(
       "Find the missing contract", workbook: missing, model: model)
     try expectEqual(result.state, "complete")
@@ -235,6 +241,8 @@ func checkAgentLifecycle() async throws {
     try expectEqual(
       result.answer.contains(incomplete ? "1 incomplete source" : "no incomplete sources"), true)
     try expectEqual(result.answer.contains("missing evidence 3"), true)
+    try expectEqual(result.answer.contains("also searched earlier messages"), !filtered)
+    try expectEqual(result.answer.contains("queries were limited to business evidence"), filtered)
   }
   let inventoryPath = root.appendingPathComponent("Inventory.sevra")
   _ = try Demo.create(at: inventoryPath)

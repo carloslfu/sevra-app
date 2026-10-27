@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-25T01:48:47.314196+00:00
+updated: 2026-10-27T00:53:53.831086+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -87,3 +87,40 @@ Q15. Recall fixtures cover accents, filenames, rare identifiers, mixed languages
 phrase/prefix queries, duplicated evidence, corrections, hidden old versions,
 partial OCR and unrelated distractors. Agent evaluation checks multi-step
 search/read/cite, no-match honesty and resistance to instructions in documents.
+
+## Shared agent search across evidence and conversation
+
+The agent's unfiltered first search page discovers both current business evidence
+and older original messages in its current conversation. Keep them distinct:
+top-level hits contain item versions, and conversation.hits contain message IDs.
+The latter are candidates only; history_read must expose an eligible original
+before a message:ID citation can support a statement about earlier conversation.
+A message citation never becomes business lineage or proof of current acceptance.
+
+Business kind, meaning, status or scenario filters deliberately exclude messages.
+Business continuation pages also stay in that index. Every result says whether
+conversation was searched. Its separate cursor continues through history_search
+with the same query, conversation and active-request ceiling. Current-request and
+later messages, sibling tangents and unselected parent history are excluded.
+Business evidence remains workbook-wide. The two indexes share one read snapshot.
+
+Both searches remain bounded: at most 12 business hits and 8 message candidates
+per broad agent search; existing separate history pages and result receipts handle
+continuation. Model-visible output remains bounded by the tool projection. No
+whole conversation or workbook load, semantic embedding, schema migration or
+external service is introduced. Each index retains its existing query deadline.
+
+A match in either domain interrupts the consecutive-empty-search limit. A bounded
+no-match response identifies document extraction coverage and whether its queries
+also searched conversation. Neither no match nor complete indexing proves that
+the requested fact is absent. CLI search and saved search components retain their
+business-evidence API; CLI history-search remains the explicit conversation API.
+
+Business search cursors include an operation-journal anchor. A next page can
+survive only append-only message, tool-preparation, tool-completion and context
+checkpoint writes since that anchor. It validates the anchor identity/revision
+and examines at most 4,096 subsequent journal rowids through SQLite's rowid index.
+Business changes, unknown mutation kinds, invalid anchors or a longer interval
+require a fresh query. Legacy cursors retain their strict revision check. This
+prevents the agent's own receipt writes from breaking every multi-page search,
+without ignoring evidence changes or introducing a database migration.

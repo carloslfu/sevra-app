@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T00:30:24.087348+00:00
+updated: 2026-10-27T00:57:13.007805+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -755,3 +755,58 @@ current-request exclusions, business filters and incomplete-index coverage expli
 This is an implementation proposal to test, not a completed capability. Compare
 bounded reasoning as a separate measured variable rather than conflating it with
 retrieval changes.
+
+## Scoped search follow-up, October 26 local / October 27 UTC
+Committed and pushed the context-maintenance checkpoint as fdfc518. This follow-up
+implements its proposed retrieval change. Agent search checks current business
+evidence plus earlier original conversation by default. Business filters and
+pages retain their scope, and conversation candidates require an original read
+before citation. The two indexes share one snapshot; no schema change or model
+change. The bounded no-match response now identifies the domains actually searched.
+
+New deterministic checks cover two failed queries followed by a conversation-only
+hit, message citation eligibility, current-request and later-message exclusions,
+tangent isolation, Unicode/diacritics, separate cursor paging and rejection,
+explicit business filters, partial extraction and cancellation. Actual-tool
+declarations and pinned grammar fixtures were regenerated. The CLI skill states
+the distinction between business search and the shared agent search surface.
+
+Three consecutive native continuity trials pass on the unchanged 32K development
+profile, with the same model/engine pins and no reasoning-mode change. Each checks
+repeated maintenance, exact original code/decimal/unit and citation, offline
+reopen, false tool-derived digest versus current draft/accepted forecast,
+cancelled summary preserving the prior checkpoint, and explicit retry returning
+WILLOW-12 / 0.20 kg. Some retries still took extra searches before reading the
+original. Keep all trials, not just the fastest one. This fixes the observed
+index-routing trap without claiming general model reliability.
+
+Evidence and final verification: integration/evidence/2026-10-26-scoped-search.json.
+The previous failed native attempt remains in the context-maintenance evidence.
+Native Splash is still a candidate; no production compaction, 32K default,
+performance superiority, broad restart recovery or whole-app release claim.
+
+Follow-up review also fixed receipt-invalidated business cursors. The cursor now
+binds a journal anchor and tolerates only audited non-business history operations
+within a bounded suffix. The shared-agent twenty-item/two-page test proves that
+actual prepare/complete receipts do not break continuation; separate-writer
+evidence changes and wrong-domain cursors still refuse. No schema migration.
+The earlier full native autonomous regression passes five completed jobs, one
+proposal for review and one deliberate cancellation. A packaged preserved-backend
+inventory question also passes with the correct balance and both evidence links.
+Those probes precede the pagination-only adjustment; final checks and the final
+native continuity repeat are identified separately in the evidence.
+
+Final checkpoint result: scripts/check.sh, release app/CLI build, isolated
+install/update/uninstall, history/receipt CLI checks, concurrent writers, both
+knowledge gates and the CLI skill validation pass. The final native repeat fails
+at draft-forecast inspection after successfully recalling originals and reopening
+its portable workbook. It read the correct forecast, tried a record ID as a
+message ID, and explored until the step limit. Do not promote the candidate or
+claim four passing trials. Evidence retains the three earlier passes and this
+current-source failure. The previously published fdfc518 checkpoint's CI passed.
+
+Next investigate bounded reasoning as a separate variable using the pinned
+upstream's actual semantics and grammar, and repeat the same acceptance cases.
+The model must finish from inspected current state; more search steps alone do
+not establish correctness. Native setup, matched performance, packaging/adoption,
+full UI/voice qualification and broader scale/restart recovery remain open.
