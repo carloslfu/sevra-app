@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T16:01:01.555848+00:00
+updated: 2026-10-27T16:08:42.911356+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1975,3 +1975,10 @@ included/linked copies, editing isolation, empty files, interruption and staging
 cleanup, same-size corruption, package aliases, existing or competing files and
 changed linked originals. These are prepared changes; compilation, execution and
 visible native save/open behavior are not yet claimed.
+
+Hosted run 40536758642 on 6c9da08 passed the core copy invariants and the search
+self-check, then failed to compile the added preview assertions because their
+helper requires an explanatory message. The repair supplies those messages.
+The copy action also checks the displayed version before opening its save panel,
+and destination ownership compares normalized filesystem paths. The failed CI
+run is retained; a new full run is required.

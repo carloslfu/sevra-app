@@ -17,7 +17,7 @@ extension Workbook {
     var ancestor = parent
     while true {
       try require(
-        ancestor != package && ancestor.pathExtension.lowercased() != "sevra",
+        ancestor.path != package.path && ancestor.pathExtension.lowercased() != "sevra",
         "path", "Save the copy outside a workbook so its original evidence stays intact.")
       if ancestor.path == "/" { break }
       ancestor.deleteLastPathComponent()

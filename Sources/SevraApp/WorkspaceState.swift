@@ -572,7 +572,8 @@ import SwiftUI
   }
   func openAssetCopy(input: String? = nil) {
     guard interactionActive, !busy, let book = workbook,
-      case .item = route, let source = activeDocument?.current, let assetID = source.assetID
+      case .item = route, let source = activeDocument?.current, viewedItemVersion == source.id,
+      let assetID = source.assetID
     else {
       error = "Open a file preview first, then ask to open a copy."
       return
