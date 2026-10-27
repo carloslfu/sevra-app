@@ -39,7 +39,7 @@ jobs:
         run: |
           swift build --product sevra-workflow-performance -j 3
           .build/debug/sevra-workflow-performance --self-check
-          python3 scripts/check_workflow_performance.py
+          python3 scripts/check_workflow_diagnostics.py
       - name: Check native speculative grammar masks
         run: |
           rustup toolchain install 1.96.0 --profile minimal

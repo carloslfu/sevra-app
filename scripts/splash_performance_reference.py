@@ -51,6 +51,8 @@ def main():
     import os
     import base64
     import dataclasses
+    import hashlib
+    import struct
     config = json.loads(Path(sys.argv[1]).read_text())
     from splash_reference_identity import verify
     sys.path.insert(0, str(verify(ROOT, Path(config['assembly']) / 'tokenizer')))
@@ -70,7 +72,10 @@ def main():
         def create(self, grammar, **kwargs):
             # Match Sevra's declared nested schema order only at the grammar
             # boundary. Reordering the request also changes its chat prompt.
-            return super().create(workbook_grammar(grammar), **kwargs)
+            normalized = workbook_grammar(grammar)
+            if config.get("diagnosticMasks"):
+                self.last_grammar = normalized
+            return super().create(normalized, **kwargs)
 
     class ObservedBackend(NativeBackend):
         # Observation only; all preparation, admission, masks, decoding,
@@ -82,6 +87,25 @@ def main():
                     absolute_deadline_unix_micros=1, remaining_deadline_micros=180_000_000)
                 self.request_frame = base64.b64encode(wire.serialize_message(frame)).decode('ascii')
             return request
+
+        def _mask_provider(self, job):
+            provide = super()._mask_provider(job)
+            if provide is None or not config.get('diagnosticMasks'):
+                return provide
+            def observed(event):
+                masks = provide(event)
+                committed = list(self.tokens)
+                width = event.words_per_mask * 4
+                for index in range(len(event.simulation_tokens) + 1):
+                    prefix = committed + list(event.simulation_tokens[:index])
+                    prefix_bytes = struct.pack('<' + 'I' * len(prefix), *prefix)
+                    row = masks[index * width:(index + 1) * width]
+                    self.mask_trace.append({'tokenCount': len(prefix),
+                        'committedCount': len(committed), 'simulationTokens': list(event.simulation_tokens[:index]),
+                        'prefixSHA256': hashlib.sha256(prefix_bytes).hexdigest(),
+                        'maskSHA256': hashlib.sha256(row).hexdigest()})
+                return masks
+            return observed
 
         def _on_event(self, state, event):
             if isinstance(event, wire.TokensEvent):
@@ -133,7 +157,7 @@ def main():
             if command.get('op') == 'workflow' and len(job.prompt_tokens) > 24000:
                 raise ValueError('Workflow qualification exceeds its declared 24000-token prompt bound')
             prepared = time.monotonic()
-            backend.tokens, backend.first_token = [], None
+            backend.tokens, backend.first_token, backend.mask_trace = [], None, []
             backend.submit(job)
             collected = Collector()._collect(job)
             elapsed = time.monotonic() - started
@@ -151,6 +175,8 @@ def main():
                   'matchedPromptTokens': result.cache.matched_tokens,
                   'tokens': backend.tokens, 'text': collected.content,
                   **({'requestFrame': backend.request_frame} if config.get('workflowQualification') else {}),
+                  **({'maskTrace': backend.mask_trace, 'grammar': frontend.constraint_factory.last_grammar}
+                     if config.get('diagnosticMasks') else {}),
                   'reasoning': collected.reasoning, 'calls': calls,
                   'finish': {'stop': 0, 'length': 1, 'cancelled': 2}[result.reason],
                   'bounded': result.bounded, 'drafted': result.drafted_tokens,

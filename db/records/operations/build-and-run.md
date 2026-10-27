@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T07:40:13.453063+00:00
+updated: 2026-10-27T08:21:35.846876+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -602,3 +602,52 @@ python3 scripts/compare_workflow_performance.py \
 ~~~
 
 Each actual inference adapter owns the cross-process model lease. The coordinator checks availability but does not hold it over the worker. Jobs use the shared agent and include validation/recovery, persisted completion and scripted formula acceptance/edit/undo. Keep all per-step prompt arrays, tokens, receipts, samples and failures. The native process footprint includes host/helper; the reference adds its Python bridge. Only a full clean cohort can pass the fixed sample-count and latency gate. Automatic compaction and production adoption remain separate gates.
+
+## Workflow divergence diagnostics
+Replay a recorded successful native pilot with the exact same worker binary and native source. The command refuses a different build. The baseline must still contain its original identity, configuration and native result files.
+
+```sh
+python3 scripts/check_workflow_repeatability.py \
+  --baseline .build/workflow-performance/pilot3 \
+  --output .build/workflow-performance/native-repeat-new
+```
+
+After building the diagnostic-capable release worker, record actual mask hashes and grammar text with a full paired pilot. Use a new output directory, keep inference sequential and do not overlap builds or downloads.
+
+```sh
+swift build -c release --product sevra-workflow-performance -j 4
+.build/release/sevra-workflow-performance --self-check
+python3 scripts/check_workflow_diagnostics.py
+python3 scripts/compare_workflow_performance.py \
+  --models-root .build/native-fresh-setup \
+  --output .build/workflow-performance/masks-new --pilot --diagnostic-masks
+python3 scripts/analyze_workflow_masks.py .build/workflow-performance/masks-new \
+  --output .build/workflow-performance/masks-new/mask-analysis.json
+```
+
+The pilot exits nonzero when prompts or tokens differ. Analyze and retain that failed result; it is the reason for this diagnostic. Never interpret the traced timings as performance qualification. `mask-analysis.json` verifies recorded prefix hashes and reports missing or conflicting observations as well as exact mask differences. Full uninstrumented W1 and a corrected matched request cohort remain independent gates.
+
+## Controlled reference replay
+Use the same worker binary and frontend source to replay one side of a recorded pilot. The default is native; --backend reference selects the development reference worker and includes its Python process in sampling. A different build is refused. Optional --disable-mask-tracing requires a traced baseline and changes only that observation setting; it is a controlled diagnostic, not an unchanged-conditions replay. Its report preserves actual request and token differences and cannot qualify performance.
+
+```sh
+python3 scripts/check_workflow_repeatability.py \
+  --baseline .build/workflow-performance/masks1 \
+  --output .build/workflow-performance/reference-untraced-new \
+  --backend reference --disable-mask-tracing
+```
+
+The result retains the baseline identity, exact build/source/controller identities and the explicit tracing change. A nonzero mismatch outcome is evidence to preserve, not a reason to discard the run.
+
+## Compressed diagnostic evidence
+Large diagnostic receipts may use deterministic gzip around their JSON. This keeps the public checkout smaller while preserving complete local evidence. The exporter chooses gzip when the output filename ends in .gz and reports compressed size, uncompressed size and SHA256. Existing .json output remains supported.
+
+```sh
+python3 scripts/export_performance_evidence.py \
+  --scope 'Diagnostic evidence only, not performance qualification' \
+  --output integration/evidence/diagnostic-run.json.gz \
+  .build/workflow-performance/masks-new
+python3 -c 'import gzip,json; print(json.load(gzip.open("integration/evidence/diagnostic-run.json.gz", "rt"))["scope"])'
+```
+
+The inspection command reads the compressed JSON without creating or overwriting files. Do not overwrite existing published evidence. The October 27 diagnostic archive has a verified byte-identical round-trip; its uncompressed checksum is recorded in the progress register.

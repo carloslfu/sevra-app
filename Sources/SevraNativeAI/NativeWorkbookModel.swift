@@ -23,12 +23,14 @@ package actor NativeWorkbookModel: WorkbookInference {
     package let modelLayout: ModelLayout
     package let contextMaintenanceEnabled: Bool
     package let observeRequest: (@Sendable (Value) -> Void)?
+    package let observeMask: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)?
     package init(
       engine: URL, engineFiles: [String: String], grammarLibrary: URL,
       grammarSHA256: String, modelsRoot: URL, memoryBytes: UInt64,
       contextBudget: ContextBudget = .init(), reasoning: NativeReasoning = .off,
       modelLayout: ModelLayout = .localPack, contextMaintenanceEnabled: Bool = true,
-      observeRequest: (@Sendable (Value) -> Void)? = nil
+      observeRequest: (@Sendable (Value) -> Void)? = nil,
+      observeMask: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)? = nil
     ) {
       self.engine = engine
       self.engineFiles = engineFiles
@@ -41,6 +43,7 @@ package actor NativeWorkbookModel: WorkbookInference {
       self.modelLayout = modelLayout
       self.contextMaintenanceEnabled = contextMaintenanceEnabled
       self.observeRequest = observeRequest
+      self.observeMask = observeMask
     }
   }
   package let identity: String
@@ -448,7 +451,12 @@ private final class NativeWorker: @unchecked Sendable {
     let generated = try session.helper.generate(
       request,
       cancelled: { cancellation.isCancelled || cancellation.isExpired },
-      mask: { try constraint.masks(committed: $0, simulation: $1, words: $2) },
+      mask: { committed, simulation, words in
+        let values = try constraint.masks(
+          committed: committed, simulation: simulation, words: words)
+        self.configuration.observeMask?(committed, simulation, words, values)
+        return values
+      },
       event: { event in
         if case .tokens(_, _, let tokens) = event { _ = try output.append(tokens: tokens) }
         if case .start(_, _, let matched) = event { matchedPromptTokens = Int(matched) }
@@ -505,6 +513,7 @@ private final class NativeWorker: @unchecked Sendable {
           "generationTokens": .number(Double(prompt.generationTokens)),
           "tokens": .array(generated.tokens.map { .number(Double($0)) }),
           "requestFrame": .string(try normalized.encoded().base64EncodedString()),
+          "grammar": configuration.observeMask == nil ? .null : .string(policy.grammar),
           "metrics": metrics,
         ]))
     }

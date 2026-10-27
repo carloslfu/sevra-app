@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T07:33:44.076707+00:00
+updated: 2026-10-27T08:20:31.357519+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -331,3 +331,15 @@ Sample physical footprint every 0.2 seconds for the Swift host and helper; inclu
 During W1 pilot review, code inspection found a request parameter omitted from the earlier matching checks: Swift SplashWire.Request defaults to foreground priority (wire 0), while the pinned Python Frontend defaults to normal (wire 1). The earlier R1 reference body did not override it. R1 retains its recorded token equality, raw timings and failed currency outcomes, but it does not establish performance under fully identical request parameters. The original frozen protocol, receipts and failures remain preserved; do not promote its latency result as a completed matched-configuration gate. A newly preregistered request cohort with verified actual parameter bytes is required for that claim.
 
 W1 now explicitly supplies foreground priority to the reference and captures each actual serialized request frame on both sides. Normalize only the request ID and deadline stamps, then compare every remaining byte, including prompts, sampling, thinking terminators, flags, cache salt and priority. Preserve unmatched frames. Record matched-prefix token counts to investigate cache-related variation. The earlier W1 pilot had some differing reasoning sequences despite identical input prompts; the priority discrepancy is a verified confound, not yet a proven explanation for that divergence.
+
+## Divergence diagnostics
+When actual request bytes match but generated tokens differ, first replay the exact native worker, source identity, synthetic starting state, priming job and preceding job order. Preserve both complete traces. This distinguishes an observed within-native difference from a cross-frontend difference; even an exact replay is not universal determinism proof.
+
+A separate pilot-only mode observes the actual grammar text and every returned mask row on both paths. Hash all little-endian UInt32 words, including padding, and identify each row by the committed output plus its hypothetical simulation prefix. Save the committed length and simulation token IDs so every prefix hash can be verified later. Production configurations leave the observation callback nil. The pinned engine, grammar library and reference mask provider remain unchanged.
+
+Compare masks at shared actual and speculative prefixes. Preserve multiple observations of a prefix and flag inconsistent masks. Missing observations are gaps, never matches. At the first differing generated token, report whether both sides observed that prefix and whether their masks agree. Equal masks there do not identify an engine bug or rule out differences at unshared speculative prefixes, other commands, cache state or timing. Capture actual grammar identities separately from mask equivalence.
+
+Instrumented timings cannot qualify W1, even if all jobs pass or a summary is called with a non-pilot flag. Never remove diagnostic failures or relax generated-token equality to promote the candidate. Commands and retained results belong in [[records/operations/build-and-run]] and [[records/operations/implementation]].
+
+## Diagnostic evidence limits, October 27
+The traced W1 pilot matched all 42 request/output sequences and all 16,130 shared mask prefixes. Turning tracing off on the same reference build restored the older reference output, including its four same-wire differences from native. Therefore a matching diagnostic trace does not clear the uninstrumented parity gate. Preserve both results and isolate mask-response pacing, observation serialization and command/cache effects separately. Do not introduce an artificial product delay or redefine a successful pilot as a qualified comparison. The unchanged native engine remains pinned, and production adoption remains disabled. See [[records/operations/implementation]] for exact evidence and limits.

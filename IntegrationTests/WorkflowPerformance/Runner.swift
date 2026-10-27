@@ -282,6 +282,23 @@ func selfCheck() async throws {
   try require(
     FixtureContext.current == nil && timestamp() != "2001-01-01T00:00:00Z"
       && identifier() != identifier(), "fixture", "Fixture changed ordinary identity or time")
+  let masks = Observations()
+  masks.appendMask([1], [2], 2, [1, 0, 3, 0])
+  masks.append(.object([:]))
+  let trace = masks.snapshot()[0]["maskTrace"].array
+  try require(
+    trace.count == 2 && trace[0]["tokenCount"].int == 1 && trace[1]["tokenCount"].int == 2,
+    "fixture", "Mask trace lost prefix position")
+  try require(
+    trace[0]["prefixSHA256"].text
+      == "67abdd721024f0ff4e0b3f4c2fc13bc5bad42d0b7851d456d88d203d15aaa450"
+      && trace[1]["prefixSHA256"].text
+        == "34fb5c825de7ca4aea6e712f19d439c1da0c92c37b423936c5f618545ca4fa1f",
+    "fixture", "Mask prefix digest differs from little-endian Python golden")
+  masks.reset()
+  masks.append(.object([:]))
+  try require(
+    masks.snapshot()[0]["maskTrace"] == .null, "fixture", "Mask trace leaked between jobs")
   print(
     "PASS deterministic fixture state, task inheritance, concurrent isolation, unchanged defaults and actual formula acceptance/edit/undo"
   )
@@ -303,6 +320,14 @@ func selfCheck() async throws {
       let observations = Observations()
       let underlying: any WorkbookInference
       if backend == "native" {
+        let maskObserver: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)?
+        if config["diagnosticMasks"] == .bool(true) {
+          maskObserver = { committed, simulation, words, masks in
+            observations.appendMask(committed, simulation, words, masks)
+          }
+        } else {
+          maskObserver = nil
+        }
         underlying = NativeWorkbookModel(
           configuration: .init(
             engine: URL(fileURLWithPath: config["engine"].text),
@@ -313,7 +338,8 @@ func selfCheck() async throws {
             memoryBytes: 12_884_901_888,
             contextBudget: .init(profile: .evaluation32K), reasoning: .bounded512,
             modelLayout: .installed, contextMaintenanceEnabled: false,
-            observeRequest: { observations.append($0) }))
+            observeRequest: { observations.append($0) },
+            observeMask: maskObserver))
       } else {
         try require(backend == "reference", "usage", "Unknown qualification frontend")
         underlying = ReferenceModel(config: config, observations: observations)

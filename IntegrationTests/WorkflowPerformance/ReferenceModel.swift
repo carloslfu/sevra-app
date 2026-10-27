@@ -1,3 +1,4 @@
+import CryptoKit
 import Darwin
 import Foundation
 import SevraAI
@@ -7,14 +8,49 @@ import SevraNativeAI
 final class Observations: @unchecked Sendable {
   private let lock = NSLock()
   private var rows: [Value] = []
+  private var maskRows: [Value] = []
   func append(_ row: Value) {
     lock.lock()
-    rows.append(row)
+    if maskRows.isEmpty {
+      rows.append(row)
+    } else {
+      var observed = row.object
+      observed["maskTrace"] = .array(maskRows)
+      rows.append(.object(observed))
+      maskRows = []
+    }
     lock.unlock()
   }
   func reset() {
     lock.lock()
     rows = []
+    maskRows = []
+    lock.unlock()
+  }
+  func appendMask(_ committed: [UInt32], _ simulation: [UInt32], _ words: UInt32, _ masks: [UInt32])
+  {
+    func digest(_ values: [UInt32]) -> Value {
+      let bytes = values.map(\.littleEndian).withUnsafeBytes { Data($0) }
+      return .string(SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined())
+    }
+    var entries: [Value] = []
+    if words == 0 || masks.count != Int(words) * (simulation.count + 1) {
+      entries = [.object(["error": .string("Unexpected diagnostic mask dimensions")])]
+    } else {
+      for index in 0...simulation.count {
+        let prefix = committed + simulation.prefix(index)
+        let row = Array(masks[(index * Int(words))..<((index + 1) * Int(words))])
+        entries.append(
+          .object([
+            "tokenCount": .number(Double(prefix.count)), "prefixSHA256": digest(prefix),
+            "committedCount": .number(Double(committed.count)),
+            "simulationTokens": .array(simulation.prefix(index).map { .number(Double($0)) }),
+            "maskSHA256": digest(row),
+          ]))
+      }
+    }
+    lock.lock()
+    maskRows += entries
     lock.unlock()
   }
   func snapshot() -> [Value] {
@@ -104,7 +140,8 @@ actor ReferenceModel: WorkbookInference {
     observations.append(
       .object([
         "promptTokens": row["promptTokens"], "generationTokens": row["generationTokens"],
-        "tokens": row["tokens"], "requestFrame": row["requestFrame"], "metrics": metrics,
+        "tokens": row["tokens"], "requestFrame": row["requestFrame"],
+        "maskTrace": row["maskTrace"], "grammar": row["grammar"], "metrics": metrics,
       ]))
     return NativeReply(
       text: row["text"].text,

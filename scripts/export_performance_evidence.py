@@ -1,6 +1,7 @@
 """Preserve benchmark receipts with local paths removed for public review."""
 import argparse
 import hashlib
+import gzip
 import json
 from pathlib import Path
 import re
@@ -40,6 +41,10 @@ for folder in args.runs:
     result['runs'][folder.name] = files
 encoded = json.dumps(result, ensure_ascii=False, separators=(',', ':')) + '\n'
 assert '/Users/' not in encoded and '/var/folders/' not in encoded, 'Unexpected local path remains'
-with args.output.open('x') as output:
-    output.write(encoded)
-print(json.dumps({'output': str(args.output), 'runs': len(result['runs']), 'bytes': len(encoded.encode())}))
+raw = encoded.encode()
+payload = gzip.compress(raw, mtime=0) if args.output.suffix == '.gz' else raw
+with args.output.open('xb') as output:
+    output.write(payload)
+print(json.dumps({'output': str(args.output), 'runs': len(result['runs']),
+                  'bytes': len(payload), 'uncompressedBytes': len(raw),
+                  'uncompressedSHA256': hashlib.sha256(raw).hexdigest()}))

@@ -53,6 +53,13 @@ def preserve_prompts(job, output):
         frame_path = output / (request['requestSHA256'] + '.request.json')
         if not frame_path.exists():
             save(frame_path, {'base64': base64.b64encode(frame).decode('ascii')})
+        grammar = request.pop('grammar', None)
+        if grammar is not None:
+            checksum = hashlib.sha256(grammar.encode()).hexdigest()
+            request['grammarSHA256'] = checksum
+            path = output / (checksum + '.grammar.json')
+            if not path.exists():
+                save(path, grammar)
         tokens = request.pop('promptTokens')
         checksum = digest(tokens)
         request.update(promptTokenCount=len(tokens), promptSHA256=checksum)
@@ -201,7 +208,14 @@ def paired_jobs(a, b):
                     and x.get('generationTokens') == y.get('generationTokens') for x, y in zip(ar, br)))
 
 
-def summarize(results, protocol, pilot):
+def summarize(results, protocol, pilot, diagnostic_masks=False):
+    # Retained observations are authoritative even if a later caller forgets
+    # the explicit diagnostic flag. Never qualify traced samples accidentally.
+    diagnostic_masks = diagnostic_masks or any(
+        request.get('maskTrace')
+        for result in results
+        for job in [(result.get('ready') or {}).get('prime', {})] + result.get('rows', [])
+        for request in job.get('trace', {}).get('requests', []))
     expected_blocks = 1 if pilot else protocol['blocks']
     repetitions = 1 if pilot else protocol['repetitionsPerWorkloadPerBlock']
     excluded, problems = {}, []
@@ -274,9 +288,10 @@ def summarize(results, protocol, pilot):
                    and ratios['medianSeconds'] <= 1 + protocol['gate']['maximumMedianRegression']
                    and ratios['p95Seconds'] <= 1 + protocol['gate']['maximumP95Regression'])
         comparisons.append({'id': name, 'stats': stats, 'ratios': ratios, 'latencyThresholdsMet': latency})
-    return {'pilot': pilot, 'problems': problems, 'excludedPairedBlocks': excluded,
+    return {'pilot': pilot, 'diagnosticMasks': diagnostic_masks,
+            'timingsEligibleForQualification': not pilot and not diagnostic_masks, 'problems': problems, 'excludedPairedBlocks': excluded,
             'identicalPairedPrompts': paired, 'identicalGeneratedTokens': tokens_equal, 'comparisons': comparisons,
-            'workflowGatePassed': not pilot and not problems and not excluded and paired and tokens_equal
+            'workflowGatePassed': not pilot and not diagnostic_masks and not problems and not excluded and paired and tokens_equal
                                   and all(c['latencyThresholdsMet'] for c in comparisons),
             'productionAdoption': False}
 
@@ -286,7 +301,10 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--models-root', type=Path, required=True)
     parser.add_argument('--pilot', action='store_true')
+    parser.add_argument('--diagnostic-masks', action='store_true', help='Record prefix/mask hashes; pilot only, never latency qualification')
     args = parser.parse_args()
+    if args.diagnostic_masks and not args.pilot:
+        parser.error('--diagnostic-masks requires --pilot and cannot qualify performance')
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     protocol_path = ROOT / 'integration/performance/workflow-protocol.json'
@@ -308,6 +326,7 @@ def main():
               'engineFiles': {Path(k).name: v for k, v in pin['runtime']['files'].items() if k.startswith('engine/')},
               'grammarLibrary': str(ROOT / grammar['library']), 'grammarSHA256': grammar['librarySHA256'],
               'contextTokens': protocol['contextTokens'], 'memoryBytes': protocol['memoryBytes'], 'cases': [], 'workflowQualification': True,
+              'diagnosticMasks': args.diagnostic_masks,
               'modelsRoot': str(args.models_root.resolve()), 'python': str(ROOT / '.build/splash-reference/bin/python'),
               'referenceScript': str(ROOT / 'scripts/splash_performance_reference.py'), 'configPath': str(config_path)}
     save(config_path, config)
@@ -338,11 +357,11 @@ def main():
             for backend in BACKENDS if block % 2 == 0 else reversed(BACKENDS):
                 result = worker(backend, block, order, 1 if args.pilot else protocol['repetitionsPerWorkloadPerBlock'], config_path, output)
                 results.append(result)
-                save(output / 'summary.json', summarize(results, protocol, args.pilot))
+                save(output / 'summary.json', summarize(results, protocol, args.pilot, args.diagnostic_masks))
                 if result['failure']:
                     raise RuntimeError(result['failure'])
     finally:
-        summary = summarize(results, protocol, args.pilot)
+        summary = summarize(results, protocol, args.pilot, args.diagnostic_masks)
         save(output / 'summary.json', summary)
         print(json.dumps(summary), flush=True)
     if summary['problems'] or summary['excludedPairedBlocks'] or not summary['identicalPairedPrompts'] or not summary['identicalGeneratedTokens']:
