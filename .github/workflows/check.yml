@@ -19,6 +19,18 @@ jobs:
         run: swift build --product sevra-checks -j 3
       - name: Run invariant and integration checks
         run: .build/debug/sevra-checks
+      - name: Check checkpoint publication across process death
+        run: |
+          swift build --product sevra-context-durability -j 3
+          python3 scripts/check_context_durability.py
+      - name: Retain checkpoint process-death evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkpoint-process-death
+          path: .build/context-durability-*/
+          include-hidden-files: true
+          if-no-files-found: ignore
       - name: Check native table identity and refresh races
         run: |
           swift build --product sevra-table-ui-checks -j 3

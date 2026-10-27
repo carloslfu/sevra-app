@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T12:12:06.321215+00:00
+updated: 2026-10-27T12:21:19.717340+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1234,3 +1234,28 @@ They are prepared and untested at this checkpoint. Hosted CI will provide the
 first compile/regression result without loading the local benchmark machine.
 No voice or media qualification is claimed yet. See
 [[records/specs/intelligence]] and [[records/operations/build-and-run]].
+
+## Checkpoint publication process-death checks
+An isolated codex/context-durability branch now prepares a model-free process-death
+runner over the actual checkpoint publication API. Its package-only observer has
+no production caller, public API, environment switch or workbook-controlled entry.
+One barrier is after the checkpoint/input inserts but before the real SQLite
+transaction commits; the other is after the mutation has committed its revision
+and idempotency receipt. This does not modify the pinned inference engine.
+
+The parent process uses a separate read-only SQLite connection to check committed
+visibility, sends SIGKILL only to its owned fixture child, then reopens through
+Workbook. Assertions preserve original history, prior checkpoints, accepted stock
+18 from exactly one effect, input versions and current forecast meaning. Exact
+retries must publish only one successor, and portable export/reopen must preserve
+the final state. Additional cases cancel after inserts and accept a forecast in
+another process before publication, requiring rollback/stale refusal and fresh
+accepted-estimate projection. Every attempt, fixture and binary/source identity
+is retained by the controller.
+
+These checks are prepared, not yet compiled or run. Local builds remain deferred
+while the frozen W1 cohort runs; hosted CI is the next check. They cover storage
+and process-death boundaries only, not actual-model summary quality, repeated
+mid-job compaction, occupied 32K/64K contexts or the complete C12/C13/J10 gates.
+Automatic compaction remains disabled. See [[records/specs/conversation-context]]
+and [[records/operations/build-and-run]].

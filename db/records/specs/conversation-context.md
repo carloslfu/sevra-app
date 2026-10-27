@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-27T11:04:56.187906+00:00
+updated: 2026-10-27T12:21:19.743187+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -268,3 +268,17 @@ Keep lifecycle recovery and following a new request as separate checks. A clean 
 A tangent may read an exact original message from the same fixed parent excerpt it already inherits. The host admits only those explicit message IDs through history_read, records their owning conversation and links citations back to that original conversation. History search, checkpoint scope and saved tool-result access remain confined to the tangent. Earlier parent messages outside the excerpt, later parent messages, sibling conversations and transitive ancestors remain inaccessible. Merely seeing an inherited excerpt does not grant a citation; history_read must expose the eligible original first. Current/later request messages still cannot be cited as earlier evidence. Bringing an exchange back to main creates a preserved copy with the original conversation link.
 
 This fixes an inconsistency where the context showed inherited messages but exact retrieval refused them. Deterministic direct/nested-tangent checks reproduce the old refusal and cover allowed reads, denied scope, cutoff rules, citation routing and unchanged business records. Native workflow qualification is recorded in [[records/operations/implementation]].
+
+## Checkpoint publication durability harness
+The core has a package-only publication observer for an owned-process crash
+harness. It is inactive in the product and cannot be enabled by workbook content
+or an environment variable. The prepared barrier follows checkpoint/input inserts
+inside the transaction; the published barrier follows the committed operation.
+The controller checks external visibility, kills its child, reopens the workbook,
+retries exact publication and verifies portable state. Separate cancellation and
+concurrent acceptance cases exercise rollback and stale-input refusal.
+
+This is prepared test coverage, not yet a passing result. A future pass would
+qualify these core durability boundaries only. Actual model compaction quality,
+repeated compactions within one long request, occupied contexts, pending tool
+recovery and the uncompressed comparison remain separate acceptance work.

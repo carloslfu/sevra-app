@@ -232,3 +232,6 @@ Prepare isolated session-bound dictation, draft preservation and weak all-player
 ## [2026-10-27 12:12] implementation | records/operations/implementation.md
 Separate current acceptance status and next actions from earlier checkpoint summaries; retain all historical failures and pending qualification limits.
 
+## [2026-10-27 12:21] implementation | records/operations/implementation.md
+Prepare isolated checkpoint transaction/process-death, cancellation, concurrent acceptance and exact-retry checks; no local execution during frozen W1.
+

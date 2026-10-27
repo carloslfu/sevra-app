@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T12:08:40.054912+00:00
+updated: 2026-10-27T12:21:19.767079+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -818,3 +818,25 @@ unavailable/denied recognition without enabling any server fallback. With a
 synthetic playable media file, check explicit play, keep-playing navigation,
 pausing all workbook players for dictation and teardown of the owning window.
 Record actual hardware/language/permission results and any untested branches.
+
+## Checkpoint transaction crash checks
+Build the model-free worker and run the controller on new synthetic workbooks:
+
+~~~sh
+swift build --product sevra-context-durability -j 4
+python3 scripts/check_context_durability.py
+~~~
+
+By default it retains a new .build/context-durability-* directory, including every
+fixture and result.json. Supply --output with a new directory for a named run,
+or --binary for another built worker. The controller owns every child it kills.
+It never opens a user workbook, captures audio or loads a model. The committed
+visibility check uses a separate read-only SQLite connection; mutations and reopen
+use the production Workbook APIs. Source/binary hashes bind each retained result.
+
+The four cases are SIGKILL inside publication before commit, SIGKILL after commit,
+cancellation after checkpoint/input inserts and concurrent acceptance before
+publication. Verify exact retry identity, one accepted inventory effect, unchanged
+history, current estimate status, integrity and portable reopen. A passing storage
+run does not enable automatic compaction or qualify C12/C13 on its own. Defer local
+execution while a qualifying model comparison is active.

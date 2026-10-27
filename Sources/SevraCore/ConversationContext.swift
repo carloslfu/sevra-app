@@ -239,7 +239,7 @@ extension Workbook {
       "inputs": .array(references.map(Value.string)), "parent": parentID.map(Value.string) ?? .null,
       "run": runID.map(Value.string) ?? .null,
     ])
-    return try mutation(
+    let saved = try mutation(
       "context_checkpoint", token: token, request: request, expected: history.revision
     ) {
       try cancellation.check()
@@ -286,9 +286,12 @@ extension Workbook {
       for input in references {
         try db.execute("INSERT INTO checkpoint_inputs VALUES(?,?)", [.string(id), .string(input)])
       }
+      CheckpointPublicationProbe.observer?(.prepared, id)
       try cancellation.check()
       return .string(id)
     }.text
+    CheckpointPublicationProbe.observer?(.published, saved)
+    return saved
   }
 
   public func contextCheckpoints(conversation: String = "main", limit: Int = 20) throws -> [Value] {

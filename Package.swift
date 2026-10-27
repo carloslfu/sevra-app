@@ -17,6 +17,7 @@ let package = Package(
     .executable(name: "sevra-search-ui-checks", targets: ["SevraSearchUIChecks"]),
     .executable(name: "sevra-product-checks", targets: ["SevraProductChecks"]),
     .executable(name: "sevra-voice-checks", targets: ["SevraVoiceChecks"]),
+    .executable(name: "sevra-context-durability", targets: ["SevraContextDurability"]),
     .executable(name: "sevra-benchmark", targets: ["SevraBenchmark"]),
     .executable(name: "sevra-splash-checks", targets: ["SevraSplashChecks"]),
     .executable(name: "sevra-splash-text-checks", targets: ["SevraSplashTextChecks"]),
@@ -34,6 +35,9 @@ let package = Package(
     .package(url: "https://github.com/huggingface/swift-transformers.git", exact: "1.3.5"),
   ],
   targets: [
+    .executableTarget(
+      name: "SevraContextDurability", dependencies: ["SevraCore"],
+      path: "IntegrationTests/ContextDurability", swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(name: "SevraVoice", swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraVoiceChecks", dependencies: ["SevraVoice"],
