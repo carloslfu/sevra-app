@@ -11,6 +11,16 @@ public struct ComponentSnapshot: Codable, Sendable, Equatable {
   public let captured: String
 
 }
+/// The visible first page and its coverage limits are frozen together. A pinned
+/// search never reruns its query or resolves an old hit to the current item head.
+public struct ComponentSearchSnapshot: Codable, Sendable, Equatable {
+  public let query: String
+  public let hits: [SearchHit]
+  public let incomplete: Int
+  public let hasMore: Bool
+  public let revision: Int
+  public let captured: String
+}
 extension Workbook {
   public func componentData(_ component: Component) throws -> ComponentSnapshot {
     if let snapshot = component.snapshot { return snapshot }
@@ -55,7 +65,7 @@ extension Workbook {
     }
     return Numbers.string(result)
   }
-  /// Pin both values and exact input versions, including the complete table used by A1 formulas.
+  /// Pin values, exact item versions and bounded search results in one transaction.
   @discardableResult public func pinSpace(
     _ id: String, title: String? = nil, token: String = identifier()
   ) throws -> String {
@@ -66,6 +76,8 @@ extension Workbook {
       guard let space = try spaces().first(where: { $0.id == id }) else {
         throw SevraError("view", "Space not found.")
       }
+      let captured = space.definition.pinnedAt ?? timestamp()
+      let revision = try revision()
       func pin(_ component: Component) throws -> Component {
         var copy = component
         if component.datasetID != nil {
@@ -75,10 +87,21 @@ extension Workbook {
             "Pinning currently supports complete tables of up to 1,000 rows.")
           copy.snapshot = snapshot
         }
+        if ["document", "asset"].contains(component.type), let id = component.itemID {
+          copy.itemID = try item(id).id
+        }
+        if component.type == "search", component.searchSnapshot == nil {
+          let query = component.query ?? ""
+          let page = try search(query, limit: 8)
+          copy.searchSnapshot = ComponentSearchSnapshot(
+            query: query, hits: page.hits, incomplete: page.incomplete,
+            hasMore: page.nextCursor != nil, revision: revision, captured: captured)
+        }
         copy.children = try component.children?.map(pin)
         return copy
       }
-      let definition = SpaceDefinition(components: try space.definition.components.map(pin))
+      let definition = SpaceDefinition(
+        components: try space.definition.components.map(pin), pinnedAt: captured)
       let data = try encoded(definition).json()
       let saved = identifier()
       let date = timestamp()

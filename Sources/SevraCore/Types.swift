@@ -119,7 +119,7 @@ public final class Cancellation: @unchecked Sendable {
     cancelled = true
     let active = Array(progresses.values)
     lock.unlock()
-    active.forEach { $0.cancel() }
+    for progress in active { progress.cancel() }
   }
   public func track(_ progress: Progress) {
     lock.lock()
@@ -163,7 +163,7 @@ public struct Item: Codable, Identifiable, Equatable, Sendable {
   public let supersedes: String?
   public let created: String
 }
-public struct SearchHit: Codable, Identifiable, Sendable {
+public struct SearchHit: Codable, Identifiable, Equatable, Sendable {
   public let id: Int
   public let itemID: String
   public let title: String
