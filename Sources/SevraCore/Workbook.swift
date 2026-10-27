@@ -120,6 +120,15 @@ public final class Workbook: @unchecked Sendable {
     defer { lock.unlock() }
     return try body()
   }
+  func synchronized<T>(cancellation: Cancellation, _ body: () throws -> T) throws -> T {
+    while !lock.try() {
+      try cancellation.check()
+      Thread.sleep(forTimeInterval: 0.005)
+    }
+    defer { lock.unlock() }
+    try cancellation.check()
+    return try body()
+  }
   @discardableResult func mutation(
     _ kind: String, token: String = identifier(), request: Value = .null, expected: Int? = nil,
     _ body: () throws -> Value

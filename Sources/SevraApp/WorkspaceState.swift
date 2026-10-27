@@ -32,6 +32,10 @@ import SwiftUI
   @Published var datasets: [Dataset] = []
   @Published var messages: [Message] = []
   @Published var conversations: [Value] = []
+  @Published var chapters: [Value] = []
+  @Published var bookmarks: [Value] = []
+  @Published var pendingExtractions: [Value] = []
+  @Published var intakeStatus: [Value] = []
   @Published var conversation = "main" {
     didSet { if conversation != oldValue { speech.stop() } }
   }
@@ -73,6 +77,8 @@ import SwiftUI
   @Published var tableRedo: [String: String] = [:]
   @Published var spaceScroll: [String: String] = [:]
   private let operations = WorkspaceOperationScope()
+  private let refreshSession = WorkspaceRefreshSession()
+  private var loadedRefreshIdentity: WorkspaceReadIdentity?
   private var awaitingSpeechPermission: WorkspaceOperation?
   let mediaOwner = UUID()
   private(set) var interactionActive = false
@@ -86,6 +92,16 @@ import SwiftUI
       "Save or preserve the current draft before opening another workbook.")
     endInteraction()
     workbook = opened
+    spaces = []
+    items = []
+    datasets = []
+    messages = []
+    conversations = []
+    chapters = []
+    bookmarks = []
+    pendingExtractions = []
+    intakeStatus = []
+    revision = 0
     conversation = "main"
     route = .space("home")
     navigation = []
@@ -114,22 +130,50 @@ import SwiftUI
     beginInteraction()
     refresh()
   }
-  func refresh() {
-    guard let book = workbook else { return }
-    do {
-      revision = try book.revision()
-      spaces = try book.spaces()
-      items = try book.recentItemSummaries()
-      datasets = try book.datasets()
-      messages =
-        try messageAnchor.map { try book.messages(around: $0) }
-        ?? book.messages(conversation: conversation)
-      conversations = try book.conversations()
-    } catch { self.error = error.localizedDescription }
-  }
+  func refresh() { requestRefresh(polling: false) }
   func poll() {
-    guard !busy, let book = workbook else { return }
-    if (try? book.revision()) != revision { refresh() }
+    guard !busy else { return }
+    requestRefresh(polling: true)
+  }
+  private func requestRefresh(polling: Bool) {
+    guard interactionActive, let book = workbook else { return }
+    let identity = WorkspaceReadIdentity(
+      workbook: book, window: interactionIdentity, conversation: conversation,
+      messageAnchor: messageAnchor)
+    let changedView = refreshSession.identity != identity
+    if changedView { messages = [] }
+    let knownRevision = polling && loadedRefreshIdentity == identity ? revision : nil
+    refreshSession.request(identity: identity, onlyWhenIdle: polling && !changedView) { control in
+      try book.workspaceSnapshot(
+        conversation: identity.conversation, messageAnchor: identity.messageAnchor,
+        ifChangedFrom: knownRevision, cancellation: control)
+    } complete: { [weak self] result in
+      guard let self, self.interactionActive, self.workbook === book,
+        self.interactionIdentity == identity.window,
+        self.conversation == identity.conversation, self.messageAnchor == identity.messageAnchor
+      else { return }
+      switch result {
+      case .success(let snapshot):
+        guard let snapshot else { return }
+        self.loadedRefreshIdentity = identity
+        self.revision = snapshot.revision
+        self.spaces = snapshot.spaces
+        self.items = snapshot.items
+        self.datasets = snapshot.datasets
+        self.messages = snapshot.messages
+        self.conversations = snapshot.conversations
+        self.chapters = snapshot.chapters
+        self.bookmarks = snapshot.bookmarks
+        self.pendingExtractions = snapshot.pendingExtractions
+        self.intakeStatus = snapshot.intakeStatus
+      case .failure(let failure):
+        // A busy workbook can be retried by the next timer tick. An explicit
+        // refresh reports its failure while preserving the last complete view.
+        if !polling || (failure as? SevraError)?.code != "deadline" {
+          self.error = failure.localizedDescription
+        }
+      }
+    }
   }
   func navigate(_ new: Route) {
     guard documentDrafts.flush() else { return }
@@ -666,6 +710,8 @@ import SwiftUI
     interactionActive = false
     interactionIdentity = UUID()
     operations.invalidate()
+    refreshSession.reset()
+    loadedRefreshIdentity = nil
     awaitingSpeechPermission = nil
     busy = false
     status = ""

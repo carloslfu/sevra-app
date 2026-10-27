@@ -188,19 +188,15 @@ struct WorkbookView: View {
               }
             }
           }
-          if let book = state.workbook, let bookmarks = try? book.chapters(bookmarks: true),
-            !bookmarks.isEmpty
-          {
+          if !state.bookmarks.isEmpty {
             Menu("Saved exchanges") {
-              ForEach(bookmarks, id: \.text) { bookmark in
+              ForEach(state.bookmarks, id: \.text) { bookmark in
                 Button(bookmark["title"].text) { state.jumpToMessage(bookmark["message_id"].text) }
               }
             }
           }
-          if let book = state.workbook, let chapters = try? book.chapters() {
-            ForEach(chapters, id: \.text) { chapter in
-              Button(chapter["title"].text) { state.jumpToMessage(chapter["message_id"].text) }
-            }
+          ForEach(state.chapters, id: \.text) { chapter in
+            Button(chapter["title"].text) { state.jumpToMessage(chapter["message_id"].text) }
           }
         } label: {
           Image(systemName: "ellipsis")

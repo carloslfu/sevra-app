@@ -173,9 +173,9 @@ struct SpaceView: View {
               }.buttonStyle(.plain)
             }
           }
-          if let jobs = try? state.workbook?.pendingExtractions(), !jobs.isEmpty {
+          if !state.pendingExtractions.isEmpty {
             sectionTitle("Intake needs attention")
-            ForEach(jobs, id: \.text) { job in
+            ForEach(state.pendingExtractions, id: \.text) { job in
               HStack {
                 VStack(alignment: .leading) {
                   Text(job["title"].text)
@@ -194,16 +194,14 @@ struct SpaceView: View {
               }
             }
           }
-          if let imports = try? state.workbook?.intakeStatus() {
-            ForEach(imports.filter { $0["state"].text != "ready" }, id: \.text) { job in
-              let title = job["title"].text
-              let completed = job["completed"].text
-              let total = job["total"].text
-              Text(
-                "\(title): \(completed) of \(total) rows imported. Resume from the original source."
-              )
-              .font(.callout).foregroundStyle(.secondary)
-            }
+          ForEach(state.intakeStatus.filter { $0["state"].text != "ready" }, id: \.text) { job in
+            let title = job["title"].text
+            let completed = job["completed"].text
+            let total = job["total"].text
+            Text(
+              "\(title): \(completed) of \(total) rows imported. Resume from the original source."
+            )
+            .font(.callout).foregroundStyle(.secondary)
           }
           sectionTitle("Recent sources and drafts")
           let recent = state.items

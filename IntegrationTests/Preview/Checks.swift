@@ -50,6 +50,7 @@ private actor ReadGate {
         "Use --large-asset NEW_DIRECTORY or no arguments.")
       try await run()
       try await checkWorkspaceOperations()
+      try await checkWorkspaceRefresh()
       print(
         "PASS preview ownership, stale success/error/progress, stop/retry, and task cancellation")
     } catch {
