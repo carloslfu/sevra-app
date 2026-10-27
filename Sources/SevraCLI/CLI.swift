@@ -140,6 +140,56 @@ import SevraProduct
       return try encoded(book.search(arg(2), offset: args.count > 3 ? Int(args[3]) ?? 0 : 0))
     case "read": return try WorkbookTools(book).execute("read", .object(["id": .string(arg(2))]))
     case "records": return try encoded(book.items(kind: args.count > 2 ? args[2] : nil))
+    case "edit-document":
+      let version = try arg(2)
+      let file = try url(3)
+      var separate = false
+      var token = identifier()
+      var expected: Int?
+      var seen: Set<String> = []
+      var index = 4
+      while index < args.count {
+        let option = args[index]
+        try require(seen.insert(option).inserted, "usage", "Duplicate document edit option.")
+        switch option {
+        case "--separate": separate = true
+        case "--token":
+          index += 1
+          token = try arg(index)
+          try require(
+            !token.isEmpty && token.utf8.count <= 1024, "usage", "Invalid operation token.")
+        case "--revision":
+          index += 1
+          guard let value = Int(try arg(index)), value >= 0 else {
+            throw SevraError("usage", "Expected a nonnegative workbook revision.")
+          }
+          expected = value
+        default: throw SevraError("usage", "Unknown document edit option: " + option)
+        }
+        index += 1
+      }
+      try cancellation.check()
+      try require(
+        try file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true,
+        "document_file", "Choose a regular UTF-8 text file.")
+      let handle = try FileHandle(forReadingFrom: file)
+      defer { try? handle.close() }
+      var bytes = Data()
+      while bytes.count <= 16_000_000 {
+        try cancellation.check()
+        let chunk = try handle.read(upToCount: min(256 * 1024, 16_000_001 - bytes.count)) ?? Data()
+        if chunk.isEmpty { break }
+        bytes.append(chunk)
+      }
+      try require(
+        bytes.count <= 16_000_000, "limit", "Document text exceeds 16,000,000 UTF-8 bytes.")
+      guard let text = String(data: bytes, encoding: .utf8) else {
+        throw SevraError("encoding", "Document text must be valid UTF-8.")
+      }
+      return try encoded(
+        book.editDocument(
+          version, text: text, separate: separate, token: token, expectedRevision: expected,
+          cancellation: cancellation))
     case "tables": return try encoded(book.datasets())
     case "rows":
       return try encoded(book.rows(arg(2), offset: args.count > 3 ? Int(args[3]) ?? 0 : 0))
@@ -254,6 +304,7 @@ import SevraProduct
     import WORKBOOK FILE [--link] | search WORKBOOK QUERY [OFFSET] | read WORKBOOK ID
     records WORKBOOK [KIND] | tables WORKBOOK | rows WORKBOOK TABLE_ID [OFFSET]
     add WORKBOOK JSON | edit-row WORKBOOK ITEM_ID VALUES_JSON [EXPECTED_REVISION]
+    edit-document WORKBOOK VERSION_ID UTF8_FILE [--separate] [--token TOKEN] [--revision REVISION]
     accept WORKBOOK ID [TOKEN] | undo WORKBOOK ID | lineage WORKBOOK ID
     opening WORKBOOK SUBJECT QUANTITY ISO_DATE SOURCE_ID | movement WORKBOOK JSON
     balance WORKBOOK SUBJECT | calculate EXPRESSION [VALUES_JSON]

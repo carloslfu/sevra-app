@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T12:28:00.127449+00:00
+updated: 2026-10-27T12:52:28.942901+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -40,18 +40,22 @@ production adoption remain disabled pending their recorded gates.
   That does not complete C12/C13 or the full J01–J10 journeys.
 - The isolated codex/voice-lifecycle branch repairs permission/recognition races,
   typed draft replacement and incomplete playback cleanup. The 14-check voice
-  step passed on 7f93617 in hosted CI run 40502209056; its remaining checks are
-  still running. Run 40501522585 on superseded 04ce5c2 was cancelled before the
+  step and complete workflow passed on 7f93617 in hosted CI run 40502209056. Run 40501522585 on superseded 04ce5c2 was cancelled before the
   voice step. Local execution, hardware recognition and native visual replay
   remain pending. See Voice and media lifecycle repair below.
 - The descendant codex/context-durability branch adds four checkpoint publication
   checks at real transaction/process-death boundaries. All four passed on c0ac40f
-  in hosted CI 40503178418; the rest of that workflow remains pending. Local
+  in hosted CI 40503178418; its complete workflow also passed. Local
   replay and actual-model C12/C13 qualification remain separate. See Checkpoint
   publication process-death checks below.
 
+- The descendant codex/document-drafts branch prepares atomic document revisions,
+  current-version acceptance/context, retained text after refused saves, native
+  close/quit guards and a matching CLI command. It has not yet compiled or run its
+  new tests. See Document draft durability below.
+
 Next, finish and assess the frozen W1 cohort, then locally test and integrate the
-voice/media repair. Continue occupied-context and repeated-compaction recovery,
+voice/media, checkpoint and document repairs. Continue occupied-context and repeated-compaction recovery,
 whole-app memory/headroom, search scale/interruption and full native accessibility,
 media and installation journeys. Promote the native runtime, remove baseline
 product dependencies and qualify a release only after the applicable gates pass.
@@ -1263,7 +1267,7 @@ All four checks compiled and passed on c0ac40f in hosted CI 40503178418. Its
 checkpoint-process-death artifact is retained as 12734101119, 152,915 bytes, archive
 SHA256 1dc8f4bb13bc2299e1313eb134832bf367dffc224d48360efca3073613b3ebf5.
 That digest is GitHub artifact metadata; local artifact inspection and replay are
-still deferred while W1 runs. The rest of the hosted workflow remains pending.
+still deferred while W1 runs. The complete hosted workflow subsequently passed.
 These checks cover storage and process-death boundaries only, not actual-model
 summary quality, repeated mid-job compaction, occupied 32K/64K contexts or the
 complete C12/C13/J10 gates.
@@ -1289,3 +1293,41 @@ W1 blocks 0 and 1 have complete native/reference workers, successful Ready prime
 The remaining eight pairs are required before the full gate can be assessed.
 Frozen source/binary identities still match. This is progress, not a speed or
 adoption claim. Preserve live local evidence until the complete report is final.
+
+## Document draft durability
+Source review found that document editing saved its input Source and new Record
+in two transactions, allowing an orphan input if the second write failed. After
+autosave, Accept and the active conversation context still named the original
+version. A failed Done could exit editing and lose the unsaved text on reentry;
+window/application close did not reliably flush or refuse that failure.
+
+The isolated codex/document-drafts branch prepares one shared atomic edit API,
+exact operation retries, a draft coordinator and native close/quit guards. A
+conflict retains the text and offers an explicit separate draft. Earlier citations
+stay pinned; the displayed current version feeds acceptance, undo, navigation and
+agent context. Text or voice can request Save this document or Keep my changes as
+a separate draft. The CLI exposes edit-document with an exact version, bounded
+UTF-8 file, token, optional expected revision and explicit --separate option.
+Original file assets cannot be edited through this path. The harness skill
+records those semantics without claiming CLI-supplied text is human-authored.
+
+Fourteen new checks cover atomic lineage, unchanged failure state, idempotency,
+concurrent writers, Unicode/bounds, acceptance of the displayed edit, debounce,
+retained conflicting text, per-window/application flush and actual AppKit delegate
+forwarding/close refusal. A packaged CLI runner checks the same mutation boundary
+and file/option refusals. These are prepared, uncompiled and untested at this
+checkpoint; hosted CI is next. Formatting, Python syntax, skill validation and
+db.md/link checks are lightweight prerequisites, not runtime evidence. Visible
+editor/quit/voice journeys and large-text responsiveness remain pending. Local
+builds and UI replay stay deferred until the frozen W1 cohort finishes.
+
+## Hosted verification update during document repair
+Full hosted workflows passed on 7f93617 / 40502209056 and c0ac40f / 40503178418,
+including baseline app/CLI installation and the isolated native preview package.
+Run 40503805532 on doc-only 2619062 was cancelled after replacement 210b0ba started;
+it is not a pass. Run 40504115794 on 210b0ba remains in progress at this checkpoint.
+The earlier targeted-only status above records what was known at those times.
+
+W1 has completed both workers in blocks 0 through 3 with successful closure and
+no worker failure. Block 4 is running; frozen source hashes still match. This is
+an interim observation, not a completed performance or parity qualification.

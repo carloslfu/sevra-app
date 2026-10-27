@@ -3,6 +3,7 @@ import AppKit
 import Foundation
 import SevraAI
 import SevraCore
+import SevraDocumentUI
 import SevraProduct
 import SevraSearchUI
 import SevraVoice
@@ -27,6 +28,10 @@ import SwiftUI
   }
   @Published var route: Route = .space("home")
   @Published var navigation: [Route] = []
+  @Published var viewedItemVersion: String?
+  @Published var itemPreviewIdentity = UUID()
+  weak var activeDocument: DocumentDraft?
+  let documentDrafts = DocumentDraftScope()
   @Published var prompt = "" {
     didSet { if prompt != oldValue && !applyingDictation { speech.stop() } }
   }
@@ -64,8 +69,12 @@ import SwiftUI
   let speech = SpeechInput(pausePlayback: { PlaybackRegistry.shared.pauseAll() })
   func open(_ url: URL) throws {
     let opened = try Workbook(url)
+    try require(
+      documentDrafts.flush(), "document_save",
+      "Save or preserve the current draft before opening another workbook.")
     endInteraction()
     workbook = opened
+    viewedItemVersion = nil
     beginInteraction()
     refresh()
   }
@@ -87,10 +96,15 @@ import SwiftUI
     if (try? book.revision()) != revision { refresh() }
   }
   func navigate(_ new: Route) {
-    if route != new {
-      navigation.append(route)
+    guard documentDrafts.flush() else { return }
+    let shown: Route
+    if case .item(let id) = route { shown = .item(viewedItemVersion ?? id) } else { shown = route }
+    if shown != new {
+      navigation.append(shown)
       if navigation.count > 20 { navigation.removeFirst() }
       route = new
+      viewedItemVersion = nil
+      itemPreviewIdentity = UUID()
       selectedContext = ""
     }
   }
@@ -107,8 +121,11 @@ import SwiftUI
     } catch { self.error = error.localizedDescription }
   }
   func back() {
+    guard documentDrafts.flush() else { return }
     if let prior = navigation.popLast() {
       route = prior
+      viewedItemVersion = nil
+      itemPreviewIdentity = UUID()
       selectedContext = ""
     }
   }
@@ -161,6 +178,7 @@ import SwiftUI
     }
   }
   func exportPanel() {
+    guard documentDrafts.flush() else { return }
     let panel = NSSavePanel()
     panel.title = "Make a shareable copy"
     panel.nameFieldStringValue = (workbook?.title ?? "Workbook") + ".sevraz"
@@ -176,6 +194,12 @@ import SwiftUI
     else { return }
     speech.stop()
     let input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+    if documentCommand(input, book: book) {
+      prompt = ""
+      refresh()
+      return
+    }
+    guard documentDrafts.flush() else { return }
     prompt = ""
     error = nil
     messageAnchor = nil
@@ -236,7 +260,8 @@ import SwiftUI
   var agentContext: String {
     switch route {
     case .space(let id): return routeContext + "\nActive space ID: " + id
-    case .item(let id): return routeContext + "\nActive item version ID: " + id
+    case .item(let id):
+      return routeContext + "\nActive item version ID: " + (viewedItemVersion ?? id)
     case .table(let id): return routeContext + "\nActive dataset ID: " + id
     case .search: return routeContext
     }
@@ -244,7 +269,8 @@ import SwiftUI
   var routeContext: String {
     switch route {
     case .space(let id): return "Space: " + (spaces.first { $0.id == id }?.title ?? id)
-    case .item(let id): return "Item: " + ((try? workbook?.item(id).title) ?? id)
+    case .item(let id):
+      return "Item: " + ((try? workbook?.item(viewedItemVersion ?? id).title) ?? id)
     case .table(let id): return "Table: " + (datasets.first { $0.id == id }?.title ?? id)
     case .search: return "Workbook search"
     }
@@ -283,11 +309,11 @@ import SwiftUI
         return true
       }
       if ["accept this", "accept that"].contains(lower), case .item(let id) = route {
-        review(id, accepting: true)
+        review(viewedItemVersion ?? id, accepting: true)
         return true
       }
       if ["undo this", "undo that"].contains(lower), case .item(let id) = route {
-        review(id, accepting: false)
+        review(viewedItemVersion ?? id, accepting: false)
         return true
       }
       if lower == "transcribe this", case .item(let id) = route {
@@ -326,6 +352,24 @@ import SwiftUI
       return true
     }
     return false
+  }
+  private func documentCommand(_ input: String, book: Workbook) -> Bool {
+    let lower = input.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+    let separate = lower == "keep my changes as a separate draft"
+    guard separate || ["save this document", "save document", "retry saving"].contains(lower),
+      let draft = activeDocument, draft.editable
+    else { return false }
+    do {
+      _ = try book.addMessage(input, role: "user", conversation: conversation)
+      let saved = separate ? draft.keepSeparate() : draft.flush()
+      if saved {
+        _ = try book.addMessage(
+          "Saved " + draft.current.referenceMarkdown, role: "event", conversation: conversation)
+      } else {
+        error = draft.failure
+      }
+    } catch { self.error = error.localizedDescription }
+    return true
   }
   func review(_ id: String, accepting: Bool) {
     guard let book = workbook, !busy else { return }

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T12:21:19.767079+00:00
+updated: 2026-10-27T12:52:28.961043+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -840,3 +840,39 @@ publication. Verify exact retry identity, one accepted inventory effect, unchang
 history, current estimate status, integrity and portable reopen. A passing storage
 run does not enable automatic compaction or qualify C12/C13 on its own. Defer local
 execution while a qualifying model comparison is active.
+
+## Document draft durability and editing
+The model-free runner exercises the shared editor, transaction and AppKit close
+boundaries. Run it with a GUI-capable macOS login; it creates only offscreen test
+windows and disposable synthetic workbooks.
+
+~~~sh
+swift build --product sevra-document-checks -j 4
+.build/debug/sevra-document-checks
+./scripts/build.sh
+python3 scripts/check_document_cli.py
+~~~
+
+For an authorized revision through a harness, use an exact document version and a
+UTF-8 file. The command returns the new draft; it does not accept it:
+
+~~~sh
+sevra edit-document Workbook.sevra VERSION_ID revised.txt --token UNIQUE_TOKEN
+~~~
+
+Reuse the token and exact arguments after an uncertain result. An optional
+--revision requires the current workbook revision. A stale version refuses;
+inspect it before choosing a fresh edit or an explicit --separate copy. The edit
+preserves meaning, scenario and metadata. File assets cannot be changed here.
+Text is bounded at 16,000,000 UTF-8 bytes. The command creates the submitted Source
+and derived Record in one transaction, with no claim of human authorship merely
+because the caller used a CLI.
+
+Native follow-up: edit a generated document, immediately accept it, follow its
+older citation, then open the newer version. Type and immediately navigate, close,
+quit and reopen; verify exact saved text. Use a second writer to force a conflict;
+Done, navigation, export, close and quit must retain the text. Keep a separate
+draft using both the visible action and the text/voice command, and verify both
+versions. Check real SwiftUI window lifecycle, narrow layout, keyboard focus and
+large-text responsiveness. Programmatic checks do not replace this visible replay.
+Defer local execution during a qualifying model performance comparison.

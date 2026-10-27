@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-26T22:54:59.150110+00:00
+updated: 2026-10-27T12:52:28.920488+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -45,6 +45,12 @@ estimate, plan, commitment, assumption and rule. Accepted forecasts remain
 estimates. Unknowns are null/explicit unknown, never silently zero. Status is
 draft/accepted/rejected/superseded. An edit creates evidence and a new version,
 not a destructive rewrite. Preserve previous issued results.
+A document edit commits the submitted text Source, derived document Record,
+lineage, head and operation receipt together. Repeating the same operation token
+and arguments returns the same version. A stale base refuses without leaving an
+orphan Source. An explicit separate draft creates a new logical document and
+preserves the competing head, meaning, scenario and metadata. Submission lineage
+does not itself claim human authorship when a CLI harness supplied the text.
 S07. Lineage edges distinguish derives-from, supports, contradicts, supersedes.
 Reject invalid/missing inputs and derivation cycles. Store tool/formula/model
 version and relevant rounding/units. Nondeterministic outputs persist as facts

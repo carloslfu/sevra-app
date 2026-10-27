@@ -19,6 +19,10 @@ jobs:
         run: swift build --product sevra-checks -j 3
       - name: Run invariant and integration checks
         run: .build/debug/sevra-checks
+      - name: Check document draft durability and native close guards
+        run: |
+          swift build --product sevra-document-checks -j 3
+          .build/debug/sevra-document-checks
       - name: Check checkpoint publication across process death
         run: |
           swift build --product sevra-context-durability -j 3
@@ -92,6 +96,7 @@ jobs:
       - name: Exercise packaged CLI and installation
         run: |
           python3 scripts/check_install.py
+          python3 scripts/check_document_cli.py
           python3 scripts/check_history.py
           python3 scripts/check_receipts.py
           python3 scripts/check_concurrency.py

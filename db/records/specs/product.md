@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T12:08:40.013388+00:00
+updated: 2026-10-27T12:52:28.900328+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -80,6 +80,10 @@ model-generated Swift, shell, JavaScript, SQL writes or downloaded code.
 P11. A saved space is a view, not a copy of its data. Live bindings recompute when
 inputs change. A published result pins input versions and labels its as-of time.
 Draft views can be temporary; generated documents autosave independently of views.
+Edits target the exact displayed version. Autosave publishes the submitted text and
+its derived draft atomically, preserving meaning, scenario and metadata. Accept,
+Undo and the conversation context use the newly saved version. Earlier citations
+remain pinned to their original version.
 P12. Tables support column types, stable row identity, scrolling/virtualization,
 selection, sorting, filtering, editing, copy/paste, undo and CSV export. Edits
 append source information and new versions. Multi-cell paste is one atomic change.
@@ -106,7 +110,13 @@ workbook stops playback; dictation pauses every live workbook player and leaves
 resumption explicit. A transcript is searchable only when actually extracted;
 unavailable audio semantics stay visible.
 P16. Comparisons compose viewers in the right pane. Draft edits save as new versions.
-Closing a viewer does not delete a draft. Search/preview must work without a model.
+Closing a viewer does not delete a draft. Pending text flushes before navigation,
+export, window close or application quit. A refused save retains the editor and
+text, explains the failure and prevents that close. If another writer advanced
+the document, the user can keep their text as a separate draft, preserving both;
+never silently replace the newer version. Text/voice can request saving or keeping
+that separate draft. Original file assets remain immutable previews, separate
+from editable generated text. Search/preview must work without a model.
 
 ## Acceptance journeys
 

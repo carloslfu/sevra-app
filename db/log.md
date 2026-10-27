@@ -241,3 +241,6 @@ Record green frozen-main CI, passed hosted voice step, superseded-run cancellati
 ## [2026-10-27 12:28] verification | records/specs/conversation-context.md
 Hosted c0ac40f checkpoint worker/controller pass all four crash/cancel/concurrent acceptance cases, exact retries and portable preservation; artifact 12734101119 retained. Full CI, local replay and model compaction still pending.
 
+## [2026-10-27 12:52] implementation | records/operations/implementation.md
+Prepare atomic document revisions and close guards on isolated codex/document-drafts while W1 remains frozen; new runtime checks pending. Record full voice/checkpoint hosted workflow passes.
+

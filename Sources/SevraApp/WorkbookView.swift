@@ -138,7 +138,8 @@ struct WorkbookView: View {
   var routeTitle: String {
     switch state.route {
     case .space(let id): return state.spaces.first { $0.id == id }?.title ?? "Space"
-    case .item(let id): return (try? state.workbook?.item(id).title) ?? "Document"
+    case .item(let id):
+      return (try? state.workbook?.item(state.viewedItemVersion ?? id).title) ?? "Document"
     case .table(let id): return state.datasets.first { $0.id == id }?.title ?? "Table"
     case .search: return "Search workbook"
     }
@@ -321,7 +322,10 @@ struct WorkbookView: View {
           SpaceView(space: space, state: state).id(space.id)
         }
       case .item(let id):
-        if let item = try? book.item(id) { ItemView(item: item, state: state).id(id) }
+        if let item = try? book.item(id) {
+          ItemView(item: item, workbook: book, state: state).id(
+            id + state.itemPreviewIdentity.uuidString)
+        }
       case .table(let id):
         if let table = state.datasets.first(where: { $0.id == id }) {
           DatasetView(table: table, state: state)

@@ -1,6 +1,7 @@
 import AppKit
 import SevraAI
 import SevraCore
+import SevraDocumentUI
 import SevraProduct
 import SwiftUI
 
@@ -53,6 +54,9 @@ import SwiftUI
 
 @MainActor final class DocumentDelegate: NSObject, NSApplicationDelegate, ObservableObject {
   @Published var pending: [URL] = []
+  func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+    DocumentDraftScope.flushAll() ? .terminateNow : .terminateCancel
+  }
   func applicationWillTerminate(_ notification: Notification) {
     NotificationCenter.default.post(name: .sevraStopping, object: nil)
   }
@@ -71,6 +75,7 @@ struct WorkspaceWindow: View {
   @Environment(\.openWindow) private var openWindow
   @State private var welcomeError: String?
   @State private var ownWindow: NSWindow?
+  @State private var closeGuard: DocumentCloseGuard?
   var body: some View {
     Group {
       if state.workbook != nil { WorkbookView(state: state) } else { welcome }
@@ -79,6 +84,17 @@ struct WorkspaceWindow: View {
     .background(
       WindowAccessor { window in
         if ownWindow !== window { ownWindow = window }
+        if let window {
+          if closeGuard == nil {
+            closeGuard = DocumentCloseGuard { [weak state] in state?.documentDrafts.flush() ?? true
+            }
+          }
+          closeGuard?.attach(to: window)
+          state.documentDrafts.revealFailure = { [weak window] in
+            window?.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+          }
+        }
         window?.representedURL = state.workbook?.url
         window?.title = state.workbook?.title ?? "Sevra"
       }

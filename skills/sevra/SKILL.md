@@ -23,6 +23,15 @@ is a user document, not this repository's db.md knowledge store.
    item IDs; do not generate executable app code. `tool ... draft` saves a document.
 8. Verify significant changes and reopen exported archives before claiming success.
 
+For a requested text-document revision, read the exact version and write the new
+body to a UTF-8 file. Use `edit-document PATH VERSION_ID UTF8_FILE --token TOKEN`.
+It atomically records the submitted text and a new draft, preserving meaning and
+scenario; it does not accept the revision. Reuse the token and exact arguments
+after an uncertain result. A stale-version refusal requires inspecting the newer
+version, not silently retargeting the edit. `--separate` preserves the text as a
+distinct draft when the user wants to keep both versions. Original file assets
+are previewed/imported separately and cannot be changed through this command.
+
 Use `history` to page original conversation messages, `history-search` for scoped
 full-text retrieval and `history-read` for an exact message and its preserved
 receipt. Follow the returned history cursor; append-only messages do not invalidate

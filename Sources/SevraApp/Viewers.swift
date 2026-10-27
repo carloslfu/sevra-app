@@ -3,19 +3,21 @@ import AppKit
 import PDFKit
 import QuickLookUI
 import SevraCore
+import SevraDocumentUI
 import SevraVoice
 import SwiftUI
 
-struct ItemView: View {
-  let item: Item
+@MainActor struct ItemView: View {
+  @StateObject private var document: DocumentDraft
+  var item: Item { document.current }
+  init(item: Item, workbook: Workbook, state: WorkspaceState) {
+    _document = StateObject(wrappedValue: DocumentDraft(workbook: workbook, item: item))
+    self.state = state
+  }
   @ObservedObject var state: WorkspaceState
   @State private var file: URL?
   @State private var failure: String?
   @State private var player: AVPlayer?
-  @State private var editing = false
-  @State private var draft = ""
-  @State private var savedDraft = ""
-  @State private var draftVersion: String?
   @State private var keepPlaying = false
   @State private var asset: Asset?
   @State private var choosingArchiveMembers = false
@@ -28,10 +30,14 @@ struct ItemView: View {
         ).font(.caption).foregroundStyle(.secondary)
         Spacer()
         if item.status == "draft" {
-          Button("Accept") { state.review(item.id, accepting: true) }.disabled(state.busy)
+          Button("Accept") {
+            if document.end() { state.review(document.current.id, accepting: true) }
+          }.disabled(state.busy)
         }
         if item.supersedes != nil {
-          Button("Undo") { state.review(item.id, accepting: false) }.disabled(state.busy)
+          Button("Undo") {
+            if document.end() { state.review(document.current.id, accepting: false) }
+          }.disabled(state.busy)
         }
         if item.assetID != nil {
           Menu("File actions") {
@@ -62,14 +68,36 @@ struct ItemView: View {
         }
         if let file {
           Button("Open in another app") { NSWorkspace.shared.open(file) }
-        } else if item.kind == "document" {
-          Button(editing ? "Done" : "Edit draft") {
-            if editing { saveDraft() } else { draft = draftVersion == nil ? item.text : savedDraft }
-            editing.toggle()
+        } else if document.editable {
+          Button(document.editing ? "Done" : "Edit draft") {
+            if document.editing { document.end() } else { document.begin() }
           }
         }
       }.padding(12)
       Divider()
+      if let error = document.failure {
+        VStack(alignment: .leading, spacing: 8) {
+          Text(error).textSelection(.enabled)
+          if document.dirty {
+            HStack {
+              Button("Retry save") { document.flush() }
+              Button("Keep my changes as a separate draft") { document.keepSeparate() }
+              Button("Copy text") {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(document.text, forType: .string)
+              }
+            }
+          }
+        }.font(.callout).padding(12).frame(maxWidth: .infinity, alignment: .leading)
+        Divider()
+      }
+      if let newer = document.newerVersionID, !document.dirty {
+        HStack {
+          Text("Viewing an earlier version.").foregroundStyle(.secondary)
+          Button("Open newer version") { state.navigate(.item(newer)) }
+        }.font(.callout).padding(10)
+        Divider()
+      }
       if let failure {
         ContentUnavailableView(
           "File unavailable", systemImage: "doc.badge.ellipsis", description: Text(failure))
@@ -116,13 +144,16 @@ struct ItemView: View {
         } else {
           QuickLookViewer(url: file)
         }
-      } else if editing {
-        TextEditor(text: $draft).font(.body).padding(16)
+      } else if document.editing {
+        TextEditor(text: Binding(get: { document.text }, set: document.update)).font(.body).padding(
+          16
+        )
+        .accessibilityLabel("Document draft")
       } else {
         ScrollView {
           VStack(alignment: .leading, spacing: 18) {
             Text(item.title).font(.title2)
-            Text(draftVersion == nil ? item.text : savedDraft).textSelection(.enabled)
+            Text(item.text).textSelection(.enabled)
             if item.kind == "link", let target = URL(string: item.data["url"].text) {
               Link("Open source website", destination: target)
             }
@@ -160,14 +191,24 @@ struct ItemView: View {
     }.sheet(isPresented: $choosingArchiveMembers) {
       ArchiveMemberPicker(source: item, state: state)
     }
-    .task(id: draft) {
-      guard editing, draft != savedDraft else { return }
-      do {
-        try await Task.sleep(nanoseconds: 600_000_000)
-        try Task.checkCancellation()
-        saveDraft()
-      } catch {}
-    }.onDisappear { if editing { saveDraft() } }
+    .onAppear {
+      state.documentDrafts.register(document)
+      state.activeDocument = document
+      state.viewedItemVersion = item.id
+      document.changed = { [weak state, weak document] in
+        guard let state, let document else { return }
+        state.viewedItemVersion = document.current.id
+        state.refresh()
+      }
+      document.refreshHead()
+    }
+    .onChange(of: state.revision) { _, _ in document.refreshHead() }
+    .onDisappear {
+      document.flush()
+      document.changed = nil
+      if state.activeDocument === document { state.activeDocument = nil }
+      if state.viewedItemVersion == item.id { state.viewedItemVersion = nil }
+    }
     .task(id: item.id) {
       guard let asset = item.assetID, let book = state.workbook else { return }
       do {
@@ -205,22 +246,6 @@ struct ItemView: View {
           .buttonStyle(.link)
       }
     }
-  }
-  func saveDraft() {
-    guard draft != savedDraft, draft != item.text || draftVersion != nil, let book = state.workbook
-    else { return }
-    do {
-      let evidence = try book.addItem(
-        category: "source", kind: "submission", title: "Edit " + item.title, text: draft,
-        status: "accepted")
-      let updated = try book.addItem(
-        category: "record", kind: "document", title: item.title, text: draft, meaning: item.meaning,
-        status: "draft", inputs: [draftVersion ?? item.id, evidence.id],
-        transformation: "human-draft-edit-v1", supersedes: draftVersion ?? item.id)
-      draftVersion = updated.id
-      savedDraft = draft
-      state.refresh()
-    } catch { state.error = error.localizedDescription }
   }
 }
 @MainActor final class PDFControls: ObservableObject {
