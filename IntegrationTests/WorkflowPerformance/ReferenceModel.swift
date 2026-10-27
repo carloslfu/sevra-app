@@ -106,7 +106,9 @@ actor ReferenceModel: WorkbookInference {
     citationIDs: [String]
   ) async throws -> NativeReply {
     try require(leased, "busy", "Reference needs a run lease")
-    let policy = try NativeCitationPolicy.make(citationIDs, toolScope: toolScope, thinking: true)
+    let policy = try NativeCitationPolicy.make(
+      citationIDs, toolScope: toolScope, thinking: true,
+      itemReferenceIDs: ItemReferenceCandidates.ids(in: messages))
     let body: [String: Any] = [
       "messages": try messages.map(nativeTemplateMessage),
       "tools": try JSONSerialization.jsonObject(with: policy.toolsJSON),

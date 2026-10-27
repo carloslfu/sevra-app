@@ -143,6 +143,8 @@ public enum WorkbookAgent {
       for step in 1...12 {
         try cancellation.check()
         try ContextBudget.validateEnvelope(messages)
+        messages = try ItemReferenceCandidates.annotate(messages, workbook: workbook)
+        let itemChoices = try ItemReferenceCandidates.ids(in: messages)
         let toolScope = nextToolScope
         let response = try await model.respond(
           messages: messages, directory: modelDirectory, cancellation: cancellation,
@@ -433,6 +435,7 @@ public enum WorkbookAgent {
         var currencyThisStep = false
         var callFailed = false
         do {
+          try ItemReferenceCandidates.validate(tool: tool, arguments: a, choices: itemChoices)
           let value = try tools.execute(tool, a)
           if tool == "count_records" {
             var fields = value.object

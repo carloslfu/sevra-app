@@ -165,6 +165,7 @@ struct ModelSettingsView: View {
   func setup(reusing source: URL? = nil) {
     busy = true
     error = nil
+    status = "Starting model setup…"
     cancellation = Cancellation()
     let cancel = cancellation
     let folder = URL(fileURLWithPath: modelDirectory)
@@ -172,9 +173,21 @@ struct ModelSettingsView: View {
       do {
         try await ProductAI.shared.setup(
           at: folder, reusing: source, cancellation: cancel,
-          progress: { text in Task { @MainActor in status = text } })
+          progress: { text in
+            Task { @MainActor in
+              guard busy, cancellation === cancel, !cancel.isCancelled else { return }
+              status = text
+            }
+          })
         status = "Model files are ready."
-      } catch { self.error = error.localizedDescription }
+      } catch {
+        if cancel.isCancelled {
+          status = "Setup cancelled. Downloaded files are kept so you can resume."
+        } else {
+          status = ""
+          self.error = error.localizedDescription
+        }
+      }
       busy = false
     }
   }

@@ -172,6 +172,8 @@ package final class ContextMaintenance {
     _ messages: [InferenceMessage], summary: Bool = false, citations: [String] = []
   ) async throws -> ContextMeasurement {
     try ContextBudget.validateEnvelope(messages)
+    let messages =
+      summary ? messages : try ItemReferenceCandidates.annotate(messages, workbook: workbook)
     return try await model.measureContext(
       messages: messages, directory: directory, cancellation: cancellation,
       summary: summary, citationIDs: citations, progress: progress)

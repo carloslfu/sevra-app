@@ -35,9 +35,12 @@ package struct InferenceMessage: Sendable {
   package let toolCalls: [InferenceCall]
   package let toolCallId: String?
   package let toolName: String?
+  /// Verified host-owned lookup choices, not model text or citation authority.
+  package let itemReferences: [String]
   package init(
     role: String, content: String, toolCalls: [InferenceCall] = [],
-    toolCallId: String? = nil, toolName: String? = nil, reasoning: String = ""
+    toolCallId: String? = nil, toolName: String? = nil, reasoning: String = "",
+    itemReferences: [String] = []
   ) {
     self.role = role
     self.content = content
@@ -45,6 +48,7 @@ package struct InferenceMessage: Sendable {
     self.toolCalls = toolCalls
     self.toolCallId = toolCallId
     self.toolName = toolName
+    self.itemReferences = itemReferences
   }
 }
 

@@ -41,6 +41,7 @@ jobs:
           .build/debug/sevra-workflow-performance --self-check
           python3 scripts/check_workflow_diagnostics.py
           python3 scripts/check_workflow_isolation.py
+          python3 scripts/check_item_reference_probe.py
       - name: Check native speculative grammar masks
         run: |
           rustup toolchain install 1.96.0 --profile minimal

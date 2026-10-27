@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T09:18:37.350873+00:00
+updated: 2026-10-27T10:13:13.622122+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -294,10 +294,9 @@ log. This plan does not remove existing product acceptance journeys J01–J10.
 ## Native setup candidate
 Native setup now has a candidate Swift-only service and a standalone sevra-native-setup executable, depending only on SevraSplash. It downloads the selected immutable target/draft files with URLSession into private snapshot folders, streams bytes to disk, resumes by verified Content-Range, restarts when a server ignores Range, checks pinned byte counts and SHA-256, keeps partial data on interruption/cancellation, checks available storage and atomically publishes the existing verified assembly format. Compatible explicitly selected target/draft folders can be reused without downloading weights. Failed setup leaves the prior selection intact.
 
-The initial preflight enforces the pinned engine floor of Apple M3 and macOS 26.4. That does not qualify every such Mac for a particular context/memory profile. The isolated native app and CLI now package the helper/grammar and share this setup service. A fresh 21,481,463,614-byte download, deliberate cancellation/resume, jobs using those files and native Settings reuse have passed on the reference Mac. These checks do not qualify all hardware, the complete UI, or performance. Production adoption still requires those gates. The candidate CLI does not switch the installed app.
+The initial preflight enforces the pinned engine floor of Apple M3 and macOS 26.4. That does not qualify every such Mac for a particular context/memory profile. The isolated native app and CLI now package the helper/grammar and share this setup service. A fresh 21,481,463,614-byte download, deliberate cancellation/resume, jobs using those files and native Settings reuse have passed on the reference Mac. Settings subsequently passed fresh download start, cancellation, partial resume, cancellation again, invalid-folder failure and restored-folder verification. Cancelled setup leaves downloaded bytes resumable without publishing an incomplete selection. The UI clears old progress at start/error and ignores progress from a finished or cancelled operation; cancellation is a normal resumable state. A full fresh download solely through Settings was not separately run. These checks do not qualify all hardware, the complete UI, or performance. Production adoption still requires those gates. The candidate CLI does not switch the installed app.
 
 Implementation references: pinned install/local.py, install/models.py, install/assembly.py and install/upstream.py; Apple URLSessionDataDelegate https://developer.apple.com/documentation/foundation/urlsessiondatadelegate ; HTTP range response semantics https://www.rfc-editor.org/rfc/rfc9110.html#name-range-requests . No dynamic model catalog, remote manifest trust or Python setup process is added.
-
 ## Native product isolation
 The workbook agent owns tool schemas and conversation values without importing Slotstream or MLX. The preserved engine and history conversion live in SevraBaseline. SevraProduct is the single app/CLI entry point for setup, status, unload and workbook runs. The migration build switch is internal; users do not choose a backend.
 

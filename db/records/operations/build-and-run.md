@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T09:32:10.728666+00:00
+updated: 2026-10-27T10:13:13.637545+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -717,3 +717,24 @@ SEVRA_MODEL_DIRECTORY=.build/native-fresh-setup \
 ```
 
 The explicit inventory check verifies the complete stock answer, opening/movement citations, no rejected finish or history/count detour, unchanged accepted Records/spaces/balance and workbook integrity. It preserves the actual answer and tool receipts before asserting. The missing check independently verifies actual empty queries and incomplete-index disclosure. These are functional checks, not a latency comparison.
+
+## Exact reference and Settings qualification
+The native and preserved baseline share exact read/lineage candidate selection. Citation admission remains separate. The full local check covers dynamic schema validation, the recorded wrong suffix through actual grammar, complete context accounting and refusal receipts. The model-free collector check preserves the failed R2 detours:
+
+```sh
+bash scripts/check.sh
+python3 scripts/check_item_reference_probe.py
+```
+
+After the pinned native and reference environments above are prepared, the optional fixed functional cohort can be reproduced without a prior local benchmark configuration:
+
+```sh
+swift build -c release --product sevra-workflow-performance -j 4
+python3 scripts/probe_item_references.py --models-root .build/native-fresh-setup --output .build/item-reference-probe
+```
+
+Use the actual native setup root if different. The output folder must not exist. The runner freezes its source and binary identities, verifies engine/grammar pins, runs both frontends sequentially, saves every result and exits nonzero on a failed requirement. Do not overlap inference with builds or downloads. This is a functional cohort, not performance qualification. The first R2 completed all answers and state checks but failed on both seed-6 unnecessary count detours; do not omit or relabel those failures.
+
+The final packaged native inventory check passed with fresh identifiers in four steps and no corrections. Native Settings started/cancelled/resumed partial downloads and reverified the existing model. Cancellation now reports resumable data, clears stale progress, and leaves controls usable. A deliberate ordinary setup failure also clears progress; success replaces the error. The model folder preference was restored after testing. A full 21.48 GB fresh download only through the UI remains separately unmeasured, while the underlying native downloader has earlier full-download/cancel/resume verification. Broader UI, voice, context, hardware and performance gates remain open.
+
+The retained R2 archive is integration/evidence/2026-10-27-exact-item-references.json.gz. Commands, final build identities, failed test attempts, setup observations and packaged checks are recorded in integration/evidence/2026-10-27-exact-reference-qualification.json.

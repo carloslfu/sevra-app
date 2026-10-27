@@ -76,7 +76,10 @@ let prompts = [
   "prime": "Reply with the word Ready. Do not change the workbook.",
 ]
 
-func performJob(_ name: String, seed: UInt32, model: ObservedModel, directory: URL, root: URL)
+func performJob(
+  _ name: String, seed: UInt32, model: ObservedModel, directory: URL, root: URL,
+  promptOverride: String? = nil
+)
   async throws -> Value
 {
   try await FixtureContext.$current.withValue(FixtureContext(seed: seed)) {
@@ -96,6 +99,9 @@ func performJob(_ name: String, seed: UInt32, model: ObservedModel, directory: U
     let originalIDs = Set(original.map(\.id))
     let originalSpaces = try book.spaces()
     let startingState = try encoded(original)
+    let prompt = promptOverride ?? prompts[name]!
+    let originalBalance =
+      name == "inventory_evidence" ? try book.balance(subject: "brass bolts") : .null
     await model.reset()
     let began = clockNow()
     var result: AgentResult?
@@ -103,7 +109,7 @@ func performJob(_ name: String, seed: UInt32, model: ObservedModel, directory: U
     var review: Value = .null
     do {
       result = try await WorkbookAgent.run(
-        prompts[name]!, workbook: book, modelDirectory: directory,
+        prompt, workbook: book, modelDirectory: directory,
         cancellation: Cancellation(deadlineAfterSeconds: 600), model: model, enableCompaction: false
       )
       if name == "formula_review" {
@@ -129,8 +135,12 @@ func performJob(_ name: String, seed: UInt32, model: ObservedModel, directory: U
         check(
           result.answer == "Ready" && result.state == "complete", "Priming did not answer Ready")
       case "inventory_evidence":
+        let required = Set(
+          [originalBalance["basis"].text]
+            + originalBalance["effects"].array.map { $0["item_id"].text })
         check(
-          result.state == "complete" && result.answer.contains("18") && result.citations.count >= 2,
+          result.state == "complete" && result.answer.contains("18")
+            && Set(result.citations).isSuperset(of: required),
           "Stock answer or evidence is incomplete")
       case "supplier_space":
         check(
@@ -168,6 +178,9 @@ func performJob(_ name: String, seed: UInt32, model: ObservedModel, directory: U
       }
     }
     let newItems = items.filter { !originalIDs.contains($0.id) }
+    if name == "inventory_evidence" {
+      check(try book.balance(subject: "brass bolts") == originalBalance, "Stock balance changed")
+    }
     check(
       newItems.filter { $0.category == "source" && $0.kind == "request" }.count == 1,
       "Expected exactly one preserved user request")
@@ -190,6 +203,7 @@ func performJob(_ name: String, seed: UInt32, model: ObservedModel, directory: U
     }.count
     return .object([
       "id": .string(name), "seed": .number(Double(seed)), "completeSeconds": .number(elapsed),
+      "prompt": .string(prompt),
       "errors": .array(errors.map(Value.string)), "startingItems": startingState,
       "answer": result.map { .string($0.answer) } ?? .null,
       "state": result.map { .string($0.state) } ?? .null,
@@ -374,8 +388,17 @@ func selfCheck() async throws {
         guard let seed = command["seed"].int, let unsignedSeed = UInt32(exactly: seed) else {
           throw SevraError("workflow", "Missing or invalid fixture seed")
         }
+        var promptOverride: String?
+        if name == "inventory_evidence", config["inventoryPrompts"] != .null {
+          let choices = config["inventoryPrompts"].array
+          try require(
+            seed > 0 && seed <= choices.count && choices.allSatisfy { $0.string != nil },
+            "workflow", "Invalid preregistered inventory prompt schedule")
+          promptOverride = choices[seed - 1].text
+        }
         let row = try await performJob(
-          name, seed: unsignedSeed, model: model, directory: directory, root: root)
+          name, seed: unsignedSeed, model: model, directory: directory, root: root,
+          promptOverride: promptOverride)
         try emit(row)
       }
       _ = await model.releaseResources()

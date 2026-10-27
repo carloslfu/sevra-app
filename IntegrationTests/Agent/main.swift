@@ -235,6 +235,7 @@ do {
   try await checkCurrencyRejection()
   try await checkHistoryTools()
   try await checkScopedSearch()
+  try await checkItemReferences()
   try await checkSearchCoverage()
   try await checkCompaction()
   try await checkRunningCompaction()
@@ -306,6 +307,7 @@ do {
       frontend: frontend, library: library, librarySHA256: digest)
     try checkWorkbookGrammars(frontend: frontend, factory: factory)
     try checkReasoningGrammar(frontend: frontend, factory: factory)
+    try checkItemReferenceGrammar(frontend: frontend, factory: factory)
     if CommandLine.arguments.count == 5 {
       try runNativeWorkbookProbe(
         frontend: frontend, factory: factory, engine: CommandLine.arguments[3],

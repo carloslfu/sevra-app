@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "name": "Exact item reference functional probe R2",
+  "date": "2026-10-27",
+  "state": "preregistered-before-model-run",
+  "purpose": "Test the shared exact read/lineage candidate vocabulary against UUID variation and three inventory wordings. The recorded bad suffix is separately rejected by the actual native grammar test; these newly generated workbooks are not a byte-for-byte replay of the deleted failing workbook.",
+  "maximumPromptTokens": 24000,
+  "contextTokens": 32768,
+  "memoryBytes": 12884901888,
+  "reasoningTokens": 512,
+  "maximumOutputTokens": 1800,
+  "schedule": "Native then reference. Each fresh worker runs the existing Ready prime seed 0, then six inventory jobs using fixture seeds 1 through 6. No rerolls, skipped failures or altered model prompts between backends. First job is labeled warmup by the collector but must pass all functional assertions.",
+  "prompts": [
+    "What is the current stock of brass bolts? Use the balance tool and cite the opening basis and movements. Do not change the workbook.",
+    "Why are there 18 brass bolts? Reconstruct the stock from the opening balance and accepted movements. Cite those inputs. Make no changes.",
+    "Check the brass bolt inventory. Report the current quantity and cite its opening balance and movement evidence. Make no changes.",
+    "What is the current stock of brass bolts? Use the balance tool and cite the opening basis and movements. Do not change the workbook.",
+    "Why are there 18 brass bolts? Reconstruct the stock from the opening balance and accepted movements. Cite those inputs. Make no changes.",
+    "Check the brass bolt inventory. Report the current quantity and cite its opening balance and movement evidence. Make no changes."
+  ],
+  "acceptance": "All 12 inventory jobs and both primes complete; stock is 18 with exact basis and effect citations; all original items, spaces and balance remain unchanged with only the expected request Source added; workbook integrity passes. No failed tool calls, rejected finishes, history_read/history_search/count_records detours; at most six model steps per inventory job. Preserve exact prompts, wire requests, outputs, sources, binaries, process cleanup, power, thermal and footprint checks. Source changes fail the run.",
+  "limits": "A small functional cohort, not a reliability rate, full cache/numerical parity result, latency distribution, speedup or production adoption. Keep prior failures and broader qualification gates open.",
+  "performanceQualification": false,
+  "productionAdoption": false
+}

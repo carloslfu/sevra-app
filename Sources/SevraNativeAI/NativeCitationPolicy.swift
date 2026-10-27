@@ -8,7 +8,8 @@ import SevraSplashGrammar
 /// from earlier conversations do not become evidence merely by looking valid.
 package enum NativeCitationPolicy {
   package static func make(
-    _ citationIDs: [String], toolScope: InferenceToolScope = .all, thinking: Bool = false
+    _ citationIDs: [String], toolScope: InferenceToolScope = .all, thinking: Bool = false,
+    itemReferenceIDs: [String] = []
   ) throws
     -> SplashToolPolicy
   {
@@ -17,7 +18,8 @@ package enum NativeCitationPolicy {
       ids.count <= 256 && ids.allSatisfy { !$0.isEmpty && $0.utf8.count <= 128 },
       "context_limit",
       "This exploration has too many evidence references. Continue with a narrower question.")
-    let serialized = try NativeTools.serializedDefinitions(toolScope: toolScope)
+    let serialized = try NativeTools.serializedDefinitions(
+      toolScope: toolScope, itemReferenceIDs: itemReferenceIDs)
     if toolScope == .inspection {
       return try SplashToolPolicy(toolsJSON: serialized, choice: .required, thinking: thinking)
     }

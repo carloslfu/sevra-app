@@ -348,7 +348,12 @@ private final class NativeWorker: @unchecked Sendable {
       session in
       let thinking = !summary && self.configuration.reasoning.enabled
       let tools =
-        summary ? nil : try NativeCitationPolicy.make(citationIDs, thinking: thinking).promptTools()
+        summary
+        ? nil
+        : try NativeCitationPolicy.make(
+          citationIDs, thinking: thinking,
+          itemReferenceIDs: ItemReferenceCandidates.ids(in: messages)
+        ).promptTools()
       let prompt = try session.frontend.prepare(
         messages: messages.map(nativeTemplateMessage),
         tools: tools, thinking: thinking, contextLimit: SplashWire.maxTokens)
@@ -426,7 +431,8 @@ private final class NativeWorker: @unchecked Sendable {
   ) throws -> (NativeReply, Value) {
     let reasoning = configuration.reasoning
     let policy = try NativeCitationPolicy.make(
-      citationIDs, toolScope: toolScope, thinking: reasoning.enabled)
+      citationIDs, toolScope: toolScope, thinking: reasoning.enabled,
+      itemReferenceIDs: ItemReferenceCandidates.ids(in: messages))
     let budget = configuration.contextBudget
     let prompt = try session.frontend.prepare(
       messages: messages.map(nativeTemplateMessage), tools: policy.promptTools(),

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T09:39:21.579059+00:00
+updated: 2026-10-27T10:14:11.106268+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -206,3 +206,15 @@ The host may render a complete item UUID in plain answer prose as a named native
 Rendering substitutes original text positions once, so an inserted URL or source title cannot be processed as a later model reference. Labels escape Markdown and collapse newlines. Evidence already linked inline is not duplicated in the suffix; remaining citations keep their named links and locators. Save the original finish arguments and a renderedReferences mapping with the assistant message. This is presentation of existing evidence, not admission of a new citation or automatic correction of a factual claim.
 
 The fixed-seed native/reference recovery does not qualify general reference reliability. A later final-package test with fresh UUIDs still mistyped a movement ID, took a history detour and required two finish corrections. Keep that failure as a regression case. Future model-reference design must make exact candidate selection dependable, preserve canonical immutable IDs in storage/receipts, refuse unknown handles and avoid fuzzy automatic redirection. Short typed per-run handles are a proposed approach; they are not implemented or a new workbook format decision.
+
+## Exact visible item references
+Observed inventory failures included copying the wrong suffix of a long item ID despite correct stock arithmetic. Read and lineage now use a host-built candidate vocabulary. Before generation and context measurement, collect UUID-shaped lookup values from the visible conversation content and verify each through the current workbook. Preserve exact supplied lookup strings, including an existing logical-ID lookup, instead of fuzzily mapping a typo to a different item. Unknown UUIDs and unrelated business identifiers do not enter the vocabulary. Discovery remains available through search, datasets/rows and lineage.
+
+Attach the verified choices as ephemeral host metadata on inference messages. Do not persist that metadata as evidence, parse it from model output or accept it as action authority. A UUID mentioned in untrusted text may be a read candidate only if it resolves exactly in this workbook; that does not make the text true, admit a citation or authorize a mutation. Citation admission continues to use the separately maintained inspected-result set. Historical references remain historical until refreshed.
+
+Both adapters use the same dynamic tool schema for read/lineage choices and exact prompt measurement. The native grammar enforces the choices during decoding; the shared host validates them again before executing a read. Baseline prompting and host validation retain their own capabilities without claiming native mask enforcement. An empty vocabulary keeps explicit discovery/unknown-ID lookup behavior available. Bound the vocabulary and fail with a narrower-context request rather than silently dropping choices. Compaction rebuilds candidates from retained visible context, not a hidden global registry.
+
+Qualify the recorded mistyped-ID regression and a preregistered varied-ID cohort, including correct current/historical/logical references, forged IDs, candidate versus citation separation, large/truncated/history results, context measurement and cancellation. Preserve prior failed runs and actual request/output receipts. This work does not clear the independent native/reference generation mismatch or production adoption gate.
+
+
+The implementation passes focused shared-host and actual native grammar checks, including the recorded bad suffix, current/historical/logical IDs, separate citation admission and exact large-schema context refusal. R2 used six identifier sets and three question wordings on both frontends. All twelve jobs returned the correct cited stock with unchanged business state and no wrong-ID calls or rejected finishes. Both final jobs nevertheless made unrelated count queries and exceeded the no-detour step limit, so the overall functional cohort remains failed. Keep useful reference constraints while treating task relevance and stopping as separate unresolved work. See [[records/operations/implementation]] for the retained evidence and qualification limits.

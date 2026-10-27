@@ -1,0 +1,666 @@
+{
+  "schemaVersion": 1,
+  "scope": "Exact item candidates and native Settings cancellation. Functional checkpoint, not production adoption or complete app qualification.",
+  "baseCommit": "6995a89c199c413a97e8928949f58768e4bc486c",
+  "finalSourceSHA256": {
+    "IntegrationTests/Agent/AgentLifecycleChecks.swift": "201c0de5598371c8974e2a0883b8cfb3e3677288ffba8958d397cb7953e787b6",
+    "IntegrationTests/Agent/CompactionChecks.swift": "bdcb45b7294cc33cb99ba95c89122b672ae3e0ab7859d78c49533e05f2a2a977",
+    "IntegrationTests/Agent/ContextBudgetChecks.swift": "86b674e5596419256a39be7082c6af732a3e668af7b6e87a7f8d3b7bc5793e8f",
+    "IntegrationTests/Agent/CoverageChecks.swift": "6446048c42e7d7d1c1070c92902f7be8a1a09c1d96130d952285f80d63e99302",
+    "IntegrationTests/Agent/CoverageProbe.swift": "edfdb79b90c60ac937908bd1f3d8c6e05dc56e49561e189c25aa2c684cecd1a8",
+    "IntegrationTests/Agent/CurrencyRecoveryProbe.swift": "a846f1a3e993a24b6eb24999ba2358e36bb11b57678aa83644d2aa1bd03ea19a",
+    "IntegrationTests/Agent/GrammarChecks.swift": "65d7f93aff0f3684b226789e69505a1fa3936ab781f6c3cc2e860fa72829db57",
+    "IntegrationTests/Agent/HistoryToolChecks.swift": "5655d2cad746d60a165ed28d7a6e23ab5d707396250e2cd02af79bf4aa2ae06a",
+    "IntegrationTests/Agent/InspectionRecoveryProbe.swift": "5460921b1a2777f6220d5b5792ca64e2385d2594b059225f1a1a42d0ed66babd",
+    "IntegrationTests/Agent/ItemReferenceChecks.swift": "efb8abc944cff2cc4cce19169a3585f251a443a98bb58bf6c75ee0de62cfd58c",
+    "IntegrationTests/Agent/NativeAgentProbe.swift": "5e7af088ac03a65c9156d0925e2f71d04832b443c9f58e04a2f0b735a11d3f1e",
+    "IntegrationTests/Agent/NativeContinuityProbe.swift": "bb54b1f6b727239e47a16e77777a2c889e412a47f59409c891da546b8656de9f",
+    "IntegrationTests/Agent/NativeWorkbookProbe.swift": "ab2b2a4133a9a42a9eac28bc07d1e988bca9d3fe26e5925da1fedf5e6739e491",
+    "IntegrationTests/Agent/ReasoningBoundaryProbe.swift": "efef7956532f3e342c5c65c480c2a4e4f1c4f8effd5ace50c78e66deb0d275ca",
+    "IntegrationTests/Agent/ReasoningChecks.swift": "34e928014fc818bf3f101f7acc5fb95f03e5c2dfc9afafe73cd34150fe83fd89",
+    "IntegrationTests/Agent/ReasoningProbe.swift": "de508a0604fa7acaac630019b52663b0dc677cf88015227110446b2abaeb4d6f",
+    "IntegrationTests/Agent/RequestAdmissionChecks.swift": "1e9a183587015299a53b6450003196cc5961707695e1912b7173a82fe72d5878",
+    "IntegrationTests/Agent/ScopedSearchChecks.swift": "e036943d96a9e4ad08a56c95282b71c8a42de2f40f6b392fef258d8db38900c1",
+    "IntegrationTests/Agent/main.swift": "85aca3564d176732458f7ec0fcb2d307abe32048c2792cf7ff99e7b30a5b5ab0",
+    "IntegrationTests/WorkflowPerformance/ReferenceModel.swift": "bcf3045612c2c86fe1f6d3942b5bfcba85793b699fb426c84c9f53bc166b3cb8",
+    "IntegrationTests/WorkflowPerformance/Runner.swift": "5033ec463e9dc7791c4631618e12f4d40b334197c6fa79c6c9552b12fbf1b281",
+    "Sources/SevraAI/ContextBudget.swift": "62467fa9d10cdbeb95fdf2d2f43b8579db32d2511c212b3e553c7aa166939521",
+    "Sources/SevraAI/ContextDigest.swift": "9abf4f5c9c7f7118d19d618371d6b42bc92a3d5114d67f49a821f3fd7ec911b2",
+    "Sources/SevraAI/ContextMaintenance.swift": "37435d38bc264205638f9b45dc31af0ac42040fcc4c38451ae9fad11303fce48",
+    "Sources/SevraAI/ConversationHistory.swift": "54efd0b58a35c912a24674fb213a9afc19ee6cbd4703900e08edb600dd7da4df",
+    "Sources/SevraAI/ItemReferenceCandidates.swift": "e1023f7432b03da11e8208304703f484df61d3756f2e6b770daa4a0d62d2f3e7",
+    "Sources/SevraAI/NativeTools.swift": "94b0c4a466f24d1e19b23a82f7149049a01733684889a0d63ea813958b883d20",
+    "Sources/SevraAI/RequestRestrictions.swift": "bc40ee3e65fe27273f86dd08bfb8186a3aabf98d9bac2aead1f832dba31109f7",
+    "Sources/SevraAI/SearchCoverage.swift": "3dbb8370c34697db6908688ad8e7be7599d1b36af2a0c9ea26fe37db0b2b2b5b",
+    "Sources/SevraAI/ToolSerialization.swift": "51b0edc3a4d349b1fefdf358ec073f7c69309a9daa84b3873a23906f896a5414",
+    "Sources/SevraAI/WorkbookAgent.swift": "2a95201f2008259c018235076904aaf49edd4da5a0385b1b4a070215dabe276a",
+    "Sources/SevraAI/WorkbookInference.swift": "9bec0a224fbdae1012536d8eda3e4d06badd6d3447cb1cc95a5fbdb08b3bd008",
+    "Sources/SevraAI/WorkbookToolDefinition.swift": "8739e3b9d9656b706c6b1ea62f52e1aed30e720782fd09b228fef662a146cedd",
+    "Sources/SevraApp/ArchiveMemberPicker.swift": "a330407d582026133d45de732ae8f49046c704699d63ce69b5ff5a2f892b4b18",
+    "Sources/SevraApp/BrandShapes.swift": "cb42830cfbbefe09ebc8d0318869294f2feec3dfd9f9670d722f8cb590d4fa6d",
+    "Sources/SevraApp/ContentViews.swift": "3a1c3f5864174958e3d3efc475a9e73ed54f731a1b9159d0bec6c2b5739af753",
+    "Sources/SevraApp/DisplayText.swift": "96c846ec1fe230325dde0fc698cfc67118fe3478f125de98671ebef643eddca1",
+    "Sources/SevraApp/SevraApp.swift": "a47903b43d5b8d78cf7cf65dc535dbe261e26b8dc19a16dd9f45f4fd6f49d753",
+    "Sources/SevraApp/SpeechAndSettings.swift": "4dcbc9e494c898ee7c93528122171832071fb8b8ed208d267ae571cf4192a1ab",
+    "Sources/SevraApp/Viewers.swift": "846367dc33b95064374a6c000fb74ebe97fbf520c2ebaab97575d23d1acfeb7a",
+    "Sources/SevraApp/WorkbookView.swift": "ad1a062047ad9dff88a987003466909c4f1e10c947e32e0774fedec3c83a2a3a",
+    "Sources/SevraApp/WorkspaceState.swift": "39d110b309f1b327659ad1fb8bf6a5f98ae25faf50ccf316ddc735e647bfd37c",
+    "Sources/SevraBaseline/BaselineMessages.swift": "71a61b9f700b8cb9adf765eec34e1af149564d2e297ec16192ab12219ad498b7",
+    "Sources/SevraBaseline/LocalModel.swift": "bc91202af9cac267bd536299a31697a715ce799cf834a214df4cb4c889d02104",
+    "Sources/SevraBaseline/PackageResources.swift": "d1e79b285426a845d9782556968428c4728a3ebb39d594cb925ca2a035f702cb",
+    "Sources/SevraBaseline/WorkbookAgent.swift": "fddfbee941e70083ad52e05e4b0426497129e3e4b009621236b33a38b31e4d4b",
+    "Sources/SevraCLI/CLI.swift": "a30d80821fc5a3b21de1ba7f128593396d8d72b6d1bf79c476de818385e87947",
+    "Sources/SevraCore/AgentSearch.swift": "4a16a3dd949009660bf2f129d8d395be2ad5708c343ab9ea94b7a7cec53f729d",
+    "Sources/SevraCore/Archive.swift": "4266352cd1a5ebf6e5270a2b6abcc2b1919d2bc9bf97c56ea9d60eb28498b72a",
+    "Sources/SevraCore/ArchiveIntake.swift": "1fc17b3379857ee9092466ddfe5293f9b37e408cad81e453c79b7ab259cf40f2",
+    "Sources/SevraCore/Assets.swift": "2f7824915eb53f3a5b4b623a25991fb64e1c96da044d22a2ca9f668c6a389974",
+    "Sources/SevraCore/Calculations.swift": "e33b638cdd532118498b1d0b3fa540fe841508d2be994d8310264ffe4d3b3a5a",
+    "Sources/SevraCore/Comparisons.swift": "2f907dc1387a6de33d1780f8aa93f53516549e3b52f526077dd379af40792e9a",
+    "Sources/SevraCore/ComponentData.swift": "53b49955c07a14de5932e159c66dc76eaef3b614f05561b68672e98c94a8e989",
+    "Sources/SevraCore/ContinuationState.swift": "e6edabf72fb0a11ca0204d47726f1ffedbd7d766e8f02f65437cf5ed3cc9aa19",
+    "Sources/SevraCore/ConversationContext.swift": "a30da30155e0df2de8f1fdf263389a3b5e993e78db054c60b5ac02b697190182",
+    "Sources/SevraCore/Database.swift": "fd8ad540b3276a373d8162574354cb0988b23bababe6e8fa7126e0e86a78fe75",
+    "Sources/SevraCore/Demo.swift": "ac91ad32e0b7b5f929834cbe6b2ca9264265b01f42507d985cb506f271634054",
+    "Sources/SevraCore/Events.swift": "1c7ca98250531912ef0e1c7ce4ceed78d2328ca07ae38e3b5a603816fdc1c089",
+    "Sources/SevraCore/Extractor.swift": "87f46a9ffa070af2a6432ea7a50e230dfb682e2749b0be86dd4aaec9c7664e41",
+    "Sources/SevraCore/FixtureContext.swift": "4dc1c4dd31bc903e84287026f06ef4200e69c7fb7202d52fd40b8555d89fd817",
+    "Sources/SevraCore/Intake.swift": "3287cc31669c5759308a7b0f7e3d265ed88c14854298c99f14d225177d5485ae",
+    "Sources/SevraCore/RecordCount.swift": "9c0b9abaefe9b49a5f0439ab0b626e5dc9bf2b67c13bab6829afa24ef2a535ef",
+    "Sources/SevraCore/Runs.swift": "94a2468d1d6bb8d2344328a0979a0a83bf07389f07ccf5e4080535194394b630",
+    "Sources/SevraCore/Schema.swift": "ac118f57ce3ef97ed119a360c4e20d35340e9742a88db108f3862244ba6ab03d",
+    "Sources/SevraCore/Search.swift": "d5008cd1930682cac58ba3dd34669c9967de919158f3fc7931767fe239466efa",
+    "Sources/SevraCore/Spaces.swift": "e36237466bb1c9a02c08ab909bfb9fba61b25b987e84068b10f05899a53dba57",
+    "Sources/SevraCore/TableProposals.swift": "6da6889df290a5caaa1457b7d75a875ca9ac7613b745fc14ef6dc12284e0a365",
+    "Sources/SevraCore/Tables.swift": "9f09f226216afb18af3c2dd94631aa31c4a356228af15206cb5e4d2958c3ab22",
+    "Sources/SevraCore/ToolReceipts.swift": "b22052fb3ca679b2125c5a45fdf03135571fd2927ae314fe38059c7e58d4bdf0",
+    "Sources/SevraCore/Tools.swift": "83355dd325c85781bd6b9583181e91a83fb197b0afce276f716253247e747270",
+    "Sources/SevraCore/Transcription.swift": "6f2ec8162a2bccd2ad2a3fd7a505adff32a680905142b29d05effdae62b15944",
+    "Sources/SevraCore/Types.swift": "edb66228c0a800ca48ebf320aa5e3dadc58ac026c93d5bcf5a90b95a1a530d45",
+    "Sources/SevraCore/URLCapture.swift": "b269e5bfd7521614a1ab55e2c54e514add305ebd33d6c3ed255851fc3c9fc4ed",
+    "Sources/SevraCore/Workbook.swift": "89b8c3d7314aef59dff03733d4f6799c0cfde1b8097d51e77d50d96cde593cb2",
+    "Sources/SevraCore/XLSX.swift": "cb0d11c2de72ef5e58aa0cc580a17d01f3fb48b9df4d05363f67857634763a5d",
+    "Sources/SevraNativeAI/NativeCitationPolicy.swift": "9f54af3c3e6b16df095292aa42819d4ac22c13f6347ecc8c17fef5e2960bc2a4",
+    "Sources/SevraNativeAI/NativeReasoning.swift": "d6e3c4d75fca8e019d0c0378d025a6b944172b3117222713f3aefedbc8e9e48a",
+    "Sources/SevraNativeAI/NativeWorkbookModel.swift": "2684d35ead6643782e5214f13caa2e0db76813fee4fcf5a0b0db77122dc32edf",
+    "Sources/SevraNativeSetup/main.swift": "168a79f812b08c355363e3b9d1bd4022e60661a457b14188da12d8c00ca01a8e",
+    "Sources/SevraProduct/NativeProductResources.swift": "1bb33ffc54f1d1139d7bff73896d39886ae7388e01d587812c5f24f907198ebe",
+    "Sources/SevraProduct/ProductAI.swift": "6d7471e4194d6dc4e8f2644b22829aae34cfff218e28242d2bd680db61e25417",
+    "Sources/SevraSplash/ModelDownload.swift": "8e754fbea7a86e8cb5632e993d0a327f9e73d824a54594c972b81f5d8947c5fc",
+    "Sources/SevraSplash/ModelPreparation.swift": "1a8552ba72c95cc521daf26aaf39488d10bc52b15d890e67b6c22ccdba983bd9",
+    "Sources/SevraSplash/ModelSetup.swift": "8ffec0490a46102b6f3c50160e029d9a9c378c34e193fe5635e3b43a540778d4",
+    "Sources/SevraSplash/NativeProcess.swift": "122cf94d96363831eb51172b515c35e46a62a8e3a88eb3f41e74567a8fc709ab",
+    "Sources/SevraSplash/RuntimeResources.swift": "0da6f0f40cf513de071ad18be3f23fff37a906485783822c513d27fdfbf8c8a7",
+    "Sources/SevraSplash/StreamState.swift": "7b9bfefa306dac739fabcf0f8d316e15dc92315d3994b62a361acfe72416cf35",
+    "Sources/SevraSplash/Wire.swift": "7e5fdf0adb56748bd2c03ebeeecb9865d1b5250427574e1a3f32f133ba34e39e",
+    "Sources/SevraSplashGrammar/NativeGrammar.swift": "2a1875d66c040c175808122e9a85feacdb346c45ba407d480a916e350b169767",
+    "Sources/SevraSplashGrammar/ToolPolicy.swift": "167723586b8db50ec88949e77258a63f60c964ef27b15bcec3f2795e4c405fed",
+    "Sources/SevraSplashText/OutputParser.swift": "23a57a29f62e0c4e1aa3415e05a24480ac4f8c89588804c6f664caf63c4d7fee",
+    "Sources/SevraSplashText/OutputStream.swift": "5567cb82b9c28902a0817069b84e8b73bb508e77fea53c9bd44694c2eb6b1871",
+    "Sources/SevraSplashText/StreamingDecoder.swift": "e3c5ab02c295be8dbb8a51d79e168d3637e2091fa5d34a59ca75220d6adb0890",
+    "Sources/SevraSplashText/TextFrontend.swift": "55070f01dd2aca41706ee82ac26f831744b464f8588e6ac2841ac56f19457e67",
+    "Sources/SevraTableUI/NativeTable.swift": "67b3dc7affb3e86a5369a3b9cfa1ed274ac26ba9a6822ee4dce5cf4336801683",
+    "Sources/SevraTableUI/TablePageLoader.swift": "d03478edca3c1e51d54a9b9b7ecb2d2333c672e50c3edaf99ac693537261b9df",
+    "scripts/check_item_reference_probe.py": "17402c0e25d9a6f81ea213264a2b6ed2e10ee128f5f3e421306b6d8d8772b854",
+    "scripts/probe_item_references.py": "ef38ae5429acc9710a66e8ae38f872e9e9886409f78a43b2db6a1ee8deba33db"
+  },
+  "finalBinarySHA256": {
+    "output/native/bin/sevra": "615118af16356e12952fb5ecfed76d3cdc8f6511ecc95ba1ce61a8d8d24e68f9",
+    "output/native/Sevra Native Preview.app/Contents/MacOS/Sevra": "183af1a8727aa4616702e04d9636728ad6ef09f633a29814eb1b981292ce3df8",
+    "output/bin/sevra": "1b0738f1065b8400fd51026232bc831cb26ada53fe8e544034502fb18384d171",
+    "output/Sevra.app/Contents/MacOS/Sevra": "a41779bd0dc6da83146557aae3a6dc8fcbab2c506b301bd00e2c5f95ee903f34",
+    ".build/release/sevra-workflow-performance": "b2903e678ba0333cc5f6960024cb8c6965766b13232dd3e0d3d524b08370e014"
+  },
+  "commands": [
+    "swift build --product sevra-agent-checks -j 4",
+    "python3 scripts/check_splash_grammar.py",
+    "swift build -c release --product sevra-workflow-performance -j 4",
+    ".build/release/sevra-workflow-performance --self-check",
+    "python3 scripts/probe_item_references.py --config .build/workflow-performance/balance-evidence2/config.json --output .build/workflow-performance/item-references1",
+    "bash scripts/check.sh",
+    "bash scripts/build_native.sh",
+    "python3 scripts/check_native_package.py",
+    "bash scripts/build.sh",
+    "python3 scripts/check_resources.py",
+    "python3 scripts/check_install.py",
+    "SEVRA_CLI=output/native/bin/sevra SEVRA_MODEL_DIRECTORY=.build/native-fresh-setup python3 scripts/check_model.py inventory",
+    "SEVRA_CLI=output/native/bin/sevra SEVRA_MODEL_DIRECTORY=.build/native-fresh-setup python3 scripts/check_model.py missing",
+    "SEVRA_CLI=output/bin/sevra python3 scripts/check_model.py inventory",
+    "python3 scripts/check_item_reference_probe.py"
+  ],
+  "logs": [
+    {
+      "name": "sevra-item-references-build.log",
+      "purpose": "Initial test compilation",
+      "passed": false,
+      "note": "Two invalid test API assumptions. The shell wrapper ended with tail and reported 0; compiler output is the failure evidence.",
+      "rawSHA256": "652bf9447b4b2e864e5b5f6369fe173a60094d4b22c4fe1a8e9738f549f3be76",
+      "content": "[0/1] Planning build\nBuilding for debugging...\n[0/8] Write sources\n[4/8] Write swift-version--1AB21518FC5DEDBE.txt\n[6/13] Compiling SevraAI WorkbookAgent.swift\n[7/13] Compiling SevraAI ContextMaintenance.swift\n[8/13] Compiling SevraAI ItemReferenceCandidates.swift\n[9/13] Emitting module SevraAI\n[10/13] Compiling SevraAI ToolSerialization.swift\n[11/14] Compiling SevraAI WorkbookInference.swift\n[12/16] Compiling SevraAI ContextBudget.swift\n[13/16] Compiling SevraAI ConversationHistory.swift\n[14/23] Compiling SevraBaseline WorkbookAgent.swift\n[15/23] Compiling SevraBaseline BaselineMessages.swift\n[16/23] Emitting module SevraBaseline\n[17/23] Compiling SevraBaseline LocalModel.swift\n[18/23] Compiling SevraNativeAI NativeWorkbookModel.swift\n[19/23] Emitting module SevraNativeAI\n[20/23] Compiling SevraNativeAI NativeCitationPolicy.swift\n[21/37] Compiling SevraAgentChecks CurrencyRecoveryProbe.swift\n<repo>/IntegrationTests/Agent/ItemReferenceChecks.swift:74:69: error: instance method 'encode' requires that 'JSONValue' conform to 'Encodable'\n 72 |   try expectEqual(baseline.count, native.count)\n 73 |   for name in [\"read\", \"lineage\"] {\n 74 |     let parameters = try Value.parse(String(decoding: JSONEncoder().encode(baseline.first { $0.name == name }!.parameters), as: UTF8.self))\n    |                                                                     `- error: instance method 'encode' requires that 'JSONValue' conform to 'Encodable'\n 75 |     try expectEqual(parameters, native.first { $0.name == name }!.parameters)\n 76 |   }\n\nFoundation.JSONEncoder.encode:2:11: note: where 'T' = 'JSONValue'\n1 | class JSONEncoder {\n2 | open func encode<T>(_ value: T) throws -> Data where T : Encodable}\n  |           `- note: where 'T' = 'JSONValue'\n3 | \n\n<repo>/IntegrationTests/Agent/ItemReferenceChecks.swift:82:27: error: value of type 'Workbook' has no member 'toolReceipts'\n 80 |   try expectEqual(reply.steps, 3)\n 81 |   try expectEqual(reply.citations, [current.id])\n 82 |   let receipts = try book.toolReceipts(runID: book.agentRuns().first![\"id\"].text)\n    |                           `- error: value of type 'Workbook' has no member 'toolReceipts'\n 83 |   try expectEqual(receipts.count, 2)\n 84 |   try expectEqual(receipts[0][\"arguments\"][\"id\"].text, failedReference)\n[22/37] Compiling SevraAgentChecks HistoryToolChecks.swift\n<repo>/IntegrationTests/Agent/ItemReferenceChecks.swift:74:69: error: instance method 'encode' requires that 'JSONValue' conform to 'Encodable'\n 72 |   try expectEqual(baseline.count, native.count)\n 73 |   for name in [\"read\", \"lineage\"] {\n 74 |     let parameters = try Value.parse(String(decoding: JSONEncoder().encode(baseline.first { $0.name == name }!.parameters), as: UTF8.self))\n    |                                                                     `- error: instance method 'encode' requires that 'JSONValue' conform to 'Encodable'\n 75 |     try expectEqual(parameters, native.first { $0.name == name }!.parameters)\n 76 |   }\n\nFoundation.JSONEncoder.encode:2:11: note: where 'T' = 'JSONValue'\n1 | class JSONEncoder {\n2 | open func encode<T>(_ value: T) throws -> Data where T : Encodable}\n  |           `- note: where 'T' = 'JSONValue'\n3 | \n\n<repo>/IntegrationTests/Agent/ItemReferenceChecks.swift:82:27: error: value of type 'Workbook' has no member 'toolReceipts'\n 80 |   try expectEqual(reply.steps, 3)\n 81 |   try expectEqual(reply.citations, [current.id])\n 82 |   let receipts = try book.toolReceipts(runID: book.agentRuns().first![\"id\"].text)\n    |                           `- error: value of type 'Workbook' has no member 'toolReceipts'\n 83 |   try expectEqual(receipts.count, 2)\n 84 |   try expectEqual(receipts[0][\"arguments\"][\"id\"].text, failedReference)\n[23/37] Compiling SevraAgentChecks InspectionRecoveryProbe.swift\n<repo>/IntegrationTests/Agent/ItemReferenceChecks.swift:74:69: error: instance method 'encode' requires that 'JSONValue' conform to 'Encodable'\n 72 |   try expectEqual(baseline.count, native.count)\n 73 |   for name in [\"read\", \"lineage\"] {\n 74 |     let parameters = try Value.parse(String(decoding: JSONEncoder().encode(baseline.first { $0.name == name }!.parameters), as: UTF8.self))\n    |                                                                     `- error: instance method 'encode' requires that 'JSONValue' conform to 'Encodable'\n 75 |     try expectEqual(parameters, native.first { $0.name == name }!.parameters)\n 76 |   }\n\nFoundation.JSONEncoder.encode:2:11: note: where 'T' = 'JSONValue'\n1 | class JSONEncoder {\n2 | open func encode<T>(_ value: T) throws -> Data where T : Encodable}\n  |           `- note: where 'T' = 'JSONValue'\n3 | \n\n<repo>/IntegrationTests/Agent/ItemReferenceChecks.swift:82:27: error: value of type 'Workbook' has no member 'toolReceipts'\n 80 |   try expectEqual(reply.steps, 3)\n 81 |   try expectEqual(reply.citations, [current.id])\n 82 |   let receipts = try book.toolReceipts(runID: book.agentRuns().first![\"id\"].text)\n    |                           `- error: value of type 'Workbook' has no member 'toolReceipts'\n 83 |   try expectEqual(receipts.count, 2)\n 84 |   try expectEqual(receipts[0][\"arguments\"][\"id\"].text, failedReference)\n[24/37] Compiling SevraAgentChecks ItemReferenceChecks.swift\n<repo>/IntegrationTests/Agent/ItemReferenceChecks.swift:74:69: error: instance method 'encode' requires that 'JSONValue' conform to 'Encodable'\n 72 |   try expectEqual(baseline.count, native.count)\n 73 |   for name in [\"read\", \"lineage\"] {\n 74 |     let parameters = try Value.parse(String(decoding: JSONEncoder().encode(baseline.first { $0.name == name }!.parameters), as: UTF8.self))\n    |                                                                     `- error: instance method 'encode' requires that 'JSONValue' conform to 'Encodable'\n 75 |     try expectEqual(parameters, native.first { $0.name == name }!.parameters)\n 76 |   }\n\nFoundation.JSONEncoder.encode:2:11: note: where 'T' = 'JSONValue'\n1 | class JSONEncoder {\n2 | open func encode<T>(_ value: T) throws -> Data where T : Encodable}\n  |           `- note: where 'T' = 'JSONValue'\n3 | \n\n<repo>/IntegrationTests/Agent/ItemReferenceChecks.swift:82:27: error: value of type 'Workbook' has no member 'toolReceipts'\n 80 |   try expectEqual(reply.steps, 3)\n 81 |   try expectEqual(reply.citations, [current.id])\n 82 |   let receipts = try book.toolReceipts(runID: book.agentRuns().first![\"id\"].text)\n    |                           `- error: value of type 'Workbook' has no member 'toolReceipts'\n 83 |   try expectEqual(receipts.count, 2)\n 84 |   try expectEqual(receipts[0][\"arguments\"][\"id\"].text, failedReference)\n[25/41] Compiling SevraAgentChecks NativeAgentProbe.swift\n[26/41] Compiling SevraAgentChecks NativeContinuityProbe.swift\n[27/41] Compiling SevraAgentChecks ReasoningBoundaryProbe.swift\n[28/41] Compiling SevraAgentChecks ReasoningChecks.swift\n[29/41] Compiling SevraAgentChecks ReasoningProbe.swift\n[30/41] Compiling SevraAgentChecks RequestAdmissionChecks.swift\n[31/41] Compiling SevraAgentChecks ScopedSearchChecks.swift\n[32/41] Compiling SevraAgentChecks main.swift\n[33/43] Compiling SevraAgentChecks NativeWorkbookProbe.swift\n[34/43] Compiling SevraAgentChecks GrammarChecks.swift\n[35/43] Compiling SevraAgentChecks AgentLifecycleChecks.swift\n[36/43] Compiling SevraAgentChecks CompactionChecks.swift\n[37/43] Compiling SevraAgentChecks ContextBudgetChecks.swift\n[38/43] Compiling SevraAgentChecks CoverageChecks.swift\n[39/43] Compiling SevraAgentChecks CoverageProbe.swift\n[40/43] Emitting module SevraAgentChecks\n"
+    },
+    {
+      "name": "sevra-item-references-build2.log",
+      "purpose": "Second test compilation",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "475ac6a6f86b0d752803cde9783f519e7bcea6f02d3561b49d4c143ed9e647f6",
+      "content": "[0/1] Planning build\nBuilding for debugging...\n[0/5] Write sources\n[1/5] Write swift-version--1AB21518FC5DEDBE.txt\n[3/9] Emitting module SevraAgentChecks\n[4/9] Compiling SevraAgentChecks CurrencyRecoveryProbe.swift\n[5/9] Compiling SevraAgentChecks HistoryToolChecks.swift\n[6/9] Compiling SevraAgentChecks InspectionRecoveryProbe.swift\n[7/10] Compiling SevraAgentChecks ItemReferenceChecks.swift\n[8/11] Compiling SevraAgentChecks main.swift\n[8/11] Write Objects.LinkFileList\n[9/11] Linking sevra-agent-checks\n[10/11] Applying sevra-agent-checks\nBuild of product 'sevra-agent-checks' complete! (7.02s)\n"
+    },
+    {
+      "name": "sevra-item-references-agent.log",
+      "purpose": "Initial agent regression",
+      "passed": false,
+      "note": "Compaction mock used an ID absent from its visible messages; repeated-action refusal. Fixture then supplied that source in visible context.",
+      "rawSHA256": "41dfdd62677926895bb2cc557843c9dce2111e87208f1866e8e75903a0c7b502",
+      "content": "SevraError(code: \"repeated_action\", message: \"The model repeated an unsuccessful action. Completed changes and receipts are saved; inspect them before continuing.\")\nPASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\n{\"abandonedRunClosedBeforeProjection\":true,\"activeOtherRunPreserved\":true,\"check\":\"request_admission\",\"failedLeaseHasLinkedTerminalRequest\":true,\"liveRun\":\"ecf8108f-a1eb-4f28-9877-1b91779ea02c\",\"oldRun\":\"995d28fb-5948-402a-8c18-66f5ad081105\"}\nPASS abandoned-run projection and terminal lease-refusal history preserve originals and active work\nPASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history\nPASS exhausted correction retains all four rejected candidates and a failed run\nPASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation\nPASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data\nPASS shared agent retrieves old originals and pages oversized saved results\nPASS scoped search spans business evidence and earlier conversation without mixing citations, filters, cursors or branches\nPASS exact item candidates, separate citation authority, context rebuild, shared refusal receipts and baseline/native schema parity\nPASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery\nPASS repeated context maintenance, exact original references, current acceptance, cancellation, invalid summaries and portable continuation\nPASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance\n"
+    },
+    {
+      "name": "sevra-item-references-build3.log",
+      "purpose": "Corrected agent compilation",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "f839d6a7a759312d4c0bc3344a68f7923f1b76b6e9a1b2c47cdaf0b20d0fb638",
+      "content": "[0/1] Planning build\nBuilding for debugging...\n[0/4] Write sources\n[1/4] Write swift-version--1AB21518FC5DEDBE.txt\n[3/7] Emitting module SevraAgentChecks\n[4/7] Compiling SevraAgentChecks CompactionChecks.swift\n[5/7] Compiling SevraAgentChecks ItemReferenceChecks.swift\n[6/8] Compiling SevraAgentChecks main.swift\n[6/9] Write Objects.LinkFileList\n[7/9] Linking sevra-agent-checks\n[8/9] Applying sevra-agent-checks\nBuild of product 'sevra-agent-checks' complete! (6.95s)\n"
+    },
+    {
+      "name": "sevra-item-references-grammar.log",
+      "purpose": "Focused shared-agent and actual grammar check",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "87122439795adfdd20c66a34f54cae77cea5726d8b862e11b4e1aac22145bf10",
+      "content": "PASS exact byte vocabulary for all 248320 tokens\nPASS json: exact speculative masks, cache isolation, EOS and refusals\nPASS unicode: exact speculative masks, cache isolation, EOS and refusals\nPASS reasoning_json: exact speculative masks, cache isolation, EOS and refusals\nPASS strict_tool: exact speculative masks, cache isolation, EOS and refusals\nPASS 105 exact upstream mask requests across 4 grammars\nPASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\n{\"abandonedRunClosedBeforeProjection\":true,\"activeOtherRunPreserved\":true,\"check\":\"request_admission\",\"failedLeaseHasLinkedTerminalRequest\":true,\"liveRun\":\"cdde40fb-0489-48a3-b61d-cfe8159812bc\",\"oldRun\":\"1bafd33a-75a3-4f9b-83c4-5b4632946633\"}\nPASS abandoned-run projection and terminal lease-refusal history preserve originals and active work\nPASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history\nPASS exhausted correction retains all four rejected candidates and a failed run\nPASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation\nPASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data\nPASS shared agent retrieves old originals and pages oversized saved results\nPASS scoped search spans business evidence and earlier conversation without mixing citations, filters, cursors or branches\nPASS exact item candidates, separate citation authority, context rebuild, shared refusal receipts and baseline/native schema parity\nPASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery\nPASS repeated context maintenance, exact original references, current acceptance, cancellation, invalid summaries and portable continuation\nPASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance\nPASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations\nPASS actual workbook schemas, open row/record data, full argument validation and schema refusals\nPASS 28 actual-tool grammars, 249 exact reference masks, completed argument validation and prompts\nPASS reasoning prompt, dynamic citation grammar and stream projection agree; unfinished reasoning cannot dispatch\nPASS actual item-reference grammar rejects the recorded wrong suffix, with reasoning on/off and measured schema overhead\n"
+    },
+    {
+      "name": "sevra-item-references-worker-build.log",
+      "purpose": "R2 measured release worker build",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "6b6f6d9814d36cdfb5d8879de899e4d2de7bd5b5ea795e74bba0bc666554138b",
+      "content": "[0/1] Planning build\nBuilding for production...\n[0/6] Write sources\n[3/6] Write swift-version--1AB21518FC5DEDBE.txt\n[5/7] Compiling SevraAI ContextBudget.swift\n[6/8] Compiling SevraNativeAI NativeCitationPolicy.swift\n[7/9] Compiling SevraWorkflowPerformance ReferenceModel.swift\n[7/9] Write Objects.LinkFileList\n[8/9] Linking sevra-workflow-performance\nBuild of product 'sevra-workflow-performance' complete! (13.65s)\n"
+    },
+    {
+      "name": "sevra-item-references-worker-selfcheck.log",
+      "purpose": "R2 fixture preflight",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "ffba249cc7b3d0457359cd9fcb01402239a1348303c5801cba9be4e20b44e3a5",
+      "content": "PASS deterministic fixture state, task inheritance, concurrent isolation, unchanged defaults and actual formula acceptance/edit/undo\n"
+    },
+    {
+      "name": "sevra-item-references-model.log",
+      "purpose": "R2 cohort",
+      "passed": false,
+      "note": "All 12 jobs and 2 primes passed application assertions. Both seed-6 cases failed no-detour and at-most-six-step requirements.",
+      "rawSHA256": "7a63081b4396add2d03387395a0dda2056cf60623fdedff0c65a7d0c58a8b6d5",
+      "content": "{\"backend\": \"native\", \"block\": 0, \"id\": \"inventory_evidence\", \"warmup\": true, \"seconds\": 36.5113593749702, \"errors\": [], \"validationFailures\": 0}\n{\"backend\": \"native\", \"block\": 0, \"id\": \"inventory_evidence\", \"warmup\": false, \"seconds\": 50.6878019166179, \"errors\": [], \"validationFailures\": 0}\n{\"backend\": \"native\", \"block\": 0, \"id\": \"inventory_evidence\", \"warmup\": false, \"seconds\": 35.36360395839438, \"errors\": [], \"validationFailures\": 0}\n{\"backend\": \"native\", \"block\": 0, \"id\": \"inventory_evidence\", \"warmup\": false, \"seconds\": 32.870988833718, \"errors\": [], \"validationFailures\": 0}\n{\"backend\": \"native\", \"block\": 0, \"id\": \"inventory_evidence\", \"warmup\": false, \"seconds\": 56.23329050000757, \"errors\": [], \"validationFailures\": 0}\n{\"backend\": \"native\", \"block\": 0, \"id\": \"inventory_evidence\", \"warmup\": false, \"seconds\": 47.13425833359361, \"errors\": [], \"validationFailures\": 0}\n{\"backend\": \"reference\", \"block\": 0, \"id\": \"inventory_evidence\", \"warmup\": true, \"seconds\": 37.82884241687134, \"errors\": [], \"validationFailures\": 0}\n{\"backend\": \"reference\", \"block\": 0, \"id\": \"inventory_evidence\", \"warmup\": false, \"seconds\": 51.014359625056386, \"errors\": [], \"validationFailures\": 0}\n{\"backend\": \"reference\", \"block\": 0, \"id\": \"inventory_evidence\", \"warmup\": false, \"seconds\": 37.936232374981046, \"errors\": [], \"validationFailures\": 0}\n{\"backend\": \"reference\", \"block\": 0, \"id\": \"inventory_evidence\", \"warmup\": false, \"seconds\": 35.238934041466564, \"errors\": [], \"validationFailures\": 0}\n{\"backend\": \"reference\", \"block\": 0, \"id\": \"inventory_evidence\", \"warmup\": false, \"seconds\": 56.81472645839676, \"errors\": [], \"validationFailures\": 0}\n{\"backend\": \"reference\", \"block\": 0, \"id\": \"inventory_evidence\", \"warmup\": false, \"seconds\": 50.10984404152259, \"errors\": [], \"validationFailures\": 0}\n{\"scope\": \"Exact item reference functional probe R2\", \"passed\": false, \"problems\": [\"native/6: failed, excessive or corrected job\", \"native/6: reference detour\", \"reference/6: failed, excessive or corrected job\", \"reference/6: reference detour\"], \"performanceQualification\": false, \"productionAdoption\": false, \"workers\": [{\"backend\": \"native\", \"jobs\": [{\"seed\": 1, \"prompt\": \"What is the current stock of brass bolts? Use the balance tool and cite the opening basis and movements. Do not change the workbook.\", \"steps\": 4, \"completeSeconds\": 36.5113593749702, \"errors\": [], \"validationFailures\": 0}, {\"seed\": 2, \"prompt\": \"Why are there 18 brass bolts? Reconstruct the stock from the opening balance and accepted movements. Cite those inputs. Make no changes.\", \"steps\": 5, \"completeSeconds\": 50.6878019166179, \"errors\": [], \"validationFailures\": 0}, {\"seed\": 3, \"prompt\": \"Check the brass bolt inventory. Report the current quantity and cite its opening balance and movement evidence. Make no changes.\", \"steps\": 4, \"completeSeconds\": 35.36360395839438, \"errors\": [], \"validationFailures\": 0}, {\"seed\": 4, \"prompt\": \"What is the current stock of brass bolts? Use the balance tool and cite the opening basis and movements. Do not change the workbook.\", \"steps\": 4, \"completeSeconds\": 32.870988833718, \"errors\": [], \"validationFailures\": 0}, {\"seed\": 5, \"prompt\": \"Why are there 18 brass bolts? Reconstruct the stock from the opening balance and accepted movements. Cite those inputs. Make no changes.\", \"steps\": 5, \"completeSeconds\": 56.23329050000757, \"errors\": [], \"validationFailures\": 0}, {\"seed\": 6, \"prompt\": \"Check the brass bolt inventory. Report the current quantity and cite its opening balance and movement evidence. Make no changes.\", \"steps\": 7, \"completeSeconds\": 47.13425833359361, \"errors\": [], \"validationFailures\": 0}]}, {\"backend\": \"reference\", \"jobs\": [{\"seed\": 1, \"prompt\": \"What is the current stock of brass bolts? Use the balance tool and cite the opening basis and movements. Do not change the workbook.\", \"steps\": 4, \"completeSeconds\": 37.82884241687134, \"errors\": [], \"validationFailures\": 0}, {\"seed\": 2, \"prompt\": \"Why are there 18 brass bolts? Reconstruct the stock from the opening balance and accepted movements. Cite those inputs. Make no changes.\", \"steps\": 5, \"completeSeconds\": 51.014359625056386, \"errors\": [], \"validationFailures\": 0}, {\"seed\": 3, \"prompt\": \"Check the brass bolt inventory. Report the current quantity and cite its opening balance and movement evidence. Make no changes.\", \"steps\": 4, \"completeSeconds\": 37.936232374981046, \"errors\": [], \"validationFailures\": 0}, {\"seed\": 4, \"prompt\": \"What is the current stock of brass bolts? Use the balance tool and cite the opening basis and movements. Do not change the workbook.\", \"steps\": 4, \"completeSeconds\": 35.238934041466564, \"errors\": [], \"validationFailures\": 0}, {\"seed\": 5, \"prompt\": \"Why are there 18 brass bolts? Reconstruct the stock from the opening balance and accepted movements. Cite those inputs. Make no changes.\", \"steps\": 5, \"completeSeconds\": 56.81472645839676, \"errors\": [], \"validationFailures\": 0}, {\"seed\": 6, \"prompt\": \"Check the brass bolt inventory. Report the current quantity and cite its opening balance and movement evidence. Make no changes.\", \"steps\": 7, \"completeSeconds\": 50.10984404152259, \"errors\": [], \"validationFailures\": 0}]}]}\n"
+    },
+    {
+      "name": "sevra-item-references-full-check.log",
+      "purpose": "First expanded full regression",
+      "passed": false,
+      "note": "New 256-reference test used frontend default 8K instead of an explicit larger measurement limit; refusal occurred before its intended smaller-budget assertion.",
+      "rawSHA256": "6f053bc8c2d8418f2b24c6b8297281657c9f5287c8675d9e11ec0b0860f807e1",
+      "content": "Native brand paths match the approved source vectors.\n[0/1] Planning build\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-checks' complete! (4.88s)\nPASS create/open canonical package\nPASS decimal arithmetic and error propagation\nPASS source, lineage and current heads\nPASS draft has no inventory effect; acceptance applies once\nPASS duplicate evidence cannot duplicate effect\nPASS accepted forecast remains estimate\nPASS correction supersedes rather than adds\nPASS unknown basis does not become zero\nPASS idempotency requires identical request\nPASS stale concurrent revision rejected\nPASS include file, extract, Unicode FTS and filename substring\nPASS FTS escaping and empty queries\nPASS external references detect changed and missing bytes\nPASS cancelled import creates no reference\nPASS Unicode and embedded zero bytes survive database round trips\nPASS CSV quoted newlines, escaped quotes and CRLF\nPASS table values, formulas, edits, undo and reopen\nPASS native space validation and persistence\nPASS main conversation, chapter, tangent and bookmark\nPASS undo acceptance withdraws effect; later draft does not erase accepted state\nPASS atomic paste, typed validation, one-step undo and redo\nPASS table proposal acceptance, retry, undo and redo preserve exact values\nPASS new table proposals preserve estimate meaning, formulas, provenance and reversible visibility\nPASS agent table creation uses the preserved user request as evidence\nPASS stale table proposal and stale undo roll back every change\nPASS include linked evidence preserves indexed content and original history\nPASS cancelled extraction retains the last usable index\nPASS XLSX shared strings, inline text, sparse cells, dates and cached formulas\nPASS package metadata symlinks are refused before opening SQLite\nPASS rebuild search preserves results\nPASS coherent export and reopen with included bytes\nPASS archive expansion budget\nPASS reject unexpected schema before writes\nPASS conditional formulas are lazy, ranges resolve and rounding is explicit\nPASS search deduplicates chunks, paginates and rejects a stale cursor\nPASS supplier comparison uses the expensive quote as its percentage denominator\nPASS CSV export preserves calculated values and quoted multiline cells\nPASS live metric changes while a pinned result preserves values and evidence\nPASS column type changes validate existing data and formula history restores\nPASS structured import resumes committed batches without duplicating rows\nPASS copy cancellation and extraction deadlines leave the workbook usable\nPASS native PDF text and image OCR create searchable exact source locators\nPASS explicit archive intake preserves member lineage and retry identity\nPASS archive traversal entries cannot escape their destination\nPASS search cancellation and deadline preserve the next query\nPASS pinning retries return the original snapshot\nPASS canonical v1 migration preserves history and builds its index once\nPASS canonical v2 migration retains existing conversation data and FTS\nPASS future or untrusted schemas are refused; failed migration rolls back\nPASS history paging preserves Unicode, NUL, payloads and conversation scope\nPASS conversation FTS uses bounded scoped cursors and supports rebuilding\nPASS checkpoint publication validates range, revision, cancellation and exact inputs\nPASS checkpoint chain retains originals and derives current meaning/acceptance\nPASS run request linkage is scoped and preserved across reopen\nPASS mid-run checkpoint retains a complete tool group and refuses an invented boundary\nPASS journal preserves large exact results with valid bounded Unicode pages\nPASS prepared call survives mutation gap without replay or false acceptance\nPASS oversized keys have lossless raw JSON recovery and failed calls retain receipts\nPASS agent history tools find old originals and exclude tangent messages\n59 passed; 0 failed\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-table-ui-checks' complete! (0.22s)\nPASS sort preserves logical selection and original edit version; repeated end notification is harmless\nPASS refresh keeps logical selection; concurrent edits refuse the captured stale revision without changing data\nPASS cancelled editing does not write and filtered-out selection clears\nPASS referenced-row formulas refresh without changing the visible row version; active column retains identity\nPASS deterministic out-of-order reads, stale errors and cancellation cannot replace the latest page\nPASS all native table checks\nBuilding for debugging...\n[0/7] Write sources\n[3/7] Write swift-version--1AB21518FC5DEDBE.txt\n[5/10] Compiling SevraAI ContextMaintenance.swift\n[6/10] Compiling SevraAI ItemReferenceCandidates.swift\n[7/10] Emitting module SevraAI\n[8/15] Emitting module SevraBaseline\n[9/15] Compiling SevraBaseline BaselineMessages.swift\n[10/15] Compiling SevraBaseline LocalModel.swift\n[11/15] Emitting module SevraNativeAI\n[12/15] Compiling SevraNativeAI NativeWorkbookModel.swift\n[13/17] Emitting module SevraProduct\n[14/17] Compiling SevraProduct ProductAI.swift\n[15/20] Emitting module SevraProductChecks\n[16/20] Compiling SevraProductChecks NativePressureChecks.swift\n[17/20] Compiling SevraProductChecks LifecycleChecks.swift\n[17/20] Write Objects.LinkFileList\n[18/20] Linking sevra-product-checks\n[19/20] Applying sevra-product-checks\nBuild of product 'sevra-product-checks' complete! (3.44s)\nPASS critical pressure cancels, preserves saved work, records the reason and releases only after endRun\nPASS warning lets work complete and keeps new requests blocked until release finishes\nPASS failed release prevents reuse; a later explicit request recovers after successful release\nPASS setup release failure prevents subsequent model reuse without writing workbook data\nPASS cancellation preserves its first cause through child operations\nPASS product lifecycle checks\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-splash-checks' complete! (0.21s)\nPASS upstream text request byte parity\nPASS upstream request variants and control frames\nPASS every upstream engine golden, fragmented at every byte\nPASS bad header rejects before allocating a payload and remains failed\nPASS partial EOF and malformed event bodies are refused\nPASS invalid client configuration is rejected\nPASS request state refuses gap, duplicate, wrong id and progress after tokens\nPASS native pipes run multiple requests, status and idle release\nPASS request refusal preserves the helper for a succeeding request\nPASS cancellation without start then recovery\nPASS native timeout kills and reaps only the owned helper\nPASS serial worker teardown is bounded, repeatable and reaps a stubborn helper\nPASS malformed stream, duplicate completion and child exit fail closed\nPASS startup failure, partial frame and timeout clean up\nPASS stderr is continuously drained with a bounded diagnostic tail\nPASS selected model has immutable target and matching draft pins\nPASS native assembly verifies, publishes atomically and reuses original bytes\nPASS changed, missing and linked bytes refuse without replacing a prior selection\nPASS cancelled preparation publishes nothing and preserves source data\nPASS damaged assemblies and real files at selection paths are preserved and refused\nPASS unsafe and duplicated manifest paths are rejected\nPASS native download resumes, verifies and reuses completed bytes without network\nPASS ignored ranges restart, unexpected ranges and HTTP failures preserve partial bytes\nPASS corrupt, oversized and linked downloads cannot become a model\nPASS interrupted and cancelled model transfers retain resumable partial bytes\nPASS Swift setup downloads both synthetic packs and atomically prepares exact source identities\nPASS storage and cancellation refusals preserve the previous usable selection\nPASS native hardware preflight refuses unsupported chip and OS combinations\nPASS installed native selection reopens only exact pinned sources and verifies originals\nPASS verifying an installed reused model does not download duplicate weights\n30 Splash checks passed; 0 failed\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-native-setup' complete! (0.21s)\nUsage: sevra-native-setup MODELS_ROOT [--reuse TARGET_FOLDER DRAFT_FOLDER]. Candidate setup only; does not change the installed app.\nUsage: sevra-native-setup MODELS_ROOT [--reuse TARGET_FOLDER DRAFT_FOLDER]. Candidate setup only; does not change the installed app.\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-splash-text-checks' complete! (0.23s)\nPASS plain exact prompt and generation-prefix tokens\nPASS system exact prompt and generation-prefix tokens\nPASS unicode exact prompt and generation-prefix tokens\nPASS multi_turn exact prompt and generation-prefix tokens\nPASS later_system exact prompt and generation-prefix tokens\nPASS thinking exact prompt and generation-prefix tokens\nPASS preserve_reasoning exact prompt and generation-prefix tokens\nPASS drop_reasoning exact prompt and generation-prefix tokens\nPASS tools exact prompt and generation-prefix tokens\nPASS tool_history exact prompt and generation-prefix tokens\nPASS tool_history_null exact prompt and generation-prefix tokens\nPASS consecutive_tools exact prompt and generation-prefix tokens\nPASS literal_markers exact prompt and generation-prefix tokens\nPASS trim exact prompt and generation-prefix tokens\nPASS empty exact prompt and generation-prefix tokens\nPASS occupied_False_False exact prompt and generation-prefix tokens\nPASS occupied_True_False exact prompt and generation-prefix tokens\nPASS occupied_False_True exact prompt and generation-prefix tokens\nPASS occupied_True_True exact prompt and generation-prefix tokens\nPASS occupied_changed exact prompt and generation-prefix tokens\nPASS occupied_numeric_integer exact prompt and generation-prefix tokens\nPASS occupied_numeric_double exact prompt and generation-prefix tokens\nPASS occupied_numeric_zero exact prompt and generation-prefix tokens\nPASS occupied_numeric_negative_zero exact prompt and generation-prefix tokens\nPASS context, modality, role, size and numeric input limits\nAll 24 pinned-reference text checks passed\nPASS 80 exact upstream streaming decodes, UTF-8, special tokens and stops\nPASS 31 upstream output projections across 3216 chunk layouts\nPASS unknown/duplicate/malformed/oversized tool refusal and every cancellation/truncation boundary\nPASS decoder lifecycle, invalid token and stop limits\n    Finished `release` profile [optimized + debuginfo] target(s) in 0.05s\n{\"schemaVersion\": 1, \"commit\": \"dbaf504d498b6aeede06ae57adc6f7c2c4848c59\", \"rustToolchain\": \"1.96.0\", \"cargoLockSHA256\": \"3150f34f7c0e99afab360efe61c28d0ceddc98015e6320993ce7baaaed853e3c\", \"librarySHA256\": \"5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1\", \"libraryBytes\": 3559168, \"library\": \".build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib\", \"shipped\": false}\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-splash-grammar-checks' complete! (0.21s)\nBuilding for debugging...\n[0/4] Write sources\n[1/4] Write swift-version--1AB21518FC5DEDBE.txt\n[3/6] Emitting module SevraAgentChecks\n[4/6] Compiling SevraAgentChecks ItemReferenceChecks.swift\n[4/7] Write Objects.LinkFileList\n[5/7] Linking sevra-agent-checks\n[6/7] Applying sevra-agent-checks\nBuild of product 'sevra-agent-checks' complete! (2.50s)\nPASS exact byte vocabulary for all 248320 tokens\nPASS json: exact speculative masks, cache isolation, EOS and refusals\nPASS unicode: exact speculative masks, cache isolation, EOS and refusals\nPASS reasoning_json: exact speculative masks, cache isolation, EOS and refusals\nPASS strict_tool: exact speculative masks, cache isolation, EOS and refusals\nPASS 105 exact upstream mask requests across 4 grammars\nPrompt exceeds the native context limit\nPASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\n{\"abandonedRunClosedBeforeProjection\":true,\"activeOtherRunPreserved\":true,\"check\":\"request_admission\",\"failedLeaseHasLinkedTerminalRequest\":true,\"liveRun\":\"bc0fb4f2-dbd4-4706-af70-43075aa10e39\",\"oldRun\":\"644eb733-4228-4623-a28e-778edf07eb03\"}\nPASS abandoned-run projection and terminal lease-refusal history preserve originals and active work\nPASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history\nPASS exhausted correction retains all four rejected candidates and a failed run\nPASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation\nPASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data\nPASS shared agent retrieves old originals and pages oversized saved results\nPASS scoped search spans business evidence and earlier conversation without mixing citations, filters, cursors or branches\nPASS exact item candidates, separate citation authority, context rebuild, shared refusal receipts and baseline/native schema parity\nPASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery\nPASS repeated context maintenance, exact original references, current acceptance, cancellation, invalid summaries and portable continuation\nPASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance\nPASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations\nPASS actual workbook schemas, open row/record data, full argument validation and schema refusals\nPASS 28 actual-tool grammars, 249 exact reference masks, completed argument validation and prompts\nPASS reasoning prompt, dynamic citation grammar and stream projection agree; unfinished reasoning cannot dispatch\nTraceback (most recent call last):\n  File \"<repo>/scripts/check_splash_grammar.py\", line 17, in <module>\n    subprocess.run([str(ROOT / \".build/debug/sevra-agent-checks\"), str(model), str(library)], check=True)\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/subprocess.py\", line 528, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['<repo>/.build/debug/sevra-agent-checks', '<repo>/.build/text-fixture/38740b847e4cb78f352aba30aa41c76e08e6eb46', '<repo>/.build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib']' returned non-zero exit status 1.\n"
+    },
+    {
+      "name": "sevra-item-references-full-check2.log",
+      "purpose": "Corrected full local regression",
+      "passed": true,
+      "note": "Before the final Settings-only fix; shared runtime behavior unchanged afterward.",
+      "rawSHA256": "7ae12d2439fb329833bcda34b5f0bc8d3497c092a935a61168f3e54b50a40148",
+      "content": "Native brand paths match the approved source vectors.\n[0/1] Planning build\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-checks' complete! (4.31s)\nPASS create/open canonical package\nPASS decimal arithmetic and error propagation\nPASS source, lineage and current heads\nPASS draft has no inventory effect; acceptance applies once\nPASS duplicate evidence cannot duplicate effect\nPASS accepted forecast remains estimate\nPASS correction supersedes rather than adds\nPASS unknown basis does not become zero\nPASS idempotency requires identical request\nPASS stale concurrent revision rejected\nPASS include file, extract, Unicode FTS and filename substring\nPASS FTS escaping and empty queries\nPASS external references detect changed and missing bytes\nPASS cancelled import creates no reference\nPASS Unicode and embedded zero bytes survive database round trips\nPASS CSV quoted newlines, escaped quotes and CRLF\nPASS table values, formulas, edits, undo and reopen\nPASS native space validation and persistence\nPASS main conversation, chapter, tangent and bookmark\nPASS undo acceptance withdraws effect; later draft does not erase accepted state\nPASS atomic paste, typed validation, one-step undo and redo\nPASS table proposal acceptance, retry, undo and redo preserve exact values\nPASS new table proposals preserve estimate meaning, formulas, provenance and reversible visibility\nPASS agent table creation uses the preserved user request as evidence\nPASS stale table proposal and stale undo roll back every change\nPASS include linked evidence preserves indexed content and original history\nPASS cancelled extraction retains the last usable index\nPASS XLSX shared strings, inline text, sparse cells, dates and cached formulas\nPASS package metadata symlinks are refused before opening SQLite\nPASS rebuild search preserves results\nPASS coherent export and reopen with included bytes\nPASS archive expansion budget\nPASS reject unexpected schema before writes\nPASS conditional formulas are lazy, ranges resolve and rounding is explicit\nPASS search deduplicates chunks, paginates and rejects a stale cursor\nPASS supplier comparison uses the expensive quote as its percentage denominator\nPASS CSV export preserves calculated values and quoted multiline cells\nPASS live metric changes while a pinned result preserves values and evidence\nPASS column type changes validate existing data and formula history restores\nPASS structured import resumes committed batches without duplicating rows\nPASS copy cancellation and extraction deadlines leave the workbook usable\nPASS native PDF text and image OCR create searchable exact source locators\nPASS explicit archive intake preserves member lineage and retry identity\nPASS archive traversal entries cannot escape their destination\nPASS search cancellation and deadline preserve the next query\nPASS pinning retries return the original snapshot\nPASS canonical v1 migration preserves history and builds its index once\nPASS canonical v2 migration retains existing conversation data and FTS\nPASS future or untrusted schemas are refused; failed migration rolls back\nPASS history paging preserves Unicode, NUL, payloads and conversation scope\nPASS conversation FTS uses bounded scoped cursors and supports rebuilding\nPASS checkpoint publication validates range, revision, cancellation and exact inputs\nPASS checkpoint chain retains originals and derives current meaning/acceptance\nPASS run request linkage is scoped and preserved across reopen\nPASS mid-run checkpoint retains a complete tool group and refuses an invented boundary\nPASS journal preserves large exact results with valid bounded Unicode pages\nPASS prepared call survives mutation gap without replay or false acceptance\nPASS oversized keys have lossless raw JSON recovery and failed calls retain receipts\nPASS agent history tools find old originals and exclude tangent messages\n59 passed; 0 failed\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-table-ui-checks' complete! (0.21s)\nPASS sort preserves logical selection and original edit version; repeated end notification is harmless\nPASS refresh keeps logical selection; concurrent edits refuse the captured stale revision without changing data\nPASS cancelled editing does not write and filtered-out selection clears\nPASS referenced-row formulas refresh without changing the visible row version; active column retains identity\nPASS deterministic out-of-order reads, stale errors and cancellation cannot replace the latest page\nPASS all native table checks\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-product-checks' complete! (0.23s)\nPASS critical pressure cancels, preserves saved work, records the reason and releases only after endRun\nPASS warning lets work complete and keeps new requests blocked until release finishes\nPASS failed release prevents reuse; a later explicit request recovers after successful release\nPASS setup release failure prevents subsequent model reuse without writing workbook data\nPASS cancellation preserves its first cause through child operations\nPASS product lifecycle checks\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-splash-checks' complete! (0.21s)\nPASS upstream text request byte parity\nPASS upstream request variants and control frames\nPASS every upstream engine golden, fragmented at every byte\nPASS bad header rejects before allocating a payload and remains failed\nPASS partial EOF and malformed event bodies are refused\nPASS invalid client configuration is rejected\nPASS request state refuses gap, duplicate, wrong id and progress after tokens\nPASS native pipes run multiple requests, status and idle release\nPASS request refusal preserves the helper for a succeeding request\nPASS cancellation without start then recovery\nPASS native timeout kills and reaps only the owned helper\nPASS serial worker teardown is bounded, repeatable and reaps a stubborn helper\nPASS malformed stream, duplicate completion and child exit fail closed\nPASS startup failure, partial frame and timeout clean up\nPASS stderr is continuously drained with a bounded diagnostic tail\nPASS selected model has immutable target and matching draft pins\nPASS native assembly verifies, publishes atomically and reuses original bytes\nPASS changed, missing and linked bytes refuse without replacing a prior selection\nPASS cancelled preparation publishes nothing and preserves source data\nPASS damaged assemblies and real files at selection paths are preserved and refused\nPASS unsafe and duplicated manifest paths are rejected\nPASS native download resumes, verifies and reuses completed bytes without network\nPASS ignored ranges restart, unexpected ranges and HTTP failures preserve partial bytes\nPASS corrupt, oversized and linked downloads cannot become a model\nPASS interrupted and cancelled model transfers retain resumable partial bytes\nPASS Swift setup downloads both synthetic packs and atomically prepares exact source identities\nPASS storage and cancellation refusals preserve the previous usable selection\nPASS native hardware preflight refuses unsupported chip and OS combinations\nPASS installed native selection reopens only exact pinned sources and verifies originals\nPASS verifying an installed reused model does not download duplicate weights\n30 Splash checks passed; 0 failed\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-native-setup' complete! (0.21s)\nUsage: sevra-native-setup MODELS_ROOT [--reuse TARGET_FOLDER DRAFT_FOLDER]. Candidate setup only; does not change the installed app.\nUsage: sevra-native-setup MODELS_ROOT [--reuse TARGET_FOLDER DRAFT_FOLDER]. Candidate setup only; does not change the installed app.\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-splash-text-checks' complete! (0.21s)\nPASS plain exact prompt and generation-prefix tokens\nPASS system exact prompt and generation-prefix tokens\nPASS unicode exact prompt and generation-prefix tokens\nPASS multi_turn exact prompt and generation-prefix tokens\nPASS later_system exact prompt and generation-prefix tokens\nPASS thinking exact prompt and generation-prefix tokens\nPASS preserve_reasoning exact prompt and generation-prefix tokens\nPASS drop_reasoning exact prompt and generation-prefix tokens\nPASS tools exact prompt and generation-prefix tokens\nPASS tool_history exact prompt and generation-prefix tokens\nPASS tool_history_null exact prompt and generation-prefix tokens\nPASS consecutive_tools exact prompt and generation-prefix tokens\nPASS literal_markers exact prompt and generation-prefix tokens\nPASS trim exact prompt and generation-prefix tokens\nPASS empty exact prompt and generation-prefix tokens\nPASS occupied_False_False exact prompt and generation-prefix tokens\nPASS occupied_True_False exact prompt and generation-prefix tokens\nPASS occupied_False_True exact prompt and generation-prefix tokens\nPASS occupied_True_True exact prompt and generation-prefix tokens\nPASS occupied_changed exact prompt and generation-prefix tokens\nPASS occupied_numeric_integer exact prompt and generation-prefix tokens\nPASS occupied_numeric_double exact prompt and generation-prefix tokens\nPASS occupied_numeric_zero exact prompt and generation-prefix tokens\nPASS occupied_numeric_negative_zero exact prompt and generation-prefix tokens\nPASS context, modality, role, size and numeric input limits\nAll 24 pinned-reference text checks passed\nPASS 80 exact upstream streaming decodes, UTF-8, special tokens and stops\nPASS 31 upstream output projections across 3216 chunk layouts\nPASS unknown/duplicate/malformed/oversized tool refusal and every cancellation/truncation boundary\nPASS decoder lifecycle, invalid token and stop limits\n    Finished `release` profile [optimized + debuginfo] target(s) in 0.04s\n{\"schemaVersion\": 1, \"commit\": \"dbaf504d498b6aeede06ae57adc6f7c2c4848c59\", \"rustToolchain\": \"1.96.0\", \"cargoLockSHA256\": \"3150f34f7c0e99afab360efe61c28d0ceddc98015e6320993ce7baaaed853e3c\", \"librarySHA256\": \"5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1\", \"libraryBytes\": 3559168, \"library\": \".build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib\", \"shipped\": false}\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra-splash-grammar-checks' complete! (0.21s)\nBuilding for debugging...\n[0/4] Write sources\n[1/4] Write swift-version--1AB21518FC5DEDBE.txt\n[3/6] Compiling SevraAgentChecks ItemReferenceChecks.swift\n[4/6] Emitting module SevraAgentChecks\n[4/7] Write Objects.LinkFileList\n[5/7] Linking sevra-agent-checks\n[6/7] Applying sevra-agent-checks\nBuild of product 'sevra-agent-checks' complete! (2.46s)\nPASS exact byte vocabulary for all 248320 tokens\nPASS json: exact speculative masks, cache isolation, EOS and refusals\nPASS unicode: exact speculative masks, cache isolation, EOS and refusals\nPASS reasoning_json: exact speculative masks, cache isolation, EOS and refusals\nPASS strict_tool: exact speculative masks, cache isolation, EOS and refusals\nPASS 105 exact upstream mask requests across 4 grammars\nPASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\n{\"abandonedRunClosedBeforeProjection\":true,\"activeOtherRunPreserved\":true,\"check\":\"request_admission\",\"failedLeaseHasLinkedTerminalRequest\":true,\"liveRun\":\"ba0670a2-b6a8-463e-9aee-b51e387b1743\",\"oldRun\":\"67a85138-46b8-4d11-9072-5d3d9564de3d\"}\nPASS abandoned-run projection and terminal lease-refusal history preserve originals and active work\nPASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history\nPASS exhausted correction retains all four rejected candidates and a failed run\nPASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation\nPASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data\nPASS shared agent retrieves old originals and pages oversized saved results\nPASS scoped search spans business evidence and earlier conversation without mixing citations, filters, cursors or branches\nPASS exact item candidates, separate citation authority, context rebuild, shared refusal receipts and baseline/native schema parity\nPASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery\nPASS repeated context maintenance, exact original references, current acceptance, cancellation, invalid summaries and portable continuation\nPASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance\nPASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations\nPASS actual workbook schemas, open row/record data, full argument validation and schema refusals\nPASS 28 actual-tool grammars, 249 exact reference masks, completed argument validation and prompts\nPASS reasoning prompt, dynamic citation grammar and stream projection agree; unfinished reasoning cannot dispatch\nPASS actual item-reference grammar rejects the recorded wrong suffix, with reasoning on/off and measured schema overhead\nPASS: performance gate rejects pilot, incomplete, mismatched, failed, overheated and slower evidence\nBuilding for debugging...\n[0/5] Write sources\n[1/5] Write swift-version--1AB21518FC5DEDBE.txt\n[3/8] Compiling SevraWorkflowPerformance ReferenceModel.swift\n[4/8] Compiling SevraWorkflowPerformance Runner.swift\n[5/8] Emitting module SevraWorkflowPerformance\n[5/8] Write Objects.LinkFileList\n[6/8] Linking sevra-workflow-performance\n[7/8] Applying sevra-workflow-performance\nBuild of product 'sevra-workflow-performance' complete! (1.31s)\nPASS deterministic fixture state, task inheritance, concurrent isolation, unchanged defaults and actual formula acceptance/edit/undo\nPASS complete-workbook gate rejects missing, divergent, failed, unsampled, overheated and slower evidence\nPASS diagnostic masks retain mismatches, missing evidence and conflicting observations; tracing cannot qualify performance\nPASS complete-workbook gate rejects missing, divergent, failed, unsampled, overheated and slower evidence\nPASS isolation pilot requires complete valid jobs, exact requests/tokens/cache counts, full sampling and unchanged sources; never qualifies performance\nPASS R2 preserves recorded detours and refuses missing/malformed jobs, rejected calls, cleanup and sampling failures\nRepository Markdown links: passed\n{\n  \"issues\": [],\n  \"scope\": \"all\",\n  \"store\": \"db\",\n  \"summary\": {\n    \"errors\": 0,\n    \"info\": 0,\n    \"total\": 0,\n    \"warnings\": 0\n  }\n}\n"
+    },
+    {
+      "name": "sevra-item-references-native-build.log",
+      "purpose": "Initial native package build",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "8b4778d87ae4038780e8b0e9ad5fc0ea2e87957e9e707b36f4c0106cdd4ffd26",
+      "content": "Native brand paths match the approved source vectors.\n{\n  \"source\": \"<repo>/.build/upstream/splash-1.4.1\",\n  \"native\": \"<repo>/.build/upstream/splash-native-1.4.1\",\n  \"release\": \"1.4.1\",\n  \"commit\": \"1744cfafee415fb463b289449cec59a864e768e9\",\n  \"archiveSHA256\": \"5746068dc652a4998267d55b1c6d59b545f1bc1e018131c6d8025022f7000d5c\",\n  \"files\": {\n    \"engine/splash\": \"532732b0fef256d08e683fc1b50d132e4946d25a8d4f878d0451bebba0385a9a\",\n    \"engine/splash.metallib\": \"1933cf46cbcae8349640bbcfc3875f46b5be4630e13b42804cb5cf7070bce46d\",\n    \"engine/host-step.metallib\": \"8e177c753e2051cd8a31c79bf031b3fae8daf04f5564ced9fc37db064bdfe51a\",\n    \"LICENSE\": \"cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30\",\n    \"THIRD_PARTY_NOTICES\": \"2fedf1277bf732f8435c3e3be2798f52f25f7e2bd4155865cb366da55b88e50b\"\n  }\n}\n    Finished `release` profile [optimized + debuginfo] target(s) in 0.04s\n{\"schemaVersion\": 1, \"commit\": \"dbaf504d498b6aeede06ae57adc6f7c2c4848c59\", \"rustToolchain\": \"1.96.0\", \"cargoLockSHA256\": \"3150f34f7c0e99afab360efe61c28d0ceddc98015e6320993ce7baaaed853e3c\", \"librarySHA256\": \"5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1\", \"libraryBytes\": 3559168, \"library\": \".build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib\", \"shipped\": false}\n[0/1] Planning build\nBuilding for production...\n[0/5] Write sources\n[2/5] Write swift-version--1AB21518FC5DEDBE.txt\n[4/6] Compiling SevraAI ContextBudget.swift\n[5/7] Compiling SevraNativeAI NativeCitationPolicy.swift\n[6/8] Compiling SevraProduct NativeProductResources.swift\n[7/9] Compiling SevraApp ArchiveMemberPicker.swift\n[7/9] Write Objects.LinkFileList\n[8/9] Linking SevraDesktop\nBuild of product 'SevraDesktop' complete! (15.97s)\nBuilding for production...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\n[2/4] Compiling SevraCLI CLI.swift\n[2/4] Write Objects.LinkFileList\n[3/4] Linking sevra\nBuild of product 'sevra' complete! (1.52s)\n<repo>/output/native/Sevra Native Preview.app: replacing existing signature\n{\"app\": \"output/native/Sevra Native Preview.app\", \"cli\": \"output/native/bin/sevra\", \"candidate\": true, \"unchangedEngine\": true}\n"
+    },
+    {
+      "name": "sevra-item-references-native-package.log",
+      "purpose": "Initial native package checks",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "4551a33d2593b4bb5d450833dd89507ac23a98a25382be248fd4ef76bf218acf",
+      "content": "{\"check\": \"installed_resources\", \"product\": \"bin/sevra\", \"buildTreeDenied\": true, \"noBaselineSymbols\": true, \"backend\": \"splash-native-candidate\", \"grammarLibrary\": true, \"kernelCount\": 1888, \"metalLibrary\": true, \"runtimeDigests\": true, \"selectedModel\": \"qwen36-35b-a3b-4bit\", \"tokenizerResources\": true}\n{\"check\": \"installed_resources\", \"product\": \"Sevra Native Preview.app/Contents/MacOS/Sevra\", \"buildTreeDenied\": true, \"noBaselineSymbols\": true, \"backend\": \"splash-native-candidate\", \"grammarLibrary\": true, \"kernelCount\": 1888, \"metalLibrary\": true, \"runtimeDigests\": true, \"selectedModel\": \"qwen36-35b-a3b-4bit\", \"tokenizerResources\": true}\n{\"check\": \"native_setup_refusal\", \"invalidOptionsRefused\": true, \"missingModelGuidance\": true, \"failedRunSaved\": true, \"workbookPreserved\": true}\n{\"check\": \"installed_resource_failures\", \"missingRefused\": 9, \"alteredRefused\": true}\n{\"check\": \"native_signature\", \"passed\": true}\n"
+    },
+    {
+      "name": "sevra-item-references-native-build2.log",
+      "purpose": "Final native package build including Settings fix",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "23e4202b8df0bd8687611bca6a34bc07a33c724dcc6b7316b475d146e4569933",
+      "content": "Native brand paths match the approved source vectors.\n{\n  \"source\": \"<repo>/.build/upstream/splash-1.4.1\",\n  \"native\": \"<repo>/.build/upstream/splash-native-1.4.1\",\n  \"release\": \"1.4.1\",\n  \"commit\": \"1744cfafee415fb463b289449cec59a864e768e9\",\n  \"archiveSHA256\": \"5746068dc652a4998267d55b1c6d59b545f1bc1e018131c6d8025022f7000d5c\",\n  \"files\": {\n    \"engine/splash\": \"532732b0fef256d08e683fc1b50d132e4946d25a8d4f878d0451bebba0385a9a\",\n    \"engine/splash.metallib\": \"1933cf46cbcae8349640bbcfc3875f46b5be4630e13b42804cb5cf7070bce46d\",\n    \"engine/host-step.metallib\": \"8e177c753e2051cd8a31c79bf031b3fae8daf04f5564ced9fc37db064bdfe51a\",\n    \"LICENSE\": \"cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30\",\n    \"THIRD_PARTY_NOTICES\": \"2fedf1277bf732f8435c3e3be2798f52f25f7e2bd4155865cb366da55b88e50b\"\n  }\n}\n    Finished `release` profile [optimized + debuginfo] target(s) in 0.04s\n{\"schemaVersion\": 1, \"commit\": \"dbaf504d498b6aeede06ae57adc6f7c2c4848c59\", \"rustToolchain\": \"1.96.0\", \"cargoLockSHA256\": \"3150f34f7c0e99afab360efe61c28d0ceddc98015e6320993ce7baaaed853e3c\", \"librarySHA256\": \"5b96c275e9c1a2e618a54a4814a6d9c0de116285e8ffd0814aea01a5c8eecdf1\", \"libraryBytes\": 3559168, \"library\": \".build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib\", \"shipped\": false}\n[0/1] Planning build\nBuilding for production...\n[0/2] Write swift-version--1AB21518FC5DEDBE.txt\n[1/3] Write sources\n[3/4] Compiling SevraApp ArchiveMemberPicker.swift\n[3/5] Write Objects.LinkFileList\n[4/5] Linking SevraDesktop\nBuild of product 'SevraDesktop' complete! (8.89s)\nBuilding for production...\n[0/2] Write swift-version--1AB21518FC5DEDBE.txt\nBuild of product 'sevra' complete! (0.22s)\n<repo>/output/native/Sevra Native Preview.app: replacing existing signature\n{\"app\": \"output/native/Sevra Native Preview.app\", \"cli\": \"output/native/bin/sevra\", \"candidate\": true, \"unchangedEngine\": true}\n"
+    },
+    {
+      "name": "sevra-item-references-native-package2.log",
+      "purpose": "Final native resources/refusals/signature",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "4551a33d2593b4bb5d450833dd89507ac23a98a25382be248fd4ef76bf218acf",
+      "content": "{\"check\": \"installed_resources\", \"product\": \"bin/sevra\", \"buildTreeDenied\": true, \"noBaselineSymbols\": true, \"backend\": \"splash-native-candidate\", \"grammarLibrary\": true, \"kernelCount\": 1888, \"metalLibrary\": true, \"runtimeDigests\": true, \"selectedModel\": \"qwen36-35b-a3b-4bit\", \"tokenizerResources\": true}\n{\"check\": \"installed_resources\", \"product\": \"Sevra Native Preview.app/Contents/MacOS/Sevra\", \"buildTreeDenied\": true, \"noBaselineSymbols\": true, \"backend\": \"splash-native-candidate\", \"grammarLibrary\": true, \"kernelCount\": 1888, \"metalLibrary\": true, \"runtimeDigests\": true, \"selectedModel\": \"qwen36-35b-a3b-4bit\", \"tokenizerResources\": true}\n{\"check\": \"native_setup_refusal\", \"invalidOptionsRefused\": true, \"missingModelGuidance\": true, \"failedRunSaved\": true, \"workbookPreserved\": true}\n{\"check\": \"installed_resource_failures\", \"missingRefused\": 9, \"alteredRefused\": true}\n{\"check\": \"native_signature\", \"passed\": true}\n"
+    },
+    {
+      "name": "sevra-item-references-baseline-build.log",
+      "purpose": "Final preserved-baseline build",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "60f283e530004bcfe8994d498eee3f6c027a77df51239ce876cf8544f5b6043f",
+      "content": "Native brand paths match the approved source vectors.\n[0/1] Planning build\nBuilding for production...\n[0/6] Write sources\n[3/6] Write swift-version--1AB21518FC5DEDBE.txt\n[5/7] Compiling SevraAI ContextBudget.swift\n[6/8] Compiling SevraBaseline BaselineMessages.swift\n[7/9] Compiling SevraProduct NativeProductResources.swift\n[8/10] Compiling SevraApp ArchiveMemberPicker.swift\n[8/10] Write Objects.LinkFileList\n[9/10] Linking SevraDesktop\nBuild of product 'SevraDesktop' complete! (18.30s)\nBuilding for production...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\n[2/4] Compiling SevraCLI CLI.swift\n[2/4] Write Objects.LinkFileList\n[3/4] Linking sevra\nBuild of product 'sevra' complete! (4.35s)\nalready have <repo>/.build/metal/mlx.metallib\n<repo>/output/Sevra.app: replacing existing signature\nBuilt <repo>/output/Sevra.app\nCLI: <repo>/output/bin/sevra\n"
+    },
+    {
+      "name": "sevra-item-references-baseline-resources.log",
+      "purpose": "Final baseline resources",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "8ad73fbf15cb543516b230b26c103bf2fc2d3a2a3fab82653966b8badddd5a70",
+      "content": "{\"product\": \"sevra\", \"buildTreeDenied\": true, \"kernelCount\": 17319, \"metalLibrary\": true, \"mlxKernelExecution\": true, \"tokenizerResources\": true}\n{\"product\": \"Sevra\", \"buildTreeDenied\": true, \"kernelCount\": 17319, \"metalLibrary\": true, \"mlxKernelExecution\": true, \"tokenizerResources\": true}\n"
+    },
+    {
+      "name": "sevra-item-references-install.log",
+      "purpose": "Isolated baseline installation/update/uninstall/skill/conflict",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "0df238d0d760a5a37ca61e3d1927b68a88caa4a4bad0e029d69c7869c6216a90",
+      "content": "{\"skillInstallAndConflict\": true, \"installed\": true, \"updated\": true, \"standaloneCLI\": true, \"uninstalled\": true, \"workbookPreserved\": true, \"unrelatedCLIProtected\": true}\n"
+    },
+    {
+      "name": "sevra-item-references-native-inventory.log",
+      "purpose": "Final packaged native inventory with fresh IDs",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "0b0a4f60eca81df7b470edf78cddbd27dd4c530548ba09fc7979fda7725a3721",
+      "content": "{\"probeReply\": true, \"prompt\": \"What is the current stock of brass bolts? Use the balance tool and cite the opening basis and movements. Do not change the workbook.\", \"result\": {\"answer\": \"The current stock of brass bolts is 18.\\n\\nThis is calculated from:\\n- Opening basis: 20 brass bolts on 1 January 2026 (source [Workshop inventory](sevra://item/ba0808c2-d0a5-4402-bd3b-74e049aea851))\\n- One movement: -2 brass bolts on 2 January 2026 (record [brass bolts: -2](sevra://item/8c3370a0-6fc7-4e80-b91c-71c724aeec69), delivery-1042)\\n\\n20 - 2 = 18 brass bolts remaining.\", \"citations\": [\"ba0808c2-d0a5-4402-bd3b-74e049aea851\", \"8c3370a0-6fc7-4e80-b91c-71c724aeec69\"], \"state\": \"complete\", \"steps\": 4}, \"run\": {\"conversation_id\": \"main\", \"created\": \"2026-10-27T10:11:29Z\", \"id\": \"4b75489f-56ec-427a-9826-2bf9d01279f3\", \"metrics\": \"[{\\\"acceptedDraftTokens\\\":66,\\\"backend\\\":\\\"splash-native-candidate\\\",\\\"contextTokens\\\":32768,\\\"decodeSeconds\\\":2.008914,\\\"deduplicatedKVTokens\\\":0,\\\"draftedTokens\\\":168,\\\"firstTokenSeconds\\\":2.884490041527897,\\\"generatedTokens\\\":91,\\\"maintenanceRecommended\\\":false,\\\"maintenanceThreshold\\\":28664,\\\"matchedPromptTokens\\\":0,\\\"nextToolResultReserve\\\":2048,\\\"outputBudget\\\":1800,\\\"prefillSeconds\\\":2.884377,\\\"promptTokens\\\":6284,\\\"reasoningBudget\\\":512,\\\"reasoningBudgetOverrun\\\":0,\\\"reasoningHistory\\\":\\\"within-request\\\",\\\"reasoningTokens\\\":61,\\\"recoveryReserve\\\":256,\\\"requestSeconds\\\":4.89342899993062,\\\"speculativeMethod\\\":\\\"DFlash2\\\",\\\"toolScope\\\":\\\"all\\\"},{\\\"acceptedDraftTokens\\\":148,\\\"backend\\\":\\\"splash-native-candidate\\\",\\\"contextTokens\\\":32768,\\\"decodeSeconds\\\":4.162786,\\\"deduplicatedKVTokens\\\":1568,\\\"draftedTokens\\\":294,\\\"firstTokenSeconds\\\":2.9786712913773954,\\\"generatedTokens\\\":191,\\\"maintenanceRecommended\\\":false,\\\"maintenanceThreshold\\\":28664,\\\"matchedPromptTokens\\\":0,\\\"nextToolResultReserve\\\":2048,\\\"outputBudget\\\":1800,\\\"prefillSeconds\\\":2.978577,\\\"promptTokens\\\":6994,\\\"reasoningBudget\\\":512,\\\"reasoningBudgetOverrun\\\":0,\\\"reasoningHistory\\\":\\\"within-request\\\",\\\"reasoningTokens\\\":134,\\\"recoveryReserve\\\":256,\\\"requestSeconds\\\":7.1414735415019095,\\\"speculativeMethod\\\":\\\"DFlash2\\\",\\\"toolScope\\\":\\\"all\\\"},{\\\"acceptedDraftTokens\\\":61,\\\"backend\\\":\\\"splash-native-candidate\\\",\\\"contextTokens\\\":32768,\\\"decodeSeconds\\\":2.176937,\\\"deduplicatedKVTokens\\\":1568,\\\"draftedTokens\\\":168,\\\"firstTokenSeconds\\\":4.583829458337277,\\\"generatedTokens\\\":86,\\\"maintenanceRecommended\\\":false,\\\"maintenanceThreshold\\\":28664,\\\"matchedPromptTokens\\\":0,\\\"nextToolResultReserve\\\":2048,\\\"outputBudget\\\":1800,\\\"prefillSeconds\\\":4.583734,\\\"promptTokens\\\":7569,\\\"reasoningBudget\\\":512,\\\"reasoningBudgetOverrun\\\":0,\\\"reasoningHistory\\\":\\\"within-request\\\",\\\"reasoningTokens\\\":29,\\\"recoveryReserve\\\":256,\\\"requestSeconds\\\":6.760780416429043,\\\"speculativeMethod\\\":\\\"DFlash2\\\",\\\"toolScope\\\":\\\"all\\\"},{\\\"acceptedDraftTokens\\\":350,\\\"backend\\\":\\\"splash-native-candidate\\\",\\\"contextTokens\\\":32768,\\\"decodeSeconds\\\":7.894334,\\\"deduplicatedKVTokens\\\":1600,\\\"draftedTokens\\\":518,\\\"firstTokenSeconds\\\":3.2513992497697473,\\\"generatedTokens\\\":425,\\\"maintenanceRecommended\\\":false,\\\"maintenanceThreshold\\\":28664,\\\"matchedPromptTokens\\\":0,\\\"nextToolResultReserve\\\":2048,\\\"outputBudget\\\":1800,\\\"prefillSeconds\\\":3.251296,\\\"promptTokens\\\":8111,\\\"reasoningBudget\\\":512,\\\"reasoningBudgetOverrun\\\":0,\\\"reasoningHistory\\\":\\\"within-request\\\",\\\"reasoningTokens\\\":162,\\\"recoveryReserve\\\":256,\\\"requestSeconds\\\":11.145737666636705,\\\"speculativeMethod\\\":\\\"DFlash2\\\",\\\"toolScope\\\":\\\"all\\\"}]\", \"model\": \"Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; reasoning budget 512; within-request reasoning retained\", \"request_message_id\": \"bbd46030-e8be-4f93-a0cf-e2370fbadfb9\", \"status\": \"complete\", \"steps\": 4, \"updated\": \"2026-10-27T10:12:04Z\"}, \"trace\": [{\"arguments\": {\"subject\": \"brass bolts\"}, \"assistantText\": \"\", \"callID\": \"call_1ea5c5e2-aadf-4b64-916c-b27c88adfbea\", \"receiptID\": \"d6345501-0924-4857-a9ea-a3eda1f9a0c9\", \"receiptVersion\": 1, \"result\": {\"asOf\": \"9999-12-31T23:59:59.000Z\", \"basis\": \"ba0808c2-d0a5-4402-bd3b-74e049aea851\", \"effects\": [{\"effective\": \"2026-01-02T00:00:00.000Z\", \"item_id\": \"8c3370a0-6fc7-4e80-b91c-71c724aeec69\", \"kind\": \"inventory\", \"logical_id\": \"f61d6ad3-3b5f-4eea-8b94-135392744f01\", \"occurrence\": \"delivery-1042\", \"quantity\": \"-2\", \"subject\": \"brass bolts\"}], \"evidence\": {\"citations\": [\"ba0808c2-d0a5-4402-bd3b-74e049aea851\", \"8c3370a0-6fc7-4e80-b91c-71c724aeec69\"], \"notice\": \"The basis and effects identify workbook Source/Record versions, not conversation messages. This calculation inspects those inputs. Put these exact citations in finish.citations when reporting the balance. Use read for additional source content. No history_read or count_records call is needed to cite this calculation.\", \"referenceType\": \"item-version\"}, \"quantity\": \"18\", \"subject\": \"brass bolts\"}, \"resultHash\": \"b78d2a2349d9865d1019465581dffa1799788c46fd3402a951027a9120220d06\", \"resultIdentity\": {}, \"runID\": \"4b75489f-56ec-427a-9826-2bf9d01279f3\", \"tool\": \"balance\"}, {\"arguments\": {\"id\": \"ba0808c2-d0a5-4402-bd3b-74e049aea851\"}, \"assistantText\": \"\", \"callID\": \"call_e603cbce-1ef9-4d4b-8b70-be7091ddd7f0\", \"receiptID\": \"ddba0c77-65e1-4734-82da-01e298bc6beb\", \"receiptVersion\": 1, \"result\": {\"chunks\": [{\"body\": \"Synthetic example: opening stock of brass bolts was 20 on 1 January 2026.\", \"id\": 1, \"locator\": \"text; offset=0\"}], \"currentVersion\": {\"id\": \"ba0808c2-d0a5-4402-bd3b-74e049aea851\", \"meaning\": \"actual\", \"status\": \"accepted\", \"title\": \"Workshop inventory\"}, \"extraction\": {}, \"isCurrentVersion\": true, \"item\": {\"category\": \"source\", \"created\": \"2026-10-27T10:11:29Z\", \"data\": {}, \"id\": \"ba0808c2-d0a5-4402-bd3b-74e049aea851\", \"kind\": \"note\", \"logicalID\": \"24541687-2bea-4b4e-97b9-524199c8ed4e\", \"meaning\": \"actual\", \"scenario\": \"actual\", \"status\": \"accepted\", \"text\": \"Synthetic example: opening stock of brass bolts was 20 on 1 January 2026.\", \"title\": \"Workshop inventory\", \"version\": 1}, \"notice\": \"The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current.\", \"snapshotRevision\": 13}, \"resultHash\": \"b8f25b125b9fc74ed401148c652148af8e67769205f2fbe745ccccbd8c5a9ce0\", \"resultIdentity\": {}, \"runID\": \"4b75489f-56ec-427a-9826-2bf9d01279f3\", \"tool\": \"read\"}, {\"arguments\": {\"id\": \"8c3370a0-6fc7-4e80-b91c-71c724aeec69\"}, \"assistantText\": \"\", \"callID\": \"call_16fc88cd-98b9-4a87-ab91-fc28d329edc6\", \"receiptID\": \"5bcb925d-af0c-408e-82db-7161dd77fa4c\", \"receiptVersion\": 1, \"result\": {\"chunks\": [{\"body\": \"-2 inventory movement for brass bolts\", \"id\": 3, \"locator\": \"text; offset=0\"}], \"currentVersion\": {\"id\": \"8c3370a0-6fc7-4e80-b91c-71c724aeec69\", \"meaning\": \"actual\", \"status\": \"accepted\", \"title\": \"brass bolts: -2\"}, \"extraction\": {}, \"isCurrentVersion\": true, \"item\": {\"category\": \"record\", \"created\": \"2026-10-27T10:11:29Z\", \"data\": {\"effective\": \"2026-01-02T00:00:00.000Z\", \"input\": \"4bd3ec46-6d20-44a3-8b77-8649ff7e4445\", \"meaning\": \"actual\", \"occurrence\": \"delivery-1042\", \"quantity\": \"-2\", \"status\": \"accepted\", \"subject\": \"brass bolts\", \"supersedes\": null}, \"id\": \"8c3370a0-6fc7-4e80-b91c-71c724aeec69\", \"kind\": \"movement\", \"logicalID\": \"f61d6ad3-3b5f-4eea-8b94-135392744f01\", \"meaning\": \"actual\", \"scenario\": \"actual\", \"status\": \"accepted\", \"text\": \"-2 inventory movement for brass bolts\", \"title\": \"brass bolts: -2\", \"version\": 1}, \"notice\": \"The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current.\", \"snapshotRevision\": 15}, \"resultHash\": \"01c451cf7c7f15462f50c008d451a51a1c294fc0836af73ce4bdd235e9b779e0\", \"resultIdentity\": {}, \"runID\": \"4b75489f-56ec-427a-9826-2bf9d01279f3\", \"tool\": \"read\"}]}\n{\"check\": \"balance_evidence_without_correction\", \"passed\": true, \"seconds\": 35.385865083, \"steps\": 4, \"requiredCitations\": 2, \"businessStateUnchanged\": true}\n{\"runMetrics\": [{\"status\": \"complete\", \"steps\": 4, \"metrics\": [{\"acceptedDraftTokens\": 66, \"backend\": \"splash-native-candidate\", \"contextTokens\": 32768, \"decodeSeconds\": 2.008914, \"deduplicatedKVTokens\": 0, \"draftedTokens\": 168, \"firstTokenSeconds\": 2.884490041527897, \"generatedTokens\": 91, \"maintenanceRecommended\": false, \"maintenanceThreshold\": 28664, \"matchedPromptTokens\": 0, \"nextToolResultReserve\": 2048, \"outputBudget\": 1800, \"prefillSeconds\": 2.884377, \"promptTokens\": 6284, \"reasoningBudget\": 512, \"reasoningBudgetOverrun\": 0, \"reasoningHistory\": \"within-request\", \"reasoningTokens\": 61, \"recoveryReserve\": 256, \"requestSeconds\": 4.89342899993062, \"speculativeMethod\": \"DFlash2\", \"toolScope\": \"all\"}, {\"acceptedDraftTokens\": 148, \"backend\": \"splash-native-candidate\", \"contextTokens\": 32768, \"decodeSeconds\": 4.162786, \"deduplicatedKVTokens\": 1568, \"draftedTokens\": 294, \"firstTokenSeconds\": 2.9786712913773954, \"generatedTokens\": 191, \"maintenanceRecommended\": false, \"maintenanceThreshold\": 28664, \"matchedPromptTokens\": 0, \"nextToolResultReserve\": 2048, \"outputBudget\": 1800, \"prefillSeconds\": 2.978577, \"promptTokens\": 6994, \"reasoningBudget\": 512, \"reasoningBudgetOverrun\": 0, \"reasoningHistory\": \"within-request\", \"reasoningTokens\": 134, \"recoveryReserve\": 256, \"requestSeconds\": 7.1414735415019095, \"speculativeMethod\": \"DFlash2\", \"toolScope\": \"all\"}, {\"acceptedDraftTokens\": 61, \"backend\": \"splash-native-candidate\", \"contextTokens\": 32768, \"decodeSeconds\": 2.176937, \"deduplicatedKVTokens\": 1568, \"draftedTokens\": 168, \"firstTokenSeconds\": 4.583829458337277, \"generatedTokens\": 86, \"maintenanceRecommended\": false, \"maintenanceThreshold\": 28664, \"matchedPromptTokens\": 0, \"nextToolResultReserve\": 2048, \"outputBudget\": 1800, \"prefillSeconds\": 4.583734, \"promptTokens\": 7569, \"reasoningBudget\": 512, \"reasoningBudgetOverrun\": 0, \"reasoningHistory\": \"within-request\", \"reasoningTokens\": 29, \"recoveryReserve\": 256, \"requestSeconds\": 6.760780416429043, \"speculativeMethod\": \"DFlash2\", \"toolScope\": \"all\"}, {\"acceptedDraftTokens\": 350, \"backend\": \"splash-native-candidate\", \"contextTokens\": 32768, \"decodeSeconds\": 7.894334, \"deduplicatedKVTokens\": 1600, \"draftedTokens\": 518, \"firstTokenSeconds\": 3.2513992497697473, \"generatedTokens\": 425, \"maintenanceRecommended\": false, \"maintenanceThreshold\": 28664, \"matchedPromptTokens\": 0, \"nextToolResultReserve\": 2048, \"outputBudget\": 1800, \"prefillSeconds\": 3.251296, \"promptTokens\": 8111, \"reasoningBudget\": 512, \"reasoningBudgetOverrun\": 0, \"reasoningHistory\": \"within-request\", \"reasoningTokens\": 162, \"recoveryReserve\": 256, \"requestSeconds\": 11.145737666636705, \"speculativeMethod\": \"DFlash2\", \"toolScope\": \"all\"}]}]}\n"
+    },
+    {
+      "name": "sevra-item-references-native-missing.log",
+      "purpose": "Final packaged native missing-contract check",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "28e725f08b15e13bd0a54aaab0005cce02a644edcffc42b19f38132df3baa728",
+      "content": "{\"probeReply\": true, \"prompt\": \"Find the signed Lakehouse contract and its renewal price. If the evidence is missing or cannot be searched, say so clearly and do not guess.\", \"result\": {\"answer\": \"I found no matches for these searches: \\u201cLakehouse contract\\u201d, \\u201cLakehouse\\u201d, \\u201ccontract\\u201d. The most recent search reported 1 incomplete source, so the available evidence is partial. These queries also searched earlier messages in this conversation. These searches do not establish the requested facts.\", \"citations\": [], \"state\": \"complete\", \"steps\": 4}, \"run\": {\"conversation_id\": \"main\", \"created\": \"2026-10-27T10:12:18Z\", \"id\": \"71626d77-bd37-4b62-a80e-7e5511c89f95\", \"metrics\": \"[{\\\"acceptedDraftTokens\\\":124,\\\"backend\\\":\\\"splash-native-candidate\\\",\\\"contextTokens\\\":32768,\\\"decodeSeconds\\\":3.757934,\\\"deduplicatedKVTokens\\\":0,\\\"draftedTokens\\\":350,\\\"firstTokenSeconds\\\":2.8197517497465014,\\\"generatedTokens\\\":175,\\\"maintenanceRecommended\\\":false,\\\"maintenanceThreshold\\\":28664,\\\"matchedPromptTokens\\\":0,\\\"nextToolResultReserve\\\":2048,\\\"outputBudget\\\":1800,\\\"prefillSeconds\\\":2.819641,\\\"promptTokens\\\":6254,\\\"reasoningBudget\\\":512,\\\"reasoningBudgetOverrun\\\":0,\\\"reasoningHistory\\\":\\\"within-request\\\",\\\"reasoningTokens\\\":146,\\\"recoveryReserve\\\":256,\\\"requestSeconds\\\":6.577716166619211,\\\"speculativeMethod\\\":\\\"DFlash2\\\",\\\"toolScope\\\":\\\"all\\\"},{\\\"acceptedDraftTokens\\\":109,\\\"backend\\\":\\\"splash-native-candidate\\\",\\\"contextTokens\\\":32768,\\\"decodeSeconds\\\":3.166564,\\\"deduplicatedKVTokens\\\":160,\\\"draftedTokens\\\":224,\\\"firstTokenSeconds\\\":0.9969827500171959,\\\"generatedTokens\\\":142,\\\"maintenanceRecommended\\\":false,\\\"maintenanceThreshold\\\":28664,\\\"matchedPromptTokens\\\":6240,\\\"nextToolResultReserve\\\":2048,\\\"outputBudget\\\":1800,\\\"prefillSeconds\\\":0.992975,\\\"promptTokens\\\":6574,\\\"reasoningBudget\\\":512,\\\"reasoningBudgetOverrun\\\":0,\\\"reasoningHistory\\\":\\\"within-request\\\",\\\"reasoningTokens\\\":83,\\\"recoveryReserve\\\":256,\\\"requestSeconds\\\":4.163556249812245,\\\"speculativeMethod\\\":\\\"DFlash2\\\",\\\"toolScope\\\":\\\"all\\\"},{\\\"acceptedDraftTokens\\\":134,\\\"backend\\\":\\\"splash-native-candidate\\\",\\\"contextTokens\\\":32768,\\\"decodeSeconds\\\":3.25886,\\\"deduplicatedKVTokens\\\":1568,\\\"draftedTokens\\\":280,\\\"firstTokenSeconds\\\":3.013259124942124,\\\"generatedTokens\\\":175,\\\"maintenanceRecommended\\\":false,\\\"maintenanceThreshold\\\":28664,\\\"matchedPromptTokens\\\":0,\\\"nextToolResultReserve\\\":2048,\\\"outputBudget\\\":1800,\\\"prefillSeconds\\\":3.013159,\\\"promptTokens\\\":7194,\\\"reasoningBudget\\\":512,\\\"reasoningBudgetOverrun\\\":0,\\\"reasoningHistory\\\":\\\"within-request\\\",\\\"reasoningTokens\\\":148,\\\"recoveryReserve\\\":256,\\\"requestSeconds\\\":6.272125875111669,\\\"speculativeMethod\\\":\\\"DFlash2\\\",\\\"toolScope\\\":\\\"all\\\"},{\\\"acceptedDraftTokens\\\":44,\\\"backend\\\":\\\"splash-native-candidate\\\",\\\"contextTokens\\\":32768,\\\"decodeSeconds\\\":1.063139,\\\"deduplicatedKVTokens\\\":0,\\\"draftedTokens\\\":84,\\\"firstTokenSeconds\\\":1.1145904585719109,\\\"generatedTokens\\\":57,\\\"maintenanceRecommended\\\":false,\\\"maintenanceThreshold\\\":28664,\\\"matchedPromptTokens\\\":7168,\\\"nextToolResultReserve\\\":2048,\\\"outputBudget\\\":1800,\\\"prefillSeconds\\\":1.113152,\\\"promptTokens\\\":7515,\\\"reasoningBudget\\\":512,\\\"reasoningBudgetOverrun\\\":0,\\\"reasoningHistory\\\":\\\"within-request\\\",\\\"reasoningTokens\\\":31,\\\"recoveryReserve\\\":256,\\\"requestSeconds\\\":2.1777447084896266,\\\"speculativeMethod\\\":\\\"DFlash2\\\",\\\"toolScope\\\":\\\"all\\\"}]\", \"model\": \"Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; reasoning budget 512; within-request reasoning retained\", \"request_message_id\": \"45946839-2289-4f1b-85e8-1604071a0900\", \"status\": \"complete\", \"steps\": 4, \"updated\": \"2026-10-27T10:12:42Z\"}, \"trace\": [{\"arguments\": {\"query\": \"Lakehouse contract\"}, \"assistantText\": \"\", \"callID\": \"call_89c86e09-ed22-460e-897c-b861c77a62da\", \"receiptID\": \"f422e849-34ad-4f59-a058-a98153e88ee2\", \"receiptVersion\": 1, \"result\": {\"conversation\": {\"conversation\": \"main\", \"hits\": [], \"nextCursor\": null, \"notice\": \"These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.\", \"revision\": 14, \"searched\": true}, \"hits\": [], \"incomplete\": 1, \"notice\": \"hits, incomplete and nextCursor describe business evidence only. conversation describes earlier messages in the current conversation. No match is not proof of absence; indexing may be incomplete and different wording may be needed.\", \"snapshotRevision\": 14}, \"resultHash\": \"343ffad79141489b8a59b9fe2d9c58f07f97fffc205a723cc653f9f03a9d9ba8\", \"resultIdentity\": {}, \"runID\": \"71626d77-bd37-4b62-a80e-7e5511c89f95\", \"tool\": \"search\"}, {\"arguments\": {\"id\": \"a037e123-45b0-4f10-9852-4acf19865d1d\"}, \"assistantText\": \"\", \"callID\": \"call_a13ddc8e-3c7d-4e48-a814-b1648b30ba70\", \"receiptID\": \"0c0d015a-f1e7-4f15-897a-681b478c29e6\", \"receiptVersion\": 1, \"result\": {\"chunks\": [{\"body\": \"Find the signed Lakehouse contract and its renewal price. If the evidence is missing or cannot be searched, say so clearly and do not guess.\", \"id\": 8, \"locator\": \"text; offset=0\"}], \"currentVersion\": {\"id\": \"a037e123-45b0-4f10-9852-4acf19865d1d\", \"meaning\": \"plan\", \"status\": \"accepted\", \"title\": \"User request\"}, \"extraction\": {}, \"isCurrentVersion\": true, \"item\": {\"category\": \"source\", \"created\": \"2026-10-27T10:12:18Z\", \"data\": {\"context\": \"\", \"conversationID\": \"main\", \"messageID\": \"45946839-2289-4f1b-85e8-1604071a0900\"}, \"id\": \"a037e123-45b0-4f10-9852-4acf19865d1d\", \"kind\": \"request\", \"logicalID\": \"f7b45f0b-3893-4d0c-a256-e5b78e054715\", \"meaning\": \"plan\", \"scenario\": \"actual\", \"status\": \"accepted\", \"text\": \"Find the signed Lakehouse contract and its renewal price. If the evidence is missing or cannot be searched, say so clearly and do not guess.\", \"title\": \"User request\", \"version\": 1}, \"notice\": \"The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current.\", \"snapshotRevision\": 16}, \"resultHash\": \"fa1985145992c21a4c24f8264b9b5ab5cd13949841f394eaefc70fd39e99f1d5\", \"resultIdentity\": {}, \"runID\": \"71626d77-bd37-4b62-a80e-7e5511c89f95\", \"tool\": \"read\"}, {\"arguments\": {\"query\": \"Lakehouse\"}, \"assistantText\": \"\", \"callID\": \"call_cd03f9b5-a9ea-438f-ab0f-12ca83b4ca09\", \"receiptID\": \"b52d7211-ee4f-4881-98f8-c8baa2c28152\", \"receiptVersion\": 1, \"result\": {\"conversation\": {\"conversation\": \"main\", \"hits\": [], \"nextCursor\": null, \"notice\": \"These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.\", \"revision\": 18, \"searched\": true}, \"hits\": [], \"incomplete\": 1, \"notice\": \"hits, incomplete and nextCursor describe business evidence only. conversation describes earlier messages in the current conversation. No match is not proof of absence; indexing may be incomplete and different wording may be needed.\", \"snapshotRevision\": 18}, \"resultHash\": \"36ef4187e6868a117bcc31e46ab3722dad399ad6a9ab4de1d4502b7336077964\", \"resultIdentity\": {}, \"runID\": \"71626d77-bd37-4b62-a80e-7e5511c89f95\", \"tool\": \"search\"}, {\"arguments\": {\"query\": \"contract\"}, \"assistantText\": \"\", \"callID\": \"call_01f5e86a-28d7-40c4-a604-40b5ff20289c\", \"receiptID\": \"b913b53a-7ab4-4486-8c2f-8b4fabc4dbdb\", \"receiptVersion\": 1, \"result\": {\"conversation\": {\"conversation\": \"main\", \"hits\": [], \"nextCursor\": null, \"notice\": \"These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.\", \"revision\": 20, \"searched\": true}, \"hits\": [], \"incomplete\": 1, \"notice\": \"hits, incomplete and nextCursor describe business evidence only. conversation describes earlier messages in the current conversation. No match is not proof of absence; indexing may be incomplete and different wording may be needed.\", \"snapshotRevision\": 20}, \"resultHash\": \"502daf3af622d4476d1d7c6e9a91a5a8bad5887e4a96fc4af6466519ca8a12be\", \"resultIdentity\": {}, \"runID\": \"71626d77-bd37-4b62-a80e-7e5511c89f95\", \"tool\": \"search\"}]}\n{\"check\": \"no_match_and_incomplete_coverage\", \"passed\": true, \"seconds\": 24.253755125, \"steps\": 4}\n{\"runMetrics\": [{\"status\": \"complete\", \"steps\": 4, \"metrics\": [{\"acceptedDraftTokens\": 124, \"backend\": \"splash-native-candidate\", \"contextTokens\": 32768, \"decodeSeconds\": 3.757934, \"deduplicatedKVTokens\": 0, \"draftedTokens\": 350, \"firstTokenSeconds\": 2.8197517497465014, \"generatedTokens\": 175, \"maintenanceRecommended\": false, \"maintenanceThreshold\": 28664, \"matchedPromptTokens\": 0, \"nextToolResultReserve\": 2048, \"outputBudget\": 1800, \"prefillSeconds\": 2.819641, \"promptTokens\": 6254, \"reasoningBudget\": 512, \"reasoningBudgetOverrun\": 0, \"reasoningHistory\": \"within-request\", \"reasoningTokens\": 146, \"recoveryReserve\": 256, \"requestSeconds\": 6.577716166619211, \"speculativeMethod\": \"DFlash2\", \"toolScope\": \"all\"}, {\"acceptedDraftTokens\": 109, \"backend\": \"splash-native-candidate\", \"contextTokens\": 32768, \"decodeSeconds\": 3.166564, \"deduplicatedKVTokens\": 160, \"draftedTokens\": 224, \"firstTokenSeconds\": 0.9969827500171959, \"generatedTokens\": 142, \"maintenanceRecommended\": false, \"maintenanceThreshold\": 28664, \"matchedPromptTokens\": 6240, \"nextToolResultReserve\": 2048, \"outputBudget\": 1800, \"prefillSeconds\": 0.992975, \"promptTokens\": 6574, \"reasoningBudget\": 512, \"reasoningBudgetOverrun\": 0, \"reasoningHistory\": \"within-request\", \"reasoningTokens\": 83, \"recoveryReserve\": 256, \"requestSeconds\": 4.163556249812245, \"speculativeMethod\": \"DFlash2\", \"toolScope\": \"all\"}, {\"acceptedDraftTokens\": 134, \"backend\": \"splash-native-candidate\", \"contextTokens\": 32768, \"decodeSeconds\": 3.25886, \"deduplicatedKVTokens\": 1568, \"draftedTokens\": 280, \"firstTokenSeconds\": 3.013259124942124, \"generatedTokens\": 175, \"maintenanceRecommended\": false, \"maintenanceThreshold\": 28664, \"matchedPromptTokens\": 0, \"nextToolResultReserve\": 2048, \"outputBudget\": 1800, \"prefillSeconds\": 3.013159, \"promptTokens\": 7194, \"reasoningBudget\": 512, \"reasoningBudgetOverrun\": 0, \"reasoningHistory\": \"within-request\", \"reasoningTokens\": 148, \"recoveryReserve\": 256, \"requestSeconds\": 6.272125875111669, \"speculativeMethod\": \"DFlash2\", \"toolScope\": \"all\"}, {\"acceptedDraftTokens\": 44, \"backend\": \"splash-native-candidate\", \"contextTokens\": 32768, \"decodeSeconds\": 1.063139, \"deduplicatedKVTokens\": 0, \"draftedTokens\": 84, \"firstTokenSeconds\": 1.1145904585719109, \"generatedTokens\": 57, \"maintenanceRecommended\": false, \"maintenanceThreshold\": 28664, \"matchedPromptTokens\": 7168, \"nextToolResultReserve\": 2048, \"outputBudget\": 1800, \"prefillSeconds\": 1.113152, \"promptTokens\": 7515, \"reasoningBudget\": 512, \"reasoningBudgetOverrun\": 0, \"reasoningHistory\": \"within-request\", \"reasoningTokens\": 31, \"recoveryReserve\": 256, \"requestSeconds\": 2.1777447084896266, \"speculativeMethod\": \"DFlash2\", \"toolScope\": \"all\"}]}]}\n"
+    },
+    {
+      "name": "sevra-item-references-baseline-inventory.log",
+      "purpose": "Final packaged baseline inventory with fresh IDs",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "b94a21383c4caa7bf9603956c38915030fe4f4bc18e7cc2e78729db9abff32ae",
+      "content": "{\"probeReply\": true, \"prompt\": \"What is the current stock of brass bolts? Use the balance tool and cite the opening basis and movements. Do not change the workbook.\", \"result\": {\"answer\": \"The current stock of brass bolts is 18. This is calculated from an opening basis of 20 brass bolts (as of 1 January 2026, Source: Workshop inventory) minus one inventory movement of \\u22122 brass bolts on 2 January 2026 (delivery-1042, Record: brass bolts: -2). 20 \\u2212 2 = 18.\\n\\n[Workshop inventory](sevra://item/d219cc2d-d704-4a61-a1c5-807597ec5ef2) [brass bolts: -2](sevra://item/5ebb3a3b-b42d-4079-95bb-747c18490049)\", \"citations\": [\"d219cc2d-d704-4a61-a1c5-807597ec5ef2\", \"5ebb3a3b-b42d-4079-95bb-747c18490049\"], \"state\": \"complete\", \"steps\": 4}, \"run\": {\"conversation_id\": \"main\", \"created\": \"2026-10-27T10:13:26Z\", \"id\": \"8bd768c8-ab72-4a41-a015-e77ad87ecb0a\", \"metrics\": \"[{\\\"decodeSeconds\\\":0.82778125,\\\"decodeTokens\\\":42,\\\"decodeTokensPerSecond\\\":50.7380422061988,\\\"firstTextSeconds\\\":null,\\\"firstTokenSeconds\\\":17.917824708,\\\"generatedTokens\\\":42,\\\"peakMemoryGB\\\":23.08347028,\\\"prefillSeconds\\\":17.878354667,\\\"requestSeconds\\\":18.725156125,\\\"speculativeMethod\\\":\\\"dflash2\\\",\\\"toolScope\\\":\\\"all\\\"},{\\\"decodeSeconds\\\":0.851086167,\\\"decodeTokens\\\":68,\\\"decodeTokensPerSecond\\\":79.89790298166132,\\\"firstTextSeconds\\\":null,\\\"firstTokenSeconds\\\":9.9117295,\\\"generatedTokens\\\":68,\\\"peakMemoryGB\\\":23.251013232,\\\"prefillSeconds\\\":9.900757042,\\\"requestSeconds\\\":10.75218625,\\\"speculativeMethod\\\":\\\"dflash2\\\",\\\"toolScope\\\":\\\"all\\\"},{\\\"decodeSeconds\\\":0.540285208,\\\"decodeTokens\\\":54,\\\"decodeTokensPerSecond\\\":99.9472115845896,\\\"firstTextSeconds\\\":null,\\\"firstTokenSeconds\\\":7.704958042,\\\"generatedTokens\\\":54,\\\"peakMemoryGB\\\":23.35215212,\\\"prefillSeconds\\\":7.691807166,\\\"requestSeconds\\\":8.234230792,\\\"speculativeMethod\\\":\\\"dflash2\\\",\\\"toolScope\\\":\\\"all\\\"},{\\\"decodeSeconds\\\":3.380884042,\\\"decodeTokens\\\":361,\\\"decodeTokensPerSecond\\\":106.77680615938735,\\\"firstTextSeconds\\\":null,\\\"firstTokenSeconds\\\":9.510638542,\\\"generatedTokens\\\":361,\\\"peakMemoryGB\\\":23.353495896,\\\"prefillSeconds\\\":9.497244875,\\\"requestSeconds\\\":12.879649541,\\\"speculativeMethod\\\":\\\"dflash2\\\",\\\"toolScope\\\":\\\"all\\\"}]\", \"model\": \"Slotstream Fast; 7578fb21e57ec362d19f5050922e0f583914935d\", \"request_message_id\": \"1974c05b-bb47-4f76-b2d4-6851840261b4\", \"status\": \"complete\", \"steps\": 4, \"updated\": \"2026-10-27T10:14:21Z\"}, \"trace\": [{\"arguments\": {\"subject\": \"brass bolts\"}, \"assistantText\": \"I'll check the current stock of brass bolts using the balance tool.\\n\\n\", \"callID\": \"call_b1057566\", \"receiptID\": \"fb9d8c73-3d31-4116-810f-26db59557852\", \"receiptVersion\": 1, \"result\": {\"asOf\": \"9999-12-31T23:59:59.000Z\", \"basis\": \"d219cc2d-d704-4a61-a1c5-807597ec5ef2\", \"effects\": [{\"effective\": \"2026-01-02T00:00:00.000Z\", \"item_id\": \"5ebb3a3b-b42d-4079-95bb-747c18490049\", \"kind\": \"inventory\", \"logical_id\": \"dafad572-87ca-43e8-b97a-c025ee762585\", \"occurrence\": \"delivery-1042\", \"quantity\": \"-2\", \"subject\": \"brass bolts\"}], \"evidence\": {\"citations\": [\"d219cc2d-d704-4a61-a1c5-807597ec5ef2\", \"5ebb3a3b-b42d-4079-95bb-747c18490049\"], \"notice\": \"The basis and effects identify workbook Source/Record versions, not conversation messages. This calculation inspects those inputs. Put these exact citations in finish.citations when reporting the balance. Use read for additional source content. No history_read or count_records call is needed to cite this calculation.\", \"referenceType\": \"item-version\"}, \"quantity\": \"18\", \"subject\": \"brass bolts\"}, \"resultHash\": \"6c46eb227604f30a0f97ec8c3bccc4f17dca30d964e5611b2be7496b84bb1388\", \"resultIdentity\": {}, \"runID\": \"8bd768c8-ab72-4a41-a015-e77ad87ecb0a\", \"tool\": \"balance\"}, {\"arguments\": {\"id\": \"d219cc2d-d704-4a61-a1c5-807597ec5ef2\"}, \"assistantText\": \"Let me read the opening basis and the movement to provide full citations.\\n\\n\", \"callID\": \"call_925a8415\", \"receiptID\": \"b13c493f-0d93-47f9-80c6-44bdf717bb39\", \"receiptVersion\": 1, \"result\": {\"chunks\": [{\"body\": \"Synthetic example: opening stock of brass bolts was 20 on 1 January 2026.\", \"id\": 1, \"locator\": \"text; offset=0\"}], \"currentVersion\": {\"id\": \"d219cc2d-d704-4a61-a1c5-807597ec5ef2\", \"meaning\": \"actual\", \"status\": \"accepted\", \"title\": \"Workshop inventory\"}, \"extraction\": {}, \"isCurrentVersion\": true, \"item\": {\"category\": \"source\", \"created\": \"2026-10-27T10:13:26Z\", \"data\": {}, \"id\": \"d219cc2d-d704-4a61-a1c5-807597ec5ef2\", \"kind\": \"note\", \"logicalID\": \"3ca05087-14b0-4225-8fad-e51fe33f3cf2\", \"meaning\": \"actual\", \"scenario\": \"actual\", \"status\": \"accepted\", \"text\": \"Synthetic example: opening stock of brass bolts was 20 on 1 January 2026.\", \"title\": \"Workshop inventory\", \"version\": 1}, \"notice\": \"The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current.\", \"snapshotRevision\": 13}, \"resultHash\": \"edcc79f348ae5f650bcd855870001d8fefd3b10d53b4efbcf968ee4c7d494d34\", \"resultIdentity\": {}, \"runID\": \"8bd768c8-ab72-4a41-a015-e77ad87ecb0a\", \"tool\": \"read\"}, {\"arguments\": {\"id\": \"5ebb3a3b-b42d-4079-95bb-747c18490049\"}, \"assistantText\": \"\", \"callID\": \"call_139e4a65\", \"receiptID\": \"5d4b798c-e91c-4965-ab06-13bda102683d\", \"receiptVersion\": 1, \"result\": {\"chunks\": [{\"body\": \"-2 inventory movement for brass bolts\", \"id\": 3, \"locator\": \"text; offset=0\"}], \"currentVersion\": {\"id\": \"5ebb3a3b-b42d-4079-95bb-747c18490049\", \"meaning\": \"actual\", \"status\": \"accepted\", \"title\": \"brass bolts: -2\"}, \"extraction\": {}, \"isCurrentVersion\": true, \"item\": {\"category\": \"record\", \"created\": \"2026-10-27T10:13:26Z\", \"data\": {\"effective\": \"2026-01-02T00:00:00.000Z\", \"input\": \"178939ad-e688-415b-98af-6f644b4de3e1\", \"meaning\": \"actual\", \"occurrence\": \"delivery-1042\", \"quantity\": \"-2\", \"status\": \"accepted\", \"subject\": \"brass bolts\", \"supersedes\": null}, \"id\": \"5ebb3a3b-b42d-4079-95bb-747c18490049\", \"kind\": \"movement\", \"logicalID\": \"dafad572-87ca-43e8-b97a-c025ee762585\", \"meaning\": \"actual\", \"scenario\": \"actual\", \"status\": \"accepted\", \"text\": \"-2 inventory movement for brass bolts\", \"title\": \"brass bolts: -2\", \"version\": 1}, \"notice\": \"The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current.\", \"snapshotRevision\": 15}, \"resultHash\": \"fbc31ec61f83e8003125ed1df13818a8d5352f958baa663c9da363eb6ee60767\", \"resultIdentity\": {}, \"runID\": \"8bd768c8-ab72-4a41-a015-e77ad87ecb0a\", \"tool\": \"read\"}]}\n{\"check\": \"balance_evidence_without_correction\", \"passed\": true, \"seconds\": 55.349665166, \"steps\": 4, \"requiredCitations\": 2, \"businessStateUnchanged\": true}\n{\"runMetrics\": [{\"status\": \"complete\", \"steps\": 4, \"metrics\": [{\"decodeSeconds\": 0.82778125, \"decodeTokens\": 42, \"decodeTokensPerSecond\": 50.7380422061988, \"firstTextSeconds\": null, \"firstTokenSeconds\": 17.917824708, \"generatedTokens\": 42, \"peakMemoryGB\": 23.08347028, \"prefillSeconds\": 17.878354667, \"requestSeconds\": 18.725156125, \"speculativeMethod\": \"dflash2\", \"toolScope\": \"all\"}, {\"decodeSeconds\": 0.851086167, \"decodeTokens\": 68, \"decodeTokensPerSecond\": 79.89790298166132, \"firstTextSeconds\": null, \"firstTokenSeconds\": 9.9117295, \"generatedTokens\": 68, \"peakMemoryGB\": 23.251013232, \"prefillSeconds\": 9.900757042, \"requestSeconds\": 10.75218625, \"speculativeMethod\": \"dflash2\", \"toolScope\": \"all\"}, {\"decodeSeconds\": 0.540285208, \"decodeTokens\": 54, \"decodeTokensPerSecond\": 99.9472115845896, \"firstTextSeconds\": null, \"firstTokenSeconds\": 7.704958042, \"generatedTokens\": 54, \"peakMemoryGB\": 23.35215212, \"prefillSeconds\": 7.691807166, \"requestSeconds\": 8.234230792, \"speculativeMethod\": \"dflash2\", \"toolScope\": \"all\"}, {\"decodeSeconds\": 3.380884042, \"decodeTokens\": 361, \"decodeTokensPerSecond\": 106.77680615938735, \"firstTextSeconds\": null, \"firstTokenSeconds\": 9.510638542, \"generatedTokens\": 361, \"peakMemoryGB\": 23.353495896, \"prefillSeconds\": 9.497244875, \"requestSeconds\": 12.879649541, \"speculativeMethod\": \"dflash2\", \"toolScope\": \"all\"}]}]}\n"
+    },
+    {
+      "name": "sevra-item-references-final-worker-build.log",
+      "purpose": "Final release worker build",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "3043384617ca82e1ae2b25585030f6b3c39c068de2150f5d06fa8356f4092e63",
+      "content": "[0/1] Planning build\nBuilding for production...\n[0/2] Write swift-version--1AB21518FC5DEDBE.txt\n[1/5] Write sources\n[4/6] Compiling SevraNativeAI NativeCitationPolicy.swift\n[5/7] Compiling SevraWorkflowPerformance ReferenceModel.swift\n[5/7] Write Objects.LinkFileList\n[6/7] Linking sevra-workflow-performance\nBuild of product 'sevra-workflow-performance' complete! (10.29s)\n"
+    },
+    {
+      "name": "sevra-item-references-final-worker-check.log",
+      "purpose": "Final release worker self-check",
+      "passed": true,
+      "note": "",
+      "rawSHA256": "ffba249cc7b3d0457359cd9fcb01402239a1348303c5801cba9be4e20b44e3a5",
+      "content": "PASS deterministic fixture state, task inheritance, concurrent isolation, unchanged defaults and actual formula acceptance/edit/undo\n"
+    }
+  ],
+  "uiObservations": [
+    {
+      "stage": "cancelled-first-ui-download",
+      "selectedModelPublished": false,
+      "partials": {
+        ".snapshots/mlx-community--Qwen3.6-35B-A3B-4bit-38740b847e4cb78f352aba30aa41c76e08e6eb46/model-00001-of-00004.safetensors": 80440940
+      }
+    },
+    {
+      "stage": "cancelled-resumed-ui-download",
+      "selectedModelPublished": false,
+      "partials": {
+        ".snapshots/mlx-community--Qwen3.6-35B-A3B-4bit-38740b847e4cb78f352aba30aa41c76e08e6eb46/model-00001-of-00004.safetensors": 208857313
+      }
+    },
+    {
+      "stage": "cancelled-with-final-ui-fix",
+      "selectedModelPublished": false,
+      "partials": {
+        ".snapshots/mlx-community--Qwen3.6-35B-A3B-4bit-38740b847e4cb78f352aba30aa41c76e08e6eb46/model-00001-of-00004.safetensors": 426336946
+      },
+      "cancelledStatus": "Setup cancelled. Downloaded files are kept so you can resume.",
+      "controlsReenabled": true,
+      "oldDownloadingStatusAbsent": true,
+      "invalidFolderErrorClearsProgress": true,
+      "restoredPreviousFolderVerified": true,
+      "restoredFolderStatus": "Model files are ready.",
+      "reusedFolderHasManagedSnapshots": true
+    }
+  ],
+  "uiLimits": "Actual Settings interactions covered fresh download start, partial resume, cancellation, ordinary error and reverified existing setup. Earlier CLI evidence covers a full 21.48 GB fresh download. No full new download solely through Settings was performed. Original model-root preference restored; reused-root snapshot directories have zero regular-file bytes.",
+  "pairedInventoryRequests": {
+    "sameRequests": true,
+    "sameTokens": true,
+    "pairs": [
+      {
+        "job": "prime",
+        "seed": 0,
+        "step": 1,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 1,
+        "step": 1,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 1,
+        "step": 2,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 1,
+        "step": 3,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 1,
+        "step": 4,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 2,
+        "step": 1,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 2,
+        "step": 2,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 2,
+        "step": 3,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 2,
+        "step": 4,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 2,
+        "step": 5,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 3,
+        "step": 1,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 3,
+        "step": 2,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 3,
+        "step": 3,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 3,
+        "step": 4,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 4,
+        "step": 1,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 4,
+        "step": 2,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 4,
+        "step": 3,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 4,
+        "step": 4,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 5,
+        "step": 1,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 5,
+        "step": 2,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 5,
+        "step": 3,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 5,
+        "step": 4,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 5,
+        "step": 5,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 6,
+        "step": 1,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 6,
+        "step": 2,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 6,
+        "step": 3,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 6,
+        "step": 4,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 0,
+        "rightMatchedPrefix": 0
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 6,
+        "step": 5,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 8096,
+        "rightMatchedPrefix": 8096
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 6,
+        "step": 6,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 8448,
+        "rightMatchedPrefix": 8448
+      },
+      {
+        "job": "inventory_evidence",
+        "seed": 6,
+        "step": 7,
+        "sameRequest": true,
+        "sameTokens": true,
+        "firstDifference": null,
+        "leftMatchedPrefix": 8672,
+        "rightMatchedPrefix": 8672
+      }
+    ]
+  },
+  "publicEvidence": {
+    "path": "integration/evidence/2026-10-27-exact-item-references.json.gz",
+    "uncompressedSHA256": "fe265245564add9c3f007fe025b8c5e4863e39832ee28e10805f8282ec3b19d9",
+    "decodedUniquePromptArrays": 30,
+    "privatePathsFound": false
+  },
+  "postCohortChanges": "Swift formatting, large-schema budget test, Settings status fix, collector malformed-step/result checks and standalone --models-root configuration with pin validation. R2 retains exact measured source snapshots; final builds have separate identities. Collector checks and standalone configuration preflight passed after these tooling changes.",
+  "remaining": [
+    "R2 seed-6 unnecessary count queries and unrelated scoped totals",
+    "Prior supplier request/generation mismatch and fully qualified workflow performance",
+    "Preserved baseline Ready-response failure",
+    "Earlier R1 raw-model currency errors",
+    "Native adoption, automatic compaction, wider context/hardware, total memory, remaining UI/media/voice/accessibility and search scale/recovery"
+  ],
+  "previousCI": {
+    "commit": "6995a89",
+    "run": 40482712310,
+    "conclusion": "success"
+  },
+  "performanceQualification": false,
+  "productionAdoption": false
+}

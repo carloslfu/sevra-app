@@ -371,7 +371,8 @@ func checkRunningCompaction() async throws {
       text: String(repeating: "Material specification, exact recorded source text. ", count: 80))
     let model = RunningJobFixture(sourceID: source.id, arithmetic: arithmetic)
     let result = try await WorkbookAgent.run(
-      "Save one draft, inspect the supplied source, then finish.", workbook: book, model: model)
+      "Save one draft, inspect the supplied source, then finish.", workbook: book,
+      context: "Supplied source: \(source.id)", model: model)
     try expectEqual(result.state, "complete")
     try expectEqual(result.steps, arithmetic ? 10 : 8)
     try expectEqual(await model.summaries >= 2, true)
