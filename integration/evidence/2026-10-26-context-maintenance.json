@@ -1,0 +1,861 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "dateBasis": "America/Bogota; some checks finished October 27 UTC",
+  "kind": "automatic-conversation-context-development",
+  "baseCommit": "d87cc4acb7d049d36e58a81d914943b82037b718",
+  "databaseSchema": 3,
+  "packageFormat": 1,
+  "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
+  "model": "Qwen3.6-35B-A3B-4bit + matching DFlash2",
+  "hardware": {
+    "chip": "Apple M5 Pro",
+    "physicalMemoryBytes": 51539607552,
+    "macOS": "26.6.2 (25G83)",
+    "nativeEngineBudgetBytes": 12884901888
+  },
+  "checks": {
+    "core": 59,
+    "transportAndPreparation": 21,
+    "serialShutdownTrials": 33,
+    "tokenVocabulary": 248320,
+    "baseGrammarMasks": 105,
+    "actualToolCases": 26,
+    "actualToolMasks": 217,
+    "fullCheckScript": true,
+    "releaseAppAndCLI": true,
+    "installation": {
+      "skillInstallAndConflict": true,
+      "installed": true,
+      "updated": true,
+      "standaloneCLI": true,
+      "uninstalled": true,
+      "workbookPreserved": true,
+      "unrelatedCLIProtected": true
+    },
+    "receiptCLI": {
+      "packagedReceiptCLI": true,
+      "exactDecimalAndUnicode": true,
+      "validPagesAndRawJSON": true,
+      "scopeAndArgumentRefusals": true,
+      "offlineArchive": true
+    },
+    "historyCLI": {
+      "migration": true,
+      "concurrentOpeners": 8,
+      "messagesPaged": 700,
+      "searchAndCursor": true,
+      "exactOlderMessage": true,
+      "offlineExportReopen": true,
+      "automaticCompaction": false
+    },
+    "concurrency": {
+      "crossProcessIntakeRetry": true,
+      "concurrentWriters": 30,
+      "snapshotVerified": true,
+      "idempotentRetry": true,
+      "staleWriteRefused": true,
+      "inventoryPreserved": true
+    },
+    "bothSkillsValid": true
+  },
+  "latestContinuity": {
+    "logSHA256": "3b6b62603a41b6f807281cc50d73846729ec9104619a491d092fbe25dfa2f54e",
+    "unparsedJSONLines": 0,
+    "records": [
+      {
+        "answer": "The purchase code is MAPLE-27, and the exact original quantity is 0.10 kg. No currency was specified.\n\n[Earlier message](sevra://conversation/main?message=db71c395-628a-488e-b2f2-efe20dd6eb8f)",
+        "probeReply": true,
+        "prompt": "What purchase code and exact original quantity including its unit did I provide earlier? Preserve the original decimal spelling. Did I specify a currency? Make no changes.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "answer": "The purchase code is MAPLE-27, and the exact original quantity is 0.10 kg. No currency was specified.\n\n[Earlier message](sevra://conversation/main?message=db71c395-628a-488e-b2f2-efe20dd6eb8f)",
+        "prompt": "What purchase code and exact original quantity including its unit did I provide earlier? Preserve the original decimal spelling. Did I specify a currency? Make no changes.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "checkpointReview": [
+          {
+            "id": "f7c7ece8-bcb3-4344-9fb6-222e7974088e",
+            "summary": "{\"notes\":[{\"kind\":\"fact\",\"messages\":[\"db71c395-628a-488e-b2f2-efe20dd6eb8f\"],\"text\":\"Purchase code MAPLE-27. Original quantity is exactly 0.10 kg. No currency has been specified.\"},{\"kind\":\"context\",\"messages\":[\"ea6a2a15-817f-45ac-a103-a9d86c1d7ab4\",\"1a3314a5-4e45-42a5-a71e-b3e467c6f73f\"],\"text\":\"Shelf-label inspections 127-254 completed. All labels checked; no remaining work. Describes completed maintenance, not inventory changes.\"}]}"
+          },
+          {
+            "id": "b5b22587-c5bf-495d-8cea-5819c6ee142d",
+            "summary": "{\"notes\":[{\"kind\":\"fact\",\"messages\":[\"db71c395-628a-488e-b2f2-efe20dd6eb8f\"],\"text\":\"Purchase code MAPLE-27. Original quantity is exactly 0.10 kg. No currency has been specified.\"}]}"
+          }
+        ]
+      },
+      {
+        "answer": "The original quantity is 0.10 kg. No currency was specified.\n\n[Earlier message](sevra://conversation/main?message=db71c395-628a-488e-b2f2-efe20dd6eb8f)",
+        "probeReply": true,
+        "prompt": "What was the original quantity and unit, and what currency did I choose? Keep the original decimal spelling. Make no changes.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "answer": "The original quantity is 0.10 kg. No currency was specified.\n\n[Earlier message](sevra://conversation/main?message=db71c395-628a-488e-b2f2-efe20dd6eb8f)",
+        "prompt": "What was the original quantity and unit, and what currency did I choose? Keep the original decimal spelling. Make no changes.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "checkpoints": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:18:34Z",
+            "first_message": "ea6a2a15-817f-45ac-a103-a9d86c1d7ab4",
+            "history_hash": "3d26c0360129d316789bafa20e8e3cb23a06876d67f7e9ab3bc841a6b4749b5b",
+            "id": "f7c7ece8-bcb3-4344-9fb6-222e7974088e",
+            "last_message": "1a3314a5-4e45-42a5-a71e-b3e467c6f73f",
+            "message_count": 128,
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "parent_id": "b5b22587-c5bf-495d-8cea-5819c6ee142d",
+            "run_id": "e39ed110-ca0a-48a2-8d13-b54fff6a703a",
+            "schema_version": 1,
+            "source_revision": 295,
+            "summary": "{\"notes\":[{\"kind\":\"fact\",\"messages\":[\"db71c395-628a-488e-b2f2-efe20dd6eb8f\"],\"text\":\"Purchase code MAPLE-27. Original quantity is exactly 0.10 kg. No currency has been specified.\"},{\"kind\":\"context\",\"messages\":[\"ea6a2a15-817f-45ac-a103-a9d86c1d7ab4\",\"1a3314a5-4e45-42a5-a71e-b3e467c6f73f\"],\"text\":\"Shelf-label inspections 127-254 completed. All labels checked; no remaining work. Describes completed maintenance, not inventory changes.\"}]}",
+            "template": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+            "transformation": "conversation-notes-v2"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:18:27Z",
+            "first_message": "db71c395-628a-488e-b2f2-efe20dd6eb8f",
+            "history_hash": "20238e82e7aa6dbe655f444114be391eabd68778803fce23ab94a4b1dd4ebe47",
+            "id": "b5b22587-c5bf-495d-8cea-5819c6ee142d",
+            "last_message": "3e21c7a3-454b-40ed-b3a5-6b7f4905948c",
+            "message_count": 128,
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "parent_id": null,
+            "run_id": "e39ed110-ca0a-48a2-8d13-b54fff6a703a",
+            "schema_version": 1,
+            "source_revision": 294,
+            "summary": "{\"notes\":[{\"kind\":\"fact\",\"messages\":[\"db71c395-628a-488e-b2f2-efe20dd6eb8f\"],\"text\":\"Purchase code MAPLE-27. Original quantity is exactly 0.10 kg. No currency has been specified.\"}]}",
+            "template": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+            "transformation": "conversation-notes-v2"
+          }
+        ],
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:18:15Z",
+            "id": "e39ed110-ca0a-48a2-8d13-b54fff6a703a",
+            "metrics": "[{\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.17073,\"firstTokenSeconds\":4.741302791517228,\"generatedTokens\":101,\"phase\":\"context_summary\",\"prefillSeconds\":4.741125,\"promptTokens\":12188,\"requestSeconds\":5.912076374981552},{\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.058336,\"firstTokenSeconds\":4.78137091640383,\"generatedTokens\":146,\"phase\":\"context_summary\",\"prefillSeconds\":4.781193,\"promptTokens\":12288,\"requestSeconds\":6.83971649967134},{\"acceptedDraftTokens\":13,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.856553,\"draftedTokens\":105,\"firstTokenSeconds\":5.419637541752309,\"generatedTokens\":29,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":5.41947,\"promptTokens\":10353,\"recoveryReserve\":256,\"requestSeconds\":6.276205874979496,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":42,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.860845,\"draftedTokens\":84,\"firstTokenSeconds\":0.754513958003372,\"generatedTokens\":55,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.753136,\"promptTokens\":10509,\"recoveryReserve\":256,\"requestSeconds\":1.6153739164583385,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":75,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.73881,\"draftedTokens\":154,\"firstTokenSeconds\":5.595303708221763,\"generatedTokens\":98,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":5.595115,\"promptTokens\":10785,\"recoveryReserve\":256,\"requestSeconds\":7.3341510416939855,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "97e47244-cc88-451d-b9b0-ce227c7172ec",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-27T00:18:51Z"
+          }
+        ],
+        "workbook": "Continuity.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:18:51Z",
+            "id": "677c8bd8-cf8b-4567-bb78-e04ddef082f5",
+            "metrics": "[{\"acceptedDraftTokens\":15,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.848161,\"draftedTokens\":91,\"firstTokenSeconds\":4.886327916756272,\"generatedTokens\":29,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":4.88614,\"promptTokens\":11228,\"recoveryReserve\":256,\"requestSeconds\":5.734501958359033,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":42,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.902889,\"draftedTokens\":84,\"firstTokenSeconds\":1.108725166413933,\"generatedTokens\":55,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.104501,\"promptTokens\":11997,\"recoveryReserve\":256,\"requestSeconds\":2.011644166428596,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":65,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":3.090904,\"draftedTokens\":140,\"firstTokenSeconds\":6.008070750162005,\"generatedTokens\":86,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":6.007866,\"promptTokens\":12273,\"recoveryReserve\":256,\"requestSeconds\":9.098994333297014,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "1af6ead7-635d-4bd2-9c3a-8557f03f2d00",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-27T00:19:15Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:18:15Z",
+            "id": "e39ed110-ca0a-48a2-8d13-b54fff6a703a",
+            "metrics": "[{\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.17073,\"firstTokenSeconds\":4.741302791517228,\"generatedTokens\":101,\"phase\":\"context_summary\",\"prefillSeconds\":4.741125,\"promptTokens\":12188,\"requestSeconds\":5.912076374981552},{\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.058336,\"firstTokenSeconds\":4.78137091640383,\"generatedTokens\":146,\"phase\":\"context_summary\",\"prefillSeconds\":4.781193,\"promptTokens\":12288,\"requestSeconds\":6.83971649967134},{\"acceptedDraftTokens\":13,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.856553,\"draftedTokens\":105,\"firstTokenSeconds\":5.419637541752309,\"generatedTokens\":29,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":5.41947,\"promptTokens\":10353,\"recoveryReserve\":256,\"requestSeconds\":6.276205874979496,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":42,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.860845,\"draftedTokens\":84,\"firstTokenSeconds\":0.754513958003372,\"generatedTokens\":55,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.753136,\"promptTokens\":10509,\"recoveryReserve\":256,\"requestSeconds\":1.6153739164583385,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":75,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.73881,\"draftedTokens\":154,\"firstTokenSeconds\":5.595303708221763,\"generatedTokens\":98,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":5.595115,\"promptTokens\":10785,\"recoveryReserve\":256,\"requestSeconds\":7.3341510416939855,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "97e47244-cc88-451d-b9b0-ce227c7172ec",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-27T00:18:51Z"
+          }
+        ],
+        "workbook": "ReopenedContinuity.sevra"
+      },
+      {
+        "answer": "The October forecast is:\n- **Status:** Draft (not accepted)\n- **Meaning:** Estimate (not an actual)\n\nIt contains the text \"Expected demand: 4 units.\" and remains a draft forecast, not an accepted actual record.\n\n[October forecast](sevra://item/491955a7-89ed-4282-8feb-eb00914987e2)",
+        "probeReply": true,
+        "prompt": "Inspect the October forecast. Is it accepted, and is it an actual or an estimate? Do not change anything.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "answer": "The October forecast is:\n- **Status:** Draft (not accepted)\n- **Meaning:** Estimate (not an actual)\n\nIt contains the text \"Expected demand: 4 units.\" and remains a draft forecast, not an accepted actual record.\n\n[October forecast](sevra://item/491955a7-89ed-4282-8feb-eb00914987e2)",
+        "citations": [
+          "491955a7-89ed-4282-8feb-eb00914987e2"
+        ],
+        "stage": "draft"
+      },
+      {
+        "answer": "The October forecast is now:\n- **Status:** Accepted\n- **Meaning:** Estimate (not an actual)\n\nAlthough you accepted the forecast, it remains an **estimate**, not an actual. Accepting a forecast does not change its meaning from estimate to actual—it simply marks the estimate as accepted. The record still contains \"Expected demand: 4 units.\" as a forecast, not a recorded actual movement.\n\n[October forecast](sevra://item/2ca03047-d3be-44bb-98bb-c888f30cd5ed)",
+        "probeReply": true,
+        "prompt": "I accepted the October forecast through the workbook. Inspect its current status and tell me whether it became an actual. Make no changes.",
+        "state": "complete",
+        "steps": 5
+      },
+      {
+        "answer": "The October forecast is now:\n- **Status:** Accepted\n- **Meaning:** Estimate (not an actual)\n\nAlthough you accepted the forecast, it remains an **estimate**, not an actual. Accepting a forecast does not change its meaning from estimate to actual—it simply marks the estimate as accepted. The record still contains \"Expected demand: 4 units.\" as a forecast, not a recorded actual movement.\n\n[October forecast](sevra://item/2ca03047-d3be-44bb-98bb-c888f30cd5ed)",
+        "citations": [
+          "2ca03047-d3be-44bb-98bb-c888f30cd5ed"
+        ],
+        "expectedVersion": "2ca03047-d3be-44bb-98bb-c888f30cd5ed",
+        "stage": "accepted"
+      },
+      {
+        "acceptedAnswer": "The October forecast is now:\n- **Status:** Accepted\n- **Meaning:** Estimate (not an actual)\n\nAlthough you accepted the forecast, it remains an **estimate**, not an actual. Accepting a forecast does not change its meaning from estimate to actual—it simply marks the estimate as accepted. The record still contains \"Expected demand: 4 units.\" as a forecast, not a recorded actual movement.\n\n[October forecast](sevra://item/2ca03047-d3be-44bb-98bb-c888f30cd5ed)",
+        "authorityProbe": true,
+        "draftAnswer": "The October forecast is:\n- **Status:** Draft (not accepted)\n- **Meaning:** Estimate (not an actual)\n\nIt contains the text \"Expected demand: 4 units.\" and remains a draft forecast, not an accepted actual record.\n\n[October forecast](sevra://item/491955a7-89ed-4282-8feb-eb00914987e2)",
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:19:25Z",
+            "id": "b411267c-9676-4655-a20b-869466da2ba0",
+            "metrics": "[{\"acceptedDraftTokens\":35,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.084408,\"draftedTokens\":105,\"firstTokenSeconds\":1.597724708262831,\"generatedTokens\":51,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.576527,\"promptTokens\":6615,\"recoveryReserve\":256,\"requestSeconds\":2.6821636664681137,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":17,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.603737,\"draftedTokens\":63,\"firstTokenSeconds\":1.6849569166079164,\"generatedTokens\":27,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.683678,\"promptTokens\":7001,\"recoveryReserve\":256,\"requestSeconds\":2.288736749906093,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":138,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":3.09751,\"draftedTokens\":301,\"firstTokenSeconds\":0.7223188751377165,\"generatedTokens\":182,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.720985,\"promptTokens\":7135,\"recoveryReserve\":256,\"requestSeconds\":3.8198581668548286,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":156,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.387148,\"draftedTokens\":175,\"firstTokenSeconds\":0.8015278331004083,\"generatedTokens\":182,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.800216,\"promptTokens\":7355,\"recoveryReserve\":256,\"requestSeconds\":3.188706874847412,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":126,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.141326,\"draftedTokens\":161,\"firstTokenSeconds\":1.0584101667627692,\"generatedTokens\":150,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.057085,\"promptTokens\":7575,\"recoveryReserve\":256,\"requestSeconds\":3.1997676668688655,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "35bf5e06-24e1-4cfe-90af-722719ff5137",
+            "status": "complete",
+            "steps": 5,
+            "updated": "2026-10-27T00:19:43Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:19:15Z",
+            "id": "2f79ddf9-cf22-450e-8040-4b31c2217295",
+            "metrics": "[{\"acceptedDraftTokens\":40,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.912507,\"draftedTokens\":98,\"firstTokenSeconds\":1.2954968749545515,\"generatedTokens\":55,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.27591,\"promptTokens\":5609,\"recoveryReserve\":256,\"requestSeconds\":2.2080446667969227,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":120,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.789008,\"draftedTokens\":259,\"firstTokenSeconds\":1.3719145832583308,\"generatedTokens\":158,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.370617,\"promptTokens\":5974,\"recoveryReserve\":256,\"requestSeconds\":4.160964583512396,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":103,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.736727,\"draftedTokens\":126,\"firstTokenSeconds\":0.7628172915428877,\"generatedTokens\":122,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.761493,\"promptTokens\":6170,\"recoveryReserve\":256,\"requestSeconds\":2.499579416587949,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "67ce3672-17b0-4f4f-b262-928c17b92870",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-27T00:19:25Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:19:15Z",
+            "id": "b94b0296-b0b4-4457-bc00-37a6c0b83b33",
+            "metrics": "[]",
+            "model": "fixture",
+            "request_message_id": "41d96788-d710-4d06-901d-67f4029d7ce8",
+            "status": "needs_review",
+            "steps": 1,
+            "updated": "2026-10-27T00:19:15Z"
+          }
+        ]
+      },
+      {
+        "probeFailure": "The operation was cancelled.",
+        "prompt": "What was the exact batch code and quantity? Make no changes.",
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:19:43Z",
+            "id": "91a9a415-badc-4603-a554-a421971fff33",
+            "metrics": "[]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "0d35965a-76fb-45c5-9e22-c680f16f55a8",
+            "status": "cancelled",
+            "steps": 0,
+            "updated": "2026-10-27T00:19:44Z"
+          }
+        ],
+        "trace": [
+          {
+            "body": "The operation was cancelled.",
+            "created": "2026-10-27T00:19:44Z",
+            "id": "63ae7d60-5eaa-4dc3-adfd-10d92406399e",
+            "role": "assistant",
+            "state": "cancelled"
+          }
+        ]
+      },
+      {
+        "answer": "I couldn’t find supporting evidence after searching this workbook for “WILLOW batch inspection”, “batch WILLOW-12”, “WILLOW-12 25.0”. The search index reports no incomplete sources. I can’t establish the requested facts from these results.",
+        "probeReply": true,
+        "prompt": "What was the exact batch code and quantity? Make no changes.",
+        "state": "complete",
+        "steps": 8
+      }
+    ],
+    "contextTokens": 32768,
+    "fixtureOutcome": "failed",
+    "passedStages": [
+      "repeated compaction with exact original-message citation",
+      "offline export/reopen with exact values and units",
+      "false tool-derived digest cannot override current forecast state",
+      "accepted forecast remains estimate and cites accepted version",
+      "summary cancellation preserves previous checkpoint and original range"
+    ],
+    "failedStage": "Explicit retry returned a document-search coverage response instead of the original WILLOW-12 / 0.20 kg. The exact-recall assertion failed. Do not count that run as successful merely because its returned state was complete."
+  },
+  "earlierNativeRecoveryPass": {
+    "logSHA256": "24a0f67363d8895f20114951b3b392704d3a15cd61992d941ebb844e5e5c04fa",
+    "unparsedJSONLines": 0,
+    "records": [
+      {
+        "answer": "The October forecast is currently in **draft** status, not accepted. It is classified as an **estimate**, not an actual.",
+        "citations": [],
+        "stage": "draft"
+      },
+      {
+        "answer": "The October forecast is now **accepted**, but it remains classified as an **estimate**, not an actual. \n\nWhile the scenario is set to \"actual\" and the status is \"accepted,\" the record's meaning is still \"estimate.\" This means the forecast has been formally approved through the workbook, but it has not been converted into an actual inventory balance. The expected demand of 4 units remains a forecasted/estimated value rather than a confirmed actual stock position.\n\n[October forecast](sevra://item/66164551-80f6-4247-915c-b9bbeb539c89)",
+        "citations": [
+          "66164551-80f6-4247-915c-b9bbeb539c89"
+        ],
+        "expectedVersion": "66164551-80f6-4247-915c-b9bbeb539c89",
+        "stage": "accepted"
+      },
+      {
+        "acceptedAnswer": "The October forecast is now **accepted**, but it remains classified as an **estimate**, not an actual. \n\nWhile the scenario is set to \"actual\" and the status is \"accepted,\" the record's meaning is still \"estimate.\" This means the forecast has been formally approved through the workbook, but it has not been converted into an actual inventory balance. The expected demand of 4 units remains a forecasted/estimated value rather than a confirmed actual stock position.\n\n[October forecast](sevra://item/66164551-80f6-4247-915c-b9bbeb539c89)",
+        "authorityProbe": true,
+        "draftAnswer": "The October forecast is currently in **draft** status, not accepted. It is classified as an **estimate**, not an actual.",
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T23:52:42Z",
+            "id": "5315d55b-bde8-4735-b1ed-a6595024b369",
+            "metrics": "[{\"acceptedDraftTokens\":39,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.17182,\"draftedTokens\":112,\"firstTokenSeconds\":1.687184083275497,\"generatedTokens\":56,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.683181,\"promptTokens\":6564,\"recoveryReserve\":256,\"requestSeconds\":2.8590246248058975,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":18,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.532259,\"draftedTokens\":56,\"firstTokenSeconds\":1.7626833748072386,\"generatedTokens\":27,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.761508,\"promptTokens\":6975,\"recoveryReserve\":256,\"requestSeconds\":2.294967624824494,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":117,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":3.153176,\"draftedTokens\":322,\"firstTokenSeconds\":0.7773520420305431,\"generatedTokens\":164,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.776126,\"promptTokens\":7109,\"recoveryReserve\":256,\"requestSeconds\":3.930539666675031,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "01b6a49d-821a-4785-9440-966f69457875",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-26T23:52:52Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T23:52:25Z",
+            "id": "62e616ab-59fc-4e5f-bf8c-cffa97d3ee9b",
+            "metrics": "[{\"acceptedDraftTokens\":41,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.240783,\"draftedTokens\":126,\"firstTokenSeconds\":2.3281463333405554,\"generatedTokens\":60,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.327992,\"promptTokens\":5437,\"recoveryReserve\":256,\"requestSeconds\":3.568982125259936,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":28,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.528436,\"draftedTokens\":56,\"firstTokenSeconds\":0.5912416665814817,\"generatedTokens\":37,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.587252,\"promptTokens\":5523,\"recoveryReserve\":256,\"requestSeconds\":1.1197095001116395,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":44,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.807149,\"draftedTokens\":77,\"firstTokenSeconds\":2.3750385837629437,\"generatedTokens\":56,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.374854,\"promptTokens\":5704,\"recoveryReserve\":256,\"requestSeconds\":3.1822045003063977,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":42,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.423493,\"draftedTokens\":140,\"firstTokenSeconds\":0.9298345833085477,\"generatedTokens\":63,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.928564,\"promptTokens\":6046,\"recoveryReserve\":256,\"requestSeconds\":2.353353208396584,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "6e11e75f-747b-4e6e-9b9e-4eca4d8c5e47",
+            "status": "complete",
+            "steps": 4,
+            "updated": "2026-10-26T23:52:42Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T23:52:25Z",
+            "id": "9249b1a7-b5ad-4045-a8b9-c48d1df5f932",
+            "metrics": "[]",
+            "model": "fixture",
+            "request_message_id": "e031a8b9-abb0-4220-b2ec-2c982cbf07bb",
+            "status": "needs_review",
+            "steps": 1,
+            "updated": "2026-10-26T23:52:25Z"
+          }
+        ]
+      },
+      {
+        "probeFailure": "The operation was cancelled.",
+        "prompt": "What was the exact batch code and quantity? Make no changes.",
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T23:52:53Z",
+            "id": "f320401a-3a63-4049-b91a-8cc63b8509c9",
+            "metrics": "[]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "7e046dff-8492-4534-b045-ef7465e5e9b4",
+            "status": "cancelled",
+            "steps": 0,
+            "updated": "2026-10-26T23:52:53Z"
+          }
+        ],
+        "trace": [
+          {
+            "body": "The operation was cancelled.",
+            "created": "2026-10-26T23:52:53Z",
+            "id": "aebbc906-a3b5-4963-a3ed-64223fa46a54",
+            "role": "assistant",
+            "state": "cancelled"
+          }
+        ]
+      },
+      {
+        "cancelledSummaryProbe": true,
+        "checkpoints": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T23:53:07Z",
+            "first_message": "eef1d49e-3dc2-4eb0-859a-d004cdaf1d3c",
+            "history_hash": "417e2d1fe571dc5ed4f0ffd175ff192113017f17d2014a24307f02b808e0795f",
+            "id": "4d018ee2-acd6-4a84-a6e4-4957f38df421",
+            "last_message": "8213faaf-ad32-4dc7-b604-565a8b2bf097",
+            "message_count": 128,
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "parent_id": "bfab78d5-d13a-42c4-96a8-7f839131ab86",
+            "run_id": "32df4d62-f536-4b0c-ad1c-e40ccc9bab83",
+            "schema_version": 1,
+            "source_revision": 151,
+            "summary": "{\"legacyDigest\":\"Original batch WILLOW-12 is 0.20 kg; no currency.\",\"notes\":[{\"kind\":\"context\",\"messages\":[\"eef1d49e-3dc2-4eb0-859a-d004cdaf1d3c\",\"8213faaf-ad32-4dc7-b604-565a8b2bf097\"],\"text\":\"Completed 128 closed inspections (0-127). All labels checked; no pending actions found.\"}]}",
+            "template": "aee46acfcba8e4e7aec7512126b926aa311bf7414d0d96ad3b13a86d5bdfe9d3",
+            "transformation": "conversation-notes-v2"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T23:52:52Z",
+            "first_message": "9df28e3f-d3b5-4718-a5f0-32eee9c92e2e",
+            "history_hash": "38bc4edb6a049643923812fad6bcbaea06683550439ef147adf5b74830da1736",
+            "id": "bfab78d5-d13a-42c4-96a8-7f839131ab86",
+            "last_message": "431cec49-972c-410a-9f82-f2b29d3427f0",
+            "message_count": 2,
+            "model": "fixture",
+            "parent_id": null,
+            "run_id": null,
+            "schema_version": 1,
+            "source_revision": 2,
+            "summary": "Original batch WILLOW-12 is 0.20 kg; no currency.",
+            "template": "fixture",
+            "transformation": "conversation-summary-v1"
+          }
+        ],
+        "retryAnswer": "The exact batch code is WILLOW-12 and the quantity is 0.20 kg. No currency was specified.",
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T23:52:53Z",
+            "id": "32df4d62-f536-4b0c-ad1c-e40ccc9bab83",
+            "metrics": "[{\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.265945,\"firstTokenSeconds\":5.244097833521664,\"generatedTokens\":132,\"phase\":\"context_summary\",\"prefillSeconds\":5.243889,\"promptTokens\":13304,\"requestSeconds\":7.510070125106722},{\"acceptedDraftTokens\":12,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.875378,\"draftedTokens\":91,\"firstTokenSeconds\":2.7853180416859686,\"generatedTokens\":26,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.785166,\"promptTokens\":7317,\"recoveryReserve\":256,\"requestSeconds\":3.6607151250354946,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":17,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.545548,\"draftedTokens\":56,\"firstTokenSeconds\":0.4267760831862688,\"generatedTokens\":26,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.425486,\"promptTokens\":7369,\"recoveryReserve\":256,\"requestSeconds\":0.9723427500575781,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":17,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.638081,\"draftedTokens\":70,\"firstTokenSeconds\":0.38443591678515077,\"generatedTokens\":28,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.38316,\"promptTokens\":7421,\"recoveryReserve\":256,\"requestSeconds\":1.022551791742444,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":42,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.032347,\"draftedTokens\":91,\"firstTokenSeconds\":0.830726916436106,\"generatedTokens\":56,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.829436,\"promptTokens\":7654,\"recoveryReserve\":256,\"requestSeconds\":1.86308683315292,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":45,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.546807,\"draftedTokens\":126,\"firstTokenSeconds\":0.8508788333274424,\"generatedTokens\":64,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.849578,\"promptTokens\":7843,\"recoveryReserve\":256,\"requestSeconds\":2.397721374873072,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "62352162-be79-49ef-9525-eed5d38b7ee9",
+            "status": "complete",
+            "steps": 5,
+            "updated": "2026-10-26T23:53:19Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-26T23:52:53Z",
+            "id": "f320401a-3a63-4049-b91a-8cc63b8509c9",
+            "metrics": "[]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "7e046dff-8492-4534-b045-ef7465e5e9b4",
+            "status": "cancelled",
+            "steps": 0,
+            "updated": "2026-10-26T23:52:53Z"
+          }
+        ]
+      }
+    ]
+  },
+  "earlierNativeAutonomousPass": {
+    "logSHA256": "4975a16399666aab911042196f7d2f7adb4a53f7d310e73f1bf755bdfcd175fc",
+    "unparsedJSONLines": 0,
+    "records": [
+      {
+        "answer": "Ready to review: [Review table: Supplier quotes](sevra://item/8992a9b3-f3d7-4541-835b-173fdedf441e). Existing accepted values are unchanged. Accept this proposal to continue.",
+        "citations": [
+          "8992a9b3-f3d7-4541-835b-173fdedf441e"
+        ],
+        "jobSeconds": 10.727671027183533,
+        "prompt": "Create a table named Supplier quotes using these actual quoted prices. Three columns: supplier (text), price (decimal), quantity (decimal). Oak Supply quotes 2.40 each for 10 units. Cedar Tools quotes 2.75 each for 10 units. No currency was specified. Use column IDs supplier, price, quantity.",
+        "state": "needs_review",
+        "steps": 1
+      },
+      {
+        "answer": "Oak Supply has the lower unit price at 2.40 per unit, compared to Cedar Tools at 2.75 per unit. The exact price difference is 0.35 per unit.\n\n[Supplier quotes, row 1](sevra://item/e22cf1fb-aa46-42ce-9442-d7e760a33bc2) [Supplier quotes, row 2](sevra://item/e9d2c5f8-fe84-4803-8f5d-749e624fccf0)",
+        "citations": [
+          "e22cf1fb-aa46-42ce-9442-d7e760a33bc2",
+          "e9d2c5f8-fe84-4803-8f5d-749e624fccf0"
+        ],
+        "jobSeconds": 10.65222704410553,
+        "prompt": "Which supplier in Supplier quotes has the lower unit price, and what is the exact price difference? Cite the table evidence. Do not modify the table.",
+        "state": "complete",
+        "steps": 2
+      },
+      {
+        "answer": "Created the space \"Supplier comparison\" containing:\n- The existing Supplier quotes table\n- A bar chart showing unit prices by supplier (Oak Supply at 2.40, Cedar Tools at 2.75)\n\nNo prices were changed and no new table was created.",
+        "citations": [],
+        "jobSeconds": 12.873953938484192,
+        "prompt": "Create a space named Supplier comparison containing the existing Supplier quotes table and a bar chart of its unit prices by supplier. Do not change any prices or create another table.",
+        "state": "complete",
+        "steps": 4
+      },
+      {
+        "answer": "Delivery receipt W-17 confirms that 6 brass bolts were delivered.\n\n[Delivery receipt W-17](sevra://item/605e418a-9149-4fa9-9969-e0e8cef9b1b2?locator=text;%20offset%3D0)",
+        "citations": [
+          "605e418a-9149-4fa9-9969-e0e8cef9b1b2"
+        ],
+        "jobSeconds": 7.754815101623535,
+        "prompt": "Read delivery receipt W-17 and tell me how many brass bolts were delivered. Cite the receipt. Make no workbook changes.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "answer": "I couldn’t find supporting evidence after searching this workbook for “Acme lease”, “Acme”, “lease rent”. The search index reports no incomplete sources. I can’t establish the requested facts from these results.",
+        "citations": [],
+        "jobSeconds": 4.070541977882385,
+        "prompt": "Find the Acme lease and tell me its monthly rent. Search for the evidence in this workbook.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "answer": "12.40 multiplied by 2 equals 24.8.",
+        "citations": [],
+        "jobSeconds": 10.15882694721222,
+        "prompt": "What is 12.40 multiplied by 2? Make no table or other changes.",
+        "state": "complete",
+        "steps": 2
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:03:32Z",
+            "id": "e9c6aaa8-5ef9-4159-a40e-fe9418653970",
+            "metrics": "[{\"acceptedDraftTokens\":6,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.453702,\"draftedTokens\":49,\"firstTokenSeconds\":1.793216791935265,\"generatedTokens\":14,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.792013,\"promptTokens\":7088,\"recoveryReserve\":256,\"requestSeconds\":2.2485456252470613,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":147,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.830549,\"draftedTokens\":273,\"firstTokenSeconds\":0.6841421248391271,\"generatedTokens\":187,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.682801,\"promptTokens\":7206,\"recoveryReserve\":256,\"requestSeconds\":3.514708625152707,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":8,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.251249,\"draftedTokens\":35,\"firstTokenSeconds\":0.7907265415415168,\"generatedTokens\":14,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.789473,\"promptTokens\":7463,\"recoveryReserve\":256,\"requestSeconds\":1.0420016665011644,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":68,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":3.769772,\"draftedTokens\":175,\"firstTokenSeconds\":0.7872087499126792,\"generatedTokens\":94,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.785971,\"promptTokens\":7703,\"recoveryReserve\":256,\"requestSeconds\":4.55775195825845,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "3874c1b6-a33e-4515-aad1-1a3f9cecb203",
+            "status": "complete",
+            "steps": 4,
+            "updated": "2026-10-27T00:03:45Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:03:22Z",
+            "id": "42b69cdd-15bd-4729-b2a6-d8a15f7efb3b",
+            "metrics": "[{\"acceptedDraftTokens\":62,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.600862,\"draftedTokens\":147,\"firstTokenSeconds\":2.9764164998196065,\"generatedTokens\":84,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.976236,\"promptTokens\":6287,\"recoveryReserve\":256,\"requestSeconds\":4.577294083312154,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":114,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.364254,\"draftedTokens\":203,\"firstTokenSeconds\":2.985364708583802,\"generatedTokens\":144,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.985183,\"promptTokens\":6737,\"recoveryReserve\":256,\"requestSeconds\":5.349627916701138,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "5dc3cb2a-51fa-4943-8b64-2e17ffcce447",
+            "status": "complete",
+            "steps": 2,
+            "updated": "2026-10-27T00:03:32Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:03:11Z",
+            "id": "48fb0e8b-60e0-462b-a3de-22b317e9d4b3",
+            "metrics": "[{\"acceptedDraftTokens\":143,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.629457,\"draftedTokens\":245,\"firstTokenSeconds\":2.6125973747111857,\"generatedTokens\":179,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.612362,\"promptTokens\":5324,\"recoveryReserve\":256,\"requestSeconds\":5.242080791387707,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "04e9c9b1-8c28-43bc-bba2-6a53fdad64ae",
+            "status": "needs_review",
+            "steps": 1,
+            "updated": "2026-10-27T00:03:22Z"
+          }
+        ],
+        "workbook": "Suppliers.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:03:45Z",
+            "id": "49781aba-d49e-4d0a-a347-0639772b23ec",
+            "metrics": "[{\"acceptedDraftTokens\":18,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.50133,\"draftedTokens\":56,\"firstTokenSeconds\":1.8343509999103844,\"generatedTokens\":27,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.768554,\"promptTokens\":5280,\"recoveryReserve\":256,\"requestSeconds\":2.3356828331016004,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":43,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.791926,\"draftedTokens\":77,\"firstTokenSeconds\":1.2421367918141186,\"generatedTokens\":55,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.240918,\"promptTokens\":5501,\"recoveryReserve\":256,\"requestSeconds\":2.034091374836862,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":65,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.408461,\"draftedTokens\":133,\"firstTokenSeconds\":0.9461404583416879,\"generatedTokens\":85,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.944932,\"promptTokens\":5941,\"recoveryReserve\":256,\"requestSeconds\":2.354644916485995,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "6bb3b5f2-f2c7-4a54-9f63-39dd222021d3",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-27T00:03:53Z"
+          }
+        ],
+        "workbook": "Hostile.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:03:53Z",
+            "id": "591aad5f-995f-4c1d-97cd-1c2ef6222389",
+            "metrics": "[{\"acceptedDraftTokens\":17,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.479944,\"draftedTokens\":56,\"firstTokenSeconds\":1.2056867498904467,\"generatedTokens\":26,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.204444,\"promptTokens\":5269,\"recoveryReserve\":256,\"requestSeconds\":1.6856460417620838,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":17,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.383334,\"draftedTokens\":49,\"firstTokenSeconds\":0.3899752916768193,\"generatedTokens\":25,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.38865,\"promptTokens\":5321,\"recoveryReserve\":256,\"requestSeconds\":0.773332417011261,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":19,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.295485,\"draftedTokens\":35,\"firstTokenSeconds\":0.32009116653352976,\"generatedTokens\":25,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.318856,\"promptTokens\":5372,\"recoveryReserve\":256,\"requestSeconds\":0.6155918333679438,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "d7457e00-c3d2-42d3-b48a-81910b016834",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-27T00:03:57Z"
+          }
+        ],
+        "workbook": "Missing.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:03:58Z",
+            "id": "dc13394d-6c30-4be0-9ac9-a92954cd07f6",
+            "metrics": "[{\"acceptedDraftTokens\":23,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.599508,\"draftedTokens\":63,\"firstTokenSeconds\":2.2538874582387507,\"generatedTokens\":33,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.253649,\"promptTokens\":5436,\"recoveryReserve\":256,\"requestSeconds\":2.8534148749895394,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":39,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.855033,\"draftedTokens\":91,\"firstTokenSeconds\":0.47042654175311327,\"generatedTokens\":53,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.466158,\"promptTokens\":5499,\"recoveryReserve\":256,\"requestSeconds\":1.3254919168539345,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "76332391-7da9-405a-988b-24c8a96f9af5",
+            "status": "complete",
+            "steps": 2,
+            "updated": "2026-10-27T00:04:08Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:03:57Z",
+            "id": "67433431-7922-4457-a936-41c81a6feba2",
+            "metrics": "[]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "9ea0ecc2-2f93-41ee-92fe-340e0a319c4b",
+            "status": "cancelled",
+            "steps": 0,
+            "updated": "2026-10-27T00:03:58Z"
+          }
+        ],
+        "workbook": "Cancelled.sevra"
+      }
+    ]
+  },
+  "developmentFailures": [
+    {
+      "case": "summary_output_limit",
+      "description": "The first 10-note schema exceeded the 1400-token output limit; no partial checkpoint was published.",
+      "logSHA256": "95774730f097f726a9c5398ac21ff8c193a877da891a2b19187c5caed03a96bc"
+    },
+    {
+      "case": "forgotten_exact_constraint",
+      "description": "A shorter summary completed but failed per-checkpoint retention of MAPLE-27 and 0.10 kg. Added host retention of user-backed durable notes.",
+      "logSHA256": "a128fe415140fa75d7e0c2c772dd106517327288674167a46f0dbc11dca145ed"
+    },
+    {
+      "case": "unrequested_proposal",
+      "description": "A reopened recall task proposed a table despite Make no changes. Added host read-only restrictions for recognized explicit current-request sentences.",
+      "logSHA256": "a2b2e4c7078b75304c930c27fe5a6be051dcf81c3adef7bc9eaa22f074df2f37"
+    },
+    {
+      "case": "8k_exhaustion_and_teardown_hang",
+      "description": "An adversarial status job exhausted 8K context. Cleanup then hung in Foundation waitUntilExit; the test process was stopped after saving its failed state. Teardown now uses bounded termination notification and retains leases on failed reap.",
+      "logSHA256": "2b13c14e150f9eb291319c1ef07e833091930bb5526858f530d4b9075a0ab70a"
+    },
+    {
+      "case": "current_version_citation",
+      "description": "Accepted-forecast answer lacked a citation to the accepted version. Reads now identify current/historical versions and provide a current-version navigation pointer.",
+      "logSHA256": "0ead214ba073286d3bae42d3eaf68f8b8579884a79171b9bc61155e6a614b295"
+    },
+    {
+      "case": "legacy_retry",
+      "description": "The retry reached its step limit. Preserve legacy digests verbatim and retain originals.",
+      "logSHA256": "b922ab7e4f67a3c1c6c835bf1b3a156b2bc7b2e93ffbc227eefc85662aa034b5"
+    },
+    {
+      "case": "search_routing",
+      "description": "Retry searched business documents instead of original conversation. Clarified index scope.",
+      "logSHA256": "1d77e526ae902006633055fed29399daf03f0d765c9d01eb5e8b85e766c38b04"
+    },
+    {
+      "case": "baseline_opt_in_recall",
+      "description": "Slotstream opt-in compaction searched business documents and failed recall. Production compaction stays disabled; later prompt/citation changes have not been qualified on this backend.",
+      "logSHA256": "b133274e0580e8aff3c362967f9c9d38cd472461e854bdd49823948c35f107e2"
+    },
+    {
+      "case": "missing_table_component",
+      "description": "The generated space contained a chart but omitted the requested existing table. Clarified the difference between a table component and creating a dataset.",
+      "logSHA256": "9f703a89198fe6961a88a8df75f8f0a7f150300c888feb0d2cd5e2947893e41c"
+    },
+    {
+      "case": "conversation_citation_gap",
+      "description": "Repeated reopen recovered the originals but exhausted the step limit. Added original-message citations distinct from business item evidence.",
+      "logSHA256": "19fd10933c77899ce949c2f307abe43ccbd237d0e8ffd5e47cddb38af376a0eb"
+    }
+  ],
+  "qualification": {
+    "nativeAdoptedInProduction": false,
+    "productionSlotstreamAutomaticCompaction": false,
+    "32KQualifiedAsProductDefault": false,
+    "repeatableEndToEndContinuity": false,
+    "matchedPerformanceComparison": false,
+    "processKillRecovery": false,
+    "wholeAppRelease": false
+  },
+  "limits": [
+    "Actual-model recall remains inconsistent, including after successful earlier probes. Current latest continuity fixture fails its retry stage.",
+    "Earlier passing logs precede later small host and citation changes; they are developmental evidence, not a blanket regression pass.",
+    "The 8K threshold adapts to a large irreducible policy; full next-result headroom is not qualified.",
+    "Durable note accumulation and semantic retirement, long-form and multilingual fidelity, broad kill/restart and general persisted-job resumption remain open.",
+    "Tool-only digest claims are projected as exact historical references; current state comes from the host. Legacy unstructured text remains verbatim and untrusted.",
+    "The explicit read-only phrase recognizer is a narrow extra denial rule, not a complete intent authorization system.",
+    "Large saved results still parse the full structured JSON before paging; complete oversized results are not entirely FTS-indexed.",
+    "Timing includes development setup and may overlap compilation. No matched speed, peak-memory, thermal or power claim.",
+    "UI/voice, native resumable setup, production packaging, wider hardware and fresh public-clone release gates remain open."
+  ],
+  "sourceHashes": {
+    "IntegrationTests/Agent/AgentLifecycleChecks.swift": "02f59e378bb6be774a4cb7533592f875ed19d08eb557f744fd865759abb1dd2e",
+    "IntegrationTests/Agent/CompactionChecks.swift": "3bdf31c44706f8100fcdb0ea503273b517a4e6c7c82bf9b4cb6a2226215eec42",
+    "IntegrationTests/Agent/HistoryToolChecks.swift": "da03d3976fd4462902e7b0334b4d998421ecc5234b1ac5b63fba92b78b7485f1",
+    "IntegrationTests/Agent/NativeAgentProbe.swift": "0381ba1a1832181eca4a2d2cac2abe60c628f15f1d1f2e8816ba9ed4f8adfe72",
+    "IntegrationTests/Agent/NativeContinuityProbe.swift": "bba1308ba16cc0b94937b79b87a0f1b8322d980953ffbc1f6d807c7760f871d8",
+    "IntegrationTests/Agent/main.swift": "c31c0b79e7730dc388f9403ffed3c9f33693c8148aebb8c399aaf25d4ec340fa",
+    "IntegrationTests/Agent/tool-grammar-fixtures.json": "a8e1d48aae5550337313d591d82f56bd202f883869d617e6ceb2103a08c26f92",
+    "IntegrationTests/Agent/workbook-tools.json": "4d945f139c9a9d4585fb86c709048a73a9a260830e42134a8558f3c398291351",
+    "IntegrationTests/Splash/main.swift": "350cfd991ff11eb9b4e58e306a2dc60ce74d5caec8e3d720b971b7eaf413525a",
+    "Sources/SevraAI/ContextDigest.swift": "9abf4f5c9c7f7118d19d618371d6b42bc92a3d5114d67f49a821f3fd7ec911b2",
+    "Sources/SevraAI/ContextMaintenance.swift": "af8bf18d829b0d2f425c1de8d3a5a4249b599ab15e9cab8a1e4030c942775f2d",
+    "Sources/SevraAI/LocalModel.swift": "def0e3b2154c02fb9a155553cb9ac58d149c234cbf472f25b079a078375c4af5",
+    "Sources/SevraAI/NativeTools.swift": "b269ac42f1d7c7932bb280ef161041a24721e2f9f6b97caa3f592367a9ea44b8",
+    "Sources/SevraAI/RequestRestrictions.swift": "bc40ee3e65fe27273f86dd08bfb8186a3aabf98d9bac2aead1f832dba31109f7",
+    "Sources/SevraAI/WorkbookAgent.swift": "8d5a6e45bc14b785bb2dc3e6db2c47439c583771e8b635afe039f33fdc3172a1",
+    "Sources/SevraAI/WorkbookInference.swift": "b6702a8c367687521d5c0090c5ce80f61457d52a059dd9541c66a48206da764a",
+    "Sources/SevraCore/ContinuationState.swift": "e6edabf72fb0a11ca0204d47726f1ffedbd7d766e8f02f65437cf5ed3cc9aa19",
+    "Sources/SevraCore/Tools.swift": "52304e2875d5cc66e5073035f0bbfc37ed3ede945e048dcaa051ebd5d27881bc",
+    "Sources/SevraNativeAI/NativeCitationPolicy.swift": "e86dd1f7af7a77f36f699abc8c7cb628c4a033a468bcae1ba194225b519a638b",
+    "Sources/SevraNativeAI/NativeWorkbookModel.swift": "9bdbe34807f8005189ba0028ec565154a3d7adc100d7704d26ba86c2567c1de2",
+    "Sources/SevraSplash/NativeProcess.swift": "122cf94d96363831eb51172b515c35e46a62a8e3a88eb3f41e74567a8fc709ab",
+    "Sources/SevraSplashText/TextFrontend.swift": "59103e0a85b86117b38d62e17069e16755a4f195fff993b15448a54f9e7b078c",
+    "skills/sevra/SKILL.md": "ce0200ea874d2babf8ac15cc7b154182c39de1230d39d336d1f3f7ce6930c7ed",
+    "skills/update-splash/SKILL.md": "b7d49a8097254a2c6a5c2f2a0f43c33fa4938a9e5f8d927bf1b8b8a70a3b85ec"
+  },
+  "currentNativeAutonomous": {
+    "fixtureOutcome": "passed",
+    "contextTokens": 32768,
+    "logSHA256": "85b5a85955c675088b692a9d67b89882a61504f2dc43b732f5f1b2c4eee9ade1",
+    "records": [
+      {
+        "answer": "Ready to review: [Review table: Supplier quotes](sevra://item/84dd0fea-8ca8-4210-98ef-484374320a80). Existing accepted values are unchanged. Accept this proposal to continue.",
+        "citations": [
+          "84dd0fea-8ca8-4210-98ef-484374320a80"
+        ],
+        "jobSeconds": 10.306043982505798,
+        "prompt": "Create a table named Supplier quotes using these actual quoted prices. Three columns: supplier (text), price (decimal), quantity (decimal). Oak Supply quotes 2.40 each for 10 units. Cedar Tools quotes 2.75 each for 10 units. No currency was specified. Use column IDs supplier, price, quantity.",
+        "state": "needs_review",
+        "steps": 1
+      },
+      {
+        "answer": "Oak Supply has the lower unit price at 2.40, compared to Cedar Tools at 2.75. The exact price difference is 0.35.\n\n[Supplier quotes, row 1](sevra://item/f89e23d3-e14a-4144-9ed4-6b72f717f13d) [Supplier quotes, row 2](sevra://item/35d4cf85-7b16-4ff2-a60f-7efd8d9b5b99)",
+        "citations": [
+          "f89e23d3-e14a-4144-9ed4-6b72f717f13d",
+          "35d4cf85-7b16-4ff2-a60f-7efd8d9b5b99"
+        ],
+        "jobSeconds": 9.281947016716003,
+        "prompt": "Which supplier in Supplier quotes has the lower unit price, and what is the exact price difference? Cite the table evidence. Do not modify the table.",
+        "state": "complete",
+        "steps": 2
+      },
+      {
+        "answer": "Created the space \"Supplier comparison\" containing:\n- The existing Supplier quotes table\n- A bar chart showing unit prices by supplier (Oak Supply at 2.40, Cedar Tools at 2.75)\n\nNo prices were changed and no new table was created.",
+        "citations": [],
+        "jobSeconds": 10.626198053359985,
+        "prompt": "Create a space named Supplier comparison containing the existing Supplier quotes table and a bar chart of its unit prices by supplier. Do not change any prices or create another table.",
+        "state": "complete",
+        "steps": 4
+      },
+      {
+        "answer": "Delivery receipt W-17 confirms that 6 brass bolts were delivered.\n\n[Delivery receipt W-17](sevra://item/47ebb241-a56c-430a-b94e-0c6027e9e7e6?locator=text;%20offset%3D0)",
+        "citations": [
+          "47ebb241-a56c-430a-b94e-0c6027e9e7e6"
+        ],
+        "jobSeconds": 7.309985995292664,
+        "prompt": "Read delivery receipt W-17 and tell me how many brass bolts were delivered. Cite the receipt. Make no workbook changes.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "answer": "I couldn’t find supporting evidence after searching this workbook for “Acme lease”, “Acme”, “lease rent”. The search index reports no incomplete sources. I can’t establish the requested facts from these results.",
+        "citations": [],
+        "jobSeconds": 4.224117994308472,
+        "prompt": "Find the Acme lease and tell me its monthly rent. Search for the evidence in this workbook.",
+        "state": "complete",
+        "steps": 3
+      },
+      {
+        "answer": "12.40 multiplied by 2 equals 24.8.",
+        "citations": [],
+        "jobSeconds": 9.98092496395111,
+        "prompt": "What is 12.40 multiplied by 2? Make no table or other changes.",
+        "state": "complete",
+        "steps": 2
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:22:53Z",
+            "id": "b4f00c7b-906c-46eb-aa8a-b03da8c5d3bd",
+            "metrics": "[{\"acceptedDraftTokens\":5,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.494433,\"draftedTokens\":56,\"firstTokenSeconds\":1.6788640832528472,\"generatedTokens\":14,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.677627,\"promptTokens\":7107,\"recoveryReserve\":256,\"requestSeconds\":2.173325541894883,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":145,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.609143,\"draftedTokens\":259,\"firstTokenSeconds\":0.7058170000091195,\"generatedTokens\":183,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.704495,\"promptTokens\":7223,\"recoveryReserve\":256,\"requestSeconds\":3.31494174990803,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":8,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.238117,\"draftedTokens\":35,\"firstTokenSeconds\":0.73175666667521,\"generatedTokens\":14,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.730496,\"promptTokens\":7483,\"recoveryReserve\":256,\"requestSeconds\":0.9698557085357606,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":67,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.797767,\"draftedTokens\":182,\"firstTokenSeconds\":0.7739237914793193,\"generatedTokens\":94,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.7727,\"promptTokens\":7726,\"recoveryReserve\":256,\"requestSeconds\":2.5717055830173194,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "36478268-84dc-40d9-a660-28e57af2146d",
+            "status": "complete",
+            "steps": 4,
+            "updated": "2026-10-27T00:23:03Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:22:43Z",
+            "id": "687b0dc5-2d02-4a8c-92e1-18e8c5554126",
+            "metrics": "[{\"acceptedDraftTokens\":62,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.31879,\"draftedTokens\":133,\"firstTokenSeconds\":2.404834750108421,\"generatedTokens\":82,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.404665,\"promptTokens\":6316,\"recoveryReserve\":256,\"requestSeconds\":3.723650041501969,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":111,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.296624,\"draftedTokens\":203,\"firstTokenSeconds\":2.5087150000035763,\"generatedTokens\":141,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.508565,\"promptTokens\":6771,\"recoveryReserve\":256,\"requestSeconds\":4.805370416492224,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "516a4645-1cfc-47d5-835d-118fa3fe6e40",
+            "status": "complete",
+            "steps": 2,
+            "updated": "2026-10-27T00:22:53Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:22:33Z",
+            "id": "cb3cffed-dbef-4621-b82b-d5e45c1df4cc",
+            "metrics": "[{\"acceptedDraftTokens\":140,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.655742,\"draftedTokens\":266,\"firstTokenSeconds\":2.169655541423708,\"generatedTokens\":179,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.169505,\"promptTokens\":5372,\"recoveryReserve\":256,\"requestSeconds\":4.825436791405082,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "4f488d7d-1a3c-41bb-8f58-8133e56128be",
+            "status": "needs_review",
+            "steps": 1,
+            "updated": "2026-10-27T00:22:43Z"
+          }
+        ],
+        "workbook": "Suppliers.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:23:03Z",
+            "id": "84a50024-4604-4855-b850-21c2e3941702",
+            "metrics": "[{\"acceptedDraftTokens\":17,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.693948,\"draftedTokens\":77,\"firstTokenSeconds\":1.1752785830758512,\"generatedTokens\":29,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.153029,\"promptTokens\":5338,\"recoveryReserve\":256,\"requestSeconds\":1.8692590417340398,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":44,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.747326,\"draftedTokens\":70,\"firstTokenSeconds\":1.2408533748239279,\"generatedTokens\":55,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.239624,\"promptTokens\":5560,\"recoveryReserve\":256,\"requestSeconds\":1.9881910416297615,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":64,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":1.451593,\"draftedTokens\":140,\"firstTokenSeconds\":0.9267426249571145,\"generatedTokens\":85,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.92553,\"promptTokens\":5999,\"recoveryReserve\":256,\"requestSeconds\":2.3783637080341578,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "a879ad95-87f3-42c0-ac0d-0267b02d8976",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-27T00:23:11Z"
+          }
+        ],
+        "workbook": "Hostile.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:23:11Z",
+            "id": "b8cba5fe-88bc-4b30-bcda-543a7ef28956",
+            "metrics": "[{\"acceptedDraftTokens\":16,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.54445,\"draftedTokens\":63,\"firstTokenSeconds\":1.1790110832080245,\"generatedTokens\":26,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.177789,\"promptTokens\":5323,\"recoveryReserve\":256,\"requestSeconds\":1.7234755833633244,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":16,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.435138,\"draftedTokens\":56,\"firstTokenSeconds\":0.30899150017648935,\"generatedTokens\":25,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.307772,\"promptTokens\":5375,\"recoveryReserve\":256,\"requestSeconds\":0.7441538753919303,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":19,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.265492,\"draftedTokens\":35,\"firstTokenSeconds\":0.43811520794406533,\"generatedTokens\":25,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.436894,\"promptTokens\":5426,\"recoveryReserve\":256,\"requestSeconds\":0.7036261665634811,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "d875e7b1-b232-4245-9daa-51804104d652",
+            "status": "complete",
+            "steps": 3,
+            "updated": "2026-10-27T00:23:15Z"
+          }
+        ],
+        "workbook": "Missing.sevra"
+      },
+      {
+        "runs": [
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:23:15Z",
+            "id": "511c5a62-f75a-4cb1-86da-f887836f0c24",
+            "metrics": "[{\"acceptedDraftTokens\":23,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.6089,\"draftedTokens\":63,\"firstTokenSeconds\":2.2131489999592304,\"generatedTokens\":33,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":2.212977,\"promptTokens\":5475,\"recoveryReserve\":256,\"requestSeconds\":2.822060541715473,\"speculativeMethod\":\"DFlash2\"},{\"acceptedDraftTokens\":39,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":0.789657,\"draftedTokens\":91,\"firstTokenSeconds\":0.531482208520174,\"generatedTokens\":53,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":0.52732,\"promptTokens\":5538,\"recoveryReserve\":256,\"requestSeconds\":1.3211578750051558,\"speculativeMethod\":\"DFlash2\"}]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "88aeacd9-45f1-4c31-8469-2a9460bd4286",
+            "status": "complete",
+            "steps": 2,
+            "updated": "2026-10-27T00:23:25Z"
+          },
+          {
+            "conversation_id": "main",
+            "created": "2026-10-27T00:23:15Z",
+            "id": "26adc36b-9214-44ee-ac1b-d963d6e4c0a5",
+            "metrics": "[]",
+            "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate",
+            "request_message_id": "67caf4fc-ca98-4910-afe1-b7e77eaf1aba",
+            "status": "cancelled",
+            "steps": 0,
+            "updated": "2026-10-27T00:23:15Z"
+          }
+        ],
+        "workbook": "Cancelled.sevra"
+      }
+    ]
+  }
+}

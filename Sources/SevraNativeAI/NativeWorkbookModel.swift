@@ -81,7 +81,10 @@ package actor NativeWorkbookModel: WorkbookInference {
     active = true
     idleRelease?.cancel()
     idleRelease = nil
-    await worker.close()
+    guard await worker.close() else {
+      active = false
+      return false
+    }
     if processLock >= 0 {
       flock(processLock, LOCK_UN)
       Darwin.close(processLock)
@@ -96,6 +99,45 @@ package actor NativeWorkbookModel: WorkbookInference {
     // Release the lease only after the worker has reaped its helper, including
     // when an owner disappears without an explicit unload.
     worker.shutdown(releasing: processLock)
+  }
+
+  package var supportsCompaction: Bool { true }
+  package func measureContext(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+  ) async throws -> ContextMeasurement {
+    try require(leased && !active, "busy", "The native model needs an exclusive workbook run.")
+    active = true
+    defer { active = false }
+    return try await withTaskCancellationHandler {
+      if Task.isCancelled { cancellation.cancel() }
+      try cancellation.check()
+      return try await worker.measureContext(
+        messages: messages, directory: directory,
+        cancellation: cancellation, summary: summary, citationIDs: citationIDs, progress: progress)
+    } onCancel: {
+      cancellation.cancel()
+    }
+  }
+  package func summarize(
+    messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
+    cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+  ) async throws -> String {
+    try require(leased && !active, "busy", "The native model needs an exclusive workbook run.")
+    active = true
+    defer { active = false }
+    return try await withTaskCancellationHandler {
+      if Task.isCancelled { cancellation.cancel() }
+      try cancellation.check()
+      let result = try await worker.summarize(
+        messages: messages, allowedMessageIDs: allowedMessageIDs,
+        directory: directory, cancellation: cancellation, progress: progress)
+      try cancellation.check()
+      lastMetrics = result.1
+      return result.0
+    } onCancel: {
+      cancellation.cancel()
+    }
   }
 
   package func respond(
@@ -194,17 +236,22 @@ private final class NativeWorker: @unchecked Sendable {
     }
   }
 
-  func close() async {
+  func close() async -> Bool {
     await withCheckedContinuation { continuation in
       queue.async {
+        guard self.session?.helper.close() != false else {
+          continuation.resume(returning: false)
+          return
+        }
         self.session = nil
-        continuation.resume()
+        continuation.resume(returning: true)
       }
     }
   }
 
   func shutdown(releasing descriptor: Int32) {
     queue.async {
+      guard self.session?.helper.close() != false else { return }
       self.session = nil
       if descriptor >= 0 {
         flock(descriptor, LOCK_UN)
@@ -217,27 +264,112 @@ private final class NativeWorker: @unchecked Sendable {
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, finishOnly: Bool, citationIDs: [String]
   ) async throws -> (NativeReply, Value) {
+    try await perform(directory: directory, cancellation: cancellation, progress: progress) {
+      session in
+      try self.generate(messages, session, cancellation, progress, finishOnly, citationIDs)
+    }
+  }
+  private func perform<T>(
+    directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void, action: @escaping (Session) throws -> T
+  ) async throws -> T {
     try await withCheckedThrowingContinuation { continuation in
       queue.async {
         do {
           try cancellation.check()
           let directory = directory.standardizedFileURL.resolvingSymlinksInPath()
           if self.session?.directory != directory {
+            try require(
+              self.session?.helper.close() != false, "native_shutdown",
+              "The previous native helper has not stopped. Retry unloading it.")
             self.session = nil
             self.session = try Session(
               directory: directory, configuration: self.configuration,
               cancellation: cancellation, progress: progress)
           }
-          let result = try self.generate(
-            messages, self.session!, cancellation, progress, finishOnly, citationIDs)
+          let result = try action(self.session!)
+          try cancellation.check()
           continuation.resume(returning: result)
         } catch {
-          // A failed stream cannot leave hidden engine/grammar state for another
-          // job. The next explicit request starts a new verified helper.
-          self.session = nil
+          if self.session?.helper.close() != false { self.session = nil }
           continuation.resume(throwing: error)
         }
       }
+    }
+  }
+  func measureContext(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+  ) async throws -> ContextMeasurement {
+    try await perform(directory: directory, cancellation: cancellation, progress: progress) {
+      session in
+      let tools = summary ? nil : try NativeCitationPolicy.make(citationIDs).promptTools()
+      let prompt = try session.frontend.prepare(
+        messages: messages.map(Self.templateMessage),
+        tools: tools, contextLimit: SplashWire.maxTokens)
+      return ContextMeasurement(
+        promptTokens: prompt.tokens.count,
+        capacity: self.configuration.contextBudget.contextTokens,
+        templateIdentity: session.frontend.templateIdentity)
+    }
+  }
+  func summarize(
+    messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
+    cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+  ) async throws -> (String, Value) {
+    try await perform(directory: directory, cancellation: cancellation, progress: progress) {
+      session in
+      try require(
+        !allowedMessageIDs.isEmpty && allowedMessageIDs.count <= 540,
+        "context_digest", "The summary needs a bounded set of original messages.")
+      let prompt = try session.frontend.prepare(
+        messages: messages.map(Self.templateMessage),
+        contextLimit: self.configuration.contextBudget.contextTokens)
+      try require(
+        prompt.tokens.count + ContextDigest.maximumOutputTokens
+          <= self.configuration.contextBudget.contextTokens,
+        "context_limit", "The history batch exceeds its summary budget.")
+      let constraint = try session.factory.create(
+        grammar: ContextDigest.schema(allowedMessageIDs: allowedMessageIDs), type: "json")
+      let output = try SplashOutputStream(frontend: session.frontend, structured: true)
+      session.requestID += 1
+      var request = SplashWire.Request(
+        id: session.requestID, prompt: prompt.tokens,
+        absoluteDeadline: UInt64((Date().timeIntervalSince1970 + 180) * 1e6),
+        remainingDeadline: 180_000_000)
+      request.maxOutput = UInt32(ContextDigest.maximumOutputTokens)
+      request.generationTokens = prompt.generationTokens
+      request.tokenMask = true
+      try cancellation.check()
+      progress("Keeping conversation context")
+      let generated = try session.helper.generate(
+        request,
+        cancelled: { cancellation.isCancelled || cancellation.isExpired },
+        mask: { try constraint.masks(committed: $0, simulation: $1, words: $2) },
+        event: { event in
+          if case .tokens(_, _, let tokens) = event { _ = try output.append(tokens: tokens) }
+        })
+      try cancellation.check()
+      try require(
+        generated.done.reason == .stop && !generated.done.bounded,
+        "context_digest", "Context maintenance did not finish. Original history is preserved.")
+      try constraint.finish(committed: generated.tokens, requireComplete: true)
+      let parsed = try output.finish(generated.done.reason).0
+      try require(parsed.calls.isEmpty, "context_digest", "Context maintenance cannot call tools.")
+      _ = try ContextDigest.validate(parsed.text, allowedMessageIDs: Set(allowedMessageIDs))
+      return (
+        parsed.text,
+        .object([
+          "phase": .string("context_summary"), "backend": .string("splash-native-candidate"),
+          "promptTokens": .number(Double(prompt.tokens.count)),
+          "contextTokens": .number(Double(self.configuration.contextBudget.contextTokens)),
+          "generatedTokens": .number(Double(generated.tokens.count)),
+          "requestSeconds": .number(generated.requestSeconds),
+          "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
+          "prefillSeconds": .number(Double(generated.done.prefillMicros) / 1e6),
+          "decodeSeconds": .number(Double(generated.done.decodeMicros) / 1e6),
+        ])
+      )
     }
   }
 

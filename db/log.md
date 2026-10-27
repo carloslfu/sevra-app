@@ -109,3 +109,12 @@ Added schema-3 tool journals, atomic result/message completion, exact bounded re
 ## [2026-10-26 22:54] design | records/reviews/design-passes.md
 Reviewed continuity/authority, interrupted execution, exact paged results, append-safe history cursors and unresolved limits.
 
+## [2026-10-27 00:28] implementation | records/operations/implementation.md
+Implemented candidate automatic context maintenance, exact-original conversation citations, current-state reconstruction, read-only denials, historical/current-version read pointers, and bounded native teardown. Production Slotstream compaction remains disabled.
+
+## [2026-10-27 00:28] verification | records/operations/implementation.md
+59 core and 21 transport/preparation checks, 33 shutdown trials, full prompt/grammar suite, release build, isolated install/update/uninstall, receipt/history CLI and concurrent-writer checks pass. Current 32K native autonomous workflow passes five complete, one needs-review and one cancelled job. Latest continuity probe fails explicit retry recall despite passing prior stages; C12/J10 and native adoption remain open. Evidence: integration/evidence/2026-10-26-context-maintenance.json.
+
+## [2026-10-27 00:28] design | records/specs/conversation-context.md
+Separate original-message citations from business item versions and tool-only digest references from host-owned current status. Preserve legacy text and durable user constraints; retain observed failed attempts and incomplete qualification.
+

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-26T22:52:51.595523+00:00
+updated: 2026-10-27T00:26:44.099422+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -99,7 +99,11 @@ source text remain untrusted for present authority.
 C10. Provide bounded, searchable conversation history and exact message/tool
 receipt retrieval in addition to the existing document/record search. The agent
 can recover details omitted by a summary using message IDs, ranges and evidence
-locators. Cite original versions for business claims, not the digest alone. Track
+locators. Cite original versions for business claims, not the digest alone. Original
+conversation statements use a separate message:ID citation returned only after
+reading an eligible message. The current request and later messages cannot be
+presented as earlier evidence. In-app links open that original exchange; they do
+not make the message a business Record or grant permission. Track
 what evidence is present in the current working context; an ID remembered in a
 summary alone does not count as newly inspected evidence. Disclose retrieval gaps.
 
@@ -148,10 +152,13 @@ The first instrumentation stage now provides internal 8K/32K/64K evaluation
 profiles. Native startup and prompt rendering use the same configured capacity.
 Exact prompt counts determine output allowance and a maintenance recommendation
 with provisional reserves of 1,800 output, 2,048 next-result and 256 recovery tokens.
-The recommendation is currently diagnostic; no controller acts on it yet. The 8K
-profile's tool policy can itself exceed that provisional threshold. A controller
-must detect this irreducible floor rather than repeatedly compact unchanged
-history; reserve sizes or supported profiles require measured selection.
+A controller now measures the exact rendered prompt and acts before each normal
+agent dispatch and after completed tool groups. The 8K policy can itself exceed
+that provisional threshold, so this development profile uses a measured irreducible
+floor plus reclaimable-history allowance. It still reserves 1,800 output tokens.
+The full provisional next-result/recovery reserve is not a qualified guarantee
+under that adaptive threshold; wider profiles and context-sized projections remain
+required. A too-large request or latest result fails without cutting originals.
 
 The storage foundation now supports durable, chained context checkpoints at
 completed-turn or recorded tool-result boundaries. A mid-run checkpoint preserves
@@ -162,8 +169,10 @@ the shared core and CLI. Schema-1 migration and offline export/reopen are tested
 New runs link to their request messages and completed native receipts preserve
 call/run identity. Legacy messages remain intact without invented metadata.
 
-The agent still starts with bounded recent history and explicit closed outcomes,
-but can now call history_search/history_read for older originals in its conversation.
+With a qualified compaction-capable adapter, the shared agent can load its latest
+verified checkpoint, reconstruct current
+host state and compact original history into a smaller working context. It can
+call history_search/history_read for older originals in its conversation.
 Search excludes the current run's request and subsequent messages so a question
 cannot masquerade as the earlier answer. Append-safe cursors survive receipt writes.
 A real native 8K probe retrieves an original beyond 110 closed messages, reads it
@@ -178,11 +187,39 @@ with missing final receipts expose real committed-operation proof, retain uncert
 for partial intake and cannot be replayed under the same call identity. Resumed
 conversation includes a bounded host report of unresolved calls, not authorization.
 
-The agent does not yet create summaries, schedule compaction or automatically
-resume a persisted multi-step job after process death. A prepared journal makes
-an uncertain interval inspectable; it is not the complete action-recovery controller.
-A resolution flow, streamed large-result memory checks, repeated compaction,
-kill/restart injection and full long-task J10 qualification remain required.
+The candidate controller now creates tool-free, schema-validated notes with exact original
+message references. It preserves the current request and latest call/result group,
+reconstructs current proposal meaning/status and committed operation identities,
+and retains an eight-entry unresolved-call report with the total count. Tool-only digest claims are projected as historical retrieval references, rather
+than competing prose about mutable status. A digest cannot grant citations. After compaction, calculation/currency evidence that left
+the working context must be inspected again. Checkpoints publish atomically only
+after validating the unchanged source range and refreshing the workbook revision.
+
+The first native attempt exceeded its summary output budget. A shorter schema
+finished, but a stronger check found it forgot an exact earlier user value. The
+current conversation-notes-v2 format keeps bounded typed notes; the host preserves
+previous user-backed fact/constraint/decision notes instead of letting routine
+progress displace them. Raw generated notes have at most six entries, 240 Unicode
+scalars each and one or two exact references. The merged saved digest remains at
+most 16 KiB. The host does not claim the initial model extraction is infallible:
+original messages remain retrievable, older unstructured checkpoints remain
+verbatim in a bounded legacyDigest field, contradictions stay visible, and unlimited
+note growth or semantic retirement is not solved by dropping old constraints.
+
+Backfill currently processes at most 128 original messages at a time, with whole
+entries and token-measured smaller batches. Its latency is foreground work. Native repeated-compaction, authority and recovery results are mixed: a later
+retry still searched business documents instead of recalling original conversation.
+Repeated end-to-end continuity is not qualified. Detailed results belong in the implementation
+register and evidence; synthetic controller checks alone are not model quality.
+The preserved Slotstream adapter has a separate opt-in qualification probe. It
+failed recall by searching business documents instead of conversation history, so
+production Slotstream keeps automatic compaction disabled. This is an explicit
+capability gate, not a runtime switch or hidden provider fallback.
+
+General persisted-job restart after process death remains unfinished. A prepared
+journal makes an uncertain interval inspectable; it is not the complete action
+recovery controller. Resolution UI, streamed large-result memory checks, broad
+kill/restart injection, sustained larger-context jobs and full J10 remain required.
 
 See [[records/specs/intelligence]], [[records/specs/storage]],
 [[records/specs/product]], [[records/specs/splash-integration]] and

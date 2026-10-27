@@ -16,6 +16,9 @@ public final class SplashNativeProcess {
     public let requestSeconds: Double
   }
   private let process = Process()
+  private let terminated = DispatchSemaphore(value: 0)
+  private var started = false
+  private var reaped = false
   private let input = Pipe(), output = Pipe(), errors = Pipe()
   private var decoder = SplashWire.Decoder()
   private var pending = Data()
@@ -40,8 +43,11 @@ public final class SplashNativeProcess {
     process.standardInput = input
     process.standardOutput = output
     process.standardError = errors
+    let terminated = self.terminated
+    process.terminationHandler = { _ in terminated.signal() }
     do {
       try process.run()
+      started = true
       // Parent retains only its ends. EOF and teardown must not depend on Pipe deinit.
       try input.fileHandleForReading.close()
       try output.fileHandleForWriting.close()
@@ -243,21 +249,26 @@ public final class SplashNativeProcess {
     return Data(bytes.prefix(count))
   }
 
-  public func close() {
-    if closed { return }
+  @discardableResult public func close() -> Bool {
+    if closed && reaped { return true }
     closed = true
     try? input.fileHandleForWriting.close()
-    if process.isRunning {
+    if !started || !process.isRunning { reaped = true }
+    if !reaped {
       process.terminate()
-      let limit = clock + 1
-      while process.isRunning && clock < limit { usleep(10_000) }
-      if process.isRunning { Darwin.kill(process.processIdentifier, SIGKILL) }
-      process.waitUntilExit()
+      reaped = terminated.wait(timeout: .now() + 1) == .success || !process.isRunning
+      if !reaped {
+        Darwin.kill(process.processIdentifier, SIGKILL)
+        reaped = terminated.wait(timeout: .now() + 3) == .success || !process.isRunning
+      }
     }
     try? output.fileHandleForReading.close()
     try? errors.fileHandleForReading.close()
     pending.removeAll()
     pendingOffset = 0
     ready = nil
+    // Never enter Foundation's unbounded waitUntilExit from the serial worker.
+    // A failed bounded reap leaves the owning model lease held for explicit retry.
+    return reaped
   }
 }

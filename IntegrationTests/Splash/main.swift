@@ -40,6 +40,7 @@ func readExactly(_ count: Int) throws -> Data? {
 }
 func emit(_ data: Data) throws { try FileHandle.standardOutput.write(contentsOf: data) }
 func peer(_ mode: String) throws {
+  if mode == "ignore-terminate" { signal(SIGTERM, SIG_IGN) }
   if mode == "startup-stall" {
     sleep(10)
     return
@@ -56,6 +57,7 @@ func peer(_ mode: String) throws {
     try FileHandle.standardError.write(contentsOf: Data(repeating: 120, count: 262144))
   }
   for byte in golden["ready"]! { try emit(Data([byte])) }
+  if mode == "ignore-terminate" { while true { pause() } }
   if mode == "crash" { return }
   while let header = try readExactly(16) {
     let type = get(header, 6, width: 2)
@@ -329,6 +331,20 @@ test("native timeout kills and reaps only the owned helper") {
   try rejects { _ = try p.generate(request(), timeout: 0.1) }
   try expect(ProcessInfo.processInfo.systemUptime - before < 3)
   try expect(kill(pid, 0) == -1 && errno == ESRCH)
+}
+test("serial worker teardown is bounded, repeatable and reaps a stubborn helper") {
+  let worker = DispatchQueue(label: "sevra-test-native-close")
+  try worker.sync {
+    for mode in Array(repeating: "normal", count: 32) + ["ignore-terminate"] {
+      let p = try process(mode)
+      let pid = p.processID
+      let before = ProcessInfo.processInfo.systemUptime
+      try expect(p.close())
+      try expect(p.close())
+      try expect(ProcessInfo.processInfo.systemUptime - before < 5)
+      try expect(kill(pid, 0) == -1 && errno == ESRCH)
+    }
+  }
 }
 test("malformed stream, duplicate completion and child exit fail closed") {
   for mode in ["gap", "duplicate", "crash"] {

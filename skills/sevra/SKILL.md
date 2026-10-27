@@ -29,6 +29,11 @@ receipt. Follow the returned history cursor; append-only messages do not invalid
 older pages. A changed query or conversation requires a fresh search. `checkpoints` and `checkpoint` inspect derived context and current input
 state. A digest is not evidence of acceptance or permission for a new action.
 Use the workbook's current records and operation state, and cite original versions.
+An answer citation starting with `message:` refers to an original conversation
+message, not an item ID. Inspect it with `history-read PATH CONVERSATION MESSAGE_ID`
+after removing that prefix. It supports what was said earlier, not current business
+facts or acceptance. The app opens it at the original message. Do not send it to
+`read` or use it as a business-record input.
 Use `unresolved-calls` and `tool-receipt` to inspect unfinished calls and committed
 operation proof. Never assume a missing result means no changes occurred or replay
 an unresolved call automatically. `tool-result` reads exact saved results using a

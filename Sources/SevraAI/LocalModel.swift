@@ -13,6 +13,7 @@ public actor LocalModel: WorkbookInference {
   private var leased = false
   private var processLock: Int32 = -1
   private var idleRelease: Task<Void, Never>?
+  private let contextMaintenanceEnabled: Bool
   public private(set) var lastMetrics: Value = .null
   public func beginRun() throws {
     try require(!leased, "busy", "Sevra is already answering another question.")
@@ -55,7 +56,10 @@ public actor LocalModel: WorkbookInference {
       ".slotstream/models/" + ModelPackRegistry.fast.directoryName)
   }
   public static var downloadBytes: Int64 { ModelPackRegistry.fast.installationBytes }
-  public init() {}
+  public init() { contextMaintenanceEnabled = false }
+  package init(enableContextMaintenance: Bool) {
+    contextMaintenanceEnabled = enableContextMaintenance
+  }
   public func installed(at directory: URL = LocalModel.defaultDirectory) -> Bool {
     ModelPackRegistry.fast.installationFiles(at: directory).allSatisfy {
       FileManager.default.fileExists(atPath: $0.path)
@@ -138,6 +142,68 @@ public actor LocalModel: WorkbookInference {
     }
     return false
   }
+  package var supportsCompaction: Bool { contextMaintenanceEnabled }
+  package func measureContext(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+  ) async throws -> ContextMeasurement {
+    try require(leased && !active, "busy", "The local model needs an exclusive workbook run.")
+    active = true
+    defer { active = false }
+    let engine = try await load(directory, cancellation: cancellation, progress: progress)
+    let tokens = try engine.encodeChat(
+      try Self.baselineMessages(messages),
+      tools: summary ? [] : NativeTools.definitions, thinking: false, effort: nil)
+    try cancellation.check()
+    guard let capacity = engine.contextPolicyJSON["configured_window"] as? Int else {
+      throw SevraError("context_limit", "The configured context capacity is unavailable.")
+    }
+    return ContextMeasurement(
+      promptTokens: tokens.count, capacity: capacity,
+      templateIdentity: "slotstream-" + Self.revision + ";encodeChat;thinking=false;effort=nil")
+  }
+  package func summarize(
+    messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
+    cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+  ) async throws -> String {
+    try require(leased && !active, "busy", "The local model needs an exclusive workbook run.")
+    active = true
+    defer { active = false }
+    let engine = try await load(directory, cancellation: cancellation, progress: progress)
+    let tokens = try engine.encodeChat(
+      try Self.baselineMessages(messages), tools: [], thinking: false, effort: nil)
+    if let problem = engine.contextError(
+      promptTokens: tokens.count + ContextDigest.maximumOutputTokens)
+    {
+      throw SevraError("context_limit", problem)
+    }
+    var params = SampleParams()
+    params.temperature = 0
+    params.maxTokens = ContextDigest.maximumOutputTokens
+    params.presencePenalty = 0
+    params.seed = 42
+    progress("Keeping conversation context")
+    let result = engine.generate(
+      promptIds: tokens, params: params,
+      shouldContinue: { !cancellation.isCancelled && !cancellation.isExpired })
+    try cancellation.check()
+    if let failure = result.stats.requestFailure { throw failure }
+    if let failure = result.stats.runtimeError { throw SevraError("inference", failure) }
+    try require(
+      result.ids.count < params.maxTokens, "context_digest",
+      "Context maintenance did not finish. Original history is preserved.")
+    _ = try ContextDigest.validate(result.text, allowedMessageIDs: Set(allowedMessageIDs))
+    lastMetrics = .object([
+      "phase": .string("context_summary"), "backend": .string("slotstream-baseline"),
+      "promptTokens": .number(Double(tokens.count)),
+      "generatedTokens": .number(Double(result.ids.count)),
+      "requestSeconds": .number(result.stats.requestSeconds),
+      "firstTokenSeconds": result.stats.firstTokenSeconds.map(Value.number) ?? .null,
+      "peakMemoryGB": .number(result.stats.peakMemoryGB),
+    ])
+    return result.text
+  }
+
   package func respond(
     messages: [InferenceMessage], directory: URL = LocalModel.defaultDirectory,
     cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void,

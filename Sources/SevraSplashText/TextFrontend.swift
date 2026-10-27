@@ -29,6 +29,7 @@ public final class SplashTextFrontend {
     public let bytes: [UInt8]
     let offsets: [Int]
   }
+  public var templateIdentity: String { Self.sha256(Data(template.utf8)) }
   public static let vocabularySize: UInt32 = 248320
   public static let stopTokens: [UInt32] = [248044, 248046]
 

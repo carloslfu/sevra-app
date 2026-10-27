@@ -1,6 +1,7 @@
 import CryptoKit
 import Foundation
 import SevraAI
+import SevraCore
 import SevraNativeAI
 import SevraSplash
 import SevraSplashGrammar
@@ -99,6 +100,17 @@ final class ToolPolicyChecks {
       candidate(
         "finish", [("answer", "Observed"), ("citations", "[\"source-one\"]")], policy: knownEvidence
       ))
+    let knownMessage = try NativeCitationPolicy.make(["message:history-one"])
+    try knownMessage.validate(
+      candidate(
+        "finish",
+        [("answer", "You supplied this earlier."), ("citations", "[\"message:history-one\"]")],
+        policy: knownMessage))
+    try expectThrows(
+      try knownMessage.validate(
+        candidate(
+          "finish", [("answer", "Unseen"), ("citations", "[\"message:history-two\"]")],
+          policy: knownMessage)))
     try expectThrows(
       try knownEvidence.validate(
         candidate(
@@ -194,6 +206,8 @@ do {
   try checkContextBudget()
   try await checkAgentLifecycle()
   try await checkHistoryTools()
+  try await checkCompaction()
+  try await checkRunningCompaction()
   let checks = ToolPolicyChecks()
   try checks.testActualWorkbookSchemas()
   try checks.testWorkbookArguments()
@@ -201,15 +215,35 @@ do {
   print(
     "PASS actual workbook schemas, open row/record data, full argument validation and schema refusals"
   )
-  if CommandLine.arguments.count == 6
-    && ["--autonomous", "--inventory", "--occupied", "--history"].contains(CommandLine.arguments[1])
+  if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--baseline-continuity" {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "sevra-baseline-continuity-" + identifier())
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let model = LocalModel(enableContextMaintenance: true)
+    do {
+      try await runNativeContinuityProbe(
+        model: model, directory: URL(fileURLWithPath: CommandLine.arguments[2]), root: root)
+      try expectEqual(await model.unload(), true)
+    } catch {
+      _ = await model.unload()
+      throw error
+    }
+  } else if CommandLine.arguments.count == 6
+    && [
+      "--autonomous", "--inventory", "--occupied", "--history", "--continuity",
+      "--context-recovery",
+    ].contains(
+      CommandLine.arguments[1])
   {
     try await runNativeAgentProbe(
       modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], modelsRoot: CommandLine.arguments[5],
       inventoryOnly: CommandLine.arguments[1] != "--autonomous",
       occupiedContext: CommandLine.arguments[1] == "--occupied",
-      historyOnly: CommandLine.arguments[1] == "--history")
+      historyOnly: CommandLine.arguments[1] == "--history",
+      continuityOnly: CommandLine.arguments[1] == "--continuity",
+      contextRecoveryOnly: CommandLine.arguments[1] == "--context-recovery")
   } else if [3, 5].contains(CommandLine.arguments.count) {
     let frontend = try SplashTextFrontend(
       modelFolder: URL(fileURLWithPath: CommandLine.arguments[1]))
@@ -226,7 +260,7 @@ do {
     }
   } else if CommandLine.arguments.count != 1 {
     throw SplashError(
-      "Usage: sevra-agent-checks [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory/--occupied/--history MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536 in development checks."
+      "Usage: sevra-agent-checks --baseline-continuity MODEL_FOLDER or [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536 in development checks."
     )
   }
 } catch {

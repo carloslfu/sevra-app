@@ -9,7 +9,8 @@ import SevraSplashText
 /// maintained tool set; no test supplies the next tool, arguments or answer.
 func runNativeAgentProbe(
   modelFolder: String, library: String, engine: String, modelsRoot: String,
-  inventoryOnly: Bool = false, occupiedContext: Bool = false, historyOnly: Bool = false
+  inventoryOnly: Bool = false, occupiedContext: Bool = false, historyOnly: Bool = false,
+  continuityOnly: Bool = false, contextRecoveryOnly: Bool = false
 )
   async throws
 {
@@ -73,7 +74,7 @@ func runNativeAgentProbe(
         progress: { phase in
           fputs("Native agent: \(phase)\n", stderr)
           if cancelDuringGeneration && phase == "Thinking locally" { cancellation.cancel() }
-        }, model: model)
+        }, model: model, enableCompaction: !historyOnly)
     } catch {
       for message in try book.messages() where message.role == "tool" {
         fputs("Autonomous failure trace: " + message.body + "\n", stderr)
@@ -90,6 +91,16 @@ func runNativeAgentProbe(
     return result
   }
   do {
+    if contextRecoveryOnly {
+      try await runContextRecoveryProbe(model: model, directory: directory, root: root)
+      try expectEqual(await model.unload(), true)
+      return
+    }
+    if continuityOnly {
+      try await runNativeContinuityProbe(model: model, directory: directory, root: root)
+      try expectEqual(await model.unload(), true)
+      return
+    }
     if historyOnly {
       let book = try Workbook.create(
         at: root.appendingPathComponent("OldHistory.sevra"), title: "Historical constraint")

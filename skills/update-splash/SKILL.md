@@ -56,7 +56,11 @@ when context, templates or memory planning changes. Exact rendered tokens must
 include tool schemas/history. Keep output and tool-result recovery headroom,
 original conversation receipts and current workbook authority through maintenance.
 An engine accepting 32K or 64K is not a qualified context profile. Exercise occupied
-contexts and complete jobs, including repeated compaction when implemented.
+contexts and complete jobs. Run --continuity for repeated compaction and portable
+reopen, and --context-recovery for false digests, current acceptance, summary
+cancellation and explicit retry. Preserve failed runs, not only final passes.
+Recheck native helper shutdown on the serial worker; teardown must be bounded
+and retain the model lease if the child has not been reaped.
 The internal candidate boundary must not become a user backend picker. Keep the
 production baseline until the packaging, performance and application gates pass.
 

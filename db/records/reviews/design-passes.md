@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-26T22:52:51.608710+00:00
+updated: 2026-10-27T00:14:10.337811+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -167,3 +167,51 @@ own writes. Read-only CLI/core checks verify identity, precision, scope, tamperi
 offline reopening. Projection bounds are not a memory-bound claim for huge structured
 results. Scope-safe tangent search, full unresolved-call browsing, memory scale and
 repeated compaction remain explicit follow-up gates.
+
+
+## Context controller review, October 26
+
+Pass 1, retention: the first actual summary exceeded its output budget. A shorter
+schema completed but replaced an old exact user value with routine progress.
+Require per-checkpoint retention, not merely a correct final answer recovered from
+history. Typed notes preserve exact references; host retention protects earlier
+user-backed facts/constraints/decisions. Initial extraction can still be wrong and
+large collections need a better retirement/retrieval policy. Never erase originals.
+
+Pass 2, authority: a reopen probe unexpectedly proposed a table despite an explicit
+no-change instruction. Keep this failure. Added host-enforced read-only tooling for
+recognized explicit current-request restrictions, with every mutating tool tested.
+Do not mistake that narrow rule for a complete intent authorization system. A
+misleading summary cannot change acceptance or turn an estimate into an actual.
+Unfinished previous calls must survive context rebuilding with committed-operation
+proof and uncertainty. Reset calculation evidence when its result is omitted.
+
+Pass 3, continuation: current requests and complete latest tool pairs survive
+maintenance. Check unchanged history hashes, atomic publication, cancelled/invalid
+summaries, checkpoint chains, offline reopen and scoped tangents. Actual-model
+results remain distinct from synthetic controller fixtures. Foreground backfill
+latency, long instruction collections, process-kill recovery and sustained larger
+contexts remain release gates, not waived by successful short native jobs.
+
+
+Follow-up evidence: the 8K adversarial workflow exhausted context, then its helper
+shutdown hung in Foundation waitUntilExit. Replaced the unbounded wait with a
+termination notification, bounded TERM/KILL waits and lease retention on failed
+reaping; 33 serial-worker shutdowns include a helper ignoring TERM. A 32K attempt
+returned a forecast answer without citing the accepted version. Read results now
+identify historical/current versions explicitly without granting unseen citations.
+A retry exposed loss of an older unstructured checkpoint; preserve its legacy
+digest verbatim. Focused native acceptance/cancellation/retry checks subsequently
+passed. The opt-in Slotstream comparison searched business documents instead of
+conversation and failed recall, so its production compaction capability stays off.
+These failures remain in the evidence and constrain product-readiness claims.
+
+
+A repeated reopen probe recovered the correct messages but kept searching until
+the step limit. The completion contract admitted only item-version citations,
+while conversation facts may exist only as original messages. Added a distinct
+message:ID citation, eligible only after a fresh eligible original-message read.
+The current request and later messages cannot qualify as earlier evidence. It
+renders a link to the original exchange and cannot become a business-record input.
+Clarified conversation versus document search and existing table components versus
+new datasets after a generated-space probe omitted its requested table component.

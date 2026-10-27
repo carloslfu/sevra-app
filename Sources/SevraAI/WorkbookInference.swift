@@ -44,10 +44,37 @@ package struct NativeReply: Sendable {
 package protocol WorkbookInference: Actor {
   var identity: String { get }
   var lastMetrics: Value { get }
+  var supportsCompaction: Bool { get }
+  func measureContext(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+  ) async throws -> ContextMeasurement
+  func summarize(
+    messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
+    cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+  ) async throws -> String
   func beginRun() throws
   func endRun() async
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, finishOnly: Bool, citationIDs: [String]
   ) async throws -> NativeReply
+}
+
+// Synthetic inference fixtures must explicitly opt in to context maintenance.
+extension WorkbookInference {
+  package var supportsCompaction: Bool { false }
+  package func measureContext(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+  ) async throws -> ContextMeasurement {
+    throw SevraError("context_capability", "This inference fixture has no context measurement.")
+  }
+  package func summarize(
+    messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
+    cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+  ) async throws -> String {
+    throw SevraError(
+      "context_capability", "This inference fixture has no summarization capability.")
+  }
 }

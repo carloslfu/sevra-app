@@ -289,11 +289,17 @@ package enum NativeTools {
     .init(
       name: "finish",
       description:
-        "Deliver the final answer. Cite only inspected item versions; explain missing/partial evidence and unsuccessful actions.",
+        "Deliver the final answer. Cite inspected item versions for business claims or message:ID from history_read for earlier conversation. Explain missing/partial evidence and unsuccessful actions.",
       parameters: object(
         [
           "answer": schema("string", "Plain-language answer. Do not print opaque IDs in prose."),
-          "citations": evidenceList,
+          "citations": .object([
+            "type": .string("array"),
+            "items": schema(
+              "string",
+              "Inspected item version ID, or message:ID returned by history_read for a statement about earlier conversation."
+            ),
+          ]),
         ], required: ["answer", "citations"])),
   ]
 }

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-26T22:52:51.576410+00:00
+updated: 2026-10-27T00:30:24.087348+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -40,8 +40,10 @@ proof for uncertain outcomes. The agent can search/read older conversation and
 retrieve saved result pages. There are 59 core checks and eight passing native
 jobs (six complete, one needs-review, one deliberately cancelled). Release build,
 packaged history/receipt CLI, concurrent writers and isolated installation pass.
-Automatic compaction and general restart/resume remain pending; see the journal
-checkpoint below and [[records/specs/conversation-context]].
+Automatic compaction now has a working candidate controller and native continuity
+checks, but repeated recall is not reliable yet. It stays disabled in production
+Slotstream. General restart/resume and long-task qualification remain pending; see the
+latest context-maintenance checkpoint and [[records/specs/conversation-context]].
 
 ## Implemented
 
@@ -662,3 +664,94 @@ Large structured results are loaded before projection, so streamed-result memory
 qualification remains. Native downloads/setup, matched performance, production
 backend packaging/adoption, complete UI/voice/search-scale and Workbook homepage
 release work remain required. This checkpoint does not complete the app goal.
+
+
+## Automatic context maintenance checkpoint, October 26 local / October 27 UTC
+
+Implemented the controller, not the full C01–C13 release contract. The shared agent
+uses the candidate adapter's exact rendered prompt count to maintain a working
+context over append-only originals. Tool-free, constrained notes preserve exact
+message references; the current request and latest complete tool group remain
+intact. Host state supplies current item heads, meaning, acceptance, committed
+operations and a bounded report of unresolved earlier calls. Checkpoint publication
+checks the source range and revision atomically. No database schema change.
+
+Typed durable user notes are retained across compactions; older unstructured
+checkpoints remain verbatim as bounded legacy context. Tool-only digest claims
+are shown as retrieval references, while operational state comes from the host.
+Calculation and currency evidence that leaves working context must be inspected
+again. Unknown/conflicting notes and originals remain available; note accumulation
+and retirement still need qualification rather than silent forgetting.
+
+Added message:ID citations for earlier conversation. They require an actually
+visible original message older than the active request; current-request text,
+search snippets and summaries cannot grant them. The existing conversation route
+opens the earlier exchange. They cannot be used as business-record inputs. Read
+results separately identify exact historical versus current item versions without
+granting unseen evidence. Native grammar declarations/fixtures and both skills are
+updated. Explicit no-change sentences get a host read-only allowlist, including
+reversible drafts/spaces; this narrow rule is not general intent authorization.
+
+Observed failures drove concrete changes. A large digest exceeded its output
+budget; a smaller one forgot an exact value; a read-only recall proposed a table;
+an 8K adversarial job exhausted context and teardown hung; another run cited an
+older forecast version; conversion lost a legacy digest; a view omitted its table
+component; and the conversation citation contract could leave a correct retrieval
+without a valid completion path. Preserve these failures in
+integration/evidence/2026-10-26-context-maintenance.json. Replaced Foundation's
+unbounded worker wait with termination notification and bounded TERM/KILL waits;
+a failed reap retains the model lease.
+
+Verification: 59 core checks; 21 transport/preparation checks including 33 serial
+shutdown trials and a TERM-resistant helper; exact tokenizer/streaming/grammar
+checks, including all 248,320 vocabulary entries, 105 base masks and 217 masks for
+26 actual-tool cases. Deterministic agent checks cover repeated maintenance,
+changed acceptance, unfinished calls, invalid/cancelled digests, original history
+hashes, complete tool groups, calculation invalidation, legacy retention, chapters,
+tangent scope and original-message citation boundaries. The complete check script,
+release app/CLI build, isolated install/update/uninstall, exact receipt CLI, 700-message
+history/migration and concurrent-writer checks pass. Both repository skills validate.
+
+Actual native results are mixed. Several earlier 32K continuity/recovery and
+workflow probes passed, and the latest continuity run passes original recall,
+portable reopen, current draft/accepted forecast checks and cancellation preserving
+the prior checkpoint. Its explicit retry still searches business documents and
+fails exact recall. Returned state complete is not a semantic task pass. Do not
+mark C12/J10 or a 32K product default qualified. The earlier opt-in Slotstream
+compaction probe also failed recall; its production capability remains off. Native
+Splash remains a development candidate. The installed earlier app was preserved;
+the new output bundle is still a Slotstream development build.
+
+Commands used: scripts/check.sh, scripts/build.sh, scripts/check_install.py,
+scripts/check_receipts.py, scripts/check_history.py, scripts/check_concurrency.py,
+sevra-agent-checks --continuity/--context-recovery/--autonomous with the internal
+32K profile, and --baseline-continuity for the preserved backend. Tokenizer and
+actual-tool reference masks were regenerated with the pinned reference environment.
+All workbooks were synthetic; existing model bytes were reused unchanged.
+
+Next: improve reliable completion and retrieval using measured model/tool policies,
+including a bounded reasoning comparison if supported by the pinned engine. Use
+repeated end-to-end cases and retain every failed attempt; do not merely tune a
+single prompt until it passes. Then continue native setup/downloads, matched
+performance, packaging/adoption, full UI/voice J01–J10 and wider search/hardware
+qualification. Broad process-kill recovery, general persisted-job resumption,
+large-result memory/FTS coverage and the website rollout remain open. No universal
+speed, full-context, or whole-app release claim.
+
+
+Final current-source autonomous regression: five completed jobs, one proposal for
+review and one deliberate cancellation pass on the 32K development profile. It
+covers supplier data/lineage, deterministic comparison, both requested space
+components, hostile evidence, missing records and a separate cancellation/retry.
+This does not erase the latest continuity probe's failed recall after summary
+cancellation. Both outcomes and the exact source hashes are retained in the same
+evidence file.
+
+The immediate follow-up is to evaluate unified, scoped search candidates across
+business documents/records and original conversation. A model choosing the document
+index should not incorrectly conclude that a remembered value is unavailable while
+it exists in the same conversation. Keep result kinds, citation eligibility,
+current-request exclusions, business filters and incomplete-index coverage explicit.
+This is an implementation proposal to test, not a completed capability. Compare
+bounded reasoning as a separate measured variable rather than conflating it with
+retrieval changes.

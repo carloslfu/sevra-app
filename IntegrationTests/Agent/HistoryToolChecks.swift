@@ -43,6 +43,7 @@ private actor HistoryToolInference: WorkbookInference {
         try expectEqual(result["value"].text, "Large table")
       } else {
         try expectEqual(result["message"]["body"].text.contains("MAPLE-27"), true)
+        try expectEqual(citationIDs.contains(result["citation"].text), true)
       }
       tool = "finish"
       args = .object([
@@ -50,7 +51,7 @@ private actor HistoryToolInference: WorkbookInference {
           large
             ? "The table is named Large table."
             : "You supplied purchase code MAPLE-27 and did not specify a currency."),
-        "citations": .array([]),
+        "citations": .array(large ? [] : [result["citation"]]),
       ])
     }
     return NativeReply(
@@ -85,6 +86,19 @@ func checkHistoryTools() async throws {
       workbook: book, model: model)
     try expectEqual(result.state, "complete")
     try expectEqual(result.steps, 3)
+    if !large {
+      try expectEqual(result.citations.first?.hasPrefix("message:"), true)
+      try expectEqual(result.answer.contains("sevra://conversation/main?message="), true)
+      try expectThrows(
+        try book.addItem(
+          category: "record", kind: "analysis", title: "Invalid business lineage",
+          inputs: result.citations))
+      let run = try book.agentRuns().first!
+      let current = try WorkbookTools(book, runID: run["id"].text).execute(
+        "history_read", .object(["id": run["request_message_id"]]))
+      try expectEqual(current["citation"], .null)
+      try expectEqual(WorkbookAgent.visibleEvidence(tool: "history_read", result: current).count, 0)
+    }
     try expectEqual(try book.unresolvedToolCalls().isEmpty, true)
     try expectEqual(try book.verify()["ok"], .bool(true))
     let receipts = try book.messages().filter { $0.role == "tool" }

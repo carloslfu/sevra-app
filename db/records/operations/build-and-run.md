@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-26T22:43:08.505938+00:00
+updated: 2026-10-26T23:57:10.307061+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -297,8 +297,9 @@ Only development checks read SEVRA_NATIVE_CONTEXT_TOKENS. Supported evaluation
 values are 8192 (the default), 32768 and 65536. This does not change the installed
 app or declare a qualified hardware default. Exact rendered prompt counts,
 output allowance and a proactive maintenance recommendation are recorded in each
-native request's metrics. The current implementation records the recommendation;
-automatic compaction is still pending under [[records/specs/conversation-context]].
+native request's metrics. The shared agent now performs automatic context maintenance. The 8K adaptive
+threshold and larger-profile qualification limits are described in
+[[records/specs/conversation-context]].
 
 For an occupied 32K inventory probe, use:
 
@@ -339,8 +340,8 @@ sevra checkpoint Workbook.sevra main CHECKPOINT_ID
 History pages preserve whole messages and optional original receipts. Search is
 scoped to one conversation and returns newest matches with an append-safe keyset cursor bound to the query and conversation.
 Checkpoint inspection projects current input acceptance and meaning from records;
-it does not trust the digest's wording. Checkpoint creation is currently a core
-API used in checks, not an automatic agent feature or a user-facing manual step.
+it does not trust the digest's wording. Checkpoint creation is automatic in the candidate agent and inspectable through
+this core API and CLI; it is not a user-facing manual maintenance step.
 
 After scripts/build.sh, run python3 scripts/check_history.py. It uses only its own
 synthetic schema-1 fixture, pages 700 messages, reads an older exact message, tests
@@ -367,3 +368,34 @@ The native --history check uses 110 closed messages and an earlier constraint;
 it requires autonomous history search/read and the exact original purchase code.
 Use the same arguments as --autonomous. These retrieval checks do not prove
 automatic compaction or restart/resume qualification.
+
+
+## Automatic context maintenance checks
+
+Replace --autonomous with --continuity in the native probe command. It creates
+synthetic histories, requires multiple automatic checkpoints and exact identifiers,
+decimal spelling and units, exports/reopens the workbook, and checks misleading
+digests against current forecast acceptance. Cancellation during summary generation
+must retain the previous checkpoint; explicit retry must reacquire the model.
+For the focused authority/cancellation part, use --context-recovery. No weights
+are downloaded. Probe output and failures must be recorded before a
+profile is described as qualified.
+
+The same scenario is available for the preserved Slotstream baseline:
+
+~~~sh
+.build/debug/sevra-agent-checks --baseline-continuity /path/to/qwen36-35b-a3b-4bit
+~~~
+
+That debug executable needs mlx.metallib beside it, from the existing verified
+build preparation. This is development comparison tooling, not a product backend
+picker. Run one model probe at a time so the inference lock and memory budget are
+meaningful. The production build remains Slotstream until adoption gates pass. Its automatic
+compaction capability remains disabled after the opt-in baseline recall probe failed.
+
+The ordinary no-argument checks cover deterministic repeated maintenance, original
+history hashes, changed acceptance during summarization, unfinished earlier calls,
+invalid/cancelled summaries, complete retained tool groups, omitted-calculation
+invalidation, chapters and tangent scope. Their byte-based synthetic counter tests
+the controller, not real tokenization or hardware capacity. Native measurement uses
+the selected template and tokenizer instead.

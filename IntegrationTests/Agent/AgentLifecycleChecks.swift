@@ -13,14 +13,16 @@ private actor ScriptedInference: WorkbookInference {
   let fail: Bool
   let searchesOnly: Bool
   let balanceOnly: Bool
+  let violateReadOnly: Bool
   init(
     cancelAfterResponse: Bool = false, fail: Bool = false, searchesOnly: Bool = false,
-    balanceOnly: Bool = false
+    balanceOnly: Bool = false, violateReadOnly: Bool = false
   ) {
     self.cancelAfterResponse = cancelAfterResponse
     self.fail = fail
     self.searchesOnly = searchesOnly
     self.balanceOnly = balanceOnly
+    self.violateReadOnly = violateReadOnly
   }
   func beginRun() throws { begins += 1 }
   func endRun() { ends += 1 }
@@ -31,6 +33,19 @@ private actor ScriptedInference: WorkbookInference {
     responses += 1
     if fail { throw SevraError("fixture_failure", "Synthetic failure") }
     if cancelAfterResponse { cancellation.cancel() }
+    if violateReadOnly {
+      if responses == 1 {
+        return NativeReply(
+          text: "",
+          calls: [
+            .init(
+              id: "unwanted-draft", name: "draft",
+              inputJSON: "{\"title\":\"Unwanted\",\"text\":\"No\",\"inputs\":[]}")
+          ])
+      }
+      try expectEqual(responses, 2)
+      try expectEqual(messages.last!.content.contains("explicitly forbids changes"), true)
+    }
     if balanceOnly {
       if responses == 1 {
         return NativeReply(
@@ -81,6 +96,31 @@ func checkAgentLifecycle() async throws {
     "sevra-agent-lifecycle-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   defer { try? FileManager.default.removeItem(at: root) }
+  let readOnlyBook = try Workbook.create(
+    at: root.appendingPathComponent("ReadOnly.sevra"), title: "Read only")
+  let readOnlyTools = WorkbookTools(readOnlyBook, readOnly: true)
+  for tool in NativeTools.definitions
+  where tool.name != "finish" && !WorkbookTools.readOnlyTools.contains(tool.name) {
+    do {
+      _ = try readOnlyTools.execute(tool.name, .object([:]))
+      throw SplashError("Mutating tool was allowed")
+    } catch let error as SevraError { try expectEqual(error.code, "read_only_request") }
+  }
+  for prompt in [
+    "What is the value? Make no changes.", "Do not change anything.", "Don't change the workbook!",
+    "No hagas cambios.",
+  ] {
+    try expectEqual(RequestRestrictions.isExplicitlyReadOnly(prompt), true)
+  }
+  try expectEqual(
+    RequestRestrictions.isExplicitlyReadOnly("Create a draft about change control."), false)
+  let readOnlyAnswer = try await WorkbookAgent.run(
+    "Explain the workbook. Make no changes.", workbook: readOnlyBook,
+    model: ScriptedInference(violateReadOnly: true))
+  try expectEqual(readOnlyAnswer.state, "complete")
+  try expectEqual(try readOnlyBook.items(kind: "document").isEmpty, true)
+  try expectEqual(try readOnlyBook.unresolvedToolCalls().isEmpty, true)
+  try expectEqual(try readOnlyBook.verify()["ok"], .bool(true))
   for (name, cancel, fail) in [
     ("success", false, false), ("cancelled", true, false), ("failed", false, true),
   ] {
@@ -160,6 +200,15 @@ func checkAgentLifecycle() async throws {
   try expectEqual(draftHistory.count, 2)
   try expectEqual(draftHistory.last!.content.contains("\"status\":\"draft\""), true)
   let accepted = try reviewBook.accept(proposal.id)
+  let historicalRead = try WorkbookTools(reviewBook, readOnly: true).execute(
+    "read", .object(["id": .string(proposal.id)]))
+  try expectEqual(historicalRead["item"]["status"].text, "draft")
+  try expectEqual(historicalRead["isCurrentVersion"], .bool(false))
+  try expectEqual(historicalRead["currentVersion"]["id"].text, accepted.id)
+  try expectEqual(historicalRead["currentVersion"]["status"].text, "accepted")
+  try expectEqual(historicalRead["currentVersion"]["meaning"].text, "estimate")
+  try expectEqual(
+    WorkbookAgent.visibleEvidence(tool: "read", result: historicalRead).map(\.0), [proposal.id])
   let acceptedHistory = try WorkbookAgent.conversationHistory(reviewBook, conversation: "main")
   try expectEqual(acceptedHistory.last!.content.contains("\"status\":\"accepted\""), true)
   try expectEqual(acceptedHistory.last!.content.contains("\"meaning\":\"estimate\""), true)

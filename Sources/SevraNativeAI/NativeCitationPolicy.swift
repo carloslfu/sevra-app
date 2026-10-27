@@ -29,7 +29,7 @@ package enum NativeCitationPolicy {
       var items = citations["items"] as? [String: Any]
     else { throw SevraError("tool_schema", "The workbook citation schema changed.") }
     citations["description"] =
-      "Only exact Source or Record versions inspected in this request. Never cite a space or table ID. Use an empty array when confirming a saved space without making factual claims."
+      "Only inspected Source/Record versions or exact message:ID references from history_read. Message references support prior conversation, not current business facts. Never cite a space or table ID."
     if ids.isEmpty {
       citations["maxItems"] = 0
     } else {

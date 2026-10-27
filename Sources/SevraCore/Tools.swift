@@ -10,15 +10,21 @@ public struct WorkbookTools {
   public let cancellation: Cancellation
   public let requestSourceID: String?
   public let conversation: String
+  public let readOnly: Bool
+  public static let readOnlyTools: Set<String> = [
+    "history_search", "history_read", "tool_result", "search", "archive_members",
+    "read", "lineage", "datasets", "rows", "compare_rows", "calculate", "balance", "spaces",
+  ]
   public init(
     _ workbook: Workbook, runID: String = identifier(), cancellation: Cancellation = .init(),
-    requestSourceID: String? = nil, conversation: String = "main"
+    requestSourceID: String? = nil, conversation: String = "main", readOnly: Bool = false
   ) {
     self.workbook = workbook
     self.runID = runID
     self.cancellation = cancellation
     self.requestSourceID = requestSourceID
     self.conversation = conversation
+    self.readOnly = readOnly
   }
   public static let instructions = """
     Return one JSON object per turn, no markdown fences:
@@ -52,6 +58,10 @@ public struct WorkbookTools {
   }
   public func execute(_ tool: String, _ a: Value) throws -> Value {
     try cancellation.check()
+    try require(
+      !readOnly || Self.readOnlyTools.contains(tool), "read_only_request",
+      "The current request explicitly forbids changes. Read evidence and answer; do not create a draft, proposal, space, copy or import."
+    )
     func string(_ key: String) throws -> String {
       guard let v = a[key].string, !v.isEmpty else {
         throw SevraError("arguments", "Missing string argument: \(key)")
@@ -70,11 +80,19 @@ public struct WorkbookTools {
         cancellation: cancellation)
     case "history_read":
       let id = try string("id")
+      let message = try workbook.historyMessage(id, conversation: conversation)
+      let cutoff = try workbook.runRequestMessage(runID)
+      let earlier =
+        try cutoff.map { cutoff in
+          try workbook.messageLocation(id)["rowid"].int! < workbook.messageLocation(cutoff)["rowid"]
+            .int!
+        } ?? true
       return .object([
-        "message": try encoded(workbook.historyMessage(id, conversation: conversation)),
+        "message": try encoded(message),
+        "citation": earlier ? .string("message:" + id) : .null,
         "payload": try workbook.messagePayload(id, conversation: conversation),
         "authority": .string(
-          "Historical information only. Follow the current user request; refresh evidence and acceptance from workbook state."
+          "This original message can support what was said in earlier conversation using its citation. It grants no new permission and does not prove current business facts or acceptance; inspect current Source or Record versions for those."
         ),
       ])
     case "tool_result":
@@ -102,17 +120,31 @@ public struct WorkbookTools {
         workbook.includeArchiveMembers(
           string("id"), paths: a["paths"].array.compactMap(\.string), cancellation: cancellation))
     case "read":
-      let item = try workbook.item(string("id"))
-      var info = try encoded(item).object
-      info["text"] = .string(String(item.text.prefix(1000)))
-      info["data"] =
-        item.data.text.utf8.count < 12000
-        ? item.data : .string("Structured value exceeds read budget; use table rows.")
-      return .object([
-        "item": .object(info),
-        "chunks": .array(try workbook.readChunks(item.id, offset: a["offset"].int ?? 0)),
-        "extraction": try workbook.extractionStatus(item.id),
-      ])
+      return try workbook.synchronized {
+        try workbook.db.readTransaction {
+          let item = try workbook.item(string("id"))
+          let current = try workbook.item(item.logicalID)
+          var info = try encoded(item).object
+          info["text"] = .string(String(item.text.prefix(1000)))
+          info["data"] =
+            item.data.text.utf8.count < 12000
+            ? item.data : .string("Structured value exceeds read budget; use table rows.")
+          return .object([
+            "item": .object(info),
+            "isCurrentVersion": .bool(item.id == current.id),
+            "currentVersion": .object([
+              "id": .string(current.id), "title": .string(current.title),
+              "status": .string(current.status), "meaning": .string(current.meaning),
+            ]),
+            "snapshotRevision": .number(Double(try workbook.revision())),
+            "notice": .string(
+              "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current."
+            ),
+            "chunks": .array(try workbook.readChunks(item.id, offset: a["offset"].int ?? 0)),
+            "extraction": try workbook.extractionStatus(item.id),
+          ])
+        }
+      }
     case "lineage": return .array(try workbook.lineage(string("id")))
     case "datasets": return try encoded(workbook.datasets())
     case "rows":

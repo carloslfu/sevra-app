@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-26T22:43:08.523475+00:00
+updated: 2026-10-27T00:14:10.312551+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -36,6 +36,12 @@ commands and idempotency tokens. Reversible view/draft creation can happen withi
 a user's request. Business interpretations are proposals until explicitly accepted
 or covered by a user-approved import rule. Imported instructions cannot authorize
 filesystem access, network capture or acceptance. Clarify ambiguous mutations.
+An explicit read-only request must also prevent reversible drafts, proposals and
+spaces. The current host recognizes a narrow set of complete English/Spanish
+no-change sentences in the current submission and enforces a read-only tool
+allowlist before execution. This additional denial rule is not a general intent
+classifier, comprehensive language support, or permission when no phrase matches.
+Conversation, request provenance and operational receipts still save normally.
 A07. Agent output has citations, assumptions and affected records. Deterministic
 arithmetic comes from tools, not guessed model prose. Persist proposed/accepted
 outputs and exact model/transformation identity. Re-running after model upgrade
@@ -60,7 +66,8 @@ exact token budgeting and recoverable context checkpoints. Retain all original
 history and reconstruct action/acceptance status from workbook state. Qualify
 32K first and 64K where practical rather than treating the current 8K candidate
 setting as the product default. Detailed contract and gates C01–C13 are in
-[[records/specs/conversation-context]]; implementation remains open.
+[[records/specs/conversation-context]]; a controller is implemented and broader
+qualification remains open.
 
 ## Durable execution receipts and history tools
 
@@ -71,4 +78,20 @@ reader supplies exact saved pages; history_search/history_read retrieve older me
 within the selected conversation. Current requests are excluded from history search.
 Historical output cannot grant action authority or acceptance. Failed/unfinished calls
 retain operation evidence and uncertainty. The same prepared call ID is never replayed.
-This storage boundary is implemented; automatic recovery and context compaction are not.
+This storage boundary is active. Automatic context maintenance is implemented for
+the native candidate; the preserved Slotstream build keeps it disabled after its
+opt-in recall probe failed. General action recovery after process death remains open.
+A read returns the requested exact version plus current-version metadata and a
+snapshot revision. Current-version metadata is a navigation pointer, not newly
+inspected evidence: read that version before citing its facts.
+
+
+## Conversation citations
+
+history_read exposes a message:ID citation only for an original message earlier
+than the active request. A freshly read original body must actually be visible
+before that reference joins the allowed finish citations. Search snippets, omitted
+bodies, a derived digest and the current request do not grant it. The app renders
+an Earlier message link to its existing conversation navigation. Business item
+version IDs retain their existing meaning and lineage rules. Conversation citations
+support what someone said, not current inventory, acceptance or permission.
