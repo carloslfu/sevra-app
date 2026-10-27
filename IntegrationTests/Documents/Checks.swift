@@ -13,6 +13,15 @@ private func refuses(_ code: String, _ body: () throws -> Void) throws {
     throw Failure(message: "Expected refusal: " + code)
   } catch let error as SevraError { try expect(error.code == code, "Wrong refusal: " + error.code) }
 }
+/// Fault injection touches only a disposable fixture, never a user workbook.
+private func fixtureSQL(_ workbook: Workbook, _ statement: String) throws {
+  let process = Process()
+  process.executableURL = URL(fileURLWithPath: "/usr/bin/sqlite3")
+  process.arguments = [workbook.url.appendingPathComponent("workbook.sqlite").path, statement]
+  try process.run()
+  process.waitUntilExit()
+  try expect(process.terminationStatus == 0, "Could not configure fixture failure")
+}
 @MainActor private final class PreviousDelegate: NSObject, NSWindowDelegate {
   var allowed = true
   var requests = 0
@@ -117,6 +126,39 @@ private func refuses(_ code: String, _ body: () throws -> Void) throws {
         _ = try book.editDocument(original.id, text: "Different", token: "retry")
       }
       try expect(try book.counts() == counts, "Refused retry left data")
+    }
+    check("A storage failure after source insertion rolls back and preserves the editor for retry")
+    {
+      let (book, original) = try fixture()
+      let before = try book.counts()
+      let editor = DocumentDraft(workbook: book, item: original)
+      try expect(editor.begin(), "Cannot begin")
+      editor.update("Text survives a failed record write")
+      try fixtureSQL(
+        book,
+        """
+        CREATE TRIGGER document_fixture_failure BEFORE INSERT ON items
+        WHEN NEW.category='record' AND NEW.kind='document' AND NEW.supersedes IS NOT NULL
+        BEGIN SELECT RAISE(ABORT, 'synthetic_document_write_failure'); END;
+        """)
+      defer { try? fixtureSQL(book, "DROP TRIGGER IF EXISTS document_fixture_failure;") }
+      try expect(
+        !editor.end() && editor.editing && editor.dirty && editor.current.id == original.id,
+        "Failed write discarded the edit")
+      try expect(
+        editor.failure?.contains("synthetic_document_write_failure") == true,
+        "The failure did not reach the second insert")
+      try expect(
+        try book.counts() == before && book.item(original.logicalID).id == original.id,
+        "Failed record write left an orphan input or changed the current head")
+      try fixtureSQL(book, "DROP TRIGGER document_fixture_failure;")
+      try expect(editor.end() && !editor.dirty, "Retry could not save retained text")
+      try expect(
+        try book.counts()["sources"].int == before["sources"].int! + 1
+          && book.revision() == before["revision"].int! + 1
+          && editor.current.text == "Text survives a failed record write",
+        "Retry lost text or duplicated its submission")
+      try expect(try book.verify()["ok"] == .bool(true), "Retry left an invalid workbook")
     }
     check("Stale edits cannot leave orphan submissions or overwrite a competing version") {
       let (book, original) = try fixture()

@@ -244,3 +244,6 @@ Hosted c0ac40f checkpoint worker/controller pass all four crash/cancel/concurren
 ## [2026-10-27 12:52] implementation | records/operations/implementation.md
 Prepare atomic document revisions and close guards on isolated codex/document-drafts while W1 remains frozen; new runtime checks pending. Record full voice/checkpoint hosted workflow passes.
 
+## [2026-10-27 13:03] verification | records/operations/implementation.md
+Retain failed incomplete W1 cohort after both frontends bypassed exact search-gap presentation by citing the current request. Stop owned controller, verify frozen hashes and cleanup. Initial 14 document checks and prior full workflows pass; add an unrun storage-fault retry check.
+

@@ -79,13 +79,9 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 8) {
           Text(error).textSelection(.enabled)
           if document.dirty {
-            HStack {
-              Button("Retry save") { document.flush() }
-              Button("Keep my changes as a separate draft") { document.keepSeparate() }
-              Button("Copy text") {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(document.text, forType: .string)
-              }
+            ViewThatFits(in: .horizontal) {
+              HStack { recoveryActions }
+              VStack(alignment: .leading, spacing: 8) { recoveryActions }
             }
           }
         }.font(.callout).padding(12).frame(maxWidth: .infinity, alignment: .leading)
@@ -245,6 +241,14 @@ import SwiftUI
         Button((try? state.workbook?.item(id).title) ?? id) { state.navigate(.item(id)) }
           .buttonStyle(.link)
       }
+    }
+  }
+  @ViewBuilder private var recoveryActions: some View {
+    Button("Retry save") { document.flush() }
+    Button("Keep my changes as a separate draft") { document.keepSeparate() }
+    Button("Copy text") {
+      NSPasteboard.general.clearContents()
+      NSPasteboard.general.setString(document.text, forType: .string)
     }
   }
 }

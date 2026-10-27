@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T12:52:28.942901+00:00
+updated: 2026-10-27T13:03:53.538608+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -28,11 +28,11 @@ production adoption remain disabled pending their recorded gates.
   digest verification and atomic publication. Settings cancellation, explicit
   reuse and reverification pass. Both packaged variants and isolated installation
   pass on the recorded Mac; broader hardware remains unqualified.
-- The latest corrected W1 pilot passes all sixteen jobs, two Ready primes and
-  32 exact paired requests/outputs. The full ten-block cohort is running on frozen
-  ed6ffd0. Its first two completed pairs matched all jobs, requests and generated
-  tokens. This partial run is not a performance result. Preserve the earlier
-  failed W1/I1 and R1 attempts and all correction latency.
+- The corrected W1 pilot passed. The full cohort on frozen ed6ffd0 subsequently
+  failed its missing-evidence assertion on both frontends in block 3, sequence 4.
+  It was stopped after five complete pairs and one further warmup; all owned
+  processes exited and frozen source/binary hashes matched. The partial timings
+  are not a performance pass. See W1 current-request evidence failure below.
 - Native table identity/stale edits, paginated search/Back, PDF/OCR/CSV intake,
   inherited citations and long-conversation navigation have focused automated
   and visual evidence. Six native continuity requests pass across three
@@ -51,14 +51,18 @@ production adoption remain disabled pending their recorded gates.
 
 - The descendant codex/document-drafts branch prepares atomic document revisions,
   current-version acceptance/context, retained text after refused saves, native
-  close/quit guards and a matching CLI command. It has not yet compiled or run its
-  new tests. See Document draft durability below.
+  close/quit guards and a matching CLI command. All 14 initial document checks
+  passed on 9bc7ab4 in hosted CI 40507262611; the rest of that workflow is still
+  running. A fifteenth storage-fault check and narrow conflict-action layout are
+  prepared for local execution. See Document draft durability below.
 
-Next, finish and assess the frozen W1 cohort, then locally test and integrate the
-voice/media, checkpoint and document repairs. Continue occupied-context and repeated-compaction recovery,
-whole-app memory/headroom, search scale/interruption and full native accessibility,
-media and installation journeys. Promote the native runtime, remove baseline
-product dependencies and qualify a release only after the applicable gates pass.
+Next, fix the current-request citation escape from the missing-evidence receipt,
+then run the actual failed case and packaged regressions. Locally integrate and
+replay the voice/media, checkpoint and document repairs, including native UI now
+that the Mac is unlocked. Continue occupied-context and repeated-compaction
+recovery, whole-app memory/headroom, search scale/interruption and installation
+journeys. A fresh complete W1 cohort is required after the candidate is corrected.
+Native production adoption, baseline removal and release remain gated.
 [[records/specs/splash-integration]], [[records/specs/conversation-context]] and
 [[records/operations/build-and-run]] own the contracts and reproduction commands.
 
@@ -1331,3 +1335,56 @@ The earlier targeted-only status above records what was known at those times.
 W1 has completed both workers in blocks 0 through 3 with successful closure and
 no worker failure. Block 4 is running; frozen source hashes still match. This is
 an interim observation, not a completed performance or parity qualification.
+
+## W1 current-request evidence failure
+The frozen cohort completed five native/reference pairs, 120 workload jobs and
+all ten Ready primes, then one Ready prime and one warmup in the next reference
+worker before explicit termination. Block 3, sequence 4 failed the preregistered
+missing-evidence assertion identically on both frontends. Both searches returned
+zero business/history hits and incomplete=1. The model then read the Source
+holding its own current request. The first absence claim was correctly refused;
+the revised answer cited that request, said indexing may be incomplete and did
+not produce the required host-rendered exact search-gap report. Current-request
+text does not independently substantiate the requested contract or renewal price.
+
+The finish path renders the authoritative gap only with an empty citation list.
+A citation to the current request bypassed that presentation. Ordinary search
+already excludes request-kind Sources by default; this is not a missing FTS
+exclusion. The next repair should preserve legitimate request inputs and lineage
+while preventing that citation from substituting for missing external evidence.
+Do not weaken the frozen test to relabel this cohort as passed.
+
+The owned controller received SIGINT after the failure was confirmed. It exited
+130 and reaped its current worker; all recorded descendants were absent afterward.
+The measured sources and binaries matched their frozen identities before and
+after termination. No local build/test overlapped this attempt. Raw results,
+requests/tokens, memory samples and interruption notes remain locally retained.
+The incomplete report has workflowGatePassed=false and productionAdoption=false;
+partial favorable timings and token agreement do not qualify performance.
+
+Public evidence is integration/evidence/2026-10-27-workflow-current-request-failure.json.gz.
+Its 3,146,959 uncompressed bytes have SHA256
+ aab3c1eafd9756f318b16c5b3c8f6bd82fed45e1842c3e318c9682d98877e585.
+It contains all completed/partial worker records, original failure assertions,
+identity, summary, stop/cleanup records and a 641-file raw hash manifest. Public
+rows omit generated-token arrays and replace local paths; original local bytes
+remain the differential evidence. A corrected candidate needs a new complete run.
+
+## Document verification follow-up
+The initial 14 document checks passed on 9bc7ab4 in hosted CI 40507262611, including
+the real AppKit close guard and previous-delegate forwarding. Core, voice,
+checkpoint, table and search lifecycle steps also passed there; full packaging
+is still running. The preceding doc-only 210b0ba passed its full workflow
+40504115794. The skill validator initially lacked PyYAML in the system interpreter;
+it passed using the existing development reference environment, with no install.
+
+A fifteenth check now injects an SQLite failure on the second document insert in
+a disposable fixture, verifying rollback of the already inserted Source, retained
+editor text and a single successful retry. Conflict actions also adapt to a narrow
+pane. These additions are prepared and have not yet run. Local compilation,
+packaged CLI editing and visible draft/close/quit journeys follow now that W1 is
+stopped. Generated-document responsiveness for very large text remains unmeasured.
+A source review also confirms that item components currently open their stored
+exact or logical binding and pinSpace freezes table values only. Complete live
+versus pinned document/search component behavior remains part of P11/P16 review;
+do not call all saved-space semantics qualified from table checks alone.
