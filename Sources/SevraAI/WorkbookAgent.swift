@@ -184,7 +184,9 @@ public enum WorkbookAgent {
         if tool == "finish" {
           var answer = a["answer"].text
           let basis = a["basis"].text
-          let citations = a["citations"].array.compactMap(\.string)
+          var citations = a["citations"].array.compactMap(\.string)
+          let currentRequestOnly =
+            !citations.isEmpty && citations.allSatisfy { $0 == requestSource.id }
           var problems: [String] = []
           if a.object["coverage"] != nil {
             problems.append(
@@ -222,14 +224,22 @@ public enum WorkbookAgent {
           // missing document's contents. Keep that useful result even if the
           // model tries to substitute an unrelated structured count.
           let hostSearchGap =
-            citations.isEmpty && (basis == "unresolved" || countOnly)
+            (citations.isEmpty || currentRequestOnly) && (basis == "unresolved" || countOnly)
             && !emptyQueries.isEmpty && searchIncomplete != nil
           if hostSearchGap {
             answer = SearchCoverage.renderSearchGap(
               queries: emptyQueries, incomplete: searchIncomplete!,
               includesHistory: emptySearchesIncludedHistory)
+            // The original finish arguments remain in the diagnostic payload.
+            // Echoing this request cannot turn a search gap into external evidence.
+            citations.removeAll()
           }
           let modelAnswer = hostSearchGap ? "" : answer
+          if basis == "evidence" && currentRequestOnly {
+            problems.append(
+              "The cited Source contains only the current request, not independent evidence of the requested workbook facts. Use basis=current_request for information explicitly supplied in this request and checked arithmetic, or basis=unresolved for missing evidence. Claims about other documents require their inspected versions."
+            )
+          }
           if (retrievalObserved || basis == "evidence") && SearchCoverage.overstates(modelAnswer) {
             problems.append(SearchCoverage.feedback)
             if !coverageEvidence.isEmpty {

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-27T10:37:22.180251+00:00
+updated: 2026-10-27T13:09:52.912228+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -141,3 +141,13 @@ Q16. The native search view retains loaded pages, filters and the opened-result 
 Each asynchronous read has a unique request identity in addition to its typed query. Late successes, errors and cancellation from a superseded read cannot alter the current result set or loading state. Clearing a query clears results, incomplete-index notices and errors without leaving a spinner. More-results requests cannot overlap or append an old page to a new query. A failed next page retains the already loaded evidence and offers retry.
 
 These requirements implement the existing stable preview/Back contract in [[records/specs/product]]. They do not change search matching, index completeness, cursor validation or citation authority.
+
+A Source preserving the current request is available for input provenance, but a
+citation to it alone is not independent evidence of requested workbook facts.
+An evidence-basis answer using only that Source is refused. Explicit supplied
+facts may use current_request; arithmetic still requires checked calculation.
+After empty searches, an unresolved answer whose citations contain only the
+current-request Source uses the host-rendered query/indexing-gap report, with
+no displayed evidence citations. Preserve the original finish arguments in the
+diagnostic payload. Unknown or independent citations retain their existing
+validation and are not silently discarded by this boundary.

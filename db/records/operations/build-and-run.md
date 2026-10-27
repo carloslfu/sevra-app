@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T12:52:28.961043+00:00
+updated: 2026-10-27T13:09:52.948320+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -876,3 +876,26 @@ draft using both the visible action and the text/voice command, and verify both
 versions. Check real SwiftUI window lifecycle, narrow layout, keyboard focus and
 large-text responsiveness. Programmatic checks do not replace this visible replay.
 Defer local execution during a qualifying model performance comparison.
+
+## Replay the current-request evidence regression
+After rebuilding the release workflow worker, run the retained failed block's
+schedule against both frontends in a new output directory:
+
+~~~sh
+swift build -c release --product sevra-workflow-performance -j 4
+python3 scripts/probe_request_evidence.py --models-root /path/to/native-models \
+  --output .build/workflow-performance/request-evidence-replay
+~~~
+
+The original failing case is missing_evidence at seed 3005, after four warmups.
+The runner preserves that prefix and the first complete measured cycle, verifies
+all jobs and exact paired requests/tokens, and retains any failed attempt. It
+never marks performanceQualification or productionAdoption true. Keep source and
+binary identities unchanged during the replay. A fresh full W1 cohort remains
+required for latency qualification.
+
+The packaged document check accepts --cli for the isolated native product:
+
+~~~sh
+python3 scripts/check_document_cli.py --cli output/native/bin/sevra
+~~~

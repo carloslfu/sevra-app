@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Exercise packaged atomic document editing without loading a model."""
+import argparse
 import json
 from pathlib import Path
 import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-CLI = ROOT / 'output/bin/sevra'
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--cli', type=Path, default=ROOT / 'output/bin/sevra')
+CLI = parser.parse_args().cli.resolve(strict=True)
 
 with tempfile.TemporaryDirectory(prefix='sevra-document-cli-') as directory:
     root = Path(directory)

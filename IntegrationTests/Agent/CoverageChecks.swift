@@ -205,4 +205,142 @@ func checkSearchCoverage() async throws {
   print(
     "PASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery"
   )
+  try await checkRequestEvidenceBoundary(root)
+}
+
+/// Reproduces the W1 path: empty searches, read the current request Source,
+/// then cite that Source while reporting unresolved external evidence.
+private actor RequestEvidenceInference: WorkbookInference {
+  let identity = "synthetic current-request evidence boundary"
+  let lastMetrics: Value = .null
+  let book: Workbook
+  let mode: String
+  let independent: String
+  var step = 0
+  var request = ""
+  init(_ book: Workbook, mode: String, independent: String) {
+    self.book = book
+    self.mode = mode
+    self.independent = independent
+  }
+  func beginRun() {}
+  func endRun() {}
+  func respond(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
+  ) throws -> NativeReply {
+    step += 1
+    func call(_ name: String, _ arguments: Value) throws -> NativeReply {
+      NativeReply(
+        text: "",
+        calls: [
+          .init(id: identifier(), name: name, inputJSON: try arguments.json())
+        ])
+    }
+    if step == 1 {
+      request = try expectValue(book.items(kind: "request").first?.id)
+      return try call(
+        "search",
+        .object([
+          "query": .string(
+            ["independent", "mixed"].contains(mode) ? "quotation" : "Lakehouse contract")
+        ]))
+    }
+    if step == 2 {
+      return try call(
+        "read", .object(["id": .string(mode == "independent" ? independent : request)]))
+    }
+    if mode == "mixed", step == 3 {
+      return try call("read", .object(["id": .string(independent)]))
+    }
+    if (mode == "independent" && step == 3) || (mode == "mixed" && step == 4) {
+      return try call("search", .object(["query": .string("Lakehouse contract")]))
+    }
+    var basis = "unresolved"
+    var answer = "Indexing may be incomplete. I cannot establish the contract's renewal price."
+    var citations = [request]
+    if mode == "supplied" {
+      basis = "current_request"
+      answer = "Your supplied purchase code is MAPLE-27."
+    } else if mode == "independent" || mode == "mixed" {
+      basis = "evidence"
+      answer = "The quotation still needs a signature."
+      citations = mode == "mixed" ? [request, independent] : [independent]
+    } else if mode == "evidence", step == 3 {
+      basis = "evidence"
+      answer = "The signed contract specifies a renewal price of 125."
+    } else if mode == "evidence" {
+      try expectEqual(step, 4)
+      try expectEqual(messages.last!.content.contains("current request"), true)
+    } else if mode == "unknown", step == 3 {
+      citations += ["not-inspected-evidence"]
+    } else if mode == "unknown" {
+      try expectEqual(step, 4)
+      try expectEqual(messages.last!.content.contains("Citations must be inspected"), true)
+    }
+    return try call(
+      "finish",
+      .object([
+        "answer": .string(answer), "basis": .string(basis),
+        "citations": .array(citations.map(Value.string)),
+      ]))
+  }
+}
+
+private func checkRequestEvidenceBoundary(_ root: URL) async throws {
+  for mode in ["gap", "evidence", "supplied", "independent", "mixed", "unknown"] {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("request-\(mode).sevra"), title: "Request evidence")
+    let attachment = try book.addItem(
+      category: "source", kind: "file", title: "Unreadable attachment")
+    try book.index(
+      attachment.id, chunks: [], state: "unsupported", detail: "Synthetic unsupported file")
+    let independent = try book.addItem(
+      category: "source", kind: "note", title: "Quotation status",
+      text: "The quotation still needs a signature.")
+    let reply: AgentResult
+    do {
+      reply = try await WorkbookAgent.run(
+        "My purchase code is MAPLE-27. Find the signed Lakehouse contract and renewal price; do not guess.",
+        workbook: book,
+        model: RequestEvidenceInference(book, mode: mode, independent: independent.id))
+    } catch {
+      let refusals = try book.messages(limit: 100).compactMap { message -> String? in
+        guard message.role == "tool", let payload = try? Value.parse(message.body) else {
+          return nil
+        }
+        return payload["validation"].string
+      }
+      throw SevraError("test", "Request evidence mode \(mode): \(error); \(refusals)")
+    }
+    try expectEqual(reply.state, "complete")
+    let request = try expectValue(book.items(kind: "request").first?.id)
+    let final = try expectValue(book.messages(limit: 100).last { $0.role == "assistant" })
+    let payload = try book.messagePayload(final.id)
+    if ["gap", "evidence", "unknown"].contains(mode) {
+      try expectEqual(reply.answer.contains("1 incomplete source"), true)
+      try expectEqual(
+        reply.answer.contains("These searches do not establish the requested facts"), true)
+      try expectEqual(reply.answer.contains("125"), false)
+      try expectEqual(reply.citations, [])
+      try expectEqual(payload["presentation"].text, "host_search")
+      try expectEqual(payload["searchEvidence"]["incomplete"].int, 1)
+      try expectEqual(payload["arguments"]["citations"], .array([.string(request)]))
+    } else {
+      try expectEqual(payload["presentation"].text, "answer")
+      try expectEqual(reply.answer.contains("These searches do not establish"), false)
+      if mode == "supplied" {
+        try expectEqual(reply.answer.contains("MAPLE-27"), true)
+        try expectEqual(reply.citations, [request])
+      } else {
+        try expectEqual(reply.answer.contains("quotation still needs a signature"), true)
+        try expectEqual(reply.citations.contains(independent.id), true)
+      }
+    }
+    try expectEqual(try book.verify()["ok"], .bool(true))
+  }
+  print(
+    "PASS current-request citations cannot replace missing external evidence; supplied and independently cited facts remain available"
+  )
 }

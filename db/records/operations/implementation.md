@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T13:03:53.538608+00:00
+updated: 2026-10-27T13:09:52.930935+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1388,3 +1388,37 @@ A source review also confirms that item components currently open their stored
 exact or logical binding and pinSpace freezes table values only. Complete live
 versus pinned document/search component behavior remains part of P11/P16 review;
 do not call all saved-space semantics qualified from table checks alone.
+
+## Current-request evidence repair
+A deterministic regression reproduced the W1 escape before the repair: an empty
+search followed by reading/citing the current-request Source did not show the
+known incomplete-source count. The host now refuses evidence-basis answers based
+only on that Source, directing supplied inputs to current_request and unavailable
+external facts to unresolved. Unresolved finishes after empty searches render the
+actual query and indexing-gap receipt even when the model cites its own request.
+Those citations are omitted from the displayed answer while exact original finish
+arguments remain in its payload. Independent or unknown citations retain normal
+validation; they are not silently erased. No model/tool schema, index or engine
+pin changed.
+
+All shared-agent deterministic checks pass, including six new cases for the gap,
+a self-cited unsupported claim, supplied facts, independent evidence, mixed
+citations and unknown-reference recovery. The first revised test fixture tried
+to read an independent ID without first discovering it; the existing exact-ID
+boundary correctly refused it. The fixture now searches that evidence before
+reading it, then performs its empty query. Both that test-fixture failure and the
+original failing regression logs remain locally retained. This is not yet a
+real-model repair claim.
+
+The fixed block-3 replay is scripts/probe_request_evidence.py. It uses the original
+W1 order and seeds 3001 through 3008, Ready primes and the same pinned settings on
+both frontends. It retains all outputs, corrections, requests, generated tokens,
+source identities and cleanup, and requires exact paired request/token agreement.
+It is a functional regression, not a replacement for a fresh ten-block W1 cohort.
+The corrected release worker builds and passes its deterministic suite; actual
+replay and rebuilt package/UI checks are next.
+
+All 15 document checks now pass locally, including the new forced second-insert
+failure, rollback and retry case. Local logs are .build/document-verification/.
+The narrow layout change still needs visible replay. The previous freeze is over;
+local builds and UI checks may resume, with no performance claim from overlap.
