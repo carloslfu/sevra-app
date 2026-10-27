@@ -322,3 +322,6 @@ Prepare composer Stop/Retry/Find original controls and immediate preview retry o
 ## [2026-10-27 14:30] implementation | records/operations/implementation.md
 Prepare composer Stop/Retry/Find original controls and immediate preview retry ownership; record remaining workspace callback lifecycle review.
 
+## [2026-10-27 14:32] verification | records/operations/implementation.md
+Inspect hash-verified CI artifact: >2 GiB preview verification passed at 6,489,600-byte lifetime physical footprint; preserve precise scope and raw report.
+

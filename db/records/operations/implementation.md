@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T14:30:57.433423+00:00
+updated: 2026-10-27T14:32:59.304232+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -70,6 +70,15 @@ production adoption remain disabled pending their recorded gates.
   development branch. The probe's 6886540 hosted workflow passed completely
   (40516968758). Actual 32K maintenance/64K reference arms still await the end of
   W1; compilation and unrelated checks do not establish context reliability.
+
+- Hosted >2 GiB linked-file verification passes on 96b8528, including bounded
+  cancellation, full retry and changed-original rejection. Its inspected lifetime
+  physical footprint peaks at 6,489,600 bytes. This is headless hash/session
+  evidence; real large-file viewers and full-app memory remain unqualified.
+- Composer Stop/Retry preview/Find original controls are prepared on 202d513.
+  They preserve control access while inference is busy and share native preview
+  ownership. Their runtime/visual verification and general workspace callback
+  lifecycle review remain next work.
 
 Next, finish the frozen W1 measurement and qualify the prepared asset preview.
 Continue whole-app memory/headroom, occupied-context and repeated-compaction recovery,
@@ -1686,6 +1695,25 @@ CI; local builds and file-intensive tests remain deferred during the frozen W1
 measurement. Earlier passing small core/session regressions do not qualify this
 new fixture. Reproduction is in [[records/operations/build-and-run]].
 
+
+The new probe passed on hosted arm64 macOS 26.6.2 at commit 96b8528, run
+40520881612. It verified all 2,148,532,224 original bytes, cancelled at exactly
+8,388,608 bytes, then rejected a same-size changed original without changing the
+workbook revision or saved asset hash. Darwin lifetime peak physical footprint
+was 6,489,600 bytes (about 6.2 MiB), below the preregistered 268,435,456-byte ceiling.
+The complete fixture/verification process took 7.74 seconds; that is not a cold
+storage or UI latency qualification. Sparse source bytes explain why actual disk
+reads are much smaller than the hashed length.
+
+Artifact 12740609605 is 1,324 bytes with SHA256
+bbf2cf53282867459c258131201532ea9c4d6290eee5f69eb61467896abb270a.
+Its digest was checked before extracting the three expected bounded log files;
+all five reported source hashes match the recorded commit. Full result, stdout,
+empty stderr, executable identity and explicit limits are preserved in
+integration/evidence/2026-10-27-large-linked-preview.json. This is a passing headless
+verification result, not native media rendering, complete UI responsiveness,
+full-app memory or broad hardware qualification. Later composer-control edits
+still require their own checks. The full 96b8528 hosted workflow is still running.
 ## Conversation controls for file previews prepared
 
 Review found that the composer disabled every submission while work was active,

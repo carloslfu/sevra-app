@@ -1,0 +1,55 @@
+{
+  "qualification": "large-linked-file-verification-v1",
+  "scope": "Hosted arm64 macOS headless verification, not native rendering, full-app memory, storage throughput or broad hardware qualification.",
+  "artifact": {
+    "run": "https://github.com/carloslfu/sevra-app/actions/runs/40520881612",
+    "id": 12740609605,
+    "zipBytes": 1324,
+    "zipSHA256": "bbf2cf53282867459c258131201532ea9c4d6290eee5f69eb61467896abb270a",
+    "digestVerified": true
+  },
+  "report": {
+    "binarySHA256": "f1cc4a80158ffa047f2e23b7fc8e151da313d843583f508c3ce4ae76db60a1b6",
+    "commit": "96b8528b88d3ee617ae14606d5754edf9ac5917e",
+    "machine": "arm64",
+    "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "sources": {
+      "IntegrationTests/Preview/Checks.swift": "fbe47b44690fe0630caa6d122944c27bb437544180309de1b34cd812ac71e2f2",
+      "IntegrationTests/Preview/LargeAssetCheck.swift": "5c0454e95fb724239ba174c1fc1f3b16ab91d520f8f677ab1325964237f7c4b6",
+      "Sources/SevraCore/Assets.swift": "b8253852c12885e323cf07a89475e6b9d847807cbd8bd70aa4115251eb1a6244",
+      "Sources/SevraPreviewUI/AssetPreviewSession.swift": "b65c38d4697f66070cb0a303caa810ed4d26c65b46ce30c388387095db8a14ec",
+      "scripts/check_large_preview.py": "6e85656d935279402c9ec60d3f62175bbb2511ecc2e4aa71111d8391ba5113e3"
+    },
+    "maximumLifetimeFootprintBytes": 268435456,
+    "passed": true,
+    "result": {
+      "assetBytes": "2148532224",
+      "cancelledAfterBytes": "8388608",
+      "changedOriginalRefused": true,
+      "fullyVerifiedBytes": "2148532224",
+      "passed": true,
+      "scope": "Large linked-file verification and cancellation, without media rendering or inference.",
+      "workbookUnchanged": true
+    },
+    "memory": {
+      "bytes": 6407680,
+      "lifetimePeakBytes": 6489600,
+      "pageins": 8,
+      "readBytes": 73728,
+      "writtenBytes": 3526656
+    },
+    "returncode": 0,
+    "fixtureAndVerificationSeconds": 7.741764708999995
+  },
+  "stdout": {
+    "assetBytes": "2148532224",
+    "cancelledAfterBytes": "8388608",
+    "changedOriginalRefused": true,
+    "fullyVerifiedBytes": "2148532224",
+    "passed": true,
+    "scope": "Large linked-file verification and cancellation, without media rendering or inference.",
+    "workbookUnchanged": true
+  },
+  "stderr": "",
+  "sourceHashesVerifiedAgainstCommit": true
+}
