@@ -238,3 +238,6 @@ Prepare isolated checkpoint transaction/process-death, cancellation, concurrent 
 ## [2026-10-27 12:24] verification | records/operations/implementation.md
 Record green frozen-main CI, passed hosted voice step, superseded-run cancellation and pending checkpoint CI; first two W1 pairs match with sources frozen.
 
+## [2026-10-27 12:28] verification | records/specs/conversation-context.md
+Hosted c0ac40f checkpoint worker/controller pass all four crash/cancel/concurrent acceptance cases, exact retries and portable preservation; artifact 12734101119 retained. Full CI, local replay and model compaction still pending.
+

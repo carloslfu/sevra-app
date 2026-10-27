@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T12:24:37.149678+00:00
+updated: 2026-10-27T12:28:00.127449+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -45,8 +45,9 @@ production adoption remain disabled pending their recorded gates.
   voice step. Local execution, hardware recognition and native visual replay
   remain pending. See Voice and media lifecycle repair below.
 - The descendant codex/context-durability branch adds four checkpoint publication
-  checks at real transaction/process-death boundaries. Commit c0ac40f is running
-  in hosted CI 40503178418. No durability result is claimed yet; see Checkpoint
+  checks at real transaction/process-death boundaries. All four passed on c0ac40f
+  in hosted CI 40503178418; the rest of that workflow remains pending. Local
+  replay and actual-model C12/C13 qualification remain separate. See Checkpoint
   publication process-death checks below.
 
 Next, finish and assess the frozen W1 cohort, then locally test and integrate the
@@ -1258,10 +1259,14 @@ another process before publication, requiring rollback/stale refusal and fresh
 accepted-estimate projection. Every attempt, fixture and binary/source identity
 is retained by the controller.
 
-These checks are prepared, not yet compiled or run. Local builds remain deferred
-while the frozen W1 cohort runs; hosted CI is the next check. They cover storage
-and process-death boundaries only, not actual-model summary quality, repeated
-mid-job compaction, occupied 32K/64K contexts or the complete C12/C13/J10 gates.
+All four checks compiled and passed on c0ac40f in hosted CI 40503178418. Its
+checkpoint-process-death artifact is retained as 12734101119, 152,915 bytes, archive
+SHA256 1dc8f4bb13bc2299e1313eb134832bf367dffc224d48360efca3073613b3ebf5.
+That digest is GitHub artifact metadata; local artifact inspection and replay are
+still deferred while W1 runs. The rest of the hosted workflow remains pending.
+These checks cover storage and process-death boundaries only, not actual-model
+summary quality, repeated mid-job compaction, occupied 32K/64K contexts or the
+complete C12/C13/J10 gates.
 Automatic compaction remains disabled. See [[records/specs/conversation-context]]
 and [[records/operations/build-and-run]].
 
@@ -1274,8 +1279,9 @@ The 14-check injected voice lifecycle step passed for 7f93617 in run 40502209056
 Its remaining job is still running; no whole-branch pass is claimed. The earlier
 04ce5c2 run 40501522585 was cancelled after a replacement source revision started,
 not reported as a pass. The descendant checkpoint-durability commit c0ac40f is
-running as 40503178418 and awaits its own result. Both branches remain separate
-from the frozen primary checkout. No local build, inference or test run overlapped
+running as 40503178418. Its four checkpoint process-death/cancellation/concurrency
+checks and inherited voice checks passed; the whole workflow remains pending.
+Both branches remain separate from the frozen primary checkout. No local build, inference or test run overlapped
 W1; only lightweight source/docs work and hosted CI were added.
 
 W1 blocks 0 and 1 have complete native/reference workers, successful Ready primes,

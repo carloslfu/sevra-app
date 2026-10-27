@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-27T12:21:19.743187+00:00
+updated: 2026-10-27T12:28:00.151029+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -278,7 +278,8 @@ The controller checks external visibility, kills its child, reopens the workbook
 retries exact publication and verifies portable state. Separate cancellation and
 concurrent acceptance cases exercise rollback and stale-input refusal.
 
-This is prepared test coverage, not yet a passing result. A future pass would
-qualify these core durability boundaries only. Actual model compaction quality,
-repeated compactions within one long request, occupied contexts, pending tool
-recovery and the uncompressed comparison remain separate acceptance work.
+All four cases passed in hosted CI 40503178418 on c0ac40f. This qualifies those
+core durability boundaries on that runner. Local replay remains pending while W1
+runs. Actual model compaction quality, repeated compactions within one long
+request, occupied contexts, pending tool recovery and the uncompressed comparison
+remain separate acceptance work. The result does not enable automatic compaction.
