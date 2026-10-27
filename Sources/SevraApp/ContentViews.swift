@@ -45,7 +45,10 @@ struct SearchView: View {
         .callout)
       if incomplete > 0 {
         Text(
-          "\(incomplete) sources have incomplete content indexes. Filename search is still available."
+          (incomplete == 1
+            ? "1 source has an incomplete content index."
+            : "\(incomplete) sources have incomplete content indexes.")
+            + " Filename search is still available."
         ).font(.caption).foregroundStyle(.secondary)
       }
       ScrollViewReader { proxy in
@@ -397,8 +400,12 @@ struct SearchComponentView: View {
       Text("Showing the first \(hits.count) results.").font(.caption).foregroundStyle(.secondary)
     }
     if incomplete > 0 {
-      Text("\(incomplete) sources had incomplete content indexes when searched.")
-        .font(.caption).foregroundStyle(.secondary)
+      Text(
+        incomplete == 1
+          ? "1 source had an incomplete content index when searched."
+          : "\(incomplete) sources had incomplete content indexes when searched."
+      )
+      .font(.caption).foregroundStyle(.secondary)
     }
   }
 }

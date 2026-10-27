@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T18:42:11.664046+00:00
+updated: 2026-10-27T18:55:53.489021+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -41,7 +41,7 @@ C++/Metal. Native adoption and automatic compaction remain gated.
 - Window refresh, chapter menus and Home intake metadata now load off the UI actor
   in a coherent snapshot. Tests pass for bounded pending reads, cancellation,
   conversation scope and stale results. The rebuilt app shows CLI changes, keeps
-  tangent/main histories separate, and restores the workbook after close/reopen.
+  thread/main histories separate, and restores the workbook after close/reopen.
 - The text-driven Open a copy flow passed through Save and Open into TextEdit.
   Editing the copy leaves the included asset byte-identical and workbook verified.
   Native 2.15 GB included/linked audio playback, seeking, Stop/Retry, changed-byte
@@ -54,10 +54,16 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   pass in debug and optimized release. Packaged app/CLI intake works without the
   build tree. Structured import and other parser paths still need qualification.
 
-The complete local suite and native release app/CLI build and package checks pass
-for the extraction checkpoint, with the last added descriptor check run separately
-in both configurations. Hosted workflow 40557861669 on media repair 26b3936 also
-passes, including both packages. The new extraction changes need their own CI result.
+- Conversation and optional named Threads replace visible tangent terminology.
+  Text/menu creation and return, summary review/cancellation, exact provenance and
+  scoped history pass. Only selected findings return; commands stay in their
+  originating history. Existing package IDs and the CLI tangent alias still work.
+
+The full local suite passes with 76 core and 12 extraction checks. Native release
+app/CLI/helper builds and package checks pass. The final share-summary CLI addition
+also passes a separate installed-layout smoke check. Hosted workflow 40557861669
+on media repair 26b3936 passes; extraction e27ae39 is still in hosted CI at this
+checkpoint, and the new Threads changes need their own hosted result.
 Next, finish native accessibility and
 extraction coverage, review the engine repeatability evidence before its next
 qualification step, and complete remaining context/hardware/release gates.
@@ -2326,3 +2332,51 @@ SHA256 e1667c89b8efa36ec8836e37d5609d86d0cba6a7045d14223a2f82ddb75f3b6d.
 It retains source/binary identities, sanitized logs, package checks and UI audits.
 The previous media commit's hosted CI 40557861669 passed. This extraction checkpoint
 has not yet received a hosted CI result.
+
+## Conversation and Threads refinement, October 27
+
+Applied the owner-approved UX refinement recorded in
+[[sources/notes/2026/10/conversation-threads-refinement]]. The main pane displays
+Conversation. The picker groups optional discussions as Threads with descriptive
+titles. Start a thread and Back to conversation have explicit text equivalents;
+Let's explore this separately opens naming, while Start a thread called followed
+by a title creates it directly. Chapters remain optional menu/message headings.
+Persisted conversation IDs and the legacy tangent API/CLI spelling remain compatible.
+
+Share summary with conversation opens an editable selection seeded from a completed
+answer. Cancel publishes nothing. A message context menu can choose an exact earlier
+exchange; an explicit text summary can also be shared without inference. The host
+saves selected text and its original conversation/message reference. Sharing does
+not accept records, duplicate workbook business data, expand history retrieval or
+enqueue an AI turn. The shared contribution remains historical information under
+the existing authority rules. CLI thread and share-summary use the same core.
+
+Two new core checks pass for phrase/negation/title handling and summary provenance,
+unchanged accepted inventory, no model run, scoped history, incomplete-message
+refusal and reopen. All 76 core checks and the complete regression suite pass.
+Native release builds/resources/signatures pass. A separate final packaged CLI
+check verifies thread, legacy tangent, selected summary, exact provenance, no
+business/model mutation and integrity. An initial test used an internal DB property
+and a later app build caught catch-variable shadowing; both were corrected and the
+failed build logs are retained with successful reruns.
+
+Visible native testing verified Conversation default, text-driven named thread
+creation/return, the Threads picker, summary editing/cancellation, sharing and
+clicking the original exchange link. The first pass exposed duplicate command text
+in main. The repaired app records those commands in their originating thread and
+copies only selected findings to Conversation. A fresh fixture verifies the repair,
+direct naming, return, zero inference/business mutations and workbook integrity.
+The app was quit and dictation remained off throughout this UI pass. These are
+synthetic seeded answers, not fresh model-quality or microphone measurements.
+
+The screenshot review passed for the summary sheet. The accessibility tree grouped
+message text and did not expose a separate provenance-link node. Link clicking
+works; keyboard/VoiceOver exposure still needs explicit qualification. This does
+not close all J01–J10, C12/C13, native engine parity or release gates.
+
+Evidence: integration/evidence/2026-10-27-conversation-threads.json.gz, uncompressed
+SHA256 8be5592c3c6dfdd763bf97d55563b5c2d95c54efef5ed59298894852651de16b.
+It preserves before/after UI audits, exact source/app/CLI identities, failed and
+passing build logs, full regression and package checks. The final CLI addition was
+built and smoke-tested after the full suite; it changes no core or UI behavior.
+Hosted CI for extraction e27ae39 was still running; no new hosted success is claimed.

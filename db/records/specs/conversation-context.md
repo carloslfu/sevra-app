@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-27T17:40:48.858217+00:00
+updated: 2026-10-27T18:47:21.474542+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -94,7 +94,7 @@ draft or withdrawn state. Actions that already succeeded cannot be repeated mere
 because the summary calls them pending. Historical instructions and retrieved
 source text remain untrusted for present authority.
 
-## Retrieval, chapters and tangents
+## Retrieval, optional chapters and Threads
 
 C10. Provide bounded, searchable conversation history and exact message/tool
 receipt retrieval in addition to the existing document/record search. The agent
@@ -109,7 +109,7 @@ summary alone does not count as newly inspected evidence. Disclose retrieval gap
 
 C11. Checkpoints are scoped to one conversation. Chapter boundaries are useful
 navigation hints, not new authority or a reason to lose cross-chapter constraints.
-A tangent inherits only its explicit parent context and saved references; later
+A thread inherits only its explicit parent context and saved references; later
 parent changes do not silently rewrite that inherited history. Bringing a result
 back to main preserves origin and scope. Rebuild current business status from the
 same workbook, while keeping scenario and actual/estimate distinctions. No other
@@ -404,3 +404,19 @@ C12/C13, hostile/tail-only evidence, interruption or sustained-memory coverage.
 Automatic compaction remains disabled. Retained inputs, traces, conditions,
 independent audits and reopen hashes are in
 integration/evidence/2026-10-27-active-context-maintained-repair.json.gz.
+
+## Conversation and Threads terminology
+
+The main history is called Conversation. Optional discussions are Threads, created
+with Start a thread and revisited by descriptive title. Back to conversation returns
+to main. Chapters remain optional message-boundary headings. Older tangent IDs,
+fixtures and API names remain compatible and retain their original scoped-context
+semantics; terminology alone does not widen access.
+
+Share summary with conversation preserves the exact source conversation/message
+link and user-selected text. The summary is a historical user contribution, not a
+new business acceptance or live request to the model. Existing history envelopes
+continue to distinguish saved information from current instructions. The original
+exchange remains in its thread; sharing does not make sibling or source history
+implicitly searchable from main. The link explicitly opens that original scope.
+See [[records/specs/product]] and [[sources/notes/2026/10/conversation-threads-refinement]].

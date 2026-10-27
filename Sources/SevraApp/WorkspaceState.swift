@@ -32,6 +32,8 @@ import SwiftUI
   @Published var datasets: [Dataset] = []
   @Published var messages: [Message] = []
   @Published var conversations: [Value] = []
+  @Published var conversationDraft: ConversationDraft?
+  @Published var summaryDraft: ConversationSummaryDraft?
   @Published var chapters: [Value] = []
   @Published var bookmarks: [Value] = []
   @Published var pendingExtractions: [Value] = []
@@ -362,6 +364,10 @@ import SwiftUI
       }
       return
     }
+    if conversationCommand(input, book: book) {
+      refresh()
+      return
+    }
     if localCommand(input, book: book) {
       _ = try? book.addMessage(input, role: "user", conversation: conversation)
       refresh()
@@ -415,6 +421,42 @@ import SwiftUI
     case .search: return "Workbook search"
     }
   }
+  private func conversationCommand(_ input: String, book: Workbook) -> Bool {
+    guard let command = ConversationCommand.parse(input) else { return false }
+    do {
+      // Keep navigation/sharing instructions in their originating history. Only
+      // the explicitly shared findings are copied into the main conversation.
+      _ = try book.addMessage(input, role: "user", conversation: conversation)
+
+      switch command {
+      case .backToConversation: changeConversation("main")
+      case .startThread(let title):
+        guard let message = messages.last(where: { ["user", "assistant"].contains($0.role) })
+        else {
+          throw SevraError("conversation", "Start the conversation before opening a thread.")
+        }
+        if let title {
+          changeConversation(try book.tangent(title: title, parentMessage: message.id))
+        } else {
+          conversationDraft = .init(isThread: true, message: message.id)
+        }
+      case .shareSummary(let text):
+        if let text {
+          guard conversation != "main",
+            let message = messages.last(where: {
+              $0.role == "assistant" && $0.state == "complete"
+            })
+          else { throw SevraError("summary", "Choose a completed thread answer to share.") }
+          _ = try book.shareSummary(message: message.id, text: text)
+          changeConversation("main")
+        } else {
+          requestSummary()
+        }
+      }
+
+    } catch { self.error = error.localizedDescription }
+    return true
+  }
   func localCommand(_ input: String, book: Workbook) -> Bool {
     let lower = input.lowercased()
     do {
@@ -436,10 +478,6 @@ import SwiftUI
       }
       if lower == "make a shareable copy" || lower == "export workbook" {
         exportPanel()
-        return true
-      }
-      if lower == "back to main" {
-        conversation = "main"
         return true
       }
       if lower.hasPrefix("open "),
@@ -476,11 +514,6 @@ import SwiftUI
       }
       if lower.hasPrefix("chapter "), let message = messages.last {
         try book.chapter(title: String(input.dropFirst(8)), message: message.id)
-        return true
-      }
-      if lower.hasPrefix("tangent "), let message = messages.last {
-        conversation = try book.tangent(
-          title: String(input.dropFirst(8)), parentMessage: message.id)
         return true
       }
     } catch {
@@ -679,7 +712,19 @@ import SwiftUI
       }
     } catch { self.error = error.localizedDescription }
   }
+  func requestSummary(message: Message? = nil) {
+    guard conversation != "main",
+      let selected = message
+        ?? messages.last(where: { $0.role == "assistant" && $0.state == "complete" })
+    else {
+      error = "Choose a completed thread answer to share."
+      return
+    }
+    summaryDraft = .init(id: selected.id, text: selected.body)
+  }
   func changeConversation(_ id: String) {
+    conversationDraft = nil
+    summaryDraft = nil
     conversation = id
     messageAnchor = nil
     refresh()
@@ -708,6 +753,8 @@ import SwiftUI
   func beginInteraction() { interactionActive = true }
   func endInteraction() {
     interactionActive = false
+    conversationDraft = nil
+    summaryDraft = nil
     interactionIdentity = UUID()
     operations.invalidate()
     refreshSession.reset()

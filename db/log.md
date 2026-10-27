@@ -412,3 +412,9 @@ Qualified native >2 GiB audio playback, seeking, linked verification Stop/Retry,
 ## [2026-10-27 18:42] verification | records/operations/implementation
 Isolated native extraction: 12 debug/release failure checks, packaged intake and UI recovery pass; preserve Q11 limits and pending hosted CI.
 
+## [2026-10-27 18:47] design | records/specs/product
+Record approved Conversation/Threads refinement and explicit summary provenance; preserve existing workbook and authority semantics.
+
+## [2026-10-27 18:55] implementation | records/operations/implementation
+Implement Conversation/Threads, text navigation and reviewed provenance-preserving summary sharing; fix duplicate command placement, pass native UI/full regression/CLI checks, preserve open gates.
+

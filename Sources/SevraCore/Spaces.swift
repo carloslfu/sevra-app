@@ -250,7 +250,7 @@ extension Workbook {
     _ = try mutation("tangent", request: .string(title)) {
       try require(
         try db.scalar("SELECT count(*) FROM messages WHERE id=?", [.string(parentMessage)]).int
-          == 1, "not_found", "The tangent needs an existing conversation message.")
+          == 1, "not_found", "The thread needs an existing conversation message.")
       try db.execute(
         "INSERT INTO conversations VALUES(?,?,?)",
         [.string(id), .string(title), .string(parentMessage)])
@@ -327,8 +327,35 @@ extension Workbook {
       "This exchange is already in the main conversation.")
     let source = message["conversation_id"]!.text
     return try addMessage(
-      "From a tangent:\n\n" + message["body"]!.text
+      "From a thread:\n\n" + message["body"]!.text
         + "\n\n[Open original exchange](sevra://conversation/\(source)?message=\(id))",
       role: "user", conversation: "main")
+  }
+
+  /// Share only the user's selected text, retaining an exact origin. This does
+  /// not accept business records, expand retrieval scope, or enqueue an AI turn.
+  @discardableResult public func shareSummary(message id: String, text: String) throws -> String {
+    let summary = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    try require(
+      !summary.isEmpty && summary.utf8.count <= 64_000, "summary",
+      "Enter a summary of at most 64,000 bytes.")
+    return try synchronized {
+      guard let message = try db.execute("SELECT * FROM messages WHERE id=?", [.string(id)]).first
+      else { throw SevraError("message", "The original exchange is missing.") }
+      let source = message["conversation_id"]!.text
+      try require(source != "main", "conversation", "This exchange is already in the conversation.")
+      try require(
+        message["state"]?.text == "complete"
+          && ["user", "assistant"].contains(message["role"]?.text ?? ""),
+        "summary", "Choose a completed exchange to share.")
+      return try addMessage(
+        "Shared summary from a thread:\n\n" + summary
+          + "\n\n[Open original exchange](sevra://conversation/\(source)?message=\(id))",
+        role: "user", conversation: "main",
+        payload: .object([
+          "kind": .string("shared_summary"), "conversationID": .string(source),
+          "messageID": .string(id), "referenceOnly": .bool(true),
+        ]))
+    }
   }
 }

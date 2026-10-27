@@ -8,7 +8,6 @@ struct WorkbookView: View {
   @ObservedObject var state: WorkspaceState
   @State private var showSpaces = false
   @State private var spaceSearch = ""
-  @State private var conversationDraft: ConversationDraft?
   @FocusState private var composerFocused: Bool
   let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
   var body: some View {
@@ -85,17 +84,26 @@ struct WorkbookView: View {
         }.font(.callout).padding(12).background(Color.red.opacity(0.07))
       }
     }.background(Color(nsColor: .windowBackgroundColor))
-      .sheet(item: $conversationDraft) { draft in
+      .sheet(item: $state.conversationDraft) { draft in
         ConversationNameSheet(draft: draft) { name in
           guard let book = state.workbook else { return }
-          if draft.tangent {
+          if draft.isThread {
             let id = try book.tangent(title: name, parentMessage: draft.message)
             state.changeConversation(id)
           } else {
             try book.chapter(title: name, message: draft.message)
             state.refresh()
           }
-          conversationDraft = nil
+          state.conversationDraft = nil
+          composerFocused = true
+        }
+      }
+      .sheet(item: $state.summaryDraft) { draft in
+        ConversationSummarySheet(draft: draft) { summary in
+          guard let book = state.workbook else { return }
+          _ = try book.shareSummary(message: draft.id, text: summary)
+          state.summaryDraft = nil
+          state.changeConversation("main")
           composerFocused = true
         }
       }
@@ -156,39 +164,40 @@ struct WorkbookView: View {
     VStack(spacing: 0) {
       HStack {
         Menu {
-          ForEach(state.conversations, id: \.text) { chat in
-            Button(chat["title"].text) { state.changeConversation(chat["id"].text) }
+          Button("Conversation") { state.changeConversation("main") }
+          let threads = state.conversations.filter { $0["id"].text != "main" }
+          if !threads.isEmpty {
+            Section("Threads") {
+              ForEach(threads, id: \.text) { chat in
+                Button(chat["title"].text) { state.changeConversation(chat["id"].text) }
+              }
+            }
           }
         } label: {
           Text(
-            state.conversations.first { $0["id"].text == state.conversation }?["title"].text
-              ?? "Main conversation"
+            state.conversation == "main"
+              ? "Conversation"
+              : state.conversations.first { $0["id"].text == state.conversation }?["title"].text
+                ?? "Thread"
           ).font(.subheadline.weight(.medium))
         }
         Spacer()
         Menu {
           Button("Start a chapter") {
             if let message = state.messages.last {
-              conversationDraft = .init(tangent: false, message: message.id)
+              state.conversationDraft = .init(isThread: false, message: message.id)
             }
           }.disabled(state.messages.isEmpty)
-          Button("Explore a tangent") {
+          Button("Start a thread") {
             if let message = state.messages.last {
-              conversationDraft = .init(tangent: true, message: message.id)
+              state.conversationDraft = .init(isThread: true, message: message.id)
             }
           }.disabled(state.messages.isEmpty)
           if state.conversation != "main" {
-            Button("Return to main") { state.changeConversation("main") }
-            Button("Bring last answer to main") {
-              if let message = state.messages.last(where: {
-                $0.role == "assistant" && $0.state == "complete"
-              }) {
-                do {
-                  _ = try state.workbook?.bringToMain(message: message.id)
-                  state.changeConversation("main")
-                } catch { state.error = error.localizedDescription }
-              }
-            }
+            Button("Back to conversation") { state.changeConversation("main") }
+            Button("Share summary with conversation") { state.requestSummary() }
+              .disabled(
+                !state.messages.contains { $0.role == "assistant" && $0.state == "complete" })
           }
           if !state.bookmarks.isEmpty {
             Menu("Saved exchanges") {
@@ -241,8 +250,15 @@ struct WorkbookView: View {
                   try? state.workbook?.chapter(
                     title: String(message.body.prefix(60)), message: message.id, bookmark: true)
                 }
-                Button("Explore a tangent") {
-                  conversationDraft = .init(tangent: true, message: message.id)
+                Button("Start a thread") {
+                  state.conversationDraft = .init(isThread: true, message: message.id)
+                }
+                if state.conversation != "main", message.state == "complete",
+                  ["user", "assistant"].contains(message.role)
+                {
+                  Button("Share summary with conversation") {
+                    state.requestSummary(message: message)
+                  }
                 }
               }
             }
@@ -339,9 +355,9 @@ struct WorkbookView: View {
   }
 }
 
-private struct ConversationDraft: Identifiable {
+struct ConversationDraft: Identifiable {
   let id = UUID()
-  let tangent: Bool
+  let isThread: Bool
   let message: String
 }
 
@@ -352,13 +368,13 @@ private struct ConversationNameSheet: View {
   @State private var name = ""
   @State private var failure: String?
   @FocusState private var focused: Bool
-  private var title: String { draft.tangent ? "Explore a tangent" : "Start a chapter" }
+  private var title: String { draft.isThread ? "Start a thread" : "Start a chapter" }
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text(title).font(.title2.weight(.medium))
       Text(
-        draft.tangent
-          ? "Explore from this point in a separate conversation. You can return to the main conversation at any time."
+        draft.isThread
+          ? "Give this discussion a title, for example “What if we raise prices?” You can return to the conversation at any time."
           : "Name this point so you can find it later in the conversation."
       )
       .foregroundStyle(.secondary)
@@ -367,7 +383,7 @@ private struct ConversationNameSheet: View {
       HStack {
         Spacer()
         Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
-        Button(draft.tangent ? "Explore" : "Create chapter") {
+        Button(draft.isThread ? "Start thread" : "Create chapter") {
           do { try create(name.trimmingCharacters(in: .whitespacesAndNewlines)) } catch {
             failure = error.localizedDescription
           }
@@ -375,5 +391,38 @@ private struct ConversationNameSheet: View {
           .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
       }
     }.padding(24).frame(width: 400).onAppear { focused = true }
+  }
+}
+
+struct ConversationSummaryDraft: Identifiable {
+  let id: String
+  let text: String
+}
+
+private struct ConversationSummarySheet: View {
+  let draft: ConversationSummaryDraft
+  let share: (String) throws -> Void
+  @Environment(\.dismiss) private var dismiss
+  @State private var text = ""
+  @State private var failure: String?
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      Text("Share summary with conversation").font(.title2.weight(.medium))
+      Text("Edit the findings you want to bring back. The original exchange stays linked.")
+        .foregroundStyle(.secondary)
+      TextEditor(text: $text).font(.body).frame(minHeight: 180)
+        .accessibilityLabel("Summary to share")
+        .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
+      if let failure { Text(failure).foregroundStyle(.red) }
+      HStack {
+        Spacer()
+        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+        Button("Share summary") {
+          do { try share(text) } catch { failure = error.localizedDescription }
+        }.keyboardShortcut(.defaultAction)
+          .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+      }
+    }.padding(24).frame(width: 480)
+      .onAppear { text = draft.text }
   }
 }

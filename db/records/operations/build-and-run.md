@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T18:42:11.618771+00:00
+updated: 2026-10-27T18:55:53.452234+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1068,3 +1068,21 @@ helpers, bounded concurrency, database descriptor exclusion and parent death whi
 stdout is blocked. Failure preserves originals and prior search results. No helper
 is given a workbook mutation API. This process boundary is not a security sandbox.
 The precise limits and remaining parsing paths are in [[records/specs/search]].
+
+## Conversation and Threads controls
+
+Conversation is the continuing main history. Use Start a thread in its menu or
+submit Start a thread called What if we raise prices? through text or dictation.
+Let's explore this separately opens the naming sheet. Go back to our main
+conversation returns without merging the histories. Chapters remain optional.
+
+Share summary with conversation opens a review field seeded from a completed
+answer; edit it to the selected findings before sharing. A completed exchange's
+context menu can select a different original. Alternatively submit Share summary
+with conversation: followed by the exact summary; this explicitly shares those
+words from the latest completed thread answer. The result links to the original
+exchange and does not accept business data or invoke inference.
+
+The CLI advertises thread WORKBOOK TITLE MESSAGE_ID and share-summary WORKBOOK
+MESSAGE_ID TEXT. Quote the selected text as one argument. The older tangent spelling
+and persisted IDs remain supported. Existing workbooks need no data migration.

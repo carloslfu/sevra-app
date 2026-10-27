@@ -218,6 +218,60 @@ check("main conversation, chapter, tangent and bookmark") {
   try expect(try book.messages(conversation: tangent).count == 1)
 }
 
+check("thread commands preserve titles and do not interpret quoted or negated instructions") {
+  try expect(
+    ConversationCommand.parse("Let’s explore this separately.") == .startThread(title: nil))
+  try expect(ConversationCommand.parse("Go back to our main conversation!") == .backToConversation)
+  try expect(
+    ConversationCommand.parse("Start a thread called What if we raise prices?")
+      == .startThread(title: "What if we raise prices?"))
+  try expect(ConversationCommand.parse("tangent Hiring") == .startThread(title: "Hiring"))
+  try expect(
+    ConversationCommand.parse("Share summary with conversation: Keep prices at $12.")
+      == .shareSummary(text: "Keep prices at $12."))
+  for text in [
+    "Don't go back to our main conversation", "Can a thread share workbook data?",
+    "What does ‘Let's explore this separately’ mean?", "\"start a thread\"",
+  ] {
+    try expect(ConversationCommand.parse(text) == nil)
+  }
+}
+
+check(
+  "selected thread summary preserves origin and does not change business state or history scope"
+) {
+  let b = try Workbook.create(at: temp.appendingPathComponent("Summary.sevra"), title: "Summary")
+  let original = try b.addMessage("Review next month's prices", role: "user")
+  let thread = try b.tangent(title: "What if we raise prices?", parentMessage: original)
+  let answer = try b.addMessage(
+    "Estimate A: 12. Estimate B: 14. Neither is accepted.",
+    role: "assistant", conversation: thread)
+  let source = try b.addItem(
+    category: "source", kind: "observation", title: "Count", status: "accepted")
+  try b.setOpeningBalance(
+    subject: "stock", quantity: "20", effective: "2026-01-01", sourceID: source.id)
+  let before = try b.items().map(\.id).sorted()
+  let balance = try b.balance(subject: "stock")
+  let returned = try b.shareSummary(message: answer, text: "Use 12 as an estimate, pending review.")
+  let shared = try b.messages().last!
+  try expect(shared.id == returned && shared.body.contains("Use 12 as an estimate"))
+  try expect(!shared.body.contains("Estimate B"))
+  try expect(shared.body.contains("sevra://conversation/\(thread)?message=\(answer)"))
+  try expect(try b.messages(conversation: thread).count == 1)
+  try expect(try b.items().map(\.id).sorted() == before)
+  try expect(try b.balance(subject: "stock") == balance)
+  try expect(try b.agentRuns().isEmpty)
+  try refuses("history_scope") { _ = try b.historyMessage(answer, conversation: "main") }
+  let payload = try b.messagePayload(returned)
+  try expect(payload["referenceOnly"] == .bool(true))
+  let incomplete = try b.addMessage(
+    "Not finished", role: "assistant", conversation: thread, state: "interrupted")
+  try refuses("summary") { _ = try b.shareSummary(message: incomplete, text: "Pretend done") }
+  try refuses("conversation") { _ = try b.shareSummary(message: original, text: "Already here") }
+  try refuses("summary") { _ = try b.shareSummary(message: answer, text: "   ") }
+  try expect(try Workbook(b.url).messages().last?.id == returned)
+}
+
 check("undo acceptance withdraws effect; later draft does not erase accepted state") {
   let b = try Workbook.create(at: temp.appendingPathComponent("Undo.sevra"), title: "Undo")
   let s = try b.addItem(category: "source", kind: "observation", title: "Count", status: "accepted")

@@ -272,7 +272,8 @@ import SevraProduct
     case "chapter":
       try book.chapter(title: arg(2), message: arg(3))
       return .bool(true)
-    case "tangent": return .string(try book.tangent(title: arg(2), parentMessage: arg(3)))
+    case "thread", "tangent": return .string(try book.tangent(title: arg(2), parentMessage: arg(3)))
+    case "share-summary": return .string(try book.shareSummary(message: arg(2), text: arg(3)))
     case "reindex":
       try book.rebuildSearch()
       return .bool(true)
@@ -320,7 +321,7 @@ import SevraProduct
     unresolved-calls WORKBOOK [CONVERSATION_ID] | tool-receipt WORKBOOK CONVERSATION_ID RECEIPT_ID
     tool-result WORKBOOK CONVERSATION_ID RECEIPT_ID [PATH_JSON [OFFSET]] [--raw-json]
     checkpoints WORKBOOK [CONVERSATION_ID] | checkpoint WORKBOOK CONVERSATION_ID CHECKPOINT_ID
-    tangent WORKBOOK TITLE MESSAGE_ID | reindex WORKBOOK
+    thread WORKBOOK TITLE MESSAGE_ID | share-summary WORKBOOK MESSAGE_ID TEXT | reindex WORKBOOK
     export WORKBOOK PATH.sevraz | open-archive PATH.sevraz DEST.sevra
     export-csv WORKBOOK TABLE_ID PATH.csv | tool WORKBOOK TOOL [ARGS_JSON]
     model-status [MODEL_DIRECTORY] | model-setup [MODEL_DIRECTORY] [--reuse EXISTING_FAST_DIRECTORY]

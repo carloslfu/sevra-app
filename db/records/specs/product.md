@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T18:11:48.226467+00:00
+updated: 2026-10-27T18:47:21.431279+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -56,9 +56,20 @@ self-contained asset provenance.
 P06. One persisted main conversation per workbook, ordered messages with attachments,
 run progress, tool results and citations. Persist each completed message and the
 terminal state of each turn. A cancelled or failed answer must not say completed.
-P07. Named chapters refer to message boundaries. Tangents link to a parent message
-and retain scoped context without cloning accepted records. Saved exchanges are
-bookmarks. Return to main and bring a selected summary back with provenance.
+P07. The default pane is Conversation: one continuing main conversation per
+workbook. Optional separate discussions are Threads, with descriptive titles such
+as What if we raise prices? Start a thread preserves its parent message and scoped
+context without cloning workbook data. Back to conversation returns to the ongoing
+main history. Share summary with conversation lets the user choose/edit findings
+and copies only that summary, linked to its exact original exchange. This does not
+accept records, widen retrieval access or start an AI turn. Text/voice equivalents
+include Let's explore this separately and Go back to our main conversation.
+
+Chapters are optional named headings at message boundaries within the same
+history, available when useful rather than introduced as an upfront concept.
+Saved exchanges remain bookmarks. Older package/API identifiers named tangent are
+compatible implementation details; visible copy uses Threads. The decision is in
+[[sources/notes/2026/10/conversation-threads-refinement]].
 P08. Active space, selected item and scenario are visible near the composer.
 Pronouns resolve only when context is unambiguous. Clarify consequential ambiguity;
 do not force users to understand storage or ask on every harmless import.
@@ -166,7 +177,7 @@ J01 Create → import CSV/PDF/image → search text and filenames → open exact
 J02 Ask locally → agent searches/reads → cited answer → chart/table → save space.
 J03 Source claim → draft movement → accept → balance 20−2=18 → retry unchanged →
 correction gives 19; genuine return is distinct; forecast never changes actuals.
-J04 Create tangent → explore scenario → return to main → preserve business state.
+J04 Start a thread → explore scenario → share selected summary or return to conversation → preserve business state.
 J05 Link external file → move/miss/change → honest status → relink/include version.
 J06 Edit/paste cells → recompute → undo → inspect versions → close and reopen.
 J07 Export during concurrent CLI writes → open elsewhere → verify hashes/lineage.
@@ -174,7 +185,7 @@ J08 Cancel import/model run → recover → restart → last valid document rema
 J09 Fresh checkout → documented install → launch app/CLI → demo → uninstall safely.
 
 J10 Long multi-step conversation → repeated automatic compaction → recover earlier
-evidence and latest constraints → tangent/return → cancel/restart → correct pending
+evidence and latest constraints → thread/return → cancel/restart → correct pending
 status and unchanged accepted effects → portable export/reopen with full history.
 
 ## Workspace operation ownership
