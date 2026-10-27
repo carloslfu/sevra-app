@@ -448,3 +448,6 @@ Fix conceptual comparison false positives, add verified product guidance and exp
 ## [2026-10-27 21:28] verification | records/operations/implementation.md
 Final 5-case guidance and 8-case conversation cohorts pass; retain prior structural and semantic failures. Full suite, both packages/install checks and real packaged native CLI pass.
 
+## [2026-10-27 21:45] design | records/specs/references-and-relationships
+Adopt owner-approved inline references/backlinks and bounded traversal; integrate storage/search/UI/distribution and pending LJ01-LJ10 acceptance.
+

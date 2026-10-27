@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-27T19:34:51.069755+00:00
+updated: 2026-10-27T21:45:28.652502+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -288,3 +288,14 @@ ready markers for this race; do not list them as pending. Process interruption l
 a resumable running entry. Parsing isolation does not by itself qualify whole-app memory, all filesystem IO, archives, transcription
 or viewers. Larger-than-budget files remain preserved assets with an actionable
 intake error; they are not reported as fully imported tables.
+
+## Reference-assisted retrieval
+
+Q17. Adopt [[records/specs/references-and-relationships]] L11-L13. Incremental parsing
+and bounded indexed incoming/outgoing traversal complement FTS. Preserve bindings,
+origin locators, semantics, resolution and coverage. Bound hops, fanout, bytes,
+time and cancellation; enforce workbook/conversation/scenario/history scope.
+Inspect originals before citing. Mentions are not proof or acceptance. Optional
+inferred associations require measured value and explicit uncertainty. LJ06/LJ09/LJ10
+remain unqualified; prior FTS results do not qualify graph retrieval. No separate
+graph or vector database is required.

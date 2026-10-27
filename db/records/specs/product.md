@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T20:28:17.937835+00:00
+updated: 2026-10-27T21:45:28.676274+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -340,3 +340,14 @@ refuses late publication. Read-lock acquisition and SQL have a three-second budg
 Failed page reads preserve the preceding results and retry the requested page.
 This is navigation over original messages, never new evidence or action authority.
 Ordinary interpreted voice/text equivalents remain part of P09a and J11.
+
+## Inline references, backlinks and related information
+
+P17. Adopt [[records/specs/references-and-relationships]] L09-L10. Voice/text can
+link selected text/items, find mentions and inspect dependencies through the same
+core as native UI. Optional wiki-style/at-sign authoring offers suggestions.
+Readable links open temporary right-pane previews with state-preserving Back.
+Distinguish 'Mentioned in', 'Used to calculate' and later 'Possibly related'.
+Resolve necessary ambiguity without blocking unrelated saves or requiring graph
+maintenance. Keyboard, VoiceOver, narrow-window and draft-preservation checks
+remain required. LJ07 is pending. No extra primary pane or automatic space.

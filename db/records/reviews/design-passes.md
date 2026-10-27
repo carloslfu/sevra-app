@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-27T03:14:01.709463+00:00
+updated: 2026-10-27T21:45:28.741268+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -265,3 +265,17 @@ The separate controlled recovery fixture injects only the failed finish, then us
 
 ## R5 coverage overclaim
 Manual review of accepted-forecast repetition two found a correct core answer followed by an unsupported workbook-wide statement that no inventory movements were recorded. The model had performed two empty lexical searches and listed datasets; those operations do not establish exhaustive record coverage. The synthetic fixture does contain no movements, so this is an evidence-scope overclaim rather than a wrong fixture value. Retain it separately from the automatic task score. Typed finish basis and eligible citations do not establish entailment for every sentence. Wider coverage-aware answer synthesis remains an adoption gate; do not claim general reliability or promote native inference from the small suite.
+
+## Inline reference design review, October 27
+
+Owner-adopted design: [[records/specs/references-and-relationships]]. Fits the
+Sources/Records model, SQLite portability, voice/text interaction, native right-pane
+preview and bounded search. Keep relationship meaning, resolution and acceptance
+independent. A mention enables navigation; a substantive inferred claim is a
+derived Record with evidence/status. Stable bindings survive renames/rebuilds;
+original bytes remain intact. Mention cycles do not weaken derivation checks and
+links never widen conversation scope. Avoid mandatory graph UI, all-pairs inference
+and another database. Explicit references precede evaluated suggestions.
+These are design conclusions, not measured usability or implementation proof.
+LJ01-LJ10 define the failure, recovery, model, accessibility and scale checks.
+Existing native Splash and release qualification are unchanged.

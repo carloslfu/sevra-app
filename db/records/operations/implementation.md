@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T21:29:09.667664+00:00
+updated: 2026-10-27T21:45:28.788412+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -87,6 +87,11 @@ install/update/uninstall pass. Hosted workflows 40562440542 on e27ae39,
 40564561986 on 75511b8, 40568212108 on 03163ed and 40571572539 on 3dcc924 pass.
 Workflow 40575358833 on 3313016 is still running at this checkpoint; this new
 navigation change still needs its own hosted result after push.
+The owner adopted [[records/specs/references-and-relationships]] on October 27.
+Inline references, backlinks and bounded traversal are planned, not implemented.
+L01-L14 and LJ01-LJ10 define delivery and verification. Keep the active checkpoint
+and engine qualification in place; inferred associations follow measured value.
+
 Next, continue the coherent UX pass with ordinary voice/text host actions and
 Home/recent/pinned spaces, then the full J11 journey. Thread creation/rename still
 use the existing generic writer lock; add a bounded writer path before treating
@@ -2881,3 +2886,15 @@ qualification, followed by the remaining workbook Home/spaces and uncoached
 journeys. Native/reference parity and production adoption, automatic-compaction
 C12/C13, whole-app memory, wider hardware and public release gates remain open.
 This checkpoint changes neither the engine pins nor the adoption decision.
+
+## Inline-reference design adoption, October 27
+
+Preserved Carlos's adoption instruction in
+[[sources/notes/2026/10/inline-references-adoption]] and added
+[[records/specs/references-and-relationships]]. Storage S18, search Q17, product
+P17, distribution D11, reading map and design review now reference that contract.
+Pending: canonical bindings/resolution, deterministic parsing, indexes/backlinks,
+native/voice/text/CLI operations, bounded agent traversal and LJ01-LJ10 checks.
+Optional inferred associations require separate evaluation. This checkpoint changes
+no runtime code or active engine work. The main agent owns delivery and the pointer
+from its concurrently edited intelligence specification.

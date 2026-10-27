@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-27T20:02:51.450222+00:00
+updated: 2026-10-27T21:45:28.635239+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -230,3 +230,13 @@ this presentation operation. The OS may still delay a filesystem write or fsync.
 A failed save preserves the draft in memory and refuses destructive navigation.
 Conflicting text requires explicit preservation of both versions. The package's
 coherent portable snapshot retains this state; it is not a privacy-redacted export.
+
+## Inline references and relationship bindings
+
+S18. Adopt [[records/specs/references-and-relationships]] L01-L08. Store durable,
+version-aware bindings and Source annotations in SQLite; maintain rebuildable
+incoming/outgoing indexes separately from derivation lineage. Mentions, possible
+associations, business claims and derivations have distinct semantics. Substantive
+inferred relations are derived Records with evidence/status, not a third category.
+Preserve original bytes, pinned citations, unresolved targets, transactions, undo,
+migration and portable identity. Implementation and LJ01-LJ10 remain pending.

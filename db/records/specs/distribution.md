@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzbe4pdmde0k72e3j6n6
 created: 2026-10-25T01:48:47.342811+00:00
-updated: 2026-10-27T18:42:11.604724+00:00
+updated: 2026-10-27T21:45:28.693657+00:00
 summary: Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 title: Distribution and verification
 status: reviewed
@@ -61,3 +61,14 @@ No cloud sync, Windows/Linux implementation, macros, arbitrary generated plugins
 website-service connector or finance compliance certification is implied. Native
 preview availability is broader than supported extraction and editing; document
 that matrix. These boundaries do not excuse incomplete core first-version journeys.
+
+## Reference feature delivery
+
+D11. The inline-reference slice must pass LJ01-LJ10 in
+[[records/specs/references-and-relationships]] before being described as complete.
+Expose equivalent version-safe linking/resolution/backlink operations through
+native UI, local-agent tools and CLI; no model-authored SQL. Update the repo-owned
+skill only with implemented commands and limits. Qualify migrations, rebuilds,
+competing writers, portable offline reopen and installed app/CLI behavior.
+Optional inferred associations and a graph view are not first-slice prerequisites.
+Existing engine, context and release gates remain in force.
