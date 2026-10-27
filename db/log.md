@@ -442,3 +442,9 @@ A12 scoped conversation actions, host capabilities, review-before-share, exact p
 ## [2026-10-27 21:02] verification | records/operations/implementation.md
 Conversation actions: v3 fixed 8-case pass; complete suite and both packages/install checks pass; native review/branch/rename/return UI verified. Preserve earlier failures and remaining efficiency/adoption gates.
 
+## [2026-10-27 21:28] implementation | records/specs/intelligence.md
+Fix conceptual comparison false positives, add verified product guidance and explicit no-change clauses, and split model conversation actions into four scoped functions.
+
+## [2026-10-27 21:28] verification | records/operations/implementation.md
+Final 5-case guidance and 8-case conversation cohorts pass; retain prior structural and semantic failures. Full suite, both packages/install checks and real packaged native CLI pass.
+

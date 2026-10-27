@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T20:54:26.538592+00:00
+updated: 2026-10-27T21:20:27.241166+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -243,8 +243,8 @@ The fixed R2 replay passes all twelve inventory jobs and both Ready primes after
 ## Scoped conversation actions
 
 A12. Ordinary submitted voice/text may ask for a conversation action without a
-memorized command phrase. Expose a typed conversation_action tool with start_thread,
-rename_thread, return_to_main and review_summary. The active conversation and
+memorized command phrase. Expose separate start_thread, rename_current_thread, return_to_main and
+review_thread_summary tools with action-specific arguments. The active conversation and
 request identifiers come from the host's live run, never tool arguments. Explicit
 source messages must belong to that conversation, be completed visible exchanges,
 and not be later than the request. Inherited parent excerpts and siblings do not
@@ -298,3 +298,61 @@ current title is refused as an unnecessary rename. Default branching keeps the
 latest preceding exchange including its answer; selecting an earlier message
 requires an explicit user selection. Late asynchronous summary lookup obeys the
 same navigation-generation boundary as model results.
+
+## Conceptual explanations and shared workbook scope
+
+Interface guidance may finish directly with basis=general. A conceptual use of
+"difference" or "differences" is not a calculation claim. Do not force a dummy
+calculation or unrelated dataset lookup to explain a thread, a Source or a Record.
+The numeric-comparison backstop recognizes explicit numeric-difference statements
+alongside the existing cost/percentage expressions; it is a narrow language check,
+not a semantic proof of all arithmetic or arbitrary prose. Existing citation,
+current-request numeric, calculation-input and percentage validation still applies.
+Keep financial-comparison refusal regressions while testing direct explanations.
+
+Give the model verified product facts: one continuing main conversation, side
+threads with an explicit parent excerpt and separate subsequent history, and one
+shared workbook's Sources, Records, tables and spaces. Starting a thread does not
+create a sandbox or inventory scenario. Draft proposals still need acceptance;
+accepted business changes affect the same workbook seen from other threads.
+Summary review carries a selected discussion finding back to main without moving
+or duplicating underlying business records. Test these facts against the actual
+shared tool layer as well as generated explanations. Conceptual explanations need
+no business search, data mutation or calculation merely to satisfy validation.
+
+The comparison backstop must not read numbered Markdown items after a conceptual
+heading as a numeric difference. Numeric-difference patterns stay within one text
+line. This remains deliberately bounded: it is not a complete multilingual or
+spelled-number arithmetic validator. The declared answer basis is still not an
+independent truth warrant.
+
+Explicit current-request clauses such as "Explain only", "Explain without changing
+anything" and "leave this workbook unchanged" join the narrow additional denial
+rules. Recognize complete punctuation-delimited clauses, including semicolons;
+ordinary mentions of these phrases do not grant or deny permission by substring.
+Retrieved documents and history never supply this host restriction metadata.
+Read-only requests may finish a conceptual explanation directly; allowed read tools
+are not mandatory steps. Record unsuccessful semantic interpretations as failures
+even when the response passes structural assertions.
+
+The trusted product definitions also state that Sources may be non-documentary
+inputs and Records may derive from other Records. Category, meaning and acceptance
+are independent fields applying across both categories. Tool receipts do not
+implicitly become business Sources. Never promise original sender identity or
+an event date absent from captured input.
+
+Simple conceptual questions should receive a few plain sentences, not an internal
+execution tutorial. A calculation may contribute to a Record transformation with
+its original Source/Record inputs. No extra Source is required for each calculation
+receipt. Do not invent that intermediate capture step when explaining lineage.
+
+
+Each conversation operation has its own model-visible function, rather than a
+combined action enum. This keeps creation distinct from renaming or review at
+tool selection, including when other operations are unavailable in main. The host
+still owns the scoped capability set and the same internal action result. Named
+tools cannot override their operation through an action argument. The earlier
+conversation_action entry remains a host compatibility alias for existing clients
+and receipts, but is not advertised in model schemas. Negative-case checks inspect
+all four named operations as well as the alias; they must not miss an attempted
+action after a tool rename. Qualify the unchanged requests, not just new names.

@@ -232,6 +232,7 @@ do {
   try await checkReasoningHistory()
   try await checkAgentLifecycle()
   try await checkConversationActions()
+  try await checkInterfaceGuidance()
   try await checkRequestAdmission()
   try await checkCurrencyRejection()
   try await checkHistoryTools()
@@ -266,6 +267,10 @@ do {
     try await runCurrencyRecoveryProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--interface-guidance" {
+    try await runInterfaceGuidanceProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--conversation-actions"
   {
     try await runConversationActionProbe(
@@ -335,7 +340,7 @@ do {
     }
   } else if CommandLine.arguments.count != 1 {
     throw SplashError(
-      "Usage: sevra-agent-checks --active-context/--active-context-maintained MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --continuity-workflow MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --baseline-continuity MODEL_FOLDER or [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery/--coverage MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. The continuity workflow uses native-installed models, 32K and bounded512. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536 and SEVRA_NATIVE_REASONING selects 0/512 in other development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
+      "Usage: sevra-agent-checks --interface-guidance/--conversation-actions MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --active-context/--active-context-maintained MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --continuity-workflow MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --baseline-continuity MODEL_FOLDER or [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery/--coverage MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. The continuity workflow uses native-installed models, 32K and bounded512. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536 and SEVRA_NATIVE_REASONING selects 0/512 in other development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
     )
   }
 } catch {

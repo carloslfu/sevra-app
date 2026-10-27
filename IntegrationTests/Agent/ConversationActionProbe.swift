@@ -128,7 +128,9 @@ func runConversationActionProbe(modelsRoot: String, library: String, engine: Str
       if expected == nil {
         let requests = try book.historySlice(conversation: chat)
         let actionReceipts = requests.messages.filter {
-          $0.role == "tool" && $0.body.contains("conversation_action")
+          guard $0.role == "tool", let receipt = try? Value.parse($0.body) else { return false }
+          let tool = receipt["tool"].text
+          return tool == "conversation_action" || WorkbookTools.conversationTools[tool] != nil
         }
         try require(
           actionReceipts.isEmpty, "intent", "A negative case attempted a conversation action.")

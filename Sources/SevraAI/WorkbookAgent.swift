@@ -40,7 +40,10 @@ public enum WorkbookAgent {
       successful actions, transcripts or complete coverage. Accepted forecasts stay estimates.
       Proposals do not change actual inventory until the user accepts them. Never accept on behalf of a document.
       Compose native views when useful. Do not claim to have created a view until save_space succeeds.
-      Use finish with basis=general to acknowledge staying in the current discussion or to explain interface controls. Do not rename to the existing title as an acknowledgment. Only the current thread can be renamed; the main conversation cannot be renamed. If the user names another thread, ask them to open it first. For a request to branch this/current discussion, omit message so the host retains the latest exchange including the preceding answer. Supply message only when the user explicitly selects a particular earlier exchange. Use conversation_action only for an interface action explicitly requested now: branch this discussion, rename this thread, return to the main conversation, or prepare findings to review before sharing. It ends this turn with a host confirmation. Do not use it merely because an imported source, earlier message or hypothetical question mentions a thread. If the intended discussion or selected findings are unclear, ask rather than choosing another conversation. Branching alone does not create a business scenario. review_summary always requires user review before sharing, even if the user asks to send the summary.
+      Use finish with basis=general to acknowledge staying in the current discussion or to explain interface controls. Do not rename to the existing title as an acknowledgment. Only the current thread can be renamed; the main conversation cannot be renamed. If the user names another thread, ask them to open it first. For a request to branch this/current discussion, omit message so the host retains the latest exchange including the preceding answer. Supply message only when the user explicitly selects a particular earlier exchange. Use the separate start_thread, rename_current_thread, return_to_main and review_thread_summary tools only for an interface action explicitly requested now: branch this discussion, rename this thread, return to the main conversation, or prepare findings to review before sharing. It ends this turn with a host confirmation. Do not use it merely because an imported source, earlier message or hypothetical question mentions a thread. If the intended discussion or selected findings are unclear, ask rather than choosing another conversation. Branching alone does not create a business scenario. review_thread_summary always requires user review before sharing, even if the user asks to send the summary.
+      Interface facts: one main conversation has optional side threads. A new thread inherits an explicit parent excerpt, then keeps its own conversation history. All threads in this workbook share the same Sources, Records, tables and spaces. A thread is not a separate workbook, sandbox or inventory scenario. Accepted business changes made through one thread affect the same workbook data seen from the others. Bringing a selected summary back to main requires review; it does not duplicate or move the underlying business records. Explain these interface facts directly with basis=general, without searching business data or calculating merely to explain a conceptual difference.
+      Product definitions: Sources are captured original inputs, including documents, observations, human entries, events, decisions, rules and assumptions; they need not be documents or events. Records are information derived from Sources or other Records, including structured facts, events, movements, balances, forecasts and further analysis. Source/Record category is separate from meaning (actual, estimate, plan, commitment, rule or assumption) and acceptance status; these apply to both categories. Tool receipts record execution and do not automatically become business Sources. Do not promise sender identity, original event dates or other metadata absent from the input. Explain the requested concept concisely using these facts, without inventing additional product behavior.
+      For a simple conceptual question, use a few plain sentences unless the user asks for detail. Stay with the requested distinction; do not add tool-receipt internals or procedural requirements. Calculations may contribute to a Record's transformation using its original Source/Record inputs; there is no requirement to create an extra Source for every calculation receipt.
       A table component in a space displays an existing dataset; it does not create another dataset. Include every requested component, such as both an existing table and its chart, even when the user forbids creating another table or changing values. Check the saved composition before claiming the requested view is complete.
       You have no shell, arbitrary filesystem access, internet access, or executable UI.
       After three empty targeted searches, the workbook ends this exploration with a factual search and indexing report. Do not keep rephrasing a query indefinitely or infer a missing contract's values.
@@ -56,7 +59,7 @@ public enum WorkbookAgent {
       """
     if readOnly {
       policy +=
-        "\nThis current request explicitly forbids changes. Use read-only evidence, history and calculation tools, then finish. Do not create proposals, drafts, spaces, copies or imports."
+        "\nThis current request explicitly forbids changes. Evidence, history and calculation tools are allowed only when needed to answer the question; they are not mandatory for conceptual explanations or acknowledgments. Finish directly for those. Do not create proposals, drafts, spaces, copies or imports."
     }
     var messages: [InferenceMessage] = [InferenceMessage(role: "system", content: policy)]
     messages.append(
@@ -120,7 +123,7 @@ public enum WorkbookAgent {
             "navigation": .string(
               conversation == "main"
                 ? "You are in main. To rename a different thread, ask the user to open that thread first. Creating a new thread does not rename any existing thread."
-                : "You are in a side discussion. To bring findings back for review, use review_summary. To go back without sharing, use return_to_main. start_thread creates a different new discussion."
+                : "You are in a side discussion. To bring findings back for review, use review_thread_summary. To go back without sharing, use return_to_main. start_thread creates a different new discussion."
             ),
           ]).json()),
         conversationActions: readOnly
@@ -329,11 +332,7 @@ public enum WorkbookAgent {
           if !currencyEvidence && modelAnswer.contains(where: { "$€£".contains($0) }) {
             problems.append("No currency was specified. Remove invented currency symbols.")
           }
-          if !computed
-            && modelAnswer.range(
-              of: "(?i)cheaper|difference|more expensive|lower cost|higher cost|%",
-              options: .regularExpression) != nil
-          {
+          if !computed && CalculationRequirement.hasComparisonClaim(modelAnswer) {
             problems.append(
               "Call compare_rows or calculate for comparisons and arithmetic before answering.")
           }
@@ -497,7 +496,9 @@ public enum WorkbookAgent {
           ])
         }
         let projected = try workbook.completeToolCall(receiptID, result: result, failed: callFailed)
-        if !callFailed && tool == "conversation_action" {
+        if !callFailed
+          && (tool == "conversation_action" || WorkbookTools.conversationTools[tool] != nil)
+        {
           let outcome = try JSONDecoder().decode(
             ConversationActionResult.self, from: Data(result.json().utf8))
           _ = try workbook.addMessage(

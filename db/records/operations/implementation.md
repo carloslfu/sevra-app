@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T21:02:54.489462+00:00
+updated: 2026-10-27T21:29:09.667664+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -2786,3 +2786,98 @@ Native engine parity/adoption, automatic-compaction C12/C13, whole-app memory,
 wider hardware and public release gates remain open. The approved human dictation
 phrase was already verified unsent in the earlier live-dictation checkpoint; it
 was not recorded again during this work.
+
+## Conceptual guidance and distinct conversation tools, October 27
+
+The six-step explanation in the prior checkpoint was caused by a host false
+positive, not initially by unnecessary model exploration. The first answer was
+already an interface explanation. The broad word match for difference rejected
+it three times and demanded a calculation. The model then called datasets and
+calculate(0), which satisfied that guard without helping answer the question.
+
+The comparison backstop now distinguishes explicit numeric-difference statements
+from the ordinary conceptual word. It retains cost/percentage checks and existing
+numeric, citation, input and currency validation. It cannot consume a numbered
+Markdown item after a conceptual heading as the difference value. This remains a
+narrow language backstop, not complete arithmetic or semantic verification.
+
+The model now receives verified product definitions: separate thread histories
+with an explicit parent excerpt, one shared workbook, original Sources and derived
+Records, and category independent of meaning/status. Accepted changes through a
+thread affect the shared workbook. Tool receipts are not automatically business
+Sources; calculations can feed Record transformations with original inputs without
+an extra Source for each receipt. Explain-only/leave-unchanged clauses join the
+additional denial rules, including semicolon-separated instructions. Read tools
+are permitted when needed, not mandatory for conceptual guidance.
+
+A later replay still created a thread for an ambiguous rename through the combined
+action enum. Replaced that model-visible interface with four specific functions:
+start_thread, rename_current_thread, return_to_main and review_thread_summary.
+Each has only its own arguments, is filtered by the host capability set, and uses
+the existing scoped core/result path. Named tools cannot override their action.
+The old conversation_action host alias and historical receipts remain compatible.
+Negative-case assertions now recognize all four names and the alias; no original
+request, step bound or behavioral assertion was weakened.
+
+Verification:
+
+- Final guidance cohort v4 passes all five unchanged requests: thread differences,
+  Source/Record definitions and shared-data safety each finish in one step with
+  no tool receipts or mutations. Supplied-price subtraction takes two steps;
+  stored Birch/Cedar quotes take six, reading both originals, calculating 2.40,
+  identifying Cedar and citing both versions. Semantic review checks the actual
+  answers separately from structural assertions.
+- Final conversation replay v5 passes all eight original requests. Branch,
+  Spanish rename, return, review, hypothetical explanation, negation and ambiguous
+  other-thread rename each take one step. Imported-document instructions remain
+  ignored; the correct source label is cited in four steps. The ambiguous case
+  has no conversation action attempt and creates no thread.
+- Added synthetic checks prove conceptual/list wording finishes without a dummy
+  calculation while an uncomputed numeric price difference is refused through
+  all four finish candidates. A proposal made through thread tools leaves actual
+  stock at 20 until explicit acceptance; then main and thread both read 18.
+  A calculated Record uses original input lineage without an extra Source.
+- Full scripts/check.sh passes: 79 core, 19 extraction, 16 document and 15
+  synthetic voice lifecycle checks, plus agent/context/search/preview/workflow
+  checks. The 27-tool schema passes 32 actual grammar cases and 268 exact pinned
+  reference masks. Dynamic main/thread/read-only capabilities remain tested.
+- Both optimized packages build. Baseline install/update/standalone CLI/skill
+  conflict/uninstall checks pass. Native signature, resource-damage/setup refusals
+  and extraction checks pass with build-tree access denied. The final test-driver
+  usage change was rebuilt and its synthetic checks rerun after the full suite.
+- The final packaged native CLI answers the shared-inventory question in one
+  step, correctly explaining the common data. Independent SQLite audit finds
+  no tool receipts, extra conversation or business item, and integrity passes.
+  No new GUI or microphone test ran; native window behavior was checked in the
+  previous checkpoint and the result shape remains unchanged.
+- Independent audit covers 20 guidance and 16 conversation fixture workbooks:
+  original quote/note inputs remain unchanged, integrity/foreign keys pass, and
+  each cohort keeps its unchanged preregistered protocol. The separate packaged
+  CLI workbook also verifies cleanly.
+
+Retain all failed evidence: guidance v1's structural pass did not qualify its
+unsupported sender/tool-output claims. v2 misread a numbered list and created a
+thread during an explain-without-changes request. v3's structurally passing
+Source/Record answer invented an extra capture step. Conversation replay v4 still
+created a thread for an ambiguous rename. Final v4 guidance/v5 conversation pass
+without discarding those traces. Some explanations remain longer than requested;
+these samples do not prove universal intent accuracy or complete prose validation.
+
+Reproduce the live cohorts after native setup/build with the agent-check executable:
+use --interface-guidance or --conversation-actions, followed by MODELS_ROOT,
+PINNED_NATIVE_LIBRARY, ENGINE and a new output directory. The driver refuses to
+overwrite an existing cohort. Guidance saves binary/engine/grammar identities before
+running. The conversation v5 run followed guidance v4 in the same command without
+an intervening rebuild. Python is used only to regenerate pinned reference grammar
+fixtures; product inference remains native.
+
+Evidence: [interface-guidance verification](../../../integration/evidence/2026-10-27-interface-guidance.json.gz),
+92,483 compressed bytes, 25 logs, all six cohort exports, semantic audits and final
+package identities. Uncompressed SHA-256:
+`193fbc447a82cac13c88575bb07e2056de03680228cb17293ca5aea9a5d10e19`.
+
+Next remains compound branch-plus-work execution and delayed-result navigation
+qualification, followed by the remaining workbook Home/spaces and uncoached
+journeys. Native/reference parity and production adoption, automatic-compaction
+C12/C13, whole-app memory, wider hardware and public release gates remain open.
+This checkpoint changes neither the engine pins nor the adoption decision.

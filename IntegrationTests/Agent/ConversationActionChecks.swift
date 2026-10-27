@@ -27,11 +27,13 @@ private actor ConversationActionModel: WorkbookInference {
     calls += 1
     if cancelResponse { cancellation.cancel() }
     if calls == 1 {
+      let tool = WorkbookTools.conversationTools.first { $0.value == arguments["action"].text }!.key
+      let fields = arguments.object.filter { $0.key != "action" }
       return .init(
         text: "This untrusted assistant claim must not be published.",
         calls: [
           .init(
-            id: "interface-action", name: "conversation_action", inputJSON: try arguments.json())
+            id: "interface-action", name: tool, inputJSON: try Value.object(fields).json())
         ])
     }
     try require(
@@ -53,19 +55,20 @@ func checkConversationActions() async throws {
   let checks = ToolPolicyChecks()
   let mainPolicy = try NativeCitationPolicy.make([], conversationActions: ["start_thread"])
   try mainPolicy.validate(
-    checks.candidate("conversation_action", [("action", "start_thread")], policy: mainPolicy))
+    checks.candidate("start_thread", [], policy: mainPolicy))
   try expectThrows(
     try mainPolicy.validate(
       checks.candidate(
-        "conversation_action", [("action", "rename_thread"), ("title", "Other")], policy: mainPolicy
+        "rename_current_thread", [("title", "Other")], policy: mainPolicy
       )))
   let restrictedTools = try NativeTools.referenceDefinitions(conversationActions: [])
-  try expectEqual(restrictedTools.contains { $0.name == "conversation_action" }, false)
+  try expectEqual(
+    restrictedTools.contains { WorkbookTools.conversationTools[$0.name] != nil }, false)
   let baseline = try LocalModel.baselineDefinitions(conversationActions: ["start_thread"])
   let native = try NativeTools.referenceDefinitions(conversationActions: ["start_thread"])
   try expectEqual(
-    try Value.parse(baseline.first { $0.name == "conversation_action" }!.parameters.jsonText),
-    native.first { $0.name == "conversation_action" }!.parameters)
+    try Value.parse(baseline.first { $0.name == "start_thread" }!.parameters.jsonText),
+    native.first { $0.name == "start_thread" }!.parameters)
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-conversation-actions-" + identifier())
   defer { try? FileManager.default.removeItem(at: root) }
@@ -149,10 +152,10 @@ func checkConversationActionGrammar(
     let restricted = try NativeCitationPolicy.make(
       [], thinking: thinking, conversationActions: [])
     func output(_ action: String) -> [UInt32] {
-      frontend.encode(
+      let tool = WorkbookTools.conversationTools.first { $0.value == action }!.key
+      return frontend.encode(
         (thinking ? "Use the available interface action.</think>\n" : "")
-          + "<tool_call>\n<function=conversation_action>\n<parameter=action>\n"
-          + action + "\n</parameter>\n</function>\n</tool_call>")
+          + "<tool_call>\n<function=" + tool + ">\n</function>\n</tool_call>")
     }
     let create = try factory.create(grammar: main.grammar)
     try create.finish(committed: output("start_thread"), requireComplete: true)

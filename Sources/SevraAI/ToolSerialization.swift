@@ -8,26 +8,14 @@ extension NativeTools {
     -> [WorkbookToolDefinition]
   {
     let ids = try ItemReferenceCandidates.normalized(itemReferenceIDs)
+    if let conversationActions {
+      try require(
+        Set(conversationActions).isSubset(of: Set(WorkbookTools.conversationTools.values)),
+        "tool_schema", "Invalid conversation capability.")
+    }
     return try definitions.compactMap { definition in
-      if definition.name == "conversation_action", let conversationActions {
-        guard !conversationActions.isEmpty else { return nil }
-        try require(
-          Set(conversationActions).isSubset(of: [
-            "start_thread", "rename_thread", "return_to_main", "review_summary",
-          ]),
-          "tool_schema", "Invalid conversation capability.")
-        var parameters = definition.parameters.object
-        var properties = definition.parameters["properties"].object
-        var action = properties["action"]!.object
-        action["enum"] = .array(conversationActions.map(Value.string))
-        properties["action"] = .object(action)
-        parameters["properties"] = .object(properties)
-        return WorkbookToolDefinition(
-          name: definition.name,
-          description: definition.description
-            + " Available here: " + conversationActions.joined(separator: ", ")
-            + ". Missing actions are unavailable, not invitations to create a new thread. Use finish to clarify an unavailable target.",
-          parameters: .object(parameters))
+      if let action = WorkbookTools.conversationTools[definition.name], let conversationActions {
+        guard conversationActions.contains(action) else { return nil }
       }
       guard !ids.isEmpty else { return definition }
       guard ["read", "lineage"].contains(definition.name) else { return definition }
