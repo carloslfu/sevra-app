@@ -142,7 +142,7 @@ private func prepareActiveContextFixture(_ book: Workbook) throws -> ActiveConte
 /// 32K automatic maintenance and native 64K without maintenance. Actual metrics
 /// are retained, but one run per arm is not a C13 latency/memory qualification.
 func runActiveContextProbe(
-  modelsRoot: String, library: String, engine: String, output: String
+  modelsRoot: String, library: String, engine: String, output: String, maintainedOnly: Bool = false
 ) async throws {
   let root = URL(fileURLWithPath: output).standardizedFileURL
   try require(
@@ -160,7 +160,7 @@ func runActiveContextProbe(
     to: root.appendingPathComponent("request.txt"), options: .atomic)
   var reports: [Value] = []
   var failures: [String] = []
-  for compact in [true, false] {
+  for compact in maintainedOnly ? [true] : [true, false] {
     let name = compact ? "maintained32K" : "uncompressed64K"
     let book = try Workbook.openArchive(archive, at: root.appendingPathComponent(name + ".sevra"))
     let base = try nativeProbeConfiguration(
@@ -280,16 +280,21 @@ func runActiveContextProbe(
     fflush(stdout)
     if !unloaded { break }
   }
+  let passed = failures.isEmpty && reports.count == (maintainedOnly ? 1 : 2)
   let summary: Value = .object([
-    "probe": .string("active-job-context-v1"),
-    "passed": .bool(failures.isEmpty && reports.count == 2),
+    "probe": .string(
+      maintainedOnly ? "active-job-context-v1-maintained-repair" : "active-job-context-v1"),
+    "passed": .bool(passed), "referenceExecuted": .bool(!maintainedOnly && reports.count == 2),
+    "completeComparisonPassed": .bool(!maintainedOnly && passed),
     "failures": .array(failures.map(Value.string)), "arms": .array(reports),
     "scope": .string(
-      "Repeated maintenance in one mutating job; uncompressed functional reference. Not complete C12/C13 or production adoption."
+      maintainedOnly
+        ? "32K repair replay of the unchanged v1 fixture only. The failed 64K reference is not rerun or cleared. Not a complete comparison, C12/C13 or production adoption."
+        : "Repeated maintenance in one mutating job; uncompressed functional reference. Not complete C12/C13 or production adoption."
     ),
   ])
   try Data(summary.json().utf8).write(
     to: root.appendingPathComponent("result.json"), options: .atomic)
   try require(
-    failures.isEmpty && reports.count == 2, "active_context", failures.joined(separator: "\n"))
+    passed, "active_context", failures.joined(separator: "\n"))
 }

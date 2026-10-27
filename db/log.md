@@ -397,3 +397,6 @@ Preserve the active-context wrong-root setup refusal; corrected frozen 32K/64K f
 ## [2026-10-27 17:10] verification | records/operations/implementation.md
 Actual active-job v1 fails: 32K misassociates four values and duplicates its space after three checkpoints; 64K exceeds context. Both unload, originals/inventory intact. Preserve receipts/audit and specify bounded exact-evidence/artifact repair.
 
+## [2026-10-27 17:26] implementation | records/specs/conversation-context.md
+Retain bounded exact read evidence and saved-space IDs; preregister unchanged maintained32K repair-only replay. Core 73/73 and synthetic agent checks pass.
+

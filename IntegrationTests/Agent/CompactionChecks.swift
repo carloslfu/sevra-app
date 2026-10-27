@@ -318,6 +318,17 @@ private actor RunningJobFixture: WorkbookInference {
         }, true)
       try expectEqual(messages.last?.role, "tool")
       try expectEqual(messages[messages.count - 2].toolCalls.first?.id, messages.last?.toolCallId)
+      if summaries > 1 {
+        let prefix = "Current host continuation state:\n"
+        let state = try expectValue(messages.last { $0.content.hasPrefix(prefix) })
+        let value = try Value.parse(String(state.content.dropFirst(prefix.count)))
+        let retained = value["readEvidence"]["entries"].array
+        try expectEqual(retained.count, 1)
+        try expectEqual(retained[0]["versionID"].text, sourceID)
+        try expectEqual(
+          retained[0]["textPrefix"].text.hasPrefix(
+            "Material specification, exact recorded source text."), true)
+      }
     }
     let name: String
     let input: Value

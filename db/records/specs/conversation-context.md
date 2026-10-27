@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-27T17:10:29.073831+00:00
+updated: 2026-10-27T17:26:14.270638+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -346,3 +346,37 @@ or narrower repair-only probe must have its own explicit scope and retained v1
 comparison. Evidence and independent state audit:
 integration/evidence/2026-10-27-active-context-first-full.json.gz and
 integration/evidence/2026-10-27-active-context-first-full-audit.json.
+
+## Bounded continuation evidence repair, October 27
+The host now retains exact partial excerpts from completed read receipts in the
+current run, with source-version and receipt identities. It checks the observed
+text against the immutable source prefix before retaining it. Only fields visible
+in the original result count; a projected omission or old-run reference cannot
+manufacture observed evidence. Each retained entry separates original meaning and
+status from the current head. Titles and text remain untrusted quoted evidence.
+
+The projection examines the newest 100 calls, keeps at most eight distinct read
+versions, uses at most 256 Unicode scalars per text prefix and 128 title characters,
+and caps serialized excerpt entries at 8192 bytes. It reports omitted versions and
+whether older calls were excluded. It reads bounded source prefixes through SQLite
+rather than loading complete documents or arbitrary item payloads. Excerpts are
+explicitly partial and do not restore citation eligibility. Required omitted facts
+must be retrieved from the source or its saved tool result.
+
+Up to sixteen saved-space identities retain the recorded creation title and the
+current title/version or missing state. This gives the model exact IDs for work
+already saved, without replaying a mutation or keeping stale definitions. Existing
+idempotency and acceptance boundaries remain unchanged. Deterministic checks cover
+scope, deduplication, omissions, Unicode/NUL, source integrity, live acceptance,
+renames and export/reopen; the repeated-maintenance fixture inspects the actual
+host envelope.
+
+The next actual-model check is explicitly active-job-context-v1-maintained-repair:
+the unchanged eight-report, 100-fingerprint v1 fixture, same 32K allocation,
+bounded512 reasoning, 12 GiB budget and twelve-step limit. It requires every exact
+association, one space/draft, all eight lineage inputs, unchanged original state,
+at least two real active checkpoints and successful portable verification. The
+--active-context-maintained flag runs only this repair diagnostic. Its result
+cannot set completeComparisonPassed, clear the failed 64K reference, qualify
+C12/C13 or enable production compaction. Freeze code before execution and retain
+identities and failures.

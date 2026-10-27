@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T16:56:42.516231+00:00
+updated: 2026-10-27T17:26:14.285083+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -983,3 +983,13 @@ responsiveness. Record complete reported bytes, cancellation offset, original
 refusal, OS/machine, commit, executable/source hashes, stdout, stderr and failures.
 The real native large-file interaction remains a separate check. The existing
 scripts/check_large_assets.py covers a different included-asset/ZIP64 round trip.
+
+## Scoped maintained-context repair replay
+Use --active-context-maintained with the same four arguments as --active-context
+to replay only the maintained32K arm of the unchanged v1 fixture. This is a repair
+diagnostic with its own result name. It reports referenceExecuted=false and
+completeComparisonPassed=false even if its requested scope passes. Preserve the
+original failed two-arm comparison. Use a clean committed source tree, record
+source/binary/helper/grammar identities before and after, and run without another
+local build or inference process. All existing exact-fact, uniqueness, lineage,
+checkpoint, state and portable-copy assertions still apply.

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T17:10:29.109319+00:00
+updated: 2026-10-27T17:26:14.300049+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -2164,3 +2164,18 @@ compaction pass follows. Next repair is the bounded original-evidence and
 completed-artifact projection described in [[records/specs/conversation-context]],
 then an explicitly scoped actual-model recheck. The failed 64K reference remains
 visible and must not be silently enlarged, dropped or relabeled as a pass.
+
+## Continuation evidence repair prepared, October 27
+Implemented bounded exact read evidence and completed-space identities in host
+continuation state, with no citation or mutation authority added. The model policy
+requires values to stay attached to their versions and titles, reuse of saved
+spaces, and explicit retrieval for omitted details. Current core checks pass 73/73;
+synthetic agent checks pass, including inspection of retained evidence after
+repeated maintenance. Unicode with an embedded NUL and forged-text refusal are
+covered. The actual-model repair replay is not yet run. Its preregistered scope
+and bounds are in [[records/specs/conversation-context]].
+
+Hosted workflow 40544819323 on 48b1a30 completed successfully. This supersedes its
+in-progress status above. No new hardware dictation or visible external-copy
+result is claimed; the running native preview bundle is preserved while the
+manual macOS permission handoff remains pending.
