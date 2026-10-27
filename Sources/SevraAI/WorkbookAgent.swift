@@ -372,8 +372,12 @@ public enum WorkbookAgent {
               var link = URLComponents()
               link.scheme = "sevra"
               link.host = "conversation"
-              link.path = "/" + conversation
-              link.queryItems = [URLQueryItem(name: "message", value: String(id.dropFirst(8)))]
+              let messageID = String(id.dropFirst(8))
+              let owner =
+                (try? workbook.messageLocation(messageID)["conversation_id"].string)
+                ?? conversation
+              link.path = "/" + owner
+              link.queryItems = [URLQueryItem(name: "message", value: messageID)]
               return "[Earlier message](\(link.url!.absoluteString))"
             }
             let title = (try? workbook.item(id).title) ?? "Source"

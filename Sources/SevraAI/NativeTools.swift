@@ -73,9 +73,14 @@ package enum NativeTools {
     .init(
       name: "history_read",
       description:
-        "Read an original message and attached receipt in this conversation. Refresh current evidence and acceptance before using historical claims.",
+        "Read an original message in this conversation or its explicitly inherited parent excerpt. Other parent, sibling and ancestor messages remain outside scope. Refresh current evidence and acceptance before using historical claims.",
       parameters: object(
-        ["id": schema("string", "Message ID from history_search or search.conversation.hits.")],
+        [
+          "id": schema(
+            "string",
+            "Message ID from history_search, search.conversation.hits or the explicit parent excerpt."
+          )
+        ],
         required: ["id"])),
     .init(
       name: "tool_result",

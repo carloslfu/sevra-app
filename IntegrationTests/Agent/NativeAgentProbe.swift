@@ -8,7 +8,8 @@ import SevraSplashText
 
 func nativeProbeConfiguration(
   library: String, engine: String, modelsRoot: String, budget: ContextBudget,
-  reasoning: NativeReasoning = .off
+  reasoning: NativeReasoning = .off,
+  modelLayout: NativeWorkbookModel.ModelLayout = .localPack
 ) throws -> NativeWorkbookModel.Configuration {
   let pin = try Value.parse(String(contentsOfFile: "integration/splash.json", encoding: .utf8))
   let guidance = try Value.parse(
@@ -20,7 +21,7 @@ func nativeProbeConfiguration(
       uniqueKeysWithValues: files.map { (String($0.key.dropFirst(7)), $0.value.text) }),
     grammarLibrary: URL(fileURLWithPath: library), grammarSHA256: guidance["librarySHA256"].text,
     modelsRoot: URL(fileURLWithPath: modelsRoot), memoryBytes: 12_884_901_888,
-    contextBudget: budget, reasoning: reasoning)
+    contextBudget: budget, reasoning: reasoning, modelLayout: modelLayout)
 }
 
 /// Opt-in, actual WorkbookAgent. The model chooses freely among the complete

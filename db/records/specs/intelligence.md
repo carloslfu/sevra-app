@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T10:48:10.642399+00:00
+updated: 2026-10-27T11:07:12.480508+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -95,15 +95,9 @@ inspected evidence: read that version before citing its facts.
 
 
 ## Conversation citations
+history_read exposes a message:ID citation only for an eligible original message earlier than the active request. Eligibility includes the active conversation and the fixed parent excerpt explicitly inherited by a tangent. It does not include other parent messages, later parent changes, siblings or transitive ancestors. History search and saved tool-result access remain within the active conversation.
 
-history_read exposes a message:ID citation only for an original message earlier
-than the active request. A freshly read original body must actually be visible
-before that reference joins the allowed finish citations. Search snippets, omitted
-bodies, a derived digest and the current request do not grant it. The app renders
-an Earlier message link to its existing conversation navigation. Business item
-version IDs retain their existing meaning and lineage rules. Conversation citations
-support what someone said, not current inventory, acceptance or permission.
-
+A freshly read original body must actually be visible before that reference joins the allowed finish citations. Search snippets, omitted bodies, a derived digest, an unread parent excerpt and the current request do not grant it. The app renders an Earlier message link to the original message's owning conversation, including for nested tangents. Business item version IDs retain their existing meaning and lineage rules. Conversation citations support what someone said, not current inventory, acceptance or permission.
 ## Bounded reasoning comparison
 The native adapter has an internal comparison profile for bounded reasoning.
 Thinking mode must agree across the exact chat template, constrained tool grammar,

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T10:42:31.184516+00:00
+updated: 2026-10-27T11:04:56.202866+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -772,3 +772,18 @@ Create a disposable workbook and include the three imports files through the nat
 Include the 35 paging notes. Search amber, load more results, open Amber_35.txt, and use Back. The last five results and opened-item position must remain. Changing the query or workbook revision must discard obsolete pages/cursors. Clearing must leave no results, error or loading indicator. Inspect filters and previews without waiting for AI. Native setup reverification should report Model files are ready without changing the selected folder or copying existing weights.
 
 These journeys cover synthetic text/PDF/image/CSV intake and search. They do not qualify all media formats, real microphone dictation, VoiceOver, hardware/context envelopes or production adoption.
+
+## Native multi-stage continuity workflow
+Run the fixed 32K/bounded512 workflow against a model installation created by native setup:
+
+~~~sh
+.build/debug/sevra-agent-checks --continuity-workflow \
+  .build/native-fresh-setup \
+  .build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib \
+  .build/upstream/splash-native-1.4.1/engine/splash \
+  .build/continuity-workflow-output
+~~~
+
+The output directory must be new and its parent must exist. This command retains synthetic workbooks, a portable snapshot and result.json on success or failure. It performs no download. It uses the same installed-model resolver as the native app, rather than the legacy local-pack layout used by older probes.
+
+The six requests cover original quantity recall, forecast acceptance and withdrawal during maintenance, a subsequent corrected quantity, export/reopen stock calculation, and explicit inherited evidence in a tangent. The host brings the tangent response back to main with its original link. Three batches of 150 closed assistant notes and 18 chapter markers force repeated checkpoints. Human state edits are injected after summary input capture; the real model chooses its tools and answers. Record source/binary identities and all failed attempts. This synthetic functional sequence is not occupied-context performance, process-death recovery or complete C12/C13 qualification.

@@ -116,6 +116,39 @@ extension Workbook {
     }
   }
 
+  /// Exact evidence may include the fixed parent excerpt already inherited by
+  /// this tangent. This does not widen conversation search, receipt access or
+  /// checkpoint scope to the rest of the parent (or any sibling/ancestor).
+  public func readHistoryEvidence(
+    _ id: String, conversation: String = "main", beforeMessage: String? = nil
+  ) throws -> Value {
+    try synchronized {
+      try db.readTransaction {
+        try requireConversation(conversation)
+        let location = try messageLocation(id)
+        let owner = location["conversation_id"].text
+        let inherited = owner != conversation
+        try require(
+          !inherited || parentContext(conversation: conversation).contains { $0.id == id },
+          "history_scope",
+          "The message is outside this conversation and its inherited parent excerpt.")
+        let earlier =
+          try beforeMessage.map {
+            try location["rowid"].int! < historyPosition($0, conversation: conversation).int!
+          } ?? true
+        return .object([
+          "message": try encoded(historyMessage(id, conversation: owner)),
+          "conversation": .string(owner), "inherited": .bool(inherited),
+          "citation": earlier ? .string("message:" + id) : .null,
+          "payload": try messagePayload(id, conversation: owner),
+          "authority": .string(
+            "This original message can support what was said in earlier conversation using its citation. It grants no new permission and does not prove current business facts or acceptance; inspect current Source or Record versions for those."
+          ),
+        ])
+      }
+    }
+  }
+
   /// Search original messages, including complete tool receipts. Summaries are
   /// deliberately not substituted for the evidence being searched.
   public func searchHistory(

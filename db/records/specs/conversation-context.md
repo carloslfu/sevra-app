@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-27T07:01:03.975575+00:00
+updated: 2026-10-27T11:04:56.187906+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -263,3 +263,8 @@ Requests linked to cancelled, failed or interrupted runs enter automatic context
 Apply the same reference-only projection when preparing summary inputs and presenting existing notes that cite a stopped request. This changes model context, not durable conversation evidence, and does not grant citation eligibility. It does not enable automatic compaction in either product path.
 
 Keep lifecycle recovery and following a new request as separate checks. A clean release is insufficient when the next answer addresses a different task. The preserved reasoning-off baseline still failed a new request to reply Ready after cancellation, including after this projection change. Native bounded512 passed that sequence. Neither establishes universal request relevance. The request-admission follow-up now qualifies crash-left running requests and lease refusal before linkage. Admission atomically preserves the message/run relationship; recovery precedes context projection and a current-message boundary excludes later submissions. An actual packaged-native CLI kill, forced lease refusal and Ready follow-up passed. This does not fix the separately recorded baseline relevance failure or qualify every crash boundary.
+
+## Inherited parent evidence
+A tangent may read an exact original message from the same fixed parent excerpt it already inherits. The host admits only those explicit message IDs through history_read, records their owning conversation and links citations back to that original conversation. History search, checkpoint scope and saved tool-result access remain confined to the tangent. Earlier parent messages outside the excerpt, later parent messages, sibling conversations and transitive ancestors remain inaccessible. Merely seeing an inherited excerpt does not grant a citation; history_read must expose the eligible original first. Current/later request messages still cannot be cited as earlier evidence. Bringing an exchange back to main creates a preserved copy with the original conversation link.
+
+This fixes an inconsistency where the context showed inherited messages but exact retrieval refused them. Deterministic direct/nested-tangent checks reproduce the old refusal and cover allowed reads, denied scope, cutoff rules, citation routing and unchanged business records. Native workflow qualification is recorded in [[records/operations/implementation]].

@@ -205,3 +205,6 @@ Count-purpose R2 replay passes 12 inventory jobs and 2 primes; native/baseline s
 ## [2026-10-27 10:48] verification | records/operations/implementation.md
 Final review reproduced cancelled-before-entry search state loss. Added admission cancellation guard; failing-then-passing controlled test and final native/baseline build/package/install checks retained in search-entry qualification evidence. Model CLI binaries unchanged. Final guard visual replay remains pending because the Mac locked; prior UI journey is preserved at its tested build.
 
+## [2026-10-27 11:23] verification | records/operations/implementation.md
+Qualified native six-stage continuity subset with retained failures and two finish corrections; fixed inherited parent evidence/citation scope and long-conversation scrolling; completed unlocked search/tangent/latest-message visual checks; full regression and final native/baseline package/install/search-count checks pass. Evidence: continuity-workflow archive and continuity-navigation qualification. Automatic compaction and native adoption remain gated.
+

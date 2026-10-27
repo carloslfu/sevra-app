@@ -201,7 +201,10 @@ struct WorkbookView: View {
       Divider()
       ScrollViewReader { proxy in
         ScrollView {
-          LazyVStack(alignment: .leading, spacing: 24) {
+          // The core loads a bounded history window. Measure the actual row
+          // heights so scrollTo reaches the newest or cited message reliably;
+          // lazy height estimates drift with long, differently sized replies.
+          VStack(alignment: .leading, spacing: 24) {
             if state.messages.isEmpty {
               VStack(alignment: .leading, spacing: 12) {
                 Text("What are we working on?").font(.title2.weight(.medium))
@@ -241,11 +244,12 @@ struct WorkbookView: View {
               Text(state.status).font(.callout).foregroundStyle(.secondary).id("working")
             }
           }.padding(20)
-        }.onChange(of: state.messages.count) { _, _ in
-          if state.messageAnchor == nil, let id = state.messages.last?.id {
+        }.onChange(of: state.messages.last(where: { $0.role != "tool" })?.id, initial: true) {
+          _, id in
+          if state.messageAnchor == nil, let id {
             proxy.scrollTo(id, anchor: .bottom)
           }
-        }.onChange(of: state.messageAnchor) { _, id in
+        }.onChange(of: state.messageAnchor, initial: true) { _, id in
           if let id { proxy.scrollTo(id, anchor: .top) }
         }
       }
