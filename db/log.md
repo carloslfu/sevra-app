@@ -223,3 +223,6 @@ Corrected normal-cache W1 pilot passes all 16 jobs and 32 exact paired requests;
 ## [2026-10-27 11:52] verification | records/operations/implementation.md
 Final native/baseline packaging and installation pass; retain I2/W1 pilot evidence, logs and exact source/binary identities.
 
+## [2026-10-27 11:54] verification | records/operations/implementation.md
+Full W1 cohort is running on frozen ed6ffd0. Correct duplicate progress heading after section-edit ambiguity; measured sources remain unchanged.
+

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T11:53:58.099392+00:00
+updated: 2026-10-27T11:54:20.666953+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -14,9 +14,8 @@ specifications remain the acceptance contract. A source commit does not imply th
 every requirement or supported hardware profile has passed.
 
 ## Current direction, October 27
-Latest checkpoint: I2 passes both cache arms, and the corrected normal-cache W1 pilot passes all sixteen jobs plus two Ready primes with 32 exact paired requests. Full regression and both packaged builds/resources/install checks pass. The preregistered ten-block W1 performance cohort is the next step; no speed or adoption claim follows from the pilot. See Corrected complete-workflow pilot below.
+Latest checkpoint: I2 passes both cache arms, and the corrected normal-cache W1 pilot passes all sixteen jobs plus two Ready primes with 32 exact paired requests. Full regression and both packaged builds/resources/install checks pass. The preregistered ten-block W1 performance cohort is now running on frozen ed6ffd0; no speed or adoption claim follows from the pilot. See Corrected complete-workflow pilot below.
 
-## Current direction, October 27
 Workbook is Sevra's primary product/homepage, with Websites secondary. The installed app remains the preserved Slotstream baseline. A separate Python-free native Splash preview now uses the shared workbook agent through SevraProduct, with the unchanged pinned C++/Metal helper, native grammar library and Swift setup. It is not yet the production default.
 
 The observed search-coverage failures are corrected at the host boundary. Exact classified-record counts come from SQLite and finish-time revalidation. Missing-evidence finishes after empty searches display actual queries and indexing limits, including when the model tries to substitute an unrelated count. Other answers reject recognized unsupported absence/exhaustiveness wording. This is bounded grounding, not general semantic truth verification. The earlier six-case reasoning-off/bounded512 evidence remains in integration/evidence/2026-10-27-search-coverage-setup.json.
