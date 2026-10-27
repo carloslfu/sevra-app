@@ -76,6 +76,20 @@ private actor ReadGate {
       session.file == second && session.failure == nil && session.checkedBytes == 0,
       "An old result or progress replaced the new preview")
 
+    // This old request has not reported any progress yet, so its first late
+    // callback cannot be hidden by the producer's update throttle.
+    let lateProgress = ReadGate()
+    let late = Task { await session.load { try await lateProgress.read($0, $1) } }
+    await lateProgress.wait()
+    await session.load { _, _ in second }
+    await lateProgress.progress(3072)
+    await lateProgress.finish(first)
+    await late.value
+    await Task.yield()
+    try expect(
+      session.checkedBytes == 0 && session.file == second,
+      "Late progress from a replaced preview changed the new view")
+
     let error = ReadGate()
     let failed = Task { await session.load { try await error.read($0, $1) } }
     await error.wait()
@@ -97,6 +111,10 @@ private actor ReadGate {
     await stopped.progress(3072)
     await stopped.finish(first)
     await stopping.value
+    await Task.yield()
+    try expect(
+      session.checkedBytes == 0 && session.file == nil && session.failure != nil,
+      "Late progress or success replaced the stopped state")
     await session.load { _, _ in first }
     try expect(session.file == first && session.failure == nil, "Retry retained stopped state")
 
