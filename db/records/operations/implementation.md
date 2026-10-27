@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T14:45:36.382461+00:00
+updated: 2026-10-27T14:48:22.834737+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -55,16 +55,17 @@ production adoption remain disabled pending their recorded gates.
   isolation and baseline install/update/uninstall checks pass. Hardware voice
   and broader accessibility remain unqualified.
 
-- The new complete ten-block W1 cohort is running on frozen 0e45190. Its first two
-  completed pairs passed every job and matched the actual requests and generated
-  tokens. All frozen source hashes remain unchanged. Full performance/cleanup
+- The new complete ten-block W1 cohort is running on frozen 0e45190. Four paired blocks have
+  completed and the fifth is running. Earlier verified pairs passed every job and
+  matched actual requests and generated tokens; the full cohort remains open. All frozen source hashes remain unchanged. Full performance/cleanup
   qualification requires the complete cohort; no speed claim follows yet.
 - The 0e45190 hosted workflow passed completely (40515342232), including both
   package builds and installation checks. The linked-file preview correction is
   prepared on the asset-preview branch: hashing releases the workbook lock,
   cancellation reaches file readers and stale results cannot replace another
   preview. Core and dedicated preview regression checks pass in hosted CI on 57e9fd1.
-  Full packaging and native large-file UI qualification remain pending.
+  Full packaging passed on 9a2f58a in run 40519770358; native large-file UI
+  qualification remains pending.
 
 - The repeated-active-job context probe and preview correction now share one
   development branch. The probe's 6886540 hosted workflow passed completely
@@ -77,8 +78,15 @@ production adoption remain disabled pending their recorded gates.
   evidence; real large-file viewers and full-app memory remain unqualified.
 - Composer Stop/Retry preview/Find original controls are prepared on 202d513.
   They preserve control access while inference is busy and share native preview
-  ownership. Their runtime/visual verification and general workspace callback
-  lifecycle review remain next work.
+  ownership. Native interaction verification remains pending.
+- Workspace operation ownership is implemented on 9044e5e. Its delayed completion,
+  Stop and permission regression passed in hosted run 40523815521; full app builds
+  and native close/switch verification remain pending. Table edits, delayed drops
+  and text-viewer callbacks have follow-up wiring awaiting their own checks.
+- Search cancellation now reaches the SQLite reader token on 20f90f2. Query
+  replacement, task cancellation, clearing, leaving and workbook reset preserve
+  completed pages while refusing stale results. Its expanded runtime suite and
+  large-workload/native cancellation measurement remain pending.
 
 Next, finish the frozen W1 measurement and qualify the prepared asset preview.
 Continue whole-app memory/headroom, occupied-context and repeated-compaction recovery,
@@ -1788,3 +1796,22 @@ small linked-asset/session changes and both app packages. The larger-file eviden
 remains tied to 96b8528 and its specific passing step; newer composer and workspace
 changes require their own completed runs. The frozen W1 cohort is now on block 4;
 no complete-cohort performance conclusion has been made.
+
+## Remaining workspace callback paths prepared
+
+Table edits and undo/redo now use the same operation owner as imports and model
+work, with cancellation checked before their atomic mutation. Late completion
+cannot change the undo stack or error in a different workbook. Delayed native
+drag/drop providers retain the original interaction, workbook and conversation;
+close/switch invalidates the drop instead of importing into a new destination.
+File pickers also compare the interaction generation, covering close/reopen with
+the same workbook object. The bounded text-file viewer clears old content on a
+new file and refuses a cancelled result or error. These app wiring changes pass
+formatting/diff review; native compilation and interaction verification are pending.
+
+The new workspace ownership regression in 9044e5e passed in hosted run
+40523815521, alongside core and document checks. That workflow is still running;
+this does not qualify the newer search cancellation or callback wiring changes.
+The complete combined continuity/asset-preview checkpoint c9251aa passed run
+40520155806. The redundant documentation-only run 40522177262 was cancelled to
+allow current source checks to start; cancellation is not recorded as a pass.

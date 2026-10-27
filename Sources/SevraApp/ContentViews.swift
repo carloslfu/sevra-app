@@ -516,37 +516,34 @@ struct DatasetView: View {
     .sheet(isPresented: $showColumns) { ColumnEditor(table: table, state: state) }
   }
   func apply(_ edits: [RowEdit], expectedRevision: Int? = nil) {
-    guard let book = state.workbook, !state.busy,
-      let revision = expectedRevision ?? loader.page?.revision
-    else { return }
-    Task {
-      do {
-        let change = try await Task.detached {
-          try book.editRows(table.id, edits: edits, expectedRevision: revision)
-        }.value
-        state.tableUndo[table.id] = change.id
-        state.tableRedo[table.id] = nil
-        state.refresh()
-      } catch { state.error = error.localizedDescription }
-    }
+    guard let revision = expectedRevision ?? loader.page?.revision else { return }
+    let tableID = table.id
+    state.run(
+      "Saving table changes",
+      operation: { book, _ in
+        try book.editRows(tableID, edits: edits, expectedRevision: revision)
+      },
+      completion: { change in
+        state.tableUndo[tableID] = change.id
+        state.tableRedo[tableID] = nil
+      })
   }
   func undo(_ redo: Bool) {
-    guard let id = redo ? state.tableRedo[table.id] : state.tableUndo[table.id],
-      let book = state.workbook
+    guard let id = redo ? state.tableRedo[table.id] : state.tableUndo[table.id]
     else { return }
-    Task {
-      do {
-        let inverse = try await Task.detached { try book.undoTableChange(id) }.value
+    let tableID = table.id
+    state.run(
+      redo ? "Redoing table changes" : "Undoing table changes",
+      operation: { book, _ in try book.undoTableChange(id) },
+      completion: { inverse in
         if redo {
-          state.tableUndo[table.id] = inverse.id
-          state.tableRedo[table.id] = nil
+          state.tableUndo[tableID] = inverse.id
+          state.tableRedo[tableID] = nil
         } else {
-          state.tableRedo[table.id] = inverse.id
-          state.tableUndo[table.id] = nil
+          state.tableRedo[tableID] = inverse.id
+          state.tableUndo[tableID] = nil
         }
-        state.refresh()
-      } catch { state.error = error.localizedDescription }
-    }
+      })
   }
   func copyRows() {
     guard let page = loader.page else { return }

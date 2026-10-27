@@ -469,6 +469,9 @@ struct SafeTextViewer: View {
       ).padding(20)
       if !detail.isEmpty { Text(detail).font(.caption).foregroundStyle(.secondary).padding(10) }
     }.task(id: file) {
+      guard !Task.isCancelled else { return }
+      text = ""
+      detail = ""
       do {
         let result = try await Task.detached { () -> (String, String) in
           let handle = try FileHandle(forReadingFrom: file)
@@ -480,9 +483,13 @@ struct SafeTextViewer: View {
               ? "Previewing the first 1 MB. The original file remains intact." : ""
           )
         }.value
+        try Task.checkCancellation()
         text = result.0
         detail = result.1
-      } catch { detail = error.localizedDescription }
+      } catch {
+        guard !Task.isCancelled else { return }
+        detail = error.localizedDescription
+      }
     }
   }
 }

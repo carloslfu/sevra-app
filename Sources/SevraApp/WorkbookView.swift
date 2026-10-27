@@ -100,6 +100,9 @@ struct WorkbookView: View {
       .onReceive(timer) { _ in state.poll() }
       .onAppear { state.beginInteraction() }.onDisappear { state.endInteraction() }
       .onDrop(of: ["public.file-url"], isTargeted: nil) { providers in
+        guard state.interactionActive, !state.busy, let book = state.workbook else { return false }
+        let identity = state.interactionIdentity
+        let chat = state.conversation
         Task {
           var urls: [URL] = []
           for provider in providers {
@@ -110,6 +113,9 @@ struct WorkbookView: View {
             }
             if let url { urls.append(url) }
           }
+          guard state.interactionActive, state.interactionIdentity == identity,
+            state.workbook === book, state.conversation == chat
+          else { return }
           state.importFiles(urls)
         }
         return true

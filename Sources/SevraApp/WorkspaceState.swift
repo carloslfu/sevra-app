@@ -68,6 +68,7 @@ import SwiftUI
   private var awaitingSpeechPermission: WorkspaceOperation?
   let mediaOwner = UUID()
   private(set) var interactionActive = false
+  private(set) var interactionIdentity = UUID()
   private var applyingDictation = false
   let speech = SpeechInput(pausePlayback: { PlaybackRegistry.shared.pauseAll() })
   func open(_ url: URL) throws {
@@ -158,14 +159,22 @@ import SwiftUI
   }
   func run(_ title: String, operation: @escaping @Sendable (Workbook, Cancellation) throws -> Void)
   {
+    run(title, operation: operation, completion: { _ in })
+  }
+  func run<Result: Sendable>(
+    _ title: String, operation: @escaping @Sendable (Workbook, Cancellation) throws -> Result,
+    completion: @escaping @MainActor (Result) -> Void
+  ) {
     guard let (book, ticket) = beginOperation(title) else { return }
     Task {
       defer { finishOperation(ticket, in: book) }
       do {
-        try await Task.detached(priority: .userInitiated) {
+        let result = try await Task.detached(priority: .userInitiated) {
           try ticket.cancellation.check()
-          try operation(book, ticket.cancellation)
+          return try operation(book, ticket.cancellation)
         }.value
+        guard owns(ticket, in: book) else { return }
+        completion(result)
       } catch { report(error, for: ticket, in: book) }
     }
   }
@@ -211,10 +220,11 @@ import SwiftUI
   func importPanel(linked: Bool = false) {
     guard interactionActive, !busy, let book = workbook else { return }
     let chat = conversation
+    let identity = interactionIdentity
     let panel = NSOpenPanel()
     panel.allowsMultipleSelection = true
     guard panel.runModal() == .OK, interactionActive, workbook === book,
-      conversation == chat
+      conversation == chat, interactionIdentity == identity
     else { return }
     importFiles(panel.urls, linked: linked)
   }
@@ -246,10 +256,13 @@ import SwiftUI
   }
   func exportPanel() {
     guard interactionActive, !busy, let book = workbook, documentDrafts.flush() else { return }
+    let identity = interactionIdentity
     let panel = NSSavePanel()
     panel.title = "Make a shareable copy"
     panel.nameFieldStringValue = book.title + ".sevraz"
-    if panel.runModal() == .OK, let url = panel.url, interactionActive, workbook === book {
+    if panel.runModal() == .OK, let url = panel.url, interactionActive, workbook === book,
+      interactionIdentity == identity
+    {
       run("Making a shareable copy") { book, cancel in
         try book.export(to: url, cancellation: cancel)
       }
@@ -575,6 +588,7 @@ import SwiftUI
   func beginInteraction() { interactionActive = true }
   func endInteraction() {
     interactionActive = false
+    interactionIdentity = UUID()
     operations.invalidate()
     awaitingSpeechPermission = nil
     busy = false

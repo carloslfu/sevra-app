@@ -331,3 +331,6 @@ Prepare workspace operation ownership and delayed completion/permission/search r
 ## [2026-10-27 14:45] implementation | records/operations/implementation.md
 Propagate native search cancellation to SQLite reader tokens and prepare supersession/reset/task/Back regressions; runtime pending.
 
+## [2026-10-27 14:48] implementation | records/operations/implementation.md
+Extend workspace ownership to table completions and delayed native file drops; retain focused passing 9044e5e checks and pending app verification.
+
