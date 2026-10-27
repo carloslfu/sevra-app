@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T11:52:54.364215+00:00
+updated: 2026-10-27T11:53:58.099392+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1163,3 +1163,6 @@ Hosted CI passed for both prior checkpoints: 48dc398 (40495894340) and 3738a56 (
 
 ## Current workflow packaging and evidence
 Both final local app/CLI builds pass. Native installed-resource checks, nine missing-resource refusals, altered Metal refusal, missing-model guidance and strict signatures pass. Baseline resources and isolated installation/update/uninstall/skill/conflict/workbook preservation pass. Verification logs and final source/binary hashes are retained in integration/evidence/2026-10-27-current-workflow-qualification.json. The tested harness and protocol are ready for the full W1 cohort; all product adoption limits remain.
+
+## W1 qualifying cohort in progress
+The full preregistered W1 cohort started on frozen clean commit ed6ffd0, using the tested release worker, ordinary cache identities and corrected reference/controller. Its local evidence directory is .build/workflow-performance/current-cohort1. It runs ten alternating paired blocks, one warmup and two measured jobs per workload/backend/block, plus Ready primes. No result or speed/adoption claim is available yet. Do not overlap local inference, builds or downloads or edit measured sources while it runs. Preserve every attempted result and finalize the report before assessing the gate. Documentation-only progress updates do not change its frozen measured inputs.
