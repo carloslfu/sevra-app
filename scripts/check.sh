@@ -31,6 +31,7 @@ swift build --product sevra-workflow-performance -j "${SEVRA_BUILD_JOBS:-4}"
 "$BIN/sevra-workflow-performance" --self-check
 python3 scripts/check_workflow_diagnostics.py
 python3 scripts/check_workflow_isolation.py
+python3 scripts/check_request_cache_isolation.py
 python3 scripts/check_item_reference_probe.py
 python3 scripts/check_links.py
 if command -v dbmd >/dev/null; then dbmd validate --all db --json; else echo 'dbmd is required for specification validation.' >&2; exit 1; fi

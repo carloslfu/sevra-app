@@ -97,6 +97,11 @@ def main():
         # Observation only; all preparation, admission, masks, decoding,
         # finalization and tool validation remain upstream code.
         def _generation_request(self, job):
+            if config.get('diagnosticRequestCacheIsolation'):
+                self.cache_sequence = getattr(self, 'cache_sequence', 0) + 1
+                # I2 isolates raw wire cache identity only. The unchanged
+                # frontend's string hashing is outside this diagnostic.
+                job.cache_salt = (0x5345565241493200 << 64) | self.cache_sequence
             request = super()._generation_request(job)
             if config.get('workflowQualification'):
                 frame = dataclasses.replace(request.frame, request_id=1,
@@ -193,6 +198,7 @@ def main():
                   'promptTokens': job.prompt_tokens, 'generationTokens': job.generation_prompt_tokens,
                   'matchedPromptTokens': result.cache.matched_tokens,
                   'deduplicatedKVTokens': result.cache.deduplicated_tokens,
+                  'diagnosticRequestCacheIsolation': config.get('diagnosticRequestCacheIsolation', False),
                   'tokens': backend.tokens, 'text': collected.content,
                   **({'requestFrame': backend.request_frame} if config.get('workflowQualification') else {}),
                   **({'maskTrace': backend.mask_trace, 'grammar': frontend.constraint_factory.last_grammar}

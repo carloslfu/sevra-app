@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "name": "Supplier request-cache isolation diagnostic I2",
+  "date": "2026-10-27",
+  "state": "preregistered-before-implementation",
+  "purpose": "Test whether isolating every request from prior cached prompts removes the supplier divergence observed in I1. Preserve the unsalted control and every failure; neither arm qualifies performance or adoption.",
+  "workloads": ["supplier_space"],
+  "arms": ["shared", "isolated"],
+  "contextTokens": 32768,
+  "maximumPromptTokens": 24000,
+  "memoryBytes": 12884901888,
+  "reasoningTokens": 512,
+  "maximumOutputTokens": 1800,
+  "seed": 42,
+  "temperature": 0,
+  "schedule": "Four sequential fresh workers. Shared arm: native then reference. Isolated arm: reference then native. Each worker runs Ready seed 0, supplier warmup seed 1 and supplier measured job seed 2. No other workload, mask tracing or delay.",
+  "intervention": "Only the isolated arm sets a unique raw 128-bit engine cache salt per request: high UInt64 0x5345565241493200, low UInt64 the one-based request number, including Ready. Both adapters set the same wire field; this does not test Python string-to-salt hashing. The shared arm keeps both salt words zero. Production configurations retain shared caching.",
+  "conditions": "Same frozen source/binary identities, pinned helper/model/grammar, foreground priority, verify-rows all, persistent cache off, 32K context, bounded512 reasoning, 12 GiB memory, full business assertions and exact request/output comparison. No concurrent inference, build or download. Preserve footprint samples, power/thermal state and cleanup.",
+  "evidence": "Require valid Ready/warmup/measured jobs, complete samples and exact paired request/token sequences independently for each arm. Read the saved wire frames to verify every salt, not merely the controller flag. Isolated requests must report zero initial matched tokens and zero later deduplicated tokens. Missing evidence refuses the result. Do not compare timings between arms as equivalent work.",
+  "limits": "Unique salts prevent sharing of prior KV but do not prove identical numerical state or remove memory-dependent chunk boundaries. Changed output sequences change later prompts. A passing isolated arm cannot erase a failed shared arm, establish root cause, qualify product caching, or authorize native adoption.",
+  "performanceQualification": false,
+  "productionAdoption": false
+}

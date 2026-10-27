@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T11:04:56.202866+00:00
+updated: 2026-10-27T11:31:09.789081+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -787,3 +787,8 @@ Run the fixed 32K/bounded512 workflow against a model installation created by na
 The output directory must be new and its parent must exist. This command retains synthetic workbooks, a portable snapshot and result.json on success or failure. It performs no download. It uses the same installed-model resolver as the native app, rather than the legacy local-pack layout used by older probes.
 
 The six requests cover original quantity recall, forecast acceptance and withdrawal during maintenance, a subsequent corrected quantity, export/reopen stock calculation, and explicit inherited evidence in a tangent. The host brings the tangent response back to main with its original link. Three batches of 150 closed assistant notes and 18 chapter markers force repeated checkpoints. Human state edits are injected after summary input capture; the real model chooses its tools and answers. Record source/binary identities and all failed attempts. This synthetic functional sequence is not occupied-context performance, process-death recovery or complete C12/C13 qualification.
+
+## I2 request-cache diagnostic
+Build the release worker with `swift build -c release --product sevra-workflow-performance -j 4` and run its `--self-check`. Run `python3 scripts/check_request_cache_isolation.py` for fail-closed evidence checks. Then run `python3 scripts/probe_request_cache_isolation.py --models-root MODEL_ROOT --output NEW_DIRECTORY`, where MODEL_ROOT is the installed native model root and NEW_DIRECTORY does not exist.
+
+The command executes four sequential workers: shared native/reference, isolated reference/native. Each runs Ready plus the supplier warmup and measured job. Do not overlap builds, model jobs or downloads, or change measured sources while it runs. Raw frames, prompts, samples and partial results are preserved. Nonzero exit can mean a matched-output diagnostic failed despite valid business answers. Inspect both arm reports; no I2 outcome qualifies speed or production adoption. The option is unavailable in the installed app and CLI.

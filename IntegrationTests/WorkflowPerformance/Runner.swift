@@ -353,7 +353,9 @@ func selfCheck() async throws {
             contextBudget: .init(profile: .evaluation32K), reasoning: .bounded512,
             modelLayout: .installed, contextMaintenanceEnabled: false,
             observeRequest: { observations.append($0) },
-            observeMask: maskObserver))
+            observeMask: maskObserver,
+            diagnosticRequestCacheIsolation: config["diagnosticRequestCacheIsolation"]
+              == .bool(true)))
       } else {
         try require(backend == "reference", "usage", "Unknown qualification frontend")
         underlying = ReferenceModel(config: config, observations: observations)

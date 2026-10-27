@@ -24,13 +24,16 @@ package actor NativeWorkbookModel: WorkbookInference {
     package let contextMaintenanceEnabled: Bool
     package let observeRequest: (@Sendable (Value) -> Void)?
     package let observeMask: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)?
+    /// Qualification intervention only. Product callers retain shared caching.
+    package let diagnosticRequestCacheIsolation: Bool
     package init(
       engine: URL, engineFiles: [String: String], grammarLibrary: URL,
       grammarSHA256: String, modelsRoot: URL, memoryBytes: UInt64,
       contextBudget: ContextBudget = .init(), reasoning: NativeReasoning = .off,
       modelLayout: ModelLayout = .localPack, contextMaintenanceEnabled: Bool = true,
       observeRequest: (@Sendable (Value) -> Void)? = nil,
-      observeMask: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)? = nil
+      observeMask: (@Sendable ([UInt32], [UInt32], UInt32, [UInt32]) -> Void)? = nil,
+      diagnosticRequestCacheIsolation: Bool = false
     ) {
       self.engine = engine
       self.engineFiles = engineFiles
@@ -44,6 +47,7 @@ package actor NativeWorkbookModel: WorkbookInference {
       self.contextMaintenanceEnabled = contextMaintenanceEnabled
       self.observeRequest = observeRequest
       self.observeMask = observeMask
+      self.diagnosticRequestCacheIsolation = diagnosticRequestCacheIsolation
     }
   }
   package let identity: String
@@ -451,6 +455,10 @@ private final class NativeWorker: @unchecked Sendable {
     request.generationTokens = prompt.generationTokens
     request.tokenMask = true
     request.thinking = try reasoning.budget(outputTokens: outputBudget)
+    if configuration.diagnosticRequestCacheIsolation {
+      request.saltLow = session.requestID
+      request.saltHigh = 0x5345_5652_4149_3200
+    }
     try cancellation.check()
     progress("Thinking locally")
     var matchedPromptTokens = 0
@@ -507,6 +515,7 @@ private final class NativeWorker: @unchecked Sendable {
       "draftedTokens": .number(Double(generated.done.drafted)),
       "acceptedDraftTokens": .number(Double(generated.done.accepted)),
       "speculativeMethod": .string("DFlash2"),
+      "diagnosticRequestCacheIsolation": .bool(configuration.diagnosticRequestCacheIsolation),
     ])
     // Opt-in qualification observation is absent from product configurations.
     if let observe = configuration.observeRequest {

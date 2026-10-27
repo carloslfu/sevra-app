@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T11:23:23.625425+00:00
+updated: 2026-10-27T11:31:09.773645+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1136,3 +1136,8 @@ The late search-entry visual replay is now complete: native search loaded all 35
 Opening the larger synthetic conversation exposed a separate UI issue: the view opened at the oldest loaded message, and a count-based observer could miss new messages when the fixed 100-message window retained the same count. The first repair observed the last visible identity on initial presentation/change, but native testing still found the new message below the viewport because of lazy row-height estimates. Preserve that failed intermediate app/source. The final view measures rows in the bounded history window and observes visible message identity, while preserving explicit older-message anchors. Actual rebuilt-app testing now passes initial latest-message visibility, a new locally submitted chapter message at the unchanged 100-message limit, an older citation anchored at the original correction, and return to the latest exchange through Main conversation.
 
 The complete local regression passed, including all 249 actual-tool masks. Both app variants were rebuilt after the final UI-only repair; native resource/refusal/signature checks, baseline resources and isolated installation passed again. Packaged missing-evidence and movement/invoice count checks passed on native (3/2/2 steps) and baseline (3/3/2). Both CLI binaries stayed byte-identical through the UI-only rebuilds, so these model results apply to the final packaged CLIs. Strict formatting passes. Evidence, all 35 retained logs, source/binary hashes, intermediate UI failures and visual observations are in integration/evidence/2026-10-27-continuity-navigation-qualification.json. Previous checkpoint 95a1629 completed hosted CI run 40491316063 successfully. This checkpoint still needs its own hosted CI result.
+
+## Request-cache isolation diagnostic, October 27
+The remaining I1 supplier mismatch motivates I2, a preregistered two-arm comparison of ordinary shared caching and unique request cache identities. The pinned engine stays unchanged. The application default remains shared caching and native preview remains unqualified. A package-internal evaluation flag carries the same raw salt on both frontends; each receipt records the intervention, and the performance gate refuses it.
+
+Preflight passes: adversarial evidence checks, actual I1 wire parsing for all 20 native and 21 reference supplier requests, strict Swift formatting after one line-length correction, and the release worker build. Tests reject missing/forged/repeated salt evidence, contradictory flags, any reuse, changed sources and accidental performance qualification. The model diagnostic has not run yet. The prior checkpoint CI run 40495894340 is still in progress.

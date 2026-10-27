@@ -208,3 +208,6 @@ Final review reproduced cancelled-before-entry search state loss. Added admissio
 ## [2026-10-27 11:23] verification | records/operations/implementation.md
 Qualified native six-stage continuity subset with retained failures and two finish corrections; fixed inherited parent evidence/citation scope and long-conversation scrolling; completed unlocked search/tangent/latest-message visual checks; full regression and final native/baseline package/install/search-count checks pass. Evidence: continuity-workflow archive and continuity-navigation qualification. Automatic compaction and native adoption remain gated.
 
+## [2026-10-27 11:31] implementation | records/operations/implementation.md
+Preregister I2 request-cache diagnostic; preserve product defaults and reject diagnostic performance promotion.
+

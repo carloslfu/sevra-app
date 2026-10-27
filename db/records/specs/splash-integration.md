@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T10:13:13.622122+00:00
+updated: 2026-10-27T11:31:09.759862+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -353,3 +353,8 @@ The preregistered fresh-worker isolation pilot I1 removes cross-workflow history
 I1 completed all sixteen workbook jobs and eight Ready primes, but failed its exact comparison. Formula, inventory and missing-evidence pairs matched requests, outputs and both cache counters. The supplier case first differed in measured step 6 at generated-token offset 171, with identical normalized request bytes, initial matched count 4640 and later reuse count 0 on both sides. Subsequent requests and counters diverged with the changed conversation. Fresh workers per workload are insufficient to establish parity, and equal counters do not establish identical numerical state. Neither an engine defect nor a Swift defect is established. No qualifying isolated cohort follows this failed pilot.
 
 Keep two questions separate: whether the frontends perform identical computation, and whether either completes useful work without avoidable correction loops. The I1 stock case exposed the same evidence-reference confusion and three rejected finishes on both frontends, despite exact token parity. Fixing that tool contract is shared application work, not a resolution of native/reference parity. Preserve pre-change observations and use separately identified functional recovery probes. Production adoption and performance qualification remain gated.
+
+## Request-cache isolation diagnostic I2
+I2 is preregistered in integration/performance/request-cache-isolation-pilot.json. It compares the supplier workflow with ordinary shared caching and a unique raw 128-bit engine cache identity on every request, including Ready. Each arm uses fresh native and reference workers, followed by the same warmup and measured fixture seeds. The reference intervention sets the raw cache field before unchanged upstream request serialization; this does not test its string-hashing API. Product callers leave the package-internal diagnostic option disabled.
+
+Require actual saved wire frames with verified hashes, expected distinct salts, zero initial and later cache reuse in the isolated arm, complete jobs and samples, unchanged measured sources and exact paired requests/generated tokens. Keep both arms and all failed jobs. This isolates prior prompt/KV sharing, not all memory-dependent chunking or numerical state. Neither arm qualifies performance or adoption; a passing isolated arm cannot excuse a failed shared-cache control. The standard W1 gate also refuses requests marked with this intervention, even if a caller forgets its diagnostic label.

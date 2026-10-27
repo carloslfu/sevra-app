@@ -217,6 +217,11 @@ def summarize(results, protocol, pilot, diagnostic_masks=False):
         for job in [(result.get('ready') or {}).get('prime', {})] + result.get('rows', [])
         for request in job.get('trace', {}).get('requests', []))
     diagnostic_observation = any(result.get('diagnosticObservation') for result in results)
+    diagnostic_observation = diagnostic_observation or any(
+        request.get('metrics', {}).get('diagnosticRequestCacheIsolation')
+        for result in results
+        for job in [(result.get('ready') or {}).get('prime', {})] + result.get('rows', [])
+        for request in job.get('trace', {}).get('requests', []))
     instrumented = diagnostic_masks or diagnostic_observation
     expected_blocks = 1 if pilot else protocol['blocks']
     repetitions = 1 if pilot else protocol['repetitionsPerWorkloadPerBlock']

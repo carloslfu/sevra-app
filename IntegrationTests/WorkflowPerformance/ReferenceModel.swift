@@ -132,6 +132,7 @@ actor ReferenceModel: WorkbookInference {
       "promptTokens": .number(Double(row["promptTokens"].array.count)),
       "matchedPromptTokens": row["matchedPromptTokens"],
       "deduplicatedKVTokens": row["deduplicatedKVTokens"],
+      "diagnosticRequestCacheIsolation": row["diagnosticRequestCacheIsolation"],
       "contextTokens": .number(32768),
       "outputBudget": .number(1800), "reasoningBudget": .number(512),
       "requestSeconds": row["completeSeconds"], "firstTokenSeconds": row["firstTokenSeconds"],
