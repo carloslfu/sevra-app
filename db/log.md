@@ -418,3 +418,6 @@ Record approved Conversation/Threads refinement and explicit summary provenance;
 ## [2026-10-27 18:55] implementation | records/operations/implementation
 Implement Conversation/Threads, text navigation and reviewed provenance-preserving summary sharing; fix duplicate command placement, pass native UI/full regression/CLI checks, preserve open gates.
 
+## [2026-10-27 19:20] verification | records/operations/implementation
+Expose per-message evidence and origin actions, focused Conversation menu and Command-L; pass regression, package, install and native UI checks while preserving keyboard/VoiceOver limits.
+

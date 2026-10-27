@@ -1,6 +1,7 @@
 import AVKit
 import AppKit
 import SevraCore
+import SevraPreviewUI
 import SevraVoice
 import SwiftUI
 
@@ -84,6 +85,7 @@ struct WorkbookView: View {
         }.font(.callout).padding(12).background(Color.red.opacity(0.07))
       }
     }.background(Color(nsColor: .windowBackgroundColor))
+      .focusedSceneValue(\.conversationWorkspace, state)
       .sheet(item: $state.conversationDraft) { draft in
         ConversationNameSheet(draft: draft) { name in
           guard let book = state.workbook else { return }
@@ -108,6 +110,7 @@ struct WorkbookView: View {
         }
       }
       .onReceive(timer) { _ in state.poll() }
+      .onChange(of: state.composerFocusRequest) { _, _ in composerFocused = true }
       .onAppear { state.beginInteraction() }.onDisappear { state.endInteraction() }
       .onDrop(of: ["public.file-url"], isTargeted: nil) { providers in
         guard state.interactionActive, !state.busy, let book = state.workbook else { return false }
@@ -133,22 +136,9 @@ struct WorkbookView: View {
       .environment(
         \.openURL,
         OpenURLAction { url in
-          if url.scheme == "sevra", url.host == "item" {
-            state.openEvidence(
-              url.lastPathComponent,
-              locator: URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first {
-                $0.name == "locator"
-              }?.value)
-            return .handled
-          }
-          if url.scheme == "sevra", url.host == "conversation",
-            let id = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first(
-              where: { $0.name == "message" })?.value
-          {
-            state.jumpToMessage(id)
-            return .handled
-          }
-          return .systemAction
+          guard ConversationLinkTarget(url) != nil else { return .discarded }
+          state.openConversationLink(url)
+          return .handled
         })
   }
   var routeTitle: String {
@@ -228,39 +218,7 @@ struct WorkbookView: View {
               }.padding(.top, 30)
             }
             ForEach(state.messages.filter { $0.role != "tool" }) { message in
-              VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                  Text(
-                    message.role == "user" ? "You" : message.role == "event" ? "Activity" : "Sevra"
-                  ).font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                  if message.state != "complete" {
-                    Text(message.state == "needs_review" ? "Needs your review" : message.state)
-                      .font(.caption).foregroundStyle(.orange)
-                  }
-                }
-                Text(
-                  (try? AttributedString(
-                    markdown: message.body,
-                    options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
-                    ?? AttributedString(message.body)
-                ).textSelection(.enabled).lineSpacing(4)
-              }.id(message.id).contextMenu {
-                Button("Save this exchange") {
-                  try? state.workbook?.chapter(
-                    title: String(message.body.prefix(60)), message: message.id, bookmark: true)
-                }
-                Button("Start a thread") {
-                  state.conversationDraft = .init(isThread: true, message: message.id)
-                }
-                if state.conversation != "main", message.state == "complete",
-                  ["user", "assistant"].contains(message.role)
-                {
-                  Button("Share summary with conversation") {
-                    state.requestSummary(message: message)
-                  }
-                }
-              }
+              ConversationMessageRow(state: state, message: message).id(message.id)
             }
             if state.busy {
               Text(state.status).font(.callout).foregroundStyle(.secondary).id("working")

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T18:55:53.452234+00:00
+updated: 2026-10-27T19:16:07.184253+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1086,3 +1086,17 @@ exchange and does not accept business data or invoke inference.
 The CLI advertises thread WORKBOOK TITLE MESSAGE_ID and share-summary WORKBOOK
 MESSAGE_ID TEXT. Quote the selected text as one argument. The older tangent spelling
 and persisted IDs remain supported. Existing workbooks need no data migration.
+
+## Conversation keyboard and assistive actions
+
+Command-L focuses Message Sevra in the active workbook. Each message has an actions
+menu containing its links and available exchange actions. The native Conversation
+menu offers the same actions for the twenty most recent visible exchanges, plus
+Back to Conversation. Its contents follow the active workbook and clear on close.
+
+Inspect messages with their speaker/status grouping, link roles and named assistive
+actions. Test exact evidence locators and original-message navigation, not merely
+menu presence. Run sevra-preview-checks for formatted/Unicode labels, deduplication,
+2,000 distinct links and unsupported-route refusal. The full local suite includes
+these checks. Real UI coverage and remaining VoiceOver/keyboard limits are recorded
+in [[records/operations/implementation]].

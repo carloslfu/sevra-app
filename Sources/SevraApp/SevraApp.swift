@@ -31,6 +31,7 @@ import SwiftUI
     }
     .defaultSize(width: 1200, height: 800)
     .commands {
+      ConversationCommands()
       CommandGroup(replacing: .newItem) {
         Button("New Workbook…") { NotificationCenter.default.post(name: .sevraNew, object: nil) }
           .keyboardShortcut("n")

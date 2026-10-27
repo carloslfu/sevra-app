@@ -34,6 +34,7 @@ import SwiftUI
   @Published var conversations: [Value] = []
   @Published var conversationDraft: ConversationDraft?
   @Published var summaryDraft: ConversationSummaryDraft?
+  @Published var composerFocusRequest = UUID()
   @Published var chapters: [Value] = []
   @Published var bookmarks: [Value] = []
   @Published var pendingExtractions: [Value] = []
@@ -711,6 +712,14 @@ import SwiftUI
         } catch { report(error, for: ticket, in: book) }
       }
     } catch { self.error = error.localizedDescription }
+  }
+  func openConversationLink(_ url: URL) {
+    switch ConversationLinkTarget(url) {
+    case .evidence(let id, let locator): openEvidence(id, locator: locator)
+    case .message(let id): jumpToMessage(id)
+    case .external: NSWorkspace.shared.open(url)
+    case nil: break
+    }
   }
   func requestSummary(message: Message? = nil) {
     guard conversation != "main",

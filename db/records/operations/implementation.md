@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T18:55:53.489021+00:00
+updated: 2026-10-27T19:20:17.075732+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -59,14 +59,21 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   scoped history pass. Only selected findings return; commands stay in their
   originating history. Existing package IDs and the CLI tangent alias still work.
 
+- Conversation messages now expose separate accessible groups, exact inline links,
+  named assistive actions and native message menus. The Conversation menu follows
+  the focused workbook, and Command-L focuses its composer. Exact evidence/origin
+  navigation and closed-window isolation pass in the native app. Spoken VoiceOver
+  and the complete keyboard-only journey remain unqualified.
+
 The full local suite passes with 76 core and 12 extraction checks. Native release
-app/CLI/helper builds and package checks pass. The final share-summary CLI addition
-also passes a separate installed-layout smoke check. Hosted workflow 40557861669
-on media repair 26b3936 passes; extraction e27ae39 is still in hosted CI at this
-checkpoint, and the new Threads changes need their own hosted result.
-Next, finish native accessibility and
-extraction coverage, review the engine repeatability evidence before its next
-qualification step, and complete remaining context/hardware/release gates.
+app/CLI/helper builds and package checks pass. Final conversation link deduplication
+and its 2,000-link case pass focused checks, both package builds, baseline install
+and the native UI recheck. Hosted extraction workflow 40562440542 on e27ae39 passes;
+Threads workflow 40564561986 on 75511b8 is still running at this checkpoint. The new
+accessibility changes need their own hosted result.
+Next, finish native accessibility and extraction coverage, review the engine
+repeatability evidence before its next qualification step, and complete remaining
+context/hardware/release gates.
 [[records/specs/splash-integration]], [[records/specs/conversation-context]] and
 [[records/operations/build-and-run]] retain the contracts and failed evidence.
 ## Earlier checkpoint summaries, October 27
@@ -2380,3 +2387,51 @@ It preserves before/after UI audits, exact source/app/CLI identities, failed and
 passing build logs, full regression and package checks. The final CLI addition was
 built and smoke-tested after the full suite; it changes no core or UI behavior.
 Hosted CI for extraction e27ae39 was still running; no new hosted success is claimed.
+
+## Conversation accessibility checkpoint, October 27
+
+Conversation messages now remain separate accessible groups with speaker/status,
+selectable rich text, exact link nodes and named assistive actions. Shared actions
+also appear in each message menu and the active workbook's native Conversation
+menu. Command-L focuses the composer. Recent exchanges are bounded to the twenty
+most recent visible messages. Closing a workbook removes its menu actions; switching
+workbooks changes the owning state. Save failures now surface instead of being
+silently discarded.
+
+One parser supplies inline and menu links. It preserves formatted Unicode labels,
+item versions, locators and original-message identities, merging adjacent styling
+runs and deduplicating menu destinations with a set. Unsupported application/file
+schemes and malformed or ambiguous workbook routes retain their visible text but
+cannot be activated. The navigation layer does not change retrieval authority or
+accept business records.
+
+Focused checks cover those invariants and 2,000 unique links. The full regression
+suite passed after the message/menu changes, including 76 core, 12 extraction and
+15 voice/media checks. The final set-based deduplication refinement was made after
+that run, then passed focused checks, native package/resource/signature checks,
+baseline build/install/update/uninstall/skill-conflict checks and another visible
+native UI pass. Swift formatting checks on the three new files pass.
+
+Synthetic native UI checks opened the exact Receiving.txt evidence and original
+exchange through named accessibility and menu actions. Row-menu arrow keys plus
+Return activated the original exchange; Command-L focused the composer. Native
+Conversation actions followed a second workbook and became unavailable after
+close. Original source hashes, messages and provenance payloads remained unchanged;
+workbook integrity passed and no model turn or business mutation ran. The app was
+quit, and no new microphone recording or external URL activation occurred.
+
+Keyboard-only navigation through the application menu bar remains unqualified:
+Control-F2 did not establish focus through the UI tool, which also rejects the fn
+modifier. Shift-Tab remained in the text field with the current Mac preferences;
+Option-Shift-Tab inserted a tab, cleared without sending. Menu activation through
+accessibility worked, but that is not a spoken VoiceOver session. No system setting
+was changed. Dark-mode requalification and broader J01-J10 coverage remain open.
+
+Evidence: integration/evidence/2026-10-27-conversation-accessibility.json.gz,
+12,049 compressed bytes; uncompressed SHA256
+22008086456cc68188f631424c1d017ec69c6d2fd6ad010de2a286c4770ed91c.
+It preserves source/binary hashes, sanitized build/check logs and explicit UI
+observations and limits, not raw AX transcripts or a screenshot collection. All
+recorded source and binary hashes were reverified before the documentation
+checkpoint. Hosted extraction CI 40562440542 passed, superseding earlier pending
+entries. Threads CI 40564561986 is still running; this checkpoint is not yet pushed.

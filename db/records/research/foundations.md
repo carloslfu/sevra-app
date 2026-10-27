@@ -3,7 +3,7 @@ type: research
 meta-type: conclusion
 id: 01m5rbxzbx5q4atmjp4471w04d
 created: 2026-10-25T01:48:47.357164+00:00
-updated: 2026-10-27T18:42:11.633130+00:00
+updated: 2026-10-27T19:16:07.199388+00:00
 summary: Primary sources for SQLite retrieval/durability, native readers, on-device voice and current Slotstream integration.
 title: Foundation research
 ---
@@ -109,3 +109,17 @@ desktop. This is an implementation choice for failure containment and cancellati
 it does not supply XPC entitlement separation or an OS security sandbox. Do not
 claim protection from arbitrary code execution solely because parsing moved out
 of the host.
+
+## Accessible conversation actions
+
+Apple's [accessibilityElement(children:)](https://developer.apple.com/documentation/swiftui/view/accessibilityelement(children:))
+controls child grouping; [accessibilityActions](https://developer.apple.com/documentation/swiftui/view/accessibilityactions(_:))
+adds named actions for assistive technologies. Native [Menu](https://developer.apple.com/documentation/swiftui/menu)
+provides alternate actions through familiar platform controls. Sevra uses separate
+message groups, exact link actions and menus, retaining selectable inline text.
+
+In the local native accessibility tree, message text previously collapsed together.
+Explicit grouping now exposes individual messages and their inline link roles;
+named actions and menus open the same evidence. This observed tree and successful
+action activation do not establish spoken VoiceOver usability or every keyboard
+configuration. Keep those acceptance checks separate from API availability.

@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T18:47:21.431279+00:00
+updated: 2026-10-27T19:16:07.169439+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
 ---
 # Product and interaction
 
-Revision 3, October 26, 2026. Status refers to specification review, not delivery.
+Revision 4, October 27, 2026. Status refers to specification review, not delivery.
 Normative requirements use IDs so implementation and verification can map back.
 
 Sevra Workbook is the primary product and homepage. A small Websites link in the
@@ -218,3 +218,22 @@ The header menus and Home intake sections render the snapshot rather than queryi
 SQLite during view rendering. This change does not establish that every editor,
 viewer or explicit mutation is asynchronous, nor qualify whole-app latency/memory.
 The actual visible workbook-switch and interaction journeys remain required.
+
+## Conversation accessibility and link routing
+
+P05a. Each message is a separate accessible group, preserving its speaker, status,
+selectable text and links. Message actions expose the same exact destinations as
+inline links, plus saving an exchange, starting a thread and explicitly sharing
+selected findings. Named assistive actions and native menus complement the text.
+The app's Conversation menu follows the focused workbook and provides its twenty
+most recent visible exchanges; closing that workbook removes its actions.
+Command-L focuses the composer without sending text or starting dictation.
+
+Parsing must preserve Unicode/formatted link labels, exact item-version identifiers,
+locators and original-message references. Merge adjacent styling runs belonging to
+one link and deduplicate repeated destinations in action menus without changing the
+body. Link handling permits the current workbook's item/message routes and ordinary
+HTTP(S)/mail links. Malformed workbook routes and arbitrary application/file schemes
+remain plain text, with no action. Navigation does not imply evidence acceptance or
+widen the agent's retrieval scope. System keyboard preferences still apply to native
+controls; keyboard and spoken VoiceOver qualification remain explicit UI gates.
