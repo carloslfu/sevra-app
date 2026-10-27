@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T08:55:08.373365+00:00
+updated: 2026-10-27T09:32:10.728666+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -664,7 +664,7 @@ python3 scripts/check_workflow_diagnostics.py
 
 Modes are none, hash-no-payload and delay-2ms. An optional --modes argument selects a unique subset. All preserve the upstream-produced mask buffer. The default no-observation mode performs no diagnostic hashing or delay. Any intervention result is marked diagnostic and excluded from qualification. The baseline masks1 worker predates the later cache metric; rebuilding that target changes its hash and correctly makes this old-baseline command refuse. Use a newly recorded matching baseline for a later build; never bypass the identity check.
 
-The native and reference request metrics now retain matchedPromptTokens and deduplicatedKVTokens. A normal uninstrumented workflow pilot records both. The October 27 cache1 pilot's raw summary and loaded source are preserved separately from the later parameter-validation refactor. I1 is preregistered but its runner and result are still pending.
+The native and reference request metrics now retain matchedPromptTokens and deduplicatedKVTokens. A normal uninstrumented workflow pilot records both. The October 27 cache1 pilot's raw summary and loaded source are preserved separately from the later parameter-validation refactor. I1 now has a tested runner. Its actual-model outcome is recorded separately in the implementation register.
 
 Inspect a complete cache-counter pilot with the reusable analyzer:
 
@@ -674,3 +674,46 @@ python3 scripts/analyze_workflow_cache.py .build/workflow-performance/cache1 \
 ```
 
 It verifies prompt-array hashes, refuses missing cache counters and incomplete workers, and compares each prompt/output prefix against every earlier request in that fresh sequential worker. Counts and prefix bounds are not cached-byte identities. The output is diagnostic and cannot qualify adoption.
+
+## Fresh-worker isolation pilot
+The frozen I1 protocol gives each of the four workloads a fresh native and reference worker. Each worker runs Ready, one warmup and one measured job. The coordinator alternates frontend order, uses the actual model lease and waits for complete shutdown before the next worker.
+
+```sh
+python3 scripts/check_workflow_isolation.py
+swift build -c release --product sevra-workflow-performance -j 4
+.build/release/sevra-workflow-performance --self-check
+python3 scripts/probe_workflow_isolation.py \
+  --models-root .build/native-fresh-setup \
+  --output .build/workflow-performance/isolation-new
+```
+
+Use a new output directory. No other inference, build or download may overlap the run. The coordinator freezes all product sources, workload sources, reference/controller files and the release worker before inference, then checks them before each worker and at completion. Editing a measured file stops further workers and fails the report. It verifies the pinned helper/resources and grammar library; the frontends independently verify their model/source identities.
+
+Every prime, warmup and measured job must succeed. The report compares exact requests, outputs and both cache counters. Missing data, failed jobs, instrumentation, partial process sampling, thermal/power exclusions and failed cleanup cannot pass. Partial evidence is kept. The report and process exit distinguish a successful diagnostic from a failed one, and both performanceQualification and productionAdoption always remain false. Equal cache counts do not prove identical cached state.
+
+The root summary compares all four workloads; raw receipts and prompt/memory traces live in the workload subdirectories. Export the root and each workload directory explicitly because the evidence exporter does not recurse. Keep any failed development checks alongside the final receipt. W1 mixed-workload failures remain separate evidence.
+
+## Balance evidence recovery
+The I1 inventory seed-2 job exposed a shared application problem: treating an opening-source reference as a conversation message and repeatedly searching history. A separate functional probe replays the same Ready/warmup/measured schedule on both frontends after changing the calculation evidence contract.
+
+```sh
+swift build -c release --product sevra-workflow-performance -j 4
+.build/release/sevra-workflow-performance --self-check
+python3 scripts/probe_balance_evidence.py \
+  --baseline .build/workflow-performance/isolation1/inventory_evidence \
+  --output .build/workflow-performance/balance-evidence-new
+```
+
+The baseline must have the original I1 source/configuration identity. The probe permits only the declared Tools.swift and WorkbookAgent.swift changes and rebuilt worker, verifies the helper/grammar identities, freezes its measured sources and preserves all failures. Other future source changes require a newly reviewed protocol or baseline, not removal of the identity check. Both frontends run sequentially under the actual inference lease. No overlapping build, inference or download is permitted.
+
+Acceptance requires all original stock/citation/business-state assertions, no rejected finishes or history/count detours, complete process sampling/cleanup and valid power/thermal conditions. Timings are observations, not a performance gate. The first typed-reference-only attempt fixed the history detour but retained one formatting correction on each measured job, so its strict recovery report remains failed. Native citation rendering is evaluated in a separate later attempt. Preserve both versions and their exact loaded sources.
+
+After rebuilding the isolated native preview, check the final installed CLI without the benchmark wrapper:
+
+```sh
+SEVRA_CLI=output/native/bin/sevra \
+SEVRA_MODEL_DIRECTORY=.build/native-fresh-setup \
+  python3 scripts/check_model.py inventory missing
+```
+
+The explicit inventory check verifies the complete stock answer, opening/movement citations, no rejected finish or history/count detour, unchanged accepted Records/spaces/balance and workbook integrity. It preserves the actual answer and tool receipts before asserting. The missing check independently verifies actual empty queries and incomplete-index disclosure. These are functional checks, not a latency comparison.

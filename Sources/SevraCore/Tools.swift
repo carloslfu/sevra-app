@@ -176,7 +176,21 @@ public struct WorkbookTools {
         "result": .string(try Numbers.calculate(string("expression"), values: a["values"].object)),
         "arithmetic": .string("decimal"),
       ])
-    case "balance": return try workbook.balance(subject: string("subject"))
+    case "balance":
+      var result = try workbook.balance(subject: string("subject")).object
+      let ids =
+        [result["basis"]!.text]
+        + result["effects"]!.array.map { $0["item_id"].text }
+      result["evidence"] = .object([
+        "referenceType": .string("item-version"),
+        "citations": .array(ids.map(Value.string)),
+        "notice": .string(
+          "The basis and effects identify workbook Source/Record versions, not conversation messages. "
+            + "This calculation inspects those inputs. Put these exact citations in finish.citations when reporting the balance. "
+            + "Use read for additional source content. No history_read or count_records call is needed to cite this calculation."
+        ),
+      ])
+      return .object(result)
     case "spaces": return try encoded(workbook.spaces())
     case "pin_space":
       return .string(try workbook.pinSpace(string("id"), title: string("title"), token: token))

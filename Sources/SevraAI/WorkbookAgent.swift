@@ -273,9 +273,17 @@ public enum WorkbookAgent {
             problems.append(
               "Include every inspected input supporting the balance or comparison in citations: "
                 + calculationInputs.sorted().joined(separator: ", ")
-                + ". Do not put these IDs in answer prose.")
+                + ". These are workbook item-version IDs already inspected by the calculation, not conversation-message IDs. "
+                + "Put them in finish.citations; history_read and count_records are not needed to cite this calculation. "
+                + "Do not put these IDs in answer prose.")
           }
-          if let feedback = opaqueReferenceFeedback(modelAnswer, inspected: inspected) {
+          let inlineReferences = renderableReferences(
+            modelAnswer, citations: citations, inspected: inspected)
+          var unrenderedAnswer = modelAnswer
+          for reference in inlineReferences.keys {
+            unrenderedAnswer = unrenderedAnswer.replacingOccurrences(of: reference, with: "")
+          }
+          if let feedback = opaqueReferenceFeedback(unrenderedAnswer, inspected: inspected) {
             problems.append(feedback)
           }
           if !currencyEvidence && modelAnswer.contains(where: { "$€£".contains($0) }) {
@@ -352,30 +360,34 @@ public enum WorkbookAgent {
             }
             continue
           }
+          func citationLink(_ id: String) -> String {
+            if id.hasPrefix("message:") {
+              var link = URLComponents()
+              link.scheme = "sevra"
+              link.host = "conversation"
+              link.path = "/" + conversation
+              link.queryItems = [URLQueryItem(name: "message", value: String(id.dropFirst(8)))]
+              return "[Earlier message](\(link.url!.absoluteString))"
+            }
+            let title = (try? workbook.item(id).title) ?? "Source"
+            var link = URLComponents()
+            link.scheme = "sevra"
+            link.host = "item"
+            link.path = "/" + id
+            if let locator = locators[id] {
+              link.queryItems = [URLQueryItem(name: "locator", value: locator)]
+            }
+            return "[\(citationLabel(title))](\(link.url!.absoluteString))"
+          }
+          // Formatting an already validated exact citation does not require
+          // another model turn. Keep the original arguments in the receipt.
+          answer = renderReferenceLinks(answer, references: inlineReferences, link: citationLink)
+          let remainingCitations = citations.filter { !inlineReferences.values.contains($0) }
           let suffix =
-            citations.isEmpty
+            remainingCitations.isEmpty
             ? ""
             : "\n\n"
-              + citations.map { id in
-                if id.hasPrefix("message:") {
-                  var link = URLComponents()
-                  link.scheme = "sevra"
-                  link.host = "conversation"
-                  link.path = "/" + conversation
-                  link.queryItems = [URLQueryItem(name: "message", value: String(id.dropFirst(8)))]
-                  return "[Earlier message](\(link.url!.absoluteString))"
-                }
-                let title = (try? workbook.item(id).title) ?? "Source"
-                var link = URLComponents()
-                link.scheme = "sevra"
-                link.host = "item"
-                link.path = "/" + id
-                if let locator = locators[id] {
-                  link.queryItems = [URLQueryItem(name: "locator", value: locator)]
-                }
-                return
-                  "[\(title.replacingOccurrences(of:"[",with:"").replacingOccurrences(of:"]",with:""))](\(link.url!.absoluteString))"
-              }.joined(separator: " ")
+              + remainingCitations.map(citationLink).joined(separator: " ")
           let coverageText =
             coverageEvidence.isEmpty
             ? ""
@@ -390,6 +402,7 @@ public enum WorkbookAgent {
               "runID": .string(runID), "callID": .string(call.id),
               "assistantText": .string(response.text),
               "coverageEvidence": .array(coverageEvidence),
+              "renderedReferences": .object(inlineReferences.mapValues(Value.string)),
               "presentation": .string(
                 countOnly ? "host_counts" : hostSearchGap ? "host_search" : "answer"),
               "searchEvidence": hostSearchGap
@@ -644,6 +657,51 @@ public enum WorkbookAgent {
 
   package static func containsOpaqueReference(_ answer: String, inspected: Set<String>) -> Bool {
     !opaqueReferences(answer, inspected: inspected).isEmpty
+  }
+
+  /// Only complete item IDs already admitted and cited can become native links.
+  /// Leave abbreviations, conversation IDs and model-written links/code to the
+  /// existing refusal path rather than attempting to repair Markdown syntax.
+  package static func renderableReferences(
+    _ answer: String, citations: [String], inspected: Set<String>
+  ) -> [String: String] {
+    guard !answer.contains("://"), !answer.contains("["), !answer.contains("]"),
+      !answer.contains("`"), !answer.contains("~~~"),
+      !answer.contains("<"), !answer.contains(">"),
+      !answer.lowercased().contains("message:"),
+      answer.range(of: #"(?m)^(?: {4}|\t)"#, options: .regularExpression) == nil
+    else { return [:] }
+    let allowed = citations.filter { inspected.contains($0) && UUID(uuidString: $0) != nil }
+    var result: [String: String] = [:]
+    for reference in opaqueReferences(answer, inspected: inspected) {
+      if let id = allowed.first(where: { $0.lowercased() == reference.lowercased() }) {
+        result[reference] = id
+      }
+    }
+    return result
+  }
+
+  package static func citationLabel(_ title: String) -> String {
+    title.prefix(200).reduce("") { result, character in
+      if character.isNewline { return result + " " }
+      return result + ("\\[]`*_<>".contains(character) ? "\\" : "") + String(character)
+    }
+  }
+
+  package static func renderReferenceLinks(
+    _ answer: String, references: [String: String], link: (String) -> String
+  ) -> String {
+    let pattern = "(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+    let matches = try! NSRegularExpression(pattern: pattern).matches(
+      in: answer, range: NSRange(answer.startIndex..., in: answer))
+    let rendered = NSMutableString(string: answer)
+    for match in matches.reversed() {
+      guard let range = Range(match.range, in: answer),
+        let id = references[String(answer[range])]
+      else { continue }
+      rendered.replaceCharacters(in: match.range, with: link(id))
+    }
+    return rendered as String
   }
 
   package static func opaqueReferenceFeedback(_ answer: String, inspected: Set<String>) -> String? {

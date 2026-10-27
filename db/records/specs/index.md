@@ -2,13 +2,13 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-27T08:52:05.315623Z
+updated: 2026-10-27T09:39:21.579059Z
 ---
 
 # records/specs
 
-- [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 - [[records/specs/intelligence]] — Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
+- [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 - [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 - [[records/specs/product]] — Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 - [[records/specs/search]] — FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.

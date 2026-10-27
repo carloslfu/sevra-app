@@ -7,7 +7,7 @@ from pathlib import Path
 from decimal import Decimal
 import json, os, re, signal, subprocess, sys, tempfile, time
 checks=set(sys.argv[1:]) or {"comparison", "injection", "missing", "cancellation", "tables", "coverage"}
-assert checks <= {"comparison", "injection", "missing", "cancellation", "tables", "coverage"}, "Unknown model check"
+assert checks <= {"comparison", "injection", "missing", "cancellation", "tables", "coverage", "inventory"}, "Unknown model check"
 root=Path(__file__).resolve().parent.parent
 cli=Path(os.environ.get('SEVRA_CLI',root/'output/bin/sevra'))
 model_directory=os.environ.get('SEVRA_MODEL_DIRECTORY')
@@ -45,6 +45,28 @@ def run(*args,timeout=240):
 with tempfile.TemporaryDirectory(prefix='sevra-real-model-') as temporary:
     folder=Path(temporary);book=folder/'Eval.sevra'
     run('demo',book)
+    if 'inventory' in checks:
+        before,_=run('balance',book,'brass bolts')
+        records,_=run('records',book)
+        spaces,_=run('spaces',book)
+        required={before['basis'],*(r['item_id'] for r in before['effects'])}
+        answer,seconds=run('ask',book,'What is the current stock of brass bolts? Use the balance tool and cite the opening basis and movements. Do not change the workbook.')
+        assert answer['state']=='complete' and re.search(r'\b18\b',answer['answer']),answer
+        assert required.issubset(set(answer['citations'])),answer
+        history,_=run('conversation',book)
+        receipts=[json.loads(m['body']) for m in history if m['role']=='tool']
+        assert not any('validation' in r for r in receipts),receipts
+        assert not any(r['tool'] in ['history_read','history_search','count_records'] for r in receipts),receipts
+        assert run('balance',book,'brass bolts')[0]==before
+        after=run('records',book)[0]
+        originals={r['id'] for r in records}
+        assert [r for r in after if r['id'] in originals]==records
+        added=[r for r in after if r['id'] not in originals]
+        assert len(added)==1 and added[0]['category']=='source' and added[0]['kind']=='request',added
+        assert run('spaces',book)[0]==spaces
+        assert run('verify',book)[0]['ok']
+        print(json.dumps({'check':'balance_evidence_without_correction','passed':True,'seconds':seconds,
+                          'steps':answer['steps'],'requiredCitations':len(required),'businessStateUnchanged':True}),flush=True)
     if 'comparison' in checks:
         answer,seconds=run('ask',book,'Compare the supplier quotes. Which supplier is cheaper, by how much and by what percentage? Create a Purchasing space with a table and a cost chart. Cite the supporting rows.')
         assert '12.73' in answer['answer'] or '12.727' in answer['answer'],answer

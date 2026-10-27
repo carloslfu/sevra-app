@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T07:29:21.325261+00:00
+updated: 2026-10-27T09:39:21.579059+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -190,6 +190,19 @@ A model-lease refusal or cancellation before acquisition saves the original requ
 With exclusive ownership, the admission transaction also marks earlier running jobs interrupted. Assemble historical context only after that transaction commits. Exclude the current request and later messages from earlier history using a conversation-validated message boundary. Stopped requests remain status/reference entries; the new request is the only live user turn. Preserve unfinished tool receipts and committed operation proof. Recovery must not automatically repeat an uncertain action.
 
 ## Actionable answer correction and terminal evidence
-When a final answer exposes full UUIDs or inspected abbreviated references, the host identifies the exact offending text, including source IDs in parentheses and Supporting evidence sections. Correction feedback names up to sixteen offending references and requires checking the whole answer; more matches remain invalid. Use human source names in prose and exact IDs only in the citation field. Do not silently remove or rewrite unverified factual claims, weaken currency/calculation/evidence checks, or accept a bad answer to improve completion rates.
+Complete item UUIDs that meet the typed-reference rendering conditions below become named native links. For remaining full UUIDs or inspected abbreviated references, the host identifies the exact offending text, including source IDs in parentheses and Supporting evidence sections. Correction feedback names up to sixteen offending references and requires checking the whole answer; more matches remain invalid. Prefer human source names in model prose and exact IDs in the citation field. Rendering an already admitted item reference is a presentation operation; it never admits an unknown or uncited reference. Do not silently remove or rewrite unverified factual claims, weaken currency/calculation/evidence checks, or accept a bad answer to improve completion rates.
 
 Preserve every rejected finish candidate with its validation feedback and original arguments. If the fourth candidate still fails, save that final rejection before ending the run with answer_validation. The existing three correction opportunities remain bounded. A failed final answer must not erase committed workbook actions or publish invalid assistant prose. Test both corrected completion and exhausted correction, including the final durable receipt. This policy applies to both inference adapters.
+
+## Typed calculation references
+A successful balance calculation returns typed evidence metadata: referenceType=item-version and the exact opening-basis/effect IDs in evidence.citations. These identify immutable workbook Source/Record versions, not conversation messages or count receipts. The host already admits those calculation inputs for citation after an untruncated successful result. Additional source content still requires read; history_read is only for conversation messages.
+
+A balance answer must cite every supporting calculation input. A missing-citation correction names the required IDs and their type and explains that history_read or count_records is not needed to cite the calculation. This clarifies the existing authority boundary; it does not admit fabricated IDs, count receipts as evidence, unread document claims or incomplete tool results. The model must still complete the normal validated finish path. No engine, sampling or caching change is involved.
+
+The motivating I1 case took twelve model steps and three rejected finishes on both frontends after an opening-source UUID was mistaken for a conversation-message ID. Functional regression must check the original balance, complete citations, unchanged business state, no repeat of that confusion, and actual native/reference completions. Latency observations from a small recovery probe do not qualify performance or universal reliability.
+
+The host may render a complete item UUID in plain answer prose as a named native citation only when that exact item version was inspected in this run and is also listed in finish.citations. Case variants resolve to the admitted canonical ID. Claims, calculations, currency, required inputs and citation authority are checked before publication. Unknown IDs, abbreviations, message references and IDs inside code or model-written links retain the refusal path; this is not general Markdown repair.
+
+Rendering substitutes original text positions once, so an inserted URL or source title cannot be processed as a later model reference. Labels escape Markdown and collapse newlines. Evidence already linked inline is not duplicated in the suffix; remaining citations keep their named links and locators. Save the original finish arguments and a renderedReferences mapping with the assistant message. This is presentation of existing evidence, not admission of a new citation or automatic correction of a factual claim.
+
+The fixed-seed native/reference recovery does not qualify general reference reliability. A later final-package test with fresh UUIDs still mistyped a movement ID, took a history detour and required two finish corrections. Keep that failure as a regression case. Future model-reference design must make exact candidate selection dependable, preserve canonical immutable IDs in storage/receipts, refuse unknown handles and avoid fuzzy automatic redirection. Short typed per-run handles are a proposed approach; they are not implemented or a new workbook format decision.

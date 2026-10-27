@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T08:52:05.315623+00:00
+updated: 2026-10-27T09:18:37.350873+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -350,3 +350,7 @@ Record both matchedPromptTokens from native Start and deduplicatedKVTokens from 
 The observed W1 differences include unequal later cache reuse at equal initial prefix counts. Preserve W1 as a failed comparison and do not attribute its differing answers to Swift or qualify its timings as identical-computation evidence. Pinned upstream numerical conditions are summarized in [[records/research/foundations]].
 
 The preregistered fresh-worker isolation pilot I1 removes cross-workflow history by giving each workload/backend pair a new process. It retains the same real workbook tasks, exact requests and generated outputs, 32K context, bounded512 reasoning, 12 GiB memory, masks, output validation and formula review/undo. It adds explicit initial/later cache-counter comparison, with missing data treated as unknown. It cannot qualify performance or adoption. A passing isolated pilot must lead to a separately reviewed and preregistered qualifying protocol, while mixed-workload robustness remains required. See integration/performance/workflow-isolation-pilot.json and [[records/operations/implementation]].
+
+I1 completed all sixteen workbook jobs and eight Ready primes, but failed its exact comparison. Formula, inventory and missing-evidence pairs matched requests, outputs and both cache counters. The supplier case first differed in measured step 6 at generated-token offset 171, with identical normalized request bytes, initial matched count 4640 and later reuse count 0 on both sides. Subsequent requests and counters diverged with the changed conversation. Fresh workers per workload are insufficient to establish parity, and equal counters do not establish identical numerical state. Neither an engine defect nor a Swift defect is established. No qualifying isolated cohort follows this failed pilot.
+
+Keep two questions separate: whether the frontends perform identical computation, and whether either completes useful work without avoidable correction loops. The I1 stock case exposed the same evidence-reference confusion and three rejected finishes on both frontends, despite exact token parity. Fixing that tool contract is shared application work, not a resolution of native/reference parity. Preserve pre-change observations and use separately identified functional recovery probes. Production adoption and performance qualification remain gated.

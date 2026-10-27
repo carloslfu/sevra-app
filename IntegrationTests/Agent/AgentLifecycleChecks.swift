@@ -16,13 +16,15 @@ private actor ScriptedInference: WorkbookInference {
   let filteredSearches: Bool
   let balanceOnly: Bool
   let omitBalanceCitation: Bool
+  let inlineBalanceReferences: Bool
   let initialBasis: String?
   var balanceIDs: [String] = []
   let violateReadOnly: Bool
   init(
     cancelAfterResponse: Bool = false, fail: Bool = false, searchesOnly: Bool = false,
     balanceOnly: Bool = false, violateReadOnly: Bool = false, filteredSearches: Bool = false,
-    omitBalanceCitation: Bool = false, initialBasis: String? = nil
+    omitBalanceCitation: Bool = false, initialBasis: String? = nil,
+    inlineBalanceReferences: Bool = false
   ) {
     self.cancelAfterResponse = cancelAfterResponse
     self.fail = fail
@@ -30,6 +32,7 @@ private actor ScriptedInference: WorkbookInference {
     self.filteredSearches = filteredSearches
     self.balanceOnly = balanceOnly
     self.omitBalanceCitation = omitBalanceCitation
+    self.inlineBalanceReferences = inlineBalanceReferences
     self.initialBasis = initialBasis
     self.violateReadOnly = violateReadOnly
   }
@@ -98,10 +101,15 @@ private actor ScriptedInference: WorkbookInference {
       if responses == 2 {
         let balance = try Value.parse(messages.last!.content)
         balanceIDs = [balance["basis"].text] + balance["effects"].array.map { $0["item_id"].text }
+        try expectEqual(balance["evidence"]["referenceType"].text, "item-version")
+        try expectEqual(balance["evidence"]["citations"].array.compactMap(\.string), balanceIDs)
+        try expectEqual(
+          balance["evidence"]["notice"].text.contains("not conversation messages"), true)
       } else {
         try expectEqual(responses, 3)
         try expectEqual(omitBalanceCitation, true)
         try expectEqual(messages.last!.content.contains("every inspected input"), true)
+        try expectEqual(messages.last!.content.contains("not conversation-message IDs"), true)
       }
       try expectEqual(balanceIDs.allSatisfy { citationIDs.contains($0) && !$0.isEmpty }, true)
       let ids = omitBalanceCitation && responses == 2 ? Array(balanceIDs.prefix(1)) : balanceIDs
@@ -111,7 +119,10 @@ private actor ScriptedInference: WorkbookInference {
           InferenceCall(
             id: "balance-finish-\(responses)", name: "finish",
             inputJSON: try Value.object([
-              "answer": .string("The current stock is 18 brass bolts."),
+              "answer": .string(
+                "The current stock is 18 brass bolts."
+                  + (inlineBalanceReferences
+                    ? " Source " + balanceIDs[0] + "; movement " + balanceIDs[1].uppercased() : "")),
               "basis": .string("evidence"),
               "citations": .array(ids.map(Value.string)),
             ]).json())
@@ -161,6 +172,42 @@ func checkAgentLifecycle() async throws {
   }
   try expectEqual(
     WorkbookAgent.opaqueReferenceFeedback("Batch WILLOW-12, 0.20 kg", inspected: [reference]), nil)
+  let prose = "Résumé " + reference.uppercased() + "; source " + reference + "; " + unknown
+  let aliases = WorkbookAgent.renderableReferences(
+    prose, citations: [reference], inspected: [reference])
+  try expectEqual(aliases.count, 2)
+  let rendered = WorkbookAgent.renderReferenceLinks(prose, references: aliases) { id in
+    "[Source](sevra://item/" + id + ")"
+  }
+  try expectEqual(
+    rendered,
+    "Résumé [Source](sevra://item/" + reference
+      + "); source [Source](sevra://item/" + reference + "); " + unknown)
+  for text in [
+    "`" + reference + "`", "[Source](sevra://item/" + reference + ")",
+    "message:" + reference, String(reference.prefix(8)),
+    "~~~\n" + reference + "\n~~~", "    " + reference, "\t" + reference,
+    "[label][" + reference + "]", "<span>" + reference + "</span>",
+  ] {
+    try expectEqual(
+      WorkbookAgent.renderableReferences(text, citations: [reference], inspected: [reference])
+        .isEmpty, true)
+  }
+  try expectEqual(
+    WorkbookAgent.renderableReferences(reference, citations: [], inspected: [reference]).isEmpty,
+    true)
+  try expectEqual(
+    WorkbookAgent.renderableReferences(reference, citations: [reference], inspected: []).isEmpty,
+    true)
+  try expectEqual(WorkbookAgent.citationLabel("[A]*`\\\nB"), "\\[A\\]\\*\\`\\\\ B")
+  let hostileTitle = "[untrusted](https://example.invalid) *name*\n<source>"
+  let safeLink =
+    "[" + WorkbookAgent.citationLabel(hostileTitle) + "](sevra://item/" + reference + ")"
+  let attributed = try AttributedString(markdown: safeLink)
+  try expectEqual(
+    String(attributed.characters), hostileTitle.replacingOccurrences(of: "\n", with: " "))
+  try expectEqual(
+    Set(attributed.runs.compactMap { $0.link?.absoluteString }), ["sevra://item/" + reference])
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-agent-lifecycle-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -355,6 +402,21 @@ func checkAgentLifecycle() async throws {
     $0.role == "tool" && $0.body.contains("every inspected input")
   }
   try expectEqual(validations.count, 1)
+  let linked = try await WorkbookAgent.run(
+    "What is the brass bolt stock? Cite the basis and movements. Make no changes.",
+    workbook: inventory, model: ScriptedInference(balanceOnly: true, inlineBalanceReferences: true))
+  try expectEqual(linked.steps, 2)
+  try expectEqual(Set(linked.citations), Set(balanceAnswer.citations))
+  try expectEqual(linked.answer.contains("[Workshop inventory](sevra://item/"), true)
+  try expectEqual(linked.answer.components(separatedBy: "sevra://item/").count, 3)
+  let savedLinked = try inventory.messages(limit: 100).last!
+  let savedPayload = try inventory.messagePayload(savedLinked.id)
+  try expectEqual(savedPayload["renderedReferences"].object.count, 2)
+  try expectEqual(savedPayload["arguments"]["answer"].text.contains("sevra://"), false)
+  try expectEqual(try inventory.balance(subject: "brass bolts")["quantity"].text, "18")
+  print(
+    "PASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused"
+  )
   print(
     "PASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit"
   )

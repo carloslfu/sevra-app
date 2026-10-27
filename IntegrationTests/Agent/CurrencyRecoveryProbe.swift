@@ -52,7 +52,7 @@ private actor CurrencyFault: WorkbookInference {
       if opaqueOnly {
         return try finish(
           "Oak Supply is 3.5 cheaper, or 12.73%. Supporting evidence: (" + inputs[0] + "), row "
-            + inputs[1].uppercased())
+            + inputs[1].uppercased() + ", unknown 10000000-1000-4000-8000-100000000001")
       }
       return try finish(
         "Oak Supply is $3.50 cheaper than Cedar Tools, representing a 12.73% savings relative to Cedar Tools' quote of 27.5."
@@ -61,9 +61,8 @@ private actor CurrencyFault: WorkbookInference {
     if responses == 3 {
       try expectEqual(messages.last!.toolName, "finish")
       if opaqueOnly {
-        for id in inputs {
-          try expectEqual(messages.last!.content.lowercased().contains(id.lowercased()), true)
-        }
+        try expectEqual(
+          messages.last!.content.contains("10000000-1000-4000-8000-100000000001"), true)
         try expectEqual(messages.last!.content.contains("source IDs in parentheses"), true)
       } else {
         try expectEqual(messages.last!.content.contains("Remove invented currency symbols"), true)
@@ -73,7 +72,7 @@ private actor CurrencyFault: WorkbookInference {
     if persistent {
       return try finish(
         "Oak Supply is 3.5 cheaper, or 12.73%. Supporting evidence: "
-          + inputs.joined(separator: ", "))
+          + inputs.joined(separator: ", ") + ", unknown 10000000-1000-4000-8000-100000000001")
     }
     if let base {
       let reply = try await base.respond(
@@ -191,7 +190,7 @@ func checkCurrencyRejection() async throws {
   try expectEqual(try secondBook.agentRuns().filter { $0["status"].text == "failed" }.count, 1)
   print("PASS exhausted correction retains all four rejected candidates and a failed run")
   print(
-    "PASS opaque source and row IDs are explicitly rejected before publication; corrected prose preserves citation navigation"
+    "PASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation"
   )
   print(
     "PASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data"
