@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T11:07:12.480508+00:00
+updated: 2026-10-27T12:08:39.986379+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -62,9 +62,20 @@ an actionable error and preserve the previous valid composition.
 A09. Voice uses Apple's on-device speech recognition only. Request microphone and
 speech permission at first explicit use. Require on-device capability; unavailable
 languages/assets produce a clear fallback to text, never a server request.
-Partial recognition stays editable and is sent only by an explicit send action.
-Voice stops or pauses media capture/playback appropriately. File transcription is
-separate from live dictation and must label supported limits.
+Partial recognition appends to the current typed draft and replaces only its own
+recognized segment. A manual edit, explicit send, conversation/workbook switch or
+window close stops dictation; late results cannot overwrite the draft. Sending
+always requires an explicit action. Permission requests and capture belong to one
+cancellable session from the first tap, with at most one recording owner across
+workbook windows. Cancelled permission callbacks may not start capture, and old
+recognition callbacks may not publish text, report an error or stop a newer session.
+Before microphone capture starts, pause all live workbook playback, including
+compact players in other windows. Do not automatically resume it after dictation.
+Closing a workbook pauses and releases its players, regardless of view teardown
+order. Playback tracking must not keep a closed viewer alive. File transcription
+is separate from live dictation and must label supported limits. Lifecycle tests
+with injected callbacks do not qualify actual permission prompts, microphone
+hardware, supported language assets or recognition accuracy.
 A10. A small decision model is a research opportunity, not a hidden v1 dependency.
 No unverified model marketed as a Jev replacement. Versioned deterministic scenario
 calculations and explicit assumptions provide the initial decision support.

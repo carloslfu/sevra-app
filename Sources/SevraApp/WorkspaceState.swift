@@ -2,9 +2,10 @@ import AVKit
 import AppKit
 import Foundation
 import SevraAI
-import SevraProduct
 import SevraCore
+import SevraProduct
 import SevraSearchUI
+import SevraVoice
 import Speech
 import SwiftUI
 
@@ -21,10 +22,14 @@ import SwiftUI
   @Published var datasets: [Dataset] = []
   @Published var messages: [Message] = []
   @Published var conversations: [Value] = []
-  @Published var conversation = "main"
+  @Published var conversation = "main" {
+    didSet { if conversation != oldValue { speech.stop() } }
+  }
   @Published var route: Route = .space("home")
   @Published var navigation: [Route] = []
-  @Published var prompt = ""
+  @Published var prompt = "" {
+    didSet { if prompt != oldValue && !applyingDictation { speech.stop() } }
+  }
   @Published var busy = false
   @Published var status = ""
   @Published var error: String?
@@ -53,9 +58,15 @@ import SwiftUI
   @Published var tableRedo: [String: String] = [:]
   @Published var spaceScroll: [String: String] = [:]
   var cancellation = Cancellation()
-  let speech = SpeechInput()
+  let mediaOwner = UUID()
+  private(set) var interactionActive = false
+  private var applyingDictation = false
+  let speech = SpeechInput(pausePlayback: { PlaybackRegistry.shared.pauseAll() })
   func open(_ url: URL) throws {
-    workbook = try Workbook(url)
+    let opened = try Workbook(url)
+    endInteraction()
+    workbook = opened
+    beginInteraction()
     refresh()
   }
   func refresh() {
@@ -163,6 +174,7 @@ import SwiftUI
     guard let book = workbook, !busy,
       !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     else { return }
+    speech.stop()
     let input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
     prompt = ""
     error = nil
@@ -342,7 +354,7 @@ import SwiftUI
     cancellation = Cancellation()
     let cancel = cancellation
     speech.stop()
-    MediaPlayback.shared.player?.pause()
+    PlaybackRegistry.shared.pauseAll()
     SFSpeechRecognizer.requestAuthorization { authorization in
       Task { @MainActor in
         do {
@@ -369,14 +381,33 @@ import SwiftUI
     refresh()
   }
   func voice() {
+    guard interactionActive else { return }
     if speech.active {
       speech.stop()
       return
     }
+    var draft = DictationDraft(prompt)
+    let chat = conversation
     speech.start { [weak self] text in
-      self?.prompt = text
+      guard let self else { return }
+      guard self.conversation == chat, let rendered = draft.apply(text, to: self.prompt) else {
+        self.speech.stop()
+        return
+      }
+      self.applyingDictation = true
+      self.prompt = rendered
+      self.applyingDictation = false
     } failure: { [weak self] error in
       self?.error = error
     }
+  }
+  func beginInteraction() { interactionActive = true }
+  func endInteraction() {
+    interactionActive = false
+    speech.stop()
+    PlaybackRegistry.shared.close(owner: mediaOwner)
+    backgroundPlayer?.pause()
+    backgroundPlayer = nil
+    backgroundMediaTitle = ""
   }
 }

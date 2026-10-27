@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T06:14:40.615706+00:00
+updated: 2026-10-27T12:08:40.013388+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -101,8 +101,10 @@ metadata and an explicit Open in Other App action. A preview is not an editor.
 P14. Evidence links navigate to version plus page, text range, row or timestamp when
 supported. If no locator is available show the exact item version with that limit.
 P15. Media opens paused; explicit play starts it. Voice input pauses playback.
-Keep-playing mode retains a compact player while switching spaces. A transcript is
-searchable only when actually extracted; unavailable audio semantics stay visible.
+Keep-playing mode retains a compact player while switching spaces. Closing its
+workbook stops playback; dictation pauses every live workbook player and leaves
+resumption explicit. A transcript is searchable only when actually extracted;
+unavailable audio semantics stay visible.
 P16. Comparisons compose viewers in the right pane. Draft edits save as new versions.
 Closing a viewer does not delete a draft. Search/preview must work without a model.
 

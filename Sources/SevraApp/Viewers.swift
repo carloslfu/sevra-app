@@ -3,6 +3,7 @@ import AppKit
 import PDFKit
 import QuickLookUI
 import SevraCore
+import SevraVoice
 import SwiftUI
 
 struct ItemView: View {
@@ -92,13 +93,14 @@ struct ItemView: View {
                     toleranceAfter: .zero)
                 }
               }
-              MediaPlayback.shared.player = player
+              if let player { PlaybackRegistry.shared.register(player, owner: state.mediaOwner) }
             }
             Toggle("Keep playing while I explore", isOn: $keepPlaying).padding(10)
           }.onDisappear {
-            if !keepPlaying {
+            if !keepPlaying || !state.interactionActive {
               player?.pause()
             } else {
+              if state.backgroundPlayer !== player { state.backgroundPlayer?.pause() }
               state.backgroundPlayer = player
               state.backgroundMediaTitle = item.title
             }
@@ -397,11 +399,6 @@ struct ImageViewer: View {
     }
   }
 }
-@MainActor final class MediaPlayback {
-  static let shared = MediaPlayback()
-  var player: AVPlayer?
-}
-
 struct SafeTextViewer: View {
   let file: URL
   @State private var text = ""

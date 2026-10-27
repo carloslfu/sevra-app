@@ -23,6 +23,10 @@ jobs:
         run: |
           swift build --product sevra-product-checks -j 3
           .build/debug/sevra-product-checks
+      - name: Check dictation ownership and delayed callbacks
+        run: |
+          swift build --product sevra-voice-checks -j 3
+          .build/debug/sevra-voice-checks
       - name: Check native search navigation and stale reads
         run: |
           swift build --product sevra-search-ui-checks -j 3

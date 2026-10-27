@@ -97,7 +97,8 @@ struct WorkbookView: View {
           composerFocused = true
         }
       }
-      .onReceive(timer) { _ in state.poll() }.onDisappear { state.speech.stop() }
+      .onReceive(timer) { _ in state.poll() }
+      .onAppear { state.beginInteraction() }.onDisappear { state.endInteraction() }
       .onDrop(of: ["public.file-url"], isTargeted: nil) { providers in
         Task {
           var urls: [URL] = []

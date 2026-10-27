@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T11:31:09.789081+00:00
+updated: 2026-10-27T12:08:40.054912+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -792,3 +792,29 @@ The six requests cover original quantity recall, forecast acceptance and withdra
 Build the release worker with `swift build -c release --product sevra-workflow-performance -j 4` and run its `--self-check`. Run `python3 scripts/check_request_cache_isolation.py` for fail-closed evidence checks. Then run `python3 scripts/probe_request_cache_isolation.py --models-root MODEL_ROOT --output NEW_DIRECTORY`, where MODEL_ROOT is the installed native model root and NEW_DIRECTORY does not exist.
 
 The command executes four sequential workers: shared native/reference, isolated reference/native. Each runs Ready plus the supplier warmup and measured job. Do not overlap builds, model jobs or downloads, or change measured sources while it runs. Raw frames, prompts, samples and partial results are preserved. Nonzero exit can mean a matched-output diagnostic failed despite valid business answers. Inspect both arm reports; no I2 outcome qualifies speed or production adoption. The option is unavailable in the installed app and CLI.
+
+## Voice lifecycle regression and native follow-up
+Build and run the production dictation coordinator with injected speech drivers
+and playback participants:
+
+~~~sh
+swift build --product sevra-voice-checks -j 4
+.build/debug/sevra-voice-checks
+~~~
+
+The runner exercises permission/capture cancellation, callback identities,
+duplicate taps, retry, startup failure, cross-window recording ownership, typed
+draft preservation, manual editing, playback pausing and owner release. It never
+requests speech/microphone access or captures real audio. These checks are part of
+scripts/check.sh and hosted CI; they do not establish hardware or recognition
+accuracy. During a qualifying model comparison, defer local builds/tests and
+use the isolated branch's hosted CI first.
+
+After the comparison ends, use a disposable workbook to test the native permission
+flow, start/stop while a permission sheet is pending, append dictation to a typed
+draft, manually correct it, send, change conversations and close the window. Check
+that no late text appears and recording does not resume after cancellation. Test
+unavailable/denied recognition without enabling any server fallback. With a
+synthetic playable media file, check explicit play, keep-playing navigation,
+pausing all workbook players for dictation and teardown of the owning window.
+Record actual hardware/language/permission results and any untested branches.

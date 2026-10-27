@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T11:54:20.666953+00:00
+updated: 2026-10-27T12:08:40.034861+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1165,3 +1165,27 @@ Both final local app/CLI builds pass. Native installed-resource checks, nine mis
 
 ## W1 qualifying cohort in progress
 The full preregistered W1 cohort started on frozen clean commit ed6ffd0, using the tested release worker, ordinary cache identities and corrected reference/controller. Its local evidence directory is .build/workflow-performance/current-cohort1. It runs ten alternating paired blocks, one warmup and two measured jobs per workload/backend/block, plus Ready primes. No result or speed/adoption claim is available yet. Do not overlap local inference, builds or downloads or edit measured sources while it runs. Preserve every attempted result and finalize the report before assessing the gate. Documentation-only progress updates do not change its frozen measured inputs.
+
+## Voice and media lifecycle repair
+Source review found that pending permission callbacks could start microphone
+capture after Stop/window close; old recognition callbacks could overwrite a
+later draft or stop a new capture. Dictation also replaced existing typed text,
+and the single retained player reference could miss background playback.
+These are source-reviewed defects, not a claim of hardware reproduction.
+
+The codex/voice-lifecycle branch isolates a new shared SevraVoice module and
+injected-driver regression runner from the frozen W1 checkout. Capture now has
+explicit permission/start/recording phases and session identities. The app
+preserves the typed prefix, stops on manual edits/send/conversation changes and
+closes capture/playback with the window. A weak registry covers all live players;
+window teardown cannot retain a newly continued player after the parent closes.
+Specifications A09/P15 record these contracts.
+
+Local builds and hardware/UI checks remain deferred while W1 measures the frozen
+ed6ffd0 sources. The new tests cover permission cancellation/denial/retry,
+duplicate callbacks, stale recognition, synchronous completion/error, capture
+failure, cross-window ownership, draft edits, all-player pausing and release.
+They are prepared and untested at this checkpoint. Hosted CI will provide the
+first compile/regression result without loading the local benchmark machine.
+No voice or media qualification is claimed yet. See
+[[records/specs/intelligence]] and [[records/operations/build-and-run]].

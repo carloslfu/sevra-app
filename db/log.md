@@ -226,3 +226,6 @@ Final native/baseline packaging and installation pass; retain I2/W1 pilot eviden
 ## [2026-10-27 11:54] verification | records/operations/implementation.md
 Full W1 cohort is running on frozen ed6ffd0. Correct duplicate progress heading after section-edit ambiguity; measured sources remain unchanged.
 
+## [2026-10-27 12:08] implementation | records/operations/implementation.md
+Prepare isolated session-bound dictation, draft preservation and weak all-player lifecycle repair; regression runner and hardware checks still pending while W1 runs.
+

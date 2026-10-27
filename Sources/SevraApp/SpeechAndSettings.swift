@@ -1,96 +1,9 @@
-import AVFoundation
 import SevraAI
 import SevraCore
 import SevraProduct
-import Speech
+import SevraVoice
 import SwiftUI
 
-@MainActor final class SpeechInput: ObservableObject {
-  @Published var active = false
-  private let engine = AVAudioEngine()
-  private var request: SFSpeechAudioBufferRecognitionRequest?
-  private var task: SFSpeechRecognitionTask?
-  private var tapped = false
-  func start(result: @escaping (String) -> Void, failure: @escaping (String) -> Void) {
-    guard !active else { return }
-    SFSpeechRecognizer.requestAuthorization { authorization in
-      Task { @MainActor in
-        guard authorization == .authorized else {
-          failure("Speech recognition permission is required. You can continue typing.")
-          return
-        }
-        AVCaptureDevice.requestAccess(for: .audio) { allowed in
-          Task { @MainActor in
-            guard allowed else {
-              failure(
-                "Microphone access is disabled. You can enable it in System Settings or continue typing."
-              )
-              return
-            }
-            self.begin(result: result, failure: failure)
-          }
-        }
-      }
-    }
-  }
-  private func begin(result: @escaping (String) -> Void, failure: @escaping (String) -> Void) {
-    guard let recognizer = SFSpeechRecognizer(), recognizer.supportsOnDeviceRecognition,
-      recognizer.isAvailable
-    else {
-      failure(
-        "On-device dictation is unavailable for this language. Sevra will not send audio to a server."
-      )
-      return
-    }
-    MediaPlayback.shared.player?.pause()
-    let request = SFSpeechAudioBufferRecognitionRequest()
-    request.requiresOnDeviceRecognition = true
-    request.shouldReportPartialResults = true
-    self.request = request
-    let node = engine.inputNode
-    let format = node.outputFormat(forBus: 0)
-    guard format.sampleRate > 0, format.channelCount > 0 else {
-      failure("No working microphone is available.")
-      return
-    }
-    node.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
-      request.append(buffer)
-    }
-    tapped = true
-    task = recognizer.recognitionTask(with: request) { [weak self] value, error in
-      Task { @MainActor in
-        if let value {
-          result(value.bestTranscription.formattedString)
-          if value.isFinal { self?.stop() }
-        }
-        if let error {
-          self?.stop()
-          failure(error.localizedDescription)
-        }
-      }
-    }
-    do {
-      engine.prepare()
-      try engine.start()
-      active = true
-    } catch {
-      stop()
-      failure(error.localizedDescription)
-    }
-  }
-  func stop() {
-    if tapped {
-      engine.inputNode.removeTap(onBus: 0)
-      tapped = false
-    }
-    engine.stop()
-    request?.endAudio()
-    task?.cancel()
-    task = nil
-    request = nil
-    active = false
-  }
-}
 struct ModelSettingsView: View {
   @AppStorage("appearance") private var appearance = "system"
   @AppStorage(ProductAI.preferenceKey) private var modelDirectory = ProductAI.defaultDirectory.path

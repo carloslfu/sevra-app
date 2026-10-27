@@ -97,7 +97,10 @@ struct WorkspaceWindow: View {
     }
     .onReceive(NotificationCenter.default.publisher(for: .sevraStopping)) { _ in
       state.cancellation.cancel()
-      state.speech.stop()
+      state.endInteraction()
+    }
+    .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { event in
+      if let window = event.object as? NSWindow, window === ownWindow { state.endInteraction() }
     }
     .onReceive(inbox.$pending) { pending in
       guard !pending.isEmpty else { return }
