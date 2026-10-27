@@ -73,14 +73,18 @@ package protocol WorkbookInference: Actor {
   ) async throws -> String
   func beginRun() throws
   func endRun() async
+  func releaseResources() async -> Bool
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
   ) async throws -> NativeReply
 }
 
 // Synthetic inference fixtures must explicitly opt in to context maintenance.
 extension WorkbookInference {
+  // Synthetic fixtures without a resident engine have nothing to release.
+  package func releaseResources() async -> Bool { true }
   package var supportsCompaction: Bool { false }
   package func measureContext(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,

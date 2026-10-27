@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T06:17:36.981237+00:00
+updated: 2026-10-27T06:42:05.211665+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -530,3 +530,31 @@ the ordinary agent checks. This is not an autonomous workflow benchmark.
 ## Native table reliability checks
 
 Run `swift build --product sevra-table-ui-checks` followed by `.build/debug/sevra-table-ui-checks` on macOS. This uses synthetic temporary workbooks and the actual AppKit table coordinator, requires no model download, and is included in `scripts/check.sh` and hosted CI. It covers sorting while an edit is pending, stable selection, concurrent correction refusal, cancelled/duplicate editing notifications, filtered-out selection, referenced-row formulas, column identity, and deterministically reordered async results/errors. See [[records/specs/product]] P12 and [[records/operations/implementation]].
+
+## Active memory-pressure checks
+The shared product service owns memory-pressure handling for app and CLI. Warning pressure defers release until the active operation ends; critical pressure cancels, preserves committed changes and releases after model endRun. New operations cannot reuse an incompletely released model. Ordinary user unload remains idle-only.
+
+The synthetic lifecycle runner is included in scripts/check.sh and CI:
+
+~~~sh
+swift build --product sevra-product-checks -j 4
+.build/debug/sevra-product-checks
+~~~
+
+After building the native preview and installing its selected weights, run the actual-model policy-event probe separately from all other inference:
+
+~~~sh
+SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product --product sevra-product-checks -j 4
+.build/native-product/debug/sevra-product-checks --native /path/to/Models output/native/bin
+~~~
+
+The preserved baseline uses its existing model layout. Build it first so MLX kernels are available, then copy the fetched development metallib next to the debug test executable:
+
+~~~sh
+bash scripts/build.sh
+swift build --product sevra-product-checks -j 4
+cp .build/metal/mlx.metallib .build/debug/mlx.metallib
+.build/debug/sevra-product-checks --baseline /path/to/qwen36-35b-a3b-4bit
+~~~
+
+These probes inject the same policy event used by the OS observer without exhausting RAM. They check terminal status, preserved business items, native helper reaping, inference-lock release, a new Ready request and a subsequent cited stock answer. They do not prove actual OS pressure delivery or whole-app physical-memory headroom. The runner keeps request semantics separate from resource lifecycle and exits nonzero if either fails; a baseline follow-up failure must remain a failure even if resources release correctly.

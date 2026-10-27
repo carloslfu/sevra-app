@@ -90,6 +90,7 @@ public func timestamp() -> String { ISO8601DateFormatter().string(from: Date()) 
 public final class Cancellation: @unchecked Sendable {
   private let lock = NSLock()
   private var cancelled = false
+  private var cancellationReason: String?
   private var progresses: [ObjectIdentifier: Progress] = [:]
   private let parent: Cancellation?
   private let deadline: TimeInterval?
@@ -106,7 +107,11 @@ public final class Cancellation: @unchecked Sendable {
     return cancelled || (parent?.isCancelled ?? false)
   }
   public func cancel() {
+    cancel(reason: nil)
+  }
+  public func cancel(reason: String?) {
     lock.lock()
+    if !cancelled { cancellationReason = reason }
     cancelled = true
     let active = Array(progresses.values)
     lock.unlock()
@@ -131,7 +136,11 @@ public final class Cancellation: @unchecked Sendable {
         "deadline",
         "The operation reached its processing deadline. Retained content remains available.")
     }
-    if isCancelled { throw SevraError("cancelled", "The operation was cancelled.") }
+    lock.lock()
+    let stopped = cancelled
+    let reason = cancellationReason
+    lock.unlock()
+    if stopped { throw SevraError("cancelled", reason ?? "The operation was cancelled.") }
   }
 }
 public struct Item: Codable, Identifiable, Equatable, Sendable {

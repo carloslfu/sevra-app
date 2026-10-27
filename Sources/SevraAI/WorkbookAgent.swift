@@ -592,12 +592,17 @@ public enum WorkbookAgent {
       )
     } catch {
       let terminal = cancellation.isCancelled ? "cancelled" : "failed"
+      var failure = error
+      if cancellation.isCancelled {
+        do { try cancellation.check() } catch { failure = error }
+      }
       try? workbook.finishAgentRun(
         runID, status: terminal, steps: completedSteps, metrics: .array(metrics))
       await model.endRun()
       _ = try? workbook.addMessage(
-        error.localizedDescription, role: "assistant", conversation: conversation, state: terminal)
-      throw error
+        failure.localizedDescription, role: "assistant", conversation: conversation, state: terminal
+      )
+      throw failure
     }
   }
   package static func containsOpaqueReference(_ answer: String, inspected: Set<String>) -> Bool {

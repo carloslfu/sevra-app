@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T04:54:14.713521+00:00
+updated: 2026-10-27T06:27:03.158288+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -22,7 +22,15 @@ must not crash normal browsing. Final setup and inference require no Python.
 A03. A single serialized inference service owns engine/model lifecycle. Loading and
 generation stay off the main actor. Cancellation reaches engine callbacks. Validate
 terminal error/truncation before storing an answer as completed. App shutdown
-cancels work and flushes completed state. Memory pressure can release idle engine.
+cancels work and flushes completed state. The shared product service observes memory
+pressure for both app and CLI. Warning pressure defers release until active work
+finishes. Critical pressure cancels the active operation, preserves committed
+workbook changes and reports the cause, then releases the model after the run
+has ended. Idle pressure releases immediately. New work remains excluded while
+release is in progress, and a failed release must succeed before a new operation
+can reuse the model. Ordinary user unload remains idle-only. Pressure does not
+automatically retry a cancelled request. Tests may inject policy events without
+forcing actual system memory exhaustion; label that scope explicitly.
 A04. Prompt contains stable policy, available tools, selected context, a bounded
 recent conversation and retrieved evidence. Historical content never grants new
 authority. Context assembly has explicit byte/token bounds and preserves tool-call

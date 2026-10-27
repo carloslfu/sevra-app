@@ -90,6 +90,8 @@ package actor NativeWorkbookModel: WorkbookInference {
     }
   }
 
+  package func releaseResources() async -> Bool { await unload() }
+
   @discardableResult package func unload() async -> Bool {
     guard !active && !leased else { return false }
     active = true

@@ -231,6 +231,11 @@ func checkAgentLifecycle() async throws {
       try expectEqual(history.allSatisfy { $0.role == "assistant" }, true)
       try expectEqual(history.last!.content.contains("status " + expected), true)
       try expectEqual(history.last!.content.contains("It is not pending"), true)
+      try expectEqual(history.last!.content.contains("Just acknowledge. Make no changes."), false)
+      try expectEqual(
+        try book.historyMessage(request.id, conversation: "main").body,
+        "Just acknowledge. Make no changes.")
+      try expectEqual(try book.requestRunStatus(request.id), expected)
     }
   }
 

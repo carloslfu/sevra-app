@@ -2,6 +2,20 @@ import Foundation
 import SevraCore
 
 extension WorkbookAgent {
+  package static func stoppedRequestReference(_ workbook: Workbook, message: Message) throws
+    -> Value?
+  {
+    guard message.role == "user", let status = try workbook.requestRunStatus(message.id),
+      ["cancelled", "failed", "interrupted"].contains(status)
+    else { return nil }
+    return .object([
+      "runStatus": .string(status), "referenceOnly": .bool(true),
+      "notice": .string(
+        "This earlier request ended with status " + status
+          + ". It is not pending. Its original remains available through history_read using this message ID when the current request needs it. Do not resume it automatically."
+      ),
+    ])
+  }
   /// Reconstruct conversational outcomes from saved messages and current item
   /// heads. Never infer acceptance from an assistant's wording or a document.
   package static func conversationHistory(_ workbook: Workbook, conversation: String) throws
@@ -25,6 +39,8 @@ extension WorkbookAgent {
           ["complete", "needs_review"].contains(message.state) || ended
         else { continue }
         var content = String(message.body.prefix(1600))
+        let stoppedRequest = try stoppedRequestReference(workbook, message: message)
+        if let stoppedRequest { content = stoppedRequest["notice"].text }
         var recordedState: Value = .null
         if ended {
           content =
@@ -45,6 +61,7 @@ extension WorkbookAgent {
           .object([
             "id": .string(message.id), "role": .string(message.role),
             "state": .string(message.state), "text": .string(content),
+            "requestOutcome": stoppedRequest ?? .null,
             "truncated": .bool(message.body.count > 1600), "currentProposalState": recordedState,
           ]))
         proposalID = nil

@@ -14,8 +14,45 @@ import SevraCore
 public actor ProductAI {
   public static let shared = ProductAI()
   private var active = false
+  private var activeCancellation: Cancellation?
+  private var releaseRequested = false
+  private var model: (any WorkbookInference)?
+  private var pressureSource: DispatchSourceMemoryPressure?
+  private let observesSystemPressure: Bool
+
+  private init() {
+    observesSystemPressure = true
+    #if !SEVRA_NATIVE_CANDIDATE
+      model = LocalModel.shared
+    #endif
+  }
+  /// Internal qualification seam, shared with the workbook agent's synthetic and native checks.
+  package init(qualifying model: any WorkbookInference) {
+    self.model = model
+    observesSystemPressure = false
+  }
+
+  deinit {
+    pressureSource?.cancel()
+    pressureSource?.setEventHandler(handler: nil)
+  }
+
+  private func observeMemoryPressure() {
+    guard observesSystemPressure, pressureSource == nil else { return }
+    let source = DispatchSource.makeMemoryPressureSource(
+      eventMask: [.warning, .critical], queue: .global(qos: .utility))
+    source.setEventHandler { [weak self] in
+      let critical = source.data.contains(.critical)
+      Task { await self?.handleMemoryPressure(critical: critical) }
+    }
+    pressureSource = source
+    source.resume()
+  }
+
+  public enum PressureResponse: String, Sendable {
+    case released, deferred, stopping, releasePending
+  }
   #if SEVRA_NATIVE_CANDIDATE
-    private var native: NativeWorkbookModel?
     public static let name = "Local AI · Native preview"
     public static let detail = "Qwen3.6 35B · Splash · DFlash 2"
     public static let revision = "splash-1.4.1-native-candidate"
@@ -76,40 +113,93 @@ public actor ProductAI {
     at directory: URL = ProductAI.defaultDirectory, reusing source: URL? = nil,
     cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
   ) async throws {
-    try require(!active, "busy", "Wait for the current local model operation.")
-    active = true
-    defer { active = false }
-    #if SEVRA_NATIVE_CANDIDATE
-      if let native {
-        let released = await native.unload()
-        try require(released, "busy", "The native model has not stopped yet. Retry setup.")
-      }
-      try await Task.detached(priority: .userInitiated) {
-        let updates = SetupProgress(progress)
-        _ = try SplashModelSetup.install(
-          modelsRoot: directory, reusingTarget: source,
-          reusingDraft: source?.appendingPathComponent("dflash"),
-          cancelled: { cancellation.isCancelled || cancellation.isExpired },
-          progress: updates.receive)
-        try cancellation.check()
-      }.value
-    #else
-      try require(
-        source == nil, "model_setup", "Choose the existing model folder before verification.")
-      try await LocalModel.shared.setup(
-        at: directory, cancellation: cancellation, progress: progress)
-    #endif
+    try await perform(cancellation: cancellation) {
+      let released = await model?.releaseResources() ?? true
+      releaseRequested = !released
+      try require(released, "busy", "The model has not stopped yet. Retry setup.")
+      #if SEVRA_NATIVE_CANDIDATE
+        try await Task.detached(priority: .userInitiated) {
+          let updates = SetupProgress(progress)
+          _ = try SplashModelSetup.install(
+            modelsRoot: directory, reusingTarget: source,
+            reusingDraft: source?.appendingPathComponent("dflash"),
+            cancelled: { cancellation.isCancelled || cancellation.isExpired },
+            progress: updates.receive)
+          try cancellation.check()
+        }.value
+      #else
+        try require(
+          source == nil, "model_setup", "Choose the existing model folder before verification.")
+        try await LocalModel.shared.setup(
+          at: directory, cancellation: cancellation, progress: progress)
+      #endif
+    }
   }
 
+  /// Ordinary user unload does not interrupt an active job.
   @discardableResult public func unload() async -> Bool {
     guard !active else { return false }
     active = true
-    defer { active = false }
-    #if SEVRA_NATIVE_CANDIDATE
-      return await native?.unload() ?? true
-    #else
-      return await LocalModel.shared.unload()
-    #endif
+    let released = await model?.releaseResources() ?? true
+    releaseRequested = !released
+    active = false
+    return released
+  }
+
+  /// Warnings defer release until the current transaction/job finishes. Critical
+  /// pressure reaches the existing cancellation path, then releases after endRun.
+  @discardableResult public func handleMemoryPressure(critical: Bool) async -> PressureResponse {
+    if active {
+      releaseRequested = true
+      if critical, let cancellation = activeCancellation {
+        cancellation.cancel(
+          reason:
+            "Local AI stopped because this Mac is low on memory. Completed workbook changes are saved. Close other apps and try again."
+        )
+        return .stopping
+      }
+      return .deferred
+    }
+    return await unload() ? .released : .releasePending
+  }
+
+  private func perform<T>(cancellation: Cancellation, operation: () async throws -> T) async throws
+    -> T
+  {
+    try require(!active, "busy", "Sevra is already using its local model.")
+    active = true
+    activeCancellation = cancellation
+    observeMemoryPressure()
+    // If the prior helper could not be reaped, no new operation may reuse it.
+    if releaseRequested {
+      let released = await model?.releaseResources() ?? true
+      releaseRequested = !released
+      if !released {
+        activeCancellation = nil
+        active = false
+        throw SevraError(
+          "model_release", "The previous local model has not stopped yet. Retry after it finishes.")
+      }
+    }
+    do {
+      try cancellation.check()
+      let result = try await operation()
+      await finishOperation()
+      return result
+    } catch {
+      await finishOperation()
+      if cancellation.isCancelled { try cancellation.check() }
+      throw error
+    }
+  }
+
+  private func finishOperation() async {
+    activeCancellation = nil
+    if releaseRequested {
+      let released = await model?.releaseResources() ?? true
+      releaseRequested = !released
+    }
+    active = false
   }
 
   public func run(
@@ -117,24 +207,22 @@ public actor ProductAI {
     modelDirectory: URL = ProductAI.defaultDirectory, cancellation: Cancellation = .init(),
     progress: @escaping @Sendable (String) -> Void = { _ in }
   ) async throws -> AgentResult {
-    try require(!active, "busy", "Sevra is already using its local model.")
-    active = true
-    defer { active = false }
-    #if SEVRA_NATIVE_CANDIDATE
-      if native == nil {
-        let configuration = try NativeProductResources.configuration(modelsRoot: modelDirectory)
-        native = NativeWorkbookModel(configuration: configuration)
-      }
+    try await perform(cancellation: cancellation) {
+      #if SEVRA_NATIVE_CANDIDATE
+        if model == nil {
+          model = NativeWorkbookModel(
+            configuration:
+              try NativeProductResources.configuration(modelsRoot: modelDirectory))
+        }
+      #endif
+      guard let model else { throw SevraError("model", "The local model is unavailable.") }
       return try await WorkbookAgent.run(
         prompt, workbook: workbook, conversation: conversation, context: context,
-        modelDirectory: modelDirectory, cancellation: cancellation, progress: progress,
-        model: native!)
-    #else
-      return try await WorkbookAgent.run(
-        prompt, workbook: workbook, conversation: conversation, context: context,
-        modelDirectory: modelDirectory, cancellation: cancellation, progress: progress)
-    #endif
+        modelDirectory: modelDirectory, cancellation: cancellation, progress: progress, model: model
+      )
+    }
   }
+
 }
 
 #if SEVRA_NATIVE_CANDIDATE

@@ -127,6 +127,8 @@ public actor LocalModel: WorkbookInference {
       throw SevraError("model_load", String(describing: error))
     }
   }
+  package func releaseResources() async -> Bool { unload() }
+
   @discardableResult public func unload() -> Bool {
     if !active && !leased {
       idleRelease?.cancel()

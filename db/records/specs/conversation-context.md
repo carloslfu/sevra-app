@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-27T03:38:53.260949+00:00
+updated: 2026-10-27T06:42:05.190291+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -256,3 +256,10 @@ The preserved backend keeps automatic compaction disabled. Its recent-context pa
 Parent-conversation excerpts remain separate. Pending-review messages carry current proposal version, acceptance, meaning and dataset identity from the workbook. Unresolved-call notices remain host information, not new user requests or authority to replay an action. The actual current request follows this context. At the start of the run, historical user messages do not become live user-role messages. Existing validation feedback later in the run remains host-controlled.
 
 This projection aligns the authority boundary with native context maintenance without enabling summary generation, changing stored history or granting citation eligibility. Actual-model qualification must include a completed task followed by a different task, historical recall, review-state changes and cancellation/retry.
+
+## Stopped requests in automatic context
+Requests linked to cancelled, failed or interrupted runs enter automatic context as status plus a reference to the original message. Do not repeat their imperative text as a new pending task. Full original bytes, authorship and message IDs remain available through history_read when the current user request needs them. Exact indexed request-to-run linkage is independent of the recent-run display limit.
+
+Apply the same reference-only projection when preparing summary inputs and presenting existing notes that cite a stopped request. This changes model context, not durable conversation evidence, and does not grant citation eligibility. It does not enable automatic compaction in either product path.
+
+Keep lifecycle recovery and following a new request as separate checks. A clean release is insufficient when the next answer addresses a different task. The preserved reasoning-off baseline still failed a new request to reply Ready after cancellation, including after this projection change. Native bounded512 passed that sequence. Neither establishes universal request relevance. Crash-left running requests and failures before run linkage require separate qualification.

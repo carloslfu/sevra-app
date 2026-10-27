@@ -58,7 +58,9 @@ package final class ContextMaintenance {
     var value: [String: Value] = [
       "id": .string(message.id), "role": .string(message.role), "state": .string(message.state),
     ]
-    if message.role == "tool", let receipt = try? Value.parse(message.body) {
+    if let stopped = try WorkbookAgent.stoppedRequestReference(workbook, message: message) {
+      value["requestOutcome"] = stopped
+    } else if message.role == "tool", let receipt = try? Value.parse(message.body) {
       for key in ["tool", "runID", "callID", "receiptID", "resultIdentity", "validation"]
       where receipt[key] != .null {
         value[key] = receipt[key]
@@ -82,6 +84,19 @@ package final class ContextMaintenance {
     fields["notes"] = .array(
       try value["notes"].array.map { note in
         let references = note["messages"].array.compactMap(\.string)
+        let stopped = try references.contains { reference in
+          let message = try workbook.historyMessage(reference, conversation: conversation)
+          return try WorkbookAgent.stoppedRequestReference(workbook, message: message) != nil
+        }
+        if stopped {
+          return .object([
+            "kind": .string("context"), "messages": note["messages"],
+            "referenceOnly": .bool(true),
+            "notice": .string(
+              "Historical context includes a stopped request. Retrieve originals only when the current request needs them; do not resume stopped work automatically."
+            ),
+          ])
+        }
         let toolOnly = try references.allSatisfy { reference in
           try workbook.historyMessage(reference, conversation: conversation).role == "tool"
         }

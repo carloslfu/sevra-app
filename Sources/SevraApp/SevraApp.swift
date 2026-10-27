@@ -53,17 +53,8 @@ import SwiftUI
 
 @MainActor final class DocumentDelegate: NSObject, NSApplicationDelegate, ObservableObject {
   @Published var pending: [URL] = []
-  private var memoryPressure: DispatchSourceMemoryPressure?
-  func applicationDidFinishLaunching(_ notification: Notification) {
-    let source = DispatchSource.makeMemoryPressureSource(
-      eventMask: [.warning, .critical], queue: .global(qos: .utility))
-    source.setEventHandler { Task { await ProductAI.shared.unload() } }
-    source.resume()
-    memoryPressure = source
-  }
   func applicationWillTerminate(_ notification: Notification) {
     NotificationCenter.default.post(name: .sevraStopping, object: nil)
-    memoryPressure?.cancel()
   }
   func application(_ application: NSApplication, open urls: [URL]) { pending += urls }
 }
