@@ -723,6 +723,7 @@ check("pinning retries return the original snapshot") {
 }
 checkSpaceSnapshots(at: temp)
 checkAssetPreview(at: temp)
+checkRecentItems(at: temp)
 checkConversationContext(at: temp)
 checkToolReceipts(at: temp)
 print("\(passed) passed; \(failed) failed")

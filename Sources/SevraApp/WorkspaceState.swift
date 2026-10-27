@@ -20,7 +20,7 @@ import SwiftUI
   }
   @Published var workbook: Workbook?
   @Published var spaces: [Space] = []
-  @Published var items: [Item] = []
+  @Published var items: [ItemSummary] = []
   @Published var datasets: [Dataset] = []
   @Published var messages: [Message] = []
   @Published var conversations: [Value] = []
@@ -111,7 +111,7 @@ import SwiftUI
     do {
       revision = try book.revision()
       spaces = try book.spaces()
-      items = try book.items(excludingRows: true, limit: 100)
+      items = try book.recentItemSummaries()
       datasets = try book.datasets()
       messages =
         try messageAnchor.map { try book.messages(around: $0) }

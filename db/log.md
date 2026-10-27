@@ -334,3 +334,6 @@ Propagate native search cancellation to SQLite reader tokens and prepare superse
 ## [2026-10-27 14:48] implementation | records/operations/implementation.md
 Extend workspace ownership to table completions and delayed native file drops; retain focused passing 9044e5e checks and pending app verification.
 
+## [2026-10-27 14:50] implementation | records/operations/implementation.md
+Prepare metadata-only Home catalog and large-payload/current-version regression; runtime and app memory qualification pending.
+

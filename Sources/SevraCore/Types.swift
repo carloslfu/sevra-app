@@ -147,6 +147,18 @@ public final class Cancellation: @unchecked Sendable {
     if stopped { throw SevraError("cancelled", reason ?? "The operation was cancelled.") }
   }
 }
+/// A catalog entry identifies an exact version without loading its body or data.
+/// Open that version explicitly when its evidence is needed.
+public struct ItemSummary: Codable, Identifiable, Equatable, Sendable {
+  public let id: String
+  public let category: String
+  public let kind: String
+  public let title: String
+  public let meaning: String
+  public let status: String
+  public let assetID: String?
+}
+
 public struct Item: Codable, Identifiable, Equatable, Sendable {
   public let id: String
   public let logicalID: String

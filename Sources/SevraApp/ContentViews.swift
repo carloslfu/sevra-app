@@ -206,7 +206,7 @@ struct SpaceView: View {
             }
           }
           sectionTitle("Recent sources and drafts")
-          let recent = state.items.filter { $0.kind != "row" && $0.kind != "request" }.prefix(20)
+          let recent = state.items
           if recent.isEmpty {
             Text("Included files and saved work will appear here.").foregroundStyle(.secondary)
           }

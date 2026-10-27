@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T14:48:22.834737+00:00
+updated: 2026-10-27T14:50:41.413771+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1815,3 +1815,23 @@ this does not qualify the newer search cancellation or callback wiring changes.
 The complete combined continuity/asset-preview checkpoint c9251aa passed run
 40520155806. The redundant documentation-only run 40522177262 was cancelled to
 allow current source checks to start; cancellation is not recorded as a pass.
+
+## Bounded Home catalog prepared
+
+Inspection found that every WorkspaceState refresh loaded up to 100 complete
+non-row Items, including their document body and structured data, just to display
+up to 20 recent titles. Large generated documents could therefore inflate Home
+refresh memory even when none was open. Home now uses a distinct ItemSummary type
+and a metadata-only SQLite projection capped at 20 entries by default. Row and
+request exclusions occur before the limit. Exact version IDs, Source/Record
+category, meaning, acceptance and asset identity are retained. Existing full-item
+read APIs and original evidence remain unchanged.
+
+The prepared core regression includes a 2.1 MB document body and 1 MB payload,
+accepted-estimate metadata, a corrected version, an included asset and newer
+internal requests/rows. It checks a bounded serialized catalog, exact current IDs,
+original readability and unchanged workbook revision/integrity. Formatting and
+diff checks pass; the new runtime check and app compilation await hosted CI. This
+is not a full-app memory result. Synchronous metadata refresh can still contend
+with database work; native responsiveness under active large queries remains an
+explicit measurement/follow-up, not a completed claim.
