@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-27T00:53:53.831086+00:00
+updated: 2026-10-27T04:15:39.659766+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -124,3 +124,12 @@ Business changes, unknown mutation kinds, invalid anchors or a longer interval
 require a fresh query. Legacy cursors retain their strict revision check. This
 prevents the agent's own receipt writes from breaking every multi-page search,
 without ignoring evidence changes or introducing a database migration.
+
+## Search completeness and exact counts
+A lexical query establishes only matches for its terms and filters. An empty result or table list does not establish that a business event, file or record does not exist. Sources may be unindexed, incompletely extracted, differently worded or not yet interpreted.
+
+The read-only count_records tool counts current heads in SQLite using an explicit Source/Record category and optional exact kind, status, meaning and scenario filters. Every result reports all filters and its workbook revision. It includes classified entries even when their text is not indexed. It does not count facts hidden inside documents, external files, historical versions or real-world events. Accepted estimates remain estimates.
+
+finish.coverage can reference up to four visible count receipts from the current run. The host rechecks the count, refuses changed/unknown receipts, renders the exact count and scope itself, and saves the verified result with the answer. Compaction invalidates count eligibility when the corresponding result leaves working context. A count receipt is not a Source/Record citation. When an evidence answer has counts and no inspected citations, the displayed answer consists solely of host-rendered counts. Discard the model prose in that presentation so a valid count cannot authorize unrelated factual claims. The original finish arguments remain in the diagnostic payload, explicitly marked host_counts; they are not the displayed answer.
+
+A conservative final-answer guard rejects recognized English and Spanish absence/exhaustiveness claims after retrieval or under the evidence answer basis. It requests scoped query wording or the host-rendered count instead. This catches the observed inventory overclaim; it is not a universal semantic verifier or a guarantee across all paraphrases and languages. Preserve semantic review alongside deterministic and real-model tests.

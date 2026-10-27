@@ -154,3 +154,9 @@ Preserve wrong-task response in final Slotstream probe; represent earlier non-co
 ## [2026-10-27 03:38] verification | records/operations/implementation.md
 Completed bounded-reasoning checkpoint: final targeted native and preserved-backend regressions, controlled recovery, release packaging and isolated installation pass. Preserve all failed trials and the remaining semantic coverage overclaim; no native promotion.
 
+## [2026-10-27 04:25] implementation | records/operations/implementation.md
+Implemented exact current-record counts, visible current-run coverage receipts, finish-time revalidation, host-only count presentation and conservative overclaim rejection. Added Python-free Swift setup, streaming verified/resumable downloads, hardware/storage preflight, reuse and atomic publication. Added native setup CLI and CI checks.
+
+## [2026-10-27 04:25] verification | records/operations/implementation.md
+Final native coverage 6/6; full rebuilt baseline model suite nine checks passed. Core 59, native/setup 28, text 15, streaming fixtures, base grammar and 27 workbook cases/228 masks passed. Autonomous native and continuity/reopen/cancellation passed before isolated count-only rendering, retested through final focused suite. Native setup reused 21,481,463,614 bytes, live HTTPS configuration resume passed, new assembly loaded and recovered with healthy Metal/released weights. Release/install/resources/history/receipts/concurrency/URL checks pass. Prior failures and limits retained in integration/evidence/2026-10-27-search-coverage-setup.json. Production remains Slotstream.
+

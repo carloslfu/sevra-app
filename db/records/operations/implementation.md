@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T03:39:33.631978+00:00
+updated: 2026-10-27T04:25:07.383768+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -14,15 +14,15 @@ specifications remain the acceptance contract. A source commit does not imply th
 every requirement or supported hardware profile has passed.
 
 ## Current direction, October 26
-Workbook is Sevra's primary product/homepage, with Websites secondary. The built and installed product still uses Slotstream. The next runtime is the Python-free Swift adapter over pinned Splash C++/Metal; it remains an internal candidate until grounding, setup, performance, packaging and application gates pass.
+Workbook is Sevra's primary product/homepage, with Websites secondary. The installed product still uses Slotstream. The next runtime is the Python-free Swift adapter over pinned Splash C++/Metal; it remains an internal candidate until setup, performance, packaging and application gates pass.
 
-Current AI checkpoint: the observed uncited reopen and fabricated current_request quantity paths have host guards and tested recovery. Final R5 passes 15/15 automatic task checks, two complete continuity runs, the autonomous native workflow and four controlled recovery cases. Manual review retains one unsupported workbook-wide absence claim, so broader grounding remains open. The earlier paired R2 comparison passed 15/15 automatic checks with bounded512 versus 13/15 off, at higher latency and with one date-label defect. Keep the phases separate and preserve every failure in integration/evidence/2026-10-26-bounded-reasoning.json.
+October 27 UTC checkpoint: the observed search-coverage overclaim now has an explicit boundary. Exact classified-record counts come from SQLite and finish-time revalidation. Count-only answers are rendered entirely by the host; other answers reject recognized absence/exhaustiveness overclaims. The final focused actual-model suite passes 6/6 with reasoning off and bounded512, including the frozen accepted forecast, a movement missed by lexical search, and a zero count with an unreadable Source. Broader factual accuracy remains an open qualification gate. Earlier failed trials and the scheduling refusal are retained in integration/evidence/2026-10-27-search-coverage-setup.json; the original bounded-reasoning evidence remains unchanged.
 
-A later Slotstream regression exposed a wrong-task response after a completed comparison. Earlier requests now enter the non-compacting context as historical data, preserving original IDs and current proposal state. The corrected sequence and native old-history/recovery checks pass.
+Native Swift setup now streams and resumes pinned model files, checks size/SHA-256/storage/hardware, cancels safely and publishes the assembly atomically. A separate sevra-native-setup executable can download into private snapshots or reuse complete verified model folders. Synthetic failure tests, live target/draft configuration downloads and resumes, actual 21.5 GB pack reuse, and native helper load/cancel/recovery/release pass. This is not yet a qualified fresh full-weight download or production Settings flow.
 
-Full checks, release app/CLI build, isolated installation, resources/history/receipts/concurrency/URL tests and all real-weight preserved-backend regressions pass at this checkpoint. The rebuilt app keeps the original Sevra identity. Storage schema 3, scoped document/conversation retrieval, receipt-stable pagination and candidate context maintenance are implemented. The user's installed app was not replaced, and production automatic compaction remains disabled.
+Core/native/template/grammar checks, autonomous workbook and complete continuity regressions, release build, isolated install/resource/history/receipt/concurrency/URL checks pass. The last count-only presentation change has fresh deterministic, grammar and focused-model checks; broader native autonomous/continuity runs preceded that isolated presentation change. The full rebuilt baseline model suite passes all nine checks, including positive/zero host-only counts, proposal acceptance/undo and cancellation/restart. The user's installed app was not replaced, and production automatic compaction remains disabled.
 
-Remaining gates: coverage-aware answer grounding; native resumable model setup and hardware preflight; matched reference/native performance and memory; native packaging/adoption; complete UI/media/voice/accessibility journeys; wider document/row scale and interruption recovery. [[records/specs/splash-integration]] and [[records/specs/conversation-context]] control those acceptance decisions.
+Remaining gates: fresh complete native model download and app setup integration; matched reference/native performance and total memory; native packaging/adoption; wider evidence grounding; full UI/media/voice/accessibility journeys; wider document/row scale and interruption recovery. [[records/specs/splash-integration]] and [[records/specs/conversation-context]] control those decisions.
 ## Implemented
 
 - Native SwiftUI/AppKit document windows with conversation and workspace panes,
@@ -203,13 +203,13 @@ interaction checks do not replace full VoiceOver, dictation, media, PDF, narrow
 window and appearance qualification.
 
 ## Next work in dependency order
-- Broaden evidence-aware answer qualification, starting with unsupported absence/coverage claims and other finish-basis misclassifications. The latest small suite passes its task checks but is not proof that every sentence is grounded. Keep deterministic calculations, current originals, unchanged authority and bounded recovery.
-- Implement native resumable downloads, hardware/OS/storage preflight and setup integration. Local model preparation and selected-model reference parity already pass. Keep the current usable installation until native setup verifies.
-- Qualify identical reference/native requests, failure/recovery cases and matched warmed/cold performance, total memory and thermal behavior on the intended physical hardware.
-- Finish native packaging/application integration. Adopt Splash only after the gates pass, then remove shipped Slotstream/MLX dependencies. No model catalog or backend picker.
+- Complete fresh full-weight native download qualification and connect the Swift setup service to the candidate application's setup state. Test shutdown/relaunch with partial files and application-level cancellation. The separate setup tool already verifies/resumes downloads and reuses compatible packs; production remains unchanged.
+- Qualify matched reference/native requests, failures, cold/warm latency, total memory and thermal behavior on intended physical hardware. No speed benefit follows automatically from removing Python.
+- Finish native helper/grammar packaging and application integration. Adopt Splash only after the gates pass, then remove shipped Slotstream/MLX inference dependencies. No model catalog or backend picker.
+- Broaden answer-grounding evaluation across paraphrases, languages, mixed questions and finish-basis misclassification. The current count renderer and conservative language guard fix the observed path, not every possible inference error.
 - Complete text/tool workflows, resource failures, persisted-job resolution and kill/restart tests without replaying uncertain accepted mutations.
 - Finish J01–J10, document/row search scale, native accessibility/voice/media and fresh clean-install qualification.
-- Workbook-first marketing implementation belongs to the website repository; its brand decision must distinguish planned direction from deployment.
+- Workbook-first marketing implementation belongs to the website repository; distinguish planned direction from deployment.
 ## Swift text frontend checkpoint, October 26
 
 SevraSplashText uses pinned swift-transformers 1.3.5 and swift-jinja 2.5.2,
@@ -867,3 +867,17 @@ Specifications, design review, fixtures, exact source/binary identities and all 
 After the historical-envelope correction, the complete packaged Slotstream regression passes comparison/space creation, then the distinct delivery-terms request with its citation and no injected mutation, missing evidence, table creation and cell-edit proposal/accept/undo, and cancellation/restart. Every successful ask now saves its response and current-run receipts before assertions, so semantic failures will not lose that evidence again. The original failed second request remains in the public evidence, alongside the missing-trace limitation. Passing this sequence supports the repair but does not prove perfect task selection across arbitrary conversations.
 
 Final full checks, release build, installation and resource/history/receipt/concurrency/URL checks were repeated after the source change. Both modes of controlled native recovery and the native non-compacting old-history probe also pass. Compaction-enabled R5 results precede this isolated projection change and retain their own identities. No automatic compaction, native backend or new installed-app default was enabled.
+
+## Search-coverage correction in progress
+The owner prioritized the observed R5 search overclaim before native Splash setup. Added an exact SQLite current-head count, typed finish coverage receipts, finish-time count revalidation and host-rendered scope. A conservative prose guard rejects the observed unsupported absence/exhaustiveness wording even when the model labels it general or unresolved after retrieval. This is a bounded language guard, not general truth verification.
+
+Deterministic checks pass for a real movement missed by lexical search, current versions without double counting, accepted-estimate filters, unindexed Sources, cancellation, invalid filters, malformed/forged receipts, changed counts and recovery from the original overclaim. Tool/reference grammar regeneration and real-model cases are next. Native setup follows; production remains the preserved Slotstream build.
+
+## Search scope and native setup checkpoint, October 27 UTC
+The initial focused six-case trial passed one automatic case: two positive counts had the wrong integer display, empty-count prose failed to recover from rejection, and the off forecast exhausted validation. A formatter correction itself first failed a deterministic check. Explicit feedback then passed all six. A further review tightened the host boundary: when counts are the only evidence, display only their verified scope, so a valid receipt cannot authorize unrelated model prose. Final targeted testing passes 6/6; count answers take two tool steps and no zero-count wording retry.
+
+One attempted final cohort collided with the still-running baseline regression. The shared lease refused all six before inference; this was test scheduling error, not six generated-answer failures. Its raw results remain in the evidence, including the older probe's mistakenly included fixture receipts. The probe now filters only runs created by that invocation, and the correctly serialized final cohort passes.
+
+Native setup has 28 adapter/setup checks, including partial/range handling, corruption, cancellation, symlink/hardlink refusal, storage and hardware preflight, atomic preparation and prior-install preservation. The initially failing URLProtocol interruption fixture assumed delivery timing; the final fixture starts with known partial bytes and checks exact retry behavior without that assumption. Live HTTPS target/draft config transfers and resumed transfers pass. The full existing 21,481,463,614-byte pack was verified and reused without downloading duplicate weights or invoking Python. The new assembly passed native model-check and four complete generations, one intentional cancellation, context refusal, healthy Metal state and weight release.
+
+There are now 23 maintained tool declarations, 27 complete tool grammar cases and 228 exact workbook mask comparisons. The original reference engine and model pins remain. See integration/evidence/2026-10-27-search-coverage-setup.json and [[records/operations/build-and-run]] for commands and limits. No native production promotion, whole-machine hardware qualification or Python/native performance claim is made.

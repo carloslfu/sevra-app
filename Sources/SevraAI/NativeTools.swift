@@ -163,6 +163,21 @@ package enum NativeTools {
           "cursor": schema("string", "nextCursor from the previous page, for the same query."),
         ], required: ["query"])),
     .init(
+      name: "count_records",
+      description:
+        "Count current classified workbook Sources or Records using exact metadata filters, independent of search wording or extraction. This does not count facts inside documents or real-world events. Put this call's receiptID in finish.coverage for the host to display its precise scope. Do not broaden it in prose.",
+      parameters: object(
+        [
+          "category": .object([
+            "type": .string("string"), "enum": .array([.string("source"), .string("record")]),
+          ]),
+          "kind": schema(
+            "string", "Optional exact domain kind, such as movement. Omit to include every kind."),
+          "meaning": schema("string", "Optional exact meaning; omit to include every meaning."),
+          "status": schema("string", "Optional exact status; omit to include every status."),
+          "scenario": schema("string", "Optional exact scenario; omit to include every scenario."),
+        ], required: ["category"])),
+    .init(
       name: "read", description: "Read exact evidence and bounded text chunks.",
       parameters: object(
         [
@@ -294,6 +309,13 @@ package enum NativeTools {
       parameters: object(
         [
           "answer": schema("string", "Plain-language answer. Do not print opaque IDs in prose."),
+          "coverage": .object([
+            "type": .string("array"), "maxItems": .int(4),
+            "items": schema(
+              "string",
+              "Optional current-run count_records receipt ID. The host validates and renders each exact count and scope. No search or old receipt IDs."
+            ),
+          ]),
           "basis": .object([
             "type": .string("string"),
             "enum": .array(

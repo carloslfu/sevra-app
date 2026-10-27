@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T03:09:00.482506+00:00
+updated: 2026-10-27T04:24:25.321625+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -152,7 +152,7 @@ The installed product contains neither that development toolchain nor Python.
 The native fixtures compare 15 exact prompts, 80 streaming decodes, 31 output
 projections across 3,216 chunk layouts, every byte-vocabulary entry and 105 complete
 speculative masks for JSON, Unicode, reasoning and strict tools. The actual 19
-workbook tools add 26 grammar scenarios and 221 exact mask comparisons, plus
+workbook tools add 27 grammar scenarios and 228 exact mask comparisons, plus
 complete argument validation and open-row-data checks. Lifecycle and
 malformed/truncated/cancelled-output refusal checks run in the same text suite.
 To regenerate reference fixtures after reviewing an upstream change, use the
@@ -282,7 +282,7 @@ before separate fixture acceptance, comparisons and citations, native table/char
 spaces, a hostile document, missing evidence, cancellation/retry and lease release.
 Its emitted metrics are correctness diagnostics, not a matched speed benchmark.
 The candidate validates runtime/Metal digests and selected model preparation before
-launch. Production packaging, resumable downloads and wider application acceptance
+launch. Production packaging, full clean-download qualification and wider application acceptance
 remain open.
 
 For the focused inventory regression, replace --autonomous with --inventory in
@@ -422,3 +422,34 @@ Use --reasoning-boundary with the same four paths to test short forced reasoning
 Use --inspection-recovery with the same four paths as --reasoning-comparison. It injects an uncited evidence finish and an invented numeric current_request finish, each with reasoning off and bounded512. Only that first invalid finish is synthetic; the native model must recover through the inspection-only tool scope, read and cite the original, return the exact quantity and unit, preserve business records and unload. This deliberately exercises a recovery branch and is not counted as an autonomous success trial.
 
 The first fixture version required the contiguous phrase 0.10 kg. Its fourth live response correctly separated quantity and unit, so that run retains a nonzero test exit. The corrected assertion checks the exact decimal spelling and unit independently. Engine/runtime source is unchanged by that fixture correction.
+
+
+## Native setup candidate
+
+Build the separate Python-free setup executable:
+
+```sh
+swift build --product sevra-native-setup -j 4
+.build/debug/sevra-native-setup /path/to/sevra-native-models
+```
+
+This downloads the pinned selected target and draft, checks storage, streams files to disk, verifies size and SHA-256 and publishes the native model assembly. Cancel with Ctrl-C; run the same command again to resume. The command requires Apple M3 or newer and macOS 26.4 or newer. These are the engine's minimum requirements, not a qualified memory/context profile for every device. It installs no Python or inference dependencies and does not switch the installed app's backend. A build still resolves this repository's Swift dependencies.
+
+Reuse a complete existing compatible pack without downloading weights:
+
+```sh
+.build/debug/sevra-native-setup /path/to/sevra-native-models \
+  --reuse /path/to/verified/model /path/to/verified/model/dflash
+```
+
+Reused files are verified and remain in their original location. Do not move or delete them while the assembly uses them. Incomplete or different reused packs fail visibly; omit --reuse to download the selected pack into the candidate's own snapshot storage. Partial downloads live under .snapshots. Failed setup preserves a prior selection. Native helper/grammar packaging and production Settings wiring remain open.
+
+Synthetic transfer/preparation/hardware checks run with sevra-splash-checks in scripts/check.sh. The optional bounded live-network check downloads only the two pinned configuration files, then repeats each transfer from a partial file:
+
+```sh
+.build/debug/sevra-splash-checks --setup-network .build/setup-network
+```
+
+For search scope qualification, --coverage takes the same four paths as --reasoning-comparison. It runs the frozen accepted-forecast case and exact movement-count cases with reasoning off and bounded512. A hidden movement deliberately lacks the search term in its text, and the zero-count workbook has an unreadable Source. The checks require host-rendered counts with every filter, unchanged business state and clean unload. Save stdout and stderr separately so complete JSON evidence cannot interleave with progress messages.
+
+The preserved-backend real-weight suite now includes explicit positive and zero scoped-count cases. Run python3 scripts/check_model.py coverage for those two cases alone, or omit the argument for the complete suite. It requires host-only rendered counts, all stated filters, unchanged business records and successful completion. These tests use the selected local weights and temporary synthetic workbooks, without hosted inference.

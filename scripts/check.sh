@@ -8,6 +8,12 @@ BIN=$(swift build --show-bin-path)
 "$BIN/sevra-checks"
 swift build --product sevra-splash-checks -j "${SEVRA_BUILD_JOBS:-4}"
 "$BIN/sevra-splash-checks"
+swift build --product sevra-native-setup -j "${SEVRA_BUILD_JOBS:-4}"
+"$BIN/sevra-native-setup" --help
+if "$BIN/sevra-native-setup" --unknown-option; then
+  echo 'Native setup accepted an unknown option as a download path.' >&2
+  exit 1
+fi
 swift build --product sevra-splash-text-checks -j "${SEVRA_BUILD_JOBS:-4}"
 python3 scripts/check_splash_text.py
 python3 scripts/build_guidance.py

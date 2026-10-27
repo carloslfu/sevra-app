@@ -114,7 +114,7 @@ func checkModelPreparation() {
   }
 }
 
-private struct ModelFixture {
+struct ModelFixture {
   let root: URL, target: URL, draft: URL, cache: URL
   let json: [String: Any]
   let pack: SplashModelPack

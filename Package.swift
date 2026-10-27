@@ -13,6 +13,7 @@ let package = Package(
     .executable(name: "sevra-splash-text-checks", targets: ["SevraSplashTextChecks"]),
     .executable(name: "sevra-splash-grammar-checks", targets: ["SevraSplashGrammarChecks"]),
     .executable(name: "sevra-agent-checks", targets: ["SevraAgentChecks"]),
+    .executable(name: "sevra-native-setup", targets: ["SevraNativeSetup"]),
   ],
   dependencies: [
     .package(
@@ -34,6 +35,9 @@ let package = Package(
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraSplash", resources: [.copy("Resources/selected-model.json")],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(
+      name: "SevraNativeSetup", dependencies: ["SevraSplash"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraSplashChecks", dependencies: ["SevraSplash"], path: "IntegrationTests/Splash",

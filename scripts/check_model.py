@@ -6,8 +6,8 @@ and no other model process owns Slotstream. Uses only temporary synthetic data.
 from pathlib import Path
 from decimal import Decimal
 import json, os, re, signal, subprocess, sys, tempfile, time
-checks=set(sys.argv[1:]) or {"comparison", "injection", "missing", "cancellation", "tables"}
-assert checks <= {"comparison", "injection", "missing", "cancellation", "tables"}, "Unknown model check"
+checks=set(sys.argv[1:]) or {"comparison", "injection", "missing", "cancellation", "tables", "coverage"}
+assert checks <= {"comparison", "injection", "missing", "cancellation", "tables", "coverage"}, "Unknown model check"
 root=Path(__file__).resolve().parent.parent
 cli=Path(os.environ.get('SEVRA_CLI',root/'output/bin/sevra'))
 def run(*args,timeout=240):
@@ -94,6 +94,22 @@ with tempfile.TemporaryDirectory(prefix='sevra-real-model-') as temporary:
         cedar=next(r for r in rows['rows'] if r['values']['supplier']=='Cedar Tools')
         assert cedar['values']['unit_cost']=='2.75' and cedar['values']['total']=='27.5',cedar
         print(json.dumps({'check':'propose_accept_undo_cells','passed':True,'seconds':seconds}),flush=True)
+    if 'coverage' in checks:
+        original_records,_=run('records',book)
+        original_records=[r for r in original_records if r['kind']!='request']
+        for kind in ['movement', 'invoice']:
+            scope={'category':'record','kind':kind}
+            expected,_=run('tool',book,'count_records',json.dumps(scope))
+            answer,seconds=run('ask',book,f'How many current Records classified as {kind} does this workbook contain, across all statuses, meanings and scenarios? Report the exact scoped count and its limits. Make no changes.')
+            count=int(expected['count'])
+            rendered=f"Current workbook Records: {count} (kind: {kind}, status: any, meaning: any, scenario: any). This counts classified workbook entries; documents may describe additional events."
+            assert answer['answer']==rendered,answer
+            assert not answer['citations'],answer
+            after,_=run('tool',book,'count_records',json.dumps(scope))
+            assert after['count']==count,after
+            current_records,_=run('records',book)
+            assert [r for r in current_records if r['kind']!='request']==original_records
+            print(json.dumps({'check':'scoped_count_'+kind,'passed':True,'seconds':seconds,'steps':answer['steps']}),flush=True)
     if 'cancellation' in checks:
         process=subprocess.Popen([str(cli),'ask',str(book),'Read the supplier rows and produce an extensive detailed analysis.'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
         interrupted=False

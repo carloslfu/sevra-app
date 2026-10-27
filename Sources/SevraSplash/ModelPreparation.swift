@@ -197,6 +197,7 @@ public enum SplashModelPreparation {
       if cancelled() { throw SplashError("Model preparation cancelled") }
       try fm.moveItem(at: stage, to: destination)
     }
+    if cancelled() { throw SplashError("Model preparation cancelled") }
     // Publish the selection atomically. Refuse to overwrite a real folder or file.
     var st = stat()
     if lstat(selection.path, &st) == 0 && (st.st_mode & S_IFMT) != S_IFLNK {

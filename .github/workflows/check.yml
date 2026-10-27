@@ -19,6 +19,9 @@ jobs:
         run: |
           swift build --product sevra-splash-checks -j 3
           .build/debug/sevra-splash-checks
+          swift build --product sevra-native-setup -j 3
+          .build/debug/sevra-native-setup --help
+          if .build/debug/sevra-native-setup --unknown-option; then exit 1; fi
       - name: Check pinned native prompts and streamed outputs
         run: |
           swift build --product sevra-splash-text-checks -j 3

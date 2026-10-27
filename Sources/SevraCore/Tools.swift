@@ -12,7 +12,7 @@ public struct WorkbookTools {
   public let conversation: String
   public let readOnly: Bool
   public static let readOnlyTools: Set<String> = [
-    "history_search", "history_read", "tool_result", "search", "archive_members",
+    "history_search", "history_read", "tool_result", "search", "count_records", "archive_members",
     "read", "lineage", "datasets", "rows", "compare_rows", "calculate", "balance", "spaces",
   ]
   public init(
@@ -36,6 +36,7 @@ public struct WorkbookTools {
     tool_result: id receipt ID, optional path array of object keys or array indexes, offset integer, rawJSON boolean. Read a saved exact tool result in bounded pages.
     search: query string, optional kind, meaning, status, scenario and cursor from nextCursor. Returns business evidence in hits and older conversation candidates in conversation.hits. Business filters or pagination restrict it to business evidence; use history_search for separate conversation queries/pages. Read conversation candidates with history_read before citing them. kind is a domain kind such as note, file, row, movement; actual/estimate/plan are meaning values, not kind values.
     read: id string, optional offset number. Returns exact record metadata and at most 8 text chunks.
+    count_records: category source|record, optional kind, meaning, status, scenario. Exact current classified-item count. Use the receipt ID in finish.coverage for a host-rendered scoped count, not a claim about events inside documents or outside the workbook.
     lineage: id string. Returns supporting/derived version relationships.
     datasets: no arguments. List tables and column IDs.
     rows: id dataset ID, optional offset number. Returns up to 100 rows with calculated values.
@@ -49,7 +50,7 @@ public struct WorkbookTools {
     draft: title string, text string, inputs array of exact source/record IDs. Autosaves a draft document.
     propose_record: title, text, kind, meaning (actual|estimate|plan|commitment|assumption|rule), inputs array, optional data object. Creates a draft interpretation.
     propose_movement: subject, quantity decimal string, occurrence unique business ID, effective ISO8601 time, input exact evidence ID, optional meaning. Creates a draft, no effect until user accepts.
-    finish: answer string, basis evidence|current_request|completed_action|general|unresolved, citations array. Stored workbook/history claims require evidence and inspected citations, including when a summary suggests the answer. completed_action requires a successful current-run action. current_request uses only this request's inputs and checked arithmetic. general makes no stored-data claims. unresolved must explicitly disclose missing facts without guessing.
+    finish: answer string, basis evidence|current_request|completed_action|general|unresolved, citations array, optional coverage array of up to four current-run count_records receipt IDs for host-rendered scoped counts. Stored workbook/history claims require evidence and inspected citations, including when a summary suggests the answer. completed_action requires a successful current-run action. current_request uses only this request's inputs and checked arithmetic. general makes no stored-data claims. unresolved must explicitly disclose missing facts without guessing.
     """
   public func operationToken(_ tool: String, _ arguments: Value) throws -> String {
     runID + "-"
@@ -109,6 +110,7 @@ public struct WorkbookTools {
         cancellation: cancellation)
     case "search":
       return try searchEvidence(string("query"), arguments: a)
+    case "count_records": return try workbook.countRecords(a, cancellation: cancellation)
     case "archive_members":
       return try encoded(workbook.archiveMembers(string("id"), cancellation: cancellation))
     case "include_archive_members":

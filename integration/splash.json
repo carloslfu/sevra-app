@@ -68,12 +68,16 @@
       ],
       "swift": [
         "Sources/SevraSplash/ModelPreparation.swift",
-        "Sources/SevraSplash/Resources/selected-model.json"
+        "Sources/SevraSplash/Resources/selected-model.json",
+        "Sources/SevraSplash/ModelDownload.swift",
+        "Sources/SevraSplash/ModelSetup.swift",
+        "Sources/SevraNativeSetup/main.swift"
       ],
-      "status": "local-preparation-byte-parity-passed-download-pending",
+      "status": "native-download-failure-fixtures-and-live-metadata-passed-full-clean-install-and-app-adoption-pending",
       "checks": [
         "IntegrationTests/Splash/ModelChecks.swift",
-        "scripts/check_splash_reference.py"
+        "scripts/check_splash_reference.py",
+        "IntegrationTests/Splash/SetupChecks.swift"
       ]
     },
     {
@@ -140,7 +144,7 @@
         "Sources/SevraSplashText/TextFrontend.swift",
         "Sources/SevraSplashGrammar/ToolPolicy.swift"
       ],
-      "status": "vocabulary-105-base-and-221-workbook-mask-fixtures-native-dispatcher-passed",
+      "status": "vocabulary-105-base-and-228-workbook-mask-fixtures-native-dispatcher-passed",
       "checks": [
         "IntegrationTests/Grammar/main.swift",
         "IntegrationTests/Grammar/NativeProbe.swift",

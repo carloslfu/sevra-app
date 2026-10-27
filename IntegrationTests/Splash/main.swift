@@ -371,5 +371,6 @@ test("stderr is continuously drained with a bounded diagnostic tail") {
   try expect(try p.generate(request()).tokens.count == 3)
 }
 checkModelPreparation()
+checkNativeSetup()
 print("\(passed) Splash checks passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

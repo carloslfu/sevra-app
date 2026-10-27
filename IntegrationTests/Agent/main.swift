@@ -232,6 +232,7 @@ do {
   try await checkAgentLifecycle()
   try await checkHistoryTools()
   try await checkScopedSearch()
+  try await checkSearchCoverage()
   try await checkCompaction()
   try await checkRunningCompaction()
   let checks = ToolPolicyChecks()
@@ -255,7 +256,12 @@ do {
       _ = await model.unload()
       throw error
     }
-  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--inspection-recovery" {
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--coverage" {
+    try await runCoverageProbe(
+      modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], modelsRoot: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--inspection-recovery"
+  {
     try await runInspectionRecoveryProbe(
       modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], modelsRoot: CommandLine.arguments[5])
@@ -300,7 +306,7 @@ do {
     }
   } else if CommandLine.arguments.count != 1 {
     throw SplashError(
-      "Usage: sevra-agent-checks --baseline-continuity MODEL_FOLDER or [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536 and SEVRA_NATIVE_REASONING selects 0/512 in development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
+      "Usage: sevra-agent-checks --baseline-continuity MODEL_FOLDER or [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery/--coverage MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536 and SEVRA_NATIVE_REASONING selects 0/512 in development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
     )
   }
 } catch {

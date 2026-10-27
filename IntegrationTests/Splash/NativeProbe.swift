@@ -9,19 +9,42 @@ func nativeProbe(_ arguments: [String]) throws -> Bool {
       withJSONObject: value, options: [.sortedKeys, .withoutEscapingSlashes])
     try FileHandle.standardOutput.write(contentsOf: bytes + Data([10]))
   }
+  if arguments.first == "--setup-network", arguments.count == 2 {
+    let root = URL(fileURLWithPath: arguments[1])
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    let pack = try SplashModelPack.selected()
+    for (label, source) in [("target", pack.target), ("draft", pack.draft)] {
+      let file = source.files.first { $0.path == "config.json" }!
+      let url = URL(string: "https://huggingface.co")!.appendingPathComponent(source.repository)
+        .appendingPathComponent("resolve").appendingPathComponent(source.revision)
+        .appendingPathComponent(file.path)
+      let destination = root.appendingPathComponent(label + "-config.json")
+      try PinnedModelDownload.fetch(url, to: destination, bytes: file.bytes, sha256: file.sha256)
+      let handle = try FileHandle(forWritingTo: destination)
+      try handle.truncate(atOffset: UInt64(file.bytes / 2))
+      try handle.close()
+      try PinnedModelDownload.fetch(url, to: destination, bytes: file.bytes, sha256: file.sha256)
+      try json([
+        "setupNetwork": label, "bytes": file.bytes, "sha256": file.sha256,
+        "completeAndResumed": true,
+      ])
+    }
+    return true
+  }
   if arguments.first == "--prepare", arguments.count == 4 {
     var lastFile = ""
     let started = ProcessInfo.processInfo.systemUptime
     let assembly = try SplashModelPreparation.prepare(
       pack: .selected(),
       target: URL(fileURLWithPath: arguments[1]), draft: URL(fileURLWithPath: arguments[2]),
-      modelsRoot: URL(fileURLWithPath: arguments[3])
-    ) { progress in
-      if progress.file != lastFile {
-        lastFile = progress.file
-        try? FileHandle.standardError.write(contentsOf: Data(("Verifying " + lastFile + "\n").utf8))
-      }
-    }
+      modelsRoot: URL(fileURLWithPath: arguments[3]),
+      progress: { progress in
+        if progress.file != lastFile {
+          lastFile = progress.file
+          try? FileHandle.standardError.write(
+            contentsOf: Data(("Verifying " + lastFile + "\n").utf8))
+        }
+      })
     try json(["assembly": assembly.path, "seconds": ProcessInfo.processInfo.systemUptime - started])
     return true
   }
