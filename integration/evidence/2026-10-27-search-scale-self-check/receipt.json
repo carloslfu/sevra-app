@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "commit": "9043fff4ab6bd9d4a5af60515eb3b01e6d73132d",
+  "run": "https://github.com/carloslfu/sevra-app/actions/runs/40530670227",
+  "artifact": {
+    "id": 12745618078,
+    "bytes": 10066,
+    "sha256": "06eb0384261ce2348deb4ceabc767c7ce4fb39317154e259fc62d81988c517fd"
+  },
+  "rawResultSHA256": "edcee1bd70946f7fb8c46970afe23f27c2daf6dc73d5925c58a41b13e692878b",
+  "verifiedSourceHashes": 35,
+  "scope": "Small fixture self-check: 200 rows and 200 chunks across 20 documents. 42 sampled reads and three complete document pages. No large-query cancellation was observed because both small queries finished before Stop.",
+  "performanceQualification": false,
+  "limits": [
+    "Not 10k/100k qualification",
+    "Not physical reference-Mac evidence",
+    "Not native UI or agent recall",
+    "Full hosted workflow still running when this focused artifact was inspected"
+  ]
+}

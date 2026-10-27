@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T15:23:23.473630+00:00
+updated: 2026-10-27T15:36:10.298234+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -81,18 +81,23 @@ production adoption remain disabled pending their recorded gates.
   control access while inference is busy and share native preview ownership.
   Native interaction verification remains pending.
 - Workspace operation ownership is implemented on 9044e5e. Its delayed completion,
-  Stop and permission regression passed in hosted run 40523815521; full app builds
-  and native close/switch verification remain pending. Table edits, delayed drops
-  and text-viewer callbacks have follow-up wiring awaiting their own checks.
+  Stop and permission regression and complete app builds passed in hosted run
+  40523815521. Follow-up table/drop/text-viewer wiring is included in the complete
+  passing 426dd2d run (40526063413). Native close/switch checks remain pending.
 - Search cancellation now reaches the SQLite reader token on 20f90f2. Query
   replacement, task cancellation, clearing, leaving and workbook reset preserve
   completed pages while refusing stale results. The expanded test fixture failed
   compilation because it lacked an explicit return; 426dd2d corrects that fixture.
-  The corrected runtime suite passed in run 40526063413. Large-workload/native
-  cancellation measurement and final app packaging remain pending.
+  The corrected runtime suite and complete app/package/install workflow passed
+  in run 40526063413. Large-workload/native cancellation measurement remains open.
 - Home now reads bounded ItemSummary metadata instead of complete document bodies
   and payloads. Its large-document/current-version/accepted-estimate regression
-  passed on af702ee. The latest app wiring and whole-app memory remain unqualified.
+  passed on af702ee and the later complete 426dd2d workflow. Native responsiveness
+  and whole-app memory remain unqualified.
+- The strengthened search-scale v2 self-check passed on 9043fff in hosted run
+  40530670227. Its inspected artifact contains 42 correct sampled reads, complete
+  paging over 20 documents and 35 commit-matched source hashes. This small virtual
+  runner result does not qualify 100k latency or cancellation; both remain open.
 
 Next, finish the frozen W1 measurement and qualify the prepared asset preview.
 Continue whole-app memory/headroom, occupied-context and repeated-compaction recovery,
@@ -1912,3 +1917,27 @@ model workload was started alongside W1. The complete workspace-ownership build
 9044e5e has meanwhile passed hosted run 40523815521. The current 426dd2d workflow
 has passed its baseline app/install checks and is building the isolated native
 preview; its final result remains pending.
+
+## Search-scale self-check artifact inspected
+The prepared v2 benchmark compiled and passed its 200-row/200-chunk self-check on
+9043fff in hosted run 40530670227. All 42 sampled reads passed their fixture
+assertions. The multi-chunk case traversed three pages containing exactly its 20
+document versions, without duplicates. Both cancellation calls had already
+finished when Stop was requested, so interruptionObserved=false, required=false
+and cancellationTargetMet=null are retained. This is explicitly no large-query
+interruption evidence.
+
+The 10,066-byte artifact 12745618078 was downloaded and its SHA256 verified as
+06eb0384261ce2348deb4ceabc767c7ce4fb39317154e259fc62d81988c517fd.
+Only the four expected bounded JSON members were read. All 35 source hashes match
+9043fff; initial/final source and binary identities match, and the runner reported
+a clean checkout. The runner is VirtualMac2,1 with Apple M1 (Virtual), macOS
+26.6.2 and 7 GiB memory. It is not the physical reference Mac. The byte-preserved
+result and receipt are in integration/evidence/2026-10-27-search-scale-self-check/.
+The full workflow remains running; only this focused step is qualified.
+
+Separately, the complete current application checkpoint 426dd2d passed hosted
+run 40526063413, including core/catalog, document/preview/search, process-death,
+grammar/model-lifecycle, both packaged apps/CLIs and installation checks. This
+closes its automated build/regression gate, not the remaining native interaction,
+whole-app memory, W1, occupied-context or scale gates.
