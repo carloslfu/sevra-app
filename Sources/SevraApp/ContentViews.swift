@@ -97,6 +97,7 @@ struct SearchView: View {
         }
       }
       .task(id: query) { await search(more: false) }
+      .onDisappear { results.cancelRead() }
   }
   @ViewBuilder var filters: some View {
     facet("Kind", key: "kind", selection: $state.searchKind)
@@ -113,12 +114,12 @@ struct SearchView: View {
   func search(more: Bool) async {
     guard let book = state.workbook else { return }
     let request = query
-    await results.load(request, more: more, debounce: !more) { cursor in
+    await results.load(request, more: more, debounce: !more) { cursor, cancellation in
       try await Task.detached {
         try book.search(
           request.text, kind: request.kind, meaning: request.meaning,
           historical: request.historical, cursor: cursor, status: request.status,
-          scenario: request.scenario)
+          scenario: request.scenario, cancellation: cancellation)
       }.value
     }
   }
@@ -379,15 +380,10 @@ struct SearchComponentView: View {
     }.task(id: query) {
       guard component.searchSnapshot == nil, let book = state.workbook else { return }
       let request = query
-      await results.load(request) { _ in
-        let cancellation = Cancellation()
-        return try await withTaskCancellationHandler {
-          try await Task.detached {
-            try book.search(request.text, limit: 8, cancellation: cancellation)
-          }.value
-        } onCancel: {
-          cancellation.cancel()
-        }
+      await results.load(request) { _, cancellation in
+        try await Task.detached {
+          try book.search(request.text, limit: 8, cancellation: cancellation)
+        }.value
       }
     }
   }

@@ -328,3 +328,6 @@ Inspect hash-verified CI artifact: >2 GiB preview verification passed at 6,489,6
 ## [2026-10-27 14:42] implementation | records/operations/implementation.md
 Prepare workspace operation ownership and delayed completion/permission/search regressions; runtime and native lifecycle checks pending.
 
+## [2026-10-27 14:45] implementation | records/operations/implementation.md
+Propagate native search cancellation to SQLite reader tokens and prepare supersession/reset/task/Back regressions; runtime pending.
+

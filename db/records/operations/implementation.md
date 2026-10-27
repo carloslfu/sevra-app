@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T14:42:57.578720+00:00
+updated: 2026-10-27T14:45:36.382461+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1763,3 +1763,28 @@ suite adds reset-during-read coverage. These are prepared regressions, not proof
 of native app lifecycle behavior. Swift formatting and diff checks pass; hosted
 compilation/runtime and focused native close/switch checks remain pending. Local
 builds and inference remain deferred during the frozen full W1 cohort.
+
+## Native search cancellation propagation prepared
+
+Review found that the main search view created a detached SQLite read without
+passing cancellation. It discarded stale results but could leave obsolete work
+running until the core query deadline. SearchSession now owns the reader token,
+cancels it on replacement/reset/task cancellation and passes it into both native
+search views. The existing SQLite progress budget observes this token. Leaving
+search stops active work while retaining completed pages, cursor and Back anchor.
+Cancellation does not publish an error or imply an empty result.
+
+Delayed-read regressions now check that replacement, clearing, task cancellation
+and workbook reset actually signal the reader, not just discard its return value.
+An additional next-page cancellation preserves earlier results and retries through
+a real workbook search with a fresh token. Existing core checks cover cancelled
+and expired search budgets followed by a usable query. These prepared checks do
+not establish cancellation latency under a large live SQLite workload; that native
+measurement remains pending. Formatting and diff checks pass; hosted compilation
+and runtime checks for this change are pending.
+
+Hosted run 40519770358 completed successfully for 9a2f58a, covering the earlier
+small linked-asset/session changes and both app packages. The larger-file evidence
+remains tied to 96b8528 and its specific passing step; newer composer and workspace
+changes require their own completed runs. The frozen W1 cohort is now on block 4;
+no complete-cohort performance conclusion has been made.

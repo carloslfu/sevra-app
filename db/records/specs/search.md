@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-27T13:09:52.912228+00:00
+updated: 2026-10-27T14:45:36.358521+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -151,3 +151,12 @@ current-request Source uses the host-rendered query/indexing-gap report, with
 no displayed evidence citations. Preserve the original finish arguments in the
 diagnostic payload. Unknown or independent citations retain their existing
 validation and are not silently discarded by this boundary.
+
+## Cancelling native reads
+Changing or clearing a query, closing its workbook and cancelling the view task
+cancel the same token passed into the SQLite search budget. A generation check
+still rejects late results from readers that finish before cancellation takes
+effect. Leaving the search view cancels active work while retaining completed
+pages, cursor and anchor for Back. Cancelling a continuation preserves its earlier
+pages and allows retry with a fresh token. A cooperative cancellation is not a
+search failure or a new empty-result claim.
