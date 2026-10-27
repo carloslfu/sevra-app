@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T15:01:00.483600+00:00
+updated: 2026-10-27T15:03:30.138679+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -88,7 +88,8 @@ production adoption remain disabled pending their recorded gates.
   replacement, task cancellation, clearing, leaving and workbook reset preserve
   completed pages while refusing stale results. The expanded test fixture failed
   compilation because it lacked an explicit return; 426dd2d corrects that fixture.
-  The corrected runtime suite and large-workload/native measurement remain pending.
+  The corrected runtime suite passed in run 40526063413. Large-workload/native
+  cancellation measurement and final app packaging remain pending.
 - Home now reads bounded ItemSummary metadata instead of complete document bodies
   and payloads. Its large-document/current-version/accepted-estimate regression
   passed on af702ee. The latest app wiring and whole-app memory remain unqualified.
@@ -1873,3 +1874,16 @@ remains incomplete. Frozen sources were checked unchanged during this work.
 This follow-up changes only documentation. Repository links and full dbmd
 validation pass locally; the ongoing 426dd2d code workflow remains the relevant
 compilation/runtime check rather than launching another identical app build.
+
+## Corrected search runtime passed
+On 426dd2d, hosted run 40526063413 passed the corrected search executable, including
+reader-token cancellation for replacement/clear/task/reset, rejection of late
+results, preserved earlier pages/anchor and a real next-page retry with a fresh
+token. The core catalog regression, document/preview ownership checks, large-file
+probe, checkpoint process-death checks and table checks also completed before it.
+The full workflow and app package builds are still running. These focused results
+do not establish native large-query interruption latency or final visible UI.
+
+The prior af702ee full run 40525067058 failed after its passing core/catalog and
+preview steps, before the test-helper correction. Retain that failed checkpoint;
+the passing corrected search result belongs to 426dd2d, not to the earlier source.
