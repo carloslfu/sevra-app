@@ -42,6 +42,8 @@ def passes(rows, pilot=False):
 
 
 assert passes(results)
+changed_source = summarize(results, protocol, False, source_changes=['changed.swift'])
+assert not changed_source['workflowGatePassed'] and not changed_source['timingsEligibleForQualification']
 assert not passes(results, True)
 assert not passes(results[:-1])
 assert not passes(results + results[:1])

@@ -211,3 +211,9 @@ Qualified native six-stage continuity subset with retained failures and two fini
 ## [2026-10-27 11:31] implementation | records/operations/implementation.md
 Preregister I2 request-cache diagnostic; preserve product defaults and reject diagnostic performance promotion.
 
+## [2026-10-27 11:41] verification | records/operations/implementation.md
+I2 passes both supplier cache arms; retain 29 exact request pairs, currency corrections and prior failures. Correct W1 reference-only status probe and enforce frozen identities.
+
+## [2026-10-27 11:41] verification | records/operations/implementation.md
+Full local regression and final benchmark guard checks pass; prepare corrected uninstrumented W1 pilot.
+

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T11:31:09.759862+00:00
+updated: 2026-10-27T11:41:30.133288+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -358,3 +358,8 @@ Keep two questions separate: whether the frontends perform identical computation
 I2 is preregistered in integration/performance/request-cache-isolation-pilot.json. It compares the supplier workflow with ordinary shared caching and a unique raw 128-bit engine cache identity on every request, including Ready. Each arm uses fresh native and reference workers, followed by the same warmup and measured fixture seeds. The reference intervention sets the raw cache field before unchanged upstream request serialization; this does not test its string-hashing API. Product callers leave the package-internal diagnostic option disabled.
 
 Require actual saved wire frames with verified hashes, expected distinct salts, zero initial and later cache reuse in the isolated arm, complete jobs and samples, unchanged measured sources and exact paired requests/generated tokens. Keep both arms and all failed jobs. This isolates prior prompt/KV sharing, not all memory-dependent chunking or numerical state. Neither arm qualifies performance or adoption; a passing isolated arm cannot excuse a failed shared-cache control. The standard W1 gate also refuses requests marked with this intervention, even if a caller forgets its diagnostic label.
+
+## Complete-workflow command and source identity
+The complete-workflow reference must not add a status request after each response solely for benchmark telemetry when the native product does not make that request. Such a probe changes command history and adds work inside the timed reference bridge. The request-level R1 harness is separate: both sides obtain status outside its request timing. Preserve earlier W1/I1/I2 results with their original source identities; removing this asymmetry does not establish the cause of historical token divergence.
+
+Freeze measured sources, model manifest and release worker binary. Verify their identities before every worker and when finalizing, and refuse qualification or another worker after any change. A clean worktree at startup alone is insufficient. I2 passed both current supplier arms, but its newer prompts and one sample per frontend do not qualify performance. Continue with an uninstrumented W1 pilot under normal caching before considering a qualifying cohort.

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T11:31:09.773645+00:00
+updated: 2026-10-27T11:41:57.696384+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1138,6 +1138,13 @@ Opening the larger synthetic conversation exposed a separate UI issue: the view 
 The complete local regression passed, including all 249 actual-tool masks. Both app variants were rebuilt after the final UI-only repair; native resource/refusal/signature checks, baseline resources and isolated installation passed again. Packaged missing-evidence and movement/invoice count checks passed on native (3/2/2 steps) and baseline (3/3/2). Both CLI binaries stayed byte-identical through the UI-only rebuilds, so these model results apply to the final packaged CLIs. Strict formatting passes. Evidence, all 35 retained logs, source/binary hashes, intermediate UI failures and visual observations are in integration/evidence/2026-10-27-continuity-navigation-qualification.json. Previous checkpoint 95a1629 completed hosted CI run 40491316063 successfully. This checkpoint still needs its own hosted CI result.
 
 ## Request-cache isolation diagnostic, October 27
-The remaining I1 supplier mismatch motivates I2, a preregistered two-arm comparison of ordinary shared caching and unique request cache identities. The pinned engine stays unchanged. The application default remains shared caching and native preview remains unqualified. A package-internal evaluation flag carries the same raw salt on both frontends; each receipt records the intervention, and the performance gate refuses it.
+I2 completed four Ready primes and eight supplier jobs on frozen commit 3738a56. Both arms passed exact request, output and cache-counter comparisons: 16 paired requests with normal shared caching, 13 with unique per-request salts. Every actual wire salt was verified; every isolated request reported zero initial and later cache reuse. Sampling, power/thermal conditions, source identity and shutdown checks passed.
 
-Preflight passes: adversarial evidence checks, actual I1 wire parsing for all 20 native and 21 reference supplier requests, strict Swift formatting after one line-length correction, and the release worker build. Tests reject missing/forged/repeated salt evidence, contradictory flags, any reuse, changed sources and accidental performance qualification. The model diagnostic has not run yet. The prior checkpoint CI run 40495894340 is still in progress.
+The shared warmup/measured jobs used 8/7 steps on both frontends; the isolated jobs used 7/5. Shared measured jobs each needed one host-rejected currency correction before publication. Isolated jobs needed no rejected finishes. These are complete successful workflows, not evidence of zero model errors. The current tool contract produces different prompts from I1, so I2 is not an exact replay of the historical failing build. Because the shared control passed too, I2 does not identify prior KV sharing as the cause or establish that the older mismatch is fixed universally. Production caching is unchanged.
+
+Immutable evidence: integration/evidence/2026-10-27-request-cache-isolation.json.gz, uncompressed SHA256 1a557c6a04cd55e3fe61ebc51c567d3730c80c6bbcfe8b31eac4aeb8db421dab. All 23 unique published prompt arrays were decoded and checked for private paths, and saved request frames were hash-checked and matched to those prompts. Preserve I1 and W1 failures separately. This diagnostic cannot qualify speed or adoption.
+
+Review also found an extra status request after every Python reference workflow call, inherited from the R1 request harness. R1 issues status on both sides outside request timing; the native W1 application does not. Remove that unused reference-only W1 probe before another performance comparison. This is a harness correction, not a proven cause of token divergence. The controller now refuses a cohort when measured sources, manifest or worker binary change, checking before each worker and at finalization. The next step is a new full W1 pilot with normal caching and these corrected conditions.
+
+## I2 validation and W1 pilot preparation
+The full local scripts/check.sh regression passed after the request-cache diagnostic addition. After the reference-only status and source-freeze corrections, the performance/diagnostic/isolation evidence tests, Python compilation, release-worker self-check, full dbmd validation (zero errors/warnings), Markdown links and diff checks pass again. No product caching behavior changed. The next W1 pilot uses the already built native worker with the corrected development reference and controller; its own results remain pending.

@@ -207,7 +207,11 @@ def main():
                   'reasoning': collected.reasoning, 'calls': calls,
                   'finish': {'stop': 0, 'length': 1, 'cancelled': 2}[result.reason],
                   'bounded': result.bounded, 'drafted': result.drafted_tokens,
-                  'accepted': result.accepted_draft_tokens, 'status': backend.status()})
+                  'accepted': result.accepted_draft_tokens,
+                  # R1 samples status on both sides after request timing. W1's
+                  # native app path does not issue it; adding an unused probe
+                  # here changes command history and complete bridge latency.
+                  **({} if config.get('workflowQualification') else {'status': backend.status()})})
     finally:
         backend.close()
 

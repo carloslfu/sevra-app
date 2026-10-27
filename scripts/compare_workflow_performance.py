@@ -208,7 +208,7 @@ def paired_jobs(a, b):
                     and x.get('generationTokens') == y.get('generationTokens') for x, y in zip(ar, br)))
 
 
-def summarize(results, protocol, pilot, diagnostic_masks=False):
+def summarize(results, protocol, pilot, diagnostic_masks=False, source_changes=None):
     # Retained observations are authoritative even if a later caller forgets
     # the explicit diagnostic flag. Never qualify traced samples accidentally.
     diagnostic_masks = diagnostic_masks or any(
@@ -226,6 +226,8 @@ def summarize(results, protocol, pilot, diagnostic_masks=False):
     expected_blocks = 1 if pilot else protocol['blocks']
     repetitions = 1 if pilot else protocol['repetitionsPerWorkloadPerBlock']
     excluded, problems = {}, []
+    if source_changes:
+        problems.append('Measured sources or binary changed: ' + ', '.join(source_changes))
     indexed = {(r['block'], r['backend']): r for r in results}
     if len(indexed) != len(results) or set(indexed) != {
         (block, backend) for block in range(expected_blocks) for backend in BACKENDS
@@ -297,7 +299,8 @@ def summarize(results, protocol, pilot, diagnostic_masks=False):
         comparisons.append({'id': name, 'stats': stats, 'ratios': ratios, 'latencyThresholdsMet': latency})
     return {'pilot': pilot, 'diagnosticMasks': diagnostic_masks,
             'diagnosticObservation': diagnostic_observation,
-            'timingsEligibleForQualification': not pilot and not instrumented, 'problems': problems, 'excludedPairedBlocks': excluded,
+            'timingsEligibleForQualification': not pilot and not instrumented and not source_changes,
+            'problems': problems, 'excludedPairedBlocks': excluded,
             'identicalPairedPrompts': paired, 'identicalGeneratedTokens': tokens_equal, 'comparisons': comparisons,
             'workflowGatePassed': not pilot and not instrumented and not problems and not excluded and paired and tokens_equal
                                   and all(c['latencyThresholdsMet'] for c in comparisons),
@@ -345,8 +348,13 @@ def main():
                'scripts/splash_performance_reference.py', 'scripts/compare_splash_performance.py',
                'scripts/compare_workflow_performance.py', 'integration/performance/workflow-protocol.json']
     sources = sorted(set(sources + [str(p.relative_to(ROOT)) for p in (ROOT / 'Sources').rglob('*.swift')]))
+    frozen = {name: sha(ROOT / name) for name in sources}
+    frozen['.build/release/sevra-workflow-performance'] = sha(ROOT / '.build/release/sevra-workflow-performance')
+    frozen['Sources/SevraSplash/Resources/selected-model.json'] = sha(ROOT / 'Sources/SevraSplash/Resources/selected-model.json')
+    def changed():
+        return [name for name, checksum in frozen.items() if not (ROOT / name).is_file() or sha(ROOT / name) != checksum]
     save(output / 'identity.json', {
-        'protocol': protocol, 'sourceSHA256': {name: sha(ROOT / name) for name in sources},
+        'protocol': protocol, 'sourceSHA256': frozen,
         'engineSHA256': sha(engine), 'grammarSHA256': grammar['librarySHA256'],
         'workerSHA256': sha(ROOT / '.build/release/sevra-workflow-performance'),
         'baseCommit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(), 'dirty': dirty,
@@ -363,13 +371,15 @@ def main():
             order = protocol['workloads']
             order = order[block % len(order):] + order[:block % len(order)]
             for backend in BACKENDS if block % 2 == 0 else reversed(BACKENDS):
+                if changed():
+                    raise RuntimeError('Measured sources changed; refusing another worker')
                 result = worker(backend, block, order, 1 if args.pilot else protocol['repetitionsPerWorkloadPerBlock'], config_path, output)
                 results.append(result)
-                save(output / 'summary.json', summarize(results, protocol, args.pilot, args.diagnostic_masks))
+                save(output / 'summary.json', summarize(results, protocol, args.pilot, args.diagnostic_masks, changed()))
                 if result['failure']:
                     raise RuntimeError(result['failure'])
     finally:
-        summary = summarize(results, protocol, args.pilot, args.diagnostic_masks)
+        summary = summarize(results, protocol, args.pilot, args.diagnostic_masks, changed())
         save(output / 'summary.json', summary)
         print(json.dumps(summary), flush=True)
     if summary['problems'] or summary['excludedPairedBlocks'] or not summary['identicalPairedPrompts'] or not summary['identicalGeneratedTokens']:
