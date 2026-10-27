@@ -370,3 +370,6 @@ Complete local suite passes after W1. Native voice permission UI needs the owner
 ## [2026-10-27 16:21] implementation | records/operations/implementation.md
 Native release compilation passes; snapshot file action IDs before background work and retain editor binding isolation after compiler review.
 
+## [2026-10-27 16:24] verification | records/operations/implementation.md
+75cb253 native release rebuild and 14 voice lifecycle checks pass; stop pending UI dictation while owner completes macOS permission step. Hardware recognition and latest CI remain unqualified.
+

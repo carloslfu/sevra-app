@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T16:21:50.051948+00:00
+updated: 2026-10-27T16:24:21.074320+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -114,11 +114,12 @@ the contracts and reproduction commands.
 - The full 9043fff hosted workflow passed (40530670227), including both package
   builds and installation. This confirms the search-scale self-check integration,
   not the pending physical 100k search target.
-- External-opening integrity repair is prepared: the native action and exact
-  composer commands save/open a verified independent copy instead of giving an
-  editor the included asset path. Streaming, cancellation, no-overwrite, alias
-  and changed-original regressions are added. Local execution and hosted CI
-  remain pending until recorded below; frozen W1 sources are unchanged.
+- External opening now saves/opens a verified independent copy instead of
+  giving an editor the included asset path. The full local suite passes on
+  21a8cd2, including 69 core checks and copy cancellation/no-overwrite/alias/
+  changed-original cases. The native release target builds on 75cb253 without
+  the file-action actor warnings. Visible save/open checks and newest CI remain
+  pending; the frozen W1 run was archived before integration.
 - The owner explicitly approved microphone and speech-recognition permissions
   for local dictation. Grant and test after W1; a human phrase and actual hardware
   recognition are still required. No permission re-approval is needed.
@@ -2040,3 +2041,21 @@ property from background work; capture the immutable item ID at the button
 action instead. The editor binding uses an explicit closure to retain inferred
 isolation. This is a source correction; a rebuilt package and visual pass are
 still pending the permission handoff.
+
+On 75cb253, the native release target rebuilt successfully without warnings in
+that rebuild, and all 14 synthetic voice lifecycle checks pass. Commands used:
+SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product
+--configuration release --product SevraDesktop -j 4; swift build --product
+sevra-voice-checks -j 4; .build/debug/sevra-voice-checks. Native packaging and
+visible status verification remain pending.
+
+The pending dictation session was explicitly stopped in the native UI; the
+button returned to Start dictation and no transcript was entered. A late
+permission grant must not automatically begin capture. Leave the existing app
+available for the owner to complete the macOS permission step, then start a
+fresh session for one spoken phrase. Do not treat approval or a Stop icon as
+proof of microphone capture.
+
+Hosted 6bac991 run 40538012306 and latest 75cb253 run 40540174787 remain pending
+at this checkpoint. The intervening a58903b run 40539699089 was superseded and
+cancelled, not passed.
