@@ -721,6 +721,7 @@ check("pinning retries return the original snapshot") {
   try expect(
     try book.spaces().first { $0.id == first }?.definition.components[0].text == "Original")
 }
+checkSpaceSnapshots(at: temp)
 checkConversationContext(at: temp)
 checkToolReceipts(at: temp)
 print("\(passed) passed; \(failed) failed")

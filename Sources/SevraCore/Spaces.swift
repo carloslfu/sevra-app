@@ -15,11 +15,13 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
   public var unit: String?
   public var children: [Component]?
   public var snapshot: ComponentSnapshot?
+  public var searchSnapshot: ComponentSearchSnapshot?
   public init(
     id: String = identifier(), type: String, title: String, datasetID: String? = nil,
     itemID: String? = nil, query: String? = nil, x: String? = nil, y: String? = nil,
     text: String? = nil, chartStyle: String? = nil, aggregation: String? = nil,
-    unit: String? = nil, children: [Component]? = nil, snapshot: ComponentSnapshot? = nil
+    unit: String? = nil, children: [Component]? = nil, snapshot: ComponentSnapshot? = nil,
+    searchSnapshot: ComponentSearchSnapshot? = nil
   ) {
     self.id = id
     self.type = type
@@ -35,12 +37,17 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
     self.unit = unit
     self.children = children
     self.snapshot = snapshot
+    self.searchSnapshot = searchSnapshot
   }
 }
 public struct SpaceDefinition: Codable, Equatable, Sendable {
   public var version: Int = 1
   public var components: [Component]
-  public init(components: [Component]) { self.components = components }
+  public var pinnedAt: String?
+  public init(components: [Component], pinnedAt: String? = nil) {
+    self.components = components
+    self.pinnedAt = pinnedAt
+  }
 }
 public struct Space: Codable, Identifiable, Sendable {
   public let id: String
@@ -81,6 +88,10 @@ extension Workbook {
     try require(
       Set(definition.components.map(\.id)).count == definition.components.count, "view",
       "Component identifiers must be unique.")
+    if let captured = definition.pinnedAt {
+      try require(
+        ISO8601DateFormatter().date(from: captured) != nil, "view", "Invalid pinned time.")
+    }
     var componentCount = 0
     var ids = Set<String>()
     func validate(_ c: Component, depth: Int) throws {
@@ -115,6 +126,34 @@ extension Workbook {
       if ["document", "asset"].contains(c.type) {
         guard let id = c.itemID else { throw SevraError("view", "Item binding is required.") }
         _ = try item(id)
+      }
+      if c.type == "search" {
+        _ = try Self.searchTerms(c.query ?? "")
+      }
+      if definition.pinnedAt != nil {
+        if ["table", "chart", "metric"].contains(c.type) {
+          try require(c.snapshot != nil, "view", "A pinned table needs saved values.")
+        }
+        if ["document", "asset"].contains(c.type), let id = c.itemID {
+          try require(try item(id).id == id, "view", "A pinned item needs an exact version.")
+        }
+        if c.type == "search" {
+          try require(c.searchSnapshot != nil, "view", "A pinned search needs saved results.")
+        }
+      }
+      if let snapshot = c.searchSnapshot {
+        try require(
+          c.type == "search" && snapshot.query == (c.query ?? "")
+            && snapshot.hits.count <= 8 && snapshot.incomplete >= 0 && snapshot.revision >= 0
+            && Set(snapshot.hits.map(\.id)).count == snapshot.hits.count
+            && Set(snapshot.hits.map(\.itemID)).count == snapshot.hits.count
+            && ISO8601DateFormatter().date(from: snapshot.captured) != nil,
+          "view", "Invalid pinned search result.")
+        for hit in snapshot.hits {
+          try require(
+            try item(hit.itemID).id == hit.itemID, "view",
+            "A pinned search result needs exact item versions.")
+        }
       }
       if c.type == "comparison" {
         try require(

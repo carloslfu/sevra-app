@@ -131,6 +131,10 @@ struct SpaceView: View {
       LazyVStack(alignment: .leading, spacing: 28) {
         if !space.definition.components.isEmpty {
           HStack {
+            if let captured = space.definition.pinnedAt {
+              Text("Pinned as of " + DisplayText.date(captured))
+                .font(.caption).foregroundStyle(.secondary)
+            }
             Spacer()
             Button("Save a pinned copy") {
               do {
@@ -320,14 +324,13 @@ struct NativeComponent: View {
           if !unitSuffix.isEmpty { Text(unitSuffix).font(.caption).foregroundStyle(.secondary) }
         }
       case "document", "asset":
-        if let id = component.itemID { Button("Open document") { state.navigate(.item(id)) } }
-      case "search":
-        if let hits = try? state.workbook?.search(component.query ?? "", limit: 8).hits {
-          ForEach(hits) { hit in
-            Button(hit.title) { state.openEvidence(hit.itemID, locator: hit.locator) }.buttonStyle(
-              .link)
+        if let id = component.itemID {
+          Button(component.type == "asset" ? "Open file" : "Open document") {
+            state.navigate(.item(id))
           }
         }
+      case "search":
+        SearchComponentView(component: component, state: state)
       default: Text("This component is unavailable.").foregroundStyle(.secondary)
       }
       if let failure { Text(failure).font(.callout).foregroundStyle(.red) }
@@ -352,6 +355,62 @@ struct NativeComponent: View {
   var unitSuffix: String {
     let unit = component.unit ?? data?.columns.first(where: { $0.id == component.y })?.unit
     return unit.map { " " + $0 } ?? ""
+  }
+}
+/// Live search runs away from view rendering; the shared session refuses stale
+/// completions. Pinned results remain usable even if current indexing changes.
+struct SearchComponentView: View {
+  let component: Component
+  @ObservedObject var state: WorkspaceState
+  @StateObject private var results = SearchSession()
+  private var query: SearchQuery {
+    SearchQuery(
+      workbook: state.workbook?.url, revision: state.revision,
+      text: component.query ?? "")
+  }
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      if let snapshot = component.searchSnapshot {
+        Text("Search results from " + DisplayText.date(snapshot.captured))
+          .font(.caption).foregroundStyle(.secondary)
+        content(snapshot.hits, incomplete: snapshot.incomplete, hasMore: snapshot.hasMore)
+      } else if results.loadedQuery == query {
+        content(results.hits, incomplete: results.incomplete, hasMore: results.nextCursor != nil)
+      } else if results.query == query, let failure = results.failure {
+        Text(failure).foregroundStyle(.red)
+      } else {
+        ProgressView().controlSize(.small).accessibilityLabel("Searching workbook")
+      }
+    }.task(id: query) {
+      guard component.searchSnapshot == nil, let book = state.workbook else { return }
+      let request = query
+      await results.load(request) { _ in
+        let cancellation = Cancellation()
+        return try await withTaskCancellationHandler {
+          try await Task.detached {
+            try book.search(request.text, limit: 8, cancellation: cancellation)
+          }.value
+        } onCancel: {
+          cancellation.cancel()
+        }
+      }
+    }
+  }
+  @ViewBuilder private func content(_ hits: [SearchHit], incomplete: Int, hasMore: Bool)
+    -> some View
+  {
+    ForEach(hits) { hit in
+      Button(hit.title) { state.openEvidence(hit.itemID, locator: hit.locator) }
+        .buttonStyle(.link)
+    }
+    if hits.isEmpty { Text("No matches for this search.").foregroundStyle(.secondary) }
+    if hasMore {
+      Text("Showing the first \(hits.count) results.").font(.caption).foregroundStyle(.secondary)
+    }
+    if incomplete > 0 {
+      Text("\(incomplete) sources had incomplete content indexes when searched.")
+        .font(.caption).foregroundStyle(.secondary)
+    }
   }
 }
 struct PlotPoint: Identifiable {
