@@ -400,3 +400,9 @@ Actual active-job v1 fails: 32K misassociates four values and duplicates its spa
 ## [2026-10-27 17:26] implementation | records/specs/conversation-context.md
 Retain bounded exact read evidence and saved-space IDs; preregister unchanged maintained32K repair-only replay. Core 73/73 and synthetic agent checks pass.
 
+## [2026-10-27 17:40] verification | records/specs/conversation-context.md
+Both real maintained32K repair replays pass exact v1 assertions; preserve first dictation overlap and controlled second run. Human dictation exact phrase and Stop pass. Window background snapshot regression passes; native build underway.
+
+## [2026-10-27 17:46] verification | records/operations/implementation.md
+Full regression/native app+CLI packaging passed. Visible text-command copy into TextEdit preserves original hashes; Home polling, tangent/main scope and close/reopen pass. Basic live dictation completed.
+

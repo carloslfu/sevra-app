@@ -79,7 +79,7 @@ private actor ReadGate {
     try expect(oldCancelled, "New preview did not cancel previous file verification")
     await old.progress(2048)
     await old.finish(first)
-    await pending.value
+    _ = await pending.value
     await Task.yield()
     try expect(
       session.file == second && session.failure == nil && session.checkedBytes == 0,
@@ -93,7 +93,7 @@ private actor ReadGate {
     await session.load { _, _ in second }
     await lateProgress.progress(3072)
     await lateProgress.finish(first)
-    await late.value
+    _ = await late.value
     await Task.yield()
     try expect(
       session.checkedBytes == 0 && session.file == second,
@@ -104,7 +104,7 @@ private actor ReadGate {
     await error.wait()
     await session.load { _, _ in second }
     await error.fail()
-    await failed.value
+    _ = await failed.value
     try expect(
       session.file == second && session.failure == nil && !session.loading,
       "An old error hid the current preview")
@@ -119,7 +119,7 @@ private actor ReadGate {
       "Stop did not cancel work and show a retryable state")
     await stopped.progress(3072)
     await stopped.finish(first)
-    await stopping.value
+    _ = await stopping.value
     await Task.yield()
     try expect(
       session.checkedBytes == 0 && session.file == nil && session.failure != nil,
@@ -134,7 +134,7 @@ private actor ReadGate {
     let taskCancelled = await taskGate.cancelled()
     try expect(taskCancelled, "Task cancellation did not reach the file reader")
     await taskGate.finish(second)
-    await task.value
+    _ = await task.value
     try expect(
       session.file == nil && session.failure == nil && !session.loading,
       "Cancelled task published a success or error")
@@ -142,7 +142,7 @@ private actor ReadGate {
     await session.load { _, _ in first }
     let beforeEntry = Task { await session.load { _, _ in second } }
     beforeEntry.cancel()
-    await beforeEntry.value
+    _ = await beforeEntry.value
     try expect(session.file == first, "A task cancelled before entry cleared the current file")
 
     let leaving = ReadGate()
@@ -150,7 +150,7 @@ private actor ReadGate {
     await leaving.wait()
     session.cancel()
     await leaving.fail()
-    await leaveTask.value
+    _ = await leaveTask.value
     try expect(
       session.file == nil && session.failure == nil && !session.loading,
       "A closed preview received a late failure")
@@ -173,7 +173,7 @@ private actor ReadGate {
       cancelledByRetry && session.reloadID != originalID && !session.loading,
       "Retry waited for SwiftUI to cancel the obsolete file read")
     await reload.finish(first)
-    await reloading.value
+    _ = await reloading.value
     try expect(session.file == nil, "The obsolete read published before the retry started")
     let previousID = session.reloadID
     session.reconnect(to: second)

@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-27",
+  "check": "human microphone dictation",
+  "result": "pass for the single requested English phrase",
+  "bundleIdentifier": "com.sevra.workbooks.native-preview",
+  "executableSHA256": "4340da04dd383ed553da4f23bf955f64bafceb67aa613a4ac48e1b9bc0310ac3",
+  "packagingSourceCommit": "0e45190d886ba84889261614820b58ed03035ff1",
+  "authorization": "Owner explicitly approved microphone and speech access and confirmed manual macOS Allow step complete.",
+  "requestedPhrase": "Create a receiving report",
+  "observedFinalComposer": "Create a receiving report",
+  "verification": [
+    "Owner confirmed speaking the phrase.",
+    "Native accessibility text showed the exact requested phrase in the composer.",
+    "Explicit Stop changed the microphone button back to Start dictation.",
+    "No Send action was performed; the empty conversation remained unchanged."
+  ],
+  "onDeviceContract": "Packaged SystemDictationDriver requires supportsOnDeviceRecognition and sets requiresOnDeviceRecognition=true. No audio artifact was retained.",
+  "limits": "One phrase on the reference Mac and current language. Not multilingual, long-session, noisy-room, all input devices or network-traffic qualification. The old package lacks the newer phase-specific status label.",
+  "testOverlap": "Ran during first context repair probe; that probe is retained as an uncontrolled functional observation. A second unchanged context replay ran with dictation stopped."
+}

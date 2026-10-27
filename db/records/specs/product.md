@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T16:01:01.483127+00:00
+updated: 2026-10-27T17:40:48.879068+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -184,3 +184,23 @@ finishes, preventing overlapping actions. A cancelled system permission wait
 releases the waiting UI immediately, and its eventual response cannot start work.
 Opening another workbook resets search, navigation, selections and table state.
 File pickers must still belong to the same active workbook when they return.
+
+## Background window refresh
+Periodic refresh and explicit catalog refresh run outside the UI actor. Read
+revision, spaces, recent-item metadata, datasets, conversation messages, chapter
+and bookmark menus, and intake state within one SQLite read transaction. Skip
+unchanged poll projections only after a matching view has actually loaded. A new
+workbook clears the old projection immediately; changing conversations clears old
+messages while loading the new conversation.
+
+Each window permits one active read and at most one pending replacement. Poll
+requests do not accumulate behind an active read; repeated explicit requests
+coalesce to the latest. Closing or changing workbook/conversation/anchor cancels
+obsolete work and refuses its later success or failure. Cancellation and the
+three-second read deadline include waiting for the workbook lock. Completed
+background mutations retain their existing durability and ownership rules.
+
+The header menus and Home intake sections render the snapshot rather than querying
+SQLite during view rendering. This change does not establish that every editor,
+viewer or explicit mutation is asynchronous, nor qualify whole-app latency/memory.
+The actual visible workbook-switch and interaction journeys remain required.

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-27T17:26:14.270638+00:00
+updated: 2026-10-27T17:40:48.858217+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -380,3 +380,27 @@ at least two real active checkpoints and successful portable verification. The
 cannot set completeComparisonPassed, clear the failed 64K reference, qualify
 C12/C13 or enable production compaction. Freeze code before execution and retain
 identities and failures.
+
+## Maintained v1 repair result, October 27
+Both maintained32K repair replays on frozen b1e6e5e pass the unchanged v1 fixture.
+Each completes twelve responses and four active checkpoints, saves exactly one
+Receiving review space and one draft/estimate memo, preserves all eight exact
+label/value associations, and retains every source in the draft lineage. Original
+items/heads, earlier messages, inventory bases/effects, export/reopen and integrity
+checks pass; native resources unload. An independent SQLite audit also confirms
+that fixture items match the original failed v1 fixture exactly.
+
+The first replay overlapped the explicitly approved human dictation test and is
+retained as an uncontrolled functional observation. Its original identity statement
+about the idle preview is corrected by an attached conditions addendum. The second
+runs with dictation stopped, no overlapping builds or workbook inference, and
+unchanged source/binary/helper/grammar identities. It is the controlled repair
+result. Their 251.02/339.46 seconds include verification and are not a latency
+comparison or throughput claim.
+
+This resolves the observed maintained-job fact-binding and duplicate-space failure
+for this fixture. It does not clear the earlier uncompressed64K failure or complete
+C12/C13, hostile/tail-only evidence, interruption or sustained-memory coverage.
+Automatic compaction remains disabled. Retained inputs, traces, conditions,
+independent audits and reopen hashes are in
+integration/evidence/2026-10-27-active-context-maintained-repair.json.gz.

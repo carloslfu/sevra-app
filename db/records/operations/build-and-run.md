@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T17:26:14.285083+00:00
+updated: 2026-10-27T17:40:48.912688+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -993,3 +993,14 @@ original failed two-arm comparison. Use a clean committed source tree, record
 source/binary/helper/grammar identities before and after, and run without another
 local build or inference process. All existing exact-fact, uniqueness, lineage,
 checkpoint, state and portable-copy assertions still apply.
+
+## Window refresh regression
+sevra-preview-checks now exercises the window refresh session as well as file
+previews and operation ownership. A deliberately blocked background reader must
+leave the UI actor responsive; one hundred timer ticks cannot add readers, three
+replacements coalesce to the newest conversation, and close/reopen excludes a late
+success or failure. Real workspace snapshots check coherent revision, changed versus
+unchanged polling, chapter/bookmark contents, conversation anchors, cancellation,
+deadline refusal and the subsequent successful read. The native app uses this same
+session and core snapshot API. These checks supplement, rather than replace,
+visible app and whole-process responsiveness measurements.

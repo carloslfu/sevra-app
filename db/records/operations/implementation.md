@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T17:26:14.300049+00:00
+updated: 2026-10-27T17:46:28.965946+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -19,47 +19,41 @@ the separate native preview uses the Python-free Swift adapter and pinned Splash
 C++/Metal. Native adoption and automatic compaction remain gated.
 
 - Search-grounding repairs pass deterministic regressions and the actual paired
-  block-3 replay: sixteen jobs, two Ready primes and 37 exact request pairs.
-  Empty searches cannot establish exhaustive absence, and the current request
-  cannot serve as independent evidence for the facts being sought.
+  block-3 replay. Empty searches cannot establish exhaustive absence, and the
+  current request cannot substitute for independent evidence being sought.
 - Native setup passed fresh download, cancellation/resume, verification and
-  explicit reuse on the recorded M5 Pro. Document editing/durability, generated
-  spaces, pinned versions, PDF/OCR/CSV intake and native media playback have
-  focused passing checks. They do not complete all end-to-end journeys.
-- Full W1 completed 260 correct jobs in twenty closed workers and met all four
-  timing thresholds, but exact token parity failed in one inventory warmup.
-  It remains a failed qualification. D9 now demonstrates variation within the
-  reference itself for an identical request/history; both new native repeats
-  match one reference. The evidence narrows diagnosis, not the release gate.
-- External asset opening now saves and opens an independent verified copy.
-  The 70 current core checks pass, including copy integrity/cancellation and
-  newly batched search snippets. The complete local suite and native release
-  build now pass on 48b1a30. Its hosted workflow is still running.
-- Linked-file hashing passed a headless >2 GiB test with bounded cancellation
-  and changed-original rejection. Workspace ownership, stale callback refusal,
-  live search cancellation and bounded Home metadata have regression coverage.
-  Native large-file, close/switch and external-copy journeys remain pending.
-- The first physical 100k search run had correct recall/paging and prompt
-  cancellation, but warm p95 was 204 ms for rows and 275 ms for document chunks,
-  above the 200 ms target. Bounded snippet batching now passes the full unchanged
-  protocol at 136.47/172.31 ms, with complete recall/paging and active cancellation.
-  Both runs are retained; whole-app and wider-device performance remain open.
-- Microphone/speech-recognition access is approved. Computer Use cannot operate
-  the macOS permission dialog, so the already-requested manual Allow step is
-  pending. Dictation is stopped. Actual human-phrase recognition remains open;
-  no repeated approval is needed. Fourteen injected lifecycle checks pass.
-- The actual active-job probe now exposes a compaction failure: three checkpoints
-  precede four misassociated values and a duplicate space. The 64K uncompressed
-  reference exceeds context. Both failures are retained; original data and
-  inventory are intact. Repair bounded evidence/artifact continuity next.
-  Broader accessibility, whole-app responsiveness/memory and fresh public-clone/
-  release journeys remain open.
+  explicit reuse on the reference M5 Pro. Focused document, space, intake, media
+  and packaged-resource checks pass; complete release journeys remain open.
+- W1 completed 260 correct jobs and met timing targets but failed exact token
+  parity once. D9 finds variation within the reference on an identical request;
+  the native repeats agree with one reference. Native adoption stays unqualified.
+- The unchanged full 100k search protocol now passes at warm p95 136.47 ms for
+  rows and 172.31 ms for document chunks, with correct paging and cancellation.
+  Retain the earlier failed run. Whole-app and wider-device performance are open.
+- The maintained32K context repair passes the unchanged eight-report v1 fixture
+  twice: exact associations, four checkpoints, one space/draft, all-source lineage,
+  unchanged originals/inventory and portable reopen. The first overlaps dictation;
+  the controlled second run does not. The earlier uncompressed64K failure and
+  remaining C12/C13 cases remain unresolved; compaction stays disabled.
+- Real microphone dictation captured the requested English phrase exactly, then
+  stopped without sending. Permissions were approved and manually granted. This
+  closes the basic single-phrase path, not every language/device/session case.
+- Window refresh, chapter menus and Home intake metadata now load off the UI actor
+  in a coherent snapshot. Tests pass for bounded pending reads, cancellation,
+  conversation scope and stale results. The rebuilt app shows CLI changes, keeps
+  tangent/main histories separate, and restores the workbook after close/reopen.
+- The text-driven Open a copy flow passed through Save and Open into TextEdit.
+  Editing the copy leaves the included asset byte-identical and workbook verified.
+  Headless >2 GiB linked verification also passes; real large-file/whole-app memory,
+  broader keyboard/VoiceOver, extraction isolation and release journeys remain.
 
-Next, fix the observed context-continuity failures and finish visible asset/voice
-checks when macOS access is available. Review the engine repeatability evidence before
-choosing the next native qualification step. Keep the design and failed evidence
-intact. [[records/specs/splash-integration]], [[records/specs/conversation-context]]
-and [[records/operations/build-and-run]] own the contracts and reproduction steps.
+The complete local suite and native release app/CLI build and package checks pass
+for this checkpoint. The latest hosted result remains 40544819323 on 48b1a30;
+newer source needs its own CI result. Next, finish native large-file/accessibility
+and extraction coverage, review the engine repeatability evidence before its next
+qualification step, and complete remaining context/hardware/release gates.
+[[records/specs/splash-integration]], [[records/specs/conversation-context]] and
+[[records/operations/build-and-run]] retain the contracts and failed evidence.
 ## Earlier checkpoint summaries, October 27
 
 The following passages retain earlier development states. Statements about tests
@@ -2179,3 +2173,54 @@ Hosted workflow 40544819323 on 48b1a30 completed successfully. This supersedes i
 in-progress status above. No new hardware dictation or visible external-copy
 result is claimed; the running native preview bundle is preserved while the
 manual macOS permission handoff remains pending.
+
+## Maintained context repair and live dictation, October 27
+Two real-model maintained32K repair replays on b1e6e5e pass every unchanged v1
+functional assertion: twelve responses, four checkpoints, exact eight-report
+associations, one space/draft, original and corrected packing values, all-source
+lineage, unchanged original history/inventory, integrity, portable reopen and
+successful unload. The first overlapped the approved human dictation test; an
+explicit conditions addendum preserves that departure. The second ran after
+recording stopped with no concurrent local build/inference. Both retain original
+identities and full traces. Independent audit confirms all fourteen fixture items
+match failed v1 and remain unchanged with their heads and earlier messages.
+Archive: integration/evidence/2026-10-27-active-context-maintained-repair.json.gz,
+191120 bytes; uncompressed SHA-256
+0516b45e4a9f92171f1ed2af438b9284092db2b4e0585417dd4d5f4155d57165.
+The earlier 64K failure and remaining C12/C13 cases remain unresolved.
+
+The owner completed macOS microphone/speech permission prompts. In the packaged
+0e45190 preview, real speech produced the exact requested phrase Create a receiving
+report in the composer. Explicit Stop restored the Start dictation control. The
+message was not sent. The driver requires on-device recognition; no audio artifact
+was retained. This passes the single-phrase hardware path, not multilingual,
+long-session or noisy-room qualification. Evidence with executable identity:
+integration/evidence/2026-10-27-live-dictation.json. No further permission approval
+is needed for this already authorized test scope.
+
+## Background refresh and copy UI verification, October 27
+The new window snapshot/session passes focused preview checks and the complete
+scripts/check.sh suite on runtime sources at 7de4843. The suite retains 73 core
+checks, 15 document lifecycle checks, 14 voice lifecycle checks and the native
+adapter/tokenizer/grammar/agent/search/performance refusal checks. Removed unused
+Bool-result warnings in the preview test harness, then rebuilt and reran that
+focused suite. Native release app and CLI builds pass without warnings.
+
+Repackaged only after confirming the prior preview process had closed. Installed
+resource checks with build-tree access denied, nine missing resources, altered
+Metal refusal, missing-model guidance and strict signature checks pass. Both
+products load 1888 Metal functions; no baseline/Python inference symbols are
+linked. The preserved baseline app is unchanged.
+
+In the rebuilt preview, a new synthetic workbook loaded Home; the text command
+open a copy displayed the native Save and Open panel and opened the chosen copy
+in TextEdit. Editing/saving that copy changed its hash, while source and included
+asset hashes stayed unchanged and integrity passed. A CLI-created source appeared
+on Home through polling. A text-created tangent showed its own messages, returning
+to main restored the original history, and close/reopen retained the saved data.
+The new microphone control exposes its Local AI idle state; dictation stayed off.
+
+Logs, exact commands, binary hashes and focused UI/audit observations are retained
+in integration/evidence/2026-10-27-context-refresh-ui-verification.json.gz. These
+checks do not qualify large-file rendering/memory, every synchronous editor action,
+VoiceOver, all keyboard journeys or release installation.
