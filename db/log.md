@@ -385,3 +385,15 @@ Completed D9: 12 correct jobs, 4 closed workers, reference output varies under i
 ## [2026-10-27 16:50] implementation | records/operations/implementation.md
 Batch snippets within bounded FTS row ranges, preserving exact passages and ranking. 70 core checks pass; full 100k and regression run pending. Refresh current status after D9.
 
+## [2026-10-27 16:53] verification | records/specs/search.md
+Full committed search-scale-v2 passes on M5 Pro: warm 100k p95 136.47 ms rows / 172.31 ms document chunks, complete paging and active cancellation. Both before/after runs preserved; no whole-app or wider-hardware claim.
+
+## [2026-10-27 16:56] verification | records/operations/implementation.md
+Full 48b1a30 regression and native release build pass; retained complete logs. Old packaged app remains open for the authorized but manual OS permission step.
+
+## [2026-10-27 16:58] verification | records/operations/implementation.md
+Preserve the active-context wrong-root setup refusal; corrected frozen 32K/64K functional probe running. No context or adoption pass claimed.
+
+## [2026-10-27 17:10] verification | records/operations/implementation.md
+Actual active-job v1 fails: 32K misassociates four values and duplicates its space after three checkpoints; 64K exceeds context. Both unload, originals/inventory intact. Preserve receipts/audit and specify bounded exact-evidence/artifact repair.
+

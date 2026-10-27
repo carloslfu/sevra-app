@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-27T13:58:52.637905+00:00
+updated: 2026-10-27T17:10:29.073831+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -318,3 +318,31 @@ native metrics; configured capacity is not occupancy. Cancellation/process death
 concurrent acceptance changes, tangents, hostile content and sustained memory
 remain separate C12/C13 cases. Existing passing continuity/checkpoint checks do not
 waive this new single-job coverage requirement.
+
+## Active-job v1 result and repair boundary, October 27
+The first correctly configured run on frozen 48b1a30 failed both arms. The 32K
+maintained job completed twelve responses and three active checkpoints, but saved
+four report clearances under the wrong CHECK labels and created Receiving review
+twice. Its draft remained an estimate. The 64K uncompressed arm completed eight
+responses, reached a largest successful prompt of 60455 tokens, then refused a
+request that exceeded context. It created no receiving draft. Both unloaded.
+All fourteen original items/heads, inventory effects and starting balances were
+unchanged; both workbooks pass integrity. Full C12/C13 and compaction stay disabled.
+
+The trace shows that large read results become historical references during
+maintenance, while the host continuation projection omits their bounded source
+text and completed space titles. This is a concrete information-loss boundary,
+not proof that a prompt change alone will solve the observed errors. The next
+repair must retain bounded, exact, explicitly partial source excerpts with their
+version/receipt identities and current-vs-historical state, plus host-derived
+identities/titles for already saved artifacts. Treat quoted source content as
+untrusted evidence, never new instructions. Do not admit summary prose as truth,
+load all originals, retain stale acceptance, or replay completed creations.
+
+Add deterministic scope/bounds/stale-state/duplicate-artifact regressions before
+retesting the actual maintained job. Preserve the failed 64K comparison; do not
+increase its capacity or silently remove it to call v1 passed. Any smaller fixture
+or narrower repair-only probe must have its own explicit scope and retained v1
+comparison. Evidence and independent state audit:
+integration/evidence/2026-10-27-active-context-first-full.json.gz and
+integration/evidence/2026-10-27-active-context-first-full-audit.json.

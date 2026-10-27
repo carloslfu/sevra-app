@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-27T15:23:23.441985+00:00
+updated: 2026-10-27T16:53:26.748466+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -194,3 +194,26 @@ A source-level self-check cannot qualify physical hardware, native UI, occupied
 model contexts or OS-cold performance. Run the full release binary without other
 inference/build activity and review power/thermal conditions before declaring Q14
 qualified. The output itself does not automatically declare performance adoption.
+
+## Bounded snippet retrieval and measured scale
+The ranking query still considers the complete matching set. Snippets are computed
+only for displayed hits, grouped into spans of fewer than 4096 row IDs. Within a
+group, rowid range constraints seek the FTS index and unary-plus membership filters
+reuse its cursor. This avoids restarting MATCH per result while bounding sparse
+ranges. The read transaction, cancellation budget, exact locators and filename-only
+excerpt fallback remain intact. No recall limit or new database schema is added.
+
+The full search-scale-v2 run on committed 48b1a30 passed on the reference M5 Pro
+with 48 GiB RAM. Warm nearest-rank p95 was 136.47 ms for 100k dataset rows and
+172.31 ms for 100k document chunks (1000 documents), both below 200 ms. The 10k
+runs, all correctness samples and complete 1000-document paging also passed.
+Cancellation interrupted active 100k searches and preserved subsequent reads.
+The 36 measured source hashes and release binary stayed unchanged, the host
+remained on AC with nominal thermal state, and no local build/inference overlapped.
+
+This qualifies the stated synthetic warm-search target on this reference Mac;
+first-pass measurements are not an OS-cold cache test. It does not establish
+whole-app responsiveness, all corpora, semantic recall or other hardware. Preserve
+the earlier failed 204/275 ms baseline and both raw archives in
+integration/evidence/2026-10-27-search-scale-v2-first-full.json.gz and
+integration/evidence/2026-10-27-search-scale-v2-batched-snippets.json.gz.

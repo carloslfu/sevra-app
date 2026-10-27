@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T16:50:00.216784+00:00
+updated: 2026-10-27T17:10:29.109319+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -33,26 +33,30 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   match one reference. The evidence narrows diagnosis, not the release gate.
 - External asset opening now saves and opens an independent verified copy.
   The 70 current core checks pass, including copy integrity/cancellation and
-  newly batched search snippets. Earlier full native builds and hosted checks
-  passed; the newest search change still needs its full suite/build.
+  newly batched search snippets. The complete local suite and native release
+  build now pass on 48b1a30. Its hosted workflow is still running.
 - Linked-file hashing passed a headless >2 GiB test with bounded cancellation
   and changed-original rejection. Workspace ownership, stale callback refusal,
   live search cancellation and bounded Home metadata have regression coverage.
   Native large-file, close/switch and external-copy journeys remain pending.
 - The first physical 100k search run had correct recall/paging and prompt
   cancellation, but warm p95 was 204 ms for rows and 275 ms for document chunks,
-  above the 200 ms target. Bounded snippet batching is implemented and tested;
-  a fresh full measurement is next. No scale-latency pass is claimed yet.
+  above the 200 ms target. Bounded snippet batching now passes the full unchanged
+  protocol at 136.47/172.31 ms, with complete recall/paging and active cancellation.
+  Both runs are retained; whole-app and wider-device performance remain open.
 - Microphone/speech-recognition access is approved. Computer Use cannot operate
   the macOS permission dialog, so the already-requested manual Allow step is
   pending. Dictation is stopped. Actual human-phrase recognition remains open;
   no repeated approval is needed. Fourteen injected lifecycle checks pass.
-- Actual-model occupied-context and repeated-compaction probes are prepared but
-  not qualified. Broader accessibility, whole-app responsiveness/memory and
-  fresh public-clone/release journeys remain open.
+- The actual active-job probe now exposes a compaction failure: three checkpoints
+  precede four misassociated values and a duplicate space. The 64K uncompressed
+  reference exceeds context. Both failures are retained; original data and
+  inventory are intact. Repair bounded evidence/artifact continuity next.
+  Broader accessibility, whole-app responsiveness/memory and fresh public-clone/
+  release journeys remain open.
 
-Next, measure the search repair, complete the visible asset and voice checks when
-macOS access is available, and review the engine repeatability evidence before
+Next, fix the observed context-continuity failures and finish visible asset/voice
+checks when macOS access is available. Review the engine repeatability evidence before
 choosing the next native qualification step. Keep the design and failed evidence
 intact. [[records/specs/splash-integration]], [[records/specs/conversation-context]]
 and [[records/operations/build-and-run]] own the contracts and reproduction steps.
@@ -2078,3 +2082,85 @@ Seventy core checks pass, including a new sparse/dense/filename-only/diacritic
 fixture comparing exact snippets, locators and ranks across page sizes. The
 full 100k measurement remains pending at this checkpoint. The earlier failed
 latency result is preserved.
+
+## Full search-scale repair verification, October 27
+The complete unchanged search-scale-v2 protocol passed on clean committed
+48b1a30418e61b05983e0db5cb31f81f877735c8. Warm p95 fell from 203.99 to 136.47 ms for
+100k rows and from 275.29 to 172.31 ms for 100k document chunks. The 10k results
+were 8.38 and 11.75 ms. All sampled recall assertions passed, and document paging
+visited exactly 1000 unique documents in 34 pages at both scales.
+
+Stop interrupted the active 100k calls in 0.081 ms (rows) and 0.205 ms (documents),
+followed by successful reads at the same workbook revision. These are call-level
+measurements, not UI response measurements. The 193 process samples had no errors,
+nominal thermal state and an observed peak physical footprint of 144147176 bytes.
+The host remained on AC with no overlapping local builds/inference; its idle preview
+app and unrelated OS activity were uncontrolled. All 36 source hashes match the
+recorded commit and end-of-run identity; the release executable is unchanged.
+
+This completes the synthetic reference-Mac warm latency/recall/cancellation target,
+not OS-cold, whole-app, all-corpus or wider-device qualification. Full regression
+is running separately after the benchmark. Archive:
+integration/evidence/2026-10-27-search-scale-v2-batched-snippets.json.gz (30141 bytes),
+SHA-256 dd7ae1f33b09e622859ab07d01a979ff49816ec9102db73093dc3cc1264151c2;
+uncompressed SHA-256 8d74730632d3d625eedcbdd84f315e51011ead4582cbc9ab0de1acbb868ef2cb.
+The earlier failed full run remains preserved. No repeated benchmark or broader
+speed claim follows without a new change or unresolved concern.
+
+## Search repair full regression and native build, October 27
+On 48b1a30, scripts/check.sh completed with exit 0, including 70 core checks,
+15 document lifecycle checks, 14 voice lifecycle checks, 30 native adapter/setup
+checks, the exact tokenizer/stream/grammar fixtures, search/preview/product
+lifecycle checks, performance-report refusals, link gate and full dbmd validation.
+The native release SevraDesktop build also completed with no warnings. Logs and
+commands are retained in integration/evidence/2026-10-27-search-snippets-regression.json.gz.
+
+This compiled build is newer than the packaged preview currently open for the
+human macOS-permission handoff. It has not replaced that running bundle and does
+not establish hardware dictation or the new visible external-copy journey. Hosted
+workflow 40540174787 on 75cb253 passed; the latest 48b1a30 workflow is still running.
+The search performance run ended before regression/build work resumed.
+
+## Actual active-job context probe started, October 27
+The first invocation on frozen 48b1a30 supplied the resolved assembly instead of
+the installation root. Both arms stopped before inference with a model-assembly
+lookup refusal and unloaded. Source, binary, engine and grammar identities stayed
+unchanged. This is invalid setup, not a context outcome. Full receipts:
+integration/evidence/2026-10-27-active-context-wrong-root.json.gz.
+
+The corrected invocation uses the installation root with its selected-pack
+symlink, unchanged installed weights, the same debug worker and frozen fixture.
+It runs the specified 32K maintenance and 64K reference arms sequentially, with
+no overlapping local builds/inference. The 32K job has reached two real active
+checkpoints; final correctness and the reference arm are still pending. Original
+failures remain retained. This does not enable compaction or satisfy C12/C13 in
+full. Final results must replace this in-progress status before assessing success.
+
+## Active-job v1 fails exact facts and uncompressed capacity, October 27
+The corrected actual-model run on frozen 48b1a30 is complete. Maintained32K used
+twelve responses and three active checkpoints, then reported completion and saved
+one draft. Independent inspection finds four swapped label/value associations:
+CEDAR 0.35 vs expected 0.31 mm, IRIS 0.34 vs 0.32, WILLOW 0.32 vs 0.34, and BIRCH
+0.31 vs 0.35. It also created two Receiving review spaces. The saved draft has
+thirteen real lines; this is not a newline-parsing false failure. Its status and
+meaning remain draft/estimate. The first assertion failure prevented later
+in-probe assertions; the independent audit supplies the additional duplicate and
+state findings without claiming the skipped assertions passed.
+
+Uncompressed64K completed eight responses and reached 60455 observed prompt
+tokens, then failed with Prompt exceeds the native context limit. It created one
+working space and no memo. The two arms took 226.19 and 254.64 seconds including
+verification; these are functional observations, not latency qualification.
+Both models unloaded and no native helper remained. Sources, debug binary, engine
+and grammar stayed unchanged. Both workbook integrity checks pass. Independent
+SQLite inspection confirms all fourteen original items and their heads, plus
+inventory effects and starting balances, are unchanged in each arm.
+
+Archive: integration/evidence/2026-10-27-active-context-first-full.json.gz,
+161649 bytes, SHA-256 c76f2e3bde683d1a6f5c01cae1a3f62a8d00ee7b3325f3acea817b3dbb6e4c17;
+independent findings: integration/evidence/2026-10-27-active-context-first-full-audit.json.
+The wrong-root setup attempt is separately retained. No C12/C13 or automatic
+compaction pass follows. Next repair is the bounded original-evidence and
+completed-artifact projection described in [[records/specs/conversation-context]],
+then an explicitly scoped actual-model recheck. The failed 64K reference remains
+visible and must not be silently enlarged, dropped or relabeled as a pass.

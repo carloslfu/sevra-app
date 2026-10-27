@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T15:23:23.400802+00:00
+updated: 2026-10-27T16:56:42.516231+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -930,7 +930,7 @@ microphone/speech permission. See [[records/operations/implementation]] for the
 recorded candidate and its remaining limits.
 
 ## Active-job context comparison
-Prepared C12 subset; compilation and real-model execution are pending. Run only
+C12 subset; compilation passes. Record each actual-model result separately. Run only
 when no other model or performance cohort owns the host:
 
 ~~~sh
@@ -951,6 +951,12 @@ original records, checkpoint boundaries and native helper cleanup. A passing
 functional result does not enable product compaction or qualify whole-app memory.
 See [[records/specs/conversation-context]] for the frozen job and acceptance scope.
 
+Pass the installation root containing the selected model-name symlink and
+.snapshots/.resolved directories. Do not pass the resolved assembly directory
+itself: installed-model lookup adds the selected pack name. An initial October 27
+probe used the wrong level and correctly stopped before loading either arm. The
+failed setup receipts are retained; correcting the command does not change the
+model, engine, fixture or context thresholds.
 ## Large linked-file preview verification
 
 Build sevra-preview-checks, then run:
