@@ -484,6 +484,7 @@ private final class NativeWorker: @unchecked Sendable {
       "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
       "promptTokens": .number(Double(prompt.tokens.count)),
       "matchedPromptTokens": .number(Double(matchedPromptTokens)),
+      "deduplicatedKVTokens": .number(Double(generated.done.deduplicated)),
       "contextTokens": .number(Double(budget.contextTokens)),
       "maintenanceThreshold": .number(Double(budget.maintenanceThreshold)),
       "maintenanceRecommended": .bool(allowance.maintenanceRecommended),

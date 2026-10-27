@@ -3,7 +3,7 @@ type: research
 meta-type: conclusion
 id: 01m5rbxzbx5q4atmjp4471w04d
 created: 2026-10-25T01:48:47.357164+00:00
-updated: 2026-10-26T18:15:34.528007+00:00
+updated: 2026-10-27T08:46:46.778918+00:00
 summary: Primary sources for SQLite retrieval/durability, native readers, on-device voice and current Slotstream integration.
 title: Foundation research
 ---
@@ -76,3 +76,10 @@ requiresOnDeviceRecognition. The development implementation limits inputs to
 60 seconds and publishes timestamped chunks only after final success.
 [Capability](https://developer.apple.com/documentation/speech/sfspeechrecognizer/supportsondevicerecognition),
 [request](https://developer.apple.com/documentation/speech/sfspeechrecognitionrequest/requiresondevicerecognition).
+
+## Pinned engine numerical and cache conditions
+Pinned Splash 1.4.1 documents that numerical results depend on prefill chunking and the rows computed together. Even with verify-rows all, matching output requires matching cached prefixes, and cached KV can be substituted after a request begins even when its initial cache hit is zero. The initial matched-prefix count therefore is not a complete cache identity. A unique cache salt prevents sharing with other requests but does not remove all chunking differences when memory limits state capture. This is upstream's stated execution model, not proof of the cause of Sevra's observed divergence.
+
+Primary source: [pinned sampling documentation](https://github.com/incoai/splash/blob/1744cfafee415fb463b289449cec59a864e768e9/DEVELOPMENT.md#sampling). Local source SHA256: cb7a903da01bc3cdb73783e2b50072dba8c0660c3c902380732e37f6cd63dd52. Its state-precision section says the default recurrent state is FP32; do not attribute this run to optional BF16 state rounding. The runtime Done response reports deduplicated KV tokens separately from Start's matched-prefix count; preserve both in native and reference receipts.
+
+Sevra's controlled reference diagnostic reproduced two different successful answers at an identical request frame with a 2 ms wait before returning each upstream-produced mask. The delay wrapper does not modify that buffer; this does not prove that every mask across the two complete live runs was identical. The no-tracing control also matched native in this later run, so the earlier tracing-on/off association was not a sufficient causal explanation. Do not call this an adapter or engine bug, waive an acceptance gate, or add a delay to the product on that evidence alone. See [[records/specs/splash-integration]] and [[records/operations/implementation]].

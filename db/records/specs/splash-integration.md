@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T08:20:31.357519+00:00
+updated: 2026-10-27T08:52:05.315623+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -343,3 +343,10 @@ Instrumented timings cannot qualify W1, even if all jobs pass or a summary is ca
 
 ## Diagnostic evidence limits, October 27
 The traced W1 pilot matched all 42 request/output sequences and all 16,130 shared mask prefixes. Turning tracing off on the same reference build restored the older reference output, including its four same-wire differences from native. Therefore a matching diagnostic trace does not clear the uninstrumented parity gate. Preserve both results and isolate mask-response pacing, observation serialization and command/cache effects separately. Do not introduce an artificial product delay or redefine a successful pilot as a qualified comparison. The unchanged native engine remains pinned, and production adoption remains disabled. See [[records/operations/implementation]] for exact evidence and limits.
+
+## Cache-equivalent comparison conditions
+Record both matchedPromptTokens from native Start and deduplicatedKVTokens from Done. The latter includes KV substituted later, beyond the state restored at startup. It is not another name for the initial hit count. Counts are diagnostics, not cached-byte identities, and can include prior generated tokens where full token prefixes match. Check the complete prior prompt/output history before attributing their positions.
+
+The observed W1 differences include unequal later cache reuse at equal initial prefix counts. Preserve W1 as a failed comparison and do not attribute its differing answers to Swift or qualify its timings as identical-computation evidence. Pinned upstream numerical conditions are summarized in [[records/research/foundations]].
+
+The preregistered fresh-worker isolation pilot I1 removes cross-workflow history by giving each workload/backend pair a new process. It retains the same real workbook tasks, exact requests and generated outputs, 32K context, bounded512 reasoning, 12 GiB memory, masks, output validation and formula review/undo. It adds explicit initial/later cache-counter comparison, with missing data treated as unknown. It cannot qualify performance or adoption. A passing isolated pilot must lead to a separately reviewed and preregistered qualifying protocol, while mixed-workload robustness remains required. See integration/performance/workflow-isolation-pilot.json and [[records/operations/implementation]].

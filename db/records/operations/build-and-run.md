@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T08:21:35.846876+00:00
+updated: 2026-10-27T08:55:08.373365+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -651,3 +651,26 @@ python3 -c 'import gzip,json; print(json.load(gzip.open("integration/evidence/di
 ```
 
 The inspection command reads the compressed JSON without creating or overwriting files. Do not overwrite existing published evidence. The October 27 diagnostic archive has a verified byte-identical round-trip; its uncompressed checksum is recorded in the progress register.
+
+## Observation and later-cache diagnostics
+The observation controls are development-only and do not add a setting to the installed product. They require the exact native worker build/source recorded by their baseline; the reference observation code is the explicit intervention and gets a new source identity. Each fresh reference worker runs Ready and the four warmups only.
+
+```sh
+python3 scripts/probe_workflow_observation.py \
+  --baseline .build/workflow-performance/masks1 \
+  --output .build/workflow-performance/observation-new
+python3 scripts/check_workflow_diagnostics.py
+```
+
+Modes are none, hash-no-payload and delay-2ms. An optional --modes argument selects a unique subset. All preserve the upstream-produced mask buffer. The default no-observation mode performs no diagnostic hashing or delay. Any intervention result is marked diagnostic and excluded from qualification. The baseline masks1 worker predates the later cache metric; rebuilding that target changes its hash and correctly makes this old-baseline command refuse. Use a newly recorded matching baseline for a later build; never bypass the identity check.
+
+The native and reference request metrics now retain matchedPromptTokens and deduplicatedKVTokens. A normal uninstrumented workflow pilot records both. The October 27 cache1 pilot's raw summary and loaded source are preserved separately from the later parameter-validation refactor. I1 is preregistered but its runner and result are still pending.
+
+Inspect a complete cache-counter pilot with the reusable analyzer:
+
+```sh
+python3 scripts/analyze_workflow_cache.py .build/workflow-performance/cache1 \
+  --output .build/workflow-performance/cache1/cache-review-new.json
+```
+
+It verifies prompt-array hashes, refuses missing cache counters and incomplete workers, and compares each prompt/output prefix against every earlier request in that fresh sequential worker. Counts and prefix bounds are not cached-byte identities. The output is diagnostic and cannot qualify adoption.

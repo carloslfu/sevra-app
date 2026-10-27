@@ -47,6 +47,21 @@ def workbook_grammar(grammar):
     return ''.join(pieces) + remaining
 
 
+def diagnostic_settings(config):
+    """Validate evaluation-only observation controls before model startup."""
+    mode = config.get('diagnosticMaskMode', 'hash')
+    if mode not in ['hash', 'delay']:
+        raise ValueError('Unknown diagnostic mask mode')
+    delay = config.get('diagnosticMaskDelaySeconds', 0)
+    if not isinstance(delay, (float, int)) or isinstance(delay, bool) or not 0 <= delay <= 0.01:
+        raise ValueError('Invalid diagnostic mask delay')
+    if mode == 'hash' and delay != 0:
+        raise ValueError('A delay requires the explicit delay diagnostic mode')
+    if mode == 'delay' and (not config.get('diagnosticMasks') or delay <= 0):
+        raise ValueError('A delay requires enabled diagnostics and a positive interval')
+    return mode, delay
+
+
 def main():
     import os
     import base64
@@ -54,6 +69,7 @@ def main():
     import hashlib
     import struct
     config = json.loads(Path(sys.argv[1]).read_text())
+    mask_mode, delay = diagnostic_settings(config)
     from splash_reference_identity import verify
     sys.path.insert(0, str(verify(ROOT, Path(config['assembly']) / 'tokenizer')))
     began = time.monotonic()
@@ -94,6 +110,9 @@ def main():
                 return provide
             def observed(event):
                 masks = provide(event)
+                if mask_mode == 'delay':
+                    time.sleep(delay)
+                    return masks
                 committed = list(self.tokens)
                 width = event.words_per_mask * 4
                 for index in range(len(event.simulation_tokens) + 1):
@@ -173,10 +192,12 @@ def main():
                   'decodeSeconds': result.first_token_to_done_ms / 1000,
                   'promptTokens': job.prompt_tokens, 'generationTokens': job.generation_prompt_tokens,
                   'matchedPromptTokens': result.cache.matched_tokens,
+                  'deduplicatedKVTokens': result.cache.deduplicated_tokens,
                   'tokens': backend.tokens, 'text': collected.content,
                   **({'requestFrame': backend.request_frame} if config.get('workflowQualification') else {}),
                   **({'maskTrace': backend.mask_trace, 'grammar': frontend.constraint_factory.last_grammar}
-                     if config.get('diagnosticMasks') else {}),
+                     if config.get('diagnosticMasks') and mask_mode == 'hash'
+                     and config.get('diagnosticEmitMasks', True) else {}),
                   'reasoning': collected.reasoning, 'calls': calls,
                   'finish': {'stop': 0, 'length': 1, 'cancelled': 2}[result.reason],
                   'bounded': result.bounded, 'drafted': result.drafted_tokens,

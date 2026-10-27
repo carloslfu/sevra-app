@@ -129,6 +129,7 @@ actor ReferenceModel: WorkbookInference {
       "backend": .string("splash-python-reference"), "toolScope": .string(toolScope.rawValue),
       "promptTokens": .number(Double(row["promptTokens"].array.count)),
       "matchedPromptTokens": row["matchedPromptTokens"],
+      "deduplicatedKVTokens": row["deduplicatedKVTokens"],
       "contextTokens": .number(32768),
       "outputBudget": .number(1800), "reasoningBudget": .number(512),
       "requestSeconds": row["completeSeconds"], "firstTokenSeconds": row["firstTokenSeconds"],

@@ -216,6 +216,8 @@ def summarize(results, protocol, pilot, diagnostic_masks=False):
         for result in results
         for job in [(result.get('ready') or {}).get('prime', {})] + result.get('rows', [])
         for request in job.get('trace', {}).get('requests', []))
+    diagnostic_observation = any(result.get('diagnosticObservation') for result in results)
+    instrumented = diagnostic_masks or diagnostic_observation
     expected_blocks = 1 if pilot else protocol['blocks']
     repetitions = 1 if pilot else protocol['repetitionsPerWorkloadPerBlock']
     excluded, problems = {}, []
@@ -289,9 +291,10 @@ def summarize(results, protocol, pilot, diagnostic_masks=False):
                    and ratios['p95Seconds'] <= 1 + protocol['gate']['maximumP95Regression'])
         comparisons.append({'id': name, 'stats': stats, 'ratios': ratios, 'latencyThresholdsMet': latency})
     return {'pilot': pilot, 'diagnosticMasks': diagnostic_masks,
-            'timingsEligibleForQualification': not pilot and not diagnostic_masks, 'problems': problems, 'excludedPairedBlocks': excluded,
+            'diagnosticObservation': diagnostic_observation,
+            'timingsEligibleForQualification': not pilot and not instrumented, 'problems': problems, 'excludedPairedBlocks': excluded,
             'identicalPairedPrompts': paired, 'identicalGeneratedTokens': tokens_equal, 'comparisons': comparisons,
-            'workflowGatePassed': not pilot and not diagnostic_masks and not problems and not excluded and paired and tokens_equal
+            'workflowGatePassed': not pilot and not instrumented and not problems and not excluded and paired and tokens_equal
                                   and all(c['latencyThresholdsMet'] for c in comparisons),
             'productionAdoption': False}
 

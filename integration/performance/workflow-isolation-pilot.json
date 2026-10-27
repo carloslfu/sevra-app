@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "name": "Fresh-worker complete-workbook isolation pilot I1",
+  "date": "2026-10-27",
+  "state": "preregistered-diagnostic-before-implementation",
+  "purpose": "Test whether removing cross-workflow cache history makes native/reference computation comparable. W1 remains failed and preserved; this pilot cannot qualify adoption or performance.",
+  "workloads": ["supplier_space", "formula_review", "inventory_evidence", "missing_evidence"],
+  "contextTokens": 32768,
+  "maximumPromptTokens": 24000,
+  "memoryBytes": 12884901888,
+  "reasoningTokens": 512,
+  "maximumOutputTokens": 1800,
+  "seed": 42,
+  "temperature": 0,
+  "workerScope": "A fresh helper and frontend process for each workload/backend pair. Use the existing deterministic Ready prime with seed 0, followed by one warmup of this workload with fixture seed 1 and one measured repetition with fixture seed 2. Do not run any other workload in that process.",
+  "order": "Visit the four listed workloads in order. Alternate native/reference worker order between workloads. All workers are sequential and release the actual shared inference lease before the next starts.",
+  "conditions": "Use the same pinned helper, grammar library, target/draft bytes and uninstrumented frontends as W1. Foreground priority, verify-rows all, persistent cache off. No mask hashing, injected delay or diagnostic payload. No overlapping inference, builds or downloads. AC power required; preserve thermal, power, swap and complete process-footprint samples.",
+  "comparison": "Require every Ready, warmup and measured job to succeed, matching starting workbook state, exact prompt/prefix/request bytes and generated tokens. Record both initial matched-prompt tokens and later deduplicated KV tokens at every step; missing or different counters mean cache comparability is not established. Equal counters still do not prove byte-identical cached state. Compare complete job latency descriptively, including corrections and formula acceptance/edit/undo. Do not claim a performance result from one sample.",
+  "failure": "Keep all partial/failed jobs, outputs, exact identities, sampling and cleanup results. A successful isolated pilot would motivate a separately preregistered qualifying protocol; it would not erase W1's shared-cache findings or remove mixed-workload robustness testing.",
+  "scopeLimits": "This isolates cross-workflow cache history, not every source of numerical variation, within-workflow cache activity, hardware support, UI responsiveness or model correctness. Do not change the engine, add a product delay, disable product caching, or relax semantic validation to make the pilot pass.",
+  "performanceQualification": false,
+  "productionAdoption": false
+}

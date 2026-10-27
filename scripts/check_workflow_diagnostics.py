@@ -5,6 +5,15 @@ from analyze_workflow_masks import compare_request, mask_index, token_hash
 from compare_workflow_performance import summarize
 from check_workflow_performance import results, protocol
 from check_workflow_repeatability import compare as compare_replay
+from probe_workflow_observation import compare as compare_observation
+from splash_performance_reference import diagnostic_settings
+from analyze_workflow_cache import longest_prefix
+
+# Reuse can extend into generated tokens when an earlier complete sequence
+# matches. Looking only at earlier prompt lengths would miss that distinction.
+assert longest_prefix([1, 2, 3, 4], [[1, 2, 3, 4, 5]]) == 4
+assert longest_prefix([1, 2, 3, 4], [[1, 2, 9], [1, 8, 3]]) == 2
+assert longest_prefix([1, 2], []) == 0
 
 # Even a complete otherwise passing cohort cannot qualify with tracing enabled.
 report = summarize(results, protocol, False, diagnostic_masks=True)
@@ -13,6 +22,31 @@ forgotten_flag = copy.deepcopy(results)
 forgotten_flag[0]['rows'][0]['trace']['requests'][0]['maskTrace'] = [{'observed': True}]
 report = summarize(forgotten_flag, protocol, False)
 assert report['diagnosticMasks'] and not report['workflowGatePassed']
+forgotten_mode = copy.deepcopy(results)
+forgotten_mode[0]['diagnosticObservation'] = 'delay-2ms'
+report = summarize(forgotten_mode, protocol, False)
+assert report['diagnosticObservation'] and not report['workflowGatePassed']
+assert not report['timingsEligibleForQualification']
+
+assert diagnostic_settings({}) == ('hash', 0)
+assert diagnostic_settings({'diagnosticMasks': True, 'diagnosticMaskMode': 'delay',
+                            'diagnosticMaskDelaySeconds': .002}) == ('delay', .002)
+for config in [
+    {'diagnosticMaskMode': 'unknown'},
+    {'diagnosticMaskDelaySeconds': -.001},
+    {'diagnosticMaskDelaySeconds': float('nan')},
+    {'diagnosticMaskDelaySeconds': float('inf')},
+    {'diagnosticMaskDelaySeconds': True},
+    {'diagnosticMaskDelaySeconds': .02},
+    {'diagnosticMaskDelaySeconds': .002},
+    {'diagnosticMaskMode': 'delay', 'diagnosticMaskDelaySeconds': .002},
+    {'diagnosticMasks': True, 'diagnosticMaskMode': 'delay', 'diagnosticMaskDelaySeconds': 0},
+]:
+    try:
+        diagnostic_settings(config)
+        raise AssertionError('Invalid observation mode was accepted')
+    except ValueError:
+        pass
 
 pilot = copy.deepcopy(results[0])
 pilot['rows'] = pilot['rows'][:8]
@@ -20,6 +54,17 @@ for job in [pilot['ready']['prime']] + pilot['rows']:
     for req in job['trace']['requests']:
         req['metrics'] = {'matchedPromptTokens': 0}
 assert compare_replay(pilot, pilot, protocol)['exactNativeReplay']
+assert compare_observation(pilot, pilot)['sameTokens']
+different = copy.deepcopy(pilot)
+different['rows'][0]['trace']['requests'][0]['tokens'] = [99]
+assert not compare_observation(pilot, different)['sameTokens']
+assert compare_observation(pilot, different)['sameRequests']
+different['rows'][0]['seed'] = 999
+try:
+    compare_observation(pilot, different)
+    raise AssertionError('Different observer job schedules were compared')
+except ValueError:
+    pass
 for mutate in [
     lambda r: r['rows'].pop(),
     lambda r: r['rows'][0].update(seed=999),
