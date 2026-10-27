@@ -1,0 +1,2198 @@
+{
+  "cases": [
+    {
+      "body": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "frequency_penalty": 0,
+        "max_tokens": 512,
+        "messages": [
+          {
+            "content": "Follow the request exactly. Do not add an introduction or commentary.",
+            "role": "system"
+          },
+          {
+            "content": "Repeat the following paragraph exactly, without quotes:\nA workbook keeps the evidence beside the result. Original documents remain available, and each derived value points to the inputs used to produce it. A forecast describes an estimate even after someone accepts it. A completed sale changes inventory only once. Changing a quantity should recalculate a formula, while an explicitly pinned view preserves its earlier values. When a search returns nothing, report the query and its limits instead of claiming that the event never happened. Clear ownership, visible history and reversible edits help people check the work. Local processing keeps the task close to the files and allows the same document to remain useful without an online service.",
+            "role": "user"
+          }
+        ],
+        "min_p": 0,
+        "parallel_tool_calls": false,
+        "presence_penalty": 0,
+        "preserve_thinking": false,
+        "repetition_penalty": 1,
+        "seed": 42,
+        "temperature": 0,
+        "top_k": 0,
+        "top_p": 1
+      },
+      "expected": {
+        "text": "A workbook keeps the evidence beside the result. Original documents remain available, and each derived value points to the inputs used to produce it. A forecast describes an estimate even after someone accepts it. A completed sale changes inventory only once. Changing a quantity should recalculate a formula, while an explicitly pinned view preserves its earlier values. When a search returns nothing, report the query and its limits instead of claiming that the event never happened. Clear ownership, visible history and reversible edits help people check the work. Local processing keeps the task close to the files and allows the same document to remain useful without an online service."
+      },
+      "id": "plain_copy"
+    },
+    {
+      "body": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "frequency_penalty": 0,
+        "max_tokens": 512,
+        "messages": [
+          {
+            "content": "Follow the request exactly. Do not add an introduction or commentary.",
+            "role": "system"
+          },
+          {
+            "content": "Return JSON with label \"Bogotá 日本語 🧮\", quantity 3 and note \"Café café العربية\".",
+            "role": "user"
+          }
+        ],
+        "min_p": 0,
+        "parallel_tool_calls": false,
+        "presence_penalty": 0,
+        "preserve_thinking": false,
+        "repetition_penalty": 1,
+        "response_format": {
+          "json_schema": {
+            "name": "unicode",
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "note": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "label",
+                "note",
+                "quantity"
+              ],
+              "type": "object"
+            },
+            "strict": true
+          },
+          "type": "json_schema"
+        },
+        "seed": 42,
+        "temperature": 0,
+        "top_k": 0,
+        "top_p": 1
+      },
+      "expected": {
+        "json": {
+          "label": "Bogotá 日本語 🧮",
+          "note": "Café café العربية",
+          "quantity": 3
+        }
+      },
+      "id": "unicode_json"
+    },
+    {
+      "body": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "frequency_penalty": 0,
+        "max_tokens": 128,
+        "messages": [
+          {
+            "content": "Follow the request exactly. Do not add an introduction or commentary.",
+            "role": "system"
+          },
+          {
+            "content": "Read these synthetic records.\nROW-0001: label=synthetic-0001; code=CODE-07919; state=recorded.\nROW-0002: label=synthetic-0002; code=CODE-15838; state=recorded.\nROW-0003: label=synthetic-0003; code=CODE-23757; state=recorded.\nROW-0004: label=synthetic-0004; code=CODE-31676; state=recorded.\nROW-0005: label=synthetic-0005; code=CODE-39595; state=recorded.\nROW-0006: label=synthetic-0006; code=CODE-47514; state=recorded.\nROW-0007: label=synthetic-0007; code=CODE-55433; state=recorded.\nROW-0008: label=synthetic-0008; code=CODE-63352; state=recorded.\nROW-0009: label=synthetic-0009; code=CODE-71271; state=recorded.\nROW-0010: label=synthetic-0010; code=CODE-79190; state=recorded.\nROW-0011: label=synthetic-0011; code=CODE-87109; state=recorded.\nROW-0012: label=synthetic-0012; code=CODE-95028; state=recorded.\nROW-0013: label=synthetic-0013; code=CODE-02944; state=recorded.\nROW-0014: label=synthetic-0014; code=CODE-10863; state=recorded.\nROW-0015: label=synthetic-0015; code=CODE-18782; state=recorded.\nROW-0016: label=synthetic-0016; code=CODE-26701; state=recorded.\nROW-0017: label=synthetic-0017; code=CODE-34620; state=recorded.\nROW-0018: label=synthetic-0018; code=CODE-42539; state=recorded.\nROW-0019: label=synthetic-0019; code=CODE-50458; state=recorded.\nROW-0020: label=synthetic-0020; code=CODE-58377; state=recorded.\nROW-0021: label=synthetic-0021; code=CODE-66296; state=recorded.\nROW-0022: label=synthetic-0022; code=CODE-74215; state=recorded.\nROW-0023: label=synthetic-0023; code=CODE-82134; state=recorded.\nROW-0024: label=synthetic-0024; code=CODE-90053; state=recorded.\nROW-0025: label=synthetic-0025; code=CODE-97972; state=recorded.\nROW-0026: label=synthetic-0026; code=CODE-05888; state=recorded.\nROW-0027: label=synthetic-0027; code=CODE-13807; state=recorded.\nROW-0028: label=synthetic-0028; code=CODE-21726; state=recorded.\nROW-0029: label=synthetic-0029; code=CODE-29645; state=recorded.\nROW-0030: label=synthetic-0030; code=CODE-37564; state=recorded.\nROW-0031: label=synthetic-0031; code=CODE-45483; state=recorded.\nROW-0032: label=synthetic-0032; code=CODE-53402; state=recorded.\nROW-0033: label=synthetic-0033; code=CODE-61321; state=recorded.\nROW-0034: label=synthetic-0034; code=CODE-69240; state=recorded.\nROW-0035: label=synthetic-0035; code=CODE-77159; state=recorded.\nROW-0036: label=synthetic-0036; code=CODE-85078; state=recorded.\nROW-0037: label=synthetic-0037; code=CODE-92997; state=recorded.\nROW-0038: label=synthetic-0038; code=CODE-00913; state=recorded.\nROW-0039: label=synthetic-0039; code=CODE-08832; state=recorded.\nROW-0040: label=synthetic-0040; code=CODE-16751; state=recorded.\nROW-0041: label=synthetic-0041; code=CODE-24670; state=recorded.\nROW-0042: label=synthetic-0042; code=CODE-32589; state=recorded.\nROW-0043: label=synthetic-0043; code=CODE-40508; state=recorded.\nROW-0044: label=synthetic-0044; code=CODE-48427; state=recorded.\nROW-0045: label=synthetic-0045; code=CODE-56346; state=recorded.\nROW-0046: label=synthetic-0046; code=CODE-64265; state=recorded.\nROW-0047: label=synthetic-0047; code=CODE-72184; state=recorded.\nROW-0048: label=synthetic-0048; code=CODE-80103; state=recorded.\nROW-0049: label=synthetic-0049; code=CODE-88022; state=recorded.\nROW-0050: label=synthetic-0050; code=CODE-95941; state=recorded.\nROW-0051: label=synthetic-0051; code=CODE-03857; state=recorded.\nROW-0052: label=synthetic-0052; code=CODE-11776; state=recorded.\nROW-0053: label=synthetic-0053; code=CODE-19695; state=recorded.\nROW-0054: label=synthetic-0054; code=CODE-27614; state=recorded.\nROW-0055: label=synthetic-0055; code=CODE-35533; state=recorded.\nROW-0056: label=synthetic-0056; code=CODE-43452; state=recorded.\nROW-0057: label=synthetic-0057; code=CODE-51371; state=recorded.\nROW-0058: label=synthetic-0058; code=CODE-59290; state=recorded.\nROW-0059: label=synthetic-0059; code=CODE-67209; state=recorded.\nROW-0060: label=synthetic-0060; code=CODE-75128; state=recorded.\nROW-0061: label=synthetic-0061; code=CODE-83047; state=recorded.\nROW-0062: label=synthetic-0062; code=CODE-90966; state=recorded.\nROW-0063: label=synthetic-0063; code=CODE-98885; state=recorded.\nROW-0064: label=synthetic-0064; code=CODE-06801; state=recorded.\nROW-0065: label=synthetic-0065; code=CODE-14720; state=recorded.\nROW-0066: label=synthetic-0066; code=CODE-22639; state=recorded.\nROW-0067: label=synthetic-0067; code=CODE-30558; state=recorded.\nROW-0068: label=synthetic-0068; code=CODE-38477; state=recorded.\nROW-0069: label=synthetic-0069; code=CODE-46396; state=recorded.\nROW-0070: label=synthetic-0070; code=CODE-54315; state=recorded.\nROW-0071: label=synthetic-0071; code=CODE-62234; state=recorded.\nROW-0072: label=synthetic-0072; code=CODE-70153; state=recorded.\nROW-0073: label=synthetic-0073; code=CODE-78072; state=recorded.\nROW-0074: label=synthetic-0074; code=CODE-85991; state=recorded.\nROW-0075: label=synthetic-0075; code=CODE-93910; state=recorded.\nROW-0076: label=synthetic-0076; code=CODE-01826; state=recorded.\nROW-0077: label=synthetic-0077; code=CODE-09745; state=recorded.\nROW-0078: label=synthetic-0078; code=CODE-17664; state=recorded.\nROW-0079: label=synthetic-0079; code=CODE-25583; state=recorded.\nROW-0080: label=synthetic-0080; code=CODE-33502; state=recorded.\nROW-0081: label=synthetic-0081; code=CODE-41421; state=recorded.\nROW-0082: label=synthetic-0082; code=CODE-49340; state=recorded.\nROW-0083: label=synthetic-0083; code=CODE-57259; state=recorded.\nROW-0084: label=synthetic-0084; code=CODE-65178; state=recorded.\nROW-0085: label=synthetic-0085; code=CODE-73097; state=recorded.\nROW-0086: label=synthetic-0086; code=CODE-81016; state=recorded.\nROW-0087: label=synthetic-0087; code=CODE-88935; state=recorded.\nROW-0088: label=synthetic-0088; code=CODE-96854; state=recorded.\nROW-0089: label=synthetic-0089; code=CODE-04770; state=recorded.\nROW-0090: label=synthetic-0090; code=CODE-12689; state=recorded.\nROW-0091: label=synthetic-0091; code=CODE-20608; state=recorded.\nROW-0092: label=synthetic-0092; code=CODE-28527; state=recorded.\nROW-0093: label=synthetic-0093; code=CODE-36446; state=recorded.\nROW-0094: label=synthetic-0094; code=CODE-44365; state=recorded.\nROW-0095: label=synthetic-0095; code=CODE-52284; state=recorded.\nROW-0096: label=synthetic-0096; code=CODE-60203; state=recorded.\nROW-0097: label=synthetic-0097; code=CODE-68122; state=recorded.\nROW-0098: label=synthetic-0098; code=CODE-76041; state=recorded.\nROW-0099: label=synthetic-0099; code=CODE-83960; state=recorded.\nROW-0100: label=synthetic-0100; code=CODE-91879; state=recorded.\nROW-0101: label=synthetic-0101; code=CODE-99798; state=recorded.\nROW-0102: label=synthetic-0102; code=CODE-07714; state=recorded.\nROW-0103: label=synthetic-0103; code=CODE-15633; state=recorded.\nROW-0104: label=synthetic-0104; code=CODE-23552; state=recorded.\nROW-0105: label=synthetic-0105; code=CODE-31471; state=recorded.\nROW-0106: label=synthetic-0106; code=CODE-39390; state=recorded.\nROW-0107: label=synthetic-0107; code=CODE-47309; state=recorded.\nROW-0108: label=synthetic-0108; code=CODE-55228; state=recorded.\nROW-0109: label=synthetic-0109; code=CODE-63147; state=recorded.\nROW-0110: label=synthetic-0110; code=CODE-71066; state=recorded.\nROW-0111: label=synthetic-0111; code=CODE-78985; state=recorded.\nROW-0112: label=synthetic-0112; code=CODE-86904; state=recorded.\nROW-0113: label=synthetic-0113; code=CODE-94823; state=recorded.\nROW-0114: label=synthetic-0114; code=CODE-02739; state=recorded.\nROW-0115: label=synthetic-0115; code=CODE-10658; state=recorded.\nROW-0116: label=synthetic-0116; code=CODE-18577; state=recorded.\nROW-0117: label=synthetic-0117; code=CODE-26496; state=recorded.\nROW-0118: label=synthetic-0118; code=CODE-34415; state=recorded.\nROW-0119: label=synthetic-0119; code=CODE-42334; state=recorded.\nROW-0120: label=synthetic-0120; code=CODE-50253; state=recorded.\nROW-0121: label=synthetic-0121; code=CODE-58172; state=recorded.\nROW-0122: label=synthetic-0122; code=CODE-66091; state=recorded.\nROW-0123: label=synthetic-0123; code=CODE-74010; state=recorded.\nROW-0124: label=synthetic-0124; code=CODE-81929; state=recorded.\nROW-0125: label=synthetic-0125; code=CODE-89848; state=recorded.\nROW-0126: label=synthetic-0126; code=CODE-97767; state=recorded.\nROW-0127: label=synthetic-0127; code=CODE-05683; state=recorded.\nROW-0128: label=synthetic-0128; code=CODE-13602; state=recorded.\nROW-0129: label=synthetic-0129; code=CODE-21521; state=recorded.\nROW-0130: label=synthetic-0130; code=CODE-29440; state=recorded.\nROW-0131: label=synthetic-0131; code=CODE-37359; state=recorded.\nROW-0132: label=synthetic-0132; code=CODE-45278; state=recorded.\nROW-0133: label=synthetic-0133; code=CODE-53197; state=recorded.\nROW-0134: label=synthetic-0134; code=CODE-61116; state=recorded.\nROW-0135: label=synthetic-0135; code=CODE-69035; state=recorded.\nROW-0136: label=synthetic-0136; code=CODE-76954; state=recorded.\nROW-0137: label=synthetic-0137; code=CODE-84873; state=recorded.\nROW-0138: label=synthetic-0138; code=CODE-92792; state=recorded.\nROW-0139: label=synthetic-0139; code=CODE-00708; state=recorded.\nROW-0140: label=synthetic-0140; code=CODE-08627; state=recorded.\nROW-0141: label=synthetic-0141; code=CODE-16546; state=recorded.\nROW-0142: label=synthetic-0142; code=CODE-24465; state=recorded.\nROW-0143: label=synthetic-0143; code=CODE-32384; state=recorded.\nROW-0144: label=synthetic-0144; code=CODE-40303; state=recorded.\nROW-0145: label=synthetic-0145; code=CODE-48222; state=recorded.\nROW-0146: label=synthetic-0146; code=CODE-56141; state=recorded.\nROW-0147: label=synthetic-0147; code=CODE-64060; state=recorded.\nROW-0148: label=synthetic-0148; code=CODE-71979; state=recorded.\nROW-0149: label=synthetic-0149; code=CODE-79898; state=recorded.\nROW-0150: label=synthetic-0150; code=CODE-87817; state=recorded.\nROW-0151: label=synthetic-0151; code=CODE-95736; state=recorded.\nROW-0152: label=synthetic-0152; code=CODE-03652; state=recorded.\nROW-0153: label=synthetic-0153; code=CODE-11571; state=recorded.\nROW-0154: label=synthetic-0154; code=CODE-19490; state=recorded.\nROW-0155: label=synthetic-0155; code=CODE-27409; state=recorded.\nROW-0156: label=synthetic-0156; code=CODE-35328; state=recorded.\nROW-0157: label=synthetic-0157; code=CODE-43247; state=recorded.\nROW-0158: label=synthetic-0158; code=CODE-51166; state=recorded.\nROW-0159: label=synthetic-0159; code=CODE-59085; state=recorded.\nROW-0160: label=synthetic-0160; code=CODE-67004; state=recorded.\nROW-0161: label=synthetic-0161; code=CODE-74923; state=recorded.\nROW-0162: label=synthetic-0162; code=CODE-82842; state=recorded.\nROW-0163: label=synthetic-0163; code=CODE-90761; state=recorded.\nROW-0164: label=synthetic-0164; code=CODE-98680; state=recorded.\nROW-0165: label=synthetic-0165; code=CODE-06596; state=recorded.\nROW-0166: label=synthetic-0166; code=CODE-14515; state=recorded.\nROW-0167: label=synthetic-0167; code=CODE-22434; state=recorded.\nROW-0168: label=synthetic-0168; code=CODE-30353; state=recorded.\nROW-0169: label=synthetic-0169; code=CODE-38272; state=recorded.\nROW-0170: label=synthetic-0170; code=CODE-46191; state=recorded.\nROW-0171: label=synthetic-0171; code=CODE-54110; state=recorded.\nROW-0172: label=synthetic-0172; code=CODE-62029; state=recorded.\nROW-0173: label=synthetic-0173; code=CODE-69948; state=recorded.\nROW-0174: label=synthetic-0174; code=CODE-77867; state=recorded.\nROW-0175: label=synthetic-0175; code=CODE-85786; state=recorded.\nROW-0176: label=synthetic-0176; code=CODE-93705; state=recorded.\nROW-0177: label=synthetic-0177; code=CODE-01621; state=recorded.\nROW-0178: label=synthetic-0178; code=CODE-09540; state=recorded.\nROW-0179: label=synthetic-0179; code=CODE-17459; state=recorded.\nROW-0180: label=synthetic-0180; code=CODE-25378; state=recorded.\nROW-0181: label=synthetic-0181; code=CODE-33297; state=recorded.\nROW-0182: label=synthetic-0182; code=CODE-41216; state=recorded.\nROW-0183: label=synthetic-0183; code=CODE-49135; state=recorded.\nROW-0184: label=synthetic-0184; code=CODE-57054; state=recorded.\nROW-0185: label=synthetic-0185; code=CODE-64973; state=recorded.\nROW-0186: label=synthetic-0186; code=CODE-72892; state=recorded.\nROW-0187: label=synthetic-0187; code=CODE-80811; state=recorded.\nROW-0188: label=synthetic-0188; code=CODE-88730; state=recorded.\nROW-0189: label=synthetic-0189; code=CODE-96649; state=recorded.\nROW-0190: label=synthetic-0190; code=CODE-04565; state=recorded.\nROW-0191: label=synthetic-0191; code=CODE-12484; state=recorded.\nROW-0192: label=synthetic-0192; code=CODE-20403; state=recorded.\nROW-0193: label=synthetic-0193; code=CODE-28322; state=recorded.\nROW-0194: label=synthetic-0194; code=CODE-36241; state=recorded.\nROW-0195: label=synthetic-0195; code=CODE-44160; state=recorded.\nROW-0196: label=synthetic-0196; code=CODE-52079; state=recorded.\nROW-0197: label=synthetic-0197; code=CODE-59998; state=recorded.\nROW-0198: label=synthetic-0198; code=CODE-67917; state=recorded.\nROW-0199: label=synthetic-0199; code=CODE-75836; state=recorded.\nROW-0200: label=synthetic-0200; code=CODE-83755; state=recorded.\nROW-0201: label=synthetic-0201; code=CODE-91674; state=recorded.\nROW-0202: label=synthetic-0202; code=CODE-99593; state=recorded.\nROW-0203: label=synthetic-0203; code=CODE-07509; state=recorded.\nROW-0204: label=synthetic-0204; code=CODE-15428; state=recorded.\nROW-0205: label=synthetic-0205; code=CODE-23347; state=recorded.\nROW-0206: label=synthetic-0206; code=CODE-31266; state=recorded.\nROW-0207: label=synthetic-0207; code=CODE-39185; state=recorded.\nROW-0208: label=synthetic-0208; code=CODE-47104; state=recorded.\nROW-0209: label=synthetic-0209; code=CODE-55023; state=recorded.\nROW-0210: label=synthetic-0210; code=CODE-62942; state=recorded.\nROW-0211: label=synthetic-0211; code=CODE-70861; state=recorded.\nROW-0212: label=synthetic-0212; code=CODE-78780; state=recorded.\nROW-0213: label=synthetic-0213; code=CODE-86699; state=recorded.\nROW-0214: label=synthetic-0214; code=CODE-94618; state=recorded.\nROW-0215: label=synthetic-0215; code=CODE-02534; state=recorded.\nROW-0216: label=synthetic-0216; code=CODE-10453; state=recorded.\nROW-0217: label=synthetic-0217; code=CODE-18372; state=recorded.\nROW-0218: label=synthetic-0218; code=CODE-26291; state=recorded.\nROW-0219: label=synthetic-0219; code=CODE-34210; state=recorded.\nROW-0220: label=synthetic-0220; code=CODE-42129; state=recorded.\nROW-0221: label=synthetic-0221; code=CODE-50048; state=recorded.\nROW-0222: label=synthetic-0222; code=CODE-57967; state=recorded.\nROW-0223: label=synthetic-0223; code=CODE-65886; state=recorded.\nROW-0224: label=synthetic-0224; code=CODE-73805; state=recorded.\nROW-0225: label=synthetic-0225; code=CODE-81724; state=recorded.\nROW-0226: label=synthetic-0226; code=CODE-89643; state=recorded.\nROW-0227: label=synthetic-0227; code=CODE-97562; state=recorded.\nROW-0228: label=synthetic-0228; code=CODE-05478; state=recorded.\nROW-0229: label=synthetic-0229; code=CODE-13397; state=recorded.\nROW-0230: label=synthetic-0230; code=CODE-21316; state=recorded.\nROW-0231: label=synthetic-0231; code=CODE-29235; state=recorded.\nROW-0232: label=synthetic-0232; code=CODE-37154; state=recorded.\nROW-0233: label=synthetic-0233; code=CODE-45073; state=recorded.\nROW-0234: label=synthetic-0234; code=CODE-52992; state=recorded.\nROW-0235: label=synthetic-0235; code=CODE-60911; state=recorded.\nROW-0236: label=synthetic-0236; code=CODE-68830; state=recorded.\nROW-0237: label=synthetic-0237; code=CODE-76749; state=recorded.\nROW-0238: label=synthetic-0238; code=CODE-84668; state=recorded.\nROW-0239: label=synthetic-0239; code=CODE-92587; state=recorded.\nROW-0240: label=synthetic-0240; code=CODE-00503; state=recorded.\nROW-0241: label=synthetic-0241; code=CODE-08422; state=recorded.\nROW-0242: label=synthetic-0242; code=CODE-16341; state=recorded.\nROW-0243: label=synthetic-0243; code=CODE-24260; state=recorded.\nROW-0244: label=synthetic-0244; code=CODE-32179; state=recorded.\nROW-0245: label=synthetic-0245; code=CODE-40098; state=recorded.\nROW-0246: label=synthetic-0246; code=CODE-48017; state=recorded.\nROW-0247: label=synthetic-0247; code=CODE-55936; state=recorded.\nROW-0248: label=synthetic-0248; code=CODE-63855; state=recorded.\nROW-0249: label=synthetic-0249; code=CODE-71774; state=recorded.\nROW-0250: label=synthetic-0250; code=CODE-79693; state=recorded.\nROW-0251: label=synthetic-0251; code=CODE-87612; state=recorded.\nROW-0252: label=synthetic-0252; code=CODE-95531; state=recorded.\nROW-0253: label=synthetic-0253; code=CODE-03447; state=recorded.\nROW-0254: label=synthetic-0254; code=CODE-11366; state=recorded.\nROW-0255: label=synthetic-0255; code=CODE-19285; state=recorded.\nROW-0256: label=synthetic-0256; code=CODE-27204; state=recorded.\nROW-0257: label=synthetic-0257; code=CODE-35123; state=recorded.\nROW-0258: label=synthetic-0258; code=CODE-43042; state=recorded.\nROW-0259: label=synthetic-0259; code=CODE-50961; state=recorded.\nROW-0260: label=synthetic-0260; code=CODE-58880; state=recorded.\nROW-0261: label=synthetic-0261; code=CODE-66799; state=recorded.\nROW-0262: label=synthetic-0262; code=CODE-74718; state=recorded.\nROW-0263: label=synthetic-0263; code=CODE-82637; state=recorded.\nROW-0264: label=synthetic-0264; code=CODE-90556; state=recorded.\nROW-0265: label=synthetic-0265; code=CODE-98475; state=recorded.\nROW-0266: label=synthetic-0266; code=CODE-06391; state=recorded.\nROW-0267: label=synthetic-0267; code=CODE-14310; state=recorded.\nROW-0268: label=synthetic-0268; code=CODE-22229; state=recorded.\nROW-0269: label=synthetic-0269; code=CODE-30148; state=recorded.\nROW-0270: label=synthetic-0270; code=CODE-38067; state=recorded.\nROW-0271: label=synthetic-0271; code=CODE-45986; state=recorded.\nROW-0272: label=synthetic-0272; code=CODE-53905; state=recorded.\nROW-0273: label=synthetic-0273; code=CODE-61824; state=recorded.\nROW-0274: label=synthetic-0274; code=CODE-69743; state=recorded.\nROW-0275: label=synthetic-0275; code=CODE-77662; state=recorded.\nROW-0276: label=synthetic-0276; code=CODE-85581; state=recorded.\nROW-0277: label=synthetic-0277; code=CODE-93500; state=recorded.\nROW-0278: label=synthetic-0278; code=CODE-01416; state=recorded.\nROW-0279: label=synthetic-0279; code=CODE-09335; state=recorded.\nROW-0280: label=synthetic-0280; code=CODE-17254; state=recorded.\nROW-0281: label=synthetic-0281; code=CODE-25173; state=recorded.\nROW-0282: label=synthetic-0282; code=CODE-33092; state=recorded.\nROW-0283: label=synthetic-0283; code=CODE-41011; state=recorded.\nROW-0284: label=synthetic-0284; code=CODE-48930; state=recorded.\nROW-0285: label=synthetic-0285; code=CODE-56849; state=recorded.\nROW-0286: label=synthetic-0286; code=CODE-64768; state=recorded.\nROW-0287: label=synthetic-0287; code=CODE-72687; state=recorded.\nROW-0288: label=synthetic-0288; code=CODE-80606; state=recorded.\nROW-0289: label=synthetic-0289; code=CODE-88525; state=recorded.\nROW-0290: label=synthetic-0290; code=CODE-96444; state=recorded.\nROW-0291: label=synthetic-0291; code=CODE-04360; state=recorded.\nROW-0292: label=synthetic-0292; code=CODE-12279; state=recorded.\nROW-0293: label=synthetic-0293; code=CODE-20198; state=recorded.\nROW-0294: label=synthetic-0294; code=CODE-28117; state=recorded.\nROW-0295: label=synthetic-0295; code=CODE-36036; state=recorded.\nROW-0296: label=synthetic-0296; code=CODE-43955; state=recorded.\nROW-0297: label=synthetic-0297; code=CODE-51874; state=recorded.\nROW-0298: label=synthetic-0298; code=CODE-59793; state=recorded.\nROW-0299: label=synthetic-0299; code=CODE-67712; state=recorded.\nROW-0300: label=synthetic-0300; code=CODE-75631; state=recorded.\nROW-0301: label=synthetic-0301; code=CODE-83550; state=recorded.\nROW-0302: label=synthetic-0302; code=CODE-91469; state=recorded.\nROW-0303: label=synthetic-0303; code=CODE-99388; state=recorded.\nROW-0304: label=synthetic-0304; code=CODE-07304; state=recorded.\nROW-0305: label=synthetic-0305; code=CODE-15223; state=recorded.\nROW-0306: label=synthetic-0306; code=CODE-23142; state=recorded.\nROW-0307: label=synthetic-0307; code=CODE-31061; state=recorded.\nROW-0308: label=synthetic-0308; code=CODE-38980; state=recorded.\nROW-0309: label=synthetic-0309; code=CODE-46899; state=recorded.\nROW-0310: label=synthetic-0310; code=CODE-54818; state=recorded.\nROW-0311: label=synthetic-0311; code=CODE-62737; state=recorded.\nROW-0312: label=synthetic-0312; code=CODE-70656; state=recorded.\nROW-0313: label=synthetic-0313; code=CODE-78575; state=recorded.\nROW-0314: label=synthetic-0314; code=CODE-86494; state=recorded.\nROW-0315: label=synthetic-0315; code=CODE-94413; state=recorded.\nROW-0316: label=synthetic-0316; code=CODE-02329; state=recorded.\nROW-0317: label=synthetic-0317; code=CODE-10248; state=recorded.\nROW-0318: label=synthetic-0318; code=CODE-18167; state=recorded.\nROW-0319: label=synthetic-0319; code=CODE-26086; state=recorded.\nROW-0320: label=synthetic-0320; code=CODE-34005; state=recorded.\nROW-0321: label=synthetic-0321; code=CODE-41924; state=recorded.\nROW-0322: label=synthetic-0322; code=CODE-49843; state=recorded.\nROW-0323: label=synthetic-0323; code=CODE-57762; state=recorded.\nROW-0324: label=synthetic-0324; code=CODE-65681; state=recorded.\nROW-0325: label=synthetic-0325; code=CODE-73600; state=recorded.\nROW-0326: label=synthetic-0326; code=CODE-81519; state=recorded.\nROW-0327: label=synthetic-0327; code=CODE-89438; state=recorded.\nROW-0328: label=synthetic-0328; code=CODE-97357; state=recorded.\nROW-0329: label=synthetic-0329; code=CODE-05273; state=recorded.\nROW-0330: label=synthetic-0330; code=CODE-13192; state=recorded.\nROW-0331: label=synthetic-0331; code=CODE-21111; state=recorded.\nROW-0332: label=synthetic-0332; code=CODE-29030; state=recorded.\nROW-0333: label=synthetic-0333; code=CODE-36949; state=recorded.\nROW-0334: label=synthetic-0334; code=CODE-44868; state=recorded.\nROW-0335: label=synthetic-0335; code=CODE-52787; state=recorded.\nROW-0336: label=synthetic-0336; code=CODE-60706; state=recorded.\nROW-0337: label=synthetic-0337; code=CODE-68625; state=recorded.\nROW-0338: label=synthetic-0338; code=CODE-76544; state=recorded.\nROW-0339: label=synthetic-0339; code=CODE-84463; state=recorded.\nROW-0340: label=synthetic-0340; code=CODE-92382; state=recorded.\nROW-0341: label=synthetic-0341; code=CODE-00298; state=recorded.\nROW-0342: label=synthetic-0342; code=CODE-08217; state=recorded.\nROW-0343: label=synthetic-0343; code=CODE-16136; state=recorded.\nROW-0344: label=synthetic-0344; code=CODE-24055; state=recorded.\nROW-0345: label=synthetic-0345; code=CODE-31974; state=recorded.\nROW-0346: label=synthetic-0346; code=CODE-39893; state=recorded.\nROW-0347: label=synthetic-0347; code=CODE-47812; state=recorded.\nROW-0348: label=synthetic-0348; code=CODE-55731; state=recorded.\nROW-0349: label=synthetic-0349; code=CODE-63650; state=recorded.\nROW-0350: label=synthetic-0350; code=CODE-71569; state=recorded.\nROW-0351: label=synthetic-0351; code=CODE-79488; state=recorded.\nROW-0352: label=synthetic-0352; code=CODE-87407; state=recorded.\nROW-0353: label=synthetic-0353; code=CODE-95326; state=recorded.\nROW-0354: label=synthetic-0354; code=CODE-03242; state=recorded.\nROW-0355: label=synthetic-0355; code=CODE-11161; state=recorded.\nROW-0356: label=synthetic-0356; code=CODE-19080; state=recorded.\nROW-0357: label=synthetic-0357; code=CODE-26999; state=recorded.\nROW-0358: label=synthetic-0358; code=CODE-34918; state=recorded.\nROW-0359: label=synthetic-0359; code=CODE-42837; state=recorded.\nROW-0360: label=synthetic-0360; code=CODE-50756; state=recorded.\nROW-0361: label=synthetic-0361; code=CODE-58675; state=recorded.\nROW-0362: label=synthetic-0362; code=CODE-66594; state=recorded.\nROW-0363: label=synthetic-0363; code=CODE-74513; state=recorded.\nROW-0364: label=synthetic-0364; code=CODE-82432; state=recorded.\nROW-0365: label=synthetic-0365; code=CODE-90351; state=recorded.\nROW-0366: label=synthetic-0366; code=CODE-98270; state=recorded.\nROW-0367: label=synthetic-0367; code=CODE-06186; state=recorded.\nROW-0368: label=synthetic-0368; code=CODE-14105; state=recorded.\nROW-0369: label=synthetic-0369; code=CODE-22024; state=recorded.\nROW-0370: label=synthetic-0370; code=CODE-29943; state=recorded.\nROW-0371: label=synthetic-0371; code=CODE-37862; state=recorded.\nROW-0372: label=synthetic-0372; code=CODE-45781; state=recorded.\nROW-0373: label=synthetic-0373; code=CODE-53700; state=recorded.\nROW-0374: label=synthetic-0374; code=CODE-61619; state=recorded.\nROW-0375: label=synthetic-0375; code=CODE-69538; state=recorded.\nROW-0376: label=synthetic-0376; code=CODE-77457; state=recorded.\nROW-0377: label=synthetic-0377; code=CODE-85376; state=recorded.\nROW-0378: label=synthetic-0378; code=CODE-93295; state=recorded.\nROW-0379: label=synthetic-0379; code=CODE-01211; state=recorded.\nROW-0380: label=synthetic-0380; code=CODE-09130; state=recorded.\nROW-0381: label=synthetic-0381; code=CODE-17049; state=recorded.\nROW-0382: label=synthetic-0382; code=CODE-24968; state=recorded.\nROW-0383: label=synthetic-0383; code=CODE-32887; state=recorded.\nROW-0384: label=synthetic-0384; code=CODE-40806; state=recorded.\nROW-0385: label=synthetic-0385; code=CODE-48725; state=recorded.\nROW-0386: label=synthetic-0386; code=CODE-56644; state=recorded.\nROW-0387: label=synthetic-0387; code=CODE-64563; state=recorded.\nROW-0388: label=synthetic-0388; code=CODE-72482; state=recorded.\nROW-0389: label=synthetic-0389; code=CODE-80401; state=recorded.\nROW-0390: label=synthetic-0390; code=CODE-88320; state=recorded.\nROW-0391: label=synthetic-0391; code=CODE-96239; state=recorded.\nROW-0392: label=synthetic-0392; code=CODE-04155; state=recorded.\nROW-0393: label=synthetic-0393; code=CODE-12074; state=recorded.\nROW-0394: label=synthetic-0394; code=CODE-19993; state=recorded.\nROW-0395: label=synthetic-0395; code=CODE-27912; state=recorded.\nROW-0396: label=synthetic-0396; code=CODE-35831; state=recorded.\nROW-0397: label=synthetic-0397; code=CODE-43750; state=recorded.\nROW-0398: label=synthetic-0398; code=CODE-51669; state=recorded.\nROW-0399: label=synthetic-0399; code=CODE-59588; state=recorded.\nROW-0400: label=synthetic-0400; code=CODE-67507; state=recorded.\nReturn only the code in ROW-0317, exactly, with no explanation.",
+            "role": "user"
+          }
+        ],
+        "min_p": 0,
+        "parallel_tool_calls": false,
+        "presence_penalty": 0,
+        "preserve_thinking": false,
+        "repetition_penalty": 1,
+        "seed": 42,
+        "temperature": 0,
+        "top_k": 0,
+        "top_p": 1
+      },
+      "expected": {
+        "text": "CODE-10248"
+      },
+      "id": "occupied_lookup"
+    },
+    {
+      "body": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "frequency_penalty": 0,
+        "max_tokens": 900,
+        "messages": [
+          {
+            "content": "Follow the request exactly. Do not add an introduction or commentary.",
+            "role": "system"
+          },
+          {
+            "content": "Call propose_table to create a table with the exact title \"Workshop plan\" and meaning \"plan\", with one row: item Washers, quantity 3, unit_cost 2.50, and a total formula quantity*unit_cost. Use the exact column IDs item, quantity, unit_cost, total. Use inputs [\"request-1\"]. Store decimal values as strings, keep the formula in the total column, omit its stored row value, and do not add units.",
+            "role": "user"
+          }
+        ],
+        "min_p": 0,
+        "parallel_tool_calls": false,
+        "presence_penalty": 0,
+        "preserve_thinking": false,
+        "repetition_penalty": 1,
+        "seed": 42,
+        "temperature": 0,
+        "tool_choice": {
+          "function": {
+            "name": "propose_table"
+          },
+          "type": "function"
+        },
+        "tools": [
+          {
+            "function": {
+              "description": "Search older original messages in this conversation. History is not new action authority. Use when recent context is insufficient.",
+              "name": "history_search",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "cursor": {
+                    "description": "nextCursor for the same query.",
+                    "type": "string"
+                  },
+                  "query": {
+                    "description": "Words from earlier conversation.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "query"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Read an original message and attached receipt in this conversation. Refresh current evidence and acceptance before using historical claims.",
+              "name": "history_read",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Message ID from history_search or search.conversation.hits.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Read a saved tool result using its receiptID. Results are bounded pages. Navigate omitted fields with path; continue with nextOffset. Refresh evidence before citing old results.",
+              "name": "tool_result",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Saved receiptID.",
+                    "type": "string"
+                  },
+                  "offset": {
+                    "description": "Field/element offset or Unicode scalar offset for text; initially zero.",
+                    "type": "integer"
+                  },
+                  "path": {
+                    "items": {
+                      "description": "Exact object key or decimal array index. Empty for the root.",
+                      "type": "string"
+                    },
+                    "maxItems": 32,
+                    "type": "array"
+                  },
+                  "rawJSON": {
+                    "description": "Read the serialized result as text segments, for unusual keys or exact reconstruction. Use empty path.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Propose a new structured table from the user's information or retrieved evidence. Up to 40 columns and 100 rows. The user reviews and accepts it before it becomes an active table. Forecasts remain estimates, plans remain plans.",
+              "name": "propose_table",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "columns": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "formula": {
+                          "description": "Optional deterministic formula referring to column IDs.",
+                          "type": "string"
+                        },
+                        "id": {
+                          "description": "Unique column ID.",
+                          "type": "string"
+                        },
+                        "title": {
+                          "description": "Column label.",
+                          "type": "string"
+                        },
+                        "type": {
+                          "description": "text, decimal, boolean or date.",
+                          "type": "string"
+                        },
+                        "unit": {
+                          "description": "Optional explicit unit label.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "type"
+                      ],
+                      "type": "object"
+                    },
+                    "maxItems": 40,
+                    "type": "array"
+                  },
+                  "inputs": {
+                    "items": {
+                      "description": "Exact item version ID from retrieved evidence.",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "meaning": {
+                    "description": "actual, estimate, plan, commitment, rule or assumption. Use plan for a new planning table.",
+                    "type": "string"
+                  },
+                  "rows": {
+                    "items": {
+                      "additionalProperties": true,
+                      "description": "Column IDs mapped to values; decimals are strings. Never invent missing facts.",
+                      "type": "object"
+                    },
+                    "maxItems": 100,
+                    "type": "array"
+                  },
+                  "title": {
+                    "description": "Table name.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title",
+                  "columns",
+                  "rows",
+                  "meaning",
+                  "inputs"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "List ZIP file members without extracting them. Requires an existing archive source ID.",
+              "name": "archive_members",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "ZIP source item ID.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Include selected ZIP files only when the user explicitly asks to unpack them. Preserves the original archive and member lineage, with resumable retry. Never automatically recurse into archives.",
+              "name": "include_archive_members",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "ZIP source item ID.",
+                    "type": "string"
+                  },
+                  "paths": {
+                    "items": {
+                      "description": "Exact member path returned by archive_members.",
+                      "type": "string"
+                    },
+                    "maxItems": 50,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "id",
+                  "paths"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Search business evidence and older messages in this conversation. Business hits use itemID; conversation.hits use id and require history_read before citation. Business filters/pagination search only business evidence. No match is not proof of absence.",
+              "name": "search",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "cursor": {
+                    "description": "nextCursor from the previous page, for the same query.",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "description": "Optional domain kind such as document, note, row, movement. Not actual/estimate.",
+                    "type": "string"
+                  },
+                  "meaning": {
+                    "description": "Optional actual, estimate, plan, commitment, rule or assumption.",
+                    "type": "string"
+                  },
+                  "query": {
+                    "description": "Words or a filename fragment.",
+                    "type": "string"
+                  },
+                  "scenario": {
+                    "description": "Optional scenario ID.",
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "Optional draft, accepted or rejected.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "query"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Count current classified workbook Sources or Records using exact metadata filters, independent of search wording or extraction. This does not count facts inside documents or real-world events. Put this call's receiptID in finish.coverage for the host to display its precise scope. Do not broaden it in prose.",
+              "name": "count_records",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "category": {
+                    "enum": [
+                      "source",
+                      "record"
+                    ],
+                    "type": "string"
+                  },
+                  "kind": {
+                    "description": "Optional exact domain kind, such as movement. Omit to include every kind.",
+                    "type": "string"
+                  },
+                  "meaning": {
+                    "description": "Optional exact meaning; omit to include every meaning.",
+                    "type": "string"
+                  },
+                  "scenario": {
+                    "description": "Optional exact scenario; omit to include every scenario.",
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "Optional exact status; omit to include every status.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "category"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Read exact evidence and bounded text chunks.",
+              "name": "read",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Exact item version ID returned by search.",
+                    "type": "string"
+                  },
+                  "offset": {
+                    "description": "Chunk offset, normally zero.",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Trace the evidence and derived records around an item.",
+              "name": "lineage",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Exact item version ID.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "List workbook tables with IDs, columns and row counts.",
+              "name": "datasets",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {},
+                "required": [],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Read up to 100 table rows with deterministic formula results.",
+              "name": "rows",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "datasetID": {
+                    "description": "The table ID returned by datasets. Do not use an item/row ID.",
+                    "type": "string"
+                  },
+                  "offset": {
+                    "description": "Row offset, normally zero.",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "datasetID"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Compare table values deterministically: minimum, maximum, difference and percentage cheaper relative to the maximum. Use for supplier cost comparisons instead of mental arithmetic.",
+              "name": "compare_rows",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "datasetID": {
+                    "description": "Table ID.",
+                    "type": "string"
+                  },
+                  "labelColumn": {
+                    "description": "Column with supplier/item names.",
+                    "type": "string"
+                  },
+                  "valueColumn": {
+                    "description": "Numeric or calculated column to compare.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "datasetID",
+                  "labelColumn",
+                  "valueColumn"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Create a named snapshot of an existing space with exact values and input versions. Limit 1,000 rows per table.",
+              "name": "pin_space",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Existing space ID.",
+                    "type": "string"
+                  },
+                  "title": {
+                    "description": "Name of pinned copy.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Propose changed cells for human review. Read rows first, then supply exact row version IDs and only fields to change. Does not alter accepted values until the user accepts the visible proposal.",
+              "name": "propose_table_edit",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "datasetID": {
+                    "description": "Existing table ID.",
+                    "type": "string"
+                  },
+                  "edits": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "description": "Exact inspected row version ID.",
+                          "type": "string"
+                        },
+                        "values": {
+                          "additionalProperties": true,
+                          "description": "Changed column IDs mapped to new values. Decimal values are strings.",
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "values"
+                      ],
+                      "type": "object"
+                    },
+                    "maxItems": 100,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "datasetID",
+                  "edits"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Deterministic decimal arithmetic. Use for arithmetic claims.",
+              "name": "calculate",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "expression": {
+                    "description": "Arithmetic expression, SUM, MIN, MAX, AVERAGE, COUNT, IF or ROUND.",
+                    "type": "string"
+                  },
+                  "values": {
+                    "additionalProperties": true,
+                    "description": "Named decimal string inputs.",
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "expression"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Calculate accepted actual stock from an opening basis and unique events.",
+              "name": "balance",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "subject": {
+                    "description": "Exact inventory subject, such as brass bolts.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "subject"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "List saved native spaces.",
+              "name": "spaces",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {},
+                "required": [],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Save a native space. Every table AND every chart requires its own datasetID. Call this before claiming creation succeeded.",
+              "name": "save_space",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "definition": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "components": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "aggregation": {
+                              "description": "Metric aggregation: SUM, AVERAGE, MIN, MAX or COUNT. Metrics require datasetID and y.",
+                              "type": "string"
+                            },
+                            "chartStyle": {
+                              "description": "bar or line; default bar.",
+                              "type": "string"
+                            },
+                            "children": {
+                              "description": "Required only for comparison; two or three native components side by side. Total tree limit is 16 components.",
+                              "items": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "aggregation": {
+                                    "description": "Metric aggregation: SUM, AVERAGE, MIN, MAX or COUNT. Metrics require datasetID and y.",
+                                    "type": "string"
+                                  },
+                                  "chartStyle": {
+                                    "description": "bar or line; default bar.",
+                                    "type": "string"
+                                  },
+                                  "children": {
+                                    "description": "Required only for comparison; two or three native components side by side. Total tree limit is 16 components.",
+                                    "items": {
+                                      "additionalProperties": false,
+                                      "properties": {
+                                        "aggregation": {
+                                          "description": "Metric aggregation: SUM, AVERAGE, MIN, MAX or COUNT. Metrics require datasetID and y.",
+                                          "type": "string"
+                                        },
+                                        "chartStyle": {
+                                          "description": "bar or line; default bar.",
+                                          "type": "string"
+                                        },
+                                        "datasetID": {
+                                          "description": "REQUIRED on each table and each chart. Use the datasetID from datasets, even when another component uses the same table.",
+                                          "type": "string"
+                                        },
+                                        "id": {
+                                          "description": "A unique short component ID.",
+                                          "type": "string"
+                                        },
+                                        "itemID": {
+                                          "description": "REQUIRED for document/asset. Exact evidence item ID.",
+                                          "type": "string"
+                                        },
+                                        "query": {
+                                          "description": "Search component query. Not used by charts.",
+                                          "type": "string"
+                                        },
+                                        "text": {
+                                          "description": "Text component content.",
+                                          "type": "string"
+                                        },
+                                        "title": {
+                                          "description": "Visible title.",
+                                          "type": "string"
+                                        },
+                                        "type": {
+                                          "enum": [
+                                            "table",
+                                            "chart",
+                                            "metric",
+                                            "document",
+                                            "asset",
+                                            "search",
+                                            "text"
+                                          ],
+                                          "type": "string"
+                                        },
+                                        "unit": {
+                                          "description": "Optional unit ONLY when explicitly specified in evidence.",
+                                          "type": "string"
+                                        },
+                                        "x": {
+                                          "description": "REQUIRED for chart. Existing dataset column ID for categories.",
+                                          "type": "string"
+                                        },
+                                        "y": {
+                                          "description": "REQUIRED for chart. Existing numeric or calculated column ID.",
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "type",
+                                        "title"
+                                      ],
+                                      "type": "object"
+                                    },
+                                    "maxItems": 3,
+                                    "minItems": 2,
+                                    "type": "array"
+                                  },
+                                  "datasetID": {
+                                    "description": "REQUIRED on each table and each chart. Use the datasetID from datasets, even when another component uses the same table.",
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "description": "A unique short component ID.",
+                                    "type": "string"
+                                  },
+                                  "itemID": {
+                                    "description": "REQUIRED for document/asset. Exact evidence item ID.",
+                                    "type": "string"
+                                  },
+                                  "query": {
+                                    "description": "Search component query. Not used by charts.",
+                                    "type": "string"
+                                  },
+                                  "text": {
+                                    "description": "Text component content.",
+                                    "type": "string"
+                                  },
+                                  "title": {
+                                    "description": "Visible title.",
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "enum": [
+                                      "table",
+                                      "chart",
+                                      "metric",
+                                      "comparison",
+                                      "document",
+                                      "asset",
+                                      "search",
+                                      "text"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "unit": {
+                                    "description": "Optional unit ONLY when explicitly specified in evidence.",
+                                    "type": "string"
+                                  },
+                                  "x": {
+                                    "description": "REQUIRED for chart. Existing dataset column ID for categories.",
+                                    "type": "string"
+                                  },
+                                  "y": {
+                                    "description": "REQUIRED for chart. Existing numeric or calculated column ID.",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "type",
+                                  "title"
+                                ],
+                                "type": "object"
+                              },
+                              "maxItems": 3,
+                              "minItems": 2,
+                              "type": "array"
+                            },
+                            "datasetID": {
+                              "description": "REQUIRED on each table and each chart. Use the datasetID from datasets, even when another component uses the same table.",
+                              "type": "string"
+                            },
+                            "id": {
+                              "description": "A unique short component ID.",
+                              "type": "string"
+                            },
+                            "itemID": {
+                              "description": "REQUIRED for document/asset. Exact evidence item ID.",
+                              "type": "string"
+                            },
+                            "query": {
+                              "description": "Search component query. Not used by charts.",
+                              "type": "string"
+                            },
+                            "text": {
+                              "description": "Text component content.",
+                              "type": "string"
+                            },
+                            "title": {
+                              "description": "Visible title.",
+                              "type": "string"
+                            },
+                            "type": {
+                              "enum": [
+                                "table",
+                                "chart",
+                                "metric",
+                                "comparison",
+                                "document",
+                                "asset",
+                                "search",
+                                "text"
+                              ],
+                              "type": "string"
+                            },
+                            "unit": {
+                              "description": "Optional unit ONLY when explicitly specified in evidence.",
+                              "type": "string"
+                            },
+                            "x": {
+                              "description": "REQUIRED for chart. Existing dataset column ID for categories.",
+                              "type": "string"
+                            },
+                            "y": {
+                              "description": "REQUIRED for chart. Existing numeric or calculated column ID.",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "type",
+                            "title"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 16,
+                        "type": "array"
+                      },
+                      "version": {
+                        "const": 1,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "version",
+                      "components"
+                    ],
+                    "type": "object"
+                  },
+                  "title": {
+                    "description": "Name of the space.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title",
+                  "definition"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Save a draft document, with exact input evidence.",
+              "name": "draft",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "inputs": {
+                    "items": {
+                      "description": "Exact item version ID from retrieved evidence.",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "text": {
+                    "description": "Draft text.",
+                    "type": "string"
+                  },
+                  "title": {
+                    "description": "Draft title.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title",
+                  "text",
+                  "inputs"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Propose a draft interpretation. It does not accept a business event.",
+              "name": "propose_record",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "data": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "inputs": {
+                    "items": {
+                      "description": "Exact item version ID from retrieved evidence.",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "kind": {
+                    "description": "Domain kind, such as forecast or analysis.",
+                    "type": "string"
+                  },
+                  "meaning": {
+                    "description": "actual, estimate, plan, commitment, assumption or rule.",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "Interpretation.",
+                    "type": "string"
+                  },
+                  "title": {
+                    "description": "Record title.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title",
+                  "text",
+                  "kind",
+                  "meaning",
+                  "inputs"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Propose a draft inventory movement. The user must accept it before it changes actual stock.",
+              "name": "propose_movement",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "effective": {
+                    "description": "ISO 8601 date/time.",
+                    "type": "string"
+                  },
+                  "input": {
+                    "description": "Exact supporting evidence item ID.",
+                    "type": "string"
+                  },
+                  "meaning": {
+                    "description": "actual for observed facts; estimate or plan for future scenarios.",
+                    "type": "string"
+                  },
+                  "occurrence": {
+                    "description": "Business occurrence ID; reusing it cannot duplicate its effect.",
+                    "type": "string"
+                  },
+                  "quantity": {
+                    "description": "Signed decimal string.",
+                    "type": "string"
+                  },
+                  "subject": {
+                    "description": "Inventory subject.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "subject",
+                  "quantity",
+                  "occurrence",
+                  "effective",
+                  "input"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Deliver the final answer and declare its basis. Business facts about Sources/Records or earlier messages require basis=evidence and inspected citations, even if a summary or host state suggests the answer. Explain missing/partial evidence and unsuccessful actions.",
+              "name": "finish",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "answer": {
+                    "description": "Plain-language answer. Do not print opaque IDs in prose.",
+                    "type": "string"
+                  },
+                  "basis": {
+                    "description": "evidence: workbook/history facts, requires inspected citations. current_request: only information supplied in this request or arithmetic calculated from it. completed_action: only confirm a successful action in this run. general: guidance, greeting, clarification or verified interface labels; no business or earlier-conversation facts. unresolved: explicitly cannot establish the requested facts; no guessed answer.",
+                    "enum": [
+                      "evidence",
+                      "current_request",
+                      "completed_action",
+                      "general",
+                      "unresolved"
+                    ],
+                    "type": "string"
+                  },
+                  "citations": {
+                    "items": {
+                      "description": "Inspected item version ID, or message:ID returned by history_read for a statement about earlier conversation.",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "coverage": {
+                    "items": {
+                      "description": "Optional current-run count_records receipt ID. The host validates and renders each exact count and scope. No search or old receipt IDs.",
+                      "type": "string"
+                    },
+                    "maxItems": 4,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "answer",
+                  "basis",
+                  "citations"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          }
+        ],
+        "top_k": 0,
+        "top_p": 1
+      },
+      "expected": {
+        "formula": "quantity*unit_cost",
+        "title": "Workshop plan",
+        "tool": "propose_table"
+      },
+      "id": "workbook_table"
+    },
+    {
+      "body": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        },
+        "frequency_penalty": 0,
+        "max_tokens": 1800,
+        "messages": [
+          {
+            "content": "You are a workbook assistant. Use the provided computed result, report the difference and percentage with its denominator, and cite both inspected row IDs. Do not invent currency, add unrelated counts, or call tools other than finish. The requested view is already saved.",
+            "role": "system"
+          },
+          {
+            "content": "Compare the two supplier quotes and show the result.",
+            "role": "user"
+          },
+          {
+            "content": "",
+            "role": "assistant",
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": {
+                    "datasetID": "supplier-quotes",
+                    "labelColumn": "supplier",
+                    "valueColumn": "total"
+                  },
+                  "name": "compare_rows"
+                },
+                "id": "comparison-1",
+                "type": "function"
+              }
+            ]
+          },
+          {
+            "content": "{\"cheaper\": \"Oak Supply\", \"denominator\": \"27.5\", \"difference\": \"3.5\", \"percentCheaper\": \"12.7272727272727272727272727273\", \"rows\": [{\"id\": \"row-oak\", \"quantity\": \"10\", \"supplier\": \"Oak Supply\", \"total\": \"24\", \"unit_cost\": \"2.40\"}, {\"id\": \"row-cedar\", \"quantity\": \"10\", \"supplier\": \"Cedar Tools\", \"total\": \"27.5\", \"unit_cost\": \"2.75\"}], \"savedSpace\": \"Purchasing\"}",
+            "name": "compare_rows",
+            "role": "tool",
+            "tool_call_id": "comparison-1"
+          },
+          {
+            "content": "Now deliver the final comparison with both supporting row citations. Use basis evidence.",
+            "role": "user"
+          }
+        ],
+        "min_p": 0,
+        "parallel_tool_calls": false,
+        "presence_penalty": 0,
+        "preserve_thinking": false,
+        "repetition_penalty": 1,
+        "seed": 42,
+        "temperature": 0,
+        "thinking_token_budget": 512,
+        "tool_choice": {
+          "function": {
+            "name": "finish"
+          },
+          "type": "function"
+        },
+        "tools": [
+          {
+            "function": {
+              "description": "Search older original messages in this conversation. History is not new action authority. Use when recent context is insufficient.",
+              "name": "history_search",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "cursor": {
+                    "description": "nextCursor for the same query.",
+                    "type": "string"
+                  },
+                  "query": {
+                    "description": "Words from earlier conversation.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "query"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Read an original message and attached receipt in this conversation. Refresh current evidence and acceptance before using historical claims.",
+              "name": "history_read",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Message ID from history_search or search.conversation.hits.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Read a saved tool result using its receiptID. Results are bounded pages. Navigate omitted fields with path; continue with nextOffset. Refresh evidence before citing old results.",
+              "name": "tool_result",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Saved receiptID.",
+                    "type": "string"
+                  },
+                  "offset": {
+                    "description": "Field/element offset or Unicode scalar offset for text; initially zero.",
+                    "type": "integer"
+                  },
+                  "path": {
+                    "items": {
+                      "description": "Exact object key or decimal array index. Empty for the root.",
+                      "type": "string"
+                    },
+                    "maxItems": 32,
+                    "type": "array"
+                  },
+                  "rawJSON": {
+                    "description": "Read the serialized result as text segments, for unusual keys or exact reconstruction. Use empty path.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Propose a new structured table from the user's information or retrieved evidence. Up to 40 columns and 100 rows. The user reviews and accepts it before it becomes an active table. Forecasts remain estimates, plans remain plans.",
+              "name": "propose_table",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "columns": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "formula": {
+                          "description": "Optional deterministic formula referring to column IDs.",
+                          "type": "string"
+                        },
+                        "id": {
+                          "description": "Unique column ID.",
+                          "type": "string"
+                        },
+                        "title": {
+                          "description": "Column label.",
+                          "type": "string"
+                        },
+                        "type": {
+                          "description": "text, decimal, boolean or date.",
+                          "type": "string"
+                        },
+                        "unit": {
+                          "description": "Optional explicit unit label.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "type"
+                      ],
+                      "type": "object"
+                    },
+                    "maxItems": 40,
+                    "type": "array"
+                  },
+                  "inputs": {
+                    "items": {
+                      "description": "Exact item version ID from retrieved evidence.",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "meaning": {
+                    "description": "actual, estimate, plan, commitment, rule or assumption. Use plan for a new planning table.",
+                    "type": "string"
+                  },
+                  "rows": {
+                    "items": {
+                      "additionalProperties": true,
+                      "description": "Column IDs mapped to values; decimals are strings. Never invent missing facts.",
+                      "type": "object"
+                    },
+                    "maxItems": 100,
+                    "type": "array"
+                  },
+                  "title": {
+                    "description": "Table name.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title",
+                  "columns",
+                  "rows",
+                  "meaning",
+                  "inputs"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "List ZIP file members without extracting them. Requires an existing archive source ID.",
+              "name": "archive_members",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "ZIP source item ID.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Include selected ZIP files only when the user explicitly asks to unpack them. Preserves the original archive and member lineage, with resumable retry. Never automatically recurse into archives.",
+              "name": "include_archive_members",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "ZIP source item ID.",
+                    "type": "string"
+                  },
+                  "paths": {
+                    "items": {
+                      "description": "Exact member path returned by archive_members.",
+                      "type": "string"
+                    },
+                    "maxItems": 50,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "id",
+                  "paths"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Search business evidence and older messages in this conversation. Business hits use itemID; conversation.hits use id and require history_read before citation. Business filters/pagination search only business evidence. No match is not proof of absence.",
+              "name": "search",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "cursor": {
+                    "description": "nextCursor from the previous page, for the same query.",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "description": "Optional domain kind such as document, note, row, movement. Not actual/estimate.",
+                    "type": "string"
+                  },
+                  "meaning": {
+                    "description": "Optional actual, estimate, plan, commitment, rule or assumption.",
+                    "type": "string"
+                  },
+                  "query": {
+                    "description": "Words or a filename fragment.",
+                    "type": "string"
+                  },
+                  "scenario": {
+                    "description": "Optional scenario ID.",
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "Optional draft, accepted or rejected.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "query"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Count current classified workbook Sources or Records using exact metadata filters, independent of search wording or extraction. This does not count facts inside documents or real-world events. Put this call's receiptID in finish.coverage for the host to display its precise scope. Do not broaden it in prose.",
+              "name": "count_records",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "category": {
+                    "enum": [
+                      "source",
+                      "record"
+                    ],
+                    "type": "string"
+                  },
+                  "kind": {
+                    "description": "Optional exact domain kind, such as movement. Omit to include every kind.",
+                    "type": "string"
+                  },
+                  "meaning": {
+                    "description": "Optional exact meaning; omit to include every meaning.",
+                    "type": "string"
+                  },
+                  "scenario": {
+                    "description": "Optional exact scenario; omit to include every scenario.",
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "Optional exact status; omit to include every status.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "category"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Read exact evidence and bounded text chunks.",
+              "name": "read",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Exact item version ID returned by search.",
+                    "type": "string"
+                  },
+                  "offset": {
+                    "description": "Chunk offset, normally zero.",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Trace the evidence and derived records around an item.",
+              "name": "lineage",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Exact item version ID.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "List workbook tables with IDs, columns and row counts.",
+              "name": "datasets",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {},
+                "required": [],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Read up to 100 table rows with deterministic formula results.",
+              "name": "rows",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "datasetID": {
+                    "description": "The table ID returned by datasets. Do not use an item/row ID.",
+                    "type": "string"
+                  },
+                  "offset": {
+                    "description": "Row offset, normally zero.",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "datasetID"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Compare table values deterministically: minimum, maximum, difference and percentage cheaper relative to the maximum. Use for supplier cost comparisons instead of mental arithmetic.",
+              "name": "compare_rows",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "datasetID": {
+                    "description": "Table ID.",
+                    "type": "string"
+                  },
+                  "labelColumn": {
+                    "description": "Column with supplier/item names.",
+                    "type": "string"
+                  },
+                  "valueColumn": {
+                    "description": "Numeric or calculated column to compare.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "datasetID",
+                  "labelColumn",
+                  "valueColumn"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Create a named snapshot of an existing space with exact values and input versions. Limit 1,000 rows per table.",
+              "name": "pin_space",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Existing space ID.",
+                    "type": "string"
+                  },
+                  "title": {
+                    "description": "Name of pinned copy.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Propose changed cells for human review. Read rows first, then supply exact row version IDs and only fields to change. Does not alter accepted values until the user accepts the visible proposal.",
+              "name": "propose_table_edit",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "datasetID": {
+                    "description": "Existing table ID.",
+                    "type": "string"
+                  },
+                  "edits": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "description": "Exact inspected row version ID.",
+                          "type": "string"
+                        },
+                        "values": {
+                          "additionalProperties": true,
+                          "description": "Changed column IDs mapped to new values. Decimal values are strings.",
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "values"
+                      ],
+                      "type": "object"
+                    },
+                    "maxItems": 100,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "datasetID",
+                  "edits"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Deterministic decimal arithmetic. Use for arithmetic claims.",
+              "name": "calculate",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "expression": {
+                    "description": "Arithmetic expression, SUM, MIN, MAX, AVERAGE, COUNT, IF or ROUND.",
+                    "type": "string"
+                  },
+                  "values": {
+                    "additionalProperties": true,
+                    "description": "Named decimal string inputs.",
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "expression"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Calculate accepted actual stock from an opening basis and unique events.",
+              "name": "balance",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "subject": {
+                    "description": "Exact inventory subject, such as brass bolts.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "subject"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "List saved native spaces.",
+              "name": "spaces",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {},
+                "required": [],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Save a native space. Every table AND every chart requires its own datasetID. Call this before claiming creation succeeded.",
+              "name": "save_space",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "definition": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "components": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "aggregation": {
+                              "description": "Metric aggregation: SUM, AVERAGE, MIN, MAX or COUNT. Metrics require datasetID and y.",
+                              "type": "string"
+                            },
+                            "chartStyle": {
+                              "description": "bar or line; default bar.",
+                              "type": "string"
+                            },
+                            "children": {
+                              "description": "Required only for comparison; two or three native components side by side. Total tree limit is 16 components.",
+                              "items": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "aggregation": {
+                                    "description": "Metric aggregation: SUM, AVERAGE, MIN, MAX or COUNT. Metrics require datasetID and y.",
+                                    "type": "string"
+                                  },
+                                  "chartStyle": {
+                                    "description": "bar or line; default bar.",
+                                    "type": "string"
+                                  },
+                                  "children": {
+                                    "description": "Required only for comparison; two or three native components side by side. Total tree limit is 16 components.",
+                                    "items": {
+                                      "additionalProperties": false,
+                                      "properties": {
+                                        "aggregation": {
+                                          "description": "Metric aggregation: SUM, AVERAGE, MIN, MAX or COUNT. Metrics require datasetID and y.",
+                                          "type": "string"
+                                        },
+                                        "chartStyle": {
+                                          "description": "bar or line; default bar.",
+                                          "type": "string"
+                                        },
+                                        "datasetID": {
+                                          "description": "REQUIRED on each table and each chart. Use the datasetID from datasets, even when another component uses the same table.",
+                                          "type": "string"
+                                        },
+                                        "id": {
+                                          "description": "A unique short component ID.",
+                                          "type": "string"
+                                        },
+                                        "itemID": {
+                                          "description": "REQUIRED for document/asset. Exact evidence item ID.",
+                                          "type": "string"
+                                        },
+                                        "query": {
+                                          "description": "Search component query. Not used by charts.",
+                                          "type": "string"
+                                        },
+                                        "text": {
+                                          "description": "Text component content.",
+                                          "type": "string"
+                                        },
+                                        "title": {
+                                          "description": "Visible title.",
+                                          "type": "string"
+                                        },
+                                        "type": {
+                                          "enum": [
+                                            "table",
+                                            "chart",
+                                            "metric",
+                                            "document",
+                                            "asset",
+                                            "search",
+                                            "text"
+                                          ],
+                                          "type": "string"
+                                        },
+                                        "unit": {
+                                          "description": "Optional unit ONLY when explicitly specified in evidence.",
+                                          "type": "string"
+                                        },
+                                        "x": {
+                                          "description": "REQUIRED for chart. Existing dataset column ID for categories.",
+                                          "type": "string"
+                                        },
+                                        "y": {
+                                          "description": "REQUIRED for chart. Existing numeric or calculated column ID.",
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "type",
+                                        "title"
+                                      ],
+                                      "type": "object"
+                                    },
+                                    "maxItems": 3,
+                                    "minItems": 2,
+                                    "type": "array"
+                                  },
+                                  "datasetID": {
+                                    "description": "REQUIRED on each table and each chart. Use the datasetID from datasets, even when another component uses the same table.",
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "description": "A unique short component ID.",
+                                    "type": "string"
+                                  },
+                                  "itemID": {
+                                    "description": "REQUIRED for document/asset. Exact evidence item ID.",
+                                    "type": "string"
+                                  },
+                                  "query": {
+                                    "description": "Search component query. Not used by charts.",
+                                    "type": "string"
+                                  },
+                                  "text": {
+                                    "description": "Text component content.",
+                                    "type": "string"
+                                  },
+                                  "title": {
+                                    "description": "Visible title.",
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "enum": [
+                                      "table",
+                                      "chart",
+                                      "metric",
+                                      "comparison",
+                                      "document",
+                                      "asset",
+                                      "search",
+                                      "text"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "unit": {
+                                    "description": "Optional unit ONLY when explicitly specified in evidence.",
+                                    "type": "string"
+                                  },
+                                  "x": {
+                                    "description": "REQUIRED for chart. Existing dataset column ID for categories.",
+                                    "type": "string"
+                                  },
+                                  "y": {
+                                    "description": "REQUIRED for chart. Existing numeric or calculated column ID.",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "type",
+                                  "title"
+                                ],
+                                "type": "object"
+                              },
+                              "maxItems": 3,
+                              "minItems": 2,
+                              "type": "array"
+                            },
+                            "datasetID": {
+                              "description": "REQUIRED on each table and each chart. Use the datasetID from datasets, even when another component uses the same table.",
+                              "type": "string"
+                            },
+                            "id": {
+                              "description": "A unique short component ID.",
+                              "type": "string"
+                            },
+                            "itemID": {
+                              "description": "REQUIRED for document/asset. Exact evidence item ID.",
+                              "type": "string"
+                            },
+                            "query": {
+                              "description": "Search component query. Not used by charts.",
+                              "type": "string"
+                            },
+                            "text": {
+                              "description": "Text component content.",
+                              "type": "string"
+                            },
+                            "title": {
+                              "description": "Visible title.",
+                              "type": "string"
+                            },
+                            "type": {
+                              "enum": [
+                                "table",
+                                "chart",
+                                "metric",
+                                "comparison",
+                                "document",
+                                "asset",
+                                "search",
+                                "text"
+                              ],
+                              "type": "string"
+                            },
+                            "unit": {
+                              "description": "Optional unit ONLY when explicitly specified in evidence.",
+                              "type": "string"
+                            },
+                            "x": {
+                              "description": "REQUIRED for chart. Existing dataset column ID for categories.",
+                              "type": "string"
+                            },
+                            "y": {
+                              "description": "REQUIRED for chart. Existing numeric or calculated column ID.",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "type",
+                            "title"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 16,
+                        "type": "array"
+                      },
+                      "version": {
+                        "const": 1,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "version",
+                      "components"
+                    ],
+                    "type": "object"
+                  },
+                  "title": {
+                    "description": "Name of the space.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title",
+                  "definition"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Save a draft document, with exact input evidence.",
+              "name": "draft",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "inputs": {
+                    "items": {
+                      "description": "Exact item version ID from retrieved evidence.",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "text": {
+                    "description": "Draft text.",
+                    "type": "string"
+                  },
+                  "title": {
+                    "description": "Draft title.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title",
+                  "text",
+                  "inputs"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Propose a draft interpretation. It does not accept a business event.",
+              "name": "propose_record",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "data": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "inputs": {
+                    "items": {
+                      "description": "Exact item version ID from retrieved evidence.",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "kind": {
+                    "description": "Domain kind, such as forecast or analysis.",
+                    "type": "string"
+                  },
+                  "meaning": {
+                    "description": "actual, estimate, plan, commitment, assumption or rule.",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "Interpretation.",
+                    "type": "string"
+                  },
+                  "title": {
+                    "description": "Record title.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title",
+                  "text",
+                  "kind",
+                  "meaning",
+                  "inputs"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Propose a draft inventory movement. The user must accept it before it changes actual stock.",
+              "name": "propose_movement",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "effective": {
+                    "description": "ISO 8601 date/time.",
+                    "type": "string"
+                  },
+                  "input": {
+                    "description": "Exact supporting evidence item ID.",
+                    "type": "string"
+                  },
+                  "meaning": {
+                    "description": "actual for observed facts; estimate or plan for future scenarios.",
+                    "type": "string"
+                  },
+                  "occurrence": {
+                    "description": "Business occurrence ID; reusing it cannot duplicate its effect.",
+                    "type": "string"
+                  },
+                  "quantity": {
+                    "description": "Signed decimal string.",
+                    "type": "string"
+                  },
+                  "subject": {
+                    "description": "Inventory subject.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "subject",
+                  "quantity",
+                  "occurrence",
+                  "effective",
+                  "input"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          },
+          {
+            "function": {
+              "description": "Deliver the final answer and declare its basis. Business facts about Sources/Records or earlier messages require basis=evidence and inspected citations, even if a summary or host state suggests the answer. Explain missing/partial evidence and unsuccessful actions.",
+              "name": "finish",
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "answer": {
+                    "description": "Plain-language answer. Do not print opaque IDs in prose.",
+                    "type": "string"
+                  },
+                  "basis": {
+                    "description": "evidence: workbook/history facts, requires inspected citations. current_request: only information supplied in this request or arithmetic calculated from it. completed_action: only confirm a successful action in this run. general: guidance, greeting, clarification or verified interface labels; no business or earlier-conversation facts. unresolved: explicitly cannot establish the requested facts; no guessed answer.",
+                    "enum": [
+                      "evidence",
+                      "current_request",
+                      "completed_action",
+                      "general",
+                      "unresolved"
+                    ],
+                    "type": "string"
+                  },
+                  "citations": {
+                    "items": {
+                      "description": "Inspected item version ID, or message:ID returned by history_read for a statement about earlier conversation.",
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "coverage": {
+                    "items": {
+                      "description": "Optional current-run count_records receipt ID. The host validates and renders each exact count and scope. No search or old receipt IDs.",
+                      "type": "string"
+                    },
+                    "maxItems": 4,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "answer",
+                  "basis",
+                  "citations"
+                ],
+                "type": "object"
+              },
+              "strict": true
+            },
+            "type": "function"
+          }
+        ],
+        "top_k": 0,
+        "top_p": 1
+      },
+      "expected": {
+        "citations": [
+          "row-oak",
+          "row-cedar"
+        ],
+        "tool": "finish"
+      },
+      "id": "workbook_finish_history"
+    }
+  ],
+  "fixtureRevision": 2,
+  "pilotCorrections": "Original pilot retained. Expect NFC because the pinned tokenizer normalizer is NFC. Quote the table title explicitly to disambiguate its meaning field.",
+  "schemaVersion": 1,
+  "toolsSHA256": "8154c5d7533a7168aea610249cfed7835cd498a60690f26ad60c9b33b2543a71"
+}

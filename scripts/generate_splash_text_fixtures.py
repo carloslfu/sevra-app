@@ -52,6 +52,14 @@ cases=[
  ('trim',[system('  Rules.\n'),user('\n  Hello.  \t')],False,False,None),
  ('empty',[user('')],False,False,None),
 ]
+# Occupied histories exercise bounded prompt reuse and generation suffixes with
+# both reasoning flags, including a changed final turn after a shared prefix.
+history = 'Preserve the exact supplier observations, dates and quantities.\n' * 100
+for thinking, preserve in [(False, False), (True, False), (False, True), (True, True)]:
+ cases.append((f'occupied_{thinking}_{preserve}', [system('Use only these observations.'), user(history), assistant('Recorded.'), user('Summarize the source.')], thinking, preserve, [tool]))
+cases.append(('occupied_changed', [system('Use only these observations.'), user(history), assistant('Recorded.'), user('Find a different supplier.')], False, False, [tool]))
+for label, number in [('integer',1),('double',1.0),('zero',0.0),('negative_zero',-0.0)]:
+ cases.append(('occupied_numeric_'+label, [user(history),{'role':'assistant','content':'','tool_calls':[{'type':'function','id':'number-call','function':{'name':'propose_record','arguments':{'data':{'value':number}}}}]},{'role':'tool','content':'Draft saved.','tool_call_id':'number-call'},user('Describe the saved number.')],False,False,[record_tool]))
 out=[]
 for name,messages,thinking,preserve,tools in cases:
  # Workbook JSON has canonical sorted object keys; pass the exact same ordering to the reference.

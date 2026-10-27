@@ -19,6 +19,7 @@ let package = Package(
     .executable(name: "sevra-splash-grammar-checks", targets: ["SevraSplashGrammarChecks"]),
     .executable(name: "sevra-agent-checks", targets: ["SevraAgentChecks"]),
     .executable(name: "sevra-native-setup", targets: ["SevraNativeSetup"]),
+    .executable(name: "sevra-inference-performance", targets: ["SevraInferencePerformance"]),
   ],
   dependencies: [
     .package(
@@ -28,6 +29,10 @@ let package = Package(
     .package(url: "https://github.com/huggingface/swift-transformers.git", exact: "1.3.5"),
   ],
   targets: [
+    .executableTarget(
+      name: "SevraInferencePerformance",
+      dependencies: ["SevraSplash", "SevraSplashText", "SevraSplashGrammar"],
+      path: "IntegrationTests/Performance", swiftSettings: [.swiftLanguageMode(.v5)]),
     .systemLibrary(name: "CSQLite"),
     .systemLibrary(name: "CLLGuidance"),
     .target(

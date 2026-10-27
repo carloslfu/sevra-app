@@ -20,6 +20,11 @@ public final class SplashTextFrontend {
   }
   private let tokenizer: any Tokenizer
   private let template: String
+  private var generationSuffixes: [Bool: [Int]] = [:]
+  private var promptCache: [(key: Data, prompt: Prompt, bytes: Int)] = []
+  private var promptCacheBytes = 0
+  private var promptCacheHits = 0
+  private static let promptCacheBudget = 8 * 1024 * 1024
   private let lock = NSLock()
   private var addedGrammarTokens: [UInt32: [UInt8]] = [:]
   private var grammarVocabularyCache: ByteVocabulary?
@@ -117,6 +122,37 @@ public final class SplashTextFrontend {
     guard let eos = tokenizer.eosTokenId, Self.stopTokens.contains(UInt32(eos)) else {
       throw SplashError("Tokenizer EOS does not match the native model")
     }
+    // Probe the pinned template's generation suffix once, as Splash does.
+    // Re-tokenizing the entire occupied conversation to find this short suffix
+    // doubles preparation work. Each full request still verifies its suffix.
+    for thinking in [false, true] {
+      var suffix: [Int]?
+      for preserve in [false, true] {
+        for canary: [Message] in [
+          [["role": "user", "content": "Generation suffix probe."]],
+          [["role": "system", "content": "Follow this probe."],
+           ["role": "user", "content": "A different message: Bogotá 日本語."]],
+        ] {
+          func probe(_ generation: Bool) throws -> [Int] {
+            try tokenizer.applyChatTemplate(
+              messages: canary, chatTemplate: .literal(template), addGenerationPrompt: generation,
+              truncation: false, maxLength: nil, tools: nil,
+              additionalContext: ["enable_thinking": thinking, "preserve_thinking": preserve])
+          }
+          let without = try probe(false)
+          let with = try probe(true)
+          guard with.starts(with: without), with.count > without.count else {
+            throw SplashError("Selected template has no stable generation suffix")
+          }
+          let candidate = Array(with.dropFirst(without.count))
+          guard suffix == nil || suffix == candidate else {
+            throw SplashError("Selected generation suffix changes with conversation history")
+          }
+          suffix = candidate
+        }
+      }
+      generationSuffixes[thinking] = suffix
+    }
   }
 
   public func prepare(
@@ -132,6 +168,7 @@ public final class SplashTextFrontend {
     }
     var bytes = 0
     var nodes = 0
+    var numericIdentity: [[String]] = []
     func account(_ value: any Sendable, depth: Int = 0) throws {
       nodes += 1
       guard depth <= 32, nodes <= 65536 else {
@@ -140,7 +177,7 @@ public final class SplashTextFrontend {
       if let string = value as? String {
         bytes += string.utf8.count
       } else if let object = value as? [String: any Sendable] {
-        for (key, child) in object {
+        for (key, child) in object.sorted(by: { $0.key < $1.key }) {
           bytes += key.utf8.count
           try account(child, depth: depth + 1)
         }
@@ -151,6 +188,13 @@ public final class SplashTextFrontend {
           throw SplashError("Conversation has a non-finite number")
         }
         bytes += 32
+        // Foundation JSON can serialize 1 and 1.0 identically even when the
+        // template renders their types differently. Preserve scalar identity
+        // in the cache key, including signed zero and exact large integers.
+        numericIdentity.append([
+          String(reflecting: type(of: value)), String(cString: number.objCType),
+          number.stringValue, String(number.doubleValue.bitPattern),
+        ])
       } else if value is NSNull {
         bytes += 4
       } else {
@@ -170,6 +214,27 @@ public final class SplashTextFrontend {
       try account(message)
     }
     if let tools { try account(tools) }
+    // The workbook's context planner and inference request may prepare the
+    // same large envelope. Reuse only exact bytes, after all input checks, in
+    // this frontend's bounded memory. Changed histories still render normally.
+    // Splash likewise keeps a four-entry, 8 MiB tokenizer cache, though its
+    // cache can also reuse message prefixes. No cache is written to disk.
+    let cacheKey: Data? = bytes >= 4096
+      ? try JSONSerialization.data(withJSONObject: [
+        "messages": messages, "tools": tools as Any? ?? NSNull(),
+        "thinking": thinking, "preserveThinking": preserveThinking,
+        "numericIdentity": numericIdentity,
+      ], options: [.sortedKeys]) : nil
+    if let cacheKey, let index = promptCache.firstIndex(where: { $0.key == cacheKey }) {
+      let cached = promptCache[index]
+      guard cached.prompt.tokens.count <= contextLimit else {
+        throw SplashError("Prompt exceeds the native context limit")
+      }
+      promptCache.remove(at: index)
+      promptCache.append(cached)
+      promptCacheHits += 1
+      return cached.prompt
+    }
     // swift-jinja represents JSON null through a boxed nil optional. NSNull
     // reaches its unsupported-object path, including in nested tool history.
     func templateValue(_ value: any Sendable) -> any Sendable {
@@ -183,22 +248,36 @@ public final class SplashTextFrontend {
     let context: [String: any Sendable] = [
       "enable_thinking": thinking, "preserve_thinking": preserveThinking,
     ]
-    func render(_ generation: Bool) throws -> [Int] {
-      try tokenizer.applyChatTemplate(
-        messages: templateMessages, chatTemplate: .literal(template),
-        addGenerationPrompt: generation, truncation: false, maxLength: nil, tools: templateTools,
-        additionalContext: context)
-    }
-    let tokens = try render(true)
+    let tokens = try tokenizer.applyChatTemplate(
+      messages: templateMessages, chatTemplate: .literal(template),
+      addGenerationPrompt: true, truncation: false, maxLength: nil, tools: templateTools,
+      additionalContext: context)
     guard tokens.count <= contextLimit, !tokens.isEmpty else {
       throw SplashError("Prompt exceeds the native context limit")
     }
     guard tokens.allSatisfy({ $0 >= 0 && $0 < Self.vocabularySize }) else {
       throw SplashError("Tokenizer produced an invalid token")
     }
-    let without = try render(false)
-    let prefix = tokens.starts(with: without) ? tokens.count - without.count : 0
-    return Prompt(tokens: tokens.map(UInt32.init), generationTokens: UInt32(prefix))
+    guard let suffix = generationSuffixes[thinking], tokens.suffix(suffix.count).elementsEqual(suffix)
+    else { throw SplashError("Request does not end with the selected generation suffix") }
+    let prompt = Prompt(tokens: tokens.map(UInt32.init), generationTokens: UInt32(suffix.count))
+    if let cacheKey {
+      let size = cacheKey.count + prompt.tokens.count * MemoryLayout<UInt32>.stride
+      if size <= Self.promptCacheBudget {
+        while !promptCache.isEmpty && (promptCache.count >= 4 || promptCacheBytes + size > Self.promptCacheBudget) {
+          promptCacheBytes -= promptCache.removeFirst().bytes
+        }
+        promptCache.append((cacheKey, prompt, size))
+        promptCacheBytes += size
+      }
+    }
+    return prompt
+  }
+
+  public var promptCacheStatistics: (entries: Int, bytes: Int, hits: Int) {
+    lock.lock()
+    defer { lock.unlock() }
+    return (promptCache.count, promptCacheBytes, promptCacheHits)
   }
 
   public func decode(_ tokens: [UInt32], skipSpecialTokens: Bool = false) -> String {

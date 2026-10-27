@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T05:06:04.031394+00:00
+updated: 2026-10-27T05:32:32.834598+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -149,7 +149,7 @@ JSON-slice resource, then builds only the native llguidance crate with the pinne
 Rust toolchain. It records the local library digest in .build/llguidance-receipt.json.
 The installed product contains neither that development toolchain nor Python.
 
-The native fixtures compare 15 exact prompts, 80 streaming decodes, 31 output
+The native fixtures compare 24 exact prompts, 80 streaming decodes, 31 output
 projections across 3,216 chunk layouts, every byte-vocabulary entry and 105 complete
 speculative masks for JSON, Unicode, reasoning and strict tools. The actual 19
 workbook tools add 27 grammar scenarios and 228 exact mask comparisons, plus
@@ -464,3 +464,43 @@ Run `output/native/bin/sevra model-setup MODELS_ROOT` to download the pinned tar
 For actual-model checks without changing any user settings, use `SEVRA_CLI=output/native/bin/sevra SEVRA_MODEL_DIRECTORY=MODELS_ROOT python3 scripts/check_model.py`. Those environment variables select qualification inputs for the test script, not a runtime backend preference. Run only one real model workload at a time. Capture failures and tool receipts. Background downloads/builds make these behavior checks unsuitable for controlled performance claims.
 
 The preview uses a provisional 32K context, bounded512 reasoning and 12 GiB engine budget. Automatic compaction remains disabled. It is a qualification artifact until matched performance, memory, setup, application and hardware gates pass.
+
+## Matched request performance
+
+The request comparison is development tooling. First prepare the pinned reference
+environment and native model assembly as described above, and build the worker:
+
+```sh
+swift build -c release --product sevra-inference-performance -j 4
+python3 scripts/check_performance_harness.py
+python3 scripts/compare_splash_performance.py \
+  --models-root /path/to/sevra-native-models \
+  --output .build/performance/pilot-new --pilot
+```
+
+Use a new output folder every time. The pilot records failures but cannot pass a
+performance gate. It calls the pinned Python Frontend/NativeBackend directly,
+without an HTTP listener. A development-only grammar adapter preserves Sevra's
+required-first nested property order without changing the prompt. The native
+worker uses production Swift primitives. The installed app still contains no
+Python. Both use the same unchanged native helper and model assembly.
+
+After reviewing the pilot, commit the tested harness and frozen protocol. With a
+clean checkout, AC power and no other model job, build or download running:
+
+```sh
+python3 scripts/compare_splash_performance.py \
+  --models-root /path/to/sevra-native-models \
+  --output .build/performance/cohort-new
+```
+
+The coordinator owns the shared inference lease and runs ten alternating paired
+blocks, with two measured repetitions and one warmup per workload/backend/block.
+Raw responses, exact prompt arrays, sampled physical-footprint traces, power,
+thermal, swap and identity receipts stay in that output directory. The summary
+requires all twenty measured samples per workload and backend, matching prompts,
+all declared semantics, no request/sampling failures and the fixed median/p95
+thresholds. An excluded block cannot qualify this fixed-size cohort. Preserve
+failed attempts. Review and sanitize local paths before publishing receipts.
+This is a request/frontend comparison; actual workbook jobs, full UI and hardware
+qualification remain separate release gates.

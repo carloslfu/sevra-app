@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T05:12:12.768783+00:00
+updated: 2026-10-27T05:32:32.852022+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -20,12 +20,16 @@ The observed search-coverage failures are corrected at the host boundary. Exact 
 
 Native setup completed a fresh 21,481,463,614-byte target/draft download, with a deliberate cancellation after 130,690,940 retained weight bytes, safe resume and verified atomic publication. The packaged native CLI then passed all nine workbook checks on those fresh files. The rebuilt baseline passed all nine too. Native Settings reuse and offline reverification pass without duplicating weights. A full download initiated in the UI and UI cancellation were not separately qualified.
 
-The native preview app and CLI pass installed-resource checks with build-folder access denied, nine missing-resource cases, altered Metal refusal, missing-model guidance and strict signing. Both load 1,888 Metal functions; native binaries and a live process-map sample show no Python, Slotstream or MLX inference runtime. SwiftPM still resolves baseline source dependencies for comparison targets. A fresh-checkout native preview build and packaging check are now part of CI; the current commit's hosted result must be checked separately.
+The native preview app and CLI pass installed-resource checks with build-folder access denied, nine missing-resource cases, altered Metal refusal, missing-model guidance and strict signing. Both load 1,888 Metal functions; native binaries and a live process-map sample show no Python, Slotstream or MLX inference runtime. SwiftPM still resolves baseline source dependencies for comparison targets. A fresh-checkout native preview build and packaging check are now part of CI; checkpoint 8adaa855 passed the complete hosted workflow, including the isolated preview build/package check (run 40454053852). New commits still need their own CI result.
 
 The final full regression has 59 core checks, 30 native adapter/setup checks, 15 exact prompt fixtures, 80 streaming fixtures, all 248,320 vocabulary entries, 105 base grammar masks and 249 masks across 28 actual-tool grammar cases. Required-first nested property order fixes optional formula omission without weakening schemas. Real workbook tests cover comparisons, hostile documents, missing evidence, proposal acceptance/undo, scoped counts and cancellation/restart. Additional native and baseline table runs prove formula recalculation after an input edit. One actual native UI comparison completed with a generated table/chart, opened its cited source, and returned to the space through Back. See integration/evidence/2026-10-27-native-product.json for failed attempts, final results and commands.
 
 Next: matched reference/native request and workbook performance, total memory/headroom, wider evidence-grounding evaluation, complete native UI/media/voice/accessibility journeys, and remaining search scale/interruption recovery. Production adoption, wider hardware support and release qualification remain open. Automatic compaction remains disabled in both product paths. [[records/specs/splash-integration]] and [[records/specs/conversation-context]] control those gates.
 
+
+The matched native/reference request harness now has three retained pilots in integration/evidence/2026-10-27-native-performance-pilots.json. Pilot 1 exposed an NFC expectation error, an ambiguous title and mismatched tool prompt ordering. Pilot 2 matched prompts but missed nested property normalization inside wrapped reference grammars. Pilot 3 passed all five workloads with identical prompts and generated tokens, no semantic/sampling failures and no power/thermal exclusions. It is one sample per workload/backend, not a performance qualification.
+
+Swift now probes the pinned template's generation suffix once and reuses exact large envelopes in a bounded four-entry, 8 MiB payload cache. Scalar type identity, signed zero, reasoning flags, changed histories and current context limits are preserved. The full local regression passes 24 exact prompt fixtures, the existing 80 stream/105 base-mask/249 actual-tool-mask checks, core and setup checks, plus benchmark gate failure tests. Native assembly reverification passes. The fixed ten-block cohort is next; the installed baseline remains unchanged.
 ## Implemented
 
 - Native SwiftUI/AppKit document windows with conversation and workspace panes,

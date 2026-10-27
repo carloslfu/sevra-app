@@ -20,5 +20,6 @@ python3 scripts/build_guidance.py
 swift build --product sevra-splash-grammar-checks -j "${SEVRA_BUILD_JOBS:-4}"
 swift build --product sevra-agent-checks -j "${SEVRA_BUILD_JOBS:-4}"
 python3 scripts/check_splash_grammar.py
+python3 scripts/check_performance_harness.py
 python3 scripts/check_links.py
 if command -v dbmd >/dev/null; then dbmd validate --all db --json; else echo 'dbmd is required for specification validation.' >&2; exit 1; fi

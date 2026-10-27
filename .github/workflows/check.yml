@@ -26,6 +26,7 @@ jobs:
         run: |
           swift build --product sevra-splash-text-checks -j 3
           python3 scripts/check_splash_text.py
+          python3 scripts/check_performance_harness.py
       - name: Check native speculative grammar masks
         run: |
           rustup toolchain install 1.96.0 --profile minimal

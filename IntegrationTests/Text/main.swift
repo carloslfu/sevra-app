@@ -46,6 +46,27 @@ do {
       guard frontend.decode(prompt.tokens) == fixture["rendered"] as? String else {
         throw SplashError("Round-trip decoded prompt differs")
       }
+      let before = frontend.promptCacheStatistics
+      let repeated = try frontend.prepare(
+        messages: messages, tools: tools,
+        thinking: fixture["thinking"] as! Bool,
+        preserveThinking: fixture["preserveThinking"] as! Bool)
+      guard repeated.tokens == expected, repeated.generationTokens == prompt.generationTokens else {
+        throw SplashError("Repeated preparation changed prompt or generation-prefix tokens")
+      }
+      if (fixture["name"] as! String).hasPrefix("occupied_") {
+        let after = frontend.promptCacheStatistics
+        guard after.hits == before.hits + 1, after.entries <= 4, after.bytes <= 8 * 1024 * 1024 else {
+          throw SplashError("Occupied prompt reuse is unavailable or exceeds its bounds")
+        }
+        var rejected = false
+        do {
+          _ = try frontend.prepare(messages: messages, tools: tools,
+            thinking: fixture["thinking"] as! Bool,
+            preserveThinking: fixture["preserveThinking"] as! Bool, contextLimit: 1)
+        } catch { rejected = true }
+        guard rejected else { throw SplashError("A cached prompt bypassed a reduced context limit") }
+      }
       print("PASS \(fixture["name"]!) exact prompt and generation-prefix tokens")
     } catch {
       failures += 1

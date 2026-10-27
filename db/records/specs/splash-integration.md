@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T05:06:04.008046+00:00
+updated: 2026-10-27T05:32:32.818554+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
 ---
 # Native Splash integration and upgrades
 
-Revision 7, October 27 UTC, 2026. Owner-approved direction; integration not yet qualified.
+Revision 8, October 27 UTC, 2026. Owner-approved direction; integration not yet qualified.
 Authority: [[sources/notes/2026/10/workbook-primary-splash-direction]].
 The existing Slotstream build is a preserved baseline, not the future architecture.
 
@@ -63,6 +63,7 @@ allocation limit is not total process footprint: measure the Swift process plus
 helper and remaining host headroom. Native failure and restart preserve proposals
 and last accepted data. Never silently replay an accepted mutation.
 
+The selected Swift frontend probes generation-suffix tokens at startup and verifies the suffix on every rendered prompt. It may reuse exact large request envelopes in a four-entry in-memory cache with an 8 MiB payload budget after validating inputs and the current context limit. The cache is scoped to the frontend lifetime and never grants authority or persists history. Changed envelopes render normally; unlike the upstream tokenizer cache, this initial cache does not reuse partial message prefixes.
 ## Native grammar implementation
 
 I14. The candidate uses pinned LLGuidance 1.8.0 through its C ABI. This is the
@@ -232,6 +233,27 @@ in complete request time on each declared workload, no >10% p95 regression, and
 no behavior regression; require enough repetitions to expose variation. A speedup
 claim needs repeatable complete-workflow evidence. Python removal alone proves none.
 
+
+The first matched request protocol is frozen in integration/performance/protocol.json,
+with synthetic inputs in integration/performance/workloads.json. It uses the same
+pinned native helper, target/draft assembly, 32K context, 12 GiB engine budget,
+seed 42, zero temperature and disabled persistent disk cache. Ten alternating
+paired process blocks provide twenty measured samples per workload and backend,
+after one warmup per workload per process. Workload order rotates identically.
+The five cases cover plain copying, Unicode JSON, occupied-context lookup,
+formula-bearing workbook proposals and bounded reasoning over tool history.
+
+The development reference calls the pinned upstream Frontend/NativeBackend directly;
+Swift calls its production frontend, grammar and transport primitives. Neither
+uses an HTTP listener in the timed path. Record process startup separately,
+request/first-token/prefill/decode latency, exact prompts, generated tokens,
+terminal output, failures and sampled frontend-plus-helper physical footprint.
+OS file caches are uncontrolled. This is not SSD-cold measurement. Preserve all
+pilot failures, and commit the tested harness before the qualifying cohort.
+A pilot cannot pass the gate. Power/thermal exclusions affect both members of a
+paired block and prevent this fixed-size cohort from qualifying; requests and
+swap growth cannot be silently dropped. Actual WorkbookAgent job timing and the
+remaining adoption gates are independent of this request benchmark.
 ## Upstream maintenance
 
 I11. `skills/update-splash/SKILL.md` owns the agent workflow. Keep a machine-readable
