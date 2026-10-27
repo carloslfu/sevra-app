@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T11:52:11.846575+00:00
+updated: 2026-10-27T16:15:57.123083+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -366,3 +366,12 @@ Freeze measured sources, model manifest and release worker binary. Verify their 
 
 ## Current W1 pilot boundary
 The corrected normal-cache W1 pilot on fda029e completed sixteen jobs plus two Ready primes with 32 exact paired requests and generated outputs, no sampling/condition failures, and retained currency correction latency. This satisfies the pilot prerequisite only. Run the already preregistered complete cohort on committed frozen sources before assessing the recorded latency gate. Keep I1 and earlier W1 divergences as historical evidence; a newer passing prompt set and telemetry correction do not establish a universal determinism claim or a single root cause.
+
+## Complete W1 result, October 27
+The frozen 0e45190 ten-block cohort completes all 260 jobs and meets the
+registered timing thresholds, but fails exact paired-output parity in one
+inventory warmup. Identical request bytes first diverge in generated reasoning;
+subsequent prompt differences are consequences. Preserve the entire cohort and
+isolate this discrepancy with a focused replay before considering another
+qualification run. No native production adoption or passed W1 speed gate follows.
+See [[records/operations/implementation]] and the preserved cohort2 evidence.

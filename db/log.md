@@ -361,3 +361,6 @@ Prepare verified external file copies, preserving immutable workbook evidence; r
 ## [2026-10-27 16:08] implementation | records/operations/implementation.md
 Core asset-copy regressions pass; repair preview test compile failure from CI 40536758642 and tighten visible-item and destination identity.
 
+## [2026-10-27 16:15] verification | records/operations/implementation.md
+Archive full W1: all 260 jobs valid and all timing limits met, but one exact-request inventory warmup diverges; parity gate fails. All 20 workers closed, 93 frozen identities and raw frame/prompt hashes verified.
+

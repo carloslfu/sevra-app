@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T16:08:42.911356+00:00
+updated: 2026-10-27T16:15:57.106180+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -55,11 +55,14 @@ production adoption remain disabled pending their recorded gates.
   isolation and baseline install/update/uninstall checks pass. Hardware voice
   and broader accessibility remain unqualified.
 
-- The new complete ten-block W1 cohort is running on frozen 0e45190. Seven paired blocks have
-  completed with 182 valid jobs, exact paired requests/generated tokens and closed
-  workers. The cohort remains active; its remaining pairs and final conditions
-  stay open. This is a checkpoint summary, not a live progress display. All frozen source hashes remain unchanged. Full performance/cleanup
-  qualification requires the complete cohort; no speed claim follows yet.
+- The complete ten-block W1 cohort on frozen 0e45190 finished with 260 valid
+  jobs, 20 closed workers, no exclusions, unchanged 93 source/binary identities
+  and no surviving worker processes. All four timing thresholds were met, but
+  exact parity failed in block 9 inventory warmup, seed 9002. Its second request
+  had identical serialized bytes and prompt tokens but produced 230 versus 234
+  output tokens; later requests consequently differed. Both jobs still returned
+  the correct cited balance. This is a failed qualification, not native adoption
+  or a speed claim. Preserve it and isolate the first divergence before a rerun.
 - The 0e45190 hosted workflow passed completely (40515342232), including both
   package builds and installation checks. The linked-file preview correction is
   prepared on the asset-preview branch: hashing releases the workbook lock,
@@ -1982,3 +1985,34 @@ helper requires an explanatory message. The repair supplies those messages.
 The copy action also checks the displayed version before opening its save panel,
 and destination ownership compares normalized filesystem paths. The failed CI
 run is retained; a new full run is required.
+
+## Complete W1 cohort and parity failure, October 27
+Frozen 0e45190 completed all ten paired blocks (20 workers, 260 jobs including
+20 Ready primes). Independent audit validates all 984 request observations,
+485 unique serialized frames and prompt arrays, 93 unchanged source/binary
+identities, successful worker shutdown and no surviving recorded processes.
+The retained summary recomputes exactly. No paired block was excluded.
+
+One warmup diverges: block 9, inventory_evidence, seed 9002, second request.
+Its actual request frame and 7,059-token prompt match exactly. Both report
+1,568 deduplicated KV tokens and zero matched prompt tokens. Generated tokens
+first differ at zero-based offset 19, producing 230 native versus 234 reference
+tokens. Both request the same evidence item; downstream prompt histories then
+differ. Both final answers correctly cite 20 minus 2 equals 18. The trace locates
+the discrepancy but does not establish its engine/scheduler/numerical cause.
+
+Every workflow's native/reference median and p95 ratios stayed inside the frozen
+5%/10% thresholds. Supplier: 1.0151/1.0168; formula: 1.0247/1.0093; inventory:
+0.9833/0.9798; missing evidence: 0.9654/1.0043. These are retained observations,
+not a passed performance gate: the protocol explicitly requires exact parity
+for warmups too. Production adoption remains false. Do not erase this failure,
+selectively exclude the warmup, silently relax the gate, or run another full
+cohort before a focused diagnosis.
+
+Full public evidence: integration/evidence/2026-10-27-workflow-cohort2-parity-failure.json.gz.
+It preserves every JSON/stderr file and original-file SHA, with ordinary local
+paths sanitized. Decoded request frames were checked for literal home/temporary
+paths; model inputs come from the committed synthetic fixtures. The original
+local run and frozen worker binary remain preserved. Compressed SHA-256:
+99e7b90d29acbc1cd44f1a5395130c736a384a0985900828254cee5095174052. Uncompressed SHA-256:
+f82a88441fbf409c5c0db5ec19698704996df05a73cd023cf1da3bc6b67cfb23.
