@@ -72,6 +72,7 @@ struct WorkbookView: View {
           }
           if state.focus {
             Divider()
+            conversationHeader
             composer.padding(14)
           }
         }.frame(minWidth: 450, maxWidth: .infinity)
@@ -90,16 +91,23 @@ struct WorkbookView: View {
       .sheet(item: $state.conversationDraft) { draft in
         ConversationNameSheet(draft: draft) { name in
           guard let book = state.workbook else { return }
-          if draft.isThread {
-            let id = try book.tangent(title: name, parentMessage: draft.message)
-            state.changeConversation(id)
-          } else {
-            try book.chapter(title: name, message: draft.message)
-            state.refresh()
-          }
+          let owner = state.interactionIdentity
+          try await Task.detached(priority: .userInitiated) {
+            if let thread = draft.threadID {
+              try book.renameThread(
+                thread, title: name, expectedTitle: draft.title, token: draft.id.uuidString)
+            } else {
+              try book.chapter(title: name, message: draft.message)
+            }
+          }.value
+          guard state.interactionIdentity == owner, state.workbook === book else { return }
+          state.refresh()
           state.conversationDraft = nil
           composerFocused = true
         }
+      }
+      .sheet(isPresented: $state.showingHistorySearch) {
+        ConversationHistorySheet(state: state, search: state.historySearch)
       }
       .sheet(item: $state.summaryDraft) { draft in
         ConversationSummarySheet(draft: draft) { summary in
@@ -151,7 +159,7 @@ struct WorkbookView: View {
     case .search: return "Search workbook"
     }
   }
-  var conversation: some View {
+  var conversationHeader: some View {
     VStack(spacing: 0) {
       HStack {
         Menu {
@@ -165,31 +173,28 @@ struct WorkbookView: View {
             }
           }
         } label: {
-          Text(
-            state.conversation == "main"
-              ? "Conversation"
-              : state.conversations.first { $0["id"].text == state.conversation }?["title"].text
-                ?? "Thread"
-          ).font(.subheadline.weight(.medium))
+          Text(state.conversationTitle).font(.subheadline.weight(.medium)).lineLimit(1)
         }
         Spacer()
         Menu {
           Button("Start a chapter") {
             if let message = state.messages.last {
-              state.conversationDraft = .init(isThread: false, message: message.id)
+              state.conversationDraft = .init(message: message.id)
             }
           }.disabled(state.messages.isEmpty)
           Button("Start a thread") {
             if let message = state.messages.last {
-              state.conversationDraft = .init(isThread: true, message: message.id)
+              state.startThread(from: message.id)
             }
           }.disabled(state.messages.isEmpty)
           if state.conversation != "main" {
+            Button("Rename thread…", action: state.requestRenameThread)
             Button("Back to conversation") { state.changeConversation("main") }
             Button("Share summary with conversation") { state.requestSummary() }
               .disabled(
                 !state.messages.contains { $0.role == "assistant" && $0.state == "complete" })
           }
+          Button("Search this conversation…") { state.showingHistorySearch = true }
           if !state.bookmarks.isEmpty {
             Menu("Saved exchanges") {
               ForEach(state.bookmarks, id: \.text) { bookmark in
@@ -204,6 +209,19 @@ struct WorkbookView: View {
           Image(systemName: "ellipsis")
         }.menuStyle(.borderlessButton).frame(width: 20)
       }.padding(16)
+      if state.conversation != "main" {
+        HStack {
+          Button("Back to conversation", systemImage: "arrow.uturn.backward") {
+            state.changeConversation("main")
+          }
+          Spacer()
+        }.padding(.horizontal, 16).padding(.bottom, 10)
+      }
+    }.disabled(state.changingConversation)
+  }
+  var conversation: some View {
+    VStack(spacing: 0) {
+      conversationHeader
       Divider()
       Group {
         ScrollView {
@@ -211,6 +229,9 @@ struct WorkbookView: View {
           // heights so scrollTo reaches the newest or cited message reliably;
           // lazy height estimates drift with long, differently sized replies.
           VStack(alignment: .leading, spacing: 24) {
+            if state.hasEarlierMessages {
+              Button("Load earlier exchanges") { state.pageConversation(earlier: true) }
+            }
             if state.messages.isEmpty {
               VStack(alignment: .leading, spacing: 12) {
                 Text("What are we working on?").font(.title2.weight(.medium))
@@ -226,6 +247,9 @@ struct WorkbookView: View {
                       key: ConversationRowFrames.self,
                       value: [message.id: geometry.frame(in: .named("conversation-content"))])
                   })
+            }
+            if state.hasLaterMessages {
+              Button("Load later exchanges") { state.pageConversation(earlier: false) }
             }
             if state.busy {
               Text(state.status).font(.callout).foregroundStyle(.secondary).id("working")
@@ -360,24 +384,26 @@ struct WorkbookView: View {
 
 struct ConversationDraft: Identifiable {
   let id = UUID()
-  let isThread: Bool
   let message: String
+  var threadID: String? = nil
+  var title: String = ""
 }
 
 private struct ConversationNameSheet: View {
   let draft: ConversationDraft
-  let create: (String) throws -> Void
+  let create: (String) async throws -> Void
   @Environment(\.dismiss) private var dismiss
   @State private var name = ""
   @State private var failure: String?
+  @State private var saving = false
   @FocusState private var focused: Bool
-  private var title: String { draft.isThread ? "Start a thread" : "Start a chapter" }
+  private var title: String { draft.threadID != nil ? "Rename thread" : "Start a chapter" }
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text(title).font(.title2.weight(.medium))
       Text(
-        draft.isThread
-          ? "Give this discussion a title, for example “What if we raise prices?” You can return to the conversation at any time."
+        draft.threadID != nil
+          ? "Choose a title that helps you recognize this discussion."
           : "Name this point so you can find it later in the conversation."
       )
       .foregroundStyle(.secondary)
@@ -386,14 +412,21 @@ private struct ConversationNameSheet: View {
       HStack {
         Spacer()
         Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
-        Button(draft.isThread ? "Start thread" : "Create chapter") {
-          do { try create(name.trimmingCharacters(in: .whitespacesAndNewlines)) } catch {
-            failure = error.localizedDescription
+        Button(draft.threadID != nil ? "Save title" : "Create chapter") {
+          saving = true
+          Task {
+            defer { saving = false }
+            do { try await create(name.trimmingCharacters(in: .whitespacesAndNewlines)) } catch {
+              failure = error.localizedDescription
+            }
           }
         }.keyboardShortcut(.defaultAction)
           .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
       }
-    }.padding(24).frame(width: 400).onAppear { focused = true }
+    }.padding(24).frame(width: 400).disabled(saving).onAppear {
+      name = draft.title
+      focused = true
+    }
   }
 }
 

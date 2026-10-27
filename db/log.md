@@ -433,3 +433,6 @@ Persist per-conversation drafts and reading positions with background flush, con
 ## [2026-10-27 20:08] design | records/specs/product.md
 Specify P06b/S16a presentation-state ownership, bounds, conflict recovery, saved-draft export semantics and hard-kill limits.
 
+## [2026-10-27 20:28] verification | records/operations/implementation.md
+Immediate thread creation, rename, bounded history paging/search and exact original navigation pass core/async/native/CLI checks; 79 core, 19 extraction and 16 document checks pass, both packages/install pass. Engine adoption, language equivalents and release gates remain open.
+

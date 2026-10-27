@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T19:26:40.101213+00:00
+updated: 2026-10-27T20:28:17.959452+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1111,3 +1111,28 @@ exercise XLSX saved values, formulas, dates, overflow and shared-string expansio
 Run scripts/check_extraction_package.py for each built product directory to verify
 both installed helper layouts and actual CLI table import with build-tree reads
 denied. The public CLI does not require Python; this script is development tooling.
+
+
+## Thread and history navigation, October 27
+
+Start a thread now opens directly from a message with a provisional title. Use its
+menu to rename it; Back to conversation restores the main draft and reading state.
+The thread identity and return control remain visible in workspace-focus mode.
+Command-Option-F searches the active conversation. Next/Previous matches browse
+20 snippets at a time; choose a result to open its original. The transcript's earlier
+and later controls move through bounded windows, and Return to latest resumes the
+newest exchanges. No model setup is required for these native actions.
+
+The app and both packaged CLIs share the core operations:
+
+```sh
+sevra start-thread Workbook.sevra MESSAGE_ID
+sevra start-thread Workbook.sevra MESSAGE_ID "Delivery dates"
+sevra rename-thread Workbook.sevra THREAD_ID "Supplier scenario"
+```
+
+The existing `thread WORKBOOK TITLE MESSAGE_ID` command and `tangent` alias remain
+compatible. `history-search WORKBOOK CONVERSATION_ID QUERY [CURSOR]` retains its
+agent-oriented history behavior, including tool receipts. The native search limits
+its own results to visible transcript roles. These controls do not establish the
+full ordinary-language or voice journey; see [[records/specs/product]].

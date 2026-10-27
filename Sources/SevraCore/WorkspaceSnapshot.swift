@@ -8,6 +8,8 @@ public struct WorkspaceSnapshot: Sendable {
   public let items: [ItemSummary]
   public let datasets: [Dataset]
   public let messages: [Message]
+  public let hasEarlierMessages: Bool
+  public let hasLaterMessages: Bool
   public let conversations: [Value]
   public let chapters: [Value]
   public let bookmarks: [Value]
@@ -33,10 +35,12 @@ extension Workbook {
               try messageLocation(messageAnchor)["conversation_id"].text == conversation,
               "history_scope", "The message is not in this conversation.")
           }
+          let history = try readConversationWindow(
+            conversation: conversation, around: messageAnchor, cancellation: control)
           return try WorkspaceSnapshot(
             revision: current, spaces: spaces(), items: recentItemSummaries(), datasets: datasets(),
-            messages: messageAnchor.map { try messages(around: $0) }
-              ?? messages(conversation: conversation),
+            messages: history.messages, hasEarlierMessages: history.hasEarlier,
+            hasLaterMessages: history.hasLater,
             conversations: conversations(), chapters: chapters(),
             bookmarks: chapters(bookmarks: true),
             pendingExtractions: pendingExtractions(), intakeStatus: intakeStatus())

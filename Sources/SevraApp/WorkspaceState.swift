@@ -31,6 +31,10 @@ import SwiftUI
   @Published var items: [ItemSummary] = []
   @Published var datasets: [Dataset] = []
   @Published var messages: [Message] = []
+  @Published var hasEarlierMessages = false
+  @Published var hasLaterMessages = false
+  @Published var showingHistorySearch = false
+  let historySearch = ConversationHistorySearch()
   @Published var conversations: [Value] = []
   @Published var conversationDraft: ConversationDraft?
   @Published var summaryDraft: ConversationSummaryDraft?
@@ -169,14 +173,18 @@ import SwiftUI
     guard !busy else { return }
     requestRefresh(polling: true)
   }
-  private func requestRefresh(polling: Bool) {
+  private func requestRefresh(polling: Bool, pageAnchor: String? = nil) {
     guard interactionActive, let book = workbook else { return }
     let identity = WorkspaceReadIdentity(
       workbook: book, window: interactionIdentity, conversation: conversation,
       messageAnchor: messageAnchor)
     let changedView = refreshSession.identity != identity
-    if changedView { messages = [] }
-    let readingAnchor = conversationSession.state.reading.message
+    if changedView && refreshSession.identity?.conversation != conversation {
+      messages = []
+      hasEarlierMessages = false
+      hasLaterMessages = false
+    }
+    let readingAnchor = pageAnchor ?? conversationSession.state.reading.message
     let knownRevision = polling && loadedRefreshIdentity == identity ? revision : nil
     refreshSession.request(identity: identity, onlyWhenIdle: polling && !changedView) { control in
       try book.workspaceSnapshot(
@@ -195,8 +203,13 @@ import SwiftUI
         {
           // The user scrolled beyond this pending window. Read the current
           // position instead of replacing it with an obsolete bounded window.
-          self.refresh()
-          return
+          if let pageAnchor {
+            self.conversationSession.updateReading(.init(message: pageAnchor))
+            self.readingRequest = UUID()
+          } else {
+            self.refresh()
+            return
+          }
         }
         self.loadedRefreshIdentity = identity
         self.revision = snapshot.revision
@@ -204,6 +217,8 @@ import SwiftUI
         self.items = snapshot.items
         self.datasets = snapshot.datasets
         self.messages = snapshot.messages
+        self.hasEarlierMessages = snapshot.hasEarlierMessages
+        self.hasLaterMessages = snapshot.hasLaterMessages
         self.conversations = snapshot.conversations
         self.chapters = snapshot.chapters
         self.bookmarks = snapshot.bookmarks
@@ -484,11 +499,7 @@ import SwiftUI
         else {
           throw SevraError("conversation", "Start the conversation before opening a thread.")
         }
-        if let title {
-          changeConversation(try book.tangent(title: title, parentMessage: message.id))
-        } else {
-          conversationDraft = .init(isThread: true, message: message.id)
-        }
+        startThread(from: message.id, title: title)
       case .shareSummary(let text):
         if let text {
           guard conversation != "main",
@@ -786,20 +797,58 @@ import SwiftUI
     let owner = interactionIdentity
     Task {
       defer { changingConversation = false }
-      guard await conversationSession.select(id), interactionActive,
-        interactionIdentity == owner
-      else { return }
-      conversationDraft = nil
-      summaryDraft = nil
-      conversation = id
-      if let workbook {
-        UserDefaults.standard.set(id, forKey: "lastConversation:" + workbook.url.path)
-      }
-      selectedContext = ""
-      if let anchor { conversationSession.updateReading(.init(message: anchor)) }
-      restoreConversationPresentation()
-      refresh()
+      await selectConversation(id, anchor: anchor, owner: owner)
     }
+  }
+  private func selectConversation(_ id: String, anchor: String? = nil, owner: UUID) async {
+    guard await conversationSession.select(id), interactionActive, interactionIdentity == owner
+    else { return }
+    conversationDraft = nil
+    summaryDraft = nil
+    showingHistorySearch = false
+    if conversation != id { historySearch.reset() }
+    conversation = id
+    if let workbook {
+      UserDefaults.standard.set(id, forKey: "lastConversation:" + workbook.url.path)
+    }
+    selectedContext = ""
+    if let anchor { conversationSession.updateReading(.init(message: anchor)) }
+    restoreConversationPresentation()
+    refresh()
+    composerFocusRequest = UUID()
+  }
+  func startThread(from message: String, title: String? = nil) {
+    guard interactionActive, !changingConversation, let book = workbook else { return }
+    speech.stop()
+    changingConversation = true
+    let owner = interactionIdentity
+    Task {
+      defer { changingConversation = false }
+      guard await conversationSession.flush(), interactionActive, interactionIdentity == owner
+      else { return }
+      do {
+        let id = try await Task.detached(priority: .userInitiated) {
+          try book.startThread(parentMessage: message, title: title)
+        }.value
+        guard interactionActive, interactionIdentity == owner, workbook === book else { return }
+        await selectConversation(id, owner: owner)
+      } catch { if interactionIdentity == owner { self.error = error.localizedDescription } }
+    }
+  }
+  var conversationTitle: String {
+    conversation == "main"
+      ? "Conversation"
+      : conversations.first { $0["id"].text == conversation }?["title"].text ?? "Thread"
+  }
+  func requestRenameThread() {
+    guard conversation != "main" else { return }
+    conversationDraft = .init(message: "", threadID: conversation, title: conversationTitle)
+  }
+  func pageConversation(earlier: Bool) {
+    guard !changingConversation, let boundary = earlier ? messages.first?.id : messages.last?.id
+    else { return }
+    messageAnchor = boundary
+    requestRefresh(polling: false, pageAnchor: boundary)
   }
   func latestConversationMessages() {
     guard !changingConversation else { return }
@@ -856,6 +905,8 @@ import SwiftUI
     interactionActive = false
     conversationDraft = nil
     summaryDraft = nil
+    showingHistorySearch = false
+    historySearch.reset()
     interactionIdentity = UUID()
     operations.invalidate()
     refreshSession.reset()

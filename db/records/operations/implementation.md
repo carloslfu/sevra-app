@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T20:08:08.946511+00:00
+updated: 2026-10-27T20:28:17.982351+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -75,16 +75,24 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   those visible paths; drafts never entered messages, evidence search or business
   revisions. Native actions are implemented; ordinary language equivalents remain.
 
-The final local suite passes with 77 core, 19 extraction and 16 document checks,
+- Immediate thread creation, editable provisional titles and visible return now pass
+  native checks, including workspace-focus identity and reopen. Older history has
+  bounded earlier/later windows and conversation-scoped search, with exact original
+  navigation and preserved drafts. Search paging/retry and stale-scope refusal pass.
+
+The final local suite passes with 79 core, 19 extraction and 16 document checks,
 plus the expanded conversation/preview checks. Both package builds, native
-resource/signature checks, installed extraction and isolated baseline
+resource/signature checks, packaged extraction and isolated baseline
 install/update/uninstall pass. Hosted workflows 40562440542 on e27ae39,
 40564561986 on 75511b8, 40568212108 on 03163ed and 40571572539 on 3dcc924 pass.
-This conversation-state checkpoint still needs its own hosted result after push.
-Next, continue the coherent UX pass with immediate, editable provisional thread
-creation, clear return controls and bounded older-history browsing/search. Continue
-engine repeatability review and remaining context, keyboard/VoiceOver,
-archive/transcription, whole-app memory and release gates alongside that work.
+Workflow 40575358833 on 3313016 is still running at this checkpoint; this new
+navigation change still needs its own hosted result after push.
+Next, continue the coherent UX pass with ordinary voice/text host actions and
+Home/recent/pinned spaces, then the full J11 journey. Thread creation/rename still
+use the existing generic writer lock; add a bounded writer path before treating
+interruption under competing writers as qualified. Continue engine repeatability
+review and remaining context, keyboard/VoiceOver, archive/transcription, whole-app
+memory and release gates alongside that work.
 Do not restart the architecture or weaken adoption gates.
 [[records/specs/splash-integration]], [[records/specs/conversation-context]] and
 [[records/operations/build-and-run]] retain the contracts and failed evidence.
@@ -2629,3 +2637,67 @@ Evidence: [conversation-state verification](../../../integration/evidence/2026-1
 30 retained logs, source/binary identities and synthetic UI/SQLite observations.
 Uncompressed SHA-256:
 `e55a79c6337995908c2ce0bf76a7866a36f620e11b2f9fefa83354fc6df05eb3`.
+
+
+## Immediate thread and bounded history checkpoint, October 27
+
+Implemented P07b/P06c in core, native UI and CLI. Starting a thread flushes the
+current draft, creates a provisional plain-text title and selects the empty thread
+without a naming sheet. The exact parent supplies context. Explicit rename uses a
+compare against the title originally shown, refusing a concurrent rename. Start and
+rename use mutation tokens for safe retries. Main cannot be renamed. The thread
+picker, title and visible Back to conversation remain beside the composer in focus
+mode. Legacy CLI aliases retain compatibility; start-thread and rename-thread are
+available in both packaged CLIs.
+
+Workspace snapshots now use conversation-local keysets, not a global row-id window.
+Each contiguous visible window contains at most 100 messages and 2 MiB of bodies,
+including its exact anchor. Sibling messages/tool receipts cannot displace it.
+Earlier/later windows overlap so the reading observer preserves the user's place.
+Search uses existing FTS, 20 snippets per page, scoped visible roles, a bounded
+previous-cursor trail, background reads and a three-second lock/SQL budget. Query,
+conversation and close identities reject stale publication. A failed page keeps the
+previous results and retry cursor. Opening a match saves the draft and navigates to
+the original; it does not send text or grant action authority.
+
+Verification:
+
+- scripts/check.sh passes: 79 core, 19 extraction, 16 document checks, the expanded
+  preview suite and the existing voice, search, context, grammar, agent and workflow
+  checks. Focused tests cover interleaved sibling/tool messages, complete earlier
+  and later traversal, a large-body contiguous window, cancellation, scoped cursor
+  refusal, duplicate-title disambiguation, idempotency, stale rename and reopen.
+  Async search tests cover late results after query/scope/close, bounded replacement,
+  previous-page restoration and failed next-page retry.
+- Both optimized app/CLI/helper packages build. Baseline isolated install, update,
+  skill installation, unrelated-file refusal and uninstall pass. Native resource,
+  signature and installed extraction checks pass with build-tree reads denied.
+  The final app-only timestamp display change was rebuilt, packaged and visually
+  inspected after the suite; core and helper binaries were unchanged.
+- Native UI opened a copied 167-message fixture. Start from exchange 21 opened an
+  empty thread immediately, then rename to Delivery dates preserved its unsent
+  draft. Focus mode retained title, return and composer. Back restored the exact
+  main draft. Command-Option-F supplier search paged from exchange 45 to 25 and
+  back. Search for Exchange 03 opened that exact original at the top of the view.
+- Later/earlier controls made the adjoining messages available while retaining the
+  visible boundary position. Return to latest reached scrollbar 1. Thread search
+  excluded all main supplier matches. Quit/reopen restored Delivery dates and its
+  draft, then main's saved draft/reading anchor. Final search showed a localized
+  date. App quit with dictation off and no text sent.
+- Independent SQLite and packaged-CLI audit confirms the original 167 messages
+  and item rows are byte-for-byte equivalent at the value level, the new thread's
+  parent is exactly exchange 21, both drafts are intact, and integrity passes.
+  Both packaged CLI variants create/rename a thread without changing messages.
+
+Retained failure: the first preview test compile inherited MainActor isolation in
+an inline fixture helper; moving the stateless helper to file scope fixed it. UI
+observations are agent-operated synthetic checks, not spoken VoiceOver or uncoached
+usability. Generic mutation locking is still unbounded for thread writes; draft
+flush and reads have deadlines. No new model, microphone, engine parity or context
+qualification ran. Builds overlapped functional checks, so no speed or whole-app
+memory claim follows. Ordinary-language actions, Home/recent/pinned organization,
+J11 and the engine/context/distribution gates remain open.
+
+Evidence: [conversation-navigation verification](../../../integration/evidence/2026-10-27-conversation-navigation.json.gz),
+19 retained logs, source/binary identities and synthetic UI/SQLite/CLI observations.
+Uncompressed SHA-256: `b8e15f5e301b189268d345a179a593870544f69298bee5a2775c2a3c95632e85`.

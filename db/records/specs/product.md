@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T20:02:51.413909+00:00
+updated: 2026-10-27T20:28:17.937835+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
 ---
 # Product and interaction
 
-Revision 4, October 27, 2026. Status refers to specification review, not delivery.
+Revision 5, October 27, 2026. Status refers to specification review, not delivery.
 Normative requirements use IDs so implementation and verification can map back.
 
 Sevra Workbook is the primary product and homepage. A small Websites link in the
@@ -297,7 +297,7 @@ Store an exact message identifier and a fractional offset within it, or an expli
 follow-latest state. Restore that position through thread switches, provenance jumps,
 layout changes and reopen. Refresh around the reader when new messages arrive;
 Return to latest deliberately resumes the newest window without clearing the draft.
-This does not complete the older-history paging/search controls in P06a.
+The bounded history browser below complements this persisted reading state.
 
 Competing windows compare the saved draft they originally read. A different new
 draft refuses silent overwrite and offers Keep both drafts. The current text stays
@@ -308,3 +308,35 @@ text, and an explicitly removed alternative can make room for another. Reading-o
 changes preserve and expose a newer externally saved draft rather than overwriting
 it. Native conflict controls exist in this slice; ordinary voice/text equivalents
 remain part of P09a qualification.
+
+
+## Immediate threads and bounded history navigation
+
+P07b. Start a thread from a visible conversation message immediately. Derive a
+short plain-text title from that message, disambiguate provisional duplicate titles,
+and allow an explicit rename later. Preserve the exact parent identifier and scoped
+context without copying messages or accepting business changes. A repeated operation
+identifier returns the same thread. Rename compares the title originally opened by
+the editor and refuses an intervening rename. Main Conversation cannot be renamed
+through this action. Explicit titles are one line, 1 to 120 characters and at most
+512 UTF-8 bytes. The visible title, Back to conversation and composer remain available
+in workspace-focus mode. Flush the current draft before changing discussion.
+
+P06c. Conversation browsing loads at most 100 visible messages and 2 MiB of message
+bodies in one coherent read. Use conversation-local message order, even when sibling
+threads and tool receipts interleave. Earlier/later controls load overlapping bounded
+windows while retaining the visible reading anchor. A cited or searched original is
+included in the returned window. Body bounds must never create hidden gaps between
+selected visible messages. Return to latest remains explicit and preserves the draft.
+Tool receipts remain accessible to scoped history tools; the normal transcript and
+its search show human messages, assistant messages and activity entries.
+
+Search this conversation opens from its menu or Command-Option-F. Use the existing
+FTS index, scoped to the active conversation, with 20 snippets per page, next/previous
+navigation, a bounded cursor trail and an explicit empty-result scope. Show role and
+local date; opening a result returns to its exact original after saving the draft.
+A query or conversation change cancels and refuses stale results. Closing also
+refuses late publication. Read-lock acquisition and SQL have a three-second budget.
+Failed page reads preserve the preceding results and retry the requested page.
+This is navigation over original messages, never new evidence or action authority.
+Ordinary interpreted voice/text equivalents remain part of P09a and J11.

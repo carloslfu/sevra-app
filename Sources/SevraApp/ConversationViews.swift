@@ -62,7 +62,7 @@ struct ConversationMessageActions: View {
       } catch { state.error = error.localizedDescription }
     }
     Button("Start a thread") {
-      state.conversationDraft = .init(isThread: true, message: message.id)
+      state.startThread(from: message.id)
     }
     if state.conversation != "main", message.state == "complete",
       ["user", "assistant"].contains(message.role)
@@ -99,6 +99,13 @@ private struct ConversationCommandContent: View {
   @ObservedObject var state: WorkspaceState
   var body: some View {
     Button("Message Sevra") { state.composerFocusRequest = UUID() }.keyboardShortcut("l")
+    Button("Search This Conversation…") { state.showingHistorySearch = true }
+      .keyboardShortcut("f", modifiers: [.command, .option])
+    Button("Start a Thread") {
+      if let message = state.messages.last { state.startThread(from: message.id) }
+    }.disabled(state.messages.isEmpty || state.changingConversation)
+    Button("Rename Thread…", action: state.requestRenameThread).disabled(
+      state.conversation == "main")
     Button("Back to Conversation") { state.changeConversation("main") }
       .disabled(state.conversation == "main")
     Divider()
