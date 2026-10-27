@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T12:08:40.034861+00:00
+updated: 2026-10-27T12:12:06.321215+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -14,6 +14,50 @@ specifications remain the acceptance contract. A source commit does not imply th
 every requirement or supported hardware profile has passed.
 
 ## Current direction, October 27
+
+This remains a development build. The installed app uses the preserved Slotstream
+baseline; the separate native preview uses the Python-free Swift adapter and
+unchanged pinned Splash C++/Metal engine. Automatic compaction and native
+production adoption remain disabled pending their recorded gates.
+
+- Search overclaims and exact reference selection have host-side safeguards and
+  real-model regression evidence. Empty searches report the actual queries and
+  incomplete-source count; they do not establish that a document does not exist.
+  These are bounded checks, not general semantic truth verification.
+- Native setup has completed a fresh 21.48 GB download, cancellation/resume,
+  digest verification and atomic publication. Settings cancellation, explicit
+  reuse and reverification pass. Both packaged variants and isolated installation
+  pass on the recorded Mac; broader hardware remains unqualified.
+- The latest corrected W1 pilot passes all sixteen jobs, two Ready primes and
+  32 exact paired requests/outputs. The full ten-block cohort is running on frozen
+  ed6ffd0. Its first completed pair matched all jobs, requests and generated
+  tokens. This partial run is not a performance result. Preserve the earlier
+  failed W1/I1 and R1 attempts and all correction latency.
+- Native table identity/stale edits, paginated search/Back, PDF/OCR/CSV intake,
+  inherited citations and long-conversation navigation have focused automated
+  and visual evidence. Six native continuity requests pass across three
+  checkpoints, including current acceptance/withdrawal and portable recovery.
+  That does not complete C12/C13 or the full J01–J10 journeys.
+- The isolated codex/voice-lifecycle branch repairs permission/recognition races,
+  typed draft replacement and incomplete playback cleanup. Commit 04ce5c2 has
+  14 injected lifecycle checks prepared; hosted CI run 40501522585 is running.
+  Local compilation, hardware recognition and native visual replay remain pending.
+  See Voice and media lifecycle repair below.
+
+Next, finish and assess the frozen W1 cohort, then locally test and integrate the
+voice/media repair. Continue occupied-context and repeated-compaction recovery,
+whole-app memory/headroom, search scale/interruption and full native accessibility,
+media and installation journeys. Promote the native runtime, remove baseline
+product dependencies and qualify a release only after the applicable gates pass.
+[[records/specs/splash-integration]], [[records/specs/conversation-context]] and
+[[records/operations/build-and-run]] own the contracts and reproduction commands.
+
+## Earlier checkpoint summaries, October 27
+
+The following passages retain earlier development states. Statements about tests
+not yet run apply to those checkpoints; the Current direction above is the current
+status. Detailed retained failures and later results remain in the sections below.
+
 Latest checkpoint: I2 passes both cache arms, and the corrected normal-cache W1 pilot passes all sixteen jobs plus two Ready primes with 32 exact paired requests. Full regression and both packaged builds/resources/install checks pass. The preregistered ten-block W1 performance cohort is now running on frozen ed6ffd0; no speed or adoption claim follows from the pilot. See Corrected complete-workflow pilot below.
 
 Workbook is Sevra's primary product/homepage, with Websites secondary. The installed app remains the preserved Slotstream baseline. A separate Python-free native Splash preview now uses the shared workbook agent through SevraProduct, with the unchanged pinned C++/Metal helper, native grammar library and Swift setup. It is not yet the production default.
@@ -39,6 +83,7 @@ W1 retains a verified cache-comparison mismatch. I1's fresh workers per workload
 Native import/search acceptance now covers a synthetic CSV, two-page PDF, OCR receipt and 35 paginated notes. Back preserves the second page; stale reads cannot replace the current query. PDF text-selection context uses the selected pages rather than the previously visible page. Native setup reverification, final app/CLI packaging, resource refusal and isolated installation pass. See Native search navigation below.
 
 The latest native 32K/bounded512 continuity sequence passes six requests across three checkpoints, current acceptance/withdrawal, corrected original quantities, portable stock recovery, inherited tangent citations and a return to main. A reproduced parent-excerpt retrieval refusal is fixed without expanding branch access. Two opaque-ID finish corrections remain in the passing trace. The native UI now preserves paged search navigation, opens long conversations at the latest message, follows inherited citations to the correct original and shows new messages at the fixed history-window limit. Full regression, packaged search/count checks on both runtimes, final packaging/resources/install and focused visual checks pass. See Native multi-stage continuity plan and Inherited history and conversation navigation below. Automatic compaction and native production adoption remain gated; this is a functional checkpoint, not complete C12/C13 or release qualification. Checkpoint 95a1629 CI passed (40491316063); the new checkpoint requires its own CI.
+
 ## Implemented
 
 - Native SwiftUI/AppKit document windows with conversation and workspace panes,

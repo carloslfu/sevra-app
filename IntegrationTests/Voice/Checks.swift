@@ -10,10 +10,10 @@ private func expect(_ value: @autoclosure () -> Bool, _ message: String) throws 
 }
 
 @MainActor private final class Driver: DictationDriver {
-  var speech: ((Bool) -> Void)?
-  var microphone: ((Bool) -> Void)?
-  var result: ((String, Bool) -> Void)?
-  var failure: ((String) -> Void)?
+  var speech: (@MainActor (Bool) -> Void)?
+  var microphone: (@MainActor (Bool) -> Void)?
+  var result: (@MainActor (String, Bool) -> Void)?
+  var failure: (@MainActor (String) -> Void)?
   var speechRequests = 0
   var microphoneRequests = 0
   var starts = 0

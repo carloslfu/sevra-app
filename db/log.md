@@ -229,3 +229,6 @@ Full W1 cohort is running on frozen ed6ffd0. Correct duplicate progress heading 
 ## [2026-10-27 12:08] implementation | records/operations/implementation.md
 Prepare isolated session-bound dictation, draft preservation and weak all-player lifecycle repair; regression runner and hardware checks still pending while W1 runs.
 
+## [2026-10-27 12:12] implementation | records/operations/implementation.md
+Separate current acceptance status and next actions from earlier checkpoint summaries; retain all historical failures and pending qualification limits.
+

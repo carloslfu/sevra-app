@@ -4,6 +4,7 @@ import Speech
 
 @MainActor final class SystemDictationDriver: DictationDriver {
   private let engine = AVAudioEngine()
+  private var recognizer: SFSpeechRecognizer?
   private var request: SFSpeechAudioBufferRecognitionRequest?
   private var task: SFSpeechRecognitionTask?
   private var tapped = false
@@ -37,6 +38,7 @@ import Speech
     let request = SFSpeechAudioBufferRecognitionRequest()
     request.requiresOnDeviceRecognition = true
     request.shouldReportPartialResults = true
+    self.recognizer = recognizer
     self.request = request
     node.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
       request.append(buffer)
@@ -66,6 +68,7 @@ import Speech
     task?.cancel()
     task = nil
     request = nil
+    recognizer = nil
   }
 }
 

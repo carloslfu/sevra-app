@@ -11,6 +11,10 @@ jobs:
         run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
       - name: Check documentation links
         run: python3 scripts/check_links.py
+      - name: Check dictation ownership and delayed callbacks
+        run: |
+          swift build --product sevra-voice-checks -j 3
+          .build/debug/sevra-voice-checks
       - name: Build core checks
         run: swift build --product sevra-checks -j 3
       - name: Run invariant and integration checks
@@ -23,10 +27,6 @@ jobs:
         run: |
           swift build --product sevra-product-checks -j 3
           .build/debug/sevra-product-checks
-      - name: Check dictation ownership and delayed callbacks
-        run: |
-          swift build --product sevra-voice-checks -j 3
-          .build/debug/sevra-voice-checks
       - name: Check native search navigation and stale reads
         run: |
           swift build --product sevra-search-ui-checks -j 3
