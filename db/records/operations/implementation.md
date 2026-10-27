@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T15:36:10.298234+00:00
+updated: 2026-10-27T15:40:28.856947+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -55,9 +55,10 @@ production adoption remain disabled pending their recorded gates.
   isolation and baseline install/update/uninstall checks pass. Hardware voice
   and broader accessibility remain unqualified.
 
-- The new complete ten-block W1 cohort is running on frozen 0e45190. Five paired blocks have
-  completed with 130 valid jobs, exact paired requests/generated tokens and closed
-  workers. Block 5 is running; the remaining pairs and final conditions stay open. All frozen source hashes remain unchanged. Full performance/cleanup
+- The new complete ten-block W1 cohort is running on frozen 0e45190. Seven paired blocks have
+  completed with 182 valid jobs, exact paired requests/generated tokens and closed
+  workers. The cohort remains active; its remaining pairs and final conditions
+  stay open. This is a checkpoint summary, not a live progress display. All frozen source hashes remain unchanged. Full performance/cleanup
   qualification requires the complete cohort; no speed claim follows yet.
 - The 0e45190 hosted workflow passed completely (40515342232), including both
   package builds and installation checks. The linked-file preview correction is
@@ -1941,3 +1942,12 @@ run 40526063413, including core/catalog, document/preview/search, process-death,
 grammar/model-lifecycle, both packaged apps/CLIs and installation checks. This
 closes its automated build/regression gate, not the remaining native interaction,
 whole-app memory, W1, occupied-context or scale gates.
+
+## Frozen W1 seven-pair checkpoint
+Worker files for blocks 5 and 6 were independently checked after the earlier
+five-pair review. Both pairs contain all 26 valid jobs including their Ready
+primes, exact request hashes/generated tokens, closed workers and no worker
+failure. Cumulatively the first seven paired blocks contain 182 valid jobs.
+The measured source hashes still match identity.json. The coordinator was
+confirmed live with native block 7 in progress. No full-cohort latency or adoption
+conclusion follows before the final three pairs and terminal conditions complete.

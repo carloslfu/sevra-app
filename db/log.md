@@ -352,3 +352,6 @@ Prepare versioned 10k/100k search-scale evidence, exact recall/paging and call-l
 ## [2026-10-27 15:36] verification | records/operations/implementation.md
 Preserve hash-verified 9043fff search self-check artifact and full 426dd2d app workflow pass; physical scale/UI/voice/performance gates remain open.
 
+## [2026-10-27 15:40] verification | records/operations/implementation.md
+Verify frozen W1 blocks 5 and 6; first seven pairs/182 jobs valid with exact matching tokens and unchanged sources. Full cohort still live.
+
