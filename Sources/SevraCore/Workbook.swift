@@ -131,12 +131,10 @@ public final class Workbook: @unchecked Sendable {
   }
   @discardableResult func mutation(
     _ kind: String, token: String = identifier(), request: Value = .null, expected: Int? = nil,
-    _ body: () throws -> Value
+    cancellation: Cancellation? = nil, _ body: () throws -> Value
   ) throws -> Value {
-    try synchronized {
-      guard flock(lockFD, LOCK_EX) == 0 else { throw SevraError("lock", "Cannot lock workbook.") }
-      defer { flock(lockFD, LOCK_UN) }
-      return try db.transaction {
+    func transaction() throws -> Value {
+      try db.transaction {
         if let prior = try db.execute(
           "SELECT kind,request,result FROM operations WHERE id=?", [.string(token)]
         ).first {
@@ -160,6 +158,24 @@ public final class Workbook: @unchecked Sendable {
           ])
         return result
       }
+    }
+    if let cancellation {
+      return try synchronized(cancellation: cancellation) {
+        while flock(lockFD, LOCK_EX | LOCK_NB) != 0 {
+          try require(errno == EWOULDBLOCK || errno == EAGAIN, "lock", "Cannot lock workbook.")
+          try cancellation.check()
+          Thread.sleep(forTimeInterval: 0.01)
+        }
+        defer { flock(lockFD, LOCK_UN) }
+        return try db.shortWait {
+          try db.budget(cancellation: cancellation, seconds: 3) { try transaction() }
+        }
+      }
+    }
+    return try synchronized {
+      guard flock(lockFD, LOCK_EX) == 0 else { throw SevraError("lock", "Cannot lock workbook.") }
+      defer { flock(lockFD, LOCK_UN) }
+      return try transaction()
     }
   }
   /// Small UI-state writes share the package lock, but do not journal keystrokes

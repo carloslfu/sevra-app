@@ -9,7 +9,7 @@ import SevraSplashGrammar
 package enum NativeCitationPolicy {
   package static func make(
     _ citationIDs: [String], toolScope: InferenceToolScope = .all, thinking: Bool = false,
-    itemReferenceIDs: [String] = []
+    itemReferenceIDs: [String] = [], conversationActions: [String]? = nil
   ) throws
     -> SplashToolPolicy
   {
@@ -19,7 +19,8 @@ package enum NativeCitationPolicy {
       "context_limit",
       "This exploration has too many evidence references. Continue with a narrower question.")
     let serialized = try NativeTools.serializedDefinitions(
-      toolScope: toolScope, itemReferenceIDs: itemReferenceIDs)
+      toolScope: toolScope, itemReferenceIDs: itemReferenceIDs,
+      conversationActions: conversationActions)
     if toolScope == .inspection {
       return try SplashToolPolicy(toolsJSON: serialized, choice: .required, thinking: thinking)
     }

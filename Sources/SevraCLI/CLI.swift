@@ -301,6 +301,7 @@ import SevraProduct
       return .object([
         "answer": .string(result.answer), "citations": .array(result.citations.map(Value.string)),
         "steps": .number(Double(result.steps)), "state": .string(result.state),
+        "conversationAction": try result.conversationAction.map(encoded) ?? .null,
       ])
     default: throw SevraError("usage", help)
     }

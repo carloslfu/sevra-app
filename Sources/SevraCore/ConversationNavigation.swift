@@ -24,12 +24,13 @@ extension Workbook {
 
   @discardableResult public func startThread(
     parentMessage: String, title: String? = nil,
-    token: String = identifier()
+    token: String = identifier(), cancellation: Cancellation = .init()
   ) throws -> String {
     let request: Value = .object([
       "parent": .string(parentMessage), "title": title.map(Value.string) ?? .null,
     ])
-    return try mutation("start_thread", token: token, request: request) {
+    let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
+    return try mutation("start_thread", token: token, request: request, cancellation: control) {
       let location = try messageLocation(parentMessage)
       let parent = try historyMessage(parentMessage, conversation: location["conversation_id"].text)
       try require(
@@ -60,15 +61,16 @@ extension Workbook {
 
   public func renameThread(
     _ id: String, title: String, expectedTitle: String? = nil,
-    token: String = identifier()
+    token: String = identifier(), cancellation: Cancellation = .init()
   ) throws {
     let name = try Self.validThreadTitle(title)
+    let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
     _ = try mutation(
       "rename_thread", token: token,
       request: .object([
         "id": .string(id), "title": .string(name),
         "expected": expectedTitle.map(Value.string) ?? .null,
-      ])
+      ]), cancellation: control
     ) {
       let current = try db.scalar("SELECT title FROM conversations WHERE id=?", [.string(id)])
       try require(

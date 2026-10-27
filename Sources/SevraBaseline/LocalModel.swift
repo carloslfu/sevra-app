@@ -159,7 +159,8 @@ public actor LocalModel: WorkbookInference {
       tools: summary
         ? []
         : try Self.baselineDefinitions(
-          itemReferenceIDs: ItemReferenceCandidates.ids(in: messages)), thinking: false, effort: nil
+          itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
+          conversationActions: messages.first?.conversationActions), thinking: false, effort: nil
     )
     try cancellation.check()
     guard let capacity = engine.contextPolicyJSON["configured_window"] as? Int else {
@@ -221,7 +222,10 @@ public actor LocalModel: WorkbookInference {
     defer { active = false }
     let engine = try await load(directory, cancellation: cancellation, progress: progress)
     let available =
-      try Self.baselineDefinitions(itemReferenceIDs: ItemReferenceCandidates.ids(in: messages))
+      try Self.baselineDefinitions(
+        itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
+        conversationActions: messages.first?.conversationActions
+      )
       .filter { toolScope.allows($0.name) }
     let tokens = try engine.encodeChat(
       try Self.baselineMessages(messages), tools: available, thinking: false, effort: nil)

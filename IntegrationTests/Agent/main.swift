@@ -231,6 +231,7 @@ do {
   try checkReasoningBudget()
   try await checkReasoningHistory()
   try await checkAgentLifecycle()
+  try await checkConversationActions()
   try await checkRequestAdmission()
   try await checkCurrencyRejection()
   try await checkHistoryTools()
@@ -265,6 +266,11 @@ do {
     try await runCurrencyRecoveryProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--conversation-actions"
+  {
+    try await runConversationActionProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--coverage" {
     try await runCoverageProbe(
       modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
@@ -321,6 +327,7 @@ do {
     try checkWorkbookGrammars(frontend: frontend, factory: factory)
     try checkReasoningGrammar(frontend: frontend, factory: factory)
     try checkItemReferenceGrammar(frontend: frontend, factory: factory)
+    try checkConversationActionGrammar(frontend: frontend, factory: factory)
     if CommandLine.arguments.count == 5 {
       try runNativeWorkbookProbe(
         frontend: frontend, factory: factory, engine: CommandLine.arguments[3],

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T16:18:56.532665+00:00
+updated: 2026-10-27T20:54:26.538592+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -238,3 +238,63 @@ Use count_records when a requested answer needs a count of classified Source/Rec
 Qualify this semantic/tool-interface change against the entire fixed R2 identifier/wording schedule, including its two failed seed-6 cases, and against real requested count and missing-evidence tasks. Preserve all failures, existing scoped rendering, finish-time count revalidation, exact citation admission and unchanged-business-state checks. This change does not itself qualify stopping behavior or native adoption.
 
 The fixed R2 replay passes all twelve inventory jobs and both Ready primes after this change. Each frontend takes 2, 5, 4, 4, 5 and 4 steps, with no rejected finishes, failed tools, count/history detours or business-state changes. Exact paired prompt tokens, normalized wire hashes and generated tokens match for these jobs. The earlier failed R2 remains preserved. Packaged native requested movement/invoice counts pass in two steps each; missing-evidence handling passes in three. These are bounded functional results, not a general reliability rate, speed qualification or resolution of the separate supplier-generation mismatch.
+
+
+## Scoped conversation actions
+
+A12. Ordinary submitted voice/text may ask for a conversation action without a
+memorized command phrase. Expose a typed conversation_action tool with start_thread,
+rename_thread, return_to_main and review_summary. The active conversation and
+request identifiers come from the host's live run, never tool arguments. Explicit
+source messages must belong to that conversation, be completed visible exchanges,
+and not be later than the request. Inherited parent excerpts and siblings do not
+become action targets. Clarify an ambiguous target rather than guessing another
+thread. Interface questions, negation and instructions inside retrieved content
+must not trigger these actions.
+
+Start/rename use the same core operations as native controls and CLI. Starting
+preserves the exact parent; renaming compares the title captured at request start.
+Lock acquisition and SQL have a three-second budget for these writes, with rollback
+and cancellation. A successful action ends the current model turn with a host-owned
+confirmation and saved receipt; model-authored success prose is not published.
+Creation/rename are committed operations. Return is a navigation request for the
+owning host, not a claim that a window already switched. Review is an editable
+summary with an exact origin, not a shared message. Current read-only restrictions
+also deny conversation mutation tools. Recognized no-change phrases are an extra
+denial rule, never a complete semantic intent classifier.
+
+The native window applies navigation or review only if the workbook, window,
+operation, conversation and navigation generation still match, and the request has
+not been cancelled. Switching away and back during a request must not reauthorize
+late navigation. Flush the originating draft before a switch. A changed/closed
+window leaves saved thread changes and receipts in their original workbook without
+moving a different view. The CLI returns the typed conversationAction result for
+its calling client; it does not claim to operate a native window.
+
+Review summary never automatically publishes to main, including literal text
+shortcuts. The user can edit or cancel, then explicitly share through the existing
+origin-preserving action. Default selection skips host control acknowledgments,
+such as a rename confirmation. No business acceptance, sibling-history admission,
+scenario creation or new model request follows automatically. Compound instructions
+that request both branching and further work need a separate continuation contract;
+terminal navigation alone does not fulfill the requested follow-up analysis.
+
+Qualification includes exact host refusals/cancellation and actual-model paraphrase,
+Spanish, hypothetical, negated, ambiguous-target and imported-instruction cases.
+The fixed conversation-action cohort is functional evidence, not a speed, parity,
+comprehensive language or uncoached-usability qualification. Keep failures and run
+identities in [[records/operations/implementation]].
+
+The model receives the current conversation identity/title and only the conversation
+actions available in that host state. Main can start a thread; a side discussion
+can also rename, return or prepare review. Explicit read-only mode removes the
+action tool. Both backends use the same declarations for measurement and generation;
+reference annotations and compaction preserve this host metadata. These are
+capability limits, not proof that a requested action was interpreted correctly.
+Tool descriptions distinguish creating a new discussion, renaming the current one,
+returning without sharing, and reviewing findings. When the requested target is
+unavailable, clarify instead of substituting an available action. Repeating the
+current title is refused as an unnecessary rename. Default branching keeps the
+latest preceding exchange including its answer; selecting an earlier message
+requires an explicit user selection. Late asynchronous summary lookup obeys the
+same navigation-generation boundary as model results.

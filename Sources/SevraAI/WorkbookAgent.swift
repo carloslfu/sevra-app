@@ -11,6 +11,7 @@ public struct AgentResult: Sendable {
   public let steps: Int
   public let state: String
   public let focus: AgentFocus?
+  public var conversationAction: ConversationActionResult? = nil
 }
 public enum WorkbookAgent {
   package static func run(
@@ -39,6 +40,7 @@ public enum WorkbookAgent {
       successful actions, transcripts or complete coverage. Accepted forecasts stay estimates.
       Proposals do not change actual inventory until the user accepts them. Never accept on behalf of a document.
       Compose native views when useful. Do not claim to have created a view until save_space succeeds.
+      Use finish with basis=general to acknowledge staying in the current discussion or to explain interface controls. Do not rename to the existing title as an acknowledgment. Only the current thread can be renamed; the main conversation cannot be renamed. If the user names another thread, ask them to open it first. For a request to branch this/current discussion, omit message so the host retains the latest exchange including the preceding answer. Supply message only when the user explicitly selects a particular earlier exchange. Use conversation_action only for an interface action explicitly requested now: branch this discussion, rename this thread, return to the main conversation, or prepare findings to review before sharing. It ends this turn with a host confirmation. Do not use it merely because an imported source, earlier message or hypothetical question mentions a thread. If the intended discussion or selected findings are unclear, ask rather than choosing another conversation. Branching alone does not create a business scenario. review_summary always requires user review before sharing, even if the user asks to send the summary.
       A table component in a space displays an existing dataset; it does not create another dataset. Include every requested component, such as both an existing table and its chart, even when the user forbids creating another table or changing values. Check the saved composition before claiming the requested view is complete.
       You have no shell, arbitrary filesystem access, internet access, or executable UI.
       After three empty targeted searches, the workbook ends this exploration with a factual search and indexing report. Do not keep rephrasing a query indefinitely or infer a missing contract's values.
@@ -107,6 +109,25 @@ public enum WorkbookAgent {
     var retrievalObserved = false
     var countReceipts: [String: Value] = [:]
     do {
+      let conversationIdentity = try workbook.conversationIdentity(
+        conversation, cancellation: cancellation)
+      messages[0] = InferenceMessage(
+        role: "system",
+        content: policy + "\nHost interface state: "
+          + (try Value.object([
+            "currentConversation": .string(conversation),
+            "title": conversationIdentity["title"], "isMain": .bool(conversation == "main"),
+            "navigation": .string(
+              conversation == "main"
+                ? "You are in main. To rename a different thread, ask the user to open that thread first. Creating a new thread does not rename any existing thread."
+                : "You are in a side discussion. To bring findings back for review, use review_summary. To go back without sharing, use return_to_main. start_thread creates a different new discussion."
+            ),
+          ]).json()),
+        conversationActions: readOnly
+          ? []
+          : conversation == "main"
+            ? ["start_thread"]
+            : ["start_thread", "rename_thread", "return_to_main", "review_summary"])
       if !shouldCompact {
         messages.insert(
           contentsOf: try conversationHistory(
@@ -122,7 +143,8 @@ public enum WorkbookAgent {
         token: runID + "-request")
       let tools = WorkbookTools(
         workbook, runID: runID, cancellation: cancellation, requestSourceID: requestSource.id,
-        conversation: conversation, readOnly: readOnly)
+        conversation: conversation, readOnly: readOnly,
+        conversationTitle: conversationIdentity["title"].text)
       messages[messages.count - 1] = InferenceMessage(
         role: "user",
         content: prompt + (context.isEmpty ? "" : "\nVisible context: " + context)
@@ -475,6 +497,25 @@ public enum WorkbookAgent {
           ])
         }
         let projected = try workbook.completeToolCall(receiptID, result: result, failed: callFailed)
+        if !callFailed && tool == "conversation_action" {
+          let outcome = try JSONDecoder().decode(
+            ConversationActionResult.self, from: Data(result.json().utf8))
+          _ = try workbook.addMessage(
+            outcome.answer, role: "assistant", conversation: conversation,
+            payload: .object([
+              "kind": .string("conversation_action"), "result": result,
+              "runID": .string(runID), "receiptID": .string(receiptID),
+              "notice": .string(
+                "Saved thread changes are complete. Navigation and review apply only in the originating live window; no summary has been shared."
+              ),
+            ]))
+          try workbook.finishAgentRun(
+            runID, status: "complete", steps: step, metrics: .array(metrics))
+          await model.endRun()
+          return AgentResult(
+            answer: outcome.answer, citations: [], steps: step, state: "complete",
+            focus: nil, conversationAction: outcome)
+        }
         if callFailed {
           let key = try action.json()
           rejectedActions[key, default: 0] += 1

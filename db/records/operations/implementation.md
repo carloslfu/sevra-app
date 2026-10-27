@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T20:28:17.982351+00:00
+updated: 2026-10-27T21:02:54.489462+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -2701,3 +2701,88 @@ J11 and the engine/context/distribution gates remain open.
 Evidence: [conversation-navigation verification](../../../integration/evidence/2026-10-27-conversation-navigation.json.gz),
 19 retained logs, source/binary identities and synthetic UI/SQLite/CLI observations.
 Uncompressed SHA-256: `b8e15f5e301b189268d345a179a593870544f69298bee5a2775c2a3c95632e85`.
+
+## Scoped natural-language conversation actions checkpoint, October 27
+
+Implemented A12 across the shared agent, both inference adapters, native window
+and CLI result. Ordinary submitted text or dictation can request a new discussion,
+rename the current thread, return to main, or prepare findings for review. The
+host supplies the live request/conversation and available actions. Dynamic schemas
+preserve these capabilities through reference annotation/context reconstruction.
+Unavailable targets require clarification; creating a new discussion must not
+substitute for renaming another one. This is capability enforcement, not complete
+semantic intent verification.
+
+Core source selection keeps an exact completed exchange from the current thread;
+siblings, inherited parent messages and later messages are refused. Default branch
+selection includes the latest answer. Start/rename use the existing idempotent
+operations with three-second lock/SQL budgets and cancellation. Rename checks the
+original title and refuses a redundant rename. Successful actions end the turn
+with a host-owned result; model-authored success claims are not published. The CLI
+returns a typed result without claiming a native window switched.
+
+Native result delivery checks the originating workbook, window, operation,
+conversation and navigation generation. Leaving and returning cannot reauthorize
+late navigation. Summary lookup has the same generation guard. All summary paths,
+including the literal command with supplied text, now open review before sharing.
+Default summary selection skips control acknowledgments. Editing or cancelling
+review does not publish; explicit share preserves the exact original exchange.
+
+Verification:
+
+- The complete scripts/check.sh passes: 79 core checks, 19 extraction checks,
+  16 document lifecycle checks, 15 synthetic voice lifecycle checks, existing
+  preview/search/context/workflow checks, and 29 actual-tool grammars with 257
+  exact reference masks. Added checks cover terminal action results, scope,
+  cancellation, read-only refusal, exact parents, review without publication,
+  bounded thread-write locks, and native capability masks with reasoning on/off.
+- The unchanged eight-case native 32K/bounded512 cohort passes on replay v3:
+  branch, Spanish rename, return, review, hypothetical explanation, negation,
+  ambiguous other-thread rename, and an instruction embedded in a document.
+  Branch/rename/return/review each use one model step. Negation and ambiguity
+  each finish in one; imported-instruction handling takes three. The explanation
+  case takes six and includes unrelated datasets and calculate(0) calls, so
+  stopping efficiency remains unresolved despite its functional pass.
+- Both optimized app/CLI/helper packages build. Preserved-baseline installation,
+  update, standalone CLI, skill/conflict handling and uninstall pass. Native
+  resources, signature, setup refusals and installed extraction pass with
+  build-tree access denied. Engine and grammar pins are unchanged.
+- The final native package opens a copied synthetic cohort workbook. A literal
+  supplied summary opens editable review; Cancel leaves main unchanged. An ordinary
+  review request opens the same sheet with the Friday estimate and no-order
+  uncertainty intact. An explicit edited share adds exactly that text to main
+  with a link to its original exchange.
+- Ordinary language creates/selects Delivery options, Spanish renames it Entregas,
+  and a separate unsent draft survives rename and navigation away/back. A natural
+  return request selects main without adding a main message. The preview quits
+  with dictation off. These are agent-operated synthetic UI checks, not uncoached
+  use or new speech-recognition evidence.
+- Independent SQLite audit checks all 24 cohort workbooks, identical protocol
+  hashes, unchanged original source and exchanges, integrity and foreign keys.
+  The UI copy preserves all original messages. Its main has four visible
+  messages plus one tool receipt and exactly one explicitly shared summary.
+
+Retained failures: v1 chose an earlier branch parent, attempted a redundant rename
+for a stay-put request, and attempted invalid renames for an ambiguous target.
+v2 incorrectly created threads for review and ambiguous rename requests. Clearer
+action semantics and unavailable-target guidance pass the same v3 cases; no test
+assertions were weakened. The first read-only synthetic phrase failure, first
+misplaced UI result handler, stale fixture/export command result, and an audit
+that initially counted a tool receipt as a visible message are retained as limits
+or corrected findings. Final suite and package checks pass after corrections.
+
+Evidence: [conversation-action verification](../../../integration/evidence/2026-10-27-conversation-actions.json.gz),
+73,422 compressed bytes, 34 logs, three complete cohort exports, final source/binary
+identities and native UI observations. Uncompressed SHA-256:
+`ed00fb48d8cdc77d887417d8754632a990b25212cec13110a583b9332449946f`.
+Probe executable hashes were not captured before each cohort; final agent-check
+binary identity includes added capability-mask tests. Do not use these functional
+runs to claim native/reference parity or speed.
+
+Remaining: remove irrelevant calls in explanation-only requests; qualify compound
+branch-plus-work behavior and delayed live results after navigation; complete
+Home/recent/pinned organization, keyboard/VoiceOver and uncoached J11 journeys.
+Native engine parity/adoption, automatic-compaction C12/C13, whole-app memory,
+wider hardware and public release gates remain open. The approved human dictation
+phrase was already verified unsent in the earlier live-dictation checkpoint; it
+was not recorded again during this work.

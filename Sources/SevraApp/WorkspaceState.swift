@@ -34,6 +34,7 @@ import SwiftUI
   @Published var hasEarlierMessages = false
   @Published var hasLaterMessages = false
   @Published var showingHistorySearch = false
+  private var conversationNavigationIdentity = UUID()
   let historySearch = ConversationHistorySearch()
   @Published var conversations: [Value] = []
   @Published var conversationDraft: ConversationDraft?
@@ -441,6 +442,7 @@ import SwiftUI
     let chat = conversation
     let navigationID = itemPreviewIdentity
     let context = agentContext + (selectedContext.isEmpty ? "" : "\nSelection: " + selectedContext)
+    let conversationOrigin = conversationNavigationIdentity
     let path =
       UserDefaults.standard.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
       ?? ProductAI.defaultDirectory
@@ -461,6 +463,13 @@ import SwiftUI
           })
         guard owns(ticket, in: book) else { return }
         refresh()
+        if conversation == chat, itemPreviewIdentity == navigationID,
+          conversationNavigationIdentity == conversationOrigin,
+          !ticket.cancellation.isCancelled, !changingConversation,
+          let action = result.conversationAction, action.originConversation == chat
+        {
+          applyConversationAction(action)
+        }
         if conversation == chat, itemPreviewIdentity == navigationID, let focus = result.focus {
           navigate(focus.kind == "space" ? .space(focus.id) : .item(focus.id))
         }
@@ -501,17 +510,7 @@ import SwiftUI
         }
         startThread(from: message.id, title: title)
       case .shareSummary(let text):
-        if let text {
-          guard conversation != "main",
-            let message = messages.last(where: {
-              $0.role == "assistant" && $0.state == "complete"
-            })
-          else { throw SevraError("summary", "Choose a completed thread answer to share.") }
-          _ = try book.shareSummary(message: message.id, text: text)
-          changeConversation("main")
-        } else {
-          requestSummary()
-        }
+        requestSummary(text: text)
       }
 
     } catch { self.error = error.localizedDescription }
@@ -780,15 +779,49 @@ import SwiftUI
     case nil: break
     }
   }
-  func requestSummary(message: Message? = nil) {
-    guard conversation != "main",
-      let selected = message
-        ?? messages.last(where: { $0.role == "assistant" && $0.state == "complete" })
-    else {
+  func requestSummary(message: Message? = nil, text: String? = nil) {
+    guard conversation != "main", let book = workbook else {
       error = "Choose a completed thread answer to share."
       return
     }
-    summaryDraft = .init(id: selected.id, text: selected.body)
+    if let message {
+      summaryDraft = .init(id: message.id, text: text ?? message.body)
+      return
+    }
+    let owner = interactionIdentity
+    let chat = conversation
+    let navigation = conversationNavigationIdentity
+    Task {
+      do {
+        let selected = try await Task.detached(priority: .userInitiated) {
+          try book.latestShareableAnswer(conversation: chat)
+        }.value
+        guard interactionActive, interactionIdentity == owner, workbook === book,
+          conversation == chat, conversationNavigationIdentity == navigation,
+          !changingConversation
+        else { return }
+        guard let selected else {
+          throw SevraError("summary", "Choose a completed thread answer to share.")
+        }
+        summaryDraft = .init(id: selected.id, text: text ?? selected.body)
+      } catch {
+        if interactionActive && interactionIdentity == owner && conversation == chat
+          && conversationNavigationIdentity == navigation
+        {
+          self.error = error.localizedDescription
+        }
+      }
+    }
+  }
+  private func applyConversationAction(_ action: ConversationActionResult) {
+    switch action.kind {
+    case .created, .returnToMain: changeConversation(action.conversation)
+    case .renamed: refresh()
+    case .reviewSummary:
+      if let id = action.message, let text = action.summary {
+        summaryDraft = .init(id: id, text: text)
+      }
+    }
   }
   func changeConversation(_ id: String, anchor: String? = nil) {
     guard interactionActive, !changingConversation else { return }
@@ -808,6 +841,7 @@ import SwiftUI
     showingHistorySearch = false
     if conversation != id { historySearch.reset() }
     conversation = id
+    conversationNavigationIdentity = UUID()
     if let workbook {
       UserDefaults.standard.set(id, forKey: "lastConversation:" + workbook.url.path)
     }

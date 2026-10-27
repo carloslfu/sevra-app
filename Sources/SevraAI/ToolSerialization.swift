@@ -2,12 +2,34 @@ import Foundation
 import SevraCore
 
 extension NativeTools {
-  package static func referenceDefinitions(itemReferenceIDs: [String] = []) throws
+  package static func referenceDefinitions(
+    itemReferenceIDs: [String] = [], conversationActions: [String]? = nil
+  ) throws
     -> [WorkbookToolDefinition]
   {
     let ids = try ItemReferenceCandidates.normalized(itemReferenceIDs)
-    guard !ids.isEmpty else { return definitions }
-    return try definitions.map { definition in
+    return try definitions.compactMap { definition in
+      if definition.name == "conversation_action", let conversationActions {
+        guard !conversationActions.isEmpty else { return nil }
+        try require(
+          Set(conversationActions).isSubset(of: [
+            "start_thread", "rename_thread", "return_to_main", "review_summary",
+          ]),
+          "tool_schema", "Invalid conversation capability.")
+        var parameters = definition.parameters.object
+        var properties = definition.parameters["properties"].object
+        var action = properties["action"]!.object
+        action["enum"] = .array(conversationActions.map(Value.string))
+        properties["action"] = .object(action)
+        parameters["properties"] = .object(properties)
+        return WorkbookToolDefinition(
+          name: definition.name,
+          description: definition.description
+            + " Available here: " + conversationActions.joined(separator: ", ")
+            + ". Missing actions are unavailable, not invitations to create a new thread. Use finish to clarify an unavailable target.",
+          parameters: .object(parameters))
+      }
+      guard !ids.isEmpty else { return definition }
       guard ["read", "lineage"].contains(definition.name) else { return definition }
       var parameters = definition.parameters.object
       var properties = definition.parameters["properties"].object
@@ -23,10 +45,13 @@ extension NativeTools {
 
   /// The same maintained declarations feed both backend boundaries.
   package static func serializedDefinitions(
-    toolScope: InferenceToolScope = .all, itemReferenceIDs: [String] = []
+    toolScope: InferenceToolScope = .all, itemReferenceIDs: [String] = [],
+    conversationActions: [String]? = nil
   ) throws -> Data {
-    let definitions = try referenceDefinitions(itemReferenceIDs: itemReferenceIDs)
-      .filter { toolScope.allows($0.name) }
+    let definitions = try referenceDefinitions(
+      itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions
+    )
+    .filter { toolScope.allows($0.name) }
     let values: [[String: Any]] = try definitions.map {
       [
         "type": "function",

@@ -7,6 +7,8 @@ package enum RequestRestrictions {
   package static func isExplicitlyReadOnly(_ prompt: String) -> Bool {
     let phrases: Set<String> = [
       "make no changes", "do not change anything", "do not change the workbook",
+      "do not make any changes", "don't make any changes", "do not make changes",
+      "don't make changes",
       "don't change anything", "don't change the workbook", "no changes",
       "no hagas cambios", "no cambies nada", "sin hacer cambios",
     ]

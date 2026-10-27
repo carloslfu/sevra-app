@@ -5,7 +5,9 @@ import SevraCore
 import Slotstream
 
 extension LocalModel {
-  package static func baselineDefinitions(itemReferenceIDs: [String] = []) throws -> [Slotstream
+  package static func baselineDefinitions(
+    itemReferenceIDs: [String] = [], conversationActions: [String]? = nil
+  ) throws -> [Slotstream
     .ToolDefinition]
   {
     func schemaValue(_ value: Value) -> JSONValue {
@@ -18,7 +20,9 @@ extension LocalModel {
       case .null: return .null
       }
     }
-    return try NativeTools.referenceDefinitions(itemReferenceIDs: itemReferenceIDs).map {
+    return try NativeTools.referenceDefinitions(
+      itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions
+    ).map {
       .init(name: $0.name, description: $0.description, parameters: schemaValue($0.parameters))
     }
   }

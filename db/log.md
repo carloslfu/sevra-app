@@ -436,3 +436,9 @@ Specify P06b/S16a presentation-state ownership, bounds, conflict recovery, saved
 ## [2026-10-27 20:28] verification | records/operations/implementation.md
 Immediate thread creation, rename, bounded history paging/search and exact original navigation pass core/async/native/CLI checks; 79 core, 19 extraction and 16 document checks pass, both packages/install pass. Engine adoption, language equivalents and release gates remain open.
 
+## [2026-10-27 21:02] implementation | records/specs/intelligence.md
+A12 scoped conversation actions, host capabilities, review-before-share, exact parent selection and navigation-generation boundaries; three fixed cohort runs retained.
+
+## [2026-10-27 21:02] verification | records/operations/implementation.md
+Conversation actions: v3 fixed 8-case pass; complete suite and both packages/install checks pass; native review/branch/rename/return UI verified. Preserve earlier failures and remaining efficiency/adoption gates.
+

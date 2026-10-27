@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import SevraCore
 
@@ -30,6 +31,21 @@ func checkConversationNavigation(at root: URL) {
     try expect(chats.first { $0["id"].text == first }?["title"].text == "Supplier scenario")
     try expect(chats.first { $0["id"].text == first }?["parent_message"].text == original)
     try expect(try b.messages().map(\.id) == [original])
+    let fd = Darwin.open(b.url.appendingPathComponent(".write-lock").path, O_RDWR)
+    try expect(fd >= 0 && flock(fd, LOCK_EX | LOCK_NB) == 0)
+    let started = ProcessInfo.processInfo.systemUptime
+    try refuses("deadline") { _ = try b.startThread(parentMessage: original) }
+    try expect(ProcessInfo.processInfo.systemUptime - started < 4.5)
+    flock(fd, LOCK_UN)
+    Darwin.close(fd)
+    try expect(try b.conversations().count == 3)
+    _ = try b.startThread(parentMessage: original, title: "After lock release")
+    let cancelled = Cancellation()
+    cancelled.cancel()
+    try refuses("cancelled") {
+      try b.renameThread(first, title: "Must not rename", cancellation: cancelled)
+    }
+    try expect(try b.conversationIdentity(first)["title"].text == "Supplier scenario")
   }
   check("History windows use scoped keysets with interleaved threads, bounded bodies and no gaps") {
     let b = try Workbook.create(
