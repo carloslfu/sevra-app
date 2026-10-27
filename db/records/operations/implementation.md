@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T13:28:24.604922+00:00
+updated: 2026-10-27T13:48:18.913073+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -35,8 +35,8 @@ production adoption remain disabled pending their recorded gates.
   atomic edit/retry/stale/copy/file-boundary checks. Visible native checks now
   verify edited-version acceptance, pinned earlier references, retained text after
   failed saves, close/quit refusal, concurrent-edit recovery through conversation,
-  and immediate-close/reopen durability. Narrow layout and large-text behavior
-  remain separate checks.
+  and immediate-close/reopen durability. Minimum-width save recovery also passes;
+  large-text responsiveness remains unmeasured.
 - The 14 injected voice lifecycle checks and four checkpoint process-death,
   cancellation and concurrency checks pass locally and in their recorded hosted
   runs. The hosted checkpoint artifact was downloaded, hash-verified and inspected.
@@ -46,11 +46,19 @@ production adoption remain disabled pending their recorded gates.
   Six native continuity requests pass across three checkpoints, including current
   acceptance/withdrawal and portable recovery. That does not complete J01-J10.
 
-Next, integrate and verify the prepared pinned document/search correction, then
-run a fresh complete W1 cohort on the corrected frozen candidate. Continue whole-app memory/headroom,
-occupied-context and repeated-compaction recovery, search scale/interruption,
-live/pinned document and search semantics, and native media/voice/accessibility
-and installation journeys. Native production adoption, baseline removal and
+- Pinned copies now capture nested document versions and bounded search results
+  atomically. All 64 core checks pass; visible live/pinned divergence after edits
+  behaves correctly. Pinning runs off the UI thread and supports cancellation.
+- A real packaged native video crash was repaired by embedding AVPlayerView
+  directly. Video/audio, compact playback, workbook-close/reset and minimum-width
+  System/Dark checks pass on the recorded host. Both packages build, native resource
+  isolation and baseline install/update/uninstall checks pass. Hardware voice
+  and broader accessibility remain unqualified.
+
+Next, run a fresh complete W1 cohort on the corrected frozen candidate. Continue
+whole-app memory/headroom, occupied-context and repeated-compaction recovery,
+search scale/interruption, native voice/accessibility and fresh-clone installation
+journeys. Native production adoption, baseline removal and
 release remain gated. [[records/specs/splash-integration]],
 [[records/specs/conversation-context]] and [[records/operations/build-and-run]] own
 the contracts and reproduction commands.
@@ -1486,3 +1494,74 @@ SHA256 cea200bd696e4fd22c8f11f9d046ec7aac9561fb6129f81ca4ce00b1cb915047.
 The earlier failed cohort remains unchanged. This focused regression is not the
 complete ten-block W1 performance cohort, an occupied-context qualification or
 production adoption. Measured-source editing and local builds may resume now.
+
+## Pinned-space runtime verification and media crash
+After integration as cbe48ce, all 64 core checks pass, including the five new
+pinned-space cases. The pin operation now runs off the UI thread with shared
+cancellation through its search/capture steps and atomic refusal. The complete
+local suite passes again; both packages build, native installed resources/Metal,
+missing and altered-resource refusals, signatures and both document CLI runners
+pass on that candidate. An initial command used ./scripts/build_native.sh despite
+that script not being executable; its permission-denied log is retained, and the
+actual build passed using the documented bash invocation.
+
+Visible native checks confirmed a pinned copy's time, original eight hits and two
+incomplete indexes. After ten documents were edited through the CLI and one new
+matching Source was added, the live view showed the new match/current document;
+the pinned copy retained the old eight hits and original document with an earlier
+version notice. The fixture is .build/space-media-ui-20261027/Spaces.sevra.
+
+Opening its synthetic MP4 then crashed the packaged app before playback. The
+retained report Sevra-2026-10-27-083408.ips shows SIGABRT during VideoPlayerView
+superclass metadata initialization in _AVKit_SwiftUI. The system log reports a
+failure to demangle AVPlayerView, and otool lists the SwiftUI overlay but omits
+AVKit.framework. This is a real failed native media journey. A direct
+NSViewRepresentable/AVPlayerView adapter is now being built for both the primary
+viewer and compact retained player, with a packaged-framework regression check.
+Playback ownership remains in the existing workbook registry. Actual video/audio
+replay is still pending; do not claim media qualification from a successful build.
+Apple's AVPlayerView and NSViewRepresentable documentation support this native
+bridge; upstream wrapper causation beyond the observed missing dependency is not
+claimed. See https://developer.apple.com/documentation/avkit/avplayerview and
+https://developer.apple.com/documentation/swiftui/nsviewrepresentable.
+
+The earlier welcome-window observation after Quit was investigated: the prior
+process exited and the subsequent CUA observation relaunched a new process.
+Quitting without asking the observer to reopen the target left no native app
+process. Do not report that tooling observation as a Sevra quit defect.
+
+## Native media repair and minimum-window verification
+The direct AVPlayerView bridge passed both packaged builds and actual native
+video/audio replay. It explicitly links AVKit without the SwiftUI video overlay;
+the native package checker now verifies that dependency. Media opens paused,
+explicit Play advances its timeline, Keep playing survives Back in a compact
+player, and Close player removes it. Closing a workbook during retained playback
+and reopening resets the viewer to paused at 00:00 with Keep playing off. Synthetic
+silent fixtures establish lifecycle behavior, not audible-output quality.
+
+Minimum-size native checks showed stacked comparison columns, a visible composer
+and all three failed-save recovery actions. A synthetic second-insert failure kept
+the draft; removing the trigger and Retry persisted the exact text. System/light
+and explicit Dark were readable, then System was restored. Command-Shift-F focused
+search. The exact synthetic term returned the newly added evidence and retained
+the two incomplete media indexes. A spaced variant correctly returned no lexical
+match. Filename search still opened the unsupported-for-extraction MP4.
+
+Final SQLite integrity, exact draft text, original pinned definition and removed
+fault trigger were independently verified. Both packaged document CLI checks,
+baseline resource checks, isolated baseline install/update/uninstall and native
+resource/Metal/missing/altered/signature checks pass after the media repair.
+The complete shared suite passed after async pinning; the later media wrapper was
+verified through both builds, packaging and actual UI. No native preview or Splash
+helper remained after actual Quit. Microphone/speech approval is pending, so no
+hardware recognition result is claimed.
+
+Public evidence: integration/evidence/2026-10-27-space-media-qualification.json.gz.
+Its 853,218 uncompressed bytes have SHA256
+846170630e32a89132eff529111230815e6b9178b1ab6f569d84818861a4d61e.
+It includes 18 retained logs, candidate source/binary hashes, source snapshots,
+synthetic fixture state and precise UI observations. The initial failed build
+invocation and media crash remain findings; only a sanitized relevant crash
+excerpt/hash is public. Raw device/session metadata and vendor documentation are
+not republished. These focused checks do not complete VoiceOver, all keyboard
+paths, full W1, occupied contexts, whole-app memory or release qualification.

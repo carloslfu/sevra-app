@@ -58,7 +58,7 @@ struct WorkbookView: View {
           if let player = state.backgroundPlayer {
             Divider()
             HStack {
-              VideoPlayer(player: player).frame(width: 180, height: 100)
+              NativeMediaPlayer(player: player).frame(width: 180, height: 100)
               Text(state.backgroundMediaTitle).lineLimit(2)
               Spacer()
               Button("Close player") {

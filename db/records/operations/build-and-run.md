@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T13:09:52.948320+00:00
+updated: 2026-10-27T13:48:18.927527+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -899,3 +899,27 @@ The packaged document check accepts --cli for the isolated native product:
 ~~~sh
 python3 scripts/check_document_cli.py --cli output/native/bin/sevra
 ~~~
+
+## Native media packaging and focused UI checks
+The primary viewer and compact retained player embed AppKit AVPlayerView through
+NSViewRepresentable. This keeps AVKit directly linked in the packaged executable.
+A release build using only SwiftUI VideoPlayer aborted while initializing its
+AVPlayerView superclass; preserve that failed observation in the implementation
+record. The native package check requires AVKit and refuses the former overlay.
+Playback ownership remains in the workbook registry rather than view teardown.
+
+After building both variants, run:
+
+~~~sh
+python3 scripts/check_native_package.py
+python3 scripts/check_install.py
+~~~
+
+Use synthetic video/audio for actual UI checks: initial paused state, explicit
+play, retained compact playback after Back, explicit close, and workbook close
+followed by paused reopen. Resource/signature checks alone do not exercise player
+creation. At minimum window size also check stacked comparisons, visible composer,
+failed-save recovery controls and Light/Dark text contrast. Restore the previous
+appearance after testing. Dictation hardware testing requires separate explicit
+microphone/speech permission. See [[records/operations/implementation]] for the
+recorded candidate and its remaining limits.

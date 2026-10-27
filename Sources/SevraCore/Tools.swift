@@ -179,7 +179,10 @@ public struct WorkbookTools {
       return .object(result)
     case "spaces": return try encoded(workbook.spaces())
     case "pin_space":
-      return .string(try workbook.pinSpace(string("id"), title: string("title"), token: token))
+      return .string(
+        try workbook.pinSpace(
+          string("id"), title: string("title"), token: token,
+          cancellation: cancellation))
     case "save_space":
       let definition = try JSONDecoder().decode(
         SpaceDefinition.self, from: Data(a["definition"].json().utf8))

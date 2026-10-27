@@ -67,8 +67,10 @@ extension Workbook {
   }
   /// Pin values, exact item versions and bounded search results in one transaction.
   @discardableResult public func pinSpace(
-    _ id: String, title: String? = nil, token: String = identifier()
+    _ id: String, title: String? = nil, token: String = identifier(),
+    cancellation: Cancellation = .init()
   ) throws -> String {
+    try cancellation.check()
     let result = try mutation(
       "pin_space", token: token,
       request: .object(["id": .string(id), "title": title.map(Value.string) ?? .null])
@@ -79,6 +81,7 @@ extension Workbook {
       let captured = space.definition.pinnedAt ?? timestamp()
       let revision = try revision()
       func pin(_ component: Component) throws -> Component {
+        try cancellation.check()
         var copy = component
         if component.datasetID != nil {
           let snapshot = try componentData(component)
@@ -92,17 +95,19 @@ extension Workbook {
         }
         if component.type == "search", component.searchSnapshot == nil {
           let query = component.query ?? ""
-          let page = try search(query, limit: 8)
+          let page = try search(query, limit: 8, cancellation: cancellation)
           copy.searchSnapshot = ComponentSearchSnapshot(
             query: query, hits: page.hits, incomplete: page.incomplete,
             hasMore: page.nextCursor != nil, revision: revision, captured: captured)
         }
         copy.children = try component.children?.map(pin)
+        try cancellation.check()
         return copy
       }
       let definition = SpaceDefinition(
         components: try space.definition.components.map(pin), pinnedAt: captured)
       let data = try encoded(definition).json()
+      try cancellation.check()
       let saved = identifier()
       let date = timestamp()
       let name = title ?? space.title + " · " + timestamp()

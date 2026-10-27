@@ -95,7 +95,10 @@ import SevraProduct
       return .bool(true)
     case "runs": return .array(try book.agentRuns())
     case "pin-space":
-      return .string(try book.pinSpace(arg(2), title: args.count > 3 ? args[3] : nil))
+      return .string(
+        try book.pinSpace(
+          arg(2), title: args.count > 3 ? args[3] : nil,
+          cancellation: cancellation))
     case "column-history": return .array(try book.columnHistory(arg(2)))
     case "verify": return try book.verify()
     case "import":

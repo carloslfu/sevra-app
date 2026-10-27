@@ -146,6 +146,31 @@ import SwiftUI
       refresh()
     }
   }
+  func pinSpace(_ id: String, title: String) {
+    guard let book = workbook, !busy, documentDrafts.flush() else { return }
+    busy = true
+    status = "Saving a pinned copy"
+    error = nil
+    cancellation = Cancellation()
+    let cancel = cancellation
+    Task {
+      defer {
+        busy = false
+        status = ""
+      }
+      do {
+        let saved = try await Task.detached(priority: .userInitiated) {
+          try book.pinSpace(id, title: title, cancellation: cancel)
+        }.value
+        guard workbook === book, interactionActive else { return }
+        refresh()
+        navigate(.space(saved))
+      } catch {
+        guard workbook === book, interactionActive else { return }
+        self.error = error.localizedDescription
+      }
+    }
+  }
   func importPanel(linked: Bool = false) {
     let panel = NSOpenPanel()
     panel.allowsMultipleSelection = true

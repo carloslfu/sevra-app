@@ -34,6 +34,9 @@ def main():
         assert not any(name in demangled for name in ['Slotstream.', 'MLX.', 'SevraBaseline.'])
         linked = subprocess.check_output(['otool', '-L', str(binary)], text=True)
         assert not any(name.lower() in linked.lower() for name in ['python', 'mlx', 'slotstream'])
+        if binary == app / 'Contents/MacOS/Sevra':
+            assert '/AVKit.framework/' in linked, 'Native media view lost its runtime framework'
+            assert '/_AVKit_SwiftUI.framework/' not in linked, 'Unexpected SwiftUI video overlay dependency'
         print(json.dumps({'check': 'installed_resources', 'product': str(binary.relative_to(product)),
                           'buildTreeDenied': True, 'noBaselineSymbols': True, **value}), flush=True)
     with tempfile.TemporaryDirectory(prefix='sevra-native-package-') as temporary:

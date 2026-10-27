@@ -262,3 +262,12 @@ Pinned document/search correction and five tests prepared on isolated 3b5eda2; n
 ## [2026-10-27 13:28] verification | records/operations/implementation.md
 Frozen current-request regression passed 16 jobs plus 2 primes and 37 exact request/token pairs; processes closed and hashes unchanged. Functional repair only, fresh full W1 still required.
 
+## [2026-10-27 13:37] verification | records/operations/implementation.md
+64 core/full suite and visible pinned/live behavior pass. Synthetic video revealed packaged SwiftUI VideoPlayer crash; exact crash/link evidence retained and direct native AVPlayerView repair building.
+
+## [2026-10-27 13:48] verification | records/operations/implementation.md
+Record passed native media replay, minimum-window draft recovery, pinned-space invariants and isolated installation; retain crash and remaining release gates.
+
+## [2026-10-27 13:48] verification | records/operations/build-and-run.md
+Document AVPlayerView package dependency check and focused native lifecycle reproduction.
+

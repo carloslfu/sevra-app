@@ -125,6 +125,10 @@ func checkSpaceSnapshots(at root: URL) {
       ]))
     let revision = try book.revision()
     let spaces = try book.spaces().count
+    let cancelled = Cancellation()
+    cancelled.cancel()
+    try refuses("cancelled") { _ = try book.pinSpace(live, cancellation: cancelled) }
+    try expect(try book.revision() == revision && book.spaces().count == spaces)
     try refuses("view_limit") { _ = try book.pinSpace(live, token: "refuse-all") }
     try expect(try book.revision() == revision && book.spaces().count == spaces)
     try expect(try book.verify()["ok"] == .bool(true))

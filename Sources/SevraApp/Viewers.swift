@@ -105,7 +105,7 @@ import SwiftUI
             onSelection: { state.selectedContext = $0 })
         } else if ["mp4", "mov", "m4v", "mp3", "wav", "m4a", "aiff"].contains(ext) {
           VStack {
-            VideoPlayer(player: player).onAppear {
+            NativeMediaPlayer(player: player).onAppear {
               if player == nil {
                 player = AVPlayer(url: file)
                 if let locator = state.itemLocators[item.id],

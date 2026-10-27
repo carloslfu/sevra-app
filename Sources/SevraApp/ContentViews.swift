@@ -137,15 +137,10 @@ struct SpaceView: View {
             }
             Spacer()
             Button("Save a pinned copy") {
-              do {
-                let title =
-                  space.title + " · " + Date().formatted(date: .abbreviated, time: .shortened)
-                if let id = try state.workbook?.pinSpace(space.id, title: title) {
-                  state.refresh()
-                  state.navigate(.space(id))
-                }
-              } catch { state.error = error.localizedDescription }
-            }.help("Keep exact values and input versions as of now.")
+              let title =
+                space.title + " · " + Date().formatted(date: .abbreviated, time: .shortened)
+              state.pinSpace(space.id, title: title)
+            }.help("Keep exact values and input versions as of now.").disabled(state.busy)
           }
         }
         if space.definition.components.isEmpty {
