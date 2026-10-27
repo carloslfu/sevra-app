@@ -87,7 +87,7 @@ extension Workbook {
     guard let id = source.assetID else {
       throw SevraError("asset", "Choose an original file source.")
     }
-    let file = try assetURL(id)
+    let file = try assetURL(id, cancellation: cancellation)
     try extract(sourceID, cancellation: cancellation)
     switch file.pathExtension.lowercased() {
     case "csv", "tsv": _ = try importCSV(sourceID, cancellation: cancellation)

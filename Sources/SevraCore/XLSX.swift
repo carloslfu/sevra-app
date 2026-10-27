@@ -259,7 +259,8 @@ extension Workbook {
     guard let asset = source.assetID else {
       throw SevraError("xlsx", "Workbook source has no asset.")
     }
-    let sheets = try XLSX.read(assetURL(asset), cancellation: cancellation)
+    let sheets = try XLSX.read(
+      assetURL(asset, cancellation: cancellation), cancellation: cancellation)
     var tables: [Dataset] = []
     for sheet in sheets where !sheet.rows.isEmpty {
       try cancellation.check()

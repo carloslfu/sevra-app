@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T13:25:06.785804+00:00
+updated: 2026-10-27T14:09:32.444758+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -132,6 +132,13 @@ never silently replace the newer version. Text/voice can request saving or keepi
 that separate draft. Original file assets remain immutable previews, separate
 from editable generated text. Search/preview must work without a model.
 
+
+File verification must keep the workbook responsive. Show opening/checking state
+and bounded progress while checking an external original, with Stop and Retry.
+Leaving a preview cancels its work; a late success, error or progress callback
+cannot appear in a different preview. Keep Find original available when a linked
+file is missing. Relink checks the recorded bytes before changing the reference.
+These controls complement conversation actions and must work without a model.
 ## Acceptance journeys
 
 J01 Create → import CSV/PDF/image → search text and filenames → open exact evidence.

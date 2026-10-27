@@ -19,6 +19,7 @@ let package = Package(
     .executable(name: "sevra-voice-checks", targets: ["SevraVoiceChecks"]),
     .executable(name: "sevra-context-durability", targets: ["SevraContextDurability"]),
     .executable(name: "sevra-document-checks", targets: ["SevraDocumentChecks"]),
+    .executable(name: "sevra-preview-checks", targets: ["SevraPreviewChecks"]),
     .executable(name: "sevra-benchmark", targets: ["SevraBenchmark"]),
     .executable(name: "sevra-splash-checks", targets: ["SevraSplashChecks"]),
     .executable(name: "sevra-splash-text-checks", targets: ["SevraSplashTextChecks"]),
@@ -36,6 +37,11 @@ let package = Package(
     .package(url: "https://github.com/huggingface/swift-transformers.git", exact: "1.3.5"),
   ],
   targets: [
+    .target(
+      name: "SevraPreviewUI", dependencies: ["SevraCore"], swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(
+      name: "SevraPreviewChecks", dependencies: ["SevraCore", "SevraPreviewUI"],
+      path: "IntegrationTests/Preview", swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraDocumentUI", dependencies: ["SevraCore"], swiftSettings: [.swiftLanguageMode(.v5)]
     ),
@@ -142,7 +148,7 @@ let package = Package(
       name: "SevraApp",
       dependencies: [
         "SevraCore", "SevraAI", "SevraProduct", "SevraTableUI", "SevraSearchUI", "SevraVoice",
-        "SevraDocumentUI",
+        "SevraDocumentUI", "SevraPreviewUI",
       ],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(

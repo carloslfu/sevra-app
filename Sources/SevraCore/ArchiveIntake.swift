@@ -16,7 +16,7 @@ extension Workbook {
     guard let assetID = source.assetID else {
       throw SevraError("archive", "Choose an included or linked ZIP file.")
     }
-    let file = try assetURL(assetID, verify: true)
+    let file = try assetURL(assetID, verify: true, cancellation: cancellation)
     try require(
       file.pathExtension.lowercased() == "zip", "archive",
       "Member selection currently supports ZIP files.")
@@ -67,7 +67,7 @@ extension Workbook {
     }
     let source = try item(sourceID)
     let assetID = source.assetID!
-    let archive = try Archive(url: assetURL(assetID), accessMode: .read)
+    let archive = try Archive(url: assetURL(assetID, cancellation: cancellation), accessMode: .read)
     let folder = url.appendingPathComponent("staging/archive-" + identifier())
     try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: folder) }
@@ -92,7 +92,9 @@ extension Workbook {
       let digest = SHA256.hash(data: Data((sourceID + "\n" + path).utf8)).map {
         String(format: "%02x", $0)
       }.joined()
-      if try asset(assetID).mode == "linked" { _ = try assetURL(assetID, verify: true) }
+      if try asset(assetID).mode == "linked" {
+        _ = try assetURL(assetID, verify: true, cancellation: cancellation)
+      }
       let member = try importFile(
         target, origin: "Member " + path + " in " + source.title, cancellation: cancellation,
         token: "archive-member-" + digest, inputs: [sourceID])
@@ -100,7 +102,9 @@ extension Workbook {
       // Completed members remain durable on cancellation. A retry reuses their identity.
       try resumeIntake(member.id, cancellation: cancellation)
     }
-    if try asset(assetID).mode == "linked" { _ = try assetURL(assetID, verify: true) }
+    if try asset(assetID).mode == "linked" {
+      _ = try assetURL(assetID, verify: true, cancellation: cancellation)
+    }
     return imported
   }
 }

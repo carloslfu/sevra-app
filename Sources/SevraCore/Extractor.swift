@@ -222,9 +222,12 @@ extension Workbook {
       return .string(id)
     }
     do {
-      let result = try Extractor.extract(assetURL(assetID), cancellation: bounded)
+      let result = try Extractor.extract(
+        assetURL(assetID, cancellation: bounded), cancellation: bounded)
       try bounded.check()
-      if try asset(assetID).mode == "linked" { _ = try assetURL(assetID, verify: true) }
+      if try asset(assetID).mode == "linked" {
+        _ = try assetURL(assetID, verify: true, cancellation: bounded)
+      }
       try index(id, chunks: result.chunks, state: result.state, detail: result.detail)
     } catch {
       _ = try mutation("extraction_failure", request: .string(id)) {

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T13:50:47.820350+00:00
+updated: 2026-10-27T14:09:51.398733+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1588,3 +1588,29 @@ request, generated output, memory trace, failure and exclusion. Do not edit the
 measured sources or rebuild while it runs. Documentation-only updates do not
 change those inputs. This is running evidence, not a passed performance gate.
 Inspect the terminal result, all paired conditions and cleanup before adoption.
+
+## Linked-asset preview responsiveness prepared
+
+Code inspection found that assetURL held the workbook recursive lock throughout
+external-file hashing. A detached preview task could therefore still block UI
+refreshes waiting for database state. Its task cancellation also did not reach
+the file reader, and late completion lacked request ownership checks.
+
+The prepared correction snapshots catalog metadata before filesystem work,
+streams hash progress with cancellation, keeps changed-byte rejection, and checks
+cancellation before committing relinks. Existing intake, extraction, archive,
+transcription and CLI cancellation tokens now reach the same asset verification.
+The native preview owns a cancellable session, shows opening/checking progress,
+keeps external-file recovery available and offers Stop/Retry. Switching or closing
+a preview invalidates late success, failure and progress. Successful relink reuses
+its verified URL rather than immediately hashing the whole file a second time.
+
+A core regression holds hashing at a chunk callback while an independent workbook
+read must finish; it also covers chunk cancellation, relink rollback, successful
+reconnection, changed original rejection and regular-file validation. Dedicated
+preview checks cover stale results/progress, Stop/Retry, view/task cancellation,
+cancellation before entry and changed-file failures. They are included in the
+shared check script and CI. Formatting and diff checks pass. Compilation, runtime
+checks and native large-file UI qualification remain pending; local builds stay
+paused during the frozen full W1 cohort. No multi-gigabyte memory or rendering
+performance result is claimed from source inspection.

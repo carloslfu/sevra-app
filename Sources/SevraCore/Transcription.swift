@@ -113,11 +113,13 @@ extension Workbook {
     guard let assetID = source.assetID else {
       throw SevraError("audio", "Choose an audio or video file.")
     }
-    let file = try await Task.detached { try self.assetURL(assetID, verify: true) }.value
+    let file = try await Task.detached {
+      try self.assetURL(assetID, verify: true, cancellation: cancellation)
+    }.value
     let chunks = try await FileTranscriber.transcribe(file, cancellation: cancellation)
     try cancellation.check()
     try await Task.detached {
-      _ = try self.assetURL(assetID, verify: true)
+      _ = try self.assetURL(assetID, verify: true, cancellation: cancellation)
       try self.index(
         sourceID, chunks: chunks, state: "ready",
         detail:

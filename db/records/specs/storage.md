@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-27T12:52:28.920488+00:00
+updated: 2026-10-27T14:09:51.371276+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -32,6 +32,14 @@ Missing or changed targets remain visible. Reading a changed file never silently
 replaces the version behind an answer. Relinking validates the expected hash or
 creates an explicitly new capture. Include converts by copying the required bytes.
 
+
+Preview verification snapshots asset metadata under the workbook lock, then
+resolves and streams the original outside that lock. Cancellation propagates
+between bounded hash chunks and is checked again before publishing a URL or
+committing a relink. Full hashes remain mandatory for external reads. Included
+files open without hashing the complete asset unless verification is requested.
+This does not promise interruption of an operating-system file read that is
+already blocked, or instant decode/rendering of every supported file format.
 ## Durable entities
 
 S05. Sources and Records are categories of immutable item versions. Each version

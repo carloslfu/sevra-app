@@ -99,7 +99,7 @@ extension Workbook {
     try cancellation.check()
     let source = try item(sourceID)
     guard let asset = source.assetID else { throw SevraError("csv", "CSV source has no file.") }
-    let file = try assetURL(asset)
+    let file = try assetURL(asset, cancellation: cancellation)
     try require(
       try file.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0 <= 32_000_000, "csv_limit",
       "Structured CSV import is limited to 32 MB per file in this version.")

@@ -4,19 +4,24 @@ import PDFKit
 import QuickLookUI
 import SevraCore
 import SevraDocumentUI
+import SevraPreviewUI
 import SevraVoice
 import SwiftUI
 
 @MainActor struct ItemView: View {
   @StateObject private var document: DocumentDraft
+  @StateObject private var preview = AssetPreviewSession()
+  private let workbook: Workbook
   var item: Item { document.current }
   init(item: Item, workbook: Workbook, state: WorkspaceState) {
     _document = StateObject(wrappedValue: DocumentDraft(workbook: workbook, item: item))
     self.state = state
+    self.workbook = workbook
   }
   @ObservedObject var state: WorkspaceState
-  @State private var file: URL?
-  @State private var failure: String?
+  private var file: URL? { preview.file }
+  @State private var previewAttempt = 0
+  @State private var original: URL?
   @State private var player: AVPlayer?
   @State private var keepPlaying = false
   @State private var asset: Asset?
@@ -94,9 +99,33 @@ import SwiftUI
         }.font(.callout).padding(10)
         Divider()
       }
-      if let failure {
-        ContentUnavailableView(
-          "File unavailable", systemImage: "doc.badge.ellipsis", description: Text(failure))
+      if preview.loading {
+        VStack(spacing: 12) {
+          if preview.totalBytes > 0 {
+            ProgressView(
+              value: Double(min(preview.checkedBytes, preview.totalBytes)),
+              total: Double(preview.totalBytes)
+            )
+            .frame(maxWidth: 260)
+            Text("Checking original file")
+            Text(
+              ByteCountFormatter.string(fromByteCount: preview.checkedBytes, countStyle: .file)
+                + " checked"
+            )
+            .font(.caption).foregroundStyle(.secondary)
+          } else {
+            ProgressView("Opening file")
+          }
+          Button("Stop") { preview.stop() }
+        }.frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else if let failure = preview.failure {
+        ContentUnavailableView {
+          Label("File unavailable", systemImage: "doc.badge.ellipsis")
+        } description: {
+          Text(failure)
+        } actions: {
+          Button("Retry preview") { previewAttempt += 1 }
+        }
       } else if let file {
         let ext = file.pathExtension.lowercased()
         if ext == "pdf" {
@@ -200,37 +229,42 @@ import SwiftUI
     }
     .onChange(of: state.revision) { _, _ in document.refreshHead() }
     .onDisappear {
+      preview.cancel()
       document.flush()
       document.changed = nil
       if state.activeDocument === document { state.activeDocument = nil }
       if state.viewedItemVersion == item.id { state.viewedItemVersion = nil }
     }
-    .task(id: item.id) {
-      guard let asset = item.assetID, let book = state.workbook else { return }
-      do {
-        self.asset = try book.asset(asset)
-        file = try await Task.detached { try book.assetURL(asset) }.value
-        failure = nil
-      } catch {
-        failure = error.localizedDescription
+    .task(id: "\(item.id):\(previewAttempt)") {
+      guard !Task.isCancelled, let assetID = item.assetID,
+        state.workbook === workbook, state.interactionActive
+      else { return }
+      // Keep external-file recovery available even when the original is missing.
+      asset = try? workbook.asset(assetID)
+      let chosen = original
+      let book = workbook
+      let resolved = await preview.load { cancel, progress in
+        try await Task.detached {
+          if let chosen {
+            return try book.relinkAsset(
+              assetID, to: chosen, cancellation: cancel, progress: progress)
+          }
+          return try book.assetURL(assetID, cancellation: cancel, progress: progress)
+        }.value
+      }
+      if resolved, chosen != nil, state.workbook === workbook, state.interactionActive {
+        original = nil
+        state.refresh()
       }
     }
   }
   func relink() {
-    guard let asset = item.assetID, let book = state.workbook else { return }
+    guard item.assetID != nil, state.workbook === workbook, state.interactionActive else { return }
     let panel = NSOpenPanel()
     panel.title = "Find the original file"
     guard panel.runModal() == .OK, let url = panel.url else { return }
-    Task {
-      do {
-        file = try await Task.detached {
-          try book.relinkAsset(asset, to: url)
-          return try book.assetURL(asset)
-        }.value
-        failure = nil
-        state.refresh()
-      } catch { failure = error.localizedDescription }
-    }
+    original = url
+    previewAttempt += 1
   }
   @ViewBuilder var lineage: some View {
     if let links = try? state.workbook?.lineage(item.id), !links.isEmpty {

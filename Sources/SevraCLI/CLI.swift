@@ -137,7 +137,7 @@ import SevraProduct
       )
     case "include": return try encoded(book.includeLinked(arg(2), cancellation: cancellation))
     case "relink":
-      try book.relinkAsset(arg(2), to: url(3))
+      try book.relinkAsset(arg(2), to: url(3), cancellation: cancellation)
       return .bool(true)
     case "search":
       return try encoded(book.search(arg(2), offset: args.count > 3 ? Int(args[3]) ?? 0 : 0))

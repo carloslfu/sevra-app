@@ -126,38 +126,45 @@ extension Workbook {
         mediaType: a["media_type"]!.text, mode: a["mode"]!.text, origin: a["origin"]?.string)
     }
   }
-  public func assetURL(_ id: String, verify: Bool = false) throws -> URL {
-    try synchronized {
-      let a = try asset(id)
-      let file: URL
-      if a.mode == "included" {
-        file = try safePath(a.path)
-      } else {
-        try require(
-          !a.path.isEmpty, "missing_asset",
-          "This workbook references an external file. Choose its original to reconnect it.")
-        let b = try db.scalar("SELECT bookmark FROM assets WHERE id=?", [.string(id)]).text
-        var stale = false
-        if let data = Data(base64Encoded: b),
-          let resolved = try? URL(
-            resolvingBookmarkData: data, options: [.withoutUI], relativeTo: nil,
-            bookmarkDataIsStale: &stale)
-        {
-          file = resolved
-        } else {
-          file = URL(fileURLWithPath: a.path)
-        }
-      }
-      try require(
-        FileManager.default.fileExists(atPath: file.path), "missing_asset",
-        "\(a.name) is unavailable. Reconnect or relink its original.")
-      if verify || a.mode == "linked" {
-        try require(
-          try Self.hashFile(file) == a.hash, "changed_asset",
-          "The original has changed. Capture it as a new source version.")
-      }
-      return file
+  public func assetURL(
+    _ id: String, verify: Bool = false, cancellation: Cancellation = .init(),
+    progress: (Int64, Int64) -> Void = { _, _ in }
+  ) throws -> URL {
+    try cancellation.check()
+    // Snapshot database metadata only. Hashing a multi-gigabyte external file
+    // must not keep unrelated workbook reads or UI refreshes waiting on this lock.
+    let (a, bookmark) = try synchronized {
+      (try asset(id), try db.scalar("SELECT bookmark FROM assets WHERE id=?", [.string(id)]).text)
     }
+    let file: URL
+    if a.mode == "included" {
+      file = try safePath(a.path)
+    } else {
+      try require(
+        !a.path.isEmpty, "missing_asset",
+        "This workbook references an external file. Choose its original to reconnect it.")
+      var stale = false
+      if let data = Data(base64Encoded: bookmark),
+        let resolved = try? URL(
+          resolvingBookmarkData: data, options: [.withoutUI], relativeTo: nil,
+          bookmarkDataIsStale: &stale)
+      {
+        file = resolved
+      } else {
+        file = URL(fileURLWithPath: a.path)
+      }
+    }
+    try require(
+      FileManager.default.fileExists(atPath: file.path), "missing_asset",
+      "\(a.name) is unavailable. Reconnect or relink its original.")
+    if verify || a.mode == "linked" {
+      try require(
+        try Self.hashFile(file, cancellation: cancellation) { progress($0, a.bytes) } == a.hash,
+        "changed_asset",
+        "The original has changed. Capture it as a new source version.")
+    }
+    try cancellation.check()
+    return file
   }
   public func safePath(_ relative: String, mayNotExist: Bool = false) throws -> URL {
     try require(
@@ -179,19 +186,29 @@ extension Workbook {
     }
     return file
   }
-  public static func hashFile(_ file: URL, cancellation: Cancellation = .init()) throws -> String {
+  public static func hashFile(
+    _ file: URL, cancellation: Cancellation = .init(), progress: (Int64) -> Void = { _ in }
+  ) throws -> String {
+    try cancellation.check()
+    try require(
+      try file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true,
+      "file_type", "Choose a regular file.")
     let handle = try FileHandle(forReadingFrom: file)
     defer { try? handle.close() }
     var sha = SHA256()
+    var bytes: Int64 = 0
     while true {
       let readMore = try autoreleasepool {
         try cancellation.check()
         guard let data = try handle.read(upToCount: 1_048_576), !data.isEmpty else { return false }
         sha.update(data: data)
+        bytes += Int64(data.count)
+        progress(bytes)
         return true
       }
       if !readMore { break }
     }
+    try cancellation.check()
     return sha.finalize().map { String(format: "%02x", $0) }.joined()
   }
   public func verify() throws -> Value {

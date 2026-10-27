@@ -274,3 +274,12 @@ Document AVPlayerView package dependency check and focused native lifecycle repr
 ## [2026-10-27 13:50] verification | records/operations/implementation.md
 Register clean frozen 0e45190 full W1 cohort launch; performance outcome remains pending.
 
+## [2026-10-27 14:09] implementation | records/specs/product.md
+Prepare cancellable linked-asset preview verification outside the workbook lock; qualification pending.
+
+## [2026-10-27 14:09] implementation | records/specs/storage.md
+Prepare cancellable linked-asset preview verification outside the workbook lock; qualification pending.
+
+## [2026-10-27 14:09] implementation | records/operations/implementation.md
+Prepare cancellable linked-asset preview verification outside the workbook lock; qualification pending.
+
