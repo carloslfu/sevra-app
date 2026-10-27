@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T16:15:57.106180+00:00
+updated: 2026-10-27T16:18:32.229155+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1986,6 +1986,12 @@ The copy action also checks the displayed version before opening its save panel,
 and destination ownership compares normalized filesystem paths. The failed CI
 run is retained; a new full run is required.
 
+
+After preserving W1, the primary development checkout fast-forwarded to 21a8cd2.
+The complete local scripts/check.sh suite passes, including copy invariants,
+preview commands, large-file checks and all existing search/agent/grammar gates;
+links and full db.md validation also pass with zero errors and warnings. Native
+visual copy/save/open checks remain pending.
 ## Complete W1 cohort and parity failure, October 27
 Frozen 0e45190 completed all ten paired blocks (20 workers, 260 jobs including
 20 Ready primes). Independent audit validates all 984 request observations,
@@ -2016,3 +2022,14 @@ paths; model inputs come from the committed synthetic fixtures. The original
 local run and frozen worker binary remain preserved. Compressed SHA-256:
 99e7b90d29acbc1cd44f1a5395130c736a384a0985900828254cee5095174052. Uncompressed SHA-256:
 f82a88441fbf409c5c0db5ec19698704996df05a73cd023cf1da3bc6b67cfb23.
+
+## Hardware dictation permission checkpoint, October 27
+The owner explicitly approved both speech and microphone permission. The native
+preview opened the synthetic Spaces workbook and started dictation, but the
+computer-use tool refuses access to macOS UserNotificationCenter. The owner was
+asked to perform the macOS Allow clicks directly, not to reapprove the request.
+No permission bypass or alternate access to the restricted system app was used.
+Hardware capture/transcription is not yet established. The previous UI showed
+only Stop for every active phase; a follow-up adds visible waiting/starting/
+listening state and the same accessible value. The source change still needs
+compilation and native visual verification.

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T13:58:52.569636+00:00
+updated: 2026-10-27T16:18:56.532665+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -62,6 +62,9 @@ an actionable error and preserve the previous valid composition.
 A09. Voice uses Apple's on-device speech recognition only. Request microphone and
 speech permission at first explicit use. Require on-device capability; unavailable
 languages/assets produce a clear fallback to text, never a server request.
+Display permission waiting, microphone startup and active local listening as
+distinct states. A Stop control while permission is pending must not imply that
+audio capture has begun. Keep the phase accessible to assistive technology.
 Partial recognition appends to the current typed draft and replaces only its own
 recognized segment. A manual edit, explicit send, conversation/workbook switch or
 window close stops dictation; late results cannot overwrite the draft. Sending

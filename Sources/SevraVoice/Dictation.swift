@@ -19,6 +19,15 @@ import Foundation
   }
   @Published public private(set) var phase: Phase = .idle
   public var active: Bool { phase != .idle }
+  public var status: String {
+    switch phase {
+    case .idle: return "Local AI"
+    case .speechPermission: return "Waiting for speech permission"
+    case .microphonePermission: return "Waiting for microphone permission"
+    case .starting: return "Starting microphone"
+    case .recording: return "Listening on this Mac"
+    }
+  }
   private static weak var owner: SpeechInput?
   private let makeDriver: () -> any DictationDriver
   private let pausePlayback: () -> Void

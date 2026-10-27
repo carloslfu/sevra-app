@@ -364,3 +364,6 @@ Core asset-copy regressions pass; repair preview test compile failure from CI 40
 ## [2026-10-27 16:15] verification | records/operations/implementation.md
 Archive full W1: all 260 jobs valid and all timing limits met, but one exact-request inventory warmup diverges; parity gate fails. All 20 workers closed, 93 frozen identities and raw frame/prompt hashes verified.
 
+## [2026-10-27 16:18] verification | records/operations/implementation.md
+Complete local suite passes after W1. Native voice permission UI needs the owner’s OS clicks because computer use cannot operate UserNotificationCenter; add distinct waiting/start/listening status.
+

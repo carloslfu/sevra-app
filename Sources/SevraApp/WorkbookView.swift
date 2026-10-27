@@ -280,7 +280,7 @@ struct WorkbookView: View {
       HStack {
         VoiceButton(speech: state.speech, action: state.voice)
         Spacer()
-        Text("Local AI").font(.caption).foregroundStyle(.secondary)
+        VoiceStatus(speech: state.speech)
         Button(action: state.send) { Image(systemName: "arrow.up") }.buttonStyle(.borderedProminent)
           .disabled(!state.canSend).keyboardShortcut(.return, modifiers: .command)
           .accessibilityLabel("Send message")

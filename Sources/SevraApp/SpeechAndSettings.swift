@@ -113,5 +113,14 @@ struct VoiceButton: View {
     Button(action: action) { Image(systemName: speech.active ? "stop.circle.fill" : "mic") }.help(
       speech.active ? "Stop dictation" : "Dictate on this Mac"
     ).accessibilityLabel(speech.active ? "Stop dictation" : "Start dictation")
+      .accessibilityValue(speech.status)
+  }
+}
+
+struct VoiceStatus: View {
+  @ObservedObject var speech: SpeechInput
+  var body: some View {
+    Text(speech.status).font(.caption).foregroundStyle(.secondary)
+      .fixedSize(horizontal: false, vertical: true)
   }
 }
