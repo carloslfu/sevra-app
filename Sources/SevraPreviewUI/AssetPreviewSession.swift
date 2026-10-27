@@ -10,6 +10,9 @@ import SwiftUI
   @Published public private(set) var loading = false
   @Published public private(set) var checkedBytes: Int64 = 0
   @Published public private(set) var totalBytes: Int64 = 0
+  @Published public private(set) var reloadID = UUID()
+  public private(set) var originalURL: URL?
+  public var isExternal = false
   private var request = UUID()
   private var cancellation: Cancellation?
 
@@ -75,6 +78,45 @@ import SwiftUI
   public func stop() {
     cancel()
     failure = "Preview stopped. You can retry when you are ready."
+  }
+
+  public func retry() {
+    cancel()
+    reloadID = UUID()
+  }
+
+  public func reconnect(to url: URL) {
+    originalURL = url
+    retry()
+  }
+
+  public func didResolve(_ identity: UUID) {
+    guard reloadID == identity else { return }
+    originalURL = nil
+  }
+}
+
+/// Explicit shell controls work without waiting for inference. Match complete
+/// submissions only, so requests such as "don't stop" cannot become cancellation.
+public enum WorkspaceControlCommand: Equatable {
+  case stop, stopPreview, retryPreview, findOriginal
+
+  public static func parse(_ input: String) -> Self? {
+    let text = input.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+      .trimmingCharacters(in: CharacterSet(charactersIn: ".!?"))
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+    switch text {
+    case "stop", "cancel", "stop work", "cancel operation", "detener", "cancelar": return .stop
+    case "stop preview", "cancel preview", "stop opening this file": return .stopPreview
+    case "retry preview", "retry this preview", "open this file again": return .retryPreview
+    case "find original", "find the original", "find the original file": return .findOriginal
+    default: return nil
+    }
+  }
+
+  public static func allowsSubmission(_ input: String, busy: Bool) -> Bool {
+    !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      && (!busy || parse(input) != nil)
   }
 }
 

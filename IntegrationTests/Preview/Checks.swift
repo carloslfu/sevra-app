@@ -160,5 +160,42 @@ private actor ReadGate {
     await session.load { _, _ in second }
     try expect(
       session.file == second && session.failure == nil, "Failure prevented a successful retry")
+
+    let reload = ReadGate()
+    let reloading = Task { await session.load { try await reload.read($0, $1) } }
+    await reload.wait()
+    let originalID = session.reloadID
+    session.retry()
+    let cancelledByRetry = await reload.cancelled()
+    try expect(
+      cancelledByRetry && session.reloadID != originalID && !session.loading,
+      "Retry waited for SwiftUI to cancel the obsolete file read")
+    await reload.finish(first)
+    await reloading.value
+    try expect(session.file == nil, "The obsolete read published before the retry started")
+    let previousID = session.reloadID
+    session.reconnect(to: second)
+    session.didResolve(previousID)
+    try expect(
+      session.originalURL == second && session.reloadID != previousID,
+      "An old completion discarded a newly chosen original")
+    session.didResolve(session.reloadID)
+    try expect(session.originalURL == nil, "Successful reconnection kept a stale candidate")
+
+    for input in ["Stop.", "cancel", "stop preview", "retry preview", "find the original file"] {
+      try expect(
+        WorkspaceControlCommand.allowsSubmission(input, busy: true),
+        "An explicit shell control was blocked behind inference")
+    }
+    for input in [
+      "", "  ", "don't stop", "stop buying bolts", "cancel invoice 27", "retry the payment",
+    ] {
+      try expect(
+        !WorkspaceControlCommand.allowsSubmission(input, busy: true),
+        "An unrelated or negated request bypassed the busy boundary")
+    }
+    try expect(
+      WorkspaceControlCommand.allowsSubmission("Compare the suppliers", busy: false),
+      "Ordinary model requests were disabled while idle")
   }
 }

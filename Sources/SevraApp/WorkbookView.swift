@@ -276,9 +276,8 @@ struct WorkbookView: View {
         Spacer()
         Text("Local AI").font(.caption).foregroundStyle(.secondary)
         Button(action: state.send) { Image(systemName: "arrow.up") }.buttonStyle(.borderedProminent)
-          .disabled(
-            state.busy || state.prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-          ).keyboardShortcut(.return, modifiers: .command).accessibilityLabel("Send message")
+          .disabled(!state.canSend).keyboardShortcut(.return, modifiers: .command)
+          .accessibilityLabel("Send message")
       }
     }.padding(12).background(
       Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 12)

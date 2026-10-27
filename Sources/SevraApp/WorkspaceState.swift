@@ -4,6 +4,7 @@ import Foundation
 import SevraAI
 import SevraCore
 import SevraDocumentUI
+import SevraPreviewUI
 import SevraProduct
 import SevraSearchUI
 import SevraVoice
@@ -31,6 +32,7 @@ import SwiftUI
   @Published var viewedItemVersion: String?
   @Published var itemPreviewIdentity = UUID()
   weak var activeDocument: DocumentDraft?
+  weak var activePreview: AssetPreviewSession?
   let documentDrafts = DocumentDraftScope()
   @Published var prompt = "" {
     didSet { if prompt != oldValue && !applyingDictation { speech.stop() } }
@@ -213,12 +215,20 @@ import SwiftUI
       }
     }
   }
+  var canSend: Bool {
+    WorkspaceControlCommand.allowsSubmission(prompt, busy: busy)
+  }
   func send() {
-    guard let book = workbook, !busy,
+    guard let book = workbook, canSend,
       !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     else { return }
     speech.stop()
     let input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+    if let command = WorkspaceControlCommand.parse(input) {
+      prompt = ""
+      control(command, input: input, book: book)
+      return
+    }
     if documentCommand(input, book: book) {
       prompt = ""
       refresh()
@@ -441,8 +451,60 @@ import SwiftUI
     }
   }
   func stop() {
+    speech.stop()
     cancellation.cancel()
-    status = "Stopping…"
+    if activePreview?.loading == true { activePreview?.stop() }
+    if busy { status = "Stopping…" }
+  }
+  private func control(_ command: WorkspaceControlCommand, input: String, book: Workbook) {
+    let notice: String
+    switch command {
+    case .stop:
+      let active = busy || activePreview?.loading == true
+      stop()
+      notice =
+        active ? "Stop requested. Completed changes remain saved." : "No operation is running."
+    case .stopPreview:
+      guard let preview = activePreview else {
+        error = "Open a file preview first."
+        return
+      }
+      if preview.loading {
+        preview.stop()
+        notice = "Preview stopped. The original file is unchanged."
+      } else {
+        notice = "No file is opening."
+      }
+    case .retryPreview:
+      guard let preview = activePreview else {
+        error = "Open a file preview first."
+        return
+      }
+      preview.retry()
+      notice = "Opening the file again."
+    case .findOriginal:
+      findOriginal()
+      notice = "Find original requested. The selected file must match the recorded bytes."
+    }
+    do {
+      _ = try book.addMessage(input, role: "user", conversation: conversation)
+      _ = try book.addMessage(notice, role: "event", conversation: conversation)
+      refresh()
+    } catch { self.error = error.localizedDescription }
+  }
+  func findOriginal() {
+    guard let preview = activePreview, preview.isExternal, interactionActive,
+      let book = workbook
+    else {
+      error = "Open an external file reference first."
+      return
+    }
+    let panel = NSOpenPanel()
+    panel.title = "Find the original file"
+    guard panel.runModal() == .OK, let url = panel.url,
+      activePreview === preview, workbook === book, interactionActive
+    else { return }
+    preview.reconnect(to: url)
   }
   func changeConversation(_ id: String) {
     conversation = id
@@ -473,6 +535,8 @@ import SwiftUI
   func beginInteraction() { interactionActive = true }
   func endInteraction() {
     interactionActive = false
+    activePreview?.cancel()
+    activePreview = nil
     speech.stop()
     PlaybackRegistry.shared.close(owner: mediaOwner)
     backgroundPlayer?.pause()

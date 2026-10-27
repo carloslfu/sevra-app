@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T14:09:32.444758+00:00
+updated: 2026-10-27T14:30:57.399047+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -71,6 +71,16 @@ Preserve original history and recover older details without manual token managem
 or forced new chats. Show progress only when useful; retain cancellation, browsing
 and completed work. See [[records/specs/conversation-context]].
 
+
+Explicit shell controls remain available through the composer while an operation
+is active. Stop/cancel stops current work; stop preview targets only an opening
+file; retry preview starts a fresh check; find original opens the native picker
+for the visible external reference. These controls use the same preview session
+as their native equivalents and do not wait for inference. Match complete control
+submissions, including terminal dictation punctuation; unrelated or negated text
+must not be turned into cancellation. Other model submissions remain disabled
+while the active request is running. A retry invalidates old callbacks immediately,
+and an older reconnection completion cannot discard a newly chosen original.
 ## Spaces and native components
 
 P10. Persist versioned declarative compositions: table, bar/line chart, metric,

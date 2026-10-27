@@ -316,3 +316,9 @@ Prepare >2 GiB linked-file verification/cancellation and 256 MiB headless footpr
 ## [2026-10-27 14:24] implementation | records/operations/implementation.md
 Prepare >2 GiB linked-file verification/cancellation and 256 MiB headless footprint gate; runtime qualification pending.
 
+## [2026-10-27 14:30] implementation | records/specs/product.md
+Prepare composer Stop/Retry/Find original controls and immediate preview retry ownership; record remaining workspace callback lifecycle review.
+
+## [2026-10-27 14:30] implementation | records/operations/implementation.md
+Prepare composer Stop/Retry/Find original controls and immediate preview retry ownership; record remaining workspace callback lifecycle review.
+

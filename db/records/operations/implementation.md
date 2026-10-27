@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T14:24:52.034744+00:00
+updated: 2026-10-27T14:30:57.433423+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -1685,3 +1685,28 @@ Compilation and execution of this new large-input probe remain pending hosted
 CI; local builds and file-intensive tests remain deferred during the frozen W1
 measurement. Earlier passing small core/session regressions do not qualify this
 new fixture. Reproduction is in [[records/operations/build-and-run]].
+
+## Conversation controls for file previews prepared
+
+Review found that the composer disabled every submission while work was active,
+including Stop. Native preview Stop/Retry/Find original also lacked composer
+routes. The prepared correction routes complete shell-control submissions before
+model dispatch and keeps those submissions available while busy. Stop/cancel
+cancels the active operation and an opening preview; stop preview only cancels an
+opening file, leaving an already loaded viewer alone. Retry and Find original
+share the viewer's session, preserve hash verification and do not invoke a model.
+Find original refuses a stale window/preview selection after its picker returns.
+The same input path serves submitted dictation, but hardware voice remains pending.
+
+Preview retry/reconnection now invalidates old work immediately rather than
+waiting for SwiftUI's replacement task. A generation identity prevents a previous
+success from clearing a newly selected original. Focused checks cover that race,
+complete-control admission while busy and refusal to interpret negated or unrelated
+submissions as shell controls. Swift formatting/diff and documentation checks pass;
+new runtime/compilation and actual native interaction checks remain pending.
+
+Separate inspection finding: several older asynchronous workspace operations lack
+uniform late-completion ownership checks, and closing a workbook currently stops
+media/dictation/preview without consistently cancelling its general operation.
+Review and qualify that lifecycle next, preserving completed mutations and avoiding
+old callbacks appearing after a workbook switch. This finding is not a tested fix.

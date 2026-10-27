@@ -20,8 +20,6 @@ import SwiftUI
   }
   @ObservedObject var state: WorkspaceState
   private var file: URL? { preview.file }
-  @State private var previewAttempt = 0
-  @State private var original: URL?
   @State private var player: AVPlayer?
   @State private var keepPlaying = false
   @State private var asset: Asset?
@@ -68,7 +66,7 @@ import SwiftUI
                 _ = try book.includeLinked(item.id, cancellation: cancel)
               }
             }
-            Button("Find original…") { relink() }
+            Button("Find original…") { state.findOriginal() }
           }
         }
         if let file {
@@ -124,7 +122,7 @@ import SwiftUI
         } description: {
           Text(failure)
         } actions: {
-          Button("Retry preview") { previewAttempt += 1 }
+          Button("Retry preview") { preview.retry() }
         }
       } else if let file {
         let ext = file.pathExtension.lowercased()
@@ -217,6 +215,7 @@ import SwiftUI
       ArchiveMemberPicker(source: item, state: state)
     }
     .onAppear {
+      if item.assetID != nil { state.activePreview = preview }
       state.documentDrafts.register(document)
       state.activeDocument = document
       state.viewedItemVersion = item.id
@@ -230,18 +229,21 @@ import SwiftUI
     .onChange(of: state.revision) { _, _ in document.refreshHead() }
     .onDisappear {
       preview.cancel()
+      if state.activePreview === preview { state.activePreview = nil }
       document.flush()
       document.changed = nil
       if state.activeDocument === document { state.activeDocument = nil }
       if state.viewedItemVersion == item.id { state.viewedItemVersion = nil }
     }
-    .task(id: "\(item.id):\(previewAttempt)") {
+    .task(id: "\(item.id):\(preview.reloadID)") {
       guard !Task.isCancelled, let assetID = item.assetID,
         state.workbook === workbook, state.interactionActive
       else { return }
       // Keep external-file recovery available even when the original is missing.
       asset = try? workbook.asset(assetID)
-      let chosen = original
+      preview.isExternal = asset?.mode == "linked"
+      let chosen = preview.originalURL
+      let identity = preview.reloadID
       let book = workbook
       let resolved = await preview.load { cancel, progress in
         try await Task.detached {
@@ -252,19 +254,13 @@ import SwiftUI
           return try book.assetURL(assetID, cancellation: cancel, progress: progress)
         }.value
       }
-      if resolved, chosen != nil, state.workbook === workbook, state.interactionActive {
-        original = nil
+      if resolved, preview.reloadID == identity, chosen != nil,
+        state.workbook === workbook, state.interactionActive
+      {
+        preview.didResolve(identity)
         state.refresh()
       }
     }
-  }
-  func relink() {
-    guard item.assetID != nil, state.workbook === workbook, state.interactionActive else { return }
-    let panel = NSOpenPanel()
-    panel.title = "Find the original file"
-    guard panel.runModal() == .OK, let url = panel.url else { return }
-    original = url
-    previewAttempt += 1
   }
   @ViewBuilder var lineage: some View {
     if let links = try? state.workbook?.lineage(item.id), !links.isEmpty {
