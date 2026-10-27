@@ -290,10 +290,19 @@ package enum NativeTools {
     .init(
       name: "finish",
       description:
-        "Deliver the final answer. Cite inspected item versions for business claims or message:ID from history_read for earlier conversation. Explain missing/partial evidence and unsuccessful actions.",
+        "Deliver the final answer and declare its basis. Business facts about Sources/Records or earlier messages require basis=evidence and inspected citations, even if a summary or host state suggests the answer. Explain missing/partial evidence and unsuccessful actions.",
       parameters: object(
         [
           "answer": schema("string", "Plain-language answer. Do not print opaque IDs in prose."),
+          "basis": .object([
+            "type": .string("string"),
+            "enum": .array(
+              ["evidence", "current_request", "completed_action", "general", "unresolved"].map(
+                JSONValue.string)),
+            "description": .string(
+              "evidence: workbook/history facts, requires inspected citations. current_request: only information supplied in this request or arithmetic calculated from it. completed_action: only confirm a successful action in this run. general: guidance, greeting, clarification or verified interface labels; no business or earlier-conversation facts. unresolved: explicitly cannot establish the requested facts; no guessed answer."
+            ),
+          ]),
           "citations": .object([
             "type": .string("array"),
             "items": schema(
@@ -301,6 +310,6 @@ package enum NativeTools {
               "Inspected item version ID, or message:ID returned by history_read for a statement about earlier conversation."
             ),
           ]),
-        ], required: ["answer", "citations"])),
+        ], required: ["answer", "basis", "citations"])),
   ]
 }

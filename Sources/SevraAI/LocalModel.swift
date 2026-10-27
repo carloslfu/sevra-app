@@ -207,14 +207,14 @@ public actor LocalModel: WorkbookInference {
   package func respond(
     messages: [InferenceMessage], directory: URL = LocalModel.defaultDirectory,
     cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void,
-    finishOnly: Bool = false, citationIDs: [String] = []
+    toolScope: InferenceToolScope = .all, citationIDs: [String] = []
   ) async throws -> NativeReply {
     try require(!active, "busy", "The local model is already working.")
     active = true
     defer { active = false }
     let engine = try await load(directory, cancellation: cancellation, progress: progress)
     let available =
-      finishOnly ? NativeTools.definitions.filter { $0.name == "finish" } : NativeTools.definitions
+      NativeTools.definitions.filter { toolScope.allows($0.name) }
     let tokens = try engine.encodeChat(
       try Self.baselineMessages(messages), tools: available, thinking: false, effort: nil)
     if let problem = engine.contextError(promptTokens: tokens.count) {
@@ -235,6 +235,7 @@ public actor LocalModel: WorkbookInference {
       result.ids.count < params.maxTokens, "truncated",
       "The model reached its response limit. Narrow the request and try again.")
     lastMetrics = .object([
+      "toolScope": .string(toolScope.rawValue),
       "requestSeconds": .number(result.stats.requestSeconds),
       "firstTextSeconds": result.stats.firstTextSeconds.map(Value.number) ?? .null,
       "generatedTokens": .number(Double(result.ids.count)),

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T00:57:13.007805+00:00
+updated: 2026-10-27T03:39:33.631978+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -14,37 +14,15 @@ specifications remain the acceptance contract. A source commit does not imply th
 every requirement or supported hardware profile has passed.
 
 ## Current direction, October 26
+Workbook is Sevra's primary product/homepage, with Websites secondary. The built and installed product still uses Slotstream. The next runtime is the Python-free Swift adapter over pinned Splash C++/Metal; it remains an internal candidate until grounding, setup, performance, packaging and application gates pass.
 
-Workbook is now Sevra's primary product/homepage, with Websites secondary.
-[[records/specs/splash-integration]] supersedes the Slotstream architecture for the
-next version. The installed/published build still uses Slotstream. The isolated Splash adapter now passes protocol, local-preparation and real-engine
-smoke checks. Native prompts, streaming, actual tool schemas and autonomous workbook integration now have passing synthetic checks as detailed below. Resumable setup, matched performance, packaging and app adoption remain pending.
+Current AI checkpoint: the observed uncited reopen and fabricated current_request quantity paths have host guards and tested recovery. Final R5 passes 15/15 automatic task checks, two complete continuity runs, the autonomous native workflow and four controlled recovery cases. Manual review retains one unsupported workbook-wide absence claim, so broader grounding remains open. The earlier paired R2 comparison passed 15/15 automatic checks with bounded512 versus 13/15 off, at higher latency and with one date-label defect. Keep the phases separate and preserve every failure in integration/evidence/2026-10-26-bounded-reasoning.json.
 
-The expanded baseline `5aef111` has green GitHub CI, 46 passing local core
-checks and passing packaged installation checks. Native UI and engine work below
-is a subsequent checkpoint; broader qualification remains pending. Installed resource verification
-executes an actual MLX kernel and passes through the installed CLI symlink.
+A later Slotstream regression exposed a wrong-task response after a completed comparison. Earlier requests now enter the non-compacting context as historical data, preserving original IDs and current proposal state. The corrected sequence and native old-history/recovery checks pass.
 
-Included in that public checkpoint: explicit safe ZIP member intake, short
-on-device file transcription, reviewed table creation, request provenance,
-native needs-review receipts, PDF navigation/search and SQLite embedded-NUL text
-round trips. File transcription is capability-gated, at most 60 seconds, and not
-yet verified against microphone/speech permissions. New table proposals passed
-real-model creation/acceptance twice (26.23 and 26.71 seconds). A cell proposal was
-correct but its closing model response failed; needs-review receipts address that
-failure and still require real-model regression.
+Full checks, release app/CLI build, isolated installation, resources/history/receipts/concurrency/URL tests and all real-weight preserved-backend regressions pass at this checkpoint. The rebuilt app keeps the original Sevra identity. Storage schema 3, scoped document/conversation retrieval, receipt-stable pagination and candidate context maintenance are implemented. The user's installed app was not replaced, and production automatic compaction remains disabled.
 
-Latest storage checkpoint: schema 3 adds durable prepared tool calls and exact
-results, atomic conversation receipts, valid bounded result pages and operation
-proof for uncertain outcomes. The agent can search/read older conversation and
-retrieve saved result pages. There are 59 core checks and eight passing native
-jobs (six complete, one needs-review, one deliberately cancelled). Release build,
-packaged history/receipt CLI, concurrent writers and isolated installation pass.
-Automatic compaction now has a working candidate controller and native continuity
-checks, but repeated recall is not reliable yet. It stays disabled in production
-Slotstream. General restart/resume and long-task qualification remain pending; see the
-latest context-maintenance checkpoint and [[records/specs/conversation-context]].
-
+Remaining gates: coverage-aware answer grounding; native resumable model setup and hardware preflight; matched reference/native performance and memory; native packaging/adoption; complete UI/media/voice/accessibility journeys; wider document/row scale and interruption recovery. [[records/specs/splash-integration]] and [[records/specs/conversation-context]] control those acceptance decisions.
 ## Implemented
 
 - Native SwiftUI/AppKit document windows with conversation and workspace panes,
@@ -225,21 +203,13 @@ interaction checks do not replace full VoiceOver, dictation, media, PDF, narrow
 window and appearance qualification.
 
 ## Next work in dependency order
-
-- Implement native resumable downloads and setup integration; local preparation
-  and its selected-model reference comparison now pass.
-- Broaden qualification of the autonomous workbook agent connected to the qualified native frontend components.
-  Actual tool schemas and synthetic autonomous proposal, review, evidence, space,
-  hostile-document and cancellation jobs now pass. Broader authority and application
-  qualification remain open, including current review-state presentation in the UI.
-- Expand real-model tests to complete text/tool workflows, resource failures and
-  restoration after release. Preserve the current baseline during qualification.
-- Qualify with identical requests, failure/recovery cases and matched performance.
-- Adopt Splash only after gates pass; remove Slotstream/MLX shipped dependencies.
-- Finish J01–J09, search scale, native accessibility/voice/media and clean install.
-- Workbook-first marketing implementation belongs to the website repository;
-  its updated brand decision must distinguish planned direction from deployment.
-
+- Broaden evidence-aware answer qualification, starting with unsupported absence/coverage claims and other finish-basis misclassifications. The latest small suite passes its task checks but is not proof that every sentence is grounded. Keep deterministic calculations, current originals, unchanged authority and bounded recovery.
+- Implement native resumable downloads, hardware/OS/storage preflight and setup integration. Local model preparation and selected-model reference parity already pass. Keep the current usable installation until native setup verifies.
+- Qualify identical reference/native requests, failure/recovery cases and matched warmed/cold performance, total memory and thermal behavior on the intended physical hardware.
+- Finish native packaging/application integration. Adopt Splash only after the gates pass, then remove shipped Slotstream/MLX dependencies. No model catalog or backend picker.
+- Complete text/tool workflows, resource failures, persisted-job resolution and kill/restart tests without replaying uncertain accepted mutations.
+- Finish J01–J10, document/row search scale, native accessibility/voice/media and fresh clean-install qualification.
+- Workbook-first marketing implementation belongs to the website repository; its brand decision must distinguish planned direction from deployment.
 ## Swift text frontend checkpoint, October 26
 
 SevraSplashText uses pinned swift-transformers 1.3.5 and swift-jinja 2.5.2,
@@ -810,3 +780,90 @@ upstream's actual semantics and grammar, and repeat the same acceptance cases.
 The model must finish from inspected current state; more search steps alone do
 not establish correctness. Native setup, matched performance, packaging/adoption,
 full UI/voice qualification and broader scale/restart recovery remain open.
+
+## Reasoning comparison plan, October 26 local / October 27 UTC
+Owner asks to fix AI reliability first and compare bounded reasoning against the current setup. Freeze the initial comparison at the existing Qwen3.6-35B-A3B 4-bit/DFlash2 and Splash 1.4.1 pins, 32K context, 12 GiB native memory, the same prompt/tool definitions and 1,800 total output tokens per request. Compare reasoning disabled with an engine-enforced 512-token thinking budget. Keep tool-free summary generation unchanged and keep the twelve-step bound. Upstream server/backend.py supplies the budget; runtime/model/Runtime.cpp enforces it. Prompt, grammar and parser must agree on thinking mode, and measured prompt tokens must include it.
+
+First verify budget encoding, exact templates and masks, output separation, cancellation and the forced thinking close. Then run interleaved paired trials over the same frozen synthetic workbook snapshots: current draft/accepted forecast despite a false historical digest, older conversation recall, deterministic inventory and missing evidence. Evaluate semantic answer, exact current citation, unchanged business state, complete terminal result, steps, unnecessary/repeated calls and whole-job latency. Retain every failure and record the exact binaries/source identities. Follow a promising result with complete continuity and autonomous-workbook regressions. This is a comparison plan, not an adopted default or claim that reasoning fixes the failure.
+
+## Reasoning continuity investigation
+The frozen first comparison is in progress. Initial failures include correct evidence retrieval followed by continued searching until the step limit; bounded reasoning also omitted a requested movement citation on one correct inventory answer. Do not describe these as solved by faster decoding or extra steps.
+
+Adapter inspection found that parsed reasoning was discarded between tool calls. The pinned Qwen chat template retains reasoning_content after the latest user query, while the official Qwen3.6 model card recommends preserving reasoning context for agents. A separate correction now carries reasoning only in ephemeral current-request messages and includes its bytes/tokens in budget accounting. It does not enter saved conversation, receipts, business evidence or later requests; compaction may replace older intermediate state with the existing bounded evidence digest. The original mode-only comparison remains frozen and running against its original binary. Test the correction afterward on the same archived workbooks, not by changing the running comparison.
+
+Primary reference: https://huggingface.co/Qwen/Qwen3.6-35B-A3B . The pinned local chat_template.jinja is the implementation authority. Published nonzero sampling recommendations are a further variable; this experiment keeps the existing greedy seed/temperature unchanged. No sampling or production-default promotion is inferred from those recommendations.
+
+## Calculation provenance correction
+The first mode-only comparison exposed repeated correct inventory totals with an omitted movement citation. The repaired candidate therefore combines ephemeral reasoning continuity with a shared host validation: after balance or compare_rows, finish must cite every inspected contributing input. An incomplete citation set receives an explicit validation error and a bounded chance to correct it; it is not recorded as a completed answer. The existing compaction reset also clears obsolete calculation obligations, while retaining the latest calculation's input set when that result remains visible.
+
+This is an additional repair, not an isolated reasoning-history experiment. Compare its full behavior against the preserved mode-only results and label both changes. A model that reads the right value but does not supply requested provenance has not passed the workbook job.
+The last initial bounded recall trial supplied the correct code/quantity from a history-search snippet with no original read or citation. Add a shared retrieval-grounding gate: after evidence candidates have been found, require an inspected citation before finish, except a successful space confirmation. Conversation candidates still need history_read. The existing host no-match report remains separate. Test snippet-only finish rejection and successful original-read recovery. This is included in the repaired candidate, not retroactively applied to the frozen initial scores.
+
+## Frozen mode-only comparison result
+The frozen mode-only comparison completed all thirty trials: off passed 12/15 and bounded512 passed 12/15. Off failed two accepted-forecast attempts and one recall at the twelve-step limit. Bounded512 completed every task but omitted a requested inventory effect citation twice and answered one recall from a search snippet without reading/citing the original. All thirty preserved business state, passed integrity checks and released the model. The raw median whole-job times were 26.20 s off and 30.84 s bounded, including fresh helper setup; these are small-suite observations, not a Python/native performance claim. Manual review additionally caught abbreviated UUIDs in one accepted-forecast answer. No mode is qualified by this result alone.
+
+The repaired candidate is now compiled and passes the deterministic agent, privacy, history, compaction, template and grammar checks. It retains ephemeral reasoning, requires complete calculated provenance, refuses uncited answers after evidence retrieval, and rejects inspected UUID display prefixes. Those are explicitly combined repairs. Next run the native cutoff/cancellation boundary probe, then fifteen bounded follow-ups on the exact same archived fixtures, followed by full continuity and autonomous regressions. Keep the initial thirty outcomes unchanged. The published baseline checkpoint 26be0d2 CI passed before these edits.
+
+## Answer basis follow-up
+The first repaired follow-up exposed an uncited one-step draft-forecast answer from saved host context, before any retrieval tool ran. A retrieval-only guard cannot cover that path. The second candidate makes finish declare an explicit answer basis: evidence, current_request, completed_action, general or unresolved. Stored workbook and earlier-conversation claims use evidence and must cite inspected versions/originals. Current-request answers can use only the supplied information and checked arithmetic. Completed-action confirmations require an actually successful mutation in this run. General responses and unresolved gaps remain available without forcing irrelevant evidence retrieval.
+
+This replaces the first repair's retrieval-triggered citation heuristic. It preserves full calculated provenance, opaque-reference checks, reasoning continuity and bounded validation feedback. The basis is an internal tool field, not a user setting. Validation failures retain its submitted value in the tool trace; successful answers retain the complete finish arguments in their stored payload, including the basis and citations. It is not an independent truth verifier: misclassification or incorrect interpretation can still fail semantic review. Regenerate all maintained tool/schema/reference-mask fixtures and compare both off and bounded512 again on the frozen workbook set after the first follow-up finishes.
+
+## First repair and engine-boundary results
+The first repaired bounded-only follow-up completed 15 trials: 14 passed. Every case preserved business state, passed integrity and unloaded. The one failure was a correct draft/estimate answer from saved context with no citation, before any retrieval tool ran. All inventory and original-history cases passed after host citation correction. Retain this failure; do not promote based on 14/15.
+
+The full native boundary suite passed 12 cases: forced closes at budgets 1–8 and 512, cancellation during generation with no call, output-length truncation with no call, successful next request, and a forced split UTF-8 character. The split-character case needed 3 tokens at a budget of 1, closed cleanly, produced a complete valid call, and left Metal healthy with weights released. An earlier added fixture failed grammar setup because it inserted an unescaped quote into the outer JSON; correct its builder and retain that harness failure separately. The second candidate reserves three potential UTF-8 continuation tokens plus the close before its 256-token output allowance.
+
+The second candidate's typed answer-basis protocol and deterministic tests compile and pass. Its tool/reference fixtures are being regenerated before a new thirty-trial off-vs-512 comparison on the same archives. All source and binary identities and prior results are retained in integration/evidence/2026-10-26-bounded-reasoning.json. No production-native or context-profile promotion yet.
+
+## Answer-basis comparison result and final regressions
+The second frozen thirty-trial comparison passed 15/15 automatic task checks with bounded512 and 13/15 with reasoning off. Both off failures were accepted-forecast step limits. All thirty trials preserved business state, passed integrity and unloaded. The startup-inclusive median job durations were 40.52 seconds for bounded512 and 29.76 seconds for off. This supports bounded reasoning for the next native candidate's reliability work; it does not establish a speed advantage, a statistical guarantee or production qualification.
+
+Manual review found one additional semantic defect: bounded inventory repetition zero called the opening date an acceptance date. The stock and citations were correct; the extra date label was unsupported. Keep automatic scores separate from full semantic correctness. A separately identified final candidate adds only an explicit effective/creation/acceptance-date distinction to the model policy. It is now replaying all six inventory trials and the complete continuity, cancellation, boundary and autonomous workbook regressions. Do not combine these follow-ups into the frozen R2 comparison or discard the original defect.
+
+The comparison executable now runs all trials and reports the summary before returning nonzero if any trial failed. Earlier A/R1/R2 results predate that exit-status improvement; their saved per-trial results remain authoritative.
+
+## Reopen citation recovery and probe correction
+The final date-policy candidate passed all six inventory replays and twelve engine boundary checks. Its first full continuity run passed; the second failed after portable reopen. It repeatedly submitted a correct quantity with basis=evidence and no citations, relying on an earlier run's read. The host refused success after four invalid finish attempts, and no business action was applied. Preserve this failure; the R2 15/15 small-suite result does not qualify repeated continuity.
+
+R4 now narrows the next response to inspection tools when an evidence-based finish has no fresh inspected citations. Both adapters receive the same host-selected scope; native grammar excludes finish and mutations, and the host verifies the scope again before dispatch. One actual inspection restores the normal tool set. The original final-validation and twelve-step bounds remain. This does not grant citations from old summaries or replay actions. Deterministic tests also attempt a mutation during inspection recovery and require refusal.
+
+The autonomous R3 probe stopped after a numerically correct supplier answer because its test required compare_rows specifically, although calculate is also permitted. The old output lacks the successful arithmetic receipts, so retain it as an incomplete probe, not a retroactive pass. The corrected probe records all arithmetic receipts, requires the exact 0.35 computed result through either permitted tool, and strengthens citation checks to require both actual row versions. Reopen, draft-forecast and cancelled-summary retry checks now explicitly require their original/current citations too. R4 build, grammar and fresh full-model qualification are in progress.
+
+## R4 continuity checkpoint
+Three consecutive R4 continuity probes passed with the stronger citation checks. Each completed repeated automatic compaction, exact code/decimal/unit recall, portable reopen, draft versus accepted-estimate authority, cancelled-summary preservation, explicit retry and unload. Intentional cancellation appears in each trace and is an expected assertion, not an unexpected failed task. Durations were approximately 173, 184 and 183 seconds for the entire multi-stage probe, not individual answer latency.
+
+These repetitions have not yet triggered the new inspection-only recovery scope in a real model call. A separate labeled fault-injection probe has been added to exercise exactly that branch with both off and bounded512, after injecting only the observed invalid finish. Its compilation/execution and the autonomous/frozen-case regression results remain pending. Three successful repetitions still do not qualify all C12/J10, hardware or restart cases.
+
+## Numeric grounding follow-up
+R4 passed three full continuity repetitions, the autonomous workbook workflow and all twelve engine boundary cases, but passed only 14/15 frozen bounded trials. The remaining recall answer said quantity 120 instead of 0.20 kg, with no citation and basis=current_request. Its exact final payload was recovered from the still-open synthetic workbook before cleanup and preserved in the evidence file. Business state stayed unchanged, but the displayed answer was wrong; this is a genuine semantic failure, not a test-only mismatch.
+
+R5 binds numeric claims under current_request to decimal-normalized values actually present in the current prompt or a successful, fully visible calculate receipt. Unsupported values trigger validation and a read-only recovery step when no fresh evidence is available. Inspected business/history facts must instead use evidence and citations. Calculation values are invalidated with the corresponding working context at compaction. This is a limited numeric guard, not a semantic proof of prose, units, intent, or every answer basis.
+
+The fault-injection probe now injects both an uncited evidence finish and the fabricated current_request quantity, then delegates recovery to the actual native model in off and bounded512 modes. Positive checks preserve calculations from spelled-out user arithmetic. All future frozen-trial outputs retain successful terminal tool payloads so basis misclassification can be inspected directly. R5 deterministic and grammar checks pass; real-model fault injection, fifteen bounded trials, continuity repetitions and autonomous work are underway. Setup/performance/adoption work remains behind this reliability gate.
+
+## R5 recovery fixture correction
+The initial controlled recovery probe returned all four correct original quantities with citations and an actual inspection-only first model call. Its final bounded/current_request response said “0.10 and the unit was kg”; the fixture required the contiguous phrase “0.10 kg” and exited nonzero before its remaining integrity/unload assertions. This is a test-only mismatch. Keep the failed exit and raw output, check quantity and unit independently, and repeat all four cases after the current cohort finishes. The runtime remains unchanged during the cohort. Its independent frozen comparison, continuity and autonomous checks are still in progress.
+
+## Preserved-backend request continuity follow-up
+The first final packaging pass succeeded through build, isolated installation, resources, history/receipts, concurrent writers and URL capture. Its full Slotstream model regression passed comparison and space creation, then failed the next delivery-terms question: it returned the previous comparison answer after twelve steps. This is a genuine wrong-task response, not a wording mismatch. The original script did not retain successful-response tool receipts before an assertion, so the failure preserves the exact answer and check status but cannot establish the full causal trace. The first nine checks and this failure remain in the evidence.
+
+Inspection found a representation difference: the non-compacting path replayed earlier user requests as live user-role messages, while native context maintenance presents saved conversation as explicitly historical data before the active request. The next candidate uses the same boundary for the non-compacting path without enabling summarization: bounded original IDs, authorship, states, text, truncation flags and current proposal status are carried as historical context. The actual current request remains the user-role message. Original messages and receipts are unchanged. This is a hypothesis-driven repair, not a proven explanation based on the missing old trace.
+
+Deterministic checks pass for the historical envelope, cancellation/failure status, current proposal acceptance/meaning, JSON authorship, original IDs and fresh active-request separation. The model probe now saves every answer and current-run tool receipts before its semantic assertions. Full preserved-backend regression and native non-compacting history/recovery verification are next. R5's compaction-enabled frozen and continuity results remain identified separately; do not relabel them as runs of this later source tree.
+
+## Bounded reasoning verification checkpoint
+The final R5 bounded follow-up passed all 15 frozen automatic task checks, two full native continuity probes and the autonomous workbook workflow. Runtime source remained unchanged during those R5 trials. A later non-compacting history correction is verified separately below. They cover exact original code/decimal/unit and citation, portable reopen, draft/accepted-estimate distinction, cancelled summary preservation, explicit retry, deterministic supplier comparison, generated spaces, hostile evidence and missing evidence. All fifteen frozen trials preserved business state, passed workbook integrity and unloaded. Median setup-inclusive job duration was 42.20 seconds. This is a separate follow-up, not the R2 paired comparison or a matched engine speed benchmark.
+
+The final history-projection candidate also passes the native non-compacting history check. The four controlled recovery cases initially stopped on a test-only exact-phrase mismatch. After checking quantity and unit independently, the repeated off/bounded512 and evidence/current_request cases all passed, including actual inspection scope, original citation, business-state preservation, integrity and unload. A deterministic CI fixture also rejects the fabricated current_request quantity and requires original inspection. R4's twelve real-engine reasoning boundary cases remain applicable: its engine, grammar and reasoning implementation are unchanged. Earlier failures remain preserved, including the incorrect quantity, uncited reopen, date mislabel and original control results.
+
+Manual review still finds one broader evidence-scope defect in R5: accepted-forecast repetition two makes an unsupported workbook-wide absence claim after non-exhaustive searches. Its core forecast answer is correct. Keep this separate from the automatic task score. These results repair the observed recall/citation paths and demonstrate recovery; they do not qualify general grounding, all C12/J10, physical low-memory hardware or production adoption.
+
+Final validation passed scripts/check.sh, release app/CLI build, isolated install/update/uninstall and skill installation, packaged resources, history and receipts, concurrent writers, URL capture, and all real-weight preserved-backend checks. The latter cover comparison/generated space, hostile evidence, incomplete search, proposal/accept/undo and cancellation/restart. The missing-evidence test now also recognizes the existing host-authored no-match report while still requiring its explicit evidence-gap statement and incomplete coverage. No runtime change was made for that test correction.
+
+Specifications, design review, fixtures, exact source/binary identities and all failed/successful trials are in this repository. Evidence: integration/evidence/2026-10-26-bounded-reasoning.json. The built package remains Slotstream; the user's installed app was not replaced. Automatic compaction remains disabled in that production backend. Splash and bounded512 remain internal candidate settings.
+
+## Preserved-backend history correction result
+After the historical-envelope correction, the complete packaged Slotstream regression passes comparison/space creation, then the distinct delivery-terms request with its citation and no injected mutation, missing evidence, table creation and cell-edit proposal/accept/undo, and cancellation/restart. Every successful ask now saves its response and current-run receipts before assertions, so semantic failures will not lose that evidence again. The original failed second request remains in the public evidence, alongside the missing-trace limitation. Passing this sequence supports the repair but does not prove perfect task selection across arbitrary conversations.
+
+Final full checks, release build, installation and resource/history/receipt/concurrency/URL checks were repeated after the source change. Both modes of controlled native recovery and the native non-compacting old-history probe also pass. Compaction-enabled R5 results precede this isolated projection change and retain their own identities. No automatic compaction, native backend or new installed-app default was enabled.

@@ -37,8 +37,8 @@ extension LocalModel {
 
 extension NativeTools {
   /// The same maintained declarations feed both backend boundaries.
-  package static func serializedDefinitions(finishOnly: Bool = false) throws -> Data {
-    let definitions = finishOnly ? definitions.filter { $0.name == "finish" } : definitions
+  package static func serializedDefinitions(toolScope: InferenceToolScope = .all) throws -> Data {
+    let definitions = definitions.filter { toolScope.allows($0.name) }
     let values: [[String: Any]] = try definitions.map {
       [
         "type": "function",

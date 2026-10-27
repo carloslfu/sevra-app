@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-26T23:57:10.307061+00:00
+updated: 2026-10-27T03:09:00.482506+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -152,7 +152,7 @@ The installed product contains neither that development toolchain nor Python.
 The native fixtures compare 15 exact prompts, 80 streaming decodes, 31 output
 projections across 3,216 chunk layouts, every byte-vocabulary entry and 105 complete
 speculative masks for JSON, Unicode, reasoning and strict tools. The actual 19
-workbook tools add 23 grammar scenarios and 217 exact mask comparisons, plus
+workbook tools add 26 grammar scenarios and 221 exact mask comparisons, plus
 complete argument validation and open-row-data checks. Lifecycle and
 malformed/truncated/cancelled-output refusal checks run in the same text suite.
 To regenerate reference fixtures after reviewing an upstream change, use the
@@ -399,3 +399,26 @@ invalid/cancelled summaries, complete retained tool groups, omitted-calculation
 invalidation, chapters and tangent scope. Their byte-based synthetic counter tests
 the controller, not real tokenization or hardware capacity. Native measurement uses
 the selected template and tokenizer instead.
+
+## Bounded reasoning qualification
+The native comparison keeps the pinned model/engine, 32K context, 12 GiB engine budget, greedy sampling and 1,800 total output tokens fixed. It alternates off and a 512-token reasoning budget over five frozen synthetic workbooks, three repetitions each. The fixtures in integration/fixtures/reasoning contain no private files. They exercise stale forecast summaries, accepted estimates, original conversation recall, stock provenance and incomplete missing-document search.
+
+```
+swift build --product sevra-agent-checks -j 4
+SEVRA_REASONING_FIXTURES=integration/fixtures/reasoning \
+.build/debug/sevra-agent-checks --reasoning-comparison \
+  /path/to/verified/model \
+  .build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib \
+  .build/upstream/splash-native-1.4.1/engine/splash .build/splash-models
+```
+
+Each result includes checks, the archive hash, complete answer, exact tool receipts and metrics. Failed tasks remain in the output and do not abort later trials. After printing the complete summary, the current executable returns nonzero if any trial failed. The historical A/R1/R2 runs returned zero even for case failures; inspect their final passed counts and individual checks. Request IDs vary across runs, so these are matched input workbooks, not byte-identical prompt replays. Timings include setup and must not be presented as a matched Python/native speed comparison. Review answer semantics as well as the automatic checks.
+
+To generate another frozen fixture set, omit SEVRA_REASONING_FIXTURES and set SEVRA_REASONING_SAVE_FIXTURES to a new directory. SEVRA_REASONING_BOUNDED_ONLY=1 runs the fifteen bounded trials for a separately labeled follow-up. Current reasoning retains ephemeral state between tools within a request; the initial historical comparison discarded it and its failures must remain identified separately.
+
+Use --reasoning-boundary with the same four paths to test short forced reasoning cutoffs under the actual grammar, cancellation, truncated output and a subsequent complete request. No tool action is dispatched by this engine-boundary fixture. Use SEVRA_NATIVE_REASONING=512 with --continuity and --autonomous for full application-loop regressions. The default remains 0; these are developer checks, not a user settings picker or a production promotion.
+
+## Evidence recovery check
+Use --inspection-recovery with the same four paths as --reasoning-comparison. It injects an uncited evidence finish and an invented numeric current_request finish, each with reasoning off and bounded512. Only that first invalid finish is synthetic; the native model must recover through the inspection-only tool scope, read and cite the original, return the exact quantity and unit, preserve business records and unload. This deliberately exercises a recovery branch and is not counted as an autonomous success trial.
+
+The first fixture version required the contiguous phrase 0.10 kg. Its fourth live response correctly separated quantity and unit, so that run retains a nonzero test exit. The corrected assertion checks the exact decimal spelling and unit independently. Engine/runtime source is unchanged by that fixture correction.

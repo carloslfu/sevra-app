@@ -5,6 +5,7 @@ output/
 .DS_Store
 *.sevra/
 *.sevraz
+!integration/fixtures/reasoning/*.sevraz
 .env*
 **/.index.lock
 **/.dbmd.transaction.lock

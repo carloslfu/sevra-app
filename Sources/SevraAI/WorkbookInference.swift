@@ -1,6 +1,19 @@
 import Foundation
 import SevraCore
 
+/// Host-selected scope, never inferred from untrusted retrieved content.
+package enum InferenceToolScope: String, Sendable {
+  case all, finish, inspection
+
+  package func allows(_ tool: String) -> Bool {
+    switch self {
+    case .all: return true
+    case .finish: return tool == "finish"
+    case .inspection: return WorkbookTools.readOnlyTools.contains(tool)
+    }
+  }
+}
+
 /// App-owned conversation values. The candidate and preserved baseline use the
 /// same workbook loop; this internal seam is not a provider catalog or user API.
 package struct InferenceCall: Sendable {
@@ -17,15 +30,18 @@ package struct InferenceCall: Sendable {
 package struct InferenceMessage: Sendable {
   package let role: String
   package let content: String
+  /// Ephemeral model state within this request, never evidence or saved history.
+  package let reasoning: String
   package let toolCalls: [InferenceCall]
   package let toolCallId: String?
   package let toolName: String?
   package init(
     role: String, content: String, toolCalls: [InferenceCall] = [],
-    toolCallId: String? = nil, toolName: String? = nil
+    toolCallId: String? = nil, toolName: String? = nil, reasoning: String = ""
   ) {
     self.role = role
     self.content = content
+    self.reasoning = reasoning
     self.toolCalls = toolCalls
     self.toolCallId = toolCallId
     self.toolName = toolName
@@ -34,9 +50,11 @@ package struct InferenceMessage: Sendable {
 
 package struct NativeReply: Sendable {
   package let text: String
+  package let reasoning: String
   package let calls: [InferenceCall]
-  package init(text: String, calls: [InferenceCall]) {
+  package init(text: String, calls: [InferenceCall], reasoning: String = "") {
     self.text = text
+    self.reasoning = reasoning
     self.calls = calls
   }
 }
@@ -57,7 +75,7 @@ package protocol WorkbookInference: Actor {
   func endRun() async
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, finishOnly: Bool, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope, citationIDs: [String]
   ) async throws -> NativeReply
 }
 

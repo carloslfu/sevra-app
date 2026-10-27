@@ -7,7 +7,9 @@ import SevraSplashGrammar
 /// Constrain references before generation; table/space IDs and IDs recalled
 /// from earlier conversations do not become evidence merely by looking valid.
 package enum NativeCitationPolicy {
-  package static func make(_ citationIDs: [String], finishOnly: Bool = false) throws
+  package static func make(
+    _ citationIDs: [String], toolScope: InferenceToolScope = .all, thinking: Bool = false
+  ) throws
     -> SplashToolPolicy
   {
     let ids = Array(Set(citationIDs)).sorted()
@@ -15,9 +17,13 @@ package enum NativeCitationPolicy {
       ids.count <= 256 && ids.allSatisfy { !$0.isEmpty && $0.utf8.count <= 128 },
       "context_limit",
       "This exploration has too many evidence references. Continue with a narrower question.")
+    let serialized = try NativeTools.serializedDefinitions(toolScope: toolScope)
+    if toolScope == .inspection {
+      return try SplashToolPolicy(toolsJSON: serialized, choice: .required, thinking: thinking)
+    }
     var tools =
       try JSONSerialization.jsonObject(
-        with: NativeTools.serializedDefinitions(finishOnly: finishOnly)) as! [[String: Any]]
+        with: serialized) as! [[String: Any]]
     guard
       let index = tools.firstIndex(where: {
         ($0["function"] as? [String: Any])?["name"] as? String == "finish"
@@ -29,7 +35,7 @@ package enum NativeCitationPolicy {
       var items = citations["items"] as? [String: Any]
     else { throw SevraError("tool_schema", "The workbook citation schema changed.") }
     citations["description"] =
-      "Only inspected Source/Record versions or exact message:ID references from history_read. Message references support prior conversation, not current business facts. Never cite a space or table ID."
+      "Basis=evidence requires at least one inspected Source/Record version or exact message:ID reference from history_read. If none is available yet, inspect evidence before finishing. Message references support prior conversation, not current business facts. Never cite a space or table ID."
     if ids.isEmpty {
       citations["maxItems"] = 0
     } else {
@@ -43,6 +49,6 @@ package enum NativeCitationPolicy {
     return try SplashToolPolicy(
       toolsJSON: JSONSerialization.data(
         withJSONObject: tools,
-        options: [.sortedKeys, .withoutEscapingSlashes]), choice: .required)
+        options: [.sortedKeys, .withoutEscapingSlashes]), choice: .required, thinking: thinking)
   }
 }

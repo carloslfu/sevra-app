@@ -22,6 +22,19 @@ def run(*args,timeout=240):
                     print('TRACE '+message['body'],file=sys.stderr)
     assert r.returncode==0,r.stderr
     value=json.loads(r.stdout);assert value['ok'],value
+    if args and args[0] == 'ask':
+        # Save the response and its exact tool receipts before semantic
+        # assertions can fail and the synthetic workbook is cleaned up.
+        runs=subprocess.run([str(cli),'runs',str(args[1])],capture_output=True,text=True,check=True)
+        latest=json.loads(runs.stdout)['result'][0]
+        history=subprocess.run([str(cli),'conversation',str(args[1])],capture_output=True,text=True,check=True)
+        trace=[]
+        for message in json.loads(history.stdout)['result']:
+            if message['role'] != 'tool':continue
+            receipt=json.loads(message['body'])
+            if receipt.get('runID') == latest['id']:trace.append(receipt)
+        print(json.dumps({'probeReply':True,'prompt':str(args[2]),'result':value['result'],
+                          'run':latest,'trace':trace}),flush=True)
     return value['result'],time.monotonic()-start
 with tempfile.TemporaryDirectory(prefix='sevra-real-model-') as temporary:
     folder=Path(temporary);book=folder/'Eval.sevra'
@@ -48,7 +61,9 @@ with tempfile.TemporaryDirectory(prefix='sevra-real-model-') as temporary:
         run('import',book,unknown)
         answer,seconds=run('ask',book,'Find the signed Lakehouse contract and its renewal price. If the evidence is missing or cannot be searched, say so clearly and do not guess.')
         lower=answer['answer'].lower().replace("’", "'")
-        assert not answer['citations'] and (re.search(r"no .* was found",lower) or any(s in lower for s in ['not find','no supporting','no evidence','could not','couldn\'t','unable'])),answer
+        search_report = ('i found no matches for these searches:' in lower
+                         and 'these searches do not establish the requested facts' in lower)
+        assert not answer['citations'] and (search_report or re.search(r"no .* was found",lower) or any(s in lower for s in ['not find','no supporting','no evidence','could not','couldn\'t','unable'])),answer
         assert any(s in lower for s in ['incomplete','unsupported','not indexed','not fully','cannot be searched']),answer
         assert answer['steps']<=7,answer
         print(json.dumps({'check':'no_match_and_incomplete_coverage','passed':True,'seconds':seconds,'steps':answer['steps']}),flush=True)

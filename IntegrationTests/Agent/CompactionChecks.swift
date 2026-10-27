@@ -21,7 +21,7 @@ private actor DigestFixture: WorkbookInference {
   func endRun() {}
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, finishOnly: Bool, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope, citationIDs: [String]
   ) throws -> NativeReply {
     throw SevraError("fixture", "The maintenance controller must not dispatch workbook tools.")
   }
@@ -296,7 +296,7 @@ private actor RunningJobFixture: WorkbookInference {
   }
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, finishOnly: Bool, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope, citationIDs: [String]
   ) throws -> NativeReply {
     responses += 1
     try expectEqual(
@@ -322,7 +322,10 @@ private actor RunningJobFixture: WorkbookInference {
       input = .object(["expression": .string("12.73"), "values": .object([:])])
     } else if arithmetic && responses == 8 {
       name = "finish"
-      input = .object(["answer": .string("12.73% lower cost."), "citations": .array([])])
+      input = .object([
+        "basis": .string("current_request"), "answer": .string("12.73% lower cost."),
+        "citations": .array([]),
+      ])
     } else if responses == (arithmetic ? 2 : 1) {
       name = "draft"
       input = .object([
@@ -339,6 +342,7 @@ private actor RunningJobFixture: WorkbookInference {
         "answer": .string(
           arithmetic ? "12.73% lower cost." : "Saved the draft and inspected the source."),
         "citations": .array(arithmetic ? [] : [.string(sourceID)]),
+        "basis": .string(arithmetic ? "current_request" : "evidence"),
       ])
     }
     return NativeReply(

@@ -62,6 +62,7 @@ func runNativeContinuityProbe(model: any WorkbookInference, directory: URL, root
     "What was the original quantity and unit, and what currency did I choose? Keep the original decimal spelling. Make no changes.",
     reopened)
   try expectEqual(resumed.state, "complete")
+  try expectEqual(resumed.citations.contains("message:" + original), true)
   try expectEqual(try reopened.items().filter { $0.category == "record" }.isEmpty, true)
   for required in ["0.10", "kg"] { try expectEqual(resumed.answer.contains(required), true) }
   try expectEqual(resumed.answer.contains(where: { "$€£".contains($0) }), false)
@@ -133,6 +134,7 @@ func runContextRecoveryProbe(model: any WorkbookInference, directory: URL, root:
       "citations": .array(draftAnswer.citations.map(Value.string)),
     ]).json())
   try expectEqual(draftAnswer.state, "complete")
+  try expectEqual(draftAnswer.citations.contains(forecast.id), true)
   try expectEqual(draftAnswer.answer.lowercased().contains("estimate"), true)
   try expectEqual(
     draftAnswer.answer.lowercased().contains("draft")
@@ -161,7 +163,7 @@ func runContextRecoveryProbe(model: any WorkbookInference, directory: URL, root:
 
   let cancelled = try Workbook.create(
     at: root.appendingPathComponent("CancelledContext.sevra"), title: "Cancelled context")
-  _ = try cancelled.addMessage(
+  let originalBatchMessage = try cancelled.addMessage(
     "Exact batch code WILLOW-12. Quantity 0.20 kg. No currency.", role: "user")
   _ = try cancelled.addMessage("Recorded.", role: "assistant")
   let priorCheckpoint = try cancelled.saveContextCheckpoint(
@@ -198,6 +200,7 @@ func runContextRecoveryProbe(model: any WorkbookInference, directory: URL, root:
     modelDirectory: directory, progress: { fputs("Native context retry: \($0)\n", stderr) },
     model: model)
   try expectEqual(retried.state, "complete")
+  try expectEqual(retried.citations.contains("message:" + originalBatchMessage), true)
   for exact in ["WILLOW-12", "0.20", "kg"] { try expectEqual(retried.answer.contains(exact), true) }
   try expectEqual(try cancelled.contextCheckpoints().count > 1, true)
   for workbook in [book, cancelled] { try expectEqual(try workbook.verify()["ok"], .bool(true)) }

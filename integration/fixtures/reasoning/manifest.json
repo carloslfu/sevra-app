@@ -1,0 +1,46 @@
+[
+  {
+    "name": "draft",
+    "archive": "draft.sevraz",
+    "prompt": "Inspect the October forecast. Is it accepted, and is it an actual or an estimate? Do not change anything.",
+    "requiredWords": [
+      "estimate"
+    ],
+    "requiredCitation": "ef1c65d5-d744-4c38-ae32-459981adef70"
+  },
+  {
+    "name": "accepted",
+    "archive": "accepted.sevraz",
+    "prompt": "I accepted the October forecast through the workbook. Inspect its current status and tell me whether it became an actual. Make no changes.",
+    "requiredWords": [
+      "accepted",
+      "estimate"
+    ],
+    "requiredCitation": "97ec6562-c4e4-4f4b-87bb-67e2ed0e92e8"
+  },
+  {
+    "name": "recall",
+    "archive": "recall.sevraz",
+    "prompt": "What was the exact batch code and quantity? Make no changes.",
+    "requiredWords": [
+      "WILLOW-12",
+      "0.20",
+      "kg"
+    ],
+    "requiredCitation": "message:46a81608-cadf-45cb-8cdc-3443e5d10fce"
+  },
+  {
+    "name": "inventory",
+    "archive": "inventory.sevraz",
+    "prompt": "What is the current stock of brass bolts? Cite the basis and movements. Make no changes.",
+    "requiredWords": [
+      "18"
+    ]
+  },
+  {
+    "name": "missing",
+    "archive": "missing.sevraz",
+    "prompt": "Find the service contract and tell me its termination fee. Make no changes.",
+    "requiredWords": []
+  }
+]

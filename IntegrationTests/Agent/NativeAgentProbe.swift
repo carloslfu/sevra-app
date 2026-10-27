@@ -5,6 +5,23 @@ import SevraNativeAI
 import SevraSplash
 import SevraSplashText
 
+func nativeProbeConfiguration(
+  library: String, engine: String, modelsRoot: String, budget: ContextBudget,
+  reasoning: NativeReasoning = .off
+) throws -> NativeWorkbookModel.Configuration {
+  let pin = try Value.parse(String(contentsOfFile: "integration/splash.json", encoding: .utf8))
+  let guidance = try Value.parse(
+    String(contentsOfFile: ".build/llguidance-receipt.json", encoding: .utf8))
+  let files = pin["runtime"]["files"].object.filter { $0.key.hasPrefix("engine/") }
+  return .init(
+    engine: URL(fileURLWithPath: engine),
+    engineFiles: Dictionary(
+      uniqueKeysWithValues: files.map { (String($0.key.dropFirst(7)), $0.value.text) }),
+    grammarLibrary: URL(fileURLWithPath: library), grammarSHA256: guidance["librarySHA256"].text,
+    modelsRoot: URL(fileURLWithPath: modelsRoot), memoryBytes: 12_884_901_888,
+    contextBudget: budget, reasoning: reasoning)
+}
+
 /// Opt-in, actual WorkbookAgent. The model chooses freely among the complete
 /// maintained tool set; no test supplies the next tool, arguments or answer.
 func runNativeAgentProbe(
@@ -14,10 +31,6 @@ func runNativeAgentProbe(
 )
   async throws
 {
-  let pin = try Value.parse(String(contentsOfFile: "integration/splash.json", encoding: .utf8))
-  let guidance = try Value.parse(
-    String(contentsOfFile: ".build/llguidance-receipt.json", encoding: .utf8))
-  let files = pin["runtime"]["files"].object.filter { $0.key.hasPrefix("engine/") }
   let configuredContext =
     ProcessInfo.processInfo.environment["SEVRA_NATIVE_CONTEXT_TOKENS"] ?? "8192"
   guard let tokens = Int(configuredContext), let profile = ContextBudget.Profile(rawValue: tokens)
@@ -48,14 +61,13 @@ func runNativeAgentProbe(
         "automaticCompaction": .bool(false),
       ]).json())
   }
+  let configuredReasoning = ProcessInfo.processInfo.environment["SEVRA_NATIVE_REASONING"] ?? "0"
+  guard let value = Int(configuredReasoning), let reasoning = NativeReasoning(rawValue: value)
+  else { throw SplashError("Candidate reasoning budget must be 0 or 512") }
   let model = NativeWorkbookModel(
-    configuration: .init(
-      engine: URL(fileURLWithPath: engine),
-      engineFiles: Dictionary(
-        uniqueKeysWithValues: files.map { (String($0.key.dropFirst(7)), $0.value.text) }),
-      grammarLibrary: URL(fileURLWithPath: library), grammarSHA256: guidance["librarySHA256"].text,
-      modelsRoot: URL(fileURLWithPath: modelsRoot), memoryBytes: 12_884_901_888,
-      contextBudget: budget))
+    configuration: try nativeProbeConfiguration(
+      library: library, engine: engine, modelsRoot: modelsRoot, budget: budget, reasoning: reasoning
+    ))
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-autonomous-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -202,15 +214,19 @@ func runNativeAgentProbe(
     try expectEqual(comparison.state, "complete")
     try expectEqual(comparison.answer.contains("Oak Supply"), true)
     try expectEqual(comparison.answer.contains("0.35"), true)
-    try expectEqual(!comparison.citations.isEmpty, true)
-    try expectEqual(comparison.citations.allSatisfy { id in rows.contains { $0.id == id } }, true)
+    try expectEqual(Set(comparison.citations), Set(rows.map(\.id)))
     try expectEqual(try book.rows(datasetID).map(\.data), rows.map(\.data))
     let toolMessages = try book.messages().filter { $0.role == "tool" }.map {
       try Value.parse($0.body)
     }
+    let arithmetic = toolMessages.filter {
+      ["compare_rows", "calculate"].contains($0["tool"].text)
+    }
+    print(try Value.object(["comparisonArithmetic": .array(arithmetic)]).json())
     try expectEqual(
-      toolMessages.contains {
-        $0["tool"].text == "compare_rows" && $0["result"]["difference"].text == "0.35"
+      arithmetic.contains {
+        ($0["tool"].text == "compare_rows" && $0["result"]["difference"].text == "0.35")
+          || ($0["tool"].text == "calculate" && $0["result"]["result"].text == "0.35")
       }, true)
 
     let view = try await run(

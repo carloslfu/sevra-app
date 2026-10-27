@@ -140,7 +140,7 @@
         "Sources/SevraSplashText/TextFrontend.swift",
         "Sources/SevraSplashGrammar/ToolPolicy.swift"
       ],
-      "status": "vocabulary-105-base-and-217-workbook-mask-fixtures-native-dispatcher-passed",
+      "status": "vocabulary-105-base-and-221-workbook-mask-fixtures-native-dispatcher-passed",
       "checks": [
         "IntegrationTests/Grammar/main.swift",
         "IntegrationTests/Grammar/NativeProbe.swift",
@@ -160,6 +160,26 @@
       ],
       "swift": null,
       "status": "pending"
+    },
+    {
+      "area": "bounded-reasoning",
+      "upstream": [
+        "server/backend.py",
+        "runtime/model/Runtime.cpp",
+        "dev/tests/smoke_real.py"
+      ],
+      "swift": [
+        "Sources/SevraNativeAI/NativeReasoning.swift",
+        "Sources/SevraNativeAI/NativeWorkbookModel.swift",
+        "Sources/SevraAI/WorkbookInference.swift"
+      ],
+      "status": "targeted-checks-passed-broader-grounding-open-not-adopted",
+      "checks": [
+        "IntegrationTests/Agent/ReasoningChecks.swift",
+        "IntegrationTests/Agent/ReasoningBoundaryProbe.swift",
+        "IntegrationTests/Agent/ReasoningProbe.swift",
+        "IntegrationTests/Agent/InspectionRecoveryProbe.swift"
+      ]
     }
   ],
   "golden": {
@@ -168,5 +188,6 @@
     "sha256": "18993e7fe69af875cf8c7727f8af1a0805151ea8f4b498894d005c1b3e67f966"
   },
   "nativeSmokeEvidence": "integration/evidence/2026-10-26-native-smoke.json",
-  "grammarPin": "integration/llguidance.json"
+  "grammarPin": "integration/llguidance.json",
+  "boundedReasoningEvidence": "integration/evidence/2026-10-26-bounded-reasoning.json"
 }

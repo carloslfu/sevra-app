@@ -90,37 +90,60 @@ final class ToolPolicyChecks {
           ], policy: policy)))
     let emptyEvidence = try NativeCitationPolicy.make([])
     try emptyEvidence.validate(
-      candidate("finish", [("answer", "Saved space"), ("citations", "[]")], policy: emptyEvidence))
+      candidate(
+        "finish", [("answer", "Saved space"), ("basis", "completed_action"), ("citations", "[]")],
+        policy: emptyEvidence))
     try expectThrows(
       try emptyEvidence.validate(
         candidate(
-          "finish", [("answer", "Saved"), ("citations", "[\"space-id\"]")], policy: emptyEvidence)))
+          "finish", [("answer", "Saved"), ("basis", "evidence"), ("citations", "[\"space-id\"]")],
+          policy: emptyEvidence)))
     let knownEvidence = try NativeCitationPolicy.make(["source-one"])
     try knownEvidence.validate(
       candidate(
-        "finish", [("answer", "Observed"), ("citations", "[\"source-one\"]")], policy: knownEvidence
+        "finish",
+        [("answer", "Observed"), ("basis", "evidence"), ("citations", "[\"source-one\"]")],
+        policy: knownEvidence
       ))
     let knownMessage = try NativeCitationPolicy.make(["message:history-one"])
     try knownMessage.validate(
       candidate(
         "finish",
-        [("answer", "You supplied this earlier."), ("citations", "[\"message:history-one\"]")],
+        [
+          ("answer", "You supplied this earlier."), ("basis", "evidence"),
+          ("citations", "[\"message:history-one\"]"),
+        ],
         policy: knownMessage))
     try expectThrows(
       try knownMessage.validate(
         candidate(
-          "finish", [("answer", "Unseen"), ("citations", "[\"message:history-two\"]")],
+          "finish",
+          [
+            ("answer", "Unseen"), ("basis", "evidence"), ("citations", "[\"message:history-two\"]"),
+          ],
           policy: knownMessage)))
     try expectThrows(
       try knownEvidence.validate(
         candidate(
-          "finish", [("answer", "Observed"), ("citations", "[\"stale-id\"]")], policy: knownEvidence
+          "finish",
+          [("answer", "Observed"), ("basis", "evidence"), ("citations", "[\"stale-id\"]")],
+          policy: knownEvidence
         )))
     try expectThrows(
       try policy.validate(candidate("finish", [("answer", "Ready")], policy: policy)))
     try expectThrows(
       try policy.validate(
-        candidate("finish", [("answer", "Ready"), ("citations", "[1]")], policy: policy)))
+        candidate("finish", [("answer", "Ready"), ("citations", "[]")], policy: policy)))
+    try expectThrows(
+      try policy.validate(
+        candidate(
+          "finish", [("answer", "Ready"), ("basis", "unsupported"), ("citations", "[]")],
+          policy: policy)))
+    try expectThrows(
+      try policy.validate(
+        candidate(
+          "finish", [("answer", "Ready"), ("basis", "evidence"), ("citations", "[1]")],
+          policy: policy)))
     try expectThrows(
       try policy.validate(
         candidate(
@@ -204,6 +227,8 @@ func expectValue<T>(_ value: T?) throws -> T {
 }
 do {
   try checkContextBudget()
+  try checkReasoningBudget()
+  try await checkReasoningHistory()
   try await checkAgentLifecycle()
   try await checkHistoryTools()
   try await checkScopedSearch()
@@ -230,6 +255,19 @@ do {
       _ = await model.unload()
       throw error
     }
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--inspection-recovery" {
+    try await runInspectionRecoveryProbe(
+      modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], modelsRoot: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--reasoning-boundary" {
+    try runReasoningBoundaryProbe(
+      modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], modelsRoot: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--reasoning-comparison"
+  {
+    try await runReasoningComparison(
+      modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], modelsRoot: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6
     && [
       "--autonomous", "--inventory", "--occupied", "--history", "--continuity",
@@ -254,6 +292,7 @@ do {
     let factory = try SplashGrammarFactory(
       frontend: frontend, library: library, librarySHA256: digest)
     try checkWorkbookGrammars(frontend: frontend, factory: factory)
+    try checkReasoningGrammar(frontend: frontend, factory: factory)
     if CommandLine.arguments.count == 5 {
       try runNativeWorkbookProbe(
         frontend: frontend, factory: factory, engine: CommandLine.arguments[3],
@@ -261,7 +300,7 @@ do {
     }
   } else if CommandLine.arguments.count != 1 {
     throw SplashError(
-      "Usage: sevra-agent-checks --baseline-continuity MODEL_FOLDER or [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536 in development checks."
+      "Usage: sevra-agent-checks --baseline-continuity MODEL_FOLDER or [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536 and SEVRA_NATIVE_REASONING selects 0/512 in development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
     )
   }
 } catch {

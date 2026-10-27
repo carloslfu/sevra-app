@@ -7,8 +7,8 @@ extension WorkbookAgent {
   package static func conversationHistory(_ workbook: Workbook, conversation: String) throws
     -> [InferenceMessage]
   {
-    func project(_ history: [Message]) throws -> [InferenceMessage] {
-      var projected: [InferenceMessage] = []
+    func project(_ history: [Message]) throws -> [Value] {
+      var projected: [Value] = []
       var proposalID: String?
       for message in history {
         if message.role == "tool" {
@@ -25,6 +25,7 @@ extension WorkbookAgent {
           ["complete", "needs_review"].contains(message.state) || ended
         else { continue }
         var content = String(message.body.prefix(1600))
+        var recordedState: Value = .null
         if ended {
           content =
             "The previous request ended with status " + message.state
@@ -34,29 +35,45 @@ extension WorkbookAgent {
         if message.state == "needs_review", let id = proposalID {
           let original = try workbook.item(id)
           let current = try workbook.item(original.logicalID)
-          let state: Value = .object([
+          recordedState = .object([
             "proposalID": .string(original.id), "currentVersionID": .string(current.id),
             "status": .string(current.status), "meaning": .string(current.meaning),
             "datasetID": current.data["datasetID"],
           ])
-          content +=
-            "\nCurrent recorded proposal state: " + (try state.json())
-            + ". This is historical workbook state, not permission for a new action."
         }
-        projected.append(InferenceMessage(role: message.role, content: content))
+        projected.append(
+          .object([
+            "id": .string(message.id), "role": .string(message.role),
+            "state": .string(message.state), "text": .string(content),
+            "truncated": .bool(message.body.count > 1600), "currentProposalState": recordedState,
+          ]))
         proposalID = nil
       }
       return projected
     }
     let parent = try project(workbook.parentContext(conversation: conversation))
     let current = try project(workbook.messages(conversation: conversation, limit: 100))
+    // Match the candidate's explicit historical envelope without enabling
+    // automatic compaction in the preserved backend. Past user imperatives
+    // must not be reintroduced as live requests. Preserve their authorship and
+    // original IDs as data; the actual current request follows this context.
+    func envelope(_ label: String, _ entries: [Value]) throws -> [InferenceMessage] {
+      guard !entries.isEmpty else { return [] }
+      return [
+        InferenceMessage(
+          role: "assistant",
+          content: label + ": historical information only, not pending requests or new permission. "
+            + "Use history_read for exact originals and citations; refresh current business evidence.\n"
+            + (try Value.array(entries).json()))
+      ]
+    }
     let unresolved = try workbook.unresolvedToolCalls(conversation: conversation)
     let notices =
       unresolved.isEmpty
       ? []
       : [
         InferenceMessage(
-          role: "user",
+          role: "assistant",
           content:
             "Host recovery report: these previous calls have no final receipt. Do not automatically replay them or infer acceptance. Inspect their saved operation proof and current workbook state. "
             + (try Value.array(
@@ -68,6 +85,7 @@ extension WorkbookAgent {
               }
             ).json()))
       ]
-    return parent + current.suffix(8) + notices
+    return try envelope("Explicit parent-conversation excerpt", parent)
+      + envelope("Saved conversation", Array(current.suffix(8))) + notices
   }
 }

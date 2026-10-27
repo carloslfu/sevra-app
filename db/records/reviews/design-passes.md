@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-27T00:53:53.853342+00:00
+updated: 2026-10-27T03:14:01.709463+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -239,3 +239,29 @@ journal boundary. Added a real shared-agent two-page fixture with twenty evidenc
 items and a conservative operation-journal anchor. Context checkpoints also keep
 unchanged pages valid; an independent writer changing evidence refuses the same
 cursor. Unknown mutation types and long journal intervals still invalidate it.
+
+## Reasoning comparison review
+Bounded reasoning is a controlled runtime comparison, not a substitute for
+host authority or valid evidence. The first matrix freezes five synthetic workbook
+snapshots across three paired repetitions: draft forecast, accepted forecast,
+original-message recall, deterministic inventory and missing evidence. Alternate
+arm order, reopen each snapshot, keep the same user prompt and verify unchanged
+business records. New current-run/request identifiers remain unique, so this is
+not byte-identical prompt replay. Inspect answer semantics and citations manually
+as well as applying deterministic checks. Startup-inclusive elapsed times are
+observations, not a standalone engine speed benchmark. Keep failures from both
+arms, including infrastructure or grammar failures.
+Manual review of the first matrix also found an accepted-forecast answer exposing eight-character UUID prefixes. The repaired candidate rejects these prefixes for inspected references, in addition to full UUIDs. The follow-up inventory assertion requires the exact opening/effect IDs and a successful current-run balance call, not merely two arbitrary citations. Preserve the original automatic check results and identify these additional review criteria explicitly.
+
+## Second-candidate semantic review
+Manual review of the second candidate found an extra narrative error in the first bounded inventory answer: it called 1 January 2026 the opening Source acceptance date. The evidence gives that as the inventory starting date; the Source creation/acceptance happened later and the answer cannot infer an acceptance timestamp from the opening condition. The stock total and exact basis/effect citations passed. Preserve the distinction between automatic task checks and full semantic correctness; do not count a successful numeric/citation check as proof that every added sentence is supported. Keep the frozen comparison unchanged, retain this output, and evaluate a targeted answer-policy correction separately after the cohort finishes.
+
+## Grounding and recovery review
+The broader R3 continuity probe exposed repeated uncited finishes after reopen. R4's host-selected inspection scope is enforced both in the adapter and before tool dispatch; it grants no automatic citation or mutation permission. Three subsequent continuity probes passed, but R4's frozen recall repetition zero still invented quantity 120 instead of 0.20 kg by declaring current_request. A model-provided basis is a claim, not a trusted proof.
+
+R5 therefore adds a narrow numeric check against the actual request and successful visible calculation values. Original/history claims require fresh inspected citations. This blocks the observed unsupported-number path while retaining spoken arithmetic through calculate. It does not establish semantic entailment, check units, prove calculation relevance, or prevent every misclassification under general, unresolved or completed_action. Wider paraphrases and adversarial evaluation remain required before promotion. Do not present typed basis or citation membership as a general hallucination solution.
+
+The separate controlled recovery fixture injects only the failed finish, then uses the real model. Its initial four responses retrieved and cited the correct original. The fourth response expressed quantity and unit in separate clauses, which exposed a test-only exact-phrase assumption. Preserve that failed test exit, correct the wording-sensitive assertion, and rerun the fixture without changing runtime behavior. Fault-injection recovery must be reported separately from autonomous completion.
+
+## R5 coverage overclaim
+Manual review of accepted-forecast repetition two found a correct core answer followed by an unsupported workbook-wide statement that no inventory movements were recorded. The model had performed two empty lexical searches and listed datasets; those operations do not establish exhaustive record coverage. The synthetic fixture does contain no movements, so this is an evidence-scope overclaim rather than a wrong fixture value. Retain it separately from the automatic task score. Typed finish basis and eligible citations do not establish entailment for every sentence. Wider coverage-aware answer synthesis remains an adoption gate; do not claim general reliability or promote native inference from the small suite.

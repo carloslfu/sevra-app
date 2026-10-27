@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
-  "toolsSHA256": "315582c4dae038399e6393fdff617c057cdd28dedfe61db61069bfb0ce3db0b8",
+  "toolsSHA256": "52a1e8f01134f1788b33be7609cb491ac707b92184ae6bb72b756e46de940cf1",
   "cases": [
     {
       "name": "required_history_search",
@@ -7732,9 +7732,10 @@
       "name": "required_finish",
       "choice": "required",
       "thinking": false,
-      "output": "<tool_call>\n<function=finish>\n<parameter=answer>\nexample\n</parameter>\n<parameter=citations>\n[\"example\"]\n</parameter>\n</function>\n</tool_call>",
+      "output": "<tool_call>\n<function=finish>\n<parameter=answer>\nexample\n</parameter>\n<parameter=basis>\nevidence\n</parameter>\n<parameter=citations>\n[\"example\"]\n</parameter>\n</function>\n</tool_call>",
       "arguments": {
         "answer": "example",
+        "basis": "evidence",
         "citations": [
           "example"
         ]
@@ -7755,6 +7756,19 @@
         29,
         198,
         8422,
+        198,
+        510,
+        15704,
+        29,
+        198,
+        27,
+        15704,
+        21402,
+        10402,
+        29,
+        198,
+        68,
+        26590,
         198,
         510,
         15704,
@@ -7877,10 +7891,10 @@
             198,
             27,
             15704,
-            18941,
-            29666
+            21402,
+            10402
           ],
-          "maskSHA256": "d1f4046b6a11dc8bcef28a727d2d14380a50b49de0e9e190bd6b2b8963cdd4f7"
+          "maskSHA256": "1a23b79f0f6b6cfe3dd2696ad146d3036ac77e3ba84baf44b4c363047e97c310"
         },
         {
           "committed": [
@@ -7906,20 +7920,20 @@
             198,
             27,
             15704,
-            18941,
-            29666
+            21402,
+            10402
           ],
           "simulation": [
             29,
             198,
-            1143,
-            8422,
-            1293,
+            68,
+            26590,
             198,
             510,
-            15704
+            15704,
+            29
           ],
-          "maskSHA256": "a3542b315c8026b74172f1f47cd6580d98f9cb889bebe8db6abc7ccd9adca23d"
+          "maskSHA256": "d9ac693c16bc85ab25a126b574b4de7f129770661acf6464bcc41681d1c29c57"
         },
         {
           "committed": [
@@ -7938,6 +7952,121 @@
             29,
             198,
             8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            21402,
+            10402,
+            29,
+            198,
+            68,
+            26590,
+            198,
+            510,
+            15704,
+            29
+          ],
+          "simulation": [
+            198,
+            27,
+            15704,
+            18941,
+            29666,
+            29,
+            198,
+            1143
+          ],
+          "maskSHA256": "e1ed63ca2b047cb269d90c26d46955250cec98fadd46633c1b59a0e0c2a62b62"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            29166,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            8944,
+            29,
+            198,
+            8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            21402,
+            10402,
+            29,
+            198,
+            68,
+            26590,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            18941,
+            29666,
+            29,
+            198,
+            1143
+          ],
+          "simulation": [
+            8422,
+            1293,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            510
+          ],
+          "maskSHA256": "1a176ef952b9e6e98effa97b039cd60808099e8d50a10e361c49d91cd2c6159c"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            29166,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            8944,
+            29,
+            198,
+            8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            21402,
+            10402,
+            29,
+            198,
+            68,
+            26590,
             198,
             510,
             15704,
@@ -7954,18 +8083,18 @@
             1293,
             198,
             510,
-            15704
-          ],
-          "simulation": [
+            15704,
             29,
             198,
-            510,
+            510
+          ],
+          "simulation": [
             1628,
             29,
             198,
             248059
           ],
-          "maskSHA256": "2df35a51c8c6b9839aad9f5bd3c7f6b974bfc1ac326e7577b1f639458121fe3d"
+          "maskSHA256": "d90d5daefc9cc66df8c77976a1837a7e2d53e0408e36a519581392a45016446b"
         },
         {
           "committed": [
@@ -7984,6 +8113,19 @@
             29,
             198,
             8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            21402,
+            10402,
+            29,
+            198,
+            68,
+            26590,
             198,
             510,
             15704,
@@ -8291,9 +8433,10 @@
       "name": "named_finish_finish",
       "choice": "named_finish",
       "thinking": false,
-      "output": "<tool_call>\n<function=finish>\n<parameter=answer>\nexample\n</parameter>\n<parameter=citations>\n[\"example\"]\n</parameter>\n</function>\n</tool_call>",
+      "output": "<tool_call>\n<function=finish>\n<parameter=answer>\nexample\n</parameter>\n<parameter=basis>\nevidence\n</parameter>\n<parameter=citations>\n[\"example\"]\n</parameter>\n</function>\n</tool_call>",
       "arguments": {
         "answer": "example",
+        "basis": "evidence",
         "citations": [
           "example"
         ]
@@ -8314,6 +8457,19 @@
         29,
         198,
         8422,
+        198,
+        510,
+        15704,
+        29,
+        198,
+        27,
+        15704,
+        21402,
+        10402,
+        29,
+        198,
+        68,
+        26590,
         198,
         510,
         15704,
@@ -8436,10 +8592,10 @@
             198,
             27,
             15704,
-            18941,
-            29666
+            21402,
+            10402
           ],
-          "maskSHA256": "d1f4046b6a11dc8bcef28a727d2d14380a50b49de0e9e190bd6b2b8963cdd4f7"
+          "maskSHA256": "1a23b79f0f6b6cfe3dd2696ad146d3036ac77e3ba84baf44b4c363047e97c310"
         },
         {
           "committed": [
@@ -8465,20 +8621,20 @@
             198,
             27,
             15704,
-            18941,
-            29666
+            21402,
+            10402
           ],
           "simulation": [
             29,
             198,
-            1143,
-            8422,
-            1293,
+            68,
+            26590,
             198,
             510,
-            15704
+            15704,
+            29
           ],
-          "maskSHA256": "a3542b315c8026b74172f1f47cd6580d98f9cb889bebe8db6abc7ccd9adca23d"
+          "maskSHA256": "d9ac693c16bc85ab25a126b574b4de7f129770661acf6464bcc41681d1c29c57"
         },
         {
           "committed": [
@@ -8497,6 +8653,121 @@
             29,
             198,
             8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            21402,
+            10402,
+            29,
+            198,
+            68,
+            26590,
+            198,
+            510,
+            15704,
+            29
+          ],
+          "simulation": [
+            198,
+            27,
+            15704,
+            18941,
+            29666,
+            29,
+            198,
+            1143
+          ],
+          "maskSHA256": "e1ed63ca2b047cb269d90c26d46955250cec98fadd46633c1b59a0e0c2a62b62"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            29166,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            8944,
+            29,
+            198,
+            8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            21402,
+            10402,
+            29,
+            198,
+            68,
+            26590,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            18941,
+            29666,
+            29,
+            198,
+            1143
+          ],
+          "simulation": [
+            8422,
+            1293,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            510
+          ],
+          "maskSHA256": "1a176ef952b9e6e98effa97b039cd60808099e8d50a10e361c49d91cd2c6159c"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            29166,
+            29,
+            198,
+            27,
+            15704,
+            28,
+            8944,
+            29,
+            198,
+            8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            21402,
+            10402,
+            29,
+            198,
+            68,
+            26590,
             198,
             510,
             15704,
@@ -8513,18 +8784,18 @@
             1293,
             198,
             510,
-            15704
-          ],
-          "simulation": [
+            15704,
             29,
             198,
-            510,
+            510
+          ],
+          "simulation": [
             1628,
             29,
             198,
             248059
           ],
-          "maskSHA256": "2df35a51c8c6b9839aad9f5bd3c7f6b974bfc1ac326e7577b1f639458121fe3d"
+          "maskSHA256": "d90d5daefc9cc66df8c77976a1837a7e2d53e0408e36a519581392a45016446b"
         },
         {
           "committed": [
@@ -8543,6 +8814,19 @@
             29,
             198,
             8422,
+            198,
+            510,
+            15704,
+            29,
+            198,
+            27,
+            15704,
+            21402,
+            10402,
+            29,
+            198,
+            68,
+            26590,
             198,
             510,
             15704,

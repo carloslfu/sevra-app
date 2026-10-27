@@ -16,7 +16,8 @@ private actor HistoryToolInference: WorkbookInference {
   func endRun() {}
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, finishOnly: Bool, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
   ) throws -> NativeReply {
     steps += 1
     if unified && steps <= 2 {
@@ -67,6 +68,7 @@ private actor HistoryToolInference: WorkbookInference {
             ? "The table is named Large table."
             : "You supplied purchase code MAPLE-27 and did not specify a currency."),
         "citations": .array(large ? [] : [result["citation"]]),
+        "basis": .string(large ? "general" : "evidence"),
       ])
     }
     return NativeReply(
@@ -75,11 +77,106 @@ private actor HistoryToolInference: WorkbookInference {
   }
 }
 
+private actor UncitedHistoryInference: WorkbookInference {
+  let identity = "synthetic uncited snippet recovery"
+  let lastMetrics: Value = .null
+  var step = 0
+  var original = ""
+  let bypassInspection: Bool
+  let inventedNumber: Bool
+  init(bypassInspection: Bool = false, inventedNumber: Bool = false) {
+    self.bypassInspection = bypassInspection
+    self.inventedNumber = inventedNumber
+  }
+  func beginRun() {}
+  func endRun() {}
+  func respond(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
+  ) throws -> NativeReply {
+    step += 1
+    let tool: String
+    let args: Value
+    switch step {
+    case 1:
+      tool = "history_search"
+      args = .object(["query": .string("purchase code")])
+    case 2:
+      original = try Value.parse(messages.last!.content)["hits"].array.first!["id"].text
+      try expectEqual(citationIDs.isEmpty, true)
+      tool = "finish"
+      args = .object([
+        "answer": .string(
+          inventedNumber ? "The quantity was 120." : "The purchase code was MAPLE-27."),
+        "basis": .string(inventedNumber ? "current_request" : "evidence"),
+        "citations": .array([]),
+      ])
+    case 3:
+      try expectEqual(
+        messages.last!.content.contains(
+          inventedNumber ? "numbers not supplied" : "requires inspected citations"), true)
+      try expectEqual(toolScope, .inspection)
+      tool = bypassInspection ? "draft" : "history_read"
+      args =
+        bypassInspection
+        ? .object([
+          "title": .string("Unwanted mutation"), "text": .string("No"), "inputs": .array([]),
+        ])
+        : .object(["id": .string(original)])
+    default:
+      try expectEqual(step, 4)
+      try expectEqual(toolScope, .all)
+      try expectEqual(citationIDs.contains("message:" + original), true)
+      tool = "finish"
+      args = .object([
+        "answer": .string("The purchase code was MAPLE-27."), "basis": .string("evidence"),
+        "citations": .array([.string("message:" + original)]),
+      ])
+    }
+    return NativeReply(
+      text: "", calls: [.init(id: "uncited-\(step)", name: tool, inputJSON: try args.json())])
+  }
+}
+
 func checkHistoryTools() async throws {
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-history-tools-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   defer { try? FileManager.default.removeItem(at: root) }
+  let uncited = try Workbook.create(
+    at: root.appendingPathComponent("Uncited.sevra"), title: "Uncited snippet")
+  let original = try uncited.addMessage("Purchase code MAPLE-27.", role: "user")
+  let bypass = try Workbook.create(at: root.appendingPathComponent("Bypass.sevra"), title: "Bypass")
+  _ = try bypass.addMessage("Purchase code MAPLE-27.", role: "user")
+  do {
+    _ = try await WorkbookAgent.run(
+      "What was the purchase code?", workbook: bypass,
+      model: UncitedHistoryInference(bypassInspection: true))
+    throw SevraError("fixture_assertion", "The evidence recovery scope allowed a mutation")
+  } catch let error as SevraError {
+    try expectEqual(error.code, "tool_scope")
+  }
+  try expectEqual(try bypass.items().contains { $0.title == "Unwanted mutation" }, false)
+  let recovered = try await WorkbookAgent.run(
+    "What was the purchase code?", workbook: uncited, model: UncitedHistoryInference())
+  try expectEqual(recovered.steps, 4)
+  try expectEqual(recovered.citations, ["message:" + original])
+  try expectEqual(
+    try uncited.messages(limit: 100).filter { $0.role == "assistant" && $0.state == "complete" }
+      .count, 1)
+  let numeric = try Workbook.create(
+    at: root.appendingPathComponent("Numeric.sevra"), title: "Invented current-request quantity")
+  let numericOriginal = try numeric.addMessage("Purchase code MAPLE-27.", role: "user")
+  let numericRecovered = try await WorkbookAgent.run(
+    "What was the purchase code?", workbook: numeric,
+    model: UncitedHistoryInference(inventedNumber: true))
+  try expectEqual(numericRecovered.steps, 4)
+  try expectEqual(numericRecovered.citations, ["message:" + numericOriginal])
+  try expectEqual(
+    try numeric.messages().contains {
+      $0.role == "assistant" && $0.body.contains("120")
+    }, false)
   for (large, unified) in [(false, false), (false, true), (true, false)] {
     let book = try Workbook.create(
       at: root.appendingPathComponent("\(large)-\(unified).sevra"), title: "History")

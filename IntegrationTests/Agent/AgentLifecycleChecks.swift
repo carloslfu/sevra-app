@@ -14,25 +14,61 @@ private actor ScriptedInference: WorkbookInference {
   let searchesOnly: Bool
   let filteredSearches: Bool
   let balanceOnly: Bool
+  let omitBalanceCitation: Bool
+  let initialBasis: String?
+  var balanceIDs: [String] = []
   let violateReadOnly: Bool
   init(
     cancelAfterResponse: Bool = false, fail: Bool = false, searchesOnly: Bool = false,
-    balanceOnly: Bool = false, violateReadOnly: Bool = false, filteredSearches: Bool = false
+    balanceOnly: Bool = false, violateReadOnly: Bool = false, filteredSearches: Bool = false,
+    omitBalanceCitation: Bool = false, initialBasis: String? = nil
   ) {
     self.cancelAfterResponse = cancelAfterResponse
     self.fail = fail
     self.searchesOnly = searchesOnly
     self.filteredSearches = filteredSearches
     self.balanceOnly = balanceOnly
+    self.omitBalanceCitation = omitBalanceCitation
+    self.initialBasis = initialBasis
     self.violateReadOnly = violateReadOnly
   }
   func beginRun() throws { begins += 1 }
   func endRun() { ends += 1 }
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, finishOnly: Bool, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
   ) async throws -> NativeReply {
     responses += 1
+    if let initialBasis {
+      if responses == 1 {
+        return NativeReply(
+          text: "",
+          calls: [
+            .init(
+              id: "unsupported-finish", name: "finish",
+              inputJSON: try Value.object([
+                "answer": .string("Unsupported workbook claim."), "basis": .string(initialBasis),
+                "citations": .array([]),
+              ]).json())
+          ])
+      }
+      if initialBasis == "evidence" && responses == 2 {
+        try expectEqual(toolScope, .inspection)
+        return NativeReply(
+          text: "",
+          calls: [
+            .init(
+              id: "inspect-before-finish", name: "history_search",
+              inputJSON: "{\"query\":\"missing fixture\"}")
+          ])
+      }
+      try expectEqual(responses, initialBasis == "evidence" ? 3 : 2)
+      try expectEqual(toolScope, .all)
+      if initialBasis != "evidence" {
+        try expectEqual(messages.last!.content.contains("error"), true)
+      }
+    }
     if fail { throw SevraError("fixture_failure", "Synthetic failure") }
     if cancelAfterResponse { cancellation.cancel() }
     if violateReadOnly {
@@ -58,17 +94,24 @@ private actor ScriptedInference: WorkbookInference {
               inputJSON: "{\"subject\":\"brass bolts\"}")
           ])
       }
-      try expectEqual(responses, 2)
-      let balance = try Value.parse(messages.last!.content)
-      let ids = [balance["basis"].text] + balance["effects"].array.map { $0["item_id"].text }
-      try expectEqual(ids.allSatisfy { citationIDs.contains($0) && !$0.isEmpty }, true)
+      if responses == 2 {
+        let balance = try Value.parse(messages.last!.content)
+        balanceIDs = [balance["basis"].text] + balance["effects"].array.map { $0["item_id"].text }
+      } else {
+        try expectEqual(responses, 3)
+        try expectEqual(omitBalanceCitation, true)
+        try expectEqual(messages.last!.content.contains("every inspected input"), true)
+      }
+      try expectEqual(balanceIDs.allSatisfy { citationIDs.contains($0) && !$0.isEmpty }, true)
+      let ids = omitBalanceCitation && responses == 2 ? Array(balanceIDs.prefix(1)) : balanceIDs
       return NativeReply(
         text: "",
         calls: [
           InferenceCall(
-            id: "balance-finish", name: "finish",
+            id: "balance-finish-\(responses)", name: "finish",
             inputJSON: try Value.object([
               "answer": .string("The current stock is 18 brass bolts."),
+              "basis": .string("evidence"),
               "citations": .array(ids.map(Value.string)),
             ]).json())
         ])
@@ -92,18 +135,39 @@ private actor ScriptedInference: WorkbookInference {
       calls: [
         InferenceCall(
           id: "fixture-call", name: "finish",
-          inputJSON: "{\"answer\":\"No changes requested.\",\"citations\":[]}")
+          inputJSON: "{\"basis\":\"general\",\"answer\":\"No changes requested.\",\"citations\":[]}"
+        )
       ])
   }
 }
 
 func checkAgentLifecycle() async throws {
+  let reference = "97ec6562-c4e4-4f4b-87bb-67e2ed0e92e8"
+  for prose in ["Current version " + reference, "Current version 97ec6562", "Message:97EC6562"] {
+    try expectEqual(WorkbookAgent.containsOpaqueReference(prose, inspected: [reference]), true)
+  }
+  try expectEqual(
+    WorkbookAgent.containsOpaqueReference(
+      "Batch WILLOW-12, quantity 0.20 kg", inspected: [reference]), false)
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-agent-lifecycle-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   defer { try? FileManager.default.removeItem(at: root) }
   let readOnlyBook = try Workbook.create(
     at: root.appendingPathComponent("ReadOnly.sevra"), title: "Read only")
+  for basis in ["evidence", "completed_action", "unsupported"] {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("Basis-\(basis).sevra"), title: "Answer basis")
+    let result = try await WorkbookAgent.run(
+      "Just acknowledge. Make no changes.", workbook: book,
+      model: ScriptedInference(initialBasis: basis))
+    try expectEqual(result.steps, basis == "evidence" ? 3 : 2)
+    try expectEqual(result.answer, "No changes requested.")
+    try expectEqual(
+      try book.messages().filter {
+        $0.role == "assistant" && $0.body.contains("Unsupported workbook claim")
+      }.isEmpty, true)
+  }
   let readOnlyTools = WorkbookTools(readOnlyBook, readOnly: true)
   for tool in NativeTools.definitions
   where tool.name != "finish" && !WorkbookTools.readOnlyTools.contains(tool.name) {
@@ -162,7 +226,8 @@ func checkAgentLifecycle() async throws {
     if cancel { try expectEqual(assistant[0].body.contains("No changes requested"), false) }
     if cancel || fail {
       let history = try WorkbookAgent.conversationHistory(book, conversation: "main")
-      try expectEqual(history.count, 2)
+      try expectEqual(history.count, 1)
+      try expectEqual(history.allSatisfy { $0.role == "assistant" }, true)
       try expectEqual(history.last!.content.contains("status " + expected), true)
       try expectEqual(history.last!.content.contains("It is not pending"), true)
     }
@@ -203,7 +268,14 @@ func checkAgentLifecycle() async throws {
     ]).json(), role: "tool")
   _ = try reviewBook.addMessage("Ready to review", role: "assistant", state: "needs_review")
   let draftHistory = try WorkbookAgent.conversationHistory(reviewBook, conversation: "main")
-  try expectEqual(draftHistory.count, 2)
+  try expectEqual(draftHistory.count, 1)
+  try expectEqual(draftHistory[0].role, "assistant")
+  try expectEqual(draftHistory[0].content.contains("historical information only"), true)
+  let saved = try Value.parse(
+    String(draftHistory[0].content.split(separator: "\n", maxSplits: 1)[1]))
+  try expectEqual(saved.array.map { $0["role"].text }, ["user", "assistant"])
+  try expectEqual(saved.array[0]["text"].text, "Estimate five units")
+  try expectEqual(saved.array[0]["id"].text.isEmpty, false)
   try expectEqual(draftHistory.last!.content.contains("\"status\":\"draft\""), true)
   let accepted = try reviewBook.accept(proposal.id)
   let historicalRead = try WorkbookTools(reviewBook, readOnly: true).execute(
@@ -256,6 +328,16 @@ func checkAgentLifecycle() async throws {
   try expectEqual(balanceAnswer.steps, 2)
   try expectEqual(balanceAnswer.citations.count, 2)
   try expectEqual(await balanceModel.ends, 1)
+  let corrected = try await WorkbookAgent.run(
+    "What is the brass bolt stock? Cite the basis and movements. Make no changes.",
+    workbook: inventory, model: ScriptedInference(balanceOnly: true, omitBalanceCitation: true))
+  try expectEqual(corrected.state, "complete")
+  try expectEqual(corrected.steps, 3)
+  try expectEqual(Set(corrected.citations), Set(balanceAnswer.citations))
+  let validations = try inventory.messages(limit: 100).filter {
+    $0.role == "tool" && $0.body.contains("every inspected input")
+  }
+  try expectEqual(validations.count, 1)
   print(
     "PASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit"
   )

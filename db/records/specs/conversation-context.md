@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-27T00:57:12.985826+00:00
+updated: 2026-10-27T03:38:53.260949+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -242,3 +242,17 @@ model completion does not. This is not C12/J10 qualification, a statistical
 reliability claim or a production context-size decision. Longer jobs, different
 wording, many durable constraints, process death, hardware and performance gates
 remain open. Native adoption and baseline automatic compaction remain disabled.
+
+## Bounded reasoning and inspection recovery checkpoint
+The next investigation isolated off versus bounded512 on frozen workbook archives, then separately repaired within-request reasoning continuity, final-answer provenance and recovery. Reasoning is ephemeral execution state, counted in context budgets and absent from durable history, checkpoints and later requests. Original messages, current record versions and deterministic calculation results retain their separate authority.
+
+The R5 follow-up passes 15/15 automatic task checks, two complete native continuity sequences and the autonomous workflow. Controlled fault injection verifies that an uncited evidence answer or unsupported current_request number requires an actual inspection-only model call before retry. The final repeated fixture passed with both thinking modes after the separate non-compacting history correction. That path now presents earlier messages as historical data, preserving IDs, authorship and proposal status, while leaving only the current request as a live user message. Original history is unchanged and automatic compaction remains disabled in Slotstream. Keep this deliberate recovery test separate from autonomous completion, and retain its initial wording-sensitive assertion failure.
+
+These results do not erase earlier failed continuations or qualify every narrative assertion. Manual review found a workbook-wide absence overclaim after non-exhaustive searches despite correct forecast status/meaning. C12/J10, broad grounding, long-lived constraints, process death, physical hardware and performance remain open. Native adoption, a larger production context default and baseline automatic compaction remain disabled. See [[records/specs/intelligence]], [[records/reviews/design-passes]] and [[records/operations/implementation]]; complete evidence is in integration/evidence/2026-10-26-bounded-reasoning.json.
+
+## Historical context without automatic compaction
+The preserved backend keeps automatic compaction disabled. Its recent-context path now presents up to eight prior conversational entries as explicitly historical data, rather than replaying earlier requests as active user turns. Preserve original message IDs, authorship, states, bounded text and truncation flags. Text projection is limited to 1,600 characters per entry; full originals remain available through history_read and keep their original bytes.
+
+Parent-conversation excerpts remain separate. Pending-review messages carry current proposal version, acceptance, meaning and dataset identity from the workbook. Unresolved-call notices remain host information, not new user requests or authority to replay an action. The actual current request follows this context. At the start of the run, historical user messages do not become live user-role messages. Existing validation feedback later in the run remains host-controlled.
+
+This projection aligns the authority boundary with native context maintenance without enabling summary generation, changing stored history or granting citation eligibility. Actual-model qualification must include a completed task followed by a different task, historical recall, review-state changes and cancellation/retry.

@@ -18,10 +18,11 @@ package actor NativeWorkbookModel: WorkbookInference {
     package let modelsRoot: URL
     package let memoryBytes: UInt64
     package let contextBudget: ContextBudget
+    package let reasoning: NativeReasoning
     package init(
       engine: URL, engineFiles: [String: String], grammarLibrary: URL,
       grammarSHA256: String, modelsRoot: URL, memoryBytes: UInt64,
-      contextBudget: ContextBudget = .init()
+      contextBudget: ContextBudget = .init(), reasoning: NativeReasoning = .off
     ) {
       self.engine = engine
       self.engineFiles = engineFiles
@@ -30,17 +31,22 @@ package actor NativeWorkbookModel: WorkbookInference {
       self.modelsRoot = modelsRoot
       self.memoryBytes = memoryBytes
       self.contextBudget = contextBudget
+      self.reasoning = reasoning
     }
   }
-  package let identity =
-    "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate"
+  package let identity: String
   package private(set) var lastMetrics: Value = .null
   private let worker: NativeWorker
   private var leased = false
   private var active = false
   private var processLock: Int32 = -1
   private var idleRelease: Task<Void, Never>?
-  package init(configuration: Configuration) { worker = NativeWorker(configuration) }
+  package init(configuration: Configuration) {
+    worker = NativeWorker(configuration)
+    identity =
+      "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate"
+      + "; reasoning budget \(configuration.reasoning.rawValue); within-request reasoning retained"
+  }
 
   package func beginRun() throws {
     try require(!leased && !active, "busy", "Sevra is already answering another question.")
@@ -142,7 +148,7 @@ package actor NativeWorkbookModel: WorkbookInference {
 
   package func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, finishOnly: Bool, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope, citationIDs: [String]
   ) async throws -> NativeReply {
     try require(leased && !active, "busy", "The native model needs an exclusive workbook run.")
     active = true
@@ -153,7 +159,7 @@ package actor NativeWorkbookModel: WorkbookInference {
       try cancellation.check()
       let result = try await worker.respond(
         messages: messages, directory: directory, cancellation: cancellation,
-        progress: progress, finishOnly: finishOnly, citationIDs: citationIDs)
+        progress: progress, toolScope: toolScope, citationIDs: citationIDs)
       try cancellation.check()
       lastMetrics = result.1
       return result.0
@@ -262,11 +268,11 @@ private final class NativeWorker: @unchecked Sendable {
 
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, finishOnly: Bool, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope, citationIDs: [String]
   ) async throws -> (NativeReply, Value) {
     try await perform(directory: directory, cancellation: cancellation, progress: progress) {
       session in
-      try self.generate(messages, session, cancellation, progress, finishOnly, citationIDs)
+      try self.generate(messages, session, cancellation, progress, toolScope, citationIDs)
     }
   }
   private func perform<T>(
@@ -303,10 +309,12 @@ private final class NativeWorker: @unchecked Sendable {
   ) async throws -> ContextMeasurement {
     try await perform(directory: directory, cancellation: cancellation, progress: progress) {
       session in
-      let tools = summary ? nil : try NativeCitationPolicy.make(citationIDs).promptTools()
+      let thinking = !summary && self.configuration.reasoning.enabled
+      let tools =
+        summary ? nil : try NativeCitationPolicy.make(citationIDs, thinking: thinking).promptTools()
       let prompt = try session.frontend.prepare(
-        messages: messages.map(Self.templateMessage),
-        tools: tools, contextLimit: SplashWire.maxTokens)
+        messages: messages.map(nativeTemplateMessage),
+        tools: tools, thinking: thinking, contextLimit: SplashWire.maxTokens)
       return ContextMeasurement(
         promptTokens: prompt.tokens.count,
         capacity: self.configuration.contextBudget.contextTokens,
@@ -323,7 +331,7 @@ private final class NativeWorker: @unchecked Sendable {
         !allowedMessageIDs.isEmpty && allowedMessageIDs.count <= 540,
         "context_digest", "The summary needs a bounded set of original messages.")
       let prompt = try session.frontend.prepare(
-        messages: messages.map(Self.templateMessage),
+        messages: messages.map(nativeTemplateMessage),
         contextLimit: self.configuration.contextBudget.contextTokens)
       try require(
         prompt.tokens.count + ContextDigest.maximumOutputTokens
@@ -376,17 +384,20 @@ private final class NativeWorker: @unchecked Sendable {
   private func generate(
     _ messages: [InferenceMessage], _ session: Session,
     _ cancellation: Cancellation, _ progress: @escaping @Sendable (String) -> Void,
-    _ finishOnly: Bool, _ citationIDs: [String]
+    _ toolScope: InferenceToolScope, _ citationIDs: [String]
   ) throws -> (NativeReply, Value) {
-    let policy = try NativeCitationPolicy.make(citationIDs, finishOnly: finishOnly)
+    let reasoning = configuration.reasoning
+    let policy = try NativeCitationPolicy.make(
+      citationIDs, toolScope: toolScope, thinking: reasoning.enabled)
     let budget = configuration.contextBudget
     let prompt = try session.frontend.prepare(
-      messages: messages.map(Self.templateMessage), tools: policy.promptTools(),
-      contextLimit: budget.contextTokens)
+      messages: messages.map(nativeTemplateMessage), tools: policy.promptTools(),
+      thinking: reasoning.enabled, contextLimit: budget.contextTokens)
     let allowance = try budget.allowance(promptTokens: prompt.tokens.count)
     let outputBudget = allowance.outputTokens
     let constraint = try session.factory.create(grammar: policy.grammar)
-    let output = try SplashOutputStream(frontend: session.frontend, tools: policy.outputTools)
+    let output = try SplashOutputStream(
+      frontend: session.frontend, tools: policy.outputTools, thinking: reasoning.enabled)
     session.requestID += 1
     var request = SplashWire.Request(
       id: session.requestID, prompt: prompt.tokens,
@@ -395,6 +406,7 @@ private final class NativeWorker: @unchecked Sendable {
     request.maxOutput = UInt32(outputBudget)
     request.generationTokens = prompt.generationTokens
     request.tokenMask = true
+    request.thinking = try reasoning.budget(outputTokens: outputBudget)
     try cancellation.check()
     progress("Thinking locally")
     let generated = try session.helper.generate(
@@ -411,6 +423,7 @@ private final class NativeWorker: @unchecked Sendable {
       "The model did not finish its response. No action from this response was applied.")
     try constraint.finish(committed: generated.tokens, requireComplete: true)
     let parsed = try output.finish(generated.done.reason).0
+    let reasoningTokens = try reasoning.generatedTokens(generated.tokens)
     try require(parsed.calls.count == 1, "model_format", "Expected one complete native tool call.")
     let calls: [InferenceCall] = try parsed.calls.map { candidate in
       try policy.validate(candidate)
@@ -421,6 +434,7 @@ private final class NativeWorker: @unchecked Sendable {
     try cancellation.check()
     let metrics: Value = .object([
       "backend": .string("splash-native-candidate"),
+      "toolScope": .string(toolScope.rawValue),
       "requestSeconds": .number(generated.requestSeconds),
       "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
       "promptTokens": .number(Double(prompt.tokens.count)),
@@ -431,34 +445,41 @@ private final class NativeWorker: @unchecked Sendable {
       "recoveryReserve": .number(Double(budget.recoveryReserve)),
       "outputBudget": .number(Double(outputBudget)),
       "generatedTokens": .number(Double(generated.tokens.count)),
+      "reasoningBudget": .number(Double(reasoning.rawValue)),
+      "reasoningHistory": .string("within-request"),
+      "reasoningTokens": .number(Double(reasoningTokens)),
+      "reasoningBudgetOverrun": .number(Double(max(0, reasoningTokens - reasoning.rawValue))),
       "prefillSeconds": .number(Double(generated.done.prefillMicros) / 1e6),
       "decodeSeconds": .number(Double(generated.done.decodeMicros) / 1e6),
       "draftedTokens": .number(Double(generated.done.drafted)),
       "acceptedDraftTokens": .number(Double(generated.done.accepted)),
       "speculativeMethod": .string("DFlash2"),
     ])
-    return (NativeReply(text: parsed.text, calls: calls), metrics)
+    return (NativeReply(text: parsed.text, calls: calls, reasoning: parsed.reasoning), metrics)
   }
 
-  private static func templateMessage(_ message: InferenceMessage) throws -> [String: any Sendable]
-  {
-    var value: [String: any Sendable] = ["role": message.role, "content": message.content]
-    if let id = message.toolCallId { value["tool_call_id"] = id }
-    if let name = message.toolName { value["name"] = name }
-    if !message.toolCalls.isEmpty {
-      value["tool_calls"] = try message.toolCalls.map { call -> [String: any Sendable] in
-        guard
-          let arguments = try JSONSerialization.jsonObject(with: Data(call.inputJSON.utf8))
-            as? [String: any Sendable]
-        else {
-          throw SevraError("model_format", "Tool history requires object arguments.")
-        }
-        return [
-          "type": "function", "id": call.id,
-          "function": ["name": call.name, "arguments": arguments] as [String: any Sendable],
-        ]
-      }
-    }
-    return value
+}
+
+package func nativeTemplateMessage(_ message: InferenceMessage) throws -> [String: any Sendable] {
+  var value: [String: any Sendable] = ["role": message.role, "content": message.content]
+  if message.role == "assistant", !message.reasoning.isEmpty {
+    value["reasoning_content"] = message.reasoning
   }
+  if let id = message.toolCallId { value["tool_call_id"] = id }
+  if let name = message.toolName { value["name"] = name }
+  if !message.toolCalls.isEmpty {
+    value["tool_calls"] = try message.toolCalls.map { call -> [String: any Sendable] in
+      guard
+        let arguments = try JSONSerialization.jsonObject(with: Data(call.inputJSON.utf8))
+          as? [String: any Sendable]
+      else {
+        throw SevraError("model_format", "Tool history requires object arguments.")
+      }
+      return [
+        "type": "function", "id": call.id,
+        "function": ["name": call.name, "arguments": arguments] as [String: any Sendable],
+      ]
+    }
+  }
+  return value
 }

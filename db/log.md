@@ -127,3 +127,30 @@ Keep business evidence and original conversation distinct within shared discover
 ## [2026-10-27 00:57] verification | records/reviews/design-passes.md
 Deterministic scope/cursor regressions pass. Record all four native continuity attempts, autonomous and preserved-backend results in integration/evidence/2026-10-26-scoped-search.json.
 
+## [2026-10-27 01:30] implementation | records/operations/implementation.md
+Begin frozen off-vs-512 reasoning comparison; retain initial failures and separately correct ephemeral reasoning continuity. Qualification remains open.
+
+## [2026-10-27 01:43] verification | records/operations/implementation.md
+Initial 30-trial comparison: off 12/15 and bounded512 12/15; retain step-limit and provenance failures. Repaired candidate deterministic checks pass; live qualification pending.
+
+## [2026-10-27 02:23] verification | records/operations/implementation.md
+Completed frozen R2 comparison: bounded512 15/15 automatic checks, off 13/15; two accepted-forecast step limits. Manual review retained one unsupported acceptance-date label. Final separate date-policy candidate and full regressions started; no promotion.
+
+## [2026-10-27 02:38] verification | records/operations/implementation.md
+R3 retained failures: second full continuity stopped on repeated uncited evidence finishes after reopen; autonomous probe stopped on an overly specific calculator-tool assertion. Added R4 inspection-only recovery, dispatch enforcement and stricter original/row citation checks; qualification pending.
+
+## [2026-10-27 03:02] verification | records/operations/implementation.md
+R4 14/15 frozen cases exposed a wrong quantity mislabeled current_request. Preserved exact terminal payload. Added R5 numeric grounding, computation-context invalidation and four real-model fault-injection cases; deterministic and grammar checks pass, live regressions pending.
+
+## [2026-10-27 03:09] verification | records/operations/implementation.md
+Preserve R5 controlled-recovery fixture failure, distinguish correct split-clause quantity/unit from runtime defects, and record bounded numeric-guard limits.
+
+## [2026-10-27 03:15] verification | records/operations/implementation.md
+R5 frozen bounded cohort completed 15/15 automatic task checks; retain accepted-forecast absence overclaim separately and continue full continuity/autonomous qualification.
+
+## [2026-10-27 03:32] implementation | records/operations/implementation.md
+Preserve wrong-task response in final Slotstream probe; represent earlier non-compacted messages as historical data and retain response traces before assertions. Deterministic checks pass; real-model regression pending.
+
+## [2026-10-27 03:38] verification | records/operations/implementation.md
+Completed bounded-reasoning checkpoint: final targeted native and preserved-backend regressions, controlled recovery, release packaging and isolated installation pass. Preserve all failed trials and the remaining semantic coverage overclaim; no native promotion.
+

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T00:14:10.312551+00:00
+updated: 2026-10-27T03:02:58.272832+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -95,3 +95,74 @@ bodies, a derived digest and the current request do not grant it. The app render
 an Earlier message link to its existing conversation navigation. Business item
 version IDs retain their existing meaning and lineage rules. Conversation citations
 support what someone said, not current inventory, acceptance or permission.
+
+## Bounded reasoning comparison
+The native adapter has an internal comparison profile for bounded reasoning.
+Thinking mode must agree across the exact chat template, constrained tool grammar,
+stream parser and engine request. The first candidate allows 512 thinking tokens per model response
+within the existing 1,800-token response limit, with at least 256 tokens reserved
+for a complete response after the thinking close. If context cannot hold that
+reserve, refuse the request instead of silently truncating or dispatching a partial
+call. Under upstream grammar masks, closing can wait for a complete UTF-8 character;
+record actual thinking tokens and any overrun. The total output limit still applies. A workbook job can make several model
+responses; the existing twelve-step bound limits the overall tool loop. The
+512-token limit is not a whole-job thinking allowance.
+
+Reasoning text is separated from answer/tool content and is not persisted as new
+user evidence or shown as a completed answer. Tool-free history summaries remain
+on their existing configuration during the comparison. This adds no user backend
+picker, settings burden, provider fallback or production default. Off remains the
+control until measured completion, correctness and latency justify a change.
+
+Record comparison outcomes in [[records/operations/implementation]], including
+failed runs and the exact scope of any adopted candidate setting. Preserve the
+same model and workbook authority boundaries in either mode.
+
+## Reasoning continuity within a request
+Retain parsed reasoning in ephemeral assistant messages between tools within the same request. The exact pinned template places reasoning_content in its thinking block after the latest user query. Count it in preparation and rendered-token budgets. Do not save it in original messages, tool receipts, summaries, Sources or Records. New requests reconstruct evidence from durable history with no old private reasoning. Context maintenance may discard older reasoning while retaining the latest complete tool group, with the same measured budget and citation reset rules. This is model execution state, never authority or independently citeable evidence. Reasoning remains disabled in the non-thinking control and the preserved Slotstream backend; shared host validation applies to both adapters.
+
+## Calculated answer provenance
+The host retains the inspected input version IDs used by balance and compare_rows. A final answer must cite all of them, including both opening stock and inventory effects. Reject an incomplete set with a bounded correction opportunity before recording success. Clear obligations when compaction invalidates the corresponding inspected calculations; retain the latest calculation inputs with its visible tool group. Do not add uninspected or historical IDs merely because a summary mentions them.
+
+## Answer grounding
+
+The internal finish tool declares one answer basis. This is a protocol field, not
+another user setting:
+
+- evidence: claims about stored business data or earlier conversation. Require
+  freshly inspected Source/Record versions or original-message citations, even
+  when a digest or host-state pointer already suggests the answer.
+- current_request: information supplied in the current request, or checked
+  arithmetic using that information. Asking a question does not supply its answer.
+- completed_action: confirmation of an actually successful action in this run.
+  A failed or partially completed action cannot establish success.
+- general: guidance, greeting, clarification or verified interface labels, without
+  assertions about stored business facts or earlier conversation.
+- unresolved: an explicit inability to establish the requested facts, without
+  substituting a guessed answer.
+
+The host rejects missing/unknown bases, evidence without eligible citations and
+completed-action claims without successful action receipts. Existing checks for
+calculated provenance, unsupported currency, arithmetic and opaque IDs still apply.
+Pure action confirmations and unresolved gaps do not require unrelated calculation
+citations. Validation feedback is bounded; exhaustion remains a truthful failure.
+
+A declared basis is not an independent truth verifier. The model can misclassify
+an answer or misinterpret evidence, so semantic evaluation remains required. The
+field does not authorize actions or change acceptance, lineage or business state.
+All actual tool schemas and pinned reference grammar masks include this contract.
+The implementation register retains the earlier retrieval-only guard and its
+failure to catch an uncited answer generated directly from saved context.
+
+## Date semantics
+An event's effective date, a Source's creation time and an acceptance decision's time are separate facts. Do not infer one from another. If inspected evidence does not establish a timestamp, omit that claim. The agent policy states this explicitly after a real-model inventory answer mislabeled the starting date. This policy is not a deterministic semantic verifier; preserve and review complete answers in evaluations.
+
+## Evidence inspection recovery
+When an evidence-based finish has no citations and the current run has no eligible inspected evidence, the next model response must use a read-only inspection tool. Temporarily remove finish and mutation tools from the available set. Native generation constrains the same set in its grammar; the shared host checks the selected scope again before dispatch, including for the preserved backend. After one valid inspection call, restore the ordinary tool set and validate the next answer normally.
+
+This recovery step prevents repeated identical invalid finishes after reopening. It does not import citation eligibility from an earlier run, infer source facts from a digest, automatically accept a proposal or replay a completed mutation. Unknown/failed inspection results still need truthful handling. Existing format, final-validation and twelve-step limits remain; cancellation continues to release the run. Scope is ephemeral host execution state and appears in request metrics, never an instruction accepted from retrieved text. Exact prompt budgeting may conservatively count the full tool set before a narrower recovery response.
+
+## Current-request numeric grounding
+For basis=current_request, each numeric value in the answer must occur in the current prompt or in a successfully completed, fully visible calculate call's inputs/result. Normalize ordinary decimal spelling without binary-float rounding; distinguish signs and skip numbered-list labels. Values mentioned only in a digest or older history do not qualify. Unsupported numbers receive bounded validation feedback; when there is no fresh evidence, require a read-only verification step before another finish.
+
+Spelled-out arithmetic remains possible: the model can use calculate to establish the operation and result. Retain its checked numbers only while the matching operation is visible; compaction clears omitted calculation evidence. This guard does not verify the meaning of prose, units, a calculation's relevance, or classification into other answer bases. It complements original citations and semantic evaluation rather than establishing general factual correctness.

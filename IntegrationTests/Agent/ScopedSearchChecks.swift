@@ -11,7 +11,7 @@ private actor PagedSearchInference: WorkbookInference {
   func endRun() {}
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, finishOnly: Bool, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope, citationIDs: [String]
   ) throws -> NativeReply {
     steps += 1
     var arguments: Value = .object(["query": .string("cafe supplier")])
@@ -32,6 +32,7 @@ private actor PagedSearchInference: WorkbookInference {
         tool = "finish"
         arguments = .object([
           "answer": .string("I inspected both pages of business evidence."),
+          "basis": .string("evidence"),
           "citations": .array(found.sorted().map(Value.string)),
         ])
       }
