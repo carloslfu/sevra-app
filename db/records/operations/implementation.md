@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T13:47:17.734052+00:00
+updated: 2026-10-28T14:02:51.783319+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -17,6 +17,12 @@ every requirement or supported hardware profile has passed.
 This remains a development build. The preserved Slotstream app is the baseline;
 the separate native preview uses the Python-free Swift adapter and pinned Splash
 C++/Metal. Native adoption and automatic compaction remain gated.
+
+- The owner-authorized Home/application-engine design is now tracked in
+  [[records/specs/native-app-engine]]: customizable native spaces, typed reusable
+  actions/forms/functions, durable workflows and local automations. Product
+  direction is adopted; detailed runtime choices remain proposed and E0-E6/EJ01-EJ14
+  stay open. Existing components are a foundation, not delivery of this engine.
 
 - Owner-confirmed contextual import is now a first-class startup and ongoing
   capability in the specification. CSV/Excel roles depend on request/context;
@@ -4762,9 +4768,9 @@ cached-value separation; engineering choices and support scope are our decisions
 Original file assets remain outside SQLite inside the workbook unless explicitly
 linked. This does not change existing Source/Record or business-effect acceptance.
 
-Next implementation sequence: after the saved-reference technical-noise query
-correction already identified above, separate shared capture/inspection from
-conversion and add persisted role/result state. Then connect startup/ongoing native
+Next implementation sequence: finish the saved-reference technical-noise/menu
+follow-up below, then separate shared capture/inspection from conversion and add
+persisted role/result state. Then connect startup/ongoing native
 entries and CSV roles, reviewed updates and range paste, bounded Excel structure/
 dependency translation, and finally agent/CLI/skill equivalence and visible native
 qualification. Do not add a cosmetic Start from file control over the unconditional
@@ -4775,3 +4781,102 @@ existing preserved import evidence proves only its original narrower checks.
 The unchanged engine and broad release/whole-app gates remain open. The app goal
 is not complete. This checkpoint changes specifications and work ordering only for
 intake; the concurrent native link usability repair is described separately above.
+
+
+## Technical discovery and link-menu follow-up, October 28
+
+Continues 1aa8372. Ordinary search and Home now filter annotation Sources before
+limits, alongside their existing request/row exclusions as appropriate. Default
+lexical and filename queries cannot fill destination results with parser events;
+explicit owner kind filtering/items remain available. Agent businessOnly already
+excluded annotations/requests and retains that restriction even with explicit kind.
+No Source, binding, row, acceptance, lineage, asset or schema is rewritten.
+
+Two meaningful core regressions failed against the prior implementation: newer
+technical Sources crowded Home's four-entry catalog, and technical matches occupied
+ordinary search. After the query changes, all 133 core checks pass. The focused
+search case checks twelve business documents against forty annotations and a
+request, full five/five/two keyset pages, filename-only matches, explicit owner
+annotation/request inspection, agent restriction and unchanged revision/integrity.
+
+A rebuilt actual native Home shows business documents instead of Reference choices
+or parse events. Ordinary Reference choices search returns no result, while choosing
+Annotation in Kind returns the preserved entries. The same visible replay exposed
+a separate menu failure: after Home -> Mention 21, Workbook link actions stayed
+disabled and Command+Shift+L did nothing. The focused value names a workspace but
+does not observe its changing viewedItemVersion. ReferenceCommandContent now uses
+ObservedObject over the focused workspace, like ConversationCommandContent. This
+follow-up preserves the earlier receipt and the newly failed navigation path.
+
+Final native replay passes on a new workbook window: Home commands disabled ->
+open Mention 21 -> menu commands enabled -> Command+Shift+L opens the scoped list ->
+Down and Command+Option+E open the focused picker. Reference choices returns no
+technical destination; changing the query to Intake overview returns the valid
+business item. Cancel changes nothing; Command+[ returns Home and the menu disables
+again. This final native field/menu interaction required no model or permissions.
+The pre-menu-fix build already demonstrated ordinary Reference choices search has
+no result, while Kind=Annotation shows the four matching preserved entries; the
+shared query implementation is unchanged between those two native builds.
+
+Packaged CLI checks confirm zero default technical hits, a valid business hit and
+all 31 annotations retained. All 51 SQLite tables compare exactly against the copied
+original after the UI checks, along with every asset hash and all 62 current CLI
+items. Integrity remains ok. No table, Source, binding, effect, operation or message
+was changed by this read-only/cancelled UI journey. Strict six-file Swift lint,
+final app/CLI/helper build and strict native signature pass. The original focused
+package/Document/Preview/SearchUI evidence is reused because those implementations
+and resource boundaries did not change. New model/grammar cohorts or search-scale
+benchmarks were not run or claimed for this query/menu correction.
+
+Expanded contextual intake phases are still pending and remain next after this
+focused follow-up. Broader accessibility, model/engine adoption, whole-app and
+release gates stay open. The immutable follow-up receipt is attached below.
+
+
+Immutable receipt: [reference catalog and menu](../../../integration/evidence/2026-10-28-reference-catalog-and-menu.json.gz),
+14,149 bytes, SHA-256 `60b42f6cb4a5df816f35dda43997639a4de2bae38dfee13ef370925765c3c0e9`. It binds the final six Swift
+source/test files, app/CLI products, nine diagnostic logs, synthetic invariants and
+all 98 unchanged prior evidence files. Retained failures include the two core
+regressions and the actual disabled-menu navigation. No intermediate binary hash
+or raw AX/screenshot archive is invented. Store/link gates run again after this link.
+
+
+## Customizable Home/application-engine roadmap registered, October 28
+
+Integrated the completed owner-authorized documentation pass from the parallel
+conversation without replacing the in-flight native discovery work. Authority is
+[[sources/notes/2026/10/native-app-engine-direction]]. Product P21-P24 and reading
+order now link [[records/specs/native-app-engine]], which retains code inspection,
+primary research, four adversarial passes, 26 requirements and 14 acceptance
+journeys. These are documentation/design findings, not new runtime test evidence.
+
+The adopted direction makes each workbook the user's editable native application:
+Home/spaces, forms, reusable typed calculations/actions, saved workflows and local
+schedule/event/condition/folder automations. Preserve the two-pane conversation,
+Sources/Records, evidence, reversible versioned edits and asset ownership. The
+signed core, permission checks and database invariants do not silently self-modify.
+A saved definition cannot authorize its own effects. Imported/restored applications
+remain inert until authorized, and app-closed/sleep behavior must be truthful.
+
+Central stage registry, all open:
+
+| Stage | Scheduled scope | Status |
+| --- | --- | --- |
+| E0 | Versioned definitions, parameters/bindings/action contracts, reusable command inventory and migration/fixture foundations. | Open; proposed engineering design. |
+| E1 | Version-safe Home/existing-space edits, composition of default sections, history/restore/Undo across native/AI/CLI paths. | Open, EJ01-EJ03. |
+| E2 | Shared typed action registry, forms/parameters, reusable queries/functions/rules and discoverable dependencies. | Open, EJ04-EJ05. |
+| E3 | Manual durable workflows with pinned inputs, AI steps, approval, cancellation, recovery and guarded effects. | Open, EJ06-EJ08. |
+| E4 | In-app schedules, committed-event/condition triggers, occurrence/catch-up semantics and activity. | Open, EJ09-EJ10. |
+| E5 | Folder reconciliation, explicitly enabled per-user helper, cross-process resource coordination and real OS lifecycle qualification. | Open, EJ11-EJ12. |
+| E6 | Portable applications/templates and optional qualified adapters; broader components justified by completed jobs. | Open, EJ13-EJ14. Executable extensions require their separate isolation gate. |
+
+Next scheduled implementation remains [[records/specs/contextual-import]] phase 1:
+separate capture/inspection from conversion and persist the intended role/result,
+then deliver both native entry points and contextual CSV roles before claiming
+continuity. Align reusable action/definition contracts with E0/E2 as concrete needs
+arise; do not require a completed scheduler or background helper to fix intake or
+ship the first useful manual job. E1 can build on existing spaces, while ordinary
+working-table/formula correctness and inventory identity remain prerequisite
+boundaries for reliable composed business workflows. Existing engine-adoption,
+context, hardware, accessibility and release gates are not closed or silently
+removed by this roadmap. Whole-app completion remains unqualified.

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T13:45:46.335117+00:00
+updated: 2026-10-28T13:58:39.091136+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -219,8 +219,9 @@ and exact path. Full-result content indexing is still a retrieval qualification 
 Home reads a bounded catalog of current item metadata without selecting document
 bodies or structured payloads. Its entries retain exact version IDs, category,
 kind, title, meaning, acceptance and asset identity. Opening an entry reads its
-original version explicitly. Exclude internal requests and dataset rows before
-applying the recent-item limit, so a busy conversation cannot hide all evidence.
+original version explicitly. Exclude internal requests, technical annotations and
+dataset rows before applying the recent-item limit, so internal activity cannot
+hide all evidence.
 Use a distinct summary type rather than representing omitted content as a complete
 empty Item. Full item and lineage APIs retain their existing evidence semantics.
 
@@ -419,3 +420,11 @@ and a separate immutable current-request Source ceiling. Cursor identities inclu
 that scope. A later request head can be outside read scope without being absent;
 its metadata remains undisclosed. See [[records/specs/references-and-relationships]]
 and [[records/specs/intelligence]].
+
+
+## Recent catalog technical scope, October 28
+
+Home's metadata-only recentItemSummaries query excludes row, request and annotation
+kinds before ORDER/LIMIT. Technical link parsing/choice Sources remain immutable
+and inspectable through explicit owner APIs, but cannot crowd normal business
+work out of the first page. No schema, item, lineage or asset rewrite is involved.

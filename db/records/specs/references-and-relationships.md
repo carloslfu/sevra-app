@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5zn6ks2pyv72pjs65f90rxj
 created: 2026-10-27T21:45:28.610289+00:00
-updated: 2026-10-28T13:36:23.737552+00:00
+updated: 2026-10-28T13:54:13.660865+00:00
 summary: Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.
 title: Inline references and relationships
 status: reviewed
@@ -615,3 +615,19 @@ model or user to count Unicode scalars. Plan the following shared-core boundary:
   read-only refusal, retry/export/reopen, dynamic grammar/host parity, then real
   native-model text requests and dictation. These are planned gates, not passing
   evidence. Broader embedded hyperlinks and LJ10 comparisons stay separate.
+
+
+## Follow-up: ordinary discovery and live menu state, October 28
+
+Ordinary shared search and Home now exclude technical annotation Sources before
+page limits. Explicit owner kind inspection remains available. This resolves the
+technical-noise query gap recorded during visible qualification above, without
+changing saved choices, assets, scope-aware agent discovery or schema 7.
+
+A subsequent actual Home-to-document check found Workbook link commands could
+remain disabled because the focused value identifies the same workspace object
+while its viewed item changes. The commands now live in a small native view with
+ObservedObject over that workspace, following the existing conversation-command
+pattern. Actual final navigation and limits are recorded in
+[[records/operations/implementation]]. Earlier narrower passes and the failed
+follow-up remain preserved; general text/voice authoring is still planned.

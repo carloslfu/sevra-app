@@ -544,3 +544,27 @@ Adopted owner-confirmed contextual startup/ongoing import and Excel continuity; 
 ## [2026-10-28 13:47] verification | records/operations/implementation.md
 Attached immutable native reference usability receipt; final keyboard/accessible-link and copied-source navigation pass with synthetic invariants, unchanged engine evidence and explicit open gates.
 
+## [2026-10-28 13:54] implementation | records/operations/implementation.md
+Filtered technical Sources before Home/search limits with failing-then-passing regressions; observed and repaired stale focused-document menu state; final native replay pending.
+
+## [2026-10-28 13:58] verification | records/operations/implementation.md
+Final native Home-document-Home menu and destination scope replay passes; all 133 core checks pass after two retained regressions, all 51 synthetic database tables and assets unchanged; strict build/format/signature pass.
+
+## [2026-10-28 13:58] design | sources/notes/2026/10/native-app-engine-direction.md
+Preserved owner direction and side-conversation authorization for research and documentation of the customizable Home and native application engine.
+
+## [2026-10-28 13:59] design | records/specs/native-app-engine.md
+Researched baseline 1aa8372 and primary Excel/Apple/Temporal/SQLite/recurrence references; specified editable Home, forms/actions, reusable calculations, durable workflows, local automations, lifecycle, authority, portability and E0-E6/EJ01-EJ14. Linked product P21-P24 and reading order. Four adversarial design passes; all new engine stages remain open.
+
+## [2026-10-28 14:00] verification | records/operations/implementation.md
+Attached immutable catalog/menu evidence with final source/product hashes, 98 preserved prior receipts, failing-then-passing checks and actual native navigation limits.
+
+## [2026-10-28 14:01] verification | records/specs/native-app-engine.md
+Documentation-only verification: dbmd 0.14.7 validate --all --dir db --json passed with 0 errors/0 warnings; python3 scripts/check_links.py passed; static requirement review confirmed E01-E26 and EJ01-EJ14 unique and complete. No runtime implementation or qualification performed; concurrent main-thread code/spec changes preserved.
+
+## [2026-10-28 14:02] design | records/specs/native-app-engine.md
+Final code accuracy pass: credited the existing native per-user flock inference exclusion and idle release; scoped future E23 work to scheduling, fair handoff and background recovery rather than implying the current app lacks cross-process protection.
+
+## [2026-10-28 14:02] design | records/operations/implementation.md
+Integrated the owner-authorized native application-engine design handoff and registered E0-E6 as open, retaining contextual intake as the next active slice and all qualification limits.
+

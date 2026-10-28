@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-28T13:45:46.315458+00:00
+updated: 2026-10-28T13:54:13.615352+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -373,4 +373,16 @@ Focused synthetic traversal and privacy checks plus two local native observation
 pass, with preserved wrong-route and step-limit failures. General LJ09, measured
 lexical-only versus reference-assisted retrieval value, large-graph latency/memory
 and LJ10 remain open. See [[records/specs/references-and-relationships]] and
+[[records/operations/implementation]].
+
+
+## Ordinary owner search and technical evidence, October 28
+
+Default shared search excludes request and annotation kinds before lexical/filename
+ranking and page limits. This keeps ordinary native evidence/destination results
+free of parser events. An explicit owner kind filter can inspect either kind;
+agent businessOnly scope still excludes both even when explicitly requested. No
+Source, original bytes or index entry is deleted, and explicit item/history APIs
+retain their existing authority checks. Cursor identity and remaining filters are
+unchanged. Focused lexical/filename paging checks and native observations are in
 [[records/operations/implementation]].

@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-28T13:45:46.391937+00:00
+updated: 2026-10-28T13:54:13.679247+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -391,3 +391,17 @@ gates in [[records/specs/contextual-import]]:
 The spec now aligns product, storage, search and agent boundaries, with ten focused
 journeys and ordered phases. This review establishes direction and inspected gaps,
 not implemented role planning, native Excel compatibility or a new UI pass.
+
+
+## Technical discovery and command-state follow-up, October 28
+
+The native qualification's two newly exposed failures are retained: technical
+Sources fill ordinary Home/search, and after a new-window Home-to-document change
+the Workbook link menu can remain disabled. Filter technical kinds in the core
+before both result limits and filename/lexical paging, retaining explicit owner
+inspection and stricter agent scope. Observe the focused workspace's actual
+Published document state in menu content; focus identity alone does not track
+navigation. Two core regressions fail before repair (131 pass/2 fail), then all
+133 pass. Actual native replay remains the menu/focus acceptance evidence rather
+than an implementation-mirroring UI unit test. Expanded intake implementation
+follows these corrections, without weakening existing engine/adoption gates.

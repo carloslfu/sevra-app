@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-28T13:45:46.296054+00:00
-summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
+updated: 2026-10-28T13:59:39.223981+00:00
+summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
 ---
 # Product and interaction
 
-Revision 6, October 28, 2026. Status refers to specification review, not delivery.
+Revision 7, October 28, 2026. Status refers to specification review, not delivery.
 Normative requirements use IDs so implementation and verification can map back.
 
 Sevra Workbook is the primary product and homepage. A small Websites link in the
@@ -148,6 +148,34 @@ Rows, schema, calculated values and total count load from one SQLite read snapsh
 Only the latest table query may publish results or errors; query identity includes
 workbook, dataset, revision, filter, offset, sort column and direction. Cancelled
 reads cannot update a view. Removing a selected row from the view clears selection.
+
+## Customizable workbook application engine
+
+P21. Adopt the owner direction and phased engine requirements in
+[[records/specs/native-app-engine]]. Home and other spaces are persistently
+customizable applications over shared workbook data. Users can add, remove,
+reorder and configure ordinary sections, forms, data views and named actions
+through voice/text or optional native controls. Keep the useful default and
+stable access to conversation, navigation and pending work. Version-checked
+edits, history, restore and Undo preserve data and unrelated customizations.
+
+P22. Save reusable typed actions, queries, calculations, rules and multi-step
+workflows. Share their validated execution path across UI, local agent and CLI.
+Local AI constructs and explains behavior and performs explicit interpretation
+steps; saved deterministic work does not require renewed model planning.
+Preserve exact inputs, definition versions, lineage and meaningful review.
+
+P23. Automations connect schedules, committed business events, conditions or
+scoped folder intake to saved workflows. Specify activation, pause/revoke,
+missed runs, sleep/app-quit limits, retries, deduplication, activity and resource
+policy. Optional background execution needs explicit local registration and
+qualified cross-process coordination. Imported/copied workbooks remain inert.
+
+P24. This expands the application-engine roadmap, not current delivery claims.
+Use E0-E6 and EJ01-EJ14 in the engine spec to qualify it. Existing P10/A08 native
+and execution boundaries remain; future executable extensions require a separate
+isolation design. Broader power than Excel must be demonstrated through complete
+jobs, reusable behavior, maintenance and correctness.
 
 ## Viewers
 
