@@ -56,13 +56,19 @@ import SwiftUI
             "Keep this draft in history without applying it. Undo can restore it.")
         }
         if item.supersedes != nil {
-          Button("Undo") {
-            if document.end() { state.review(document.current.id, accepting: false) }
+          Button(isTableUpdateRedo ? "Redo" : "Undo") {
+            if document.end() {
+              state.review(document.current.id, action: isTableUpdateRedo ? .redo : .undo)
+            }
           }.disabled(state.busy)
         }
         if item.assetID != nil {
           Menu("File actions") {
             Button("Use saved file…") { state.useSavedFile(item.id) }.disabled(state.busy)
+            if let ext = file?.pathExtension.lowercased(), ["csv", "tsv"].contains(ext) {
+              Button("Update a working table…") { state.navigate(.tableUpdate(item.id, nil)) }
+                .disabled(state.busy)
+            }
             if let ext = file?.pathExtension.lowercased(),
               ["mp4", "mov", "m4v", "mp3", "wav", "m4a", "aiff"].contains(ext)
             {
@@ -230,12 +236,30 @@ import SwiftUI
             {
               Button("Open table") { state.navigate(.table(id)) }
             }
+            if item.kind == "table-intake-update" {
+              Text(
+                item.status == "draft"
+                  ? "Preview only. Working rows have not changed."
+                  : item.status == "accepted"
+                    ? "This update was applied. The preview below describes its original changes."
+                    : isTableUpdateRedo
+                      ? "This update was undone. The preview below describes its original changes."
+                      : "This draft was withdrawn without applying it."
+              )
+              .font(.callout).foregroundStyle(.secondary)
+              if let preview = try? JSONDecoder().decode(
+                TableUpdatePreview.self, from: Data(item.data["preview"].json().utf8))
+              {
+                TableUpdateSummary(preview: preview)
+              }
+              Button("Open table") { state.navigate(.table(item.data["datasetID"].text)) }
+            }
             if item.category == "source", item.kind == "request",
               let context = item.data["context"].string, !context.isEmpty
             {
               CapturedRequestContextView(context: context, state: state)
             }
-            if !["table-change", "table-creation"].contains(item.kind) {
+            if !["table-change", "table-creation", "table-intake-update"].contains(item.kind) {
               Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 8) {
                 ForEach(item.data.object.keys.sorted(), id: \.self) { key in
                   if !["input", "inputs", "supersedes", "datasetID", "url"].contains(key),
@@ -367,6 +391,10 @@ import SwiftUI
         state.refresh()
       }
     }
+  }
+  private var isTableUpdateRedo: Bool {
+    item.kind == "table-intake-update" && item.status == "rejected"
+      && item.data["afterFingerprint"].string != nil
   }
   @ViewBuilder var lineage: some View {
     if let links = try? state.workbook?.lineage(item.id), !links.isEmpty {

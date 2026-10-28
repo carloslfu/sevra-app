@@ -646,3 +646,12 @@ Adopt and align storage-only persistence readiness for future syncing; complete 
 ## [2026-10-28 16:35] verification | records/specs/persistence-readiness.md
 Documentation alignment reviewed against the owner scope and 63cd642 assessment. Full dbmd validation has zero errors/warnings; repository Markdown links and scoped whitespace checks pass. No application code, workbook data or runtime tests changed by this design turn.
 
+## [2026-10-28 16:44] implementation | records/specs/contextual-import.md
+Implement bounded CSV/TSV append, replacement and keyed merge through shared core, CLI/skill and native review. Draft-only proposal, exact-target acceptance, checked Undo/redo, durable update-use receipt; schema 9 with no legacy migration. Model/voice and FJ persistence gates remain open.
+
+## [2026-10-28 16:44] design | records/reviews/design-passes.md
+Three passes review interpretation, atomic publication/reversal and callback ownership/scope. Preserve the newly adopted persistence-readiness requirement; mutation audit and shared replayable capture/apply follow this slice.
+
+## [2026-10-28 16:44] verification | records/operations/implementation.md
+Stable check.sh passes 144 core groups and 30 new CLI update checks; final native package/signature, focused table lifecycle, 30 process writers, denied-build-tree helpers, strict Swift lint and skill validation pass. Actual native mapping/draft/accept/Undo/relaunch/Redo/stale-refusal verified with synthetic CLI state. Receipt 10d371e5e5491f05a426e18708f8d70bcc1428e8f56bee334460a1886d2e261e preserves all 100 prior evidence files; stated bounds and unfinished app/FJ gates retained.
+

@@ -5,6 +5,7 @@ struct IntakeChoice: Sendable, Identifiable {
   let job: IntakeJob
   let title: String
   let supportsTable: Bool
+  let supportsUpdate: Bool
   var id: String { job.id }
 }
 struct IntakePrompt: Identifiable {
@@ -46,6 +47,9 @@ struct IntakeView: View {
                       state.continueIntake(choice, role: .values)
                     }
                   }
+                }
+                if choice.supportsUpdate {
+                  Button("Update a working table…") { state.continueIntake(choice, role: .update) }
                 }
                 if choice.supportsTable {
                   Text(

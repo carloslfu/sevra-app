@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-28T16:02:21.005719+00:00
+updated: 2026-10-28T16:43:47.828089+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -440,3 +440,27 @@ XLSX fixture initially lacked a worksheet relationship Type and was corrected;
 retain both failed logs. Final broad checks, packaged isolation, concurrency and
 nine CLI intake cases pass. General model/voice intake, mapping/merge, live Excel
 continuity, rich clipboard and full release qualification remain open.
+
+## Reviewed table updates, October 28
+
+Pass 1, interpretation: require a target, explicit method and complete mappings;
+keep exact lexical keys and do not guess duplicates or business effects. Distinguish
+new-row semantics from matched-row semantics and retain original input. Bound both
+incoming and target materialization. XLSX and partial-column updates remain open.
+
+Pass 2, publication: a preview cannot publish rows. The draft pins schema, exact
+row heads/order and fingerprint; stale preview/apply/Undo refuses. Acceptance uses
+saved results rather than a parser, and rollback removes every partial row/head/
+lineage/receipt. Reversal preserves rejected history and logical identity. Exact
+receipt retry precedes missing originals or changed target state. Refuse generic
+record creation for the host-only update proposal kind. Core, process CLI and
+native acceptance/Undo/relaunch/stale-refusal evidence support this bounded slice.
+
+Pass 3, ownership and scope: late source/preview/publication results cannot replace
+a newer or closed review. A lost draft reply retries the same token. Native states
+label original previews, Undo/Redo and source-record numbers clearly; Home uses a
+readable label. Retain the pre-1.0 policy and the new persistence-readiness contract.
+Do not equate saved apply plans with complete workbook reconstruction or truthful
+human/programmatic actor coverage. FJ gates and local-model/voice update tools stay
+open; mutation inventory and shared capture/apply are next before automation storage.
+Form draft persistence, broader usability and all Excel continuity gates remain.

@@ -2,10 +2,10 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 8
+  static let version = 9
   static let sql = """
     PRAGMA application_id=1398166081;
-    PRAGMA user_version=8;
+    PRAGMA user_version=9;
     PRAGMA journal_mode=DELETE;
     PRAGMA synchronous=FULL;
     CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
@@ -95,7 +95,7 @@ enum Schema {
     CREATE INDEX file_reference_incoming_current ON file_reference_index(target_workbook,target_logical,current_origin,origin_id,ordinal);
     CREATE INDEX file_reference_incoming_history ON file_reference_index(target_workbook,target_logical,origin_id,ordinal);
     CREATE TABLE extraction_attempts(item_id TEXT PRIMARY KEY REFERENCES items(id),attempt_id TEXT NOT NULL);
-    CREATE TABLE intake_jobs(id TEXT PRIMARY KEY,source_id TEXT NOT NULL REFERENCES items(id),role TEXT CHECK(role IN ('reference','analysis','values')),state TEXT NOT NULL CHECK(state IN ('captured','running','awaiting_role','ready','failed','cancelled')),attempt TEXT,report TEXT NOT NULL,dataset_ids TEXT NOT NULL,detail TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
+    CREATE TABLE intake_jobs(id TEXT PRIMARY KEY,source_id TEXT NOT NULL REFERENCES items(id),role TEXT CHECK(role IN ('reference','analysis','values','update')),state TEXT NOT NULL CHECK(state IN ('captured','running','awaiting_role','awaiting_update','ready','failed','cancelled')),attempt TEXT,report TEXT NOT NULL,dataset_ids TEXT NOT NULL,detail TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
     CREATE INDEX intake_jobs_source ON intake_jobs(source_id,created,id);
     CREATE INDEX intake_jobs_state ON intake_jobs(state,created,id);
     """

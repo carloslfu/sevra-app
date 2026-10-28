@@ -24,6 +24,7 @@ import SwiftUI
     case space(String)
     case item(String)
     case table(String)
+    case tableUpdate(String, String?)
     case search
     case reviews
   }
@@ -399,7 +400,8 @@ import SwiftUI
             choices.append(
               .init(
                 job: result, title: item.title,
-                supportsTable: ["csv", "tsv", "xlsx"].contains(url.pathExtension.lowercased())))
+                supportsTable: ["csv", "tsv", "xlsx"].contains(url.pathExtension.lowercased()),
+                supportsUpdate: ["csv", "tsv"].contains(url.pathExtension.lowercased())))
           } catch {
             if cancel.isCancelled { throw error }
             failures.append(url.lastPathComponent + ": " + error.localizedDescription)
@@ -424,6 +426,8 @@ import SwiftUI
         return IntakeChoice(
           job: job, title: source.title,
           supportsTable: ["csv", "tsv", "xlsx"].contains(
+            URL(fileURLWithPath: asset.name).pathExtension.lowercased()),
+          supportsUpdate: ["csv", "tsv"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()))
       }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
   }
@@ -437,6 +441,8 @@ import SwiftUI
         return IntakeChoice(
           job: job, title: source.title,
           supportsTable: ["csv", "tsv", "xlsx"].contains(
+            URL(fileURLWithPath: asset.name).pathExtension.lowercased()),
+          supportsUpdate: ["csv", "tsv"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()))
       }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
   }
@@ -469,13 +475,18 @@ import SwiftUI
           self.error = failure
           if let index = self.intakePrompt?.choices.firstIndex(where: { $0.id == result.id }) {
             self.intakePrompt?.choices[index] = .init(
-              job: result, title: choice.title, supportsTable: choice.supportsTable)
+              job: result, title: choice.title, supportsTable: choice.supportsTable,
+              supportsUpdate: choice.supportsUpdate)
           }
           return
         }
         self.intakePrompt?.choices.removeAll { $0.id == result.id }
         if self.intakePrompt?.choices.isEmpty == true { self.intakePrompt = nil }
-        if let id = result.datasetIDs.first { self.navigate(.table(id)) }
+        if role == .update {
+          self.navigate(.tableUpdate(result.sourceID, result.id))
+        } else if let id = result.datasetIDs.first {
+          self.navigate(.table(id))
+        }
       })
   }
   func pasteTableData() {
@@ -500,7 +511,8 @@ import SwiftUI
         let job = try book.beginIntake(sourceID: source.id)
         let result = try book.runIntake(job.id, cancellation: cancel)
         return IntakeChoice(
-          job: result, title: "Copied table range (values only)", supportsTable: true)
+          job: result, title: "Copied table range (values only)", supportsTable: true,
+          supportsUpdate: true)
       }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
   }
   func exportPanel() {
@@ -649,6 +661,8 @@ import SwiftUI
     case .item(let id):
       return routeContext + "\nActive item version ID: " + (viewedItemVersion ?? id)
     case .table(let id): return routeContext + "\nActive dataset ID: " + id
+    case .tableUpdate(let source, _):
+      return routeContext + "\nTable-update review for source ID: " + source
     case .search, .reviews: return routeContext
     }
   }
@@ -658,6 +672,7 @@ import SwiftUI
     case .item(let id):
       return "Item: " + ((try? workbook?.item(viewedItemVersion ?? id).title) ?? id)
     case .table(let id): return "Table: " + (datasets.first { $0.id == id }?.title ?? id)
+    case .tableUpdate: return "Review table update"
     case .search: return "Workbook search"
     case .reviews: return "Drafts to review"
     }
@@ -781,11 +796,12 @@ import SwiftUI
     return true
   }
   enum ReviewAction {
-    case accept, undo, withdraw
+    case accept, undo, redo, withdraw
     var progress: String {
       switch self {
       case .accept: return "Accepting changes"
       case .undo: return "Undoing changes"
+      case .redo: return "Redoing changes"
       case .withdraw: return "Withdrawing draft"
       }
     }
@@ -793,6 +809,7 @@ import SwiftUI
       switch self {
       case .accept: return "Accepted "
       case .undo: return "Undid the last change to "
+      case .redo: return "Redid the last change to "
       case .withdraw: return "Withdrew "
       }
     }
@@ -809,8 +826,8 @@ import SwiftUI
         let record = try await Task.detached {
           try ticket.cancellation.check()
           switch action {
-          case .accept: return try book.accept(id)
-          case .undo: return try book.undoItem(id)
+          case .accept: return try book.accept(id, cancellation: ticket.cancellation)
+          case .undo, .redo: return try book.undoItem(id, cancellation: ticket.cancellation)
           case .withdraw: return try book.withdrawDraft(id)
           }
         }.value

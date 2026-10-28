@@ -249,6 +249,9 @@ public final class Workbook: @unchecked Sendable {
     supersedes: String? = nil, token: String = identifier(), expectedRevision: Int? = nil,
     references: [ReferenceSelection]? = nil
   ) throws -> Item {
+    try require(
+      kind != "table-intake-update", "proposal_tool",
+      "Use the reviewed table-update pipeline to create or revise this proposal.")
     var fields: [String: Value] = [
       "category": .string(category), "kind": .string(kind), "title": .string(title),
       "text": .string(text), "data": data, "meaning": .string(meaning), "status": .string(status),

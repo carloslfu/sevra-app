@@ -2,7 +2,7 @@
 type: spec
 id: 01m61c4z13j3paexnc7xvyyqhs
 created: 2026-10-28T13:45:46.275195+00:00
-updated: 2026-10-28T16:32:39.839694+00:00
+updated: 2026-10-28T16:37:51.219693+00:00
 summary: One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 title: Contextual import and Excel continuity
 status: reviewed
@@ -234,7 +234,7 @@ paste edits bounded selected visible cells; there is no general range-intake flo
 
 Current implementation checkpoint, October 28: the shared core now separates
 capture and bounded indexing/inspection from a selected use. Durable intake jobs
-preserve exact original identity, reference/analysis/explicit saved-value roles,
+preserve exact original identity, reference/analysis/explicit saved-value/update roles,
 stage reports, affected dataset identities, cancellation/failure and resumable
 receipts. A bare file no longer creates a table from its suffix. Reference and
 analysis can reuse one original without creating permanent working tables;
@@ -252,14 +252,14 @@ bounded explicit values-only TSV clipboard entry, but this checkpoint does not
 qualify rich clipboard fidelity or its visible lifecycle. The model and voice do
 not yet have general contextual intake-role/update tools.
 
-Development schema 8 is the single canonical initial schema. Unsupported formats
-are refused without changing their database bytes. There is no new v7-to-v8
-migration or backward-compatible CLI result adapter. Historical receipts and
+Development schema 9 is the single canonical initial schema. Unsupported formats
+are refused without changing their database bytes. There is no legacy development migration
+or backward-compatible CLI result adapter. Historical receipts and
 fixtures are preserved; fresh synthetic workbooks qualify the current format.
 The CLI import result is now {source,intake}; roles, resume/from-source operations,
 coverage and limits are documented in the repo skill. No app data was reset.
 
-The final focused core has 134 passing groups, including six contextual-intake
+The contextual-intake checkpoint had 134 passing core groups, including six intake
 checks and current-format reopen/refusal invariants. The smaller total replaces
 obsolete migration-success checks with byte-preserving unsupported-format
 refusals under the owner's pre-1.0 policy; it does not remove current-format
@@ -268,6 +268,40 @@ extraction with build reads denied, 30 concurrent writers and actual native
 CSV/TSV journeys pass. Detailed scope and retained failures are in
 [[records/operations/implementation]]. No new actual model cohort, spoken voice,
 large-scale intake or broad Excel compatibility is established.
+
+Reviewed table updates, October 28: CSV/TSV inspection supports an explicit header
+record and bounded sample values. A native review in the workspace requires a
+target, method, every input position mapped or explicitly ignored, merge key(s),
+and meaning/scenario for new rows. Append keeps duplicates, replacement replaces
+all current rows, and merge rejects empty/duplicate input or target keys. Keys are
+lexical; there is no case, whitespace or locale normalization. Current bounds are
+1,000 incoming rows, 10,000 target rows, 8 MB mapped input and 16 MB target content.
+Every stored target column must be mapped once. Calculated columns stay intact;
+partial-column and XLSX updates are not implemented. The incoming original stays
+unchanged. A typed preview retains columns, exact target fingerprint/revision,
+counts, duplicate disclosure, at most 20 examples and parsed source-record locators.
+
+A proposed update is a draft Record. Creating it atomically completes a selected
+update intake with its proposal ID, without changing rows. Acceptance applies the
+saved plan after an exact target check, without parsing or reading the original.
+Merge preserves existing logical row IDs/meaning/scenario; new rows use the chosen
+meaning/scenario. Replacement retains removed rows as rejected historical versions.
+Checked Undo/redo compensates row versions and restores stable membership/order.
+All row lineage retains the original, proposal, decision and source-record locator.
+No inventory/financial effects are posted. Generic record creation cannot forge a
+table-update proposal. Retry tokens return prior receipts before checking changed
+state or a missing linked original; changed arguments refuse. Stale preview/apply/
+Undo and fault/cancellation tests preserve working data.
+
+The CLI supplies table-update-inspect, table-update-preview and
+table-update-propose, using the same host core.
+The repo skill documents exact options and review authority. The native path starts
+from a CSV/TSV role choice or File actions, retains a pending update use across
+reopen and shows a reviewable draft before acceptance. Mapping-form edits are not
+yet persisted across navigation/relaunch. Source/preview/publication callbacks are
+fenced, and exact failed publication retries reuse their token. This focused slice
+does not qualify general local-model/voice update tools or the FJ persistence gates
+in [[records/specs/persistence-readiness]]. Those remain next in the ordered plan.
 
 Implementation phases:
 
@@ -278,8 +312,9 @@ Implementation phases:
    roles: focused native journeys pass. Full IJ01-IJ04 coverage, all startup
    cancellation/late callbacks and clipboard journeys remain open. No broad
    native working-Excel continuity claim.
-3. Add reviewed table update mapping and stale/idempotent/undo publication. Do not
-   expose an incomplete merge through the agent as a successful update.
+3. Reviewed CSV/TSV update mapping and stale/idempotent/undo publication now have
+   shared core, CLI and native review paths within the bounds below. General local
+   model/voice update tools and broader mapping usability remain unqualified.
 4. Add Excel feature inventory, source-coordinate mapping and bounded native
    per-cell/dependency support, then qualify the declared continuity subset.
 5. Connect natural-language/voice and CLI/skill contracts, actual native usability,

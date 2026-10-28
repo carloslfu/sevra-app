@@ -261,8 +261,12 @@ struct SpaceView: View {
                   .secondary)
                 VStack(alignment: .leading, spacing: 3) {
                   Text(item.title)
-                  Text(item.status == "draft" ? "Draft · \(item.meaning)" : item.kind.capitalized)
-                    .font(.caption).foregroundStyle(.secondary)
+                  Text(
+                    item.status == "draft"
+                      ? "Draft · \(item.meaning)"
+                      : item.kind == "table-intake-update" ? "Table update" : item.kind.capitalized
+                  )
+                  .font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)

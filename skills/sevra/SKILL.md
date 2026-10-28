@@ -23,7 +23,7 @@ is a user document, not this repository's db.md knowledge store.
    item IDs; do not generate executable app code. `tool ... draft` saves a document.
 8. Verify significant changes and reopen exported archives before claiming success.
 
-`import PATH FILE [--link] [--role reference|analysis|values] [--token TOKEN]`
+`import PATH FILE [--link] [--role reference|analysis|values|update] [--token TOKEN]`
 captures an original and returns `{source,intake}`. Without a role it indexes the
 file and returns `awaiting_role`; it never creates tables from the suffix alone.
 Use `intake-use PATH JOB_ID ROLE [TOKEN]` for the current explicit choice,
@@ -34,10 +34,36 @@ input has since disappeared. `intake-status PATH` includes bounded durable jobs.
 `reference` keeps searchable evidence. `analysis` prepares input without creating
 an analysis result or a permanent table. `values` explicitly creates CSV/TSV
 tables using first-row headings, or XLSX saved-value tables. Excel formulas do
-not recalculate; the inspection is not a full compatibility report. No command
-here appends, replaces or merges an existing table. Do not report those operations
-as complete. Inspect the job's indexing coverage, report, dataset IDs and detail,
+not recalculate; the inspection is not a full compatibility report. `update`
+waits for an explicit existing-table update review, without changing rows.
+Inspect the job's indexing coverage, report, dataset IDs and detail,
 and ask for intent when the requested use is materially ambiguous.
+
+For CSV/TSV updates, use `table-update-inspect PATH SOURCE_ID [HEADER_RECORD]`
+to inspect exact headings and sample values. Header records are counted from 1,
+including quoted multiline records. `table-update-preview PATH SOURCE_ID TABLE_ID
+OPTIONS_JSON` accepts `mode` (`append`, `replace` or `merge`), `mapping` entries
+`{position:0,target:"stored_column_id"}` (zero-based input position; null target
+explicitly ignores that input), optional `headerRow` and `keys` (stored column
+IDs, required only for merge). Map every stored target column exactly once;
+calculated columns cannot be imported. Do not infer keys, locale conversions or
+duplicate removal. Preview up to 1,000 incoming rows against up to 10,000 target
+rows; review the returned counts, examples, duplicates and limitations.
+
+`table-update-propose PATH SOURCE_ID TABLE_ID OPTIONS_JSON` takes the same options
+plus explicit `newRowMeaning`, `newRowScenario`, the preview's `expectedRevision`
+and `expectedFingerprint`, a retry `token`, and optional pending update `intakeID`.
+It saves a draft, without applying rows. Use the user's requested meaning/scenario;
+matched rows preserve theirs. Append keeps duplicates; replacement removes every
+current row; merge refuses empty/duplicate keys. These are value updates, not
+inventory or financial postings. Do not create this proposal through generic `add`.
+When authorized, `accept PATH PROPOSAL_ID TOKEN` applies atomically. `undo PATH
+ACCEPTED_VERSION_ID TOKEN` restores exact prior values, identities and order;
+undoing that returned version redoes the update through compensating history.
+Reuse exact tokens/arguments after uncertain results, even after the original
+linked input disappears. Stale preview/target/undo refusals require fresh review.
+The native app offers mapping and preview from intake or File actions; its local
+model has not yet been qualified for these new commands.
 
 Use `sevra tool PATH review_queue '{}'` to discover current drafts beyond recent
 activity. Follow its nextCursor with a cursor argument. Requests and table rows
@@ -138,8 +164,8 @@ for identical captured input; changed extraction gets a new snapshot and keeps
 earlier text/locators inspectable. An older worker cannot replace a newer result.
 The first file-link slice retains at most 512 regions, 1,000,000 UTF-8 text bytes
 and 128 occurrences per exact origin, with partial coverage when bounded. Assets
-remain outside SQLite inside the workbook. Keep app/CLI versions matched; schema 7
-requires a compatible build. These owner-facing CLI operations do not imply that
+remain outside SQLite inside the workbook. Keep app/CLI development versions matched;
+unsupported development formats are preserved and refused. These owner-facing CLI operations do not imply that
 the app's local model already has reference-traversal tools.
 
 Use `history` to page original conversation messages, `history-search` for scoped
@@ -164,7 +190,7 @@ an unresolved call automatically. `tool-result` reads exact saved results using 
 receipt ID, a JSON array path and an optional offset. Follow nextOffset; --raw-json
 provides labeled text segments for exact reconstruction. Omitted fields are not
 proof of missing data. Inspect current records before acting on an older result.
-Check `help` for availability in older installed development builds.
+Use `help` from the matching app/CLI build for the current command contract.
 
 The app may be closed. The same engine enforces transactions, versions, lineage
 and duplicate-effect rules. Do not edit SQLite, assets or manifests directly.

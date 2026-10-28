@@ -83,6 +83,11 @@ import SevraProduct
     }
     if command == "demo" { return try Demo.create(at: url(1)) }
     let book = try Workbook(url(1))
+    if let result = try runTableIntakeCommand(
+      command, book: book, args: args, cancellation: cancellation)
+    {
+      return result
+    }
     if let result = try runReferenceCommand(
       command, book: book, args: args, cancellation: cancellation)
     {
@@ -98,7 +103,7 @@ import SevraProduct
       ])
     case "intake-use":
       guard let role = IntakeRole(rawValue: try arg(3)) else {
-        throw SevraError("intake_role", "Choose reference, analysis or values.")
+        throw SevraError("intake_role", "Choose reference, analysis, values or update.")
       }
       let job = try book.chooseIntakeRole(
         arg(2), role: role,
@@ -106,7 +111,7 @@ import SevraProduct
       return try encoded(book.runIntake(job.id, cancellation: cancellation))
     case "intake-from-source":
       guard let role = IntakeRole(rawValue: try arg(3)) else {
-        throw SevraError("intake_role", "Choose reference, analysis or values.")
+        throw SevraError("intake_role", "Choose reference, analysis, values or update.")
       }
       let job = try book.beginIntake(
         sourceID: arg(2), role: role,
@@ -133,7 +138,7 @@ import SevraProduct
       var role: IntakeRole?
       if let index = args.firstIndex(of: "--role") {
         guard args.count > index + 1, let choice = IntakeRole(rawValue: args[index + 1]) else {
-          throw SevraError("intake_role", "Choose --role reference, analysis or values.")
+          throw SevraError("intake_role", "Choose --role reference, analysis, values or update.")
         }
         role = choice
       }
@@ -259,8 +264,13 @@ import SevraProduct
           arg(2), values: Value.parse(arg(3)).object,
           expectedRevision: args.count > 4 ? Int(args[4]) : nil))
     case "accept":
-      return try encoded(book.accept(arg(2), token: args.count > 3 ? args[3] : identifier()))
-    case "undo": return try encoded(book.undoItem(arg(2)))
+      return try encoded(
+        book.accept(
+          arg(2), token: args.count > 3 ? args[3] : identifier(), cancellation: cancellation))
+    case "undo":
+      return try encoded(
+        book.undoItem(
+          arg(2), token: args.count > 3 ? args[3] : identifier(), cancellation: cancellation))
     case "withdraw":
       return try encoded(book.withdrawDraft(arg(2), token: args.count > 3 ? args[3] : identifier()))
     case "balance": return try book.balance(subject: arg(2))
@@ -361,9 +371,12 @@ import SevraProduct
     transcribe WORKBOOK ITEM_ID | extract WORKBOOK VERSION_ID
     archive-members WORKBOOK ITEM_ID | include-members WORKBOOK ITEM_ID JSON_PATHS
     capture-url WORKBOOK URL | link-url WORKBOOK URL [TITLE] | include WORKBOOK ITEM_ID | relink WORKBOOK ASSET_ID FILE
-    import WORKBOOK FILE [--link] [--role reference|analysis|values] [--token TOKEN]
+    import WORKBOOK FILE [--link] [--role reference|analysis|values|update] [--token TOKEN]
     intake-use WORKBOOK JOB_ID ROLE [TOKEN] | intake-from-source WORKBOOK SOURCE_ID ROLE [TOKEN]
     intake-resume WORKBOOK JOB_ID | search WORKBOOK QUERY [OFFSET] | read WORKBOOK ID
+    table-update-preview WORKBOOK SOURCE_ID TABLE_ID OPTIONS_JSON
+    table-update-inspect WORKBOOK SOURCE_ID [HEADER_RECORD]
+    table-update-propose WORKBOOK SOURCE_ID TABLE_ID OPTIONS_JSON
     records WORKBOOK [KIND] | tables WORKBOOK | rows WORKBOOK TABLE_ID [OFFSET]
     add WORKBOOK JSON | edit-row WORKBOOK ITEM_ID VALUES_JSON [EXPECTED_REVISION]
     edit-document WORKBOOK VERSION_ID UTF8_FILE [--separate] [--token TOKEN] [--revision REVISION] [--references JSON_FILE]
@@ -374,7 +387,7 @@ import SevraProduct
     file-reference-resolve WORKBOOK VERSION_ID REFERENCE_ID [SNAPSHOT_ID]
     file-reference-region WORKBOOK VERSION_ID JSON | annotate-file-references WORKBOOK VERSION_ID JSON
     index-references WORKBOOK VERSION_ID | index-reference-bodies WORKBOOK [OPTIONS_JSON] | rebuild-references WORKBOOK
-    accept WORKBOOK ID [TOKEN] | withdraw WORKBOOK ID [TOKEN] | undo WORKBOOK ID | lineage WORKBOOK ID
+    accept WORKBOOK ID [TOKEN] | withdraw WORKBOOK ID [TOKEN] | undo WORKBOOK ID [TOKEN] | lineage WORKBOOK ID
     opening WORKBOOK SUBJECT QUANTITY ISO_DATE SOURCE_ID | movement WORKBOOK JSON
     balance WORKBOOK SUBJECT | calculate EXPRESSION [VALUES_JSON]
     spaces WORKBOOK | space WORKBOOK TITLE DEFINITION_JSON | pin-space WORKBOOK SPACE_ID [TITLE]

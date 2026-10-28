@@ -162,6 +162,7 @@ struct WorkbookView: View {
     case .item(let id):
       return (try? state.workbook?.item(state.viewedItemVersion ?? id).title) ?? "Document"
     case .table(let id): return state.datasets.first { $0.id == id }?.title ?? "Table"
+    case .tableUpdate: return "Review table update"
     case .search: return "Search workbook"
     case .reviews: return "Drafts to review"
     }
@@ -354,6 +355,9 @@ struct WorkbookView: View {
           DatasetView(table: table, state: state)
         }
       case .search: SearchView(state: state, results: state.searchResults)
+      case .tableUpdate(let source, let job):
+        TableUpdateView(book: book, sourceID: source, intakeID: job, state: state)
+          .id(source + (job ?? ""))
       case .reviews: ReviewQueueView(state: state, results: state.reviewResults)
       }
     }

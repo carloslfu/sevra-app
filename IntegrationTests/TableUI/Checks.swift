@@ -15,7 +15,7 @@ actor ReadGate {
     try await withCheckedThrowingContinuation { continuation in
       result = continuation
       started = true
-      waiting.forEach { $0.resume() }
+      for waiter in waiting { waiter.resume() }
       waiting = []
     }
   }
@@ -238,5 +238,6 @@ actor ReadGate {
       "PASS deterministic out-of-order reads, stale errors and cancellation cannot replace the latest page"
     )
     try expect(try book.verify()["ok"] == .bool(true), "Workbook integrity failed")
+    try await checkTableUpdateSession()
   }
 }

@@ -465,8 +465,12 @@ extension Workbook {
     }
     return try editRows(change["dataset_id"]!.text, edits: edits)
   }
-  @discardableResult public func undoItem(_ id: String) throws -> Item {
-    let result = try mutation("undo", request: .string(id)) {
+  @discardableResult public func undoItem(
+    _ id: String, token: String = identifier(), cancellation: Cancellation = .init()
+  ) throws -> Item {
+    let result = try mutation(
+      "undo", token: token, request: .string(id), cancellation: cancellation
+    ) {
       let current = try item(id)
       guard let prior = current.supersedes else {
         throw SevraError("undo", "No previous version exists.")
@@ -490,6 +494,9 @@ extension Workbook {
         }
       }
       var restoredData = old.data
+      if current.kind == "table-intake-update", current.data["afterFingerprint"].string != nil {
+        restoredData = try restoreTableIntake(current, cancellation: cancellation)
+      }
       if current.kind == "table-creation", let datasetID = current.data["datasetID"].string {
         try db.execute(
           "INSERT INTO meta VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",

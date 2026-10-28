@@ -3,7 +3,7 @@ import Foundation
 
 /// A file's use is independent from its parser and from included/linked storage.
 /// `values` explicitly imports saved cell values, without claiming Excel continuity.
-public enum IntakeRole: String, Codable, Sendable { case reference, analysis, values }
+public enum IntakeRole: String, Codable, Sendable { case reference, analysis, values, update }
 
 public struct IntakeJob: Codable, Sendable, Identifiable {
   public let id: String
@@ -206,6 +206,14 @@ extension Workbook {
       if role == .reference {
         try publish(
           "ready", "Reference saved. No working tables created. See indexing status for coverage.")
+        return try intakeJob(id)
+      }
+      if role == .update {
+        _ = try inspectTableUpdateSource(initial.sourceID, cancellation: cancellation)
+        try publish(
+          "awaiting_update",
+          "Original saved. Choose the target table, mapping and update method; review before applying."
+        )
         return try intakeJob(id)
       }
       let source = try item(initial.sourceID)

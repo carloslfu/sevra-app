@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T16:32:39.978359+00:00
+updated: 2026-10-28T16:43:47.689970+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -23,8 +23,8 @@ legacy-schema migrations or compatibility adapters. Historical migration receipt
 remain evidence; current-format integrity, recovery and portability remain gates.
 
 The October 28 owner requirement in [[records/specs/persistence-readiness]] is
-active implementation scope. Finish the current coherent table-update slice,
-then inventory durable write paths and implement the shared committed-change and
+active implementation scope. The focused CSV/TSV table-update slice is now verified
+within the scope below. Next inventory durable write paths and implement the shared committed-change and
 local reconstruction foundation before expanding workflow/automation persistence.
 F01-F08/FJ01-FJ06 remain open; no reconstruction or sync completion is claimed.
 Reuse current transactions, receipts and immutable data, and E19's future outbox.
@@ -48,7 +48,8 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   supported Excel work must continue with reported structure/formula translation.
   Checkpoint 63cd642 saves originals and roles, supports reference/analysis and
   explicit saved-values conversion, and removes suffix-driven table creation.
-  Target/mapping updates and formula continuity remain open. IJ01-IJ10 are in
+  Bounded CSV/TSV target/mapping updates now have core, CLI and native review paths;
+  local-model/voice updates and Excel formula continuity remain open. IJ01-IJ10 are in
   [[records/specs/contextual-import]]; inspection and next actions are logged below.
 
 - The app/ask loop now checks a proposed inventory direction in a separate local
@@ -5033,3 +5034,114 @@ Operation-only reconstruction is incomplete, causal bases need explicit retentio
 and automated decisions must not be attributed to a human. The mutation inventory
 and FJ01-FJ06 evidence are implementation work, not documentation completion.
 This design update changes no workbook data, application code or runtime behavior.
+
+## Reviewed CSV/TSV table updates, October 28
+
+Completed the next coherent intake slice on top of 63cd642 and the owner design
+handoff in 21cf28f. The new persistence-readiness contract is retained, with FJ
+reconstruction/attribution gates still open. No workflow/sync scope is added.
+
+Core and native review support explicit append, full replacement and keyed merge.
+The same bounded verified CSV/TSV parser provides header records, exact headings
+and sample values before mapping. Target/method are initially unset. Every input
+position is mapped once or explicitly ignored; every stored target column must
+be mapped exactly once. Keys are explicit and lexical. Empty or duplicate keys
+in either input or target refuse merge. Append retains duplicates and reports
+them. New rows require a meaning and scenario; matched rows preserve their prior
+meaning/scenario. Calculated columns are retained. Original bytes are unchanged.
+Bounds are 1,000 incoming rows, 10,000 target rows, 8 MB mapped input and 16 MB target
+content. Partial-column and XLSX update support remain open.
+
+The typed preview binds exact table columns, stable membership/current row heads,
+fingerprint and workbook revision, plus actual counts, duplicate disclosures and
+at most 20 before/after examples with 1-based parsed source-record locators.
+Creating a draft requires that preview. A selected update intake is completed in
+the same transaction with the draft ID, retaining its indexing report. This is
+proposal readiness, not application. Generic add/propose_record cannot forge a
+table-intake-update. Acceptance applies the saved plan after a fresh target check,
+without reading or parsing the original. Changed rows retain logical identity;
+replacement keeps removed rows as rejected history. New and changed row lineage
+includes the exact source, proposal, acceptance decision and source record.
+
+Checked Undo/redo uses compensating versions and before/after stable membership,
+preserving values, identities, order, meaning and scenario. It refuses changes to
+any affected row, including removed rows, or the post-state fingerprint. Atomic
+rollback and cancellation retain the prior working state. Acceptance/Undo tokens
+are cancellation-aware and return their original receipt on exact retry. Proposal
+retry precedes target/parser access, including after a linked original disappears.
+No inventory or financial effect is posted by a working-table value update.
+
+The CLI now exposes table-update-inspect, table-update-preview and
+table-update-propose. Its options reject unknown fields and incorrectly typed
+publication fields. Existing accept and undo provide stable retry tokens. The
+repo-owned Sevra skill documents these commands, bounds and user authority, and
+validates successfully. PyYAML used by the skill validator is isolated in an ignored
+build venv; it adds no product dependency. Native intake and saved File actions
+open the workspace review. A draft has visible diff/review controls. Applied,
+undone and withdrawn states explain that the preview describes original changes;
+Undo becomes Redo after a checked reversal. Home uses a readable Table update label.
+Request fencing rejects obsolete source/preview/publication callbacks and reuses
+an exact publication token after a lost result. Mapping-form drafts themselves are
+not persisted across navigation/relaunch; this remains an intake UX gap.
+
+Canonical development schema is 9, adding update/awaiting_update constraints.
+No development migration was added. Old/future workbooks remain preserved and
+refused by the matching-version gate; the native journey used a fresh synthetic
+schema-9 workbook. Historical evidence is unchanged.
+
+Verification:
+
+- Stable bash scripts/check.sh passes: 19 extraction groups, 144 core groups,
+  nine existing contextual CLI checks, 30 new table-update CLI checks and the
+  reference/document/preview/table/search/voice/product/Splash/text/grammar and
+  diagnostic fixtures, plus link and zero-warning store gates. The ten new core
+  groups cover preview/nonpublication, duplicates/missing keys/mapping, all three
+  apply/Undo/redo modes, stale states, injected write rollback, pre-cancellation,
+  missing linked-original retry, durable update jobs, calculated columns, exact
+  source locators and two-handle concurrent acceptance.
+- Final focused native table checks pass after equivalent for-loop lint repairs,
+  including obsolete success/error rejection, changed-mapping preview invalidation,
+  closed-review callback refusal and exact-token retry after a committed lost reply.
+- Final polished native app, CLI and helper package; strict deep codesign passes.
+  Packaged CLI passes the same 30 update checks. Thirty real writer processes,
+  coherent export, retry/stale and inventory invariants pass. Both packaged helper
+  layouts pass with build-tree reads denied, including current-format CSV/XLSX
+  role intake and original verification. Changed Swift strict lint and skill
+  validation pass. No inference implementation or engine pin changed.
+- Actual cua native synthetic journey: Home Choose use -> Update a working table;
+  initially unset target/method -> explicit Parts table, key/mapping and estimate /
+  forecast choices -> diff of one added/changed/unchanged. CLI confirms preview
+  leaves the two original rows untouched. Native draft -> Accept gives quantities
+  7/5/2 and lexical SKUs; new row is estimate/forecast while matching rows stay
+  actual. Undo restores exact original logical identities/order/values 4/5, shown
+  in the native grid and inspected screenshot. Clean relaunch retains roles,
+  history/proposal and visible Redo. Redo reapplies the values with correct receipt.
+  A separate synthetic CLI edit to 11 then causes native Undo to display the stale
+  refusal; CLI confirms 11/5/2 remains intact and workbook verification passes.
+  The last UI-only polish changes Home's label to Table update; final build and
+  visible relaunch check pass. Raw AX/screenshots are not archived.
+
+Retained failures: the first update-job check found the old schema role constraint;
+advanced canonical schema to 9 and reran with fresh fixtures. The first CLI journey
+compared immutable versions across redo; corrected the test to compare the exact
+post-redo state while retaining semantic identity/value checks. The skill validator
+initially lacked PyYAML; isolated dependency installation resolves it. Strict lint
+found two forEach gates; equivalent loops pass lint and focused tests. Earlier
+failures are diagnostic evidence, not final passes.
+
+Immutable receipt: [reviewed table updates](../../../integration/evidence/2026-10-28-reviewed-table-updates.json.gz),
+26,596 bytes, SHA-256 10d371e5e5491f05a426e18708f8d70bcc1428e8f56bee334460a1886d2e261e.
+It binds final source/products, 14 diagnostic logs, synthetic native state and all
+100 prior evidence files unchanged. The full stable check precedes the final
+Home-only copy polish and equivalent test-loop lint repairs; the final native and
+focused table checks qualify those small follow-ups. No new actual model/voice
+update cohort, broad accessibility, hardware/install, throughput or release proof.
+
+Next: audit every durable mutation family and implement the shared complete change
+capture, causal/actor metadata and inert deterministic reconstruction required by
+[[records/specs/persistence-readiness]]. This precedes new workflow/automation
+persistence. Then continue Excel feature/coordinate/live-formula work, broader
+clipboard/startup/late callbacks and current-request model/voice intake tools.
+Customizable Home/actions/forms/workflows/automations, context/AI reliability,
+native adoption, hardware, fresh installation, spoken accessibility, main-branch
+integration and production release remain open. Whole-app completion is not claimed.
