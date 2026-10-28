@@ -31,6 +31,7 @@ import SwiftUI
   @Published var items: [ItemSummary] = []
   @Published var datasets: [Dataset] = []
   @Published var messages: [Message] = []
+  @Published var proposalReviews: [String: ProposalReviewState] = [:]
   @Published var hasEarlierMessages = false
   @Published var hasLaterMessages = false
   @Published var showingHistorySearch = false
@@ -119,6 +120,7 @@ import SwiftUI
     items = []
     datasets = []
     messages = []
+    proposalReviews = [:]
     conversations = []
     chapters = []
     bookmarks = []
@@ -182,6 +184,7 @@ import SwiftUI
     let changedView = refreshSession.identity != identity
     if changedView && refreshSession.identity?.conversation != conversation {
       messages = []
+      proposalReviews = [:]
       hasEarlierMessages = false
       hasLaterMessages = false
     }
@@ -218,6 +221,7 @@ import SwiftUI
         self.items = snapshot.items
         self.datasets = snapshot.datasets
         self.messages = snapshot.messages
+        self.proposalReviews = snapshot.proposalReviews
         self.hasEarlierMessages = snapshot.hasEarlierMessages
         self.hasLaterMessages = snapshot.hasLaterMessages
         self.conversations = snapshot.conversations
@@ -463,7 +467,8 @@ import SwiftUI
           })
         guard owns(ticket, in: book) else { return }
         refresh()
-        let present = conversation == chat && itemPreviewIdentity == navigationID
+        let present =
+          conversation == chat && itemPreviewIdentity == navigationID
           && conversationNavigationIdentity == conversationOrigin
           && !ticket.cancellation.isCancelled && !changingConversation
         if present,

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T23:17:56.152986+00:00
+updated: 2026-10-27T23:59:39.585572+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -354,26 +354,36 @@ remain required. LJ07 is pending. No extra primary pane or automatic space.
 
 ## Proposal history and current review state
 Conversation receipts preserve what happened at the time. A proposal's original
-message must not be rewritten after acceptance, withdrawal or correction. Its
-exact original-version link remains useful evidence.
+message is not rewritten after acceptance, withdrawal or correction. Its exact
+original-version link remains useful evidence.
 
-Current review UI must be a separate, version-aware projection. Resolve the
-proposal's current head within the same bounded background window snapshot, and
-label newer versions explicitly instead of suggesting that the original content
-was approved unchanged. A reviewed or withdrawn proposal must not keep a current
-"Needs your review" indication. Unknown or unresolved associations must not invent
-a review status. Keep the original and current versions navigable and preserve
-conversation scope, stale-result refusal, reopen and cancellation behavior.
+Current review UI is a separate, version-aware projection in the same bounded
+background window snapshot. New proposal messages retain an exact item/receipt
+association. For older messages without one, only an immediately preceding
+completed proposal-tool receipt in the same conversation qualifies. Prose and
+arbitrary links never establish current status. Unresolved associations show the
+historical "Review requested" label without implying that review is still pending.
 
-Implementation of that conversation status projection remains pending. The
-October 27 native check verified correct record headers and inventory effects,
-but found that the chat retains the historical needs_review badge. This is not a
-failure of acceptance or Undo, and it is not yet a completed presentation fix.
+The badge opens the current version and distinguishes "Needs your review",
+"Newer draft", "Current version accepted" and "Current version withdrawn".
+It follows current heads after acceptance, Undo, corrections and reopen without
+suggesting that the original content was approved unchanged. Existing conversation
+scope, stale-result refusal, read budget and cancellation still apply. No schema
+migration or history rewrite is needed.
 
 Built-in movement details show meaning/status once, from authoritative item
 metadata, and use the named User request lineage link instead of a raw request ID.
 Captured request details omit internal conversation/message routing identifiers.
-Keep those fields in the stored evidence and CLI. A future context presentation
-should show the selected item, space or table by name without losing the original
-selection or exact version. The present viewer still exposes its Active space ID
-context line; that refinement is pending.
+Keep those fields in the stored evidence and CLI. Recognized native context shows
+"Context when requested", the named Space/Item/Table link, and selected text.
+The exact original context, including routing IDs, remains under a collapsed
+"Original context" disclosure. Unknown formats remain visible verbatim, and
+ID-like lines inside selected user text are preserved rather than stripped.
+
+Focused deterministic checks cover current versions, immutable history, foreign
+and unknown associations, reopen, and original/selected context bytes. The native
+preview check verified withdrawn -> accepted -> withdrawn badges, current versus
+original version navigation, stock 20 -> 18 -> 20, readable Home context, original
+context disclosure and Home navigation. This is one reference-Mac interaction
+check, not a complete keyboard, VoiceOver or release qualification. Evidence:
+[integration/evidence/2026-10-27-proposal-status.json](../../../integration/evidence/2026-10-27-proposal-status.json).

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzbe4pdmde0k72e3j6n6
 created: 2026-10-25T01:48:47.342811+00:00
-updated: 2026-10-27T23:40:55.478575+00:00
+updated: 2026-10-27T23:59:39.605473+00:00
 summary: Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 title: Distribution and verification
 status: reviewed
@@ -105,3 +105,27 @@ For the present acceptance/accuracy fix, the relevant evidence is the previously
 failing detailed explanation, one direct acceptance-boundaries contrast, and the
 existing context-budget regression because this change actually exposed it.
 Broader cohorts already performed remain evidence, not a reason to repeat them.
+
+Remote CI follows the same owner-approved policy. The existing complete Checks
+job retains all 26 steps and assertions, but runs automatically only on main
+integration pushes, v-prefixed release-tag pushes, and non-draft pull requests
+when opened, reopened or marked ready for review. Ordinary development pushes
+and pull-request synchronize events do not launch it. Draft jobs are skipped;
+skipped or untriggered checks are never evidence of passing verification.
+
+Use focused local checks during development. At a meaningful integration,
+pre-merge or release milestone, explicitly dispatch Checks for the intended
+branch when no applicable current run exists. Record the tested commit and
+confirm the final pre-merge/release head; an earlier green run is not approval for
+later changes. Keep useful implementation moving while remote CI runs, and
+inspect its result at the milestone rather than repeatedly polling. No branch
+protection setting or release acceptance requirement is changed by this policy.
+
+GitHub requires the workflow_dispatch configuration on the default branch before
+manual dispatch is available. Until this change lands there, opening a non-draft
+pull request or marking it ready supplies the initial pre-merge run. Later
+pre-merge updates can use draft -> ready or close -> reopen to request a fresh
+run. After integration, `gh workflow run check.yml --ref BRANCH` is the explicit
+milestone path. These event/dispatch semantics follow
+[GitHub's event reference](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request)
+and [manual workflow guidance](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow).

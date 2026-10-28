@@ -93,6 +93,14 @@ func checkRequestEnvelopes() async throws {
     try expectEqual(requests.count, 1)
     try expectEqual(try book.item(requests[0].id).text, prompt)
     let forecast = try book.items(kind: "forecast").first!
+    let conversation = result.conversationAction?.conversation ?? "main"
+    let message = try book.messages(conversation: conversation).last { $0.state == "needs_review" }!
+    let payload = try book.messagePayload(message.id, conversation: conversation)
+    try expectEqual(payload["kind"].text, "proposal")
+    try expectEqual(payload["itemID"].text, forecast.id)
+    let review = try book.workspaceSnapshot(conversation: conversation)!.proposalReviews[message.id]
+    try expectEqual(review?.proposalID, forecast.id)
+    try expectEqual(review?.status, "draft")
     try expectEqual(forecast.status, "draft")
     try expectEqual(try book.item(forecast.id).meaning, "estimate")
     try expectEqual(try book.lineage(forecast.id).map { $0["parent"].text }, [requests[0].id])

@@ -773,7 +773,11 @@ public enum WorkbookAgent {
             "Ready to review: " + proposal.referenceMarkdown
             + ". Existing accepted values are unchanged. Accept this proposal to continue."
           _ = try workbook.addMessage(
-            receipt, role: "assistant", conversation: conversation, state: "needs_review")
+            receipt, role: "assistant", conversation: conversation, state: "needs_review",
+            payload: .object([
+              "kind": .string("proposal"), "itemID": .string(id),
+              "receiptID": .string(receiptID),
+            ]))
           try workbook.finishAgentRun(
             runID, status: "needs_review", steps: step, metrics: .array(metrics))
           return AgentResult(

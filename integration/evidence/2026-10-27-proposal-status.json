@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-27T23:58:49.935727+00:00",
+  "baseCommit": "30af3887bf31cb428771ee91e57e1ceeac628cff",
+  "scope": "Current proposal review status and captured request context. Synthetic fixtures only. Focused verification, not release qualification.",
+  "sourceSHA256": {
+    "Sources/SevraCore/ProposalReview.swift": "f2d40e7f1a8efdeb3ff060cd655555660e582f779a15df68b26fa7067c47fd07",
+    "Sources/SevraCore/WorkspaceSnapshot.swift": "251aac9233f169e6c06dac89499b8fb1ca5795eb94e04ef6f6793ec62ef2ce2b",
+    "Sources/SevraAI/WorkbookAgent.swift": "f088eefb570c1c5c183b0f907ff34dd05a669e5aa06baadf72859113164f5046",
+    "Sources/SevraApp/ConversationViews.swift": "2a1837645b9c4133820960fc94079724ab62f6cab27b2cb3b0a8fe907b61c6b7",
+    "Sources/SevraApp/WorkspaceState.swift": "6ca557b290602cd0bcfbee34bcafaf80607c2581cb3cf0c80fa4ddb01f84c435",
+    "Sources/SevraApp/Viewers.swift": "9ab62856a76054bf9ab17cc19a7f45acb1572348c37f438e70aee387987279d1",
+    "Sources/SevraApp/CapturedRequestContextView.swift": "c21b820013cbc1d745ab5cfa4f6f1fbe13b43bae5d9c33e8f44285fb7b03b78f",
+    "Sources/SevraPreviewUI/RequestContextPresentation.swift": "32932a27b3063fb253ac392a41ec405c47a3c17675def78f0ff5688d1ad1d36d",
+    "IntegrationTests/Preview/ProposalReviewChecks.swift": "8a04b61186f5ece20c42cfd42386ab4f319786b10caa0cc6bbc8f47b97d7f341",
+    "IntegrationTests/Preview/Checks.swift": "7f86553fb07caaa20f29f2c1bc9b276ce9cd20e84e3f097ad3e9b4387ea616e3",
+    "IntegrationTests/Agent/RequestEnvelopeChecks.swift": "92bcee859ac346d7f989987cbb53c685243f52d5adcd8461d02620d27017afa7",
+    ".github/workflows/check.yml": "634dba0fc68917e3ca2eadae0545004785999e08d9e403e16b832ead500c022f"
+  },
+  "checks": {
+    "preview": "PASS workspace close/reopen, late completion/progress, stop ownership and delayed permission\nPASS background workspace snapshot, revision polling, scope, cancellation, coalescing and stale-window refusal\nPASS proposal status follows acceptance, Undo, newer drafts and reopen without rewriting history or guessing foreign/unknown associations\nPASS readable request context preserves original bytes, selected ID-like text and unfamiliar formats\nPASS conversation links preserve formatted labels, exact version/locator/origin and safe native routes\nPASS scoped drafts, fractional reading state, concurrent flush, reopen, conflict/keep-both/restore, bounded busy retry and rollback\nPASS scoped history search, stale results, bounded next/previous pages, retry and close\nPASS preview ownership, stale success/error/progress, stop/retry, and task cancellation\n",
+    "agent": "PASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\nPASS terminal conversation actions, exact parent, rename, review without sharing, scope/refusal and cancellation\nPASS exact request handoff, one lease/Source, scoped child history, no repeats, cancellation, failure, shared step budget and reopen\nPASS handoff evidence: exact same-request reads/calculation, scoped history, changed heads, projection/failure refusal, byte/count bounds and replay\nPASS conceptual differences finish directly; numeric comparisons stay checked; threads share accepted workbook data\nPASS intact user request, separate host metadata, scoped continuation and automatic request lineage without redundant reads\n{\"abandonedRunClosedBeforeProjection\":true,\"activeOtherRunPreserved\":true,\"check\":\"request_admission\",\"failedLeaseHasLinkedTerminalRequest\":true,\"liveRun\":\"3b80e91e-5663-4191-bdf7-b9bc3f969a36\",\"oldRun\":\"78b9dd54-e7c0-42dd-92b1-fab147036df6\"}\nPASS abandoned-run projection and terminal lease-refusal history preserve originals and active work\nPASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history\nPASS exhausted correction retains all four rejected candidates and a failed run\nPASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation\nPASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data\nPASS shared agent retrieves old originals and pages oversized saved results\nPASS inherited parent evidence is readable and correctly linked without widening history search or branch scope\nPASS scoped search spans business evidence and earlier conversation without mixing citations, filters, cursors or branches\nPASS exact item candidates, separate citation authority, context rebuild, shared refusal receipts and baseline/native schema parity\nPASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery\nPASS current-request citations cannot replace missing external evidence; supplied and independently cited facts remain available\nPASS repeated context maintenance, exact original references, current acceptance, cancellation, invalid summaries and portable continuation\nPASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance\nPASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations\nPASS actual workbook schemas, open row/record data, full argument validation and schema refusals\n"
+  },
+  "build": {
+    "app": "Sevra Native Preview.app",
+    "appExecutableSHA256": "d42a6487b4f79005d5343ec23b3af5fdd51edeef25f4c13d886d76633e953f01",
+    "cliSHA256": "bc0c1c927760b0728f5276375111bf4e91d14e727069ebffc742b287e97d8d1a",
+    "result": "Native app and CLI release builds and preview packaging exited 0. No broad installation or both-backend rerun."
+  },
+  "nativeUI": [
+    "Opened a copy of the previous synthetic Thread continuation workbook in the rebuilt native preview.",
+    "UI receiving historical proposal displays Current version withdrawn with version 3 help; clicking the badge opens the current rejected record.",
+    "Undo restores accepted version 4. The same chat badge changes to Current version accepted. CLI independently reports stock 18.",
+    "Undo again creates rejected version 5. The same badge changes to Current version withdrawn. CLI independently reports stock 20.",
+    "The original proposal link opens the original draft; its User request lineage opens readable Context when requested / Space / Home.",
+    "Original context is collapsed initially; expanding shows exactly Space: Home followed by Active space ID: home.",
+    "Home context link navigates to Home. Preview quit normally."
+  ],
+  "acceptedBalance": {
+    "ok": true,
+    "result": {
+      "asOf": "9999-12-31T23:59:59.000Z",
+      "basis": "ecd8ab97-4a38-44a4-b56f-4ccc605288cb",
+      "effects": [
+        {
+          "effective": "2026-01-02T12:00:00.000Z",
+          "item_id": "23723852-9dcf-494a-91d7-d1d8b8e39650",
+          "kind": "inventory",
+          "logical_id": "6dc60463-428a-4c3e-81cf-8758f18ce455",
+          "occurrence": "handover-1",
+          "quantity": "-2",
+          "subject": "fittings"
+        }
+      ],
+      "quantity": "18",
+      "subject": "fittings"
+    },
+    "schemaVersion": 1
+  },
+  "undoneBalance": {
+    "ok": true,
+    "result": {
+      "asOf": "9999-12-31T23:59:59.000Z",
+      "basis": "ecd8ab97-4a38-44a4-b56f-4ccc605288cb",
+      "effects": [],
+      "quantity": "20",
+      "subject": "fittings"
+    },
+    "schemaVersion": 1
+  },
+  "integrity": {
+    "ok": true,
+    "result": {
+      "assetIssues": [],
+      "database": "ok",
+      "ok": true
+    },
+    "schemaVersion": 1
+  },
+  "originalsAudit": {
+    "unchangedMessages": 26,
+    "unchangedItems": 12,
+    "newActivityMessages": 2,
+    "newItems": 4,
+    "originalBodyAndStatePreserved": true
+  },
+  "ciTriggers": {
+    "valid_yaml": true,
+    "unchanged_steps": 26,
+    "triggers": {
+      "push": {
+        "branches": [
+          "main"
+        ],
+        "tags": [
+          "v*"
+        ]
+      },
+      "pull_request": {
+        "types": [
+          "opened",
+          "reopened",
+          "ready_for_review"
+        ]
+      },
+      "workflow_dispatch": null
+    },
+    "draft_guard": true
+  },
+  "limits": [
+    "No real model inference was needed or run for this projection/parser change.",
+    "Native UI checked on one reference Mac, not a VoiceOver or wider-device qualification.",
+    "Unknown proposal associations show historical Review requested, not guessed current state.",
+    "Unrecognized captured context remains verbatim.",
+    "Remote workflow execution was not triggered as a substitute for local focused checks.",
+    "Splash production adoption and automatic context compaction remain gated."
+  ]
+}

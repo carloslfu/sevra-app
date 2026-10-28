@@ -192,6 +192,11 @@ import SwiftUI
             {
               Button("Open table") { state.navigate(.table(id)) }
             }
+            if item.category == "source", item.kind == "request",
+              let context = item.data["context"].string, !context.isEmpty
+            {
+              CapturedRequestContextView(context: context, state: state)
+            }
             if !["table-change", "table-creation"].contains(item.kind) {
               Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 8) {
                 ForEach(item.data.object.keys.sorted(), id: \.self) { key in
@@ -199,7 +204,8 @@ import SwiftUI
                     !(item.kind == "movement"
                       && ["requestSourceID", "status", "meaning"].contains(key)),
                     !(item.category == "source" && item.kind == "request"
-                      && ["conversationID", "messageID"].contains(key)),
+                      && (["conversationID", "messageID"].contains(key)
+                        || (key == "context" && item.data["context"].string != nil))),
                     let value = item.data.object[key], value != .null, value.array.isEmpty,
                     value.object.isEmpty
                   {

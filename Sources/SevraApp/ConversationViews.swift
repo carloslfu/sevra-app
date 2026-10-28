@@ -10,7 +10,15 @@ struct ConversationMessageRow: View {
     message.role == "user" ? "You" : message.role == "event" ? "Activity" : "Sevra"
   }
   private var status: String {
-    message.state == "needs_review" ? "Needs your review" : message.state
+    guard message.state == "needs_review" else { return message.state }
+    guard let review = state.proposalReviews[message.id] else { return "Review requested" }
+    switch review.status {
+    case "accepted": return "Current version accepted"
+    case "rejected": return "Current version withdrawn"
+    case "draft":
+      return review.proposalID == review.currentVersionID ? "Needs your review" : "Newer draft"
+    default: return "Review requested"
+    }
   }
   var body: some View {
     let content = ConversationPresentation(message.body)
@@ -18,7 +26,14 @@ struct ConversationMessageRow: View {
       HStack {
         Text(speaker).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
         if message.state != "complete" {
-          Text(status).font(.caption).foregroundStyle(.orange)
+          if let review = state.proposalReviews[message.id] {
+            Button(status) { state.navigate(.item(review.currentVersionID)) }
+              .buttonStyle(.plain).font(.caption)
+              .foregroundStyle(review.status == "draft" ? Color.orange : Color.secondary)
+              .help("Open the current proposal, version \(review.currentVersion)")
+          } else {
+            Text(status).font(.caption).foregroundStyle(.secondary)
+          }
         }
         Spacer()
         Menu {

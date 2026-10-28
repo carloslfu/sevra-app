@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T23:44:23.873465+00:00
+updated: 2026-10-27T23:59:39.638594+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -25,17 +25,22 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   now pass focused manual review, with the original context budget unchanged.
   Earlier model/context failures remain preserved. Non-blocking example wording
   is logged instead of triggering another broad qualification loop.
-- The owner unlocked the Mac. Normal completion and away-and-back navigation
-  pass native checks. Proposal details hide routing IDs and redundant status;
-  native Accept/Undo preserves history and stock 20 -> 18 -> 20. The current chat
-  proposal badge still needs a version-aware status projection, and request
-  context still needs readable selection labels. These are the next product fixes.
+- Native proposal badges now follow the current version through acceptance,
+  Undo and newer drafts, preserving original messages and links. Exact typed
+  receipt associations and conservative legacy fallback keep conversations
+  isolated. Unknown associations do not invent current status. Deterministic
+  checks and a rebuilt native interaction pass; stock remains 20 -> 18 -> 20.
+  Captured request context shows named location/selection, with original bytes
+  retained under a disclosure and unknown formats shown verbatim.
 - Owner-approved focused verification now governs development. Reuse unchanged
   evidence, check the actual fix and one nearby counterexample, and reserve broad
   reruns for a concrete boundary change or meaningful integration/release point.
   The queued action cohort and package/install/rebuild/full-suite reruns were
   cancelled. One already-running handoff cohort finished safely before its
-  orchestration shell was terminated. See [[records/specs/distribution]].
+  orchestration shell was terminated. Remote CI now follows the same policy:
+  full checks on main/release and review-ready PR milestones or explicit dispatch,
+  not each development push. All 26 steps remain. No skipped check counts as a
+  pass. See [[records/specs/distribution]].
 
 - Search-grounding repairs pass deterministic regressions and the actual paired
   block-3 replay. Empty searches cannot establish exhaustive absence, and the
@@ -107,15 +112,19 @@ install/update/uninstall pass. Hosted workflows 40562440542 on e27ae39,
 40564561986 on 75511b8, 40568212108 on 03163ed and 40571572539 on 3dcc924 pass.
 The following checkpoints also passed hosted CI: 00662f6 (40589578202) and
 92b08c3 (40593888059) and e1c9b49 (40597871434). The latter includes successful
-installation and the isolated native preview build. The present focused checkpoint uses the checks below; current release packages
-were not rebuilt for the final wording change. Its own hosted result is not yet known.
+installation and the isolated native preview build. The current focused checkpoint
+passes preview/agent checks, native app/CLI rebuild, a focused native interaction,
+CLI integrity/arithmetic/history audit, and workflow parsing with unchanged steps.
+No broad model, both-backend, installation or full-suite rerun was required.
+The prior 30af388 hosted result is not claimed here; this development push does
+not trigger a full remote run under the new policy.
 The owner adopted [[records/specs/references-and-relationships]] on October 27.
 Inline references, backlinks and bounded traversal are planned, not implemented.
 L01-L14 and LJ01-LJ10 define delivery and verification. Keep the active checkpoint
 and engine qualification in place; inferred associations follow measured value.
 
-Next, fix the current proposal badge and request-context presentation, then
-continue ordinary voice/text host actions, Home/recent/pinned spaces and J11. Thread creation/rename still
+Next, continue ordinary voice/text host actions, Home/recent/pinned spaces and J11.
+Thread creation/rename still
 use the existing generic writer lock; add a bounded writer path before treating
 interruption under competing writers as qualified. Continue engine repeatability
 review and remaining context, keyboard/VoiceOver, archive/transcription, whole-app
@@ -3301,3 +3310,39 @@ Final small checks: Swift formatting, repository links, full db.md validation an
 Git whitespace review. Commit/push this focused checkpoint, then resume the native
 proposal-status/context-label slice under the focused policy. The overall app
 objective stays active.
+
+## Current proposal status and readable request context, October 27
+Closed the two concrete native presentation findings under the focused
+verification policy. Current proposal status comes from the coherent background
+snapshot, with exact typed receipt metadata for new messages and a conservative
+same-conversation legacy fallback. Current badges navigate to current versions;
+original receipt text, state and links remain immutable. Captured request context
+now names the location and preserves selected text, with an original-context
+disclosure and verbatim fallback for unfamiliar formats.
+
+Verification: `swift build --product sevra-preview-checks -j 4` and its runner,
+then `swift build --product sevra-agent-checks -j 4` and its runner passed. New
+checks exercise acceptance, Undo, newer draft/reopen, actual shared-agent metadata,
+foreign/unknown associations and ID-like selected text. Rebuilt native release app
+and CLI and packaged the preview for one interaction pass. A copy of the previous
+synthetic receiving fixture showed withdrawn version 3 -> accepted version 4 ->
+withdrawn version 5. CLI independently confirmed stock 18 then 20 and workbook
+integrity. All 26 original messages and 12 original items remained identical;
+only the two expected activity messages and four new history/decision items were
+added. Home context, original disclosure and Home navigation passed. The app quit
+normally. No model inference, baseline rebuild, install rerun or full-suite cycle.
+
+The owner also explicitly forwarded the remaining remote-CI course correction.
+Changed only workflow triggers and the draft guard, preserving all 26 existing
+steps byte-for-value under parsed YAML. Main/v-tag integration and non-draft PR
+opened/reopened/ready events run the full job; manual dispatch handles later
+milestones once available on main. Ordinary branch pushes and PR synchronize do
+not. No assertion, branch protection or release requirement was weakened, and
+no new testing framework was added. The policy records initial dispatch limits,
+exact-current-head pre-merge verification and skipped-versus-passed semantics.
+
+Evidence: [proposal status receipt](../../../integration/evidence/2026-10-27-proposal-status.json),
+9,109 bytes, SHA256 `cec7e791bbeebdfd812a1a239330ab29e078c9fbf5b1c4e6f61e519d9bf4445c`.
+The receipt includes source/executable hashes, focused check output, native UI
+observations, independent arithmetic/integrity receipts and CI trigger parsing.
+Broader native adoption, compaction, accessibility and release gates stay open.
