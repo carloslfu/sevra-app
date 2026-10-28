@@ -191,13 +191,17 @@ private actor ReadGate {
     session.didResolve(session.reloadID)
     try expect(session.originalURL == nil, "Successful reconnection kept a stale candidate")
 
-    for input in ["Stop.", "cancel", "stop preview", "retry preview", "find the original file"] {
+    for input in [
+      "Stop.", "cancel", "stop preview", "retry preview", "find the original file",
+      "where is this mentioned?", "show links", "go back",
+    ] {
       try expect(
         WorkspaceControlCommand.allowsSubmission(input, busy: true),
         "An explicit shell control was blocked behind inference")
     }
     for input in [
       "", "  ", "don't stop", "stop buying bolts", "cancel invoice 27", "retry the payment",
+      "don't show links", "don't go back", "where is this mentioned in the shipping policy",
     ] {
       try expect(
         !WorkspaceControlCommand.allowsSubmission(input, busy: true),
@@ -219,5 +223,10 @@ private actor ReadGate {
     try expect(
       WorkspaceControlCommand.parse("don't open this in another app") == nil,
       "A negated request opened a copy")
+    try expect(
+      WorkspaceControlCommand.parse("where is this mentioned?") == .showMentions
+        && WorkspaceControlCommand.parse("mostrar enlaces") == .showLinks
+        && WorkspaceControlCommand.parse("atrás") == .goBack,
+      "Exact navigation commands did not reach the native shell")
   }
 }

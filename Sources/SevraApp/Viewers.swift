@@ -11,6 +11,8 @@ import SwiftUI
 @MainActor struct ItemView: View {
   @StateObject private var document: DocumentDraft
   @StateObject private var preview = AssetPreviewSession()
+  @StateObject private var references = ReferenceDocumentSession()
+  @State private var linkNavigation: Cancellation?
   private let workbook: Workbook
   var item: Item { document.current }
   init(item: Item, workbook: Workbook, state: WorkspaceState) {
@@ -40,6 +42,8 @@ import SwiftUI
       HStack {
         Text(classification).font(.caption).foregroundStyle(.secondary)
         Spacer()
+        Button("Links", systemImage: "link") { state.referencePanel = .outgoing }
+          .help("Links in this document and documents that mention it")
         if item.status == "draft" {
           Button("Accept") {
             if document.end() { state.review(document.current.id, accepting: true) }
@@ -147,6 +151,10 @@ import SwiftUI
         if ext == "pdf" {
           PDFWorkspace(
             url: file, locator: state.itemLocators[item.id],
+            onPage: { page in
+              guard state.workbook === workbook, state.viewedItemVersion == item.id else { return }
+              state.itemLocators[item.id] = "page=\(page)"
+            },
             onSelection: { state.selectedContext = $0 })
         } else if ["mp4", "mov", "m4v", "mp3", "wav", "m4a", "aiff"].contains(ext) {
           VStack {
@@ -204,7 +212,15 @@ import SwiftUI
                   .foregroundStyle(.secondary)
               }
             }
-            Text(item.text).textSelection(.enabled)
+            if let saved = references.document, saved.body.originVersionID == item.id {
+              ReferenceReadingText(presentation: saved.presentation, open: openReference)
+            } else {
+              Text(item.text).textSelection(.enabled)
+            }
+            if let failure = references.failure {
+              Text("Saved links are unavailable: " + failure).font(.caption).foregroundStyle(
+                .secondary)
+            }
             if item.kind == "link", let target = URL(string: item.data["url"].text) {
               Link("Open source website", destination: target)
             }
@@ -242,6 +258,10 @@ import SwiftUI
             copiedPassages
             lineage
           }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+              DocumentScrollObserver(position: state.itemReading[item.id] ?? .init()) {
+                state.itemReading[item.id] = $0
+              })
         }
       }
       if let status = try? state.workbook?.extractionStatus(item.id), !status["detail"].text.isEmpty
@@ -252,6 +272,44 @@ import SwiftUI
       }
     }.sheet(isPresented: $choosingArchiveMembers) {
       ArchiveMemberPicker(source: item, state: state)
+    }
+    .sheet(item: $state.referenceModal) { modal in
+      switch modal {
+      case .browser:
+        ReferencesPanel(
+          item: item, workbook: workbook, session: references, state: state, open: openReference)
+      case .choice(let occurrence):
+        ReferenceTargetPicker(
+          item: item, occurrence: occurrence, workbook: workbook,
+          revision: state.revision
+        ) { target, token in
+          guard let saved = references.document, saved.body.originVersionID == item.id,
+            state.workbook === workbook,
+            state.interactionActive, !state.busy, document.current.id == occurrence.origin,
+            !document.dirty
+          else {
+            throw SevraError("workspace_changed", "Refresh this document before changing a link.")
+          }
+          let original = item
+          let updated = try await Task.detached(priority: .userInitiated) {
+            try saved.choose(
+              occurrence, target: target, item: original, workbook: workbook,
+              token: token, cancellation: Cancellation(deadlineAfterSeconds: 3))
+          }.value
+          guard state.workbook === workbook, state.interactionActive else { return }
+          state.refresh()
+          if document.current.id == original.id && state.viewedItemVersion == original.id {
+            if updated.id != original.id {
+              state.navigate(.item(updated.id))
+            } else {
+              await references.load(original, workbook: workbook)
+            }
+          }
+        }
+      }
+    }
+    .task(id: "\(item.id):\(state.revision)") {
+      await references.load(item, workbook: workbook)
     }
     .onAppear {
       if item.assetID != nil { state.activePreview = preview }
@@ -267,6 +325,8 @@ import SwiftUI
     }
     .onChange(of: state.revision) { _, _ in document.refreshHead() }
     .onDisappear {
+      references.cancel()
+      linkNavigation?.cancel()
       preview.cancel()
       if state.activePreview === preview { state.activePreview = nil }
       document.flush()
@@ -336,9 +396,11 @@ import SwiftUI
               if !passage.locator.isEmpty {
                 Text(passage.locator).font(.caption).foregroundStyle(.secondary).lineLimit(2)
               }
-              Button("Open original passage") { state.navigate(.item(passage.sourceVersionID)) }
-                .buttonStyle(.link)
-                .accessibilityLabel("Open original passage \(passage.id + 1)")
+              Button("Open original passage") {
+                state.openEvidence(passage.sourceVersionID, locator: passage.locator)
+              }
+              .buttonStyle(.link)
+              .accessibilityLabel("Open original passage \(passage.id + 1)")
             }
           }
         }.padding(.top, 8).frame(maxWidth: .infinity, alignment: .leading)
@@ -351,6 +413,45 @@ import SwiftUI
     Button("Copy text") {
       NSPasteboard.general.clearContents()
       NSPasteboard.general.setString(document.text, forType: .string)
+    }
+  }
+  private func openReference(_ occurrence: ReferenceOccurrence) {
+    guard let saved = references.document, saved.body.originVersionID == item.id,
+      state.workbook === workbook,
+      state.interactionActive, document.end()
+    else { return }
+    if occurrence.reference.resolution == .unresolved {
+      if item.category == "source" || (item.kind == "document" && item.assetID == nil) {
+        state.referenceChoice = occurrence
+      } else {
+        state.referenceModal = nil
+        state.error =
+          "This link has no chosen destination. Change this record through a new record version."
+      }
+      return
+    }
+    state.referenceModal = nil
+    let navigation = state.itemPreviewIdentity
+    linkNavigation?.cancel()
+    let control = Cancellation(deadlineAfterSeconds: 3)
+    linkNavigation = control
+    Task {
+      do {
+        let result = try await Task.detached(priority: .userInitiated) {
+          try saved.resolve(occurrence, workbook: workbook, cancellation: control)
+        }.value
+        guard !control.isCancelled, state.workbook === workbook, state.interactionActive,
+          state.itemPreviewIdentity == navigation
+        else { return }
+        if let target = result["destination"]["id"].string {
+          state.openEvidence(target)
+        } else {
+          state.error = result["detail"].string ?? "This saved link is unavailable."
+        }
+      } catch {
+        guard !control.isCancelled, state.itemPreviewIdentity == navigation else { return }
+        state.error = error.localizedDescription
+      }
     }
   }
 }
@@ -403,6 +504,7 @@ import SwiftUI
 struct PDFWorkspace: View {
   let url: URL
   let locator: String?
+  let onPage: (Int) -> Void
   let onSelection: (String) -> Void
   @StateObject private var controls = PDFControls()
   var body: some View {
@@ -431,9 +533,10 @@ struct PDFWorkspace: View {
       Divider()
       PDFViewer(url: url, locator: locator, onSelection: onSelection, controls: controls)
     }
+    .onChange(of: controls.page) { _, page in onPage(page) }
   }
 }
-struct PDFViewer: NSViewRepresentable {
+@MainActor struct PDFViewer: NSViewRepresentable {
   let url: URL
   let locator: String?
   let onSelection: (String) -> Void
@@ -443,30 +546,21 @@ struct PDFViewer: NSViewRepresentable {
     let view = PDFView()
     view.autoScales = true
     view.displayMode = .singlePageContinuous
-    view.document = PDFDocument(url: url)
+    context.coordinator.navigation.apply(view, url: url, locator: locator)
     controls.view = view
     context.coordinator.observe(view)
     DispatchQueue.main.async { controls.refresh() }
-    navigate(view)
     return view
   }
   func updateNSView(_ view: PDFView, context: Context) {
-    if view.document?.documentURL != url {
-      view.document = PDFDocument(url: url)
-      navigate(view)
-    }
+    context.coordinator.navigation.apply(view, url: url, locator: locator)
   }
-  func navigate(_ view: PDFView) {
-    guard let locator, let match = locator.range(of: "page=[0-9]+", options: .regularExpression),
-      let n = Int(locator[match].dropFirst(5)), let page = view.document?.page(at: n - 1)
-    else { return }
-    view.go(to: page)
-  }
-  final class Coordinator: NSObject {
+  @MainActor final class Coordinator: NSObject {
     let callback: (String) -> Void
     var token: NSObjectProtocol?
     var pageToken: NSObjectProtocol?
     let controls: PDFControls
+    let navigation = PDFReadingNavigation()
     init(_ callback: @escaping (String) -> Void, controls: PDFControls) {
       self.callback = callback
       self.controls = controls
@@ -478,20 +572,22 @@ struct PDFViewer: NSViewRepresentable {
       token = NotificationCenter.default.addObserver(
         forName: .PDFViewSelectionChanged, object: view, queue: .main
       ) { [weak self, weak view] _ in
-        guard let view, let selection = view.currentSelection, let text = selection.string,
-          let document = view.document
-        else { return }
-        // Selection notifications can precede scrolling to a search match.
-        // Use the selected pages, never the previously visible page.
-        let pages = selection.pages.map { document.index(for: $0) }.filter { $0 != NSNotFound }
-          .sorted()
-        let location: String
-        if let first = pages.first, let last = pages.last {
-          location = first == last ? "Page \(first + 1)" : "Pages \(first + 1)–\(last + 1)"
-        } else {
-          location = "PDF selection"
+        MainActor.assumeIsolated {
+          guard let view, let selection = view.currentSelection, let text = selection.string,
+            let document = view.document
+          else { return }
+          // Selection notifications can precede scrolling to a search match.
+          // Use the selected pages, never the previously visible page.
+          let pages = selection.pages.map { document.index(for: $0) }.filter { $0 != NSNotFound }
+            .sorted()
+          let location: String
+          if let first = pages.first, let last = pages.last {
+            location = first == last ? "Page \(first + 1)" : "Pages \(first + 1)–\(last + 1)"
+          } else {
+            location = "PDF selection"
+          }
+          self?.callback(location + ": " + String(text.prefix(4000)))
         }
-        self?.callback(location + ": " + String(text.prefix(4000)))
       }
     }
     deinit {

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5zn6ks2pyv72pjs65f90rxj
 created: 2026-10-27T21:45:28.610289+00:00
-updated: 2026-10-28T06:09:16.471871+00:00
+updated: 2026-10-28T06:39:01.846982+00:00
 summary: Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.
 title: Inline references and relationships
 status: reviewed
@@ -13,7 +13,7 @@ status: reviewed
 ## Decision and scope
 
 Adopted October 27, 2026. The explicit-binding foundation, bounded body parser, backlink index and owner-facing CLI are implemented.
-Retained extracted-text links and owner CLI inspection are now implemented as a bounded slice. Native interaction, scoped agent traversal, embedded format-specific hyperlinks and complete first-slice acceptance remain pending. Authority:
+Retained extracted-text links, owner CLI inspection and a bounded native reader/navigation slice are implemented. Visible usability qualification, general voice/text authoring, scoped agent traversal, embedded format-specific hyperlinks and complete first-slice acceptance remain pending. Authority:
 [[sources/notes/2026/10/inline-references-adoption]]. This extends Sources/Records,
 SQLite, native previews and agentic search without adding a business category.
 At adoption, record bodies retain wiki syntax as text, conversation messages have
@@ -413,3 +413,65 @@ skill for argument shapes. The focused core and packaged CLI evidence is recorde
 in [[records/operations/implementation]]. Native links/resolution/Back, voice/text
 authoring, scoped local-agent traversal/read enforcement and LJ07/LJ09/LJ10 remain
 open. This slice does not qualify complete L01-L14 delivery or app release.
+
+
+## Native reader and navigation slice, October 28
+
+Supported saved body links now render as their readable labels. Display-only token
+boundaries hide recognized wiki/Markdown wrappers; destinations still come from
+canonical versioned bindings. The reader verifies exact body hashes and scalar
+labels. Code examples and external web syntax remain literal here. Its private
+native action URLs identify saved occurrences and are intercepted against that
+exact rendered set. No raw input route opens a file, website or another workbook.
+Rendering changes neither original bytes nor copied-passage evidence.
+
+An optional Links sheet in the existing right viewer shows links in this document
+or Mentioned in. Incoming discovery uses bounded 20-result keyset pages, current
+origins by default, with explicit earlier-origin and exact-target filters. Failed
+next-page reads retain the current page. Scope changes cancel and invalidate old
+results. Coverage copy distinguishes missing indexed text from a proven absence;
+mentions establish navigation, not payment, derivation or corroboration. A missing
+body annotation can be explicitly checked without inference. Embedded hyperlinks
+and unextracted content remain outside this captured coverage.
+
+Choose destination searches the workbook and requires an explicit item selection.
+By default it follows that item's logical identity; Keep this exact version pins
+it. The complete saved occurrence set is retained while only the chosen binding
+changes. Source/body and retained file-text choices create versioned annotations
+without changing Source or asset bytes. A Record text-document correction creates
+a new draft version. Other Record types still require their domain version
+workflow. Leave unresolved is explicit; duplicate titles never auto-bind. Stale
+snapshots refuse and exact retries preserve the original operation.
+
+Text or dictation of Show links, Where is this mentioned? and Go back invokes
+exact whole-request shell commands without loading the model, including while a
+model turn is busy. Corresponding Spanish phrases are supported. This is a small
+command vocabulary, not general natural-language authoring, pronoun resolution,
+new-span selection or complete voice equivalence. Native controls remain optional.
+
+Opening a saved occurrence uses the normal temporary right-pane viewer. Back also
+has Command+[ and flushes drafts before leaving. Window-owned exact-item reading
+positions restore native body scrolling, proportionally after reflow. PDF page
+navigation retains current pages; a new page locator in the same file is applied
+without reloading it or resetting manual reading on unrelated updates. Open
+original passage now forwards its saved locator as well as the exact version.
+Media time/image zoom and durable across-relaunch item reading positions are not
+qualified by this slice. A failed draft flush cannot alter the requested locator.
+
+Link reads, resolution and paging run off the main actor with deadlines and
+cancellation. Superseded/cancelled requests cannot replace another exact preview;
+wrong-origin results refuse. Choosing links uses existing authority, transaction,
+stale-version, receipt and retry rules. Binding-only Record document revisions
+retain exact-copy metadata only when text bytes are unchanged, references are
+explicit and the operation is not a separate copy. Free-text edits still discard
+those spans. See [[records/specs/document-composition]].
+
+Focused evidence and preserved failed attempts are in
+[[records/operations/implementation]]. Native scroll/PDF tests are programmatic
+checks of real AppKit/PDFKit objects. The Mac UI tool remains locked; readable
+inline keyboard activation, actual VoiceOver, narrow-window layout, saved-copy
+navigation and full LJ01-LJ10 remain unqualified. Scoped agent traversal, reading
+destinations before citation and real retrieval-value comparisons are still next.
+The official SwiftUI contracts used are Apple's
+[AttributedString Text initializer](https://developer.apple.com/documentation/swiftui/text/init%28_%3A%29)
+and [OpenURLAction handler](https://developer.apple.com/documentation/swiftui/openurlaction/init%28handler%3A%29?language=_6).

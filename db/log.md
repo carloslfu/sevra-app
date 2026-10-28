@@ -526,3 +526,6 @@ Implemented schema-6 bounded shared body-link parsing, stable unresolved retenti
 ## [2026-10-28 06:11] implementation | records/operations/implementation.md
 Schema 7: retained extracted-text annotations, guarded extraction publication, deduplicated body/file discovery and owner CLI; 129 core, 18 document, 24 body CLI and 26 extracted CLI checks pass. Native/agent/release gates remain open.
 
+## [2026-10-28 06:41] implementation | records/operations/implementation.md
+Implemented bounded native saved-link reading, destination correction, incoming mention pages, model-free navigation commands, body/PDF reading state and byte-identical binding-only copy provenance. Core 129, documents 27, preview and packaged 50 reference checks pass; visible UI remains locked and full application gates stay open.
+

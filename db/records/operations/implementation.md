@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T06:11:04.841924+00:00
+updated: 2026-10-28T06:42:13.087625+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -4429,3 +4429,96 @@ It binds final code/product hashes, failed and successful logs, package/CLI
 checks and explicit limits. Earlier receipts remain unchanged. See
 [[records/specs/references-and-relationships]], [[records/specs/storage]],
 [[records/specs/search]] and [[records/operations/build-and-run]].
+
+## Native saved-link reader and navigation checkpoint, October 28
+
+Continues f3fc02f. Schema 7 is unchanged. The native right viewer renders supported
+saved body links as readable labels, with captured binding identities rather than
+raw source URLs. Optional Links/Mentioned in uses bounded 20-result keyset pages,
+explicit current/earlier-origin and logical/exact-target scope, and truthful
+coverage copy. A failed next page retains the current page; stale/cancelled and
+wrong-origin document reads cannot publish into another preview.
+
+Choose destination explicitly searches/selects a workbook item, follows its
+logical identity by default or pins its exact version, and preserves every other
+saved occurrence. Body and retained file-text Source corrections leave evidence
+and assets unchanged. Record text-document corrections create ordinary drafts;
+other Record kinds require their domain version workflow. Existing spans may be
+corrected here; arbitrary new-span authoring and general voice linking remain open.
+A missing body index can be explicitly checked from the sheet. No external file or
+workbook is opened by a discovered link and no model read/citation proof is created.
+
+Show links, Where is this mentioned? and Go back, plus their documented Spanish
+forms, are exact whole-request shell commands. They work through text/dictation
+without waiting for model inference, including while a model turn is busy. Negated
+and longer requests do not accidentally become shell commands. These are not
+complete natural-language authoring or voice-equivalence qualification.
+
+Back retains the normal prior space/item, flushes drafts and has Command+[. Native
+body clip-view positions are window-owned and restore exactly or proportionally
+following reflow. PDF pages are retained; the same open PDF now responds to a new
+page locator without reloading it or resetting manual navigation on unrelated
+updates. Copied passages forward their saved exact source locator. A refused draft
+flush cannot replace the old viewer locator. Other media reading-state and across-
+relaunch item position qualification remain open.
+
+A binding-only Record document revision preserves exact-copy metadata only when
+explicit references accompany byte-identical text and separate is false. Its new
+submission and draft still use normal lineage/receipts. Free-text changes and
+separate copies retain the existing span-removal behavior. Workbook.verify and
+nearby edit/retry/stale checks pass with this exception.
+
+Focused verification from final source:
+
+- Rebuilt core suite: 129 passed, zero failed. Parser additions expose only display
+  token boundaries; canonical selection/binding behavior remains under regression.
+- Rebuilt document suite: 27 passed, zero failed. Nine added groups cover exact
+  Unicode/NUL/CRLF labels and safe native routing; Source/file correction with
+  original bytes, other occurrences, retries and stale refusal; binding-only exact
+  copy proof followed by prose-edit invalidation; reading geometry; actual PDFKit
+  same-file page changes and invalid locators; a real offscreen SwiftUI/AppKit clip
+  view restore/manual-scroll observation; stale/cancelled/wrong-origin reads; and
+  real 25-origin bounded incoming pages with failed-next preservation and scope races.
+  The executable now refuses process exit before its final result. These checks
+  exercise native objects but are not a visible user journey or VoiceOver pass.
+- Rebuilt sevra-preview-checks passes. It checks the new English/Spanish exact shell
+  commands, busy submission, and nearby negated/long-request counterexamples within
+  existing preview, workspace, conversation and history ownership checks.
+- Native app, CLI and extraction helper build/package successfully. Packaged body
+  reference journey: 24 checks, 51 calls, max process time 0.3048 seconds. Packaged
+  extracted-reference journey: 26 checks, 83 calls, max 0.3884 seconds. These include
+  startup and are not model throughput or large-graph latency claims.
+- Native package/resource checks pass with app/CLI build-tree reads denied, 1888
+  kernels, unchanged engine and grammar hashes, no baseline/Python linkage, missing
+  model guidance and failed-run preservation, ten missing and one altered resource
+  refused, and strict valid signature. Strict formatting of all 15 changed Swift
+  files passes; repository Markdown links and full db.md validation pass.
+
+Preserved failures: initial document compile attempts had argument-order and
+actor-await fixture errors. Two document runs exited zero after 23 groups without
+reaching the final asynchronous checks. A subsequent exit sentinel correctly
+refused that incomplete run. Reference checks now run before fixture-window close
+lifecycle tests and the full 27-group final result is required. A PDF fixture used
+an NSImage without pixel data and raised an Objective-C exception; the fixture now
+writes a real three-page PDF. The first full native package build required explicit
+main-actor isolation for PDF navigation; its next build had a selection callback
+isolation warning. Both are fixed and the final app build has no warnings. Failed
+logs remain in the immutable receipt; earlier receipts remain unchanged.
+
+The Mac UI tool again reports locked/automatic unlock paused after the owner's
+unlocked reply. No duplicate unlock question was sent. Saved-copy navigation,
+inline keyboard activation, actual VoiceOver, narrow layout, new spoken commands
+and full LJ01-LJ10 remain unqualified. Scoped local-agent reference traversal/read
+enforcement, general linking/span authoring, embedded file hyperlinks and measured
+retrieval-value/large-graph comparisons are next. Conversation-origin exact copies,
+semantic inventory identity, context/compaction, J11, wider voice/accessibility,
+memory/hardware, fresh-install and release gates remain open. The full application
+goal is active. No model cohort, full installer/release or hosted CI was rerun.
+
+See [[records/specs/references-and-relationships]],
+[[records/specs/document-composition]], [[records/reviews/design-passes]] and
+[[records/operations/build-and-run]].
+
+Immutable receipt: [native reference reader](../../../integration/evidence/2026-10-28-native-reference-reader.json.gz), 15,661 bytes, SHA-256
+`87a6ef1a2769f36f1fa0c9b7206c829f8f5f325032a8bb0ee55ad82f98d11b29`. It binds final source/product hashes, failed and passing diagnostics,
+package/CLI evidence and explicit limits. Earlier receipts remain byte-identical.

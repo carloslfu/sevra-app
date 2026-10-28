@@ -99,13 +99,19 @@ import SwiftUI
 /// Explicit shell controls work without waiting for inference. Match complete
 /// submissions only, so requests such as "don't stop" cannot become cancellation.
 public enum WorkspaceControlCommand: Equatable {
-  case stop, stopPreview, retryPreview, findOriginal, openCopy
+  case stop, stopPreview, retryPreview, findOriginal, openCopy, showMentions, showLinks, goBack
 
   public static func parse(_ input: String) -> Self? {
     let text = input.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
       .trimmingCharacters(in: CharacterSet(charactersIn: ".!?"))
       .trimmingCharacters(in: .whitespacesAndNewlines)
     switch text {
+    case "where is this mentioned", "show mentions", "show incoming links",
+      "dónde se menciona esto":
+      return .showMentions
+    case "show links", "show links in this document", "show references", "mostrar enlaces":
+      return .showLinks
+    case "go back", "back", "volver", "atrás": return .goBack
     case "stop", "cancel", "stop work", "cancel operation", "detener", "cancelar": return .stop
     case "stop preview", "cancel preview", "stop opening this file": return .stopPreview
     case "retry preview", "retry this preview", "open this file again": return .retryPreview

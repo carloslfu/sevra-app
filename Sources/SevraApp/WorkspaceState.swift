@@ -77,6 +77,22 @@ import SwiftUI
   }
   @Published var selectionLabel: String?
   @Published var itemLocators: [String: String] = [:]
+  @Published var itemReading: [String: DocumentReadingPosition] = [:]
+  @Published var referenceModal: ReferenceModal?
+  var referencePanel: ReferenceDirection? {
+    get {
+      if case .browser(let direction) = referenceModal { return direction }
+      return nil
+    }
+    set { referenceModal = newValue.map(ReferenceModal.browser) }
+  }
+  var referenceChoice: ReferenceOccurrence? {
+    get {
+      if case .choice(let occurrence) = referenceModal { return occurrence }
+      return nil
+    }
+    set { referenceModal = newValue.map(ReferenceModal.choice) }
+  }
   @Published var messageAnchor: String?
   @Published var revision = 0
   @Published var focus = false
@@ -143,6 +159,8 @@ import SwiftUI
     restoreConversationPresentation()
     selectedContext = ""
     itemLocators = [:]
+    itemReading = [:]
+    referenceModal = nil
     messageAnchor = conversationSession.state.reading.message
     error = nil
     searchQuery = ""
@@ -260,6 +278,7 @@ import SwiftUI
       if !replacing { navigation.append(shown) }
       if navigation.count > 20 { navigation.removeFirst() }
       route = new
+      referenceModal = nil
       viewedItemVersion = nil
       itemPreviewIdentity = UUID()
       selectedContext = ""
@@ -268,8 +287,8 @@ import SwiftUI
     return route == new
   }
   func openEvidence(_ id: String, locator: String? = nil) {
+    guard navigate(.item(id)) else { return }
     if let locator { itemLocators[id] = locator }
-    navigate(.item(id))
   }
   func jumpToMessage(_ id: String) {
     do {
@@ -281,6 +300,7 @@ import SwiftUI
     guard documentDrafts.flush() else { return }
     if let prior = navigation.popLast() {
       route = prior
+      referenceModal = nil
       viewedItemVersion = nil
       itemPreviewIdentity = UUID()
       selectedContext = ""
@@ -745,6 +765,24 @@ import SwiftUI
   private func control(_ command: WorkspaceControlCommand, input: String, book: Workbook) {
     let notice: String
     switch command {
+    case .showMentions, .showLinks:
+      guard case .item = route, viewedItemVersion != nil else {
+        error = "Open a document or record first."
+        return
+      }
+      referencePanel = command == .showMentions ? .incoming : .outgoing
+      notice =
+        command == .showMentions
+        ? "Showing saved mentions of this item." : "Showing saved links in this item."
+    case .goBack:
+      guard !navigation.isEmpty else {
+        error = "There is no earlier view in this window."
+        return
+      }
+      let count = navigation.count
+      back()
+      guard navigation.count < count else { return }
+      notice = "Returned to the previous view."
     case .stop:
       let active = busy || activePreview?.loading == true
       stop()

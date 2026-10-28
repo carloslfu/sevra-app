@@ -4,10 +4,10 @@ import SevraCore
 import SevraDocumentUI
 
 private struct Failure: Error { let message: String }
-private func expect(_ condition: @autoclosure () throws -> Bool, _ message: String) throws {
+func expect(_ condition: @autoclosure () throws -> Bool, _ message: String) throws {
   if try !condition() { throw Failure(message: message) }
 }
-private func refuses(_ code: String, _ body: () throws -> Void) throws {
+func refuses(_ code: String, _ body: () throws -> Void) throws {
   do {
     try body()
     throw Failure(message: "Expected refusal: " + code)
@@ -33,11 +33,28 @@ private func fixtureSQL(_ workbook: Workbook, _ statement: String) throws {
   func windowWillClose(_ notification: Notification) { closes += 1 }
 }
 
+@MainActor private final class CheckApplicationDelegate: NSObject, NSApplicationDelegate {
+  func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+  func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+    .terminateCancel
+  }
+}
+
+nonisolated(unsafe) private var checksCompleted = false
+
 @main private struct DocumentChecks {
   @MainActor static func main() async {
     setbuf(stdout, nil)
     _ = NSApplication.shared
     NSApp.setActivationPolicy(.prohibited)
+    let applicationDelegate = CheckApplicationDelegate()
+    NSApp.delegate = applicationDelegate
+    atexit {
+      if !checksCompleted {
+        fputs("FAIL Document checks exited before their final result.\n", stderr)
+        _Exit(1)
+      }
+    }
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       "sevra-document-checks-" + UUID().uuidString)
     try! FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -357,7 +374,7 @@ private func fixtureSQL(_ workbook: Workbook, _ statement: String) throws {
       let (book, original) = try fixture()
       let scope = DocumentDraftScope()
       var editor: DocumentDraft? = DocumentDraft(workbook: book, item: original)
-      weak var reference = editor
+      weak let reference = editor
       scope.register(editor!)
       editor!.begin()
       editor!.update("Quit immediately after typing")
@@ -369,6 +386,7 @@ private func fixtureSQL(_ workbook: Workbook, _ statement: String) throws {
       editor = nil
       try expect(reference == nil, "Registry retained its editor")
     }
+    await checkNativeReferences(at: root, check: check, checkAsync: checkAsync)
     check("Native close guard preserves the original delegate and blocks refused saves") {
       let window = window()
       let original = PreviousDelegate()
@@ -435,6 +453,8 @@ private func fixtureSQL(_ workbook: Workbook, _ statement: String) throws {
     print(
       "\(passed) passed; \(failures.count) failed. Programmatic lifecycle checks do not replace visible editor journeys."
     )
+    checksCompleted = true
+    withExtendedLifetime(applicationDelegate) {}
     exit(failures.isEmpty ? 0 : 1)
   }
 }

@@ -48,6 +48,8 @@ struct WorkbookView: View {
           HStack {
             if !state.navigation.isEmpty {
               Button(action: state.back) { Image(systemName: "chevron.left") }.help("Back")
+                .accessibilityLabel("Back to previous view")
+                .keyboardShortcut("[", modifiers: .command)
             }
             Text(routeTitle).font(.title3.weight(.medium)).lineLimit(1)
             Spacer()

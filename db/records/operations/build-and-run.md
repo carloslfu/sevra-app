@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T06:09:16.513198+00:00
+updated: 2026-10-28T06:39:01.905057+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1262,3 +1262,30 @@ file projections without parsing, fetching or binding unresolved labels.
 body or extracted. Merge/deduplication and filtering precede pages. Keep schema-7
 app/CLI builds matched. The repo's check.sh includes both model-free CLI journeys;
 packaged product checks still require building the native layout explicitly.
+
+## Native saved links and Back
+
+Open an item in the right viewer. Supported saved body links display their labels;
+choose one to open its saved destination in the same viewer. An unresolved label
+opens Choose destination where supported. Links opens the optional sheet. Switch
+to Mentioned in for bounded incoming pages, with explicit earlier-version and
+exact-version filters. Choose destination can correct an existing body or retained
+file-text binding. Search and select the actual item; Keep this exact version pins
+it, otherwise it follows the item's latest version. Source files remain unchanged;
+a Record document change creates a draft. Other Record types need their domain
+workflow. Embedded file hyperlink objects are not covered.
+
+Type or dictate Show links, Where is this mentioned? or Go back in the normal
+composer. These whole-request shell commands work without inference. Spanish
+Mostrar enlaces, Dónde se menciona esto and Volver are also accepted. General
+phrasing, arbitrary link authoring and span selection remain future work. Back's
+keyboard shortcut is Command+[. Document text scrolling and PDF pages are retained
+within this workbook window. A new PDF page locator works even when that file is
+already open. Copied passages forward their saved locator when opening originals.
+
+Run swift run -j 4 sevra-document-checks and swift run -j 4 sevra-preview-checks for
+focused session, real offscreen AppKit/PDFKit, link choice, provenance, keyset,
+cancellation and shell-command checks. Build the native layout before packaged
+checks. Programmatic passes do not qualify physical keyboard/VoiceOver, narrow
+layout, voice dictation of these new commands or the full visible journey. Current
+evidence and Mac-lock limitation: [[records/operations/implementation]].

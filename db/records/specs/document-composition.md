@@ -2,7 +2,7 @@
 type: spec
 id: 01m609st2pz8zhg7bcpec874g1
 created: 2026-10-28T03:45:29.174789+00:00
-updated: 2026-10-28T04:47:28.792277+00:00
+updated: 2026-10-28T06:39:01.866548+00:00
 summary: Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 title: Source-bound document composition
 status: reviewed
@@ -340,3 +340,17 @@ metadata. Full receipt integrity remains Workbook.verify's responsibility; no
 authorship, truth or current acceptance is implied. All 18 document UI/lifecycle
 checks pass. Visual, keyboard, narrow-layout and source-return interaction still
 need the native preview; compiling a control is not a visible journey pass.
+
+## Binding-only correction exception, October 28
+
+A versioned link choice may change bindings while preserving byte-identical
+composed document text. editDocument now retains documentComposition only when
+references are explicitly supplied, separate is false and all UTF-8 text bytes
+match the original. The new draft still records its human submission and original
+version as inputs. Exact-copy spans and receipt identity remain valid and verify.
+Free-text edits, changed bytes and explicit separate copies keep the existing
+span-removal behavior. The original always remains inspectable. Native source
+opening forwards the exact copied locator. Programmatic checks cover this
+exception, stale refusal, exact retries and subsequent prose edits; visible
+interaction remains pending. See [[records/specs/references-and-relationships]]
+and [[records/operations/implementation]].

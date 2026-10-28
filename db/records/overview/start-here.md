@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-28T06:09:16.551727+00:00
+updated: 2026-10-28T06:39:01.885849+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -20,9 +20,9 @@ The product name is Sevra; Sevra Workbooks is a descriptive offer. This public
 repository is `sevra-app` because the separate website business already uses
 `sevra`. Workbook is Sevra's primary product and homepage; a small Websites top-navigation link
 leads to the secondary service. Website pricing/support does not apply to this app.
-Slotstream remains independent. The existing build uses its public library; the
-adopted direction replaces it with a Swift integration of upstream Splash C++/Metal,
-with no Python runtime. See [[records/specs/splash-integration]].
+Slotstream remains independent. The native qualification build integrates upstream
+Splash C++/Metal through Swift, with no Python runtime. The prior Slotstream build
+is retained as a separate baseline until native adoption gates pass. See [[records/specs/splash-integration]].
 
 ## Reading order
 
@@ -30,7 +30,7 @@ with no Python runtime. See [[records/specs/splash-integration]].
 - [[records/specs/product]]: requirements and user experience.
 - [[records/specs/storage]]: package, data, transactions, history and calculations.
 - [[records/specs/search]]: intake, extraction, indexes, retrieval and scaling.
-- [[records/specs/references-and-relationships]]: version-safe body/extracted-text bindings and deduplicated backlink CLI; native interaction and scoped agent tools pending.
+- [[records/specs/references-and-relationships]]: version-safe body/extracted-text bindings, backlink CLI and native link views; visible usability and scoped agent tools pending.
 - [[records/specs/document-composition]]: source-bound exact copies; bounded native fidelity checks pass, visible provenance interaction pending.
 - [[records/specs/intelligence]]: local model, tools, native generated UI and voice.
 - [[records/specs/conversation-context]]: automatic compaction, durable history and context qualification.

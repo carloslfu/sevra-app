@@ -6,6 +6,26 @@ public struct ReferenceParseResult: Sendable {
   public let state: String
   public let detail: String
   public let unsupportedTokens: Int
+  public let syntax: [ReferenceSyntaxSpan]
+
+  init(
+    selections: [ReferenceSelection], state: String, detail: String, unsupportedTokens: Int,
+    syntax: [ReferenceSyntaxSpan] = []
+  ) {
+    self.selections = selections
+    self.state = state
+    self.detail = detail
+    self.unsupportedTokens = unsupportedTokens
+    self.syntax = syntax
+  }
+}
+
+/// Presentation boundaries only. Destinations always come from saved bindings.
+public struct ReferenceSyntaxSpan: Sendable {
+  public let startScalar: Int
+  public let scalarCount: Int
+  public let labelStartScalar: Int
+  public let labelScalarCount: Int
 }
 
 /// Versioned, deterministic source parsing. Names remain lookup hints, not IDs.
@@ -97,7 +117,7 @@ public enum InlineReferenceParser {
     func string(_ r: Range<Int>) -> String { String(String.UnicodeScalarView(scalars[r])) }
     var blocked = [UInt8](repeating: 0, count: scalars.count)
     func block(_ r: Range<Int>) { for i in r { blocked[i] = 1 } }
-    var found: [ReferenceSelection] = []
+    var found: [(selection: ReferenceSelection, syntax: ReferenceSyntaxSpan)] = []
     var unsupported = 0
     let document = Document(parsing: parserText)
     try cancellation.check()
@@ -192,9 +212,14 @@ public enum InlineReferenceParser {
         }
         if let label, !label.isEmpty, label.count <= 1024, string(label).utf8.count <= 1024 {
           found.append(
-            .init(
-              startScalar: label.lowerBound, scalarCount: label.count, target: target,
-              lookup: destination))
+            (
+              .init(
+                startScalar: label.lowerBound, scalarCount: label.count, target: target,
+                lookup: destination),
+              .init(
+                startScalar: r.lowerBound, scalarCount: r.count,
+                labelStartScalar: label.lowerBound, labelScalarCount: label.count)
+            ))
         } else {
           unsupported += 1
         }
@@ -274,20 +299,26 @@ public enum InlineReferenceParser {
         continue
       }
       found.append(
-        .init(
-          startScalar: label.lowerBound, scalarCount: label.count, target: selectedTarget,
-          lookup: lookup))
+        (
+          .init(
+            startScalar: label.lowerBound, scalarCount: label.count, target: selectedTarget,
+            lookup: lookup),
+          .init(
+            startScalar: start, scalarCount: end + 2 - start,
+            labelStartScalar: label.lowerBound, labelScalarCount: label.count)
+        ))
     }
-    found.sort { $0.startScalar < $1.startScalar }
+    found.sort { $0.selection.startScalar < $1.selection.startScalar }
     let limited = found.count > Workbook.referenceLimit
     return ReferenceParseResult(
-      selections: Array(found.prefix(Workbook.referenceLimit)),
+      selections: found.prefix(Workbook.referenceLimit).map(\.selection),
       state: limited || unsupported > 0 ? "partial" : "ready",
       detail: limited
         ? "The body contains more links than one annotation snapshot supports. Listed links are partial."
         : unsupported > 0
           ? "Supported body links were parsed; some unsupported tokens remain plain text."
           : "Item body checked for supported links. Names remain unresolved until selected.",
-      unsupportedTokens: unsupported)
+      unsupportedTokens: unsupported,
+      syntax: found.prefix(Workbook.referenceLimit).map(\.syntax))
   }
 }

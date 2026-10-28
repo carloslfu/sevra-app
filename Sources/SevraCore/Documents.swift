@@ -4,7 +4,8 @@ extension Workbook {
   /// Preserve submitted text and its derived draft in one transaction.
   /// A separate draft is an explicit copy, never a silent overwrite of a newer
   /// version. Meaning, scenario and business metadata survive either operation.
-  /// Exact-copy spans stay on the immutable original, not re-entered prose.
+  /// Free-text edits discard exact-copy spans. An explicit binding-only change
+  /// with byte-identical prose preserves them on the new version.
   public func editDocument(
     _ versionID: String, text: String, separate: Bool = false,
     token: String = identifier(), expectedRevision: Int? = nil,
@@ -46,7 +47,9 @@ extension Workbook {
       // A free-text edit can move or change any copied span. Its new submission
       // and original-document lineage preserve evidence without asserting stale
       // byte positions or silently realigning repeated passages.
-      if case .object(var fields) = data {
+      let bindingOnly =
+        references != nil && !separate && text.utf8.elementsEqual(original.text.utf8)
+      if !bindingOnly, case .object(var fields) = data {
         fields.removeValue(forKey: "documentComposition")
         data = .object(fields)
       }

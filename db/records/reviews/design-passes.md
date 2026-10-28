@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-28T03:51:08.510363+00:00
+updated: 2026-10-28T06:39:01.923773+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -289,3 +289,24 @@ behavior separates exact copies from interpretation and completeness. Retain
 the failed generative-review experiment. The core foundation passes focused
 invariants; agent selection, conversation values, native interaction and the
 actual failed job remain unqualified.
+
+## Native saved-reference review, October 28
+
+Three focused reviews accompany the reader/navigation implementation:
+
+- Authority: render saved bindings, never route raw source URLs; live navigation
+  resolves an exact version without creating citation evidence. Explicit choices
+  preserve every other occurrence, never promote a mention to a business claim
+  and do not grant another workbook's access. General agent traversal stays open.
+- Durability: Source and asset bytes remain unchanged; Record corrections create
+  ordinary drafts with stale checks and retry identity. Byte-identical binding-only
+  composed drafts retain valid copy spans; free-text changes discard them. Late
+  reads and failed next-page requests cannot replace useful current state.
+- Usability: optional Links/Mentioned in stays in the existing right viewer;
+  exact text/dictation shell commands need no inference. Back flushes drafts and
+  restores body position/PDF page. Clear unindexed coverage avoids false absence.
+  These choices still require visible keyboard, VoiceOver and narrow-layout
+  qualification. Bounded offscreen correctness is not evidence of broad usability.
+
+See [[records/specs/references-and-relationships]] and
+[[records/operations/implementation]] for implementation scope, failures and gates.
