@@ -123,20 +123,45 @@ final class ChangeCapture {
     if pending?.contains(where: { !ChangeFormat.tables.contains($0.table) }) == true {
       try database.trimPerformanceIndexes()
     }
-    guard let pending, !pending.isEmpty else { return }
+    guard pending?.isEmpty == false else { return }
     let prior = try database.execute(
       "SELECT id,hash FROM committed_changes ORDER BY rowid DESC LIMIT 1"
     ).first
     // An ordinary operation and its receipt use the same global identity. Small
     // infrastructure writes have a separate identity without a business revision.
-    let operationIDs = pending.filter { $0.table == "operations" && $0.before == nil }.compactMap {
+    let operationIDs = pending!.filter { $0.table == "operations" && $0.before == nil }.compactMap {
       $0.after?.values.first?.string
     }
     try require(
       operationIDs.count <= 1, "change_transaction",
       "A transaction cannot contain independent operation receipts.")
+    let changeID = operationIDs.first ?? identifier()
+    // Cursor clocks share the transaction and captured metadata. Agent journal,
+    // context and conversation writes must not stale their own next read page.
+    // These are invalidation tokens, not another business ledger or cache value.
+    var clocks: [String] = []
+    if pending!.contains(where: {
+      ["app_definitions", "app_definition_heads", "app_definition_dependencies"].contains($0.table)
+    }) {
+      clocks.append("definition-read-snapshot")
+    }
+    if pending!.contains(where: {
+      ["items", "heads", "datasets", "dataset_rows", "column_versions"].contains($0.table)
+        || !ChangeFormat.tables.contains($0.table)
+    }) {
+      clocks.append("dataset-read-snapshot")
+    }
+    for key in clocks {
+      try database.execute(
+        "INSERT INTO meta VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+        [.string(key), .string(changeID)])
+    }
+    if let failure { throw failure }
+    guard let pending else {
+      throw SevraError("change_capture", "The change transaction lost its rows.")
+    }
     let change = CommittedChange(
-      version: 1, storageVersion: Schema.version, id: operationIDs.first ?? identifier(),
+      version: 1, storageVersion: Schema.version, id: changeID,
       workbookID: workbookID, previousID: prior?["id"]?.string,
       previousHash: prior?["hash"]?.string,
       recorded: timestamp(), writerID: writerID, actor: actor, changes: pending)

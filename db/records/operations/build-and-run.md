@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T20:54:34.706985+00:00
+updated: 2026-10-28T22:57:44.824773+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1520,3 +1520,38 @@ visible keyboard/VoiceOver/new-form qualification. No such result is claimed.
 The broad schema14 check passed with core217 before a final registry result-schema
 metadata refinement. Focused final installed CLI/package checks cover that refinement.
 See [registered action and form receipt](../../../integration/evidence/2026-10-28-registered-actions-forms.json.gz) and [[records/operations/implementation]].
+
+
+## Saved application tools, October28
+
+The native agent can discover, inspect, evaluate and author versioned definitions
+and prepare registered action drafts with `prepare_action`. The host previews,
+independently reviews inventory direction and commits the exact current-run receipt.
+Success supplies exact draft links; accepted stock changes only after review.
+Read-only requests refuse saves/preparation. See
+[[records/specs/application-definitions]] and [agent application definition receipt](../../../integration/evidence/2026-10-28-agent-application-definitions.json.gz).
+
+Focused repeatable commands after a native build:
+
+```sh
+.build/debug/sevra-agent-checks
+.build/debug/sevra-agent-checks --application-tools \
+  .build/native-fresh-setup \
+  .build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib \
+  .build/upstream/splash-native-1.4.1/engine/splash \
+  .build/application-tools-model-fresh
+python3 scripts/check_native_package.py --paths-only
+python3 scripts/check_application_actions.py --cli output/native/bin/sevra
+```
+
+The model output directory must be fresh. Use the native setup instructions above
+for the managed local weights and qualified engine artifacts; these are developer
+qualification paths, not runtime dependence on a checkout. The product is Python-free.
+The broad `bash scripts/check.sh` includes deterministic core/agent/Splash/native
+checks. Real-model timings under concurrent builds are functional observations, not
+a new engine-performance qualification. First startup permits360seconds for native
+component preparation; cancellation still reaps a stubborn helper within5seconds.
+
+Latest visible keyboard checks cover receiving-form evidence/unsent recovery and
+review/accept/undo/restore. Actual VoiceOver and full appearance/media/hardware/
+fresh-install/notarized release checks remain open.

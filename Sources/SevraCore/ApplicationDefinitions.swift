@@ -49,6 +49,7 @@ extension Workbook {
   @discardableResult public func saveApplicationDefinition(
     logicalID: String, content: Value, expectedDefinitionID: String? = nil,
     inputs: [String] = [], token: String = identifier(), actor: ChangeActor? = nil,
+    requestRunID: String? = nil, requestSourceID: String? = nil,
     cancellation: Cancellation = .init()
   ) throws -> ApplicationDefinition {
     try require(
@@ -60,11 +61,16 @@ extension Workbook {
       "logicalID": .string(logicalID), "content": content,
       "base": expectedDefinitionID.map(Value.string) ?? .null,
       "inputs": .array(inputs.map(Value.string)),
+      "requestRunID": requestRunID.map(Value.string) ?? .null,
+      "requestSourceID": requestSourceID.map(Value.string) ?? .null,
     ])
     let result = try mutation(
       "save_application_definition", token: token, request: request,
       cancellation: cancellation, actor: actual
     ) {
+      if let requestRunID {
+        try validateApplicationToolRun(requestRunID, requestSourceID: requestSourceID)
+      }
       let descriptor = try DefinitionDescriptor(content)
       try require(
         try db.scalar("SELECT count(*) FROM app_definitions WHERE id=?", [.string(logicalID)]).int

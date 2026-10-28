@@ -49,9 +49,10 @@ private struct NativeFormEditor: View {
         }
         if let receipt = state.lastReceipt {
           Label(
-            "Saved \(receipt["proposals"].array.count) draft proposals",
+            "Saved \(receipt["proposals"].array.count) draft \(receipt["proposals"].array.count == 1 ? "proposal" : "proposals")",
             systemImage: "checkmark.circle")
-          Text("Review them before inventory balances change.").foregroundStyle(.secondary)
+          Text("Open the saved proposals to inspect their current status.").foregroundStyle(
+            .secondary)
           HStack {
             Button("Review drafts") { workspace.navigate(.reviews) }
             Button("New entry") {
@@ -255,31 +256,55 @@ private struct FormEvidencePicker: View {
   @Environment(\.dismiss) private var dismiss
   @State private var query = ""
   @State private var items: [(String, String)] = []
+  @State private var selectedID: String?
+  @State private var loadedQuery: String?
   @State private var failure: String?
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       Text("Delivery evidence").font(.title2)
       TextField("Search documents and records", text: $query).textFieldStyle(.roundedBorder)
-      List(Array(items.enumerated()), id: \.element.0) { _, item in
-        Button {
-          select(item)
-          dismiss()
-        } label: {
-          Text(item.1).frame(maxWidth: .infinity, alignment: .leading)
+      List(selection: $selectedID) {
+        ForEach(Array(items.enumerated()), id: \.element.0) { _, item in
+          Text(item.1).frame(maxWidth: .infinity, alignment: .leading).tag(item.0)
         }
-        .buttonStyle(.plain)
-      }
+      }.accessibilityLabel("Matching evidence")
+        .overlay {
+          if failure == nil && items.isEmpty {
+            if loadedQuery == query {
+              Text(
+                query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                  ? "Add documents or observations to choose evidence."
+                  : "No matching documents or records."
+              )
+              .foregroundStyle(.secondary)
+            } else {
+              ProgressView("Searching evidence…")
+            }
+          }
+        }
       if let failure { Text(failure).foregroundStyle(.red) }
       HStack {
         Text("Choose the original information supporting this delivery.").font(.caption)
           .foregroundStyle(.secondary)
         Spacer()
-        Button("Cancel") { dismiss() }
+        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+        Button("Choose") {
+          guard loadedQuery == query, let item = items.first(where: { $0.0 == selectedID }) else {
+            return
+          }
+          select(item)
+          dismiss()
+        }
+        .keyboardShortcut(.defaultAction)
+        .disabled(loadedQuery != query || !items.contains { $0.0 == selectedID })
       }
     }.padding(24).frame(width: 560, height: 400)
       .task(id: query) {
         let text = query
         let control = Cancellation()
+        selectedID = nil
+        loadedQuery = nil
+        items = []
         do {
           let result = try await withTaskCancellationHandler {
             try await Task.detached {
@@ -296,6 +321,7 @@ private struct FormEvidencePicker: View {
           try Task.checkCancellation()
           var seen = Set<String>()
           items = result.filter { seen.insert($0.0).inserted }
+          loadedQuery = text
           failure = nil
         } catch { if !Task.isCancelled { failure = error.localizedDescription } }
       }

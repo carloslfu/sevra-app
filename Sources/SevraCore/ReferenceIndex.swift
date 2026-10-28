@@ -96,7 +96,7 @@ extension Workbook {
     let candidates = try synchronized(cancellation: cancellation) {
       try db.budget(cancellation: cancellation, seconds: 3) {
         try db.execute(
-          "SELECT i.id FROM items i LEFT JOIN reference_coverage c ON c.origin_id=i.id WHERE c.origin_id IS NULL AND i.kind NOT IN ('row','request','annotation') AND i.id>? ORDER BY i.id LIMIT ?",
+          "SELECT i.id FROM items i LEFT JOIN reference_coverage c ON c.origin_id=i.id WHERE c.origin_id IS NULL AND i.kind NOT IN ('row',\(Item.technicalKindSQL)) AND i.id>? ORDER BY i.id LIMIT ?",
           [.string(afterID ?? ""), .number(Double(limit + 1))])
       }
     }

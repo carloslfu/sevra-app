@@ -853,3 +853,57 @@ Qualify structured native form draft identity and workbook ownership with focuse
 ## [2026-10-28 21:04] verification | records/specs/native-app-engine.md
 Qualify structured native form draft identity and workbook ownership with focused lifecycle, packaged CLI, native resources/signature and strict lint checks; preserve 108 preceding receipts; visible/agent/full release gates remain open.
 
+## [2026-10-28 21:06] design | records/specs/application-definitions.md
+Specify bounded agent definition tools, current-run exact preview receipt submission and isolated complete batch direction review before implementation.
+
+## [2026-10-28 21:30] implementation | records/operations/implementation.md
+Record in-progress agent tools, captured family read clocks, bounded complete direction review and retained first grammar/model failures; final qualification remains pending.
+
+## [2026-10-28 21:45] implementation | records/operations/implementation.md
+Record focused definition-tool contract, core222, captured family cursor clocks and retained grammar/model failures before fourth native qualification.
+
+## [2026-10-28 21:53] design | records/specs/managed-datasets.md
+Bind query pages to captured data-family state rather than operational journal commits, preserving coherent results and inert replay.
+
+## [2026-10-28 21:53] design | records/specs/application-definitions.md
+Record focused native definition tools, captured family snapshots, bounded batch review and exact UTF-8 evidence requirements; retain open E2 journeys.
+
+## [2026-10-28 21:59] implementation | records/operations/implementation.md
+Record exact template-receipt authoring, core223, native review-scope failure/fix and unchanged prompt/budget gates before fresh qualification.
+
+## [2026-10-28 22:08] design | records/specs/application-definitions.md
+Split required custom content and exact current-run template saving after retained model failures; 46-tool grammar passes without raising prompt gate.
+
+## [2026-10-28 22:30] design | records/specs/application-definitions.md
+Specify host-owned preview completion, typed meaning copy, bounded cold-start cancellation and native evidence keyboard selection.
+
+## [2026-10-28 22:30] implementation | records/operations/persistence-coverage.md
+Extend persistence inventory with current-run agent guards and captured family snapshot clocks without a new schema or ledger.
+
+## [2026-10-28 22:32] implementation | records/operations/implementation.md
+Record focused agent contracts, retained V1-V7 failures, startup helper repair, actual native form review/undo and current V8/broad qualification in progress.
+
+## [2026-10-28 22:37] design | records/specs/application-definitions.md
+Retain V8 preview-only functional failure and adopt one native prepare_action request with host-owned preview/review/receipt commit.
+
+## [2026-10-28 22:37] design | records/operations/implementation.md
+Retain V8 preview-only functional failure and adopt one native prepare_action request with host-owned preview/review/receipt commit.
+
+## [2026-10-28 22:57] verification | records/operations/implementation.md
+Record final five-case real-model pass, broad/grammar/package proof, visible native form lifecycle and retained failures without closing full E2 or release.
+
+## [2026-10-28 22:57] verification | records/specs/application-definitions.md
+Reconcile the canonical prepare_action contract and record scoped real-model/native qualification plus shared technical-evidence scope.
+
+## [2026-10-28 22:57] verification | records/specs/native-app-engine.md
+Update current E2 entry point with real-model and visible form proof while preserving dated historical checkpoints.
+
+## [2026-10-28 22:57] verification | records/overview/start-here.md
+Project entry point now reflects scoped agent/native qualification and remaining result-publication/EJ/release work.
+
+## [2026-10-28 22:57] verification | records/operations/build-and-run.md
+Document focused saved-definition model qualification commands and actual native form proof/limits.
+
+## [2026-10-28 22:57] verification | records/operations/build-and-run.md
+Correct deterministic agent qualification command to the actual no-argument harness.
+

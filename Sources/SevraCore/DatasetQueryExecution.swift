@@ -19,9 +19,7 @@ extension Workbook {
             try db.validateCanonicalSchema()
           }
           let query = try DatasetQuery(request)
-          let snapshot = try db.scalar(
-            "SELECT id FROM committed_changes ORDER BY rowid DESC LIMIT 1"
-          ).text
+          let snapshot = try datasetReadSnapshot()
           var offset = 0
           if let cursor {
             guard cursor.utf8.count <= 8192, let data = Data(base64Encoded: cursor),

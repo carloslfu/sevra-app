@@ -253,7 +253,7 @@ public final class Workbook: @unchecked Sendable {
   public func recentItemSummaries(limit: Int = 20) throws -> [ItemSummary] {
     try synchronized {
       try db.execute(
-        "SELECT i.id,i.category,i.kind,i.title,i.meaning,i.status,i.asset_id FROM items i JOIN heads h ON h.item_id=i.id WHERE i.kind NOT IN ('row','request','annotation') ORDER BY i.created DESC,i.id LIMIT ?",
+        "SELECT i.id,i.category,i.kind,i.title,i.meaning,i.status,i.asset_id FROM items i JOIN heads h ON h.item_id=i.id WHERE i.kind NOT IN ('row',\(Item.technicalKindSQL)) ORDER BY i.created DESC,i.id LIMIT ?",
         [.number(Double(min(max(limit, 1), 100)))]
       ).map { row in
         ItemSummary(

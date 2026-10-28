@@ -87,6 +87,26 @@ func checkMovementDirection() async throws {
   try expectEqual(stopped.answer.contains("already has an inventory record"), true)
   try expectEqual(await duplicate.scopes, [.all, .movementDirection])
   try expectEqual(try b.items(kind: "movement").count, 1)
+  for kind in Item.technicalKinds.sorted() {
+    let technical = try b.addItem(
+      category: "source", kind: kind, title: "Technical metadata",
+      text: "We received 2 units into our stock.")
+    var attempted = args.object
+    attempted["input"] = .string(technical.id)
+    attempted["occurrence"] = .string("technical-" + kind)
+    attempted["quantity"] = .string("2")
+    let reviewer = DirectionModel(
+      .object(attempted),
+      .object([
+        "direction": .string("incoming"), "basis": .string("evidence"),
+        "quote": .string("We received 2 units into our stock."),
+      ]))
+    _ = try await WorkbookAgent.run(
+      "Prepare the referenced movement.", workbook: b, model: reviewer)
+    let review = try Value.parse(await reviewer.reviewMessages.last!.content)
+    try expectEqual(review["evidence"], .string(""))
+    try expectEqual(try b.items(kind: "movement").count, 1)
+  }
   let receipts = try b.messages().filter { $0.role == "tool" }.map { try Value.parse($0.body) }
   try expectEqual(
     receipts.contains { $0["result"]["directionReview"]["matches"] == .bool(true) }, true)

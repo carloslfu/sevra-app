@@ -79,7 +79,11 @@ func checkRequestHandoffs() async throws {
     let values = try Value.parse(
       String(decoding: NativeTools.serializedDefinitions(toolScope: scope), as: UTF8.self))
     let names = Set(values.array.map { $0["function"]["name"].text })
-    let extra = scope == .answer ? [] : [scope.rawValue]
+    let extra =
+      scope == .answer
+      ? []
+      : scope == .propose_movement
+        ? [scope.rawValue, "prepare_action"] : [scope.rawValue]
     try expectEqual(names, WorkbookTools.readOnlyTools.union(["finish"]).union(extra))
     try expectEqual(scope.allows("start_thread"), false)
   }

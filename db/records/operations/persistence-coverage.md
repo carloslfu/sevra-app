@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-28T21:04:23.597777+00:00
+updated: 2026-10-28T22:30:50.332062+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -12,6 +12,24 @@ October 28, 2026. Shared foundation for
 [[records/specs/persistence-readiness]], after the reviewed table-update slice.
 This inventories current schema/code, not cloud sync, workflow execution or the
 complete app release.
+
+## Agent requests and family read snapshots, October 28
+
+Agent definition/action writes add no canonical family or physical schema. They use
+current request-linked authoring/invocation Sources, existing captured definitions
+and ordinary operation receipts. Creates derive stable identities from the request
+operation token; updates require an exact current base. Preview/template receipts
+are valid only after successful completion in the same active run/conversation.
+Canonical save/invocation transactions recheck that run before publication.
+
+The former whole-history revision invalidated a query/catalog continuation when
+its own tool receipt was saved. Definition and dataset family clocks now live in
+ordinary captured meta. Relevant writes set the family value to the same transaction's
+commit ID before capture publishes; journal/context/presentation-only writes leave
+it stable. Real relevant edits still invalidate cursors. Reconstruction restores
+the recorded clocks inertly. There is no second ledger or sync claim. Tests use
+actual prepared/completed journal calls, then relevant edits and reconstruction.
+See [[records/operations/implementation]] for current qualification and limits.
 
 ## Schema14 action/form extension
 

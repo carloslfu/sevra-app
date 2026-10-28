@@ -13,16 +13,19 @@ package struct ActionConfirmations {
     let task: String
     switch tool {
     case "draft": task = "saving the draft"
+    case "save_definition", "save_template": task = "saving reusable behavior"
     case "save_space", "edit_space", "restore_space", "pin_space": task = "saving the space"
     case "set_space_pinned": task = "changing the shortcut"
     case "open_space", "open_reviews": task = "opening the view"
     default: return
     }
+    let attemptedTitle =
+      arguments["content"]["title"].string.map(Value.string) ?? arguments["title"]
     entries.append(
       .object([
         "receiptID": .string(receiptID), "tool": .string(tool), "kind": .string("failure"),
         "targetID": .string(receiptID), "title": .string(task), "error": result["error"],
-        "attemptedTitle": arguments["title"],
+        "attemptedTitle": attemptedTitle,
       ]))
   }
 
@@ -32,6 +35,11 @@ package struct ActionConfirmations {
     let title: String
     var qualifier = ""
     switch tool {
+    case "save_definition", "save_template":
+      guard let value = result["id"].string, let name = result["title"].string else { return }
+      kind = "definition"
+      id = value
+      title = name
     case "draft":
       guard let value = result["id"].string, result["status"].text == "draft" else { return }
       kind = "draft"
@@ -88,6 +96,9 @@ package struct ActionConfirmations {
       let title = entry["title"].text.replacingOccurrences(of: "\\", with: "\\\\")
         .replacingOccurrences(of: "[", with: "\\[").replacingOccurrences(of: "]", with: "\\]")
       switch kind {
+      case "definition":
+        return "Saved reusable behavior “" + title
+          + "”. Business acceptance is separate."
       case "failure": return "Couldn’t finish " + title + ". " + entry["error"].text
       case "draft": return "Saved draft [" + title + "](sevra://item/" + id + ")."
       case "space": return "Saved space “" + title + "”."

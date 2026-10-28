@@ -80,8 +80,13 @@ stay literal. Parameters must match column type/unit. Live mode follows current
 schemas only while referenced stored-column meaning is compatible. Exact mode
 refuses after its bound schema changes. Both modes read current rows at the returned
 snapshot; exact schema mode is not a frozen business result. Use the outer
-evaluation's nextCursor unchanged. Changed definitions/queries/state refuse stale
-continuations. These CLI/core surfaces do not imply a new in-app model tool.
+evaluation's nextCursor unchanged. Changed definitions/queries/relevant data refuse
+stale continuations. Conversation/tool-only commits do not invalidate a read page.
+The in-app model also uses bounded discovery, inspection and pure evaluation;
+catalog metadata and aggregates are not proof of complete business evidence.
+Technical requests/annotations and definition/invocation Sources stay out of default
+business search and Recent work. Use the catalog and exact owner inspection for
+technical history. Their text cannot establish original inventory direction.
 
 ## Registered actions and recoverable forms
 
@@ -102,6 +107,16 @@ versioned definition API. A form payload declares action binding and presentatio
 fields; it cannot add independent effects. Native layout editing can add the receiving
 starter directly. A component uses type form and definitionBinding with a live logical
 ID or exact version ID. Forms cannot be frozen as result snapshots.
+
+In-app authoring uses separate `save_definition` (required custom content) and
+`save_template` (required current-run template receipt, optional title). The CLI
+uses the ordinary content returned above. In-app `prepare_action(id,arguments)`
+performs the requested draft preparation in one call. Its host journals a fresh
+preview, independently checks every inventory direction against the current request
+and bounded originals, then commits that exact active-run plan atomically. In-app
+`preview_action` only shows an unsaved plan and cannot establish saved proposals.
+Do not present this semantic review as automatic acceptance or a correctness
+guarantee. CLI/skill callers must still establish the direction from evidence.
 
 Example receiving arguments:
 

@@ -160,6 +160,13 @@ public struct ItemSummary: Codable, Identifiable, Equatable, Sendable {
 }
 
 public struct Item: Codable, Identifiable, Equatable, Sendable {
+  public static let technicalKinds: Set<String> = [
+    "request", "annotation", "application_definition", "application_invocation",
+  ]
+  static let technicalKindSQL =
+    "'request','annotation','application_definition','application_invocation'"
+  public var isBusinessEvidence: Bool { !Self.technicalKinds.contains(kind) }
+
   public let id: String
   public let logicalID: String
   public let version: Int

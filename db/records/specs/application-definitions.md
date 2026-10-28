@@ -2,8 +2,8 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-28T21:04:23.564686+00:00
-summary: Schema14 versioned inventory actions and recoverable native forms have automated scoped proof; visible UI, agent/EJ, workflow and release gates remain open.
+updated: 2026-10-28T22:57:21.266984+00:00
+summary: Schema14 application definitions, host-owned agent preparation and focused native forms have scoped real-model proof; result views, workflows and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
 ---
@@ -13,8 +13,8 @@ This elaborates E2 in [[records/specs/native-app-engine]]. It is an implementati
 contract, not a statement of whole-feature completion. E1 is captured at cd5f854.
 The schema14 catalog now includes scoped core/CLI registered inventory actions and
 recoverable native form implementation in addition to the earlier pure computation.
-Result publication, query/function composition, agent tools and visible native journey
-qualification remain open. E3 owns durable multi-step execution; do not hide
+Agent tools and focused native form journeys have scoped qualification below. Result
+publication, native query/function composition and full EJ04/EJ05 remain open. E3 owns durable multi-step execution; do not hide
 a workflow scheduler in this layer. No arbitrary SQL, generated executable code,
 provider calls or external effects are accepted by a definition.
 
@@ -79,7 +79,7 @@ A reusable table query has a dataset ID, selected stable column IDs, typed bound
 filters and meaning/status/scenario scope. SQL is authored and parameterized by the
 host against E0-D registered native columns. Query pages use coherent read snapshots
 and stable order, exact item IDs,
-revision-bound cursors and explicit result/coverage metadata. Decimal comparisons
+snapshot-bound cursors and explicit result/coverage metadata. Decimal comparisons
 use the existing exact decimal collation, not floating point. Stored columns come
 first; calculated-column predicates require separate bounded/materialized support.
 Do not infer low inventory from a supplier price table or apply a partial aggregate
@@ -125,7 +125,7 @@ never acceptance or the accuracy of every interpreted input.
 Use a rebuildable external-content FTS5 index for immutable definition names,
 descriptions and parameter labels. Current-head filtering is explicit; historical
 search is opt-in. Search pages and dependency traversal are bounded, cancelable
-and revision-bound. No broad table/catalog injection into every model prompt.
+and snapshot-bound. No broad table/catalog injection into every model prompt.
 Search hits are discovery; inspect the exact version before use. Imported names
 and descriptions never widen action permission. SQLite documents external-content
 index synchronization/rebuild requirements in [FTS5](https://sqlite.org/fts5.html#external_content_tables).
@@ -366,3 +366,172 @@ hashes. Its broad core217/shared checks are reused; the small identity correctio
 has focused proof rather than a claimed broad rerun. A first lint invocation lacked
 swift-format on PATH; the documented xcrun invocation passes. Visible native UI,
 agent invocation, complete E2-E6 and release gates remain open.
+
+
+## Agent integration contract
+
+Expose bounded definition discovery/inspection and registry/templates on demand,
+pure evaluation, versioned authoring, action preview and submission. Do not inject
+the whole catalog into the default prompt. Definition metadata and evaluation
+arguments are untrusted data; they never become present action authority or proof
+of original business facts. Read exact versions before use. Pure evaluation is not
+publication. Saved query rows qualify only through their visible row values and
+exact item versions; omitted results and catalog hits do not establish absence.
+
+The host selects a deterministic new logical identity for a create request. An edit
+requires the existing logical identity and inspected exact base. Source attribution
+uses the actual AI caller and captured current request. Read-only requests permit
+discovery/evaluation/preview, but refuse authoring and submission even through forms.
+Generated native space components may bind an existing form; its core signature,
+snapshot refusal and draft lifecycle rules remain in force.
+
+The native `prepare_action(id, arguments)` request journals a fresh read-only
+preview within its current active run and conversation. The internal
+`commit_action_preview` stage accepts only that successful exact receipt. The host
+loads and hash-checks the saved plan rather than letting the model reconstruct it. The plan remains tied to its exact
+definition, arguments, fingerprint and current request. Invocation rechecks it under
+the canonical write lock and uses the ordinary shared retry/domain path. Historical,
+failed, foreign-run, wrong-tool, prepared or malformed receipts refuse. A receipt is
+data, not permission; the current request still controls execution.
+
+Before AI inventory submission, an isolated read-only semantic check covers every
+resolved movement. It sees only the current request, subjects and bounded original
+evidence excerpts, never the action's title, proposed signs, previous interpretations
+or instructions from a definition. For a batch, return one indexed direction verdict
+per movement, with an exact contiguous quote in its own request/evidence. Reject
+missing/duplicate/out-of-range verdicts, unverified quotes and any wrong or unclear
+direction. Bound the shared original-evidence text budget and disclose omission;
+omission is not evidence of direction. Failure creates no proposal or invocation
+Source. Keep the complete review receipt with the tool result. Successful batches
+end in a host-rendered needs-review result with exact proposal links and accepted
+balances unchanged, without a model claim of acceptance or document fidelity.
+
+Qualify deterministic core receipt/run guards, same-token behavior, read-only and
+stale preview refusal, batch direction isolation/coverage/quote/sign errors,
+definition edit attribution, form component bindings, native tool JSON/masks and
+continuation evidence boundaries. Then test the actual selected local model on
+authoring, finding/using a saved action, ambiguous direction and query/calculation
+journeys. Scripted inference is integration proof, not real-model qualification.
+Record failures and limits before claiming EJ04/EJ05 complete.
+
+
+## Captured family snapshots and focused tools
+
+Definition catalog pages use `meta.definition-read-snapshot`; managed query pages
+use `meta.dataset-read-snapshot`. Relevant writes update these clocks to the same
+transaction's commit identity before capture publishes. Both are ordinary captured
+metadata in the existing ledger. Journal, context, conversation and presentation
+writes do not invalidate their own read continuations. Relevant business/definition
+edits still refuse a stale cursor. Function evaluation reports the hash of both
+family snapshots. Reconstruction preserves the recorded values without recomputing
+results or executing definitions. No physical table/schema change or extra ledger.
+
+The native model sees focused tools: `find_definitions`, `read_definition`,
+`definition_registry`, `receiving_template` and `form_template`, plus
+`evaluate_definition`, `save_definition`, `save_template`, `preview_action` and
+`prepare_action`.
+Search has query/kind/historical/cursor; read and form-template take exact version
+IDs; registry and receiving-template have no arguments. Strict generation no longer
+allows a search query to leak into those no-query operations. The earlier multiplexed
+operation API was an uncommitted experiment; no compatibility adapter is retained.
+Common property-label descriptions are omitted from prompts, with every required
+field, structural bound, enum and host validator unchanged. Authoring formats and
+registry details load on demand. `save_definition` requires custom `content`;
+`save_template` requires a successful current-run `templateReceiptID`, optionally
+changing only the title. The host copies and verifies its exact ordinary template
+instead of asking the model to regenerate booleans, signatures and form fields.
+Mixed custom/copied content, failed, prepared, foreign, wrong-tool or altered
+receipts refuse. The two save tools share canonical versioning, request provenance,
+run cancellation and read-only checks. Required input schemas prevent a title-only
+call from reaching either path. The earlier overloaded save contract was also an
+uncommitted experiment; it has no compatibility adapter.
+
+Submission's isolated semantic check uses at most ten indexed movements per call
+and five calls for fifty lines. The evidence budget is 16,000 UTF-8 bytes across
+unique Sources, clipped without splitting a scalar. Exact quote verification uses
+bytes, so Unicode normalization cannot silently change the quoted original. A late
+unclear group refuses the entire batch. Full result-publication, native query/
+function composition and EJ04/EJ05 remain separate unfinished work.
+
+
+## Preview and submission truthfulness
+
+A successful `preview_action` proves a read-only plan, never saved proposals. After
+a preview, `finish` must explicitly use `basis=preview`; the host renders the
+quantities, subjects, meanings and effective dates from its exact current-run plan
+and states that no drafts were saved. It discards model-authored preview prose.
+A missing preview or count receipts mixed into that basis refuse. A model trying
+to end with another basis after preview receives corrective feedback: submit the
+current preview receipt to prepare requested drafts, or explicitly show the preview.
+A successful submission already ends through the host-owned needs-review receipt.
+Direction/refusal paths already return their exact host clarification without a
+model completion claim. This boundary does not qualify arbitrary compound preview
+and analysis responses; unsupported combinations must remain explicit.
+
+Plan effect copy uses each resolved movement's actual meaning. An estimate preview
+must not be labeled actual, and accepting a forecast/estimate never turns it into
+an actual. Native confirmation opens the saved proposals' current status rather
+than treating an old form receipt as proof that they are still pending.
+
+## Cold startup and native input behavior
+
+The native engine startup allowance is 360 seconds so first-start native Metal
+compilation can complete on the supported Mac being tested. Progress explains that
+first start may compile native components. This changes neither generation deadlines
+nor output/reasoning limits. Cancellation must still promptly terminate and reap
+the exact owned helper, even if it ignores ordinary termination. Cold-start timings
+under concurrent builds are functional observations, not a throughput benchmark.
+
+Evidence selection uses a native selectable list and a distinct Choose confirmation.
+Search changes clear selection; confirmation only binds a currently displayed match
+from that exact loaded query. Keyboard selection and Return must work without a
+coordinate-only click. Opening evidence and returning retains the form inputs.
+Full VoiceOver, media and appearance qualification remain independent gates.
+
+
+## One requested preparation, host-owned validation
+
+The V8 real-model run stopped truthfully at a preview when the user requested saved
+drafts. The native tool contract therefore replaces the uncommitted `submit_action`
+interface with `prepare_action(id, arguments)`. This is one user-level preparation
+operation. The host records a successful internal read-only preview, loads that
+exact active-run receipt, checks every movement direction and invokes the shared
+canonical commit path. The preview receipt and complete semantic review remain in
+the outer preparation receipt. Invalid input, ambiguity, read-only mode, stale
+bindings or cancelled runs publish no draft. No model-generated plan is trusted.
+
+`preview_action` remains for an explicitly requested unsaved plan, using the host
+preview finish above. A later request to prepare uses fresh exact inputs and a new
+host preview rather than turning historical preview state into authority. The
+core's current receipt commit stage is `commit_action_preview`, used by the host
+and qualified directly; it is not exposed in the native model schema. The earlier
+model-facing submit name has no adapter. CLI `action-preview`/`action-invoke` retain
+their independent explicit canonical contract. Success is still draft-only and
+terminates with a host-owned needs-review result.
+
+
+## Agent and visible native qualification, October28
+
+[agent application definition receipt](../../../integration/evidence/2026-10-28-agent-application-definitions.json.gz) retains the final46-tool declaration,52 actual grammar
+cases/425 exact masks and8,121/8,192-token largest bare prompt. The fixed gate and
+1,800-output/512-reasoning bounds remain. Core223, Splash31 and the broad shared
+checks pass. Five real selected-model tasks pass: function author/evaluate, receiving
+action/form saved on Home, requested two-draft preparation and ambiguous-direction
+clarification without new business effects. Functional timings are not throughput
+qualification. V1-V9 failures and the startup-helper cleanup remain recorded.
+
+`Item.technicalKinds` defines request, annotation, application_definition and
+application_invocation as technical metadata. Default business search, Recent,
+reference discovery and agent evidence reads exclude them. Exact owner search can
+explicitly select a technical kind, and definition inspection/history retain it.
+Independent single/batch direction reviewers receive no original business text from
+technical Sources or derived Records. Current request text can still supply meaning.
+No accepted physical-event or semantic-correctness claim follows from a model check.
+
+The latest native receiving form preserves incomplete inputs across quit/reopen,
+opens exact evidence and returns, supports keyboard list selection and empty-search
+feedback, previews/saves one draft and reaches review. Accept/undo/restore changes
+stock20/25/20/25 with one effect at most. Final verify passes. These are focused
+visible AX/keyboard observations, not actual VoiceOver or full appearance/media
+qualification. Result publication/native computation views and full EJ04/EJ05 remain
+open, together with E3-E6 and the release gates in the implementation record.

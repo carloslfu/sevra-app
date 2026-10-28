@@ -359,13 +359,22 @@ private final class Failures: @unchecked Sendable {
       }
       try parent.run()
       try output.fileHandleForWriting.close()
+      // The worker may write output before its parent finishes atomically
+      // publishing the PID. Wait for both signals, without assuming their order.
+      let readyDeadline = ProcessInfo.processInfo.systemUptime + 5
+      while !FileManager.default.fileExists(atPath: pidFile.path) && parent.isRunning
+        && ProcessInfo.processInfo.systemUptime < readyDeadline
+      {
+        Thread.sleep(forTimeInterval: 0.005)
+      }
+      child = (try? String(contentsOf: pidFile, encoding: .utf8)).flatMap(Int32.init)
+      try expect(child != nil && kill(child!, 0) == 0, "Parent did not register a live worker")
       var fd = pollfd(
         fd: output.fileHandleForReading.fileDescriptor, events: Int16(POLLIN), revents: 0)
       try expect(poll(&fd, 1, 5000) > 0, "Worker never reached its large output")
       var byte: UInt8 = 0
       try expect(
         Darwin.read(fd.fd, &byte, 1) == 1 && byte == 0x7b, "Worker did not start a JSON response")
-      child = Int32(try String(contentsOf: pidFile, encoding: .utf8))
       try expect(child != nil && kill(child!, 0) == 0, "Worker exited before parent death")
       kill(parent.processIdentifier, SIGKILL)
       let until = ProcessInfo.processInfo.systemUptime + 3

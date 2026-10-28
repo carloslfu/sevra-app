@@ -97,7 +97,7 @@ for tool in tools:
 cases = []
 choices = [('required', 'required', False, outputs),
            ('auto', 'auto', False, [('plain', 'The workbook is ready.', None), ('tool', 'Looking.\n' + outputs[0][1], outputs[0][2])]),
-           ('named_finish', {'type':'function','function':{'name':'finish'}}, False, [outputs[-1]]),
+           ('named_finish', {'type':'function','function':{'name':'finish'}}, False, [next(v for v in outputs if v[0]=='finish')]),
            ('thinking', 'required', True, [('reasoned', 'Read the evidence.</think>\n' + outputs[0][1], outputs[0][2])])]
 for choice_name, choice, thinking, examples in choices:
     _, policy = normalize_tools(tools, choice, False)

@@ -18,7 +18,7 @@ extension Workbook {
   @discardableResult public func invokeApplicationAction(
     _ id: String, arguments: Value, preview: Value, token: String,
     requestSourceID: String? = nil, readOnly: Bool = false, actor: ChangeActor? = nil,
-    cancellation: Cancellation = .init()
+    requestRunID: String? = nil, cancellation: Cancellation = .init()
   ) throws -> Value {
     try require(!readOnly, "read_only_request", "This request does not permit changes.")
     try require(
@@ -28,6 +28,7 @@ extension Workbook {
     let request: Value = .object([
       "id": .string(id), "arguments": arguments, "preview": preview,
       "requestSourceID": requestSourceID.map(Value.string) ?? .null,
+      "requestRunID": requestRunID.map(Value.string) ?? .null,
     ])
     try require(
       try request.json().utf8.count <= 256_000, "action_limit", "Action request exceeds 256 KB.")
@@ -36,6 +37,9 @@ extension Workbook {
       "invoke_application_action", token: token, request: request, cancellation: control,
       actor: actual
     ) {
+      if let requestRunID {
+        try validateApplicationToolRun(requestRunID, requestSourceID: requestSourceID)
+      }
       let plan = try self.applicationActionPlan(id, arguments: arguments, cancellation: control)
       try require(
         plan == preview, "stale_action_preview",
@@ -107,6 +111,8 @@ extension Workbook {
       try cancellation.check()
       try validateMovement(movement)
     }
+    let meanings = Set(movements.map { $0["meaning"].text }).sorted().joined(separator: ", ")
+    let proposalLabel = movements.count == 1 ? "proposal" : "proposals"
     var plan: [String: Value] = [
       "workbookID": .string(self.id), "requestedID": .string(id), "definitionID": .string(root.id),
       "actionID": .string(action.id), "title": .string(root.title), "arguments": .object(supplied),
@@ -124,7 +130,7 @@ extension Workbook {
         }),
       "movements": .array(movements), "readOnly": .bool(true),
       "effect": .string(
-        "Save \(movements.count) draft actual inventory proposals. Balances change only after separate review and acceptance."
+        "Save \(movements.count) draft inventory \(proposalLabel) (\(meanings)). No accepted balance changes in this step. Review drafts separately."
       ),
       "units": .string("discrete items"),
     ]

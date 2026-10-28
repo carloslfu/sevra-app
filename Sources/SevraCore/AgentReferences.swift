@@ -7,9 +7,9 @@ extension WorkbookTools {
   func readableItem(_ identity: String) throws -> Item {
     let item = try workbook.item(identity)
     try require(
-      item.kind != "annotation" && (item.kind != "request" || item.id == requestSourceID),
+      item.isBusinessEvidence || (item.kind == "request" && item.id == requestSourceID),
       "item_scope",
-      "This item is outside the business-evidence read scope. Request Source IDs are not conversation-message IDs. Use history_read for a known accessible original message; if that original is outside scope, explain that it is unavailable. More history searches cannot grant access."
+      "This item is outside the business-evidence read scope. Inspect saved behavior with read_definition, not its technical authoring/invocation Source. Request Source IDs are not conversation-message IDs. Use history_read for a known accessible original message; if that original is outside scope, explain that it is unavailable. More history searches cannot grant access."
     )
     return item
   }
@@ -54,7 +54,7 @@ extension WorkbookTools {
       })
     result["accessScope"] = .string("workbook-business-items")
     result["notice"] = .string(
-      "One hop over saved mentions, at most 12 results per page. Request Sources and technical annotations are excluded. Use history_search/history_read for accessible conversation. Read each exact destination or incoming origin before citing it; these titles and links are not inspected evidence. Keep all filters with nextCursor. Coverage describes this anchor only; no match is not proof of absence. A mention is not derivation, payment, support or corroboration. External workbooks are never opened."
+      "One hop over saved mentions, at most 12 results per page. Requests, annotations and technical definition/invocation Sources are excluded. Use history_search/history_read for accessible conversation. Read each exact destination or incoming origin before citing it; these titles and links are not inspected evidence. Keep all filters with nextCursor. Coverage describes this anchor only; no match is not proof of absence. A mention is not derivation, payment, support or corroboration. External workbooks are never opened."
     )
     return .object(result)
   }
@@ -65,7 +65,7 @@ extension WorkbookTools {
         try workbook.db.readTransaction {
           let item = try readableItem(identity)
           let rows = try workbook.db.execute(
-            "SELECT l.* FROM lineage l JOIN items p ON p.id=l.parent JOIN items c ON c.id=l.child WHERE (l.child=? OR l.parent=?) AND p.kind NOT IN ('request','annotation') AND c.kind NOT IN ('request','annotation') ORDER BY l.child,l.parent LIMIT 200",
+            "SELECT l.* FROM lineage l JOIN items p ON p.id=l.parent JOIN items c ON c.id=l.child WHERE (l.child=? OR l.parent=?) AND p.kind NOT IN (\(Item.technicalKindSQL)) AND c.kind NOT IN (\(Item.technicalKindSQL)) ORDER BY l.child,l.parent LIMIT 200",
             [.string(item.id), .string(item.id)])
           return .array(rows.map(Value.object))
         }

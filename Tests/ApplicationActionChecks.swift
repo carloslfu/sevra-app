@@ -246,6 +246,14 @@ func checkApplicationActions(at root: URL) {
     let preview = try b.previewApplicationAction(a.id, arguments: input)
     try expect(preview["movements"].array[0]["quantity"] == .string("36"))
     try expect(preview["resolvedDefinitions"].array.contains { $0["id"] == .string(function.id) })
+    try expect(preview["effect"].text.contains("1 draft inventory proposal (actual)"))
+    var estimateInput = input.object
+    estimateInput["meaning"] = .string("estimate")
+    estimateInput["occurrence"] = .string("cases-estimate")
+    let estimate = try b.previewApplicationAction(a.id, arguments: .object(estimateInput))
+    try expect(estimate["movements"].array[0]["meaning"] == .string("estimate"))
+    try expect(estimate["effect"].text.contains("1 draft inventory proposal (estimate)"))
+    try expect(!estimate["effect"].text.contains("actual"))
     _ = try b.invokeApplicationAction(a.id, arguments: input, preview: preview, token: "cases")
     _ = try b.verify()
   }

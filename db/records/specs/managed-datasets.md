@@ -2,7 +2,7 @@
 type: spec
 id: 01m61vcs2a1prctcr1em7z68cm
 created: 2026-10-28T18:12:10.954425+00:00
-updated: 2026-10-28T20:31:52.380738+00:00
+updated: 2026-10-28T21:53:39.457479+00:00
 summary: Schema12 managed storage, definition lifecycle and bounded stored-scalar query/index paths have scoped proof; complete MJ/Excel continuity and release remain open.
 title: Managed datasets and replayable storage
 status: reviewed
@@ -342,10 +342,10 @@ on a left join preserves unmatched left rows. This first
 contract does not accept arbitrary SQL, expressions, OR trees or inferred joins.
 
 A page has at most 1,000 rows and 50 fields. Return the workbook identity, exact
-committed-change snapshot, request hash and all definition identities. Ungrouped
+captured dataset-family snapshot, request hash and all definition identities. Ungrouped
 rows include exact contributing row/version references; grouped results identify
 the snapshot/query and do not pretend that one arbitrary row is their provenance.
-A continuation must match the same workbook, request and commit, otherwise refuse.
+A continuation must match the same workbook, request and relevant data snapshot, otherwise refuse. Conversation/tool-only commits do not invalidate its own next page.
 Use deterministic tie breakers and bounded offsets. Read-only queries create no
 business revision or durable derived Record by themselves.
 

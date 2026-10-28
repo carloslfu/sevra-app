@@ -2,15 +2,15 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-28T21:04:23.635265Z
+updated: 2026-10-28T22:57:21.293164Z
 ---
 
 # records/specs
 
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
-- [[records/specs/application-definitions]] — Schema14 versioned inventory actions and recoverable native forms have automated scoped proof; visible UI, agent/EJ, workflow and release gates remain open.
-- [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
+- [[records/specs/application-definitions]] — Schema14 application definitions, host-owned agent preparation and focused native forms have scoped real-model proof; result views, workflows and release gates remain open.
 - [[records/specs/managed-datasets]] — Schema12 managed storage, definition lifecycle and bounded stored-scalar query/index paths have scoped proof; complete MJ/Excel continuity and release remain open.
+- [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 - [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 - [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.

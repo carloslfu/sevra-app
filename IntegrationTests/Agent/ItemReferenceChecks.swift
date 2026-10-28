@@ -202,10 +202,11 @@ func checkItemReferenceGrammar(frontend: SplashTextFrontend, factory: SplashGram
       [], thinking: thinking, itemReferenceIDs: [correctReference])
     let base = try frontend.prepare(
       messages: [["role": "user", "content": "Inspect the item."]],
-      tools: NativeCitationPolicy.make([], thinking: thinking).promptTools(), thinking: thinking)
+      tools: NativeCitationPolicy.make([], thinking: thinking).promptTools(), thinking: thinking,
+      contextLimit: 65536)
     let bounded = try frontend.prepare(
       messages: [["role": "user", "content": "Inspect the item."]],
-      tools: policy.promptTools(), thinking: thinking)
+      tools: policy.promptTools(), thinking: thinking, contextLimit: 65536)
     try expectEqual(bounded.tokens.count > base.tokens.count, true)
     for tool in ["read", "lineage", "references"] {
       func output(_ id: String) -> String {

@@ -40,7 +40,7 @@ extension Workbook {
             [.string(exactVersionID)]
           ).first!
           try require(
-            !businessOnly || !["request", "annotation"].contains(anchor["kind"]!.text),
+            !businessOnly || !Item.technicalKinds.contains(anchor["kind"]!.text),
             "reference_scope",
             "Use scoped conversation history for requests. Technical annotations are not business evidence."
           )
@@ -154,7 +154,7 @@ extension Workbook {
       predicate += " AND (r.target_version=? OR (r.target_mode='live' AND ?=1))"
       args += [anchor["id"]!, anchor["is_current"]!]
     }
-    var metadataFilters = " AND i.kind NOT IN ('request','annotation')"
+    var metadataFilters = " AND i.kind NOT IN (\(Item.technicalKindSQL))"
     var filterArgs: [Value] = []
     for (column, value) in filters {
       if let value {
@@ -234,7 +234,7 @@ extension Workbook {
         ).first
       }
       if businessOnly, let destination,
-        ["request", "annotation"].contains(destination["kind"]!.text)
+        Item.technicalKinds.contains(destination["kind"]!.text)
       {
         continue
       }

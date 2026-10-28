@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T21:04:23.528290+00:00
+updated: 2026-10-28T22:57:21.180652+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -12,6 +12,126 @@ title: Implementation and acceptance
 This is a working development build, not a qualified release. Requirements in the
 specifications remain the acceptance contract. A source commit does not imply that
 every requirement or supported hardware profile has passed.
+
+## Agent definitions and saved actions, checkpoint, October 28
+
+The current E2 slice adds focused `find_definitions`, `read_definition`,
+`definition_registry`, `receiving_template`, `form_template`, `evaluate_definition`,
+`save_definition`, `save_template`, `preview_action` and `prepare_action` tools.
+There are 46 native tools. Custom saves require content; exact template saves require
+this active run's successful receipt, optionally changing only the title. Creates
+receive a host-derived stable identity; edits need the exact inspected current base.
+AI saves retain actual actor/current-request lineage. Catalog/template metadata
+never becomes business evidence or action authority. Native form components bind
+the form identity, independently of action identity. Read-only requests refuse saves
+and submission. Inventory handoffs can submit through the same review; other scoped
+write handoffs do not gain saved-action authority.
+
+Preparation journals its own fresh read-only preview, loads that exact successful
+current-run receipt, checks
+identity/hash/arguments and independently reviews every inventory direction from
+the current request and bounded original Source text. The reviewer never sees action
+titles, proposed signs or earlier model interpretations. Groups of ten cover at most
+fifty lines within unchanged 1,800-output/512-reasoning-token bounds. Exact UTF-8
+quotes, full index coverage, correct signs and every group must pass before the
+canonical transaction rechecks the run and publishes any draft. Wrong/unclear signs,
+forged quotes, malformed/foreign/prepared/failed receipts, read-only mode and late
+cancellation refuse. Successful submission terminates with host-owned exact proposal
+links and needs-review state. It changes no accepted balance.
+
+Preview completion is also host-owned. `finish basis=preview` displays the exact
+current-run plan and states no proposals were saved; other finish bases after a
+preview refuse and direct the model to submit requested drafts or show the preview.
+Invented model preview prose is discarded. A missing preview/count-receipt mixture
+refuses. An estimate preview is labeled estimate. This does not qualify arbitrary
+compound preview-plus-analysis responses. Template/custom saves use the same exact
+version/retry/provenance rules, without a legacy overloaded-save adapter.
+
+Captured definition/dataset family clocks fix continuations invalidated by their own
+agent receipts. Relevant writes set ordinary captured meta to that same transaction's
+commit ID. Journal/context/presentation-only writes leave it stable; real relevant
+edits still stale the cursor. Reconstruction restores clocks and executes nothing.
+No physical schema change, second ledger or sync implementation. Focused core223
+passes, including real prepared/completed journal calls, exact retries, template-copy
+checks, stale/late-run refusal and inert reconstruction. Synthetic agent checks cover
+all fifty lines, ambiguity in a late group, false preview completion recovery and
+forged/missing preview refusal. Actual native grammar checks pass 52 cases/425 masks;
+the largest bare tool prompt is 8,121/8,192 tokens. The gate was not raised.
+
+Retained failures drove these changes. Initial schema prompts exceeded the existing
+8,192-token gate (9,743, then 9,110/8,737 and later intermediate attempts). Repeated
+label descriptions were removed while structural bounds and strict core validation
+remain. Model runs V1-V4 encountered form step limits, Boolean rewrites, missing
+insertion position, multiplexed registry misuse and a missing batch-review native
+citation-policy branch. V5 exposed title-only calls through optional overloaded save
+fields. Focused tools and two required save contracts replace those experiments.
+V6 timed out at 180 seconds before any tool while Apple Metal compiled native
+components; a retained process sample records that observation, not an inference
+speed result. Startup now allows 360 seconds and reports first-start compilation;
+generation/reasoning/output budgets are unchanged. A dedicated cancellation test
+still reaps a stubborn startup helper within five seconds.
+
+The first startup-cancel test helper was mistakenly dispatched as a whole test suite
+because its fourth argument did not match the old peer dispatch. The resulting 88
+owned test processes were verified by ancestry and stopped; unrelated processes
+were untouched. The corrected exact peer-argument dispatch passes all 31 Splash
+checks. The failure/cleanup evidence remains. A broad extraction test also exposed
+a PID-file publication race; its bounded test registration wait was repaired without
+changing the production worker. The item-reference grammar fixture now explicitly
+uses its existing 64K inspection context; actual budget refusal and the independent
+8K bare-tool gate remain intact.
+
+V7 passed function creation/evaluation and Home form authoring, then falsely described
+a preview as prepared drafts while no movement existed. It remains a failed run.
+The host preview/submission guard above addresses that failure. V8 passed the calculation tasks and saved the Home form at step twelve, but then
+stopped at an explicitly labeled unsaved preview rather than preparing the requested
+drafts. It is a functional failure, with no false saved-state claim or business write.
+The native contract is now `prepare_action(id, arguments)`: one requested preparation
+whose host journals a fresh preview, reviews every direction and commits that exact
+receipt through `commit_action_preview`. The earlier model-facing submit interface
+has no adapter. V9 refused a stale exported declaration fixture before any model
+request; no V9 model output is claimed. V10 passes all five fresh selected-model
+tasks: create a function, evaluate it, save a receiving action/form on existing Home,
+prepare two requested drafts with unchanged accepted stock, and ask clarification
+for handed-over goods without a specified direction. The runs took 31.22, 29.80,
+62.39, 101.41 and 123.04 seconds respectively. These are functional observations
+under concurrent builds, not a controlled throughput comparison. Ordinary multi-step
+latency remains a UX concern. All failed runs remain in the receipt.
+
+The broad shared-boundary rerun passes core223, extraction19, document27, voice15
+and Splash31 plus shared CLI, context, grammar and native-session harnesses. Final
+strict Swift lint passes40 files. Skill validation, installed-resource/missing/altered
+refusals, ad-hoc signature and independent packaged CLI competing-writer/retry/
+portable/inert-reconstruction checks pass. A final UI-only empty-search label was
+qualified after the broad pass by rebuilding, strict lint, installed-package checks
+and visible search. No new broad rerun is claimed after that copy/display change.
+
+The Mac is now accessible. In a fresh synthetic workbook the native form retained
+incomplete inputs across quit/reopen, opened exact evidence and returned with inputs,
+previewed five bolts, saved one draft, and opened its review. Accept changed stock
+from 20 to 25 with one effect. Undo withdrew it and returned 20; undoing that withdrawal
+restored 25 with one effect. Core verify passes. The initial plain-button evidence
+picker required a coordinate click; a native selectable list now supports query,
+Tab/arrow selection and Return to Choose. Changed queries clear stale selection.
+These are focused keyboard/AX observations, not actual VoiceOver qualification.
+Full light/dark/narrow/media form journeys remain open. A shared technical-kind
+boundary now excludes request/annotation/application-definition/application-invocation
+metadata from default business search, Recent, reference discovery and original
+direction-review evidence. Exact owner inspection with an explicit kind still works;
+history remains preserved. Focused tests cover both single and batch reviewers, and
+the latest native picker visibly contains the original receipt while a technical
+definition query shows “No matching documents or records.” Cancel retains the input.
+Final quit/reopen and package checks pass; the fixture still has25bolts and1effect.
+
+Evidence: [agent application definition receipt](../../../integration/evidence/2026-10-28-agent-application-definitions.json.gz),233,480bytes,
+SHA-256 a91174ddc066f4a351f5c1d68504137ad92012db50ff96713aa20b4775645149.
+All109 prior evidence files remain byte-identical. The receipt preserves source/
+product hashes, logs, model outputs, native observations and failed attempts.
+
+Full E2 result publication/native query and function composition, complete EJ04/EJ05,
+E3-E6, Excel sparse/formula continuity, full MJ/FJ, supported hardware/fresh install,
+notarized distribution and release/main-integration gates remain open. This is a
+working development checkpoint, not release readiness.
 
 ## Registered action and native form checkpoint, October 28
 

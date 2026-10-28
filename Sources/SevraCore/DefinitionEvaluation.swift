@@ -48,9 +48,8 @@ extension Workbook {
             }
             result = output
           }
-          let snapshot = try db.scalar(
-            "SELECT id FROM committed_changes ORDER BY rowid DESC LIMIT 1"
-          ).text
+          let snapshot = ChangeFormat.hash(
+            try definitionReadSnapshot() + ":" + datasetReadSnapshot())
           return .object([
             "workbookID": .string(self.id), "definitionID": .string(definition.id),
             "logicalID": .string(definition.logicalID), "kind": .string(definition.kind),

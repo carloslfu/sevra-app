@@ -20,9 +20,7 @@ extension Workbook {
               "query": .string(query), "kind": kind.map(Value.string) ?? .null,
               "historical": .bool(historical), "limit": .number(Double(limit)),
             ]).json())
-          let snapshot = try db.scalar(
-            "SELECT id FROM committed_changes ORDER BY rowid DESC LIMIT 1"
-          ).text
+          let snapshot = try definitionReadSnapshot()
           var after = ""
           if let cursor {
             guard cursor.utf8.count <= 8192, let bytes = Data(base64Encoded: cursor),

@@ -9,6 +9,7 @@ extension NativeTools {
     -> [WorkbookToolDefinition]
   {
     if toolScope == .movementDirection { return [MovementDirectionReview.definition] }
+    if toolScope == .actionDirection { return [ActionDirectionReview.definition] }
     let ids = try ItemReferenceCandidates.normalized(itemReferenceIDs)
     let copies = try documentCopyIDs.map(DocumentCopyCandidates.normalized)
     if let conversationActions {

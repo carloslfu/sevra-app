@@ -252,7 +252,9 @@ private final class NativeWorker: @unchecked Sendable {
         frontend: frontend, library: configuration.grammarLibrary,
         librarySHA256: configuration.grammarSHA256)
       try cancellation.check()
-      progress("Loading local AI")
+      // A cold device/OS shader cache can compile for several minutes. Keep
+      // startup cancellable and bounded, separately from generation deadlines.
+      progress("Preparing local AI. First start may compile native components…")
       helper = try SplashNativeProcess(
         executable: configuration.engine,
         arguments: [
@@ -260,7 +262,7 @@ private final class NativeWorker: @unchecked Sendable {
           String(configuration.memoryBytes),
           "--persistent-cache", "off", "--idle-sleep", "allow", "--verify-rows", "all",
         ],
-        timeout: 180, cancelled: { cancellation.isCancelled || cancellation.isExpired })
+        timeout: 360, cancelled: { cancellation.isCancelled || cancellation.isExpired })
     }
     deinit { helper.close() }
     private static func verify(_ url: URL, _ digest: String, _ cancellation: Cancellation) throws {

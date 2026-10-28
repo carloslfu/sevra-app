@@ -26,7 +26,7 @@ extension Workbook {
       predicate += " AND (r.target_version=? OR (r.target_mode='live' AND ?=1))"
       args += [anchor["id"]!, anchor["is_current"]!]
     }
-    predicate += " AND i.kind NOT IN ('request','annotation')"
+    predicate += " AND i.kind NOT IN (\(Item.technicalKindSQL))"
     for (column, value) in filters {
       if let value {
         predicate += " AND i.\(column)=?"

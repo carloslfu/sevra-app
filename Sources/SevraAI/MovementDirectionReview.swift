@@ -58,9 +58,9 @@ package enum MovementDirectionReview {
     // Derived interpretations are not original direction evidence. An explicit
     // correction in the current request still works when its input is a Record.
     let original =
-      evidence.category == "source"
-      ? String(
-        ([evidence.text] + chunks.map { $0["body"].text }).joined(separator: "\n").prefix(16000))
+      evidence.category == "source" && evidence.isBusinessEvidence
+      ? ActionDirectionReview.excerpt(
+        [evidence.text] + chunks.prefix(8).map { $0["body"].text }, maximumBytes: 16_000)
       : ""
     let input: Value = .object([
       "request": .string(request), "subject": .string(subject),
@@ -92,7 +92,7 @@ package enum MovementDirectionReview {
     let quotedInput = basis == "request" ? request : basis == "evidence" ? original : ""
     let supported =
       !quote.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      && quotedInput.contains(quote)
+      && Data(quotedInput.utf8).range(of: Data(quote.utf8)) != nil
     let matches =
       supported
       && ((direction == "incoming" && number > 0) || (direction == "outgoing" && number < 0))

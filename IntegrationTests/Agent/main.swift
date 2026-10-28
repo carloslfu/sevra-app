@@ -37,6 +37,12 @@ final class ToolPolicyChecks {
     let item = rows["items"] as! [String: Any]
     try expectEqual(item["additionalProperties"] as? Bool, true)
     try expectEqual(fields["additionalProperties"] as? Bool, false)
+    try expectEqual(
+      (function("save_definition")["parameters"] as! [String: Any])["required"] as? [String],
+      ["content"])
+    try expectEqual(
+      (function("save_template")["parameters"] as! [String: Any])["required"] as? [String],
+      ["templateReceiptID"])
     let export = ProcessInfo.processInfo.environment["SEVRA_SCHEMA_FIXTURE_OUTPUT"]
     if let export {
       try policy.toolsJSON.write(to: URL(fileURLWithPath: export), options: .atomic)
@@ -240,6 +246,7 @@ do {
   try await checkRequestEnvelopes()
   try await checkRequestAdmission()
   try await checkMovementDirection()
+  try await checkApplicationTools()
   try await checkCitationVersions()
   try await checkActionConfirmations()
   try await checkDocumentCopies()
@@ -278,6 +285,10 @@ do {
     try await runCurrencyRecoveryProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--application-tools" {
+    try await runApplicationToolProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--movement-direction" {
     try await runMovementDirectionProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
@@ -363,6 +374,7 @@ do {
     try checkItemReferenceGrammar(frontend: frontend, factory: factory)
     try checkDocumentCopyGrammar(frontend: frontend, factory: factory)
     try checkConversationActionGrammar(frontend: frontend, factory: factory)
+    try checkActionDirectionGrammar(frontend: frontend, factory: factory)
     if CommandLine.arguments.count == 5 {
       try runNativeWorkbookProbe(
         frontend: frontend, factory: factory, engine: CommandLine.arguments[3],
