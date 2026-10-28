@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5zn6ks2pyv72pjs65f90rxj
 created: 2026-10-27T21:45:28.610289+00:00
-updated: 2026-10-28T05:04:39.093039+00:00
+updated: 2026-10-28T05:45:44.559518+00:00
 summary: Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.
 title: Inline references and relationships
 status: reviewed
@@ -12,8 +12,8 @@ status: reviewed
 
 ## Decision and scope
 
-Adopted October 27, 2026. The explicit-binding core foundation is implemented;
-parsing, product integration and complete first-slice acceptance remain pending. Authority:
+Adopted October 27, 2026. The explicit-binding foundation, bounded body parser, backlink index and owner-facing CLI are implemented.
+Extracted-file links, native interaction, scoped agent traversal and complete first-slice acceptance remain pending. Authority:
 [[sources/notes/2026/10/inline-references-adoption]]. This extends Sources/Records,
 SQLite, native previews and agentic search without adding a business category.
 At adoption, record bodies retain wiki syntax as text, conversation messages have
@@ -229,16 +229,115 @@ annotation limits. Existing versions are not scanned or rebound on migration.
 
 Identical body bytes carry bindings through status changes, renaming, separate
 copies and Undo, retaining the prior annotation snapshot as provenance. Changed
-free text without explicit selections has `not_indexed` reference coverage; old
-bindings remain on the original version and are never silently realigned. Manual
+free text without explicit selections now receives its own bounded body parse; old
+bindings remain on the original version and are never silently realigned. Migrated
+untouched versions remain `not_indexed` until explicitly caught up. Manual
 selections report `partial` coverage, including an empty set. They do not claim a
 complete mention parse or a complete backlink index. Workbook verification checks
 all retained snapshot chains, body/label bytes, selection Sources, inherited
 bindings, targets and heads. Search-index rebuild does not reinterpret bindings.
 
-Next implement the shared wiki/Markdown parser, extraction locators and coverage,
-incremental backlink queries/rebuild, then native/text/voice/CLI integration and
-bounded scoped agent traversal. No new installed-skill command is advertised by
-this foundation. LJ01-LJ10 remain the full first-slice contract; the focused core
+The next section supersedes the foundation-only parser, backlink and CLI status.
+Next implement extracted-input locators/coverage, native/text/voice interaction and
+bounded scoped agent traversal. LJ01-LJ10 remain the full first-slice contract; the focused core
 evidence establishes only the cases recorded in
 [[records/operations/implementation]].
+
+## Body parser, index and CLI, October 28
+
+Schema 6 adds rebuildable `reference_index` rows and per-exact-version
+`reference_coverage`, separate from canonical snapshots. Canonical schemas 1
+through 5 migrate transactionally. Migration copies existing bindings without
+parsing old text, inventing new Sources or resolving names. Keep the app and CLI
+matched; older builds refuse schema 6.
+
+The shared `InlineReferenceParser` uses pinned official Swift Markdown 0.9.0
+and swift-cmark 0.9.0. Swift 6.2 is the minimum build toolchain; the verified host
+uses 6.3.3. The native package includes both dependencies' license notices.
+Supported body syntax is double-bracket wiki links with an optional pipe-separated
+alias, and Markdown links whose destination is one of these strict stable routes:
+
+- `sevra://item/VERSION_ID` pins an exact version.
+- `sevra://logical/LOGICAL_ID` follows the current head.
+- `sevra://workbook/WORKBOOK_ID/item/VERSION_ID` or `/logical/LOGICAL_ID`
+  retains explicit workbook identity; a foreign workbook is not opened.
+
+ASCII identity tokens are bounded and case-preserving. Scheme/route keywords
+are case-insensitive. Queries, fragments, percent escapes, path traversal,
+userinfo and extra path components are refused as stable routes. Ordinary web
+links remain ordinary Markdown; this parser does not fetch or capture them.
+Names and paths remain unresolved lookup hints. A stable local route binds only
+if the exact target exists at initial publication; a missing target stays
+unresolved after later creation, catch-up or rebuild. Explicit correction
+creates a new annotation/version rather than changing the historical parse.
+
+Markdown supplies code, image, HTML and link boundaries. Escaped wiki openings,
+fenced/indented/inline code, image labels, HTML blocks and inline code/pre/script/
+style spans do not produce mentions. Labels retain their exact raw body scalars,
+including any Markdown formatting. UTF-8 parser columns map back to original
+Unicode scalars, including CRLF, emoji, combining marks and NUL. The original
+body is never normalized. Some upstream source locations are ambiguous when
+content directly follows a reference definition. Sevra publishes no edges for
+that parse and reports `partial`, with guidance to separate the content by a
+blank line. Missing locations and the 50,000-node traversal bound also fail
+closed. The AST itself is built for the bounded body before that traversal;
+this is not a measured whole-app memory guarantee or interruptible cmark call.
+
+The existing 1,000,000-byte body, 128-occurrence and 1024-byte label/lookup bounds
+apply. Excess occurrences retain a partial bounded set. Malformed tokens remain
+plain text with partial coverage; oversized bodies report `unsupported`. Ordinary
+text saving still works. An eligible new or edited body publishes its parse,
+coverage, bindings and operation in the same transaction. Internal rows, request
+captures and annotation Sources are excluded from automatic body indexing.
+Manual selections retain partial coverage. A completed empty parse is `ready`
+for supported item-body syntax, not proof that the whole document or workbook
+contains no other mentions.
+
+`indexReferences` explicitly catches up one stored exact version and retains
+its original result on an idempotent retry. `indexReferenceBodies` processes at
+most 50 unindexed eligible versions per ID-keyset page, committing complete
+origins independently so interruption can resume. It skips completed coverage;
+it does not replace annotations. `rebuildReferenceIndex` recreates lookup rows
+from current canonical annotation heads. It never reparses text, resolves a name
+or creates new choice Sources. Integrity checks compare canonical bindings and
+projection in both directions, current-origin flags, coverage, exact locations
+and parse routes. Changing a current head changes the prior origin's index flag
+in the same transaction. Historical versions and annotations remain inspectable.
+
+`referenceLinks` is a bounded, metadata-only, one-hop owner API. Incoming results
+deduplicate exact origin versions; outgoing results deduplicate exact destination
+versions. Each hit has a first occurrence/locator and mention count. Results
+contain no destination body or read/citation receipt. Incoming discovery defaults
+to current origins and logical target identity, including pins to that logical
+item's older versions. `targetScope: exact` includes pinned matches to that exact
+version and live matches only when that version is current. Historical origins
+are explicit. Kind, meaning, status and scenario filters apply to incoming
+origins or outgoing destinations. Unknown option fields or invalid option types refuse.
+
+Pages contain at most 50 hits; outgoing grouping inspects at most 128 stored
+occurrences. Incoming queries use covering target/current-origin/ID indexes.
+Keyset cursors bind workbook, anchor, direction, scope, filters and revision.
+Receipt/message/context-only journal suffixes can continue an unchanged page;
+unknown mutations or changed evidence require a fresh query. Cancellation, a
+maximum three-second deadline and bounded fields apply. These owner APIs do not
+implement a scoped model tool or grant conversation access. Extracted asset text
+and unsupported/unindexed versions are explicitly outside complete coverage.
+
+The CLI exposes `references`, `backlinks`, `reference-snapshot`,
+`reference-resolve`, `reference-history`, `annotate-references`,
+`index-references`, `index-reference-bodies` and `rebuild-references`. `add` accepts
+explicit `references`; `edit-document --references JSON_FILE` publishes selected
+bindings with the new Record text atomically. Annotating a Source requires an
+explicit `expectedSnapshotID` (null for the first set); a Record needs a new text
+version. Commands and the repo-owned harness skill document the distinction
+between discovery, reading and business authority.
+
+This slice does not qualify L01-L14 or LJ01-LJ10 as a whole. Extracted-input
+locators, native link rendering/resolution and Back, voice/text journeys, scoped
+agent tools and original-read enforcement, real local-agent retrieval comparisons,
+large-graph latency and peak-memory evidence remain open. See
+[[records/operations/implementation]] for focused verification and retained failures.
+
+Primary parser contract: [CommonMark links](https://spec.commonmark.org/0.31.2/#links),
+[official Swift Markdown](https://github.com/swiftlang/swift-markdown/tree/0.9.0),
+and [SQLite multi-column indexes](https://www.sqlite.org/queryplanner.html#multi_column_indices).

@@ -56,12 +56,11 @@ extension Workbook {
         text: text, data: data, meaning: original.meaning, status: "draft",
         scenario: original.scenario, inputs: [original.id, source],
         transformation: "document-edit-v1", supersedes: separate ? nil : original.id,
+        referenceOrigin: original.id,
         inheritReferenceBindings: references == nil)
       if let references {
         try publishInitialReferences(
           draft, selections: references, inheritedOrigin: original.id)
-      } else if separate {
-        try inheritReferences(from: original.id, to: draft, text: text)
       }
       try cancellation.check()
       return .string(draft)

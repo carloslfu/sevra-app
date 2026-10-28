@@ -47,7 +47,7 @@ extension Workbook {
       origin, selections: selections, previous: nil, inherited: inherited)
   }
 
-  private func referenceBody(_ origin: String) throws -> String {
+  func referenceBody(_ origin: String) throws -> String {
     try require(
       (try db.scalar("SELECT length(CAST(body AS BLOB)) FROM items WHERE id=?", [.string(origin)])
         .int ?? Int.max) <= Self.referenceBodyLimit,
@@ -57,9 +57,11 @@ extension Workbook {
     return try db.scalar("SELECT body FROM items WHERE id=?", [.string(origin)]).text
   }
 
-  private func writeReferenceSelections(
+  func writeReferenceSelections(
     _ origin: String, selections: [ReferenceSelection], previous: String?,
-    inherited: ReferenceSnapshot? = nil
+    inherited: ReferenceSnapshot? = nil, parser: String = "explicit-selections-v1",
+    coverage: String = "partial",
+    detail: String = "Explicit selections only. Automatic mention parsing has not run."
   ) throws -> String {
     _ = try Self.referenceSelectionsValue(selections)
     let body = try referenceBody(origin)
@@ -121,25 +123,32 @@ extension Workbook {
       bindings.append(row)
     }
     let hash = ToolResultProjection.digest(body)
+    var evidenceData: [String: Value] = [
+      "originVersionID": .string(origin), "bodyHash": .string(hash),
+      "previousSnapshotID": previous.map(Value.string) ?? .null,
+      "previousOriginSnapshotID": inherited?.id.map(Value.string) ?? .null,
+      "references": .array(bindings.map(Value.object)),
+    ]
+    if parser != "explicit-selections-v1" {
+      evidenceData["parser"] = .string(parser)
+      evidenceData["coverage"] = .string(coverage)
+    }
     let evidence = try insertItem(
-      category: "source", kind: "annotation", title: "Reference choices",
-      text: "Explicit reference selections for an immutable item version.",
-      data: .object([
-        "originVersionID": .string(origin), "bodyHash": .string(hash),
-        "previousSnapshotID": previous.map(Value.string) ?? .null,
-        "previousOriginSnapshotID": inherited?.id.map(Value.string) ?? .null,
-        "references": .array(bindings.map(Value.object)),
-      ]), meaning: "actual", status: "accepted", scenario: "actual", inputs: [],
-      transformation: "reference-selection-v1")
+      category: "source", kind: "annotation",
+      title: parser == "explicit-selections-v1" ? "Reference choices" : "Reference parse",
+      text: parser == "explicit-selections-v1"
+        ? "Explicit reference selections for an immutable item version."
+        : "Deterministic body-link parsing event for an immutable item version. This does not establish a business relationship.",
+      data: .object(evidenceData), meaning: "actual", status: "accepted", scenario: "actual",
+      inputs: [],
+      transformation: parser == "explicit-selections-v1" ? "reference-selection-v1" : parser)
     let set = identifier()
     try db.execute(
       "INSERT INTO reference_sets VALUES(?,?,?,?,?,?,?,?,?,?,?)",
       [
         .string(set), .string(origin), .number(Double(prior.version + 1)),
         previous.map(Value.string) ?? .null, .null, .string(hash),
-        .string("explicit-selections-v1"),
-        .string("partial"),
-        .string("Explicit selections only. Automatic mention parsing has not run."),
+        .string(parser), .string(coverage), .string(detail),
         .string(evidence), .string(timestamp()),
       ])
     for (ordinal, row) in bindings.enumerated() {
@@ -154,6 +163,7 @@ extension Workbook {
     try db.execute(
       "INSERT INTO reference_heads VALUES(?,?) ON CONFLICT(origin_id) DO UPDATE SET set_id=excluded.set_id",
       [.string(origin), .string(set)])
+    try refreshReferenceIndex(origin)
     return set
   }
 
@@ -172,6 +182,7 @@ extension Workbook {
       [.string(inherited), .string(set)])
     try db.execute(
       "INSERT INTO reference_heads VALUES(?,?)", [.string(destination), .string(inherited)])
+    try refreshReferenceIndex(destination)
   }
 
   /// All annotation versions remain verifiable without using titles, FTS or a model.
@@ -210,7 +221,9 @@ extension Workbook {
             snapshot.version == 1, "integrity", "Reference annotation history is incomplete.")
         }
         try require(
-          snapshot.parser == "explicit-selections-v1" && snapshot.coverage == "partial",
+          (snapshot.parser == "explicit-selections-v1" && snapshot.coverage == "partial")
+            || (snapshot.parser == InlineReferenceParser.identity
+              && ["ready", "partial"].contains(snapshot.coverage)),
           "integrity", "Unsupported reference parsing or coverage claim.")
         let source = try item(snapshot.sourceID!)
         try require(
@@ -248,6 +261,34 @@ extension Workbook {
             Data(Value.array(stored.map(Value.object)).json().utf8)
               == Data(source.data["references"].json().utf8), "integrity",
             "Reference bindings changed after selection.")
+          if snapshot.parser == InlineReferenceParser.identity {
+            let parsed = try InlineReferenceParser.parse(body)
+            try require(
+              source.data["parser"].text == snapshot.parser
+                && source.data["coverage"].text == snapshot.coverage
+                && parsed.state == snapshot.coverage
+                && parsed.selections.count == snapshot.references.count,
+              "integrity", "Reference parsing no longer matches its saved input.")
+            for (selection, reference) in zip(parsed.selections, snapshot.references) {
+              try require(
+                selection.startScalar == reference.startScalar
+                  && selection.scalarCount == reference.scalarCount
+                  && (selection.lookup ?? "").utf8.elementsEqual(reference.lookup.utf8),
+                "integrity", "Parsed reference locations changed.")
+              if reference.resolution != .unresolved {
+                guard let target = selection.target else {
+                  throw SevraError("integrity", "A parsed name acquired an unselected binding.")
+                }
+                let workbook = target.workbookID ?? id
+                try require(
+                  workbook == reference.targetWorkbookID && target.mode == reference.targetMode
+                    && target.identity
+                      == (target.mode == .live
+                        ? reference.targetLogicalID : reference.targetVersionID),
+                  "integrity", "A parsed stable route changed its target.")
+              }
+            }
+          }
         }
         let scalars = Array(body.unicodeScalars)
         var end = 0
@@ -288,5 +329,6 @@ extension Workbook {
         after = row["sequence"]!.int!
       }
     }
+    try verifyReferenceIndex()
   }
 }

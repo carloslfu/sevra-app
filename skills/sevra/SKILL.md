@@ -59,6 +59,45 @@ version, not silently retargeting the edit. `--separate` preserves the text as a
 distinct draft when the user wants to keep both versions. Original file assets
 are previewed/imported separately and cannot be changed through this command.
 
+Use `references PATH VERSION_ID` for outgoing body mentions and `backlinks PATH
+VERSION_ID` for incoming ones. Both require exact IDs and accept an optional JSON
+object with `limit` (1...50), `cursor`, `kind`, `meaning`, `status`, `scenario`,
+`targetScope` (`logical` or `exact`) and `historicalOrigins` (boolean). Incoming
+filters apply to origins; outgoing filters apply to destinations. Incoming scope
+defaults to current origins and the target's logical identity, including pins to
+its older versions. Exact scope includes live mentions only if the requested
+version is current. Follow `nextCursor`; changed evidence or query requires a new
+page. Hits deduplicate exact versions, report mention counts and expose metadata
+only. Read an exact hit with `read` before citing it. Mention discovery grants no
+acceptance, action authority or access to another workbook or conversation.
+
+`reference-snapshot PATH VERSION_ID [SNAPSHOT_ID]`, `reference-history PATH
+VERSION_ID [OPTIONS_JSON]` and `reference-resolve PATH VERSION_ID REFERENCE_ID
+[SNAPSHOT_ID]` inspect saved choices and navigation targets. History options are
+`limit` and `beforeVersion`. Names stay unresolved; stable `sevra://item/ID` pins
+an exact version and `sevra://logical/ID` follows its head. Foreign routes remain
+external. Indexing applies to bounded item bodies, not extracted asset contents;
+partial, unsupported and unindexed coverage is not proof that no mentions exist.
+
+To bind an explicitly chosen target, `annotate-references PATH SOURCE_VERSION_ID
+JSON` requires `selections`, `expectedSnapshotID` (null only for the first set)
+and an optional retry `token`. A selection has `startScalar`, `scalarCount`,
+optional preserved `id`/`lookup`, and optional `target` with `mode` (`live` or
+`pinned`), stable `identity` and optional `workbookID`. Coordinates select exact
+Unicode scalars in the original body. Do not guess a target from a title match.
+Source corrections preserve original bytes and prior annotations. Record binding
+changes require a new document version: `edit-document ... --references JSON_FILE`
+accepts a selection array and commits it with text atomically. `add` also accepts
+a `references` array. Explicit selections report partial coverage.
+
+`index-references PATH VERSION_ID` catches up a stored body once. For migrated
+workbooks, `index-reference-bodies PATH [OPTIONS_JSON]` accepts `afterID` and a
+`limit` up to 50; follow `nextAfterID`. Completed origins survive interruption.
+`rebuild-references PATH` reconstructs lookup rows from saved bindings without
+parsing or changing unresolved choices. Keep app/CLI versions matched; schema 6
+requires a compatible build. These owner-facing CLI operations do not imply that
+the app's local model already has reference-traversal tools.
+
 Use `history` to page original conversation messages, `history-search` for scoped
 full-text retrieval and `history-read` for an exact message and its preserved
 receipt. Follow the returned history cursor; append-only messages do not invalidate

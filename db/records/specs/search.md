@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-28T04:28:27.737091+00:00
+updated: 2026-10-28T05:44:47.580964+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -312,3 +312,15 @@ page text for immutable copy provenance. This reduces long-context read pressure
 without discarding originals or treating unobserved tails as absent. The new
 five-chunk regression checks all pages and an explicit eight-chunk request. See
 [[records/specs/document-composition]] and [[records/operations/implementation]].
+
+## Owner-facing reference discovery, October 28
+
+Schema 6 body parsing, a rebuildable incoming index and deduplicated one-hop
+`referenceLinks` queries now complement FTS in the core and CLI. They return
+bounded metadata and mention locators, never read/citation proof. Incoming scope
+defaults to current origins; historical origins and exact versus logical target
+identity are explicit. Filters and revision-bound keyset cursors preserve scope.
+The 260-origin synthetic pagination check is focused correctness evidence, not
+a large-graph or real-agent performance result. Extracted file contents, scoped
+agent traversal and LJ09/LJ10 comparisons remain unqualified. See
+[[records/specs/references-and-relationships]] for the implemented bounds.

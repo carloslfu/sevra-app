@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 5
+  static let version = 6
   static let version1SQL = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=1;
@@ -97,5 +97,16 @@ enum Schema {
     CREATE INDEX reference_bindings_identity ON reference_bindings(reference_id,set_id);
     PRAGMA user_version=5;
     """
-  static let sql = version4SQL + "\n" + migration5
+  static let version5SQL = version4SQL + "\n" + migration5
+  static let migration6 = """
+    CREATE TABLE reference_coverage(origin_id TEXT PRIMARY KEY REFERENCES items(id),set_id TEXT REFERENCES reference_sets(id),parser TEXT NOT NULL,body_hash TEXT,state TEXT NOT NULL CHECK(state IN ('queued','partial','failed','ready','unsupported')),detail TEXT NOT NULL,updated TEXT NOT NULL);
+    CREATE INDEX reference_coverage_state ON reference_coverage(state,origin_id);
+    CREATE TABLE reference_index(origin_id TEXT NOT NULL REFERENCES items(id),reference_id TEXT NOT NULL,set_id TEXT NOT NULL,ordinal INTEGER NOT NULL,current_origin INTEGER NOT NULL CHECK(current_origin IN (0,1)),target_workbook TEXT,target_mode TEXT,target_logical TEXT,target_version TEXT,resolution TEXT NOT NULL,PRIMARY KEY(origin_id,reference_id),FOREIGN KEY(set_id,reference_id) REFERENCES reference_bindings(set_id,reference_id));
+    CREATE INDEX reference_incoming_current ON reference_index(target_workbook,target_logical,current_origin,origin_id,ordinal);
+    CREATE INDEX reference_incoming_history ON reference_index(target_workbook,target_logical,origin_id,ordinal);
+    INSERT INTO reference_coverage SELECT h.origin_id,s.id,s.parser,s.body_hash,s.coverage,s.detail,s.created FROM reference_heads h JOIN reference_sets s ON s.id=h.set_id;
+    INSERT INTO reference_index SELECT s.origin_id,r.reference_id,r.set_id,r.ordinal,EXISTS(SELECT 1 FROM heads h WHERE h.item_id=s.origin_id),r.target_workbook,r.target_mode,r.target_logical,r.target_version,r.resolution FROM reference_bindings r JOIN reference_sets s ON s.id=r.set_id JOIN reference_heads h ON h.set_id=s.id;
+    PRAGMA user_version=6;
+    """
+  static let sql = version5SQL + "\n" + migration6
 }

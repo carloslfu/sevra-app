@@ -197,7 +197,7 @@ extension Workbook {
   /// Receipt persistence and context maintenance cannot change business ranking.
   /// Inspect only a bounded indexed journal suffix; every unknown mutation refuses
   /// continuation. Legacy cursors keep their strict whole-workbook revision check.
-  private func searchCursorIsCurrent(
+  func searchCursorIsCurrent(
     _ cursor: Value, revision: Int, journal: [String: Value]?
   ) throws -> Bool {
     if cursor["revision"].int == revision { return true }

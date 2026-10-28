@@ -520,3 +520,6 @@ Native provenance build, 18 document checks, installed resource/refusal/signatur
 ## [2026-10-28 05:11] implementation | records/operations/implementation.md
 Schema-5 explicit reference binding foundation: 108 core and 18 document checks, native build/package/CLI pass; parser/backlinks/product and visual gates remain open.
 
+## [2026-10-28 05:45] implementation | records/operations/implementation.md
+Implemented schema-6 bounded shared body-link parsing, stable unresolved retention, rebuildable backlink indexes, deduplicated filtered keyset discovery and owner CLI/skill. Final checks: 121 core, 18 document, 24 packaged CLI journeys/51 calls, native package resources/refusals/signature. Preserved parser/expectation/stale-package failures in immutable evidence. Extracted links, native/voice interaction, scoped agent traversal and full release gates remain open.
+

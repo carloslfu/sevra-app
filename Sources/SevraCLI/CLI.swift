@@ -83,6 +83,11 @@ import SevraProduct
     }
     if command == "demo" { return try Demo.create(at: url(1)) }
     let book = try Workbook(url(1))
+    if let result = try runReferenceCommand(
+      command, book: book, args: args, cancellation: cancellation)
+    {
+      return result
+    }
     switch command {
     case "inspect": return try book.counts()
     case "intake-status":
@@ -149,6 +154,7 @@ import SevraProduct
       var separate = false
       var token = identifier()
       var expected: Int?
+      var references: [ReferenceSelection]?
       var seen: Set<String> = []
       var index = 4
       while index < args.count {
@@ -156,6 +162,19 @@ import SevraProduct
         try require(seen.insert(option).inserted, "usage", "Duplicate document edit option.")
         switch option {
         case "--separate": separate = true
+        case "--references":
+          index += 1
+          let referenceFile = try url(index)
+          try require(
+            try referenceFile.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true,
+            "usage", "Choose a regular JSON selection file.")
+          let referenceHandle = try FileHandle(forReadingFrom: referenceFile)
+          defer { try? referenceHandle.close() }
+          let referenceBytes = try referenceHandle.read(upToCount: 400_001) ?? Data()
+          try require(
+            referenceBytes.count <= 400_000, "usage", "Reference JSON is limited to 400,000 bytes.")
+          references = try decodeReferenceSelections(
+            JSONDecoder().decode(Value.self, from: referenceBytes))
         case "--token":
           index += 1
           token = try arg(index)
@@ -192,7 +211,7 @@ import SevraProduct
       return try encoded(
         book.editDocument(
           version, text: text, separate: separate, token: token, expectedRevision: expected,
-          cancellation: cancellation))
+          cancellation: cancellation, references: references))
     case "tables": return try encoded(book.datasets())
     case "rows":
       return try encoded(book.rows(arg(2), offset: args.count > 3 ? Int(args[3]) ?? 0 : 0))
@@ -204,8 +223,12 @@ import SevraProduct
           title: v["title"].text, text: v["text"].text,
           data: v["data"] == .null ? .object([:]) : v["data"],
           meaning: v["meaning"].string ?? "actual", status: v["status"].string ?? "draft",
-          inputs: v["inputs"].array.compactMap(\.string), token: v["token"].string ?? identifier(),
-          expectedRevision: v["expectedRevision"].int))
+          scenario: v["scenario"].string ?? "actual",
+          inputs: v["inputs"].array.compactMap(\.string), supersedes: v["supersedes"].string,
+          token: v["token"].string ?? identifier(),
+          expectedRevision: v["expectedRevision"].int,
+          references: v.object.keys.contains("references")
+            ? decodeReferenceSelections(v["references"]) : nil))
     case "edit-row":
       return try encoded(
         book.editRow(
@@ -317,7 +340,11 @@ import SevraProduct
     import WORKBOOK FILE [--link] | search WORKBOOK QUERY [OFFSET] | read WORKBOOK ID
     records WORKBOOK [KIND] | tables WORKBOOK | rows WORKBOOK TABLE_ID [OFFSET]
     add WORKBOOK JSON | edit-row WORKBOOK ITEM_ID VALUES_JSON [EXPECTED_REVISION]
-    edit-document WORKBOOK VERSION_ID UTF8_FILE [--separate] [--token TOKEN] [--revision REVISION]
+    edit-document WORKBOOK VERSION_ID UTF8_FILE [--separate] [--token TOKEN] [--revision REVISION] [--references JSON_FILE]
+    references WORKBOOK VERSION_ID [OPTIONS_JSON] | backlinks WORKBOOK VERSION_ID [OPTIONS_JSON]
+    reference-snapshot WORKBOOK VERSION_ID [SNAPSHOT_ID] | reference-resolve WORKBOOK VERSION_ID REFERENCE_ID [SNAPSHOT_ID]
+    reference-history WORKBOOK VERSION_ID [OPTIONS_JSON] | annotate-references WORKBOOK VERSION_ID JSON
+    index-references WORKBOOK VERSION_ID | index-reference-bodies WORKBOOK [OPTIONS_JSON] | rebuild-references WORKBOOK
     accept WORKBOOK ID [TOKEN] | withdraw WORKBOOK ID [TOKEN] | undo WORKBOOK ID | lineage WORKBOOK ID
     opening WORKBOOK SUBJECT QUANTITY ISO_DATE SOURCE_ID | movement WORKBOOK JSON
     balance WORKBOOK SUBJECT | calculate EXPRESSION [VALUES_JSON]

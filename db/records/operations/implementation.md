@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T05:11:30.810587+00:00
+updated: 2026-10-28T05:44:47.610658+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -46,13 +46,15 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   checks and native package/CLI checks pass at b165e14; visible navigation, Back,
   narrow-window and assistive-technology qualification remain pending. The latest
   UI attempt still reported the Mac locked after the owner said it was unlocked.
-- The explicit-reference storage foundation now uses schema 5. Stable live/pinned
-  bindings, independent Source annotations, atomic document/reference saves,
-  unresolved/external retention, migration and portable history pass 108 core
-  checks. Record links stay immutable with their text version. Manual selections
-  have partial coverage; untouched or changed unannotated versions are not indexed.
-  Automatic wiki/Markdown parsing, extraction locators, backlinks, native/text/voice/CLI
-  integration and scoped agent traversal remain unfinished under L01-L14/LJ01-LJ10.
+- Schema 6 now adds bounded shared wiki/Markdown body parsing, incremental coverage,
+  deduplicated incoming/outgoing discovery and a rebuildable backlink projection.
+  Saved choices remain authoritative; names do not rebind after creation or rebuild.
+  Migration, failed-write rollback, corruption/repair, 260-origin paging, scope
+  filters, current/historical identity and portable reopening pass focused checks.
+  The owner-facing CLI and repo-owned harness skill expose these capabilities.
+  Extracted-file locators, native/text/voice linking and scoped local-agent traversal
+  remain unfinished under L01-L14/LJ01-LJ10. Partial coverage and metadata discovery
+  do not establish absence, citation eligibility, business facts or acceptance.
 
 - The integrated typed/native supplier journey now has direct evidence for intake,
   correct comparison, native table/chart composition, exact quote navigation,
@@ -4235,3 +4237,100 @@ and spoken VoiceOver remain visibly unverified. Continue other implementation
 without duplicating the pending unlock request. Engine adoption, automatic
 compaction, semantic event identity, later-page direction review and whole-app
 release qualification retain their existing open gates.
+
+## Reference parser, backlink index and CLI checkpoint, October 28
+
+Continues the schema-5 explicit-binding foundation at cf24000. Schema 6 adds
+`reference_coverage` and a rebuildable `reference_index`, retaining canonical
+annotation snapshots as the authority. A pinned official Swift Markdown/cmark
+0.9.0 parser handles bounded wiki and stable-route Markdown body mentions.
+Swift 6.2 is the minimum build toolchain; this host remains 6.3.3. Native package
+license notices include both dependencies. No inference dependency or engine
+artifact changed.
+
+Eligible new/edited body text and its parse/coverage/bindings publish atomically.
+Manual selections stay partial. Migrated untouched bodies stay unindexed until
+bounded catch-up. Empty completed body parses are ready for supported syntax;
+oversized text is retained with unsupported coverage. Internal request captures,
+table rows and annotation events are excluded from automatic parsing. Names stay
+unresolved, including after target creation or projection rebuild.
+
+Incoming/outgoing discovery deduplicates exact versions and reports first mention
+locators/counts without loading destination bodies. Current/historical origins,
+logical/exact target scope and metadata filters are explicit. Covering incoming
+indexes and revision-bound keysets support pages of at most 50 results, with
+cancellation and a maximum three-second deadline. Outgoing grouping inspects at
+most 128 occurrences. These owner APIs do not grant model conversation access,
+read/citation proof, business relationships, acceptance or action authority.
+
+CLI commands now inspect snapshots/history, resolve navigation targets, query
+references/backlinks, catch up unindexed bodies, rebuild projection rows and
+explicitly annotate a Source with a stale-snapshot check. `add` accepts selections,
+scenario and supersedes; `edit-document --references JSON_FILE` commits selected
+bindings with a new Record document version. The repo-owned harness skill and
+build/run instructions describe commands, bounds and authority limits.
+
+Verification from final source:
+
+- `swift build --product sevra-checks -j 4` and `.build/debug/sevra-checks`: 121
+  passed, zero failed. This includes canonical schema 1-5 migration; an independent
+  v5 fixture and saved-binding projection migration; rollback after injected
+  multi-link failure; NUL/emoji/combining marks/CRLF locators; ignored code/images/
+  HTML; unsafe routes/malformed tokens; occurrence/body/AST bounds; route integrity;
+  unresolved retention; rebuild/corruption repair; current/history semantics;
+  260-origin deduplicated filtered pagination, cancellation/deadline/stale cursors;
+  outgoing deduplication and portable reopening.
+- Rebuilt `swift run -j 4 sevra-document-checks`: 18 passed, zero failed. These
+  remain programmatic document/lifecycle checks, not visible editor journeys.
+- `bash scripts/build_native.sh`: app, CLI and extraction helper build and package
+  successfully. `python3 scripts/check_references.py` against the final packaged
+  CLI passes 24 checks across 51 calls, including live/pinned navigation metadata,
+  explicit correction/history/retry, original-body preservation, continuation and
+  stale refusal, atomic Record edit/selected references, invalid options, failed
+  binding rollback, asset bytes and offline export/reopen/integrity. The maximum
+  subprocess duration was 0.3355 seconds on this host; that includes process
+  startup and is not a model, core-query or broad workload performance claim.
+- Packaged `check-resources` and `python3 scripts/check_native_package.py` pass
+  for app and CLI with build-tree reads denied: 1,888 Metal kernels, no baseline
+  symbols or Python linkage, invalid setup options refused, missing-model guidance
+  and failed-run preservation, ten missing resources and an altered resource
+  refused, valid strict signature. Swift Markdown/cmark notices are present.
+- Strict Swift formatting and the repo-owned skill validator pass. The validator
+  initially lacked PyYAML in system Python; isolated `uv --with pyyaml` ran it
+  successfully without adding an application runtime dependency.
+
+Failures and limits retained:
+
+- The first unchanged core expectations reported 105 pass/3 fail because they
+  still expected schema 5 or missing coverage for new/oversized text. Expectations
+  now assert the intended schema-6 behavior. The later parser fixture reported
+  114 pass/1 fail twice. It exposed NUL expansion in byte columns and upstream
+  cmark locations when content directly follows a reference definition. Mapping
+  now preserves original scalars; ambiguous leading-definition paragraphs fail
+  closed with partial coverage and a blank-line suggestion. Supported separated
+  definitions, and ignored code in the ambiguous case, are tested. The final
+  115/120/121-pass logs are preserved alongside those failures.
+- An initial native CLI journey used the package from before the `supersedes`
+  CLI change, so its live-target assertion failed. Rebuilding the final source
+  and rerunning the same packaged journey passes. That failed-artifact log is
+  preserved; the passing debug journey was not substituted for packaged evidence.
+- The body is bounded before AST allocation, but the 50,000-node traversal check
+  runs after AST construction. No whole-app memory or in-cmark cancellation
+  guarantee is claimed. The 260-origin case is focused correctness evidence;
+  large-graph performance and LJ10 comparisons remain open.
+- The native UI tool again reported locked/automatic unlock paused after the
+  owner's unlocked reply. No visible copied-passage navigation, Back, narrow
+  layout, native link interaction or spoken VoiceOver pass is claimed.
+- Extracted file-link locators and coverage, native/text/voice link workflows,
+  scoped local-agent traversal/read enforcement and real retrieval comparisons
+  remain next implementation work. Existing conversation-copy, semantic inventory
+  identity, context/compaction, J11/voice/accessibility, broad memory/hardware and
+  release/installation gates remain open. The complete application goal is active.
+  No model cohort, full installer/release or hosted CI run was repeated here.
+
+Immutable receipt: `integration/evidence/2026-10-28-reference-parser-index-cli.json.gz`, 10,390 bytes, SHA-256
+`da7ed91d1ff5bf9f82b28fed78ce8b7651d36e387d4c8d5a37a429036834d960`. It binds final source/product hashes, successful
+checks, failed attempts and scope limits. Earlier receipts remain unchanged.
+
+See [[records/specs/references-and-relationships]], [[records/specs/storage]],
+[[records/specs/search]] and [[records/operations/build-and-run]].

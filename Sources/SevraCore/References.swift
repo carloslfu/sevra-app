@@ -122,10 +122,15 @@ extension Workbook {
   func readReferenceSnapshot(_ origin: String, snapshotID: String?) throws -> ReferenceSnapshot {
     let set = try snapshotID ?? currentReferenceSet(origin)
     guard let set else {
+      let coverage = try db.execute(
+        "SELECT * FROM reference_coverage WHERE origin_id=?", [.string(origin)]
+      ).first
       return ReferenceSnapshot(
         id: nil, originVersionID: origin, version: 0, previousID: nil, inheritedFrom: nil,
-        bodyHash: nil, parser: nil, coverage: "not_indexed",
-        detail: "Reference parsing has not run for this version.", sourceID: nil, references: [])
+        bodyHash: coverage?["body_hash"]?.string, parser: coverage?["parser"]?.string,
+        coverage: coverage?["state"]?.text ?? "not_indexed",
+        detail: coverage?["detail"]?.text ?? "Reference parsing has not run for this version.",
+        sourceID: nil, references: [])
     }
     try Self.validateReferenceIdentity(set)
     guard
@@ -162,7 +167,7 @@ extension Workbook {
       sourceID: row["source_id"]?.string, references: references)
   }
 
-  private func decodeReference(_ row: [String: Value]) throws -> WorkbookReference {
+  func decodeReference(_ row: [String: Value]) throws -> WorkbookReference {
     guard let start = row["start_scalar"]?.int, let count = row["scalar_count"]?.int,
       let resolution = ReferenceResolutionState(rawValue: row["resolution"]!.text),
       start >= 0, start <= Self.referenceBodyLimit, count > 0, count <= 1024,

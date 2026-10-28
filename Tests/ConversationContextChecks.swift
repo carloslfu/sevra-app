@@ -49,7 +49,7 @@ func checkConversationContext(at root: URL) {
     let book = try Workbook(path)
     try expect(try book.revision() == 6)
     try expect(
-      try sql(path.appendingPathComponent("workbook.sqlite"), "PRAGMA user_version;") == "5")
+      try sql(path.appendingPathComponent("workbook.sqlite"), "PRAGMA user_version;") == "6")
     try expect(try book.historyMessage("old-user").body.contains("P-27"))
     try expect(try book.searchHistory("purchase")["hits"].array.first?["id"].text == "old-user")
     try expect(try book.chapters().count == 1)
@@ -93,6 +93,24 @@ func checkConversationContext(at root: URL) {
     try expect(try sql(database, "SELECT value FROM meta WHERE key='workbook-id';") == book.id)
     try expect(try book.referenceSnapshot("kept-source").coverage == "not_indexed")
     try expect(try Workbook(path).revision() == 6)
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check("independent canonical v5 fixture catches up bodies without rebinding earlier choices") {
+    let path = try legacyBook(root, name: "LegacyV5", version: 5)
+    let database = path.appendingPathComponent("workbook.sqlite")
+    _ = try sql(
+      database,
+      "INSERT INTO meta VALUES('workbook-id','legacy-fixture'); INSERT INTO items VALUES('legacy-origin','legacy-logical',1,'source','observation','Original','actual','accepted','actual','[[Later]]','{}',NULL,NULL,'2026-10-27T00:00:00Z'); INSERT INTO heads VALUES('legacy-logical','legacy-origin');"
+    )
+    let book = try Workbook(path)
+    try expect(try book.referenceSnapshot("legacy-origin").coverage == "not_indexed")
+    let first = try book.indexReferences("legacy-origin", token: "first-parse")
+    try expect(
+      first.coverage == "ready" && first.references.count == 1
+        && first.references[0].resolution == .unresolved)
+    _ = try book.annotateReferences("legacy-origin", selections: [], expectedSnapshotID: first.id)
+    try expect(try book.indexReferences("legacy-origin", token: "first-parse") == first)
+    try expect(try book.indexReferenceBodies(limit: 1)["processed"].array.isEmpty)
     try expect(try book.verify()["ok"] == .bool(true))
   }
   check("future or untrusted schemas are refused; failed migration rolls back") {

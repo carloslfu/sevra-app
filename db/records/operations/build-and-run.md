@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T04:50:51.538921+00:00
+updated: 2026-10-28T05:44:47.595949+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -21,7 +21,7 @@ measurement on that hardware.
 
 ## Source installation
 
-Install Apple's command line developer tools if absent. Use a Swift 6.3 toolchain,
+Install Apple's command line developer tools if absent. Use a Swift 6.3 toolchain (6.2 minimum for the pinned Markdown parser),
 Git and Python 3. A full Xcode installation was not needed on the verified host.
 
 ~~~sh
@@ -1173,3 +1173,51 @@ prose does not claim stale byte positions. Run sevra-document-checks for the
 programmatic consistency/history/edit checks. Visible source navigation, Back,
 keyboard, VoiceOver and narrow layout are separate qualification, currently
 pending manual Mac unlock in [[records/operations/implementation]].
+
+## Body links and backlinks, schema 6
+
+New eligible item bodies parse wiki links and Markdown stable routes automatically.
+Existing migrated versions remain unindexed until explicit catch-up. File contents
+have separate extraction coverage; these commands do not claim complete asset
+link discovery. Keep app and CLI builds matched.
+
+~~~sh
+sevra reference-snapshot WORKBOOK VERSION_ID
+sevra references WORKBOOK VERSION_ID '{"limit":20}'
+sevra backlinks WORKBOOK VERSION_ID '{"targetScope":"logical","historicalOrigins":false,"limit":20}'
+sevra backlinks WORKBOOK VERSION_ID '{"targetScope":"exact","limit":20}'
+sevra reference-history WORKBOOK VERSION_ID '{"limit":20}'
+sevra reference-resolve WORKBOOK VERSION_ID REFERENCE_ID
+sevra index-reference-bodies WORKBOOK '{"limit":20}'
+sevra rebuild-references WORKBOOK
+python3 scripts/check_references.py --cli output/native/bin/sevra
+~~~
+
+Replace placeholder paths/IDs with exact returned values. `references` and
+`backlinks` options are `limit`, `cursor`, `kind`, `meaning`, `status`, `scenario`,
+`targetScope` and `historicalOrigins`. Incoming filters apply to origin metadata;
+outgoing filters apply to destination metadata. Incoming current-origin discovery
+is the default. Logical scope includes pins to earlier versions of the target;
+exact scope includes a live mention only when the anchor is current. Follow
+`nextCursor` with the same options. A changed query or evidence invalidates it.
+These are metadata-only discovery results. Read exact versions before citing.
+`index-reference-bodies` accepts `afterID`/`limit`; follow `nextAfterID`. It commits
+complete origins and skips saved coverage. `index-references WORKBOOK VERSION_ID`
+catches up one version. Rebuild never reparses or rebinds saved names.
+
+`annotate-references WORKBOOK SOURCE_VERSION_ID JSON` corrects Source choices
+without changing original bytes. JSON requires `selections` and
+`expectedSnapshotID` (null for no earlier annotation), with an optional `token`.
+A selection has `startScalar`, `scalarCount`, optional `lookup`/preserved `id`,
+and optional `target` (`mode`, stable `identity`, optional `workbookID`).
+Mode is `live` for a logical ID or `pinned` for an exact version. Source correction
+retries preserve the original outcome and stale snapshots refuse.
+
+For Record documents, use `edit-document ... --references JSON_FILE` with an
+array of those selections; text and bindings commit atomically as a new draft.
+`add` JSON also accepts `references`, `scenario` and `supersedes`. Omitting
+references uses automatic body parsing; an explicit empty array means a manual
+empty, partial annotation. Reference/selection JSON is bounded to 400,000 bytes.
+The repo-owned `skills/sevra/SKILL.md` documents these owner CLI capabilities;
+scoped local-model traversal and native link interaction remain separate work.
+See [[records/specs/references-and-relationships]] for syntax, coverage and limits.

@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 import Foundation
 import PackageDescription
 
@@ -37,6 +37,7 @@ let package = Package(
       revision: "7578fb21e57ec362d19f5050922e0f583914935d"),
     .package(url: "https://github.com/weichsel/ZIPFoundation.git", exact: "0.9.20"),
     .package(url: "https://github.com/huggingface/swift-transformers.git", exact: "1.3.5"),
+    .package(url: "https://github.com/swiftlang/swift-markdown.git", exact: "0.9.0"),
   ],
   targets: [
     .target(
@@ -101,7 +102,10 @@ let package = Package(
       resources: [.copy("fixtures.json"), .copy("output-fixtures.json")],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
-      name: "SevraCore", dependencies: ["CSQLite", "ZIPFoundation"],
+      name: "SevraCore",
+      dependencies: [
+        "CSQLite", "ZIPFoundation", .product(name: "Markdown", package: "swift-markdown"),
+      ],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraExtractionWorker", dependencies: ["SevraCore"],

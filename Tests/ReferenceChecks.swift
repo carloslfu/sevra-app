@@ -28,6 +28,96 @@ private func selection(
 }
 
 func checkReferences(at root: URL) {
+  check("canonical v5 migration builds reference projections without changing saved bindings") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("ReferenceV5.sevra"), title: "V5")
+    let target = try book.addItem(category: "source", kind: "observation", title: "Target")
+    let origin = try book.addItem(
+      category: "source", kind: "observation", title: "Origin", text: "mention",
+      references: [
+        selection("mention", in: "mention", target: .init(mode: .pinned, identity: target.id))
+      ])
+    let saved = try book.referenceSnapshot(origin.id)
+    let before = try referenceSQL(
+      book, "SELECT * FROM items; SELECT * FROM reference_sets; SELECT * FROM reference_bindings;")
+    _ = try referenceSQL(
+      book, "DROP TABLE reference_index; DROP TABLE reference_coverage; PRAGMA user_version=5;")
+    let opened = try Workbook(book.url)
+    try expect(
+      try referenceSQL(
+        opened,
+        "SELECT * FROM items; SELECT * FROM reference_sets; SELECT * FROM reference_bindings;")
+        == before)
+    try expect(try opened.referenceSnapshot(origin.id) == saved)
+    try expect(try opened.referenceLinks(target.id, direction: .incoming)["hits"].array.count == 1)
+    try expect(try opened.verify()["ok"] == .bool(true))
+  }
+  check("corrupted derived backlink rows are detected and repaired without reinterpretation") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("ReferenceRepair.sevra"), title: "Repair")
+    let target = try book.addItem(category: "source", kind: "observation", title: "Target")
+    let origin = try book.addItem(
+      category: "source", kind: "observation", title: "Origin",
+      text: "[[Later]] [target](sevra://item/\(target.id))")
+    let saved = try book.referenceSnapshot(origin.id)
+    _ = try referenceSQL(book, "UPDATE reference_index SET current_origin=0;")
+    try refuses("integrity") { _ = try book.verify() }
+    _ = try book.addItem(category: "source", kind: "observation", title: "Later")
+    let sourceCount = try book.counts()["sources"]
+    try book.rebuildReferenceIndex()
+    try expect(
+      try book.referenceSnapshot(origin.id) == saved && book.counts()["sources"] == sourceCount)
+    try expect(try book.referenceLinks(target.id, direction: .incoming)["hits"].array.count == 1)
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check("automatic parse failure rolls back body, annotation, projection and operation together") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("ReferenceAutoFault.sevra"), title: "Fault")
+    let before = try book.counts()
+    _ = try referenceSQL(
+      book,
+      "CREATE TRIGGER injected_auto_failure BEFORE INSERT ON reference_bindings WHEN NEW.ordinal=1 BEGIN SELECT RAISE(ABORT,'injected'); END;"
+    )
+    defer { _ = try? referenceSQL(book, "DROP TRIGGER IF EXISTS injected_auto_failure;") }
+    try refuses("database") {
+      _ = try book.addItem(
+        category: "source", kind: "observation", title: "AtomicFault", text: "[[one]] [[two]]",
+        token: "automatic-fault")
+    }
+    try expect(try book.counts() == before && book.search("AtomicFault").hits.isEmpty)
+    try expect(
+      try referenceSQL(
+        book,
+        "SELECT count(*) FROM reference_coverage; SELECT count(*) FROM reference_index; SELECT count(*) FROM operations WHERE id='automatic-fault';"
+      ) == "0\n0\n0")
+    _ = try referenceSQL(book, "DROP TRIGGER injected_auto_failure;")
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check("automatic parse integrity ties a saved binding to its declared stable route") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("ReferenceRouteIntegrity.sevra"), title: "Routes")
+    let target = try book.addItem(category: "source", kind: "observation", title: "Original")
+    let other = try book.addItem(category: "source", kind: "observation", title: "Other")
+    let origin = try book.addItem(
+      category: "source", kind: "observation", title: "Origin",
+      text: "[original](sevra://item/\(target.id))")
+    let snapshot = try book.referenceSnapshot(origin.id)
+    _ = try referenceSQL(
+      book,
+      "UPDATE reference_bindings SET target_version='\(other.id)',target_logical='\(other.logicalID)' WHERE set_id='\(snapshot.id!)'; UPDATE items SET data=json_set(data,'$.references[0].target_version','\(other.id)','$.references[0].target_logical','\(other.logicalID)') WHERE id='\(snapshot.sourceID!)';"
+    )
+    var correctRefusal = false
+    do { _ = try book.verify() } catch {
+      correctRefusal =
+        (error as? SevraError)?.message == "A parsed stable route changed its target."
+    }
+    try expect(correctRefusal)
+    _ = try referenceSQL(
+      book,
+      "UPDATE reference_bindings SET target_version='\(target.id)',target_logical='\(target.logicalID)' WHERE set_id='\(snapshot.id!)'; UPDATE items SET data=json_set(data,'$.references[0].target_version','\(target.id)','$.references[0].target_logical','\(target.logicalID)') WHERE id='\(snapshot.sourceID!)';"
+    )
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
   check("reference identity survives rename, duplicate title and reopen; pins remain historical") {
     let book = try Workbook.create(
       at: root.appendingPathComponent("ReferenceIdentity.sevra"), title: "References")
@@ -223,7 +313,9 @@ func checkReferences(at root: URL) {
     try expect(try book.referenceSnapshot(withdrawn.id).references == first.references)
     let draft = try book.undoItem(withdrawn.id)
     let edited = try book.editDocument(draft.id, text: "Everything changed")
-    try expect(try book.referenceSnapshot(edited.id).coverage == "not_indexed")
+    try expect(
+      try book.referenceSnapshot(edited.id).coverage == "ready"
+        && book.referenceSnapshot(edited.id).references.isEmpty)
     let undone = try book.undoItem(edited.id)
     try expect(undone.text == "quote" && undone.meaning == "estimate")
     try expect(try book.referenceSnapshot(undone.id).references == first.references)
@@ -304,7 +396,7 @@ func checkReferences(at root: URL) {
       _ = try book.annotateReferences(large.id, selections: [], expectedSnapshotID: nil)
     }
     try expect(
-      try book.counts() == after && book.referenceSnapshot(large.id).coverage == "not_indexed")
+      try book.counts() == after && book.referenceSnapshot(large.id).coverage == "unsupported")
     try expect(try book.verify()["ok"] == .bool(true))
   }
 

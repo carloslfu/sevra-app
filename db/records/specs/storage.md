@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T05:04:39.110999+00:00
+updated: 2026-10-28T05:44:47.565286+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -354,7 +354,20 @@ Explicit selections publish with authored text in the same transaction. Later
 Source annotation changes retain their own prior snapshot and new Source without
 rewriting original inputs. Record binding changes require a new item version.
 Unchanged text can inherit exact bindings through review and Undo; changed prose
-without supplied selections retains its earlier binding history and reports
-missing new-version coverage. Manual selections are partial coverage.
+without supplied selections retains its earlier binding history and receives a
+bounded new-version parse under schema 6. Migrated untouched bodies remain unindexed. Manual selections are partial coverage.
 See [[records/specs/references-and-relationships]] for implemented API bounds,
 remaining parser/extraction/traversal work and acceptance cases.
+
+## Derived reference projection, schema 6
+
+`reference_index` projects the current annotation of each exact origin with its
+current-origin flag and saved target metadata. Covering incoming indexes support
+current and historical ID-keyset discovery. `reference_coverage` retains the parser,
+body hash, state and detail, including an empty completed parse. Canonical binding
+snapshots stay authoritative. Rebuild copies them without reparsing or rebinding;
+verification compares both directions. New eligible bodies and their bounded
+parses commit atomically; original asset bytes remain outside SQLite and unchanged.
+Schema 1-5 migration preserves originals and saved choices and does not parse old
+bodies automatically. See [[records/specs/references-and-relationships]] for parser
+limits, catch-up, metadata-only queries and remaining extraction/product gates.
