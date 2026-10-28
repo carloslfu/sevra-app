@@ -47,12 +47,9 @@ extension Workbook {
             text: values.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.text)" }.joined(
               separator: "\n"), data: .object(values), meaning: "actual", status: "accepted",
             scenario: "actual", inputs: [sourceID], transformation: "structured-import-v1")
-          try db.execute(
-            "INSERT INTO dataset_rows VALUES(?,?,?,?)",
-            [
-              .string(table.id), .string(identifier()), .number(Double(offset + index)),
-              .string(try item(id).logicalID),
-            ])
+          try insertDatasetMember(
+            table.id, ordinal: offset + index,
+            logicalID: try item(id).logicalID)
         }
         let status: Value = .object([
           "sourceID": .string(sourceID), "datasetID": .string(table.id), "title": .string(title),

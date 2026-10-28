@@ -11,11 +11,22 @@ final class ChangeCapture {
   var failure: SevraError?
   var bytes = 0
   var publishing = false
+  var tables = ChangeFormat.tables
+  var schemaCookie: Int?
+  var resettingProjection: String?
+  private var fragment:
+    (
+      name: String, operation: String, before: String, after: String,
+      old: [ChangeCell], new: [ChangeCell]
+    )?
 
   init(workbookID: String) { self.workbookID = workbookID }
   func begin(_ database: Database) throws {
     try actor.validate()
     try require(pending == nil, "change_transaction", "A change transaction is already active.")
+    if schemaCookie != (try database.scalar("PRAGMA main.schema_version").int) {
+      try database.refreshCaptureSchema()
+    }
     pending = []
     failure = nil
     bytes = 0
@@ -25,9 +36,11 @@ final class ChangeCapture {
     failure = nil
     bytes = 0
     publishing = false
+    fragment = nil
+    resettingProjection = nil
   }
   func receive(_ arguments: [OpaquePointer?]) {
-    guard arguments.count >= 4, let nameBytes = sqlite3_value_text(arguments[0]),
+    guard arguments.count >= 6, let nameBytes = sqlite3_value_text(arguments[0]),
       let operationBytes = sqlite3_value_text(arguments[1])
     else {
       failure = .init("change_capture", "Invalid capture arguments.")
@@ -35,6 +48,7 @@ final class ChangeCapture {
     }
     let name = String(decodingCString: nameBytes, as: UTF8.self)
     let operation = String(decodingCString: operationBytes, as: UTF8.self)
+    if name == resettingProjection && operation == "delete" { return }
     if name == "committed_changes" {
       if !publishing {
         failure = .init(
@@ -42,16 +56,17 @@ final class ChangeCapture {
       }
       return
     }
-    guard ChangeFormat.tables.contains(name), pending != nil else {
+    guard tables.contains(name), pending != nil else {
       failure = .init(
         "change_untracked", "A durable write has no declared change transaction: " + name)
       return
     }
     guard failure == nil else { return }
-    let count = (arguments.count - 4) / 2
-    func row(_ previous: Bool) throws -> ChangeRow {
-      let offset = previous ? 4 : 4 + count
-      let id = sqlite3_value_int64(arguments[previous ? 2 : 3])
+    let count = (arguments.count - 6) / 2
+    let total = Int(sqlite3_value_int(arguments[4]))
+    let start = Int(sqlite3_value_int(arguments[5]))
+    func cells(_ previous: Bool) throws -> [ChangeCell] {
+      let offset = previous ? 6 : 6 + count
       var values: [ChangeCell] = []
       for index in offset..<(offset + count) {
         let cell = try ChangeCell.read(arguments[index])
@@ -65,11 +80,32 @@ final class ChangeCapture {
         )
         values.append(cell)
       }
-      return .init(rowID: String(id), values: values)
+      return values
     }
     do {
-      let before = operation == "insert" ? nil : try row(true)
-      let after = operation == "delete" ? nil : try row(false)
+      let oldID = String(sqlite3_value_int64(arguments[2]))
+      let newID = String(sqlite3_value_int64(arguments[3]))
+      try require(
+        total > 0 && total <= 2000 && count > 0 && start + count <= total,
+        "change_capture", "Invalid capture fragment.")
+      if start == 0 {
+        try require(fragment == nil, "change_capture", "An incomplete row capture remains.")
+        fragment = (name, operation, oldID, newID, [], [])
+      }
+      guard var part = fragment else {
+        throw SevraError("change_capture", "Missing initial capture fragment.")
+      }
+      try require(
+        part.name == name && part.operation == operation && part.before == oldID
+          && part.after == newID && part.old.count == start,
+        "change_capture", "Capture fragments are out of order.")
+      part.old += try cells(true)
+      part.new += try cells(false)
+      fragment = part
+      guard start + count == total else { return }
+      fragment = nil
+      let before: ChangeRow? = operation == "insert" ? nil : .init(rowID: oldID, values: part.old)
+      let after: ChangeRow? = operation == "delete" ? nil : .init(rowID: newID, values: part.new)
       let portableBefore = ChangeFormat.portable(before, table: name)
       let portableAfter = ChangeFormat.portable(after, table: name)
       if portableBefore != portableAfter {
@@ -83,6 +119,7 @@ final class ChangeCapture {
   }
   func publish(_ database: Database) throws {
     if let failure { throw failure }
+    try require(fragment == nil, "change_capture", "An incomplete row capture cannot commit.")
     guard let pending, !pending.isEmpty else { return }
     let prior = try database.execute(
       "SELECT id,hash FROM committed_changes ORDER BY rowid DESC LIMIT 1"
@@ -139,14 +176,6 @@ extension ChangeCell {
 
 extension Database {
   func enableChangeCapture(workbookID: String) throws {
-    let ordinary = try execute(
-      "SELECT name FROM sqlite_master WHERE type='table' AND sql NOT LIKE 'CREATE VIRTUAL TABLE%' AND name NOT LIKE 'sqlite_%'"
-    ).compactMap { $0["name"]?.string }.filter {
-      !ChangeFormat.isIndex($0) && $0 != "committed_changes" && $0 != "extraction_attempts"
-    }
-    try require(
-      Set(ordinary) == ChangeFormat.tables, "change_schema",
-      "The current schema has unclassified durable tables.")
     let capture = ChangeCapture(workbookID: workbookID)
     changes = capture
     let context = Unmanaged.passUnretained(capture).toOpaque()
@@ -164,23 +193,48 @@ extension Database {
       }, nil, nil, nil)
     try require(
       result == SQLITE_OK, "change_capture", "Cannot install the durable capture function.")
-    for table in (ChangeFormat.tables.union(["committed_changes"])).sorted() {
-      let columns = try execute("PRAGMA table_info(" + ChangeFormat.quote(table) + ")").compactMap {
-        $0["name"]?.string
-      }
-      for operation in ["insert", "update", "delete"] {
-        let old = columns.map { operation == "insert" ? "NULL" : "old." + ChangeFormat.quote($0) }
-        let new = columns.map { operation == "delete" ? "NULL" : "new." + ChangeFormat.quote($0) }
+    try refreshCaptureSchema()
+  }
+
+  func refreshCaptureSchema() throws {
+    guard let capture = changes else { return }
+    try validateCanonicalSchema()
+    capture.tables = try durableTables()
+    for table in capture.tables.union(["committed_changes"]).sorted() {
+      try installCaptureTable(table)
+    }
+    capture.schemaCookie = try scalar("PRAGMA main.schema_version").int
+  }
+
+  func installCaptureTable(_ table: String) throws {
+    guard let capture = changes else { return }
+    capture.tables.insert(table)
+    changeColumns[table] = nil
+    let columns = try execute("PRAGMA table_info(" + ChangeFormat.quote(table) + ")")
+      .compactMap { $0["name"]?.string }
+    try require(!columns.isEmpty, "change_schema", "A registered capture table is missing.")
+    // Fifty columns per callback stays below even SQLite's older 127-argument
+    // limit. Fragments become one lossless row image before publication.
+    for operation in ["insert", "update", "delete"] {
+      let trigger = ChangeFormat.quote("capture_" + table + "_" + operation)
+      try script("DROP TRIGGER IF EXISTS temp." + trigger)
+      var calls: [String] = []
+      for start in stride(from: 0, to: columns.count, by: 50) {
+        let batch = columns[start..<min(start + 50, columns.count)]
+        let old = batch.map { operation == "insert" ? "NULL" : "old." + ChangeFormat.quote($0) }
+        let new = batch.map { operation == "delete" ? "NULL" : "new." + ChangeFormat.quote($0) }
         let arguments =
           [
             "'" + table + "'", "'" + operation + "'", operation == "insert" ? "NULL" : "old.rowid",
-            operation == "delete" ? "NULL" : "new.rowid",
+            operation == "delete" ? "NULL" : "new.rowid", String(columns.count), String(start),
           ] + old + new
-        try script(
-          "CREATE TEMP TRIGGER " + ChangeFormat.quote("capture_" + table + "_" + operation)
-            + " AFTER " + operation.uppercased() + " ON main." + ChangeFormat.quote(table)
-            + " BEGIN SELECT sevra_capture(" + arguments.joined(separator: ",") + "); END;")
+        calls.append("SELECT sevra_capture(" + arguments.joined(separator: ",") + ");")
       }
+      try script(
+        "CREATE TEMP TRIGGER " + trigger + " AFTER " + operation.uppercased()
+          + " ON main." + ChangeFormat.quote(table) + " BEGIN " + calls.joined(separator: " ")
+          + " END;")
     }
+    capture.schemaCookie = try scalar("PRAGMA main.schema_version").int
   }
 }

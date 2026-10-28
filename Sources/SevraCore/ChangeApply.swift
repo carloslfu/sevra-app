@@ -15,7 +15,7 @@ extension Database {
     _ table: String, where clause: String = "", id: String? = nil,
     _ visit: (ChangeRow) throws -> Void
   ) throws {
-    try require(ChangeFormat.tables.contains(table), "change_table", "Unknown saved-change table.")
+    try require(try isDurableTable(table), "change_table", "Unknown saved-change table.")
     var statement: OpaquePointer?
     let sql = "SELECT rowid,* FROM " + ChangeFormat.quote(table) + " " + clause + " ORDER BY rowid"
     guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK, let statement else {
@@ -42,7 +42,16 @@ extension Database {
   /// the payload is ever evaluated as an instruction.
   func apply(_ change: RowChange) throws {
     try require(
-      ChangeFormat.tables.contains(change.table), "change_table", "Unknown saved-change table.")
+      try isDurableTable(change.table), "change_table", "Unknown saved-change table.")
+    if change.resetProjection == true {
+      try require(
+        !ChangeFormat.tables.contains(change.table)
+          && change.before == nil && change.after == nil,
+        "change_payload", "Only a registered native projection may be reset.")
+      try execute("DELETE FROM " + ChangeFormat.quote(change.table))
+      return
+    }
+    try require(change.resetProjection == nil, "change_payload", "Invalid projection reset marker.")
     try require(
       change.before != nil || change.after != nil, "change_payload",
       "An empty row change is invalid.")
@@ -89,6 +98,11 @@ extension Database {
       cells = [.integer(identity)]
     }
     try executeCells(sql, cells)
+    if change.table == "datasets" {
+      try materializeManagedSchema(
+        before: ManagedDatasetSchema.decode(change.before),
+        after: ManagedDatasetSchema.decode(change.after))
+    }
   }
   func executeCells(_ sql: String, _ cells: [ChangeCell]) throws {
     var statement: OpaquePointer?
@@ -198,7 +212,7 @@ extension Database {
   }
   func authorityDigest(cancellation: Cancellation = .init()) throws -> String {
     var hash = SHA256()
-    for table in ChangeFormat.tables.sorted() {
+    for table in try durableTables().sorted() {
       hash.update(data: Data((table + "\n").utf8))
       try visitRows(table) { raw in
         try cancellation.check()

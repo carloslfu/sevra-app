@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-28T18:14:38.862152+00:00
+updated: 2026-10-28T18:44:20.255836+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -13,9 +13,33 @@ October 28, 2026. Shared foundation for
 This inventories current schema/code, not cloud sync, workflow execution or the
 complete app release.
 
+## Managed dataset foundation, schema 11
+
+The runtime now classifies registered native dataset tables as rebuildable current
+projections. Reserved immutable row versions, heads, column_versions and stable
+membership/order remain authoritative. Both classes use the same committed_changes
+chain. See [[records/operations/implementation]] for the foundation receipt, measured
+results, final native observations and retained failed attempts.
+
+ManagedDatasetSchema validates registry descriptors and generates exact trusted DDL.
+ChangeCapture refreshes TEMP triggers when another connection changes the schema;
+50-column callback fragments preserve one lossless row image within SQLite's
+127-argument limit. ChangeApply materializes a saved logical definition before its
+dependent rows. A shape change removes old projection rows, updates the descriptor,
+recreates its physical table and inserts the new projection in one transaction.
+A typed reset marker permits independent repair without admitting corrupt projection
+before-values as authority. It can target only registered projections. Verification
+checks schema history, membership, exact canonical heads and every scalar/sidecar.
+
+Current core 168, packaged 1k/10k and native table edit/Undo/reopen tests provide scoped
+FJ/MJ coverage. Existing shared paths now use the projection, including reviewed
+intake updates and their Undo/redo. Full removal/archive/constraints, exact schema-base
+authoring, typed query/index policy and complete MJ qualification remain open.
+No new ledger, executable payload SQL, sync or release qualification is claimed.
+
 ## Capture and identities
 
-Schema 10 adds one `committed_changes` chain. An ordinary commit shares the
+Schema 10 introduced one `committed_changes` chain, retained by schema11. An ordinary commit shares the
 existing operation ID. The same SQLite transaction publishes complete typed
 before/after values, state and receipt. Infrastructure commits use a separate
 UUID. Each change keeps workbook/commit/writer identities, actor, schema, original
@@ -25,8 +49,8 @@ bases; lineage remains derivation. Local counters are not distributed ordering.
 
 `Database.transaction` owns capture. Each validated Workbook connection installs
 temporary capture triggers and a Swift function using public SQLite APIs. Opening
-compares all ordinary canonical tables with the declared classification. New tables
-must join this inventory. Metadata is infrastructure, not a third business category.
+compares the exact reserved schema and registered generated dataset structures with
+the declared classification. New table families must join this inventory. Metadata is infrastructure, not a third business category.
 
 Typed values preserve Int64 strings, IEEE-754 bits, UTF-8 bytes/NULs, empty blobs
 and nulls independently of the public JSON Double API. Explicit native review is
@@ -48,7 +72,7 @@ inspection reads small saved metadata instead of loading complete payloads.
 | Sources/Records/lineage | Immutable versions, exact supersedes and derivation edges; captured heads materialization. | `Workbook.insertItem`, `Documents`, `DocumentComposition`, `Events`, `DraftWithdrawal`, table/reference helpers. Shared capture plus current invariant/stale checks. |
 | Assets | Included immutable files, identity/hash/name/type/origin and historical references. Linked path/bookmark are device access state. | `Assets.importFile`, `URLCapture.includeLinked/relinkAsset`, archive intake/copy. File and directory flush precede publication. All historical included dependencies retained. Paths/bookmarks excluded from portable history. |
 | Extracted evidence | Saved chunks, locators, parser/state/detail/time; immutable file-reference input regions/hashes retain replaced extraction. | `Extractor`, `Search.index`, `FileReferenceWrites`. Saved outputs replay without extraction. Worker attempt claims excluded. |
-| Tables/formulas/order | Schemas/column versions, stable membership/order, all row versions, table-change receipts and saved intake update plans. | `Tables`, `Intake`, `XLSX`, `TableIntakePublication/Undo`, `TableProposals`. Existing checked apply/Undo/redo. Mapping form drafts remain an open UX gap. |
+| Tables/formulas/order | Immutable row/column versions, stable membership/order and registered native projections; the same committed journal includes schema descriptors, projection rows and typed reset markers. | `Tables`, `Intake`, `XLSX`, `TableIntakePublication/Undo`, `TableProposals`. Existing checked apply/Undo/redo. Mapping form drafts remain an open UX gap. |
 | Inventory/decisions | Opening basis/source/effective time; occurrence/subject/kind effects; actor, exact accepted/withdrawn/restored outcomes. | `Events`, `DraftWithdrawal`, `Tables`, `TableIntakeUndo`. Explicit native human review; programmatic default; model tools stay draft-limited. |
 | Receipts | Complete request/result, ID/kind/time/revision, atomic with changed values. | `Workbook.mutation`. Matching retries add no change; changed arguments or explicit decision actor refuse. |
 | Conversation | Bodies/payloads, exact message IDs/order, tangent parents/names, chapters/bookmarks. | `Spaces`, `ConversationNavigation/Actions`, `Runs`, `RequestHandoff`. Physical message row IDs preserve current transcript order. |

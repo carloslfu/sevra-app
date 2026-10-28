@@ -1,5 +1,19 @@
 import Foundation
-import SevraCore
+
+@testable import SevraCore
+
+/// Inject faults on this connection without adding an untrusted object to the
+/// persisted schema. Main-schema alterations now refuse before any mutation.
+func faultSQL(_ book: Workbook, _ script: String) throws -> String {
+  let sql = script.replacingOccurrences(of: "CREATE TRIGGER ", with: "CREATE TEMP TRIGGER ")
+    .replacingOccurrences(of: "DROP TRIGGER IF EXISTS ", with: "DROP TRIGGER IF EXISTS temp.")
+  let scoped =
+    sql.contains("DROP TRIGGER IF EXISTS")
+    ? sql
+    : sql.replacingOccurrences(of: "DROP TRIGGER ", with: "DROP TRIGGER temp.")
+  try book.db.script(scoped)
+  return ""
+}
 
 func referenceSQL(_ book: Workbook, _ script: String) throws -> String {
   let process = Process()
@@ -72,11 +86,11 @@ func checkReferences(at root: URL) {
     let book = try Workbook.create(
       at: root.appendingPathComponent("ReferenceAutoFault.sevra"), title: "Fault")
     let before = try book.counts()
-    _ = try referenceSQL(
+    _ = try faultSQL(
       book,
       "CREATE TRIGGER injected_auto_failure BEFORE INSERT ON reference_bindings WHEN NEW.ordinal=1 BEGIN SELECT RAISE(ABORT,'injected'); END;"
     )
-    defer { _ = try? referenceSQL(book, "DROP TRIGGER IF EXISTS injected_auto_failure;") }
+    defer { _ = try? faultSQL(book, "DROP TRIGGER IF EXISTS injected_auto_failure;") }
     try refuses("database") {
       _ = try book.addItem(
         category: "source", kind: "observation", title: "AtomicFault", text: "[[one]] [[two]]",
@@ -88,7 +102,7 @@ func checkReferences(at root: URL) {
         book,
         "SELECT count(*) FROM reference_coverage; SELECT count(*) FROM reference_index; SELECT count(*) FROM operations WHERE id='automatic-fault';"
       ) == "0\n0\n0")
-    _ = try referenceSQL(book, "DROP TRIGGER injected_auto_failure;")
+    _ = try faultSQL(book, "DROP TRIGGER injected_auto_failure;")
     try expect(try book.verify()["ok"] == .bool(true))
   }
   check("automatic parse integrity ties a saved binding to its declared stable route") {
@@ -331,11 +345,11 @@ func checkReferences(at root: URL) {
     let first = try book.annotateReferences(
       origin.id, selections: [selection("one", in: origin.text)], expectedSnapshotID: nil)
     let counts = try book.counts()
-    _ = try referenceSQL(
+    _ = try faultSQL(
       book,
       "CREATE TRIGGER injected_reference_failure BEFORE INSERT ON reference_bindings WHEN NEW.ordinal=1 BEGIN SELECT RAISE(ABORT,'injected reference publication failure'); END;"
     )
-    defer { _ = try? referenceSQL(book, "DROP TRIGGER IF EXISTS injected_reference_failure;") }
+    defer { _ = try? faultSQL(book, "DROP TRIGGER IF EXISTS injected_reference_failure;") }
     try refuses("database") {
       _ = try book.annotateReferences(
         origin.id,
@@ -346,7 +360,7 @@ func checkReferences(at root: URL) {
     try expect(try book.referenceHistory(origin.id)["versions"].array.count == 1)
     try expect(
       try referenceSQL(book, "SELECT count(*) FROM operations WHERE id='failed-reference';") == "0")
-    _ = try referenceSQL(book, "DROP TRIGGER injected_reference_failure;")
+    _ = try faultSQL(book, "DROP TRIGGER injected_reference_failure;")
     try expect(try book.verify()["ok"] == .bool(true))
   }
 

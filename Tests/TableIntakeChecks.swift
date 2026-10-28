@@ -192,7 +192,7 @@ func checkTableIntake(at root: URL) {
     let oldLineage = try referenceSQL(
       book,
       "SELECT count(*) FROM lineage; SELECT count(*) FROM items; SELECT count(*) FROM operations;")
-    _ = try referenceSQL(
+    _ = try faultSQL(
       book,
       "CREATE TRIGGER table_intake_fault AFTER INSERT ON items WHEN new.kind='row' AND new.status='accepted' AND json_extract(new.data,'$.sku')='0014' BEGIN SELECT RAISE(ABORT,'synthetic table update fault'); END;"
     )
@@ -203,7 +203,7 @@ func checkTableIntake(at root: URL) {
         book,
         "SELECT count(*) FROM lineage; SELECT count(*) FROM items; SELECT count(*) FROM operations;"
       ) == oldLineage)
-    _ = try referenceSQL(book, "DROP TRIGGER table_intake_fault;")
+    _ = try faultSQL(book, "DROP TRIGGER table_intake_fault;")
     let cancel = Cancellation()
     cancel.cancel()
     try refuses("cancelled") {

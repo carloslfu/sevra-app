@@ -226,7 +226,7 @@ func checkPersistence(at root: URL) {
   ) {
     let book = try Workbook.create(
       at: root.appendingPathComponent("CaptureFault.sevra"), title: "Fault")
-    _ = try referenceSQL(
+    _ = try faultSQL(
       book,
       "CREATE TRIGGER fault_commit BEFORE INSERT ON committed_changes BEGIN SELECT RAISE(ABORT,'injected commit failure'); END;"
     )
@@ -236,7 +236,7 @@ func checkPersistence(at root: URL) {
     try expect(try book.counts()["sources"].int == 0 && book.revision() == 0)
     try expect(try book.committedHistory().isEmpty)
     try expect(try book.db.scalar("SELECT count(*) FROM assets").int == 0)
-    _ = try referenceSQL(book, "DROP TRIGGER fault_commit;")
+    _ = try faultSQL(book, "DROP TRIGGER fault_commit;")
     let imported = try book.importFile(file, token: "retry-import")
     try expect(try book.assetURL(imported.assetID!, verify: true).lastPathComponent.contains("."))
     try expect(try book.importFile(file, token: "retry-import").id == imported.id)

@@ -17,7 +17,8 @@ prepares complete local history and reconstruction for future syncing. Sync and
 cloud services are outside the current implementation scope.
 The adopted [managed dataset design](db/records/specs/managed-datasets.md) adds
 native structured tables over shared immutable history and replayable schemas.
-That storage extension is pending; the current build still uses shared row storage.
+Its native storage, capture and reconstruction foundation now has scoped evidence.
+Full schema lifecycle and managed query/index qualification remain in progress.
 
 Start with [the project knowledge map](db/records/overview/start-here.md),
 [the specification](db/records/specs/product.md) and

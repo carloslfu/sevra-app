@@ -2,10 +2,10 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 10
+  static let version = 11
   static let sql = """
     PRAGMA application_id=1398166081;
-    PRAGMA user_version=10;
+    PRAGMA user_version=11;
     PRAGMA journal_mode=DELETE;
     PRAGMA synchronous=FULL;
     CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
@@ -35,7 +35,7 @@ enum Schema {
     CREATE TABLE effects(occurrence TEXT NOT NULL,subject TEXT NOT NULL,kind TEXT NOT NULL,item_id TEXT NOT NULL REFERENCES items(id),quantity TEXT NOT NULL,effective TEXT NOT NULL,PRIMARY KEY(occurrence,subject,kind,item_id));
     CREATE INDEX effects_subject ON effects(subject,effective);
     CREATE TABLE bases(subject TEXT PRIMARY KEY,quantity TEXT NOT NULL,effective TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id));
-    CREATE TABLE datasets(id TEXT PRIMARY KEY,title TEXT NOT NULL,columns TEXT NOT NULL,source_id TEXT REFERENCES items(id));
+    CREATE TABLE datasets(id TEXT PRIMARY KEY,title TEXT NOT NULL,columns TEXT NOT NULL,source_id TEXT REFERENCES items(id),storage_table TEXT NOT NULL UNIQUE,storage_version INTEGER NOT NULL CHECK(storage_version>0));
     CREATE TABLE dataset_rows(dataset_id TEXT NOT NULL REFERENCES datasets(id),row_id TEXT NOT NULL,ordinal INTEGER NOT NULL,logical_id TEXT NOT NULL REFERENCES heads(logical_id),PRIMARY KEY(dataset_id,row_id));
     CREATE INDEX dataset_order ON dataset_rows(dataset_id,ordinal);
     CREATE INDEX dataset_logical ON dataset_rows(logical_id);

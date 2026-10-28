@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T18:00:21.186566+00:00
+updated: 2026-10-28T18:44:20.418768+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1367,3 +1367,21 @@ Restore saves another version. Pending review access remains in the workspace
 header even if its Home section is removed. Layout removal keeps underlying data.
 The repo-owned [[records/specs/native-app-engine]] tracks forms/actions and remaining
 accessibility/engine work. The matching harness skill is skills/sevra/SKILL.md.
+
+## Managed native dataset inspection and repair
+
+Structured table operations use the same managed storage in app, CLI and local
+agent tools. Assets stay in assets/. `sevra table-schema WORKBOOK DATASET_ID`
+returns current logical columns/version. `sevra table-rebuild WORKBOOK DATASET_ID
+EXPECTED_REVISION TOKEN` explicitly rebuilds a projection from retained canonical
+versions. Reuse the exact token/base after an uncertain result; a changed base or
+dataset under that token refuses. Keep the original workbook during recovery.
+Missing canonical authority is not repaired through model inference or reimport.
+The repair does not add business effects. `verify` detects projection disagreement;
+`reconstruct` creates a new inert current-format workbook with exact saved history.
+
+Development check: `python3 scripts/check_managed_datasets.py --cli PATH_TO_SEVRA
+--rows 1000`; a 10,000-row run adds scoped scaling evidence. Supported dataset width
+is 1...500 logical columns. See [[records/specs/managed-datasets]] for pending schema,
+query/index and full qualification work. Older development schemas are preserved
+but unsupported; recreate selected synthetic fixtures, never delete user workbooks.

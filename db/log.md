@@ -703,3 +703,6 @@ Owner adopted managed native dataset projections over reserved core and shared r
 ## [2026-10-28 18:16] verification | records/specs/managed-datasets.md
 Documentation-only pass: full dbmd validation reports zero errors/warnings; repository Markdown links and documentation diff check pass. Reviewed product fit, atomic schema/data replay, stable identity, width/index/resource bounds and future replication limits. No runtime or model tests claimed.
 
+## [2026-10-28 18:44] implementation | records/specs/managed-datasets.md
+Implemented schema11 registered native dataset projections over shared immutable versions with dynamic capture, trusted schema reconstruction and typed projection repair. Core168, final packaged1k/10k and native edit/Undo/reopen proof are scoped in the foundation receipt; remaining E0-D schema/query/index work stays open.
+

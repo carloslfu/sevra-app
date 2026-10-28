@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T18:14:39.011851+00:00
+updated: 2026-10-28T18:44:20.288824+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -12,6 +12,69 @@ title: Implementation and acceptance
 This is a working development build, not a qualified release. Requirements in the
 specifications remain the acceptance contract. A source commit does not imply that
 every requirement or supported hardware profile has passed.
+
+## Managed dataset foundation checkpoint, October 28
+
+Evidence: [managed dataset foundation receipt](../../../integration/evidence/2026-10-28-managed-dataset-foundation.json.gz),
+37,883 bytes, SHA-256 d2c540865db50707e24bd750acc73795cf990b4152a80f985f3eb922ffa8969b.
+All 103 prior evidence files remain byte-identical to the preceding checkpoint.
+
+Schema 11 now registers one native current-state table per structured dataset.
+Shared immutable row versions, heads, column_versions and dataset membership/order
+remain authoritative. The same committed_changes journal captures reserved and
+registered tables. Trusted code materializes physical schemas from validated
+logical descriptors before dependent saved rows; raw SQL is never replay authority.
+Table creation, edits, review, structured import, merge/replace, Undo, grid reads,
+sorting and CSV export now use these projections. File assets remain outside SQLite.
+
+- Stable hashed physical identifiers come from dataset/column IDs; labels stay
+  metadata. Logical text, decimal, boolean and date values retain exact scalar
+  semantics. Decimal TEXT uses the existing exact Decimal collation. A small cell
+  sidecar retains original lexical forms, omitted cells and formula seeds, without
+  claiming that cached/formula values are live stored results.
+- A native shape change captures old projection removal, versions the definition,
+  creates the trusted new shape and captures the new projection in the same
+  transaction. Independent rebuilding uses retained row versions and definitions.
+  An explicit projection-reset marker in the same journal lets damaged projections
+  be repaired and subsequently reconstructed without adopting damaged before-values.
+  Missing schema history or canonical foreign-key dependencies refuse before repair.
+- Schema validation admits only the exact reserved schema and registered generated
+  native structures. Main-schema changes trigger revalidation on already open
+  writers; TEMP capture triggers refresh across another writer's DDL. Callback
+  fragments use at most 106 arguments and become one complete row image. This
+  Mac's SQLite 3.51.0 reports a 127-argument limit; the 500-column fixture passes.
+- Final core 168 groups pass. Coverage includes exact values/IDs, current/history
+  distinction, add/rename/type/formula/restore physical changes, independent repair,
+  reconstruction, two open writers across DDL, exact retry/base payload, schema/
+  publication/projection failures and capture-budget rollback. Unknown/reserved
+  structures and over-width definitions refuse atomically.
+- Final packaged CLI checks pass at 1,000 and 10,000 rows: one of two competing
+  rebuild writers wins, exact retries work, corruption is detected, canonical
+  repair reconstructs, exact history survives, and portable export reopens.
+  At 10,000 rows intake took 4.167s, competing rebuilds 1.500s and reconstruction 5.975s;
+  the final database was 53,248,000 bytes. Maximum individual child lifetime RSS
+  was 134,660,096 bytes, not aggregate concurrent memory. These are one-Mac scoped
+  measurements, not a comparative speed or hardware-range claim. Only the ordinal
+  index query plan is qualified here.
+- Final native preview edit 2.40 to 3.10 updated total 31 and the chart; Undo restored
+  2.40/24. This uncovered missing explicit native table attribution. Editor and
+  Undo now save human actors; core/CLI defaults remain programmatic, and inherited
+  model attribution cannot bypass accepted-rule validation. Exact actors survive
+  reconstruction, and the final reconstructed workbook reopened visibly.
+- The broad script passed with core 164 before the final actor/history/retry guards.
+  Final core 168, final native build, packaged 1k/10k, strict 24-file Swift lint, skill,
+  resource-path/corruption and signature checks pass. Unchanged broad engine,
+  grammar, extraction and other UI harness evidence is reused; no final full-script
+  rerun is claimed. Existing late-fault tests now use TEMP triggers so the stricter
+  persisted-schema guard does not reject the injected fault before its intended step.
+
+E0-D remains in progress. Full logical schema removal/archive/constraint operations
+and exact schema-base authoring, typed bounded range/join/group queries, performance
+index policy and comparative/resource qualification remain open. Native tables do
+not prove Excel formula/sparse-region continuity, a new model cohort, complete MJ
+acceptance, sync or release readiness. Finish these storage contracts before dependent
+E2/E3 state, then continue actions/forms, workflows, triggers, helper/templates and
+the remaining installation/accessibility/hardware/release plan.
 
 ## Managed dataset decision and next storage prerequisite, October 28
 
@@ -30,8 +93,9 @@ Do not add raw-model DDL, a parallel ledger or a second long-term editable backe
 Sparse/mixed worksheets and reference/analysis roles retain their own representations.
 
 Checkpoint cd5f854 retains successful fixed-schema persistence and E1 layout
-qualification. Dynamic dataset schemas/capture, physical table queries/indexes and
-MJ01-MJ08 are pending. Finish any coherent in-flight checkpoint, then implement
+qualification. The newer foundation checkpoint above implements dynamic schema/capture and
+current-row reads with scoped evidence; full schema lifecycle, managed query/index
+paths and complete MJ01-MJ08 remain pending. Finish any coherent in-flight checkpoint, then implement
 E0-D before dependent E2/E3 dataset/action/workflow persistence. Independent UI work
 may continue. Follow the four-step order in the new spec and extend the persistence
 coverage register with actual paths/results. Existing review/import/Undo and AI
@@ -90,7 +154,7 @@ fresh installation and notarization remain tracked release work.
 ## Current direction, October 28
 
 The managed dataset target in [[records/specs/managed-datasets]] is adopted and
-pending. E0-D extends existing replayable persistence before dependent E2/E3
+in progress. The foundation checkpoint above has scoped evidence; remaining E0-D extends existing replayable persistence before dependent E2/E3
 storage; the opening decision section controls sequencing over historical Next notes.
 
 The pre-1.0 compatibility policy in [[records/specs/distribution]] is active:

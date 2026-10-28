@@ -34,6 +34,15 @@ files remain unresolved without copied device paths or access bookmarks. Pending
 tool calls and runs remain inert; reconstruction never authorizes their execution.
 Keep the original and inspect the new workbook before replacing any working copy.
 
+Structured datasets use managed native SQLite projections over retained immutable
+row versions and definitions. Continue to use managed commands; never edit the
+SQLite tables or supply raw DDL. `table-schema PATH DATASET_ID` returns the current
+logical schema version and columns. `table-rebuild PATH DATASET_ID
+EXPECTED_REVISION TOKEN` rebuilds its current projection from the retained
+canonical versions, with exact revision checking and repeat-safe operation tokens.
+Use this for an explicitly requested repair; retain the original workbook. Missing
+or invalid canonical history is a recovery error, not permission to regenerate it.
+
 `spaces PATH` returns current definitions, stable component IDs and versions.
 `space-edit PATH ID BASE_VERSION EDITS_JSON [TOKEN]` changes layout atomically.
 Edits are `rename` (title), `insert` (component), `remove` (componentID), `move`

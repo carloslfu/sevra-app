@@ -166,7 +166,7 @@ extension Workbook {
           transformation: "table-intake-replace-v1")
         versions.append(.object(["before": .string(old.id), "after": .string(next)]))
       }
-      try db.execute("DELETE FROM dataset_rows WHERE dataset_id=?", [.string(datasetID)])
+      try clearDatasetMembers(datasetID)
     }
     var ordinal =
       (try db.scalar(
@@ -182,12 +182,7 @@ extension Workbook {
         text: rowDescription(values), data: .object(values), meaning: meaning,
         status: "accepted", scenario: scenario, inputs: inputs,
         transformation: "table-intake-add-v1;source-record=\(additionRecords[index])")
-      try db.execute(
-        "INSERT INTO dataset_rows VALUES(?,?,?,?)",
-        [
-          .string(datasetID), .string(identifier()), .number(Double(ordinal)),
-          .string(try item(id).logicalID),
-        ])
+      try insertDatasetMember(datasetID, ordinal: ordinal, logicalID: try item(id).logicalID)
       versions.append(.object(["before": .null, "after": .string(id)]))
       ordinal += 1
     }

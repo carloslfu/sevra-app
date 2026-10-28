@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T18:16:45.664192+00:00
+updated: 2026-10-28T18:44:20.330692+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -30,8 +30,11 @@ existing committed-change history. One managed transaction owns each edit.
 Logical schema changes, trusted schema materialization, indexes and dataset
 capture/apply/validation are one storage contract. No second ledger or raw-model DDL.
 
-Schema 10 still uses shared JSON row storage. The native dataset target is pending
-and must extend the scoped replayable foundation before dependent E2/E3 storage.
+Schema 11 now uses managed native current-state tables over retained immutable JSON
+row versions and versioned definitions. Its capture/materialization/repair foundation
+has scoped evidence in [[records/operations/persistence-coverage]]. Full schema
+lifecycle and managed query/index qualification remain E0-D prerequisites before
+dependent E2/E3 storage.
 Flexible sheet/cell data and contextual reference/analysis roles remain distinct.
 Existing local replay is not concurrent replication qualification.
 

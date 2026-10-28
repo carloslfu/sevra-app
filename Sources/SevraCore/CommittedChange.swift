@@ -58,6 +58,7 @@ struct RowChange: Codable, Equatable {
   let table: String
   let before: ChangeRow?
   let after: ChangeRow?
+  var resetProjection: Bool? = nil
 }
 struct CommittedChange: Codable, Equatable {
   let version: Int

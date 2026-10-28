@@ -137,6 +137,8 @@ final class Database {
     } catch {
       _ = try? execute("ROLLBACK")
       changes?.reset()
+      changes?.schemaCookie = nil
+      changeColumns.removeAll()
       throw error
     }
   }

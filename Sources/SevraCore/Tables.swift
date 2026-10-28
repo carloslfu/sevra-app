@@ -200,8 +200,15 @@ extension Workbook {
     let columnsJSON = try encoded(columns).json()
     try validateColumns(columns)
     try db.execute(
-      "INSERT INTO datasets VALUES(?,?,?,?)",
-      [.string(id), .string(title), .string(columnsJSON), .string(sourceID)])
+      "INSERT INTO datasets VALUES(?,?,?,?,?,?)",
+      [
+        .string(id), .string(title), .string(columnsJSON), .string(sourceID),
+        .string(ManagedDatasetSchema(datasetID: id, version: 1, columns: columns).table),
+        .number(1),
+      ])
+    try db.materializeManagedSchema(
+      before: nil,
+      after: .init(datasetID: id, version: 1, columns: columns))
     try db.execute(
       "INSERT INTO column_versions VALUES(?,?,?,?)",
       [.string(id), .number(1), .string(columnsJSON), .string(timestamp())])
@@ -214,23 +221,23 @@ extension Workbook {
         scenario: meaning == "actual" ? "actual" : "planning", inputs: inputs,
         transformation: "table-intake-v1")
       let row = try item(itemID)
-      try db.execute(
-        "INSERT INTO dataset_rows VALUES(?,?,?,?)",
-        [.string(id), .string(identifier()), .number(Double(n)), .string(row.logicalID)])
+      try insertDatasetMember(id, ordinal: n, logicalID: row.logicalID)
     }
   }
   public func dataset(_ id: String) throws -> Dataset {
     try synchronized {
       guard
         let d = try db.execute(
-          "SELECT *, (SELECT count(*) FROM dataset_rows WHERE dataset_id=datasets.id) AS count FROM datasets WHERE id=?",
+          "SELECT * FROM datasets WHERE id=?",
           [.string(id)]
         ).first
       else { throw SevraError("not_found", "Table not found.") }
+      let schema = try ManagedDatasetSchema.decode(d)
+      let count = try db.scalar("SELECT count(*) FROM " + ChangeFormat.quote(schema.table)).int ?? 0
       return Dataset(
         id: id, title: d["title"]!.text,
         columns: try JSONDecoder().decode([Column].self, from: Data(d["columns"]!.text.utf8)),
-        rowCount: d["count"]!.int!)
+        rowCount: count)
     }
   }
   public func datasets() throws -> [Dataset] {
@@ -247,43 +254,55 @@ extension Workbook {
     descending: Bool = false
   ) throws -> [Item] {
     try synchronized {
-      let table = try dataset(datasetID)
-      let term = try Self.searchTerms(query)
-      var args: [Value] = [.string(datasetID)]
-      let filter =
-        term.isEmpty
-        ? ""
-        : " AND i.id IN (SELECT c.item_id FROM search_fts JOIN chunks c ON c.id=search_fts.rowid WHERE search_fts MATCH ?)"
-      if !term.isEmpty { args.append(.string(term)) }
-      var order = "r.ordinal"
-      if let sort {
-        guard let column = table.columns.first(where: { $0.id == sort }) else {
-          throw SevraError("column", "Unknown sort column.")
+      try db.readTransaction {
+        let schema = try db.managedSchema(datasetID)
+        let term = try Self.searchTerms(query)
+        var args: [Value] = []
+        let filter =
+          term.isEmpty
+          ? ""
+          : " WHERE n.\"_sevra_item\" IN (SELECT c.item_id FROM search_fts JOIN chunks c ON c.id=search_fts.rowid WHERE search_fts MATCH ?)"
+        if !term.isEmpty { args.append(.string(term)) }
+        var order = "n.\"_sevra_ordinal\",n.\"_sevra_row\""
+        if let sort {
+          guard let column = schema.columns.first(where: { $0.id == sort }) else {
+            throw SevraError("column", "Unknown sort column.")
+          }
+          try require(
+            column.formula == nil, "sort_formula",
+            "Sort a stored column; calculated-column sorting needs a materialized result.")
+          order =
+            "n." + ChangeFormat.quote(schema.field(column.id))
+            + (column.type == "text" ? " COLLATE NOCASE" : "")
+            + (descending ? " DESC" : " ASC") + "," + order
         }
-        try require(
-          column.formula == nil, "sort_formula",
-          "Sort a stored column; calculated-column sorting needs a materialized result.")
-        let path = "$.\"" + column.id.replacingOccurrences(of: "\"", with: "") + "\""
-        order =
-          "json_extract(i.data,?) COLLATE "
-          + (column.type == "decimal" ? "SEVRA_DECIMAL" : "NOCASE")
-          + (descending ? " DESC" : " ASC") + ",r.ordinal"
-        args.append(.string(path))
+        args += [.number(Double(min(max(limit, 1), 1000))), .number(Double(max(offset, 0)))]
+        let metadata = [
+          "id", "logical_id", "version", "category", "kind", "title", "meaning",
+          "status", "scenario", "body", "asset_id", "supersedes", "created",
+        ].map { "i." + $0 }
+        return try db.execute(
+          "SELECT " + (metadata + ["n.*"]).joined(separator: ",")
+            + " FROM " + ChangeFormat.quote(schema.table)
+            + " n JOIN items i ON i.id=n.\"_sevra_item\"" + filter + " ORDER BY " + order
+            + " LIMIT ? OFFSET ?", args
+        ).map { raw in
+          var row = raw
+          row["data"] = .string(try Value.object(schema.values(raw)).json())
+          return try decodeItem(row)
+        }
       }
-      args += [.number(Double(min(max(limit, 1), 1000))), .number(Double(max(offset, 0)))]
-      return try db.execute(
-        "SELECT i.* FROM dataset_rows r JOIN heads h ON h.logical_id=r.logical_id JOIN items i ON i.id=h.item_id WHERE r.dataset_id=? \(filter) ORDER BY \(order) LIMIT ? OFFSET ?",
-        args
-      ).map(decodeItem)
     }
   }
   public func filteredRowCount(_ datasetID: String, query: String) throws -> Int {
     try synchronized {
+      let schema = try db.managedSchema(datasetID)
       let term = try Self.searchTerms(query)
       if term.isEmpty { return try dataset(datasetID).rowCount }
       return try db.scalar(
-        "SELECT count(*) FROM dataset_rows r JOIN heads h ON h.logical_id=r.logical_id WHERE r.dataset_id=? AND h.item_id IN(SELECT c.item_id FROM search_fts JOIN chunks c ON c.id=search_fts.rowid WHERE search_fts MATCH ?)",
-        [.string(datasetID), .string(term)]
+        "SELECT count(*) FROM " + ChangeFormat.quote(schema.table)
+          + " WHERE \"_sevra_item\" IN(SELECT c.item_id FROM search_fts JOIN chunks c ON c.id=search_fts.rowid WHERE search_fts MATCH ?)",
+        [.string(term)]
       ).int ?? 0
     }
   }
@@ -348,17 +367,7 @@ extension Workbook {
     return output
   }
   public func validateColumns(_ columns: [Column]) throws {
-    try require(
-      !columns.isEmpty && columns.count <= 500 && Set(columns.map(\.id)).count == columns.count,
-      "columns", "Use between 1 and 500 unique columns.")
-    for c in columns {
-      try require(
-        !c.id.isEmpty && c.id.utf8.count <= 100 && !c.id.contains("\"")
-          && ["text", "decimal", "boolean", "date"].contains(c.type), "columns",
-        "Invalid column identifier or type.")
-      try require((c.unit?.utf8.count ?? 0) <= 40, "unit", "Unit labels are limited to 40 bytes.")
-      try require((c.formula?.utf8.count ?? 0) <= 4096, "formula_limit", "Formula is too long.")
-    }
+    try ManagedDatasetSchema.validateColumns(columns)
   }
   public func validateValues(_ values: [String: Value], columns: [Column]) throws {
     try require(
@@ -381,14 +390,17 @@ extension Workbook {
   }
   @discardableResult public func editRows(
     _ datasetID: String, edits: [RowEdit], expectedRevision: Int? = nil,
-    token: String = identifier()
+    token: String = identifier(), actor: ChangeActor? = nil
   ) throws -> TableEdit {
     try require(
       !edits.isEmpty && edits.count <= 10_000 && Set(edits.map(\.id)).count == edits.count,
       "paste_limit", "An edit needs 1 to 10,000 distinct rows.")
-    let request: Value = .object(["dataset": .string(datasetID), "edits": try encoded(edits)])
+    let request: Value = .object([
+      "dataset": .string(datasetID), "edits": try encoded(edits),
+      "expectedRevision": expectedRevision.map { .number(Double($0)) } ?? .null,
+    ])
     let result = try mutation(
-      "edit_rows", token: token, request: request, expected: expectedRevision
+      "edit_rows", token: token, request: request, expected: expectedRevision, actor: actor
     ) {
       try applyRows(datasetID, edits: edits, request: request)
     }
@@ -398,6 +410,7 @@ extension Workbook {
   func applyRows(_ datasetID: String, edits: [RowEdit], request: Value, proposalID: String? = nil)
     throws -> Value
   {
+    try validateDecisionActor(db.changes?.actor ?? .programmatic("SevraCore.editRows"))
     try require(
       !edits.isEmpty && edits.count <= 10_000 && Set(edits.map(\.id)).count == edits.count,
       "paste_limit", "An edit needs distinct rows within the edit limit.")
@@ -443,7 +456,7 @@ extension Workbook {
   }
   @discardableResult public func editRow(
     _ id: String, values: [String: Value], expectedRevision: Int? = nil,
-    token: String = identifier()
+    token: String = identifier(), actor: ChangeActor? = nil
   ) throws -> Item {
     let datasetID = try synchronized {
       try db.scalar(
@@ -453,10 +466,12 @@ extension Workbook {
     try require(!datasetID.isEmpty, "row", "This is not a table row.")
     return try editRows(
       datasetID, edits: [RowEdit(id: id, values: values)], expectedRevision: expectedRevision,
-      token: token
+      token: token, actor: actor
     ).items[0]
   }
-  @discardableResult public func undoTableChange(_ id: String) throws -> TableEdit {
+  @discardableResult public func undoTableChange(
+    _ id: String, actor: ChangeActor? = nil
+  ) throws -> TableEdit {
     let change = try synchronized {
       try db.execute("SELECT * FROM table_changes WHERE id=?", [.string(id)]).first
     }
@@ -466,7 +481,7 @@ extension Workbook {
     let edits = try zip(before, after).map {
       RowEdit(id: $1.text, values: try item($0.text).data.object)
     }
-    return try editRows(change["dataset_id"]!.text, edits: edits)
+    return try editRows(change["dataset_id"]!.text, edits: edits, actor: actor)
   }
   @discardableResult public func undoItem(
     _ id: String, token: String = identifier(), cancellation: Cancellation = .init(),
@@ -575,7 +590,16 @@ extension Workbook {
       try db.execute(
         "INSERT INTO column_versions VALUES(?,?,?,?)",
         [.string(id), .number(Double(version)), .string(data), .string(timestamp())])
-      try db.execute("UPDATE datasets SET columns=? WHERE id=?", [.string(data), .string(id)])
+      let previous = try db.managedSchema(id)
+      let next = ManagedDatasetSchema(datasetID: id, version: version, columns: columns)
+      if previous.sql != next.sql {
+        try db.execute("DELETE FROM " + ChangeFormat.quote(previous.table))
+      }
+      try db.execute(
+        "UPDATE datasets SET columns=?,storage_version=? WHERE id=?",
+        [.string(data), .number(Double(version)), .string(id)])
+      try db.materializeManagedSchema(before: previous, after: next)
+      try populateManagedDataset(id)
       return .string(id)
     }
   }

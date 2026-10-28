@@ -63,12 +63,12 @@ extension Workbook {
         inverse.append(.object(["before": .string(now.id), "after": .string(next)]))
       }
     }
-    try db.execute("DELETE FROM dataset_rows WHERE dataset_id=?", [.string(datasetID)])
+    try clearDatasetMembers(datasetID)
     for member in desired {
       try cancellation.check()
-      try db.execute(
-        "INSERT INTO dataset_rows VALUES(?,?,?,?)",
-        [.string(datasetID), member["row_id"], member["ordinal"], member["logical_id"]])
+      try insertDatasetMember(
+        datasetID, rowID: member["row_id"].text,
+        ordinal: member["ordinal"].int!, logicalID: member["logical_id"].text)
     }
     var restored = data.object
     restored["beforeMembership"] = .array(starting)

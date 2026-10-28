@@ -15,6 +15,7 @@ python3 scripts/check_extracted_references.py --cli "$BIN/sevra"
 python3 scripts/check_contextual_intake.py --cli "$BIN/sevra"
 python3 scripts/check_table_updates.py --cli "$BIN/sevra"
 python3 scripts/check_persistence.py --cli "$BIN/sevra"
+python3 scripts/check_managed_datasets.py --cli "$BIN/sevra"
 python3 scripts/check_space_editing.py "$BIN/sevra"
 swift build --product sevra-benchmark -j "${SEVRA_BUILD_JOBS:-4}"
 "$BIN/sevra-benchmark" --self-check

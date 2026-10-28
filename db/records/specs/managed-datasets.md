@@ -2,8 +2,8 @@
 type: spec
 id: 01m61vcs2a1prctcr1em7z68cm
 created: 2026-10-28T18:12:10.954425+00:00
-updated: 2026-10-28T18:16:45.638616+00:00
-summary: Adopted reserved core schema and managed native dataset projections over shared immutable authority and replayable persistence; implementation and MJ gates pending.
+updated: 2026-10-28T18:44:20.310272+00:00
+summary: Registered native dataset storage/capture/reconstruction foundation has scoped evidence; full schema lifecycle and managed query/index qualification remain open.
 title: Managed datasets and replayable storage
 status: reviewed
 ---
@@ -23,11 +23,17 @@ committed_changes foundation. Sources and Records describe semantics independent
 of physical table layout. File assets remain ordinary files under assets/ unless
 explicitly linked.
 
-At checkpoint cd5f854, structured rows still use datasets, dataset_rows, heads and
-items.data JSON. Schema-10 complete change capture and inert local reconstruction
-are implemented for the fixed canonical schema. Home/space edits reuse them.
-Native dataset tables, their registry, schema reconstruction and index management
-are not yet implemented. Historical receipts remain valid for their recorded scope.
+Checkpoint cd5f854 established fixed-schema capture/reconstruction and editable
+Home. Schema 11 now implements the first native dataset foundation. Registered
+native scalar columns, central row/membership updates, schema materialization,
+dynamic change capture/apply, independent projection repair and integrity checks
+have scoped proof in [[records/operations/persistence-coverage]]. This is the current
+working-table path; immutable JSON row versions remain authority/evidence.
+
+The foundation receipt is recorded in [[records/operations/implementation]].
+Core 168 groups and packaged 1k/10k reconstruction/repair pass. Full schema lifecycle,
+typed managed query/index policy, comparative performance and complete MJ gates
+remain open. E0-D is in progress before dependent E2/E3 work.
 
 ## Managed storage contract
 
@@ -238,3 +244,21 @@ Primary mechanisms: [SQLite transactions](https://www.sqlite.org/transactional.h
 [changeset schema/conflict requirements](https://www.sqlite.org/sessionintro.html).
 These support the mechanism choices, not a claim of measured Sevra performance or
 selection of SQLite Session as a replacement for the current persistence layer.
+
+## Current implementation limits
+
+Schema 11 permits 1...500 logical columns, plus five native metadata fields. Capture
+uses chunks of 50 columns, at most 106 callback arguments, under the observed 127
+SQLite limit. Existing 64 MiB raw saved-change and 250,000-row-change limits remain.
+The registry stores stable identity, logical columns, physical mapping and schema
+version; column_versions retains definitions. Current remove/archive/constraint
+schema authoring and exact schema-base UX are still pending. Do not expose them as
+implemented through the agent skill.
+
+`table-schema` inspects logical version/columns. Explicit `table-rebuild` requires
+an exact workbook revision and token, refuses missing canonical authority, and
+records a typed projection reset plus resulting rows in the same journal. Reset
+may target only a registered native projection. It never resets system tables,
+executes historical SQL or regenerates content. Ordinal indexes are generated and
+validated with each table. Broader disposable index selection and typed query
+compilation remain the next storage work; arbitrary added indexes currently refuse.

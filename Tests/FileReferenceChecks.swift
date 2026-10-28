@@ -191,11 +191,11 @@ func checkFileReferences(at root: URL) {
     try book.index(origin.id, chunks: [Chunk("[[Retained]]")])
     let previous = try book.fileReferenceSnapshot(origin.id)
     let before = try book.counts()
-    _ = try referenceSQL(
+    _ = try faultSQL(
       book,
       "CREATE TRIGGER injected_file_failure BEFORE INSERT ON file_reference_index WHEN NEW.ordinal=1 BEGIN SELECT RAISE(ABORT,'injected'); END;"
     )
-    defer { _ = try? referenceSQL(book, "DROP TRIGGER IF EXISTS injected_file_failure;") }
+    defer { _ = try? faultSQL(book, "DROP TRIGGER IF EXISTS injected_file_failure;") }
     try refuses("database") { try book.index(origin.id, chunks: [Chunk("[[one]] [[two]]")]) }
     try expect(try book.counts() == before, "Failed publication changed counts or revision")
     try expect(
@@ -205,7 +205,7 @@ func checkFileReferences(at root: URL) {
       try book.search("Retained").hits.contains(where: { $0.itemID == origin.id }),
       "Failed publication lost the old index")
     try expect(try book.search("two").hits.isEmpty, "Failed publication leaked new search text")
-    _ = try referenceSQL(book, "DROP TRIGGER injected_file_failure;")
+    _ = try faultSQL(book, "DROP TRIGGER injected_file_failure;")
     _ = try referenceSQL(book, "DELETE FROM file_reference_index;")
     try refuses("integrity") { _ = try book.verify() }
     try book.rebuildReferenceIndex()

@@ -1,7 +1,8 @@
 import AppKit
 import Foundation
-import SevraCore
 import SevraDocumentUI
+
+@testable import SevraCore
 
 private struct Failure: Error { let message: String }
 func expect(_ condition: @autoclosure () throws -> Bool, _ message: String) throws {
@@ -15,12 +16,13 @@ func refuses(_ code: String, _ body: () throws -> Void) throws {
 }
 /// Fault injection touches only a disposable fixture, never a user workbook.
 private func fixtureSQL(_ workbook: Workbook, _ statement: String) throws {
-  let process = Process()
-  process.executableURL = URL(fileURLWithPath: "/usr/bin/sqlite3")
-  process.arguments = [workbook.url.appendingPathComponent("workbook.sqlite").path, statement]
-  try process.run()
-  process.waitUntilExit()
-  try expect(process.terminationStatus == 0, "Could not configure fixture failure")
+  let sql = statement.replacingOccurrences(of: "CREATE TRIGGER ", with: "CREATE TEMP TRIGGER ")
+    .replacingOccurrences(of: "DROP TRIGGER IF EXISTS ", with: "DROP TRIGGER IF EXISTS temp.")
+  let scoped =
+    sql.contains("DROP TRIGGER IF EXISTS")
+    ? sql
+    : sql.replacingOccurrences(of: "DROP TRIGGER ", with: "DROP TRIGGER temp.")
+  try workbook.db.script(scoped)
 }
 @MainActor private final class PreviousDelegate: NSObject, NSWindowDelegate {
   var allowed = true

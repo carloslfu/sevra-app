@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-28T18:14:38.782562+00:00
+updated: 2026-10-28T18:44:20.350720+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -30,8 +30,8 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 - [[records/specs/product]]: requirements and user experience.
 - [[records/specs/native-app-engine]]: adopted customizable Home/application-engine direction, proposed reusable actions/forms/workflows and automations, code gaps and phased acceptance. E1 Home/editing foundation is implemented with scoped evidence; full journeys and E2-E6 remain open.
 - [[records/specs/storage]]: package, data, transactions, history and calculations.
-- [[records/specs/managed-datasets]]: adopted reserved core and managed native dataset tables over shared immutable authority/replayable history. E0-D/MJ gates are pending; extend the existing persistence layer before dependent E2/E3 storage.
-- [[records/specs/persistence-readiness]]: required audit and complete/replayable local persistence for future syncing; no cloud, sync protocol, replica coordination or new resolver. Schema-10 capture/reconstruction and scoped FJ qualification are tracked in [[records/operations/persistence-coverage]]; whole-release gates remain open.
+- [[records/specs/managed-datasets]]: adopted reserved core and managed native dataset tables over shared immutable authority/replayable history. Schema 11 native storage/capture/reconstruction foundation has scoped proof; full E0-D/MJ schema/query/index gates remain open before dependent E2/E3 storage.
+- [[records/specs/persistence-readiness]]: required audit and complete/replayable local persistence for future syncing; no cloud, sync protocol, replica coordination or new resolver. Schema-10 foundation, schema 11 registered projections and scoped FJ qualification are tracked in [[records/operations/persistence-coverage]]; whole-release gates remain open.
 - [[records/specs/search]]: intake, extraction, indexes, retrieval and scaling.
 - [[records/specs/contextual-import]]: adopted startup/ongoing entry points, role-aware CSV/data intake and Excel work continuity; current saved-value importer does not meet the expanded contract.
 - [[records/specs/references-and-relationships]]: version-safe body/extracted-text bindings, backlink CLI, native link views, focused visible keyboard correction/navigation and bounded scoped agent discovery; broader usability, voice authoring and retrieval qualification pending.

@@ -612,7 +612,9 @@ struct DatasetView: View {
     state.run(
       "Saving table changes",
       operation: { book, _ in
-        try book.editRows(tableID, edits: edits, expectedRevision: revision)
+        try book.editRows(
+          tableID, edits: edits, expectedRevision: revision,
+          actor: .human("Sevra native table editor"))
       },
       completion: { change in
         state.tableUndo[tableID] = change.id
@@ -625,7 +627,9 @@ struct DatasetView: View {
     let tableID = table.id
     state.run(
       redo ? "Redoing table changes" : "Undoing table changes",
-      operation: { book, _ in try book.undoTableChange(id) },
+      operation: { book, _ in
+        try book.undoTableChange(id, actor: .human("Sevra native table history"))
+      },
       completion: { inverse in
         if redo {
           state.tableUndo[tableID] = inverse.id

@@ -174,18 +174,17 @@ func checkSpaceEditing(at temp: URL) {
     "failed layout publication rolls back history, state and receipts; missing history is detected"
   ) {
     let book = try fixture()
-    let raw = try Database(book.url.appendingPathComponent("workbook.sqlite"))
     let revision = try book.revision()
     let commits = try book.committedHistory()
-    try raw.script(
-      "CREATE TRIGGER fail_space BEFORE INSERT ON space_versions WHEN new.version=2 BEGIN SELECT RAISE(ABORT,'fixture publication failure'); END;"
+    try book.db.script(
+      "CREATE TEMP TRIGGER fail_space BEFORE INSERT ON space_versions WHEN new.version=2 BEGIN SELECT RAISE(ABORT,'fixture publication failure'); END;"
     )
     try refuses {
       _ = try book.editSpace(
         "home", expectedVersion: 1, edits: [.init(operation: "rename", title: "Failed")],
         token: "fault")
     }
-    try raw.script("DROP TRIGGER fail_space")
+    try book.db.script("DROP TRIGGER temp.fail_space")
     try expect(try book.space("home").version == 1 && book.space("home").title == "Home")
     try expect(try book.revision() == revision && book.committedHistory() == commits)
     _ = try book.editSpace(
@@ -193,6 +192,7 @@ func checkSpaceEditing(at temp: URL) {
       token: "fault")
     try expect(try book.space("home").version == 2 && book.spaceHistory("home").count == 2)
     _ = try book.verify()
+    let raw = try Database(book.url.appendingPathComponent("workbook.sqlite"))
     try raw.execute("DELETE FROM space_versions WHERE id='home' AND version=1")
     try refuses("integrity") { _ = try book.verify() }
   }

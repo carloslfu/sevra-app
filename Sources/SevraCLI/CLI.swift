@@ -261,6 +261,16 @@ import SevraProduct
           version, text: text, separate: separate, token: token, expectedRevision: expected,
           cancellation: cancellation, references: references))
     case "tables": return try encoded(book.datasets())
+    case "table-schema":
+      try require(args.count == 3, "usage", "table-schema WORKBOOK DATASET_ID")
+      return try book.datasetSchema(arg(2))
+    case "table-rebuild":
+      try require(
+        args.count == 5 && Int(args[3]).map { $0 >= 0 } == true,
+        "usage", "table-rebuild WORKBOOK DATASET_ID EXPECTED_REVISION TOKEN")
+      try book.rebuildDataset(
+        arg(2), expectedRevision: Int(args[3])!, token: arg(4), cancellation: cancellation)
+      return try book.datasetSchema(arg(2))
     case "rows":
       return try encoded(book.rows(arg(2), offset: args.count > 3 ? Int(args[3]) ?? 0 : 0))
     case "add":
@@ -438,6 +448,8 @@ import SevraProduct
     start-thread WORKBOOK MESSAGE_ID [TITLE] | rename-thread WORKBOOK THREAD_ID TITLE
     export WORKBOOK PATH.sevraz | open-archive PATH.sevraz DEST.sevra
     commits WORKBOOK [LIMIT] | reconstruct WORKBOOK NEW_WORKBOOK
+    table-schema WORKBOOK DATASET_ID
+    table-rebuild WORKBOOK DATASET_ID EXPECTED_REVISION TOKEN
     export-csv WORKBOOK TABLE_ID PATH.csv | tool WORKBOOK TOOL [ARGS_JSON]
     model-status [MODEL_DIRECTORY] | model-setup [MODEL_DIRECTORY] [--reuse EXISTING_FAST_DIRECTORY]
     ask WORKBOOK QUESTION [MODEL_DIRECTORY]

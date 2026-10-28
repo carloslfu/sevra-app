@@ -87,13 +87,7 @@ public final class Workbook: @unchecked Sendable {
       try require(
         try db.scalar("PRAGMA user_version").int == Schema.version, "schema",
         "This development workbook needs a matching build. Its data was not changed.")
-      let reference = try Database(URL(fileURLWithPath: "/:memory:"), create: true)
-      try reference.script(Schema.sql)
-      let query =
-        "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY name"
-      try require(
-        try db.execute(query) == reference.execute(query), "schema",
-        "Unrecognized workbook schema. Open only a canonical Sevra package.")
+      try db.validateCanonicalSchema()
       try require(
         try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
         "Invalid workbook references.")
@@ -325,6 +319,7 @@ public final class Workbook: @unchecked Sendable {
     try db.execute(
       "INSERT INTO heads VALUES(?,?) ON CONFLICT(logical_id) DO UPDATE SET item_id=excluded.item_id",
       [.string(logical), .string(id)])
+    if kind == "row" { try refreshManagedRow(logical) }
     for parent in Set(inputs) {
       _ = try item(parent)
       try db.execute(

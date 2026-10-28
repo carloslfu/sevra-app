@@ -30,12 +30,12 @@ func checkContextualIntake(at root: URL) {
     try Data("sku,quantity\n0012,4\n".utf8).write(to: file)
     // Fail job publication after the file receipt, rather than deleting a
     // committed receipt and pretending that committed history never happened.
-    _ = try referenceSQL(
+    _ = try faultSQL(
       book,
       "CREATE TRIGGER registration_fault BEFORE INSERT ON intake_jobs BEGIN SELECT RAISE(ABORT,'interrupted registration'); END;"
     )
     try refuses { _ = try book.captureIntake(file, role: .reference, token: "interrupted-capture") }
-    _ = try referenceSQL(book, "DROP TRIGGER registration_fault;")
+    _ = try faultSQL(book, "DROP TRIGGER registration_fault;")
     let source = try book.items().first { $0.category == "source" && $0.kind == "document" }!
     try book.resumeIntake(source.id)
     let recovered = try book.intakeJobs(sourceID: source.id)[0]
