@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-28T20:02:57.190609+00:00
+updated: 2026-10-28T20:31:52.288370+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -12,6 +12,29 @@ October 28, 2026. Shared foundation for
 [[records/specs/persistence-readiness]], after the reviewed table-update slice.
 This inventories current schema/code, not cloud sync, workflow execution or the
 complete app release.
+
+## Current schema13 application definitions
+
+app_definitions retains immutable UUID/logical identity, predecessor/version, kind,
+content, searchable parameter labels, exact authoring Source and timestamp.
+app_definition_heads selects the latest exact version. app_definition_dependencies
+retains live/exact policy plus the exact resolved definition/data schema at save.
+All three join ChangeFormat.tables, complete saved changes, schema validation,
+authority digest and inert reconstruction. No second journal or executable replay.
+Definition authoring Sources retain submitted content/actor as an observed save;
+current business approval state stays separate. A changed live dependency is
+rechecked at evaluation; saved dependency history remains unchanged.
+
+External-content definition_fts and its shadows are disposable, synchronized by
+immutable insert/delete triggers, checked against content and rebuilt after inert
+replay or explicit search rebuild. Pure evaluation/search has no receipt or business
+revision. Query templates reuse managed columns and their snapshot/coverage guards.
+
+[application definition receipt](../../../integration/evidence/2026-10-28-application-definitions.json.gz). Final core208, two CLI editors, late publication fault,
+exact history/actor/source verification, final packaged replay/portable reopen and a
+10,001-definition/5,000-dependency synthetic corpus have scoped proof. FJ extension
+covers these families; whole FJ/EJ/release qualification remains open. New workflow,
+action invocation and form-draft families must extend this inventory independently.
 
 ## Read-only queries and disposable performance indexes
 
@@ -108,6 +131,7 @@ inspection reads small saved metadata instead of loading complete payloads.
 | Extracted evidence | Saved chunks, locators, parser/state/detail/time; immutable file-reference input regions/hashes retain replaced extraction. | `Extractor`, `Search.index`, `FileReferenceWrites`. Saved outputs replay without extraction. Worker attempt claims excluded. |
 | Tables/formulas/order | Immutable row versions and complete causal dataset definitions, stable membership/order and registered native projections; the same committed journal includes schema descriptors, projection rows and typed reset markers. | `Tables`, `Intake`, `XLSX`, `TableIntakePublication/Undo`, `TableProposals`. Existing checked apply/Undo/redo. Mapping form drafts remain an open UX gap. |
 | Inventory/decisions | Opening basis/source/effective time; occurrence/subject/kind effects; actor, exact accepted/withdrawn/restored outcomes. | `Events`, `DraftWithdrawal`, `Tables`, `TableIntakeUndo`. Explicit native human review; programmatic default; model tools stay draft-limited. |
+| Application definitions | Immutable definitions, selected heads, retained exact/live dependency bindings and authoring Sources. FTS is disposable. | `ApplicationDefinitions`, `DefinitionFunctions/Queries/Evaluation/Discovery`; exact-base save/restore, read-only evaluation, typed dependency checks, atomic failure and inert replay. Shared action/form/automation state remains open. |
 | Receipts | Complete request/result, ID/kind/time/revision, atomic with changed values. | `Workbook.mutation`. Matching retries add no change; changed arguments or explicit decision actor refuse. |
 | Conversation | Bodies/payloads, exact message IDs/order, tangent parents/names, chapters/bookmarks. | `Spaces`, `ConversationNavigation/Actions`, `Runs`, `RequestHandoff`. Physical message row IDs preserve current transcript order. |
 | Tools/runs/context | Exact arguments/output/hash/prepared state, model/status/metrics/times; checkpoint summaries/ranges/inputs/parents. | `ToolReceipts`, `Runs`, `RequestHandoff`, `ConversationContext`. Replay never executes prepared calls or resumes/regenerates runs/summaries. |
@@ -115,7 +139,7 @@ inspection reads small saved metadata instead of loading complete payloads.
 | References | Immutable annotation sets/predecessors/targets/locators/inputs; heads/index/coverage materializations. | `ReferenceWrites/Index`, `FileReferenceWrites`, `Search.index`. Captured exactly, with existing deterministic rebuild/validation. Broader projection-elision optimization is unimplemented. |
 | Intake | Selected source/use, reports/outcomes/dataset IDs, failure/cancel details/times. Attempt tokens are worker claims. | `ContextualIntake`, `Intake`, `TableIntakePublication`; progress meta also captured. Attempt field becomes null in portable changes. |
 | Presentation | Current portable checkpoint of draft alternatives/reading positions and space pins/recents. No business revision or semantic admission. | `ConversationViewState`, `SpaceNavigationState` via `presentationMutation`. Values copied separately; no keystroke journal. |
-| Search | Chunks are retained evidence. Three FTS indexes/shadows are disposable. | `Search.rebuildSearch`; reconstruction rebuilds all FTS from saved messages/chunks, without FTS shadows in changes. |
+| Search | Chunks are retained evidence. Four FTS indexes/shadows are disposable. | `Search.rebuildSearch`; reconstruction rebuilds all FTS from saved messages/chunks/definitions, without FTS shadows in changes. |
 | Device execution/access | Locks/staging, extraction attempt table, intake attempts, bookmarks/linked paths, model installs, recent-workbook/last-conversation UserDefaults. | `Workbook/Database`, `Extractor`, `Assets/URLCapture`, native/product setup. No copied grants or claims become portable authority. Pending outcome rows stay inert history. |
 | Export/copies | Coherent DB snapshot plus all included historical dependencies. | `Archive.export/openArchive`, `AssetCopies`, CSV export, reconstruction. Outward file/CSV exports are outputs, not new canonical mutations. |
 

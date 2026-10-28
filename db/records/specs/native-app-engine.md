@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-28T20:02:57.269549+00:00
+updated: 2026-10-28T20:31:52.349460+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -111,6 +111,19 @@ This does not close full EJ01-EJ03: low-stock reusable queries/forms/actions are
 and actual VoiceOver, broader light/dark/narrow/media form interactions and run
 inspection still require qualification. E0's existing-family persistence is scoped
 in [[records/operations/persistence-coverage]]; future engine state must inherit it.
+
+## E2 catalog/function/query checkpoint
+
+The schema13 core/CLI now supports versioned typed pure functions and managed query
+templates, exact-base save/restore, parameter defaults/units/bounds, live/exact
+bindings, bounded FTS discovery and exact dependency inspection. All canonical
+families inherit the same capture/inert replay. Authoring is observed metadata;
+business review remains separate. See [[records/specs/application-definitions]],
+[application definition receipt](../../../integration/evidence/2026-10-28-application-definitions.json.gz) and [[records/operations/implementation]].
+This is a scoped E2 foundation. Shared action registry, form drafts, result publication,
+native composition bindings, model authoring/invocation and full EJ04/EJ05 remain
+open. The native visual launch attempt was blocked by the locked Mac. Unchanged
+prior native UI evidence is not a new-format proof. E3-E6 remain unimplemented.
 
 ## Home and spaces
 

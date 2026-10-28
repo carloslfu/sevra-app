@@ -19,7 +19,9 @@ The adopted [managed dataset design](db/records/specs/managed-datasets.md) adds
 native structured tables over shared immutable history and replayable schemas.
 Native storage, capture, reconstruction and versioned schema editing have scoped
 evidence. Bounded typed stored-column queries and disposable performance indexes
-now have core/CLI qualification. Full Excel continuity and release checks remain open.
+now have core/CLI qualification. Versioned reusable functions/query templates and
+searchable definition history are available through the core/CLI. Native action/form
+interfaces, full Excel continuity and release checks remain open.
 
 Start with [the project knowledge map](db/records/overview/start-here.md),
 [the specification](db/records/specs/product.md) and

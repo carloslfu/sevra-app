@@ -253,6 +253,7 @@ extension Workbook {
       try db.execute("INSERT INTO search_fts(search_fts) VALUES('rebuild')")
       try db.execute("INSERT INTO names_fts(names_fts) VALUES('rebuild')")
       try db.execute("INSERT INTO message_fts(message_fts) VALUES('rebuild')")
+      try db.execute("INSERT INTO definition_fts(definition_fts) VALUES('rebuild')")
       return .bool(true)
     }
   }

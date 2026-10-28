@@ -84,10 +84,12 @@ enum ChangeFormat {
     "reference_sets", "reference_heads", "reference_bindings", "reference_coverage",
     "reference_index",
     "file_reference_inputs", "file_reference_sets", "file_reference_heads", "file_reference_index",
-    "intake_jobs",
+    "intake_jobs", "app_definitions", "app_definition_heads", "app_definition_dependencies",
   ]
   static func isIndex(_ table: String) -> Bool {
-    ["search_fts", "names_fts", "message_fts"].contains { table == $0 || table.hasPrefix($0 + "_") }
+    ["search_fts", "names_fts", "message_fts", "definition_fts"].contains {
+      table == $0 || table.hasPrefix($0 + "_")
+    }
   }
   static func isPresentation(_ key: String) -> Bool {
     key == "space-navigation" || key.hasPrefix("conversation-view:")

@@ -2,6 +2,28 @@ import Foundation
 
 public enum BusinessTime {
   public static func normalized(_ value: String) throws -> String {
+    try require(
+      value.utf8.count <= 40
+        && value.range(
+          of:
+            "^[0-9]{4}-[0-9]{2}-[0-9]{2}(?:T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,9})?(?:Z|[+-][0-9]{2}:[0-9]{2}))?\\z",
+          options: .regularExpression) != nil,
+      "date", "Use YYYY-MM-DD or an ISO timestamp with seconds and an explicit time zone.")
+    let parts = value.prefix(10).split(separator: "-").compactMap { Int($0) }
+    let calendar = Calendar(identifier: .gregorian)
+    let components = DateComponents(year: parts[0], month: parts[1], day: parts[2])
+    try require(
+      parts[0] > 0 && components.isValidDate(in: calendar), "date",
+      "This calendar date does not exist.")
+    if value.count > 10 {
+      let time = value.dropFirst(11).prefix(8).split(separator: ":").compactMap { Int($0) }
+      try require(
+        time[0] < 24 && time[1] < 60 && time[2] < 60, "date", "This clock time does not exist.")
+      if !value.hasSuffix("Z") {
+        let zone = value.suffix(5).split(separator: ":").compactMap { Int($0) }
+        try require(zone[0] < 24 && zone[1] < 60, "date", "Invalid time-zone offset.")
+      }
+    }
     let input = value.count == 10 ? value + "T00:00:00Z" : value
     let parser = ISO8601DateFormatter()
     parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]

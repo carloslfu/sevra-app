@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T20:02:57.231515+00:00
+updated: 2026-10-28T20:31:52.319082+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -30,7 +30,7 @@ existing committed-change history. One managed transaction owns each edit.
 Logical schema changes, trusted schema materialization, indexes and dataset
 capture/apply/validation are one storage contract. No second ledger or raw-model DDL.
 
-Schema 12 now uses managed native current-state tables over retained immutable JSON
+Schema 13 retains the schema12 managed native current-state tables over retained immutable JSON
 row versions and versioned definitions. Its capture/materialization/repair foundation
 and exact-base definition lifecycle have scoped evidence in
 [[records/operations/persistence-coverage]]. Bounded stored-column typed queries
@@ -493,3 +493,16 @@ Home's metadata-only recentItemSummaries query excludes row, request and annotat
 kinds before ORDER/LIMIT. Technical link parsing/choice Sources remain immutable
 and inspectable through explicit owner APIs, but cannot crowd normal business
 work out of the first page. No schema, item, lineage or asset rewrite is involved.
+
+## Application definition storage, schema13
+
+The catalog/function/query slice in [[records/specs/application-definitions]] adds
+app_definitions, app_definition_heads and app_definition_dependencies to the same
+complete capture inventory. Definitions are immutable metadata backed by an exact
+authoring Source. Source actual/accepted records the observed save; business rule
+acceptance/execution remains a separate action. Current heads are projections over
+retained versions; dependencies preserve saved exact/live bindings and resolved
+versions. definition_fts is the fourth disposable external-content FTS index.
+Inert replay rebuilds it without executing definitions. No legacy development
+migration or second ledger is introduced. See [application definition receipt](../../../integration/evidence/2026-10-28-application-definitions.json.gz)
+and [[records/operations/persistence-coverage]] for current scoped proof and gaps.

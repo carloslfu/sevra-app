@@ -248,6 +248,9 @@ func runBenchmark() throws -> Bool {
 }
 
 do {
+  if CommandLine.arguments.contains("--definitions") {
+    exit(try runDefinitionBenchmark() ? 0 : 1)
+  }
   exit(try runBenchmark() ? 0 : 1)
 } catch {
   fputs("Search benchmark failed: \(error.localizedDescription)\n", stderr)

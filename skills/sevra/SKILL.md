@@ -34,6 +34,55 @@ files remain unresolved without copied device paths or access bookmarks. Pending
 tool calls and runs remain inert; reconstruction never authorizes their execution.
 Keep the original and inspect the new workbook before replacing any working copy.
 
+## Reusable functions and queries
+
+Use `definition-search PATH QUERY [OPTIONS_JSON]` to discover saved application
+definitions. Options are kind (function/query), historical (Boolean), limit (1 to
+50) and cursor. An empty query lists definitions. Current heads are the default;
+historical search is explicit. Hits are discovery metadata, never permission to
+execute. Inspect exact content with `definition-read PATH LOGICAL_OR_VERSION_ID`
+and retained bindings with `definition-dependencies PATH EXACT_VERSION_ID`.
+
+`definition-save PATH LOGICAL_UUID CONTENT_JSON BASE_ID_OR_NEW TOKEN [INPUTS_JSON]`
+creates with `new` or edits against the exact opened base UUID. Choose a new logical
+UUID for a new definition. Inputs are exact local authoring item IDs. Reuse tokens
+on retries. Unknown fields, arbitrary code/SQL and action/workflow kinds refuse.
+`definition-history PATH LOGICAL_ID [BEFORE_VERSION]` pages retained versions;
+`definition-restore PATH LOGICAL_ID VERSION_ID BASE_ID TOKEN` saves a new version
+from history. A stale base preserves existing data; inspect again before deciding
+how to revise a draft. Saving a definition never accepts business information.
+
+Function content example:
+
+```json
+{"kind":"function","title":"Price including tax","description":"Apply an explicit tax rate to an amount.","parameters":[{"id":"amount","label":"Amount","type":"decimal","required":true,"unit":"USD"},{"id":"rate","label":"Tax rate","type":"decimal","required":true,"min":"0","max":"1"}],"payload":{"expression":"amount*(1+rate)","calls":[],"unit":"USD","rounding":2}}
+```
+
+`definition-evaluate PATH LOGICAL_OR_VERSION_ID ARGUMENTS_JSON [CURSOR]` is read-only.
+Pass decimal inputs as strings, Booleans as true/false and dates as ISO dates or
+timestamps with seconds and a time zone. Item inputs are exact local item versions.
+Omission, explicit null, zero and declared defaults differ. Extra fields refuse.
+Results expose normalized and submitted inputs plus exact resolved definitions.
+Functions use the existing Decimal evaluator, with declared output unit/rounding;
+division may lose precision. No unit conversion or physical-dimension inference.
+
+Function `calls` declare alias, binding and arguments. A binding is
+`{"mode":"live","logicalID":"UUID"}` or `{"mode":"exact","versionID":"UUID"}`.
+Map arguments with `{"parameter":"CALLER_PARAMETER_ID"}` or
+`{"literal":"2.40","unit":"USD"}` (omit unit when the target has none).
+Calls evaluate lazily, within depth 16/work 128; effective cycles and changed
+types/units refuse. Pinned calls retain their exact version.
+
+Query content uses the same title/description/parameters fields and a payload
+`{"dataMode":"live","query":QUERY_TEMPLATE}`. The template is the managed typed
+query below; a filter value may be `{"parameter":"minimum"}`. Other query fields
+stay literal. Parameters must match column type/unit. Live mode follows current
+schemas only while referenced stored-column meaning is compatible. Exact mode
+refuses after its bound schema changes. Both modes read current rows at the returned
+snapshot; exact schema mode is not a frozen business result. Use the outer
+evaluation's nextCursor unchanged. Changed definitions/queries/state refuse stale
+continuations. These CLI/core surfaces do not imply a new in-app model tool or form.
+
 Structured datasets use managed native SQLite projections over retained immutable
 row versions and definitions. Continue to use managed commands; never edit the
 SQLite tables or supply raw DDL. `table-schema PATH DATASET_ID` returns the current

@@ -265,6 +265,66 @@ import SevraProduct
         args.count == 2 || (args.count == 3 && args[2] == "--archived"), "usage",
         "tables WORKBOOK [--archived]")
       return try encoded(book.datasets(archived: args.count == 3))
+    case "definition-save":
+      try require(
+        (6...7).contains(args.count), "usage",
+        "definition-save WORKBOOK LOGICAL_ID CONTENT_JSON BASE_ID_OR_NEW TOKEN [INPUTS_JSON]")
+      var inputs: [String] = []
+      if args.count == 7 {
+        let value = try Value.parse(args[6])
+        guard case .array(let array) = value, array.allSatisfy({ $0.string != nil }) else {
+          throw SevraError("arguments", "Authoring inputs must be an array of exact item IDs.")
+        }
+        inputs = array.map(\.text)
+      }
+      return try encoded(
+        book.saveApplicationDefinition(
+          logicalID: args[2], content: Value.parse(args[3]),
+          expectedDefinitionID: args[4] == "new" ? nil : args[4], inputs: inputs,
+          token: args[5], cancellation: cancellation))
+    case "definition-read", "definition-dependencies":
+      try require(args.count == 3, "usage", "definition-read/definition-dependencies WORKBOOK ID")
+      if command == "definition-read" { return try encoded(book.applicationDefinition(args[2])) }
+      return .array(try book.applicationDefinitionDependencies(args[2]))
+    case "definition-history":
+      try require(
+        (3...4).contains(args.count), "usage",
+        "definition-history WORKBOOK LOGICAL_ID [BEFORE_VERSION]")
+      return .array(
+        try book.applicationDefinitionHistory(
+          args[2], beforeVersion: args.count == 4 ? integer(3) : nil
+        ).map { try encoded($0) })
+    case "definition-restore":
+      try require(
+        args.count == 6, "usage", "definition-restore WORKBOOK LOGICAL_ID VERSION_ID BASE_ID TOKEN")
+      return try encoded(
+        book.restoreApplicationDefinition(
+          args[2], versionID: args[3], expectedDefinitionID: args[4], token: args[5],
+          cancellation: cancellation))
+    case "definition-evaluate":
+      try require(
+        (4...5).contains(args.count), "usage",
+        "definition-evaluate WORKBOOK ID ARGUMENTS_JSON [CURSOR]")
+      return try book.evaluateApplicationDefinition(
+        args[2], arguments: Value.parse(args[3]), cursor: args.count == 5 ? args[4] : nil,
+        cancellation: cancellation)
+    case "definition-search":
+      try require(
+        (3...4).contains(args.count), "usage", "definition-search WORKBOOK QUERY [OPTIONS_JSON]")
+      let options = args.count == 4 ? try Value.parse(args[3]) : .object([:])
+      guard case .object(let fields) = options,
+        Set(fields.keys).isSubset(of: ["kind", "historical", "limit", "cursor"]),
+        fields["kind"] == nil || fields["kind"]?.string != nil,
+        fields["cursor"] == nil || fields["cursor"]?.string != nil,
+        fields["historical"] == nil || fields["historical"] == .bool(true)
+          || fields["historical"] == .bool(false),
+        fields["limit"] == nil
+          || fields["limit"]?.int.map({ fields["limit"] == .number(Double($0)) }) == true
+      else { throw SevraError("arguments", "Use typed definition search options.") }
+      return try book.searchApplicationDefinitions(
+        args[2], kind: fields["kind"]?.string,
+        historical: fields["historical"] == .bool(true), limit: fields["limit"]?.int ?? 20,
+        cursor: fields["cursor"]?.string, cancellation: cancellation)
     case "table-query", "table-query-plan", "table-optimize":
       try require(
         (3...4).contains(args.count) && (args.count == 3 || args[0] == "table-query"),
@@ -533,6 +593,13 @@ import SevraProduct
     table-restore-schema WORKBOOK DATASET_ID SAVED_DEFINITION_ID BASE_VERSION BASE_DEFINITION_ID TOKEN
     table-rebuild WORKBOOK DATASET_ID EXPECTED_REVISION TOKEN
     table-query WORKBOOK QUERY_JSON [CURSOR]
+    definition-save WORKBOOK LOGICAL_ID CONTENT_JSON BASE_ID_OR_NEW TOKEN [INPUTS_JSON]
+    definition-read WORKBOOK LOGICAL_OR_VERSION_ID
+    definition-history WORKBOOK LOGICAL_ID [BEFORE_VERSION]
+    definition-dependencies WORKBOOK VERSION_ID
+    definition-restore WORKBOOK LOGICAL_ID VERSION_ID BASE_ID TOKEN
+    definition-evaluate WORKBOOK LOGICAL_OR_VERSION_ID ARGUMENTS_JSON [CURSOR]
+    definition-search WORKBOOK QUERY [OPTIONS_JSON]
     table-query-plan WORKBOOK QUERY_JSON
     table-optimize WORKBOOK QUERY_JSON | table-clear-indexes WORKBOOK DATASET_ID
     export-csv WORKBOOK TABLE_ID PATH.csv | tool WORKBOOK TOOL [ARGS_JSON]

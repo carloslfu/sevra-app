@@ -2,7 +2,7 @@
 type: spec
 id: 01m61vcs2a1prctcr1em7z68cm
 created: 2026-10-28T18:12:10.954425+00:00
-updated: 2026-10-28T20:03:13.452202+00:00
+updated: 2026-10-28T20:31:52.380738+00:00
 summary: Schema12 managed storage, definition lifecycle and bounded stored-scalar query/index paths have scoped proof; complete MJ/Excel continuity and release remain open.
 title: Managed datasets and replayable storage
 status: reviewed
@@ -25,7 +25,8 @@ explicitly linked.
 
 Checkpoint cd5f854 established fixed-schema capture/reconstruction and editable
 Home. Schema 11 established the first native dataset foundation. Schema 12 adds the
-versioned schema lifecycle described below. Registered
+versioned schema lifecycle described below; schema13 retains this foundation and
+adds the independent application-definition catalog. Registered
 native scalar columns, central row/membership updates, schema materialization,
 dynamic change capture/apply, independent projection repair and integrity checks
 have scoped proof in [[records/operations/persistence-coverage]]. This is the current

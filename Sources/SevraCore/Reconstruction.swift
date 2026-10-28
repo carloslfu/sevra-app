@@ -90,6 +90,7 @@ extension Workbook {
     try target.execute("INSERT INTO search_fts(search_fts) VALUES('rebuild')")
     try target.execute("INSERT INTO names_fts(names_fts) VALUES('rebuild')")
     try target.execute("INSERT INTO message_fts(message_fts) VALUES('rebuild')")
+    try target.execute("INSERT INTO definition_fts(definition_fts) VALUES('rebuild')")
     try require(
       sevra_enable_triggers(target.handle, 1) == SQLITE_OK, "change_triggers",
       "Cannot restore canonical storage triggers.")

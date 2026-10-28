@@ -769,3 +769,30 @@ Update current reading map to delivered managed query/index subset.
 ## [2026-10-28 20:02] verification | records/operations/build-and-run.md
 Record final packaged query/index commands and actual performance limitations.
 
+## [2026-10-28 20:05] design | records/specs/application-definitions.md
+Refine E2 schema13 catalog/function/query contracts, explicit live/exact and current-row semantics, bounded type/unit/graph/FTS persistence before implementation.
+
+## [2026-10-28 20:31] verification | records/operations/implementation.md
+Record schema13 catalog/functions/query templates, core208, full207 before review metadata fix, final packaged/10k evidence and locked visual limit; full E2/release remain open.
+
+## [2026-10-28 20:31] implementation | records/specs/application-definitions.md
+Mark catalog/function/query subset implemented with exact version/type/unit/FTS/replay proof; retain action/form/native/model/EJ gaps.
+
+## [2026-10-28 20:31] verification | records/operations/persistence-coverage.md
+Extend complete-capture inventory and disposable FTS classification for all schema13 application-definition families.
+
+## [2026-10-28 20:31] implementation | records/specs/storage.md
+Document schema13 application metadata/capture and fourth disposable FTS index.
+
+## [2026-10-28 20:31] implementation | records/specs/native-app-engine.md
+Update E2 sequence to delivered pure catalog slice and remaining action/form/native journey gates.
+
+## [2026-10-28 20:31] implementation | records/specs/managed-datasets.md
+Clarify schema13 carries unchanged managed dataset foundation into pure E2 catalog work.
+
+## [2026-10-28 20:31] implementation | records/overview/start-here.md
+Add current schema13 catalog entry and explicit E2 next work to project reading map.
+
+## [2026-10-28 20:31] verification | records/operations/build-and-run.md
+Publish delivered schema13 CLI and synthetic catalog qualification commands with actual limits.
+

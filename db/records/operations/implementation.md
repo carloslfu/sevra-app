@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T20:02:57.082144+00:00
+updated: 2026-10-28T20:31:52.209239+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -12,6 +12,75 @@ title: Implementation and acceptance
 This is a working development build, not a qualified release. Requirements in the
 specifications remain the acceptance contract. A source commit does not imply that
 every requirement or supported hardware profile has passed.
+
+## Application definition catalog checkpoint, October 28
+
+Schema 13 adds immutable app_definitions, selected heads and retained dependency
+bindings to the existing complete capture/apply inventory. Definition metadata is
+backed by an exact authoring Source with submitted content and actual caller.
+That Source records the observed save as actual/accepted; it does not accept a
+business rule or its results. An initial draft/rule authoring Source polluted the
+business review queue. The corrected path leaves an existing unreviewed estimate,
+its meaning and review revision unchanged, including when an AI authors the definition.
+
+Core and CLI now create, inspect, search, version, restore and evaluate reusable
+functions/query templates. Exact base UUIDs prevent overwrites; tokens/arguments/
+actors make retries return their original version. Live function calls resolve
+current exact versions and recheck signatures/units; pinned calls retain their exact
+version. Lazy evaluation, explicit parameter/literal mappings, cycle/depth/work
+bounds and strict Decimal/Boolean/date/choice/local-version types prevent ambient
+reads and arbitrary behavior. Missing, null, default and zero remain distinct.
+Function output declares unit/rounding but does not infer dimensions or rates.
+
+Reusable queries compile the same managed stored-scalar path. Parameters bind
+filter values, with matching column type/unit. Live schema mode tolerates rename
+but refuses changed referenced-column meaning. Exact schema mode refuses a changed
+schema. Both read current rows at an explicit snapshot; neither invents a historical
+projection. Continuation binds exact root/query/snapshot. Evaluation is read-only;
+published result Records, native composition bindings and actions/forms remain open.
+
+A disposable external-content definition_fts indexes retained titles/descriptions/
+parameter labels. Current heads are default; history is explicit. Stable ID paging,
+three-second deadline, 50-hit/2 MiB pages and stale-continuation refusal bound discovery.
+All three canonical families, Sources, heads, FTS consistency and receipts roll back
+on late publication failure. Inert reconstruction restores exact versions/bindings/
+actors and rebuilds FTS without executing definitions. Portable reopen passes.
+
+Evidence: [application definition receipt](../../../integration/evidence/2026-10-28-application-definitions.json.gz), 42,911 bytes,
+SHA-256 4c90977fb56a47c1b51ddadfbe40747f100732bfaf65ff9c46581b049f094b58.
+All 106 prior evidence files remain byte-identical. Core 208 groups pass. The full
+scripts/check.sh pass had 207 groups before the final authoring Source/review-queue
+metadata correction; final focused208 and native/CLI probes qualify that correction.
+No full-script rerun after it is claimed. Final native packaging, installed resource
+refusals/signature, strict lint (19 Swift files) and skill validation pass. Two
+independent CLI editors yield one saved version and one stale-definition refusal.
+
+A final public-core corpus created 10,000 functions plus a shared base, retaining
+5,000 explicit dependencies. Creation took 22.685 s; median 50-hit pages were
+0.644 ms for 1,000 matching names, 1.990 ms for all 10,001 parameter-label matches,
+and 0.217 ms for a full catalog listing. All pages were complete/unique. Verification
+took 4.415 s, inert reconstruction 20.074 s; maximum benchmark-process lifetime RSS
+135,053,312 bytes. Database 105,459,712 bytes; retained history 54,665,015 bytes.
+Actual FTS plan uses the virtual index, rowid/covering head lookups and a temporary
+B-tree for stable ordering. The final packaged CLI opened this corpus, searched in
+0.045 s, evaluated in 0.043 s and verified in 3.691 s, including process/open time.
+These are one-Mac observations under ordinary development load, with some core
+checks/native packaging overlapping the benchmark, not isolated performance or
+hardware qualification. The earlier prototype corpus is retained separately.
+
+The first input cohort caught ISO8601DateFormatter rolling an impossible February
+30 into another date. Shared BusinessTime now validates date syntax/calendar/clock/
+zone before parsing. Leap-date/offset, impossible business-event, newline/CRLF and
+nearby valid inputs pass. Strict end-of-input anchors also protect shared decimal
+strings and definition identifiers. Initial build/test failures are retained.
+
+The final visual launch attempt was blocked by the locked Mac. No schema13 native
+workbook/UI or VoiceOver proof is claimed. Native UI code and the local model/tool
+contract are unchanged. E2 still requires shared action registry, forms/drafts,
+result publication, native definition/query bindings, agent authoring/invocation and
+EJ04/EJ05. E3-E6, Excel sparse/formula continuity, complete MJ/FJ and remaining whole
+installation/accessibility/hardware/notarized release/main integration remain open.
+Older development packages are preserved unsupported, without a migration adapter.
 
 ## Managed query and index checkpoint, October 28
 

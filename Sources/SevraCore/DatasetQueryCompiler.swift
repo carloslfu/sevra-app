@@ -1,9 +1,15 @@
 import Foundation
 
 extension Workbook {
-  func compileDatasetQuery(_ request: DatasetQuery, offset: Int = 0) throws -> CompiledDatasetQuery
-  {
+  func compileDatasetQuery(
+    _ request: DatasetQuery, offset: Int = 0, historicalDefinitions: Bool = false
+  ) throws -> CompiledDatasetQuery {
     let schemas = try request.sources.map { source in
+      if historicalDefinitions {
+        let saved = try savedDatasetDefinition(source.dataset, definitionID: source.definition)
+        return ManagedDatasetSchema(
+          datasetID: saved.datasetID, version: saved.version, columns: saved.columns)
+      }
       let definition = try datasetDefinition(source.dataset)
       try require(
         definition.id == source.definition, "stale_schema",

@@ -2,7 +2,7 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-28T20:03:13.452202Z
+updated: 2026-10-28T20:31:52.380738Z
 ---
 
 # records/specs
@@ -10,8 +10,8 @@ updated: 2026-10-28T20:03:13.452202Z
 - [[records/specs/managed-datasets]] — Schema12 managed storage, definition lifecycle and bounded stored-scalar query/index paths have scoped proof; complete MJ/Excel continuity and release remain open.
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
 - [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
+- [[records/specs/application-definitions]] — Schema13 definition catalog, typed pure functions/query templates and FTS have scoped core/CLI proof; actions/forms/native bindings and EJ04/EJ05 remain open.
 - [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
-- [[records/specs/application-definitions]] — E2 typed versioned definitions, pure functions/queries, shared action registry and native forms with scoped acceptance and persistence.
 - [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 - [[records/specs/search]] — FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.

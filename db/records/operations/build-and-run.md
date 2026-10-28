@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T20:02:57.341756+00:00
+updated: 2026-10-28T20:31:52.443171+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1388,7 +1388,7 @@ but unsupported; recreate selected synthetic fixtures, never delete user workboo
 
 ## Versioned table definitions
 
-Current schema is 12. `table-schema` returns the exact definition UUID, display
+Current schema is 13, retaining the schema12 managed table lifecycle. `table-schema` returns the exact definition UUID, display
 version, title, columns and archive state. `table-schema-history WORKBOOK DATASET_ID
 [BEFORE_VERSION]` pages 20 complete definitions newest first.
 
@@ -1463,3 +1463,27 @@ fell from about 0.29 to 0.15 s. Initial 50k repair rolled back at the old three-
 budget; final explicit 30-second maintenance repair took 14.794 s. See [managed query/index receipt](../../../integration/evidence/2026-10-28-managed-query-indexes.json.gz)
 and [[records/operations/implementation]] for full timings/resources and limits.
 No new native query editor or in-app model tool is implied by these CLI commands.
+
+## Saved application functions and queries
+
+Current schema13 workbooks support `definition-save`, `definition-read`,
+`definition-history`, `definition-restore`, `definition-dependencies`,
+`definition-search` and read-only `definition-evaluate`. Run `sevra help` and read
+skills/sevra/SKILL.md for typed examples, parameter/literal mappings and live/exact
+semantics. New definitions use a selected UUID logical ID and base `new`; updates
+require the exact opened version UUID. All writes use stable request tokens.
+Neither authoring nor evaluation accepts business data or schedules execution.
+
+~~~sh
+python3 scripts/check_application_definitions.py --cli output/native/bin/sevra --output .build/application-cli.json
+swift build --product sevra-benchmark -j 4
+.build/debug/sevra-benchmark --definitions --count 10000 --output .build/NEW-definition-corpus
+~~~
+
+Use a new corpus directory. The benchmark exercises actual public-core saves,
+FTS/head-filter paging, retained dependency lookup, exact evaluation, verification,
+inert reconstruction and portable reopen. Its JSON separates core timings from
+packaged CLI process/open observations. Current synthetic 10,001-definition corpus
+passes; see [application definition receipt](../../../integration/evidence/2026-10-28-application-definitions.json.gz). These commands do not expose a native
+form/definition editor or new in-app model tool. Old development workbooks are
+preserved unsupported; create selected fresh synthetic fixtures for schema13.

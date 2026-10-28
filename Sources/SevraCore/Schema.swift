@@ -2,10 +2,10 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 12
+  static let version = 13
   static let sql = """
     PRAGMA application_id=1398166081;
-    PRAGMA user_version=12;
+    PRAGMA user_version=13;
     PRAGMA journal_mode=DELETE;
     PRAGMA synchronous=FULL;
     CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
@@ -98,6 +98,19 @@ enum Schema {
     CREATE TABLE intake_jobs(id TEXT PRIMARY KEY,source_id TEXT NOT NULL REFERENCES items(id),role TEXT CHECK(role IN ('reference','analysis','values','update')),state TEXT NOT NULL CHECK(state IN ('captured','running','awaiting_role','awaiting_update','ready','failed','cancelled')),attempt TEXT,report TEXT NOT NULL,dataset_ids TEXT NOT NULL,detail TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
     CREATE INDEX intake_jobs_source ON intake_jobs(source_id,created,id);
     CREATE INDEX intake_jobs_state ON intake_jobs(state,created,id);
+    CREATE TABLE app_definitions(id TEXT PRIMARY KEY,logical_id TEXT NOT NULL,version INTEGER NOT NULL CHECK(version>0),previous_id TEXT REFERENCES app_definitions(id),kind TEXT NOT NULL CHECK(kind IN ('function','query')),title TEXT NOT NULL,description TEXT NOT NULL,parameters TEXT NOT NULL,payload TEXT NOT NULL,parameter_text TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,UNIQUE(logical_id,version));
+    CREATE TABLE app_definition_heads(logical_id TEXT PRIMARY KEY,definition_id TEXT NOT NULL UNIQUE REFERENCES app_definitions(id));
+    CREATE INDEX app_definitions_logical ON app_definitions(logical_id,version);
+    CREATE TABLE app_definition_dependencies(definition_id TEXT NOT NULL REFERENCES app_definitions(id),ordinal INTEGER NOT NULL CHECK(ordinal>=0),kind TEXT NOT NULL CHECK(kind IN ('definition','dataset')),mode TEXT NOT NULL CHECK(mode IN ('live','exact')),target_logical TEXT,target_version TEXT REFERENCES app_definitions(id),target_dataset TEXT REFERENCES datasets(id),target_dataset_definition TEXT REFERENCES column_versions(id),PRIMARY KEY(definition_id,ordinal),CHECK((kind='definition' AND target_logical IS NOT NULL AND target_version IS NOT NULL AND target_dataset IS NULL AND target_dataset_definition IS NULL) OR (kind='dataset' AND target_logical IS NULL AND target_version IS NULL AND target_dataset IS NOT NULL AND target_dataset_definition IS NOT NULL)));
+    CREATE INDEX app_dependencies_definition ON app_definition_dependencies(target_logical,definition_id);
+    CREATE INDEX app_dependencies_dataset ON app_definition_dependencies(target_dataset,definition_id);
+    CREATE VIRTUAL TABLE definition_fts USING fts5(title,description,parameter_text,content='app_definitions',content_rowid='rowid',tokenize='unicode61 remove_diacritics 2',prefix='2 3 4');
+    CREATE TRIGGER app_definitions_ai AFTER INSERT ON app_definitions BEGIN
+      INSERT INTO definition_fts(rowid,title,description,parameter_text) VALUES(new.rowid,new.title,new.description,new.parameter_text);
+    END;
+    CREATE TRIGGER app_definitions_ad AFTER DELETE ON app_definitions BEGIN
+      INSERT INTO definition_fts(definition_fts,rowid,title,description,parameter_text) VALUES('delete',old.rowid,old.title,old.description,old.parameter_text);
+    END;
     CREATE TABLE committed_changes(id TEXT PRIMARY KEY,previous_id TEXT UNIQUE REFERENCES committed_changes(id),payload TEXT NOT NULL,hash TEXT NOT NULL,recorded TEXT NOT NULL,writer_id TEXT NOT NULL,actor TEXT NOT NULL,row_changes INTEGER NOT NULL CHECK(row_changes>0));
     """
 }
