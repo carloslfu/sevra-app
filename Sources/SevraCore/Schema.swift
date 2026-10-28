@@ -2,10 +2,10 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 9
+  static let version = 10
   static let sql = """
     PRAGMA application_id=1398166081;
-    PRAGMA user_version=9;
+    PRAGMA user_version=10;
     PRAGMA journal_mode=DELETE;
     PRAGMA synchronous=FULL;
     CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
@@ -98,5 +98,6 @@ enum Schema {
     CREATE TABLE intake_jobs(id TEXT PRIMARY KEY,source_id TEXT NOT NULL REFERENCES items(id),role TEXT CHECK(role IN ('reference','analysis','values','update')),state TEXT NOT NULL CHECK(state IN ('captured','running','awaiting_role','awaiting_update','ready','failed','cancelled')),attempt TEXT,report TEXT NOT NULL,dataset_ids TEXT NOT NULL,detail TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
     CREATE INDEX intake_jobs_source ON intake_jobs(source_id,created,id);
     CREATE INDEX intake_jobs_state ON intake_jobs(state,created,id);
+    CREATE TABLE committed_changes(id TEXT PRIMARY KEY,previous_id TEXT UNIQUE REFERENCES committed_changes(id),payload TEXT NOT NULL,hash TEXT NOT NULL,recorded TEXT NOT NULL,writer_id TEXT NOT NULL,actor TEXT NOT NULL,row_changes INTEGER NOT NULL CHECK(row_changes>0));
     """
 }

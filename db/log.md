@@ -655,3 +655,18 @@ Three passes review interpretation, atomic publication/reversal and callback own
 ## [2026-10-28 16:44] verification | records/operations/implementation.md
 Stable check.sh passes 144 core groups and 30 new CLI update checks; final native package/signature, focused table lifecycle, 30 process writers, denied-build-tree helpers, strict Swift lint and skill validation pass. Actual native mapping/draft/accept/Undo/relaunch/Redo/stale-refusal verified with synthetic CLI state. Receipt 10d371e5e5491f05a426e18708f8d70bcc1428e8f56bee334460a1886d2e261e preserves all 100 prior evidence files; stated bounds and unfinished app/FJ gates retained.
 
+## [2026-10-28 17:06] implementation | records/operations/persistence-coverage.md
+Inventoried existing durable families and implemented schema-10 atomic typed change capture, distinct decision attribution, and inert local reconstruction. Core synthetic checks pass; final package/concurrency/interruption/scaling qualification remains in progress.
+
+## [2026-10-28 17:09] design | records/specs/persistence-readiness.md
+Linked the current schema-10 implementation and complete write-path inventory; preserved FJ and whole-release qualification limits and excluded sync scope.
+
+## [2026-10-28 17:25] verification | records/operations/persistence-coverage.md
+Schema-10 complete local history and inert reconstruction pass scoped FJ01-FJ06; 150 core groups, packaged 10k rows/cancellation, 30 writers, four interruption reconstructions and native review/reopen. Whole-app release remains open.
+
+## [2026-10-28 17:25] verification | records/operations/implementation.md
+Schema-10 complete local history and inert reconstruction pass scoped FJ01-FJ06; 150 core groups, packaged 10k rows/cancellation, 30 writers, four interruption reconstructions and native review/reopen. Whole-app release remains open.
+
+## [2026-10-28 17:25] verification | records/specs/persistence-readiness.md
+Schema-10 complete local history and inert reconstruction pass scoped FJ01-FJ06; 150 core groups, packaged 10k rows/cancellation, 30 writers, four interruption reconstructions and native review/reopen. Whole-app release remains open.
+

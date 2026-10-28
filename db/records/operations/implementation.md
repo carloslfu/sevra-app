@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T16:43:47.689970+00:00
+updated: 2026-10-28T17:25:48.077054+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -24,10 +24,14 @@ remain evidence; current-format integrity, recovery and portability remain gates
 
 The October 28 owner requirement in [[records/specs/persistence-readiness]] is
 active implementation scope. The focused CSV/TSV table-update slice is now verified
-within the scope below. Next inventory durable write paths and implement the shared committed-change and
-local reconstruction foundation before expanding workflow/automation persistence.
-F01-F08/FJ01-FJ06 remain open; no reconstruction or sync completion is claimed.
-Reuse current transactions, receipts and immutable data, and E19's future outbox.
+within the scope below. Schema 10 now implements shared complete committed changes,
+accurate decision actors and inert local reconstruction. The path inventory and
+current qualification are in [[records/operations/persistence-coverage]]. Core
+synthetic reconstruction/failure checks, packaged/native checks, concurrent writers,
+interruption, cancellation and bounded scaling pass for current families. FJ01-FJ06
+are locally qualified within that inventory, not whole-app or sync completion.
+The shared foundation now supports the next E1 Home/space editing slice.
+E19 must reuse this commit foundation rather than create a second ledger.
 Cloud, transport/protocol, replica coordination and a new conflict resolver remain
 out of scope. Retain future semantic-resolution evidence without widening today's
 acceptance authority. This scope supersedes any broader sync implementation
@@ -5145,3 +5149,46 @@ clipboard/startup/late callbacks and current-request model/voice intake tools.
 Customizable Home/actions/forms/workflows/automations, context/AI reliability,
 native adoption, hardware, fresh installation, spoken accessibility, main-branch
 integration and production release remain open. Whole-app completion is not claimed.
+
+## October 28: complete local persistence foundation
+
+Schema 10 adds complete typed committed changes atomically with existing state
+and receipts. Public SQLite TEMP triggers capture all 37 classified ordinary
+tables. Item/operation/workbook/writer/effect identities remain distinct; exact
+predecessors, values, timestamps, inputs and actor/model/policy metadata survive.
+Explicit native review is human; CLI/core defaults programmatic; model tools are
+AI under their registered model/draft policy. AI decision attribution needs an
+exact accepted current rule Source, which becomes decision lineage. No new
+acceptance authority is added.
+
+`commits` inspects small metadata while the existing `history` remains conversation
+history. `reconstruct` creates a new current-format package, applies saved rows on
+an inert connection, checks final authority/dependencies and rebuilds disposable
+FTS. It never runs models, parsers, tools or effects. Linked access grants/paths
+and worker claims are excluded. Pending and ambiguous outcomes remain inert.
+Presentation uses a portable current checkpoint. Included historical bytes are
+mandatory, hash checked and prepared/flushed before references publish.
+`verify` now checks history hashes/causality/receipts from a coherent snapshot.
+
+Final 150 core groups pass, including actor/rule, corruption, wrong base, rollback,
+exact typed data, idempotent apply and closure tests. Final native app/CLI packaging
+and strict signature pass. Packaged 10,000 rows: 34 changes, 12 writers, import
+2.920 s, reconstruction 3.454 s, database 35,045,376 bytes; exact retry/export/reopen
+and cancellation after a committed prefix pass. Separate 30-writer checks and
+reconstruction of four preserved interruption fixtures pass. A real native
+Accept/Undo and unsent-draft reconstruction/reopen journey passes. Worker package
+isolation evidence is reused for unchanged extraction paths. Earlier broad suite
+passes; final core/package checks cover the last exact-rule and verification edits.
+
+The [immutable receipt](../../../integration/evidence/2026-10-28-persistence-foundation.json.gz)
+is 30,925 bytes, SHA-256 `c82f6169bffdc2b60c62ea70918e7fe2edf9740da2b7534c4e89c9cffeb9e4da`;
+all 101 earlier evidence files remain unchanged. Preliminary SDK hook, fixture and
+CLI command collisions are retained as diagnostics; the final capture uses only
+public SQLite APIs. Metadata limits: 64 MiB/250,000 changed rows per transaction,
+full history retained without compaction. No universal scaling claim.
+
+FJ01-FJ06 pass for current inventoried families. New workflow/action state extends
+this foundation. Next implementation: E1 version-checked Home/space editing, then
+E2 shared actions/forms/functions and E3 manual durable execution. Excel formulas,
+local-model/voice intake, broad context/inventory qualification, VoiceOver/hardware,
+engine adoption, install/notarization and final release gates remain open.

@@ -826,9 +826,13 @@ import SwiftUI
         let record = try await Task.detached {
           try ticket.cancellation.check()
           switch action {
-          case .accept: return try book.accept(id, cancellation: ticket.cancellation)
-          case .undo, .redo: return try book.undoItem(id, cancellation: ticket.cancellation)
-          case .withdraw: return try book.withdrawDraft(id)
+          case .accept:
+            return try book.accept(
+              id, cancellation: ticket.cancellation, actor: .human("SevraApp.review"))
+          case .undo, .redo:
+            return try book.undoItem(
+              id, cancellation: ticket.cancellation, actor: .human("SevraApp.review"))
+          case .withdraw: return try book.withdrawDraft(id, actor: .human("SevraApp.review"))
           }
         }.value
         let receipt =

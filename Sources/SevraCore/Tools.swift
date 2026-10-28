@@ -77,6 +77,18 @@ public struct WorkbookTools {
       .prefix(12).map { String(format: "%02x", $0) }.joined()
   }
   public func execute(_ tool: String, _ a: Value, receiptID: String? = nil) throws -> Value {
+    let model = try workbook.synchronized {
+      try workbook.db.scalar("SELECT model FROM agent_runs WHERE id=?", [.string(runID)]).string
+    }
+    let actor =
+      model.map {
+        ChangeActor.ai("WorkbookTools", model: $0, policy: "workbook-tools-draft-policy-v1")
+      } ?? .programmatic("WorkbookTools")
+    return try ChangeAttribution.$actor.withValue(actor) {
+      try executeAttributed(tool, a, receiptID: receiptID)
+    }
+  }
+  private func executeAttributed(_ tool: String, _ a: Value, receiptID: String?) throws -> Value {
     try cancellation.check()
     try require(
       !readOnly || Self.readOnlyTools.contains(tool), "read_only_request",

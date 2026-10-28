@@ -30,10 +30,11 @@ extension Workbook {
       "update_definition", "Invalid saved membership for this undo.")
     let decision = try insertItem(
       category: "source", kind: "decision", title: "Restore table update",
-      text: "The user requested a checked restoration of the previous table state.",
-      data: .object(["record": .string(current.id)]), meaning: "actual",
-      status: "accepted", scenario: "actual", inputs: [],
-      transformation: "human-table-intake-undo-v1")
+      text: (db.changes?.actor.label ?? "The calling program")
+        + " requested a checked restoration of the previous table state.",
+      data: try decisionData(current.id), meaning: "actual",
+      status: "accepted", scenario: "actual", inputs: decisionInputs(),
+      transformation: "decision-table-intake-undo-v2")
     var inverse: [Value] = []
     for member in starting where !desiredLogicals.contains(member["logical_id"].text) {
       try cancellation.check()

@@ -23,6 +23,15 @@ is a user document, not this repository's db.md knowledge store.
    item IDs; do not generate executable app code. `tool ... draft` saves a document.
 8. Verify significant changes and reopen exported archives before claiming success.
 
+`commits PATH [LIMIT]` inspects bounded committed-change metadata. Conversation
+history still uses `history PATH [CONVERSATION_ID [AFTER_MESSAGE_ID]]`.
+`reconstruct PATH NEW_PATH` rebuilds current-format saved history into a new
+workbook, preserving IDs, times, decisions and included historical dependencies.
+It refuses missing/corrupt history or required included bytes. Explicitly linked
+files remain unresolved without copied device paths or access bookmarks. Pending
+tool calls and runs remain inert; reconstruction never authorizes their execution.
+Keep the original and inspect the new workbook before replacing any working copy.
+
 `import PATH FILE [--link] [--role reference|analysis|values|update] [--token TOKEN]`
 captures an original and returns `{source,intake}`. Without a role it indexes the
 file and returns `awaiting_role`; it never creates tables from the suffix alone.

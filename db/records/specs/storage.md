@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T16:32:39.729574+00:00
+updated: 2026-10-28T17:09:03.226934+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -15,7 +15,9 @@ status: reviewed
 The adopted [[records/specs/persistence-readiness]] contract F01-F08 and FJ01-FJ06
 requires complete saved changes, causal/version identity, deterministic local
 reconstruction, atomic/idempotent application and truthful decision provenance.
-This extends S05-S17. Current receipts/history do not yet prove full replayability.
+This extends S05-S17. Schema 10 implements complete atomic typed changes and inert
+local reconstruction. The current write-path inventory, scoped synthetic proof
+and remaining qualification are in [[records/operations/persistence-coverage]].
 Cloud sync, replica coordination and a new semantic resolver remain out of scope.
 
 ## Package and ownership

@@ -3,6 +3,8 @@ import Foundation
 
 final class Database {
   var handle: OpaquePointer?
+  var changes: ChangeCapture?
+  var changeColumns: [String: [String]] = [:]
   init(_ url: URL, create: Bool = false) throws {
     let flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX | (create ? SQLITE_OPEN_CREATE : 0)
     guard
@@ -30,7 +32,9 @@ final class Database {
       }, nil)
     // Apple system SQLite omits loadable extensions.
   }
-  deinit { sqlite3_close(handle) }
+  deinit {
+    sqlite3_close(handle)
+  }
   func script(_ sql: String) throws {
     var error: UnsafeMutablePointer<CChar>?
     guard sqlite3_exec(handle, sql, nil, nil, &error) == SQLITE_OK else {
@@ -67,7 +71,7 @@ final class Database {
     while true {
       let rc = sqlite3_step(stmt)
       if rc == SQLITE_DONE { break }
-      guard rc == SQLITE_ROW else { throw failure() }
+      guard rc == SQLITE_ROW else { throw changes?.failure ?? failure() }
       var row: [String: Value] = [:]
       for i in 0..<sqlite3_column_count(stmt) {
         let key = String(cString: sqlite3_column_name(stmt, i))
@@ -124,11 +128,15 @@ final class Database {
   func transaction<T>(_ body: () throws -> T) throws -> T {
     try execute("BEGIN IMMEDIATE")
     do {
+      try changes?.begin(self)
       let value = try body()
+      try changes?.publish(self)
       try execute("COMMIT")
+      changes?.reset()
       return value
     } catch {
       _ = try? execute("ROLLBACK")
+      changes?.reset()
       throw error
     }
   }

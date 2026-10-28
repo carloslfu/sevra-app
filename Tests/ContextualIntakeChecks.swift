@@ -28,13 +28,19 @@ func checkContextualIntake(at root: URL) {
       at: root.appendingPathComponent("CaptureRecovery.sevra"), title: "Recovery")
     let file = root.appendingPathComponent("capture-recovery.csv")
     try Data("sku,quantity\n0012,4\n".utf8).write(to: file)
-    let first = try book.captureIntake(file, role: .reference, token: "interrupted-capture")
-    // Model process exit immediately after the file receipt and before job registration.
+    // Fail job publication after the file receipt, rather than deleting a
+    // committed receipt and pretending that committed history never happened.
     _ = try referenceSQL(
-      book, "DELETE FROM intake_jobs; DELETE FROM operations WHERE kind='intake_begin';")
-    try book.resumeIntake(first.sourceID)
-    try expect(try book.intakeJob(first.id).role == .reference)
-    try expect(try book.intakeJob(first.id).state == "ready" && book.datasets().isEmpty)
+      book,
+      "CREATE TRIGGER registration_fault BEFORE INSERT ON intake_jobs BEGIN SELECT RAISE(ABORT,'interrupted registration'); END;"
+    )
+    try refuses { _ = try book.captureIntake(file, role: .reference, token: "interrupted-capture") }
+    _ = try referenceSQL(book, "DROP TRIGGER registration_fault;")
+    let source = try book.items().first { $0.category == "source" && $0.kind == "document" }!
+    try book.resumeIntake(source.id)
+    let recovered = try book.intakeJobs(sourceID: source.id)[0]
+    try expect(recovered.role == .reference)
+    try expect(recovered.state == "ready" && book.datasets().isEmpty)
   }
   check("ambiguous capture survives reopen and reference resume never creates tables") {
     let book = try Workbook.create(at: root.appendingPathComponent("Roles.sevra"), title: "Roles")

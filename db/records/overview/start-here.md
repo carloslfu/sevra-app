@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-28T16:32:39.943101+00:00
+updated: 2026-10-28T17:09:03.250131+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -30,7 +30,7 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 - [[records/specs/product]]: requirements and user experience.
 - [[records/specs/native-app-engine]]: adopted customizable Home/application-engine direction, proposed reusable actions/forms/workflows and automations, code gaps and phased acceptance; implementation open.
 - [[records/specs/storage]]: package, data, transactions, history and calculations.
-- [[records/specs/persistence-readiness]]: required audit and complete/replayable local persistence for future syncing; no cloud, sync protocol, replica coordination or new resolver. Open F01-F08/FJ01-FJ06 gates.
+- [[records/specs/persistence-readiness]]: required audit and complete/replayable local persistence for future syncing; no cloud, sync protocol, replica coordination or new resolver. Schema-10 capture/reconstruction and scoped FJ qualification are tracked in [[records/operations/persistence-coverage]]; whole-release gates remain open.
 - [[records/specs/search]]: intake, extraction, indexes, retrieval and scaling.
 - [[records/specs/contextual-import]]: adopted startup/ongoing entry points, role-aware CSV/data intake and Excel work continuity; current saved-value importer does not meet the expanded contract.
 - [[records/specs/references-and-relationships]]: version-safe body/extracted-text bindings, backlink CLI, native link views, focused visible keyboard correction/navigation and bounded scoped agent discovery; broader usability, voice authoring and retrieval qualification pending.

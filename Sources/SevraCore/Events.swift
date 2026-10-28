@@ -111,11 +111,13 @@ extension Workbook {
     return try item(result.text)
   }
   @discardableResult public func accept(
-    _ id: String, token: String = identifier(), cancellation: Cancellation = .init()
+    _ id: String, token: String = identifier(), cancellation: Cancellation = .init(),
+    actor: ChangeActor = .programmatic("SevraCore.accept")
   ) throws -> Item {
     let result = try mutation(
-      "accept", token: token, request: .string(id), cancellation: cancellation
+      "accept", token: token, request: .string(id), cancellation: cancellation, actor: actor
     ) {
+      try validateDecisionActor(actor)
       let old = try item(id)
       try require(
         try db.scalar("SELECT item_id FROM heads WHERE logical_id=?", [.string(old.logicalID)]).text
@@ -128,9 +130,9 @@ extension Workbook {
       if old.status == "accepted" { return .string(old.id) }
       let evidence = try insertItem(
         category: "source", kind: "decision", title: "Accept \(old.title)",
-        text: "The user accepted this interpretation.", data: .object(["record": .string(id)]),
-        meaning: "actual", status: "accepted", scenario: "actual", inputs: [],
-        transformation: "human-accept-v1")
+        text: actor.label + " accepted this interpretation.", data: try decisionData(id),
+        meaning: "actual", status: "accepted", scenario: "actual", inputs: decisionInputs(),
+        transformation: "decision-accept-v2")
       var acceptedData = old.data
       if old.kind == "table-intake-update" {
         acceptedData = try applyTableIntake(old, decision: evidence, cancellation: cancellation)

@@ -404,8 +404,11 @@ extension Workbook {
     let table = try dataset(datasetID)
     let evidence = try insertItem(
       category: "source", kind: "correction", title: "Edit \(table.title)",
-      text: "User updated \(edits.count) table rows.", data: request, meaning: "actual",
-      status: "accepted", scenario: "actual", inputs: [], transformation: "human-table-edit-v1")
+      text: (db.changes?.actor.label ?? "The calling program")
+        + " updated \(edits.count) table rows.",
+      data: try decisionData(nil, additional: request.object), meaning: "actual",
+      status: "accepted", scenario: "actual", inputs: decisionInputs(),
+      transformation: "decision-table-edit-v2")
     var ids: [String] = []
     for edit in edits {
       let old = try item(edit.id)
@@ -466,11 +469,13 @@ extension Workbook {
     return try editRows(change["dataset_id"]!.text, edits: edits)
   }
   @discardableResult public func undoItem(
-    _ id: String, token: String = identifier(), cancellation: Cancellation = .init()
+    _ id: String, token: String = identifier(), cancellation: Cancellation = .init(),
+    actor: ChangeActor = .programmatic("SevraCore.undo")
   ) throws -> Item {
     let result = try mutation(
-      "undo", token: token, request: .string(id), cancellation: cancellation
+      "undo", token: token, request: .string(id), cancellation: cancellation, actor: actor
     ) {
+      try validateDecisionActor(actor)
       let current = try item(id)
       guard let prior = current.supersedes else {
         throw SevraError("undo", "No previous version exists.")
@@ -527,9 +532,9 @@ extension Workbook {
       }
       let evidence = try insertItem(
         category: "source", kind: "decision", title: "Undo \(current.title)",
-        text: "The user requested restoration of the prior version.",
-        data: .object(["record": .string(id)]), meaning: "actual", status: "accepted",
-        scenario: "actual", inputs: [], transformation: "human-undo-v1")
+        text: actor.label + " requested restoration of the prior version.",
+        data: try decisionData(id), meaning: "actual", status: "accepted",
+        scenario: "actual", inputs: decisionInputs(), transformation: "decision-undo-v2")
       let restored = try insertItem(
         category: current.category, kind: current.kind, title: old.title, text: old.text,
         data: restoredData, meaning: old.meaning,

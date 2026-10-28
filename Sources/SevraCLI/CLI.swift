@@ -83,6 +83,18 @@ import SevraProduct
     }
     if command == "demo" { return try Demo.create(at: url(1)) }
     let book = try Workbook(url(1))
+    if command == "commits" {
+      try require(args.count == 2 || args.count == 3, "usage", "commits WORKBOOK [LIMIT]")
+      return .array(try book.committedHistory(limit: args.count == 3 ? Int(args[2]) ?? 0 : 100))
+    }
+    if command == "reconstruct" {
+      try require(args.count == 3, "usage", "reconstruct WORKBOOK NEW_WORKBOOK")
+      let restored = try book.reconstruct(to: url(2), cancellation: cancellation)
+      return .object([
+        "path": .string(restored.url.path), "workbookID": .string(restored.id),
+        "revision": .number(Double(try restored.revision())), "execution": .string("inert"),
+      ])
+    }
     if let result = try runTableIntakeCommand(
       command, book: book, args: args, cancellation: cancellation)
     {
@@ -402,6 +414,7 @@ import SevraProduct
     thread WORKBOOK TITLE MESSAGE_ID | share-summary WORKBOOK MESSAGE_ID TEXT | reindex WORKBOOK
     start-thread WORKBOOK MESSAGE_ID [TITLE] | rename-thread WORKBOOK THREAD_ID TITLE
     export WORKBOOK PATH.sevraz | open-archive PATH.sevraz DEST.sevra
+    commits WORKBOOK [LIMIT] | reconstruct WORKBOOK NEW_WORKBOOK
     export-csv WORKBOOK TABLE_ID PATH.csv | tool WORKBOOK TOOL [ARGS_JSON]
     model-status [MODEL_DIRECTORY] | model-setup [MODEL_DIRECTORY] [--reuse EXISTING_FAST_DIRECTORY]
     ask WORKBOOK QUESTION [MODEL_DIRECTORY]

@@ -2,7 +2,7 @@
 type: spec
 id: 01m61nphrhdhafzcdjn35zka1b
 created: 2026-10-28T16:32:39.697180+00:00
-updated: 2026-10-28T16:32:39.697180+00:00
+updated: 2026-10-28T17:25:48.050412+00:00
 summary: Required complete, causal and replayable local persistence for future syncing; cloud, transport, replica coordination and a new conflict resolver remain out of scope.
 title: Persistence readiness for future syncing
 status: reviewed
@@ -11,7 +11,7 @@ status: reviewed
 
 Adopted requirement, October 28, 2026. Owner authority:
 [[sources/notes/2026/10/persistence-readiness-requirement]]. This is an implementation
-requirement with open acceptance gates, not a claim that replay or sync works.
+requirement with scoped local acceptance recorded below, not a claim that sync or the full app is ready.
 It extends [[records/specs/storage]], [[records/specs/intelligence]] and
 [[records/specs/native-app-engine]] without implementing synchronization.
 
@@ -132,7 +132,12 @@ mutations before expanding durable workflow/automation storage. Integrate the
 foundation into E0 and reuse it in E3/E19. This does not require implementing the
 workflow engine, a remote backend or two communicating replicas first.
 
-All gates below are open. Follow focused verification in
+The schema-10 capture/reconstruction implementation and current path inventory are
+in [[records/operations/persistence-coverage]]. FJ01-FJ06 pass for the inventoried
+current families through core, packaged CLI, real native review/reopen, concurrent
+writers, interruption, corruption, cancellation and bounded scaling checks.
+Future action/workflow mutations inherit these gates. These are local current-format
+checks, not sync or release completion. Follow focused verification in
 [[records/specs/distribution]], reuse unchanged evidence, and choose representative
 integration fixtures plus targeted checks for uncovered mutation families.
 

@@ -76,6 +76,7 @@ public final class Workbook: @unchecked Sendable {
     }
     try require(flock(descriptor, LOCK_EX) == 0, "lock", "Cannot lock the workbook for opening.")
     try validateSchema()
+    try db.enableChangeCapture(workbookID: id)
     lockFD = descriptor
     opened = true
   }
@@ -127,15 +128,23 @@ public final class Workbook: @unchecked Sendable {
   }
   @discardableResult func mutation(
     _ kind: String, token: String = identifier(), request: Value = .null, expected: Int? = nil,
-    cancellation: Cancellation? = nil, _ body: () throws -> Value
+    cancellation: Cancellation? = nil, actor: ChangeActor? = nil, _ body: () throws -> Value
   ) throws -> Value {
+    let receiptRequest: Value =
+      try actor.map {
+        .object(["arguments": request, "actor": try encoded($0)])
+      } ?? request
     func transaction() throws -> Value {
-      try db.transaction {
+      let previousActor = db.changes?.actor
+      if let actualActor = actor ?? ChangeAttribution.actor { db.changes?.actor = actualActor }
+      defer { if let previousActor { db.changes?.actor = previousActor } }
+      return try db.transaction {
         if let prior = try db.execute(
           "SELECT kind,request,result FROM operations WHERE id=?", [.string(token)]
         ).first {
           try require(
-            prior["request"]?.text == request.json() && prior["kind"]?.text == kind, "idempotency",
+            prior["request"]?.text == receiptRequest.json() && prior["kind"]?.text == kind,
+            "idempotency",
             "The operation identifier was reused with different arguments.")
           return try Value.parse(prior["result"]!.text)
         }
@@ -149,7 +158,8 @@ public final class Workbook: @unchecked Sendable {
         try db.execute(
           "INSERT INTO operations VALUES(?,?,?,?,?,?)",
           [
-            .string(token), .string(kind), .string(try request.json()), .string(try result.json()),
+            .string(token), .string(kind), .string(try receiptRequest.json()),
+            .string(try result.json()),
             .string(timestamp()), .number(Double(rev + 1)),
           ])
         return result

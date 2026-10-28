@@ -85,10 +85,16 @@ extension Workbook {
         } else {
           try require(try Self.hashFile(dest) == hash, "integrity", "An included asset is corrupt.")
         }
-        let fd = Darwin.open(dest.deletingLastPathComponent().path, O_RDONLY)
-        if fd >= 0 {
-          _ = fsync(fd)
+        for directory in [
+          dest.deletingLastPathComponent(), url.appendingPathComponent("assets"), url,
+        ] {
+          let fd = Darwin.open(directory.path, O_RDONLY | O_DIRECTORY | O_CLOEXEC)
+          try require(fd >= 0, "asset_flush", "Cannot flush the included asset directory.")
+          let result = fsync(fd)
           close(fd)
+          try require(
+            result == 0, "asset_flush",
+            "Cannot persist the included asset directory before publishing its reference.")
         }
       }
       try db.execute(
@@ -219,29 +225,32 @@ extension Workbook {
   }
   public func verify() throws -> Value {
     try synchronized {
-      let check = try db.scalar("PRAGMA integrity_check").text
-      try require(check == "ok", "integrity", check)
-      try require(
-        try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
-        "Invalid workbook references.")
-      var missing: [Value] = []
-      for row in try db.execute("SELECT id,name FROM assets") {
-        do { _ = try assetURL(row["id"]!.text, verify: true) } catch {
-          missing.append(
-            .object(["name": row["name"]!, "error": .string(error.localizedDescription)]))
+      try db.readTransaction {
+        let check = try db.scalar("PRAGMA integrity_check").text
+        try require(check == "ok", "integrity", check)
+        try require(
+          try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
+          "Invalid workbook references.")
+        try db.visitCommittedChanges { _, _ in }
+        var missing: [Value] = []
+        for row in try db.execute("SELECT id,name FROM assets") {
+          do { _ = try assetURL(row["id"]!.text, verify: true) } catch {
+            missing.append(
+              .object(["name": row["name"]!, "error": .string(error.localizedDescription)]))
+          }
         }
+        try db.execute("INSERT INTO search_fts(search_fts,rank) VALUES('integrity-check',1)")
+        try db.execute("INSERT INTO names_fts(names_fts,rank) VALUES('integrity-check',1)")
+        try db.execute("INSERT INTO message_fts(message_fts,rank) VALUES('integrity-check',1)")
+        try verifyContextCheckpoints()
+        try verifyToolCalls()
+        try verifyDocumentCompositions()
+        try verifyReferences()
+        try verifyFileReferences()
+        return .object([
+          "database": .string("ok"), "assetIssues": .array(missing), "ok": .bool(missing.isEmpty),
+        ])
       }
-      try db.execute("INSERT INTO search_fts(search_fts,rank) VALUES('integrity-check',1)")
-      try db.execute("INSERT INTO names_fts(names_fts,rank) VALUES('integrity-check',1)")
-      try db.execute("INSERT INTO message_fts(message_fts,rank) VALUES('integrity-check',1)")
-      try verifyContextCheckpoints()
-      try verifyToolCalls()
-      try verifyDocumentCompositions()
-      try verifyReferences()
-      try verifyFileReferences()
-      return .object([
-        "database": .string("ok"), "assetIssues": .array(missing), "ok": .bool(missing.isEmpty),
-      ])
     }
   }
 }
