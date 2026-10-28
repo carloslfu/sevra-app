@@ -466,3 +466,6 @@ Current proposal badges and captured request context pass focused checks and nat
 ## [2026-10-28 00:12] implementation | records/operations/implementation.md
 Native Home/Spaces now groups persisted pinned shortcuts and recent visits, distinguishes live views from snapshots and preserves composer drafts. Focused deterministic/native checks and independent unchanged-business audit pass. Interpreted navigation actions and full J11 remain open.
 
+## [2026-10-28 00:31] implementation | records/operations/implementation.md
+Add scoped space opening and pin/unpin shortcuts; focused native/agent/grammar checks pass, preserve context regression and wording limitation.
+

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-28T00:12:41.980379+00:00
+updated: 2026-10-28T00:31:58.019485+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -399,9 +399,12 @@ Pinning in navigation keeps a shortcut; it neither copies the view nor freezes i
 data. The picker and Home show Live view or Snapshot with capture time. The former
 Save a pinned copy UI action is now Save a snapshot, with the same existing
 version-freezing behavior. The public pin_space tool and pin-space CLI remain
-compatible snapshot operations. Interpreted pin/unpin/navigation requests need a
-separate scoped host action before P09a is complete; do not claim they already use
-navigation preferences or silently repurpose the existing snapshot API.
+compatible snapshot operations. Ordinary requests now use separate open_space and
+set_space_pinned actions. Exact names or host-provided IDs resolve existing spaces;
+ambiguous names ask for clarification. A live window must confirm opening before
+the assistant reports success. Pinning remains a presentation preference. Compound
+requests may continue after opening, without returning to an earlier result view.
+See [[records/specs/intelligence]].
 
 Home shows pinned spaces, up to four recent unpinned spaces, tables, intake
 attention and bounded recent work. Keep the fuller recent list in the picker.
@@ -414,6 +417,10 @@ Pin/unpin, recency, search/Return, live/snapshot identity, populated Home and
 close/reopen passed the focused native preview check. Deterministic checks cover
 merged preferences, duplicate titles, stale reads, invalid transaction rollback,
 unchanged business state and portable reopen. Full keyboard/VoiceOver, narrow
-windows, interpreted actions, complete pending-review discovery and J11 remain
-separate open gates. Evidence:
+windows, complete pending-review discovery and J11 remain separate open gates.
+Three focused native requests pass compound unpin/open, pin-this-space and an
+explanation-only no-change contrast. The explanation still exposes internal tool
+names and calls navigation a sidebar; record this wording limitation without
+broad requalification. Typed checks do not add microphone coverage. Evidence:
+[space action receipt](../../../integration/evidence/2026-10-27-space-actions.json) and
 [space navigation receipt](../../../integration/evidence/2026-10-27-space-navigation.json).

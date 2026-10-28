@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T00:12:42.036259+00:00
+updated: 2026-10-28T00:33:19.489469+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -46,8 +46,12 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   Live views and saved snapshots are distinct, and Create a space preserves an
   existing composer draft. Preferences merge in SQLite without business changes;
   focused persistence/rollback/stale-read checks and native close/reopen pass.
-  Ordinary pin/unpin/navigation requests and complete pending-review discovery
-  remain open. Existing snapshot APIs retain their meaning.
+  Ordinary pin/unpin/navigation now use separate scoped actions. Three native
+  requests pass compound unpin/open, host-context pin-this-space and a no-change
+  explanation. Core and agent checks preserve snapshot semantics, refuse ambiguous
+  targets/unavailable windows, and keep compound focus ordering. The explanation
+  leaks internal tool names; log this wording issue without another broad cohort.
+  Complete pending-review discovery and broader P09a/J11 remain open.
 
 - Search-grounding repairs pass deterministic regressions and the actual paired
   block-3 replay. Empty searches cannot establish exhaustive absence, and the
@@ -130,9 +134,10 @@ Inline references, backlinks and bounded traversal are planned, not implemented.
 L01-L14 and LJ01-LJ10 define delivery and verification. Keep the active checkpoint
 and engine qualification in place; inferred associations follow measured value.
 
-Next, implement ordinary voice/text host actions for navigation and pin/unpin,
-then complete Home pending-review discovery and J11. Keep navigation shortcuts
-distinct from snapshot creation in the local model tools and visible receipts.
+Next, complete Home pending-review discovery and J11. Keep navigation shortcuts
+distinct from snapshots and retain the recorded ordinary-language limitation.
+The new action checkpoint does not qualify all language, microphone or accessibility
+paths, native adoption, or automatic compaction.
 Thread creation/rename still
 use the existing generic writer lock; add a bounded writer path before treating
 interruption under competing writers as qualified. Continue engine repeatability
@@ -3388,3 +3393,59 @@ Evidence: [space navigation receipt](../../../integration/evidence/2026-10-27-sp
 No broad model cohort, install suite, both-backend rerun or remote CI cycle was
 required. Interpreted navigation/pin actions, complete pending-review Home,
 keyboard/VoiceOver/narrow-window J11, engine/context and release gates remain open.
+
+## Interpreted space actions, October 27
+The native window now confirms an existing-space opening during the shared agent
+run. Pin/unpin modifies the same presentation preferences as Home/the picker.
+Missing or duplicate names and changed/unavailable windows produce a saved,
+truthful explanation. Successful navigation can continue a compound request.
+A later explicit opening clears deferred focus from an earlier created view.
+Exact local open-name shortcuts also refuse duplicate names. Existing snapshot
+APIs and business-state semantics are unchanged.
+
+Verification was focused under the owner-approved policy:
+
+- Rebuilt and ran sevra-agent-checks. Compound pin/open/calculation, create then
+  open, unpin, read-only denial, duplicate/partial name, exact ID, direct CLI
+  resolution, and absent/changed host callback pass. Existing grounding, request
+  history, lineage, correction and context-budget regressions pass.
+- The initial policy expansion failed the existing active-compaction test with
+  context_limit. Preserve the failure. Redundant prose was shortened without
+  enlarging the model/test budget or weakening the fixture. The original-budget
+  test passes; product compaction remains disabled.
+- Exported actual workbook schemas, regenerated pinned Splash reference grammar
+  fixtures, rebuilt the checks and passed 30 tools, 35 grammar cases and 297 exact
+  reference masks. Reference Python is development-only, outside the app runtime.
+- Native app and CLI release builds and preview packaging pass. Three typed native
+  requests on an isolated synthetic copy completed in 3, 2 and 1 model steps:
+  unpin Purchasing then open Receipts; pin this live space without a snapshot;
+  explain the distinction without changes. The picker showed Receipts pinned and
+  current, Purchasing unpinned, and the existing snapshot unchanged.
+- The explanation used internal tool names and called navigation a sidebar.
+  This is recorded ordinary-language debt, not a clean wording pass. Functional
+  no-change behavior passes. No broad model cohort was launched for this wording.
+- CLI integrity passes. All original items, operations and space definitions are
+  unchanged, with five spaces before and after. Only three request Sources were
+  added. History revision advanced for requests/receipts, not business changes.
+  Native preview quit normally. Changed-file Swift lint and diff checks pass.
+
+Evidence: [space action receipt](../../../integration/evidence/2026-10-27-space-actions.json),
+14,888 bytes, SHA-256
+`f7d6c6191b77aac54dee5beeeb98dffce3ecb34c39fff436c033c0a53341ed58`.
+
+Commands include `swift build --product sevra-agent-checks -j 4`,
+`.build/debug/sevra-agent-checks`, `python3 scripts/check_splash_grammar.py`,
+the existing native release app/CLI builds, `scripts/package_native.py`, and
+packaged CLI `verify`/`tool open_space` on synthetic workbooks. The initial schema
+export used SEVRA_SCHEMA_FIXTURE_OUTPUT and the existing reference fixture generator.
+No install, both-backend, full-suite or remote CI rerun was required for this
+checkpoint. Main/release integration and the full acceptance gates remain open.
+Next: Home pending-review discovery, then the coherent J11 journey and remaining
+engine/context, accessibility and release work. Do not treat this slice as whole-app
+completion.
+
+Final review clarified the baseline tool-instruction sentence: only the branch-and-continue
+conversation action continues that conversation action with further work. Space
+opening retains its separate continuation contract. Native schemas and model policy
+are unchanged, so the native interaction evidence is reused. The receipt preserves
+the exact tested source/binary hashes; final app/CLI packaging is rebuilt afterward.

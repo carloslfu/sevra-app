@@ -246,8 +246,8 @@ import SwiftUI
       }
     }
   }
-  func navigate(_ new: Route) {
-    guard documentDrafts.flush() else { return }
+  @discardableResult func navigate(_ new: Route) -> Bool {
+    guard documentDrafts.flush() else { return false }
     let shown: Route
     if case .item(let id) = route { shown = .item(viewedItemVersion ?? id) } else { shown = route }
     if shown != new {
@@ -259,6 +259,7 @@ import SwiftUI
       selectedContext = ""
       if case .space(let id) = new { spaceNavigation.visit(id) }
     }
+    return route == new
   }
   func openEvidence(_ id: String, locator: String? = nil) {
     if let locator { itemLocators[id] = locator }
@@ -464,6 +465,7 @@ import SwiftUI
       ?? ProductAI.defaultDirectory
     Task {
       defer { finishOperation(ticket, in: book) }
+      var expectedNavigationID = navigationID
       do {
         let result = try await ProductAI.shared.run(
           input, workbook: book, conversation: chat, context: context, modelDirectory: path,
@@ -476,11 +478,31 @@ import SwiftUI
               self.status = value
               self.refresh()
             }
+          },
+          openSpace: { target in
+            guard self.owns(ticket, in: book), self.conversation == chat,
+              self.itemPreviewIdentity == expectedNavigationID,
+              self.conversationNavigationIdentity == conversationOrigin,
+              !ticket.cancellation.isCancelled, !self.changingConversation
+            else {
+              throw SevraError(
+                "workspace_changed",
+                "You moved to another view or conversation. No space was opened. Ask again from the view you want to use."
+              )
+            }
+            guard self.navigate(.space(target.id)) else {
+              throw SevraError(
+                "workspace_changed",
+                "The current document has an unsaved change. Save or preserve it before opening another space."
+              )
+            }
+            expectedNavigationID = self.itemPreviewIdentity
+            self.refresh()
           })
         guard owns(ticket, in: book) else { return }
         refresh()
         let present =
-          conversation == chat && itemPreviewIdentity == navigationID
+          conversation == chat && itemPreviewIdentity == expectedNavigationID
           && conversationNavigationIdentity == conversationOrigin
           && !ticket.cancellation.isCancelled && !changingConversation
         if present,
@@ -557,11 +579,18 @@ import SwiftUI
         exportPanel()
         return true
       }
-      if lower.hasPrefix("open "),
-        let space = spaces.first(where: { $0.title.lowercased() == String(lower.dropFirst(5)) })
-      {
-        navigate(.space(space.id))
-        return true
+      if lower.hasPrefix("open ") {
+        let matching = spaces.filter { $0.title.lowercased() == String(lower.dropFirst(5)) }
+        if matching.count > 1 {
+          throw SevraError(
+            "space_ambiguous",
+            "More than one space has that name. Which one do you mean? You can describe it or select it in Spaces."
+          )
+        }
+        if let space = matching.first {
+          navigate(.space(space.id))
+          return true
+        }
       }
       if ["accept this", "accept that"].contains(lower), case .item(let id) = route {
         review(viewedItemVersion ?? id, accepting: true)

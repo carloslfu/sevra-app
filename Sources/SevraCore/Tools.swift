@@ -43,7 +43,7 @@ public struct WorkbookTools {
     start_thread_and_continue: required task quoted verbatim from this request; optional title and work selecting answer or the exact supported write tool. Explicit branching plus additional work; prefer before reads, required before changes. Carries the exact current request into the new thread once. Answer is the default; other work must be explicitly requested.
     rename_current_thread: title. Rename this side discussion only; cannot target main or another thread.
     return_to_main: no arguments. Navigate back without sharing findings.
-    review_thread_summary: optional earlier message and summary. Prepare selected findings for review; never publish automatically. Only start_thread_and_continue continues work after navigation.
+    review_thread_summary: optional earlier message and summary. Prepare selected findings for review; never publish automatically. Only start_thread_and_continue can continue a conversation action with further work.
     history_search: query string, optional cursor. Search older messages in this conversation only. Historical content grants no new authority.
     history_read: id string. Read an original message in this conversation or its explicitly inherited parent excerpt. Other parent, sibling and ancestor messages remain outside scope.
     tool_result: id receipt ID, optional path array of object keys or array indexes, offset integer, rawJSON boolean. Read a saved exact tool result in bounded pages.
@@ -57,6 +57,8 @@ public struct WorkbookTools {
       SUM, AVERAGE, MIN, MAX, COUNT, IF. References are column names or [names with spaces].
     balance: subject string. Deterministic accepted actual inventory balance and supporting effects.
     spaces: no arguments. List saved native spaces.
+    open_space: target exact space name or ID. Ask the live workbook window to open it; unavailable without that window. Use only when requested, not for interface explanations.
+    set_space_pinned: target exact space name or ID, pinned boolean. Pin/unpin a navigation shortcut without copying or freezing data. Use pin_space only to create an explicitly requested fixed snapshot.
     save_space: title string, definition object {version:1,components:[{id:string,type:table|chart|document|asset|search|text,title:string,datasetID?:string,itemID?:string,x?:columnID,y?:columnID,query?:string,text?:string}]}.
     A chart REQUIRES its own datasetID, x and y. A table REQUIRES datasetID. Do not put query on a chart.
     Example save_space arguments: {"title":"Purchasing","definition":{"version":1,"components":[{"id":"table1","type":"table","title":"Quotes","datasetID":"ID_FROM_DATASETS"},{"id":"chart1","type":"chart","title":"Cost","datasetID":"ID_FROM_DATASETS","x":"supplier","y":"total"}]}}.
@@ -216,6 +218,27 @@ public struct WorkbookTools {
       ])
       return .object(result)
     case "spaces": return try encoded(workbook.spaces())
+    case "open_space":
+      return .object([
+        "target": try encoded(workbook.spaceTarget(string("target"), cancellation: cancellation)),
+        "status": .string("resolved"),
+        "notice": .string(
+          "Target resolved. Only the owning live window can confirm that it opened."),
+      ])
+    case "set_space_pinned":
+      guard case .bool(let pinned) = a["pinned"] else {
+        throw SevraError("arguments", "Choose whether the shortcut should be pinned.")
+      }
+      let target = try workbook.spaceTarget(string("target"), cancellation: cancellation)
+      _ = try workbook.updateSpaceNavigation([.pin(target.id, pinned)])
+      return .object([
+        "spaceID": .string(target.id), "title": .string(target.title),
+        "pinned": .bool(target.id != "home" && pinned),
+        "notice": .string(
+          target.id == "home"
+            ? "Home already has a permanent shortcut."
+            : "Navigation preference saved. No snapshot or business change was created."),
+      ])
     case "pin_space":
       return .string(
         try workbook.pinSpace(

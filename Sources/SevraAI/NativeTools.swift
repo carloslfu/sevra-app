@@ -275,9 +275,25 @@ package enum NativeTools {
           "valueColumn": schema("string", "Numeric or calculated column to compare."),
         ], required: ["datasetID", "labelColumn", "valueColumn"])),
     .init(
+      name: "open_space",
+      description:
+        "Open an existing space in the live workbook window when requested. Supply its exact name or ID; use the visible active space ID for 'this space'. Ask when ambiguous. The host confirms whether navigation actually occurred. Do not use for explanations or to create a view.",
+      parameters: object(
+        ["target": schema("string", "Exact space name or ID; Home opens the workbook home.")],
+        required: ["target"])),
+    .init(
+      name: "set_space_pinned",
+      description:
+        "Pin or unpin a navigation shortcut to an existing space. Does not copy the view, freeze values or create a snapshot. Use the visible active space ID for 'this space'. Use only when requested; ask when ambiguous.",
+      parameters: object(
+        [
+          "target": schema("string", "Exact space name or ID."),
+          "pinned": schema("boolean", "True to pin the shortcut, false to unpin."),
+        ], required: ["target", "pinned"])),
+    .init(
       name: "pin_space",
       description:
-        "Create a named snapshot of an existing space with exact values and input versions. Limit 1,000 rows per table.",
+        "Create a named fixed snapshot of an existing space with exact values and input versions, only when the user requests a snapshot or frozen copy. For a pinned navigation shortcut use set_space_pinned. Limit 1,000 rows per table.",
       parameters: object(
         [
           "id": schema("string", "Existing space ID."),

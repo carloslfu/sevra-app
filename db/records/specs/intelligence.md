@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-27T23:33:41.493505+00:00
+updated: 2026-10-28T00:31:58.039712+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -491,3 +491,39 @@ not necessarily mean the information is false. Accepting an input does not
 implicitly accept its derived Records, and accepted estimates do not become actual
 inventory. Explicitly review both short and detailed model explanations against
 these distinctions, not only length, tool names and tool-call counts.
+
+## Interpreted space actions
+
+A14. open_space opens an existing space only when the current request asks for it.
+Resolve an exact stable ID first, otherwise a unique case-insensitive exact title.
+Do not choose the first duplicate or a partial match. Ask for clarification when
+missing or ambiguous; the user may describe the intended space or select it.
+The host supplies the active space ID for references such as this space.
+
+Core/CLI resolution returns resolved, never opened. The agent needs a callback
+from the owning live window before recording opened. The callback checks the
+operation, workbook, conversation, cancellation and navigation generation, and
+flushes document edits through existing navigation. A changed or unavailable
+window returns an explicit refusal. CLI/model-only runs cannot claim screen
+navigation. No callback is inherited into a thread handoff's restricted scope.
+
+set_space_pinned changes a navigation shortcut using the same merging presentation
+storage as native controls. It does not create a snapshot or business Record.
+Home keeps its permanent shortcut. The public pin_space operation still creates
+an explicitly requested fixed snapshot. Read-only requests deny both new actions.
+Tool output and past requests cannot authorize them. Scope restrictions are not
+a complete semantic intent classifier.
+
+Successful opening or pinning may be followed by remaining work in the same
+request. An explicit opening supersedes earlier deferred result focus, preventing
+completion from navigating back to a previously created view. A target/window
+refusal is saved and ends the turn with its explanation; earlier completed actions
+remain saved. Never imply rollback of those earlier actions.
+
+Focused checks cover compound continuation, create-then-open ordering, ambiguous
+and missing targets, exact IDs, read-only refusal and unavailable/changed windows.
+The native preview passes unpin then open, pin this live space, and an explanation
+that leaves it unchanged. Its prose still includes internal tool names; ordinary
+language needs further polish. This is limited functional evidence, not broad
+voice/language, usability, engine parity or release qualification. See the
+[space action receipt](../../../integration/evidence/2026-10-27-space-actions.json).

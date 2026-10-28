@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-28T00:30:18.303807+00:00",
+  "baseCommit": "80fde3d4f0a068e4bf3bd9b444fbd19998be1e2b",
+  "scope": "Interpreted native space opening and navigation shortcut changes. Synthetic fixtures, focused verification; not full app or engine qualification.",
+  "sourceSHA256": {
+    "IntegrationTests/Agent/main.swift": "5dc3c3beecd7dece04d9ceec5060fca4dbdea7079401b91fba3bfcf882a909c3",
+    "IntegrationTests/Agent/tool-grammar-fixtures.json": "27855b322a6d473de9181b5edd943cafe22885b50f8c711c496140d748aebf86",
+    "IntegrationTests/Agent/workbook-tools.json": "ade34fded60f8f81ea8f532f400b11e3e2589baa63549bc00a5ef6ba62abfae6",
+    "Sources/SevraAI/NativeTools.swift": "bde52d022fff5c01f441760f01a3f6f9e2f212ba8e43bf35cea8b0fb57a9569a",
+    "Sources/SevraAI/WorkbookAgent.swift": "f4a0c89244ad28578053d59b8d14f261ff81c7df68ab7aeeba217e8c2c5d6ce3",
+    "Sources/SevraApp/WorkspaceState.swift": "913a9e9c03b113cc03cbdb2a611b73d7882d2719c06e429941a24b569448ec0e",
+    "Sources/SevraCore/Tools.swift": "946f5e1548e44cf4601d52cb57b78f7c5fbaca5df70f0e9df1ecd7064ea11f47",
+    "Sources/SevraProduct/ProductAI.swift": "768c6e558208a6804e7c681a3616303d1e99cefbd3faeaa10fdabca3d51778d4",
+    "Sources/SevraCore/SpaceTarget.swift": "a8fc0ffe043a9e253e3dbe3e7c29bfbcdde158a4bca291af2595f1697e24a986",
+    "IntegrationTests/Agent/SpaceActionChecks.swift": "98895f42ca243f3f96cc697071a8402d441c3026459718ec8096a4cf29fb4142"
+  },
+  "checks": "PASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\nPASS terminal conversation actions, exact parent, rename, review without sharing, scope/refusal and cancellation\nPASS scoped space opening, compound continuation, shortcut/snapshot separation, read-only denial and terminal ambiguity/window refusal\nPASS exact request handoff, one lease/Source, scoped child history, no repeats, cancellation, failure, shared step budget and reopen\nPASS handoff evidence: exact same-request reads/calculation, scoped history, changed heads, projection/failure refusal, byte/count bounds and replay\nPASS conceptual differences finish directly; numeric comparisons stay checked; threads share accepted workbook data\nPASS intact user request, separate host metadata, scoped continuation and automatic request lineage without redundant reads\n{\"abandonedRunClosedBeforeProjection\":true,\"activeOtherRunPreserved\":true,\"check\":\"request_admission\",\"failedLeaseHasLinkedTerminalRequest\":true,\"liveRun\":\"d3c1a324-b630-4d51-8a19-10519c8eaba7\",\"oldRun\":\"a4a45349-a454-4629-8400-044379f52514\"}\nPASS abandoned-run projection and terminal lease-refusal history preserve originals and active work\nPASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history\nPASS exhausted correction retains all four rejected candidates and a failed run\nPASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation\nPASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data\nPASS shared agent retrieves old originals and pages oversized saved results\nPASS inherited parent evidence is readable and correctly linked without widening history search or branch scope\nPASS scoped search spans business evidence and earlier conversation without mixing citations, filters, cursors or branches\nPASS exact item candidates, separate citation authority, context rebuild, shared refusal receipts and baseline/native schema parity\nPASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery\nPASS current-request citations cannot replace missing external evidence; supplied and independently cited facts remain available\nPASS repeated context maintenance, exact original references, current acceptance, cancellation, invalid summaries and portable continuation\nPASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance\nPASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations\nPASS actual workbook schemas, open row/record data, full argument validation and schema refusals\n",
+  "grammar": {
+    "tools": 30,
+    "cases": 35,
+    "masks": 297,
+    "checks": "PASS exact byte vocabulary for all 248320 tokens\nPASS json: exact speculative masks, cache isolation, EOS and refusals\nPASS unicode: exact speculative masks, cache isolation, EOS and refusals\nPASS reasoning_json: exact speculative masks, cache isolation, EOS and refusals\nPASS strict_tool: exact speculative masks, cache isolation, EOS and refusals\nPASS 105 exact upstream mask requests across 4 grammars\nPASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\nPASS terminal conversation actions, exact parent, rename, review without sharing, scope/refusal and cancellation\nPASS scoped space opening, compound continuation, shortcut/snapshot separation, read-only denial and terminal ambiguity/window refusal\nPASS exact request handoff, one lease/Source, scoped child history, no repeats, cancellation, failure, shared step budget and reopen\nPASS handoff evidence: exact same-request reads/calculation, scoped history, changed heads, projection/failure refusal, byte/count bounds and replay\nPASS conceptual differences finish directly; numeric comparisons stay checked; threads share accepted workbook data\nPASS intact user request, separate host metadata, scoped continuation and automatic request lineage without redundant reads\n{\"abandonedRunClosedBeforeProjection\":true,\"activeOtherRunPreserved\":true,\"check\":\"request_admission\",\"failedLeaseHasLinkedTerminalRequest\":true,\"liveRun\":\"81265242-f0c9-4e41-aa98-f7ad712d77f9\",\"oldRun\":\"894a3206-f39e-483c-9a18-b74c5a799dc0\"}\nPASS abandoned-run projection and terminal lease-refusal history preserve originals and active work\nPASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history\nPASS exhausted correction retains all four rejected candidates and a failed run\nPASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation\nPASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data\nPASS shared agent retrieves old originals and pages oversized saved results\nPASS inherited parent evidence is readable and correctly linked without widening history search or branch scope\nPASS scoped search spans business evidence and earlier conversation without mixing citations, filters, cursors or branches\nPASS exact item candidates, separate citation authority, context rebuild, shared refusal receipts and baseline/native schema parity\nPASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery\nPASS current-request citations cannot replace missing external evidence; supplied and independently cited facts remain available\nPASS repeated context maintenance, exact original references, current acceptance, cancellation, invalid summaries and portable continuation\nPASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance\nPASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations\nPASS actual workbook schemas, open row/record data, full argument validation and schema refusals\nPASS 35 actual-tool grammars, 297 exact reference masks, completed argument validation and prompts\nPASS reasoning prompt, dynamic citation grammar and stream projection agree; unfinished reasoning cannot dispatch\nPASS actual item-reference grammar rejects the recorded wrong suffix, with reasoning on/off and measured schema overhead\nPASS native conversation capability masks change with scope and read-only state\n",
+    "reference": "Pinned Splash 1.4.1 development reference only; no shipped Python runtime."
+  },
+  "contextRegression": {
+    "initialResult": "Existing active-job compaction regression refused context_limit after policy growth. No budget or fixture relaxation.",
+    "preservedLogSHA256": "e02403ae43837f9477ced144bbb6179e8df1a319d83094a8c0489ab355245aeb",
+    "correction": "Condensed redundant prose while retaining requirements. Existing original-budget checks pass. Product compaction remains disabled."
+  },
+  "build": {
+    "result": "Native app and CLI release builds, packaging, strict changed-file Swift formatting and diff checks exit 0.",
+    "appSHA256": "82137f7b9bb8f643599a368ecc227a1234eaf97d3822547cbf863f4773fe44be",
+    "cliSHA256": "605276d0a93f7935642ba720c86ae22d011a745fa4c509ba5e80ac7abf441b4f"
+  },
+  "nativeUI": {
+    "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; reasoning budget 512; within-request reasoning retained",
+    "requests": [
+      "Please unpin Purchasing, then take me to Receipts.",
+      "Pin this space so I can find it again. Keep it live; do not save a snapshot.",
+      "Just explain the difference between pinning this space and saving a snapshot. Do not change anything or open another space."
+    ],
+    "answers": [
+      "Purchasing has been unpinned and you are now in the Receipts space.",
+      "The Receipts space has been pinned to your navigation for easy access.",
+      "Pinning a space (set_space_pinned) simply adds a shortcut to your navigation sidebar so you can easily find and navigate back to that live, active space. It does not copy the view or freeze the values. Saving a snapshot (pin_space), on the other hand, creates a fixed, named copy of the space with exact values and input versions at that moment, so the data stays frozen and doesn't change as the live space updates."
+    ],
+    "steps": [
+      3,
+      2,
+      1
+    ],
+    "observations": [
+      "The copied synthetic workbook opened at Home with Purchasing pinned and its saved unsent draft. Only the copy was used.",
+      "The ordinary compound request unpinned Purchasing, opened Receipts and completed with truthful confirmation.",
+      "Pin this space resolved the host active space ID and pinned Receipts without creating a snapshot.",
+      "The explanation-only request invoked finish directly, kept Receipts open and changed no shortcut or view.",
+      "The native picker showed Receipts as the current pinned live view, Purchasing unpinned under recents, and the existing Purchasing saved snapshot unchanged.",
+      "The preview quit normally after the visual check."
+    ],
+    "wordingLimitation": "The explanation exposed set_space_pinned and pin_space internal names and called navigation a sidebar. Functional no-action counterexample passes; ordinary-language polish remains open. No additional model cohort was started for this wording issue."
+  },
+  "toolCalls": [
+    {
+      "id": "ed177b9c-c109-4c21-a943-d76395825dd9",
+      "run_id": "a4202da6-af4f-4dad-b075-1df0aa856f2a",
+      "tool": "set_space_pinned",
+      "arguments": "{\"pinned\":false,\"target\":\"Purchasing\"}",
+      "state": "completed",
+      "result": "{\"notice\":\"Navigation preference saved. No snapshot or business change was created.\",\"pinned\":false,\"spaceID\":\"a6c5bcc2-2127-48bd-b310-33a6a6a0d473\",\"title\":\"Purchasing\"}"
+    },
+    {
+      "id": "7681aa18-ab3a-4597-8593-3a3be89e31c7",
+      "run_id": "a4202da6-af4f-4dad-b075-1df0aa856f2a",
+      "tool": "open_space",
+      "arguments": "{\"target\":\"Receipts\"}",
+      "state": "completed",
+      "result": "{\"spaceID\":\"f1566041-b85e-49dd-a216-022d3b493801\",\"status\":\"opened\",\"title\":\"Receipts\"}"
+    },
+    {
+      "id": "7465947a-92e7-45d5-ae03-9385c06bc366",
+      "run_id": "6a0445c8-0178-413b-9343-83d8d1cd5ae4",
+      "tool": "set_space_pinned",
+      "arguments": "{\"pinned\":true,\"target\":\"f1566041-b85e-49dd-a216-022d3b493801\"}",
+      "state": "completed",
+      "result": "{\"notice\":\"Navigation preference saved. No snapshot or business change was created.\",\"pinned\":true,\"spaceID\":\"f1566041-b85e-49dd-a216-022d3b493801\",\"title\":\"Receipts\"}"
+    }
+  ],
+  "audit": {
+    "originalRowsUnchanged": true,
+    "spaceDefinitionsUnchanged": true,
+    "spaceCount": 5,
+    "addedItems": 3,
+    "addedItemKinds": [
+      "request"
+    ],
+    "navigation": {
+      "pinned": [
+        "f1566041-b85e-49dd-a216-022d3b493801"
+      ],
+      "version": 1,
+      "recent": [
+        "f1566041-b85e-49dd-a216-022d3b493801",
+        "4beb2e09-082d-4606-9d80-2daea62e3b27",
+        "a6c5bcc2-2127-48bd-b310-33a6a6a0d473"
+      ]
+    },
+    "steps": [
+      3,
+      2,
+      1
+    ],
+    "toolSequence": [
+      "set_space_pinned",
+      "open_space",
+      "set_space_pinned"
+    ],
+    "explanationOnlyTools": 0,
+    "revision": "23",
+    "revisionNote": "Requests and execution receipts advance history revision; no business facts or space definitions changed."
+  },
+  "verify": {
+    "ok": true,
+    "result": {
+      "assetIssues": [],
+      "database": "ok",
+      "ok": true
+    },
+    "schemaVersion": 1
+  },
+  "limits": [
+    "Three typed requests on the reference Mac, not broad natural-language or microphone qualification. The earlier dictation path is unchanged.",
+    "The no-window and changed-window refusals, duplicate-name refusal, read-only denial, exact ID/partial-name boundary, compound calculation, and create-then-open focus ordering pass synthetic checks.",
+    "Thread handoff cannot carry an open-space host capability. Its existing restricted continuation scope is unchanged.",
+    "Direct CLI open_space resolves a target only and explicitly does not claim visible navigation.",
+    "Native engine adoption, compaction, Home pending reviews, wider accessibility/device coverage and J11 remain open."
+  ]
+}

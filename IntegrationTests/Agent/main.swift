@@ -232,6 +232,7 @@ do {
   try await checkReasoningHistory()
   try await checkAgentLifecycle()
   try await checkConversationActions()
+  try await checkSpaceActions()
   try await checkRequestHandoffs()
   try await checkHandoffEvidence()
   try await checkInterfaceGuidance()
