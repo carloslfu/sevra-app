@@ -598,3 +598,9 @@ Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the
 ## [2026-10-28 15:54] verification | records/operations/implementation
 Pre-1.0 policy documentation: full dbmd validation zero errors/warnings; repository links and scoped whitespace checks pass. Code and workbook data unchanged.
 
+## [2026-10-28 16:03] implementation | records/operations/implementation.md
+Implement durable role-aware intake, native startup and ongoing entries, current development format and truthful CLI/skill results; leave broader import/app gates open.
+
+## [2026-10-28 16:04] verification | records/operations/implementation.md
+Final current-format check.sh, native package/signature, 134 core groups, nine CLI intake checks, 30-writer concurrency and isolated packaged extraction pass; actual native role/reuse/failure/reopen journeys observed. Receipt 46f24010a54cad6afed1f7966e732998fd40a4a46ed19fe9d92754991acc91a0; broader app gates open.
+

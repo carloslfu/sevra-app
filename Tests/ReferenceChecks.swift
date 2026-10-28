@@ -28,7 +28,7 @@ private func selection(
 }
 
 func checkReferences(at root: URL) {
-  check("canonical v5 migration builds reference projections without changing saved bindings") {
+  check("current-format reopening preserves saved bindings and projections") {
     let book = try Workbook.create(
       at: root.appendingPathComponent("ReferenceV5.sevra"), title: "V5")
     let target = try book.addItem(category: "source", kind: "observation", title: "Target")
@@ -40,10 +40,6 @@ func checkReferences(at root: URL) {
     let saved = try book.referenceSnapshot(origin.id)
     let before = try referenceSQL(
       book, "SELECT * FROM items; SELECT * FROM reference_sets; SELECT * FROM reference_bindings;")
-    _ = try referenceSQL(
-      book,
-      "DROP TABLE extraction_attempts; DROP TABLE file_reference_index; DROP TABLE file_reference_heads; DROP TABLE file_reference_sets; DROP TABLE file_reference_inputs; DROP TABLE reference_index; DROP TABLE reference_coverage; PRAGMA user_version=5;"
-    )
     let opened = try Workbook(book.url)
     try expect(
       try referenceSQL(

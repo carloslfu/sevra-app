@@ -222,7 +222,11 @@ struct SpaceView: View {
                   Text(job["detail"].text).font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
-                if job["asset_id"].string != nil {
+                if let id = job["job_id"].string {
+                  Button(job["state"].text == "awaiting_role" ? "Choose use" : "Continue") {
+                    state.presentIntake(id)
+                  }.disabled(state.busy)
+                } else if job["asset_id"].string != nil {
                   Button("Resume") {
                     state.run("Resuming intake") { book, cancel in
                       try book.resumeIntake(job["item_id"].text, cancellation: cancel)

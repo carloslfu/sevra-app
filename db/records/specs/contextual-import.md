@@ -2,7 +2,7 @@
 type: spec
 id: 01m61c4z13j3paexnc7xvyyqhs
 created: 2026-10-28T13:45:46.275195+00:00
-updated: 2026-10-28T15:53:21.382248+00:00
+updated: 2026-10-28T16:02:20.989584+00:00
 summary: One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 title: Contextual import and Excel continuity
 status: reviewed
@@ -222,25 +222,52 @@ Welcome has Create/Open/example but no direct start-from-file path. Home offers
 ongoing import, but the persistent toolbar affordance is only a plus icon. Table
 paste edits bounded selected visible cells; there is no general range-intake flow.
 
-WorkspaceState.importFiles and CLI import automatically call importCSV/importXLSX
-by suffix. CSV assumes its first row is the header. XLSX creates generic A/B columns
-and cached-value tables for nonempty sheets; formula text and original row numbers
-are evidence on worksheet Records. The parser recognizes limited cell/date types.
-The native calculator has column formulas and bounded single-dataset cell reads;
-it does not execute the retained Excel formulas or preserve cross-sheet dependencies,
-named ranges, table definitions and useful styles as functioning native work.
-No contextual role planner or general merge contract is currently exposed.
+Current implementation checkpoint, October 28: the shared core now separates
+capture and bounded indexing/inspection from a selected use. Durable intake jobs
+preserve exact original identity, reference/analysis/explicit saved-value roles,
+stage reports, affected dataset identities, cancellation/failure and resumable
+receipts. A bare file no longer creates a table from its suffix. Reference and
+analysis can reuse one original without creating permanent working tables;
+analysis readiness does not mean an analysis was performed. Explicit values
+conversion retains the existing CSV first-row and XLSX saved-value limitations.
+ZIP member capture and a source with no chosen use now ask for a role; retrying an
+already requested table conversion retains that intent. Source/Record acceptance
+and duplicate business-effect rules do not change.
 
-Implementation phases, all pending for this expanded contract:
+Welcome offers Start from files and blank creation. The named Add files action
+remains visible in the workbook header. Picker, existing drop path, role sheet,
+Home attention entry and saved-file reuse all reach the shared core. A Decide
+later choice preserves the source and the unresolved use. The native app has a
+bounded explicit values-only TSV clipboard entry, but this checkpoint does not
+qualify rich clipboard fidelity or its visible lifecycle. The model and voice do
+not yet have general contextual intake-role/update tools.
 
-1. Separate capture/inspection from conversion; add durable role/intent and result
-   state to shared core. Preserve current-format evidence and define truthful
-   versioned CLI behavior and conversion limits. Follow [[records/specs/distribution]]:
-   reset selected disposable development fixtures when schema/API changes; do not
-   require old development schema migrations or legacy CLI adapters.
-2. Add Welcome/empty Home start and persistent ongoing intake, clarification and
-   explicit native choices through that same pipeline. Qualify CSV roles, native
-   working/reference/analysis paths and safe paste before advertising them.
+Development schema 8 is the single canonical initial schema. Unsupported formats
+are refused without changing their database bytes. There is no new v7-to-v8
+migration or backward-compatible CLI result adapter. Historical receipts and
+fixtures are preserved; fresh synthetic workbooks qualify the current format.
+The CLI import result is now {source,intake}; roles, resume/from-source operations,
+coverage and limits are documented in the repo skill. No app data was reset.
+
+The final focused core has 134 passing groups, including six contextual-intake
+checks and current-format reopen/refusal invariants. The smaller total replaces
+obsolete migration-success checks with byte-preserving unsupported-format
+refusals under the owner's pre-1.0 policy; it does not remove current-format
+history, integrity or portability checks. Nine CLI intake checks, packaged
+extraction with build reads denied, 30 concurrent writers and actual native
+CSV/TSV journeys pass. Detailed scope and retained failures are in
+[[records/operations/implementation]]. No new actual model cohort, spoken voice,
+large-scale intake or broad Excel compatibility is established.
+
+Implementation phases:
+
+1. Shared capture/inspection, durable roles/results and truthful current CLI
+   contracts: implemented within the stated reference/analysis/saved-values scope.
+   Broader update/continuity jobs remain below.
+2. Welcome and persistent ongoing entries, native role clarification and CSV/TSV
+   roles: focused native journeys pass. Full IJ01-IJ04 coverage, all startup
+   cancellation/late callbacks and clipboard journeys remain open. No broad
+   native working-Excel continuity claim.
 3. Add reviewed table update mapping and stale/idempotent/undo publication. Do not
    expose an incomplete merge through the agent as a successful update.
 4. Add Excel feature inventory, source-coordinate mapping and bounded native

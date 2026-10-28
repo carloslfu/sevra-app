@@ -49,6 +49,7 @@ import SwiftUI
   @Published var bookmarks: [Value] = []
   @Published var pendingExtractions: [Value] = []
   @Published var intakeStatus: [Value] = []
+  @Published var intakePrompt: IntakePrompt?
   @Published var conversation = "main" {
     didSet { if conversation != oldValue { speech.stop() } }
   }
@@ -149,6 +150,7 @@ import SwiftUI
     bookmarks = []
     pendingExtractions = []
     intakeStatus = []
+    intakePrompt = nil
     revision = 0
     conversation = conversationSession.conversation
     route = .space("home")
@@ -380,29 +382,126 @@ import SwiftUI
   }
   func importFiles(_ urls: [URL], linked: Bool = false) {
     let chat = conversation
-    run(linked ? "Linking files" : "Including files") { book, cancel in
-      var failures: [String] = []
-      for url in urls {
-        try cancel.check()
-        do {
-          let item = try book.importFile(url, linked: linked, cancellation: cancel)
-          _ = try book.addMessage(
-            (linked ? "Linked " : "Included ") + item.referenceMarkdown, role: "event",
-            conversation: chat)
-          try book.extract(item.id, cancellation: cancel)
-          if ["csv", "tsv"].contains(url.pathExtension.lowercased()) {
-            _ = try book.importCSV(item.id, cancellation: cancel)
+    run(
+      linked ? "Linking files" : "Including files",
+      operation: { book, cancel in
+        var failures: [String] = []
+        var choices: [IntakeChoice] = []
+        for url in urls {
+          try cancel.check()
+          do {
+            let job = try book.captureIntake(url, linked: linked, cancellation: cancel)
+            let item = try book.item(job.sourceID)
+            _ = try book.addMessage(
+              (linked ? "Linked " : "Included ") + item.referenceMarkdown, role: "event",
+              conversation: chat)
+            let result = try book.runIntake(job.id, cancellation: cancel)
+            choices.append(
+              .init(
+                job: result, title: item.title,
+                supportsTable: ["csv", "tsv", "xlsx"].contains(url.pathExtension.lowercased())))
+          } catch {
+            if cancel.isCancelled { throw error }
+            failures.append(url.lastPathComponent + ": " + error.localizedDescription)
           }
-          if url.pathExtension.lowercased() == "xlsx" {
-            _ = try book.importXLSX(item.id, cancellation: cancel)
-          }
-        } catch {
-          if cancel.isCancelled { throw error }
-          failures.append(url.lastPathComponent + ": " + error.localizedDescription)
         }
-      }
-      if !failures.isEmpty { throw SevraError("import_partial", failures.joined(separator: "\n")) }
+        if !failures.isEmpty {
+          throw SevraError("import_partial", failures.joined(separator: "\n"))
+        }
+        return choices
+      },
+      completion: { choices in
+        if !choices.isEmpty { self.intakePrompt = .init(choices: choices) }
+      })
+  }
+  func presentIntake(_ id: String) {
+    run(
+      "Reading saved intake",
+      operation: { book, _ in
+        let job = try book.intakeJob(id)
+        let source = try book.item(job.sourceID)
+        let asset = try book.asset(source.assetID!)
+        return IntakeChoice(
+          job: job, title: source.title,
+          supportsTable: ["csv", "tsv", "xlsx"].contains(
+            URL(fileURLWithPath: asset.name).pathExtension.lowercased()))
+      }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
+  }
+  func useSavedFile(_ sourceID: String) {
+    run(
+      "Preparing saved file",
+      operation: { book, _ in
+        let source = try book.item(sourceID)
+        let job = try book.beginIntake(sourceID: source.id)
+        let asset = try book.asset(source.assetID!)
+        return IntakeChoice(
+          job: job, title: source.title,
+          supportsTable: ["csv", "tsv", "xlsx"].contains(
+            URL(fileURLWithPath: asset.name).pathExtension.lowercased()))
+      }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
+  }
+  func continueIntake(_ choice: IntakeChoice, role: IntakeRole) {
+    let chat = conversation
+    run(
+      "Preparing " + choice.title,
+      operation: { book, cancel in
+        do {
+          let current = try book.intakeJob(choice.id)
+          if current.role == nil {
+            _ = try book.chooseIntakeRole(choice.id, role: role)
+          } else {
+            try require(
+              current.role == role, "intake_role",
+              "This intake already has another use. Reopen the saved file to start a different use."
+            )
+          }
+          let result = try book.runIntake(choice.id, cancellation: cancel)
+          _ = try book.addMessage(result.detail, role: "event", conversation: chat)
+          return IntakeAttempt(job: result, failure: nil)
+        } catch {
+          return try IntakeAttempt(
+            job: book.intakeJob(choice.id), failure: error.localizedDescription)
+        }
+      },
+      completion: { attempt in
+        let result = attempt.job
+        if let failure = attempt.failure {
+          self.error = failure
+          if let index = self.intakePrompt?.choices.firstIndex(where: { $0.id == result.id }) {
+            self.intakePrompt?.choices[index] = .init(
+              job: result, title: choice.title, supportsTable: choice.supportsTable)
+          }
+          return
+        }
+        self.intakePrompt?.choices.removeAll { $0.id == result.id }
+        if self.intakePrompt?.choices.isEmpty == true { self.intakePrompt = nil }
+        if let id = result.datasetIDs.first { self.navigate(.table(id)) }
+      })
+  }
+  func pasteTableData() {
+    guard interactionActive, !busy else { return }
+    guard let text = NSPasteboard.general.string(forType: .string),
+      text.utf8.count <= 4_000_000, text.contains("\t"), text.contains("\n")
+    else {
+      error =
+        "Copy a table range with tab-separated columns and rows, up to 4 MB. Ordinary text belongs in the conversation."
+      return
     }
+    run(
+      "Saving copied table range",
+      operation: { book, cancel in
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(identifier())
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let file = folder.appendingPathComponent("Copied table range.tsv")
+        defer { try? FileManager.default.removeItem(at: folder) }
+        try Data(text.utf8).write(to: file, options: .atomic)
+        let source = try book.importFile(
+          file, origin: "clipboard:values-only", cancellation: cancel)
+        let job = try book.beginIntake(sourceID: source.id)
+        let result = try book.runIntake(job.id, cancellation: cancel)
+        return IntakeChoice(
+          job: result, title: "Copied table range (values only)", supportsTable: true)
+      }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
   }
   func exportPanel() {
     guard interactionActive, !busy, let book = workbook, documentDrafts.flush() else { return }

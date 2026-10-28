@@ -49,7 +49,7 @@ def main():
         original = text.encode("utf-8")
         file = root / "references.md"
         file.write_bytes(original)
-        origin = run("import", book, file)
+        origin = run("import", book, file, "--role", "reference")["source"]
         snapshot = run("file-reference-snapshot", book, origin["id"])
         refs = snapshot["references"]
         checked("import captures supported mentions and excludes code", snapshot["coverage"] == "ready" and len(refs) == 4)
@@ -129,7 +129,7 @@ def main():
 
         video = root / "video.unknown-format"
         video.write_bytes(b"Synthetic unsupported asset")
-        unsupported = run("import", book, video)
+        unsupported = run("import", book, video, "--role", "reference")["source"]
         checked("unsupported extraction does not claim full link coverage", run("file-reference-snapshot", book, unsupported["id"])["coverage"] == "unsupported")
         checked("latest extraction and captured coverage are separately labeled", "latestExtraction" in run("references", book, unsupported["id"])["fileCoverage"])
         archive = root / "Portable.sevraz"

@@ -85,7 +85,11 @@ extension Workbook {
         "SELECT m.value FROM meta m JOIN heads h ON h.item_id=substr(m.key,19) WHERE m.key LIKE 'structured-intake:%' AND json_extract(m.value,'$.state') <> 'ready' ORDER BY m.key LIMIT ?",
         [.number(Double(500 - indexed.count))]
       ).map { try Value.parse($0["value"]!.text) }
-      return indexed + tables
+      let jobs = try db.execute(
+        "SELECT j.id AS job_id,j.source_id AS item_id,i.title,j.state,j.detail FROM intake_jobs j JOIN items i ON i.id=j.source_id WHERE j.state<>'ready' ORDER BY j.rowid DESC LIMIT ?",
+        [.number(Double(500 - indexed.count - tables.count))]
+      ).map(Value.object)
+      return indexed + tables + jobs
     }
   }
 
@@ -150,16 +154,30 @@ extension Workbook {
     }
   }
   public func resumeIntake(_ sourceID: String, cancellation: Cancellation = .init()) throws {
+    let existing = try intakeJobs(sourceID: sourceID, limit: 1).first
+    if let job = try existing ?? recoverCapturedIntake(item(sourceID)) {
+      if job.state == "ready" {
+        // Retrying indexing never silently changes the selected use.
+        try extract(sourceID, cancellation: cancellation)
+      } else {
+        _ = try runIntake(job.id, cancellation: cancellation)
+      }
+      return
+    }
     let source = try item(sourceID)
     guard let id = source.assetID else {
       throw SevraError("asset", "Choose an original file source.")
     }
-    let file = try assetURL(id, cancellation: cancellation)
-    try extract(sourceID, cancellation: cancellation)
-    switch file.pathExtension.lowercased() {
-    case "csv", "tsv": _ = try importCSV(sourceID, cancellation: cancellation)
-    case "xlsx": _ = try importXLSX(sourceID, cancellation: cancellation)
-    default: break
+    _ = try assetURL(id, cancellation: cancellation)
+    // Explicit importCSV/importXLSX calls already declared a table conversion.
+    // Otherwise a source without intake state needs a role, including ZIP members.
+    let tableWasRequested = try synchronized {
+      try !db.execute(
+        "SELECT value FROM meta WHERE key=?",
+        [.string("structured-intake:" + sourceID)]
+      ).isEmpty
     }
+    let job = try beginIntake(sourceID: sourceID, role: tableWasRequested ? .values : nil)
+    _ = try runIntake(job.id, cancellation: cancellation)
   }
 }

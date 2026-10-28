@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-28T13:54:13.679247+00:00
+updated: 2026-10-28T16:02:21.005719+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -405,3 +405,38 @@ navigation. Two core regressions fail before repair (131 pass/2 fail), then all
 133 pass. Actual native replay remains the menu/focus acceptance evidence rather
 than an implementation-mirroring UI unit test. Expanded intake implementation
 follows these corrections, without weakening existing engine/adoption gates.
+
+
+## Contextual intake implementation review, October 28
+
+First pass, intent and truthfulness: a parser suffix cannot authorize a new
+working table. Register durable use separately from included/linked storage;
+reference/analysis create no permanent working data. Keep original identities
+when choosing another use. Label XLSX conversion saved values and formula
+evidence, with live calculation false and uninspected advanced features explicit.
+Analysis input readiness cannot claim an analysis result. Missing or cancelled
+work exposes partial/failed state, not a reassuring success.
+
+Second pass, failure and ownership: one request spans capture and job registration;
+retry works from a saved original after the input disappears. Changed arguments
+cannot reuse the receipt. Recover the narrow capture/registration interruption
+before any suffix-based conversion. Fence attempts; do not hold the workbook
+lock during parsing/copying. Preserve committed batches and their actual dataset
+IDs on failure. Native operation identity owns callbacks. A failed role selection
+must refresh from the persisted job before retry, so a second click cannot fail
+merely because its earlier role choice already committed. Actual malformed-CSV
+native replay verifies the final Continue selected use path and retained original.
+
+Third pass, scope and policy: apply the owner's production-1.0 compatibility
+baseline by maintaining one current initial schema and refusing unsupported
+workbooks byte-for-byte, with no automatic reset. Preserve historical migration
+receipts without maintaining their success cases as current gates. Current-format
+history, lineage, Undo, integrity, portability and recovery stay tested. The first
+broad run exposed an old CLI result-shape assumption in an extraction check;
+update the test to request reference/values explicitly and consume the new result.
+A later check run was interrupted by editing its executing shell script; rerun
+from the final stable script rather than count that run as passed. A new synthetic
+XLSX fixture initially lacked a worksheet relationship Type and was corrected;
+retain both failed logs. Final broad checks, packaged isolation, concurrency and
+nine CLI intake cases pass. General model/voice intake, mapping/merge, live Excel
+continuity, rich clipboard and full release qualification remain open.

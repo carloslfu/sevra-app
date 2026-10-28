@@ -71,12 +71,12 @@ with tempfile.TemporaryDirectory(prefix='sevra-extraction-package-') as director
         return value['result']
     command('create', workbook)
     for source in [plain, office, pdf]:
-        item = command('import', workbook, source)
+        item = command('import', workbook, source, '--role', 'reference')['source']
         result = command('tool', workbook, 'read', json.dumps({'id': item['id']}))
         assert result['extraction']['state'] == 'ready', result
     for source in [csv, xlsx]:
-        imported = command('import', workbook, source)
-        tables = imported['datasets'] if source == xlsx else [imported['dataset']]
+        imported = command('import', workbook, source, '--role', 'values')
+        tables = [table for table in command('tables', workbook) if table['id'] in imported['intake']['datasetIDs']]
         assert len(tables) == 1 and tables[0]['rowCount'] == 1, imported
     assert command('verify', workbook)['ok']
     print(json.dumps({'packagedCLIIntake': True, 'structuredCSVXLSX': True, 'originalsVerified': True}), flush=True)

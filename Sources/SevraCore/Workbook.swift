@@ -62,8 +62,9 @@ public final class Workbook: @unchecked Sendable {
       "This is not a Sevra workbook.")
     let incomingVersion = try db.scalar("PRAGMA user_version").int
     try require(
-      [1, 2, 3, 4, 5, 6, Schema.version].contains(incomingVersion ?? 0), "schema",
-      "This workbook needs another version of Sevra.")
+      incomingVersion == Schema.version, "schema",
+      "This development workbook uses an unsupported format. Its files were not changed. Use a matching development build to recover or export it."
+    )
     let descriptor = Darwin.open(
       url.appendingPathComponent(".write-lock").path,
       O_CREAT | O_RDWR | O_NOFOLLOW | O_CLOEXEC, 0o600)
@@ -74,62 +75,31 @@ public final class Workbook: @unchecked Sendable {
       if !opened { Darwin.close(descriptor) }
     }
     try require(flock(descriptor, LOCK_EX) == 0, "lock", "Cannot lock the workbook for opening.")
-    try validateAndMigrate()
+    try validateSchema()
     lockFD = descriptor
     opened = true
   }
-  private func validateAndMigrate() throws {
-    // Validate the old schema before enabling its triggers or changing data.
-    // The transaction also protects against writers that do not use our lock.
+  private func validateSchema() throws {
+    // Pre-1.0 development formats have no compatibility commitment. Never
+    // reset an unsupported document, execute its triggers or guess a migration.
     try db.transaction {
-      let version = try db.scalar("PRAGMA user_version").int
       try require(
-        [1, 2, 3, 4, 5, 6, Schema.version].contains(version ?? 0), "schema",
-        "This workbook needs another version of Sevra.")
+        try db.scalar("PRAGMA user_version").int == Schema.version, "schema",
+        "This development workbook needs a matching build. Its data was not changed.")
       let reference = try Database(URL(fileURLWithPath: "/:memory:"), create: true)
-      try reference.script(
-        version == 1
-          ? Schema.version1SQL
-          : version == 2
-            ? Schema.version2SQL
-            : version == 3
-              ? Schema.version3SQL
-              : version == 4
-                ? Schema.version4SQL
-                : version == 5 ? Schema.version5SQL : version == 6 ? Schema.version6SQL : Schema.sql
-      )
+      try reference.script(Schema.sql)
       let query =
         "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY name"
       try require(
         try db.execute(query) == reference.execute(query), "schema",
         "Unrecognized workbook schema. Open only a canonical Sevra package.")
-      try db.execute("PRAGMA trusted_schema=ON")
-      if version != Schema.version {
-        if version == 1 { try db.script(Schema.migration2) }
-        if version! <= 2 { try db.script(Schema.migration3) }
-        if version! <= 3 { try db.script(Schema.migration4) }
-        if version! <= 4 {
-          try db.script(Schema.migration5)
-          try db.execute("INSERT INTO meta VALUES('workbook-id',?)", [.string(id)])
-        }
-        if version! <= 5 { try db.script(Schema.migration6) }
-        try db.script(Schema.migration7)
-        let revision = (try db.scalar("SELECT value FROM meta WHERE key='revision'").int ?? 0) + 1
-        try db.execute("UPDATE meta SET value=? WHERE key='revision'", [.string(String(revision))])
-        try db.execute(
-          "INSERT INTO operations VALUES(?,?,?,?,?,?)",
-          [
-            .string(identifier()), .string("schema_migration"),
-            .string("{\"from\":\(version!),\"to\":\(Schema.version)}"),
-            .string("true"), .string(timestamp()), .number(Double(revision)),
-          ])
-        try require(
-          try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
-          "Invalid workbook references.")
-      }
+      try require(
+        try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
+        "Invalid workbook references.")
       try require(
         try db.scalar("SELECT value FROM meta WHERE key='workbook-id'").text == id,
         "workbook_identity", "The workbook manifest and database identities do not match.")
+      try db.execute("PRAGMA trusted_schema=ON")
     }
   }
   deinit { if lockFD >= 0 { Darwin.close(lockFD) } }

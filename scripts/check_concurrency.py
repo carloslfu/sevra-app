@@ -1,9 +1,11 @@
 """Real CLI writers, coherent export, stale writes, duplicate retries and recovery."""
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-import json, subprocess, tempfile
+import argparse, json, subprocess, tempfile
 root=Path(__file__).resolve().parent.parent
-cli=root/'output/bin/sevra'
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--cli',type=Path,default=root/'output/native/bin/sevra')
+cli=parser.parse_args().cli.resolve()
 def run(*args,success=True):
     r=subprocess.run([str(cli),*map(str,args)],text=True,capture_output=True)
     assert (r.returncode==0)==success,r.stdout+r.stderr
@@ -22,8 +24,8 @@ with tempfile.TemporaryDirectory(prefix='sevra-concurrency-') as temporary:
     assert len({r['id'] for r in results})==30
     assert add(0)['id']==results[0]['id']
     csv=folder/'resume.csv';csv.write_text('part,price\nbolt,2.40\nwasher,1.25\n')
-    imported=run('import',book,csv)
-    source=imported['source']['id'];table_id=imported['dataset']['id']
+    imported=run('import',book,csv,'--role','values')
+    source=imported['source']['id'];table_id=imported['intake']['datasetIDs'][0]
     run('resume-intake',book,source)
     run('resume-intake',book,source)
     assert [t['id'] for t in run('tables',book)].count(table_id)==1

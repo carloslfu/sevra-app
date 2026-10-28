@@ -94,10 +94,29 @@ import SevraProduct
       return .object([
         "tables": .array(try book.intakeStatus()),
         "extraction": .array(try book.pendingExtractions()),
+        "jobs": try encoded(book.intakeJobs()),
       ])
+    case "intake-use":
+      guard let role = IntakeRole(rawValue: try arg(3)) else {
+        throw SevraError("intake_role", "Choose reference, analysis or values.")
+      }
+      let job = try book.chooseIntakeRole(
+        arg(2), role: role,
+        token: args.count > 4 ? args[4] : identifier())
+      return try encoded(book.runIntake(job.id, cancellation: cancellation))
+    case "intake-from-source":
+      guard let role = IntakeRole(rawValue: try arg(3)) else {
+        throw SevraError("intake_role", "Choose reference, analysis or values.")
+      }
+      let job = try book.beginIntake(
+        sourceID: arg(2), role: role,
+        token: args.count > 4 ? args[4] : identifier())
+      return try encoded(book.runIntake(job.id, cancellation: cancellation))
+    case "intake-resume":
+      return try encoded(book.runIntake(arg(2), cancellation: cancellation))
     case "resume-intake":
       try book.resumeIntake(arg(2), cancellation: cancellation)
-      return .bool(true)
+      return try encoded(book.intakeJobs(sourceID: arg(2)))
     case "runs": return .array(try book.agentRuns())
     case "pin-space":
       return .string(
@@ -111,22 +130,23 @@ import SevraProduct
       try book.extract(arg(2), cancellation: cancellation)
       return try book.extractionStatus(arg(2))
     case "import":
-      let item = try book.importFile(
-        url(2), linked: args.contains("--link"), cancellation: cancellation)
-      try book.extract(item.id, cancellation: cancellation)
-      if ["csv", "tsv"].contains(try url(2).pathExtension.lowercased()) {
-        return .object([
-          "source": try encoded(item),
-          "dataset": try encoded(book.importCSV(item.id, cancellation: cancellation)),
-        ])
+      var role: IntakeRole?
+      if let index = args.firstIndex(of: "--role") {
+        guard args.count > index + 1, let choice = IntakeRole(rawValue: args[index + 1]) else {
+          throw SevraError("intake_role", "Choose --role reference, analysis or values.")
+        }
+        role = choice
       }
-      if try url(2).pathExtension.lowercased() == "xlsx" {
-        return .object([
-          "source": try encoded(item),
-          "datasets": try encoded(book.importXLSX(item.id, cancellation: cancellation)),
-        ])
-      }
-      return try encoded(item)
+      var token = identifier()
+      if let index = args.firstIndex(of: "--token") { token = try arg(index + 1) }
+      let job = try book.captureIntake(
+        url(2), linked: args.contains("--link"), role: role, token: token,
+        cancellation: cancellation)
+      let item = try book.item(job.sourceID)
+      return .object([
+        "source": try encoded(item),
+        "intake": try encoded(book.runIntake(job.id, cancellation: cancellation)),
+      ])
     case "capture-url":
       guard let target = URL(string: try arg(2)) else { throw SevraError("url", "Invalid URL.") }
       return try encoded(await book.captureURL(target, cancellation: cancellation))
@@ -341,7 +361,9 @@ import SevraProduct
     transcribe WORKBOOK ITEM_ID | extract WORKBOOK VERSION_ID
     archive-members WORKBOOK ITEM_ID | include-members WORKBOOK ITEM_ID JSON_PATHS
     capture-url WORKBOOK URL | link-url WORKBOOK URL [TITLE] | include WORKBOOK ITEM_ID | relink WORKBOOK ASSET_ID FILE
-    import WORKBOOK FILE [--link] | search WORKBOOK QUERY [OFFSET] | read WORKBOOK ID
+    import WORKBOOK FILE [--link] [--role reference|analysis|values] [--token TOKEN]
+    intake-use WORKBOOK JOB_ID ROLE [TOKEN] | intake-from-source WORKBOOK SOURCE_ID ROLE [TOKEN]
+    intake-resume WORKBOOK JOB_ID | search WORKBOOK QUERY [OFFSET] | read WORKBOOK ID
     records WORKBOOK [KIND] | tables WORKBOOK | rows WORKBOOK TABLE_ID [OFFSET]
     add WORKBOOK JSON | edit-row WORKBOOK ITEM_ID VALUES_JSON [EXPECTED_REVISION]
     edit-document WORKBOOK VERSION_ID UTF8_FILE [--separate] [--token TOKEN] [--revision REVISION] [--references JSON_FILE]

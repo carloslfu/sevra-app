@@ -27,9 +27,11 @@ struct WorkbookView: View {
         } label: {
           Image(systemName: "magnifyingglass")
         }.help("Search documents, records and filenames")
+        Button("Add files…") { state.importPanel() }.disabled(state.busy)
         Menu {
           Button("Include files…") { state.importPanel() }
           Button("Link external files…") { state.importPanel(linked: true) }
+          Button("Paste table data…", action: state.pasteTableData)
           Divider()
           Button("Make a shareable copy…", action: state.exportPanel)
         } label: {
@@ -112,6 +114,7 @@ struct WorkbookView: View {
       .sheet(isPresented: $state.showingHistorySearch) {
         ConversationHistorySheet(state: state, search: state.historySearch)
       }
+      .sheet(item: $state.intakePrompt) { prompt in IntakeView(state: state, prompt: prompt) }
       .sheet(item: $state.summaryDraft) { draft in
         ConversationSummarySheet(draft: draft) { summary in
           guard let book = state.workbook else { return }

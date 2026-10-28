@@ -62,6 +62,7 @@ import SwiftUI
         }
         if item.assetID != nil {
           Menu("File actions") {
+            Button("Use saved file…") { state.useSavedFile(item.id) }.disabled(state.busy)
             if let ext = file?.pathExtension.lowercased(),
               ["mp4", "mov", "m4v", "mp3", "wav", "m4a", "aiff"].contains(ext)
             {

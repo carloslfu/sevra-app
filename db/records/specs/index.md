@@ -2,14 +2,14 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-28T15:53:21.430067Z
+updated: 2026-10-28T16:02:20.989584Z
 ---
 
 # records/specs
 
+- [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 - [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 - [[records/specs/references-and-relationships]] — Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.
-- [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
 - [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T15:54:50.491379+00:00
+updated: 2026-10-28T16:04:40.447933+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -4910,3 +4910,98 @@ Documentation verification: dbmd validate --all db --json passed with zero error
 and warnings; python3 scripts/check_links.py and scoped git diff --check passed.
 This pass changed policy/projections only and did not run model inference, delete
 workbooks, modify executable code or qualify a production release.
+
+
+## Durable contextual intake and native entries, October 28
+
+Continues the prior intake plan and applies the production-1.0 compatibility
+policy recorded in b86e49f. Shared capture, role/result persistence and a focused
+native entry/role slice are now implemented; the expanded app goal is not complete.
+
+The same saved original can be reference material, analysis input or explicitly
+converted saved values. A bare file is captured/indexed and awaits intent rather
+than creating tables by suffix. Durable request/role receipts distinguish source
+capture, indexing coverage, bounded structured inspection and actual dataset IDs.
+A retry returns the original capture after the input disappears; changed request
+arguments refuse the reused token. Capture/registration interruption is recovered
+before guessing any role. Reference and analysis keep permanent tables unchanged;
+analysis input readiness is not an analysis result. Explicit CSV/TSV conversion
+still uses first-row headings; XLSX conversion is saved values, retained formula
+evidence and declared uninspected advanced features, with no live calculation.
+Failure/cancellation retains originals and any committed table identities/batches.
+Ready jobs do not repeat conversion. Late native callbacks remain workbook/window
+owned. Saved-file reuse creates another use without copying its bytes again.
+
+Welcome now offers Start from files alongside Create blank; choosing a file then
+a new workbook destination enters the shared pipeline. A named Add files control
+is always in the open-workbook header. Native role choices include Decide later;
+Home keeps unresolved/failed uses visible. Saved files expose Use saved file.
+Picker/drop reuse the pipeline. A bounded explicit values-only TSV clipboard
+entry exists, but its actual visible clipboard lifecycle and richer formats remain
+unqualified. A failed conversion refreshes the sheet from the durable role before
+retry, preventing an already-committed choice from causing a false role error.
+The native app still has central text/voice, but general natural-language role and
+update handling is not claimed by this implementation.
+
+Schema 8 is one canonical initial development schema. Removed automatic legacy
+migration paths and the new v7-to-v8 migration, in accordance with owner policy.
+Old/future formats are refused without changing their database bytes, never reset
+on open. Current-format canonical-schema/FK/identity validation, history, lineage,
+Undo and portable reopening remain. Existing old fixture files and receipts stay
+preserved as historical evidence. The CLI now emits {source,intake} for import;
+intake-use, intake-from-source, intake-resume and intake-status expose scoped
+roles/results. resume-intake preserves a prior explicit table-conversion intent
+or registers an unresolved use, including ZIP members. It never silently turns a
+reference into a table. The repo skill and affected integration scripts consume
+the current contract; no development-result compatibility aliases were added.
+
+Verification on the final current-format source:
+
+- bash scripts/check.sh passes, including 19 extraction groups, 134 core groups,
+  reference CLI journeys, nine new contextual CLI checks, document/preview/table/
+  search/voice/product/Splash/text/grammar/fixture/diagnostic checks, link gate and
+  zero-warning store validation. Core total changed because unsupported-format
+  byte-preserving refusal checks replace obsolete migration-success gates. Current
+  history, integrity, transaction and portability checks remain.
+- bash scripts/build_native.sh builds/packages app, CLI and isolated helper with
+  the unchanged native engine. codesign --verify --deep --strict passes.
+- python3 scripts/check_contextual_intake.py --cli output/native/bin/sevra: nine
+  checks pass, including absent-input retry, exact intent, lexical identifiers,
+  idempotent conversion, explicit XLSX saved-value limits and portable roles.
+- python3 scripts/check_concurrency.py --cli output/native/bin/sevra: 30 real
+  writers, coherent export, duplicate/retry/stale-write and inventory checks pass.
+- python3 scripts/check_extraction_package.py --product output/native: both app
+  and CLI helper layouts parse synthetic inputs with build-tree reads denied;
+  packaged role-aware CSV/XLSX intake and original verification pass.
+- Actual cua native preview: Start from CSV creates a workbook then asks for use;
+  Decide later shows Home attention; Choose use/reference creates no table; reuse
+  for analysis still creates no table; reuse for values opens two-row native grid
+  with SKU 0012 and 0013 intact. Header Add files works from that grid; cancelling
+  its picker preserves the grid; adding TSV as analysis leaves it unchanged.
+  Clean quit/relaunch/recent-open retains sources, roles, messages and the table.
+  Malformed CSV is retained, conversion fails honestly, Continue selected use
+  retries the selected operation, and Decide later leaves a visible Home error
+  without another table. Final CLI inspection confirms one working table and
+  verifies the workbook. Screenshot inspected for the role sheet; no archived raw
+  AX/screenshot evidence is claimed, and no new spoken/VoiceOver test was run.
+
+Retained failures: the first broad pass found an old extraction script expecting
+an unwrapped import result; updated it to explicit reference/values roles. Another
+run was interrupted by changing its executing check.sh; the final stable script
+was rerun fully. The new CLI XLSX fixture initially lacked a worksheet relationship
+Type; corrected the fixture and retained its failing log. These intermediate runs
+are not counted as final passes. Scope and hashes are retained in
+[integration receipt](../../../integration/evidence/2026-10-28-contextual-intake.json.gz).
+
+Next: reviewed table-update proposals with exact target/revision, explicit append/
+replace/keyed merge, mappings/conflicts and idempotent undoable publication. Then
+Excel feature inventory/coordinate mappings and a bounded native dependency subset,
+full clipboard/startup/late-callback journeys, and current-request model/voice
+intake tools with authority and truthful-completion checks. Fresh disposable
+current-format fixtures must be frozen before new actual-model/performance cohorts;
+old development archives are not compatibility prerequisites. E0/E2 action and
+versioned-definition work proceeds as these concrete operations require it.
+Customizable Home/forms/workflows/automations, broad AI/context/hardware/fresh-install/
+accessibility/adoption/main-integration/release gates remain open. No throughput,
+engine adoption, full Excel replacement or whole-app completion is asserted.
+Receipt: 48,385 bytes, SHA-256 46f24010a54cad6afed1f7966e732998fd40a4a46ed19fe9d92754991acc91a0; binds all 99 prior evidence files byte-for-byte and retains 17 diagnostic logs, final source/product hashes, current-format automated checks and scoped native observations.

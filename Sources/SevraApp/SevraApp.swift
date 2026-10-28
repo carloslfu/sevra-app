@@ -97,6 +97,7 @@ struct WorkspaceWindow: View {
   @State private var welcomeError: String?
   @State private var ownWindow: NSWindow?
   @State private var closeGuard: DocumentCloseGuard?
+  @State private var startingFiles: (destination: String, files: [URL])?
   var body: some View {
     Group {
       if state.workbook != nil { WorkbookView(state: state) } else { welcome }
@@ -126,9 +127,14 @@ struct WorkspaceWindow: View {
       if let path {
         do {
           try await state.open(URL(fileURLWithPath: path))
+          guard !Task.isCancelled else { return }
           let previous = UserDefaults.standard.stringArray(forKey: "recentWorkbooks") ?? []
           UserDefaults.standard.set(
             Array(([path] + previous.filter { $0 != path }).prefix(10)), forKey: "recentWorkbooks")
+          if let intake = startingFiles, intake.destination == path {
+            startingFiles = nil
+            state.importFiles(intake.files)
+          }
         } catch {
           welcomeError = error.localizedDescription
         }
@@ -184,8 +190,10 @@ struct WorkspaceWindow: View {
       )
       .font(.body).foregroundStyle(.secondary).frame(maxWidth: 470, alignment: .leading)
       HStack(spacing: 14) {
-        Button("Create a workbook", action: create).buttonStyle(.borderedProminent).controlSize(
-          .large)
+        Button("Start from files…", action: startFromFiles).buttonStyle(.borderedProminent)
+          .controlSize(
+            .large)
+        Button("Create blank", action: create).controlSize(.large)
         Button("Open…", action: open).controlSize(.large)
         Button("Try an example", action: demo).controlSize(.large)
       }
@@ -218,6 +226,23 @@ struct WorkspaceWindow: View {
         openWindow(value: url.path)
       } catch { welcomeError = error.localizedDescription }
     }
+  }
+  func startFromFiles() {
+    let input = NSOpenPanel()
+    input.title = "Start a workbook from your files"
+    input.allowsMultipleSelection = true
+    guard input.runModal() == .OK, !input.urls.isEmpty, isKey else { return }
+    let files = input.urls
+    let destination = NSSavePanel()
+    destination.title = "Save your new workbook"
+    destination.nameFieldStringValue = files[0].deletingPathExtension().lastPathComponent + ".sevra"
+    destination.canCreateDirectories = true
+    guard destination.runModal() == .OK, let url = destination.url, isKey else { return }
+    do {
+      _ = try Workbook.create(at: url, title: url.deletingPathExtension().lastPathComponent)
+      startingFiles = (url.path, files)
+      path = url.path
+    } catch { welcomeError = error.localizedDescription }
   }
   func open() {
     let panel = NSOpenPanel()

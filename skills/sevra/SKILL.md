@@ -23,6 +23,22 @@ is a user document, not this repository's db.md knowledge store.
    item IDs; do not generate executable app code. `tool ... draft` saves a document.
 8. Verify significant changes and reopen exported archives before claiming success.
 
+`import PATH FILE [--link] [--role reference|analysis|values] [--token TOKEN]`
+captures an original and returns `{source,intake}`. Without a role it indexes the
+file and returns `awaiting_role`; it never creates tables from the suffix alone.
+Use `intake-use PATH JOB_ID ROLE [TOKEN]` for the current explicit choice,
+`intake-resume PATH JOB_ID` after interruption, and `intake-from-source PATH
+SOURCE_ID ROLE [TOKEN]` to reuse a saved original for another purpose. Reuse a
+capture token and exact arguments after an uncertain result, even if the original
+input has since disappeared. `intake-status PATH` includes bounded durable jobs.
+`reference` keeps searchable evidence. `analysis` prepares input without creating
+an analysis result or a permanent table. `values` explicitly creates CSV/TSV
+tables using first-row headings, or XLSX saved-value tables. Excel formulas do
+not recalculate; the inspection is not a full compatibility report. No command
+here appends, replaces or merges an existing table. Do not report those operations
+as complete. Inspect the job's indexing coverage, report, dataset IDs and detail,
+and ask for intent when the requested use is materially ambiguous.
+
 Use `sevra tool PATH review_queue '{}'` to discover current drafts beyond recent
 activity. Follow its nextCursor with a cursor argument. Requests and table rows
 are excluded; table changes appear as proposals. A changed draft list invalidates
