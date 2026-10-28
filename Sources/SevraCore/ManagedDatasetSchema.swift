@@ -25,6 +25,13 @@ struct ManagedDatasetSchema: Equatable {
       "columns", "Use between 1 and 500 unique columns.")
     for column in columns {
       try require(
+        !column.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+          && column.title.utf8.count <= 4096, "columns",
+        "Use a nonempty column title of up to 4,096 bytes.")
+      try require(
+        column.formula == nil || (column.required != true && column.unique != true),
+        "column_constraint", "Required and unique constraints apply to stored columns.")
+      try require(
         !column.id.isEmpty && column.id.utf8.count <= 100 && !column.id.contains("\"")
           && !column.id.lowercased().hasPrefix("_sevra_")
           && !column.id.contains("\0")
@@ -54,7 +61,9 @@ struct ManagedDatasetSchema: Equatable {
       let check =
         column.type == "boolean"
         ? " CHECK(\(quote(name)) IS NULL OR \(quote(name)) IN (0,1,''))" : ""
-      return quote(name) + " " + type + collation + check
+      let required = column.required == true ? " NOT NULL CHECK(" + quote(name) + " <> '')" : ""
+      let unique = column.unique == true ? " UNIQUE" : ""
+      return quote(name) + " " + type + collation + check + required + unique
     }
     return "CREATE TABLE " + quote(table) + "("
       + ([
@@ -69,6 +78,7 @@ struct ManagedDatasetSchema: Equatable {
   }
   static func decode(_ row: [String: Value]) throws -> Self {
     guard let id = row["id"]?.string, let version = row["storage_version"]?.int,
+      row["storage_version"] == .number(Double(version)),
       let raw = row["columns"]?.string
     else { throw SevraError("managed_schema", "Missing registered dataset schema.") }
     let schema = Self(
@@ -78,18 +88,24 @@ struct ManagedDatasetSchema: Equatable {
     try require(
       row["storage_table"]?.text == schema.table, "managed_schema",
       "The dataset storage name does not match its stable identity.")
+    try require(
+      [0, 1].contains(row["archived"]?.int ?? -1)
+        && !(row["definition_id"]?.text ?? "").isEmpty, "managed_schema",
+      "Missing current table definition identity.")
     return schema
   }
   static func decode(_ row: ChangeRow?) throws -> Self? {
     guard let row else { return nil }
-    try require(row.values.count == 6, "managed_schema", "Invalid saved dataset schema fields.")
+    try require(row.values.count == 8, "managed_schema", "Invalid saved dataset schema fields.")
     guard let id = row.values[0].string, let columns = row.values[2].string,
       let table = row.values[4].string, case .integer(let version) = row.values[5],
-      let number = Int(version)
+      let number = Int(version), case .integer(let archived) = row.values[6],
+      let archivedNumber = Int(archived), let definition = row.values[7].string
     else { throw SevraError("managed_schema", "Invalid saved dataset schema values.") }
     return try decode([
       "id": .string(id), "columns": .string(columns), "storage_table": .string(table),
       "storage_version": .number(Double(number)),
+      "archived": .number(Double(archivedNumber)), "definition_id": .string(definition),
     ])
   }
 }

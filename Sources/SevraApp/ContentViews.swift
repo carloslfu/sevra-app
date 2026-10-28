@@ -174,7 +174,7 @@ struct SpaceView: View {
     space.definition.components.filter { component in
       switch component.type {
       case "reviews": return state.pendingReview?.items.isEmpty == false
-      case "tables": return !state.datasets.isEmpty
+      case "tables": return !state.datasets.isEmpty || !state.archivedDatasets.isEmpty
       case "recent": return !state.items.isEmpty
       case "intake":
         return !state.pendingExtractions.isEmpty
@@ -252,6 +252,14 @@ struct WorkbookSection: View {
 
       else {
         Text("No tables yet.").foregroundStyle(.secondary)
+      }
+      if !state.archivedDatasets.isEmpty {
+        DisclosureGroup("Archived tables (\(state.archivedDatasets.count))") {
+          ForEach(state.archivedDatasets) { table in
+            Button(table.title) { state.navigate(.table(table.id)) }
+              .buttonStyle(.plain).padding(.vertical, 7)
+          }
+        }
       }
     case "intake":
       if !state.pendingExtractions.isEmpty {
@@ -358,7 +366,7 @@ struct NativeComponent: View {
         }
       case "table":
         if component.snapshot == nil, let id = component.datasetID,
-          let table = state.datasets.first(where: { $0.id == id })
+          let table = state.dataset(id)
         {
           DatasetView(table: table, state: state, compact: true)
             .frame(height: min(280, CGFloat(max(1, table.rowCount)) * 32 + 108))
@@ -516,7 +524,7 @@ struct DatasetView: View {
       descending: state.tableDescending[table.id] ?? false)
   }
   @State private var column = 0
-  @State private var showColumns = false
+  @State private var schemaEditing: Dataset?
   private var offset: Int { state.tableOffsets[table.id] ?? 0 }
   private var filter: String { state.tableFilters[table.id] ?? "" }
   var body: some View {
@@ -539,12 +547,18 @@ struct DatasetView: View {
           Button("Undo") { undo(false) }.disabled(state.tableUndo[table.id] == nil)
           Button("Redo") { undo(true) }.disabled(state.tableRedo[table.id] == nil)
           Divider()
-          Button("Columns and formulas…") { showColumns = true }
+          Button("Table definition…") { schemaEditing = table }
           Button("Export CSV…", action: export)
         } label: {
           Image(systemName: "ellipsis.circle")
         }.menuStyle(.borderlessButton).frame(width: 22).help("Table actions")
       }.padding(compact ? 8 : 14)
+      if table.archived {
+        Text(
+          "Archived table. Its data and history are preserved. Restore it in Table definition to edit."
+        )
+        .font(.callout).foregroundStyle(.secondary).padding(8)
+      }
       if let page = loader.page {
         NativeTable(
           page: page,
@@ -604,7 +618,7 @@ struct DatasetView: View {
       if let failure = loader.failure { state.error = failure }
       if let page = loader.page, page.revision != state.revision { state.refresh() }
     }
-    .sheet(isPresented: $showColumns) { ColumnEditor(table: table, state: state) }
+    .sheet(item: $schemaEditing) { frozen in ColumnEditor(table: frozen, state: state) }
   }
   func apply(_ edits: [RowEdit], expectedRevision: Int? = nil) {
     guard let revision = expectedRevision ?? loader.page?.revision else { return }
@@ -697,42 +711,95 @@ struct ColumnEditor: View {
   @ObservedObject var state: WorkspaceState
   @Environment(\.dismiss) private var dismiss
   @State private var columns: [Column] = []
+  @State private var title = ""
+  @State private var archived = false
+  @State private var history: [DatasetDefinition] = []
+  @State private var saving = false
   @State private var failure: String?
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Text("Columns and formulas").font(.title2)
+      Text("Table definition").font(.title2)
+      TextField("Table title", text: $title).accessibilityLabel("Table title")
       Text("Formulas use column IDs, such as quantity * unit_cost. Empty cells remain unknown.")
         .foregroundStyle(.secondary)
+      Text(
+        "Removing a column preserves its saved values. Restore a definition from History to recover it."
+      )
+      .font(.caption).foregroundStyle(.secondary)
       ScrollView {
-        VStack {
+        VStack(spacing: 12) {
           ForEach($columns) { $c in
-            HStack {
-              TextField("Title", text: $c.title).frame(width: 130)
-              Text(c.id).font(.caption.monospaced()).frame(width: 90, alignment: .leading)
-              TextField(
-                "Unit",
-                text: Binding(get: { c.unit ?? "" }, set: { c.unit = $0.isEmpty ? nil : $0 })
-              ).frame(width: 65)
-              Picker("Type", selection: $c.type) {
-                ForEach(["text", "decimal", "boolean", "date"], id: \.self) { Text($0).tag($0) }
-              }.labelsHidden().frame(width: 90)
-              TextField(
-                "Formula (optional)",
-                text: Binding(get: { c.formula ?? "" }, set: { c.formula = $0.isEmpty ? nil : $0 }))
+            VStack(alignment: .leading) {
+              HStack {
+                TextField("Column title", text: $c.title).frame(width: 130)
+                  .accessibilityLabel("Column title, " + c.id)
+                Text(c.id).font(.caption.monospaced()).frame(width: 90, alignment: .leading)
+                TextField(
+                  "Unit",
+                  text: Binding(get: { c.unit ?? "" }, set: { c.unit = $0.isEmpty ? nil : $0 })
+                ).frame(width: 65)
+                Picker("Type", selection: $c.type) {
+                  ForEach(["text", "decimal", "boolean", "date"], id: \.self) { Text($0).tag($0) }
+                }.labelsHidden().frame(width: 90)
+                TextField(
+                  "Formula (optional)",
+                  text: Binding(
+                    get: { c.formula ?? "" }, set: { c.formula = $0.isEmpty ? nil : $0 })
+                )
+                .accessibilityLabel("Formula, " + c.id)
+                Button(role: .destructive) {
+                  columns.removeAll { $0.id == c.id }
+                } label: {
+                  Image(systemName: "minus.circle")
+                }.help("Remove column " + c.title).accessibilityLabel("Remove column " + c.title)
+                  .disabled(columns.count == 1)
+              }
+              HStack {
+                Toggle(
+                  "Required",
+                  isOn: Binding(get: { c.required == true }, set: { c.required = $0 ? true : nil })
+                )
+                .accessibilityLabel("Required, " + c.id)
+                Toggle(
+                  "Unique",
+                  isOn: Binding(get: { c.unique == true }, set: { c.unique = $0 ? true : nil })
+                )
+                .accessibilityLabel("Unique, " + c.id)
+              }.disabled(c.formula != nil)
             }
           }
         }
       }
       if let failure { Text(failure).foregroundStyle(.red) }
+      Toggle("Archive table", isOn: $archived)
+      Text(
+        "Archive hides this table from the working list and prevents row edits. Saved views and history remain available."
+      )
+      .font(.caption).foregroundStyle(.secondary)
       HStack {
         Menu("History") {
-          ForEach((try? state.workbook?.columnHistory(table.id)) ?? [], id: \.text) { record in
-            Button("Restore version " + record["version"].text) {
+          ForEach(history) { record in
+            Button(
+              "Restore version \(record.version): \(record.title)"
+                + (record.archived ? " (archived)" : "")
+            ) {
+              restore(record.id)
+            }
+          }
+          if let oldest = history.last, oldest.version > 1 {
+            Button("Show older definitions") {
               do {
-                try state.workbook?.restoreColumns(table.id, version: record["version"].int ?? 0)
-                state.refresh()
-                dismiss()
+                history =
+                  try state.workbook?.datasetDefinitions(table.id, beforeVersion: oldest.version)
+                  ?? []
               } catch { failure = error.localizedDescription }
+            }
+          }
+          if let newest = history.first, newest.version < table.version {
+            Button("Show newest definitions") {
+              do { history = try state.workbook?.datasetDefinitions(table.id) ?? [] } catch {
+                failure = error.localizedDescription
+              }
             }
           }
         }
@@ -742,13 +809,55 @@ struct ColumnEditor: View {
         Spacer()
         Button("Cancel") { dismiss() }
         Button("Save") {
-          do {
-            try state.workbook?.setColumns(table.id, columns: columns)
-            state.refresh()
-            dismiss()
-          } catch { failure = error.localizedDescription }
+          save()
         }.buttonStyle(.borderedProminent)
       }
-    }.padding(24).frame(width: 680, height: 420).onAppear { columns = table.columns }
+    }.padding(24).frame(width: 780, height: 540).disabled(saving)
+      .interactiveDismissDisabled(saving).onAppear {
+        columns = table.columns
+        title = table.title
+        archived = table.archived
+        do { history = try state.workbook?.datasetDefinitions(table.id) ?? [] } catch {
+          failure = error.localizedDescription
+        }
+      }
+  }
+  private func save() {
+    guard let book = state.workbook else { return }
+    let title = title
+    let columns = columns
+    let archived = archived
+    saving = true
+    Task {
+      do {
+        _ = try await Task.detached {
+          try book.updateDatasetDefinition(
+            table.id, expectedVersion: table.version,
+            expectedDefinitionID: table.definitionID, title: title, columns: columns,
+            archived: archived,
+            actor: .human("Sevra native table definition editor"))
+        }.value
+        state.refresh()
+        dismiss()
+      } catch { failure = error.localizedDescription }
+      saving = false
+    }
+  }
+  private func restore(_ id: String) {
+    guard let book = state.workbook else { return }
+    saving = true
+    Task {
+      do {
+        _ = try await Task.detached {
+          try book.restoreDatasetDefinition(
+            table.id, definitionID: id,
+            expectedVersion: table.version, expectedDefinitionID: table.definitionID,
+            actor: .human("Sevra native table definition history"))
+        }.value
+        state.refresh()
+        dismiss()
+      } catch { failure = error.localizedDescription }
+      saving = false
+    }
   }
 }

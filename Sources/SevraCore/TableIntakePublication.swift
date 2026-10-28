@@ -136,6 +136,7 @@ extension Workbook {
     let currentIDs = Set(before.map { $0["item_id"].text })
     var versions: [Value] = []
     let inputs = [source.id, proposal.id, decision]
+    try prepareManagedRowEdits(datasetID, exactIDs: changes.map(\.id))
     for edit in changes {
       try cancellation.check()
       try require(
@@ -178,9 +179,11 @@ extension Workbook {
         Set(values.keys) == stored, "update_mapping", "Incoming rows must map every stored column.")
       try validateValues(values, columns: table.columns)
       let id = try insertItem(
-        category: "record", kind: "row", title: "\(table.title), imported row \(ordinal + 1)",
+        category: "record", kind: "row",
+        title: "\(table.title.prefix(500)), imported row \(ordinal + 1)",
         text: rowDescription(values), data: .object(values), meaning: meaning,
-        status: "accepted", scenario: scenario, inputs: inputs,
+        status: "accepted", scenario: scenario,
+        inputs: inputs + [try datasetDefinition(datasetID).sourceID],
         transformation: "table-intake-add-v1;source-record=\(additionRecords[index])")
       try insertDatasetMember(datasetID, ordinal: ordinal, logicalID: try item(id).logicalID)
       versions.append(.object(["before": .null, "after": .string(id)]))

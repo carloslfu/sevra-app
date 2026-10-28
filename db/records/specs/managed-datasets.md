@@ -2,8 +2,8 @@
 type: spec
 id: 01m61vcs2a1prctcr1em7z68cm
 created: 2026-10-28T18:12:10.954425+00:00
-updated: 2026-10-28T18:44:20.310272+00:00
-summary: Registered native dataset storage/capture/reconstruction foundation has scoped evidence; full schema lifecycle and managed query/index qualification remain open.
+updated: 2026-10-28T19:17:12.528332+00:00
+summary: Schema-12 managed dataset storage and versioned definition lifecycle have scoped proof; typed query/index and full MJ qualification remain open.
 title: Managed datasets and replayable storage
 status: reviewed
 ---
@@ -24,16 +24,17 @@ of physical table layout. File assets remain ordinary files under assets/ unless
 explicitly linked.
 
 Checkpoint cd5f854 established fixed-schema capture/reconstruction and editable
-Home. Schema 11 now implements the first native dataset foundation. Registered
+Home. Schema 11 established the first native dataset foundation. Schema 12 adds the
+versioned schema lifecycle described below. Registered
 native scalar columns, central row/membership updates, schema materialization,
 dynamic change capture/apply, independent projection repair and integrity checks
 have scoped proof in [[records/operations/persistence-coverage]]. This is the current
 working-table path; immutable JSON row versions remain authority/evidence.
 
 The foundation receipt is recorded in [[records/operations/implementation]].
-Core 168 groups and packaged 1k/10k reconstruction/repair pass. Full schema lifecycle,
-typed managed query/index policy, comparative performance and complete MJ gates
-remain open. E0-D is in progress before dependent E2/E3 work.
+Core 177 groups, versioned schema lifecycle and packaged reconstruction/repair
+have scoped proof. Typed managed query/index policy, comparative performance and
+complete MJ gates remain open. E0-D is in progress before dependent E2/E3 work.
 
 ## Managed storage contract
 
@@ -247,13 +248,14 @@ selection of SQLite Session as a replacement for the current persistence layer.
 
 ## Current implementation limits
 
-Schema 11 permits 1...500 logical columns, plus five native metadata fields. Capture
+Schema 12 permits 1...500 logical columns, plus five native metadata fields. Capture
 uses chunks of 50 columns, at most 106 callback arguments, under the observed 127
 SQLite limit. Existing 64 MiB raw saved-change and 250,000-row-change limits remain.
 The registry stores stable identity, logical columns, physical mapping and schema
-version; column_versions retains definitions. Current remove/archive/constraint
-schema authoring and exact schema-base UX are still pending. Do not expose them as
-implemented through the agent skill.
+version; column_versions retains complete definition identities and predecessors.
+Remove/archive/constraint authoring and exact schema-base UX have the scoped proof
+below. Publish only the delivered CLI commands in the harness skill; in-app model
+schema authoring remains unexposed.
 
 `table-schema` inspects logical version/columns. Explicit `table-rebuild` requires
 an exact workbook revision and token, refuses missing canonical authority, and
@@ -262,3 +264,62 @@ may target only a registered native projection. It never resets system tables,
 executes historical SQL or regenerates content. Ordinal indexes are generated and
 validated with each table. Broader disposable index selection and typed query
 compilation remain the next storage work; arbitrary added indexes currently refuse.
+
+## Versioned schema lifecycle implementation design
+
+The implemented schema-12 E0-D lifecycle slice extends the catalog with an exact current definition
+UUID and archive state. Extend the existing column_versions family into complete
+dataset definitions: UUID, stable dataset ID, local display version, exact previous
+definition UUID, title, columns/constraints, archive state, authoring Source and time.
+The shared journal and trusted materializer retain their roles. No second ledger
+or raw saved SQL is introduced. Registry copies must match their exact definition.
+
+Use one atomic managed command with an exact expected definition version/identity,
+complete retry payload, actual actor and recorded decision Source. Rename, add,
+remove, type/formula/required/unique changes, archive and restore use this path.
+Restoring an old definition creates a new UUID/version and predecessor. Archive
+hides a table from normal discovery and blocks ordinary row updates; retained views
+can still inspect it. Undoing table creation records an archive definition instead
+of a disconnected metadata flag.
+
+Removed fields leave the active projection but remain in immutable row payloads.
+Subsequent active-field edits preserve inactive fields. Restoring the same column
+ID recovers its latest retained value, while exact old row versions remain unchanged.
+A removal/reorder must not silently retarget an unchanged named or A1/range formula.
+Reject affected unchanged bindings until the formula is explicitly revised. Native
+formula errors remain visible; this does not implement Excel formula continuity.
+
+Required means neither null/missing nor empty string; Unique compares typed logical
+stored values through native constraints, including exact Decimal collation. Multiple
+nulls remain distinct from empty strings. These initial constraints apply to stored
+columns; calculated-column constraints refuse explicitly. Validate retained canonical
+values before destructive projection work. A failed conversion/constraint or later
+publication rolls back definitions, DDL, projections and receipt together.
+
+Freeze the native editor's opened Dataset/base, preserve its draft on stale or failed
+save, and expose exact history/restore. Core, CLI and native controls share one path.
+Existing trusted convenience wrappers may read a current base; externally exposed
+schema commands and native editor saves always carry an explicit frozen base.
+Agent schema tools remain unexposed until their scope/review/grammar gates pass.
+
+Review passes: (1) removed values survive later edits and exact restore; (2) stale
+bases, constraint failures and DDL rollback retain history/receipt atomicity;
+(3) formulas, archive discovery, actual actors and local-versus-replica identity
+remain explicit. Validate reconstruction across each operation and a physical rebuild,
+independent projection repair, competing writers, exact retry, missing authority and
+native draft retention. New development schema only, preserving older workbooks.
+
+## Schema lifecycle evidence and remaining scope
+
+[dataset definition lifecycle receipt](../../../integration/evidence/2026-10-28-dataset-definition-lifecycle.json.gz). Core 177 and packaged exact-base/history/restore/archive/competing-writer
+journeys pass. Required/unique swaps, imported merge Undo/redo, physical shape and
+publication rollback, inactive field retention, formula binding refusal, partial
+import refusal and current-schema reconstruction are covered. Native frozen-base
+draft retention, human editing/archive/history restoration were observed directly.
+See [[records/operations/implementation]] for exact commands, corrections and limits.
+Typed managed queries and disposable performance indexes remain open M07/MJ05/MJ07
+work. Do not mark all MJ or E0-D complete from this lifecycle checkpoint.
+
+Saved definition decoding refuses malformed identities and fractional schema versions
+without a decode trap. Current schema/catalog inspection uses a coherent read
+snapshot, retaining an exact base even while another process writes.

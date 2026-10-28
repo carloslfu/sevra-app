@@ -36,6 +36,9 @@ extension Workbook {
       status: "accepted", scenario: "actual", inputs: decisionInputs(),
       transformation: "decision-table-intake-undo-v2")
     var inverse: [Value] = []
+    // The saved membership above is the authority for the compensating change.
+    // Clear the projection before restoring rows so unique keys can swap safely.
+    try clearDatasetMembers(datasetID)
     for member in starting where !desiredLogicals.contains(member["logical_id"].text) {
       try cancellation.check()
       let old = try item(member["item_id"].text)
@@ -63,7 +66,6 @@ extension Workbook {
         inverse.append(.object(["before": .string(now.id), "after": .string(next)]))
       }
     }
-    try clearDatasetMembers(datasetID)
     for member in desired {
       try cancellation.check()
       try insertDatasetMember(

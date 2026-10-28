@@ -260,10 +260,71 @@ import SevraProduct
         book.editDocument(
           version, text: text, separate: separate, token: token, expectedRevision: expected,
           cancellation: cancellation, references: references))
-    case "tables": return try encoded(book.datasets())
+    case "tables":
+      try require(
+        args.count == 2 || (args.count == 3 && args[2] == "--archived"), "usage",
+        "tables WORKBOOK [--archived]")
+      return try encoded(book.datasets(archived: args.count == 3))
     case "table-schema":
       try require(args.count == 3, "usage", "table-schema WORKBOOK DATASET_ID")
       return try book.datasetSchema(arg(2))
+    case "table-schema-history":
+      try require(
+        (3...4).contains(args.count), "usage",
+        "table-schema-history WORKBOOK DATASET_ID [BEFORE_VERSION]")
+      return try encoded(
+        book.datasetDefinitions(arg(2), beforeVersion: args.count == 4 ? integer(3) : nil))
+    case "table-edit-schema":
+      try require(
+        args.count == 7, "usage",
+        "table-edit-schema WORKBOOK DATASET_ID BASE_VERSION BASE_DEFINITION_ID OPTIONS_JSON TOKEN")
+      let options = try Value.parse(arg(5))
+      guard case .object(let fields) = options else {
+        throw SevraError("arguments", "Schema options must be an object.")
+      }
+      try require(
+        !fields.isEmpty && Set(fields.keys).isSubset(of: ["title", "columns", "archived"]),
+        "arguments", "Choose title, columns or archived as schema options.")
+      if let title = fields["title"] {
+        try require(title.string != nil, "arguments", "Title must be text.")
+      }
+      if let archived = fields["archived"] {
+        guard case .bool = archived else {
+          throw SevraError("arguments", "Archived must be true or false.")
+        }
+      }
+      let columns = try fields["columns"].map {
+        guard case .array(let columns) = $0 else {
+          throw SevraError("arguments", "Columns must be an array.")
+        }
+        for column in columns {
+          guard case .object(let definition) = column else {
+            throw SevraError("arguments", "Each column must be an object.")
+          }
+          try require(
+            Set(definition.keys).isSubset(of: [
+              "id", "title", "type", "formula", "unit", "required", "unique",
+            ]),
+            "arguments", "Unknown column definition field.")
+        }
+        return try JSONDecoder().decode([Column].self, from: Data($0.json().utf8))
+      }
+      return try encoded(
+        book.updateDatasetDefinition(
+          arg(2), expectedVersion: integer(3),
+          expectedDefinitionID: arg(4), title: fields["title"]?.string, columns: columns,
+          archived: fields["archived"].map { $0 == .bool(true) }, token: arg(6),
+          cancellation: cancellation))
+    case "table-restore-schema":
+      try require(
+        args.count == 7, "usage",
+        "table-restore-schema WORKBOOK DATASET_ID SAVED_DEFINITION_ID BASE_VERSION BASE_DEFINITION_ID TOKEN"
+      )
+      return try encoded(
+        book.restoreDatasetDefinition(
+          arg(2), definitionID: arg(3),
+          expectedVersion: integer(4), expectedDefinitionID: arg(5), token: arg(6),
+          cancellation: cancellation))
     case "table-rebuild":
       try require(
         args.count == 5 && Int(args[3]).map { $0 >= 0 } == true,
@@ -419,7 +480,7 @@ import SevraProduct
     table-update-preview WORKBOOK SOURCE_ID TABLE_ID OPTIONS_JSON
     table-update-inspect WORKBOOK SOURCE_ID [HEADER_RECORD]
     table-update-propose WORKBOOK SOURCE_ID TABLE_ID OPTIONS_JSON
-    records WORKBOOK [KIND] | tables WORKBOOK | rows WORKBOOK TABLE_ID [OFFSET]
+    records WORKBOOK [KIND] | tables WORKBOOK [--archived] | rows WORKBOOK TABLE_ID [OFFSET]
     add WORKBOOK JSON | edit-row WORKBOOK ITEM_ID VALUES_JSON [EXPECTED_REVISION]
     edit-document WORKBOOK VERSION_ID UTF8_FILE [--separate] [--token TOKEN] [--revision REVISION] [--references JSON_FILE]
     references WORKBOOK VERSION_ID [OPTIONS_JSON] | backlinks WORKBOOK VERSION_ID [OPTIONS_JSON]
@@ -449,6 +510,9 @@ import SevraProduct
     export WORKBOOK PATH.sevraz | open-archive PATH.sevraz DEST.sevra
     commits WORKBOOK [LIMIT] | reconstruct WORKBOOK NEW_WORKBOOK
     table-schema WORKBOOK DATASET_ID
+    table-schema-history WORKBOOK DATASET_ID [BEFORE_VERSION]
+    table-edit-schema WORKBOOK DATASET_ID BASE_VERSION BASE_DEFINITION_ID OPTIONS_JSON TOKEN
+    table-restore-schema WORKBOOK DATASET_ID SAVED_DEFINITION_ID BASE_VERSION BASE_DEFINITION_ID TOKEN
     table-rebuild WORKBOOK DATASET_ID EXPECTED_REVISION TOKEN
     export-csv WORKBOOK TABLE_ID PATH.csv | tool WORKBOOK TOOL [ARGS_JSON]
     model-status [MODEL_DIRECTORY] | model-setup [MODEL_DIRECTORY] [--reuse EXISTING_FAST_DIRECTORY]

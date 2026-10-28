@@ -127,24 +127,18 @@ extension Workbook {
     return result.text
   }
   public func columnHistory(_ id: String) throws -> [Value] {
-    try synchronized {
-      try db.execute(
-        "SELECT version,columns,created FROM column_versions WHERE dataset_id=? ORDER BY version DESC",
-        [.string(id)]
-      ).map(Value.object)
-    }
+    try datasetDefinitions(id).map { try encoded($0) }
   }
   public func restoreColumns(_ id: String, version: Int) throws {
-    let data = try synchronized {
+    let saved = try synchronized {
       try db.scalar(
-        "SELECT columns FROM column_versions WHERE dataset_id=? AND version=?",
+        "SELECT id FROM column_versions WHERE dataset_id=? AND version=?",
         [.string(id), .number(Double(version))]
       ).text
     }
-    try require(!data.isEmpty, "history", "Column version not found.")
-    var columns = try JSONDecoder().decode([Column].self, from: Data(data.utf8))
-    let existing = try dataset(id).columns
-    columns += existing.filter { old in !columns.contains { $0.id == old.id } }
-    try setColumns(id, columns: columns)
+    let base = try datasetDefinition(id)
+    _ = try restoreDatasetDefinition(
+      id, definitionID: saved, expectedVersion: base.version,
+      expectedDefinitionID: base.id)
   }
 }

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T18:44:20.288824+00:00
+updated: 2026-10-28T19:21:04.589091+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -12,6 +12,59 @@ title: Implementation and acceptance
 This is a working development build, not a qualified release. Requirements in the
 specifications remain the acceptance contract. A source commit does not imply that
 every requirement or supported hardware profile has passed.
+
+## Dataset definition lifecycle checkpoint, October 28
+
+Schema 12 extends the registered native dataset foundation with complete definition
+UUIDs, exact predecessors, titles, columns/constraints, archive state, authoring
+Sources and timestamps. The registry points to an exact definition; the same
+committed-change journal captures the entire lifecycle. Evidence: [dataset definition lifecycle receipt](../../../integration/evidence/2026-10-28-dataset-definition-lifecycle.json.gz).
+29,885 bytes, SHA-256 34ad34846df29de9c14c829dd37ad6a6b3afdd6ee0db6139e948645b643567ea.
+All 104 prior evidence files remain byte-identical to the preceding checkpoint.
+The final packaged 10,000-row probe measured intake 4.843 s, competing rebuild
+1.446 s and reconstruction 5.806 s; database 58,834,944 bytes, initial saved history
+25,632,899 bytes, maximum individual-child lifetime RSS 134,692,864 bytes.
+These are one synthetic fixture on one Mac, with no range/join/group speed claim.
+
+- App and CLI edits compare both opened definition version and UUID. Matching
+  retries return the original saved definition; changed arguments or actor refuse.
+  Restoring history creates a new definition, preserving previous versions and data.
+- Column removal hides fields from the active native projection. Later row edits
+  retain inactive values in immutable payloads; restoration recovers their latest
+  retained values. Calculations filter the declared active schema, including when
+  given a canonical payload with inactive fields. Row writes retain the exact
+  definition's decision Source in lineage. Existing immutable versions stay intact.
+- Stored-column required/unique constraints use exact logical scalar semantics,
+  including Decimal collation and multiple nulls. Duplicate errors name the column.
+  Multi-row unique-value swaps, reviewed imported merges and Undo/redo remain atomic.
+  Unchanged named/A1/range formulas cannot silently bind to a removed/reordered
+  column. Explicitly changed formulas can still display calculation errors.
+- Archive hides normal discovery and blocks ordinary row edits. Explicit archived
+  discovery and retained views remain available. Restoring an earlier definition
+  can unarchive the table. Table-creation Undo now versions this state. Partial
+  imports refuse uncommitted batches after any schema change, retaining their
+  committed prefix and original input instead of resuming into a different schema.
+- The native editor freezes its opened base, performs writes off the UI actor,
+  keeps a failed/stale draft in the sheet, and pages exact history. A visible test
+  retained “Retained native draft” after another writer changed the title; a fresh
+  editor then saved required/unique fields, archived the table with its view/data/
+  chart intact, and restored version 1 as version 5. Three native commits retained
+  human actors. Exact definitions and commits survived inert reconstruction.
+- Core 177 groups pass. A full scripts/check.sh pass with 176 groups precedes the
+  final calculation-scope, coherent-read and malformed-definition guards; final
+  focused core 177 qualifies those changes and nearby counterexamples.
+  Final native packaging, CLI schema lifecycle/competing writers/unique merge and
+  Undo/redo, 10k managed repair/reconstruction, strict Swift lint and skill validation
+  provide scoped evidence. Unchanged model/hardware evidence is reused. Native
+  observations do not constitute full VoiceOver or hardware qualification.
+
+E0-D remains in progress: typed bounded range/filter/join/group queries, disposable
+performance index policy, comparative/resource evidence and complete MJ acceptance
+remain open before dependent E2/E3 state. Schema tools are available to an explicitly
+authorized external harness through the CLI; the in-app model has no schema tool.
+Excel sparse/formula continuity, durable mapping drafts, E2-E6 and remaining whole-app
+installation/accessibility/hardware/production release qualification remain open.
+Older development formats are preserved unsupported, without a migration/backfill.
 
 ## Managed dataset foundation checkpoint, October 28
 
@@ -68,9 +121,10 @@ sorting and CSV export now use these projections. File assets remain outside SQL
   rerun is claimed. Existing late-fault tests now use TEMP triggers so the stricter
   persisted-schema guard does not reject the injected fault before its intended step.
 
-E0-D remains in progress. Full logical schema removal/archive/constraint operations
-and exact schema-base authoring, typed bounded range/join/group queries, performance
-index policy and comparative/resource qualification remain open. Native tables do
+At that foundation checkpoint, schema removal/archive/constraints and exact-base
+authoring remained open. The later lifecycle checkpoint above supplies that slice;
+typed queries, performance index policy and comparative/resource qualification
+remain open. Native tables do
 not prove Excel formula/sparse-region continuity, a new model cohort, complete MJ
 acceptance, sync or release readiness. Finish these storage contracts before dependent
 E2/E3 state, then continue actions/forms, workflows, triggers, helper/templates and

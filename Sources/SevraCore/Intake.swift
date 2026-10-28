@@ -36,6 +36,12 @@ extension Workbook {
           "rows": .string(try Self.rowDigest(batch)), "total": .number(Double(rows.count)),
         ])
       ) {
+        let definition = try datasetDefinition(table.id)
+        try require(
+          definition.version == 1 && !definition.archived && definition.columns == columns,
+          "import_changed",
+          "The table definition changed after intake began. Keep the committed rows and review a new import instead of resuming into a different schema."
+        )
         try require(
           try dataset(table.id).rowCount == offset, "import_changed",
           "Import rows changed. Resume from the same original source version.")
@@ -43,10 +49,11 @@ extension Workbook {
           try cancellation.check()
           try validateValues(values, columns: columns)
           let id = try insertItem(
-            category: "record", kind: "row", title: "\(title), row \(offset+index+1)",
+            category: "record", kind: "row", title: "\(title.prefix(500)), row \(offset+index+1)",
             text: values.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.text)" }.joined(
               separator: "\n"), data: .object(values), meaning: "actual", status: "accepted",
-            scenario: "actual", inputs: [sourceID], transformation: "structured-import-v1")
+            scenario: "actual", inputs: [sourceID, definition.sourceID],
+            transformation: "structured-import-v1")
           try insertDatasetMember(
             table.id, ordinal: offset + index,
             logicalID: try item(id).logicalID)

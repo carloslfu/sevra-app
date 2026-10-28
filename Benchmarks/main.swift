@@ -29,6 +29,7 @@ func rowCorpus(at url: URL, count: Int, pageSize: Int) throws -> Corpus {
         "quantity": .string(String(n % 200)),
       ]
     }, sourceID: origin.id)
+  let definitionSource = try book.datasetDefinition(table.id).sourceID
   let last = "SKU\(count - 1)Z"
   let other = "SKU\(min(123, count - 1))Z"
   let exact = [
@@ -59,7 +60,7 @@ func rowCorpus(at url: URL, count: Int, pageSize: Int) throws -> Corpus {
         property = "part"
         value = "steel washer"
       default:
-        expected = count
+        expected = count + (query == "stock" ? 1 : 0)
         property = nil
         value = nil
       }
@@ -68,6 +69,10 @@ func rowCorpus(at url: URL, count: Int, pageSize: Int) throws -> Corpus {
       else { return false }
       return try page.hits.allSatisfy { hit in
         let item = try book.item(hit.itemID)
+        if query == "stock" && hit.itemID == definitionSource {
+          return item.category == "source" && item.kind == "decision"
+            && item.title.contains("Stock")
+        }
         return item.kind == "row" && (property.map { item.data[$0].text == value } ?? true)
       }
     })

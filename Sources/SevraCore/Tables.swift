@@ -6,14 +6,19 @@ public struct Column: Codable, Identifiable, Equatable, Sendable {
   public var type: String
   public var formula: String?
   public var unit: String?
+  public var required: Bool?
+  public var unique: Bool?
   public init(
-    id: String, title: String, type: String = "text", formula: String? = nil, unit: String? = nil
+    id: String, title: String, type: String = "text", formula: String? = nil, unit: String? = nil,
+    required: Bool? = nil, unique: Bool? = nil
   ) {
     self.id = id
     self.title = title
     self.type = type
     self.formula = formula
     self.unit = unit
+    self.required = required
+    self.unique = unique
   }
 }
 public struct Dataset: Codable, Identifiable, Sendable {
@@ -21,6 +26,9 @@ public struct Dataset: Codable, Identifiable, Sendable {
   public let title: String
   public let columns: [Column]
   public let rowCount: Int
+  public let version: Int
+  public let definitionID: String
+  public let archived: Bool
 }
 public struct RowEdit: Codable, Sendable {
   public let id: String
@@ -197,28 +205,45 @@ extension Workbook {
     id: String, title: String, columns: [Column], rows: [[String: Value]], sourceID: String,
     inputs: [String], meaning: String
   ) throws {
+    try require(
+      !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && title.utf8.count <= 4096,
+      "title", "Use a nonempty table title of up to 4,096 bytes.")
     let columnsJSON = try encoded(columns).json()
     try validateColumns(columns)
+    try validateDecisionActor(db.changes?.actor ?? .programmatic("SevraCore.createDataset"))
+    let definitionSource = try insertItem(
+      category: "source", kind: "decision",
+      title: "Create table definition: " + String(title.prefix(500)),
+      text: (db.changes?.actor.label ?? "The calling program") + " created this table definition.",
+      data: try decisionData(
+        nil, additional: ["datasetID": .string(id), "columns": try encoded(columns)]),
+      meaning: "actual", status: "accepted", scenario: "actual",
+      inputs: [sourceID] + decisionInputs(),
+      transformation: "decision-dataset-definition-v1")
+    let definitionID = identifier()
     try db.execute(
-      "INSERT INTO datasets VALUES(?,?,?,?,?,?)",
+      "INSERT INTO datasets VALUES(?,?,?,?,?,?,?,?)",
       [
         .string(id), .string(title), .string(columnsJSON), .string(sourceID),
         .string(ManagedDatasetSchema(datasetID: id, version: 1, columns: columns).table),
-        .number(1),
+        .number(1), .bool(false), .string(definitionID),
       ])
     try db.materializeManagedSchema(
       before: nil,
       after: .init(datasetID: id, version: 1, columns: columns))
     try db.execute(
-      "INSERT INTO column_versions VALUES(?,?,?,?)",
-      [.string(id), .number(1), .string(columnsJSON), .string(timestamp())])
+      "INSERT INTO column_versions VALUES(?,?,?,?,?,?,?,?,?)",
+      [
+        .string(definitionID), .string(id), .number(1), .null, .string(title), .string(columnsJSON),
+        .bool(false), .string(definitionSource), .string(timestamp()),
+      ])
     for (n, values) in rows.enumerated() {
       try validateValues(values, columns: columns)
       let itemID = try insertItem(
-        category: "record", kind: "row", title: "\(title), row \(n+1)",
+        category: "record", kind: "row", title: "\(title.prefix(500)), row \(n+1)",
         text: values.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.text)" }.joined(
           separator: "\n"), data: .object(values), meaning: meaning, status: "accepted",
-        scenario: meaning == "actual" ? "actual" : "planning", inputs: inputs,
+        scenario: meaning == "actual" ? "actual" : "planning", inputs: inputs + [definitionSource],
         transformation: "table-intake-v1")
       let row = try item(itemID)
       try insertDatasetMember(id, ordinal: n, logicalID: row.logicalID)
@@ -226,26 +251,32 @@ extension Workbook {
   }
   public func dataset(_ id: String) throws -> Dataset {
     try synchronized {
-      guard
-        let d = try db.execute(
-          "SELECT * FROM datasets WHERE id=?",
-          [.string(id)]
-        ).first
-      else { throw SevraError("not_found", "Table not found.") }
-      let schema = try ManagedDatasetSchema.decode(d)
-      let count = try db.scalar("SELECT count(*) FROM " + ChangeFormat.quote(schema.table)).int ?? 0
-      return Dataset(
-        id: id, title: d["title"]!.text,
-        columns: try JSONDecoder().decode([Column].self, from: Data(d["columns"]!.text.utf8)),
-        rowCount: count)
+      try db.readTransaction {
+        guard
+          let d = try db.execute(
+            "SELECT * FROM datasets WHERE id=?",
+            [.string(id)]
+          ).first
+        else { throw SevraError("not_found", "Table not found.") }
+        let schema = try ManagedDatasetSchema.decode(d)
+        let count =
+          try db.scalar("SELECT count(*) FROM " + ChangeFormat.quote(schema.table)).int ?? 0
+        return Dataset(
+          id: id, title: d["title"]!.text,
+          columns: try JSONDecoder().decode([Column].self, from: Data(d["columns"]!.text.utf8)),
+          rowCount: count, version: schema.version, definitionID: d["definition_id"]!.text,
+          archived: d["archived"]?.int == 1)
+      }
     }
   }
-  public func datasets() throws -> [Dataset] {
+  public func datasets(archived: Bool = false) throws -> [Dataset] {
     try synchronized {
-      try db.execute(
-        "SELECT id FROM datasets WHERE NOT EXISTS(SELECT 1 FROM meta WHERE key='archived-dataset:'||datasets.id AND value='1') ORDER BY title LIMIT 500"
-      ).map {
-        try dataset($0["id"]!.text)
+      try db.readTransaction {
+        try db.execute(
+          "SELECT id FROM datasets WHERE archived=? ORDER BY title,id LIMIT 500", [.bool(archived)]
+        ).map {
+          try dataset($0["id"]!.text)
+        }
       }
     }
   }
@@ -325,10 +356,11 @@ extension Workbook {
     }
   }
   public func calculatedValues(_ row: Item, columns: [Column]) -> [String: Value] {
-    var output = row.data.object
+    let active = Self.activeValues(row.data.object, columns: columns)
+    var output = active
     var visiting = Set<String>()
     var cache: [String: Decimal] = [:]
-    let raw = row.data.object.filter { entry in
+    let raw = active.filter { entry in
       !columns.contains { $0.id == entry.key && $0.formula != nil }
     }
     var datasetID: String?
@@ -375,6 +407,9 @@ extension Workbook {
       "A row contains an unknown column.")
     for c in columns where c.formula == nil {
       let v = values[c.id] ?? .null
+      try require(
+        c.required != true || (v != .null && !v.text.isEmpty),
+        "required", c.title + " requires a value.")
       if v == .null || v.text.isEmpty { continue }
       try require(v.text.utf8.count <= 1_000_000, "cell_limit", "Cell is too large.")
       switch c.type {
@@ -415,6 +450,8 @@ extension Workbook {
       !edits.isEmpty && edits.count <= 10_000 && Set(edits.map(\.id)).count == edits.count,
       "paste_limit", "An edit needs distinct rows within the edit limit.")
     let table = try dataset(datasetID)
+    try require(
+      !table.archived, "archived_dataset", "Restore this archived table before editing its rows.")
     let evidence = try insertItem(
       category: "source", kind: "correction", title: "Edit \(table.title)",
       text: (db.changes?.actor.label ?? "The calling program")
@@ -423,6 +460,7 @@ extension Workbook {
       status: "accepted", scenario: "actual", inputs: decisionInputs(),
       transformation: "decision-table-edit-v2")
     var ids: [String] = []
+    try prepareManagedRowEdits(datasetID, exactIDs: edits.map(\.id))
     for edit in edits {
       let old = try item(edit.id)
       try require(
@@ -478,8 +516,10 @@ extension Workbook {
     guard let change else { throw SevraError("undo", "No such table change.") }
     let before = try Value.parse(change["before_ids"]!.text).array
     let after = try Value.parse(change["after_ids"]!.text).array
+    let columns = try dataset(change["dataset_id"]!.text).columns
     let edits = try zip(before, after).map {
-      RowEdit(id: $1.text, values: try item($0.text).data.object)
+      RowEdit(
+        id: $1.text, values: Self.activeValues(try item($0.text).data.object, columns: columns))
     }
     return try editRows(change["dataset_id"]!.text, edits: edits, actor: actor)
   }
@@ -518,12 +558,9 @@ extension Workbook {
         restoredData = try restoreTableIntake(current, cancellation: cancellation)
       }
       if current.kind == "table-creation", let datasetID = current.data["datasetID"].string {
-        try db.execute(
-          "INSERT INTO meta VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
-          [
-            .string("archived-dataset:" + datasetID),
-            .string(current.status == "accepted" ? "1" : "0"),
-          ])
+        _ = try applyDatasetDefinition(
+          datasetID, title: nil, columns: nil,
+          archived: current.status == "accepted", request: .object(["undo": .string(current.id)]))
         var values = old.data.object
         values["datasetID"] = .string(datasetID)
         restoredData = .object(values)
@@ -535,8 +572,10 @@ extension Workbook {
         else { throw SevraError("undo", "The accepted table change is missing.") }
         let before = try Value.parse(row["before_ids"]!.text).array
         let after = try Value.parse(row["after_ids"]!.text).array
+        let columns = try dataset(row["dataset_id"]!.text).columns
         let edits = try zip(before, after).map {
-          RowEdit(id: $1.text, values: try item($0.text).data.object)
+          RowEdit(
+            id: $1.text, values: Self.activeValues(try item($0.text).data.object, columns: columns))
         }
         let inverse = try applyRows(
           row["dataset_id"]!.text, edits: edits, request: .object(["undo": .string(change)]),
@@ -564,44 +603,14 @@ extension Workbook {
     }
     return try item(result.text)
   }
-  public func setColumns(_ id: String, columns: [Column]) throws {
-    try validateColumns(columns)
-    let data = try encoded(columns).json()
-    _ = try mutation("columns", request: .object(["id": .string(id), "columns": .string(data)])) {
-      let old = try dataset(id)
-      try require(
-        Set(old.columns.map(\.id)).isSubset(of: Set(columns.map(\.id))), "column_removal",
-        "Removing columns would hide retained values. Keep the source columns and change the view instead."
-      )
-      if old.columns.contains(where: { prior in
-        columns.first(where: { $0.id == prior.id })?.type != prior.type
-      }) {
-        var offset = 0
-        while true {
-          let batch = try rows(id, offset: offset, limit: 1000)
-          if batch.isEmpty { break }
-          for row in batch { try validateValues(row.data.object, columns: columns) }
-          offset += batch.count
-        }
-      }
-      let version =
-        (try db.scalar("SELECT max(version) FROM column_versions WHERE dataset_id=?", [.string(id)])
-          .int ?? 0) + 1
-      try db.execute(
-        "INSERT INTO column_versions VALUES(?,?,?,?)",
-        [.string(id), .number(Double(version)), .string(data), .string(timestamp())])
-      let previous = try db.managedSchema(id)
-      let next = ManagedDatasetSchema(datasetID: id, version: version, columns: columns)
-      if previous.sql != next.sql {
-        try db.execute("DELETE FROM " + ChangeFormat.quote(previous.table))
-      }
-      try db.execute(
-        "UPDATE datasets SET columns=?,storage_version=? WHERE id=?",
-        [.string(data), .number(Double(version)), .string(id)])
-      try db.materializeManagedSchema(before: previous, after: next)
-      try populateManagedDataset(id)
-      return .string(id)
-    }
+  public func setColumns(
+    _ id: String, columns: [Column], expectedVersion: Int? = nil,
+    actor: ChangeActor? = nil
+  ) throws {
+    let base = try datasetDefinition(id)
+    _ = try updateDatasetDefinition(
+      id, expectedVersion: expectedVersion ?? base.version,
+      expectedDefinitionID: base.id, columns: columns, actor: actor)
   }
   public func exportCSV(_ id: String, to destination: URL) throws {
     let fm = FileManager.default

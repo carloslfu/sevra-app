@@ -69,14 +69,25 @@ extension Database {
       "SELECT max(version) AS latest,min(version) AS first,count(*) AS count FROM column_versions WHERE dataset_id=?",
       [.string(schema.datasetID)]
     ).first!
-    let definition = try scalar(
-      "SELECT columns FROM column_versions WHERE dataset_id=? AND version=?",
-      [.string(schema.datasetID), .number(Double(schema.version))])
+    let registry = try execute("SELECT * FROM datasets WHERE id=?", [.string(schema.datasetID)])
+      .first!
+    let definition = try execute(
+      "SELECT * FROM column_versions WHERE dataset_id=? AND id=?",
+      [.string(schema.datasetID), registry["definition_id"]!]
+    ).first
+    let broken = try scalar(
+      "SELECT count(*) FROM column_versions v LEFT JOIN column_versions p ON p.id=v.previous_id JOIN items s ON s.id=v.source_id WHERE v.dataset_id=? AND (typeof(v.version)!='integer' OR s.category!='source' OR (v.version=1 AND v.previous_id IS NOT NULL) OR (v.version>1 AND (p.id IS NULL OR p.dataset_id!=v.dataset_id OR p.version!=v.version-1)))",
+      [.string(schema.datasetID)]
+    ).int
     try require(
       history["first"]?.int == 1 && history["latest"]?.int == schema.version
         && history["count"]?.int == schema.version
-        && definition.text == encoded(schema.columns).json(),
-      "managed_schema", "The current dataset definition disagrees with its retained schema history."
+        && definition?["version"]?.int == schema.version
+        && definition?["columns"] == registry["columns"]
+        && definition?["title"] == registry["title"]
+        && definition?["archived"] == registry["archived"] && broken == 0,
+      "managed_schema",
+      "The saved definition history for table \(schema.datasetID) is incomplete or inconsistent."
     )
   }
   /// Only this host-generated schema is executable. A journal contains logical
@@ -105,11 +116,16 @@ extension Database {
 extension Workbook {
   public func datasetSchema(_ datasetID: String) throws -> Value {
     try synchronized {
-      let schema = try db.managedSchema(datasetID)
-      return .object([
-        "datasetID": .string(datasetID), "version": .number(Double(schema.version)),
-        "columns": try encoded(schema.columns), "representation": .string("managed-native"),
-      ])
+      try db.readTransaction {
+        let schema = try db.managedSchema(datasetID)
+        return .object([
+          "datasetID": .string(datasetID), "version": .number(Double(schema.version)),
+          "columns": try encoded(schema.columns), "representation": .string("managed-native"),
+          "definitionID": .string(try datasetDefinition(datasetID).id),
+          "title": .string(try dataset(datasetID).title),
+          "archived": .bool(try dataset(datasetID).archived),
+        ])
+      }
     }
   }
   func insertDatasetMember(
@@ -128,6 +144,17 @@ extension Workbook {
     try db.execute("DELETE FROM " + ChangeFormat.quote(schema.table))
     try db.execute("DELETE FROM dataset_rows WHERE dataset_id=?", [.string(datasetID)])
   }
+  /// SQLite uniqueness is immediate. Release only the affected projections so a
+  /// valid multi-row swap is checked against the final set, within one transaction.
+  func prepareManagedRowEdits(_ datasetID: String, exactIDs: [String]) throws {
+    let schema = try db.managedSchema(datasetID)
+    guard schema.stored.contains(where: { $0.unique == true }) else { return }
+    for id in exactIDs {
+      try db.execute(
+        "DELETE FROM " + ChangeFormat.quote(schema.table)
+          + " WHERE _sevra_logical=(SELECT logical_id FROM items WHERE id=?)", [.string(id)])
+    }
+  }
   func refreshManagedRow(_ logicalID: String) throws {
     for member in try db.execute(
       "SELECT * FROM dataset_rows WHERE logical_id=?", [.string(logicalID)])
@@ -137,17 +164,32 @@ extension Workbook {
       try require(
         current.category == "record" && current.kind == "row",
         "managed_projection", "A dataset member must resolve an exact structured row version.")
-      try validateValues(current.data.object, columns: schema.columns)
+      try validateValues(
+        Self.activeValues(current.data.object, columns: schema.columns), columns: schema.columns)
       let args: [Value] =
         [member["row_id"]!, member["ordinal"]!, .string(logicalID), .string(current.id)]
         + (try schema.projected(current.data.object))
       let fields = schema.fields.map(ChangeFormat.quote)
-      try db.execute(
-        "INSERT INTO " + ChangeFormat.quote(schema.table) + "("
-          + fields.joined(separator: ",") + ") VALUES("
-          + Array(repeating: "?", count: fields.count).joined(separator: ",")
-          + ") ON CONFLICT(\"_sevra_row\") DO UPDATE SET "
-          + fields.dropFirst().map { $0 + "=excluded." + $0 }.joined(separator: ","), args)
+      do {
+        try db.execute(
+          "INSERT INTO " + ChangeFormat.quote(schema.table) + "("
+            + fields.joined(separator: ",") + ") VALUES("
+            + Array(repeating: "?", count: fields.count).joined(separator: ",")
+            + ") ON CONFLICT(\"_sevra_row\") DO UPDATE SET "
+            + fields.dropFirst().map { $0 + "=excluded." + $0 }.joined(separator: ","), args)
+      } catch let error as SevraError {
+        if error.code == "database",
+          let column = schema.stored.first(where: {
+            $0.unique == true
+              && error.message.contains(
+                "UNIQUE constraint failed: " + schema.table + "." + schema.field($0.id))
+          })
+        {
+          throw SevraError(
+            "unique", column.title + " must contain distinct values. No changes were saved.")
+        }
+        throw error
+      }
     }
   }
   func populateManagedDataset(_ datasetID: String, cancellation: Cancellation = .init()) throws {

@@ -291,6 +291,19 @@ public final class Workbook: @unchecked Sendable {
       category != "record" || !inputs.isEmpty, "lineage",
       "Derived records require at least one exact input version.")
     let old = try supersedes.map { try item($0) }
+    var savedData = data
+    var schemaInputs: [String] = []
+    if let old, kind == "row",
+      let datasetID = try db.scalar(
+        "SELECT dataset_id FROM dataset_rows WHERE logical_id=?", [.string(old.logicalID)]
+      ).string
+    {
+      let active = Set(try db.managedSchema(datasetID).columns.map(\.id))
+      var values = old.data.object.filter { !active.contains($0.key) }
+      values.merge(data.object) { _, new in new }
+      savedData = .object(values)
+      schemaInputs = [try datasetDefinition(datasetID).sourceID]
+    }
     if let old {
       try require(
         old.category == category && old.kind == kind, "version",
@@ -313,14 +326,14 @@ public final class Workbook: @unchecked Sendable {
       [
         .string(id), .string(logical), .number(Double((old?.version ?? 0) + 1)), .string(category),
         .string(kind), .string(title), .string(meaning), .string(status), .string(scenario),
-        .string(text), .string(try data.json()), assetID.map(Value.string) ?? .null,
+        .string(text), .string(try savedData.json()), assetID.map(Value.string) ?? .null,
         supersedes.map(Value.string) ?? .null, .string(timestamp()),
       ])
     try db.execute(
       "INSERT INTO heads VALUES(?,?) ON CONFLICT(logical_id) DO UPDATE SET item_id=excluded.item_id",
       [.string(logical), .string(id)])
     if kind == "row" { try refreshManagedRow(logical) }
-    for parent in Set(inputs) {
+    for parent in Set(inputs + schemaInputs) {
       _ = try item(parent)
       try db.execute(
         "INSERT INTO lineage VALUES(?,?,?,?)",

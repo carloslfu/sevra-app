@@ -706,3 +706,36 @@ Documentation-only pass: full dbmd validation reports zero errors/warnings; repo
 ## [2026-10-28 18:44] implementation | records/specs/managed-datasets.md
 Implemented schema11 registered native dataset projections over shared immutable versions with dynamic capture, trusted schema reconstruction and typed projection repair. Core168, final packaged1k/10k and native edit/Undo/reopen proof are scoped in the foundation receipt; remaining E0-D schema/query/index work stays open.
 
+## [2026-10-28 19:14] implementation | records/operations/implementation.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/operations/persistence-coverage.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/specs/storage.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/specs/managed-datasets.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/specs/native-app-engine.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/specs/contextual-import.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/overview/start-here.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/operations/build-and-run.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:21] verification | records/operations/implementation.md
+Final schema12: core177, packaged CLI lifecycle/unique merge Undo/redo,10k repair/reconstruction,resource/signature,strict22Swift files and skill checks pass. Immutable receipt records scoped limits; full E0-D and release remain open.
+
+## [2026-10-28 19:21] verification | records/operations/persistence-coverage.md
+Final schema12: core177, packaged CLI lifecycle/unique merge Undo/redo,10k repair/reconstruction,resource/signature,strict22Swift files and skill checks pass. Immutable receipt records scoped limits; full E0-D and release remain open.
+
+## [2026-10-28 19:21] verification | records/specs/managed-datasets.md
+Final schema12: core177, packaged CLI lifecycle/unique merge Undo/redo,10k repair/reconstruction,resource/signature,strict22Swift files and skill checks pass. Immutable receipt records scoped limits; full E0-D and release remain open.
+

@@ -35,6 +35,10 @@ import SwiftUI
   let reviewResults = ReviewQueueSession()
   @Published var items: [ItemSummary] = []
   @Published var datasets: [Dataset] = []
+  @Published var archivedDatasets: [Dataset] = []
+  func dataset(_ id: String) -> Dataset? {
+    (datasets + archivedDatasets).first { $0.id == id }
+  }
   @Published var messages: [Message] = []
   @Published var proposalReviews: [String: ProposalReviewState] = [:]
   @Published var hasEarlierMessages = false
@@ -144,6 +148,7 @@ import SwiftUI
     pendingReview = nil
     reviewResults.reset()
     datasets = []
+    archivedDatasets = []
     messages = []
     proposalReviews = [:]
     conversations = []
@@ -255,6 +260,7 @@ import SwiftUI
         self.pendingReview = snapshot.reviewQueue
         self.items = snapshot.items
         self.datasets = snapshot.datasets
+        self.archivedDatasets = snapshot.archivedDatasets
         self.messages = snapshot.messages
         self.proposalReviews = snapshot.proposalReviews
         self.hasEarlierMessages = snapshot.hasEarlierMessages
@@ -671,7 +677,7 @@ import SwiftUI
     case .space(let id): return "Space: " + (spaces.first { $0.id == id }?.title ?? id)
     case .item(let id):
       return "Item: " + ((try? workbook?.item(viewedItemVersion ?? id).title) ?? id)
-    case .table(let id): return "Table: " + (datasets.first { $0.id == id }?.title ?? id)
+    case .table(let id): return "Table: " + (dataset(id)?.title ?? id)
     case .tableUpdate: return "Review table update"
     case .search: return "Workbook search"
     case .reviews: return "Drafts to review"

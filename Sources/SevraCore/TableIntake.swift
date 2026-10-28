@@ -123,8 +123,7 @@ extension Workbook {
     let table = try dataset(datasetID)
     let state: Value = .object([
       "columns": try encoded(table.columns), "membership": .array(try tableMembership(datasetID)),
-      "archived": try db.scalar(
-        "SELECT value FROM meta WHERE key=?", [.string("archived-dataset:" + datasetID)]),
+      "archived": .bool(table.archived), "definitionID": .string(table.definitionID),
     ])
     return SHA256.hash(data: Data(try state.json().utf8)).map { String(format: "%02x", $0) }
       .joined()
@@ -163,10 +162,7 @@ extension Workbook {
           contentBytes <= 16_000_000, "update_limit",
           "The target exceeds the 16 MB bounded update-review budget.")
         try require(
-          try db.scalar(
-            "SELECT value FROM meta WHERE key=?",
-            [.string("archived-dataset:" + datasetID)]
-          ).text != "1",
+          !table.archived,
           "update_target", "Choose a current working table, not an archived result.")
         let stored = table.columns.filter { $0.formula == nil }
         try require(

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T18:44:20.418768+00:00
+updated: 2026-10-28T19:13:11.779437+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1382,6 +1382,32 @@ The repair does not add business effects. `verify` detects projection disagreeme
 
 Development check: `python3 scripts/check_managed_datasets.py --cli PATH_TO_SEVRA
 --rows 1000`; a 10,000-row run adds scoped scaling evidence. Supported dataset width
-is 1...500 logical columns. See [[records/specs/managed-datasets]] for pending schema,
+is 1...500 logical columns. See [[records/specs/managed-datasets]] for pending typed
 query/index and full qualification work. Older development schemas are preserved
 but unsupported; recreate selected synthetic fixtures, never delete user workbooks.
+
+## Versioned table definitions
+
+Current schema is 12. `table-schema` returns the exact definition UUID, display
+version, title, columns and archive state. `table-schema-history WORKBOOK DATASET_ID
+[BEFORE_VERSION]` pages 20 complete definitions newest first.
+
+`table-edit-schema WORKBOOK DATASET_ID BASE_VERSION BASE_DEFINITION_ID OPTIONS_JSON
+TOKEN` accepts explicit title, columns or archived options. Columns retain stable
+IDs and optional stored-value required/unique constraints. Preserve unrelated fields
+and use exact tokens/arguments on retries. Stale bases or changed retries refuse.
+`table-restore-schema WORKBOOK DATASET_ID SAVED_DEFINITION_ID BASE_VERSION
+BASE_DEFINITION_ID TOKEN` restores an exact definition as a new version.
+`tables WORKBOOK --archived` discovers retained archived tables. No raw SQL is exposed.
+
+Native Table actions > Table definition provides title, columns/formulas, required/
+unique controls, removal, archive and paginated history. Its opened base is frozen.
+Writes run off the UI actor; stale/failing saves keep the draft in the sheet.
+A schema restoration preserves the latest retained values for the same column IDs;
+it is distinct from selecting an exact historical row version. Ordinary row edits
+refuse archived tables. Complete history remains available to reconstruction.
+
+Run `python3 scripts/check_dataset_definitions.py --cli PATH_TO_SEVRA` for synthetic
+CLI lifecycle, competing writers, replay/portable reopen and unique-merge Undo/redo
+coverage. It is part of scripts/check.sh. See [[records/operations/implementation]]
+for the lifecycle receipt, visible native observations and exact remaining scope.

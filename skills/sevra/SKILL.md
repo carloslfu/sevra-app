@@ -43,6 +43,23 @@ canonical versions, with exact revision checking and repeat-safe operation token
 Use this for an explicitly requested repair; retain the original workbook. Missing
 or invalid canonical history is a recovery error, not permission to regenerate it.
 
+`table-schema` also returns the exact current definition ID, title and archive state.
+`table-schema-history PATH DATASET_ID [BEFORE_VERSION]` pages 20 complete saved
+definitions, newest first. `table-edit-schema PATH DATASET_ID BASE_VERSION
+BASE_DEFINITION_ID OPTIONS_JSON TOKEN` atomically changes explicit `title`, `columns`
+or `archived` fields. Columns have stable IDs, titles, types and optional formula,
+unit, required and unique fields. Read the exact current definition first and
+preserve unrelated columns. Never guess a stale base or retry with changed arguments.
+Schema edits require the user's requested scope; the in-app model has no schema tool.
+Required excludes missing/null/empty; unique compares typed stored values, including
+exact decimals. Calculated columns cannot have these constraints. Removing a column
+hides it while preserving its values through later row edits. Unchanged formulas
+cannot silently bind to a different column. Archive hides the table from normal
+discovery and blocks row edits; `tables PATH --archived` finds retained archived
+tables. `table-restore-schema PATH DATASET_ID SAVED_DEFINITION_ID BASE_VERSION
+BASE_DEFINITION_ID TOKEN` restores the exact selected definition as a new version.
+It preserves the latest retained values for the restored column IDs and all history.
+
 `spaces PATH` returns current definitions, stable component IDs and versions.
 `space-edit PATH ID BASE_VERSION EDITS_JSON [TOKEN]` changes layout atomically.
 Edits are `rename` (title), `insert` (component), `remove` (componentID), `move`

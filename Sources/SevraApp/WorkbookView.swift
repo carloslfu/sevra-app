@@ -163,7 +163,7 @@ struct WorkbookView: View {
     case .space(let id): return state.spaces.first { $0.id == id }?.title ?? "Space"
     case .item(let id):
       return (try? state.workbook?.item(state.viewedItemVersion ?? id).title) ?? "Document"
-    case .table(let id): return state.datasets.first { $0.id == id }?.title ?? "Table"
+    case .table(let id): return state.dataset(id)?.title ?? "Table"
     case .tableUpdate: return "Review table update"
     case .search: return "Search workbook"
     case .reviews: return "Drafts to review"
@@ -353,7 +353,7 @@ struct WorkbookView: View {
             id + state.itemPreviewIdentity.uuidString)
         }
       case .table(let id):
-        if let table = state.datasets.first(where: { $0.id == id }) {
+        if let table = state.dataset(id) {
           DatasetView(table: table, state: state)
         }
       case .search: SearchView(state: state, results: state.searchResults)

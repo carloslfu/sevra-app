@@ -8,6 +8,7 @@ public struct WorkspaceSnapshot: Sendable {
   public let spaceNavigation: SpaceNavigationState
   public let items: [ItemSummary]
   public let datasets: [Dataset]
+  public let archivedDatasets: [Dataset]
   public let messages: [Message]
   public let reviewQueue: ReviewQueuePage
   public let proposalReviews: [String: ProposalReviewState]
@@ -47,6 +48,7 @@ extension Workbook {
           return try WorkspaceSnapshot(
             revision: current, spaces: spaces(), spaceNavigation: spaceNavigation,
             items: recentItemSummaries(), datasets: datasets(),
+            archivedDatasets: datasets(archived: true),
             messages: history.messages, reviewQueue: reviewQueue(limit: 5, cancellation: control),
             proposalReviews: proposalReviewStates(
               messages: history.messages, conversation: conversation, cancellation: control),

@@ -2,7 +2,7 @@
 type: spec
 id: 01m61c4z13j3paexnc7xvyyqhs
 created: 2026-10-28T13:45:46.275195+00:00
-updated: 2026-10-28T18:44:20.373019+00:00
+updated: 2026-10-28T19:13:11.742057+00:00
 summary: One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 title: Contextual import and Excel continuity
 status: reviewed
@@ -39,8 +39,9 @@ mixed cells, multiple regions, formulas and layout have their appropriate versio
 representation; file suffixes and worksheet boundaries do not force one table.
 Native physical storage does not qualify Excel formula/behavior continuity.
 Existing shared-row import receipts remain evidence for their current scope;
-schema 11 managed storage now has scoped foundation evidence; full schema/query/index
-MJ gates remain pending.
+schema-12 managed storage and exact-base definition lifecycle have scoped evidence.
+Uncommitted intake batches refuse after any definition change, preserving the saved
+prefix. Typed query/index and full MJ gates remain pending.
 
 ## One capability, two entry points
 

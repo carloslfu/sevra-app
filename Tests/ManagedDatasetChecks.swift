@@ -293,8 +293,9 @@ func checkManagedDatasets(at root: URL) {
     let before = try book.rows(table.id)
     let commits = try book.committedHistory()
     let raw = try Database(book.url.appendingPathComponent("workbook.sqlite"))
+    try raw.execute("PRAGMA foreign_keys=OFF")
     try raw.execute("DELETE FROM column_versions WHERE dataset_id=?", [.string(table.id)])
-    try refuses("managed_schema") { _ = try book.verify() }
+    try refuses("integrity") { _ = try book.verify() }
     try refuses("managed_schema") {
       try book.rebuildDataset(table.id, expectedRevision: book.revision())
     }
