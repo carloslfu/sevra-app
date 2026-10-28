@@ -508,3 +508,6 @@ Retain second native refusal; use explicit two-chunk ordinary read pages with la
 ## [2026-10-28 04:36] verification | records/operations/implementation.md
 Unchanged native eight-report fidelity task passes; zero copied IDs used, so add nearby actual-copy cases; reproduce and fix stale composition metadata after manual editing.
 
+## [2026-10-28 04:42] verification | records/operations/implementation.md
+Native English/Spanish literal copy paths pass; unchanged paraphrase skips requested draft and includes identifier; retain failure and clarify draft-delivery policy.
+

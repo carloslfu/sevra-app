@@ -2,7 +2,7 @@
 type: spec
 id: 01m609st2pz8zhg7bcpec874g1
 created: 2026-10-28T03:45:29.174789+00:00
-updated: 2026-10-28T04:36:47.950624+00:00
+updated: 2026-10-28T04:42:54.932813+00:00
 summary: Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 title: Source-bound document composition
 status: reviewed
@@ -304,3 +304,20 @@ uses this edit-submission path rather than claiming newly resolved source spans.
 Do not silently align repeated text or rewrite old provenance. Tests cover changed
 copy text/positions, exact old history, acceptance, separate drafts and portable
 reopen. This does not replace the pending native provenance interface.
+
+
+## Nearby real-model selection and draft-intent failure
+
+English and Spanish literal-quotation cases pass through the real native model.
+Each uses one actual copy reference, preserves decomposed Unicode and CRLF bytes,
+saves a draft estimate, leaves original/unrelated draft versions unchanged, and
+passes portable export/reopen/integrity. The model chooses all tools and arguments.
+The permitted-paraphrase case fails: it returns a chat answer containing the
+excluded identifier and saves no draft. The completed probe unloads the model;
+this is two passing cases and one real failure, not full nearby qualification.
+
+Keep the exact three requests unchanged. Clarify in the existing agent policy
+that explicit draft requests require a saved artifact, that a chat summary is
+insufficient, and that identifier exclusions apply to paraphrase independently
+of preserving factual values. This adds no classifier, reviewer, threshold,
+budget or new write authority. Recheck the same nearby cases.

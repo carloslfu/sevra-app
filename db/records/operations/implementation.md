@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T04:37:52.892183+00:00
+updated: 2026-10-28T04:42:54.955137+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -4048,3 +4048,27 @@ the unrelated pending Record lacked a required input version. Its source and
 stdout/stderr/identities are retained locally. Add the synthetic report as its
 explicit input; no product lineage rule, model task or assertion changed. Rebuild
 and rerun in a new output directory. This setup failure is not a model result.
+
+
+## Native literal copies work; permitted paraphrase exposes skipped draft
+
+The corrected nearby setup ran all three original requests at clean 8cc0fb4.
+English literal quotation and Spanish literal quotation each saved one real
+copy reference, exact decomposed-Unicode/CRLF bytes, draft/estimate classification
+and original-version lineage. Unrelated draft and original source heads stayed
+unchanged; portable export/reopen/integrity passed. The permitted paraphrase
+returned a cited chat answer with the excluded identifier and zero drafts. The
+probe therefore fails as a whole. All source/executable/runtime hashes match
+before/after and the model unloaded. Exact timings remain in the raw receipt.
+
+The existing policy distinguishes answers from unsolicited proposals but did not
+explicitly require delivery of a requested draft summary. Add that requirement,
+plus independent respect for excluded identifiers in paraphrase. Keep all three
+requests/assertions unchanged, with no new intent classifier, generative reviewer,
+response/context/step budget or authority. Agent checks pass after this policy
+clarification. Rebuild and rerun the nearby cases from the committed candidate.
+
+Evidence: [first nearby copy/paraphrase results](../../../integration/evidence/2026-10-27-document-copy-nearby-first.json.gz).
+Contains setup failure, actual full inputs/outputs/history/metrics, before/after
+identities, both passing copy cases, and the failed paraphrase. This is no UI,
+whole-product, performance, engine-adoption or release pass.
