@@ -238,6 +238,7 @@ extension Workbook {
       try verifyToolCalls()
       try verifyDocumentCompositions()
       try verifyReferences()
+      try verifyFileReferences()
       return .object([
         "database": .string("ok"), "assetIssues": .array(missing), "ok": .bool(missing.isEmpty),
       ])

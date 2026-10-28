@@ -59,10 +59,11 @@ version, not silently retargeting the edit. `--separate` preserves the text as a
 distinct draft when the user wants to keep both versions. Original file assets
 are previewed/imported separately and cannot be changed through this command.
 
-Use `references PATH VERSION_ID` for outgoing body mentions and `backlinks PATH
+Use `references PATH VERSION_ID` for outgoing saved mentions and `backlinks PATH
 VERSION_ID` for incoming ones. Both require exact IDs and accept an optional JSON
 object with `limit` (1...50), `cursor`, `kind`, `meaning`, `status`, `scenario`,
-`targetScope` (`logical` or `exact`) and `historicalOrigins` (boolean). Incoming
+`targetScope` (`logical` or `exact`), `historicalOrigins` (boolean) and
+`contentScope` (`all`, the default, `body` or `extracted`). Incoming
 filters apply to origins; outgoing filters apply to destinations. Incoming scope
 defaults to current origins and the target's logical identity, including pins to
 its older versions. Exact scope includes live mentions only if the requested
@@ -76,8 +77,29 @@ VERSION_ID [OPTIONS_JSON]` and `reference-resolve PATH VERSION_ID REFERENCE_ID
 [SNAPSHOT_ID]` inspect saved choices and navigation targets. History options are
 `limit` and `beforeVersion`. Names stay unresolved; stable `sevra://item/ID` pins
 an exact version and `sevra://logical/ID` follows its head. Foreign routes remain
-external. Indexing applies to bounded item bodies, not extracted asset contents;
-partial, unsupported and unindexed coverage is not proof that no mentions exist.
+external. Body snapshots describe item-body coverage. File annotations describe
+supported links in retained extracted text, not embedded format-specific hyperlinks.
+Partial, unsupported and unindexed coverage is not proof that no mentions exist.
+
+`file-reference-snapshot PATH VERSION_ID [SNAPSHOT_ID]`, `file-reference-history
+PATH VERSION_ID [OPTIONS_JSON]` and `file-reference-resolve PATH VERSION_ID
+REFERENCE_ID [SNAPSHOT_ID]` inspect extracted annotations, their retained input,
+original asset hash and page/row locators. History takes `beforeVersion` and
+`limit` (1...50). `file-reference-region PATH VERSION_ID JSON` requires
+`snapshotID` and zero-based `region`; `offset` defaults to 0 and `limit` to 4000
+Unicode scalars (maximum 6000). Follow `nextOffsetScalar`. This is owner-facing
+retained text, not a local-model read/citation receipt. Inspect the original when
+extraction or OCR is uncertain. A snapshot's coverage applies to its captured
+text; discovery's separate `fileCoverage.latestExtraction` reports the latest
+attempt, which may have failed or still be running while an earlier snapshot remains.
+
+`annotate-file-references PATH SOURCE_VERSION_ID JSON` requires a nonnull current
+`expectedSnapshotID`, `selections` and an optional retry `token`. Each entry has an
+integer zero-based `region` and a `selection` using the body-selection fields below.
+Its scalar coordinates are relative to that retained region. Supply the complete
+chosen set, preserving other occurrences that should remain. Manual coverage is
+partial. Stale choices refuse; retrying the same token returns the original set.
+The file, original Source and earlier annotations remain unchanged.
 
 To bind an explicitly chosen target, `annotate-references PATH SOURCE_VERSION_ID
 JSON` requires `selections`, `expectedSnapshotID` (null only for the first set)
@@ -94,7 +116,13 @@ a `references` array. Explicit selections report partial coverage.
 workbooks, `index-reference-bodies PATH [OPTIONS_JSON]` accepts `afterID` and a
 `limit` up to 50; follow `nextAfterID`. Completed origins survive interruption.
 `rebuild-references PATH` reconstructs lookup rows from saved bindings without
-parsing or changing unresolved choices. Keep app/CLI versions matched; schema 6
+parsing or changing unresolved choices. `extract PATH VERSION_ID` explicitly
+captures/retries file extraction for migrated workbooks. It preserves choices
+for identical captured input; changed extraction gets a new snapshot and keeps
+earlier text/locators inspectable. An older worker cannot replace a newer result.
+The first file-link slice retains at most 512 regions, 1,000,000 UTF-8 text bytes
+and 128 occurrences per exact origin, with partial coverage when bounded. Assets
+remain outside SQLite inside the workbook. Keep app/CLI versions matched; schema 7
 requires a compatible build. These owner-facing CLI operations do not imply that
 the app's local model already has reference-traversal tools.
 

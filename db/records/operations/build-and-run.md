@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T05:44:47.595949+00:00
+updated: 2026-10-28T06:09:16.513198+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1174,7 +1174,7 @@ programmatic consistency/history/edit checks. Visible source navigation, Back,
 keyboard, VoiceOver and narrow layout are separate qualification, currently
 pending manual Mac unlock in [[records/operations/implementation]].
 
-## Body links and backlinks, schema 6
+## Body links and backlinks (introduced in schema 6)
 
 New eligible item bodies parse wiki links and Markdown stable routes automatically.
 Existing migrated versions remain unindexed until explicit catch-up. File contents
@@ -1195,7 +1195,7 @@ python3 scripts/check_references.py --cli output/native/bin/sevra
 
 Replace placeholder paths/IDs with exact returned values. `references` and
 `backlinks` options are `limit`, `cursor`, `kind`, `meaning`, `status`, `scenario`,
-`targetScope` and `historicalOrigins`. Incoming filters apply to origin metadata;
+`targetScope`, `historicalOrigins` and `contentScope` (described below). Incoming filters apply to origin metadata;
 outgoing filters apply to destination metadata. Incoming current-origin discovery
 is the default. Logical scope includes pins to earlier versions of the target;
 exact scope includes a live mention only when the anchor is current. Follow
@@ -1221,3 +1221,44 @@ empty, partial annotation. Reference/selection JSON is bounded to 400,000 bytes.
 The repo-owned `skills/sevra/SKILL.md` documents these owner CLI capabilities;
 scoped local-model traversal and native link interaction remain separate work.
 See [[records/specs/references-and-relationships]] for syntax, coverage and limits.
+
+## Retained file references, schema 7
+
+Imports now capture supported links in bounded extracted text. For an older
+workbook or an explicit retry, run extraction for the exact returned file version.
+These commands inspect technical annotations without rewriting the asset.
+
+~~~sh
+sevra extract WORKBOOK VERSION_ID
+sevra file-reference-snapshot WORKBOOK VERSION_ID
+sevra file-reference-history WORKBOOK VERSION_ID '{"limit":20}'
+sevra file-reference-region WORKBOOK VERSION_ID '{"snapshotID":"SNAPSHOT_ID","region":0,"offset":0,"limit":4000}'
+sevra file-reference-resolve WORKBOOK VERSION_ID REFERENCE_ID SNAPSHOT_ID
+sevra backlinks WORKBOOK VERSION_ID '{"contentScope":"extracted","limit":20}'
+sevra references WORKBOOK VERSION_ID '{"contentScope":"all","limit":20}'
+python3 scripts/check_extracted_references.py --cli output/native/bin/sevra
+~~~
+
+Use actual returned IDs. Region indexes are zero-based and offsets/limits count
+Unicode scalars; follow `nextOffsetScalar`. Regions require a snapshot ID so later
+extraction cannot silently change the text being inspected. History takes
+`beforeVersion`/`limit` and returns `nextBeforeVersion`. Resolve returns navigation
+metadata only. Supported syntax and locators in captured text are not a full scan
+of embedded file hyperlinks; partial/unsupported/unindexed input can contain more.
+Discovery's separate `fileCoverage.latestExtraction` reports a running or failed
+retry even while the previous annotation snapshot remains available.
+
+`annotate-file-references WORKBOOK SOURCE_VERSION_ID JSON` requires a nonnull
+`expectedSnapshotID`, `selections` and optional retry `token`. Supply the complete
+chosen set. Each entry has integer `region` and nested `selection` with the body
+selection fields above. Selection coordinates are relative to retained region
+text; the original file and Source remain unchanged. Manual coverage is partial.
+An identical retry returns the original snapshot, stale choices refuse, and the
+same captured extraction preserves explicit choices. A changed extraction keeps
+prior snapshots/regions inspectable. `rebuild-references` rebuilds both body and
+file projections without parsing, fetching or binding unresolved labels.
+
+`contentScope` is now an additional references/backlinks option: all (default),
+body or extracted. Merge/deduplication and filtering precede pages. Keep schema-7
+app/CLI builds matched. The repo's check.sh includes both model-free CLI journeys;
+packaged product checks still require building the native layout explicitly.

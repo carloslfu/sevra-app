@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-28T05:44:47.580964+00:00
+updated: 2026-10-28T06:09:16.499864+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -321,6 +321,26 @@ bounded metadata and mention locators, never read/citation proof. Incoming scope
 defaults to current origins; historical origins and exact versus logical target
 identity are explicit. Filters and revision-bound keyset cursors preserve scope.
 The 260-origin synthetic pagination check is focused correctness evidence, not
-a large-graph or real-agent performance result. Extracted file contents, scoped
+a large-graph or real-agent performance result. The later schema-7 section adds captured extracted-text mentions. Scoped
 agent traversal and LJ09/LJ10 comparisons remain unqualified. See
 [[records/specs/references-and-relationships]] for the implemented bounds.
+
+## Body and retained-file mention discovery, schema 7
+
+The owner-facing reference query now combines body mentions and saved annotations
+from bounded extraction text, deduplicating exact versions before keyset pages.
+`contentScope` chooses all/body/extracted and participates in the cursor identity.
+Incoming prefixes use covering indexes for both projections. Mention counts and
+first locators do not load destination bodies or grant read/citation proof.
+Coverage metadata describes the anchor only; other origins may be unindexed.
+
+File annotations use immutable retained input rather than overlapping FTS chunk
+IDs. Original asset hashes, extraction identity, page/row/text locators and exact
+Unicode spans remain available after reindexing. Latest extraction status is
+separate from captured coverage. An older worker cannot overwrite a newer result.
+This covers supported syntax in captured text, not embedded PDF/Office hyperlinks
+or unextracted content. Limits produce partial coverage; empty results cannot
+prove absence. The mixed 70-origin core fixture and packaged CLI journey check
+scope/dedup/history, not large-graph throughput, whole-app memory or real-agent
+retrieval value. Scoped agent tools and LJ09/LJ10 remain open. See
+[[records/specs/references-and-relationships]].

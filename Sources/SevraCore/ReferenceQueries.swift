@@ -2,10 +2,11 @@ import Foundation
 
 public enum ReferenceDirection: String, Sendable { case incoming, outgoing }
 public enum ReferenceTargetScope: String, Sendable { case logical, exact }
+public enum ReferenceContentScope: String, Sendable { case all, body, extracted }
 
 extension Workbook {
   // Metadata only. A navigation result cannot be used as a read/citation receipt.
-  private static let referenceMetadata =
+  static let referenceMetadata =
     "i.id,i.logical_id,i.version,i.category,i.kind,substr(i.title,1,1024) AS title,i.meaning,i.status,i.scenario,(i.id=h.item_id) AS is_current"
 
   /// One-hop, deduplicated discovery over saved bindings. This owner-facing API
@@ -13,6 +14,7 @@ extension Workbook {
   public func referenceLinks(
     _ exactVersionID: String, direction: ReferenceDirection = .outgoing,
     targetScope: ReferenceTargetScope = .logical, historicalOrigins: Bool = false,
+    contentScope: ReferenceContentScope = .all,
     kind: String? = nil, meaning: String? = nil, status: String? = nil, scenario: String? = nil,
     limit: Int = 20, cursor: String? = nil, cancellation: Cancellation = .init(),
     deadlineSeconds: TimeInterval = 3
@@ -50,6 +52,7 @@ extension Workbook {
             "status": status.map(Value.string) ?? .null,
             "scenario": scenario.map(Value.string) ?? .null,
             "parser": .string(InlineReferenceParser.identity),
+            "contentScope": .string(contentScope.rawValue), "queryVersion": .number(2),
           ]).json()
           var after: Value = direction == .incoming ? .string("") : .number(-1)
           if let cursor {
@@ -67,19 +70,42 @@ extension Workbook {
               }
               try Self.validateReferenceIdentity(value)
             } else {
-              guard let value = after.int, value >= 0, value < Self.referenceLimit,
+              guard let value = after.int, value >= 0, value < Self.referenceLimit * 2,
                 after == .number(Double(value))
               else { throw SevraError("cursor", "Invalid reference position.") }
             }
           }
           let results: [(Value, Value)]
           if direction == .incoming {
-            results = try incomingReferenceLinks(
-              anchor, targetScope: targetScope, historical: historicalOrigins, filters: filters,
-              after: after, limit: limit, cancellation: cancellation)
+            let body =
+              contentScope == .extracted
+              ? []
+              : try incomingReferenceLinks(
+                anchor, targetScope: targetScope, historical: historicalOrigins, filters: filters,
+                after: after, limit: limit, cancellation: cancellation)
+            let file =
+              contentScope == .body
+              ? []
+              : try incomingFileReferenceLinks(
+                anchor, targetScope: targetScope, historical: historicalOrigins, filters: filters,
+                after: after, limit: limit, cancellation: cancellation)
+            var unique: [String: Value] = [:]
+            for (value, key) in body + file {
+              if let existing = unique[key.text] {
+                var hit = existing.object
+                hit["mentionCount"] = .number(
+                  Double((existing["mentionCount"].int ?? 0) + (value["mentionCount"].int ?? 0)))
+                hit["discoveryScopes"] = .array([.string("item_body"), .string("extracted_text")])
+                unique[key.text] = .object(hit)
+              } else {
+                unique[key.text] = value
+              }
+            }
+            results = unique.keys.sorted().map { (unique[$0]!, .string($0)) }
           } else {
             results = try outgoingReferenceLinks(
-              exactVersionID, filters: filters, after: after.int ?? -1, cancellation: cancellation)
+              exactVersionID, filters: filters, after: after.int ?? -1, contentScope: contentScope,
+              cancellation: cancellation)
           }
           let page = Array(results.prefix(limit))
           let next: Value
@@ -98,11 +124,12 @@ extension Workbook {
           return .object([
             "direction": .string(direction.rawValue), "anchor": .object(anchor),
             "hits": .array(page.map { $0.0 }), "nextCursor": next,
-            "discoveryReason": .string("mention"), "scope": .string("item_body"),
+            "discoveryReason": .string("mention"), "scope": .string(contentScope.rawValue),
+            "fileCoverage": try fileReferenceCoverageStatus(exactVersionID),
             "originCoverage": .string(
               try readReferenceSnapshot(exactVersionID, snapshotID: nil).coverage),
             "notice": .string(
-              "Saved body mentions only. Unindexed versions and extracted file contents can contain other mentions. A mention establishes no business relationship, acceptance or action authority. Read the exact version before citing it."
+              "Saved body and retained extracted-text mentions only. Unsupported syntax, embedded hyperlinks, unindexed versions and unextracted content can contain other mentions. A mention establishes no business relationship, acceptance or action authority. Read the exact version before citing it."
             ),
           ])
         }
@@ -152,18 +179,38 @@ extension Workbook {
           "evidence": .object(metadata), "mentionCount": .number(Double(occurrences.count)),
           "firstReferenceID": .string(first.id), "snapshotID": occurrences[0]["set_id"]!,
           "label": .string(first.label), "locator": .string(first.locator),
-          "discoveryReason": .string("mention"),
+          "discoveryReason": .string("mention"), "snapshotKind": .string("body"),
+          "discoveryScopes": .array([.string("item_body")]),
         ]), origin
       )
     }
   }
 
   private func outgoingReferenceLinks(
-    _ origin: String, filters: [(String, String?)], after: Int, cancellation: Cancellation
+    _ origin: String, filters: [(String, String?)], after: Int, contentScope: ReferenceContentScope,
+    cancellation: Cancellation
   ) throws -> [(Value, Value)] {
     let snapshot = try readReferenceSnapshot(origin, snapshotID: nil)
     var groups: [String: (Value, Int, Int)] = [:]
-    for (ordinal, reference) in snapshot.references.enumerated() {
+    var occurrences: [(WorkbookReference, Value, String, String)] = []
+    if contentScope != .extracted {
+      occurrences = snapshot.references.map {
+        ($0, snapshot.id.map(Value.string) ?? .null, $0.locator, "body")
+      }
+    }
+    if contentScope != .body, let file = try fileReferenceSet(origin) {
+      for row in try fileReferenceRows(file) {
+        let reference = try decodeReference(row)
+        occurrences.append(
+          (
+            reference, file["id"]!,
+            row["source_locator"]!.text
+              + "; scalar=\(reference.startScalar); count=\(reference.scalarCount)", "extracted"
+          ))
+      }
+    }
+    for (ordinal, occurrence) in occurrences.enumerated() {
+      let (reference, setID, locator, scope) = occurrence
       try cancellation.check()
       var destination: [String: Value]?
       if reference.resolution == .bound {
@@ -196,16 +243,22 @@ extension Workbook {
           .string(reference.lookup),
         ])).json()
       if let (value, count, first) = groups[key] {
-        groups[key] = (value, count + 1, first)
+        var hit = value.object
+        let discovered = scope == "body" ? "item_body" : "extracted_text"
+        var scopes = value["discoveryScopes"].array
+        if !scopes.contains(.string(discovered)) { scopes.append(.string(discovered)) }
+        hit["discoveryScopes"] = .array(scopes)
+        groups[key] = (.object(hit), count + 1, first)
       } else {
         groups[key] = (
           .object([
             "evidence": destination.map(Value.object) ?? .null,
             "resolution": .string(reference.resolution.rawValue),
             "firstReferenceID": .string(reference.id),
-            "snapshotID": snapshot.id.map(Value.string) ?? .null,
+            "snapshotID": setID, "snapshotKind": .string(scope),
+            "discoveryScopes": .array([.string(scope == "body" ? "item_body" : "extracted_text")]),
             "label": .string(reference.label), "lookup": .string(reference.lookup),
-            "locator": .string(reference.locator),
+            "locator": .string(locator),
             "discoveryReason": .string("mention"),
           ]), 1, ordinal
         )

@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 6
+  static let version = 7
   static let version1SQL = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=1;
@@ -108,5 +108,17 @@ enum Schema {
     INSERT INTO reference_index SELECT s.origin_id,r.reference_id,r.set_id,r.ordinal,EXISTS(SELECT 1 FROM heads h WHERE h.item_id=s.origin_id),r.target_workbook,r.target_mode,r.target_logical,r.target_version,r.resolution FROM reference_bindings r JOIN reference_sets s ON s.id=r.set_id JOIN reference_heads h ON h.set_id=s.id;
     PRAGMA user_version=6;
     """
-  static let sql = version5SQL + "\n" + migration6
+  static let version6SQL = version5SQL + "\n" + migration6
+  static let migration7 = """
+    CREATE TABLE file_reference_inputs(id TEXT PRIMARY KEY,origin_id TEXT NOT NULL REFERENCES items(id),asset_id TEXT NOT NULL REFERENCES assets(id),asset_hash TEXT NOT NULL,extraction_parser TEXT NOT NULL,extraction_state TEXT NOT NULL,extraction_detail TEXT NOT NULL,content_hash TEXT NOT NULL,regions TEXT NOT NULL,truncated INTEGER NOT NULL CHECK(truncated IN (0,1)),created TEXT NOT NULL);
+    CREATE INDEX file_reference_inputs_origin ON file_reference_inputs(origin_id,content_hash);
+    CREATE TABLE file_reference_sets(id TEXT PRIMARY KEY,origin_id TEXT NOT NULL REFERENCES items(id),input_id TEXT NOT NULL REFERENCES file_reference_inputs(id),version INTEGER NOT NULL CHECK(version>0),previous_id TEXT REFERENCES file_reference_sets(id),parser TEXT NOT NULL,coverage TEXT NOT NULL CHECK(coverage IN ('partial','ready','unsupported')),detail TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),bindings TEXT NOT NULL,created TEXT NOT NULL,UNIQUE(origin_id,version));
+    CREATE TABLE file_reference_heads(origin_id TEXT PRIMARY KEY REFERENCES items(id),set_id TEXT NOT NULL UNIQUE REFERENCES file_reference_sets(id));
+    CREATE TABLE file_reference_index(origin_id TEXT NOT NULL REFERENCES items(id),reference_id TEXT NOT NULL,set_id TEXT NOT NULL REFERENCES file_reference_sets(id),ordinal INTEGER NOT NULL,current_origin INTEGER NOT NULL CHECK(current_origin IN (0,1)),target_workbook TEXT,target_mode TEXT,target_logical TEXT,target_version TEXT,resolution TEXT NOT NULL,PRIMARY KEY(origin_id,reference_id));
+    CREATE INDEX file_reference_incoming_current ON file_reference_index(target_workbook,target_logical,current_origin,origin_id,ordinal);
+    CREATE INDEX file_reference_incoming_history ON file_reference_index(target_workbook,target_logical,origin_id,ordinal);
+    CREATE TABLE extraction_attempts(item_id TEXT PRIMARY KEY REFERENCES items(id),attempt_id TEXT NOT NULL);
+    PRAGMA user_version=7;
+    """
+  static let sql = version6SQL + "\n" + migration7
 }

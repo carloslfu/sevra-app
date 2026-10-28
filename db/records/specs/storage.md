@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T05:44:47.565286+00:00
+updated: 2026-10-28T06:09:16.486976+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -357,7 +357,7 @@ Unchanged text can inherit exact bindings through review and Undo; changed prose
 without supplied selections retains its earlier binding history and receives a
 bounded new-version parse under schema 6. Migrated untouched bodies remain unindexed. Manual selections are partial coverage.
 See [[records/specs/references-and-relationships]] for implemented API bounds,
-remaining parser/extraction/traversal work and acceptance cases.
+remaining native interaction/traversal work and acceptance cases.
 
 ## Derived reference projection, schema 6
 
@@ -370,4 +370,25 @@ verification compares both directions. New eligible bodies and their bounded
 parses commit atomically; original asset bytes remain outside SQLite and unchanged.
 Schema 1-5 migration preserves originals and saved choices and does not parse old
 bodies automatically. See [[records/specs/references-and-relationships]] for parser
-limits, catch-up, metadata-only queries and remaining extraction/product gates.
+limits, catch-up, metadata-only queries and extraction bounds and remaining product gates.
+
+## Retained file references, schema 7
+
+Original file assets remain outside SQLite inside the workbook. SQLite retains
+bounded extraction text as annotation input, not the binary asset. The canonical
+`file_reference_inputs` table binds exact regions/locators to origin version,
+asset hash and extractor identity. `file_reference_sets` stores versioned binding
+arrays and annotation Sources; `file_reference_heads` selects current annotation
+state. The separate indexed `file_reference_index` projects saved bindings only.
+`extraction_attempts` prevents a superseded worker from replacing a newer result.
+
+File inputs/choices survive FTS replacement, Source version changes with the same
+asset, Undo and portable export/reopen. New input remains separate from earlier
+snapshots; identical input retains its latest explicit choices. Search publication,
+input capture, Sources, bindings, heads and receipt commit atomically. Failure or
+cancellation preserves the prior committed input and index. Integrity checks
+validate hashes/locators, choice Sources, historical inheritance and projections;
+rebuild repairs projection rows without interpreting text or resolving names.
+Migration from canonical schemas 1-6 preserves old choices and runs no extraction.
+The current schema is 7; keep app and CLI versions matched. See
+[[records/specs/references-and-relationships]] for bounds and coverage limits.

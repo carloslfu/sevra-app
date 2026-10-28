@@ -30,12 +30,30 @@ extension CLI {
     } catch { throw SevraError("usage", "Invalid reference selection or target type.") }
   }
 
+  static func decodeExtractedReferenceSelections(_ value: Value) throws
+    -> [ExtractedReferenceSelection]
+  {
+    guard case .array(let values) = value, values.count <= 128 else {
+      throw SevraError("usage", "Use an array of at most 128 extracted reference selections.")
+    }
+    return try values.map { row in
+      guard case .object(let fields) = row, Set(fields.keys) == ["region", "selection"],
+        let region = row["region"].int, row["region"] == .number(Double(region)),
+        region >= 0, region < 512
+      else { throw SevraError("usage", "Use an integer region and one reference selection.") }
+      let selection = try decodeReferenceSelections(.array([row["selection"]]))[0]
+      return ExtractedReferenceSelection(region: region, selection: selection)
+    }
+  }
+
   static func runReferenceCommand(
     _ command: String, book: Workbook, args: [String], cancellation: Cancellation
   ) throws -> Value? {
     let commands: Set<String> = [
       "references", "backlinks", "reference-snapshot", "reference-resolve", "reference-history",
       "index-references", "index-reference-bodies", "rebuild-references", "annotate-references",
+      "file-reference-snapshot", "file-reference-history", "file-reference-region",
+      "file-reference-resolve", "annotate-file-references",
     ]
     guard commands.contains(command) else { return nil }
     func count(_ range: ClosedRange<Int>) throws {
@@ -64,11 +82,15 @@ extension CLI {
         args.count == 4 ? args[3] : "{}",
         allowed: [
           "targetScope", "historicalOrigins", "kind", "meaning", "status", "scenario", "limit",
-          "cursor",
+          "cursor", "contentScope",
         ])
       guard
         let scope = ReferenceTargetScope(rawValue: try string(options, "targetScope") ?? "logical")
       else { throw SevraError("usage", "targetScope must be logical or exact.") }
+      guard
+        let contentScope = ReferenceContentScope(
+          rawValue: try string(options, "contentScope") ?? "all")
+      else { throw SevraError("usage", "contentScope must be all, body or extracted.") }
       var historical = false
       if options["historicalOrigins"] != .null {
         guard case .bool(let value) = options["historicalOrigins"] else {
@@ -78,7 +100,7 @@ extension CLI {
       }
       return try book.referenceLinks(
         args[2], direction: command == "backlinks" ? .incoming : .outgoing, targetScope: scope,
-        historicalOrigins: historical, kind: string(options, "kind"),
+        historicalOrigins: historical, contentScope: contentScope, kind: string(options, "kind"),
         meaning: string(options, "meaning"), status: string(options, "status"),
         scenario: string(options, "scenario"), limit: integer(options, "limit", fallback: 20),
         cursor: string(options, "cursor"), cancellation: cancellation)
@@ -101,6 +123,47 @@ extension CLI {
       return try book.referenceHistory(
         args[2], beforeVersion: before, limit: integer(options, "limit", fallback: 30),
         cancellation: cancellation)
+    case "file-reference-snapshot":
+      try count(3...4)
+      return try book.fileReferenceSnapshot(
+        args[2], snapshotID: args.count == 4 ? args[3] : nil, cancellation: cancellation)
+    case "file-reference-resolve":
+      try count(4...5)
+      return try book.resolveFileReference(
+        args[3], originVersionID: args[2], snapshotID: args.count == 5 ? args[4] : nil,
+        cancellation: cancellation)
+    case "file-reference-history":
+      try count(3...4)
+      let options = try referenceOptions(
+        args.count == 4 ? args[3] : "{}", allowed: ["beforeVersion", "limit"])
+      let before =
+        try options["beforeVersion"] == .null ? nil : integer(options, "beforeVersion", fallback: 1)
+      return try book.fileReferenceHistory(
+        args[2], beforeVersion: before, limit: integer(options, "limit", fallback: 20),
+        cancellation: cancellation)
+    case "file-reference-region":
+      try count(4...4)
+      let options = try referenceOptions(
+        args[3], allowed: ["snapshotID", "region", "offset", "limit"])
+      guard let snapshot = try string(options, "snapshotID"), options["region"] != .null else {
+        throw SevraError("usage", "Supply snapshotID and an integer region.")
+      }
+      return try book.fileReferenceRegion(
+        args[2], snapshotID: snapshot, region: integer(options, "region", fallback: -1),
+        offset: integer(options, "offset", fallback: 0),
+        limit: integer(options, "limit", fallback: 4000), cancellation: cancellation)
+    case "annotate-file-references":
+      try count(4...4)
+      let options = try referenceOptions(
+        args[3], allowed: ["selections", "expectedSnapshotID", "token"])
+      guard let snapshot = try string(options, "expectedSnapshotID") else {
+        throw SevraError("usage", "Supply the current extracted expectedSnapshotID.")
+      }
+      let token = try string(options, "token") ?? identifier()
+      try require(!token.isEmpty && token.utf8.count <= 1024, "usage", "Invalid operation token.")
+      return try book.annotateFileReferences(
+        args[2], selections: decodeExtractedReferenceSelections(options["selections"]),
+        expectedSnapshotID: snapshot, token: token, cancellation: cancellation)
     case "index-references":
       try count(3...3)
       return try encoded(book.indexReferences(args[2], cancellation: cancellation))

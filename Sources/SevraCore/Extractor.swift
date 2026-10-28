@@ -241,7 +241,11 @@ extension Workbook {
     guard let assetID = record.assetID else { return }
     let bounded = Cancellation(parent: cancellation, deadlineAfterSeconds: 60)
     let previous = try extractionStatus(id)
+    let attempt = identifier()
     _ = try mutation("extraction_start", request: .string(id)) {
+      try db.execute(
+        "INSERT INTO extraction_attempts VALUES(?,?) ON CONFLICT(item_id) DO UPDATE SET attempt_id=excluded.attempt_id",
+        [.string(id), .string(attempt)])
       try db.execute(
         "INSERT INTO extraction VALUES(?,?,?,?,?) ON CONFLICT(item_id) DO UPDATE SET state=excluded.state,detail=excluded.detail,updated=excluded.updated",
         [
@@ -258,9 +262,15 @@ extension Workbook {
       if try asset(assetID).mode == "linked" {
         _ = try assetURL(assetID, verify: true, cancellation: bounded)
       }
-      try index(id, chunks: result.chunks, state: result.state, detail: result.detail)
+      try index(
+        id, chunks: result.chunks, state: result.state, detail: result.detail,
+        cancellation: bounded, expectedAttemptID: attempt)
     } catch {
       _ = try mutation("extraction_failure", request: .string(id)) {
+        guard
+          try db.scalar("SELECT attempt_id FROM extraction_attempts WHERE item_id=?", [.string(id)])
+            .text == attempt
+        else { return .bool(false) }
         let hadIndex = ["ready", "partial"].contains(previous["state"].text)
         let state = hadIndex ? "partial" : (cancellation.isCancelled ? "cancelled" : "failed")
         let detail =

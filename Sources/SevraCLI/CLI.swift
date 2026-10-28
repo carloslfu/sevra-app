@@ -106,6 +106,10 @@ import SevraProduct
           cancellation: cancellation))
     case "column-history": return .array(try book.columnHistory(arg(2)))
     case "verify": return try book.verify()
+    case "extract":
+      try require(args.count == 3, "usage", "extract WORKBOOK VERSION_ID")
+      try book.extract(arg(2), cancellation: cancellation)
+      return try book.extractionStatus(arg(2))
     case "import":
       let item = try book.importFile(
         url(2), linked: args.contains("--link"), cancellation: cancellation)
@@ -334,7 +338,7 @@ import SevraProduct
   static let help = """
     Sevra 0.1.0 development CLI. Every result is JSON; errors exit nonzero.
     create PATH.sevra [TITLE] | demo PATH.sevra | inspect WORKBOOK | verify WORKBOOK
-    transcribe WORKBOOK ITEM_ID
+    transcribe WORKBOOK ITEM_ID | extract WORKBOOK VERSION_ID
     archive-members WORKBOOK ITEM_ID | include-members WORKBOOK ITEM_ID JSON_PATHS
     capture-url WORKBOOK URL | link-url WORKBOOK URL [TITLE] | include WORKBOOK ITEM_ID | relink WORKBOOK ASSET_ID FILE
     import WORKBOOK FILE [--link] | search WORKBOOK QUERY [OFFSET] | read WORKBOOK ID
@@ -344,6 +348,9 @@ import SevraProduct
     references WORKBOOK VERSION_ID [OPTIONS_JSON] | backlinks WORKBOOK VERSION_ID [OPTIONS_JSON]
     reference-snapshot WORKBOOK VERSION_ID [SNAPSHOT_ID] | reference-resolve WORKBOOK VERSION_ID REFERENCE_ID [SNAPSHOT_ID]
     reference-history WORKBOOK VERSION_ID [OPTIONS_JSON] | annotate-references WORKBOOK VERSION_ID JSON
+    file-reference-snapshot WORKBOOK VERSION_ID [SNAPSHOT_ID] | file-reference-history WORKBOOK VERSION_ID [OPTIONS_JSON]
+    file-reference-resolve WORKBOOK VERSION_ID REFERENCE_ID [SNAPSHOT_ID]
+    file-reference-region WORKBOOK VERSION_ID JSON | annotate-file-references WORKBOOK VERSION_ID JSON
     index-references WORKBOOK VERSION_ID | index-reference-bodies WORKBOOK [OPTIONS_JSON] | rebuild-references WORKBOOK
     accept WORKBOOK ID [TOKEN] | withdraw WORKBOOK ID [TOKEN] | undo WORKBOOK ID | lineage WORKBOOK ID
     opening WORKBOOK SUBJECT QUANTITY ISO_DATE SOURCE_ID | movement WORKBOOK JSON

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T05:44:47.610658+00:00
+updated: 2026-10-28T06:11:04.841924+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -52,8 +52,11 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   Migration, failed-write rollback, corruption/repair, 260-origin paging, scope
   filters, current/historical identity and portable reopening pass focused checks.
   The owner-facing CLI and repo-owned harness skill expose these capabilities.
-  Extracted-file locators, native/text/voice linking and scoped local-agent traversal
-  remain unfinished under L01-L14/LJ01-LJ10. Partial coverage and metadata discovery
+  Schema 7 adds retained extracted-text locators/annotations, shared body/file
+  discovery and guarded extraction publication. The focused checkpoint below passes
+  129 core, 18 document, 24 body-CLI and 26 extracted-CLI checks. Embedded file
+  hyperlinks, native/text/voice linking and scoped local-agent traversal remain
+  unfinished under L01-L14/LJ01-LJ10. Partial coverage and metadata discovery
   do not establish absence, citation eligibility, business facts or acceptance.
 
 - The integrated typed/native supplier journey now has direct evidence for intake,
@@ -4333,4 +4336,96 @@ Immutable receipt: `integration/evidence/2026-10-28-reference-parser-index-cli.j
 checks, failed attempts and scope limits. Earlier receipts remain unchanged.
 
 See [[records/specs/references-and-relationships]], [[records/specs/storage]],
+[[records/specs/search]] and [[records/operations/build-and-run]].
+
+## Retained extracted-text reference checkpoint, October 28
+
+Continues 5f46a3c. Schema 7 now retains bounded extraction regions/locators and
+original asset hashes independently of replaceable overlapping FTS rows. Versioned
+file annotation sets, choice Sources and heads remain canonical; the indexed
+incoming projection is rebuildable without parsing or resolving names. Original
+asset bytes stay outside SQLite inside the workbook. There is no new business
+Record per mention. Schemas 1-6 migrate without parsing old files or rebinding
+saved choices; old file origins require explicit extraction catch-up.
+
+The shared parser handles supported syntax in retained text, including PDF page
+text. It does not extract embedded PDF/Office hyperlink objects or unextracted
+content. The initial bounds are 512 regions, 1,000,000 UTF-8 text bytes, 64,000
+locator bytes total, 1024 per locator and 128 occurrences per exact origin. Excess
+reports partial coverage. Ready describes the captured syntax only. Latest
+extraction state remains separate from a retained earlier annotation snapshot.
+A failed or running retry cannot be mistaken for fresh complete coverage.
+
+Extraction now has an attempt identity. A stale worker's completion/failure cannot
+replace a newer index, binding set or status. Publication of chunks/status,
+retained input, annotation Source, bindings, head, projection and receipt is one
+transaction. Injected failure preserves the old search result, counts, revision
+and annotation snapshot. Same captured input preserves explicit choices; changed
+input retains old regions/history. Source version changes and Undo inherit file
+bindings only when the asset identity matches.
+
+Owner APIs and CLI inspect snapshots/history, page retained regions, resolve
+metadata and explicitly correct Source choices with a current snapshot and retry
+token. `extract` catches up or retries one exact file origin. Incoming/outgoing
+queries merge body/file mentions before pages, deduplicate exact versions and sum
+mention counts. The contentScope filter is all/body/extracted and binds the cursor.
+No traversal opens another workbook or creates a local-model read/citation receipt.
+The maintained specs, knowledge map, build/run instructions and repo-owned Sevra
+skill now describe the schema-7 behavior. check.sh includes both model-free CLI
+journeys. Native UI/linking and scoped local-agent tools remain later work.
+
+Focused verification from the final source:
+
+- `swift build --product sevra-checks -j 4` and `.build/debug/sevra-checks`:
+  129 passed, zero failed. New cases cover exact Unicode/NUL/CRLF retained text,
+  page locators and asset hashes; manual choices/history/retry; changed/revisited
+  extraction; live versus pinned targets; same-asset versions and Undo; bounded
+  partial/unsupported input and cancellation; atomic injected failure; detected
+  corruption and derived-index repair; stale concurrent workers; native two-page
+  PDF extraction; portable export/reopen. The mixed 70-origin fixture checks
+  deduplication, metadata filters and no repeated/missing keyset pages across both
+  scopes. An independent canonical schema-6 fixture migrates without parsing files.
+- Rebuilt `swift run -j 4 sevra-document-checks`: 18 passed, zero failed. These
+  are programmatic lifecycle/document checks, not visible native journeys.
+- `bash scripts/build_native.sh`: app, CLI and extraction helper build/package
+  successfully. Packaged `check_references.py` passes 24 checks across 51 calls,
+  max process time 0.3396 seconds. New `check_extracted_references.py` passes 26
+  checks across 83 calls, max 0.4242 seconds. It covers actual file import/extract,
+  lossless retained-text pages, correction/history/retry, scope filtering,
+  live/pinned history, strict invalid options without writes, metadata-only mixed
+  continuation, unsupported coverage and offline export/reopen with exact assets.
+  These subprocess timings include startup; they are not model/core-query or
+  large-graph performance claims.
+- `check_native_package.py` and packaged check-resources pass: app and CLI run
+  with build-tree reads denied, 1888 Metal kernels, unchanged engine/grammar,
+  no baseline inference symbols or Python linkage, missing-model guidance and
+  failed-run preservation, ten missing resources and one altered resource refused,
+  strict valid signature. Strict changed-Swift formatting, the repo-owned skill
+  validator, repository links and full db.md validation pass.
+
+Failed diagnostics are preserved. The first new race fixture failed compilation
+because the core result has no public memberwise initializer; the fixture now
+uses the actual worker JSON protocol. The first core run reported 127 pass/2 fail:
+its race fixture omitted the version-1 protocol envelope, and its rollback search
+count also matched technical annotation text. The second run was 128 pass/1 fail;
+a diagnostic identified that overbroad search cardinality expectation. The final
+assertion checks the exact original file's hit; counts/revision/snapshot rollback
+assertions remain unchanged. The final 129-pass run includes both corrected cases.
+
+The native UI tool still returned Mac locked/automatic unlock paused after the
+existing unlocked reply. No new unlock question was sent and no visible navigation,
+Back, narrow layout, native link interaction or spoken VoiceOver pass is claimed.
+There was no model cohort, full installer/release or hosted CI rerun. Whole-app
+memory, embedded hyperlinks, native/voice/text link authoring/resolution, scoped
+agent traversal/read enforcement, real retrieval comparisons and LJ07/LJ09/LJ10
+remain unqualified. Conversation-origin exact copies, semantic inventory identity,
+context/compaction, J11, broader voice/accessibility/hardware and release/install
+gates remain open. The full application goal is active.
+
+Immutable receipt: [extracted-reference inputs](../../../integration/evidence/2026-10-28-extracted-reference-inputs.json.gz),
+11,387 bytes, SHA-256
+`deb5551179ba4f0d6db26bf99c6dca0db295426b3cff26b4bff7cdaf2b3dbd8e`.
+It binds final code/product hashes, failed and successful logs, package/CLI
+checks and explicit limits. Earlier receipts remain unchanged. See
+[[records/specs/references-and-relationships]], [[records/specs/storage]],
 [[records/specs/search]] and [[records/operations/build-and-run]].

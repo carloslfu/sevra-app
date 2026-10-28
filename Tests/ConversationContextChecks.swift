@@ -49,7 +49,7 @@ func checkConversationContext(at root: URL) {
     let book = try Workbook(path)
     try expect(try book.revision() == 6)
     try expect(
-      try sql(path.appendingPathComponent("workbook.sqlite"), "PRAGMA user_version;") == "6")
+      try sql(path.appendingPathComponent("workbook.sqlite"), "PRAGMA user_version;") == "7")
     try expect(try book.historyMessage("old-user").body.contains("P-27"))
     try expect(try book.searchHistory("purchase")["hits"].array.first?["id"].text == "old-user")
     try expect(try book.chapters().count == 1)
@@ -112,6 +112,15 @@ func checkConversationContext(at root: URL) {
     try expect(try book.indexReferences("legacy-origin", token: "first-parse") == first)
     try expect(try book.indexReferenceBodies(limit: 1)["processed"].array.isEmpty)
     try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check("canonical v6 fixture preserves body bindings and leaves file extraction unindexed") {
+    let path = try legacyBook(root, name: "LegacyV6", version: 6)
+    _ = try sql(
+      path.appendingPathComponent("workbook.sqlite"),
+      "INSERT INTO meta VALUES('workbook-id','legacy-fixture');")
+    let book = try Workbook(path)
+    try expect(try book.revision() == 6 && book.verify()["ok"] == .bool(true))
+    try expect(try Workbook(path).revision() == 6)
   }
   check("future or untrusted schemas are refused; failed migration rolls back") {
     for mode in ["future", "trigger", "references"] {

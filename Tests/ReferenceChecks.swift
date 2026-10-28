@@ -1,7 +1,7 @@
 import Foundation
 import SevraCore
 
-private func referenceSQL(_ book: Workbook, _ script: String) throws -> String {
+func referenceSQL(_ book: Workbook, _ script: String) throws -> String {
   let process = Process()
   let input = Pipe()
   let output = Pipe()
@@ -41,7 +41,9 @@ func checkReferences(at root: URL) {
     let before = try referenceSQL(
       book, "SELECT * FROM items; SELECT * FROM reference_sets; SELECT * FROM reference_bindings;")
     _ = try referenceSQL(
-      book, "DROP TABLE reference_index; DROP TABLE reference_coverage; PRAGMA user_version=5;")
+      book,
+      "DROP TABLE extraction_attempts; DROP TABLE file_reference_index; DROP TABLE file_reference_heads; DROP TABLE file_reference_sets; DROP TABLE file_reference_inputs; DROP TABLE reference_index; DROP TABLE reference_coverage; PRAGMA user_version=5;"
+    )
     let opened = try Workbook(book.url)
     try expect(
       try referenceSQL(

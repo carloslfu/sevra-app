@@ -25,22 +25,7 @@ extension Workbook {
       return
     }
     let parsed = try InlineReferenceParser.parse(text, cancellation: cancellation)
-    var selections: [ReferenceSelection] = []
-    for selection in parsed.selections {
-      try cancellation.check()
-      var target = selection.target
-      if let candidate = target, candidate.workbookID == nil || candidate.workbookID == id {
-        let query =
-          candidate.mode == .live
-          ? "SELECT count(*) FROM heads WHERE logical_id=?"
-          : "SELECT count(*) FROM items WHERE id=?"
-        if try db.scalar(query, [.string(candidate.identity)]).int != 1 { target = nil }
-      }
-      selections.append(
-        .init(
-          startScalar: selection.startScalar, scalarCount: selection.scalarCount, target: target,
-          lookup: selection.lookup))
-    }
+    let selections = try availableReferenceSelections(parsed.selections, cancellation: cancellation)
     if !selections.isEmpty {
       _ = try writeReferenceSelections(
         origin, selections: selections, previous: nil,
@@ -141,6 +126,7 @@ extension Workbook {
       try db.execute(
         "INSERT INTO reference_coverage SELECT h.origin_id,s.id,s.parser,s.body_hash,s.coverage,s.detail,s.created FROM reference_heads h JOIN reference_sets s ON s.id=h.set_id WHERE 1 ON CONFLICT(origin_id) DO UPDATE SET set_id=excluded.set_id,parser=excluded.parser,body_hash=excluded.body_hash,state=excluded.state,detail=excluded.detail,updated=excluded.updated"
       )
+      try rebuildFileReferenceIndex(cancellation: cancellation)
       return .bool(true)
     }
   }

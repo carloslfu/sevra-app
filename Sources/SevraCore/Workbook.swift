@@ -62,7 +62,7 @@ public final class Workbook: @unchecked Sendable {
       "This is not a Sevra workbook.")
     let incomingVersion = try db.scalar("PRAGMA user_version").int
     try require(
-      [1, 2, 3, 4, 5, Schema.version].contains(incomingVersion ?? 0), "schema",
+      [1, 2, 3, 4, 5, 6, Schema.version].contains(incomingVersion ?? 0), "schema",
       "This workbook needs another version of Sevra.")
     let descriptor = Darwin.open(
       url.appendingPathComponent(".write-lock").path,
@@ -84,7 +84,7 @@ public final class Workbook: @unchecked Sendable {
     try db.transaction {
       let version = try db.scalar("PRAGMA user_version").int
       try require(
-        [1, 2, 3, 4, 5, Schema.version].contains(version ?? 0), "schema",
+        [1, 2, 3, 4, 5, 6, Schema.version].contains(version ?? 0), "schema",
         "This workbook needs another version of Sevra.")
       let reference = try Database(URL(fileURLWithPath: "/:memory:"), create: true)
       try reference.script(
@@ -96,7 +96,8 @@ public final class Workbook: @unchecked Sendable {
               ? Schema.version3SQL
               : version == 4
                 ? Schema.version4SQL
-                : version == 5 ? Schema.version5SQL : Schema.sql)
+                : version == 5 ? Schema.version5SQL : version == 6 ? Schema.version6SQL : Schema.sql
+      )
       let query =
         "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY name"
       try require(
@@ -111,7 +112,8 @@ public final class Workbook: @unchecked Sendable {
           try db.script(Schema.migration5)
           try db.execute("INSERT INTO meta VALUES('workbook-id',?)", [.string(id)])
         }
-        try db.script(Schema.migration6)
+        if version! <= 5 { try db.script(Schema.migration6) }
+        try db.script(Schema.migration7)
         let revision = (try db.scalar("SELECT value FROM meta WHERE key='revision'").int ?? 0) + 1
         try db.execute("UPDATE meta SET value=? WHERE key='revision'", [.string(String(revision))])
         try db.execute(
@@ -324,6 +326,8 @@ public final class Workbook: @unchecked Sendable {
       try db.execute("UPDATE chunks SET is_current=0 WHERE item_id=?", [.string(old.id)])
       try db.execute(
         "UPDATE reference_index SET current_origin=0 WHERE origin_id=?", [.string(old.id)])
+      try db.execute(
+        "UPDATE file_reference_index SET current_origin=0 WHERE origin_id=?", [.string(old.id)])
     }
     let id = identifier()
     let logical = old?.logicalID ?? identifier()
@@ -355,6 +359,9 @@ public final class Workbook: @unchecked Sendable {
     }
     if inheritReferenceBindings && !["row", "request", "annotation"].contains(kind) {
       try indexReferenceBody(id, text: text)
+    }
+    if let origin = referenceOrigin ?? old?.id {
+      try inheritFileReferences(from: origin, to: id, assetID: assetID)
     }
     return id
   }

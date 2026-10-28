@@ -36,15 +36,27 @@ extension Workbook {
 extension Workbook {
   public func index(
     _ id: String, chunks: [Chunk], state: String = "ready", detail: String = "",
-    parser: String = "native-v1"
+    parser: String = "native-v1", cancellation: Cancellation = .init(),
+    expectedAttemptID: String? = nil
   ) throws {
-    _ = try mutation("index", request: .string(id)) {
+    _ = try mutation("index", request: .string(id), cancellation: cancellation) {
+      if let expectedAttemptID {
+        try require(
+          try db.scalar("SELECT attempt_id FROM extraction_attempts WHERE item_id=?", [.string(id)])
+            .text == expectedAttemptID,
+          "stale_extraction", "A newer extraction attempt owns this file's current index.")
+      } else {
+        try db.execute("DELETE FROM extraction_attempts WHERE item_id=?", [.string(id)])
+      }
       let record = try item(id)
       try db.execute("DELETE FROM chunks WHERE item_id=?", [.string(id)])
       try insertChunks(id, title: record.title, chunks: chunks.isEmpty ? [Chunk("")] : chunks)
       try db.execute(
         "INSERT INTO extraction VALUES(?,?,?,?,?) ON CONFLICT(item_id) DO UPDATE SET state=excluded.state,detail=excluded.detail,parser=excluded.parser,updated=excluded.updated",
         [.string(id), .string(state), .string(detail), .string(parser), .string(timestamp())])
+      try captureFileReferences(
+        id, chunks: chunks, state: state, detail: detail, parser: parser, cancellation: cancellation
+      )
       return .string(id)
     }
   }

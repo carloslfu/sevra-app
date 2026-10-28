@@ -523,3 +523,6 @@ Schema-5 explicit reference binding foundation: 108 core and 18 document checks,
 ## [2026-10-28 05:45] implementation | records/operations/implementation.md
 Implemented schema-6 bounded shared body-link parsing, stable unresolved retention, rebuildable backlink indexes, deduplicated filtered keyset discovery and owner CLI/skill. Final checks: 121 core, 18 document, 24 packaged CLI journeys/51 calls, native package resources/refusals/signature. Preserved parser/expectation/stale-package failures in immutable evidence. Extracted links, native/voice interaction, scoped agent traversal and full release gates remain open.
 
+## [2026-10-28 06:11] implementation | records/operations/implementation.md
+Schema 7: retained extracted-text annotations, guarded extraction publication, deduplicated body/file discovery and owner CLI; 129 core, 18 document, 24 body CLI and 26 extracted CLI checks pass. Native/agent/release gates remain open.
+

@@ -57,17 +57,11 @@ extension Workbook {
     return try db.scalar("SELECT body FROM items WHERE id=?", [.string(origin)]).text
   }
 
-  func writeReferenceSelections(
-    _ origin: String, selections: [ReferenceSelection], previous: String?,
-    inherited: ReferenceSnapshot? = nil, parser: String = "explicit-selections-v1",
-    coverage: String = "partial",
-    detail: String = "Explicit selections only. Automatic mention parsing has not run."
-  ) throws -> String {
+  func normalizedReferenceBindings(
+    _ selections: [ReferenceSelection], body: String, allowedIDs: Set<String> = []
+  ) throws -> [[String: Value]] {
     _ = try Self.referenceSelectionsValue(selections)
-    let body = try referenceBody(origin)
     let scalars = Array(body.unicodeScalars)
-    let prior = try readReferenceSnapshot(origin, snapshotID: previous)
-    let allowedIDs = Set((prior.references + (inherited?.references ?? [])).map(\.id))
     var usedIDs = Set<String>()
     var previousEnd = 0
     var bindings: [[String: Value]] = []
@@ -122,6 +116,20 @@ extension Workbook {
       }
       bindings.append(row)
     }
+    return bindings
+  }
+
+  func writeReferenceSelections(
+    _ origin: String, selections: [ReferenceSelection], previous: String?,
+    inherited: ReferenceSnapshot? = nil, parser: String = "explicit-selections-v1",
+    coverage: String = "partial",
+    detail: String = "Explicit selections only. Automatic mention parsing has not run."
+  ) throws -> String {
+    _ = try Self.referenceSelectionsValue(selections)
+    let body = try referenceBody(origin)
+    let prior = try readReferenceSnapshot(origin, snapshotID: previous)
+    let allowedIDs = Set((prior.references + (inherited?.references ?? [])).map(\.id))
+    let bindings = try normalizedReferenceBindings(selections, body: body, allowedIDs: allowedIDs)
     let hash = ToolResultProjection.digest(body)
     var evidenceData: [String: Value] = [
       "originVersionID": .string(origin), "bodyHash": .string(hash),

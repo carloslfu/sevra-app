@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5zn6ks2pyv72pjs65f90rxj
 created: 2026-10-27T21:45:28.610289+00:00
-updated: 2026-10-28T05:45:44.559518+00:00
+updated: 2026-10-28T06:09:16.471871+00:00
 summary: Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.
 title: Inline references and relationships
 status: reviewed
@@ -13,7 +13,7 @@ status: reviewed
 ## Decision and scope
 
 Adopted October 27, 2026. The explicit-binding foundation, bounded body parser, backlink index and owner-facing CLI are implemented.
-Extracted-file links, native interaction, scoped agent traversal and complete first-slice acceptance remain pending. Authority:
+Retained extracted-text links and owner CLI inspection are now implemented as a bounded slice. Native interaction, scoped agent traversal, embedded format-specific hyperlinks and complete first-slice acceptance remain pending. Authority:
 [[sources/notes/2026/10/inline-references-adoption]]. This extends Sources/Records,
 SQLite, native previews and agentic search without adding a business category.
 At adoption, record bodies retain wiki syntax as text, conversation messages have
@@ -238,8 +238,8 @@ all retained snapshot chains, body/label bytes, selection Sources, inherited
 bindings, targets and heads. Search-index rebuild does not reinterpret bindings.
 
 The next section supersedes the foundation-only parser, backlink and CLI status.
-Next implement extracted-input locators/coverage, native/text/voice interaction and
-bounded scoped agent traversal. LJ01-LJ10 remain the full first-slice contract; the focused core
+The later extracted-text section supersedes the extraction status. Next implement
+native/text/voice interaction and bounded scoped agent traversal. LJ01-LJ10 remain the full first-slice contract; the focused core
 evidence establishes only the cases recorded in
 [[records/operations/implementation]].
 
@@ -341,3 +341,75 @@ large-graph latency and peak-memory evidence remain open. See
 Primary parser contract: [CommonMark links](https://spec.commonmark.org/0.31.2/#links),
 [official Swift Markdown](https://github.com/swiftlang/swift-markdown/tree/0.9.0),
 and [SQLite multi-column indexes](https://www.sqlite.org/queryplanner.html#multi_column_indices).
+
+## Retained extracted-text annotations, schema 7, October 28
+
+File mentions are canonical technical annotations over retained extraction input,
+separate from original asset bytes, Source body and replaceable overlapping FTS
+chunks. `file_reference_inputs` retains exact bounded regions/locators, origin
+version, asset ID/hash, extractor identity/state/detail, content hash and truncation.
+`file_reference_sets` retains versioned parser/coverage, canonical binding JSON,
+prior snapshot and annotation Source; `file_reference_heads` selects each exact
+origin's current annotation. `file_reference_index` is the rebuildable covering
+incoming projection. `extraction_attempts` guards worker publication. No new
+business Record is created per occurrence and no file asset is stored as a BLOB.
+
+The shared wiki/stable-route parser operates on each retained region before FTS
+splitting. Locations are zero-based Unicode scalar spans within that immutable
+region, plus the extractor's page/sheet/row/text locator. PDF page text can thus
+retain coordinates across chunk rebuilds without pretending they are PDF glyph
+coordinates. Embedded PDF annotations, Office relationship hyperlinks, media
+links outside extracted text and other unextracted content are not parsed. Ready
+means supported syntax in the captured input was processed, not that every link
+in the original file exists in the index. OCR text remains fallible. Parser
+limitations described above still apply.
+
+The initial per-origin bounds are 512 retained regions, 1,000,000 total UTF-8 text
+bytes, 64,000 total locator bytes, 1024 bytes per locator and 128 occurrences.
+Excess input/occurrences report partial coverage. Retained text is cut only at a
+Unicode scalar boundary. Unsupported extraction publishes unsupported coverage.
+Failure/cancellation preserves the last committed search index and annotations;
+the latest extraction attempt is reported separately from the captured snapshot.
+There is no claim of whole-app memory qualification or arbitrary-file coverage.
+
+New extraction publishes search chunks/status, retained input, complete bounded
+annotation set, Source, projection and receipt in one transaction. Competing
+workers carry attempt identities: an older completion or failure cannot replace a
+newer's text, bindings or status. Returning to identical captured input preserves
+its latest explicit choices, including unresolved choices. Changed input creates
+a new snapshot; old regions and annotations remain inspectable. Unchanged assets
+carry bindings through exact Source version changes and Undo. Index rebuild
+copies canonical bindings without parsing or changing destinations. Canonical
+schemas 1-6 migrate without running extraction or guessing file links; migrated
+file origins remain unindexed until explicit extraction. Schema 7 requires a
+matched app/CLI build.
+
+`fileReferenceSnapshot`, `fileReferenceHistory`, `fileReferenceRegion` and
+`resolveFileReference` expose bounded owner inspection. `annotateFileReferences`
+requires an exact Source version and the nonnull current snapshot, records a new
+partial manual selection set and supports exact idempotent retry. Selections are
+region-relative and replace the complete current chosen set. They preserve the
+original asset and Source. They do not create read/citation proof for the model.
+Verification checks retained hashes and asset identity, bounded original spans,
+annotation Sources/chains/inheritance, stable parse targets and both directions
+of the derived projection. Corruption refuses rather than silently repairing
+canonical input; explicit rebuild repairs only derived lookup rows.
+
+`referenceLinks`, `references` and `backlinks` now merge body and file mentions
+before pagination and deduplicate exact versions across both. `contentScope` is
+`all` by default, or `body`/`extracted`; it participates in the cursor identity.
+Incoming queries use two bounded indexed prefixes and merge before the page.
+Outgoing grouping is bounded by at most 256 combined occurrences. Hits report
+`discoveryScopes`, total mention count and first locator/snapshot kind. Coverage
+metadata describes the requested anchor, not an exhaustive workbook-wide absence
+claim. Other files may remain unindexed. Filters and current/history/exact-target
+rules continue to apply to both scopes, with no external IO or permission expansion.
+
+CLI inspection uses `file-reference-snapshot`, `file-reference-history`,
+`file-reference-region` and `file-reference-resolve`. `annotate-file-references`
+provides explicit Source correction; `extract` explicitly retries/catches up one
+exact file version. See [[records/operations/build-and-run]] and the repo-owned
+skill for argument shapes. The focused core and packaged CLI evidence is recorded
+in [[records/operations/implementation]]. Native links/resolution/Back, voice/text
+authoring, scoped local-agent traversal/read enforcement and LJ07/LJ09/LJ10 remain
+open. This slice does not qualify complete L01-L14 delivery or app release.

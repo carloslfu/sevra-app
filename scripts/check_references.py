@@ -123,7 +123,7 @@ def main():
         asset_bytes = b"Original file [[not an item-body link]]\r\n"
         asset_file.write_bytes(asset_bytes)
         run("import", book, asset_file)
-        checked("body coverage does not claim extracted file-link coverage", "extracted file contents" in run("backlinks", book, revised["id"])["notice"])
+        checked("discovery distinguishes captured text from embedded or unextracted links", "embedded hyperlinks" in run("backlinks", book, revised["id"])["notice"])
         run("rebuild-references", book)
         checked("rebuild preserves canonical annotation", run("reference-snapshot", book, origin["id"]) == corrected)
         checked("catch-up skips already indexed body versions", run("index-reference-bodies", book, '{"limit":1}')["processed"] == [])
