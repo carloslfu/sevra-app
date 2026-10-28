@@ -383,17 +383,22 @@ package enum NativeTools {
     .init(
       name: "propose_movement",
       description:
-        "Propose a draft inventory movement. The user must accept it before it changes actual stock.",
+        "Propose a draft inventory movement only when evidence or the current request establishes direction relative to our stock. A receipt, delivery or handover alone does not establish who sent or received it: ask first. User acceptance is required to apply it.",
       parameters: object(
         [
           "subject": schema("string", "Inventory subject."),
-          "quantity": schema("string", "Signed decimal string."),
+          "quantity": schema(
+            "string", "Signed decimal: positive adds to our stock; negative leaves our stock."),
           "occurrence": schema(
             "string", "Business occurrence ID; reusing it cannot duplicate its effect."),
           "effective": schema("string", "ISO 8601 date/time."),
           "input": schema("string", "Exact supporting evidence item ID."),
           "meaning": schema(
             "string", "actual for observed facts; estimate or plan for future scenarios."),
+          "supersedes": schema(
+            "string",
+            "For a requested correction, exact current movement version ID. Keep its subject and occurrence; never invent a new occurrence to bypass a duplicate refusal."
+          ),
         ], required: ["subject", "quantity", "occurrence", "effective", "input"])),
     .init(
       name: "finish",

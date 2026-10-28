@@ -20,6 +20,14 @@ public enum BusinessTime {
 }
 
 extension Workbook {
+  /// Drafts do not replace the last accepted/withdrawn inventory decision.
+  /// Call within the workbook transaction when restoring a review decision.
+  func settledMovement(_ logicalID: String, before version: Int) throws -> Item? {
+    try db.execute(
+      "SELECT * FROM items WHERE logical_id=? AND version<? AND kind='movement' AND status IN ('accepted','rejected') ORDER BY version DESC LIMIT 1",
+      [.string(logicalID), .number(Double(version))]
+    ).first.map(decodeItem)
+  }
   public func setOpeningBalance(
     subject: String, quantity: String, effective: String, sourceID: String
   ) throws {
@@ -66,7 +74,14 @@ extension Workbook {
           source.category == "source" && source.kind == "request", "movement_request",
           "The movement request must reference its captured user submission.")
       }
-      let logical = try supersedes.map { try item($0).logicalID }
+      let previous = try supersedes.map { try item($0) }
+      if let previous {
+        try require(
+          previous.kind == "movement" && previous.data["subject"].text == subject
+            && previous.data["occurrence"].text == occurrence,
+          "movement_revision", "A correction must keep the same inventory subject and occurrence.")
+      }
+      let logical = previous?.logicalID
       let existing = try db.execute(
         "SELECT DISTINCT i.logical_id FROM effects e JOIN items i ON i.id=e.item_id WHERE e.occurrence=? AND e.subject=? AND e.kind='inventory'",
         [.string(occurrence), .string(subject)])

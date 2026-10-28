@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T01:03:55.826941+00:00
+updated: 2026-10-28T01:32:35.649325+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -17,6 +17,23 @@ every requirement or supported hardware profile has passed.
 This remains a development build. The preserved Slotstream app is the baseline;
 the separate native preview uses the Python-free Swift adapter and pinned Splash
 C++/Metal. Native adoption and automatic compaction remain gated.
+
+- The integrated typed/native supplier journey now has direct evidence for intake,
+  correct comparison, native table/chart composition, exact quote navigation,
+  what-if thread, edited summary sharing, scoped drafts, explicit movement revision,
+  acceptance/Undo and close/reopen. J11 remains unqualified: an ambiguous handover
+  was interpreted as +2, including after guidance repair; the replay invented a
+  resubmit occurrence after refusal. Both unsupported drafts were withdrawn.
+- Fixed a reproduced accounting regression: withdrawing a draft inventory correction
+  preserves its prior accepted effect, and Undo of an accepted correction restores
+  that effect. The regression first failed (80 passed, 1 failed), then all 81 core
+  checks passed. Preview, agent/context-budget and native grammar checks pass.
+  An optional supersedes tool field enables explicit revision with the same subject
+  and occurrence. Review now says Increase or Decrease. Explicit outgoing native
+  clarification produced -2 correctly, with stock 20 -> 18 -> 20.
+- Chat pipe tables still render literally, despite correct right-pane native tables.
+  That presentation repair is pending after the material inventory reliability issue.
+
 
 - Compound requests preserve exact same-request evidence and show the completed
   thread-creation result before continuing. Current user text stays intact;
@@ -141,9 +158,12 @@ Inline references, backlinks and bounded traversal are planned, not implemented.
 L01-L14 and LJ01-LJ10 define delivery and verification. Keep the active checkpoint
 and engine qualification in place; inferred associations follow measured value.
 
-Next, exercise the coherent J11 journey. Current Home pending-review discovery is
-implemented and verified. Keep navigation shortcuts distinct from snapshots and
-retain the recorded ordinary-language limitation.
+Next, resolve the observed inventory-direction and semantic duplicate-event failures
+with an evidence-backed interaction and validation boundary; do not claim a tool
+description alone solved them. Continue J11 and native chat-table presentation,
+retaining the successful comparison/thread/draft evidence. Current Home review is
+implemented. Keep navigation shortcuts distinct from snapshots and retain the
+recorded ordinary-language limitation.
 The new action checkpoint does not qualify all language, microphone or accessibility
 paths, native adoption, or automatic compaction.
 Thread creation/rename still
@@ -3531,3 +3551,78 @@ observations, CLI checks, original-row audit and query-only limits. Existing eng
 parity, automatic-compaction, references/backlinks, full J11, accessibility and
 release gates remain open. Next is the coherent J11 journey, with its failures and
 limits recorded rather than treating this slice as whole-app completion.
+
+## Integrated supplier journey and correction repair, October 27
+Ran a fresh synthetic workbook through native creation and intake of the existing
+make_ui_fixture CSV, PDF and PNG. The ordinary supplier request produced the correct
+2.50/2.75 comparison, 0.25 difference and 9.09 percent relative to Vega, with exact
+citations and a Purchasing table/chart space. An exact quote row opened through
+its message action and Back returned to Purchasing. A direct AX link click did
+not activate in this run; do not claim full keyboard/pointer equivalence.
+
+A compound request created Pricing options and answered the hypothetical Vega 2.40
+price correctly: 48 versus 50 for twenty, saving two. No quote/inventory mutation
+occurred. An ordinary share request opened review; only the manually selected
+what-if summary entered main, linked to its original exchange. The unsent main
+draft was restored when returning.
+
+The delivery request was ambiguous: the image says two bolts handed over but does
+not identify sender/recipient. The model proposed +2. It remained a draft and was
+withdrawn. This is a failed interpretation, not an actual inventory mutation.
+A tool-description correction clarified sign/direction and asking when ambiguous.
+The unchanged request in retained history still proposed +2; after duplicate
+refusal it invented a resubmit occurrence. Preserve both failed runs. Neither was
+accepted. Prompt-only clarification and semantic event identity are unqualified.
+
+Code review of the exposed correction path found a separate concrete accounting
+regression. Rejecting a draft correction also cancelled the earlier accepted
+effect. Added a meaningful invariant check, observed 80 passed/1 failed, then
+repaired withdrawal and Undo to restore the prior settled inventory effect. New
+accepted heads preserve the earlier accepted content and exact lineage; Undo of
+withdrawal restores the declined draft without accepting it. Movement corrections
+now enforce unchanged subject/occurrence. No schema migration or history rewrite.
+The agent tool exposes optional supersedes for an explicitly requested revision.
+The native review makes Increase/Decrease explicit and explains retained acceptance
+when a correction is withdrawn. The repo-owned skill documents these semantics.
+
+After rebuilding, opened the original withdrawn movement and clarified that the
+two units left our stock for the customer. Two model steps read that current version
+and proposed -2 with its exact supersedes and original occurrence. Native review
+showed Decrease: 2 brass bolts. Stock was 20 before acceptance, 18 after explicit
+acceptance and 20 after Undo. The unrelated resubmit draft stayed withdrawn.
+
+Separate main/thread drafts survived switching and close/reopen. The main scrollbar
+returned to 0.1207576953433307, with the exact saved message/fraction retained.
+All original items/assets/messages/operations/spaces from the initial snapshot,
+and every pre-repair item/message/operation, remain byte-for-byte equal at the row
+level. Included asset hashes match. Workbook verify passes with no asset issues.
+The app quit normally after the interaction.
+
+Verification commands and scope:
+- swift build --product sevra-checks, then .build/debug/sevra-checks: 81 pass, zero
+  fail after repair. Retain the earlier 80/1 failure. Checks cover prior effect,
+  withdrawal retry, Undo/draft restoration, correction acceptance/Undo, stale
+  targeting, subject identity, preserved originals, integrity and reopen.
+- Built and ran sevra-preview-checks and sevra-agent-checks. Existing context
+  budgets and first-draft withdrawal counterexamples pass.
+- Updated actual-tool fixtures using the existing pinned development reference;
+  python3 scripts/check_splash_grammar.py passes 32 tools, 37 cases, 307 exact masks.
+- Native SEVRA_NATIVE_CANDIDATE=1 release SevraDesktop/sevra builds under
+  .build/native-product and scripts/package_native.py pass. Strict changed-file
+  swift format lint and git diff --check pass. No full installation or broad
+  model/both-backend cohort or hosted CI rerun was performed.
+
+The native screenshot also exposes raw pipe-table Markdown in chat; the generated
+right-pane table/chart is correct. Native chat-table formatting is pending.
+J11 is not passed: ambiguous direction and semantic duplicate prevention failed,
+and full voice, interruption, narrow-window, keyboard/VoiceOver and uncoached-user
+coverage remain. Engine adoption, automatic compaction, references/backlinks and
+release gates remain open. Next work is the material inventory reliability boundary,
+then the remaining coherent journey and presentation gaps.
+
+Immutable evidence:
+[supplier journey receipt](../../../integration/evidence/2026-10-27-supplier-journey.json),
+95,707 bytes, SHA-256
+`715552c7277d73fc9d62893482f4c93466dc4f78b186b5cdaf4da14fa8c9da4c`.
+It binds source/build hashes, both failures, check outputs, explicit correction,
+source/asset/history audit, original model messages and scoped presentation state.

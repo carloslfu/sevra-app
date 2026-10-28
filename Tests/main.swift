@@ -107,6 +107,49 @@ check("correction supersedes rather than adds") {
     input: correction.id, status: "accepted", supersedes: movement.id)
   try expect(try book.balance(subject: "bolts")["quantity"].text == "19")
 }
+check("withdrawing and undoing a correction preserve the prior accepted inventory effect") {
+  let b = try Workbook.create(
+    at: temp.appendingPathComponent("ReviewCorrection.sevra"), title: "Review")
+  let s = try b.addItem(category: "source", kind: "observation", title: "Count", status: "accepted")
+  try b.setOpeningBalance(subject: "stock", quantity: "20", effective: "2026-01-01", sourceID: s.id)
+  let first = try b.movement(
+    subject: "stock", quantity: "-2", occurrence: "delivery", effective: "2026-01-02", input: s.id,
+    status: "accepted")
+  let correction = try b.movement(
+    subject: "stock", quantity: "-1", occurrence: "delivery", effective: "2026-01-02", input: s.id,
+    supersedes: first.id)
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  let withdrawn = try b.withdrawDraft(correction.id, token: "decline-correction")
+  try expect(try b.withdrawDraft(correction.id, token: "decline-correction").id == withdrawn.id)
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  try expect(withdrawn.status == "accepted" && withdrawn.data["quantity"].text == "-2")
+  let restoredDraft = try b.undoItem(withdrawn.id)
+  try expect(restoredDraft.status == "draft" && restoredDraft.data["quantity"].text == "-1")
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  let accepted = try b.accept(restoredDraft.id)
+  try expect(try b.balance(subject: "stock")["quantity"].text == "19")
+  let undone = try b.undoItem(accepted.id)
+  try expect(undone.status == "accepted" && undone.data["quantity"].text == "-2")
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  try expect(try b.item(correction.id).status == "draft")
+  try expect(try Workbook(b.url).balance(subject: "stock")["quantity"].text == "18")
+  let args = Value.object([
+    "subject": .string("stock"), "quantity": .string("-1"), "occurrence": .string("delivery"),
+    "effective": .string("2026-01-02"), "input": .string(s.id), "supersedes": .string(undone.id),
+  ])
+  let revised = try WorkbookTools(b).execute("propose_movement", args)
+  try expect(revised["supersedes"].text == undone.id && revised["status"].text == "draft")
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  try refuses("stale_revision") { _ = try WorkbookTools(b).execute("propose_movement", args) }
+  try refuses("movement_revision") {
+    _ = try b.movement(
+      subject: "different stock", quantity: "-1", occurrence: "delivery", effective: "2026-01-02",
+      input: s.id, supersedes: revised["id"].text)
+  }
+  _ = try b.withdrawDraft(revised["id"].text)
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  try expect(try b.verify()["ok"] == .bool(true))
+}
 check("unknown basis does not become zero") {
   try refuses("unknown_basis") { _ = try book.balance(subject: "unknown") }
 }

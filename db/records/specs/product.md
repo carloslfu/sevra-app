@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-28T01:03:55.748847+00:00
+updated: 2026-10-28T01:32:35.574392+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -438,9 +438,14 @@ components cannot hide the pending-review preview.
 
 Open an entry to inspect its original and lineage before deciding. A current draft
 may be accepted or withdrawn individually. Withdrawal records a new human decision
-and withdrawn version without applying its proposed inventory or table effects.
-Undo of withdrawal restores a draft, never accepts it. Acceptance and Undo retain
-their existing explicit review semantics. A completed review replaces the current
+without applying the draft's proposed inventory or table effects. A first draft
+becomes withdrawn. For an inventory correction, restore the earlier accepted
+version as the current head and preserve its effect; declining a correction must
+not cancel the already accepted occurrence.
+Undo of withdrawal restores the declined draft, never accepts it. Undo of an
+accepted inventory correction restores the previously accepted effect. The review
+view spells out Increase or Decrease and the quantity; the user must check the
+direction before acceptance. Sources and original versions remain unchanged. A completed review replaces the current
 item route, so one Back returns to the preceding list or view instead of stepping
 through intermediate status versions. Historical links remain exact.
 
@@ -458,3 +463,27 @@ checks cover current heads, stale/foreign cursors, cancellation, late reads,
 idempotency and no table/inventory side effects from withdrawal. This establishes
 the implemented slice, not the full J11 or keyboard/VoiceOver/language journey.
 Evidence: [review queue receipt](../../../integration/evidence/2026-10-27-review-queue.json).
+
+## Integrated supplier journey findings
+A focused native J11 attempt imports a quote CSV, invoice PDF and receipt image,
+compares suppliers, creates a live Purchasing table/chart, opens an exact quote
+row and returns, explores a what-if in a named thread, reviews/shares selected
+findings, corrects an outgoing movement, accepts/undoes it, and restores separate
+unsent drafts and reading position after close/reopen. Those individual observations
+are recorded; the whole journey is not qualified.
+
+The ambiguous receipt says two units were handed over without identifying who
+sent or received them. The model guessed a positive stock movement. Changing tool
+guidance did not fix the retained-history replay, and it invented a resubmit
+occurrence after duplicate refusal. Both unsupported drafts were withdrawn without
+acceptance. Explicit outgoing clarification did produce the correct -2 revision,
+with the same occurrence, and stock followed 20 -> 18 -> 20 under native review.
+Direction clarification and semantic event identity remain required reliability work.
+Do not treat an unaccepted draft or a green arithmetic test as proof of a correct
+business interpretation.
+
+The right-pane table and chart render correctly; the conversation still displays
+pipe-table Markdown literally. Native chat table presentation is pending. Full
+voice/text equivalence, interruption, narrow-window, keyboard/VoiceOver and an
+uncoached user's experience remain separate J11 requirements. Evidence:
+[supplier journey receipt](../../../integration/evidence/2026-10-27-supplier-journey.json).

@@ -472,3 +472,6 @@ Add scoped space opening and pin/unpin shortcuts; focused native/agent/grammar c
 ## [2026-10-28 01:03] implementation | records/operations/implementation.md
 Implemented and verified current draft review, scoped native opening and explicit withdrawal; schema 4, focused checks and immutable evidence recorded. J11 and engine/release gates remain open.
 
+## [2026-10-28 01:32] implementation | records/operations/implementation.md
+Exercised integrated supplier journey; fixed accepted movement correction withdrawal/Undo with 81 passing core checks. Retained failed ambiguous-direction replay and resubmit occurrence; J11 and semantic event identity remain open.
+

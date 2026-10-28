@@ -695,8 +695,11 @@ import SwiftUI
           case .withdraw: return try book.withdrawDraft(id)
           }
         }.value
+        let receipt =
+          action == .withdraw && record.status == "accepted"
+          ? "Withdrew the draft. Previous accepted version restored: " : action.receipt
         _ = try book.addMessage(
-          action.receipt + record.referenceMarkdown,
+          receipt + record.referenceMarkdown,
           role: "event", conversation: chat)
         guard owns(ticket, in: book) else { return }
         refresh()

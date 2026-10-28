@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T01:03:55.794911+00:00
+updated: 2026-10-28T01:32:35.614081+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -550,3 +550,31 @@ One native typed request opened the panel in two model steps. That observation a
 synthetic host/refusal checks do not qualify general voice/language or all compound
 review flows. See [[records/specs/product]] and the
 [review queue receipt](../../../integration/evidence/2026-10-27-review-queue.json).
+
+## Inventory direction and movement revisions
+propose_movement accepts an optional supersedes exact current-version ID for an
+explicit correction. Keep the inventory subject and occurrence unchanged. Core
+checks refuse a different subject/occurrence, stale target and duplicate exact
+occurrence; the revision stays a draft. The agent may not invent a fresh occurrence
+to bypass duplicate refusal. The request Source is retained with original evidence.
+
+Positive quantity adds to our stock; negative quantity leaves it. Establish direction
+relative to the user's inventory from the original evidence or current request.
+A receipt, delivery or handover alone may not name sender/recipient. Ask when that
+meaning is unclear before proposing an actual movement. This is the required
+behavior, not a claim that the present model follows it reliably.
+
+The October 27 J11 attempt and retained-history replay both guessed +2 for an
+ambiguous handover. The replay also changed the occurrence to a resubmit variant
+after refusal. Guidance in the tool description alone is insufficient. Neither
+draft was accepted. This remains open material reliability work: qualify direction
+clarification and event identity without conflating genuinely separate events or
+silently overwriting prior interpretations. Exact-string duplicate checks alone
+cannot establish that two descriptions refer to different real-world events.
+
+The nearby explicit outgoing clarification passed: two model steps read the current
+withdrawn movement and proposed -2 with its exact supersedes and unchanged occurrence.
+Native review displayed Decrease: 2 brass bolts. Stock remained 20 until explicit
+acceptance, then 18, and Undo restored 20. This positive result does not erase the
+ambiguous failures or qualify unrestricted inventory autonomy. See the
+[supplier journey receipt](../../../integration/evidence/2026-10-27-supplier-journey.json).

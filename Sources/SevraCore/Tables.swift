@@ -471,7 +471,24 @@ extension Workbook {
       guard let prior = current.supersedes else {
         throw SevraError("undo", "No previous version exists.")
       }
-      let old = try item(prior)
+      var old = try item(prior)
+      var restoredStatus =
+        current.status == "accepted" && old.status == "draft" ? "rejected" : old.status
+      if current.kind == "movement", current.status == "accepted", old.status == "draft" {
+        let declinedCorrection =
+          try db.scalar(
+            "SELECT EXISTS(SELECT 1 FROM lineage WHERE child=? AND transformation='withdraw-draft-v1')",
+            [.string(current.id)]
+          ).int == 1
+        if declinedCorrection {
+          restoredStatus = "draft"
+        } else if let settled = try settledMovement(current.logicalID, before: old.version),
+          settled.status == "accepted"
+        {
+          old = settled
+          restoredStatus = "accepted"
+        }
+      }
       var restoredData = old.data
       if current.kind == "table-creation", let datasetID = current.data["datasetID"].string {
         try db.execute(
@@ -509,8 +526,9 @@ extension Workbook {
       let restored = try insertItem(
         category: current.category, kind: current.kind, title: old.title, text: old.text,
         data: restoredData, meaning: old.meaning,
-        status: current.status == "accepted" && old.status == "draft" ? "rejected" : old.status,
-        scenario: old.scenario, inputs: [current.id, old.id, evidence], transformation: "undo-v1",
+        status: restoredStatus,
+        scenario: old.scenario, inputs: [current.id, prior, old.id, evidence],
+        transformation: "undo-v1",
         assetID: old.assetID, supersedes: current.id)
       try db.execute(
         "INSERT INTO effects SELECT occurrence,subject,kind,?,quantity,effective FROM effects WHERE item_id=?",

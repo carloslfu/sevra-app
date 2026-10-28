@@ -67,7 +67,7 @@ public struct WorkbookTools {
     Example save_space arguments: {"title":"Purchasing","definition":{"version":1,"components":[{"id":"table1","type":"table","title":"Quotes","datasetID":"ID_FROM_DATASETS"},{"id":"chart1","type":"chart","title":"Cost","datasetID":"ID_FROM_DATASETS","x":"supplier","y":"total"}]}}.
     draft: title string, text string, inputs array of exact source/record IDs. Autosaves a draft document.
     propose_record: title, text, kind, meaning (actual|estimate|plan|commitment|assumption|rule), inputs array, optional data object. Creates a draft interpretation.
-    propose_movement: subject, quantity decimal string, occurrence unique business ID, effective ISO8601 time, input exact evidence ID, optional meaning. Creates a draft, no effect until user accepts.
+    propose_movement: subject, signed quantity (positive adds to our stock, negative leaves it), occurrence unique business ID, effective ISO8601 time, input exact evidence ID, optional meaning. Ask who sent/received when evidence or the current request does not establish direction. Correct an existing movement with its same occurrence and exact current version as supersedes. Creates a draft, no effect until user accepts.
     finish: answer string, basis evidence|current_request|completed_action|general|unresolved, citations array, optional counts array of up to four current-run count_records receipt IDs for host-rendered scoped counts. Stored workbook/history claims require evidence and inspected citations, including when a summary suggests the answer. completed_action requires a successful current-run action. current_request uses only this request's inputs and checked arithmetic. general makes no stored-data claims. unresolved must explicitly disclose missing facts without guessing.
     """
   public func operationToken(_ tool: String, _ arguments: Value) throws -> String {
@@ -277,7 +277,8 @@ public struct WorkbookTools {
         workbook.movement(
           subject: string("subject"), quantity: string("quantity"),
           occurrence: string("occurrence"), effective: string("effective"), input: string("input"),
-          meaning: a["meaning"].string ?? "actual", token: token, requestSourceID: requestSourceID))
+          meaning: a["meaning"].string ?? "actual", supersedes: a["supersedes"].string,
+          token: token, requestSourceID: requestSourceID))
     default: throw SevraError("tool", "Unknown workbook tool: \(tool)")
     }
   }

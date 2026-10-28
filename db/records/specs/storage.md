@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T01:03:55.780967+00:00
+updated: 2026-10-28T01:32:35.595691+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -289,10 +289,17 @@ p95 8.91 ms over thirty samples. It omits body/chunk ingestion and is not eviden
 of whole-app, disk, import or FTS performance. Existing draft history still costs
 index traversal; this is not an O(current-drafts) complexity claim.
 
-Withdrawal appends a decision Source and rejected current version with its input
-links and preserved proposed effects. Rejected effects do not enter actual state.
-Retrying the same operation token returns the same result; obsolete and accepted
-versions refuse withdrawal. Undo restores the preceding draft state. Original
-inputs and versions remain immutable. UI calls this status Withdrawn.
+Withdrawal appends a decision Source. A first draft becomes a rejected current
+version, with its proposed effects preserved but unapplied. For a movement
+correction, the latest preceding settled version determines accepted state. If it
+was accepted, copy that accepted content/effect into the new head and link both the
+declined draft and prior acceptance; withdrawing the correction must not erase the
+earlier accepted effect. Undo of this withdrawal restores the declined draft while
+retaining accepted inventory. Undo of an accepted correction similarly restores
+the earlier accepted effect, or withdraws the occurrence when no accepted effect
+preceded it. The lineage transformation distinguishes withdrawal from acceptance.
+Retrying the same withdrawal token returns the same result; obsolete and accepted
+targets refuse withdrawal. Movement revisions preserve subject and occurrence.
+Original inputs and versions remain immutable; this repair needs no schema change.
 See [[records/specs/product]] and the
 [review queue receipt](../../../integration/evidence/2026-10-27-review-queue.json).

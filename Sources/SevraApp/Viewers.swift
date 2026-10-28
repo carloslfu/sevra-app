@@ -28,6 +28,13 @@ import SwiftUI
     let status = item.status == "rejected" ? "Withdrawn" : item.status.capitalized
     return [item.category.capitalized, item.meaning.capitalized, status].joined(separator: " · ")
   }
+  private var movementDirection: String? {
+    guard item.kind == "movement", let quantity = try? Numbers.decimal(item.data["quantity"].text)
+    else { return nil }
+    if quantity == 0 { return "No stock quantity change" }
+    let amount = Numbers.string(quantity < 0 ? -quantity : quantity)
+    return (quantity < 0 ? "Decrease: " : "Increase: ") + amount + " " + item.data["subject"].text
+  }
   var body: some View {
     VStack(spacing: 0) {
       HStack {
@@ -190,6 +197,13 @@ import SwiftUI
         ScrollView {
           VStack(alignment: .leading, spacing: 18) {
             Text(item.title).font(.title2)
+            if let movementDirection {
+              Text(movementDirection).font(.headline)
+              if item.status == "draft" {
+                Text("Check whether these units entered or left your stock before accepting.")
+                  .foregroundStyle(.secondary)
+              }
+            }
             Text(item.text).textSelection(.enabled)
             if item.kind == "link", let target = URL(string: item.data["url"].text) {
               Link("Open source website", destination: target)

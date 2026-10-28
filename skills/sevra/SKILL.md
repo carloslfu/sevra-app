@@ -27,12 +27,23 @@ Use `sevra tool PATH review_queue '{}'` to discover current drafts beyond recent
 activity. Follow its nextCursor with a cursor argument. Requests and table rows
 are excluded; table changes appear as proposals. A changed draft list invalidates
 old pages, so restart discovery. Read the returned exact version before acting.
-When the user declines a draft, `withdraw PATH ID [TOKEN]` preserves it without applying
-its proposed effect. `undo PATH WITHDRAWN_ID` restores a withdrawn draft for review;
-it does not accept it. Only current drafts can be withdrawn. Inspect a stale-version
+When the user declines a draft, `withdraw PATH ID [TOKEN]` preserves its history
+without applying its proposed effect. For an inventory correction, the prior
+accepted version is restored as the current head and its effect stays unchanged.
+`undo PATH WITHDRAWAL_RESULT_ID` restores the declined draft for review; it does
+not accept the draft. Only current drafts can be withdrawn. Inspect a stale-version
 refusal instead of silently targeting a newer version. `open_reviews` and
 `open_space` need an owning live app window to confirm visible navigation; a CLI
 resolution is not proof that anything opened on screen.
+
+For inventory proposals, positive quantities enter our stock and negative quantities
+leave it. A receipt or handover alone does not establish direction; ask when the
+source and current request leave that unclear. To correct a movement, read its
+current version and use `tool PATH propose_movement JSON` with that exact ID as
+`supersedes`, preserving its subject and occurrence. Never invent a different
+occurrence to bypass duplicate detection. The correction remains a draft. Undo of
+an accepted correction restores the prior accepted effect instead of cancelling
+the whole occurrence.
 
 For a requested text-document revision, read the exact version and write the new
 body to a UTF-8 file. Use `edit-document PATH VERSION_ID UTF8_FILE --token TOKEN`.
