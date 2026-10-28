@@ -163,10 +163,12 @@ public final class SplashToolPolicy {
         let body: String
         if key == "properties", let properties = object[key] as? [String: Any] {
           let required = (object["required"] as? [String] ?? []).filter { properties[$0] != nil }
-          // Select the existing component before its optional edit arguments.
-          // Otherwise emitting componentID would permanently exclude at/beforeID
-          // under LLGuidance's fixed JSON property order.
-          let selectors = ["componentID"].filter { properties[$0] != nil && !required.contains($0) }
+          // Select the component/bound behavior before its optional arguments.
+          // Fixed property order must not hide placement after componentID, or
+          // typed arguments after choosing a definitionBinding.
+          let selectors = ["componentID", "definitionBinding"].filter {
+            properties[$0] != nil && !required.contains($0)
+          }
           let first = required + selectors
           let names = first + properties.keys.filter { !first.contains($0) }.sorted()
           body =

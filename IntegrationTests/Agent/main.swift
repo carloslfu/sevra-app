@@ -247,6 +247,7 @@ do {
   try await checkRequestAdmission()
   try await checkMovementDirection()
   try await checkApplicationTools()
+  try await checkComputationTools()
   try await checkCitationVersions()
   try await checkActionConfirmations()
   try await checkDocumentCopies()
@@ -285,6 +286,10 @@ do {
     try await runCurrencyRecoveryProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--computation" {
+    try await runComputationProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--application-tools" {
     try await runApplicationToolProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],

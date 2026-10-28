@@ -11,7 +11,8 @@ private actor PagedSearchInference: WorkbookInference {
   func endRun() {}
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
-    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope, citationIDs: [String]
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
   ) throws -> NativeReply {
     steps += 1
     var arguments: Value = .object(["query": .string("cafe supplier")])
@@ -64,6 +65,13 @@ func checkScopedSearch() async throws {
       category: "source", kind: "note", title: "Café supplier \(index)",
       text: "Supplier evidence \(index).")
   }
+  let definition = try book.saveApplicationDefinition(
+    logicalID: identifier(),
+    content: .object([
+      "kind": .string("function"), "title": .string("Café supplier calculation"),
+      "description": .string("Untrusted behavior metadata"), "parameters": .array([]),
+      "payload": .object(["expression": .string("2"), "calls": .array([])]),
+    ]))
   let request = try book.addMessage("café supplier CURRENT-REQUEST", role: "user")
   let run = try book.startAgentRun(
     conversation: "main", model: "fixture", requestMessageID: request)
@@ -74,9 +82,17 @@ func checkScopedSearch() async throws {
   try expectEqual(result["conversation"]["searched"], .bool(true))
   try expectEqual(result["conversation"]["hits"].array.count, 8)
   try expectEqual(result["snapshotRevision"], result["conversation"]["revision"])
+  try expectEqual(result["definitions"]["searched"], .bool(true))
+  try expectEqual(result["definitions"]["hits"].array.first?["id"], .string(definition.id))
   let businessIDs = WorkbookAgent.visibleEvidence(tool: "search", result: result).map(\.0)
   try expectEqual(businessIDs.count, 12)
   try expectEqual(businessIDs.contains { $0.hasPrefix("message:") }, false)
+  try expectEqual(businessIDs.contains(definition.sourceID), false)
+  try expectEqual(
+    WorkbookAgent.visibleEvidence(
+      tool: "search", result: result["definitions"], path: ["definitions"]
+    ).isEmpty,
+    true)
   // Snippets are discovery only. Separate history pagination must retain the
   // same conversation and active-request ceiling, even while new messages arrive.
   var history = result["conversation"]
@@ -104,6 +120,8 @@ func checkScopedSearch() async throws {
     try expectEqual(filtered["hits"].array.isEmpty, true)
     try expectEqual(filtered["conversation"]["searched"], .bool(false))
     try expectEqual(filtered["conversation"]["hits"].array.isEmpty, true)
+    try expectEqual(filtered["definitions"]["searched"], .bool(false))
+    try expectEqual(filtered["definitions"]["hits"].array.isEmpty, true)
   }
   let page = try tools.execute(
     "search",
@@ -112,6 +130,7 @@ func checkScopedSearch() async throws {
     ]))
   try expectEqual(page["hits"].array.count, 8)
   try expectEqual(page["conversation"]["searched"], .bool(false))
+  try expectEqual(page["definitions"]["searched"], .bool(false))
   try expectThrows(
     try tools.execute(
       "history_search",

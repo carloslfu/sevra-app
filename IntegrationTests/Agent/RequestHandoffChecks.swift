@@ -83,7 +83,8 @@ func checkRequestHandoffs() async throws {
       scope == .answer
       ? []
       : scope == .propose_movement
-        ? [scope.rawValue, "prepare_action"] : [scope.rawValue]
+        ? [scope.rawValue, "prepare_action"]
+        : scope == .propose_record ? [scope.rawValue, "publish_result"] : [scope.rawValue]
     try expectEqual(names, WorkbookTools.readOnlyTools.union(["finish"]).union(extra))
     try expectEqual(scope.allows("start_thread"), false)
   }

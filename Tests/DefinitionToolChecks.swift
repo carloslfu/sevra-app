@@ -344,4 +344,85 @@ func checkDefinitionTools(at root: URL) {
     try expect(try reconstructed.verify()["ok"] == .bool(true))
     _ = try book.verify()
   }
+  check(
+    "result publication uses this active run's intact completed evaluation and refuses other receipts"
+  ) {
+    let (book, request, source, tools) = try setup("Publication")
+    let definition = try book.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: .object([
+        "kind": .string("function"), "title": .string("Constant count"),
+        "description": .string("Synthetic"),
+        "parameters": .array([]),
+        "payload": .object(["expression": .string("2*3"), "calls": .array([])]),
+      ]))
+    let args: Value = .object(["id": .string(definition.id), "arguments": .object([:])])
+    let prepared = try book.prepareToolCall(
+      runID: request.runID, callID: "pending-evaluation", tool: "evaluate_definition",
+      arguments: args)
+    func publish(_ receipt: String) throws -> Value {
+      try tools.execute(
+        "publish_result",
+        .object([
+          "evaluationReceiptID": .string(receipt), "title": .string("Count result"),
+          "meaning": .string("estimate"),
+        ]))
+    }
+    try refuses("definition_evaluation") { _ = try publish(prepared) }
+    _ = try book.completeToolCall(
+      prepared, result: .object(["error": .string("failure")]), failed: true)
+    try refuses("definition_evaluation") { _ = try publish(prepared) }
+    let wrong = try call(book, tools, "read_definition", .object(["id": .string(definition.id)])).0
+    try refuses("definition_evaluation") { _ = try publish(wrong) }
+    let (receipt, evaluation) = try call(book, tools, "evaluate_definition", args)
+    try expect(evaluation["receiptID"] == .string(receipt))
+    try expect(evaluation["snapshot"] != .string(receipt))
+    let readOnly = WorkbookTools(
+      book, runID: request.runID, requestSourceID: source.id, readOnly: true)
+    try refuses("read_only_request") {
+      _ = try readOnly.execute(
+        "publish_result",
+        .object([
+          "evaluationReceiptID": .string(receipt), "title": .string("Count"),
+          "meaning": .string("actual"),
+        ]))
+    }
+    let result = try publish(receipt)
+    try expect(result["status"] == .string("draft") && result["meaning"] == .string("estimate"))
+    try expect(result["data"]["evaluation"]["receiptID"] == .null)
+    let lineage = try book.lineage(result["id"].text)
+    try expect(lineage.contains { $0["parent"] == .string(source.id) })
+    let invocation = try lineage.map { try book.item($0["parent"].text) }.first {
+      $0.kind == "application_invocation"
+    }!
+    try expect(invocation.data["actor"]["kind"] == .string("ai"))
+    try expect(try publish(receipt)["id"] == result["id"])
+    let tamper = Process()
+    tamper.executableURL = URL(fileURLWithPath: "/usr/bin/sqlite3")
+    tamper.arguments = [
+      book.url.appendingPathComponent("workbook.sqlite").path,
+      "UPDATE tool_calls SET result='{}' WHERE id='\(receipt)';",
+    ]
+    try tamper.run()
+    tamper.waitUntilExit()
+    try expect(tamper.terminationStatus == 0)
+    try refuses("integrity") { _ = try publish(receipt) }
+    let other = try book.startAgentRequest(
+      "Inspect this result", conversation: "main", model: "synthetic")
+    let otherSource = try book.addItem(
+      category: "source", kind: "request", title: "Current request", text: "Inspect this result",
+      data: .object(["conversationID": .string("main"), "messageID": .string(other.messageID)]))
+    let foreign = WorkbookTools(book, runID: other.runID, requestSourceID: otherSource.id)
+    try refuses("action_run") { _ = try publish(receipt) }
+    try refuses("definition_evaluation") {
+      _ = try foreign.execute(
+        "publish_result",
+        .object([
+          "evaluationReceiptID": .string(receipt), "title": .string("Foreign"),
+          "meaning": .string("actual"),
+        ]))
+    }
+
+  }
+
 }

@@ -907,3 +907,12 @@ Document focused saved-definition model qualification commands and actual native
 ## [2026-10-28 22:57] verification | records/operations/build-and-run.md
 Correct deterministic agent qualification command to the actual no-argument harness.
 
+## [2026-10-28 23:01] design | records/specs/application-definitions.md
+Specify native live/pinned computation views and separate atomic result publication with bounded exact scoped-population lineage.
+
+## [2026-10-28 23:35] design | records/specs/application-definitions.md
+Refine bounded query snapshot closure, deterministic searchable results, host-provenance rendering and separate unified metadata discovery. Qualification remains in progress.
+
+## [2026-10-28 23:52] implementation | records/specs/application-definitions
+Qualify scoped native computation and exact result publication; retain failed model/UI attempts, preserve 110 prior receipts, keep full E2-E6 and release gates open.
+

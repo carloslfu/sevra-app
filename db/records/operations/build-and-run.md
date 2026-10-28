@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T22:57:44.824773+00:00
+updated: 2026-10-28T23:52:27.511408+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1555,3 +1555,8 @@ component preparation; cancellation still reaps a stubborn helper within5seconds
 Latest visible keyboard checks cover receiving-form evidence/unsent recovery and
 review/accept/undo/restore. Actual VoiceOver and full appearance/media/hardware/
 fresh-install/notarized release checks remain open.
+
+## Reusable computation checks
+The baseline and separate native candidate expose component-evaluate and definition-publish through the same core. See [[records/specs/application-definitions]] for exact binding/typed arguments, snapshots, current-run receipt publication and bounds. Save result is available for a complete first page and preserves explicit meaning separately from acceptance. Partial pinned pages remain frozen.
+
+After the native build, run python3 scripts/check_computation_views.py --cli output/native/bin/sevra for packaged calculation/query, stale/forged/partial refusals, exact retries, portable reopening and inert reconstruction. The native candidate remains separate from the installed Slotstream baseline until adoption gates pass. Current evidence/limits are linked in [[records/operations/implementation]].

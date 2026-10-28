@@ -88,6 +88,26 @@ Technical requests/annotations and definition/invocation Sources stay out of def
 business search and Recent work. Use the catalog and exact owner inspection for
 technical history. Their text cannot establish original inventory direction.
 
+For a native computation view, use type `calculation` for a function or `query`
+for a query, with the chosen `definitionBinding` and explicit typed `arguments`.
+`component-evaluate PATH COMPONENT_JSON [CURSOR]` reads the same bounded page as
+the app. These components omit datasetID, itemID, x, y, query and unit; x/y are
+chart column bindings, never layout coordinates. Live views refresh. `pin-space`
+retains exact values and dependencies, including a query's scoped input population.
+A pinned partial query keeps only its first page and says more rows existed.
+
+`definition-publish PATH REQUEST_JSON_OR_@FILE TOKEN` separately saves a draft
+calculation Record. Request fields: id (exact function/query version), arguments,
+evaluation (the complete inspected evaluation), title, meaning, optional scenario
+and exact inputs. The core recomputes under the write lock and refuses changed,
+forged or partial values. Accepting an estimate keeps it an estimate. Retries reuse
+the original token and request. Publication/pinning retain at most 5,000 scoped
+input versions and 512 KiB of saved values/provenance; narrow larger results.
+Query provenance includes scoped candidates filtered/joined out, not exact group
+membership. In-app agents use `publish_result` with this run's successful first-page
+evaluation receiptID, never model-supplied result values. Saving a result does not
+accept it or prove its inputs describe all real business activity.
+
 ## Registered actions and recoverable forms
 
 Inspect `action-registry PATH` before authoring an action. Registered version 1

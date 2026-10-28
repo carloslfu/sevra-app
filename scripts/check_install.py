@@ -30,7 +30,8 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     workbook=folder/"Owned.sevra"
     command("demo",workbook)
     imported = command("import", workbook, original)
-    assert command("tool", workbook, "read", json.dumps({"id": imported["id"]}))["extraction"]["state"] == "ready"
+    assert imported["intake"]["sourceID"] == imported["source"]["id"]
+    assert command("tool", workbook, "read", json.dumps({"id": imported["source"]["id"]}))["extraction"]["state"] == "ready"
     assert command("balance",workbook,"brass bolts")["quantity"]=="18"
     script("install.sh","--no-build")
     assert command("verify",workbook)["ok"]

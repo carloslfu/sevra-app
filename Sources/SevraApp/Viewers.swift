@@ -37,6 +37,12 @@ import SwiftUI
     let amount = Numbers.string(quantity < 0 ? -quantity : quantity)
     return (quantity < 0 ? "Decrease: " : "Increase: ") + amount + " " + item.data["subject"].text
   }
+  private func scalarDetail(_ key: String) -> String? {
+    switch item.data[key] {
+    case .string, .number, .bool: return item.data[key].text
+    case .null, .array, .object: return nil
+    }
+  }
   var body: some View {
     VStack(spacing: 0) {
       HStack {
@@ -224,6 +230,9 @@ import SwiftUI
             } else {
               Text(item.text).textSelection(.enabled)
             }
+            if item.kind == "calculation", item.data["evaluation"] != .null {
+              SavedDefinitionResultView(item: item, workbook: workbook, workspace: state)
+            }
             if let failure = references.failure {
               Text("Saved links are unavailable: " + failure).font(.caption).foregroundStyle(
                 .secondary)
@@ -263,18 +272,19 @@ import SwiftUI
               Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 8) {
                 ForEach(item.data.object.keys.sorted(), id: \.self) { key in
                   if !["input", "inputs", "supersedes", "datasetID", "url"].contains(key),
+                    !(item.kind == "calculation" && item.data["evaluation"] != .null
+                      && ["populationScope", "captured", "submittedInputs"].contains(key)),
                     !(item.kind == "movement"
                       && ["requestSourceID", "status", "meaning"].contains(key)),
                     !(item.category == "source" && item.kind == "request"
                       && (["conversationID", "messageID"].contains(key)
                         || (key == "context" && item.data["context"].string != nil))),
-                    let value = item.data.object[key], value != .null, value.array.isEmpty,
-                    value.object.isEmpty
+                    let value = scalarDetail(key)
                   {
                     GridRow {
                       Text(key.replacingOccurrences(of: "_", with: " ").capitalized)
                         .foregroundStyle(.secondary)
-                      Text(value.text).textSelection(.enabled)
+                      Text(value).textSelection(.enabled)
                     }
                   }
                 }

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-28T22:57:21.293164+00:00
+updated: 2026-10-28T23:52:27.478473+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -122,8 +122,8 @@ business review remains separate. See [[records/specs/application-definitions]],
 [application definition receipt](../../../integration/evidence/2026-10-28-application-definitions.json.gz) and [[records/operations/implementation]].
 This is a scoped E2 foundation. The registry/draft/native-form foundation now has schema14 scoped automated proof
 below. Model authoring/invocation and focused visible native form journeys now have
-scoped proof in the [agent application definition receipt](../../../integration/evidence/2026-10-28-agent-application-definitions.json.gz). Result publication, native query/function
-composition and full EJ04/EJ05 remain open. E3-E6 remain unimplemented.
+scoped proof in the [agent application definition receipt](../../../integration/evidence/2026-10-28-agent-application-definitions.json.gz). Native calculation/query views and result publication now have scoped proof in the
+[native computation receipt](../../../integration/evidence/2026-10-28-native-computation.json.gz). Full EJ04/EJ05 remain open. E3-E6 remain unimplemented.
 
 ## Home and spaces
 

@@ -17,12 +17,15 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
   public var snapshot: ComponentSnapshot?
   public var searchSnapshot: ComponentSearchSnapshot?
   public var definitionBinding: Value?
+  public var arguments: Value?
+  public var evaluationSnapshot: DefinitionResultSnapshot?
   public init(
     id: String = identifier(), type: String, title: String, datasetID: String? = nil,
     itemID: String? = nil, query: String? = nil, x: String? = nil, y: String? = nil,
     text: String? = nil, chartStyle: String? = nil, aggregation: String? = nil,
     unit: String? = nil, children: [Component]? = nil, snapshot: ComponentSnapshot? = nil,
-    searchSnapshot: ComponentSearchSnapshot? = nil, definitionBinding: Value? = nil
+    searchSnapshot: ComponentSearchSnapshot? = nil, definitionBinding: Value? = nil,
+    arguments: Value? = nil, evaluationSnapshot: DefinitionResultSnapshot? = nil
   ) {
     self.id = id
     self.type = type
@@ -40,6 +43,8 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
     self.snapshot = snapshot
     self.searchSnapshot = searchSnapshot
     self.definitionBinding = definitionBinding
+    self.arguments = arguments
+    self.evaluationSnapshot = evaluationSnapshot
   }
 }
 public struct SpaceDefinition: Codable, Equatable, Sendable {
@@ -94,6 +99,7 @@ extension Workbook {
       let current = try spaceIfPresent(id)
       try checkSpaceBase(current, expectedVersion: expectedVersion)
       if let current { try preservePinnedBindings(current.definition, next: definition) }
+      try refuseAuthoredEvaluationSnapshots(definition, current: current)
       try publishSpace(id: id, title: title, definition: definition, current: current)
       return .string(id)
     }
@@ -120,16 +126,20 @@ extension Workbook {
       try require(
         Set([
           "table", "chart", "metric", "comparison", "document", "asset", "search", "text", "form",
+          "calculation", "query",
         ])
         .union(SpaceDefinition.sectionTypes).contains(c.type), "view",
         "Unknown native component: \(c.type)")
       try require(
         !c.id.isEmpty && c.id.utf8.count <= 256 && c.title.utf8.count <= 500, "view",
         "Use bounded component IDs and labels.")
-      if c.type == "form" {
+      if ["calculation", "query"].contains(c.type) {
+        try validateDefinitionComponent(c, pinned: definition.pinnedAt != nil)
+      } else if c.type == "form" {
         try require(
           definition.pinnedAt == nil && c.datasetID == nil && c.itemID == nil
-            && c.snapshot == nil && c.searchSnapshot == nil, "view",
+            && c.snapshot == nil && c.searchSnapshot == nil && c.arguments == nil
+            && c.evaluationSnapshot == nil, "view",
           "Forms are explicit live actions and cannot be frozen as results.")
         guard let binding = c.definitionBinding else {
           throw SevraError("view", "Choose a form definition.")
@@ -138,8 +148,8 @@ extension Workbook {
         try require(target.kind == "form", "view", "Bind a form component to a form definition.")
       } else {
         try require(
-          c.definitionBinding == nil, "view",
-          "Only qualified form components take definition bindings.")
+          c.definitionBinding == nil && c.arguments == nil && c.evaluationSnapshot == nil, "view",
+          "Only qualified forms and computation views take definition bindings.")
       }
       if SpaceDefinition.sectionTypes.contains(c.type) {
         try require(

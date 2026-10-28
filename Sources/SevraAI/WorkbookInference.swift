@@ -23,7 +23,9 @@ package enum InferenceToolScope: String, Sendable {
       // Saved inventory actions still pass the complete movement review. A
       // future primitive without movements refuses there before submission.
       return Self.answer.allows(tool) || tool == rawValue || tool == "prepare_action"
-    case .draft, .save_space, .edit_space, .restore_space, .propose_record,
+    case .propose_record:
+      return Self.answer.allows(tool) || tool == rawValue || tool == "publish_result"
+    case .draft, .save_space, .edit_space, .restore_space,
       .propose_table,
       .propose_table_edit:
       return Self.answer.allows(tool) || tool == rawValue

@@ -88,6 +88,17 @@ extension Workbook {
           "Live workbook sections and forms cannot be frozen. Snapshot a space containing bound business views."
         )
         var copy = component
+        if ["calculation", "query"].contains(component.type), component.evaluationSnapshot == nil {
+          let evaluation = try componentDefinitionResult(component, cancellation: cancellation)
+          copy.definitionBinding = .object([
+            "mode": .string("exact"), "versionID": evaluation["definitionID"],
+          ])
+          copy.evaluationSnapshot = .init(
+            evaluation: evaluation, captured: captured,
+            inputPopulation: component.type == "query"
+              ? try definitionQueryPopulation(evaluation, cancellation: cancellation) : nil)
+          try validateDefinitionComponent(copy, pinned: true)
+        }
         if component.datasetID != nil {
           let snapshot = try componentData(component)
           try require(

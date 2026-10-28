@@ -149,6 +149,7 @@ jobs:
           python3 scripts/check_concurrency.py
           python3 scripts/check_urls.py
           python3 scripts/check_extraction_package.py --product output
+          python3 scripts/check_computation_views.py --cli output/bin/sevra
       - name: Build and check the isolated Splash preview
         env:
           SEVRA_BUILD_JOBS: 3
@@ -156,5 +157,6 @@ jobs:
           bash scripts/build_native.sh
           python3 scripts/check_native_package.py --paths-only
           python3 scripts/check_extraction_package.py
+          python3 scripts/check_computation_views.py --cli output/native/bin/sevra
           SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra-extraction-checks -j 3
           .build/native-product/release/sevra-extraction-checks

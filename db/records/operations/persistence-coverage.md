@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-28T22:30:50.332062+00:00
+updated: 2026-10-28T23:52:27.462536+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -317,3 +317,8 @@ hashes. Its broad core217/shared checks are reused; the small identity correctio
 has focused proof rather than a claimed broad rerun. A first lint invocation lacked
 swift-format on PATH; the documented xcrun invocation passes. Visible native UI,
 agent invocation, complete E2-E6 and release gates remain open.
+
+## Retained computation and publication, October 28
+Schema14 adds no canonical family for this slice. Component arguments/snapshots use captured space history. Published values, exact definitions, scoped candidate row versions and invocation attribution use ordinary immutable Source/Record lineage and the same operations transaction. Publication re-evaluates under the write lock and refuses changed/partial/oversized output; invocation/result publish atomically. Exact retries retain the original result. Acceptance creates a review version without changing meaning/data.
+
+The [native computation receipt](../../../integration/evidence/2026-10-28-native-computation.json.gz) covers fault/cancellation/refusal rollback, current/historical values, complete query candidate population, portable reopen and inert reconstruction. Candidate population is not per-group membership. Saved results cap5,000 input-version entries and512KiB retained result/provenance. No replay executes AI/actions, second ledger, cloud/sync or replica completion. Full persistence/engine journey qualification remains open.

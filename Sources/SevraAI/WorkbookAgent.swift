@@ -884,8 +884,11 @@ public enum WorkbookAgent {
           if tool == "pin_space", let id = result.string {
             focus = AgentFocus(kind: "space", id: id)
           }
-          if ["draft", "propose_record", "propose_movement", "propose_table_edit", "propose_table"]
-            .contains(tool),
+          if [
+            "draft", "propose_record", "propose_movement", "propose_table_edit", "propose_table",
+            "publish_result",
+          ]
+          .contains(tool),
             let id = result["id"].string
           {
             focus = AgentFocus(kind: "item", id: id)
@@ -1026,13 +1029,19 @@ public enum WorkbookAgent {
             answer: receipt, citations: proposals.map(\.id), steps: step, state: "needs_review",
             focus: AgentFocus(kind: "item", id: proposals[0].id))
         }
-        if ["propose_table", "propose_table_edit", "propose_movement", "propose_record"].contains(
+        if [
+          "propose_table", "propose_table_edit", "propose_movement", "propose_record",
+          "publish_result",
+        ].contains(
           tool), let id = result["id"].string, result["status"].text == "draft"
         {
           let proposal = try workbook.item(id)
           let receipt =
             "Ready to review: " + proposal.referenceMarkdown
-            + ". Existing accepted values are unchanged. Accept this proposal to continue."
+            + (tool == "publish_result"
+              ? ". Saved as a " + proposal.meaning
+                + " draft. Review it when ready; accepting it keeps its meaning."
+              : ". Existing accepted values are unchanged. Accept this proposal to continue.")
           _ = try workbook.addMessage(
             receipt, role: "assistant", conversation: conversation, state: "needs_review",
             payload: .object([

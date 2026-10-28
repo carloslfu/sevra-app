@@ -2,8 +2,8 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-28T22:57:21.266984+00:00
-summary: Schema14 application definitions, host-owned agent preparation and focused native forms have scoped real-model proof; result views, workflows and release gates remain open.
+updated: 2026-10-28T23:52:27.431425+00:00
+summary: '"Schema14 definitions, native forms and computations have scoped local-model and visible native proof; full journeys, workflows and release gates remain open."'
 title: Shared application definitions and actions
 status: reviewed
 ---
@@ -13,8 +13,8 @@ This elaborates E2 in [[records/specs/native-app-engine]]. It is an implementati
 contract, not a statement of whole-feature completion. E1 is captured at cd5f854.
 The schema14 catalog now includes scoped core/CLI registered inventory actions and
 recoverable native form implementation in addition to the earlier pure computation.
-Agent tools and focused native form journeys have scoped qualification below. Result
-publication, native query/function composition and full EJ04/EJ05 remain open. E3 owns durable multi-step execution; do not hide
+Agent tools, focused native forms, reusable native computation and exact result
+publication have scoped qualification below. Full EJ04/EJ05 remain open. E3 owns durable multi-step execution; do not hide
 a workflow scheduler in this layer. No arbitrary SQL, generated executable code,
 provider calls or external effects are accepted by a definition.
 
@@ -535,3 +535,68 @@ stock20/25/20/25 with one effect at most. Final verify passes. These are focused
 visible AX/keyboard observations, not actual VoiceOver or full appearance/media
 qualification. Result publication/native computation views and full EJ04/EJ05 remain
 open, together with E3-E6 and the release gates in the implementation record.
+
+## Native computation views and explicit result publication
+
+E2 uses calculation/query native components with a live/exact definitionBinding
+and explicit typed arguments. Evaluation stays read-only, bounded and off the UI
+actor. Show argument values, units, errors and exact inputs. Query pages retain row
+meaning/status/scenario and disclose partial coverage; changed inputs or definitions
+invalidate a continuation. No data entry form, SQL or external effect is inferred.
+
+Pinning captures the displayed first evaluation page, exact resolved definitions,
+values, coverage and the exact scoped query input population. A partial pinned query is labeled as a saved first page and
+cannot silently load current rows. Only the trusted pin path creates these snapshots;
+ordinary authored layouts cannot supply or alter claimed evaluation snapshots.
+Existing pinned layouts retain their values through label/order edits and replay.
+
+Publishing is separate from display: compare the exact inspected evaluation with a
+fresh computation under the canonical write lock, then atomically save an invocation
+Source and a draft derived Record, retaining actual actor, submitted arguments,
+explicit meaning/scenario, exact definitions and original evidence. A changed input,
+read-only request, cancelled run, invalid/partial output or oversized provenance
+refuses without a partial publication. Exact retries return the original result.
+
+For complete bounded query publication, preserve the exact scoped input population,
+including candidates removed by filters or joins, rather than claiming per-group
+membership from an aggregate row. Label that provenance scope. Initial qualification
+caps saved input populations at 5,000 scoped row-version entries and each retained
+result at 512 KiB, including its provenance. Apply the same bounded closure to
+pinning and publication. Refuse larger saves explicitly; normal read-only paged queries remain available. This is a
+qualification boundary, not a claim that large workbook queries are complete.
+
+EJ05 proof must reuse a calculation/query in two spaces and a report, change data
+and a live called function, retain a prior pinned/published result, refuse stale
+publication/cursors, show meaning and partial pages, and preserve both through inert
+reconstruction/portable export. Native races and visible input/coverage/error states
+need their own focused evidence. This design section is not completion evidence.
+
+
+### Result presentation and discovery refinement
+
+Saved query result cells also have deterministic reading/search text. Keep the typed
+values, scopes and immutable input versions in Record data; searchable text does not
+replace structured authority. Native saved-result rendering requires an actual
+host-publication lineage transformation, or a review version preserving that exact
+result data. Merely copying evaluation-shaped JSON into a proposed Record does not
+prove that the core calculated it. Review keeps meaning separate from acceptance.
+
+Ordinary unfiltered agent search discovers business evidence, scoped conversation
+and up to four current definition metadata matches in separate fields. Filtered or
+continued business searches do not broaden into either other scope. Metadata stays
+outside business hits, citation admission and direction-review evidence. Catalog
+matches instruct the agent to inspect an exact version and use find_definitions for
+full bounded pages. No match remains an observation about the searches performed.
+This closes a practical discovery gap without making technical Sources into business
+proof or providing any new write permission.
+
+## Computation qualification checkpoint, October 28
+The [native computation receipt](../../../integration/evidence/2026-10-28-native-computation.json.gz) retains core231,47 native tools,57 grammar cases/492 exact pinned-reference masks and the fixed8,176/8,192-token bare-prompt gate. V32 broad shared checks pass. Focused final core/agent/native/package checks qualify subsequent receipt, separated-search and UI fixes; unchanged broad results are reused under the verification policy. No reasoning/output gate increased.
+
+Four V5 selected-model tasks pass: a saved calculation in two native spaces, complete query publication as an estimate draft, an exact-result-derived draft report, and comparison of changed live data with the preserved result. V1-V4 failures remain in the receipt. Timings are functional latency under build activity, not throughput qualification.
+
+Successful evaluate_definition includes its host-generated receiptID. Publication requires the same active run/conversation's intact completed first-page receipt; the host strips receipt metadata before comparing canonical values. A snapshot hash is not a tool receipt. The final scripted agent consumes the actual visible response and confirms optional review without acceptance.
+
+Visible native checks show live30/33/42 after explicit definition edits, pinned36, saved query values/provenance, one-row Next/Previous pages and a pinned first page with no live continuation. The item-bound save sheet retains its chosen evaluation. Stale refusal appears inside it with title/scenario retained and no result Record. Refreshed42 saves as an estimate draft and remains an estimate with unchanged exact data after native acceptance. Internal empty arrays do not appear as scalar fields.
+
+Final packaged CLI, portable/inert reconstruction, full native Metal/resources/refusals/signature, strict29-file Swift lint and skill checks pass. Isolated baseline installation passes after repairing its import-response assertion. Native Splash stays separate from the preserved Slotstream baseline. Full EJ04/EJ05 scale/voice, broad accessibility/appearance/media/hardware gates, E3-E6, Excel continuity and notarized release remain open.

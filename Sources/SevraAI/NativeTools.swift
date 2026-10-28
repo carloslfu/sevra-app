@@ -26,7 +26,7 @@ package enum NativeTools {
   }
   static let evidenceList: Value = .object([
     "type": .string("array"),
-    "items": schema("string", "Exact item version ID from retrieved evidence."),
+    "items": .object(["type": .string("string")]),
   ])
   /// Structural rules stay identical. Nested component fields have the same
   /// meanings as their documented parent; avoid repeating prose at every depth.
@@ -47,7 +47,7 @@ package enum NativeTools {
         "enum": .array(
           [
             "table", "chart", "metric", "document", "asset", "search", "text", "input", "reviews",
-            "shortcuts", "tables", "intake", "recent", "form",
+            "shortcuts", "tables", "intake", "recent", "form", "calculation", "query",
           ].map(
             Value.string)),
       ]),
@@ -58,6 +58,7 @@ package enum NativeTools {
       ),
       "itemID": schema("string", "REQUIRED for document/asset. Exact evidence item ID."),
       "definitionBinding": .object(["type": .string("object")]),
+      "arguments": .object(["type": .string("object")]),
       "chartStyle": schema("string", "bar or line; default bar."),
       "aggregation": schema(
         "string",
@@ -74,7 +75,8 @@ package enum NativeTools {
         "enum": .array(
           [
             "table", "chart", "metric", "comparison", "document", "asset", "search", "text",
-            "input", "reviews", "shortcuts", "tables", "intake", "recent", "form",
+            "input", "reviews", "shortcuts", "tables", "intake", "recent", "form", "calculation",
+            "query",
           ].map(
             Value.string)),
       ])
@@ -86,7 +88,7 @@ package enum NativeTools {
       ])
     }
     let schema = object(fields, required: ["id", "type", "title"])
-    return depth > 1 ? withoutDescriptions(schema) : schema
+    return withoutDescriptions(schema)
   }
   static let components: Value = .object([
     "type": .string("array"), "maxItems": .number(16),
@@ -183,26 +185,26 @@ package enum NativeTools {
       .init(
         name: "tool_result",
         description:
-          "Read bounded saved receiptID pages. path selects omitted fields; nextOffset continues. Refresh old evidence before citation.",
+          "Page saved receiptID fields via path/nextOffset. Refresh old evidence before citation.",
         parameters: object(
           [
             "id": schema("string", "Saved receiptID."),
             "path": .object([
               "type": .string("array"), "maxItems": .number(32),
               "items": schema(
-                "string", "Exact object key or decimal array index. Empty for the root."),
+                "string", "Exact keys/indices; empty for root."),
             ]),
             "offset": schema(
-              "integer", "Field/element offset or Unicode scalar offset for text; initially zero."),
+              "integer", "Field/element or text Unicode-scalar offset; default zero."),
             "rawJSON": schema(
               "boolean",
-              "Read the serialized result as text segments, for unusual keys or exact reconstruction. Use empty path."
+              "Serialized JSON text segments; use empty path."
             ),
           ], required: ["id"])),
       .init(
         name: "propose_table",
         description:
-          "Propose a new table from supplied/retrieved evidence, up to 40 columns/100 rows. Review/acceptance is separate. Forecasts stay estimates; plans stay plans.",
+          "Draft an evidence-based table,40columns/100rows. Acceptance separate; preserve meaning, including estimates/plans.",
         parameters: object(
           [
             "title": schema("string", "Table name."),
@@ -239,7 +241,7 @@ package enum NativeTools {
       .init(
         name: "include_archive_members",
         description:
-          "Include selected ZIP files only when the user explicitly asks to unpack them. Preserves the original archive and member lineage, with resumable retry. Never automatically recurse into archives.",
+          "Unpack requested ZIP members only. Preserve original/member lineage; retries resume. Never automatically recurse.",
         parameters: object(
           [
             "id": schema("string", "ZIP source item ID."),
@@ -251,7 +253,7 @@ package enum NativeTools {
       .init(
         name: "search",
         description:
-          "Search business evidence and this conversation. Business hits use itemID; conversation.hits use id, requiring history_read before citation. Filters/paging cover business only. No match proves no absence.",
+          "Search business evidence (itemID) and conversation (id; history_read before citation). Filters/paging are business-only. No match proves no absence.",
         parameters: object(
           [
             "query": schema("string", "Words or a filename fragment."),
@@ -267,7 +269,7 @@ package enum NativeTools {
       .init(
         name: "references",
         description:
-          "Discover saved mentions one hop from an exact business item, 12/page. Incoming finds mentions; outgoing finds destinations. Read exact originals before citing. Mentions are not business relationships/lineage or cross-workbook/conversation access. Empty results prove no absence.",
+          "Follow saved mentions, one hop,12/page: incoming mentions or outgoing destinations. Read originals before citing. Mentions grant no authority, lineage, business relationship or cross-scope access. Empty proves no absence.",
         parameters: object(
           [
             "id": schema("string", "Exact item version ID from visible workbook evidence."),
@@ -303,7 +305,7 @@ package enum NativeTools {
       .init(
         name: "count_records",
         description:
-          "Count classified Source/Record entries only when requested. Not inventory units, document facts or real events; unnecessary for balances/citation validation. Put its receiptID in finish.counts to render the exact scope.",
+          "Count classified Sources/Records only when asked. Never inventory units, document facts or real events. Unneeded for balances/citations. finish.counts renders its exact scoped receiptID.",
         parameters: object(
           [
             "category": .object([
@@ -398,7 +400,7 @@ package enum NativeTools {
       .init(
         name: "propose_table_edit",
         description:
-          "Propose changed cells for human review. Read rows first, then supply exact row version IDs and only fields to change. Does not alter accepted values until the user accepts the visible proposal.",
+          "Draft cell changes for human review: read exact rows first; supply their version IDs and changed fields only. Accepted values stay unchanged.",
         parameters: object(
           [
             "datasetID": schema("string", "Existing table ID."),
@@ -484,7 +486,7 @@ package enum NativeTools {
       .init(
         name: "restore_space",
         description:
-          "Restore a saved layout as a new version only when explicitly requested. Inspect space_history and the current space first. Keeps prior history and business data; stale bases refuse.",
+          "Restore a requested layout version after inspecting space_history/current space. Keep history/data; stale bases refuse.",
         parameters: object(
           [
             "id": schema("string", "Exact space ID."),

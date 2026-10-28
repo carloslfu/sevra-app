@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T22:57:21.180652+00:00
+updated: 2026-10-28T23:52:27.447080+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -5721,3 +5721,14 @@ hashes. Its broad core217/shared checks are reused; the small identity correctio
 has focused proof rather than a claimed broad rerun. A first lint invocation lacked
 swift-format on PATH; the documented xcrun invocation passes. Visible native UI,
 agent invocation, complete E2-E6 and release gates remain open.
+
+## Native computation and publication qualification, October 28
+Scoped E2 reusable calculation/query views, trusted snapshots, exact result publication, deterministic result search text and separated definition discovery are implemented and qualified in the [native computation receipt](../../../integration/evidence/2026-10-28-native-computation.json.gz). Existing110 evidence artifacts remain byte-identical to HEAD. New receipt:145,982bytes, SHA256 7f94d52b74a1f7db7ff9d132a4c86ee567cd781f5f2c09df0ba0373e260d0db0.
+
+Commands/evidence: V32 bash scripts/check.sh passes. V34 core231/0 and V36 final agent checks pass, including a model-visible receipt consumer. V30 grammar57cases/492masks passes at8,176/8,192tokens. V5 computation cohort passes all four selected-model tasks with unchanged512reasoning/1,800output bounds. V37 release native build, packaged computation CLI, full native package Metal/resource/refusal/signature and strict29-file lint pass. V28 preview ownership/page/error/cancellation checks remain unchanged and pass. V29 isolated baseline install/update/CLI/skill/uninstall passes after rebuilding and correcting import-envelope assertions. V32 skill validation passes. Run final dbmd/link/diff gates before commit.
+
+Retained failures: V1/V2 grammar optional ordering prevented arguments after definitionBinding; V3 missed named-definition discovery; V4 omitted response receiptID, leading to a guessed snapshot ID and false capability explanation. Shared selector ordering, separate catalog metadata and explicit verified receipt identity repair these boundaries. V5 reuses one calculation in two spaces, publishes an estimate draft, derives a report and distinguishes changed live from saved values. No throughput claim follows.
+
+Native inspection caught an empty initial saved-result container, first-open empty sheet, stale feedback behind that sheet and internal empty arrays leaking through a scalar test. Stable loading, item-bound exact evaluation, owned inline failures and actual scalar cases fix them. V36 shows atomic stale refusal with entries retained, refreshed42 draft, live42/pinned36 and bounded query pages. V37 reopens clean42; acceptance preserves estimate meaning and all typed data. These are focused AX/keyboard/screenshot checks, not actual VoiceOver or full appearance/media qualification.
+
+Integration PR CI at d0ef272 failed at its old import-response assertion after earlier checks passed. The script is fixed and locally qualified. Push this coherent checkpoint, refresh CI on its new head and inspect it. Continue remaining EJ04/EJ05 scale/voice/native reuse qualification, E3 manual durable workflows, E4-E6, contextual/Excel continuity and whole-release gates. The app and active goal remain incomplete.

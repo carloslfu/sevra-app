@@ -352,6 +352,52 @@ import SevraProduct
       return try book.evaluateApplicationDefinition(
         args[2], arguments: Value.parse(args[3]), cursor: args.count == 5 ? args[4] : nil,
         cancellation: cancellation)
+    case "component-evaluate":
+      try require(
+        (3...4).contains(args.count), "usage", "component-evaluate WORKBOOK COMPONENT_JSON [CURSOR]"
+      )
+      let component = try JSONDecoder().decode(Component.self, from: Data(args[2].utf8))
+      return try book.componentDefinitionResult(
+        component, cursor: args.count == 4 ? args[3] : nil, cancellation: cancellation)
+    case "definition-publish":
+      try require(
+        args.count == 4, "usage", "definition-publish WORKBOOK REQUEST_JSON_OR_@FILE TOKEN")
+      let raw: String
+      if args[2].hasPrefix("@") {
+        let data = try Data(
+          contentsOf: URL(fileURLWithPath: String(args[2].dropFirst())), options: .mappedIfSafe)
+        try require(
+          data.count <= 1_048_576, "definition_limit", "Publication request exceeds 1 MiB.")
+        guard let text = String(data: data, encoding: .utf8) else {
+          throw SevraError("arguments", "Use UTF-8 JSON.")
+        }
+        raw = text
+      } else {
+        raw = args[2]
+      }
+      let request = try Value.parse(raw)
+      let fields = request.object
+      try require(
+        Set(fields.keys).isSubset(of: [
+          "id", "arguments", "evaluation", "title", "meaning", "scenario", "inputs",
+        ])
+          && ["id", "arguments", "evaluation", "title", "meaning"].allSatisfy { fields[$0] != nil },
+        "arguments", "Use declared publication fields.")
+      for key in ["id", "title", "meaning", "scenario"] where fields[key] != nil {
+        try require(fields[key]?.string != nil, "arguments", key + " must be text.")
+      }
+      if let inputs = fields["inputs"] {
+        guard case .array(let values) = inputs, values.allSatisfy({ $0.string != nil }) else {
+          throw SevraError("arguments", "Inputs must be exact version strings.")
+        }
+      }
+      return try encoded(
+        book.publishApplicationResult(
+          request["id"].text, arguments: request["arguments"], evaluation: request["evaluation"],
+          title: request["title"].text, meaning: request["meaning"].text,
+          scenario: fields["scenario"]?.text ?? "actual",
+          inputs: request["inputs"].array.map(\.text), token: args[3], actor: .human("cli"),
+          cancellation: cancellation))
     case "definition-search":
       try require(
         (3...4).contains(args.count), "usage", "definition-search WORKBOOK QUERY [OPTIONS_JSON]")
@@ -653,6 +699,8 @@ import SevraProduct
     definition-dependencies WORKBOOK VERSION_ID
     definition-restore WORKBOOK LOGICAL_ID VERSION_ID BASE_ID TOKEN
     definition-evaluate WORKBOOK LOGICAL_OR_VERSION_ID ARGUMENTS_JSON [CURSOR]
+    component-evaluate WORKBOOK COMPONENT_JSON [CURSOR]
+    definition-publish WORKBOOK REQUEST_JSON_OR_@FILE TOKEN
     definition-search WORKBOOK QUERY [OPTIONS_JSON]
     table-query-plan WORKBOOK QUERY_JSON
     table-optimize WORKBOOK QUERY_JSON | table-clear-indexes WORKBOOK DATASET_ID

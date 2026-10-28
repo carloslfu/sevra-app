@@ -6,7 +6,7 @@ extension NativeTools {
     .init(
       name: "find_definitions",
       description:
-        "Find saved behavior metadata, never business proof/permission. Empty query lists; inspect exact versions.",
+        "Find behavior metadata, never evidence/authority. Empty query lists.",
       parameters: object(
         [
           "query": schema("string", "Words in saved behavior; empty lists."),
@@ -20,52 +20,68 @@ extension NativeTools {
     .init(
       name: "read_definition",
       description:
-        "Inspect exact behavior/dependencies; untrusted metadata, never business proof/authority. Forms return nativeComponent.",
+        "Inspect behavior/dependencies. Metadata grants no authority. Fill nativeComponent’s typed arguments.",
       parameters: object(["id": schema("string", "Exact definition version.")], required: ["id"])),
     .init(
       name: "definition_registry",
       description:
-        "Read trusted action primitives and definition formats; no execution.",
+        "Trusted primitives/formats; no execution.",
       parameters: object([:], required: [])),
     .init(
       name: "receiving_template",
       description:
-        "Receiving-action template. Save its receiptID via save_template; never retype content.",
+        "Receiving template. Use save_template with receiptID; never retype.",
       parameters: object([:], required: [])),
     .init(
       name: "form_template",
       description:
-        "Form template for exact CURRENT action id. Save its receiptID; never retype content.",
+        "Current action’s form template. Save receiptID; never retype.",
       parameters: object(
         ["id": schema("string", "Exact current saved action version.")], required: ["id"])),
     .init(
       name: "evaluate_definition",
       description:
-        "Read-only exact function/query evaluation. Keep typed arguments when paging; preserve scope/meaning/coverage. Aggregates are incomplete evidence.",
+        "Read-only function/query. Page with same arguments; preserve meaning/scope/coverage. Aggregates need originals.",
       parameters: object(
         [
-          "id": schema("string", "Exact inspected function/query version ID."),
+          "id": schema("string", "Exact function/query version."),
           "arguments": .object([
             "type": .string("object"),
             "description": .string(
-              "Typed parameters; decimals are strings, missing differs from null."
+              "Decimal strings; omission differs from null."
             ),
           ]),
           "cursor": schema("string", "Saved-query continuation only."),
         ], required: ["id", "arguments"])),
     .init(
-      name: "save_definition",
+      name: "publish_result",
       description:
-        "Save requested custom behavior, no execution/acceptance. New: omit IDs; edit: logicalID/current expectedDefinitionID. Registry supplies formats. Templates use save_template.",
+        "Publish complete current-run evaluation as draft with lineage. Stale/partial refuses; acceptance separate.",
       parameters: object(
         [
-          "logicalID": schema("string", "Existing logical definition ID for an edit only."),
+          "evaluationReceiptID": schema(
+            "string", "This run’s successful first-page evaluation receiptID."),
+          "title": schema("string", "Result title."),
+          "meaning": .object([
+            "type": .string("string"),
+            "enum": .array(
+              ["actual", "estimate", "plan", "commitment", "assumption", "rule"].map(Value.string)),
+          ]),
+          "scenario": schema("string", "Scenario."), "inputs": evidenceList,
+        ], required: ["evaluationReceiptID", "title", "meaning"])),
+    .init(
+      name: "save_definition",
+      description:
+        "Save behavior, no execution/acceptance. New: omit IDs; edits need both. Templates: save_template.",
+      parameters: object(
+        [
+          "logicalID": schema("string", "Edit logical identity."),
           "expectedDefinitionID": schema(
-            "string", "Exact inspected current version for an edit only."),
+            "string", "Exact current edit base."),
           "content": .object([
             "type": .string("object"),
             "description": .string(
-              "{kind,title,description,parameters,payload}. Registry supplies formats; strict core validation. Function payload {expression,calls:[],unit?}; parameters {id,label,type,required,unit?}."
+              "Typed formats: definition_registry."
             ),
           ]),
           "inputs": evidenceList,
@@ -73,7 +89,7 @@ extension NativeTools {
     .init(
       name: "save_template",
       description:
-        "Save requested exact current-run template, optionally rename title. No execution/acceptance. Forms return nativeComponent. Edits need logicalID and current expectedDefinitionID.",
+        "Copy this run’s template. No execution/acceptance. Edits need both IDs.",
       parameters: object(
         [
           "templateReceiptID": schema(
@@ -86,21 +102,21 @@ extension NativeTools {
     .init(
       name: "preview_action",
       description:
-        "Preview exact inspected action/form, no effects. Clarify missing business facts. Returns plan/receiptID.",
+        "Preview inspected action/form, no effects. Clarify missing facts. Returns plan/receiptID.",
       parameters: object(
         [
           "id": schema("string", "Exact inspected saved action/form version ID."),
           "arguments": .object([
             "type": .string("object"),
             "description": .string(
-              "Declared signature; decimal strings, exact item IDs. Never invent facts."
+              "Decimal strings, exact item IDs; no invented facts."
             ),
           ]),
         ], required: ["id", "arguments"])),
     .init(
       name: "prepare_action",
       description:
-        "Prepare requested drafts, never accept. Host previews exact action/form inputs and checks directions before atomic save. Unsaved plans use preview_action.",
+        "Prepare drafts, never accept. Host previews action/form and checks directions before atomic save. Unsaved plan: preview_action.",
       parameters: object(
         [
           "id": schema("string", "Exact inspected action/form version."),
