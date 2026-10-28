@@ -502,3 +502,6 @@ Integrate bounded original copy choices, typed draft parts, host-only context vo
 ## [2026-10-28 04:22] verification | records/operations/implementation.md
 Retain native copy replay context refusal at 24922/24576 tokens; compact duplicate optional passages; 95 core and agent checks pass, unchanged replay pending.
 
+## [2026-10-28 04:28] implementation | records/operations/implementation.md
+Retain second native refusal; use explicit two-chunk ordinary read pages with larger requests available; 96 core and agent checks pass.
+

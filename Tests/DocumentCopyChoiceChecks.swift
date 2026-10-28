@@ -2,7 +2,9 @@ import Foundation
 import SevraCore
 
 func checkDocumentCopyChoices(at root: URL) {
-  func fixture(_ text: String) throws -> (Workbook, String, Item, String, Value) {
+  func fixture(_ text: String, chunkLimit: Int = 2) throws -> (
+    Workbook, String, Item, String, Value
+  ) {
     let book = try Workbook.create(
       at: root.appendingPathComponent(identifier() + ".sevra"), title: "Copy choices")
     let run = try book.startAgentRequest(
@@ -10,7 +12,9 @@ func checkDocumentCopyChoices(at root: URL) {
     ).runID
     let source = try book.addItem(
       category: "source", kind: "document", title: "Original", text: text)
-    let args: Value = .object(["id": .string(source.id)])
+    let args: Value = .object([
+      "id": .string(source.id), "chunkLimit": .number(Double(chunkLimit)),
+    ])
     let receipt = try book.prepareToolCall(
       runID: run, callID: identifier(), tool: "read", arguments: args)
     let result = try WorkbookTools(book, runID: run).execute("read", args, receiptID: receipt)
@@ -82,7 +86,7 @@ func checkDocumentCopyChoices(at root: URL) {
   }
   check("passage pagination preserves long Unicode lines and distinct repeated occurrences") {
     let text = "Same\nSame\n" + String(repeating: "Cafe\u{301}👩🏽‍💻\0", count: 160)
-    let (book, run, source, _, initial) = try fixture(text)
+    let (book, run, source, _, initial) = try fixture(text, chunkLimit: 8)
     let first = DocumentCopyChoices.entries(initial)
     try expect(first[0]["text"].text == "Same\n" && first[1]["text"].text == "Same\n")
     try expect(first[0]["id"] != first[1]["id"])
@@ -96,7 +100,9 @@ func checkDocumentCopyChoices(at root: URL) {
       }
       guard let next = result["documentCopies"]["nextOffset"].int else { break }
       try expect(pages < 20)
-      let args: Value = .object(["id": .string(source.id), "copyOffset": .number(Double(next))])
+      let args: Value = .object([
+        "id": .string(source.id), "copyOffset": .number(Double(next)), "chunkLimit": .number(8),
+      ])
       let receipt = try book.prepareToolCall(
         runID: run, callID: identifier(), tool: "read", arguments: args)
       result = try WorkbookTools(book, runID: run).execute("read", args, receiptID: receipt)
@@ -141,5 +147,37 @@ func checkDocumentCopyChoices(at root: URL) {
     try expect(entries.count == 1 && entries[0]["text"].text == "First\n")
     _ = try book.documentCopyChoice(entries[0]["id"].text, runID: run)
     try expect(state["documentCopies"]["omittedCandidates"].int == 2)
+  }
+  check("ordinary reads page two chunks explicitly and keep wider reads available") {
+    let (book, run, source, _, _) = try fixture("Original")
+    try book.index(source.id, chunks: (0..<5).map { Chunk("Passage \($0)", locator: "page \($0)") })
+    let tools = WorkbookTools(book, runID: run)
+    var offset = 0
+    var ids: [Value] = []
+    var pages = 0
+    while true {
+      let read = try tools.execute(
+        "read", .object(["id": .string(source.id), "offset": .number(Double(offset))]))
+      pages += 1
+      try expect(read["chunks"].array.count <= 2)
+      ids += read["chunks"].array.map { $0["id"] }
+      guard let next = read["chunkPage"]["nextOffset"].int else {
+        try expect(read["chunkPage"]["hasMore"] == .bool(false))
+        break
+      }
+      try expect(next > offset && pages < 4)
+      offset = next
+    }
+    let expected = try book.readChunks(source.id).map { $0["id"] }
+    try expect(pages == 3 && ids == expected)
+    let wide = try tools.execute(
+      "read", .object(["id": .string(source.id), "chunkLimit": .number(8)]))
+    try expect(wide["chunks"].array.count == 5 && wide["chunkPage"]["hasMore"] == .bool(false))
+    for limit in [0, 9] {
+      try refuses("arguments") {
+        _ = try tools.execute(
+          "read", .object(["id": .string(source.id), "chunkLimit": .number(Double(limit))]))
+      }
+    }
   }
 }

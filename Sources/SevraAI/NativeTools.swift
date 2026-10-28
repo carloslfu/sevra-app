@@ -248,15 +248,16 @@ package enum NativeTools {
       parameters: object(
         [
           "id": schema("string", "Exact item version ID returned by search."),
-          "offset": schema("integer", "Chunk offset, normally zero."),
+          "offset": schema("integer", "Chunk offset from chunkPage.nextOffset, initially zero."),
           "chunkLimit": .object([
             "type": .string("integer"), "minimum": .number(1), "maximum": .number(8),
             "description": .string(
-              "Read one to eight chunks. Use fewer chunks when a result omits needed content."),
+              "Read one to eight chunks, default two. Follow chunkPage.nextOffset for the rest; a partial page is not the whole document."
+            ),
           ]),
           "copyOffset": schema(
             "integer",
-            "Optional original-passage candidate offset from documentCopies.nextOffset. Use when the needed passage was omitted."
+            "Original-passage candidate offset from documentCopies.nextOffset. Keep the same chunk offset and limit while paging these candidates."
           ),
         ], required: ["id"])),
     .init(

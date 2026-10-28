@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T04:22:36.682549+00:00
+updated: 2026-10-28T04:28:27.760486+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -3967,3 +3967,33 @@ committed candidate. No context/response/step budget or acceptance change.
 Evidence: [first native copy-context refusal](../../../integration/evidence/2026-10-27-document-copy-context-refusal.json.gz).
 Contains full native input/output/metrics/history, before/after identities,
 independent original-state audit and candidate deterministic stdout.
+
+
+## Second native refusal and smaller ordinary source pages
+
+At clean commit 3725712 the unchanged maintained32K eight-report replay reached
+five report reads and four checkpoints, then stopped at 24,854 tokens against
+the unchanged 24,576 threshold. Elapsed job/verification time was 113.204021
+seconds. No draft was made; model unload and independent original-state/asset
+audits pass. Before/after source, executable, engine, Metal and grammar identities
+match. Reducing optional continuation was useful but insufficient to fit a wide
+latest read. Preserve this failed replay; it does not qualify content fidelity.
+
+Ordinary tool read now returns two chunks by default, with explicit page metadata
+and nextOffset; callers may still request one to eight chunks. Original assets,
+full indexing and completed receipts remain. The source-page/copy-page cursors are
+separate. Added a meaningful regression that traverses all five chunks and verifies
+a wide request, invalid bounds and explicit terminal page. All 96 core groups
+and agent checks pass. Agent checks exposed an older flaky assertion matching
+120 inside arbitrary assistant text including random citation UUIDs. It now
+matches the actual rejected sentence The quantity was 120.; the bad-claim
+assertion remains. Its failed and corrected logs are retained.
+
+The native fixture, required labels/values, context threshold and response/step
+limits are unchanged. Regenerate the actual declaration/reference fixture for
+the revised tool description, qualify it and replay the native task next.
+
+Evidence: [second copy-context refusal](../../../integration/evidence/2026-10-27-document-copy-context-second-refusal.json.gz),
+96,148 bytes; SHA-256 dfe29565efaf1062f0dba44aec7af515ee2041e377bbd560d1eb450b3490fab6.
+This includes complete observations, identity checks, state audit and candidate
+deterministic logs. No UI, native adoption, full comparison or release pass.

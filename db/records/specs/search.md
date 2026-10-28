@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-27T21:45:28.652502+00:00
+updated: 2026-10-28T04:28:27.737091+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -299,3 +299,16 @@ Inspect originals before citing. Mentions are not proof or acceptance. Optional
 inferred associations require measured value and explicit uncertainty. LJ06/LJ09/LJ10
 remain unqualified; prior FTS results do not qualify graph retrieval. No separate
 graph or vector database is required.
+
+
+## Bounded ordinary read pages, October 27
+
+Agent read defaults to two text chunks; chunkLimit permits one to eight. The
+chunkPage object reports offset/count/hasMore/nextOffset. Follow that nextOffset
+for more indexed text. A page is not the whole original, and index/extraction
+coverage remains a separate status. Exact-copy candidate pagination uses its own
+copyOffset within the unchanged chunk offset/limit. Completed receipts keep exact
+page text for immutable copy provenance. This reduces long-context read pressure
+without discarding originals or treating unobserved tails as absent. The new
+five-chunk regression checks all pages and an explicit eight-chunk request. See
+[[records/specs/document-composition]] and [[records/operations/implementation]].

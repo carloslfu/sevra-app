@@ -2,7 +2,7 @@
 type: spec
 id: 01m609st2pz8zhg7bcpec874g1
 created: 2026-10-28T03:45:29.174789+00:00
-updated: 2026-10-28T04:22:36.657860+00:00
+updated: 2026-10-28T04:28:27.711236+00:00
 summary: Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 title: Source-bound document composition
 status: reviewed
@@ -210,7 +210,9 @@ Agent reads publish exact line/fragment passages with opaque receipt-bound IDs.
 The host supplies scalar coordinates and hashes. Each read offers at most eight
 entries and 2,000 serialized entry bytes; long lines split into adjacent bounded
 fragments. copyOffset pages through unique candidates. chunkLimit selects one to
-eight chunks, allowing smaller receipts. Results above 124,000 serialized bytes
+eight chunks (default two). chunkPage marks whether more chunks remain and gives
+nextOffset. copyOffset pages within the same chosen chunk page, so callers retain
+its offset/limit. Results above 124,000 serialized bytes
 publish no choices rather than unusable IDs; the resolver still caps receipts
 at 128,000 bytes. Adjacent/overlapping source chunks suppress equal passages at
 the same original coordinates, while identical lines at distinct positions remain
@@ -255,3 +257,18 @@ choices already visible in the final retained tool group. Omitted originals stay
 retrievable and are never asserted to have been copied. All 95 core checks and
 the agent checks pass after this change; actual replay remains pending. No
 threshold, context size, response allowance, step limit or fixture changed.
+
+
+## Smaller ordinary source reads
+
+The second native replay passed the earlier refusal, then stopped after five
+report reads at 24,854/24,576 tokens. One-passage continuation alone did not make
+the latest eight-chunk result fit. Preserve that failure.
+
+Ordinary tool reads now default to two chunks, with explicit chunkPage offset,
+count, hasMore and nextOffset. One-to-eight chunk requests remain available, as
+do the complete original and receipt. This changes retrieval granularity, not
+the fixture, required source labels, complete-document claims, context trigger
+or response/step allowances. A page is partial; more chunks need explicit reads.
+The new test traverses all five synthetic chunks without gaps and checks an
+explicit wide read. All 96 core groups and agent checks pass.

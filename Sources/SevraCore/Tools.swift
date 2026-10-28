@@ -49,7 +49,7 @@ public struct WorkbookTools {
     history_read: id string. Read an original message in this conversation or its explicitly inherited parent excerpt. Other parent, sibling and ancestor messages remain outside scope.
     tool_result: id receipt ID, optional path array of object keys or array indexes, offset integer, rawJSON boolean. Read a saved exact tool result in bounded pages.
     search: query string, optional kind, meaning, status, scenario and cursor from nextCursor. Returns business evidence in hits and older conversation candidates in conversation.hits. Business filters or pagination restrict it to business evidence; use history_search for separate conversation queries/pages. Read conversation candidates with history_read before citing them. kind is a domain kind such as note, file, row, movement; actual/estimate/plan are meaning values, not kind values.
-    read: id string, optional offset number, chunkLimit 1...8 and copyOffset from documentCopies.nextOffset. Returns exact metadata and bounded text chunks, with published original passages for draft copies when called by an agent. Read fewer chunks for oversized results.
+    read: id string, optional offset from chunkPage.nextOffset, chunkLimit 1...8 (default 2) and copyOffset from documentCopies.nextOffset. Returns exact metadata and bounded text chunks, with published original passages for draft copies when called by an agent. A partial chunk page is not the whole document. Keep offset and chunkLimit unchanged when paging copyOffset within that page.
     count_records: category source|record, optional kind, meaning, status, scenario. Exact current classified-item count. Use the receipt ID in finish.counts for a host-rendered scoped count, not a claim about events inside documents or outside the workbook.
     lineage: id string. Returns supporting/derived version relationships.
     datasets: no arguments. List tables and column IDs.
@@ -147,12 +147,18 @@ public struct WorkbookTools {
         workbook.includeArchiveMembers(
           string("id"), paths: a["paths"].array.compactMap(\.string), cancellation: cancellation))
     case "read":
-      let chunkLimit = a["chunkLimit"].int ?? 8
+      let chunkLimit = a["chunkLimit"].int ?? 2
+      let offset = a["offset"].int ?? 0
       try require((1...8).contains(chunkLimit), "arguments", "Read one to eight source chunks.")
+      try require(
+        offset >= 0 && offset <= Int.max - 9, "arguments", "Choose a valid source chunk page.")
       return try workbook.synchronized {
         try workbook.db.readTransaction {
           let item = try workbook.item(string("id"))
           let current = try workbook.item(item.logicalID)
+          let page = try workbook.readChunks(item.id, offset: offset, limit: chunkLimit + 1)
+          let chunks = Array(page.prefix(chunkLimit))
+          let hasMore = page.count > chunks.count
           var info = try encoded(item).object
           info["text"] = .string(String(item.text.prefix(1000)))
           info["data"] =
@@ -169,8 +175,12 @@ public struct WorkbookTools {
             "notice": .string(
               "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head."
             ),
-            "chunks": .array(
-              try workbook.readChunks(item.id, offset: a["offset"].int ?? 0, limit: chunkLimit)),
+            "chunks": .array(chunks),
+            "chunkPage": .object([
+              "offset": .number(Double(offset)), "count": .number(Double(chunks.count)),
+              "hasMore": .bool(hasMore),
+              "nextOffset": hasMore ? .number(Double(offset + chunks.count)) : .null,
+            ]),
             "extraction": try workbook.extractionStatus(item.id),
           ])
           return try receiptID.map {
