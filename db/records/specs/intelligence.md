@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T04:17:24.487814+00:00
+updated: 2026-10-28T04:47:28.820404+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -730,3 +730,16 @@ The deterministic integration and 38 actual-tool grammar/323 reference-mask chec
 pass. This supersedes the earlier pending-agent status only. Actual-model fidelity,
 conversation-origin copies, native provenance interaction, production compaction,
 engine adoption and release remain unqualified. See [[records/operations/implementation]].
+
+
+## Source-copy integration checkpoint
+
+The unchanged eight-report maintained32K task passes at 0d62807; it used new prose
+rather than source-copy IDs. A subsequent unchanged nearby replay at 770ba05
+passes actual English/Spanish copy selection and permitted paraphrase delivery,
+including original versions, exact Unicode/CRLF and portable integrity. Native
+provenance display is implemented and programmatic document checks pass; its
+visible interaction remains pending. These results do not qualify full 64K
+comparison, production compaction, all generated semantics, engine adoption or
+release. Evidence and exact limits: [[records/operations/implementation]] and
+[[records/specs/document-composition]].

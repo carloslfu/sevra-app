@@ -26,8 +26,12 @@ import SevraCore
   deinit { scheduled?.cancel() }
 
   public func refreshHead() {
-    guard editable, let head = try? workbook.item(current.logicalID) else { return }
-    newerVersionID = head.id == current.id ? nil : head.id
+    // Source viewers also need an explicit historical-version warning. Inspect
+    // bounded metadata rather than decoding the newer document's entire body.
+    guard let versions = try? workbook.citationVersions([current.id]),
+      let head = versions["versions"].array.first?["current"]["id"].string
+    else { return }
+    newerVersionID = head == current.id ? nil : head
   }
 
   @discardableResult public func begin() -> Bool {

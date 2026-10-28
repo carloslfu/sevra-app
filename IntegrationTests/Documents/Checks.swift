@@ -273,6 +273,51 @@ private func fixtureSQL(_ workbook: Workbook, _ statement: String) throws {
           && editor.newerVersionID == newer.id, "Historical view was silently replaced")
       try expect(!editor.begin() && !editor.editing, "A stale citation entered editing")
     }
+    check("Historical source viewers expose newer versions without replacing the original") {
+      let (book, _) = try fixture()
+      let source = try book.addItem(
+        category: "source", kind: "document", title: "Original", text: "Old source")
+      let newer = try book.addItem(
+        category: "source", kind: "document", title: "Correction", text: "New source",
+        supersedes: source.id)
+      let viewer = DocumentDraft(workbook: book, item: source)
+      viewer.refreshHead()
+      try expect(!viewer.editable && viewer.newerVersionID == newer.id, "Source history was hidden")
+      try expect(
+        viewer.current.id == source.id && viewer.text == "Old source", "Original retargeted")
+    }
+    check("Copied passage presentation preserves exact version and rejects changed body bytes") {
+      let (book, source) = try fixture()
+      let run = try book.startAgentRequest(
+        "Quote the original", conversation: "main", model: "fixture"
+      )
+      .runID
+      let args: Value = .object(["id": .string(source.id)])
+      let receipt = try book.prepareToolCall(
+        runID: run, callID: identifier(), tool: "read", arguments: args)
+      let result = try WorkbookTools(book, runID: run).execute("read", args, receiptID: receipt)
+      _ = try book.completeToolCall(receipt, result: result)
+      let choice = DocumentCopyChoices.entries(result)[0]["id"].text
+      let reference = try book.documentCopyChoice(choice, runID: run).reference
+      let composed = try book.saveComposedDraft(
+        title: "Quotation", parts: [.init(text: "Review\n"), .init(copy: reference)], runID: run)
+      let provenance = DocumentProvenance.make(composed)
+      try expect(!provenance.unavailable && provenance.passages.count == 1, "Copy was hidden")
+      try expect(
+        provenance.passages[0].sourceVersionID == source.id
+          && Data(provenance.passages[0].text.utf8) == Data(source.text.utf8),
+        "Copy presentation changed original bytes or identity")
+      var changed = try encoded(composed).object
+      changed["text"] = .string("Changed\n" + source.text)
+      let damaged = try JSONDecoder().decode(
+        Item.self, from: Data(Value.object(changed).json().utf8))
+      let rejected = DocumentProvenance.make(damaged)
+      try expect(rejected.unavailable && rejected.passages.isEmpty, "Invalid copy looked usable")
+      let revised = try book.editDocument(composed.id, text: "Operator text")
+      try expect(
+        DocumentProvenance.make(revised).passages.isEmpty, "Edited text claimed an old copy")
+      try expect(try book.verify()["ok"] == .bool(true), "Presentation altered the workbook")
+    }
     await checkAsync("Debounced autosave coalesces typing and a later flush is idempotent") {
       let (book, original) = try fixture()
       let editor = DocumentDraft(workbook: book, item: original)

@@ -239,6 +239,7 @@ import SwiftUI
                 }
               }.font(.callout)
             }
+            copiedPassages
             lineage
           }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -313,6 +314,34 @@ import SwiftUI
         let id = link["child"].text == item.id ? link["parent"].text : link["child"].text
         Button((try? state.workbook?.item(id).title) ?? id) { state.navigate(.item(id)) }
           .buttonStyle(.link)
+      }
+    }
+  }
+  @ViewBuilder private var copiedPassages: some View {
+    let provenance = DocumentProvenance.make(item)
+    if provenance.unavailable {
+      Text("Copy information is unavailable. Earlier versions remain in Evidence and history.")
+        .font(.callout).foregroundStyle(.secondary)
+    } else if !provenance.passages.isEmpty {
+      Divider()
+      DisclosureGroup("Copied passages (\(provenance.passages.count))") {
+        VStack(alignment: .leading, spacing: 16) {
+          Text(
+            "Each link opens the exact version used in this document. It may be an earlier version."
+          )
+          .font(.caption).foregroundStyle(.secondary)
+          ForEach(provenance.passages) { passage in
+            VStack(alignment: .leading, spacing: 6) {
+              Text(verbatim: passage.text).lineLimit(3).textSelection(.enabled)
+              if !passage.locator.isEmpty {
+                Text(passage.locator).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+              }
+              Button("Open original passage") { state.navigate(.item(passage.sourceVersionID)) }
+                .buttonStyle(.link)
+                .accessibilityLabel("Open original passage \(passage.id + 1)")
+            }
+          }
+        }.padding(.top, 8).frame(maxWidth: .infinity, alignment: .leading)
       }
     }
   }

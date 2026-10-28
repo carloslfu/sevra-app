@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T04:42:54.955137+00:00
+updated: 2026-10-28T04:50:51.515858+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -4072,3 +4072,69 @@ Evidence: [first nearby copy/paraphrase results](../../../integration/evidence/2
 Contains setup failure, actual full inputs/outputs/history/metrics, before/after
 identities, both passing copy cases, and the failed paraphrase. This is no UI,
 whole-product, performance, engine-adoption or release pass.
+
+
+## Nearby copy and paraphrase replay passes
+
+At clean 770ba05 all three unchanged nearby requests pass. English and Spanish
+quotations each use one actual source-copy reference and preserve decomposed
+Unicode/CRLF bytes; permitted paraphrase saves a draft in new words, with zero
+copy references and no excluded identifier. Original/unrelated draft heads,
+draft/estimate status, lineage, portable export/reopen/integrity and native unload
+pass. Before/after code/executable/runtime identities match. Full trace and exact
+timings are retained. No generative reviewer or change to budgets/requests/checks.
+
+The earlier unchanged eight-report pass remains tied to 0d62807. It was not rerun
+after the small draft-delivery policy clarification; no claim of a new full
+comparison or performance qualification. These equality/state checks do not prove
+the correctness of all generated interpretation or define the business meaning
+of HOLD. Original failures remain retained.
+
+Evidence: [nearby copy/paraphrase pass](../../../integration/evidence/2026-10-27-document-copy-nearby-pass.json.gz),
+29,642 bytes; SHA-256 59a1fb7cc2d9a880d6380fd3c0c8e449564d61732387ff37c1f5d29c65a4d89c.
+
+Implemented a bounded copied-passage disclosure in the native document viewer,
+with original excerpts/locators and exact-version navigation. Free-text edits
+show their earlier lineage instead of stale copy spans. Historical Source viewers
+now expose the existing newer-version control; refresh reads bounded citation
+metadata rather than full newer bodies. Presentation refuses changed copied body
+bytes and preserves exact original identity. All 18 document UI/lifecycle checks
+pass, including the two new provenance/historical-source groups. An initial new
+test compile omitted the required conversation argument; corrected to main. The
+compiler retains an existing weak-variable diagnostic elsewhere in that suite.
+Native build and visible provenance navigation remain next. No full J11,
+VoiceOver, engine adoption, production compaction or release pass.
+
+
+## Native provenance packaging checkpoint
+
+The native preview and standalone CLI build successfully with the provenance
+viewer and historical-source notice. All 18 document UI/lifecycle groups pass.
+Packaged native resources, build-tree isolation, all ten missing-resource
+refusals, altered-resource refusal, missing-model guidance, failed-request
+preservation and deep signature verification pass. Packaged document CLI editing
+checks pass (atomic edit, retry, stale refusal, separate copy, bounded input and
+acceptance). Packaged extraction checks pass through both app/CLI helper layouts
+for text/PDF/DOCX and structured CSV/XLSX with build-tree reads denied. Neither
+installed native executable links Python, MLX or Slotstream; extraction requires
+no Python/model runtime. The unchanged Splash engine/grammar remain hash checked.
+
+The initial build command used ./scripts/build_native.sh and correctly failed
+with permission denied; documentation specifies bash scripts/build_native.sh.
+The documented command passes and no script/mode change was needed. Keep the
+failed invocation in the receipt. Strict changed Swift formatting and diff
+checks pass. Final dbmd/link checks and commit follow. No full installer,
+baseline/native performance cohort, hosted CI or release suite was rerun.
+
+CUA again reports the Mac locked with automatic unlock paused after physical
+input. No new permission is required; the existing manual-unlock request remains
+pending. Native visual checks remain unverified: factual saved-draft receipt
+link, Copied passages expansion, exact original navigation, newer-version notice,
+Back, keyboard/narrow layout and assistive actions. Conversation-origin copy
+support, references/backlinks, full J11/VoiceOver, production compaction, engine
+repeatability/adoption review, fresh-clone/release and other recorded gates
+remain open. The whole app is not claimed complete.
+
+Evidence: [native provenance/package checkpoint](../../../integration/evidence/2026-10-27-document-copy-native-provenance.json.gz).
+Retains tested source/product identities, actual build and package/CLI/extraction
+stdout, failed command and explicit visual/qualification limits.

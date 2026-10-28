@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T04:36:47.971594+00:00
+updated: 2026-10-28T04:50:51.538921+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1156,3 +1156,20 @@ requires no copied identifier or original passage. Embedded source instructions
 cannot accept an unrelated draft. Inputs, outputs, errors, saved drafts and
 portable reopen evidence are retained. This is a bounded nearby diagnostic, not
 general semantic, latency, memory or full-workflow qualification.
+
+
+## Inspect copied passages
+
+Open a composed document and expand Copied passages in the right pane. Each
+excerpt shows its saved locator and Open original passage. The link opens the
+exact version used, even after a new head or refreshed extraction. Earlier
+Source and Record viewers show Viewing an earlier version plus the explicit
+Open newer version control. Back returns through the normal preview history.
+No source IDs or copy tokens are required in the user's request.
+
+Free-text editing creates submitted evidence and a new draft. Original-copy
+spans remain on the earlier version through Evidence and history, so edited
+prose does not claim stale byte positions. Run sevra-document-checks for the
+programmatic consistency/history/edit checks. Visible source navigation, Back,
+keyboard, VoiceOver and narrow layout are separate qualification, currently
+pending manual Mac unlock in [[records/operations/implementation]].

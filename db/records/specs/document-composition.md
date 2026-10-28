@@ -2,7 +2,7 @@
 type: spec
 id: 01m609st2pz8zhg7bcpec874g1
 created: 2026-10-28T03:45:29.174789+00:00
-updated: 2026-10-28T04:42:54.932813+00:00
+updated: 2026-10-28T04:47:28.792277+00:00
 summary: Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 title: Source-bound document composition
 status: reviewed
@@ -26,9 +26,9 @@ allowed and are labelled as new prose in this representation. This is a bounded
 document construction facility, not a claim that every requirement was met.
 
 The core and agent integration are implemented and deterministically checked.
-The unchanged eight-report task now passes. Real-model selection of copy IDs,
-selectable native UI, conversation-origin copies and a public CLI composition
-command remain qualification gates.
+The unchanged eight-report task now passes. Nearby real-model copy selection and paraphrase now pass. Native provenance
+interaction, conversation-origin copies and a public CLI composition command
+remain qualification gates.
 No current product completion claim may depend on those unimplemented paths.
 
 ## Identity and text contract
@@ -321,3 +321,22 @@ that explicit draft requests require a saved artifact, that a chat summary is
 insufficient, and that identifier exclusions apply to paraphrase independently
 of preserving factual values. This adds no classifier, reviewer, threshold,
 budget or new write authority. Recheck the same nearby cases.
+
+
+## Nearby qualification and native provenance implementation
+
+The unchanged English/Spanish quote and permitted-paraphrase replay now passes.
+Literal cases have actual copy metadata and exact Unicode/CRLF; paraphrase saves
+a draft with no copied passages or excluded identifier. This is a bounded native
+mechanism/intent observation, not a guarantee of every interpretation or full
+product qualification. See the preserved failure and pass receipts in
+[[records/operations/implementation]].
+
+The document viewer now has a Copied passages disclosure showing bounded excerpts
+and locators. Open original passage navigates to the exact saved source version.
+Earlier sources show the existing newer-version notice without retargeting. The
+presentation checks local saved span/hash/body consistency and refuses unusable
+metadata. Full receipt integrity remains Workbook.verify's responsibility; no
+authorship, truth or current acceptance is implied. All 18 document UI/lifecycle
+checks pass. Visual, keyboard, narrow-layout and source-return interaction still
+need the native preview; compiling a control is not a visible journey pass.

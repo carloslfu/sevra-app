@@ -511,3 +511,9 @@ Unchanged native eight-report fidelity task passes; zero copied IDs used, so add
 ## [2026-10-28 04:42] verification | records/operations/implementation.md
 Native English/Spanish literal copy paths pass; unchanged paraphrase skips requested draft and includes identifier; retain failure and clarify draft-delivery policy.
 
+## [2026-10-28 04:47] implementation | records/operations/implementation.md
+Three unchanged nearby native copy/paraphrase cases pass; add exact-version provenance disclosure and historical-source warning; 18 document lifecycle checks pass, visible check pending.
+
+## [2026-10-28 04:50] verification | records/operations/implementation.md
+Native provenance build, 18 document checks, installed resource/refusal/signature, packaged CLI edit and extraction checks pass; visible interaction still blocked by Mac lock.
+
