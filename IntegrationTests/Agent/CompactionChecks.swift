@@ -286,7 +286,9 @@ private actor RunningJobFixture: WorkbookInference {
     try cancellation.check()
     return ContextMeasurement(
       promptTokens: 1000 + messages.reduce(0) { $0 + $1.content.utf8.count / 4 },
-      capacity: 8192, templateIdentity: "fixture-token-accounting-v1")
+      // Synthetic capacity leaves the growing host policy plus all reserves intact.
+      // This is controller coverage, not a new product context profile.
+      capacity: 12288, templateIdentity: "fixture-token-accounting-v1")
   }
   func summarize(
     messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,

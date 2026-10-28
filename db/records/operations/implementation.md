@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T02:32:13.017543+00:00
+updated: 2026-10-28T02:49:47.200526+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -33,7 +33,9 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   Source excerpt. Neither the full inventory flow nor J11 is qualified.
 - The owner selected a 75% context-compaction trigger, using actual configured
   capacity and exact rendered tokens, or earlier when reserves require. Policy
-  alignment and qualification are next. Automatic compaction stays gated; this
+  alignment and deterministic checks pass; the native replay fails exact label
+  preservation and overstates the draft content. Repair that next. Automatic
+  compaction stays gated; this
   does not explain the observed errors at 8–12K prompt tokens.
 
 
@@ -3731,3 +3733,44 @@ freeform status claims, general event identity, J11, engine adoption, automatic
 compaction or release. No installation, full-suite, broad model or CI rerun.
 Immutable [citation version receipt](../../../integration/evidence/2026-10-27-citation-current-version.json): 91,919 bytes; SHA-256
 4bc29db55e50b5b691aef77d03705ebb3431312695af51b30d61bb050a68b736.
+
+## 75% compaction policy alignment and retained native failure, October 27
+One threshold function now serves native ContextBudget and both adapters through
+ContextMeasurement: 75% of actual configured capacity, or earlier for output,
+next-result and recovery reserves. Removed the adaptive floor increase. Oversized
+required state, no reclaimable history, ineffective summaries and still-full
+checkpoints refuse explicitly with measured tokens; they preserve original work.
+The agent also measures before every generation to catch added recovery/handoff
+context. Baseline hard admission now includes its full reply allowance. Native
+normal-response metrics and new checkpoint metrics expose the selected threshold.
+Product compaction flags, model/context choices, reasoning and KV handling stay
+unchanged. Automatic compaction remains disabled in both products.
+
+Agent build and all deterministic checks pass, including new boundary/no-gain/floor
+and retry checks plus existing repeated compaction, cancellation, state, retrieval,
+portable continuation and no-duplicate-write coverage. An old 8K synthetic fixture
+was correctly refused at a 4,120-token irreducible floor versus threshold 4,088;
+the successful repeated-job fixture now uses an explicitly synthetic 12,288
+capacity. Preserve that refusal, not a claimed regression in production inference.
+Strict changed-file Swift formatting, repository links and dbmd validation pass.
+Core code is unchanged since the preceding 82-pass check. No new tool schemas,
+grammar mask changes, installation, full product rebuild or hosted CI rerun.
+
+The actual native eight-report replay FAILED at exact requested identifiers.
+Twelve responses stayed below the 24,576 threshold; eight checkpoints completed.
+Quantities, units, currency constraint, all eight numeric report results and lineage
+survived, but the draft renamed X-CHECK labels to Inspection X. Its final answer
+wrongly claimed to preserve those labels. Two identical save_space calls resolved
+to one idempotent space. No duplicate artifact or inventory change occurred, but
+that is not evidence of no redundant action attempts. Original rows are unchanged;
+failed draft/checkpoints survive portable export/reopen, and verification passes.
+The model unloaded and recorded measured sources/binary/engine/grammar stayed fixed.
+This single sample is not a matched performance comparison or production gate.
+
+Next: inspect the exact drafting context and fix identifier copying plus unsupported
+completion assertions. Do not weaken the exact-label check, raise the selected
+threshold, assume missing source context, or rerun broad cohorts until this failure
+is addressed. Keep the whole failure in [75% policy receipt](../../../integration/evidence/2026-10-27-context-75-policy.json.gz) (95,680 bytes;
+SHA-256 67ac05d72b3a51facba84b8075284c696d63203ef771a2adc626e9c4c68d5f87).
+Engine numerical-repeatability review, full native journeys, references/backlinks,
+accessibility, latency/memory and release gates remain open.

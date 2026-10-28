@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-28T02:32:13.036939+00:00
+updated: 2026-10-28T02:49:47.169924+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -150,15 +150,32 @@ faster decode number.
 
 The first instrumentation stage now provides internal 8K/32K/64K evaluation
 profiles. Native startup and prompt rendering use the same configured capacity.
-Exact prompt counts determine output allowance and a maintenance recommendation
-with provisional reserves of 1,800 output, 2,048 next-result and 256 recovery tokens.
-A controller now measures the exact rendered prompt and acts before each normal
-agent dispatch and after completed tool groups. The 8K policy can itself exceed
-that provisional threshold, so this development profile uses a measured irreducible
-floor plus reclaimable-history allowance. It still reserves 1,800 output tokens.
-The full provisional next-result/recovery reserve is not a qualified guarantee
-under that adaptive threshold; wider profiles and context-sized projections remain
-required. A too-large request or latest result fails without cutting originals.
+Exact prompt counts determine output allowance. The October 27 owner policy uses
+min(floor(0.75 * configured capacity), capacity - 1,800 output - 2,048 next-result
+- 256 recovery/framing). Native ContextBudget and shared ContextMeasurement use
+the same function. The thresholds are 24,576 at 32K, 49,152 at 64K, and an earlier
+4,088 at 8K because of reserves. These are not newly qualified product capacities.
+
+The controller measures complete template output with schemas, retained history,
+digests, receipts and delimiters. Native uses its real frontend/tokenizer; baseline
+uses encodeChat and reads the engine's configured window. Measurements include the
+full workbook tool set, conservatively reserving that schema even when the next
+response is scoped to fewer tools. Actual generation uses its rendered scoped
+prompt and an independent hard capacity check. Baseline now includes its 1,800
+reply tokens in that hard check and records its exact prompt/capacity/threshold.
+
+After completed tool groups, maintenance compacts only eligible history. Before
+each generation, another measurement catches carried handoff proof or recovery
+text added after maintenance. If that live group reaches the threshold, fail
+explicitly rather than drop it or dispatch beyond the policy. Required policy,
+request and host-state floors cannot silently raise the threshold. Refusals state
+measured tokens, threshold and preservation of original input/completed work.
+A summary that reclaims too little, or a saved checkpoint whose remaining context
+still reaches the threshold, cannot count as successful maintenance. Saved
+checkpoints and originals remain available. Checkpoint metrics distinguish its
+publication from admission of the next generation and retain actual floor, trigger
+and available before/candidate counts. No model weights, reasoning budget, KV
+handling, user settings or automatic-compaction product gate changed.
 
 The storage foundation now supports durable, chained context checkpoints at
 completed-turn or recorded tool-result boundaries. A mid-run checkpoint preserves
@@ -449,4 +466,51 @@ cannot be attributed to this threshold. Automatic compaction remains disabled
 until repeated real jobs pass under the revised policy. Boundary accounting,
 earlier reserve triggers, irreducible floors, repeated maintenance, cancellation,
 reopen, authoritative state, retrieval and no replayed actions require focused
-verification. Implementation alignment is pending at this documentation checkpoint.
+verification. Implementation alignment is complete; the first native policy replay failed
+functional acceptance as recorded below.
+An irreducible floor now refuses explicitly instead of taking a silent policy
+exception. The owner-selected threshold is unchanged by that refusal.
+
+## 75% policy checks and native failure, October 27
+Deterministic checks pass the selected boundary, equality and one-token-below
+cases, integer rounding, earlier 8K reserve trigger, irreducible floor, no eligible
+history, insufficient reduction, and published-checkpoint-but-still-full refusal.
+A malformed-response retry now proves that additional live context is checked
+before the next generation. Existing repeated maintenance, original IDs/quantities,
+accepted-estimate state, cancellation, invalid digest, tangent scope, retrieval,
+portable continuation and no duplicate writes checks also pass.
+
+The old synthetic active-job fixture exposed a required floor of 4,120 tokens
+against the 8K reserve threshold of 4,088. The explicit refusal is retained. Its
+repeated-success controller fixture now uses a declared synthetic 12,288 capacity;
+this is not an added model profile. Dedicated 32K scripted boundary tests exercise
+a 24,000 floor that the former adaptive +1,024 allowance would have raised above
+75%. No further threshold exception is used.
+
+One real native maintained32K replay of the unchanged eight-report workload FAILED
+functional acceptance. It completed 12 responses and 8 checkpoints in 245.626
+seconds including test verification. Every normal response's actual prompt stayed
+below 24,576 tokens (range 10,019 to 24,271). The checkpoints measured above-trigger
+prompts and smaller candidates; these observations establish the policy path on
+this sample, not capacity or latency qualification.
+
+The saved Receiving memo preserved MAPLE-27, 0.10 kg, 0.25 kg, unspecified currency,
+all eight clearances/dispositions and source lineage, but replaced every requested
+exact X-CHECK label with Inspection X. The final answer claimed exact labels were
+included. It also attempted save_space twice; the identical request was idempotent
+and only one space exists. Do not call this a no-retry success. The generic test
+error Expected complete tool candidate was independently traced to missing exact
+labels. Original rows and business state remain unchanged. Failed work and all
+checkpoints survive export/reopen and integrity checks. The model unloaded normally.
+
+The source/model budget was not changed during execution; bound source/binary,
+engine and grammar hashes match before/after. No repeated run was launched to seek
+a passing result. Existing bounded exact read excerpts already exist in continuation
+state; do not assume loss of all source evidence or blame the threshold itself.
+Inspect drafting-time inputs and repair exact-copy behavior and completion claims
+before repeating the failed job and nearby counterexamples. C12/C13/J10 and automatic
+compaction remain unqualified. The preserved baseline adapter compiled and shares
+the threshold, but no new baseline-model inference cohort was run.
+
+Evidence: [75% policy receipt](../../../integration/evidence/2026-10-27-context-75-policy.json.gz) (95,680 bytes compressed, 354,037 bytes decoded;
+SHA-256 67ac05d72b3a51facba84b8075284c696d63203ef771a2adc626e9c4c68d5f87).

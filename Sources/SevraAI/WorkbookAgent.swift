@@ -282,6 +282,18 @@ public enum WorkbookAgent {
         messages = try ItemReferenceCandidates.annotate(messages, workbook: workbook)
         let itemChoices = try ItemReferenceCandidates.ids(in: messages)
         let toolScope = nextToolScope == .all ? phaseScope : nextToolScope
+        if maintenance != nil {
+          // Handoff proof and malformed-response recovery can add context after
+          // the last completed-group maintenance. Never dispatch that overflow
+          // or discard an in-progress group to manufacture a smaller prompt.
+          let prepared = try await model.measureContext(
+            messages: messages, directory: modelDirectory, cancellation: cancellation,
+            summary: false, citationIDs: inspected.sorted(), progress: progress)
+          try require(
+            prepared.promptTokens < prepared.threshold, "context_limit",
+            "The prepared prompt uses \(prepared.promptTokens) tokens, reaching the \(prepared.threshold)-token maintenance threshold. Current request and incomplete work cannot be discarded. Original input and completed work are saved."
+          )
+        }
         let response = try await model.respond(
           messages: messages, directory: modelDirectory, cancellation: cancellation,
           progress: progress, toolScope: toolScope, citationIDs: inspected.sorted())

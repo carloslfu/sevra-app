@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T02:32:12.968930+00:00
+updated: 2026-10-28T02:49:47.224380+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -645,3 +645,13 @@ That native run voluntarily inspected the head. The exact ambiguous handover rep
 instead took direction review and asked for clarification, so it does not establish
 the citation gate by itself. Stock stayed 20, no business records changed, and all
 original rows and assets were preserved. See [citation version receipt](../../../integration/evidence/2026-10-27-citation-current-version.json).
+
+## Exact-copy and completion gap, October 27
+The first native 75% compaction replay preserved required numeric data and lineage
+but renamed exact X-CHECK identifiers to Inspection X in its draft, then claimed
+the requested labels were present. The fixture is a failed job. Existing completed
+write receipts establish that a draft exists, not that every requested content
+constraint was satisfied. Inspect actual drafting inputs and preserve literal
+identifiers when requested; do not relax the acceptance check or treat repeated
+idempotent calls as evidence of no retries. Automatic compaction stays disabled.
+See [[records/specs/conversation-context]] and [75% policy receipt](../../../integration/evidence/2026-10-27-context-75-policy.json.gz).

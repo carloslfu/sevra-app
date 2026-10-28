@@ -481,3 +481,6 @@ Added isolated inventory direction review and terminal duplicate refusal; retain
 ## [2026-10-28 02:32] implementation | records/operations/implementation.md
 Verified exact historical citation/current-head repair with 82 core checks, agent checks and scoped native replay; recorded owner-selected 75% context trigger pending alignment.
 
+## [2026-10-28 02:49] verification | records/operations/implementation.md
+Aligned 75% compaction threshold with explicit floor refusal; deterministic checks pass. Preserved failed native exact-label job and intact exported/reopened state; automatic compaction remains disabled.
+

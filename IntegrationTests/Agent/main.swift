@@ -228,6 +228,7 @@ func expectValue<T>(_ value: T?) throws -> T {
 }
 do {
   try checkContextBudget()
+  try await checkContextThreshold()
   try checkReasoningBudget()
   try await checkReasoningHistory()
   try await checkAgentLifecycle()
