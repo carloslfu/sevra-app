@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T02:32:12.994635+00:00
+updated: 2026-10-28T03:51:08.473548+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -314,3 +314,21 @@ avoid decoding document bodies and structured payloads. The method never changes
 items, heads, accepted effects or action authority. The agent stores its observed
 snapshot alongside the final message and presents historical/current links.
 See [[records/specs/intelligence]] and [citation version receipt](../../../integration/evidence/2026-10-27-citation-current-version.json).
+
+## Composed document provenance, October 27
+
+[[records/specs/document-composition]] adds a core document-construction API
+without a schema migration. Record data stores versioned documentComposition
+metadata: originating run/conversation and each immutable read reference, exact
+copied text, Source/Record version, locator, receipt hash and output position.
+Source assets stay outside SQLite as before. New prose and copied text form one
+bounded saved body; copied input versions join its ordinary lineage.
+
+All copies resolve inside the draft write transaction. Wrong scope, stale
+revision, changed hash, malformed parts, excessive output and cancellation
+refuse the whole mutation. Identical successful retries return the original
+item; new writes require an active request-linked run. Verification checks
+declared copies against original receipts and saved text. Acceptance, withdrawal,
+Undo and portable export/reopen preserve copied bytes and estimate meaning.
+Seven new composition test groups pass within the 89-check core run. Agent/CLI
+and native provenance interfaces are still pending.

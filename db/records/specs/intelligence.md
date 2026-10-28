@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T03:28:56.971960+00:00
+updated: 2026-10-28T03:51:08.454329+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -700,3 +700,20 @@ Continue qualification against the unchanged failed job and nearby counterexampl
 Automatic compaction, native adoption and whole-app release remain gated.
 
 Evidence: [saved-artifact and rejected-review receipt](../../../integration/evidence/2026-10-27-artifact-fidelity.json.gz), 377,349 bytes compressed; SHA-256 `83f309ea041dd4b939f6c37b16266d03a59c44e399260043440487a7770666fe`. Final native visual verification is pending manual unlock.
+
+## Source-bound composition foundation, October 27
+
+Adopt [[records/specs/document-composition]] after the retained exact-label
+failure and rejected generative reviewer. Swift now resolves original text from
+an immutable completed read receipt and atomically composes it with new prose.
+Copies preserve exact UTF-8 text and Source/Record version provenance, even after
+reindexing or a newer head. Drafts remain estimates, and storage does not prove
+content completeness. The final deterministic core run passes 89 checks.
+
+This foundation is not connected to the agent draft schema, native copy choices
+or CLI yet. Implement bounded selectable originals, continuation identity and
+compatible typed draft parts next, then qualify the changed grammar and rerun
+the unchanged eight-report job plus nearby paraphrase cases. Earlier-conversation
+values and native provenance navigation remain explicit gates. The existing
+truthful host confirmations remain unchanged. No new inference/checker call,
+threshold increase, step-budget increase or model/engine change was made.

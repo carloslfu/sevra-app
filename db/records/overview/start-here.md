@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-27T21:45:28.720233+00:00
+updated: 2026-10-28T03:51:08.434507+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -31,6 +31,7 @@ with no Python runtime. See [[records/specs/splash-integration]].
 - [[records/specs/storage]]: package, data, transactions, history and calculations.
 - [[records/specs/search]]: intake, extraction, indexes, retrieval and scaling.
 - [[records/specs/references-and-relationships]]: adopted inline references, backlinks and version-safe traversal; implementation pending.
+- [[records/specs/document-composition]]: source-bound exact-copy foundation; agent and native interaction qualification pending.
 - [[records/specs/intelligence]]: local model, tools, native generated UI and voice.
 - [[records/specs/conversation-context]]: automatic compaction, durable history and context qualification.
 - [[records/specs/distribution]]: install, CLI/skill, testing and release contracts.

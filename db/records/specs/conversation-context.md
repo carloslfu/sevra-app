@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-28T03:28:56.987647+00:00
+updated: 2026-10-28T03:51:08.491988+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -539,3 +539,15 @@ next design step, not a completed API or qualification result. See
 [[records/specs/intelligence]] and [[records/operations/implementation]].
 
 Evidence: [saved-artifact and rejected-review receipt](../../../integration/evidence/2026-10-27-artifact-fidelity.json.gz), 377,349 bytes compressed; SHA-256 `83f309ea041dd4b939f6c37b16266d03a59c44e399260043440487a7770666fe`. Final native visual verification is pending manual unlock.
+
+## Original copies across context boundaries, October 27
+
+[[records/specs/document-composition]] specifies original text selected by stable
+read receipt and exact input version. Its deterministic core is implemented;
+selectable copy choices in the agent context and across compaction remain pending.
+A complete stored result may contain fields omitted from the model's projection.
+Inspecting those fields is a new bounded read, never proof of earlier observation.
+An old copy does not refresh current facts, restore citation eligibility or grant
+authority to repeat a write. Conversation-origin values need their own scoped
+implementation and qualification. The selected 75% threshold, existing response
+budget and failed eight-report acceptance case are unchanged.

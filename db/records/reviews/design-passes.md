@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-27T21:45:28.741268+00:00
+updated: 2026-10-28T03:51:08.510363+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -279,3 +279,13 @@ and another database. Explicit references precede evaluated suggestions.
 These are design conclusions, not measured usability or implementation proof.
 LJ01-LJ10 define the failure, recovery, model, accessibility and scale checks.
 Existing native Splash and release qualification are unchanged.
+
+## Source-bound document review, October 27
+
+Reviewed three further passes in [[records/specs/document-composition]]:
+identity/time rejects disposable search rows; mutation/durability resolves
+originals atomically and retains review/export provenance; product/adversarial
+behavior separates exact copies from interpretation and completeness. Retain
+the failed generative-review experiment. The core foundation passes focused
+invariants; agent selection, conversation values, native interaction and the
+actual failed job remain unqualified.

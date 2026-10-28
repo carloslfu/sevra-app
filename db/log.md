@@ -487,3 +487,9 @@ Aligned 75% compaction threshold with explicit floor refusal; deterministic chec
 ## [2026-10-28 03:28] verification | records/operations/implementation.md
 Confirmed saved-action receipt boundaries with agent checks and native app/CLI rebuild. Retained unchanged native exact-copy failure and rejected literal-review experiment; original workbook state preserved. Final native visual check awaits manual unlock.
 
+## [2026-10-28 03:51] implementation | records/operations/implementation.md
+Implemented and reviewed source-bound composition core; exact receipt copies, atomic drafts and retained provenance. Agent and native integration remain pending.
+
+## [2026-10-28 03:51] verification | records/specs/document-composition.md
+Core build and 89 invariant groups passed; portable five-version audit, strict format and diff checks passed. Retained intermediate test failures and explicit UI/model limits.
+

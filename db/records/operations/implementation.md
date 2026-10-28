@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T03:28:56.957337+00:00
+updated: 2026-10-28T03:51:08.530104+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -3832,3 +3832,57 @@ acceptance target. Automatic compaction, engine numerical-repeatability review,
 full J11, references/backlinks, accessibility and release gates remain open.
 
 Evidence: [saved-artifact and rejected-review receipt](../../../integration/evidence/2026-10-27-artifact-fidelity.json.gz), 377,349 bytes compressed; SHA-256 `83f309ea041dd4b939f6c37b16266d03a59c44e399260043440487a7770666fe`. Final native visual verification is pending manual unlock.
+
+## Source-bound composition core, October 27
+
+Specified [[records/specs/document-composition]] with three review passes and
+implemented its Swift foundation. DocumentCopyReference anchors scalar spans and
+expected UTF-8 hashes to completed read receipts from the same run/conversation.
+The host resolves original text, not disposable reindexed chunk rows or a newer
+source head. New prose and original copies compose one atomic draft. Saved
+metadata retains exact source version, locator, receipt hash and output position.
+Copied versions join lineage. Draft/estimate status and inventory state are
+preserved. Idempotent retries survive a terminal run, while new writes require an
+active request-linked run. Invalid parts, hashes, scopes, bounds, cancellation or
+stale revisions leave no partial draft or revision.
+
+Workbook verification checks declared copied passages. Tests preserve decomposed
+Unicode, CRLF, NUL and emoji bytes; retain copies through changed extraction, a
+new source head, acceptance, withdrawal, Undo and portable export/reopen; and
+reject corrupted passage text/position. An independent SQLite/archive audit
+confirms five review versions with the same copied text and estimate meaning,
+one composition operation and zero inventory effects after the originating run
+completed. This tests immutable observation, not extraction truth or requirement
+completeness.
+
+Final verification: swift build --product sevra-checks -j 4 passed. The full core
+executable passed 89 groups, zero failed, including seven new composition groups.
+Strict changed-file swift-format lint and git diff --check passed. The first test
+compile exposed use of an internal helper and a missing required tangent parent;
+those test calls were corrected. An intermediate run passed 87 groups and failed
+one because the test tried to withdraw an already rejected Undo result. Corrected
+the journey to follow existing review behavior; no review semantics changed.
+Subsequent relevant code-boundary refinements were included in the final 89-pass
+run. Intermediate full stdout was overwritten locally; its exact failure and
+correction are retained in the evidence receipt.
+
+No agent definition, CLI command, native UI, inference engine or grammar mask
+changed in this checkpoint. No actual-model, installer, full product, hosted CI
+or release cohort was rerun. The eight-report native content failure is still
+unresolved. This foundation does not establish agent fidelity. Next: expose
+bounded original-copy choices through reads and continuation, add compatible
+typed draft parts, qualify changed grammar, then rerun the unchanged native job
+and nearby permitted-paraphrase cases. Conversation-origin copies, references/
+backlinks, compaction qualification, engine repeatability review, full J11,
+accessibility, latency/memory and release gates remain open.
+
+The owner replied that the Mac was unlocked, but the next CUA getApp observation
+still reported it locked with automatic unlock paused by physical input. A new
+manual-unlock request remains pending. The previous packaged preview's factual
+save confirmation and exact draft-link UI check remain unverified.
+
+Evidence: [composition core receipt](../../../integration/evidence/2026-10-27-document-composition-core.json.gz),
+23,255 compressed bytes; SHA-256
+`d742062251cf429da2c05dd6c46ba73c6a321a42b4c7c7dd0164739b3ca2e088`.
+Includes final test output, code identities, the portable synthetic workbook,
+independent audit, intermediate failures and explicit qualification limits.

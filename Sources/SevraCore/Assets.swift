@@ -236,6 +236,7 @@ extension Workbook {
       try db.execute("INSERT INTO message_fts(message_fts,rank) VALUES('integrity-check',1)")
       try verifyContextCheckpoints()
       try verifyToolCalls()
+      try verifyDocumentCompositions()
       return .object([
         "database": .string("ok"), "assetIssues": .array(missing), "ok": .bool(missing.isEmpty),
       ])
