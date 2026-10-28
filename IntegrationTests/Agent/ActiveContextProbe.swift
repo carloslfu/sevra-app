@@ -63,12 +63,38 @@ private actor ActiveContextModel: WorkbookInference {
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
     citationIDs: [String]
   ) async throws -> NativeReply {
+    // Retain the actual pre-render messages to distinguish missing evidence
+    // from an incorrect use of evidence. This observation supplies no model text.
+    let input: Value = .object([
+      "toolScope": .string(toolScope.rawValue),
+      "citationIDs": .array(citationIDs.map(Value.string)),
+      "messages": .array(
+        messages.map { message in
+          .object([
+            "role": .string(message.role), "content": .string(message.content),
+            "reasoning": .string(message.reasoning),
+            "toolCallID": message.toolCallId.map(Value.string) ?? .null,
+            "toolName": message.toolName.map(Value.string) ?? .null,
+            "itemReferences": .array(message.itemReferences.map(Value.string)),
+            "conversationActions": message.conversationActions.map { .array($0.map(Value.string)) }
+              ?? .null,
+            "toolCalls": .array(
+              message.toolCalls.map { call in
+                .object([
+                  "id": .string(call.id), "name": .string(call.name),
+                  "inputJSON": .string(call.inputJSON),
+                ])
+              }),
+          ])
+        }),
+    ])
     let reply = try await native.respond(
       messages: messages, directory: directory, cancellation: cancellation,
       progress: progress, toolScope: toolScope, citationIDs: citationIDs)
     lastMetrics = await native.lastMetrics
     responses.append(
       .object([
+        "input": input,
         "metrics": lastMetrics,
         "checkpoints": .number(Double(try workbook.contextCheckpoints(limit: 100).count)),
         "calls": .array(

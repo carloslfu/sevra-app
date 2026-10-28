@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-28T02:49:47.169924+00:00
+updated: 2026-10-28T03:28:56.987647+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -514,3 +514,28 @@ the threshold, but no new baseline-model inference cohort was run.
 
 Evidence: [75% policy receipt](../../../integration/evidence/2026-10-27-context-75-policy.json.gz) (95,680 bytes compressed, 354,037 bytes decoded;
 SHA-256 67ac05d72b3a51facba84b8075284c696d63203ef771a2adc626e9c4c68d5f87).
+
+## Literal-copy follow-up and rejected review gate, October 27
+A second unchanged 75% job still failed exact labels even though its actual
+drafting input contained all eight original CHECK labels. The saved-result message
+now confirms only storage through host receipts; this does not pass the document
+job. The instrumented inference wrapper retains complete pre-render messages and
+tool scope without supplying any extra model text or altering the fixture.
+
+An independent literal-copy reviewer passed small native cases but failed this
+full job with false refusals and incomplete findings. It demanded lineage IDs in
+the body, then refused corrected content; two draft attempts failed and the
+existing response budget expired. One idempotent space remained, no draft was
+saved, and original state and integrity stayed intact. The experimental reviewer
+was removed from the app path. Do not enable compaction, enlarge the response or
+context budget, or relabel either job as passing on this evidence.
+
+Next investigate source-bound document composition which inserts selected original
+spans/blocks through the host. Preserve exact-copy requirements separately from
+paraphrased prose, lineage metadata and completed interface actions. The future
+contract must fit [[records/specs/references-and-relationships]] and cover source
+tails and earlier conversation without making a summary authoritative. This is a
+next design step, not a completed API or qualification result. See
+[[records/specs/intelligence]] and [[records/operations/implementation]].
+
+Evidence: [saved-artifact and rejected-review receipt](../../../integration/evidence/2026-10-27-artifact-fidelity.json.gz), 377,349 bytes compressed; SHA-256 `83f309ea041dd4b939f6c37b16266d03a59c44e399260043440487a7770666fe`. Final native visual verification is pending manual unlock.

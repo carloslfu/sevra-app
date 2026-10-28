@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T02:49:47.200526+00:00
+updated: 2026-10-28T03:28:56.957337+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -33,10 +33,13 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   Source excerpt. Neither the full inventory flow nor J11 is qualified.
 - The owner selected a 75% context-compaction trigger, using actual configured
   capacity and exact rendered tokens, or earlier when reserves require. Policy
-  alignment and deterministic checks pass; the native replay fails exact label
-  preservation and overstates the draft content. Repair that next. Automatic
-  compaction stays gated; this
-  does not explain the observed errors at 8–12K prompt tokens.
+  alignment and deterministic checks pass. The repeated native job still fails
+  exact labels, despite all originals appearing in drafting context. Supported
+  completed_action confirmations now use factual host receipts; draft contents
+  are not thereby verified. An isolated literal reviewer passed small
+  probes but falsely refused the full job and was removed from the app path.
+  Next design source-bound copying for composed documents. Automatic compaction
+  stays gated; none of this explains earlier errors at 8–12K prompt tokens.
 
 
 - The integrated typed/native supplier journey now has direct evidence for intake,
@@ -110,8 +113,8 @@ C++/Metal. Native adoption and automatic compaction remain gated.
 - The unchanged full 100k search protocol now passes at warm p95 136.47 ms for
   rows and 172.31 ms for document chunks, with correct paging and cancellation.
   Retain the earlier failed run. Whole-app and wider-device performance are open.
-- The maintained32K context repair passes the unchanged eight-report v1 fixture
-  twice: exact associations, four checkpoints, one space/draft, all-source lineage,
+- Under the preceding threshold, the maintained32K context repair passed the
+  unchanged eight-report v1 fixture twice: exact associations, four checkpoints, one space/draft, all-source lineage,
   unchanged originals/inventory and portable reopen. The first overlaps dictation;
   the controlled second run does not. The earlier uncompressed64K failure and
   remaining C12/C13 cases remain unresolved; compaction stays disabled.
@@ -3774,3 +3777,58 @@ is addressed. Keep the whole failure in [75% policy receipt](../../../integratio
 SHA-256 67ac05d72b3a51facba84b8075284c696d63203ef771a2adc626e9c4c68d5f87).
 Engine numerical-repeatability review, full native journeys, references/backlinks,
 accessibility, latency/memory and release gates remain open.
+
+## Saved-artifact truthfulness and rejected reviewer, October 27
+Supported completed_action results now render from actual document/space/opening
+receipts. A save confirms storage and names its target; it cannot establish that
+all requested content was preserved. Original model finish arguments and all
+attempt receipts stay inspectable. Identical repeated saves display once; a later
+successful retry of the same title resolves its earlier failure in the final presentation. A failed
+write without a later success remains explicit. Evidence answers keep their
+existing checks. No schemas, core storage or native engine changed in final code.
+
+The unchanged native eight-report replay completed twelve normal responses and
+eight checkpoints in 223.190 seconds including verification, but still renamed
+every X-CHECK label. The actual pre-render drafting input contained all eight
+original labels. Its final visible body correctly confirmed only the saved space
+and draft. The draft remains a failed content result. One space/draft exists and
+all original items, heads, messages, operations, spaces, bases, effects and assets
+are preserved; workbook integrity passes and the model unloaded.
+
+A bounded isolated local-review experiment was developed to catch missing literal
+text before writing. The relocated debug executable first refused missing bundled
+resources before inference; the same executable in its normal resource layout
+ran. Its initial unsupported finding lacked a retained raw response. Added full
+review trace capture; the next trace showed a correct missing code attributed to
+the wrong input. Host resolution of exact origins addressed that narrow failure.
+The missing-code, permitted paraphrase, already-present code and Spanish cases
+then passed, including a source instruction. Measured single-call times were
+16.766, 5.756, 10.575 and 8.295 seconds, not performance qualification.
+
+The full reviewer job FAILED after 290.280 seconds and nine checkpoints. It
+required lineage identifiers in prose, reported only the shared CHECK suffix,
+then rejected already corrected labels and clearances. Two draft attempts failed;
+no draft was written. Two identical space attempts produced one stored space.
+The existing response budget was exhausted; do not hide that as a passed refusal
+or successful completion. Both workbooks pass integrity and independent original
+state audits. Candidate3/candidate4 measured source/binary/engine/grammar identities
+match before and after their runs. Run1 lacks an end-of-run source/binary snapshot
+before subsequent edits/rebuild; its before identities and trace remain preserved.
+The experiment was removed from the app and adds no shipped model call or latency.
+
+Final focused verification: agent build and checks pass, including saved outcomes,
+failed writes, idempotent display, successful retry, opaque/invented discarded
+model claims and intact cited evidence answers. Native release app/CLI rebuild
+and packaging pass. Strict changed-file Swift format lint and git diff --check
+pass. Core is unchanged; reuse the preceding 82 core checks. No broad inference,
+installation, full product suite, hosted CI or release run was performed.
+The final native visual confirmation-link check awaits the Mac being unlocked.
+
+Next: specify source-bound original spans/blocks for document composition, with
+exact version/locator identity, normal prose and paraphrase support, omitted tails
+and earlier-conversation values. A second generative reviewer did not solve the
+observed problem. Keep the original failed job and nearby counterexamples as the
+acceptance target. Automatic compaction, engine numerical-repeatability review,
+full J11, references/backlinks, accessibility and release gates remain open.
+
+Evidence: [saved-artifact and rejected-review receipt](../../../integration/evidence/2026-10-27-artifact-fidelity.json.gz), 377,349 bytes compressed; SHA-256 `83f309ea041dd4b939f6c37b16266d03a59c44e399260043440487a7770666fe`. Final native visual verification is pending manual unlock.

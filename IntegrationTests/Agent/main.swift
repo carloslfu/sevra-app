@@ -241,6 +241,7 @@ do {
   try await checkRequestAdmission()
   try await checkMovementDirection()
   try await checkCitationVersions()
+  try await checkActionConfirmations()
   try await checkCurrencyRejection()
   try await checkHistoryTools()
   try await checkParentHistory()

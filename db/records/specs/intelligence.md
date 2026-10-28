@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T02:49:47.224380+00:00
+updated: 2026-10-28T03:28:56.971960+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -655,3 +655,48 @@ constraint was satisfied. Inspect actual drafting inputs and preserve literal
 identifiers when requested; do not relax the acceptance check or treat repeated
 idempotent calls as evidence of no retries. Automatic compaction stays disabled.
 See [[records/specs/conversation-context]] and [75% policy receipt](../../../integration/evidence/2026-10-27-context-75-policy.json.gz).
+
+## Saved confirmations and rejected literal-review experiment, October 27
+A completed_action answer for a supported document, space, shortcut or opening
+uses host text derived from actual successful receipts. It confirms the saved or
+opened target, not semantic fulfillment of every requested constraint. Retain the
+original model finish arguments and every action receipt for inspection. Repeated
+idempotent successes display once. A later success for the same tool and title suppresses its earlier failed
+attempt in the final confirmation, while the failed receipt remains in history.
+An unresolved failed save is explicit. Discarded model prose and citations cannot
+force extra corrective generations for text which the host will never publish.
+Pending historical-version inspection obligations still apply. Evidence answers
+retain their existing citation, freshness, calculation and scope checks. This
+boundary does not validate arbitrary claims under a different answer basis.
+
+The repeated eight-report failure showed all eight original labels in the actual
+drafting input. Their replacement by document titles was a copying error; this
+trace does not establish missing source context or a threshold cause. A stronger
+copy instruction alone still failed. Save confirmation now stays factual even
+when the generated draft fails content acceptance. That is a narrow repair, not
+successful completion of the document job.
+
+An isolated local literal-copy reviewer was implemented and tested, then removed
+from the app path after its full-job failure. It received bounded original read
+prefixes and the candidate, had no write tools, and required exact request/source
+quotes before refusing. An initial result attributed a real code to the wrong
+input. Host resolution of origins fixed that issue and four native cases passed:
+missing identifier, permitted paraphrase, already-present code and Spanish, with
+an embedded source instruction. Individual observations took 5.76 to 16.77 seconds.
+
+The full job nevertheless failed. The reviewer demanded lineage IDs in prose,
+reported only a shared CHECK suffix, and then rejected an already corrected body.
+The run exhausted its existing response budget without saving a draft. Original
+workbook state stayed intact. These are false refusals and incomplete findings,
+not a successful guard. Its full candidate source and retained traces accompany
+the evidence receipt; it adds no extra model call to the shipped draft path.
+
+Next, design a source-bound copy operation for document composition: selected
+original spans/blocks should be inserted by the host with exact version and
+locator identity, rather than regenerated character by character. Review how that
+fits ordinary prose, requested paraphrases, source tails and earlier-conversation
+values before implementation. No proposed span API or command is implemented yet.
+Continue qualification against the unchanged failed job and nearby counterexamples.
+Automatic compaction, native adoption and whole-app release remain gated.
+
+Evidence: [saved-artifact and rejected-review receipt](../../../integration/evidence/2026-10-27-artifact-fidelity.json.gz), 377,349 bytes compressed; SHA-256 `83f309ea041dd4b939f6c37b16266d03a59c44e399260043440487a7770666fe`. Final native visual verification is pending manual unlock.
