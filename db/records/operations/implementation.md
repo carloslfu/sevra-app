@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T04:50:51.515858+00:00
+updated: 2026-10-28T05:11:30.810587+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -13,7 +13,7 @@ This is a working development build, not a qualified release. Requirements in th
 specifications remain the acceptance contract. A source commit does not imply that
 every requirement or supported hardware profile has passed.
 
-## Current direction, October 27
+## Current direction, October 28
 This remains a development build. The preserved Slotstream app is the baseline;
 the separate native preview uses the Python-free Swift adapter and pinned Splash
 C++/Metal. Native adoption and automatic compaction remain gated.
@@ -31,16 +31,28 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   Semantic event identity across different IDs/runs remains unresolved. Direction
   review still adds 8.58–16.09 seconds per measured call and sees an initial bounded
   Source excerpt. Neither the full inventory flow nor J11 is qualified.
-- The owner selected a 75% context-compaction trigger, using actual configured
-  capacity and exact rendered tokens, or earlier when reserves require. Policy
-  alignment and deterministic checks pass. The repeated native job still fails
-  exact labels, despite all originals appearing in drafting context. Supported
-  completed_action confirmations now use factual host receipts; draft contents
-  are not thereby verified. An isolated literal reviewer passed small
-  probes but falsely refused the full job and was removed from the app path.
-  Next design source-bound copying for composed documents. Automatic compaction
-  stays gated; none of this explains earlier errors at 8–12K prompt tokens.
-
+- The 75% context trigger remains tied to actual rendered tokens and configured
+  capacity. Source-bound composition and bounded two-chunk reads repair the
+  unchanged eight-report task at 32K. The passing run is tied to 0d62807 and used
+  new prose with zero actual copy references. A separate nearby English/Spanish
+  exact-copy and paraphrase probe passes at 770ba05: both literal requests used
+  actual copy references with exact Unicode/CRLF; the paraphrase saved new prose
+  without identifiers. Earlier context refusals and the paraphrase failure remain
+  preserved. Production compaction, broader semantic fidelity and C12/C13 remain
+  unqualified. Factual completion receipts confirm saved artifacts only.
+- Manual edits now remove stale copy-span metadata from the new version while
+  retaining the original immutable provenance and edit lineage. Native documents
+  expose Copied passages and exact original-version navigation. The 18 document
+  checks and native package/CLI checks pass at b165e14; visible navigation, Back,
+  narrow-window and assistive-technology qualification remain pending. The latest
+  UI attempt still reported the Mac locked after the owner said it was unlocked.
+- The explicit-reference storage foundation now uses schema 5. Stable live/pinned
+  bindings, independent Source annotations, atomic document/reference saves,
+  unresolved/external retention, migration and portable history pass 108 core
+  checks. Record links stay immutable with their text version. Manual selections
+  have partial coverage; untouched or changed unannotated versions are not indexed.
+  Automatic wiki/Markdown parsing, extraction locators, backlinks, native/text/voice/CLI
+  integration and scoped agent traversal remain unfinished under L01-L14/LJ01-LJ10.
 
 - The integrated typed/native supplier journey now has direct evidence for intake,
   correct comparison, native table/chart composition, exact quote navigation,
@@ -178,24 +190,23 @@ No broad model, both-backend, installation or full-suite rerun was required.
 The prior 30af388 hosted result is not claimed here; this development push does
 not trigger a full remote run under the new policy.
 The owner adopted [[records/specs/references-and-relationships]] on October 27.
-Inline references, backlinks and bounded traversal are planned, not implemented.
-L01-L14 and LJ01-LJ10 define delivery and verification. Keep the active checkpoint
+The explicit-binding core foundation is implemented. Parsing, backlinks, product
+integration and bounded agent traversal remain pending. L01-L14 and LJ01-LJ10
+define delivery and verification. Keep the active checkpoint
 and engine qualification in place; inferred associations follow measured value.
 
-Next, repair the observed stale-status claim about the withdrawn movement and
-complete durable event identity across different IDs/runs. Extend direction review
-to relevant later-page evidence and reduce its measured latency without treating
-model judgments as proof. Continue J11 and native chat-table presentation,
-retaining successful comparison/thread/draft and fresh clarification evidence. Current Home review is
-implemented. Keep navigation shortcuts distinct from snapshots and retain the
-recorded ordinary-language limitation.
-The new action checkpoint does not qualify all language, microphone or accessibility
-paths, native adoption, or automatic compaction.
-Thread creation/rename still
-use the existing generic writer lock; add a bounded writer path before treating
-interruption under competing writers as qualified. Continue engine repeatability
-review and remaining context, keyboard/VoiceOver, archive/transcription, whole-app
-memory and release gates alongside that work.
+Next deliver the shared wiki/Markdown parser and incremental reference coverage,
+backlink queries and recovery before native/text/voice/CLI linking and bounded
+agent traversal. Complete the pending visible copied-passage/original-version
+journey when UI access works. Keep the existing native engine and context
+qualification work active. Durable event identity across different IDs/runs,
+later-page inventory evidence and lower direction-review latency still need work.
+Continue J11 and native chat-table presentation while retaining the passed
+comparison/thread/draft and clarification evidence. Thread creation/rename still
+need bounded competing-writer interruption checks. Wider accessibility, archive/
+transcription, whole-app memory, fresh installation and complete release journeys
+remain open. The new core checkpoint does not qualify native adoption, production
+automatic compaction or the complete reference feature.
 Do not restart the architecture or weaken adoption gates.
 [[records/specs/splash-integration]], [[records/specs/conversation-context]] and
 [[records/operations/build-and-run]] retain the contracts and failed evidence.
@@ -4138,3 +4149,89 @@ remain open. The whole app is not claimed complete.
 Evidence: [native provenance/package checkpoint](../../../integration/evidence/2026-10-27-document-copy-native-provenance.json.gz).
 Retains tested source/product identities, actual build and package/CLI/extraction
 stdout, failed command and explicit visual/qualification limits.
+
+## Explicit reference storage foundation, October 28
+
+Implemented the first core portion of L14 in
+[[records/specs/references-and-relationships]]. Schema 5 stores immutable
+reference snapshots, heads and occurrence bindings separately from lineage.
+The manifest/database workbook identity is checked on open; canonical schemas
+1 through 4 migrate atomically once. Existing items, messages and assets are
+retained without a title scan or fabricated bindings. The new schema-4 fixture
+checks exact retained rows and one migration revision; existing schema-1/2/3,
+future/untrusted-schema and failed-migration checks still pass.
+
+Swift callers can publish selected scalar spans with a new item/document, annotate
+Sources with independent choice history, inspect snapshots/history and resolve
+live logical or pinned exact targets. Record choices cannot be changed in place.
+Explicit selection establishes identity; unresolved names remain unresolved even
+after matching or duplicate titles appear. Foreign-workbook links retain their
+identity and remain external. Resolving returns navigation metadata, not original
+body inspection or citation eligibility. No mention adds a derivation edge,
+accepts a domain claim or creates an inventory effect.
+
+Document/body/reference publication uses one transaction and one receipt. A Source
+annotation records its choices in a new Source without changing the original text,
+head or asset. Expected annotation snapshots refuse competing writers; retrying
+with identical arguments returns the original snapshot after later corrections.
+An injected failure on the second binding rolls back the new choice Source,
+partial bindings, annotation head, operation receipt and revision. Immutable prior
+snapshots remain available. Exact body bytes inherit bindings through acceptance,
+withdrawal, Undo and separate copies. Changed prose without supplied selections
+is not silently aligned and has missing new-version coverage.
+
+The first lifecycle fixture failed because it attempted to withdraw the rejected
+version produced by Undo of acceptance. The corrected test preserves that existing
+behavior, asserts rejected status and explicitly creates a separate draft before
+withdrawal. The original 107-pass/1-fail result is retained. The next run passes
+108 core checks. A subsequent storage review adds malformed-target, ordinal and
+annotation-provenance-cycle checks; the reviewed run also passes all 108. It tests
+a malformed target shape with SQLite CHECK enforcement deliberately disabled in
+the synthetic fixture and verifies a refusal rather than a crash.
+
+Final focused verification:
+
+- `swift build --product sevra-checks -j 4` and `.build/debug/sevra-checks`: 108
+  passed, zero failures. New groups cover rename/duplicate/reopen and live versus
+  pinned navigation; Unicode scalar labels with NUL/emoji/decomposed accents and
+  CRLF; unresolved/corrected/history pages; competing writers and exact retries;
+  foreign/invalid target modes; atomic body edits and injected publication failure;
+  review/Undo/copy; bounds and unchanged plain-text saves; portable assets/history;
+  stored-data corruption and manifest identity. Existing copying, arithmetic,
+  event effects, lineage, search and context checks remain green.
+- `swift build --product sevra-document-checks -j 4` and the resulting runner:
+  18 programmatic document/lifecycle checks pass.
+- `bash scripts/build_native.sh`: native app, CLI and extraction helper build
+  and package. Engine/Metal/grammar remain unchanged.
+- `python3 scripts/check_native_package.py`: both installed layouts validate
+  resources with build-tree reads denied, load 1,888 Metal functions, contain no
+  baseline inference symbols, refuse ten missing resources and altered resources,
+  and pass native signature checks.
+- `python3 scripts/check_document_cli.py --cli output/native/bin/sevra`: atomic
+  editing, exact retry, stale refusal, separate copy, UTF-8/size refusal and
+  acceptance/integrity pass on the newly packaged schema-5 CLI.
+- Strict changed-Swift formatting, whitespace, repository links and full db.md
+  validation pass. No full model cohort, both-backend rebuild, installer, hosted
+  CI or release suite is claimed.
+
+Immutable [foundation receipt](../../../integration/evidence/2026-10-28-reference-foundation.json.gz)
+is 8,902 bytes, SHA-256
+`3735c7d5a9eef85b8b5575971479ab0674af3d8c115d7b664b73c3649858fd38`.
+It retains the failed fixture result, successful runs, source/product hashes,
+native build/package/CLI logs and scope limits.
+
+This is a core checkpoint, not complete reference delivery. Manual selections
+report partial coverage; absent annotations report not_indexed. The first limit
+is 128 occurrences, a 1,000,000-byte body, 1024-scalar/byte labels and 1024-byte
+lookup hints. No parser, extracted-document locator, backlink UI/query, agent
+traversal tool, new installed CLI/skill command or inferred association is claimed.
+LJ01-LJ10 remain the complete feature contract. Next implement incremental shared
+wiki/Markdown parsing and coverage, then backlinks/recovery and product integration.
+
+After the owner's unlocked reply, both initial and rebuilt native-preview UI
+attempts still returned Mac locked and automatic unlock paused by physical input.
+Copied-passage navigation, Back, historical-version notice, narrow layout, keyboard
+and spoken VoiceOver remain visibly unverified. Continue other implementation
+without duplicating the pending unlock request. Engine adoption, automatic
+compaction, semantic event identity, later-page direction review and whole-app
+release qualification retain their existing open gates.

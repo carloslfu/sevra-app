@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T03:57:10.531298+00:00
+updated: 2026-10-28T05:04:39.110999+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -135,11 +135,11 @@ See C06–C11 in [[records/specs/conversation-context]]. Migration, retention an
 recovery checks are required before this storage change ships.
 
 ## Current physical context storage
-Database schema 4 retains message_fts, message_payloads, run_requests,
-context_checkpoints, checkpoint_inputs and tool_calls, and adds the current-draft
-review index and generation described below. The package manifest version remains 1.
-Canonical schema-1, schema-2 and schema-3 packages migrate transactionally under
-the workbook write lock.
+Database schema 5 retains message_fts, message_payloads, run_requests,
+context_checkpoints, checkpoint_inputs, tool_calls and the current-draft review
+index/generation. It adds the explicit reference snapshots described below.
+The package manifest version remains 1. Canonical schema-1 through schema-4
+packages migrate transactionally under the workbook write lock.
 Validate the exact old schema before enabling its triggers, then build the history
 index, advance the database version/revision and record the migration in one
 transaction. Unknown/future schemas are refused. Older app builds cannot open the
@@ -334,3 +334,27 @@ Eight composition test groups pass within the 90-check core run. Reserved
 metadata validation applies only to document Records; matching business field
 names on Sources, analyses and table rows retain their ordinary meaning. Agent/CLI
 and native provenance interfaces are still pending.
+
+## Canonical reference storage, schema 5
+
+`reference_sets` stores immutable per-origin annotation versions, exact body
+hashes, parser/coverage, prior/inherited snapshot IDs and the choice Source.
+`reference_heads` selects the current annotation state for an exact item version.
+`reference_bindings` stores bounded scalar label locators, preserved lookup text,
+reference identity, live logical or pinned exact targets, workbook identity and
+resolution. Target and reference-ID indexes remain separate from derivation
+lineage. These tables travel with coherent backups and portable archives.
+
+The database retains the manifest identity in `meta.workbook-id`. Opening checks
+that the two identities agree. Migrations retain original items, messages, assets
+and unresolved text; they do not guess bindings from titles. Keep the app and CLI
+matched because older builds correctly refuse the newer database schema.
+
+Explicit selections publish with authored text in the same transaction. Later
+Source annotation changes retain their own prior snapshot and new Source without
+rewriting original inputs. Record binding changes require a new item version.
+Unchanged text can inherit exact bindings through review and Undo; changed prose
+without supplied selections retains its earlier binding history and reports
+missing new-version coverage. Manual selections are partial coverage.
+See [[records/specs/references-and-relationships]] for implemented API bounds,
+remaining parser/extraction/traversal work and acceptance cases.

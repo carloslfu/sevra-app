@@ -8,14 +8,16 @@ extension Workbook {
   public func editDocument(
     _ versionID: String, text: String, separate: Bool = false,
     token: String = identifier(), expectedRevision: Int? = nil,
-    cancellation: Cancellation = .init()
+    cancellation: Cancellation = .init(), references: [ReferenceSelection]? = nil
   ) throws -> Item {
     try cancellation.check()
-    let request: Value = .object([
+    var fields: [String: Value] = [
       "version": .string(versionID), "text": .string(text), "separate": .bool(separate),
-    ])
+    ]
+    if let references { fields["references"] = try Self.referenceSelectionsValue(references) }
     let result = try mutation(
-      "document_edit", token: token, request: request, expected: expectedRevision
+      "document_edit", token: token, request: .object(fields), expected: expectedRevision,
+      cancellation: cancellation
     ) {
       try cancellation.check()
       let original = try item(versionID)
@@ -53,7 +55,14 @@ extension Workbook {
         title: separate ? Self.documentCopyTitle(original.title) : original.title,
         text: text, data: data, meaning: original.meaning, status: "draft",
         scenario: original.scenario, inputs: [original.id, source],
-        transformation: "document-edit-v1", supersedes: separate ? nil : original.id)
+        transformation: "document-edit-v1", supersedes: separate ? nil : original.id,
+        inheritReferenceBindings: references == nil)
+      if let references {
+        try publishInitialReferences(
+          draft, selections: references, inheritedOrigin: original.id)
+      } else if separate {
+        try inheritReferences(from: original.id, to: draft, text: text)
+      }
       try cancellation.check()
       return .string(draft)
     }

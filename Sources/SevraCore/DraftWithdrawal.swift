@@ -33,7 +33,7 @@ extension Workbook {
         status: content.id == old.id ? "rejected" : "accepted", scenario: content.scenario,
         inputs: [old.id, content.id, decision], transformation: "withdraw-draft-v1",
         assetID: content.assetID,
-        supersedes: old.id)
+        supersedes: old.id, referenceOrigin: content.id)
       try db.execute(
         "INSERT INTO effects SELECT occurrence,subject,kind,?,quantity,effective FROM effects WHERE item_id=?",
         [.string(next), .string(content.id)])

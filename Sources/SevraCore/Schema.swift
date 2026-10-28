@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 4
+  static let version = 5
   static let version1SQL = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=1;
@@ -86,5 +86,16 @@ enum Schema {
     END;
     PRAGMA user_version=4;
     """
-  static let sql = version3SQL + "\n" + migration4
+  static let version4SQL = version3SQL + "\n" + migration4
+  static let migration5 = """
+    CREATE TABLE reference_sets(id TEXT PRIMARY KEY,origin_id TEXT NOT NULL REFERENCES items(id),version INTEGER NOT NULL CHECK(version>0),previous_id TEXT REFERENCES reference_sets(id),inherited_from TEXT REFERENCES reference_sets(id),body_hash TEXT NOT NULL,parser TEXT NOT NULL,coverage TEXT NOT NULL CHECK(coverage IN ('queued','partial','failed','ready','unsupported')),detail TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,UNIQUE(origin_id,version));
+    CREATE TABLE reference_heads(origin_id TEXT PRIMARY KEY REFERENCES items(id),set_id TEXT NOT NULL UNIQUE REFERENCES reference_sets(id));
+    CREATE TABLE reference_bindings(set_id TEXT NOT NULL REFERENCES reference_sets(id),reference_id TEXT NOT NULL,ordinal INTEGER NOT NULL CHECK(ordinal>=0),start_scalar INTEGER NOT NULL CHECK(start_scalar>=0),scalar_count INTEGER NOT NULL CHECK(scalar_count>0),label TEXT NOT NULL,lookup_text TEXT NOT NULL,target_workbook TEXT,target_mode TEXT CHECK(target_mode IN ('live','pinned')),target_logical TEXT,target_version TEXT,resolution TEXT NOT NULL CHECK(resolution IN ('unresolved','bound','external')),PRIMARY KEY(set_id,reference_id),UNIQUE(set_id,ordinal),CHECK((resolution='unresolved' AND target_workbook IS NULL AND target_mode IS NULL AND target_logical IS NULL AND target_version IS NULL) OR (resolution IN ('bound','external') AND target_workbook IS NOT NULL AND target_mode IS NOT NULL AND ((target_mode='live' AND target_logical IS NOT NULL AND target_version IS NULL) OR (target_mode='pinned' AND target_version IS NOT NULL)))));
+    CREATE INDEX reference_sets_origin ON reference_sets(origin_id,version);
+    CREATE INDEX reference_bindings_logical ON reference_bindings(target_workbook,target_logical,set_id);
+    CREATE INDEX reference_bindings_version ON reference_bindings(target_workbook,target_version,set_id);
+    CREATE INDEX reference_bindings_identity ON reference_bindings(reference_id,set_id);
+    PRAGMA user_version=5;
+    """
+  static let sql = version4SQL + "\n" + migration5
 }

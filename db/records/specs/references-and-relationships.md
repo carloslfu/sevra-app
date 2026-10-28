@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5zn6ks2pyv72pjs65f90rxj
 created: 2026-10-27T21:45:28.610289+00:00
-updated: 2026-10-27T21:45:28.610289+00:00
+updated: 2026-10-28T05:04:39.093039+00:00
 summary: Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.
 title: Inline references and relationships
 status: reviewed
@@ -12,7 +12,8 @@ status: reviewed
 
 ## Decision and scope
 
-Adopted October 27, 2026; implementation and acceptance remain pending. Authority:
+Adopted October 27, 2026. The explicit-binding core foundation is implemented;
+parsing, product integration and complete first-slice acceptance remain pending. Authority:
 [[sources/notes/2026/10/inline-references-adoption]]. This extends Sources/Records,
 SQLite, native previews and agentic search without adding a business category.
 At adoption, record bodies retain wiki syntax as text, conversation messages have
@@ -190,3 +191,54 @@ not evidence of Sevra's usability or performance:
 [Obsidian links](https://obsidian.md/help/links),
 [Obsidian aliases](https://obsidian.md/help/aliases),
 [Notion relations](https://www.notion.com/help/relations-and-rollups).
+
+## Explicit-binding foundation, October 28
+
+Schema 5 adds canonical `reference_sets`, `reference_heads` and
+`reference_bindings`, separate from derivation lineage. Each annotation snapshot
+retains its exact origin version, body hash, selected label/scalar locator, stable
+reference identity, target mode/identity, prior snapshot and choice Source.
+The package manifest identity is copied into SQLite and checked on open; copying
+or exporting a workbook retains both. Canonical schemas 1 through 4 migrate in
+one transaction. A mismatch refuses rather than retargeting local references.
+
+Implemented Swift APIs are `referenceSnapshot`, `annotateReferences`,
+`resolveReference` and keyset-paged `referenceHistory`. `addItem` and
+`editDocument` accept optional explicit reference selections and publish the
+body, choices, bindings and receipt atomically. Record bindings are immutable with
+the text version: correcting them requires a new document version. Source choices
+have their own annotation versions and new annotation Sources without changing
+the original text, head, asset or derivation edges. Nil expected snapshot means
+none may exist; a competing writer refuses. Idempotent retries return the original
+snapshot even after later corrections. No mention creates a business effect.
+
+Selection establishes identity. Live targets require an existing logical ID;
+pinned targets require an existing exact version ID. Labels and lookup hints do
+not resolve names, even after new or duplicate titles appear. Unselected mentions
+stay unresolved. Foreign-workbook identities stay external and do not open files,
+network connections or another workbook. Navigation returns bounded target
+metadata and an exact version to inspect, not the destination body or citation
+eligibility. These APIs are not yet agent traversal tools.
+
+The initial core supports at most 128 explicit occurrences in a body of at most
+1,000,000 UTF-8 bytes. Each selected label is at most 1024 scalars and 1024 UTF-8
+bytes; lookup hints are at most 1024 bytes. Coordinates are exact Unicode scalars,
+ordered and nonoverlapping. Invalid spans, targets, stale choices or write failures
+roll back the whole mutation. Ordinary text saving remains available above these
+annotation limits. Existing versions are not scanned or rebound on migration.
+
+Identical body bytes carry bindings through status changes, renaming, separate
+copies and Undo, retaining the prior annotation snapshot as provenance. Changed
+free text without explicit selections has `not_indexed` reference coverage; old
+bindings remain on the original version and are never silently realigned. Manual
+selections report `partial` coverage, including an empty set. They do not claim a
+complete mention parse or a complete backlink index. Workbook verification checks
+all retained snapshot chains, body/label bytes, selection Sources, inherited
+bindings, targets and heads. Search-index rebuild does not reinterpret bindings.
+
+Next implement the shared wiki/Markdown parser, extraction locators and coverage,
+incremental backlink queries/rebuild, then native/text/voice/CLI integration and
+bounded scoped agent traversal. No new installed-skill command is advertised by
+this foundation. LJ01-LJ10 remain the full first-slice contract; the focused core
+evidence establishes only the cases recorded in
+[[records/operations/implementation]].

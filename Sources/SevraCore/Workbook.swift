@@ -3,6 +3,8 @@ import Foundation
 
 public final class Workbook: @unchecked Sendable {
   public let url: URL
+  /// Package identity survives copying/export. Links never use the filesystem path.
+  public let id: String
   let db: Database
   private let lock = NSRecursiveLock()
   private var lockFD: Int32 = -1
@@ -24,6 +26,7 @@ public final class Workbook: @unchecked Sendable {
         to: url.appendingPathComponent("manifest.json"), options: .atomic)
       let database = try Database(url.appendingPathComponent("workbook.sqlite"), create: true)
       try database.script(Schema.sql)
+      try database.execute("INSERT INTO meta VALUES('workbook-id',?)", [manifest["id"]])
       return try Workbook(url)
     } catch {
       try? FileManager.default.removeItem(at: url)
@@ -49,13 +52,17 @@ public final class Workbook: @unchecked Sendable {
     try require(
       m["format"].text == "sevra" && m["version"].int == 1, "format", "Unsupported workbook format."
     )
+    try require(
+      m["id"].string != nil, "workbook_identity", "The workbook identity must be a string.")
+    try Self.validateReferenceIdentity(m["id"].text)
+    id = m["id"].text
     db = try Database(url.appendingPathComponent("workbook.sqlite"))
     try require(
       try db.scalar("PRAGMA application_id").int == Schema.applicationID, "format",
       "This is not a Sevra workbook.")
     let incomingVersion = try db.scalar("PRAGMA user_version").int
     try require(
-      [1, 2, 3, Schema.version].contains(incomingVersion ?? 0), "schema",
+      [1, 2, 3, 4, Schema.version].contains(incomingVersion ?? 0), "schema",
       "This workbook needs another version of Sevra.")
     let descriptor = Darwin.open(
       url.appendingPathComponent(".write-lock").path,
@@ -77,13 +84,15 @@ public final class Workbook: @unchecked Sendable {
     try db.transaction {
       let version = try db.scalar("PRAGMA user_version").int
       try require(
-        [1, 2, 3, Schema.version].contains(version ?? 0), "schema",
+        [1, 2, 3, 4, Schema.version].contains(version ?? 0), "schema",
         "This workbook needs another version of Sevra.")
       let reference = try Database(URL(fileURLWithPath: "/:memory:"), create: true)
       try reference.script(
         version == 1
           ? Schema.version1SQL
-          : version == 2 ? Schema.version2SQL : version == 3 ? Schema.version3SQL : Schema.sql)
+          : version == 2
+            ? Schema.version2SQL
+            : version == 3 ? Schema.version3SQL : version == 4 ? Schema.version4SQL : Schema.sql)
       let query =
         "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY name"
       try require(
@@ -93,7 +102,9 @@ public final class Workbook: @unchecked Sendable {
       if version != Schema.version {
         if version == 1 { try db.script(Schema.migration2) }
         if version! <= 2 { try db.script(Schema.migration3) }
-        try db.script(Schema.migration4)
+        if version! <= 3 { try db.script(Schema.migration4) }
+        try db.script(Schema.migration5)
+        try db.execute("INSERT INTO meta VALUES('workbook-id',?)", [.string(id)])
         let revision = (try db.scalar("SELECT value FROM meta WHERE key='revision'").int ?? 0) + 1
         try db.execute("UPDATE meta SET value=? WHERE key='revision'", [.string(String(revision))])
         try db.execute(
@@ -107,6 +118,9 @@ public final class Workbook: @unchecked Sendable {
           try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
           "Invalid workbook references.")
       }
+      try require(
+        try db.scalar("SELECT value FROM meta WHERE key='workbook-id'").text == id,
+        "workbook_identity", "The workbook manifest and database identities do not match.")
     }
   }
   deinit { if lockFD >= 0 { Darwin.close(lockFD) } }
@@ -253,28 +267,36 @@ public final class Workbook: @unchecked Sendable {
     category: String, kind: String, title: String, text: String = "", data: Value = .object([:]),
     meaning: String = "actual", status: String = "draft", scenario: String = "actual",
     inputs: [String] = [], transformation: String = "human", assetID: String? = nil,
-    supersedes: String? = nil, token: String = identifier(), expectedRevision: Int? = nil
+    supersedes: String? = nil, token: String = identifier(), expectedRevision: Int? = nil,
+    references: [ReferenceSelection]? = nil
   ) throws -> Item {
-    let req: Value = .object([
+    var fields: [String: Value] = [
       "category": .string(category), "kind": .string(kind), "title": .string(title),
       "text": .string(text), "data": data, "meaning": .string(meaning), "status": .string(status),
       "scenario": .string(scenario), "inputs": .array(inputs.map(Value.string)),
       "transformation": .string(transformation), "asset": assetID.map(Value.string) ?? .null,
       "supersedes": supersedes.map(Value.string) ?? .null,
-    ])
-    let result = try mutation("item", token: token, request: req, expected: expectedRevision) {
-      .string(
-        try insertItem(
-          category: category, kind: kind, title: title, text: text, data: data, meaning: meaning,
-          status: status, scenario: scenario, inputs: inputs, transformation: transformation,
-          assetID: assetID, supersedes: supersedes))
+    ]
+    if let references { fields["references"] = try Self.referenceSelectionsValue(references) }
+    let result = try mutation(
+      "item", token: token, request: .object(fields), expected: expectedRevision
+    ) {
+      let saved = try insertItem(
+        category: category, kind: kind, title: title, text: text, data: data, meaning: meaning,
+        status: status, scenario: scenario, inputs: inputs, transformation: transformation,
+        assetID: assetID, supersedes: supersedes, inheritReferenceBindings: references == nil)
+      if let references {
+        try publishInitialReferences(saved, selections: references, inheritedOrigin: supersedes)
+      }
+      return .string(saved)
     }
     return try item(result.text)
   }
   func insertItem(
     category: String, kind: String, title: String, text: String, data: Value, meaning: String,
     status: String, scenario: String, inputs: [String], transformation: String,
-    assetID: String? = nil, supersedes: String? = nil
+    assetID: String? = nil, supersedes: String? = nil, referenceOrigin: String? = nil,
+    inheritReferenceBindings: Bool = true
   ) throws -> String {
     try require(
       !title.isEmpty && title.utf8.count <= 4096 && text.utf8.count <= 16_000_000, "limit",
@@ -319,6 +341,9 @@ public final class Workbook: @unchecked Sendable {
         [.string(id), .string(supersedes), .string("supersedes"), .string(transformation)])
     }
     try insertChunks(id, title: title, chunks: [Chunk(text.isEmpty ? data.text : text)])
+    if inheritReferenceBindings, let origin = referenceOrigin ?? old?.id {
+      try inheritReferences(from: origin, to: id, text: text)
+    }
     return id
   }
   public func lineage(_ id: String) throws -> [Value] {

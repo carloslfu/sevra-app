@@ -517,3 +517,6 @@ Three unchanged nearby native copy/paraphrase cases pass; add exact-version prov
 ## [2026-10-28 04:50] verification | records/operations/implementation.md
 Native provenance build, 18 document checks, installed resource/refusal/signature, packaged CLI edit and extraction checks pass; visible interaction still blocked by Mac lock.
 
+## [2026-10-28 05:11] implementation | records/operations/implementation.md
+Schema-5 explicit reference binding foundation: 108 core and 18 document checks, native build/package/CLI pass; parser/backlinks/product and visual gates remain open.
+

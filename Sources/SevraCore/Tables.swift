@@ -529,7 +529,7 @@ extension Workbook {
         status: restoredStatus,
         scenario: old.scenario, inputs: [current.id, prior, old.id, evidence],
         transformation: "undo-v1",
-        assetID: old.assetID, supersedes: current.id)
+        assetID: old.assetID, supersedes: current.id, referenceOrigin: old.id)
       try db.execute(
         "INSERT INTO effects SELECT occurrence,subject,kind,?,quantity,effective FROM effects WHERE item_id=?",
         [.string(restored), .string(old.id)])

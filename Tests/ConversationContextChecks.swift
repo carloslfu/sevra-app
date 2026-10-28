@@ -49,7 +49,7 @@ func checkConversationContext(at root: URL) {
     let book = try Workbook(path)
     try expect(try book.revision() == 6)
     try expect(
-      try sql(path.appendingPathComponent("workbook.sqlite"), "PRAGMA user_version;") == "4")
+      try sql(path.appendingPathComponent("workbook.sqlite"), "PRAGMA user_version;") == "5")
     try expect(try book.historyMessage("old-user").body.contains("P-27"))
     try expect(try book.searchHistory("purchase")["hits"].array.first?["id"].text == "old-user")
     try expect(try book.chapters().count == 1)
@@ -76,6 +76,22 @@ func checkConversationContext(at root: URL) {
       try sql(
         path.appendingPathComponent("workbook.sqlite"),
         "SELECT count(*) FROM sqlite_master WHERE name='items_review_order';") == "1")
+    try expect(try Workbook(path).revision() == 6)
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check("canonical v4 migration retains content and binds package identity once") {
+    let path = try legacyBook(root, name: "LegacyV4", version: 4)
+    let database = path.appendingPathComponent("workbook.sqlite")
+    _ = try sql(
+      database,
+      "INSERT INTO items VALUES('kept-source','kept-logical',1,'source','observation','Original','actual','accepted','actual','[[Later]]','{}',NULL,NULL,'2026-10-27T00:00:00Z'); INSERT INTO heads VALUES('kept-logical','kept-source');"
+    )
+    let before = try sql(database, "SELECT * FROM items; SELECT * FROM messages;")
+    let book = try Workbook(path)
+    try expect(try book.revision() == 6 && book.id == "legacy-fixture")
+    try expect(try sql(database, "SELECT * FROM items; SELECT * FROM messages;") == before)
+    try expect(try sql(database, "SELECT value FROM meta WHERE key='workbook-id';") == book.id)
+    try expect(try book.referenceSnapshot("kept-source").coverage == "not_indexed")
     try expect(try Workbook(path).revision() == 6)
     try expect(try book.verify()["ok"] == .bool(true))
   }
