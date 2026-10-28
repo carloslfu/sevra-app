@@ -604,3 +604,45 @@ Implement durable role-aware intake, native startup and ongoing entries, current
 ## [2026-10-28 16:04] verification | records/operations/implementation.md
 Final current-format check.sh, native package/signature, 134 core groups, nine CLI intake checks, 30-writer concurrency and isolated packaged extraction pass; actual native role/reuse/failure/reopen journeys observed. Receipt 46f24010a54cad6afed1f7966e732998fd40a4a46ed19fe9d92754991acc91a0; broader app gates open.
 
+## [2026-10-28 16:33] design | sources/notes/2026/10/persistence-readiness-requirement.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/persistence-readiness.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/storage.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/product.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/intelligence.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/native-app-engine.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/contextual-import.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/search.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/conversation-context.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/distribution.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/overview/start-here.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/operations/implementation.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | DB.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:35] verification | records/specs/persistence-readiness.md
+Documentation alignment reviewed against the owner scope and 63cd642 assessment. Full dbmd validation has zero errors/warnings; repository Markdown links and scoped whitespace checks pass. No application code, workbook data or runtime tests changed by this design turn.
+

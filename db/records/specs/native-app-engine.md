@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-28T15:53:21.357466+00:00
+updated: 2026-10-28T16:32:39.812337+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -14,6 +14,15 @@ October 28, 2026. Owner direction is adopted from
 [[sources/notes/2026/10/native-app-engine-direction]]. Detailed runtime choices
 below are the proposed engineering design. This is a specification, not evidence
 that these features work today. Requirement IDs use E; acceptance IDs use EJ.
+
+## Required persistence foundation
+
+[[records/specs/persistence-readiness]] is an adopted implementation requirement.
+Complete the active table-update slice, then implement/audit complete committed
+changes and deterministic local reconstruction before expanding durable workflow
+and automation state. E0 establishes the shared foundation; E19/E3 reuse it.
+This does not authorize sync transport, cloud services, replica coordination or
+a new conflict resolver. Detailed engine proposals below retain their open status.
 
 ## Product direction
 
@@ -254,7 +263,9 @@ No silent failure, heartbeats as chat messages or invented completion.
 
 ## Durable execution and local lifecycle
 
-E19. Add transactional definition/version, trigger/occurrence, run, step/attempt,
+E19. Reuse the committed-change capture/apply foundation in
+[[records/specs/persistence-readiness]]; do not create a parallel history ledger.
+Add transactional definition/version, trigger/occurrence, run, step/attempt,
 approval and event-outbox/consumer-cursor storage, with foreign keys, uniqueness
 and indexed ready-work queries. Exact table names and schema versions belong to
 the implementation migration. Save a business mutation and its corresponding
@@ -333,8 +344,11 @@ E24. Separate layout from action authority. A component cannot grant privileges.
 Saved definitions declare reads, drafts, business effects, file/folder scope and
 integration effects. Business interpretations remain proposals until accepted
 or covered by a user-approved, versioned rule scoped to the relevant data,
-scenario and action. Conflicting/insufficient evidence requires review. Imported
-text, workflow names and generated code cannot widen permissions. Recheck
+scenario and action. Evidence unresolved under the implemented policy requires
+review. The future automatic semantic-resolution preference and current storage-only
+scope are defined in [[records/specs/persistence-readiness]] F06; they do not add
+a resolver or change present acceptance authority. Imported text, workflow names
+and generated code cannot widen permissions. Recheck
 revocation before effects, including a run resuming after a long wait.
 
 Enable useful low-risk automation without repetitive confirmation. For example,
@@ -456,7 +470,7 @@ when scheduling the next coherent product slices.
 
 | Stage | Deliverable and prerequisite | Acceptance |
 | --- | --- | --- |
-| E0 | Agree on versioned definition/parameter/binding/action schemas; inventory reusable commands and capabilities; add current-format schema and fixture plans under [[records/specs/distribution]]. | Validate well-typed definitions, reject unknown executable behavior and preserve current-format history/reopen. Earlier development packages are not a compatibility gate. No feature-complete claim from schemas alone. |
+| E0 | Implement the shared persistence foundation and audit existing mutation paths under [[records/specs/persistence-readiness]] before expanding durable engine storage; agree on versioned definition/parameter/binding/action schemas, inventory reusable commands and capabilities, and update current-format schemas/fixtures. | FJ01-FJ06 for existing persistence; validate well-typed definitions, reject unknown executable behavior and preserve history/reopen. New engine mutations inherit these gates as implemented. No legacy-compatibility, sync-service or feature-complete claim from schemas alone. |
 | E1 | Version-checked editing of Home/existing spaces through core, AI, CLI and native controls; default sections become composition primitives; inspect/history/undo. | EJ01-EJ03. |
 | E2 | Shared action registry, parameters/forms, reusable queries/functions/rules, definition search and dependencies. | EJ04-EJ05. |
 | E3 | Manual durable workflow executor with explicit AI steps, approvals, cancellation and recovery; atomic outbox and effect receipts. | EJ06-EJ08. |

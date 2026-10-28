@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-28T15:53:21.430067+00:00
+updated: 2026-10-28T16:32:39.892534+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -16,6 +16,16 @@ compaction and larger-context qualification in a related design conversation.
 That requirement was relayed into this implementation session. The 32K and 64K
 sizes below are evaluation proposals, not established capabilities or a fixed
 owner-selected product default.
+
+## Reconstruction and saved history
+
+[[records/specs/persistence-readiness]] extends the storage contract for original
+messages, attachments, complete tool-call/results, terminal outcomes and derived
+checkpoints. Preserve exact payloads, IDs, ordering/dependencies and coverage rather
+than only receipt IDs or summaries. Reconstruct from saved results without rerunning
+a model or tool, resuming pending effects or granting authority from old history.
+Portable presentation drafts may use their declared snapshot path; runtime churn
+need not become business evidence. Sync implementation remains out of scope.
 
 ## Product contract
 

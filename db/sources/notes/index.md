@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-10-28T15:52:27.222854Z
+updated: 2026-10-28T16:32:39.667776Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/10/persistence-readiness-requirement]] — Carlos authorizes persistence readiness for future syncing, explicitly excluding sync implementation and a new conflict-resolution service.
 - [[sources/notes/2026/10/pre-1-production-compatibility-policy]] — Carlos removes backward-compatibility obligations until the first notarized production-ready 1.0 release; test deployments do not qualify.
 - [[sources/notes/2026/10/native-app-engine-direction]] — Owner requests a customizable native workbook application engine, including Home, actions, workflows and automations, and authorizes design research and documentation.
 - [[sources/notes/2026/10/contextual-import-and-excel-continuity]] — Owner-confirmed import entry points, contextual roles and Excel work continuity, relayed October 28.

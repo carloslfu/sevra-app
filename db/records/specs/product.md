@@ -3,19 +3,29 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-28T13:59:39.223981+00:00
+updated: 2026-10-28T16:32:39.756488+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
 ---
 # Product and interaction
 
-Revision 7, October 28, 2026. Status refers to specification review, not delivery.
+Revision 8, October 28, 2026. Status refers to specification review, not delivery.
 Normative requirements use IDs so implementation and verification can map back.
 
 Sevra Workbook is the primary product and homepage. A small Websites link in the
 top navigation leads to the secondary managed service. Separate offer terms and
 explicit data connections remain. This is a direction, not a deployed-page claim.
+
+## Persistence foundation
+
+P25. Adopt [[records/specs/persistence-readiness]]. Audit and strengthen how the
+workbook saves complete changes, stable identities, edit bases, provenance and
+AI/tool outcomes so state can be reconstructed without rerunning AI or effects.
+F01-F08 and FJ01-FJ06 are current implementation requirements. Future syncing is
+the motivation; cloud services, sync transport, replica coordination and a new
+conflict resolver are outside this work. Existing local interaction and business
+acceptance rules remain until a separately implemented policy changes them.
 
 ## Goal and first complete job
 
@@ -65,8 +75,9 @@ P20. Excel conversion targets continuity of supported existing work, including
 structure, formulas/dependencies, ranges and useful formatting. Preserve originals,
 lineage and an explicit feature report. Saved values/formula text alone do not
 constitute functioning migration. Implementation, phased scope and IJ01-IJ10 are in
-[[records/specs/contextual-import]]. Current code still automatically creates
-saved-value tables for CSV/XLSX; the expanded contract remains unfinished.
+[[records/specs/contextual-import]]. Checkpoint 63cd642 saves originals and
+selected roles without suffix-driven table creation; explicit saved-values
+conversion is available. Table-update and Excel-continuity gates remain open.
 
 ## Conversation
 

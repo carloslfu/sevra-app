@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T16:04:40.447933+00:00
+updated: 2026-10-28T16:32:39.978359+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -22,6 +22,17 @@ current-schema changes and selected disposable fixture resets instead of new
 legacy-schema migrations or compatibility adapters. Historical migration receipts
 remain evidence; current-format integrity, recovery and portability remain gates.
 
+The October 28 owner requirement in [[records/specs/persistence-readiness]] is
+active implementation scope. Finish the current coherent table-update slice,
+then inventory durable write paths and implement the shared committed-change and
+local reconstruction foundation before expanding workflow/automation persistence.
+F01-F08/FJ01-FJ06 remain open; no reconstruction or sync completion is claimed.
+Reuse current transactions, receipts and immutable data, and E19's future outbox.
+Cloud, transport/protocol, replica coordination and a new conflict resolver remain
+out of scope. Retain future semantic-resolution evidence without widening today's
+acceptance authority. This scope supersedes any broader sync implementation
+inferred from the preceding design discussion.
+
 This remains a development build. The preserved Slotstream app is the baseline;
 the separate native preview uses the Python-free Swift adapter and pinned Splash
 C++/Metal. Native adoption and automatic compaction remain gated.
@@ -35,8 +46,9 @@ C++/Metal. Native adoption and automatic compaction remain gated.
 - Owner-confirmed contextual import is now a first-class startup and ongoing
   capability in the specification. CSV/Excel roles depend on request/context;
   supported Excel work must continue with reported structure/formula translation.
-  Current suffix-based saved-value table creation does not meet this expanded
-  contract. Phased implementation and IJ01-IJ10 are in
+  Checkpoint 63cd642 saves originals and roles, supports reference/analysis and
+  explicit saved-values conversion, and removes suffix-driven table creation.
+  Target/mapping updates and formula continuity remain open. IJ01-IJ10 are in
   [[records/specs/contextual-import]]; inspection and next actions are logged below.
 
 - The app/ask loop now checks a proposed inventory direction in a separate local
@@ -5005,3 +5017,19 @@ Customizable Home/forms/workflows/automations, broad AI/context/hardware/fresh-i
 accessibility/adoption/main-integration/release gates remain open. No throughput,
 engine adoption, full Excel replacement or whole-app completion is asserted.
 Receipt: 48,385 bytes, SHA-256 46f24010a54cad6afed1f7966e732998fd40a4a46ed19fe9d92754991acc91a0; binds all 99 prior evidence files byte-for-byte and retains 17 diagnostic logs, final source/product hashes, current-format automated checks and scoped native observations.
+
+## Persistence readiness adopted, October 28, 2026
+
+Owner authority: [[sources/notes/2026/10/persistence-readiness-requirement]].
+The design conversation explicitly narrowed the work to persistence readiness;
+cloud syncing and a new semantic resolver are not being implemented. The canonical
+contract is [[records/specs/persistence-readiness]], linked into product, storage,
+intelligence, contextual intake, search, conversation history, engine sequencing
+and distribution. Bootstrap/readme pointers expose the scope on fresh sessions.
+
+Assessment baseline: 63cd642, with the active table-update slice still in progress.
+The source/version/asset model, shared transactions and retry receipts are reusable.
+Operation-only reconstruction is incomplete, causal bases need explicit retention,
+and automated decisions must not be attributed to a human. The mutation inventory
+and FJ01-FJ06 evidence are implementation work, not documentation completion.
+This design update changes no workbook data, application code or runtime behavior.

@@ -3,12 +3,20 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T15:53:21.333926+00:00
+updated: 2026-10-28T16:32:39.729574+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
 ---
 # Storage and domain model
+
+## Persistence readiness requirement
+
+The adopted [[records/specs/persistence-readiness]] contract F01-F08 and FJ01-FJ06
+requires complete saved changes, causal/version identity, deterministic local
+reconstruction, atomic/idempotent application and truthful decision provenance.
+This extends S05-S17. Current receipts/history do not yet prove full replayability.
+Cloud sync, replica coordination and a new semantic resolver remain out of scope.
 
 ## Package and ownership
 
@@ -87,8 +95,10 @@ division by zero, missing fields and invalid units. No arbitrary code execution.
 ## Contextual conversion and continuity
 
 The adopted [[records/specs/contextual-import]] requires separate capture, role,
-inspection/feature report and requested conversion/update state. These contracts
-are planned; schema 7 does not yet implement the expanded intent/mapping model.
+inspection/feature report and requested conversion/update state. Checkpoint
+63cd642 implements durable capture/role selection, reference/analysis use and
+explicit saved-values conversion. Target/mapping updates and Excel continuity
+remain open; the latest evidence is in [[records/operations/implementation]].
 Keep source coordinates and original formulas separate from native table headings,
 stable row identities, formula/dependency bindings and cached-value state. A saved
 formula string is evidence, not a recalculating native expression. Existing bounded

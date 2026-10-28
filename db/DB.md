@@ -24,6 +24,11 @@ schema/API preservation until the first notarized production-ready 1.0 release
 actually distributed for production use. Update canonical schemas/interfaces and
 recreate selected disposable fixtures. Test deployments/previews/tags do not
 activate support. Current-format integrity and history remain required.
+Follow [[records/specs/persistence-readiness]] for the new local persistence
+foundation: complete saved changes, causal identities, deterministic reconstruction
+and accurate decision provenance. Cloud sync, transport, replica coordination and
+a new conflict resolver are outside this requirement. Implement the foundation
+after the active table-update slice and before expanding durable engine storage.
 All maintained product/engineering prose belongs here; root documents are brief
 entry points. Finish changes with the relevant checks and a commit. Plain copy,
 no em dashes, native controls, purposeful visuals and light/dark accessibility.

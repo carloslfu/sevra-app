@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzbe4pdmde0k72e3j6n6
 created: 2026-10-25T01:48:47.342811+00:00
-updated: 2026-10-28T15:53:21.310918+00:00
+updated: 2026-10-28T16:32:39.918037+00:00
 summary: Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 title: Distribution and verification
 status: reviewed
@@ -61,6 +61,18 @@ No cloud sync, Windows/Linux implementation, macros, arbitrary generated plugins
 website-service connector or finance compliance certification is implied. Native
 preview availability is broader than supported extraction and editing; document
 that matrix. These boundaries do not excuse incomplete core first-version journeys.
+
+## Persistence readiness delivery
+
+D12. [[records/specs/persistence-readiness]] F01-F08 and FJ01-FJ06 are required
+local persistence work. Audit current durable mutations, implement complete saved
+changes and deterministic reconstruction, and retain causal/actor/dependency data
+for future syncing. No cloud, transport, multi-replica coordination or new semantic
+resolver is authorized. This strengthens the local single-user boundary above.
+Run focused local reconstruction, interruption/retry and portable-dependency checks
+when implementing this foundation; two communicating replicas and a hosted backend
+are not prerequisites. Current-format integrity and the pre-1.0 policy still apply.
+Documentation adoption does not qualify replayability or syncing.
 
 ## Reference feature delivery
 

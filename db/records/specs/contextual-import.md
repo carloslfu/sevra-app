@@ -2,7 +2,7 @@
 type: spec
 id: 01m61c4z13j3paexnc7xvyyqhs
 created: 2026-10-28T13:45:46.275195+00:00
-updated: 2026-10-28T16:02:20.989584+00:00
+updated: 2026-10-28T16:32:39.839694+00:00
 summary: One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 title: Contextual import and Excel continuity
 status: reviewed
@@ -14,6 +14,16 @@ Owner authority: [[sources/notes/2026/10/contextual-import-and-excel-continuity]
 This extends [[records/specs/product]], [[records/specs/search]] and
 [[records/specs/storage]]. It supersedes treating all XLSX intake as the final
 cached-value interchange design. That remains the current implementation limit.
+
+## Shared persistence requirement
+
+[[records/specs/persistence-readiness]] applies to capture, selected role,
+inspection/extraction and feature reports, exact update targets/base versions,
+column/key mappings, generated row/dataset IDs and committed results. Save enough
+authoritative content to reconstruct completed intake without reopening a changed
+external original, rerunning a parser/model or repeating a business effect.
+Use shared atomic/idempotent change capture; keep device access grants local.
+This adds persistence coverage to IJ gates, not a sync or conflict-resolver feature.
 
 ## One capability, two entry points
 

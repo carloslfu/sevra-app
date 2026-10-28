@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T13:45:46.353745+00:00
+updated: 2026-10-28T16:32:39.785197+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -50,6 +50,13 @@ no-change sentences in the current submission and enforces a read-only tool
 allowlist before execution. This additional denial rule is not a general intent
 classifier, comprehensive language support, or permission when no phrase matches.
 Conversation, request provenance and operational receipts still save normally.
+The adopted [[records/specs/persistence-readiness]] F06 requires exact persisted
+AI/tool outputs, input versions, actual actor and authorizing policy where present.
+Reconstruction uses those saved outcomes without inference or execution. Future
+semantic conflict handling should prefer automatic resolution and involve the
+user when evidence/validation cannot support an outcome; implementing that
+resolver or widening today's acceptance authority is outside this requirement.
+
 A07. Agent output has citations, assumptions and affected records. Deterministic
 arithmetic comes from tools, not guessed model prose. Persist proposed/accepted
 outputs and exact model/transformation identity. Re-running after model upgrade

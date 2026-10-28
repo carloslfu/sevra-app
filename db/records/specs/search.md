@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-28T13:54:13.615352+00:00
+updated: 2026-10-28T16:32:39.865147+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -63,8 +63,12 @@ The expanded adopted design in [[records/specs/contextual-import]] separates the
 requested role from file format and requires reported translation of supported
 Excel structure/behavior. Originals remain immutable; unsupported features stay
 visible. CSV is an ongoing working/reference/analysis/update input as well as a
-possible start. Automatic suffix-based table creation is a current gap, not the
-intended universal role policy.
+possible start. Checkpoint 63cd642 removes automatic suffix-based table creation;
+explicit roles and saved-values conversion are available while broader update and
+Excel-continuity work remains open. Under [[records/specs/persistence-readiness]],
+retain exact extracted content/locators used as evidence and transformation identity.
+Reconstruction rebuilds indexes from that authority without rerunning extraction
+or changing historical citations.
 Q10. Audio/video are included or explicitly linked, previewed natively and indexed
 by metadata. On-device transcription is capability-gated and its timestamps index
 only after successful recognition; no fabricated transcript. Encrypted/unsupported
