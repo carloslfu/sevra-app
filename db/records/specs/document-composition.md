@@ -2,7 +2,7 @@
 type: spec
 id: 01m609st2pz8zhg7bcpec874g1
 created: 2026-10-28T03:45:29.174789+00:00
-updated: 2026-10-28T03:51:08.414659+00:00
+updated: 2026-10-28T03:57:10.492714+00:00
 summary: Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 title: Source-bound document composition
 status: reviewed
@@ -83,8 +83,9 @@ Workbook verification checks each stored copied passage against its receipt,
 position, expected hash and original version. Accept/withdraw/Undo versions and
 portable export/reopen must pass the same checks. No schema migration or asset
 BLOB storage is required. Existing workbooks without composition metadata retain
-their behavior. Arbitrary data using the reserved documentComposition key must
-satisfy its contract or fail verification.
+their behavior. The documentComposition key is reserved only on document Records. Business
+fields with the same name on Sources, analysis Records or table rows remain
+ordinary data; malformed app metadata on a document Record fails verification.
 
 ## Bounds and cancellation
 
@@ -178,7 +179,7 @@ Keep implementation status and exact evidence in
 ## Foundation verification, October 27
 
 The Swift foundation and workbook verification are implemented. The final core
-build passes, and 89 core checks pass with zero failures, including seven new
+build passes, and 90 core checks pass with zero failures, including eight new
 composition groups. Strict formatting and diff checks pass. An independent
 portable-fixture audit confirms five retained review versions with identical
 original UTF-8 text, unchanged estimate meaning, one composition operation and
@@ -190,3 +191,12 @@ receipt, intermediate test corrections and outstanding product gates.
 
 The app does not yet offer typed copy parts to its agent or CLI. Do not count
 this as an actual-model, UI, performance, engine-adoption or release pass.
+
+## Business-field compatibility review
+
+A subsequent adversarial check reproduced an overbroad metadata query: a user
+field named documentComposition on a Source, analysis or table row incorrectly
+failed verification. Scope the reserved metadata to document Records. The new
+regression failed before the fix (89 pass, one fail) and passes after it within
+the final 90-pass run. Malformed document-Record metadata still fails. Original
+portable proof remains retained. No agent or native interaction gate changes.

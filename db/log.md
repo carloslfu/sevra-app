@@ -493,3 +493,6 @@ Implemented and reviewed source-bound composition core; exact receipt copies, at
 ## [2026-10-28 03:51] verification | records/specs/document-composition.md
 Core build and 89 invariant groups passed; portable five-version audit, strict format and diff checks passed. Retained intermediate test failures and explicit UI/model limits.
 
+## [2026-10-28 03:57] verification | records/operations/implementation.md
+Reproduced business-field metadata collision, scoped it to document Records, and passed 90 core checks. Retained before/after regression evidence; agent and UI gates unchanged.
+

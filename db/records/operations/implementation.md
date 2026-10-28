@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T03:51:08.530104+00:00
+updated: 2026-10-28T03:57:10.552776+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -3886,3 +3886,25 @@ Evidence: [composition core receipt](../../../integration/evidence/2026-10-27-do
 `d742062251cf429da2c05dd6c46ba73c6a321a42b4c7c7dd0164739b3ca2e088`.
 Includes final test output, code identities, the portable synthetic workbook,
 independent audit, intermediate failures and explicit qualification limits.
+
+## Composition metadata field isolation, October 27
+
+Further compatibility review found that the new verifier scanned every item
+with a documentComposition data key. That could reject an imported business
+field on a Source, analysis Record or table row. Narrowed reserved metadata
+verification to document Records. The added regression genuinely failed before
+the fix (89 passed, one failed); after the fix all 90 core groups pass, including
+the malformed-document-metadata counterexample and original portable/review
+checks. The core build, final strict changed-file formatting and diff checks
+pass. The formatter wrapped the SQL line after the 90-pass run; no semantic edit
+or further test run followed. The receipt retains the tested source and final
+hashes. Reuse the independent five-version portable audit from the first core
+receipt; it was not separately repeated. Agent/CLI integration, the actual-model
+content failure and the pending unlock/UI check remain unchanged.
+
+Evidence: [field-scope regression receipt](../../../integration/evidence/2026-10-27-document-composition-field-scope.json.gz),
+7,000 bytes; SHA-256
+`d0d96846609d666b0d689c44b2c1b126fd2576c48939677acecc31c2dd4ef7d5`.
+The core foundation was committed and pushed as 44540d9; this compatibility
+correction follows separately. Next work remains bounded copy selection through
+reads/continuation, typed draft integration and the unchanged failed native job.

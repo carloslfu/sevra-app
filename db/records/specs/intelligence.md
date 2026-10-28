@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T03:51:08.454329+00:00
+updated: 2026-10-28T03:57:10.511754+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -708,7 +708,7 @@ failure and rejected generative reviewer. Swift now resolves original text from
 an immutable completed read receipt and atomically composes it with new prose.
 Copies preserve exact UTF-8 text and Source/Record version provenance, even after
 reindexing or a newer head. Drafts remain estimates, and storage does not prove
-content completeness. The final deterministic core run passes 89 checks.
+content completeness. The final deterministic core run passes 90 checks, including business-field compatibility.
 
 This foundation is not connected to the agent draft schema, native copy choices
 or CLI yet. Implement bounded selectable originals, continuation identity and

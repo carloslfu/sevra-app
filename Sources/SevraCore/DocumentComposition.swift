@@ -213,8 +213,8 @@ extension Workbook {
   /// Verification reads original receipts even after their run has ended.
   func verifyDocumentCompositions() throws {
     for row in try db.execute(
-      "SELECT id FROM items WHERE json_type(data,'$.documentComposition') IS NOT NULL")
-    {
+      "SELECT id FROM items WHERE category='record' AND kind='document' AND json_type(data,'$.documentComposition') IS NOT NULL"
+    ) {
       let draft = try item(row["id"]!.text)
       let composition = draft.data["documentComposition"]
       guard case .array(let copies) = composition["copies"],

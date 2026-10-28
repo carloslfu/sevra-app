@@ -301,4 +301,22 @@ func checkDocumentComposition(at root: URL) {
       try refuses("integrity") { _ = try f.book.verify() }
     }
   }
+  check("business data fields cannot be mistaken for composed-document metadata") {
+    let f = try compositionFixture(at: root)
+    let field: Value = .object(["documentComposition": .string("Supplier-provided field")])
+    _ = try f.book.addItem(
+      category: "source", kind: "document", title: "Imported source data", data: field)
+    _ = try f.book.addItem(
+      category: "record", kind: "analysis", title: "Business field", data: field,
+      inputs: [f.source.id])
+    _ = try f.book.createDataset(
+      title: "Imported column",
+      columns: [.init(id: "documentComposition", title: "documentComposition", type: "text")],
+      rows: [["documentComposition": .string("Original field value")]], sourceID: f.source.id)
+    try expect(try f.book.verify()["ok"] == .bool(true))
+    _ = try f.book.addItem(
+      category: "record", kind: "document", title: "Malformed reserved metadata", data: field,
+      inputs: [f.source.id])
+    try refuses("integrity") { _ = try f.book.verify() }
+  }
 }

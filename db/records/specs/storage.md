@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T03:51:08.473548+00:00
+updated: 2026-10-28T03:57:10.531298+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -330,5 +330,7 @@ refuse the whole mutation. Identical successful retries return the original
 item; new writes require an active request-linked run. Verification checks
 declared copies against original receipts and saved text. Acceptance, withdrawal,
 Undo and portable export/reopen preserve copied bytes and estimate meaning.
-Seven new composition test groups pass within the 89-check core run. Agent/CLI
+Eight composition test groups pass within the 90-check core run. Reserved
+metadata validation applies only to document Records; matching business field
+names on Sources, analyses and table rows retain their ordinary meaning. Agent/CLI
 and native provenance interfaces are still pending.
