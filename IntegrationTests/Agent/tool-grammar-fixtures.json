@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "nestedPropertyOrder": "required-first",
   "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
-  "toolsSHA256": "ade34fded60f8f81ea8f532f400b11e3e2589baa63549bc00a5ef6ba62abfae6",
+  "toolsSHA256": "00d701579276768fef385f11dc0c208818501aed166bacfaf29f64e12af21815",
   "cases": [
     {
       "name": "required_start_thread_and_continue",
@@ -755,7 +755,7 @@
             10497,
             26372
           ],
-          "maskSHA256": "95048b0428f01ffcd06098afe4adb7011e204f1afa6f97c6991908db65c064cc"
+          "maskSHA256": "9285f14aa50605dc19550caa46fca560c35f466ac49a8ae5b7dfd10f703a00ac"
         },
         {
           "committed": [
@@ -771,7 +771,7 @@
             26372,
             29
           ],
-          "maskSHA256": "58532ebc3b7d61efc5db20c70468d816fe2005b0cb1ddc7c44e04e15d9b40489"
+          "maskSHA256": "667b9401ca6b6f8ebff1e7d5554b2395b98cb2d32d506e326f24172ea69d342e"
         },
         {
           "committed": [
@@ -788,7 +788,7 @@
             29,
             198
           ],
-          "maskSHA256": "7c64acb6a5e419fe4eadc859a15c4b2262730b9c765830cec495b710ad0c1c9e"
+          "maskSHA256": "116c42d446c0ed9a9b631ed3de6e2d30d41d2bffa83025d731c5db1b34cacbf9"
         },
         {
           "committed": [
@@ -6435,6 +6435,229 @@
       ]
     },
     {
+      "name": "required_review_queue",
+      "choice": "required",
+      "thinking": false,
+      "output": "<tool_call>\n<function=review_queue>\n</function>\n</tool_call>",
+      "arguments": {},
+      "tokens": [
+        248058,
+        198,
+        27,
+        1628,
+        28,
+        18828,
+        10524,
+        29,
+        198,
+        510,
+        1628,
+        29,
+        198,
+        248059
+      ],
+      "steps": [
+        {
+          "committed": [],
+          "simulation": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18828,
+            10524,
+            29
+          ],
+          "maskSHA256": "d394b62f8806f801f12c3a78d07bd079e8ba121f856392cb78586a0b5581700c"
+        },
+        {
+          "committed": [
+            248058
+          ],
+          "simulation": [
+            198,
+            27,
+            1628,
+            28,
+            18828,
+            10524,
+            29,
+            198
+          ],
+          "maskSHA256": "5e5d09e85cb6293945f9b16c52f38838bbe096d08b30211c9036350f5bc2705b"
+        },
+        {
+          "committed": [
+            248058,
+            198
+          ],
+          "simulation": [
+            27,
+            1628,
+            28,
+            18828,
+            10524,
+            29,
+            198,
+            510
+          ],
+          "maskSHA256": "04125f2496efbf841f2172336c2896a268734125481832ada3b39985f8c0dcd9"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18828,
+            10524,
+            29
+          ],
+          "simulation": [
+            198,
+            510,
+            1628,
+            29,
+            198,
+            248059
+          ],
+          "maskSHA256": "09eed4068749cbd1048bde69ef3866b0bde9bdf327caa7326d68d1a5430c240d"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            28,
+            18828,
+            10524,
+            29,
+            198,
+            510,
+            1628,
+            29,
+            198,
+            248059
+          ],
+          "simulation": [],
+          "maskSHA256": "033f3556ec53b9e3b6a40c953213bd9fd273faac720196891d8b109790ebdf1e"
+        }
+      ]
+    },
+    {
+      "name": "required_open_reviews",
+      "choice": "required",
+      "thinking": false,
+      "output": "<tool_call>\n<function=open_reviews>\n</function>\n</tool_call>",
+      "arguments": {},
+      "tokens": [
+        248058,
+        198,
+        27,
+        1628,
+        51187,
+        66384,
+        29,
+        198,
+        510,
+        1628,
+        29,
+        198,
+        248059
+      ],
+      "steps": [
+        {
+          "committed": [],
+          "simulation": [
+            248058,
+            198,
+            27,
+            1628,
+            51187,
+            66384,
+            29,
+            198
+          ],
+          "maskSHA256": "cd88c560bf6d5761eb5e8b8a0d8189fddd75c9c594b08c6800b91afb44234df8"
+        },
+        {
+          "committed": [
+            248058
+          ],
+          "simulation": [
+            198,
+            27,
+            1628,
+            51187,
+            66384,
+            29,
+            198,
+            510
+          ],
+          "maskSHA256": "51e2c35c0e225f2ade6f53cec02bd95a16edbeaa36f9905df364d3a51e244b48"
+        },
+        {
+          "committed": [
+            248058,
+            198
+          ],
+          "simulation": [
+            27,
+            1628,
+            51187,
+            66384,
+            29,
+            198,
+            510,
+            1628
+          ],
+          "maskSHA256": "66f951adb3cf96b54693c13fbc7bdd40a06bdce6c04ea07b13b1609783bd9b5f"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            51187,
+            66384,
+            29,
+            198
+          ],
+          "simulation": [
+            510,
+            1628,
+            29,
+            198,
+            248059
+          ],
+          "maskSHA256": "2350692368b6478268996dc557798dcbec4706f2f7323f80d861c926df60fc46"
+        },
+        {
+          "committed": [
+            248058,
+            198,
+            27,
+            1628,
+            51187,
+            66384,
+            29,
+            198,
+            510,
+            1628,
+            29,
+            198,
+            248059
+          ],
+          "simulation": [],
+          "maskSHA256": "033f3556ec53b9e3b6a40c953213bd9fd273faac720196891d8b109790ebdf1e"
+        }
+      ]
+    },
+    {
       "name": "required_open_space",
       "choice": "required",
       "thinking": false,
@@ -6481,7 +6704,7 @@
             29,
             198
           ],
-          "maskSHA256": "a5a97ec621a6911b45bba5bffdaff86aa140729df3c204070a4804e49857ff9c"
+          "maskSHA256": "908fc119e08f2d4985a4074c5040c526faa73d966e43e2b659d1938f4ade5c00"
         },
         {
           "committed": [
@@ -6497,7 +6720,7 @@
             198,
             27
           ],
-          "maskSHA256": "a57e61879b10e88a9b2c96de451a5080620b98e3638e0e6ef9218e6b8320b3da"
+          "maskSHA256": "3b2e4f51139fbf3322331c51f94ede32d6bb51d0dfdca6822c37f2e8661ef560"
         },
         {
           "committed": [
@@ -6514,7 +6737,7 @@
             27,
             15704
           ],
-          "maskSHA256": "c9a6fc57ae47c8388501f3707bfc731aa2c6fc9df4f059a4c6868ec081870a59"
+          "maskSHA256": "e5be8b17cd182a369e88b57336eeea4edb136107ca45da1933fa385d5ecd2c2b"
         },
         {
           "committed": [

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T00:33:19.489469+00:00
+updated: 2026-10-28T01:03:55.826941+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -51,7 +51,14 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   explanation. Core and agent checks preserve snapshot semantics, refuse ambiguous
   targets/unavailable windows, and keep compound focus ordering. The explanation
   leaks internal tool names; log this wording issue without another broad cohort.
-  Complete pending-review discovery and broader P09a/J11 remain open.
+  Current pending-review discovery now passes the focused checks below; broader
+  P09a/J11 remain open.
+- Home now exposes current drafts independently of recent activity, with a bounded
+  review list and scoped local opening action. Explicit withdrawal preserves history
+  without applying proposed effects; Undo restores a draft. Native paging, review,
+  acceptance/Undo, Back and reopen pass. Schema 4 adds the draft index/generation;
+  eighty core checks and focused preview/agent/grammar checks pass. Only synthetic
+  workbooks were migrated. App and CLI versions must stay matched.
 
 - Search-grounding repairs pass deterministic regressions and the actual paired
   block-3 replay. Empty searches cannot establish exhaustive absence, and the
@@ -134,8 +141,9 @@ Inline references, backlinks and bounded traversal are planned, not implemented.
 L01-L14 and LJ01-LJ10 define delivery and verification. Keep the active checkpoint
 and engine qualification in place; inferred associations follow measured value.
 
-Next, complete Home pending-review discovery and J11. Keep navigation shortcuts
-distinct from snapshots and retain the recorded ordinary-language limitation.
+Next, exercise the coherent J11 journey. Current Home pending-review discovery is
+implemented and verified. Keep navigation shortcuts distinct from snapshots and
+retain the recorded ordinary-language limitation.
 The new action checkpoint does not qualify all language, microphone or accessibility
 paths, native adoption, or automatic compaction.
 Thread creation/rename still
@@ -3449,3 +3457,77 @@ conversation action continues that conversation action with further work. Space
 opening retains its separate continuation contract. Native schemas and model policy
 are unchanged, so the native interaction evidence is reused. The receipt preserves
 the exact tested source/binary hashes; final app/CLI packaging is rebuilt afterward.
+
+## Current draft review and withdrawal, October 27
+Implemented P03b: Home previews five oldest current drafts above custom components,
+with a twenty-entry paged right-pane list independent of recent work or history
+windows. A metadata-only SQLite partial index and dedicated draft generation keep
+chat/receipt writes from invalidating pagination. Schema 4 migrates canonical
+versions 1, 2 and 3 after exact schema verification. Original history is unchanged;
+manifest version stays 1. Only synthetic fixtures were migrated. Matching app/CLI
+binaries are required for migrated workbooks.
+
+Added review_queue discovery and open_reviews host-confirmed navigation. The native
+callback shares operation/workbook/conversation/navigation/cancellation checks with
+open_space. CLI-only resolution never claims a visible opening. Read-only requests
+permit discovery and refuse opening; neither action accepts or withdraws proposals.
+The repo-owned Sevra skill documents paging, original inspection and CLI withdrawal.
+
+Added explicit withdrawal because an unwanted first draft otherwise had no direct
+way to leave pending review. It appends a decision and rejected version without
+applying inventory or table changes. Idempotent retries return the same version;
+obsolete/accepted targets refuse. Undo restores the draft. Native controls, exact
+current-item text commands and withdraw WORKBOOK ID [TOKEN] share this core action.
+General model withdrawal language remains unqualified.
+
+Focused checks passed:
+- Core suite: 80 passed, zero failed, including literal schema-3 migration, retained
+  history/FTS and one migration receipt. Run before adding withdrawal; the preview
+  suite separately verifies that addition, so no claim of a later full-core rerun.
+- Preview checks: twenty plus five drafts beyond thirty newer accepted notes;
+  current-head membership, request/row exclusions, unrelated chat, stale/foreign
+  cursors, cancellation/deadline, failed/late reads, reopen, withdrawal/idempotency,
+  stale/accepted refusal, Undo and no proposed-table effects. Integrity passes.
+- Agent checks: host opening, unavailable-window refusal, read-only boundaries and
+  original context budgets. Native grammar: 32 tools, 37 cases, 307 reference masks.
+- Native app/CLI release builds, packaging, strict changed-file Swift lint and diff
+  checks pass. Packaged CLI withdrawal retry returned the same ID; Undo restored a
+  draft. Both synthetic packages pass verify with no asset issues.
+
+Focused check entry points are swift build --product sevra-checks followed by
+.build/debug/sevra-checks; the corresponding sevra-preview-checks and
+sevra-agent-checks targets/binaries; and python3 scripts/check_splash_grammar.py.
+Native builds use SEVRA_NATIVE_CANDIDATE=1, .build/native-product, release
+configuration and the SevraDesktop/sevra products, then scripts/package_native.py.
+The existing pinned development reference generated masks; shipped runtime remains
+Python-free. No broad model cohort, both-backend run, fresh installation suite or
+hosted CI rerun was required by this focused change.
+
+Native evidence: a synthetic schema-3 workbook held twenty-five drafts and thirty
+newer accepted notes. Home exposed pending work. Show me the drafts waiting for my
+review invoked open_reviews and finished in two steps on native Qwen3.6-35B-A3B
+4-bit plus DFlash2, reasoning budget 512. Previous/Next traversed twenty plus five.
+The inventory proposal followed draft -> withdrawn -> draft -> accepted -> withdrawn,
+with balances 20 -> 20 -> 20 -> 18 -> 20. Original rows remain unchanged.
+
+The first UI check found Back traversing intermediate status versions. Preserve
+that finding and its build hash. Corrected review actions replace the current route.
+After rebuilding/reopening, withdrawing Planning note 05 displayed Withdrawn and one
+Back returned directly to the list. Both withdrawn items were absent; twenty-three
+current drafts remained. The final layout was visually inspected and app quit.
+
+The exact-query plan uses items_review_order plus the head lookup without temporary
+sorting. Thirty warm in-memory query samples over 100,000 historical drafts,
+100,000 accepted heads and fifty current drafts gave p95 8.91 ms. This deliberately
+narrow query check omits body/chunk ingestion and does not qualify whole-app/disk,
+import, FTS or broader-device scaling.
+
+Immutable evidence:
+[review queue receipt](../../../integration/evidence/2026-10-27-review-queue.json),
+23,957 bytes, SHA-256
+`e2d662ee0dcf8232cc42535bcab78be2578f4a0bb6177f6b8dc7f578d251b784`.
+It binds changed source hashes, check outputs, first/final build evidence, native
+observations, CLI checks, original-row audit and query-only limits. Existing engine
+parity, automatic-compaction, references/backlinks, full J11, accessibility and
+release gates remain open. Next is the coherent J11 journey, with its failures and
+limits recorded rather than treating this slice as whole-app completion.

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T00:31:58.039712+00:00
+updated: 2026-10-28T01:03:55.794911+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -527,3 +527,26 @@ that leaves it unchanged. Its prose still includes internal tool names; ordinary
 language needs further polish. This is limited functional evidence, not broad
 voice/language, usability, engine parity or release qualification. See the
 [space action receipt](../../../integration/evidence/2026-10-27-space-actions.json).
+
+## Current-draft discovery and opening
+review_queue is read-only metadata discovery across the workbook's current drafts,
+with twenty entries per page and a returned nextCursor. It excludes table rows and
+captured requests. A stale page requires refresh. Titles and IDs locate originals;
+they do not establish the contents of a document or a business fact. Read original
+versions before relying on those facts. A page is not an exhaustive count.
+
+open_reviews opens the current draft list only when requested. Core/CLI resolution
+returns resolved; the owning live native window must confirm opened. The same
+operation, workbook, conversation, navigation generation, cancellation and unsaved
+document checks used by open_space apply. Missing or changed window capabilities
+refuse truthfully. Thread handoff does not inherit them. Read-only requests permit
+discovery and deny navigation actions. Opening the list may be followed by remaining
+requested work; it supersedes earlier deferred result focus.
+
+Neither tool accepts or withdraws anything. Withdrawal remains an explicit native
+review, exact current-item command or CLI operation. The current model tool set has
+thirty-two tools; thirty-seven grammar cases and 307 exact reference masks pass.
+One native typed request opened the panel in two model steps. That observation and
+synthetic host/refusal checks do not qualify general voice/language or all compound
+review flows. See [[records/specs/product]] and the
+[review queue receipt](../../../integration/evidence/2026-10-27-review-queue.json).

@@ -20,6 +20,7 @@ public struct WorkbookTools {
   public static let readOnlyTools: Set<String> = [
     "history_search", "history_read", "tool_result", "search", "count_records", "archive_members",
     "read", "lineage", "datasets", "rows", "compare_rows", "calculate", "balance", "spaces",
+    "review_queue",
   ]
   public init(
     _ workbook: Workbook, runID: String = identifier(), cancellation: Cancellation = .init(),
@@ -56,6 +57,8 @@ public struct WorkbookTools {
     calculate: expression string, optional values object. Decimal arithmetic; + - * / parentheses,
       SUM, AVERAGE, MIN, MAX, COUNT, IF. References are column names or [names with spaces].
     balance: subject string. Deterministic accepted actual inventory balance and supporting effects.
+    review_queue: optional cursor from nextCursor. Current non-row drafts across this workbook, oldest first, 20 per page. Read original versions before business claims. Requests and table rows are excluded; table changes are reviewed as proposals.
+    open_reviews: no arguments. Open the current draft review list only when requested; requires the live workbook window. Does not accept anything.
     spaces: no arguments. List saved native spaces.
     open_space: target exact space name or ID. Ask the live workbook window to open it; unavailable without that window. Use only when requested, not for interface explanations.
     set_space_pinned: target exact space name or ID, pinned boolean. Pin/unpin a navigation shortcut without copying or freezing data. Use pin_space only to create an explicitly requested fixed snapshot.
@@ -217,6 +220,14 @@ public struct WorkbookTools {
         ),
       ])
       return .object(result)
+    case "review_queue":
+      return try encoded(
+        workbook.reviewQueue(cursor: a["cursor"].string, cancellation: cancellation))
+    case "open_reviews":
+      return .object([
+        "status": .string("resolved"),
+        "notice": .string("Only the owning live window can confirm that the review list opened."),
+      ])
     case "spaces": return try encoded(workbook.spaces())
     case "open_space":
       return .object([

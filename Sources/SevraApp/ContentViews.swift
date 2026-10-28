@@ -164,6 +164,16 @@ struct SpaceView: View {
             Button("Search workbook") { state.navigate(.search) }
           }
         }
+        if space.id == "home", let pending = state.pendingReview, !pending.items.isEmpty {
+          HStack {
+            sectionTitle("Drafts to review")
+            Spacer()
+            Button("Show all drafts") { state.navigate(.reviews) }
+          }
+          ForEach(pending.items) { item in
+            DraftReviewRow(item: item) { state.navigate(.item(item.id)) }
+          }
+        }
         ForEach(space.definition.components) { component in
           NativeComponent(component: component, state: state).id(component.id)
         }

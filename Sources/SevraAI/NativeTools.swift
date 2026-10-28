@@ -275,6 +275,17 @@ package enum NativeTools {
           "valueColumn": schema("string", "Numeric or calculated column to compare."),
         ], required: ["datasetID", "labelColumn", "valueColumn"])),
     .init(
+      name: "review_queue",
+      description:
+        "Discover current drafts across this workbook, oldest first, 20 per page. Excludes requests and table rows; changes to rows appear as table proposals. Returns titles and exact IDs, not source bodies. Read originals before business claims. Pass only its nextCursor to continue.",
+      parameters: object(
+        ["cursor": schema("string", "nextCursor from the previous review page.")], required: [])),
+    .init(
+      name: "open_reviews",
+      description:
+        "Open Drafts to review in the live workbook window when the user asks to see pending work or drafts. Does not accept, withdraw or change anything. The host confirms opening. Do not use for conceptual explanations.",
+      parameters: object([:], required: [])),
+    .init(
       name: "open_space",
       description:
         "Open an existing space in the live workbook window when requested. Supply its exact name or ID; use the visible active space ID for 'this space'. Ask when ambiguous. The host confirms whether navigation actually occurred. Do not use for explanations or to create a view.",

@@ -49,7 +49,7 @@ func checkConversationContext(at root: URL) {
     let book = try Workbook(path)
     try expect(try book.revision() == 6)
     try expect(
-      try sql(path.appendingPathComponent("workbook.sqlite"), "PRAGMA user_version;") == "3")
+      try sql(path.appendingPathComponent("workbook.sqlite"), "PRAGMA user_version;") == "4")
     try expect(try book.historyMessage("old-user").body.contains("P-27"))
     try expect(try book.searchHistory("purchase")["hits"].array.first?["id"].text == "old-user")
     try expect(try book.chapters().count == 1)
@@ -63,6 +63,19 @@ func checkConversationContext(at root: URL) {
     try expect(try book.revision() == 6)
     try expect(try book.historyMessage("old-user").body.contains("P-27"))
     try expect(try book.searchHistory("purchase")["hits"].array.count == 1)
+    try expect(try Workbook(path).revision() == 6)
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check("canonical v3 migration adds review index once without changing history") {
+    let path = try legacyBook(root, name: "LegacyV3", version: 3)
+    let book = try Workbook(path)
+    try expect(try book.revision() == 6)
+    try expect(try book.historyMessage("old-user").body.contains("P-27"))
+    try expect(try book.searchHistory("purchase")["hits"].array.count == 1)
+    try expect(
+      try sql(
+        path.appendingPathComponent("workbook.sqlite"),
+        "SELECT count(*) FROM sqlite_master WHERE name='items_review_order';") == "1")
     try expect(try Workbook(path).revision() == 6)
     try expect(try book.verify()["ok"] == .bool(true))
   }

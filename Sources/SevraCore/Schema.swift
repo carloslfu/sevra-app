@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 3
+  static let version = 4
   static let version1SQL = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=1;
@@ -74,5 +74,17 @@ enum Schema {
     CREATE INDEX tool_calls_run ON tool_calls(run_id);
     PRAGMA user_version=3;
     """
-  static let sql = version2SQL + "\n" + migration3
+  static let version3SQL = version2SQL + "\n" + migration3
+  static let migration4 = """
+    CREATE INDEX items_review_order ON items(created,id) WHERE status='draft' AND kind NOT IN ('row','request');
+    INSERT INTO meta VALUES('review-revision','0');
+    CREATE TRIGGER heads_review_insert AFTER INSERT ON heads WHEN EXISTS(SELECT 1 FROM items WHERE id=NEW.item_id AND status='draft' AND kind NOT IN ('row','request')) BEGIN
+      UPDATE meta SET value=CAST(value AS INTEGER)+1 WHERE key='review-revision';
+    END;
+    CREATE TRIGGER heads_review_update AFTER UPDATE OF item_id ON heads WHEN EXISTS(SELECT 1 FROM items WHERE id IN (OLD.item_id,NEW.item_id) AND status='draft' AND kind NOT IN ('row','request')) BEGIN
+      UPDATE meta SET value=CAST(value AS INTEGER)+1 WHERE key='review-revision';
+    END;
+    PRAGMA user_version=4;
+    """
+  static let sql = version3SQL + "\n" + migration4
 }

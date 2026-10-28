@@ -45,6 +45,9 @@ import SwiftUI
         Button("Search Workbook") {
           NotificationCenter.default.post(name: .sevraSearch, object: nil)
         }.keyboardShortcut("f", modifiers: [.command, .shift])
+        Button("Drafts to Review") {
+          NotificationCenter.default.post(name: .sevraReviews, object: nil)
+        }
         Button("Make Shareable Copy…") {
           NotificationCenter.default.post(name: .sevraExport, object: nil)
         }.keyboardShortcut("e", modifiers: [.command, .shift])
@@ -74,6 +77,7 @@ extension Notification.Name {
   static let sevraStopping = Notification.Name("sevraStopping")
   static let sevraNew = Notification.Name("sevraNew"), sevraOpen = Notification.Name("sevraOpen"),
     sevraImport = Notification.Name("sevraImport"), sevraSearch = Notification.Name("sevraSearch"),
+    sevraReviews = Notification.Name("sevraReviews"),
     sevraExport = Notification.Name("sevraExport")
 }
 struct WorkspaceWindow: View {
@@ -150,6 +154,9 @@ struct WorkspaceWindow: View {
     }
     .onReceive(NotificationCenter.default.publisher(for: .sevraSearch)) { _ in
       if isKey { state.navigate(.search) }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .sevraReviews)) { _ in
+      if isKey { state.navigate(.reviews) }
     }
     .onReceive(NotificationCenter.default.publisher(for: .sevraExport)) { _ in
       if isKey { state.exportPanel() }

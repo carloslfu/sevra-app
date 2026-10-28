@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-28T00:31:58.019485+00:00
+updated: 2026-10-28T01:03:55.748847+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -407,7 +407,8 @@ requests may continue after opening, without returning to an earlier result view
 See [[records/specs/intelligence]].
 
 Home shows pinned spaces, up to four recent unpinned spaces, tables, intake
-attention and bounded recent work. Keep the fuller recent list in the picker.
+attention and bounded recent work. Drafts to review remains visible above custom
+Home components when drafts exist. Keep the fuller recent list in the picker.
 Do not display empty-workbook onboarding once there is work or another saved
 space. Keep Add files and Search available. Creating a space through conversation
 focuses the composer, prefilling only an empty draft. Preserve existing unsent
@@ -417,10 +418,43 @@ Pin/unpin, recency, search/Return, live/snapshot identity, populated Home and
 close/reopen passed the focused native preview check. Deterministic checks cover
 merged preferences, duplicate titles, stale reads, invalid transaction rollback,
 unchanged business state and portable reopen. Full keyboard/VoiceOver, narrow
-windows, complete pending-review discovery and J11 remain separate open gates.
+windows and J11 remain separate open gates. Current pending-review discovery is
+implemented and checked as P03b below.
 Three focused native requests pass compound unpin/open, pin-this-space and an
 explanation-only no-change contrast. The explanation still exposes internal tool
 names and calls navigation a sidebar; record this wording limitation without
 broad requalification. Typed checks do not add microphone coverage. Evidence:
 [space action receipt](../../../integration/evidence/2026-10-27-space-actions.json) and
 [space navigation receipt](../../../integration/evidence/2026-10-27-space-navigation.json).
+
+## Current drafts and withdrawal
+P03b. Home shows the five oldest current non-row drafts independently of recent
+activity or conversation pages. Show all drafts opens a dedicated right-pane review
+list with twenty metadata entries per page, Previous, Next and Refresh. Sources and
+Records both participate. Captured requests and table rows are excluded; table
+changes are reviewed through their proposal. Accepted, withdrawn and superseded
+versions remain in history and do not appear as pending work. Custom Home
+components cannot hide the pending-review preview.
+
+Open an entry to inspect its original and lineage before deciding. A current draft
+may be accepted or withdrawn individually. Withdrawal records a new human decision
+and withdrawn version without applying its proposed inventory or table effects.
+Undo of withdrawal restores a draft, never accepts it. Acceptance and Undo retain
+their existing explicit review semantics. A completed review replaces the current
+item route, so one Back returns to the preceding list or view instead of stepping
+through intermediate status versions. Historical links remain exact.
+
+A local request such as Show me the drafts waiting for my review opens this list
+through the owning window. Read-only draft discovery is available to the agent and
+CLI; opening the panel never accepts anything. Current-item exact text commands
+withdraw this, withdraw that and withdraw this draft use the native review action.
+Broader withdrawal paraphrases are not yet qualified. The CLI exposes withdraw
+with an optional idempotency token. No bulk acceptance or general model acceptance
+capability is introduced.
+
+The focused native check covers older drafts hidden by thirty newer accepted notes,
+paging, explicit withdrawal/Undo, acceptance/Undo, reopen and Back. Deterministic
+checks cover current heads, stale/foreign cursors, cancellation, late reads,
+idempotency and no table/inventory side effects from withdrawal. This establishes
+the implemented slice, not the full J11 or keyboard/VoiceOver/language journey.
+Evidence: [review queue receipt](../../../integration/evidence/2026-10-27-review-queue.json).

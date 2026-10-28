@@ -158,6 +158,7 @@ struct WorkbookView: View {
       return (try? state.workbook?.item(state.viewedItemVersion ?? id).title) ?? "Document"
     case .table(let id): return state.datasets.first { $0.id == id }?.title ?? "Table"
     case .search: return "Search workbook"
+    case .reviews: return "Drafts to review"
     }
   }
   var conversationHeader: some View {
@@ -348,6 +349,7 @@ struct WorkbookView: View {
           DatasetView(table: table, state: state)
         }
       case .search: SearchView(state: state, results: state.searchResults)
+      case .reviews: ReviewQueueView(state: state, results: state.reviewResults)
       }
     }
   }

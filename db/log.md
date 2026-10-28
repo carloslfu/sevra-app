@@ -469,3 +469,6 @@ Native Home/Spaces now groups persisted pinned shortcuts and recent visits, dist
 ## [2026-10-28 00:31] implementation | records/operations/implementation.md
 Add scoped space opening and pin/unpin shortcuts; focused native/agent/grammar checks pass, preserve context regression and wording limitation.
 
+## [2026-10-28 01:03] implementation | records/operations/implementation.md
+Implemented and verified current draft review, scoped native opening and explicit withdrawal; schema 4, focused checks and immutable evidence recorded. J11 and engine/release gates remain open.
+

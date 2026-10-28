@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T00:12:42.001394+00:00
+updated: 2026-10-28T01:03:55.780967+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -135,10 +135,11 @@ See C06–C11 in [[records/specs/conversation-context]]. Migration, retention an
 recovery checks are required before this storage change ships.
 
 ## Current physical context storage
-
-Database schema 3 includes message_fts, message_payloads, run_requests,
-context_checkpoints, checkpoint_inputs and tool_calls. The package manifest version remains 1.
-Canonical schema-1 and schema-2 packages migrate transactionally under the workbook write lock.
+Database schema 4 retains message_fts, message_payloads, run_requests,
+context_checkpoints, checkpoint_inputs and tool_calls, and adds the current-draft
+review index and generation described below. The package manifest version remains 1.
+Canonical schema-1, schema-2 and schema-3 packages migrate transactionally under
+the workbook write lock.
 Validate the exact old schema before enabling its triggers, then build the history
 index, advance the database version/revision and record the migration in one
 transaction. Unknown/future schemas are refused. Older app builds cannot open the
@@ -200,7 +201,6 @@ existing explicit parent excerpt, without a new cross-conversation search privil
 The history FTS indexes original messages and bounded receipt projections, not every
 field of an oversized journal result. Full results remain addressable by receipt ID
 and exact path. Full-result content indexing is still a retrieval qualification item.
-
 ## Lightweight recent-item catalog
 Home reads a bounded catalog of current item metadata without selecting document
 bodies or structured payloads. Its entries retain exact version IDs, category,
@@ -264,3 +264,35 @@ avoid overwriting newer local activity. Normal close, quit, workbook switch and
 portable export await queued saves. A preference failure does not block closing
 or discard a user draft; conversation/document drafts retain their separate
 save-and-conflict rules.
+
+## Current-draft index and paging
+Schema 4 adds the partial ordered items_review_order index over created/id for
+draft items excluding row and request kinds. Review reads join heads to retain
+only current versions, ordered oldest first with ID as a deterministic tie-break.
+The same coherent read transaction obtains a dedicated review-revision generation.
+Head insert/update triggers advance it when an eligible draft enters, changes or
+leaves the current-head set. Ordinary chat and execution receipts do not advance
+that generation and cannot reset a user's review page merely by being written.
+
+A bounded cursor contains format version, normalized workbook-path hash, review
+generation and created/id anchor. Reject foreign or malformed cursors; a changed
+draft generation asks the caller to refresh. The API returns one to one hundred
+metadata items, the agent/native list uses twenty, and Home uses five. Cancellation
+and a three-second SQLite read budget cover the query; original bodies remain in
+separate exact-version reads. Native paging discards cancelled/late results from
+another workbook and retains at most one hundred backward cursor entries.
+
+The exact-query plan uses the partial index and head lookup without a temporary
+sort. A synthetic in-memory query-only check with 100,000 historical drafts,
+100,000 accepted heads and fifty current drafts returned correct pages with warm
+p95 8.91 ms over thirty samples. It omits body/chunk ingestion and is not evidence
+of whole-app, disk, import or FTS performance. Existing draft history still costs
+index traversal; this is not an O(current-drafts) complexity claim.
+
+Withdrawal appends a decision Source and rejected current version with its input
+links and preserved proposed effects. Rejected effects do not enter actual state.
+Retrying the same operation token returns the same result; obsolete and accepted
+versions refuse withdrawal. Undo restores the preceding draft state. Original
+inputs and versions remain immutable. UI calls this status Withdrawn.
+See [[records/specs/product]] and the
+[review queue receipt](../../../integration/evidence/2026-10-27-review-queue.json).

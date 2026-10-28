@@ -103,6 +103,22 @@ private actor SpaceActionModel: WorkbookInference {
       true)
     try expectEqual(result.focus == nil, true)
   }
+  var reviewOpenings = 0
+  let reviews = SpaceActionModel([("open_reviews", .object([:]))])
+  let shown = try await WorkbookAgent.run(
+    "Show my pending drafts.", workbook: book, model: reviews,
+    openReviews: { reviewOpenings += 1 })
+  try expectEqual(reviewOpenings, 1)
+  try expectEqual(shown.steps, 2)
+  let unavailableReviews = SpaceActionModel([("open_reviews", .object([:]))])
+  let refusedReviews = try await WorkbookAgent.run(
+    "Show my pending drafts.", workbook: book,
+    model: unavailableReviews)
+  try expectEqual(await unavailableReviews.calls, 1)
+  try expectEqual(refusedReviews.answer.contains("No view was opened"), true)
+  try expectThrows(try WorkbookTools(book, readOnly: true).execute("open_reviews", .object([:])))
+  let readQueue = try WorkbookTools(book, readOnly: true).execute("review_queue", .object([:]))
+  try expectEqual(readQueue["items"].array.isEmpty, true)
   _ = try book.saveSpace(title: "Purchasing", definition: .init(components: []))
   let ambiguous = SpaceActionModel([("set_space_pinned", pin)])
   let clarification = try await WorkbookAgent.run(

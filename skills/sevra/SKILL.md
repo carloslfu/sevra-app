@@ -23,6 +23,17 @@ is a user document, not this repository's db.md knowledge store.
    item IDs; do not generate executable app code. `tool ... draft` saves a document.
 8. Verify significant changes and reopen exported archives before claiming success.
 
+Use `sevra tool PATH review_queue '{}'` to discover current drafts beyond recent
+activity. Follow its nextCursor with a cursor argument. Requests and table rows
+are excluded; table changes appear as proposals. A changed draft list invalidates
+old pages, so restart discovery. Read the returned exact version before acting.
+When the user declines a draft, `withdraw PATH ID [TOKEN]` preserves it without applying
+its proposed effect. `undo PATH WITHDRAWN_ID` restores a withdrawn draft for review;
+it does not accept it. Only current drafts can be withdrawn. Inspect a stale-version
+refusal instead of silently targeting a newer version. `open_reviews` and
+`open_space` need an owning live app window to confirm visible navigation; a CLI
+resolution is not proof that anything opened on screen.
+
 For a requested text-document revision, read the exact version and write the new
 body to a UTF-8 file. Use `edit-document PATH VERSION_ID UTF8_FILE --token TOKEN`.
 It atomically records the submitted text and a new draft, preserving meaning and

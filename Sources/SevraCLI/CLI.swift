@@ -214,6 +214,8 @@ import SevraProduct
     case "accept":
       return try encoded(book.accept(arg(2), token: args.count > 3 ? args[3] : identifier()))
     case "undo": return try encoded(book.undoItem(arg(2)))
+    case "withdraw":
+      return try encoded(book.withdrawDraft(arg(2), token: args.count > 3 ? args[3] : identifier()))
     case "balance": return try book.balance(subject: arg(2))
     case "opening":
       try book.setOpeningBalance(
@@ -316,7 +318,7 @@ import SevraProduct
     records WORKBOOK [KIND] | tables WORKBOOK | rows WORKBOOK TABLE_ID [OFFSET]
     add WORKBOOK JSON | edit-row WORKBOOK ITEM_ID VALUES_JSON [EXPECTED_REVISION]
     edit-document WORKBOOK VERSION_ID UTF8_FILE [--separate] [--token TOKEN] [--revision REVISION]
-    accept WORKBOOK ID [TOKEN] | undo WORKBOOK ID | lineage WORKBOOK ID
+    accept WORKBOOK ID [TOKEN] | withdraw WORKBOOK ID [TOKEN] | undo WORKBOOK ID | lineage WORKBOOK ID
     opening WORKBOOK SUBJECT QUANTITY ISO_DATE SOURCE_ID | movement WORKBOOK JSON
     balance WORKBOOK SUBJECT | calculate EXPRESSION [VALUES_JSON]
     spaces WORKBOOK | space WORKBOOK TITLE DEFINITION_JSON | pin-space WORKBOOK SPACE_ID [TITLE]

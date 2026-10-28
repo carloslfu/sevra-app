@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-28T01:02:15.269210+00:00",
+  "baseCommit": "ecd99613012687f303995d935890bbdc7bbcefb3",
+  "scope": "Current draft discovery, bounded review navigation and explicit draft withdrawal. Synthetic fixtures on the reference Mac; not full application or engine qualification.",
+  "sourceSHA256": {
+    "IntegrationTests/Agent/SpaceActionChecks.swift": "3481a14f1db11e6b9ae5a75719dfc6c3cfc792b9c74a8a3862417b3ba5894d6f",
+    "IntegrationTests/Agent/tool-grammar-fixtures.json": "cdea3f1dde966aa51bc9c8125971c50ca361628169ec9c60e6f20a5da809080c",
+    "IntegrationTests/Agent/workbook-tools.json": "00d701579276768fef385f11dc0c208818501aed166bacfaf29f64e12af21815",
+    "IntegrationTests/Preview/Checks.swift": "521ab0c23846a226688e8f59c603fb1ec9f8485d89684e1e935090f8c3193818",
+    "IntegrationTests/Preview/ReviewQueueChecks.swift": "205f67b7e7e653d1145d351f129c8c9ef4180a05e607ea96d0879718624b974a",
+    "Sources/SevraAI/NativeTools.swift": "000afdade2313e3dfcd312cc870573be48d92479c14d18e6f43dbb8a6800a754",
+    "Sources/SevraAI/WorkbookAgent.swift": "3560f143301b8fe18df962e505b6f67b698f590a90781001a86be39bffff581d",
+    "Sources/SevraApp/ContentViews.swift": "d8f6ddeb5baba6ecd2712dc030c2485c9fc0ca672e4a4f1138c4de1feae6c081",
+    "Sources/SevraApp/ReviewQueueView.swift": "b20cb222394b73e9a7f8bff6ec18f117fa1f42a95d66a642a762ccdfaaa1aa5e",
+    "Sources/SevraApp/SevraApp.swift": "7ba081b6e867a61f80b72f3b104482b101e4f775fbeb4095f1ff3f612465a42e",
+    "Sources/SevraApp/Viewers.swift": "407fb643ff90e3bedbcbd172ccc50fa01453ae04960cd0c2e3de5240ad95c671",
+    "Sources/SevraApp/WorkbookView.swift": "5b6f4c29200775234c4b90a249877899cf667fea9726362da49b5ff6e378ffc5",
+    "Sources/SevraApp/WorkspaceState.swift": "230868b3d94a450efe9043ec20f71e038ef90d8521822fb2fc21580521383c4d",
+    "Sources/SevraCLI/CLI.swift": "c9d024398f91fce7afb411a18191615fed99943588b99dd2ad5a82062db69ca9",
+    "Sources/SevraCore/DraftWithdrawal.swift": "7e1d162b594ed339e01bb34eeb5ece3728f7fe20bcc221f73671109fcef176c2",
+    "Sources/SevraCore/ReviewQueue.swift": "0dc93a00cc6a01eae4873e8764141b1ca148205d40c3b8acb4b1b92d153b5dfd",
+    "Sources/SevraCore/Schema.swift": "36358ffcec4ba0c17edc0098f17c8e0e0c1189b80291555d98cf1a449641a9d4",
+    "Sources/SevraCore/Tools.swift": "fd8fafda0d755d153389229762e19658b086ae1aa6f194fb27e127bd8507015c",
+    "Sources/SevraCore/Workbook.swift": "cbff5236e153aa52982c3d0d31bdeeb849dc784d860feb56c3207e2afe57fb31",
+    "Sources/SevraCore/WorkspaceSnapshot.swift": "6e177d3c6a2e671a537704a6ed3565115132c7b2201699f89a9e617c3e91410d",
+    "Sources/SevraPreviewUI/ReviewQueueSession.swift": "692f31de24048026e95c2fec4ff0e9aae647c0378648de331ac789faa35d89e6",
+    "Sources/SevraProduct/ProductAI.swift": "8eb9c7042363c5bd4ddbe3af963469daf6c26b892c1eb40501109719fdec4b77",
+    "Tests/ConversationContextChecks.swift": "b473663afce69ecc4da565318404599ec1aaa531a85b0fcdbdae05006ea2eb68",
+    "Tests/Fixtures/schema-v3.sql": "7561091c9509cf7577aa6644a1588add779623eac8761bfef02a361b854d461c",
+    "skills/sevra/SKILL.md": "eb0042c8aff5be5fc78ad8694c9ee04215ca1c56ad3a7b848056828ed2a8c45e"
+  },
+  "checks": {
+    "review-core-checks.log": {
+      "sha256": "f1cc979239b1eb01089e8df29598b6095109b2b844b127c4395ac1da985be35d",
+      "output": "PASS create/open canonical package\nPASS decimal arithmetic and error propagation\nPASS source, lineage and current heads\nPASS draft has no inventory effect; acceptance applies once\nPASS duplicate evidence cannot duplicate effect\nPASS accepted forecast remains estimate\nPASS correction supersedes rather than adds\nPASS unknown basis does not become zero\nPASS idempotency requires identical request\nPASS stale concurrent revision rejected\nPASS include file, extract, Unicode FTS and filename substring\nPASS FTS escaping and empty queries\nPASS external references detect changed and missing bytes\nPASS cancelled import creates no reference\nPASS Unicode and embedded zero bytes survive database round trips\nPASS CSV quoted newlines, escaped quotes and CRLF\nPASS table values, formulas, edits, undo and reopen\nPASS native space validation and persistence\nPASS main conversation, chapter, tangent and bookmark\nPASS thread commands preserve titles and do not interpret quoted or negated instructions\nPASS selected thread summary preserves origin and does not change business state or history scope\nPASS undo acceptance withdraws effect; later draft does not erase accepted state\nPASS atomic paste, typed validation, one-step undo and redo\nPASS table proposal acceptance, retry, undo and redo preserve exact values\nPASS new table proposals preserve estimate meaning, formulas, provenance and reversible visibility\nPASS agent table creation uses the preserved user request as evidence\nPASS stale table proposal and stale undo roll back every change\nPASS include linked evidence preserves indexed content and original history\nPASS cancelled extraction retains the last usable index\nPASS XLSX shared strings, inline text, sparse cells, dates and cached formulas\nPASS XLSX refuses overflowing coordinates and expanded shared-string output\nPASS package metadata symlinks are refused before opening SQLite\nPASS rebuild search preserves results\nPASS coherent export and reopen with included bytes\nPASS archive expansion budget\nPASS reject unexpected schema before writes\nPASS conditional formulas are lazy, ranges resolve and rounding is explicit\nPASS search deduplicates chunks, paginates and rejects a stale cursor\nPASS supplier comparison uses the expensive quote as its percentage denominator\nPASS CSV export preserves calculated values and quoted multiline cells\nPASS live metric changes while a pinned result preserves values and evidence\nPASS column type changes validate existing data and formula history restores\nPASS structured import resumes committed batches without duplicating rows\nPASS copy cancellation and extraction deadlines leave the workbook usable\nPASS native PDF text and image OCR create searchable exact source locators\nPASS explicit archive intake preserves member lineage and retry identity\nPASS archive traversal entries cannot escape their destination\nPASS search cancellation and deadline preserve the next query\nPASS pinning retries return the original snapshot\nPASS Pinned document and asset bindings retain exact versions through reopen and export\nPASS Pinned search preserves its bounded hits, locators and index gaps after corrections\nPASS Empty pinned search retains its original gap after indexing and new evidence\nPASS An unpinnable component refuses the whole copy without a partial space\nPASS Pinned labels cannot be saved over live bindings and legacy spaces remain readable\nPASS extraction status keeps linked and included asset ownership separate\nPASS linked-file verification releases the workbook lock during hashing\nPASS external editing uses a verified independent copy of included or linked evidence\nPASS cancelled or changed asset copies publish nothing and retain bounded progress\nPASS copy destinations cannot overwrite evidence, aliases or competing files\nPASS recent catalog stays bounded and preserves exact current evidence metadata\nPASS search passages remain exact across dense, sparse and filename-only hits\nPASS canonical v1 migration preserves history and builds its index once\nPASS canonical v2 migration retains existing conversation data and FTS\nPASS canonical v3 migration adds review index once without changing history\nPASS future or untrusted schemas are refused; failed migration rolls back\nPASS history paging preserves Unicode, NUL, payloads and conversation scope\nPASS conversation FTS uses bounded scoped cursors and supports rebuilding\nPASS checkpoint publication validates range, revision, cancellation and exact inputs\nPASS checkpoint chain retains originals and derives current meaning/acceptance\nPASS run request linkage is scoped and preserved across reopen\nPASS mid-run checkpoint retains a complete tool group and refuses an invented boundary\nPASS Immediate threads keep exact parent context, retry identity and editable titles\nPASS History windows use scoped keysets with interleaved threads, bounded bodies and no gaps\nPASS continuation preserves exact source bindings and saved spaces, with live version status\nPASS continuation evidence is bounded, deduplicated and isolated from old, failed and foreign calls\nPASS continuation refuses a read excerpt that differs from the immutable source\nPASS journal preserves large exact results with valid bounded Unicode pages\nPASS prepared call survives mutation gap without replay or false acceptance\nPASS oversized keys have lossless raw JSON recovery and failed calls retain receipts\nPASS agent history tools find old originals and exclude tangent messages\n80 passed; 0 failed\n"
+    },
+    "review-agent-checks.log": {
+      "sha256": "c8c6aebf115ae976adb5ff8f31c22ecc02697e6f63c10b384bdf99c15d1782a1",
+      "output": "PASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\nPASS terminal conversation actions, exact parent, rename, review without sharing, scope/refusal and cancellation\nPASS scoped space opening, compound continuation, shortcut/snapshot separation, read-only denial and terminal ambiguity/window refusal\nPASS exact request handoff, one lease/Source, scoped child history, no repeats, cancellation, failure, shared step budget and reopen\nPASS handoff evidence: exact same-request reads/calculation, scoped history, changed heads, projection/failure refusal, byte/count bounds and replay\nPASS conceptual differences finish directly; numeric comparisons stay checked; threads share accepted workbook data\nPASS intact user request, separate host metadata, scoped continuation and automatic request lineage without redundant reads\n{\"abandonedRunClosedBeforeProjection\":true,\"activeOtherRunPreserved\":true,\"check\":\"request_admission\",\"failedLeaseHasLinkedTerminalRequest\":true,\"liveRun\":\"5fd49e81-c642-4cd4-bcc8-5cd3b79a63cd\",\"oldRun\":\"d3aa7abe-afac-42a6-9c02-ba9bbd89b7d2\"}\nPASS abandoned-run projection and terminal lease-refusal history preserve originals and active work\nPASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history\nPASS exhausted correction retains all four rejected candidates and a failed run\nPASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation\nPASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data\nPASS shared agent retrieves old originals and pages oversized saved results\nPASS inherited parent evidence is readable and correctly linked without widening history search or branch scope\nPASS scoped search spans business evidence and earlier conversation without mixing citations, filters, cursors or branches\nPASS exact item candidates, separate citation authority, context rebuild, shared refusal receipts and baseline/native schema parity\nPASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery\nPASS current-request citations cannot replace missing external evidence; supplied and independently cited facts remain available\nPASS repeated context maintenance, exact original references, current acceptance, cancellation, invalid summaries and portable continuation\nPASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance\nPASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations\nPASS actual workbook schemas, open row/record data, full argument validation and schema refusals\n"
+    },
+    "review-queue-checks.log": {
+      "sha256": "2072bbfd5159cd0104ff0f4d5cad2b003bca97f65ecd3ce59f3ec493a2ca5314",
+      "output": "PASS workspace close/reopen, late completion/progress, stop ownership and delayed permission\nPASS background workspace snapshot, revision polling, scope, cancellation, coalescing and stale-window refusal\nPASS space pins/recents merge across windows, bound visits, refuse stale/invalid changes, preserve business state and survive portable reopen\nPASS proposal status follows acceptance, Undo, newer drafts and reopen without rewriting history or guessing foreign/unknown associations\nPASS current draft queue beyond recent items, bounded paging, scope/stale refusal, acceptance/withdrawal/revision, preserved history and reopen\nPASS readable request context preserves original bytes, selected ID-like text and unfamiliar formats\nPASS conversation links preserve formatted labels, exact version/locator/origin and safe native routes\nPASS scoped drafts, fractional reading state, concurrent flush, reopen, conflict/keep-both/restore, bounded busy retry and rollback\nPASS scoped history search, stale results, bounded next/previous pages, retry and close\nPASS preview ownership, stale success/error/progress, stop/retry, and task cancellation\n"
+    },
+    "review-grammar-checks.log": {
+      "sha256": "3705038b0dad3ac96888fa1e6395c5cf27740063963c1e17c9457e70d28c8ddf",
+      "output": "PASS exact byte vocabulary for all 248320 tokens\nPASS json: exact speculative masks, cache isolation, EOS and refusals\nPASS unicode: exact speculative masks, cache isolation, EOS and refusals\nPASS reasoning_json: exact speculative masks, cache isolation, EOS and refusals\nPASS strict_tool: exact speculative masks, cache isolation, EOS and refusals\nPASS 105 exact upstream mask requests across 4 grammars\nPASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\nPASS terminal conversation actions, exact parent, rename, review without sharing, scope/refusal and cancellation\nPASS scoped space opening, compound continuation, shortcut/snapshot separation, read-only denial and terminal ambiguity/window refusal\nPASS exact request handoff, one lease/Source, scoped child history, no repeats, cancellation, failure, shared step budget and reopen\nPASS handoff evidence: exact same-request reads/calculation, scoped history, changed heads, projection/failure refusal, byte/count bounds and replay\nPASS conceptual differences finish directly; numeric comparisons stay checked; threads share accepted workbook data\nPASS intact user request, separate host metadata, scoped continuation and automatic request lineage without redundant reads\n{\"abandonedRunClosedBeforeProjection\":true,\"activeOtherRunPreserved\":true,\"check\":\"request_admission\",\"failedLeaseHasLinkedTerminalRequest\":true,\"liveRun\":\"62984f3c-f872-4333-9428-09b148b5ea0d\",\"oldRun\":\"fe464c99-c97d-45f6-9dd0-10f9cbc37558\"}\nPASS abandoned-run projection and terminal lease-refusal history preserve originals and active work\nPASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history\nPASS exhausted correction retains all four rejected candidates and a failed run\nPASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation\nPASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data\nPASS shared agent retrieves old originals and pages oversized saved results\nPASS inherited parent evidence is readable and correctly linked without widening history search or branch scope\nPASS scoped search spans business evidence and earlier conversation without mixing citations, filters, cursors or branches\nPASS exact item candidates, separate citation authority, context rebuild, shared refusal receipts and baseline/native schema parity\nPASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery\nPASS current-request citations cannot replace missing external evidence; supplied and independently cited facts remain available\nPASS repeated context maintenance, exact original references, current acceptance, cancellation, invalid summaries and portable continuation\nPASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance\nPASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations\nPASS actual workbook schemas, open row/record data, full argument validation and schema refusals\nPASS 37 actual-tool grammars, 307 exact reference masks, completed argument validation and prompts\nPASS reasoning prompt, dynamic citation grammar and stream projection agree; unfinished reasoning cannot dispatch\nPASS actual item-reference grammar rejects the recorded wrong suffix, with reasoning on/off and measured schema overhead\nPASS native conversation capability masks change with scope and read-only state\n"
+    }
+  },
+  "grammar": {
+    "tools": 32,
+    "cases": 37,
+    "masks": 307,
+    "reference": "Pinned Splash 1.4.1 development reference only; no shipped Python runtime."
+  },
+  "build": {
+    "result": "Native app and CLI release builds and packaging pass. Strict changed-file Swift lint and git diff --check pass.",
+    "appSHA256": "92c43d1d5251645e4698efd53fc1c6d7d3311c4e395dd50808ef322e5c81b3a2",
+    "cliSHA256": "422bbc42cdcee45e7255f38811e603e76776abdd9169966cbf0ad50e1a71571b"
+  },
+  "nativeUI": {
+    "firstBuild": {
+      "appSHA256": "8c58a70e716361a5315a5c7e457f2a68fc8669ac582e265620148d74e65affee",
+      "finding": "Back after reviewing pushed intermediate item versions; correct review navigation to replace the current item while preserving the original list route."
+    },
+    "request": "Show me the drafts waiting for my review.",
+    "answer": "I've opened the Drafts to review panel, which shows all pending drafts waiting for your review.",
+    "observations": [
+      "Home showed the oldest five drafts above custom/recent work even with thirty newer accepted notes.",
+      "The local model opened the live review panel with open_reviews and completed in two steps. It made no business change.",
+      "Previous and Next navigated twenty plus five current drafts without duplicate entries.",
+      "Withdrawing the first inventory proposal preserved stock at twenty; Undo restored its draft. Acceptance applied minus two once; Undo restored twenty.",
+      "The first native inspection exposed Back traversing intermediate review versions. The final build replaces the current route after review actions.",
+      "After rebuilding and reopening, the final native check withdrew Planning note 05, displayed Withdrawn and returned to the review list in one Back action. Both withdrawn items were absent from current drafts.",
+      "Original history and final stock survived reopen. The final layout was visually inspected and the app quit normally."
+    ],
+    "audit": {
+      "originalRowsUnchanged": true,
+      "schemaBefore": 3,
+      "schemaAfter": 4,
+      "migrationOperations": 1,
+      "movementVersions": [
+        {
+          "id": "fb69d20e-11ff-4ddf-bf64-1af3c9f1e3bf",
+          "status": "draft",
+          "version": 1
+        },
+        {
+          "id": "ab59c305-aeb8-4d51-a492-81f7a188c805",
+          "status": "rejected",
+          "version": 2
+        },
+        {
+          "id": "c724b87c-7774-41df-95a3-331d04cfebec",
+          "status": "draft",
+          "version": 3
+        },
+        {
+          "id": "b10e5c17-c630-4550-854f-7466a3999aa3",
+          "status": "accepted",
+          "version": 4
+        },
+        {
+          "id": "8260856e-199b-4182-9583-027e6a7bf703",
+          "status": "rejected",
+          "version": 5
+        }
+      ],
+      "balances": {
+        "before-review": "20",
+        "withdrawn": "20",
+        "restored": "20",
+        "accepted": "18",
+        "undone": "20"
+      },
+      "currentDrafts": 23,
+      "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; reasoning budget 512; within-request reasoning retained",
+      "steps": 2,
+      "toolCalls": [
+        {
+          "tool": "open_reviews",
+          "state": "completed",
+          "result": "{\"status\":\"opened\",\"title\":\"Drafts to review\"}"
+        }
+      ],
+      "reviewRevision": "4"
+    }
+  },
+  "cli": {
+    "withdrawIdempotent": true,
+    "undoRestoresDraft": true,
+    "verify": {
+      "ok": true,
+      "result": {
+        "assetIssues": [],
+        "database": "ok",
+        "ok": true
+      },
+      "schemaVersion": 1
+    }
+  },
+  "verify": {
+    "ok": true,
+    "result": {
+      "assetIssues": [],
+      "database": "ok",
+      "ok": true
+    },
+    "schemaVersion": 1
+  },
+  "queryPlan": [
+    {
+      "id": 6,
+      "parent": 0,
+      "notused": 214,
+      "detail": "SCAN i USING INDEX items_review_order"
+    },
+    {
+      "id": 9,
+      "parent": 0,
+      "notused": 45,
+      "detail": "SEARCH h USING COVERING INDEX sqlite_autoindex_heads_2 (item_id=?)"
+    }
+  ],
+  "queryStress": {
+    "scope": "In-memory SQLite metadata-query stress check only, not whole-app, disk, import or search qualification. Exact review query against canonical schema; synthetic history omits body/chunk ingestion.",
+    "historicalDrafts": 100000,
+    "acceptedHeads": 100000,
+    "currentDrafts": 50,
+    "samples": 30,
+    "returnedPerPage": 21,
+    "p50Milliseconds": 8.604624999999977,
+    "p95Milliseconds": 8.912915999999992,
+    "maxMilliseconds": 9.036582999999986,
+    "queryPlan": [
+      [
+        6,
+        0,
+        214,
+        "SCAN i USING INDEX items_review_order"
+      ],
+      [
+        9,
+        0,
+        45,
+        "SEARCH h USING COVERING INDEX sqlite_autoindex_heads_2 (item_id=?)"
+      ]
+    ]
+  },
+  "limits": [
+    "Schema 4 migrates canonical schema 1, 2 and 3 packages. Package manifest remains version 1. Older binaries cannot open upgraded databases; matching app/CLI versions are required. Only synthetic packages were migrated in this checkpoint.",
+    "The core schema suite passed eighty checks before draft withdrawal was added. The focused preview suite separately verifies withdrawal, idempotency, stale/accepted refusal, table non-effects, Undo, lineage and integrity.",
+    "One typed live-model request qualifies opening this list, not broad natural language, microphone, keyboard or VoiceOver use. Withdrawal is exposed through native review, exact current-item text commands and CLI, not a general model mutation tool.",
+    "Review entries contain current metadata, not original bodies or proof of business facts. Requests and table rows are excluded; table proposals represent their changes.",
+    "The warm in-memory query stress result is not a whole-app, disk, import, FTS or end-to-end scalability result.",
+    "Earlier engine parity, automatic compaction, references/backlinks, full J11, wider-device and distribution gates remain open. No broad model cohort, full installation suite or hosted CI was rerun for this checkpoint."
+  ]
+}

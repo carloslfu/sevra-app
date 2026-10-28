@@ -24,18 +24,25 @@ import SwiftUI
   @State private var keepPlaying = false
   @State private var asset: Asset?
   @State private var choosingArchiveMembers = false
+  private var classification: String {
+    let status = item.status == "rejected" ? "Withdrawn" : item.status.capitalized
+    return [item.category.capitalized, item.meaning.capitalized, status].joined(separator: " · ")
+  }
   var body: some View {
     VStack(spacing: 0) {
       HStack {
-        Text(
-          item.category.capitalized + " · " + item.meaning.capitalized + " · "
-            + item.status.capitalized
-        ).font(.caption).foregroundStyle(.secondary)
+        Text(classification).font(.caption).foregroundStyle(.secondary)
         Spacer()
         if item.status == "draft" {
           Button("Accept") {
             if document.end() { state.review(document.current.id, accepting: true) }
           }.disabled(state.busy)
+        }
+        if item.status == "draft" {
+          Button("Withdraw") {
+            if document.end() { state.review(document.current.id, action: .withdraw) }
+          }.disabled(state.busy).help(
+            "Keep this draft in history without applying it. Undo can restore it.")
         }
         if item.supersedes != nil {
           Button("Undo") {
