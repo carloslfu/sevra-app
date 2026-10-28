@@ -529,3 +529,9 @@ Schema 7: retained extracted-text annotations, guarded extraction publication, d
 ## [2026-10-28 06:41] implementation | records/operations/implementation.md
 Implemented bounded native saved-link reading, destination correction, incoming mention pages, model-free navigation commands, body/PDF reading state and byte-identical binding-only copy provenance. Core 129, documents 27, preview and packaged 50 reference checks pass; visible UI remains locked and full application gates stay open.
 
+## [2026-10-28 07:31] implementation | records/operations/implementation.md
+Added bounded business-only reference traversal and canonical read destinations; preserved two native wrong-route failures, repaired lookup choices, verified corrected historical/current and private-request journeys, and kept full app/release gates open.
+
+## [2026-10-28 07:34] verification | records/operations/implementation.md
+Scoped reference checkpoint: 132 core and 27 document checks, 10 preview groups, 33 tools/39 grammars/329 masks, two final native jobs, 50 packaged CLI checks and resource/signature gates pass. Preserve 300566-byte receipt 312f7ae5b00cfe411294f526906a150529491517a284b42d50ecfbaa2ba0ca96; visual and whole-app gates remain open.
+

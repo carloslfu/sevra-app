@@ -20,7 +20,7 @@ public struct WorkbookTools {
   public static let readOnlyTools: Set<String> = [
     "history_search", "history_read", "tool_result", "search", "count_records", "archive_members",
     "read", "lineage", "datasets", "rows", "compare_rows", "calculate", "balance", "spaces",
-    "review_queue",
+    "review_queue", "references",
   ]
   public init(
     _ workbook: Workbook, runID: String = identifier(), cancellation: Cancellation = .init(),
@@ -49,7 +49,8 @@ public struct WorkbookTools {
     history_read: id string. Read an original message in this conversation or its explicitly inherited parent excerpt. Other parent, sibling and ancestor messages remain outside scope.
     tool_result: id receipt ID, optional path array of object keys or array indexes, offset integer, rawJSON boolean. Read a saved exact tool result in bounded pages.
     search: query string, optional kind, meaning, status, scenario and cursor from nextCursor. Returns business evidence in hits and older conversation candidates in conversation.hits. Business filters or pagination restrict it to business evidence; use history_search for separate conversation queries/pages. Read conversation candidates with history_read before citing them. kind is a domain kind such as note, file, row, movement; actual/estimate/plan are meaning values, not kind values.
-    read: id string, optional offset from chunkPage.nextOffset, chunkLimit 1...8 (default 2) and copyOffset from documentCopies.nextOffset. Returns exact metadata and bounded text chunks, with published original passages for draft copies when called by an agent. A partial chunk page is not the whole document. Keep offset and chunkLimit unchanged when paging copyOffset within that page.
+    references: id exact item version, optional direction incoming|outgoing, targetScope logical|exact, historicalOrigins boolean, contentScope all|body|extracted, kind, meaning, status, scenario and cursor. One hop and 12 discovery results per page. Keep every scope/filter on continuation. Read exact originals before citing. Mentions are not business relationships or derivation. Request Sources and technical annotations are excluded; links never widen conversation access or open another workbook. No match does not establish absence.
+    read: id string, optional offset from chunkPage.nextOffset, chunkLimit 1...8 (default 2) and copyOffset from documentCopies.nextOffset. Returns exact metadata, bounded text chunks and the first page of canonical saved references. Those destinations can differ from original raw URLs after correction; they remain discovery, not inspected evidence. Use references for further pages. Published original passages support draft copies when called by an agent. A partial chunk page is not the whole document. Keep offset and chunkLimit unchanged when paging copyOffset within that page.
     count_records: category source|record, optional kind, meaning, status, scenario. Exact current classified-item count. Use the receipt ID in finish.counts for a host-rendered scoped count, not a claim about events inside documents or outside the workbook.
     lineage: id string. Returns supporting/derived version relationships.
     datasets: no arguments. List tables and column IDs.
@@ -139,6 +140,7 @@ public struct WorkbookTools {
         cancellation: cancellation)
     case "search":
       return try searchEvidence(string("query"), arguments: a)
+    case "references": return try referenceEvidence(a)
     case "count_records": return try workbook.countRecords(a, cancellation: cancellation)
     case "archive_members":
       return try encoded(workbook.archiveMembers(string("id"), cancellation: cancellation))
@@ -154,8 +156,11 @@ public struct WorkbookTools {
         offset >= 0 && offset <= Int.max - 9, "arguments", "Choose a valid source chunk page.")
       return try workbook.synchronized {
         try workbook.db.readTransaction {
-          let item = try workbook.item(string("id"))
-          let current = try workbook.item(item.logicalID)
+          let item = try readableItem(string("id"))
+          let current: Item?
+          do { current = try readableItem(item.logicalID) } catch let error as SevraError
+            where error.code == "item_scope"
+          { current = nil }
           let page = try workbook.readChunks(item.id, offset: offset, limit: chunkLimit + 1)
           let chunks = Array(page.prefix(chunkLimit))
           let hasMore = page.count > chunks.count
@@ -166,14 +171,18 @@ public struct WorkbookTools {
             ? item.data : .string("Structured value exceeds read budget; use table rows.")
           let result: Value = .object([
             "item": .object(info),
-            "isCurrentVersion": .bool(item.id == current.id),
-            "currentVersion": .object([
-              "id": .string(current.id), "title": .string(current.title),
-              "status": .string(current.status), "meaning": .string(current.meaning),
-            ]),
+            "isCurrentVersion": .bool(item.id == current?.id),
+            "currentVersion": current.map { current in
+              .object([
+                "id": .string(current.id), "title": .string(current.title),
+                "status": .string(current.status), "meaning": .string(current.meaning),
+              ])
+            } ?? .null,
             "snapshotRevision": .number(Double(try workbook.revision())),
+            "references": item.kind == "request"
+              ? .null : try referenceEvidence(.object(["id": .string(item.id)])),
             "notice": .string(
-              "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head."
+              "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head."
             ),
             "chunks": .array(chunks),
             "chunkPage": .object([
@@ -190,7 +199,7 @@ public struct WorkbookTools {
           } ?? result
         }
       }
-    case "lineage": return .array(try workbook.lineage(string("id")))
+    case "lineage": return try scopedLineage(string("id"))
     case "datasets": return try encoded(workbook.datasets())
     case "rows":
       let table = try workbook.dataset(a["datasetID"].string ?? string("id"))

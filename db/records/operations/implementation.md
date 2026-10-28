@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T06:42:13.087625+00:00
+updated: 2026-10-28T07:34:04.928831+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -54,9 +54,10 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   The owner-facing CLI and repo-owned harness skill expose these capabilities.
   Schema 7 adds retained extracted-text locators/annotations, shared body/file
   discovery and guarded extraction publication. The focused checkpoint below passes
-  129 core, 18 document, 24 body-CLI and 26 extracted-CLI checks. Embedded file
-  hyperlinks, native/text/voice linking and scoped local-agent traversal remain
-  unfinished under L01-L14/LJ01-LJ10. Partial coverage and metadata discovery
+  132 core, 27 document, 24 body-CLI and 26 extracted-CLI checks. The native reader
+  and bounded scoped agent slice have focused evidence below. Embedded hyperlinks,
+  general text/voice span authoring, visible accessibility and complete
+  L01-L14/LJ01-LJ10 remain unfinished. Partial coverage and metadata discovery
   do not establish absence, citation eligibility, business facts or acceptance.
 
 - The integrated typed/native supplier journey now has direct evidence for intake,
@@ -4522,3 +4523,106 @@ See [[records/specs/references-and-relationships]],
 Immutable receipt: [native reference reader](../../../integration/evidence/2026-10-28-native-reference-reader.json.gz), 15,661 bytes, SHA-256
 `87a6ef1a2769f36f1fa0c9b7206c829f8f5f325032a8bb0ee55ad82f98d11b29`. It binds final source/product hashes, failed and passing diagnostics,
 package/CLI evidence and explicit limits. Earlier receipts remain byte-identical.
+
+
+## Scoped local-agent reference checkpoint, October 28
+
+Continues 5319ca7. Schema 7 and the pinned native engine are unchanged. The shared
+read-only references tool performs one bounded 12-result incoming/outgoing hop,
+with body/extracted scope, current/history and exact/logical identity, classification
+filters, keyset continuation, cancellation and a three-second query deadline.
+Requests and technical annotations are excluded before pages. Agent FTS and
+lineage use that business-evidence boundary; direct item reads permit only business
+items and this run's immutable request Source. Earlier messages use scoped history.
+Owner search/reference APIs retain their existing inspection capabilities.
+
+Business reads also expose their first saved outgoing page in read.references
+from the same read snapshot. This is canonical destination metadata, separate
+from the unchanged original text/chunks and exact-copy passages. Raw internal
+routes in read/tool_result text do not independently add target lookup choices;
+structural destinations and independent discovery do. Explicit current-user
+routes and earlier conversation keep their own semantics. Neither discovery path
+admits destination citations. Exact originals still require reading, and historical
+business citations require inspection of the current head. A concurrent private
+request head cannot disclose metadata or widen the live submission ceiling.
+No new model binding mutation, automatic recursive fanout or external IO was added.
+
+Focused verification:
+
+- Rebuilt core suite: 132 passed, zero failed, including filtered pages/cursors,
+  strict arguments, cancellation, owner search compatibility, direct request and
+  annotation refusal, lineage filtering and a private superseding request head.
+- Actual shared agent checks pass, including a real mention cycle, corrected
+  extracted pin, nested metadata citation refusal, historical/current inspection,
+  25-origin 12/12/1 incoming pages across new receipts, private branch read/history
+  refusal and the concurrent immutable-request case. Lookup tests cover direct and
+  JSON-escaped raw/foreign routes, intact evidence bytes, current-user links and
+  independent plain-ID/history lookup.
+- Python tokenizer-only fixture generation records 33 tools, 39 cases and 329
+  reference masks. Native checks match them exactly, alongside the unchanged 105
+  lower-level upstream mask requests and reasoning on/off dynamic choices. Final
+  grammar runner logs 45 passing groups. Python is not part of app inference.
+- Final real Qwen3.6-35B-A3B/DFlash2 native local-pack probe, 32K/bounded512 and
+  configured 12 GiB: corrected pin/current edition succeeds in six steps and
+  66.3689 seconds, with one opaque-ID finish correction. It reads both editions,
+  answers weekdays versus weekends, leaves the unrelated pending draft unchanged
+  and preserves the corrected pin after portable reopening. The private-request
+  case succeeds in eight steps and 67.6520 seconds, discloses no hidden title or
+  content, explains unavailable access and preserves business items. Both workbooks
+  verify/export/reopen and the model unloads. The observer supplies no next action,
+  argument, answer or hidden fixture identity to inference. Positive traversal uses
+  read.references; paged explicit references has deterministic/grammar evidence,
+  not a passing varied real-model pagination cohort.
+- Rebuilt document checks: 27 passed, zero failed. Rebuilt preview checks: ten
+  passing groups. Native app/CLI/helper package builds and resource checks pass;
+  installed reads work with the build tree denied, 1888 kernels verify, ten missing
+  and one altered resource refuse, missing-model guidance preserves a failed run,
+  and the app signature verifies strictly. Engine/grammar hashes remain pinned.
+- Packaged owner CLI journeys: 24 body checks/51 calls and 26 extracted checks/83
+  calls. Maximum observed process times are 0.4959 and 0.4958 seconds, including
+  startup. These are not large-graph or model performance claims. All 16 changed
+  Swift files pass strict formatting. Store and link checks close this checkpoint.
+
+Preserved failures: the first native run followed the raw stale URI and answered
+holidays for both editions; its private case hit the twelve-step limit. Adding
+canonical metadata alone still answered from the wrong raw target. The final
+lookup-choice fix addresses that observed path without rewriting the original.
+The first scripted traversal omitted the pre-existing current-head refresh; the
+fixture now reads it instead of weakening that rule. Scope fixtures first expected
+error codes absent from localized tool replies; one later fixture expected direct
+read refusal after route-choice validation had already blocked the lookup. Its
+explicit plain UUID now exercises the later scope gate separately. One core
+fixture attempted an invalid kind change across a version; it now uses request
+versions. An initial build used a nonexistent product name; the actual sevra-checks
+product was then built and run. A strict-format end-of-line comment was corrected.
+These diagnostics and both material native failures remain in the receipt. Initial
+failed native executable/source hashes were not captured before replacement;
+final native-run identity and final source/product hashes are retained separately.
+
+The final two native jobs are small synthetic observations. The negative answer
+still makes unnecessary inspections and both jobs take about a minute. They do not
+qualify general reliability, latency, throughput, graph-scale memory or engine
+adoption. No performance cohort, fresh installer, release or hosted CI was rerun.
+The UI tool still reported the Mac locked after the owner's latest unlocked reply;
+no duplicate unlock question or visible-pass claim was made.
+
+Next: finish general text/voice linking and arbitrary span authoring; visible saved
+link/copied-passage navigation, Back, keyboard, VoiceOver and narrow layout; embedded
+file hyperlinks; then the preregistered lexical-only/reference-assisted useful and
+misleading link comparison under LJ10. LJ06/LJ09 remain partially evidenced, not
+closed. Conversation-origin exact copies, semantic inventory occurrence identity,
+production context/compaction, J11, broader dictation/transcription/media, whole-app
+memory/hardware, fresh installation, main integration and release gates remain
+open. The overall application goal stays active.
+
+See [[records/specs/references-and-relationships]], [[records/specs/search]],
+[[records/specs/intelligence]], [[records/reviews/design-passes]] and
+[[records/operations/build-and-run]].
+
+
+Immutable receipt: [scoped agent references](../../../integration/evidence/2026-10-28-agent-reference-traversal.json.gz), 300,566 bytes, SHA-256
+`312f7ae5b00cfe411294f526906a150529491517a284b42d50ecfbaa2ba0ca96`.
+It retains 48 diagnostic logs, both material native failures and final complete
+responses, the final native-run identity, final source/product hashes and all
+96 unchanged prior evidence hashes. Receipt validation precedes this link; the
+final store/link gates are rerun after attaching it.

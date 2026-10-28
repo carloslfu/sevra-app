@@ -17,7 +17,7 @@ extension Workbook {
     contentScope: ReferenceContentScope = .all,
     kind: String? = nil, meaning: String? = nil, status: String? = nil, scenario: String? = nil,
     limit: Int = 20, cursor: String? = nil, cancellation: Cancellation = .init(),
-    deadlineSeconds: TimeInterval = 3
+    deadlineSeconds: TimeInterval = 3, businessOnly: Bool = false
   ) throws -> Value {
     try require(limit > 0 && limit <= 50, "reference_limit", "Choose 1 to 50 reference results.")
     try require(
@@ -39,6 +39,11 @@ extension Workbook {
             "SELECT \(Self.referenceMetadata) FROM items i JOIN heads h ON h.logical_id=i.logical_id WHERE i.id=?",
             [.string(exactVersionID)]
           ).first!
+          try require(
+            !businessOnly || !["request", "annotation"].contains(anchor["kind"]!.text),
+            "reference_scope",
+            "Use scoped conversation history for requests. Technical annotations are not business evidence."
+          )
           let revision = try revision()
           let journal = try db.execute(
             "SELECT rowid,id,revision FROM operations ORDER BY rowid DESC LIMIT 1"
@@ -53,6 +58,7 @@ extension Workbook {
             "scenario": scenario.map(Value.string) ?? .null,
             "parser": .string(InlineReferenceParser.identity),
             "contentScope": .string(contentScope.rawValue), "queryVersion": .number(2),
+            "businessOnly": .bool(businessOnly),
           ]).json()
           var after: Value = direction == .incoming ? .string("") : .number(-1)
           if let cursor {
@@ -105,7 +111,7 @@ extension Workbook {
           } else {
             results = try outgoingReferenceLinks(
               exactVersionID, filters: filters, after: after.int ?? -1, contentScope: contentScope,
-              cancellation: cancellation)
+              cancellation: cancellation, businessOnly: businessOnly)
           }
           let page = Array(results.prefix(limit))
           let next: Value
@@ -188,7 +194,7 @@ extension Workbook {
 
   private func outgoingReferenceLinks(
     _ origin: String, filters: [(String, String?)], after: Int, contentScope: ReferenceContentScope,
-    cancellation: Cancellation
+    cancellation: Cancellation, businessOnly: Bool
   ) throws -> [(Value, Value)] {
     let snapshot = try readReferenceSnapshot(origin, snapshotID: nil)
     var groups: [String: (Value, Int, Int)] = [:]
@@ -226,6 +232,11 @@ extension Workbook {
               .map(Value.string) ?? .null
           ]
         ).first
+      }
+      if businessOnly, let destination,
+        ["request", "annotation"].contains(destination["kind"]!.text)
+      {
+        continue
       }
       if filters.contains(where: { column, value in
         value != nil && destination?[column]?.text != value!

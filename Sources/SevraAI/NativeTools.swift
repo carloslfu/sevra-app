@@ -229,6 +229,40 @@ package enum NativeTools {
           "cursor": schema("string", "nextCursor from the previous page, for the same query."),
         ], required: ["query"])),
     .init(
+      name: "references",
+      description:
+        "Discover saved mentions one hop from an exact business item. Incoming finds documents mentioning it; outgoing finds its destinations. At most 12 results per page. These labels and titles do not authorize citations: read each exact original before citing. Mentions are not business relationships or derivation. No external workbook or conversation access is granted. Empty results do not prove absence.",
+      parameters: object(
+        [
+          "id": schema("string", "Exact item version ID from visible workbook evidence."),
+          "direction": .object([
+            "type": .string("string"), "enum": .array([.string("incoming"), .string("outgoing")]),
+            "description": .string(
+              "Default outgoing. Use incoming for where an item is mentioned."),
+          ]),
+          "targetScope": .object([
+            "type": .string("string"), "enum": .array([.string("logical"), .string("exact")]),
+            "description": .string(
+              "Incoming scope: logical by default; exact restricts target versions."),
+          ]),
+          "historicalOrigins": schema(
+            "boolean", "Incoming: include earlier origin versions only when needed; default false."),
+          "contentScope": .object([
+            "type": .string("string"),
+            "enum": .array([.string("all"), .string("body"), .string("extracted")]),
+            "description": .string(
+              "Default all: saved body plus retained extracted-text mentions."),
+          ]),
+          "kind": schema(
+            "string", "Optional exact domain kind; excludes requests and technical annotations."),
+          "meaning": schema(
+            "string", "Optional actual, estimate, plan, commitment, rule or assumption."),
+          "status": schema("string", "Optional draft, accepted or rejected."),
+          "scenario": schema("string", "Optional exact scenario ID."),
+          "cursor": schema(
+            "string", "nextCursor from the same anchor, direction, scopes and filters."),
+        ], required: ["id"])),
+    .init(
       name: "count_records",
       description:
         "Use when the requested answer needs a count of classified Source/Record entries matching metadata filters. This counts entries, not inventory units, facts inside documents or real-world events. It is not needed to verify a balance, validate citations or finish an ordinary answer. Put the receiptID in finish.counts for the exact scoped count.",
@@ -244,7 +278,9 @@ package enum NativeTools {
           "scenario": schema("string", "Optional exact scenario; omit to include every scenario."),
         ], required: ["category"])),
     .init(
-      name: "read", description: "Read exact evidence and bounded text chunks.",
+      name: "read",
+      description:
+        "Read exact evidence, bounded text chunks and canonical saved references. Follow references.hits for saved destinations: a corrected binding can differ from the original raw URI. Destination metadata is discovery only; read it before citing. Use references for additional pages. Request Sources outside this run require scoped history_read, not item reading.",
       parameters: object(
         [
           "id": schema("string", "Exact item version ID returned by search."),

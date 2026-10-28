@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-28T06:39:01.923773+00:00
+updated: 2026-10-28T07:29:21.775557+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -310,3 +310,34 @@ Three focused reviews accompany the reader/navigation implementation:
 
 See [[records/specs/references-and-relationships]] and
 [[records/operations/implementation]] for implementation scope, failures and gates.
+
+
+## Review: canonical link authority and private request pointers, October 28
+
+A raw URI in an immutable imported file may disagree with a later explicit saved
+binding. Two native probes chose the raw URI and confidently answered from the
+wrong document despite policy guidance. Adding canonical metadata alone did not
+fix it. Reads now include bounded saved-reference metadata, and raw internal
+routes in read/tool_result text no longer independently add lookup choices.
+Structural destinations and independent discovery supply those choices; the
+original evidence remains byte-identical. Current user links and earlier
+conversation keep their own lookup semantics. No fuzzy ID repair is introduced.
+
+Private request Sources also cannot become workbook-wide business evidence merely
+because a shared document links them. Agent FTS/references/lineage filter technical
+kinds; item reading enforces the current immutable submission ceiling. Scoped
+history remains the path to earlier messages. A concurrent private request head
+cannot appear in currentVersion or become a forced refresh of this run's request.
+Business historical-version checks remain in force. Tests separately force the
+lookup-choice and direct-read gates, including a visible plain UUID that cannot
+grant conversation access. A changed test initially expected a later refusal after
+the earlier route-choice gate had already blocked it; that failed log remains.
+
+The final native corrected pin/current edition answer is accurate, and the
+private original stays unavailable without leakage. The former needs six steps
+and one opaque-ID correction; the latter takes eight steps. This is still too much
+work for a simple negative answer, so no latency or general reliability gate is
+closed. Preserve the initial negative step-limit failure and both confident
+wrong-route answers. No model mutation, automatic recursive graph traversal,
+embedded-format hyperlink extraction, visible accessibility or large-graph
+retrieval comparison is qualified by these two observations.

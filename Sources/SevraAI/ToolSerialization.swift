@@ -42,7 +42,7 @@ extension NativeTools {
           parameters: .object(parameters))
       }
       guard !ids.isEmpty else { return definition }
-      guard ["read", "lineage"].contains(definition.name) else { return definition }
+      guard ["read", "lineage", "references"].contains(definition.name) else { return definition }
       var parameters = definition.parameters.object
       var properties = definition.parameters["properties"].object
       var id = properties["id"]?.object ?? [:]

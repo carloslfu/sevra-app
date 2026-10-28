@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T06:39:01.905057+00:00
+updated: 2026-10-28T07:29:21.757447+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1289,3 +1289,34 @@ cancellation and shell-command checks. Build the native layout before packaged
 checks. Programmatic passes do not qualify physical keyboard/VoiceOver, narrow
 layout, voice dictation of these new commands or the full visible journey. Current
 evidence and Mac-lock limitation: [[records/operations/implementation]].
+
+
+## Local-agent references and focused native probe
+
+The model references tool differs from the owner CLI references/backlinks commands:
+it has a fixed 12-result page and excludes request/annotation Sources. It accepts
+id, direction, targetScope, historicalOrigins, contentScope, kind, meaning, status,
+scenario and cursor. Retain options with nextCursor. Read also supplies its first
+canonical outgoing page. These are discovery results; read exact destinations
+before citing. Earlier conversation uses history_read. Original asset/body bytes
+are unchanged. General linking/span creation by the model remains pending.
+
+The optional development probe exercises a corrected extracted pin, its current
+edition, a real mention cycle and a private request pointer. It chooses all model
+actions freely and preserves exact responses, history, failures and portable
+workbooks in a new output directory. Run from the repository root after building
+sevra-agent-checks and the pinned engine/grammar resources:
+
+~~~sh
+.build/debug/sevra-agent-checks --reference-traversal "$SEVRA_TEST_MODEL_FOLDER" "$SEVRA_TEST_GRAMMAR_LIBRARY" "$SEVRA_TEST_ENGINE" "$SEVRA_TEST_NEW_OUTPUT"
+~~~
+
+Set those variables to explicit local paths. MODEL_FOLDER is the verified legacy
+selected target directory with its dflash subdirectory, not an installed models
+root. The probe creates a local-pack assembly under its output directory, uses
+32K context/bounded512 and 12 GiB configured engine memory, and unloads after the
+cases or an error. It does not download weights or qualify fresh native setup,
+model throughput, graph-scale memory, installation or release. Two initial wrong
+raw-route answers and the first private step-limit failure are preserved; the
+final two cases pass with limitations in [[records/operations/implementation]].
+Use scripts/check_splash_grammar.py for deterministic actual tool/mask checks.

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5zn6ks2pyv72pjs65f90rxj
 created: 2026-10-27T21:45:28.610289+00:00
-updated: 2026-10-28T06:39:01.846982+00:00
+updated: 2026-10-28T07:29:21.658773+00:00
 summary: Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.
 title: Inline references and relationships
 status: reviewed
@@ -13,7 +13,7 @@ status: reviewed
 ## Decision and scope
 
 Adopted October 27, 2026. The explicit-binding foundation, bounded body parser, backlink index and owner-facing CLI are implemented.
-Retained extracted-text links, owner CLI inspection and a bounded native reader/navigation slice are implemented. Visible usability qualification, general voice/text authoring, scoped agent traversal, embedded format-specific hyperlinks and complete first-slice acceptance remain pending. Authority:
+Retained extracted-text links, owner CLI inspection and a bounded native reader/navigation slice are implemented. A bounded local-agent traversal/read slice is implemented and has focused synthetic evidence. Visible usability qualification, general voice/text authoring, embedded format-specific hyperlinks, retrieval-value comparisons and complete first-slice acceptance remain pending. Authority:
 [[sources/notes/2026/10/inline-references-adoption]]. This extends Sources/Records,
 SQLite, native previews and agentic search without adding a business category.
 At adoption, record bodies retain wiki syntax as text, conversation messages have
@@ -475,3 +475,69 @@ destinations before citation and real retrieval-value comparisons are still next
 The official SwiftUI contracts used are Apple's
 [AttributedString Text initializer](https://developer.apple.com/documentation/swiftui/text/init%28_%3A%29)
 and [OpenURLAction handler](https://developer.apple.com/documentation/swiftui/openurlaction/init%28handler%3A%29?language=_6).
+
+
+## Scoped agent traversal and canonical reads, October 28
+
+The shared model tool set now includes read-only `references`. Each call is one
+hop, with at most 12 metadata results, a three-second query deadline, cancellation
+and revision/journal-bound keyset continuation. Options are exact item version,
+incoming/outgoing direction, logical/exact target scope, current/earlier origins,
+all/body/extracted content and kind/meaning/status/scenario filters. Keep the same
+options with the returned cursor. Incoming queries use the existing indexes;
+outgoing work is bounded by the 256 combined saved occurrences. Filtering and
+version deduplication happen before pagination. The ordinary agent step/context
+bounds govern multiple calls; no automatic recursive walk or global visited-node
+scheduler is implemented.
+
+A business `read` also includes `references`, the first canonical outgoing page
+from that same database read snapshot. This is discovery metadata about saved
+bindings, separate from the original body/chunks and exact-copy passages. Follow
+its nextCursor through the references tool. A corrected binding can point somewhere
+other than the original raw URI. The original bytes remain unchanged and visible.
+Raw internal routes found only in read/tool_result text do not add target IDs to
+the lookup-choice vocabulary. Structural metadata and independent discovery do;
+explicit current-user routes and earlier conversation keep their own lookup
+semantics. A separately discovered or explicitly supplied target can still be read
+within scope. This is not fuzzy redirection or a prohibition on reading another
+business item.
+
+Reference titles, locators, links and nested read.references never establish
+inspection of a destination. Both adapters share exact candidate validation;
+native decoding constrains the same choices. Finish citations still require
+inspected evidence. Historical business citations continue to require inspection
+of their current head and retain the historical-version note. Mentions are not
+payment, support, derivation, corroboration, acceptance or proof of absence.
+
+Agent reference pages exclude request Sources and technical annotations before
+paging, including as anchors. Agent FTS excludes those kinds even under an explicit
+kind filter, and agent lineage excludes their edges. Direct item reads allow only
+business items and this run's immutable current submission. Earlier conversation
+uses scoped history_read, including only an explicitly inherited parent excerpt.
+A link or UUID cannot widen it. A later private request head is neither disclosed
+by currentVersion nor made a required citation refresh for this run's original
+submission. Other business-version refresh rules are unchanged. Owner Workbook
+APIs and CLI queries retain their separate inspection capabilities. These focused
+rules are not a qualification of every tool or a general side-channel claim.
+
+Agent results omit raw lookup routes, so a foreign-workbook destination cannot
+be reinterpreted as a local ID or opened automatically. Names remain discovery
+terms. No model binding mutation or general span authoring was added.
+
+Focused evidence: 132 core checks; deterministic actual-agent traversal over a
+real cycle, corrected extracted pin, current-head refresh, metadata-only citation
+refusal, 25-origin 12/12/1 incoming pages across saved receipts, scope/cursor/option
+refusals, private-request bypass attempts and concurrent request-head isolation.
+Actual grammar checks cover 33 tools, 39 cases and 329 exact upstream reference
+masks, plus dynamic references/read/lineage choices with reasoning on/off.
+
+The native 32K/bounded512 local-pack probe initially answered from the wrong raw
+URI twice. The final corrected-binding journey reads both original and revised
+editions, answers weekdays versus weekends, preserves all business items, and
+passes portable reopen. It takes six model steps with one opaque-ID finish
+correction. Its separate private-request journey reveals no hidden title/content,
+explains the unavailable original, and completes in eight steps. Both unload the
+native model. The first private run hit the step limit; that failure remains.
+These two observations do not qualify general reliability, latency, memory,
+large graphs, fresh installation, engine adoption or LJ06/LJ09/LJ10 in full.
+See [[records/operations/implementation]] and [[records/reviews/design-passes]].

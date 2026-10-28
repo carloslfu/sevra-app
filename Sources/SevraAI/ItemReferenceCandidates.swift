@@ -28,11 +28,25 @@ package enum ItemReferenceCandidates {
         "(?i)(?<![0-9a-z])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?![0-9a-z])")
     var mentioned = Set<String>()
     for message in messages {
+      // Reading preserves original bytes, including URLs superseded by saved
+      // bindings. Those raw routes are not canonical lookup authority. The
+      // read's structural references (or an explicit discovery result) supply
+      // exact destinations independently. Do not rewrite the model's evidence.
+      let lookupText: String
+      if message.role == "tool", ["read", "tool_result"].contains(message.toolName ?? "") {
+        lookupText = message.content
+          .replacingOccurrences(of: #"\\+/"#, with: "/", options: .regularExpression)
+          .replacingOccurrences(
+            of: #"(?i)sevra://(?:workbook/[0-9a-f-]{36}/item|item)/[0-9a-f-]{36}"#,
+            with: "saved-reference-route", options: .regularExpression)
+      } else {
+        lookupText = message.content
+      }
       for match in regex.matches(
-        in: message.content, range: NSRange(message.content.startIndex..., in: message.content))
+        in: lookupText, range: NSRange(lookupText.startIndex..., in: lookupText))
       {
-        guard let range = Range(match.range, in: message.content) else { continue }
-        mentioned.insert(String(message.content[range]))
+        guard let range = Range(match.range, in: lookupText) else { continue }
+        mentioned.insert(String(lookupText[range]))
       }
     }
     try require(
@@ -60,10 +74,10 @@ package enum ItemReferenceCandidates {
   }
 
   package static func validate(tool: String, arguments: Value, choices: [String]) throws {
-    guard ["read", "lineage"].contains(tool), !choices.isEmpty else { return }
+    guard ["read", "lineage", "references"].contains(tool), !choices.isEmpty else { return }
     try require(
       arguments["id"].string.map(choices.contains) == true, "item_reference",
-      "Choose the exact item ID from the read/lineage tool choices. This value is not one of them. Use search to discover another item; do not guess an ID or use conversation history for a workbook item."
+      "Choose the exact item ID from the read/lineage/references tool choices. This value is not one of them. Use search to discover another item; do not guess an ID or use conversation history for a workbook item."
     )
   }
 }

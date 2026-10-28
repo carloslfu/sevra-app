@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T04:47:28.820404+00:00
+updated: 2026-10-28T07:29:21.682299+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -220,11 +220,11 @@ Rendering substitutes original text positions once, so an inserted URL or source
 The fixed-seed native/reference recovery does not qualify general reference reliability. A later final-package test with fresh UUIDs still mistyped a movement ID, took a history detour and required two finish corrections. Keep that failure as a regression case. Future model-reference design must make exact candidate selection dependable, preserve canonical immutable IDs in storage/receipts, refuse unknown handles and avoid fuzzy automatic redirection. Short typed per-run handles are a proposed approach; they are not implemented or a new workbook format decision.
 
 ## Exact visible item references
-Observed inventory failures included copying the wrong suffix of a long item ID despite correct stock arithmetic. Read and lineage now use a host-built candidate vocabulary. Before generation and context measurement, collect UUID-shaped lookup values from the visible conversation content and verify each through the current workbook. Preserve exact supplied lookup strings, including an existing logical-ID lookup, instead of fuzzily mapping a typo to a different item. Unknown UUIDs and unrelated business identifiers do not enter the vocabulary. Discovery remains available through search, datasets/rows and lineage.
+Observed inventory failures included copying the wrong suffix of a long item ID despite correct stock arithmetic. Read, lineage and references now use a host-built candidate vocabulary. Before generation and context measurement, collect UUID-shaped lookup values from the visible conversation content and verify each through the current workbook. Preserve exact supplied lookup strings, including an existing logical-ID lookup, instead of fuzzily mapping a typo to a different item. Unknown UUIDs and unrelated business identifiers do not enter the vocabulary. Discovery remains available through search, datasets/rows and lineage.
 
 Attach the verified choices as ephemeral host metadata on inference messages. Do not persist that metadata as evidence, parse it from model output or accept it as action authority. A UUID mentioned in untrusted text may be a read candidate only if it resolves exactly in this workbook; that does not make the text true, admit a citation or authorize a mutation. Citation admission continues to use the separately maintained inspected-result set. Historical references remain historical until refreshed.
 
-Both adapters use the same dynamic tool schema for read/lineage choices and exact prompt measurement. The native grammar enforces the choices during decoding; the shared host validates them again before executing a read. Baseline prompting and host validation retain their own capabilities without claiming native mask enforcement. An empty vocabulary keeps explicit discovery/unknown-ID lookup behavior available. Bound the vocabulary and fail with a narrower-context request rather than silently dropping choices. Compaction rebuilds candidates from retained visible context, not a hidden global registry.
+Both adapters use the same dynamic tool schema for read/lineage/references choices and exact prompt measurement. The native grammar enforces the choices during decoding; the shared host validates them again before executing a read. Baseline prompting and host validation retain their own capabilities without claiming native mask enforcement. An empty vocabulary keeps explicit discovery/unknown-ID lookup behavior available. Bound the vocabulary and fail with a narrower-context request rather than silently dropping choices. Compaction rebuilds candidates from retained visible context, not a hidden global registry.
 
 Qualify the recorded mistyped-ID regression and a preregistered varied-ID cohort, including correct current/historical/logical references, forged IDs, candidate versus citation separation, large/truncated/history results, context measurement and cancellation. Preserve prior failed runs and actual request/output receipts. This work does not clear the independent native/reference generation mismatch or production adoption gate.
 
@@ -449,14 +449,14 @@ cancellation, failure, total budget, unfinished reopen and original negative cas
 Retain failed cohorts and distinguish corrected fixture ambiguity from product fixes.
 ### A14. References extend retrieval without granting authority
 
-Apply [[records/specs/references-and-relationships]] to future reference tools and
+Apply [[records/specs/references-and-relationships]] to reference tools and
 native generated views. Explicit mentions/backlinks and bounded indexed traversal
 come first. Navigation references, possible associations, accepted business claims
 and exact-version derivations remain distinct. The model must inspect resolved
 original evidence before citing it; a backlink is neither proof of a business fact
 nor permission to access another conversation. Substantive inferred relationships
 are derived Records with evidence, meaning and status, never automatically accepted
-facts. This is an adopted requirement, not completed implementation.
+facts. The bounded October 28 tool/read slice below has focused evidence; complete reference acceptance remains open.
 
 ## Conversation language and request metadata
 Use ordinary voice/text language for interface help. Simple conceptual answers
@@ -545,7 +545,7 @@ requested work; it supersedes earlier deferred result focus.
 
 Neither tool accepts or withdraws anything. Withdrawal remains an explicit native
 review, exact current-item command or CLI operation. The current model tool set has
-thirty-two tools; thirty-seven grammar cases and 307 exact reference masks pass.
+thirty-three tools; thirty-nine grammar cases and 329 exact reference masks pass. Earlier checkpoints below retain their dated counts.
 One native typed request opened the panel in two model steps. That observation and
 synthetic host/refusal checks do not qualify general voice/language or all compound
 review flows. See [[records/specs/product]] and the
@@ -743,3 +743,34 @@ visible interaction remains pending. These results do not qualify full 64K
 comparison, production compaction, all generated semantics, engine adoption or
 release. Evidence and exact limits: [[records/operations/implementation]] and
 [[records/specs/document-composition]].
+
+
+## Canonical reference discovery and request scope, October 28
+
+Read-only references performs one bounded 12-result hop over saved mentions.
+Read includes its first canonical outgoing page without changing original text or
+exact-copy passages. Raw imported URI targets in read/tool_result text do not
+independently enter item lookup choices; saved structural destinations do. Current
+user-supplied IDs/routes and independently discovered business items remain valid
+lookup candidates. This correction follows two observed native answers from a
+stale raw route after its binding had been explicitly corrected. Candidate choice
+is separate from citation admission: references and read.references cannot admit
+destination citations, including through paged tool_result inspection.
+
+Agent FTS/reference/lineage paths exclude technical request/annotation evidence.
+Direct item reading permits this run's original request Source, not unrelated
+requests or annotation Sources. Use scoped original-message history for earlier
+conversation. A concurrently superseding request head cannot disclose new private
+metadata or widen the current request ceiling. The precise current-submission
+citation exception leaves historical business current-head checks unchanged.
+An access refusal cannot be repaired through repeated search spellings; explain
+an unavailable original rather than guessing.
+
+Deterministic scope and actual grammar checks pass. The real local-pack native
+corrected-pin and private-request observations pass at 32K/bounded512 with six and
+eight steps respectively. The positive answer still needs one opaque-ID prose
+correction; the negative job is slow and makes unnecessary inspections. Retain
+those limits and earlier failures. This is focused behavior evidence, not broad
+reliability, throughput, context, accessibility or engine-adoption qualification.
+Details: [[records/specs/references-and-relationships]] and
+[[records/operations/implementation]].

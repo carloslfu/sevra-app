@@ -10,7 +10,7 @@ extension WorkbookTools {
           query, kind: arguments["kind"].string, meaning: arguments["meaning"].string,
           limit: 12, offset: arguments["offset"].int ?? 0,
           cursor: arguments["cursor"].string, status: arguments["status"].string,
-          scenario: arguments["scenario"].string, cancellation: cancellation)
+          scenario: arguments["scenario"].string, cancellation: cancellation, businessOnly: true)
         var result = try encoded(business).object
         let filtered = ["kind", "meaning", "status", "scenario"].contains {
           arguments[$0].string != nil

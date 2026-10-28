@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T06:09:16.486976+00:00
+updated: 2026-10-28T07:29:21.720368+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -392,3 +392,16 @@ rebuild repairs projection rows without interpreting text or resolving names.
 Migration from canonical schemas 1-6 preserves old choices and runs no extraction.
 The current schema is 7; keep app and CLI versions matched. See
 [[records/specs/references-and-relationships]] for bounds and coverage limits.
+
+
+## Agent projection of saved links, October 28
+
+Schema 7 is unchanged. A business item read returns the first canonical outgoing
+reference page from the same database read transaction as its original content
+and current-version metadata. This projection neither rewrites evidence nor adds
+citation eligibility for destinations. Owner reference/search APIs retain their
+inspection scope; the model uses business-only reference/search/lineage projections
+and a separate immutable current-request Source ceiling. Cursor identities include
+that scope. A later request head can be outside read scope without being absent;
+its metadata remains undisclosed. See [[records/specs/references-and-relationships]]
+and [[records/specs/intelligence]].

@@ -69,7 +69,9 @@ extension Workbook {
   public func search(
     _ query: String, kind: String? = nil, meaning: String? = nil, historical: Bool = false,
     limit: Int = 30, offset: Int = 0, cursor: String? = nil, status: String? = nil,
-    scenario: String? = nil, cancellation: Cancellation = .init(), deadlineSeconds: TimeInterval = 3
+    scenario: String? = nil, cancellation: Cancellation = .init(),
+    deadlineSeconds: TimeInterval = 3,
+    businessOnly: Bool = false
   ) throws -> SearchPage {
     try synchronized {
       try db.budget(cancellation: cancellation, seconds: deadlineSeconds) {
@@ -86,6 +88,7 @@ extension Workbook {
             "meaning": meaning.map(Value.string) ?? .null, "historical": .bool(historical),
             "status": status.map(Value.string) ?? .null,
             "scenario": scenario.map(Value.string) ?? .null,
+            "businessOnly": .bool(businessOnly),
           ]).json()
           var afterRank: Value = .null
           var afterID: Value = .number(0)
@@ -113,6 +116,7 @@ extension Workbook {
           }
           let current = historical ? "" : " AND c.is_current=1 "
           var filters = kind == nil ? " AND c.kind!='request' " : ""
+          if businessOnly { filters += " AND c.kind NOT IN ('request','annotation') " }
           var filtersArgs: [Value] = []
           for (column, value) in [
             ("kind", kind), ("meaning", meaning), ("status", status), ("scenario", scenario),

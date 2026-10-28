@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-28T06:09:16.499864+00:00
+updated: 2026-10-28T07:29:21.702281+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -344,3 +344,27 @@ prove absence. The mixed 70-origin core fixture and packaged CLI journey check
 scope/dedup/history, not large-graph throughput, whole-app memory or real-agent
 retrieval value. Scoped agent tools and LJ09/LJ10 remain open. See
 [[records/specs/references-and-relationships]].
+
+
+## Local-agent reference and technical-evidence scope, October 28
+
+The bounded references model tool and read.references first outgoing page now
+complement agent FTS. Each explicit reference query returns at most 12 metadata
+results, with scopes/filters, keyset continuation, cancellation and the existing
+three-second deadline. Metadata does not inspect destination content. Discovery
+and read path handling preserve canonical corrected bindings while leaving raw
+original text and copy passages intact. Prior empty/partial coverage caveats and
+body/extracted indexes remain unchanged.
+
+Agent lexical/filename queries exclude request and annotation Sources before
+paging, even when the model supplies either kind explicitly. Owner search remains
+available. Agent reference anchors/destinations and lineage use the same business
+boundary; direct reads and original-message history enforce their own request
+ceiling. The cursor identity includes the owner/business scope, so cursors cannot
+cross it. There is no automatic multihop fanout or external-workbook access.
+
+Focused synthetic traversal and privacy checks plus two local native observations
+pass, with preserved wrong-route and step-limit failures. General LJ09, measured
+lexical-only versus reference-assisted retrieval value, large-graph latency/memory
+and LJ10 remain open. See [[records/specs/references-and-relationships]] and
+[[records/operations/implementation]].
