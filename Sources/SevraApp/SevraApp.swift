@@ -60,6 +60,7 @@ import SwiftUI
     guard DocumentDraftScope.flushAll() else { return .terminateCancel }
     Task {
       let saved = await ConversationSession.flushAll()
+      await SpaceNavigationSession.flushAll()
       sender.reply(toApplicationShouldTerminate: saved && DocumentDraftScope.flushAll())
     }
     return .terminateLater

@@ -28,6 +28,7 @@ import SwiftUI
   }
   @Published var workbook: Workbook?
   @Published var spaces: [Space] = []
+  let spaceNavigation = SpaceNavigationSession()
   @Published var items: [ItemSummary] = []
   @Published var datasets: [Dataset] = []
   @Published var messages: [Message] = []
@@ -114,6 +115,7 @@ import SwiftUI
     try require(
       restored, "conversation_save",
       conversationSession.failure ?? "Could not restore the conversation draft.")
+    await spaceNavigation.open(opened)
     endInteraction()
     workbook = opened
     spaces = []
@@ -156,6 +158,8 @@ import SwiftUI
     refresh()
   }
   init() {
+    spaceNavigation.changed = { [weak self] in self?.objectWillChange.send() }
+    spaceNavigation.failed = { [weak self] in self?.error = $0 }
     conversationSession.changed = { [weak self] in self?.objectWillChange.send() }
     conversationSession.restoredDraft = { [weak self] draft in
       guard let self else { return }
@@ -190,10 +194,13 @@ import SwiftUI
     }
     let readingAnchor = pageAnchor ?? conversationSession.state.reading.message
     let knownRevision = polling && loadedRefreshIdentity == identity ? revision : nil
+    let knownSpaceNavigation = spaceNavigation.state
+    let navigationGeneration = spaceNavigation.generation
     refreshSession.request(identity: identity, onlyWhenIdle: polling && !changedView) { control in
       try book.workspaceSnapshot(
         conversation: identity.conversation, messageAnchor: readingAnchor,
-        ifChangedFrom: knownRevision, cancellation: control)
+        ifChangedFrom: knownRevision, ifSpaceNavigationMatches: knownSpaceNavigation,
+        cancellation: control)
     } complete: { [weak self] result in
       guard let self, self.interactionActive, self.workbook === book,
         self.interactionIdentity == identity.window,
@@ -218,6 +225,7 @@ import SwiftUI
         self.loadedRefreshIdentity = identity
         self.revision = snapshot.revision
         self.spaces = snapshot.spaces
+        self.spaceNavigation.receive(snapshot.spaceNavigation, generation: navigationGeneration)
         self.items = snapshot.items
         self.datasets = snapshot.datasets
         self.messages = snapshot.messages
@@ -249,6 +257,7 @@ import SwiftUI
       viewedItemVersion = nil
       itemPreviewIdentity = UUID()
       selectedContext = ""
+      if case .space(let id) = new { spaceNavigation.visit(id) }
     }
   }
   func openEvidence(_ id: String, locator: String? = nil) {
@@ -268,6 +277,7 @@ import SwiftUI
       viewedItemVersion = nil
       itemPreviewIdentity = UUID()
       selectedContext = ""
+      if case .space(let id) = prior { spaceNavigation.visit(id) }
     }
   }
   func run(_ title: String, operation: @escaping @Sendable (Workbook, Cancellation) throws -> Void)
@@ -314,7 +324,7 @@ import SwiftUI
     error = failure.localizedDescription
   }
   func pinSpace(_ id: String, title: String) {
-    guard !busy, documentDrafts.flush(), let (book, ticket) = beginOperation("Saving a pinned copy")
+    guard !busy, documentDrafts.flush(), let (book, ticket) = beginOperation("Saving a snapshot")
     else { return }
     let navigationID = itemPreviewIdentity
     let chat = conversation
@@ -382,6 +392,8 @@ import SwiftUI
         guard await conversationSession.flush(), interactionActive,
           workbook === book, interactionIdentity == identity, documentDrafts.flush()
         else { return }
+        await spaceNavigation.flush()
+        guard interactionActive, workbook === book, interactionIdentity == identity else { return }
         run("Making a shareable copy") { book, cancel in
           try book.export(to: url, cancellation: cancel)
         }
@@ -901,6 +913,7 @@ import SwiftUI
     speech.stop()
     guard !changingConversation, documentDrafts.flush() else { return false }
     let saved = await conversationSession.flush()
+    await spaceNavigation.flush()
     return saved && documentDrafts.flush()
   }
   func restoreSavedConversationDraft(_ id: String) {

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-27T21:45:28.635239+00:00
+updated: 2026-10-28T00:12:42.001394+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -240,3 +240,27 @@ associations, business claims and derivations have distinct semantics. Substanti
 inferred relations are derived Records with evidence/status, not a third category.
 Preserve original bytes, pinned citations, unresolved targets, transactions, undo,
 migration and portable identity. Implementation and LJ01-LJ10 remain pending.
+
+## Space navigation presentation state
+SpaceNavigationState version 1 lives in SQLite meta under space-navigation.
+It contains up to 64 pinned space IDs and the eight most recent distinct visits.
+Home always has its own entry and does not consume a pin/recent slot. IDs must
+identify existing spaces when edited. Apply each bounded edit batch atomically
+under the existing three-second presentation writer budget. Read the latest saved
+state before applying intentions, so visits and unrelated pin changes from another
+window merge instead of replacing a stale whole document.
+
+This is portable presentation state, not business evidence. It creates no item,
+message, operation receipt, business revision or space version. It does not alter
+live/snapshot bindings. Keep it outside evidence search and model history. The
+existing meta table carries it without a schema migration.
+
+Background window snapshots read this state coherently with the catalog and
+business revision. Polling also compares navigation state, so another window's
+preference-only change is not missed. The UI serializes saves and coalesces queued
+visits to the last eight. It displays committed preferences; errors keep the last
+saved state and report failure. Snapshot callbacks use a generation check to
+avoid overwriting newer local activity. Normal close, quit, workbook switch and
+portable export await queued saves. A preference failure does not block closing
+or discard a user draft; conversation/document drafts retain their separate
+save-and-conflict rules.

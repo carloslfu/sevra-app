@@ -463,3 +463,6 @@ Focused conversation checkpoint: native navigation and accept/undo proof; intact
 ## [2026-10-27 23:59] implementation | records/operations/implementation.md
 Current proposal badges and captured request context pass focused checks and native interaction. Preserve original history, stock and lineage. Apply owner-approved milestone CI triggers with all 26 existing steps retained; no broad rerun or release claim.
 
+## [2026-10-28 00:12] implementation | records/operations/implementation.md
+Native Home/Spaces now groups persisted pinned shortcuts and recent visits, distinguishes live views from snapshots and preserves composer drafts. Focused deterministic/native checks and independent unchanged-business audit pass. Interpreted navigation actions and full J11 remain open.
+

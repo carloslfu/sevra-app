@@ -8,7 +8,6 @@ import SwiftUI
 struct WorkbookView: View {
   @ObservedObject var state: WorkspaceState
   @State private var showSpaces = false
-  @State private var spaceSearch = ""
   @State private var conversationFrames: [String: CGRect] = [:]
   @FocusState private var composerFocused: Bool
   let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -53,7 +52,9 @@ struct WorkbookView: View {
             Text(routeTitle).font(.title3.weight(.medium)).lineLimit(1)
             Spacer()
             Button("Spaces", systemImage: "square.grid.2x2") { showSpaces.toggle() }
-              .popover(isPresented: $showSpaces) { spacePicker }
+              .popover(isPresented: $showSpaces) {
+                SpacePickerView(state: state) { showSpaces = false }
+              }
           }.padding(18)
           Divider()
           workspace.frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -329,36 +330,6 @@ struct WorkbookView: View {
     }.padding(12).background(
       Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 12)
     ).overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.12)))
-  }
-  var spacePicker: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      TextField("Find a space", text: $spaceSearch).textFieldStyle(.roundedBorder)
-      ScrollView {
-        VStack(alignment: .leading, spacing: 4) {
-          ForEach(
-            state.spaces.filter {
-              spaceSearch.isEmpty || $0.title.localizedCaseInsensitiveContains(spaceSearch)
-            }
-          ) { space in
-            Button {
-              state.navigate(.space(space.id))
-              showSpaces = false
-            } label: {
-              HStack {
-                Image(systemName: space.id == "home" ? "house" : "rectangle.split.2x2")
-                Text(space.title)
-                Spacer()
-              }.padding(8)
-            }.buttonStyle(.plain)
-          }
-        }
-      }
-      Divider()
-      Button("Create a space through conversation") {
-        state.prompt = "Create a space for "
-        showSpaces = false
-      }
-    }.padding(16).frame(width: 290, height: 320)
   }
   @ViewBuilder var workspace: some View {
     if let book = state.workbook {

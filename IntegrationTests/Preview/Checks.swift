@@ -51,6 +51,7 @@ private actor ReadGate {
       try await run()
       try await checkWorkspaceOperations()
       try await checkWorkspaceRefresh()
+      try await checkSpaceNavigation()
       try checkProposalReview()
       try checkRequestContextPresentation()
       try checkConversationPresentation()

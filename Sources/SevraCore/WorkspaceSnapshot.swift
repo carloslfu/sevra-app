@@ -5,6 +5,7 @@ import Foundation
 public struct WorkspaceSnapshot: Sendable {
   public let revision: Int
   public let spaces: [Space]
+  public let spaceNavigation: SpaceNavigationState
   public let items: [ItemSummary]
   public let datasets: [Dataset]
   public let messages: [Message]
@@ -23,6 +24,7 @@ extension Workbook {
   /// unrelated long search, and all fields must come from the same SQLite view.
   public func workspaceSnapshot(
     conversation: String, messageAnchor: String? = nil, ifChangedFrom revision: Int? = nil,
+    ifSpaceNavigationMatches navigation: SpaceNavigationState? = nil,
     cancellation: Cancellation = .init(), deadlineSeconds: TimeInterval = 3
   ) throws -> WorkspaceSnapshot? {
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: deadlineSeconds)
@@ -30,7 +32,10 @@ extension Workbook {
       try db.budget(cancellation: control, seconds: deadlineSeconds) {
         try db.readTransaction {
           let current = try self.revision()
-          if current == revision { return nil }
+          let spaceNavigation = try readSpaceNavigation()
+          if current == revision && (navigation == nil || navigation == spaceNavigation) {
+            return nil
+          }
           if let messageAnchor {
             try require(
               try messageLocation(messageAnchor)["conversation_id"].text == conversation,
@@ -39,7 +44,8 @@ extension Workbook {
           let history = try readConversationWindow(
             conversation: conversation, around: messageAnchor, cancellation: control)
           return try WorkspaceSnapshot(
-            revision: current, spaces: spaces(), items: recentItemSummaries(), datasets: datasets(),
+            revision: current, spaces: spaces(), spaceNavigation: spaceNavigation,
+            items: recentItemSummaries(), datasets: datasets(),
             messages: history.messages,
             proposalReviews: proposalReviewStates(
               messages: history.messages, conversation: conversation, cancellation: control),

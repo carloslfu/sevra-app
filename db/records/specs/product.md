@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-27T23:59:39.585572+00:00
+updated: 2026-10-28T00:12:41.980379+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -387,3 +387,33 @@ original version navigation, stock 20 -> 18 -> 20, readable Home context, origin
 context disclosure and Home navigation. This is one reference-Mac interaction
 check, not a complete keyboard, VoiceOver or release qualification. Evidence:
 [integration/evidence/2026-10-27-proposal-status.json](../../../integration/evidence/2026-10-27-proposal-status.json).
+
+## Home and space navigation
+P03a. The searchable native picker groups Home, pinned shortcuts, recent visits
+and remaining spaces. Show each space once, using stable IDs even when titles
+match. Search is case/accent insensitive, keeps matching groups and supports
+Return to open the first visible match. Empty results are explicit. Opening a
+space remains immediate and does not require model inference.
+
+Pinning in navigation keeps a shortcut; it neither copies the view nor freezes its
+data. The picker and Home show Live view or Snapshot with capture time. The former
+Save a pinned copy UI action is now Save a snapshot, with the same existing
+version-freezing behavior. The public pin_space tool and pin-space CLI remain
+compatible snapshot operations. Interpreted pin/unpin/navigation requests need a
+separate scoped host action before P09a is complete; do not claim they already use
+navigation preferences or silently repurpose the existing snapshot API.
+
+Home shows pinned spaces, up to four recent unpinned spaces, tables, intake
+attention and bounded recent work. Keep the fuller recent list in the picker.
+Do not display empty-workbook onboarding once there is work or another saved
+space. Keep Add files and Search available. Creating a space through conversation
+focuses the composer, prefilling only an empty draft. Preserve existing unsent
+text and do not submit it automatically.
+
+Pin/unpin, recency, search/Return, live/snapshot identity, populated Home and
+close/reopen passed the focused native preview check. Deterministic checks cover
+merged preferences, duplicate titles, stale reads, invalid transaction rollback,
+unchanged business state and portable reopen. Full keyboard/VoiceOver, narrow
+windows, interpreted actions, complete pending-review discovery and J11 remain
+separate open gates. Evidence:
+[space navigation receipt](../../../integration/evidence/2026-10-27-space-navigation.json).

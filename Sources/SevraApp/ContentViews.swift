@@ -1,6 +1,7 @@
 import AppKit
 import Charts
 import SevraCore
+import SevraPreviewUI
 import SevraSearchUI
 import SevraTableUI
 import SwiftUI
@@ -130,24 +131,30 @@ struct SearchView: View {
 struct SpaceView: View {
   let space: Space
   @ObservedObject var state: WorkspaceState
+  private var emptyWorkbook: Bool {
+    state.items.isEmpty && state.datasets.isEmpty && state.pendingExtractions.isEmpty
+      && state.spaces.count <= 1
+  }
   var body: some View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 28) {
         if !space.definition.components.isEmpty {
           HStack {
             if let captured = space.definition.pinnedAt {
-              Text("Pinned as of " + DisplayText.date(captured))
+              Text("Snapshot from " + DisplayText.date(captured))
                 .font(.caption).foregroundStyle(.secondary)
+            } else {
+              Text("Live view").font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            Button("Save a pinned copy") {
+            Button("Save a snapshot") {
               let title =
                 space.title + " · " + Date().formatted(date: .abbreviated, time: .shortened)
               state.pinSpace(space.id, title: title)
             }.help("Keep exact values and input versions as of now.").disabled(state.busy)
           }
         }
-        if space.definition.components.isEmpty {
+        if space.definition.components.isEmpty && (space.id != "home" || emptyWorkbook) {
           Text("Make room for your work").font(.system(size: 28, weight: .medium))
           Text(
             "Drop files here, or describe what you want to organize. Useful tables, documents and views can live together in this space."
@@ -161,6 +168,26 @@ struct SpaceView: View {
           NativeComponent(component: component, state: state).id(component.id)
         }
         if space.id == "home" {
+          if !emptyWorkbook {
+            HStack {
+              Button("Add files…") { state.importPanel() }
+              Button("Search workbook") { state.navigate(.search) }
+            }
+          }
+          let shortcuts = SpacePickerSections(
+            spaces: state.spaces, navigation: state.spaceNavigation.state, query: "")
+          if !shortcuts.pinned.isEmpty {
+            sectionTitle("Pinned spaces")
+            ForEach(shortcuts.pinned) { saved in
+              SpaceShortcutRow(space: saved, state: state) { state.navigate(.space(saved.id)) }
+            }
+          }
+          if !shortcuts.recent.isEmpty {
+            sectionTitle("Recent spaces")
+            ForEach(Array(shortcuts.recent.prefix(4))) { saved in
+              SpaceShortcutRow(space: saved, state: state) { state.navigate(.space(saved.id)) }
+            }
+          }
           if !state.datasets.isEmpty {
             sectionTitle("Tables")
             ForEach(state.datasets) { table in
@@ -206,7 +233,7 @@ struct SpaceView: View {
             )
             .font(.callout).foregroundStyle(.secondary)
           }
-          sectionTitle("Recent sources and drafts")
+          sectionTitle("Recent work")
           let recent = state.items
           if recent.isEmpty {
             Text("Included files and saved work will appear here.").foregroundStyle(.secondary)

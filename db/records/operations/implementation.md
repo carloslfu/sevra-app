@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T23:59:39.638594+00:00
+updated: 2026-10-28T00:12:42.036259+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -41,6 +41,13 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   full checks on main/release and review-ready PR milestones or explicit dispatch,
   not each development push. All 26 steps remain. No skipped check counts as a
   pass. See [[records/specs/distribution]].
+
+- Home and the native space picker now show pinned shortcuts and recent visits.
+  Live views and saved snapshots are distinct, and Create a space preserves an
+  existing composer draft. Preferences merge in SQLite without business changes;
+  focused persistence/rollback/stale-read checks and native close/reopen pass.
+  Ordinary pin/unpin/navigation requests and complete pending-review discovery
+  remain open. Existing snapshot APIs retain their meaning.
 
 - Search-grounding repairs pass deterministic regressions and the actual paired
   block-3 replay. Empty searches cannot establish exhaustive absence, and the
@@ -123,7 +130,9 @@ Inline references, backlinks and bounded traversal are planned, not implemented.
 L01-L14 and LJ01-LJ10 define delivery and verification. Keep the active checkpoint
 and engine qualification in place; inferred associations follow measured value.
 
-Next, continue ordinary voice/text host actions, Home/recent/pinned spaces and J11.
+Next, implement ordinary voice/text host actions for navigation and pin/unpin,
+then complete Home pending-review discovery and J11. Keep navigation shortcuts
+distinct from snapshot creation in the local model tools and visible receipts.
 Thread creation/rename still
 use the existing generic writer lock; add a bounded writer path before treating
 interruption under competing writers as qualified. Continue engine repeatability
@@ -3346,3 +3355,36 @@ Evidence: [proposal status receipt](../../../integration/evidence/2026-10-27-pro
 The receipt includes source/executable hashes, focused check output, native UI
 observations, independent arithmetic/integrity receipts and CI trigger parsing.
 Broader native adoption, compaction, accessibility and release gates stay open.
+
+## Pinned shortcuts and recent spaces, October 27
+Implemented the missing P03 native navigation structure. The picker groups Home,
+pinned shortcuts, recent visits and remaining spaces, with stable-ID deduplication
+and accent-insensitive search. Home shows these useful entry points and removes
+empty-workbook onboarding once content exists. Live view versus Snapshot labels
+and Save a snapshot distinguish navigation pinning from frozen results. The
+existing snapshot CLI/tool behavior is unchanged. The create-through-conversation
+entry no longer overwrites an existing unsent draft.
+
+SpaceNavigationState is portable SQLite presentation metadata. Bounded background
+writes merge edit intentions under the existing package lock, preserve business
+revisions, and do not create Sources/Records or history. Serialized UI writes and
+generation checks preserve recency during bursts and reject stale reads. Closing,
+quitting, switching workbooks and exporting await queued saves. Failed saves never
+show an uncommitted pin as persisted. No schema migration or inference change.
+
+Focused verification passed: build/run sevra-preview-checks, native app/CLI release
+builds and preview packaging, one native interaction pass, and independent CLI/SQL
+audit. Synthetic checks cover two-connection merging, invalid-batch rollback,
+eight-visit bounding, stale callbacks, unpin, failed persistence, duplicate-title
+and accent-insensitive matching, unchanged business/composition state and portable
+reopen. The native UI passed pin/unpin, visit grouping, filtered Return navigation,
+snapshot labels, populated Home, unsent-draft preservation and close/reopen. All
+business/composition rows and revision 5 remained unchanged, with zero messages;
+only expected presentation preferences and the synthetic unsent draft were saved.
+Workbook verification passed, and the app quit normally.
+
+Evidence: [space navigation receipt](../../../integration/evidence/2026-10-27-space-navigation.json),
+5,046 bytes, SHA256 `db2d2c8765a6e8f2dff06811268d2af3c42bdfb631ac1e1c2e9af6954432cc3d`.
+No broad model cohort, install suite, both-backend rerun or remote CI cycle was
+required. Interpreted navigation/pin actions, complete pending-review Home,
+keyboard/VoiceOver/narrow-window J11, engine/context and release gates remain open.
