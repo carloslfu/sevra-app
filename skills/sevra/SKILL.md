@@ -43,6 +43,48 @@ canonical versions, with exact revision checking and repeat-safe operation token
 Use this for an explicitly requested repair; retain the original workbook. Missing
 or invalid canonical history is a recovery error, not permission to regenerate it.
 
+`table-query PATH QUERY_JSON [CURSOR]` reads typed stored fields with filters,
+joins, grouping, exact Decimal aggregates and sort. Inspect `table-schema` first;
+each source needs its exact `datasetID` and `definitionID`. Column references use
+zero-based source numbers and stable column IDs. Example:
+
+```json
+{"sources":[{"datasetID":"TABLE_ID","definitionID":"EXACT_DEFINITION_ID"}],"select":[{"id":"sku","column":{"source":0,"column":"sku"}},{"id":"cost","column":{"source":0,"column":"cost"}}],"filters":[{"column":{"source":0,"column":"cost"},"op":"gte","value":"10.00"}],"sort":[{"field":"cost","descending":true}],"limit":100}
+```
+
+Only stored columns qualify. `filters` are AND-connected; operations are eq, ne,
+lt, lte, gt, gte, contains (text), isNull and isEmpty (without value). Pass Decimal
+values as strings, booleans as true/false and dates as ISO strings. Text comparison
+is case-sensitive. Up to two `joins` use `kind` inner/left, `left` column reference,
+and `right` stable column ID in the next source. Key type/unit must match. Joins
+preserve duplicates; countRows counts joined rows.
+
+Each source can include `"scope":{"meaning":"actual","status":"accepted","scenario":"actual"}`.
+Choose scope from the task. Without it, all current dataset members qualify, as
+disclosed by `sourceScopes`. Accepted estimates remain estimates. Ungrouped inputs
+return their actual meaning/status/scenario. A scope on a left join's right source
+does not remove unmatched left rows.
+
+Selections may use aggregate sum, average, min, max or count with a column, or
+countRows without a column. Include every plain selected column in `groupBy` and
+aggregate all others. Grouped results cite the exact snapshot/query, not an
+invented representative input row. Sum refuses precision loss; average uses Decimal
+plain rounding. Empty non-text values are unknown for comparisons/aggregates.
+Selected normalized scalars retain exact contributing version references for
+inspecting original lexical cells and omitted versus null values.
+
+Follow `nextCursor` with exactly the same query. Changed history refuses
+stale_query; changed definitions refuse stale_schema. Result, input, VM and deadline
+budgets refuse the entire query. Narrow its scope instead of presenting a prefix as
+complete. No query creates accepted business facts or a saved derived Record.
+
+`table-query-plan PATH QUERY_JSON` inspects its actual plan. Within the user's
+maintenance request, `table-optimize PATH QUERY_JSON` lets the core retain only
+generated, measured, bounded disposable indexes used by that query. Never supply
+index SQL or edit SQLite. `table-clear-indexes PATH DATASET_ID` removes optional
+performance indexes. Neither command changes business history. Full schema rebuilds
+may discard those indexes; reconstruction needs none of their local choices.
+
 `table-schema` also returns the exact current definition ID, title and archive state.
 `table-schema-history PATH DATASET_ID [BEFORE_VERSION]` pages 20 complete saved
 definitions, newest first. `table-edit-schema PATH DATASET_ID BASE_VERSION

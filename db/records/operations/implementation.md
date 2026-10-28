@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T19:21:04.589091+00:00
+updated: 2026-10-28T20:02:57.082144+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -12,6 +12,63 @@ title: Implementation and acceptance
 This is a working development build, not a qualified release. Requirements in the
 specifications remain the acceptance contract. A source commit does not imply that
 every requirement or supported hardware profile has passed.
+
+## Managed query and index checkpoint, October 28
+
+Schema 12 now provides bounded typed stored-column filters, sorting, grouped
+Decimal aggregates and up to two equality joins through core/CLI. Raw SQL,
+calculated predicates and undeclared fields refuse. Each request binds exact
+dataset definitions; row output retains exact input versions and meaning/status/
+scenario. Explicit scopes preserve unmatched left-join rows. Accepted estimates
+remain estimates. Revision/query-bound continuation refuses stale state. Queries
+create no business history, and oversized work refuses rather than publishing a
+partial total. Limits include 100,000 contributing rows, 32 MiB referenced input,
+8 MiB output, four million VM instructions and a three-second query deadline.
+
+Disposable native indexes have host-generated descriptors and exact schema
+validation. Keep candidates only when an actual plan uses them, within four per
+dataset, 64 per workbook, 8 MiB each and 32 MiB total. Index-only operations create
+no business revision. Concurrent optimizer processes retain one index. Business
+writes atomically evict over-budget indexes; publication faults roll back both
+rows and eviction. Missing size accounting drops optional indexes during writes.
+Automatic temporary query indexes are disabled; flat source SQL avoids unbounded
+metadata materialization before input accounting. Reconstruction recreates canonical
+data and results without retaining performance choices.
+
+Evidence: [managed query/index receipt](../../../integration/evidence/2026-10-28-managed-query-indexes.json.gz), 32,754 bytes,
+SHA-256 93bd84ffcecc2914448385282ce037d5a8eb1fc3053d53eebddbf5b37fd5d5e2.
+All 105 prior evidence files remain byte-identical. Final scripts/check.sh passes
+with core 191 groups, extraction 19, document lifecycle 27, voice lifecycle 15,
+Splash boundary 30 and unchanged grammar/agent/UI harnesses. Strict lint (13 Swift
+files), skill validation, final native resource refusals and signature pass.
+Final packaged 1k/10k/50k probes preserve query results, exact history, indexed
+edits/repair, inert reconstruction and portable reopen. Two optimizer processes
+produce one created/one existing result without business history.
+
+| Rows | Intake s | Indexed edit s | Repair s | Reconstruction s | Maximum child RSS bytes |
+| --- | --- | --- | --- | --- | --- |
+| 1,000 | 0.693 | 0.029 | 0.242 | 0.676 | 101,449,728 |
+| 10,000 | 5.106 | 0.057 | 2.692 | 6.153 | 145,096,704 |
+| 50,000 | 28.221 | 0.210 | 14.794 | 38.278 | 635,092,992 |
+
+On this Apple M5 Pro, 48 GiB Mac, final 50k CLI medians before/after indexes were
+range 0.296/0.148 s, sort 0.223/0.148 s, join 0.294/0.149 s and group 0.239/0.273 s.
+Grouping became slower. Final database 283,254,784 bytes; initial retained history
+133,157,157 bytes; four optional indexes 2,269,184 bytes. CLI includes process/open
+overhead. Separate paired native/shared-JSON SQL uses one Python SQLite/Decimal
+driver/cache, not a historic Swift compiler/binary comparison. RSS is maximum
+individual child lifetime, not aggregate concurrent memory or a hard heap cap.
+
+The initial 50k repair safely rolled back at the old three-second write budget.
+Explicit maintenance now uses a cancelable 30-second budget, including lock wait,
+while retaining transaction capture limits. The old failure is retained; its
+reported rebuild time includes post-rollback verification and is not timeout
+latency. No blanket performance or release claim follows from these measurements.
+
+This is a new core/CLI surface, with unchanged visible UI and model tools. Stored
+scalar query/index qualification now supports the E2 catalog slice; complete MJ
+acceptance, Excel sparse/formula continuity, saved query interfaces/actions/forms,
+E3-E6, VoiceOver/hardware/fresh-install and notarized production release remain open.
 
 ## Dataset definition lifecycle checkpoint, October 28
 
@@ -58,9 +115,9 @@ These are one synthetic fixture on one Mac, with no range/join/group speed claim
   provide scoped evidence. Unchanged model/hardware evidence is reused. Native
   observations do not constitute full VoiceOver or hardware qualification.
 
-E0-D remains in progress: typed bounded range/filter/join/group queries, disposable
-performance index policy, comparative/resource evidence and complete MJ acceptance
-remain open before dependent E2/E3 state. Schema tools are available to an explicitly
+At that lifecycle checkpoint typed queries, disposable index policy and comparative
+qualification remained open. The later query/index checkpoint above supplies the
+stored-scalar subset; complete MJ acceptance remains open. Schema tools are available to an explicitly
 authorized external harness through the CLI; the in-app model has no schema tool.
 Excel sparse/formula continuity, durable mapping drafts, E2-E6 and remaining whole-app
 installation/accessibility/hardware/production release qualification remain open.
@@ -123,9 +180,8 @@ sorting and CSV export now use these projections. File assets remain outside SQL
 
 At that foundation checkpoint, schema removal/archive/constraints and exact-base
 authoring remained open. The later lifecycle checkpoint above supplies that slice;
-typed queries, performance index policy and comparative/resource qualification
-remain open. Native tables do
-not prove Excel formula/sparse-region continuity, a new model cohort, complete MJ
+the lifecycle and query/index checkpoints above now supply those scoped slices.
+Native tables do not prove Excel formula/sparse-region continuity, a new model cohort, complete MJ
 acceptance, sync or release readiness. Finish these storage contracts before dependent
 E2/E3 state, then continue actions/forms, workflows, triggers, helper/templates and
 the remaining installation/accessibility/hardware/release plan.
@@ -148,8 +204,8 @@ Sparse/mixed worksheets and reference/analysis roles retain their own representa
 
 Checkpoint cd5f854 retains successful fixed-schema persistence and E1 layout
 qualification. The newer foundation checkpoint above implements dynamic schema/capture and
-current-row reads with scoped evidence; full schema lifecycle, managed query/index
-paths and complete MJ01-MJ08 remain pending. Finish any coherent in-flight checkpoint, then implement
+current-row reads with scoped evidence. Later checkpoints supply versioned schema
+lifecycle and stored-scalar query/index paths; complete MJ01-MJ08 remain pending. Finish any coherent in-flight checkpoint, then implement
 E0-D before dependent E2/E3 dataset/action/workflow persistence. Independent UI work
 may continue. Follow the four-step order in the new spec and extend the persistence
 coverage register with actual paths/results. Existing review/import/Undo and AI

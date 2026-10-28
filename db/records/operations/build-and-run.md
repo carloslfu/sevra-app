@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T19:13:11.779437+00:00
+updated: 2026-10-28T20:02:57.341756+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1382,8 +1382,8 @@ The repair does not add business effects. `verify` detects projection disagreeme
 
 Development check: `python3 scripts/check_managed_datasets.py --cli PATH_TO_SEVRA
 --rows 1000`; a 10,000-row run adds scoped scaling evidence. Supported dataset width
-is 1...500 logical columns. See [[records/specs/managed-datasets]] for pending typed
-query/index and full qualification work. Older development schemas are preserved
+is 1...500 logical columns. See [[records/specs/managed-datasets]] for typed query/index contracts
+and remaining qualification work. Older development schemas are preserved
 but unsupported; recreate selected synthetic fixtures, never delete user workbooks.
 
 ## Versioned table definitions
@@ -1411,3 +1411,55 @@ Run `python3 scripts/check_dataset_definitions.py --cli PATH_TO_SEVRA` for synth
 CLI lifecycle, competing writers, replay/portable reopen and unique-merge Undo/redo
 coverage. It is part of scripts/check.sh. See [[records/operations/implementation]]
 for the lifecycle receipt, visible native observations and exact remaining scope.
+
+## Typed managed queries and optional indexes
+
+`table-query WORKBOOK QUERY_JSON [CURSOR]` runs the typed host compiler.
+`table-query-plan WORKBOOK QUERY_JSON` returns its actual plan. Read table-schema
+first and use exact dataset/definition UUIDs. See skills/sevra/SKILL.md for a complete
+request example. The query may select up to 50 stored fields across up to three
+sources, with AND filters, two equality inner/left joins, grouping, count/sum/average/
+min/max and output sorting. Source scope can filter meaning/status/scenario; no
+provided scope means all current members. Ungrouped inputs retain exact row/version
+references and business metadata. Grouped results identify their exact query/snapshot.
+
+Decimal values are strings. Sum refuses precision loss; average uses Decimal plain
+rounding. Text comparisons are case-sensitive. Null and empty remain distinct;
+original omitted/lexical cells remain inspectable through version IDs. Query pages
+return nextCursor; changing the request, workbook commit or schema refuses reuse.
+Calculated columns, arbitrary SQL and unknown request fields refuse.
+
+The core bounds contributing rows at 100,000, referenced inputs at 32 MiB, output
+at 8 MiB/1,000 rows, VM instructions at four million and the deadline at three seconds.
+A refusal returns no seemingly complete partial answer. SQLite working memory is
+not a process-wide hard heap cap. Narrow the request after a bounded refusal.
+
+An explicit maintenance request may use table-optimize with the same query JSON.
+The core chooses generated keys, checks actual plan use and dbstat sizes, and retains
+only indexes within count/key/storage budgets. table-clear-indexes WORKBOOK DATASET_ID
+removes optional performance indexes. Neither command publishes business history.
+Column shape rebuilds discard indexes; ordinary edits/repair maintain compatible
+ones and evict storage overages atomically. A device without optional size accounting
+drops those indexes during row edits. Inert reconstruction needs none of their choices.
+Explicit table-rebuild keeps its exact-revision/token contract and has a cancellable
+30-second maintenance deadline, with unchanged transaction-capture limits.
+
+Run `python3 scripts/check_dataset_queries.py --cli PATH_TO_SEVRA --rows 1000`.
+A 10k/50k run measures range/sort/group/join plans, end-to-end CLI latency, index
+bytes, indexed edits/repair, history, RSS, inert reconstruction and portable reopen.
+Paired native-column/shared-JSON SQL timings use the same Python SQLite/Decimal
+adapter and warm cache, separately from Swift CLI timings. They are not a historical
+release-binary speed comparison. Failed stress repair is retained with
+--measure-rebuild-limit and reports ok:false; it does not pass the repair gate.
+
+## Packaged query/index qualification
+
+Run `python3 scripts/check_dataset_queries.py --cli output/native/bin/sevra --rows 1000 --output .build/query-1000.json` after the native build.
+The same synthetic stored-column probe passed at 10,000 and 50,000 rows. It checks
+query plans/results, two optimizer processes, edit/repair, inert reconstruction
+and portable export. Use the receipt rather than claiming all indexes improve all
+queries: 50k grouping slowed from 0.239 to 0.273 s, while filtered/joined CLI queries
+fell from about 0.29 to 0.15 s. Initial 50k repair rolled back at the old three-second
+budget; final explicit 30-second maintenance repair took 14.794 s. See [managed query/index receipt](../../../integration/evidence/2026-10-28-managed-query-indexes.json.gz)
+and [[records/operations/implementation]] for full timings/resources and limits.
+No new native query editor or in-app model tool is implied by these CLI commands.

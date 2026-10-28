@@ -122,7 +122,8 @@ public final class Workbook: @unchecked Sendable {
   }
   @discardableResult func mutation(
     _ kind: String, token: String = identifier(), request: Value = .null, expected: Int? = nil,
-    cancellation: Cancellation? = nil, actor: ChangeActor? = nil, _ body: () throws -> Value
+    cancellation: Cancellation? = nil, actor: ChangeActor? = nil,
+    deadlineSeconds: TimeInterval = 3, _ body: () throws -> Value
   ) throws -> Value {
     let receiptRequest: Value =
       try actor.map {
@@ -168,7 +169,7 @@ public final class Workbook: @unchecked Sendable {
         }
         defer { flock(lockFD, LOCK_UN) }
         return try db.shortWait {
-          try db.budget(cancellation: cancellation, seconds: 3) { try transaction() }
+          try db.budget(cancellation: cancellation, seconds: deadlineSeconds) { try transaction() }
         }
       }
     }
@@ -183,6 +184,22 @@ public final class Workbook: @unchecked Sendable {
   /// bounded, including writers in other processes.
   func presentationMutation<T>(_ body: () throws -> T) throws -> T {
     let control = Cancellation(deadlineAfterSeconds: 3)
+    return try synchronized(cancellation: control) {
+      while flock(lockFD, LOCK_EX | LOCK_NB) != 0 {
+        try require(errno == EWOULDBLOCK || errno == EAGAIN, "lock", "Cannot lock workbook.")
+        try control.check()
+        Thread.sleep(forTimeInterval: 0.01)
+      }
+      defer { flock(lockFD, LOCK_UN) }
+      return try db.shortWait {
+        try db.budget(cancellation: control, seconds: 3) { try db.transaction(body) }
+      }
+    }
+  }
+  /// Disposable projections share the package transaction/lock, but publish no
+  /// receipt or business revision when only trusted index DDL changes.
+  func localProjectionMutation<T>(cancellation: Cancellation, _ body: () throws -> T) throws -> T {
+    let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
     return try synchronized(cancellation: control) {
       while flock(lockFD, LOCK_EX | LOCK_NB) != 0 {
         try require(errno == EWOULDBLOCK || errno == EAGAIN, "lock", "Cannot lock workbook.")

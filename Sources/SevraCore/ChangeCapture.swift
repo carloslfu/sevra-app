@@ -120,6 +120,9 @@ final class ChangeCapture {
   func publish(_ database: Database) throws {
     if let failure { throw failure }
     try require(fragment == nil, "change_capture", "An incomplete row capture cannot commit.")
+    if pending?.contains(where: { !ChangeFormat.tables.contains($0.table) }) == true {
+      try database.trimPerformanceIndexes()
+    }
     guard let pending, !pending.isEmpty else { return }
     let prior = try database.execute(
       "SELECT id,hash FROM committed_changes ORDER BY rowid DESC LIMIT 1"

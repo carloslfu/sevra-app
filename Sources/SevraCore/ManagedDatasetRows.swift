@@ -212,12 +212,16 @@ extension Workbook {
     _ datasetID: String, expectedRevision: Int,
     token: String = identifier(), cancellation: Cancellation = .init()
   ) throws {
+    // Explicit maintenance is off the UI actor and may scan/reindex a complete
+    // dataset. It keeps the same atomic capture and hard limits, with a longer
+    // bounded deadline than an interactive edit. Lock acquisition is included.
+    let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 30)
     _ = try mutation(
       "rebuild_dataset", token: token,
       request: .object([
         "datasetID": .string(datasetID), "expectedRevision": .number(Double(expectedRevision)),
       ]),
-      expected: expectedRevision, cancellation: cancellation
+      expected: expectedRevision, cancellation: control, deadlineSeconds: 30
     ) {
       let schema = try db.managedSchema(datasetID)
       try db.validateManagedHistory(schema)
@@ -233,7 +237,7 @@ extension Workbook {
       capture.resettingProjection = schema.table
       defer { capture.resettingProjection = nil }
       try db.execute("DELETE FROM " + ChangeFormat.quote(schema.table))
-      try populateManagedDataset(datasetID, cancellation: cancellation)
+      try populateManagedDataset(datasetID, cancellation: control)
       return .string(datasetID)
     }
   }

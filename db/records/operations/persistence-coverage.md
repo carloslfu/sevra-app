@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-28T19:17:12.507481+00:00
+updated: 2026-10-28T20:02:57.190609+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -12,6 +12,25 @@ October 28, 2026. Shared foundation for
 [[records/specs/persistence-readiness]], after the reviewed table-update slice.
 This inventories current schema/code, not cloud sync, workflow execution or the
 complete app release.
+
+## Read-only queries and disposable performance indexes
+
+Schema 12 adds no durable family for query evaluation. Canonical immutable inputs,
+exact definitions and the committed history snapshot bind results/cursors. No query
+publishes a business receipt or revision. Optional native index descriptors are
+recovered from validated generated structure, not business metadata or historical
+SQL. Index-only writes use the existing package lock/SQLite transaction and leave
+committed history unchanged. Growth eviction shares the ordinary row transaction;
+a late publication fault rolls back the row and dropped index. A copied runtime
+without size accounting may drop optional indexes rather than block business edits.
+
+[managed query/index receipt](../../../integration/evidence/2026-10-28-managed-query-indexes.json.gz). Final core191 and packaged 1k/10k/50k probes cover indexed
+edits/repair, concurrent optimizers, exact retained history, inert reconstruction
+without indexes and portable reopen. Rebuild now has an explicit cancelable
+30-second maintenance budget; interactive queries retain three seconds. New in-app
+model tools, native query UI and complete MJ/FJ are not claimed. Fault tests use
+isolated TEMP triggers/adapters; see the implementation register for actual timing,
+resource scope and the retained first 50k safe rollback.
 
 ## Current schema-12 dataset definitions
 
@@ -24,7 +43,8 @@ editing have scoped proof. Required/unique constraints preserve exact Decimal an
 null semantics. Removed values remain in immutable payloads, and active row edits
 retain them plus exact definition lineage. Formula evaluation honors the declared
 active schema. Partial intake refuses new batches after a definition change.
-Typed query/index policy and full E0-D/MJ qualification remain open.
+The query/index checkpoint above supplies stored-scalar paths; full E0-D/MJ
+qualification, including Excel continuity, remains open.
 
 ## Managed dataset foundation, schema 11
 
@@ -47,8 +67,8 @@ checks schema history, membership, exact canonical heads and every scalar/sideca
 The earlier core 168, packaged 1k/10k and native table edit/Undo/reopen tests provide scoped
 FJ/MJ coverage. Existing shared paths now use the projection, including reviewed
 intake updates and their Undo/redo. The later schema-12 lifecycle slice above adds removal/archive/constraints and
-exact-base authoring. Typed query/index policy and complete MJ qualification remain
-open.
+exact-base authoring. The query/index checkpoint supplies the stored-scalar subset;
+complete MJ qualification remains open.
 No new ledger, executable payload SQL, sync or release qualification is claimed.
 
 ## Capture and identities

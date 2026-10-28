@@ -2,15 +2,15 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-28T19:17:12.528332Z
+updated: 2026-10-28T20:03:13.452202Z
 ---
 
 # records/specs
 
-- [[records/specs/managed-datasets]] — Schema-12 managed dataset storage and versioned definition lifecycle have scoped proof; typed query/index and full MJ qualification remain open.
-- [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
+- [[records/specs/managed-datasets]] — Schema12 managed storage, definition lifecycle and bounded stored-scalar query/index paths have scoped proof; complete MJ/Excel continuity and release remain open.
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
 - [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
+- [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 - [[records/specs/application-definitions]] — E2 typed versioned definitions, pure functions/queries, shared action registry and native forms with scoped acceptance and persistence.
 - [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.

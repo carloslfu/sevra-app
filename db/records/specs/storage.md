@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T19:13:11.702412+00:00
+updated: 2026-10-28T20:02:57.231515+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -33,9 +33,10 @@ capture/apply/validation are one storage contract. No second ledger or raw-model
 Schema 12 now uses managed native current-state tables over retained immutable JSON
 row versions and versioned definitions. Its capture/materialization/repair foundation
 and exact-base definition lifecycle have scoped evidence in
-[[records/operations/persistence-coverage]]. Typed managed query/index qualification
-remains an E0-D prerequisite before
-dependent E2/E3 storage.
+[[records/operations/persistence-coverage]]. Bounded stored-column typed queries
+and disposable performance indexes now have core/CLI and packaged 1k/10k/50k
+proof. Canonical authority excludes optional performance choices. Complete MJ and
+Excel continuity remain open; the implemented foundation supports the E2 catalog.
 Flexible sheet/cell data and contextual reference/analysis roles remain distinct.
 Existing local replay is not concurrent replication qualification.
 

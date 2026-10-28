@@ -18,7 +18,8 @@ cloud services are outside the current implementation scope.
 The adopted [managed dataset design](db/records/specs/managed-datasets.md) adds
 native structured tables over shared immutable history and replayable schemas.
 Native storage, capture, reconstruction and versioned schema editing have scoped
-evidence. Typed managed queries, index policy and full qualification remain in progress.
+evidence. Bounded typed stored-column queries and disposable performance indexes
+now have core/CLI qualification. Full Excel continuity and release checks remain open.
 
 Start with [the project knowledge map](db/records/overview/start-here.md),
 [the specification](db/records/specs/product.md) and

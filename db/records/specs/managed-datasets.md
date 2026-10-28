@@ -2,8 +2,8 @@
 type: spec
 id: 01m61vcs2a1prctcr1em7z68cm
 created: 2026-10-28T18:12:10.954425+00:00
-updated: 2026-10-28T19:17:12.528332+00:00
-summary: Schema-12 managed dataset storage and versioned definition lifecycle have scoped proof; typed query/index and full MJ qualification remain open.
+updated: 2026-10-28T20:03:13.452202+00:00
+summary: Schema12 managed storage, definition lifecycle and bounded stored-scalar query/index paths have scoped proof; complete MJ/Excel continuity and release remain open.
 title: Managed datasets and replayable storage
 status: reviewed
 ---
@@ -32,9 +32,11 @@ have scoped proof in [[records/operations/persistence-coverage]]. This is the cu
 working-table path; immutable JSON row versions remain authority/evidence.
 
 The foundation receipt is recorded in [[records/operations/implementation]].
-Core 177 groups, versioned schema lifecycle and packaged reconstruction/repair
-have scoped proof. Typed managed query/index policy, comparative performance and
-complete MJ gates remain open. E0-D is in progress before dependent E2/E3 work.
+Core 191 groups, versioned schema lifecycle, typed stored-scalar queries and
+disposable index policy have scoped proof. Packaged 1k/10k/50k measurements include
+query plans, exact results, repair/reconstruction and safe refusal. Complete MJ,
+particularly sparse/formula Excel continuity, remains open. The managed foundation
+now supports E2 catalog work; downstream journeys still need their own proof.
 
 ## Managed storage contract
 
@@ -262,8 +264,8 @@ an exact workbook revision and token, refuses missing canonical authority, and
 records a typed projection reset plus resulting rows in the same journal. Reset
 may target only a registered native projection. It never resets system tables,
 executes historical SQL or regenerates content. Ordinal indexes are generated and
-validated with each table. Broader disposable index selection and typed query
-compilation remain the next storage work; arbitrary added indexes currently refuse.
+validated with each table. The bounded query/index contract below now supports
+validated disposable performance indexes; arbitrary added indexes still refuse.
 
 ## Versioned schema lifecycle implementation design
 
@@ -317,9 +319,131 @@ publication rollback, inactive field retention, formula binding refusal, partial
 import refusal and current-schema reconstruction are covered. Native frozen-base
 draft retention, human editing/archive/history restoration were observed directly.
 See [[records/operations/implementation]] for exact commands, corrections and limits.
-Typed managed queries and disposable performance indexes remain open M07/MJ05/MJ07
-work. Do not mark all MJ or E0-D complete from this lifecycle checkpoint.
+At that lifecycle checkpoint, typed managed queries and disposable indexes remained
+open. The query/index checkpoint below supplies the stored-scalar subset. Do not
+mark all MJ or E0-D complete from either scoped checkpoint.
 
 Saved definition decoding refuses malformed identities and fractional schema versions
 without a decode trap. Current schema/catalog inspection uses a coherent read
 snapshot, retaining an exact base even while another process writes.
+
+## Bounded query and disposable index implementation contract
+
+CLI/core implementation contract, October 28. Queries accept typed references to at most
+three registered datasets with exact definition UUIDs. The core generates every
+SQL identifier/clause and binds literal values. Up to two inner/left equality joins
+preserve their actual multiplicity. Explicit AND filters, selected fields,
+grouping, count/sum/average/min/max and ordered output use stored scalar columns.
+Calculated columns refuse until an explicit materialized result exists. Each source can independently filter meaning, status and scenario.
+Ungrouped results disclose these fields; omitted scope explicitly includes all
+current members. Accepted estimates retain estimate meaning. A right-source scope
+on a left join preserves unmatched left rows. This first
+contract does not accept arbitrary SQL, expressions, OR trees or inferred joins.
+
+A page has at most 1,000 rows and 50 fields. Return the workbook identity, exact
+committed-change snapshot, request hash and all definition identities. Ungrouped
+rows include exact contributing row/version references; grouped results identify
+the snapshot/query and do not pretend that one arbitrary row is their provenance.
+A continuation must match the same workbook, request and commit, otherwise refuse.
+Use deterministic tie breakers and bounded offsets. Read-only queries create no
+business revision or durable derived Record by themselves.
+
+Decimal filters/order/grouping use the native exact collation. Sum is a host
+Decimal aggregate and refuses precision loss/overflow. Average uses the existing
+38-digit Decimal arithmetic with plain rounding, disclosed in the result contract.
+Never call SQLite floating-point SUM/AVG for money. Numeric/date/boolean empty
+values are unknown for ordered comparisons and aggregates; null and empty remain
+distinct in selected fields. Omitted versus explicit-null originals remain
+inspectable through exact row versions. Text comparisons use binary case-sensitive
+semantics. Join key type/unit mismatches refuse. Count after a join counts joined
+rows, including duplicates, rather than assuming entity uniqueness.
+
+Bound joined input through a host SQLite guard before grouping/sorting: at most
+100,000 contributing rows and 32 MiB of referenced input values, plus a VM-instruction
+budget and a three-second deadline/cancellation. Returned cells have an 8 MiB
+combined byte cap. Budget exhaustion refuses the whole request, without returning
+an apparently complete prefix. SQLite may use temporary disk for sorting; these
+input/result bounds are not a process-wide hard heap cap. Automatic query indexes
+are disabled during managed execution; retained host indexes remain available.
+Correlated primary-key metadata lookups avoid a derived right table materializing
+unselected large cells before the input guard. The actual scoped left-join plan
+is checked for both unwanted materialization and automatic indexes. Measure RSS and failed
+cases rather than promising unlimited scalability.
+
+Performance indexes have no business identity or independent ledger. An explicit
+query-optimization request lets the core choose up to three validated stored keys
+for a demonstrated filter/join/group/sort access path. At most four per dataset,
+64 per workbook and 12 maintained keys per dataset limit write amplification.
+Host-generated names/SQL and inspected key metadata must match exactly; altered,
+expression, arbitrary-collation or unregistered objects still refuse. Optional
+partial indexes omit null/empty non-text keys only when the query implies that
+predicate. Candidate key-byte estimates, actual dbstat size (8 MiB/index,
+32 MiB/workbook), a bounded build and a query plan that uses the candidate are
+required before keeping it. Unavailable size accounting refuses optimization. If a copied workbook reaches a
+SQLite build without that optional accounting, canonical row edits discard optional
+performance indexes and continue rather than depending on another device’s choices.
+
+Indexes disappear on incompatible physical-schema rebuild or explicit removal.
+Projection repair maintains existing compatible indexes. Inert reconstruction
+needs no remembered optimizer choices and must return identical logical query
+results from retained canonical data. Portable copying may preserve valid local
+indexes. Creation/removal changes no business revision, operations or committed
+history. Growth eviction happens before the same row-write publication;
+a later publication failure restores both canonical rows and removed indexes.
+Explicit projection repair has a cancellable 30-second deadline, including lock
+acquisition, versus three seconds for ordinary interactive writes. The first
+50,000-row indexed repair hit the former three-second deadline and rolled back;
+that failed attempt is retained. The 64 MiB/250,000-change transaction caps remain. Users choose their work; storage controls remain CLI/core maintenance.
+
+Review passes: product usefulness requires truthful complete results and hidden
+physical choices; adversarial review requires exact schema/snapshot bases,
+parameterized literals, join multiplicity and explicit empty/precision handling;
+cost review requires cancellation, actual plan/size evidence and optional indexes
+that never become canonical data. Passing scope and actual measurements belong in the implementation record; this
+contract alone is not a full MJ05/MJ07 gate or a claim of faster queries on all datasets.
+
+Primary references: [query planning](https://www.sqlite.org/queryplanner.html),
+[aggregate semantics](https://www.sqlite.org/lang_aggfunc.html),
+[custom aggregates](https://www.sqlite.org/c3ref/create_function.html) and
+[progress callbacks](https://www.sqlite.org/c3ref/progress_handler.html).
+
+Index storage uses [SQLite DBSTAT](https://www.sqlite.org/dbstat.html); its availability
+is a compile-time property. [Result value conversion rules](https://www.sqlite.org/c3ref/column_blob.html)
+require reading the initial SQLite type before requesting byte accounting/conversion.
+
+## Query/index qualification
+
+[managed query/index receipt](../../../integration/evidence/2026-10-28-managed-query-indexes.json.gz), 32,754 bytes,
+SHA-256 93bd84ffcecc2914448385282ce037d5a8eb1fc3053d53eebddbf5b37fd5d5e2.
+All 105 prior evidence files remain byte-identical. Final scripts/check.sh passes
+with core 191 groups, extraction 19, document lifecycle 27, voice lifecycle 15,
+Splash boundary 30 and unchanged grammar/agent/UI harnesses. Strict lint (13 Swift
+files), skill validation, final native resource refusals and signature pass.
+Final packaged 1k/10k/50k probes preserve query results, exact history, indexed
+edits/repair, inert reconstruction and portable reopen. Two optimizer processes
+produce one created/one existing result without business history.
+
+| Rows | Intake s | Indexed edit s | Repair s | Reconstruction s | Maximum child RSS bytes |
+| --- | --- | --- | --- | --- | --- |
+| 1,000 | 0.693 | 0.029 | 0.242 | 0.676 | 101,449,728 |
+| 10,000 | 5.106 | 0.057 | 2.692 | 6.153 | 145,096,704 |
+| 50,000 | 28.221 | 0.210 | 14.794 | 38.278 | 635,092,992 |
+
+On this Apple M5 Pro, 48 GiB Mac, final 50k CLI medians before/after indexes were
+range 0.296/0.148 s, sort 0.223/0.148 s, join 0.294/0.149 s and group 0.239/0.273 s.
+Grouping became slower. Final database 283,254,784 bytes; initial retained history
+133,157,157 bytes; four optional indexes 2,269,184 bytes. CLI includes process/open
+overhead. Separate paired native/shared-JSON SQL uses one Python SQLite/Decimal
+driver/cache, not a historic Swift compiler/binary comparison. RSS is maximum
+individual child lifetime, not aggregate concurrent memory or a hard heap cap.
+
+The initial 50k repair safely rolled back at the old three-second write budget.
+Explicit maintenance now uses a cancelable 30-second budget, including lock wait,
+while retaining transaction capture limits. The old failure is retained; its
+reported rebuild time includes post-rollback verification and is not timeout
+latency. No blanket performance or release claim follows from these measurements.
+
+This is a new core/CLI surface, with unchanged visible UI and model tools. Stored
+scalar query/index qualification now supports the E2 catalog slice; complete MJ
+acceptance, Excel sparse/formula continuity, saved query interfaces/actions/forms,
+E3-E6, VoiceOver/hardware/fresh-install and notarized production release remain open.

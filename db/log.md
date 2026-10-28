@@ -739,3 +739,33 @@ Final schema12: core177, packaged CLI lifecycle/unique merge Undo/redo,10k repai
 ## [2026-10-28 19:21] verification | records/specs/managed-datasets.md
 Final schema12: core177, packaged CLI lifecycle/unique merge Undo/redo,10k repair/reconstruction,resource/signature,strict22Swift files and skill checks pass. Immutable receipt records scoped limits; full E0-D and release remain open.
 
+## [2026-10-28 19:26] design | records/specs/managed-datasets.md
+Reviewed typed bounded query and disposable index contract in three passes before implementation; exact snapshots, Decimal aggregates, join multiplicity, work/result and measured index policy bounds.
+
+## [2026-10-28 19:54] implementation | records/specs/managed-datasets.md
+Implemented typed source scopes, bounded flat query plans, exact Decimal aggregates and disposable index policy; explicit repair budget changed after retained50k deadline failure. Qualification in progress.
+
+## [2026-10-28 19:54] implementation | records/operations/build-and-run.md
+Document delivered typed-query/index CLI contracts, source scopes and explicit30s repair budget; distinguish measurements, failed stress probes and full release qualification.
+
+## [2026-10-28 20:02] verification | records/operations/implementation.md
+Record schema12 bounded query/index implementation, final191 regression, 1k/10k/50k packaged evidence, safe failed repair and scoped remaining gates.
+
+## [2026-10-28 20:02] verification | records/specs/managed-datasets.md
+Qualify stored-column typed query/index subset; retain actual 50k timeout and measured grouping slowdown, complete MJ open.
+
+## [2026-10-28 20:02] verification | records/operations/persistence-coverage.md
+Classify query results/indexes, atomic eviction and exact replay, without adding canonical index history.
+
+## [2026-10-28 20:02] implementation | records/specs/storage.md
+Update schema12 storage/query authority and optional-index classification.
+
+## [2026-10-28 20:02] implementation | records/specs/native-app-engine.md
+Record qualified managed query foundation before E2 catalog, keeping full journeys open.
+
+## [2026-10-28 20:02] implementation | records/overview/start-here.md
+Update current reading map to delivered managed query/index subset.
+
+## [2026-10-28 20:02] verification | records/operations/build-and-run.md
+Record final packaged query/index commands and actual performance limitations.
+

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-28T19:13:11.721814+00:00
+updated: 2026-10-28T20:02:57.269549+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -22,8 +22,9 @@ The shared complete committed-change foundation and E1 layout extension now have
 scoped local evidence. Extend that foundation through E0-D in
 [[records/specs/managed-datasets]] before dependent E2/E3 dataset/action/workflow
 storage expands. The schema-12 native dataset and versioned definition lifecycle have scoped evidence in
-[[records/operations/persistence-coverage]]; full E0-D query/index and MJ gates remain
-open. Registered native dataset tables are rebuildable projections;
+[[records/operations/persistence-coverage]]. Stored-scalar typed queries and
+disposable index paths now pass core/CLI and packaged 1k/10k/50k probes. Full MJ and
+Excel continuity remain open; the implemented foundation supports E2 catalog work. Registered native dataset tables are rebuildable projections;
 versioned logical schemas and immutable row authority use the same transaction,
 capture and inert reconstruction. E19/E3 reuse this foundation, never a second ledger.
 This does not authorize sync transport, cloud services, replica coordination or

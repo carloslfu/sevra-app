@@ -141,7 +141,9 @@ extension Database {
     try require(
       actual.filter { names.contains($0["name"]?.text ?? "") } == core,
       "schema", "Unrecognized core workbook schema.")
-    for schema in try managedSchemas() { try reference.script(schema.sql) }
+    let schemas = try managedSchemas()
+    for schema in schemas { try reference.script(schema.sql) }
+    for index in try performanceIndexes(schemas) { try reference.script(index.sql) }
     try require(
       actual == reference.execute(query), "schema",
       "Unregistered or altered workbook objects. Preserve this document for recovery.")

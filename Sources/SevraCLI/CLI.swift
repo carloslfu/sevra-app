@@ -265,6 +265,24 @@ import SevraProduct
         args.count == 2 || (args.count == 3 && args[2] == "--archived"), "usage",
         "tables WORKBOOK [--archived]")
       return try encoded(book.datasets(archived: args.count == 3))
+    case "table-query", "table-query-plan", "table-optimize":
+      try require(
+        (3...4).contains(args.count) && (args.count == 3 || args[0] == "table-query"),
+        "usage",
+        "table-query WORKBOOK QUERY_JSON [CURSOR]; table-query-plan/table-optimize WORKBOOK QUERY_JSON"
+      )
+      let request = try Value.parse(arg(2))
+      if args[0] == "table-query-plan" {
+        return try book.datasetQueryPlan(request, cancellation: cancellation)
+      }
+      if args[0] == "table-optimize" {
+        return try book.optimizeDatasetQuery(request, cancellation: cancellation)
+      }
+      return try book.queryDataset(
+        request, cursor: args.count == 4 ? arg(3) : nil, cancellation: cancellation)
+    case "table-clear-indexes":
+      try require(args.count == 3, "usage", "table-clear-indexes WORKBOOK DATASET_ID")
+      return try book.removeDatasetQueryIndexes(arg(2), cancellation: cancellation)
     case "table-schema":
       try require(args.count == 3, "usage", "table-schema WORKBOOK DATASET_ID")
       return try book.datasetSchema(arg(2))
@@ -514,6 +532,9 @@ import SevraProduct
     table-edit-schema WORKBOOK DATASET_ID BASE_VERSION BASE_DEFINITION_ID OPTIONS_JSON TOKEN
     table-restore-schema WORKBOOK DATASET_ID SAVED_DEFINITION_ID BASE_VERSION BASE_DEFINITION_ID TOKEN
     table-rebuild WORKBOOK DATASET_ID EXPECTED_REVISION TOKEN
+    table-query WORKBOOK QUERY_JSON [CURSOR]
+    table-query-plan WORKBOOK QUERY_JSON
+    table-optimize WORKBOOK QUERY_JSON | table-clear-indexes WORKBOOK DATASET_ID
     export-csv WORKBOOK TABLE_ID PATH.csv | tool WORKBOOK TOOL [ARGS_JSON]
     model-status [MODEL_DIRECTORY] | model-setup [MODEL_DIRECTORY] [--reuse EXISTING_FAST_DIRECTORY]
     ask WORKBOOK QUESTION [MODEL_DIRECTORY]
