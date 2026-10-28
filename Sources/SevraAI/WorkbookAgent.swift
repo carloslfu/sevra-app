@@ -104,7 +104,7 @@ public enum WorkbookAgent {
       After three empty targeted searches, the workbook ends this exploration with a factual search and indexing report. Do not keep rephrasing a query indefinitely or infer a missing contract's values.
       Follow the newest user request. Earlier requests and completed proposals are history, not tasks to repeat.
       When host continuation state is present, savedSpaces identifies work already saved in this run. Reuse it instead of creating the same view again. readEvidence contains exact partial source excerpts: keep each value attached to its version and title. Derived notes are not substitutes for omitted evidence. Read the original or saved tool result when a required detail is missing; never infer a label/value association from source order or memory.
-      When the user requests exact identifiers, labels, spelling or literal text in an artifact, copy those characters verbatim from the original evidence. A document title or a friendlier description cannot replace a requested source label. Before saving, compare the proposed artifact with each requested content constraint; preserve the exact label/value pair and retrieve any missing detail. Paraphrase prose when requested, while keeping the required literal values intact.
+      When the user requests exact identifiers, labels, spelling or literal text in an artifact, copy those characters verbatim from the original evidence. Use draft.parts with copy IDs from documentCopies for original passages instead of regenerating them. Each part is either {"copy":"published passage ID"} or {"text":"new prose"}. Preserve the requested line by selecting that passage; do not copy unrelated fingerprints or instructions. Host continuation may re-present these exact passages after context maintenance. For wholly new summaries/paraphrases, write new prose. Never print copy IDs in the document or user answer. A document title or a friendlier description cannot replace a requested source label. Before saving, compare the proposed artifact with each requested content constraint; preserve the exact label/value pair and retrieve any missing detail. Paraphrase prose when requested, while keeping the required literal values intact.
       Before comparing, displaying or proposing tabular data, discover existing tables with datasets, even if unnamed. Read relevant rows or use compare_rows. Reuse datasets in requested spaces/charts. Showing a table requests a view; propose_table is only for new structured data absent from the workbook. Never duplicate tables for comparisons or bypass deterministic calculations by putting calculated numbers in proposals.
       Preserve requested formulas as formulas. In propose_table, put the expression in the column's formula property, using column IDs, and omit that column's stored row value. For example, a total column can have type=decimal and formula=quantity*unit_cost. A precomputed number is not a formula and will not update when inputs change. Do not invent unit labels that the user did not supply.
       Refresh evidence and calculations before reusing previous-turn business claims. Confirming a saved space needs no citations or repeated analysis. Never cite a space or table ID in the citations array; it accepts inspected Source/Record versions and message:ID references for prior conversation.
@@ -284,6 +284,7 @@ public enum WorkbookAgent {
         try ContextBudget.validateEnvelope(messages)
         messages = try ItemReferenceCandidates.annotate(messages, workbook: workbook)
         let itemChoices = try ItemReferenceCandidates.ids(in: messages)
+        let copyChoices = try DocumentCopyCandidates.ids(in: messages)
         let toolScope = nextToolScope == .all ? phaseScope : nextToolScope
         if maintenance != nil {
           // Handoff proof and malformed-response recovery can add context after
@@ -650,6 +651,7 @@ public enum WorkbookAgent {
             "handoff_limit",
             "This request already moved to its new thread. Finish its remaining work here.")
           try ItemReferenceCandidates.validate(tool: tool, arguments: a, choices: itemChoices)
+          try DocumentCopyCandidates.validate(tool: tool, arguments: a, choices: copyChoices)
           if tool == "propose_movement", !readOnly {
             progress("Checking inventory direction…")
             let evidence = try workbook.item(a["input"].text)
@@ -664,7 +666,7 @@ public enum WorkbookAgent {
               reviewed.matches, "movement_direction",
               "Did these units enter your stock or leave it? I haven’t prepared this movement yet.")
           }
-          let value = try tools.execute(tool, a)
+          let value = try tools.execute(tool, a, receiptID: receiptID)
           if tool == "open_reviews" {
             guard let openReviews else {
               throw SevraError(
@@ -924,7 +926,11 @@ public enum WorkbookAgent {
         messages.append(
           InferenceMessage(
             role: "tool", content: try projected.json(), toolCallId: call.id,
-            toolName: call.name))
+            toolName: call.name,
+            documentCopyIDs: tool == "read" && !callFailed
+              ? DocumentCopyCandidates.ids(
+                in: projected == result ? result : ToolResultProjection.visibleValue(projected))
+              : []))
         if let maintenance {
           let end = try workbook.toolCall(receiptID, conversation: conversation)["message_id"].text
           let updated = try await maintenance.maintain(

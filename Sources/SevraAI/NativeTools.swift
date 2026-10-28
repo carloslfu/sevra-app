@@ -249,6 +249,15 @@ package enum NativeTools {
         [
           "id": schema("string", "Exact item version ID returned by search."),
           "offset": schema("integer", "Chunk offset, normally zero."),
+          "chunkLimit": .object([
+            "type": .string("integer"), "minimum": .number(1), "maximum": .number(8),
+            "description": .string(
+              "Read one to eight chunks. Use fewer chunks when a result omits needed content."),
+          ]),
+          "copyOffset": schema(
+            "integer",
+            "Optional original-passage candidate offset from documentCopies.nextOffset. Use when the needed passage was omitted."
+          ),
         ], required: ["id"])),
     .init(
       name: "lineage", description: "Trace the evidence and derived records around an item.",
@@ -364,12 +373,30 @@ package enum NativeTools {
             ], required: ["version", "components"]),
         ], required: ["title", "definition"])),
     .init(
-      name: "draft", description: "Save a draft document, with exact input evidence.",
+      name: "draft",
+      description:
+        "Save a draft document. For exact source labels, quantities or wording, use parts with copy IDs from documentCopies instead of retyping those passages. Combine copies with new prose. Use plain text only for a wholly new summary or paraphrase. A saved draft does not establish content completeness.",
       parameters: object(
         [
           "title": schema("string", "Draft title."), "text": schema("string", "Draft text."),
           "inputs": evidenceList,
-        ], required: ["title", "text", "inputs"])),
+          "parts": .object([
+            "type": .string("array"), "minItems": .number(1), "maxItems": .number(64),
+            "description": .string(
+              "Use parts OR text. Each part has exactly one field: text for new prose, or copy for an exact original passage ID. The host inserts copied text without regeneration."
+            ),
+            "items": object(
+              [
+                "text": schema(
+                  "string",
+                  "New prose, headings or separators. Do not retype a passage requested verbatim."),
+                "copy": schema(
+                  "string",
+                  "Exact passage ID from documentCopies.entries. The host supplies its original text and lineage."
+                ),
+              ], required: []),
+          ]),
+        ], required: ["title", "inputs"])),
     .init(
       name: "propose_record",
       description: "Propose a draft interpretation. It does not accept a business event.",

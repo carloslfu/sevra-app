@@ -49,7 +49,7 @@ public struct WorkbookTools {
     history_read: id string. Read an original message in this conversation or its explicitly inherited parent excerpt. Other parent, sibling and ancestor messages remain outside scope.
     tool_result: id receipt ID, optional path array of object keys or array indexes, offset integer, rawJSON boolean. Read a saved exact tool result in bounded pages.
     search: query string, optional kind, meaning, status, scenario and cursor from nextCursor. Returns business evidence in hits and older conversation candidates in conversation.hits. Business filters or pagination restrict it to business evidence; use history_search for separate conversation queries/pages. Read conversation candidates with history_read before citing them. kind is a domain kind such as note, file, row, movement; actual/estimate/plan are meaning values, not kind values.
-    read: id string, optional offset number. Returns exact record metadata and at most 8 text chunks.
+    read: id string, optional offset number, chunkLimit 1...8 and copyOffset from documentCopies.nextOffset. Returns exact metadata and bounded text chunks, with published original passages for draft copies when called by an agent. Read fewer chunks for oversized results.
     count_records: category source|record, optional kind, meaning, status, scenario. Exact current classified-item count. Use the receipt ID in finish.counts for a host-rendered scoped count, not a claim about events inside documents or outside the workbook.
     lineage: id string. Returns supporting/derived version relationships.
     datasets: no arguments. List tables and column IDs.
@@ -65,7 +65,7 @@ public struct WorkbookTools {
     save_space: title string, definition object {version:1,components:[{id:string,type:table|chart|document|asset|search|text,title:string,datasetID?:string,itemID?:string,x?:columnID,y?:columnID,query?:string,text?:string}]}.
     A chart REQUIRES its own datasetID, x and y. A table REQUIRES datasetID. Do not put query on a chart.
     Example save_space arguments: {"title":"Purchasing","definition":{"version":1,"components":[{"id":"table1","type":"table","title":"Quotes","datasetID":"ID_FROM_DATASETS"},{"id":"chart1","type":"chart","title":"Cost","datasetID":"ID_FROM_DATASETS","x":"supplier","y":"total"}]}}.
-    draft: title string, text string, inputs array of exact source/record IDs. Autosaves a draft document.
+    draft: title string, inputs array of exact source/record IDs, and either text or parts. A part is {text:new prose} or {copy:published passage ID from documentCopies}. Original copies are host-inserted and retain their exact version lineage. Autosaves a draft document, without acceptance or a guarantee of completeness.
     propose_record: title, text, kind, meaning (actual|estimate|plan|commitment|assumption|rule), inputs array, optional data object. Creates a draft interpretation.
     propose_movement: subject, signed quantity (positive adds to our stock, negative leaves it), occurrence unique business ID, effective ISO8601 time, input exact evidence ID, optional meaning. Ask who sent/received when evidence or the current request does not establish direction. Correct an existing movement with its same occurrence and exact current version as supersedes. Creates a draft, no effect until user accepts.
     finish: answer string, basis evidence|current_request|completed_action|general|unresolved, citations array, optional counts array of up to four current-run count_records receipt IDs for host-rendered scoped counts. Stored workbook/history claims require evidence and inspected citations, including when a summary suggests the answer. completed_action requires a successful current-run action. current_request uses only this request's inputs and checked arithmetic. general makes no stored-data claims. unresolved must explicitly disclose missing facts without guessing.
@@ -75,7 +75,7 @@ public struct WorkbookTools {
       + SHA256.hash(data: Data((tool + (try arguments.json())).utf8))
       .prefix(12).map { String(format: "%02x", $0) }.joined()
   }
-  public func execute(_ tool: String, _ a: Value) throws -> Value {
+  public func execute(_ tool: String, _ a: Value, receiptID: String? = nil) throws -> Value {
     try cancellation.check()
     try require(
       !readOnly || Self.readOnlyTools.contains(tool), "read_only_request",
@@ -147,6 +147,8 @@ public struct WorkbookTools {
         workbook.includeArchiveMembers(
           string("id"), paths: a["paths"].array.compactMap(\.string), cancellation: cancellation))
     case "read":
+      let chunkLimit = a["chunkLimit"].int ?? 8
+      try require((1...8).contains(chunkLimit), "arguments", "Read one to eight source chunks.")
       return try workbook.synchronized {
         try workbook.db.readTransaction {
           let item = try workbook.item(string("id"))
@@ -156,7 +158,7 @@ public struct WorkbookTools {
           info["data"] =
             item.data.text.utf8.count < 12000
             ? item.data : .string("Structured value exceeds read budget; use table rows.")
-          return .object([
+          let result: Value = .object([
             "item": .object(info),
             "isCurrentVersion": .bool(item.id == current.id),
             "currentVersion": .object([
@@ -167,9 +169,15 @@ public struct WorkbookTools {
             "notice": .string(
               "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head."
             ),
-            "chunks": .array(try workbook.readChunks(item.id, offset: a["offset"].int ?? 0)),
+            "chunks": .array(
+              try workbook.readChunks(item.id, offset: a["offset"].int ?? 0, limit: chunkLimit)),
             "extraction": try workbook.extractionStatus(item.id),
           ])
+          return try receiptID.map {
+            try DocumentCopyChoices.adding(
+              to: result, receiptID: $0, offset: a["copyOffset"].int ?? 0,
+              cancellation: cancellation)
+          } ?? result
         }
       }
     case "lineage": return .array(try workbook.lineage(string("id")))
@@ -264,6 +272,29 @@ public struct WorkbookTools {
             id: token, title: string("title"), definition: definition, token: token))
       ])
     case "draft", "propose_record":
+      if tool == "draft", a["parts"] != .null {
+        try require(a["text"] == .null, "document_parts", "Choose parts or plain text, not both.")
+        guard case .array(let parts) = a["parts"], !parts.isEmpty, parts.count <= 64 else {
+          throw SevraError("document_parts", "Use one to 64 document parts.")
+        }
+        let resolved = try parts.map { part -> DocumentPart in
+          try require(
+            Set(part.object.keys).isSubset(of: ["text", "copy"]), "document_parts",
+            "Unknown document part field.")
+          if let text = part["text"].string, part.object["copy"] == nil { return .init(text: text) }
+          if let id = part["copy"].string, part.object["text"] == nil {
+            return .init(
+              copy: try workbook.documentCopyChoice(
+                id, runID: runID, conversation: conversation, cancellation: cancellation
+              ).reference)
+          }
+          throw SevraError("document_parts", "Each part is new prose or one original passage.")
+        }
+        return try encoded(
+          workbook.saveComposedDraft(
+            title: string("title"), parts: resolved, inputs: inputs, runID: runID,
+            conversation: conversation, token: token, cancellation: cancellation))
+      }
       let item = try workbook.addItem(
         category: "record", kind: tool == "draft" ? "document" : string("kind"),
         title: string("title"), text: string("text"),

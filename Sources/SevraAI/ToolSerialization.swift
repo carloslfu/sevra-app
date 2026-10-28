@@ -4,12 +4,13 @@ import SevraCore
 extension NativeTools {
   package static func referenceDefinitions(
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
-    toolScope: InferenceToolScope = .all
+    toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil
   ) throws
     -> [WorkbookToolDefinition]
   {
     if toolScope == .movementDirection { return [MovementDirectionReview.definition] }
     let ids = try ItemReferenceCandidates.normalized(itemReferenceIDs)
+    let copies = try documentCopyIDs.map(DocumentCopyCandidates.normalized)
     if let conversationActions {
       try require(
         Set(conversationActions).isSubset(of: Set(WorkbookTools.conversationTools.values)),
@@ -18,6 +19,27 @@ extension NativeTools {
     return try definitions.compactMap { definition in
       if let action = WorkbookTools.conversationTools[definition.name], let conversationActions {
         guard conversationActions.contains(action) else { return nil }
+      }
+      if definition.name == "draft", let copies {
+        var parameters = definition.parameters.object
+        var properties = definition.parameters["properties"].object
+        var parts = properties["parts"]!.object
+        var item = parts["items"]!.object
+        var fields = item["properties"]!.object
+        if copies.isEmpty {
+          fields.removeValue(forKey: "copy")
+        } else {
+          var copy = fields["copy"]!.object
+          copy["enum"] = .array(copies.map(Value.string))
+          fields["copy"] = .object(copy)
+        }
+        item["properties"] = .object(fields)
+        parts["items"] = .object(item)
+        properties["parts"] = .object(parts)
+        parameters["properties"] = .object(properties)
+        return .init(
+          name: definition.name, description: definition.description,
+          parameters: .object(parameters))
       }
       guard !ids.isEmpty else { return definition }
       guard ["read", "lineage"].contains(definition.name) else { return definition }
@@ -36,11 +58,11 @@ extension NativeTools {
   /// The same maintained declarations feed both backend boundaries.
   package static func serializedDefinitions(
     toolScope: InferenceToolScope = .all, itemReferenceIDs: [String] = [],
-    conversationActions: [String]? = nil
+    conversationActions: [String]? = nil, documentCopyIDs: [String]? = nil
   ) throws -> Data {
     let definitions = try referenceDefinitions(
       itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions,
-      toolScope: toolScope
+      toolScope: toolScope, documentCopyIDs: documentCopyIDs
     )
     .filter { toolScope.allows($0.name) }
     let values: [[String: Any]] = try definitions.map {

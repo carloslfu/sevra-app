@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T03:57:10.511754+00:00
+updated: 2026-10-28T04:17:24.487814+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -717,3 +717,16 @@ the unchanged eight-report job plus nearby paraphrase cases. Earlier-conversatio
 values and native provenance navigation remain explicit gates. The existing
 truthful host confirmations remain unchanged. No new inference/checker call,
 threshold increase, step-budget increase or model/engine change was made.
+
+
+## Agent document-copy integration, October 27
+
+The implementation in [[records/specs/document-composition]] now publishes bounded
+original-passage choices from actual reads, supplies compatible draft parts, and
+re-presents independently verified originals across checkpoints. Dynamic grammar
+choices come only from host context annotations. Repeated spans are deduplicated;
+summary prose grants neither copy choices nor renewed citation/action authority.
+The deterministic integration and 38 actual-tool grammar/323 reference-mask checks
+pass. This supersedes the earlier pending-agent status only. Actual-model fidelity,
+conversation-origin copies, native provenance interaction, production compaction,
+engine adoption and release remain unqualified. See [[records/operations/implementation]].

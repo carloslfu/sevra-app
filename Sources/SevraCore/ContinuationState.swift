@@ -82,6 +82,7 @@ extension Workbook {
         return .object([
           "run": .object(run), "calls": .array(calls), "recordStates": .array(current),
           "readEvidence": details["reads"], "savedSpaces": details["spaces"],
+          "documentCopies": details["documentCopies"],
           "callsOmitted": .bool(
             (try db.scalar("SELECT count(*) FROM tool_calls WHERE run_id=?", [.string(runID)]).int
               ?? 0)

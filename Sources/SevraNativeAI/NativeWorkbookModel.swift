@@ -357,7 +357,8 @@ private final class NativeWorker: @unchecked Sendable {
         : try NativeCitationPolicy.make(
           citationIDs, thinking: thinking,
           itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
-          conversationActions: messages.first?.conversationActions
+          conversationActions: messages.first?.conversationActions,
+          documentCopyIDs: DocumentCopyCandidates.ids(in: messages)
         ).promptTools()
       let prompt = try session.frontend.prepare(
         messages: messages.map(nativeTemplateMessage),
@@ -438,7 +439,8 @@ private final class NativeWorker: @unchecked Sendable {
     let policy = try NativeCitationPolicy.make(
       citationIDs, toolScope: toolScope, thinking: reasoning.enabled,
       itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
-      conversationActions: messages.first?.conversationActions)
+      conversationActions: messages.first?.conversationActions,
+      documentCopyIDs: DocumentCopyCandidates.ids(in: messages))
     let budget = configuration.contextBudget
     let prompt = try session.frontend.prepare(
       messages: messages.map(nativeTemplateMessage), tools: policy.promptTools(),

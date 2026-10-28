@@ -163,7 +163,8 @@ package final class ContextMaintenance {
     }
     result.append(
       InferenceMessage(
-        role: "assistant", content: "Current host continuation state:\n" + (try state.json())))
+        role: "assistant", content: "Current host continuation state:\n" + (try state.json()),
+        documentCopyIDs: DocumentCopyCandidates.ids(in: state)))
     result.append(request)
     result += retained
     return result

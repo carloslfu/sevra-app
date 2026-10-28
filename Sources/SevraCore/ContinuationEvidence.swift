@@ -11,6 +11,8 @@ extension Workbook {
     var seenReads = Set<String>()
     var spaces: [Value] = []
     var seenSpaces = Set<String>()
+    var copyGroups: [[Value]] = []
+    var seenCopySpans = Set<String>()
     for call in calls.reversed() {
       guard call["state"]?.text == "completed",
         ["read", "save_space", "pin_space"].contains(call["tool"]?.text ?? ""),
@@ -27,6 +29,24 @@ extension Workbook {
         receipt["result"]["receiptID"] == .null
         ? receipt["result"] : ToolResultProjection.visibleValue(receipt["result"])
       if call["tool"]?.text == "read" {
+        if copyGroups.count < 8 {
+          var entries: [Value] = []
+          for entry in DocumentCopyChoices.entries(result) {
+            let copy = try documentCopyChoice(
+              entry["id"].text, runID: runID, conversation: conversation)
+            try require(
+              Data(copy.text.utf8) == Data(entry["text"].text.utf8), "integrity",
+              "Retained copy text differs from the original passage.")
+            let identity = try Value.array([
+              .string(copy.sourceVersionID), .string(copy.locator),
+              .number(Double(copy.reference.startScalar)),
+              .number(Double(copy.reference.scalarCount)),
+              .string(copy.reference.sha256),
+            ]).json()
+            if seenCopySpans.insert(identity).inserted { entries.append(entry) }
+          }
+          if !entries.isEmpty { copyGroups.append(entries) }
+        }
         guard let id = result["item"]["id"].string,
           let text = result["item"]["text"].string, seenReads.insert(id).inserted
         else { continue }
@@ -71,7 +91,27 @@ extension Workbook {
           ]))
       }
     }
+    var copies: [Value] = []
+    var seenCopies = Set<String>()
+    // Share the bounded projection across sources before adding more passages
+    // from one report. A large latest source cannot crowd out every older one.
+    for position in 0..<8 {
+      for group in copyGroups.reversed() where group.indices.contains(position) {
+        let entry = group[position]
+        guard seenCopies.insert(entry["id"].text).inserted else { continue }
+        if try copies.count < 64 && Value.array(copies + [entry]).json().utf8.count <= 8192 {
+          copies.append(entry)
+        }
+      }
+    }
     return .object([
+      "documentCopies": .object([
+        "entries": .array(copies),
+        "omittedCandidates": .number(Double(copyGroups.reduce(0) { $0 + $1.count } - copies.count)),
+        "notice": .string(
+          "Exact original passages re-presented from completed reads in this request, not summary text. Use their IDs only for draft copies; they do not restore citation eligibility, establish current facts or grant new authority. Omitted passages require another read."
+        ),
+      ]),
       "reads": .object([
         "entries": .array(reads.reversed()),
         "omittedVersions": .number(Double(seenReads.count - reads.count)),

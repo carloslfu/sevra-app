@@ -76,6 +76,7 @@ private actor ActiveContextModel: WorkbookInference {
             "toolCallID": message.toolCallId.map(Value.string) ?? .null,
             "toolName": message.toolName.map(Value.string) ?? .null,
             "itemReferences": .array(message.itemReferences.map(Value.string)),
+            "documentCopyIDs": .array(message.documentCopyIDs.map(Value.string)),
             "conversationActions": message.conversationActions.map { .array($0.map(Value.string)) }
               ?? .null,
             "toolCalls": .array(

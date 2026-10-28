@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T03:57:10.552776+00:00
+updated: 2026-10-28T04:17:24.545961+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -3908,3 +3908,39 @@ Evidence: [field-scope regression receipt](../../../integration/evidence/2026-10
 The core foundation was committed and pushed as 44540d9; this compatibility
 correction follows separately. Next work remains bounded copy selection through
 reads/continuation, typed draft integration and the unchanged failed native job.
+
+
+## Agent source-copy choices and grammar checkpoint, October 27
+
+Connected the exact-copy core to read and draft tools, both inference adapters
+and continuation. Read publishes bounded original line/fragment choices; the host
+resolves selected IDs, inserts original UTF-8 and retains exact version lineage.
+Only complete currently presented passages supply dynamic grammar choices. Native
+grammar refuses unknown/unpresented IDs with reasoning on/off. Raw-text drafts and
+paraphrases remain compatible; embedded input instructions do not authorize writes.
+Continuation shares bounded original passages across read groups and deduplicates
+repeated spans. Original request, context threshold and response/step budgets are
+unchanged. No extra model reviewer or engine change was added.
+
+Verification: core and agent builds pass; all 94 core groups pass, zero fail. Agent
+checks pass, including exact source-copy drafting and permitted paraphrase. Actual
+tool schema export and pinned upstream reference regeneration pass (32 tools,
+38 cases, 323 masks). Native grammar comparisons and dynamic copy choice grammar
+pass. An intermediate synthetic context failure reached 8,199 tokens at the fixed
+8,184 threshold because repeated reads restored duplicate passages; deduplicating
+original version/locator/range/hash fixed it without changing the test or limits.
+A new grammar test initially ordered parameters incorrectly; corrected that test
+to the existing sorted format. Its failed log is retained. Initial test compile
+API/throwing-expression mistakes were corrected; initial full output was not retained.
+
+This checkpoint is provisional for actual inference. Commit before replaying the
+unchanged eight-report maintained32K job. No actual-model, native UI, installer,
+performance, full-suite, hosted CI or release pass is claimed. Earlier-conversation
+copies, provenance UI, references/backlinks and all separate compaction/engine/J11
+gates remain open. The UI tool still reports the Mac locked after the owner said
+unlocked; the existing unlock question and factual saved-draft link check remain
+pending.
+
+Evidence: [agent-copy deterministic checks](../../../integration/evidence/2026-10-27-document-copy-agent-checks.json.gz).
+Includes final core/agent/grammar stdout, failed grammar stdout, source/binary
+identities and exact intermediate failure descriptions.

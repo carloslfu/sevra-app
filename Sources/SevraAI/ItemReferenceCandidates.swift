@@ -54,7 +54,8 @@ package enum ItemReferenceCandidates {
       InferenceMessage(
         role: message.role, content: message.content, toolCalls: message.toolCalls,
         toolCallId: message.toolCallId, toolName: message.toolName, reasoning: message.reasoning,
-        itemReferences: index == 0 ? choices : [], conversationActions: message.conversationActions)
+        itemReferences: index == 0 ? choices : [], conversationActions: message.conversationActions,
+        documentCopyIDs: message.documentCopyIDs)
     }
   }
 

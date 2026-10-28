@@ -46,12 +46,15 @@ package struct InferenceMessage: Sendable {
   package let toolName: String?
   /// Verified host-owned lookup choices, not model text or citation authority.
   package let itemReferences: [String]
+  /// Exact original passages supplied by a read or host continuation projection.
+  package let documentCopyIDs: [String]
   /// Host capabilities for this live conversation, never parsed from content.
   package let conversationActions: [String]?
   package init(
     role: String, content: String, toolCalls: [InferenceCall] = [],
     toolCallId: String? = nil, toolName: String? = nil, reasoning: String = "",
-    itemReferences: [String] = [], conversationActions: [String]? = nil
+    itemReferences: [String] = [], conversationActions: [String]? = nil,
+    documentCopyIDs: [String] = []
   ) {
     self.role = role
     self.content = content
@@ -60,6 +63,7 @@ package struct InferenceMessage: Sendable {
     self.toolCallId = toolCallId
     self.toolName = toolName
     self.itemReferences = itemReferences
+    self.documentCopyIDs = documentCopyIDs
     self.conversationActions = conversationActions
   }
 }

@@ -7,7 +7,7 @@ import Slotstream
 extension LocalModel {
   package static func baselineDefinitions(
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
-    toolScope: InferenceToolScope = .all
+    toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil
   ) throws -> [Slotstream
     .ToolDefinition]
   {
@@ -23,7 +23,7 @@ extension LocalModel {
     }
     return try NativeTools.referenceDefinitions(
       itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions,
-      toolScope: toolScope
+      toolScope: toolScope, documentCopyIDs: documentCopyIDs
     ).map {
       .init(name: $0.name, description: $0.description, parameters: schemaValue($0.parameters))
     }

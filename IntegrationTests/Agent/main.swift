@@ -242,6 +242,7 @@ do {
   try await checkMovementDirection()
   try await checkCitationVersions()
   try await checkActionConfirmations()
+  try await checkDocumentCopies()
   try await checkCurrencyRejection()
   try await checkHistoryTools()
   try await checkParentHistory()
@@ -348,6 +349,7 @@ do {
     try checkWorkbookGrammars(frontend: frontend, factory: factory)
     try checkReasoningGrammar(frontend: frontend, factory: factory)
     try checkItemReferenceGrammar(frontend: frontend, factory: factory)
+    try checkDocumentCopyGrammar(frontend: frontend, factory: factory)
     try checkConversationActionGrammar(frontend: frontend, factory: factory)
     if CommandLine.arguments.count == 5 {
       try runNativeWorkbookProbe(

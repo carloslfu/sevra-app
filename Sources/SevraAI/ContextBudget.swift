@@ -54,6 +54,7 @@ package struct ContextBudget: Sendable {
       try account(message.reasoning)
       try account(message.toolCallId ?? "")
       try account(message.toolName ?? "")
+      for id in message.documentCopyIDs { try account(id) }
       for call in message.toolCalls {
         try account(call.id)
         try account(call.name)

@@ -2,7 +2,7 @@
 type: spec
 id: 01m609st2pz8zhg7bcpec874g1
 created: 2026-10-28T03:45:29.174789+00:00
-updated: 2026-10-28T03:57:10.492714+00:00
+updated: 2026-10-28T04:17:24.469031+00:00
 summary: Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 title: Source-bound document composition
 status: reviewed
@@ -25,8 +25,9 @@ passages selected for exact copying. Ordinary summaries and paraphrases remain
 allowed and are labelled as new prose in this representation. This is a bounded
 document construction facility, not a claim that every requirement was met.
 
-The core foundation is implemented and deterministically checked. Agent/CLI schema, selectable native UI,
-conversation-origin copies and the real failed job remain qualification gates.
+The core and agent integration are implemented and deterministically checked.
+Actual-model fidelity, selectable native UI, conversation-origin copies and a
+public CLI composition command remain qualification gates.
 No current product completion claim may depend on those unimplemented paths.
 
 ## Identity and text contract
@@ -189,8 +190,9 @@ write. Tests cover cancellation, atomic rollback, bounds, wrong scopes and
 modified text/provenance. See [[records/operations/implementation]] for the exact
 receipt, intermediate test corrections and outstanding product gates.
 
-The app does not yet offer typed copy parts to its agent or CLI. Do not count
-this as an actual-model, UI, performance, engine-adoption or release pass.
+At the foundation checkpoint the app did not offer typed agent copy parts. The
+following integration checkpoint adds them. Neither checkpoint is an actual-model,
+UI, performance, engine-adoption or release pass.
 
 ## Business-field compatibility review
 
@@ -200,3 +202,40 @@ failed verification. Scope the reserved metadata to document Records. The new
 regression failed before the fix (89 pass, one fail) and passes after it within
 the final 90-pass run. Malformed document-Record metadata still fails. Original
 portable proof remains retained. No agent or native interaction gate changes.
+
+
+## Agent choices and continuation integration, October 27
+
+Agent reads publish exact line/fragment passages with opaque receipt-bound IDs.
+The host supplies scalar coordinates and hashes. Each read offers at most eight
+entries and 2,000 serialized entry bytes; long lines split into adjacent bounded
+fragments. copyOffset pages through unique candidates. chunkLimit selects one to
+eight chunks, allowing smaller receipts. Results above 124,000 serialized bytes
+publish no choices rather than unusable IDs; the resolver still caps receipts
+at 128,000 bytes. Adjacent/overlapping source chunks suppress equal passages at
+the same original coordinates, while identical lines at distinct positions remain
+distinct. This does not prove arbitrary document assembly across every chunk edge.
+
+The draft tool accepts either ordinary text or up to 64 typed parts, each exactly
+one text/copy field. The host requires the copy to have been published in the
+original completed read and re-resolves it at atomic save. Raw-text drafts and
+paraphrases remain compatible. Host-owned context annotations supply available
+IDs; prose, user instructions and summaries cannot invent choices. Both inference
+adapters derive declarations from the same schema. Native generation constrains
+copy IDs to currently presented choices, and the dispatcher enforces strict part
+unions. The existing grammar cannot express that union by itself.
+
+Continuation explicitly re-presents verified original passages, separately from
+model-written notes. It shares an 8,192-byte/64-entry bound across at most eight
+read groups, deduplicates repeated original spans and prefers one passage per
+group before more from one source. These are scoped retained candidates, not a
+claim of complete coverage. Omitted passages need another read. Re-presentation
+does not restore citation eligibility, current acceptance or new action authority.
+
+All 94 core checks pass. The agent integration checks and 38 native actual-tool
+grammars with 323 exact reference mask comparisons pass, including dynamic copy
+choice acceptance/refusal with reasoning on/off. Synthetic copy, paraphrase and
+embedded-instruction cases pass. A duplicate-restoration context failure and a
+parameter-order mistake in the new grammar test were corrected and retained in
+the progress record. No model, engine, context threshold, response allowance or
+step budget changed. The unchanged eight-report actual-model replay remains next.

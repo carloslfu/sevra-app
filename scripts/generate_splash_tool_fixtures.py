@@ -75,9 +75,15 @@ for tool in tools:
         values.update(datasetID='table-1', edits=[{'id':'row-1','values':{'price':'12.50','note':None}}])
     elif name == 'calculate': values.update(expression='cost * 2', values={'cost':'12.40'})
     elif name == 'propose_record': values.update(data={'units':12,'note':None}, meaning='estimate')
+    elif name == 'draft': values.update(text='A new prose summary.')
     elif name == 'save_space':
         values.update(title='Overview', definition={'version':1,'components':[{'id':'table','type':'table','title':'Suppliers','datasetID':'table-1'}]})
     outputs.append((name, xml(name, values), values))
+    if name == 'draft':
+        composed = dict(values)
+        composed.pop('text')
+        composed['parts'] = [{'text':'Review\n'}, {'copy':'copy:123e4567-e89b-12d3-a456-426614174000:0:0:12'}]
+        outputs.append(('draft_parts', xml(name, composed), composed))
     if name == 'propose_table':
         formulas = dict(values, columns=[{'id':'quantity','title':'Quantity','type':'decimal'},
                          {'id':'unit_cost','title':'Unit cost','type':'decimal'},

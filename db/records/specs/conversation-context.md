@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-28T03:51:08.491988+00:00
+updated: 2026-10-28T04:17:24.506138+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -551,3 +551,16 @@ An old copy does not refresh current facts, restore citation eligibility or gran
 authority to repeat a write. Conversation-origin values need their own scoped
 implementation and qualification. The selected 75% threshold, existing response
 budget and failed eight-report acceptance case are unchanged.
+
+
+## Bounded original-copy re-presentation, October 27
+
+The implementation in [[records/specs/document-composition]] now publishes bounded
+original-passage choices from actual reads, supplies compatible draft parts, and
+re-presents independently verified originals across checkpoints. Dynamic grammar
+choices come only from host context annotations. Repeated spans are deduplicated;
+summary prose grants neither copy choices nor renewed citation/action authority.
+The deterministic integration and 38 actual-tool grammar/323 reference-mask checks
+pass. This supersedes the earlier pending-agent status only. Actual-model fidelity,
+conversation-origin copies, native provenance interaction, production compaction,
+engine adoption and release remain unqualified. See [[records/operations/implementation]].
