@@ -26,7 +26,7 @@ func checkRecentItems(at root: URL) {
     ) {
       for index in 0..<10 {
         _ = try book.addItem(
-          category: "source", kind: index.isMultiple(of: 2) ? "row" : "request",
+          category: "source", kind: ["row", "request", "annotation"][index % 3],
           title: "Internal \(index)")
       }
     }

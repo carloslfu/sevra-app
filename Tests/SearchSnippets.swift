@@ -2,6 +2,53 @@ import Foundation
 import SevraCore
 
 func checkSearchSnippets(at root: URL) {
+  check(
+    "ordinary search excludes technical Sources before paging while owner inspection stays explicit"
+  ) {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("SearchKinds.sevra"), title: "Search kinds")
+    var evidence = Set<String>()
+    for n in 0..<12 {
+      let item = try book.addItem(
+        category: "source", kind: "document", title: "crystal-\(n).txt",
+        text: "Crystal evidence \(n).")
+      evidence.insert(item.id)
+    }
+    var annotations = Set<String>()
+    for n in 0..<40 {
+      let item = try book.addItem(
+        category: "source", kind: "annotation", title: "crystal-annotation-\(n).txt",
+        text: "Crystal crystal crystal crystal technical annotation \(n).")
+      annotations.insert(item.id)
+    }
+    let request = try book.addItem(
+      category: "source", kind: "request", title: "crystal-request.txt",
+      text: "Crystal crystal crystal submitted request.")
+    let revision = try book.revision()
+    let full = try book.search("crystal", limit: 100)
+    try expect(Set(full.hits.map(\.itemID)) == evidence && full.nextCursor == nil)
+    var cursor: String?
+    var pages: [SearchHit] = []
+    repeat {
+      let page = try book.search("crystal", limit: 5, cursor: cursor)
+      try expect(page.hits.count == (pages.count == 10 ? 2 : 5), "Hidden Sources consumed a page")
+      pages += page.hits
+      cursor = page.nextCursor
+    } while cursor != nil
+    try expect(pages.map(\.itemID) == full.hits.map(\.itemID))
+    try expect(
+      try book.search("ystal-", limit: 100).hits.count == evidence.count,
+      "Filename-only matching bypassed the kind exclusion")
+    try expect(
+      try book.search("crystal", kind: "annotation", limit: 100).hits.map(\.itemID).count
+        == annotations.count, "Explicit owner annotation search was lost")
+    try expect(try book.search("crystal", kind: "request").hits.map(\.itemID) == [request.id])
+    try expect(try book.search("crystal", kind: "annotation", businessOnly: true).hits.isEmpty)
+    try expect(try book.search("crystal", kind: "request", businessOnly: true).hits.isEmpty)
+    try expect(try book.items(kind: "annotation").count == annotations.count)
+    try expect(try book.item(request.id).text == request.text)
+    try expect(try book.revision() == revision && book.verify()["ok"] == .bool(true))
+  }
   check("search passages remain exact across dense, sparse and filename-only hits") {
     let book = try Workbook.create(
       at: root.appendingPathComponent("Snippets.sevra"), title: "Snippets")

@@ -115,7 +115,9 @@ extension Workbook {
             return SearchPage(hits: [], incomplete: incomplete, nextOffset: nil, nextCursor: nil)
           }
           let current = historical ? "" : " AND c.is_current=1 "
-          var filters = kind == nil ? " AND c.kind!='request' " : ""
+          // Ordinary searches show workbook evidence. Owners can deliberately
+          // inspect a technical kind; agent business scope remains restrictive.
+          var filters = kind == nil ? " AND c.kind NOT IN ('request','annotation') " : ""
           if businessOnly { filters += " AND c.kind NOT IN ('request','annotation') " }
           var filtersArgs: [Value] = []
           for (column, value) in [

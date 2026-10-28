@@ -50,11 +50,12 @@ import SwiftUI
           NotificationCenter.default.post(name: .sevraReviews, object: nil)
         }
         Divider()
-        Button("Links in This Document") { workspace?.referencePanel = .outgoing }
-          .keyboardShortcut("l", modifiers: [.command, .shift])
-          .disabled(workspace?.viewedItemVersion == nil)
-        Button("Where Is This Mentioned?") { workspace?.referencePanel = .incoming }
-          .disabled(workspace?.viewedItemVersion == nil)
+        if let workspace {
+          ReferenceCommandContent(state: workspace)
+        } else {
+          Button("Links in This Document") {}.disabled(true)
+          Button("Where Is This Mentioned?") {}.disabled(true)
+        }
         Divider()
         Button("Make Shareable Copy…") {
           NotificationCenter.default.post(name: .sevraExport, object: nil)

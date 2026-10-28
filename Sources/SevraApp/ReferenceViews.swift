@@ -61,6 +61,18 @@ struct ReferenceReadingText: View {
   }
 }
 
+/// The focused value identifies a window; observation follows navigation within it.
+struct ReferenceCommandContent: View {
+  @ObservedObject var state: WorkspaceState
+  var body: some View {
+    Button("Links in This Document") { state.referencePanel = .outgoing }
+      .keyboardShortcut("l", modifiers: [.command, .shift])
+      .disabled(state.viewedItemVersion == nil)
+    Button("Where Is This Mentioned?") { state.referencePanel = .incoming }
+      .disabled(state.viewedItemVersion == nil)
+  }
+}
+
 struct ReferencesPanel: View {
   let item: Item
   let workbook: Workbook

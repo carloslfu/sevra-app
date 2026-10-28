@@ -257,12 +257,12 @@ public final class Workbook: @unchecked Sendable {
       ).map(decodeItem)
     }
   }
-  /// Home's recent evidence list excludes rows and captured model requests before
-  /// its limit. Bodies and structured payloads are never selected or decoded.
+  /// Home excludes rows, captured requests and technical annotations before its
+  /// limit. Bodies and structured payloads are never selected or decoded.
   public func recentItemSummaries(limit: Int = 20) throws -> [ItemSummary] {
     try synchronized {
       try db.execute(
-        "SELECT i.id,i.category,i.kind,i.title,i.meaning,i.status,i.asset_id FROM items i JOIN heads h ON h.item_id=i.id WHERE i.kind NOT IN ('row','request') ORDER BY i.created DESC,i.id LIMIT ?",
+        "SELECT i.id,i.category,i.kind,i.title,i.meaning,i.status,i.asset_id FROM items i JOIN heads h ON h.item_id=i.id WHERE i.kind NOT IN ('row','request','annotation') ORDER BY i.created DESC,i.id LIMIT ?",
         [.number(Double(min(max(limit, 1), 100)))]
       ).map { row in
         ItemSummary(
