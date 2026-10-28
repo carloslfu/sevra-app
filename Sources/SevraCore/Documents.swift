@@ -3,7 +3,8 @@ import Foundation
 extension Workbook {
   /// Preserve submitted text and its derived draft in one transaction.
   /// A separate draft is an explicit copy, never a silent overwrite of a newer
-  /// version. Meaning, scenario and document metadata survive either operation.
+  /// version. Meaning, scenario and business metadata survive either operation.
+  /// Exact-copy spans stay on the immutable original, not re-entered prose.
   public func editDocument(
     _ versionID: String, text: String, separate: Bool = false,
     token: String = identifier(), expectedRevision: Int? = nil,
@@ -39,10 +40,18 @@ extension Workbook {
         meaning: original.meaning, status: "accepted", scenario: original.scenario, inputs: [],
         transformation: "document-input-v1")
       try cancellation.check()
+      var data = original.data
+      // A free-text edit can move or change any copied span. Its new submission
+      // and original-document lineage preserve evidence without asserting stale
+      // byte positions or silently realigning repeated passages.
+      if case .object(var fields) = data {
+        fields.removeValue(forKey: "documentComposition")
+        data = .object(fields)
+      }
       let draft = try insertItem(
         category: "record", kind: "document",
         title: separate ? Self.documentCopyTitle(original.title) : original.title,
-        text: text, data: original.data, meaning: original.meaning, status: "draft",
+        text: text, data: data, meaning: original.meaning, status: "draft",
         scenario: original.scenario, inputs: [original.id, source],
         transformation: "document-edit-v1", supersedes: separate ? nil : original.id)
       try cancellation.check()

@@ -32,6 +32,33 @@ private func originalCopy(
 }
 
 func checkDocumentComposition(at root: URL) {
+  check(
+    "manual revisions keep old copy evidence without claiming edited text is still an exact copy"
+  ) {
+    let f = try compositionFixture(at: root)
+    let copy = try originalCopy(f)
+    let original = try f.book.saveComposedDraft(
+      title: "Original quote", parts: [.init(copy: copy.reference)], runID: f.run)
+    let replacement =
+      "Operator correction\n" + f.text.replacingOccurrences(of: "0.10", with: "0.12")
+    let revised = try f.book.editDocument(original.id, text: replacement)
+    try expect(try f.book.verify()["ok"] == .bool(true))
+    try expect(revised.data["documentComposition"] == .null)
+    try expect(revised.text == replacement && revised.meaning == "estimate")
+    try expect(try f.book.item(original.id).data == original.data)
+    try expect(try f.book.lineage(revised.id).contains { $0["parent"].text == original.id })
+    let accepted = try f.book.accept(revised.id)
+    let separate = try f.book.editDocument(original.id, text: f.text, separate: true)
+    try expect(separate.data["documentComposition"] == .null)
+    try expect(accepted.status == "accepted" && separate.status == "draft")
+    try expect(try f.book.verify()["ok"] == .bool(true))
+    let archive = root.appendingPathComponent(identifier() + ".sevraz")
+    try f.book.export(to: archive)
+    let restored = try Workbook.openArchive(
+      archive, at: root.appendingPathComponent(identifier() + ".sevra"))
+    try expect(try restored.item(accepted.id).text == replacement)
+    try expect(try restored.verify()["ok"] == .bool(true))
+  }
   check("source-bound composition preserves exact Unicode bytes and original version lineage") {
     let f = try compositionFixture(at: root)
     let copy = try originalCopy(f)

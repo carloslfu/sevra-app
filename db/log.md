@@ -505,3 +505,6 @@ Retain native copy replay context refusal at 24922/24576 tokens; compact duplica
 ## [2026-10-28 04:28] implementation | records/operations/implementation.md
 Retain second native refusal; use explicit two-chunk ordinary read pages with larger requests available; 96 core and agent checks pass.
 
+## [2026-10-28 04:36] verification | records/operations/implementation.md
+Unchanged native eight-report fidelity task passes; zero copied IDs used, so add nearby actual-copy cases; reproduce and fix stale composition metadata after manual editing.
+

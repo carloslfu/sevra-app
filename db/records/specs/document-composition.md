@@ -2,7 +2,7 @@
 type: spec
 id: 01m609st2pz8zhg7bcpec874g1
 created: 2026-10-28T03:45:29.174789+00:00
-updated: 2026-10-28T04:28:27.711236+00:00
+updated: 2026-10-28T04:36:47.950624+00:00
 summary: Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 title: Source-bound document composition
 status: reviewed
@@ -26,8 +26,9 @@ allowed and are labelled as new prose in this representation. This is a bounded
 document construction facility, not a claim that every requirement was met.
 
 The core and agent integration are implemented and deterministically checked.
-Actual-model fidelity, selectable native UI, conversation-origin copies and a
-public CLI composition command remain qualification gates.
+The unchanged eight-report task now passes. Real-model selection of copy IDs,
+selectable native UI, conversation-origin copies and a public CLI composition
+command remain qualification gates.
 No current product completion claim may depend on those unimplemented paths.
 
 ## Identity and text contract
@@ -272,3 +273,34 @@ the fixture, required source labels, complete-document claims, context trigger
 or response/step allowances. A page is partial; more chunks need explicit reads.
 The new test traverses all five synthetic chunks without gaps and checks an
 explicit wide read. All 96 core groups and agent checks pass.
+
+
+## Native eight-report fidelity checkpoint
+
+The third unchanged maintained32K replay at 0d62807 passes all original assertions:
+eight exact label/value/unit/HOLD lines, purchase and both packing constraints,
+unspecified currency, lineage to all report versions, one draft, one working
+space, unchanged original rows/heads/base/effects and included assets, complete
+portable export/reopen/integrity, and clean model unload. Twelve responses and
+eight checkpoints took 234.204528 seconds. Source/executable/runtime identities
+match across a clean committed run. Two earlier context refusals remain retained.
+
+Fifteen copy IDs were actually presented when drafting, but the model chose a
+single new-prose part and zero copy references. This run establishes the frozen
+task's content fidelity, not real-model selection of original-copy IDs. A new
+nearby probe will test literal English and Spanish quotations and permitted
+paraphrase, with original draft/source states protected. No full 64K comparison,
+production compaction, engine adoption, UI, performance or release gate is cleared.
+
+## Manual revision provenance
+
+A regression reproduced workbook verification failure after free-text editing
+a composed draft: inherited scalar positions/text no longer matched the original
+read. Manual revisions now remove only the reserved documentComposition metadata
+from the new version. The submitted edit becomes a Source as before; lineage
+retains the immutable earlier document and its original copy proof. Existing
+business metadata, meaning and scenario remain. Even an unchanged separate copy
+uses this edit-submission path rather than claiming newly resolved source spans.
+Do not silently align repeated text or rewrite old provenance. Tests cover changed
+copy text/positions, exact old history, acceptance, separate drafts and portable
+reopen. This does not replace the pending native provenance interface.

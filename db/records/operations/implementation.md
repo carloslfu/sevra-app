@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T04:28:27.760486+00:00
+updated: 2026-10-28T04:37:11.194443+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -3997,3 +3997,47 @@ Evidence: [second copy-context refusal](../../../integration/evidence/2026-10-27
 96,148 bytes; SHA-256 dfe29565efaf1062f0dba44aec7af515ee2041e377bbd560d1eb450b3490fab6.
 This includes complete observations, identity checks, state audit and candidate
 deterministic logs. No UI, native adoption, full comparison or release pass.
+
+
+## Eight-report fidelity passes; direct copy qualification next
+
+The third unchanged maintained32K repair replay at clean 0d62807 passes. All eight
+original CHECK label/clearance/unit/HOLD pairs survive. Original purchase/sample
+and corrected packing values, unspecified currency, all eight report lineage,
+one draft, one space, no original data/head/base/effect change, exact included
+assets, portable export/reopen/integrity and model unload pass. Independent
+SQLite/file auditing confirms the same. Twelve responses and eight checkpoints
+took 234.204528 seconds. Identical repeated save_space arguments return the same
+space through idempotency. Before/after source/executable/engine/Metal/grammar
+hashes match, and both source trees were clean.
+
+The draft used parts.text with zero original-copy references despite fifteen
+presented choices. This proves this task's content, not actual-model copy choice.
+Added an opt-in nearby English quotation, Spanish quotation and permitted
+paraphrase probe; it requires actual copy metadata in literal cases and preserves
+original/unrelated draft state. It observes the model freely, with no scripted
+next action/reply, extra reviewer or changed original eight-report assertions.
+The shared observer visibility changes only to let this diagnostic reuse it.
+
+A separate review found manual editing inherited stale exact-copy metadata. The
+new regression reproduces integrity failure A copied passage no longer matches
+its original source read. (96 pass, one fail). New edit versions now clear only
+reserved copy-span metadata, preserve business data/meaning/scenario, and retain
+the prior original document as lineage. The regression covers changed text,
+acceptance, an unchanged separate draft, and portable export/reopen. Final core
+and agent verification follow before the nearby model run. No UI, production
+compaction, full 64K comparison, adoption or release gate is cleared.
+
+Evidence: [eight-report native pass](../../../integration/evidence/2026-10-27-document-copy-native-eight-report.json.gz),
+160,942 bytes; SHA-256 91c0d85b89154c28bde21e033538967a34055b0fa0efb1a7dec485d2ae8ba083.
+Includes actual contexts, outputs, history, metrics, before/after identities,
+independent audit and explicit zero-copy-reference limitation. The two native
+context failures and deterministic failures remain in their own receipts.
+
+
+Manual-edit final verification: both builds pass, 97 core groups pass with zero
+failures, and agent checks pass. Changed-file strict formatting, diff whitespace,
+dbmd all-store validation (zero errors/warnings) and repository links pass.
+[Manual-edit provenance regression](../../../integration/evidence/2026-10-27-document-copy-edit-provenance.json.gz)
+retains both failing tests, final stdout and tested code/binary hashes. Native
+grammar declarations are unchanged; reuse the prior actual grammar pass.

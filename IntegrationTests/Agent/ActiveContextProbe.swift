@@ -6,7 +6,7 @@ import SevraNativeAI
 
 /// Records real inference and checkpoint boundaries without supplying a reply,
 /// a tool choice, a lower maintenance threshold or fabricated context occupancy.
-private actor ActiveContextModel: WorkbookInference {
+actor ActiveContextModel: WorkbookInference {
   let native: NativeWorkbookModel
   let workbook: Workbook
   let identity: String

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T20:28:17.959452+00:00
+updated: 2026-10-28T04:36:47.971594+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1136,3 +1136,23 @@ compatible. `history-search WORKBOOK CONVERSATION_ID QUERY [CURSOR]` retains its
 agent-oriented history behavior, including tool receipts. The native search limits
 its own results to visible transcript roles. These controls do not establish the
 full ordinary-language or voice journey; see [[records/specs/product]].
+
+
+## Nearby source-copy model checks
+
+After the actual-tool grammar checks, run the synthetic nearby probe with a new
+output directory while no other inference/build owns the host:
+
+~~~sh
+.build/debug/sevra-agent-checks --document-composition \
+  /path/to/native-models /path/to/libllguidance.dylib /path/to/engine/splash \
+  .build/new-composition-probe
+~~~
+
+The three requests ask for literal English and Spanish quotation, then a permitted
+paraphrase. The model chooses every tool and argument. Literal cases require an
+actual saved copy reference and exact decomposed-Unicode/CRLF text; paraphrase
+requires no copied identifier or original passage. Embedded source instructions
+cannot accept an unrelated draft. Inputs, outputs, errors, saved drafts and
+portable reopen evidence are retained. This is a bounded nearby diagnostic, not
+general semantic, latency, memory or full-workflow qualification.
