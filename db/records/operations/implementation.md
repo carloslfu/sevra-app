@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T04:37:11.194443+00:00
+updated: 2026-10-28T04:37:52.892183+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -4041,3 +4041,10 @@ dbmd all-store validation (zero errors/warnings) and repository links pass.
 [Manual-edit provenance regression](../../../integration/evidence/2026-10-27-document-copy-edit-provenance.json.gz)
 retains both failing tests, final stdout and tested code/binary hashes. Native
 grammar declarations are unchanged; reuse the prior actual grammar pass.
+
+
+The first nearby probe attempt stopped during fixture setup before inference:
+the unrelated pending Record lacked a required input version. Its source and
+stdout/stderr/identities are retained locally. Add the synthetic report as its
+explicit input; no product lineage rule, model task or assertion changed. Rebuild
+and rerun in a new output directory. This setup failure is not a model result.
