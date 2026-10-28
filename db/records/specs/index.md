@@ -2,14 +2,14 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-28T04:17:24.506138Z
+updated: 2026-10-28T04:22:36.657860Z
 ---
 
 # records/specs
 
+- [[records/specs/document-composition]] — Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 - [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 - [[records/specs/intelligence]] — Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
-- [[records/specs/document-composition]] — Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 - [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 - [[records/specs/product]] — Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.

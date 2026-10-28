@@ -130,9 +130,20 @@ package final class ContextMaintenance {
       return true
     }
     let references = ContextDigest.references(digestValue(checkpoint))
-    let state = try workbook.continuationState(
+    let originalState = try workbook.continuationState(
       conversation: conversation, runID: runID,
       messageIDs: Array(Set(original.map(\.id)).union(references)))
+    // The final tool group already presents these originals verbatim. Avoid
+    // duplicating them in the compact host state and its generation vocabulary.
+    var stateFields = originalState.object
+    var copyFields = originalState["documentCopies"].object
+    let retainedCopies = Set(retained.flatMap(\.documentCopyIDs))
+    let copies = DocumentCopyChoices.entries(originalState).filter {
+      !retainedCopies.contains($0["id"].text)
+    }
+    copyFields["entries"] = .array(copies)
+    stateFields["documentCopies"] = .object(copyFields)
+    let state = Value.object(stateFields)
     try require(
       state["run"]["status"].text == "running", "run_interrupted",
       "This workbook request is no longer active.")

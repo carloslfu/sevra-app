@@ -2,7 +2,7 @@
 type: spec
 id: 01m609st2pz8zhg7bcpec874g1
 created: 2026-10-28T03:45:29.174789+00:00
-updated: 2026-10-28T04:17:24.469031+00:00
+updated: 2026-10-28T04:22:36.657860+00:00
 summary: Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 title: Source-bound document composition
 status: reviewed
@@ -226,9 +226,9 @@ copy IDs to currently presented choices, and the dispatcher enforces strict part
 unions. The existing grammar cannot express that union by itself.
 
 Continuation explicitly re-presents verified original passages, separately from
-model-written notes. It shares an 8,192-byte/64-entry bound across at most eight
-read groups, deduplicates repeated original spans and prefers one passage per
-group before more from one source. These are scoped retained candidates, not a
+model-written notes. It shares an 8,192-byte/eight-entry bound across at most eight
+source versions, re-presenting one passage from each latest read. Repeated
+versions and passages already visible in the retained tool group are excluded. These are scoped retained candidates, not a
 claim of complete coverage. Omitted passages need another read. Re-presentation
 does not restore citation eligibility, current acceptance or new action authority.
 
@@ -239,3 +239,19 @@ embedded-instruction cases pass. A duplicate-restoration context failure and a
 parameter-order mistake in the new grammar test were corrected and retained in
 the progress record. No model, engine, context threshold, response allowance or
 step budget changed. The unchanged eight-report actual-model replay remains next.
+
+
+## First native replay and compact projection repair
+
+The unchanged eight-report replay genuinely failed at 24,922 tokens against the
+fixed 24,576 threshold after two source reads. It saved its checkpoint, preserved
+original state and unloaded. Source/binary/runtime identities stayed unchanged.
+No draft was made. The failure exposed redundant original-copy context, rather
+than qualifying content fidelity.
+
+Continuation now retains one original passage per source version from its latest
+read, instead of filling the projection with extra passages. It does not repeat
+choices already visible in the final retained tool group. Omitted originals stay
+retrievable and are never asserted to have been copied. All 95 core checks and
+the agent checks pass after this change; actual replay remains pending. No
+threshold, context size, response allowance, step limit or fixture changed.

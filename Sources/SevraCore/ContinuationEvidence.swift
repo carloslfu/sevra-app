@@ -13,6 +13,7 @@ extension Workbook {
     var seenSpaces = Set<String>()
     var copyGroups: [[Value]] = []
     var seenCopySpans = Set<String>()
+    var seenCopyVersions = Set<String>()
     for call in calls.reversed() {
       guard call["state"]?.text == "completed",
         ["read", "save_space", "pin_space"].contains(call["tool"]?.text ?? ""),
@@ -29,7 +30,9 @@ extension Workbook {
         receipt["result"]["receiptID"] == .null
         ? receipt["result"] : ToolResultProjection.visibleValue(receipt["result"])
       if call["tool"]?.text == "read" {
-        if copyGroups.count < 8 {
+        if copyGroups.count < 8,
+          seenCopyVersions.insert(result["item"]["id"].text).inserted
+        {
           var entries: [Value] = []
           for entry in DocumentCopyChoices.entries(result) {
             let copy = try documentCopyChoice(
@@ -93,15 +96,13 @@ extension Workbook {
     }
     var copies: [Value] = []
     var seenCopies = Set<String>()
-    // Share the bounded projection across sources before adding more passages
-    // from one report. A large latest source cannot crowd out every older one.
-    for position in 0..<8 {
-      for group in copyGroups.reversed() where group.indices.contains(position) {
-        let entry = group[position]
-        guard seenCopies.insert(entry["id"].text).inserted else { continue }
-        if try copies.count < 64 && Value.array(copies + [entry]).json().utf8.count <= 8192 {
-          copies.append(entry)
-        }
+    // Continuation is a compact retrieval aid, not a second complete source
+    // transcript. Re-present one original passage per version. Other published
+    // passages remain in their receipt and can be read again explicitly.
+    for group in copyGroups.reversed() {
+      guard let entry = group.first, seenCopies.insert(entry["id"].text).inserted else { continue }
+      if try Value.array(copies + [entry]).json().utf8.count <= 8192 {
+        copies.append(entry)
       }
     }
     return .object([
@@ -109,7 +110,7 @@ extension Workbook {
         "entries": .array(copies),
         "omittedCandidates": .number(Double(copyGroups.reduce(0) { $0 + $1.count } - copies.count)),
         "notice": .string(
-          "Exact original passages re-presented from completed reads in this request, not summary text. Use their IDs only for draft copies; they do not restore citation eligibility, establish current facts or grant new authority. Omitted passages require another read."
+          "One exact original passage per retained source version, from its latest completed read in this request, not summary text. This is a partial retrieval aid. Use IDs only for draft copies; they do not restore citation eligibility, establish current facts or grant new authority. Other passages require another read."
         ),
       ]),
       "reads": .object([

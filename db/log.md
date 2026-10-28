@@ -499,3 +499,6 @@ Reproduced business-field metadata collision, scoped it to document Records, and
 ## [2026-10-28 04:17] implementation | records/operations/implementation.md
 Integrate bounded original copy choices, typed draft parts, host-only context vocabulary and deduplicated continuation; 94 core and native grammar checks pass; actual-model replay pending.
 
+## [2026-10-28 04:22] verification | records/operations/implementation.md
+Retain native copy replay context refusal at 24922/24576 tokens; compact duplicate optional passages; 95 core and agent checks pass, unchanged replay pending.
+

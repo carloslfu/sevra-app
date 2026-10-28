@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T04:17:24.545961+00:00
+updated: 2026-10-28T04:22:36.682549+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -3944,3 +3944,26 @@ pending.
 Evidence: [agent-copy deterministic checks](../../../integration/evidence/2026-10-27-document-copy-agent-checks.json.gz).
 Includes final core/agent/grammar stdout, failed grammar stdout, source/binary
 identities and exact intermediate failure descriptions.
+
+
+## Actual copy-integration context refusal and repair candidate
+
+The first unchanged native maintained32K replay at c554640 failed after three
+responses, two report reads and one checkpoint: 24,922 tokens exceeded the fixed
+24,576 maintenance threshold. It took 43.824589 seconds, made no draft and unloaded
+successfully. Independent SQLite and file-hash auditing confirms original rows,
+heads, bases, effects and included assets unchanged. Source, executable, engine,
+Metal and grammar identities match before/after; both trees were clean. This is
+a retained failed attempt, not native qualification.
+
+The compact projection had repeated passages from the latest read and several
+passages per earlier source. Limit it to one original from each retained version
+and exclude IDs already visible in the final tool group. Additional originals
+require explicit reads. The new repeated-read regression, all 95 core groups and
+the agent checks pass. Changed grammar definitions are untouched, so reuse the
+previous 38-case/323-mask pass. Replay the unchanged native fixture next from this
+committed candidate. No context/response/step budget or acceptance change.
+
+Evidence: [first native copy-context refusal](../../../integration/evidence/2026-10-27-document-copy-context-refusal.json.gz).
+Contains full native input/output/metrics/history, before/after identities,
+independent original-state audit and candidate deterministic stdout.

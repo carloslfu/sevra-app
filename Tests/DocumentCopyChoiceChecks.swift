@@ -124,7 +124,22 @@ func checkDocumentCopyChoices(at root: URL) {
     let entries = DocumentCopyChoices.entries(state)
     try expect(try Value.array(entries).json().utf8.count <= 8192)
     for label in labels { try expect(entries.contains { $0["text"].text == label }) }
-    try expect(entries.count <= 64)
+    try expect(entries.count == labels.count)
     try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check("repeated source reads retain one original passage per version in continuation") {
+    let (book, run, source, _, _) = try fixture("First\nSecond\nThird\n")
+    for _ in 0..<3 {
+      let args: Value = .object(["id": .string(source.id)])
+      let receipt = try book.prepareToolCall(
+        runID: run, callID: identifier(), tool: "read", arguments: args)
+      let result = try WorkbookTools(book, runID: run).execute("read", args, receiptID: receipt)
+      _ = try book.completeToolCall(receipt, result: result)
+    }
+    let state = try book.continuationState(conversation: "main", runID: run, messageIDs: [])
+    let entries = DocumentCopyChoices.entries(state)
+    try expect(entries.count == 1 && entries[0]["text"].text == "First\n")
+    _ = try book.documentCopyChoice(entries[0]["id"].text, runID: run)
+    try expect(state["documentCopies"]["omittedCandidates"].int == 2)
   }
 }
