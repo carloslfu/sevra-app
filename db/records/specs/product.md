@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-28T01:59:15.318022+00:00
+updated: 2026-10-28T13:45:46.296054+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
 ---
 # Product and interaction
 
-Revision 5, October 27, 2026. Status refers to specification review, not delivery.
+Revision 6, October 28, 2026. Status refers to specification review, not delivery.
 Normative requirements use IDs so implementation and verification can map back.
 
 Sevra Workbook is the primary product and homepage. A small Websites link in the
@@ -50,6 +50,23 @@ work surfaces; restrained warm identity. No decorative dashboard metrics.
 P17. Reuse the existing Sevra Observer zebra, outlined lowercase wordmark and
 original Mac icon. See [[records/specs/identity]] for placement, appearance and
 self-contained asset provenance.
+
+## Contextual intake
+
+P19. Import is first-class both at workbook creation and throughout ongoing work.
+Welcome/empty Home exposes a calm start-from-existing-input action; an existing
+workbook has a persistent, named add-files/data entry. Voice/text, native controls,
+appropriate drag/drop and range paste use the same scoped pipeline. Any supported
+input can start a workbook. Format selects parsing, not the import's role: CSV or
+Excel may become working data, reference material, analysis input or an explicit
+update. Clarify consequential ambiguity before append/replace/merge.
+
+P20. Excel conversion targets continuity of supported existing work, including
+structure, formulas/dependencies, ranges and useful formatting. Preserve originals,
+lineage and an explicit feature report. Saved values/formula text alone do not
+constitute functioning migration. Implementation, phased scope and IJ01-IJ10 are in
+[[records/specs/contextual-import]]. Current code still automatically creates
+saved-value tables for CSV/XLSX; the expanded contract remains unfinished.
 
 ## Conversation
 

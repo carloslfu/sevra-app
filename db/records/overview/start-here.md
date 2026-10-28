@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-28T07:29:21.738541+00:00
+updated: 2026-10-28T13:45:46.372420+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -30,8 +30,9 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 - [[records/specs/product]]: requirements and user experience.
 - [[records/specs/storage]]: package, data, transactions, history and calculations.
 - [[records/specs/search]]: intake, extraction, indexes, retrieval and scaling.
-- [[records/specs/references-and-relationships]]: version-safe body/extracted-text bindings, backlink CLI, native link views and bounded scoped agent discovery; visible usability and broader retrieval qualification pending.
-- [[records/specs/document-composition]]: source-bound exact copies; bounded native fidelity checks pass, visible provenance interaction pending.
+- [[records/specs/contextual-import]]: adopted startup/ongoing entry points, role-aware CSV/data intake and Excel work continuity; current saved-value importer does not meet the expanded contract.
+- [[records/specs/references-and-relationships]]: version-safe body/extracted-text bindings, backlink CLI, native link views, focused visible keyboard correction/navigation and bounded scoped agent discovery; broader usability, voice authoring and retrieval qualification pending.
+- [[records/specs/document-composition]]: source-bound exact copies; bounded native fidelity and focused visible text-source provenance checks pass; broader interaction qualification pending.
 - [[records/specs/intelligence]]: local model, tools, native generated UI and voice.
 - [[records/specs/conversation-context]]: automatic compaction, durable history and context qualification.
 - [[records/specs/distribution]]: install, CLI/skill, testing and release contracts.

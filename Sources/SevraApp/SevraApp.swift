@@ -25,6 +25,7 @@ import SwiftUI
   }
   @NSApplicationDelegateAdaptor(DocumentDelegate.self) private var documentDelegate
   @AppStorage("appearance") private var appearance = "system"
+  @FocusedValue(\.conversationWorkspace) private var workspace
   var body: some Scene {
     WindowGroup("Sevra", for: String.self) { $path in
       WorkspaceWindow(path: $path, inbox: documentDelegate)
@@ -48,6 +49,13 @@ import SwiftUI
         Button("Drafts to Review") {
           NotificationCenter.default.post(name: .sevraReviews, object: nil)
         }
+        Divider()
+        Button("Links in This Document") { workspace?.referencePanel = .outgoing }
+          .keyboardShortcut("l", modifiers: [.command, .shift])
+          .disabled(workspace?.viewedItemVersion == nil)
+        Button("Where Is This Mentioned?") { workspace?.referencePanel = .incoming }
+          .disabled(workspace?.viewedItemVersion == nil)
+        Divider()
         Button("Make Shareable Copy…") {
           NotificationCenter.default.post(name: .sevraExport, object: nil)
         }.keyboardShortcut("e", modifiers: [.command, .shift])

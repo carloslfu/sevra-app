@@ -535,3 +535,12 @@ Added bounded business-only reference traversal and canonical read destinations;
 ## [2026-10-28 07:34] verification | records/operations/implementation.md
 Scoped reference checkpoint: 132 core and 27 document checks, 10 preview groups, 33 tools/39 grammars/329 masks, two final native jobs, 50 packaged CLI checks and resource/signature gates pass. Preserve 300566-byte receipt 312f7ae5b00cfe411294f526906a150529491517a284b42d50ecfbaa2ba0ca96; visual and whole-app gates remain open.
 
+## [2026-10-28 13:36] implementation | records/operations/implementation.md
+Verified unlocked native saved-link and copied-passage journeys; repaired keyboard selection, accessible activation and destination focus; retained Source/asset and portable invariants, focused checks and remaining qualification gates.
+
+## [2026-10-28 13:45] design | records/specs/contextual-import.md
+Adopted owner-confirmed contextual startup/ongoing import and Excel continuity; inspected current suffix-based saved-value intake, reconciled specifications and queued explicit implementation/acceptance gaps.
+
+## [2026-10-28 13:47] verification | records/operations/implementation.md
+Attached immutable native reference usability receipt; final keyboard/accessible-link and copied-source navigation pass with synthetic invariants, unchanged engine evidence and explicit open gates.
+

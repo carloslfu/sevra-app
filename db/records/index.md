@@ -2,7 +2,7 @@
 type: index
 scope: layer
 folder: records
-updated: 2026-10-28T07:34:04.928831Z
+updated: 2026-10-28T13:47:17.734052Z
 ---
 
 # records
@@ -11,4 +11,4 @@ updated: 2026-10-28T07:34:04.928831Z
 - [[records/overview/index|Overview]] (1)
 - [[records/research/index|Research]] (1)
 - [[records/reviews/index|Reviews]] (1)
-- [[records/specs/index|Specs]] (10)
+- [[records/specs/index|Specs]] (11)

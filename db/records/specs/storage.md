@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T07:29:21.720368+00:00
+updated: 2026-10-28T13:45:46.335117+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -83,6 +83,20 @@ Use Decimal arithmetic with explicit precision/rounding for financial results.
 Formula engine is a bounded expression evaluator, not eval: arithmetic, referenced
 columns/cells, SUM/AVERAGE/MIN/MAX/COUNT and conditional operations. Detect cycles,
 division by zero, missing fields and invalid units. No arbitrary code execution.
+
+## Contextual conversion and continuity
+
+The adopted [[records/specs/contextual-import]] requires separate capture, role,
+inspection/feature report and requested conversion/update state. These contracts
+are planned; schema 7 does not yet implement the expanded intent/mapping model.
+Keep source coordinates and original formulas separate from native table headings,
+stable row identities, formula/dependency bindings and cached-value state. A saved
+formula string is evidence, not a recalculating native expression. Existing bounded
+column formulas and single-dataset A1 reads are not Excel continuity qualification.
+Preserve each original file outside SQLite under assets and derive native state
+with exact lineage, retry identity and revision guards. Reference/analysis-only
+intake must not silently create working tables; update intent needs an explicit
+target/mapping. The spec defines per-cell/cross-sheet work and support gates.
 
 ## Transactions and concurrency
 

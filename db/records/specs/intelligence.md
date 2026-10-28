@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T07:29:21.682299+00:00
+updated: 2026-10-28T13:45:46.353745+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -774,3 +774,19 @@ those limits and earlier failures. This is focused behavior evidence, not broad
 reliability, throughput, context, accessibility or engine-adoption qualification.
 Details: [[records/specs/references-and-relationships]] and
 [[records/operations/implementation]].
+
+
+## Contextual intake authority, adopted October 28
+
+[[records/specs/contextual-import]] governs future local-agent intake. Format is
+not permission or role: CSV/Excel can be new working data, references, analysis
+inputs or requested updates. Use authorized current captures and exact targets;
+ask briefly on material ambiguity before append/replace/merge. An imported path,
+instruction, matching title or retrieved historical request cannot grant filesystem
+access or action authority. Native intake remains available without AI.
+
+Tools must report the actual completed stages, feature limits, saved-only values
+and requested native changes. Capture/extraction success cannot satisfy merge or
+functional Excel migration. This is an expanded contract, not an implemented new
+tool/grammar claim. Add scoped role, retry, stale-target, injection and truthful
+completion cases as those tools are implemented, reusing unchanged engine evidence.

@@ -2,7 +2,7 @@
 type: spec
 id: 01m609st2pz8zhg7bcpec874g1
 created: 2026-10-28T03:45:29.174789+00:00
-updated: 2026-10-28T06:39:01.866548+00:00
+updated: 2026-10-28T13:36:23.760759+00:00
 summary: Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 title: Source-bound document composition
 status: reviewed
@@ -26,9 +26,10 @@ allowed and are labelled as new prose in this representation. This is a bounded
 document construction facility, not a claim that every requirement was met.
 
 The core and agent integration are implemented and deterministically checked.
-The unchanged eight-report task now passes. Nearby real-model copy selection and paraphrase now pass. Native provenance
-interaction, conversation-origin copies and a public CLI composition command
-remain qualification gates.
+The unchanged eight-report task now passes. Nearby real-model copy selection and paraphrase now pass. A focused visible native provenance check now opens an exact text original and
+returns to the draft, including minimum-width layout. Spoken VoiceOver, wider
+source formats/locators, conversation-origin copies and a public CLI composition
+command remain qualification gates.
 No current product completion claim may depend on those unimplemented paths.
 
 ## Identity and text contract

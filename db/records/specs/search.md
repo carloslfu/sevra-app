@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-28T07:29:21.702281+00:00
+updated: 2026-10-28T13:45:46.315458+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -57,8 +57,14 @@ accept extracted financial/business events.
 Q09. Plain text/Markdown/CSV/TSV/JSON/HTML, PDF text, image OCR, basic DOCX and XLSX
 get explicit extractor paths. PDFKit extracts per page; image/scanned-page OCR
 uses Vision locally. CSV quoting, multiline fields, BOM, CRLF, duplicate/empty
-headers and locale ambiguity have tests. XLSX is data interchange: cached values
-and basic cell types, not claimed macro/formula/chart fidelity. Original remains.
+headers and locale ambiguity have tests. Current XLSX intake retains cached values
+and basic cell types; it does not execute retained formulas or qualify continuity.
+The expanded adopted design in [[records/specs/contextual-import]] separates the
+requested role from file format and requires reported translation of supported
+Excel structure/behavior. Originals remain immutable; unsupported features stay
+visible. CSV is an ongoing working/reference/analysis/update input as well as a
+possible start. Automatic suffix-based table creation is a current gap, not the
+intended universal role policy.
 Q10. Audio/video are included or explicitly linked, previewed natively and indexed
 by metadata. On-device transcription is capability-gated and its timestamps index
 only after successful recognition; no fabricated transcript. Encrypted/unsupported

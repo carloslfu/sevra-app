@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-10-27T21:45:28.584706Z
+updated: 2026-10-28T13:45:46.257377Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/10/contextual-import-and-excel-continuity]] — Owner-confirmed import entry points, contextual roles and Excel work continuity, relayed October 28.
 - [[sources/notes/2026/10/inline-references-adoption]] — Owner adopts inline references, backlinks and bounded relationship discovery while preserving evidence and acceptance boundaries.
 - [[sources/notes/2026/10/ux-consistency-review]] — Owner-requested coherent UX pass relayed by the design discussion, with explicit verification limits.
 - [[sources/notes/2026/10/conversation-threads-refinement]] — Owner-approved Conversation and Threads terminology, relayed from a parallel design discussion.

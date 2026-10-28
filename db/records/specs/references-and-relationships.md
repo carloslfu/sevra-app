@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5zn6ks2pyv72pjs65f90rxj
 created: 2026-10-27T21:45:28.610289+00:00
-updated: 2026-10-28T07:29:21.658773+00:00
+updated: 2026-10-28T13:36:23.737552+00:00
 summary: Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.
 title: Inline references and relationships
 status: reviewed
@@ -13,7 +13,7 @@ status: reviewed
 ## Decision and scope
 
 Adopted October 27, 2026. The explicit-binding foundation, bounded body parser, backlink index and owner-facing CLI are implemented.
-Retained extracted-text links, owner CLI inspection and a bounded native reader/navigation slice are implemented. A bounded local-agent traversal/read slice is implemented and has focused synthetic evidence. Visible usability qualification, general voice/text authoring, embedded format-specific hyperlinks, retrieval-value comparisons and complete first-slice acceptance remain pending. Authority:
+Retained extracted-text links, owner CLI inspection and a bounded native reader/navigation slice are implemented. A bounded local-agent traversal/read slice is implemented and has focused synthetic evidence. Focused visible native navigation, keyboard correction and minimum-width checks now pass. Spoken VoiceOver, broader usability, general voice/text authoring, embedded format-specific hyperlinks, retrieval-value comparisons and complete first-slice acceptance remain pending. Authority:
 [[sources/notes/2026/10/inline-references-adoption]]. This extends Sources/Records,
 SQLite, native previews and agentic search without adding a business category.
 At adoption, record bodies retain wiki syntax as text, conversation messages have
@@ -541,3 +541,77 @@ native model. The first private run hit the step limit; that failure remains.
 These two observations do not qualify general reliability, latency, memory,
 large graphs, fresh installation, engine adoption or LJ06/LJ09/LJ10 in full.
 See [[records/operations/implementation]] and [[records/reviews/design-passes]].
+
+
+## Visible native navigation and keyboard correction, October 28
+
+The owner-unlocked preview is accessible. Native item text exposes a dedicated
+accessibility representation with readable text and ordinary link controls over
+saved occurrence identities. Visual inline text remains selectable. This avoids
+relying on synthesized attributed-text link children whose press action failed
+in the actual preview. These controls never open a raw source URI.
+
+Command+Shift+L opens Links in This Document for the focused workbook's current
+item. The Workbook menu also offers Where Is This Mentioned? The menus are disabled
+without a viewed item. In the sheet, arrow keys select an outgoing link or incoming
+mention and Return opens that exact selected entry. Stale selections absent from
+the current result set cannot activate. Command+Option+E opens destination choice
+for the selected editable occurrence; named native action controls are also
+available. Escape cancels. These are optional access paths to the existing core.
+
+Destination search uses an AppKit field that requests initial focus only when
+attached to its own sheet window. Typing starts immediately, Down selects the
+first currently visible result and moves to results, and Return saves only an
+explicitly selected result. Empty Return does nothing. Query changes discard
+selection, and results/cursors from another query are hidden and refused for
+selection. A matching title alone still never binds automatically. Search, result
+choice and version mode use the same explicit binding workflow as pointer input.
+
+Focused visible observations cover body link activation through accessibility,
+a corrected extracted pin opening the historical weekdays edition, explicit
+current weekends navigation, Back through those views, incoming 20/6 pages and
+20/5 exact-version pages, previous-page recovery, keyboard incoming activation,
+and two keyboard-selected Source corrections. CLI inspection proves unchanged
+Source bodies/assets, unchanged pending records, correct live destinations and
+portable reopen/integrity. The copied-passage disclosure opens the exact text
+original and returns to its unchanged draft. That view fits the 820-point minimum
+window width with ordinary vertical scrolling. These are agent-operated synthetic
+observations, not uncoached usability, a spoken VoiceOver pass or all formats.
+
+The UI also exposes technical annotation Sources in Recent work and destination
+search. Hiding that implementation noise from normal business views needs a
+separate query-boundary correction, while keeping explicit owner inspection.
+No new model tool, schema, engine, acceptance or external access is added here.
+See [[records/operations/implementation]] for failures and measured limits.
+
+## Next general text and voice authoring slice, planned
+
+The existing control corrects saved occurrences. Natural requests to link any
+passage still need bounded exact-text discovery and mutation tools. Do not ask the
+model or user to count Unicode scalars. Plan the following shared-core boundary:
+
+- Find exact text in the active exact item body's or retained extracted regions'
+  bounded snapshot. Return a small page of occurrence choices with neighboring
+  context, region/locator and immutable selection proof. Preserve combining
+  characters, emoji, NUL and line endings without fuzzy normalization. Repeated
+  passages remain distinguishable and require clarification when intent is unclear.
+- Bind agent choices to a completed current-run/current-conversation discovery
+  receipt and the actually visible choice vocabulary. History, source instructions,
+  invented IDs, metadata-only traversal and other runs cannot mint edit choices or
+  citation eligibility. Read-only request restrictions still deny mutation.
+- A save revalidates the exact body or retained input and expected binding snapshot,
+  preserves other occurrences and reference identity for an exact-span correction,
+  and refuses partial overlap or stale evidence. It cannot silently move to a new
+  extraction or head. Keep stable idempotent retries after intervening changes.
+- Source text and asset bytes stay immutable. An eligible Record text document
+  creates a normal draft with byte-identical prose, preserved valid copy provenance
+  and normal lineage. Other Record kinds require their domain edit workflow. A
+  destination mention is not a derivation input or a business acceptance.
+- Follow the chosen logical destination by default; pin an exact version only when
+  requested. Missing/duplicate targets and ambiguous passages need actual choices,
+  never automatic title rebinding. Unresolved is distinct from removing an occurrence.
+- Qualify Unicode, repeated/overlapping matches, bounded paging/cancellation, stale
+  snapshot/query/target behavior, imported instructions, cross-run/conversation and
+  read-only refusal, retry/export/reopen, dynamic grammar/host parity, then real
+  native-model text requests and dictation. These are planned gates, not passing
+  evidence. Broader embedded hyperlinks and LJ10 comparisons stay separate.

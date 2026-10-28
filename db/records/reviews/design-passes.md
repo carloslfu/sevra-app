@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-28T07:29:21.775557+00:00
+updated: 2026-10-28T13:45:46.391937+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -341,3 +341,53 @@ closed. Preserve the initial negative step-limit failure and both confident
 wrong-route answers. No model mutation, automatic recursive graph traversal,
 embedded-format hyperlink extraction, visible accessibility or large-graph
 retrieval comparison is qualified by these two observations.
+
+
+## Review: usable native links and destination focus, October 28
+
+Actual preview checks found two gaps that offscreen core tests did not establish:
+the outgoing list had no working keyboard selection, and synthesized inline link
+children could be visible in the accessibility tree while native activation did
+nothing. Selectable scoped lists with Return handling repair the first. A native
+accessibility representation over the same saved occurrences repairs the second;
+its ordinary link controls activate in the actual app. Keep visual text selection
+and saved binding routing. Avoid changing global keyboard or accessibility settings.
+
+The destination sheet also opened without search focus. SwiftUI task/default-focus
+attempts did not repair that real sheet-content transition. A small AppKit field
+sets focus on attachment to its own window and releases its delegate on teardown.
+Only the explicit selected current-query result can save. Empty Return cannot
+choose, and changed queries clear selection. Source annotations preserve original
+text/assets and pending business records; source and portable integrity pass.
+
+Minimum-width copied-document layout, exact original navigation, historical/current
+edition navigation, incoming scope/paging and keyboard correction now have focused
+visible evidence. AX inspection and native activation are not a spoken VoiceOver
+or broad accessibility qualification. General voice/text passage authoring remains
+planned. The same UI pass revealed technical annotation noise in Recent work and
+search; correct normal-view query boundaries without deleting owner evidence.
+See [[records/specs/references-and-relationships]] and
+[[records/operations/implementation]].
+
+
+## Contextual import reconciliation, October 28
+
+Reconciled the owner-confirmed side-conversation direction with actual code rather
+than declaring existing import sufficient. Three review angles produce concrete
+gates in [[records/specs/contextual-import]]:
+
+- Discoverability: Home already has Add files, but Welcome lacks start-from-file
+  and the persistent plus icon does not explain data intake. Both entry points
+  must call one scoped capability; native controls complement central voice/text.
+- Intent/authority: suffix-based automatic tables are convenient only for some
+  requests. Preserve harmless capture while resolving material role/target/mapping
+  ambiguity. A selected table and CSV suffix do not authorize append or merge.
+- Continuity/truthfulness: cached totals and retained formula strings do not keep
+  an Excel workbook functioning after edits. Original coordinates, dependency
+  translation, named ranges, useful formatting and feature reports need explicit
+  support and counterexamples. Existing table A1 addresses cannot be assumed to
+  match Excel source coordinates. Preserve originals and all unchanged evidence.
+
+The spec now aligns product, storage, search and agent boundaries, with ten focused
+journeys and ordered phases. This review establishes direction and inspected gaps,
+not implemented role planning, native Excel compatibility or a new UI pass.

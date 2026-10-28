@@ -258,6 +258,7 @@ import SwiftUI
             copiedPassages
             lineage
           }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .contain)
             .background(
               DocumentScrollObserver(position: state.itemReading[item.id] ?? .init()) {
                 state.itemReading[item.id] = $0

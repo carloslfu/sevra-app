@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T07:29:21.757447+00:00
+updated: 2026-10-28T13:45:46.431888+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1266,7 +1266,8 @@ packaged product checks still require building the native layout explicitly.
 ## Native saved links and Back
 
 Open an item in the right viewer. Supported saved body links display their labels;
-choose one to open its saved destination in the same viewer. An unresolved label
+choose one to open its saved destination in the same viewer. Assistive technology
+gets native link controls over those same saved occurrences. An unresolved label
 opens Choose destination where supported. Links opens the optional sheet. Switch
 to Mentioned in for bounded incoming pages, with explicit earlier-version and
 exact-version filters. Choose destination can correct an existing body or retained
@@ -1279,16 +1280,22 @@ Type or dictate Show links, Where is this mentioned? or Go back in the normal
 composer. These whole-request shell commands work without inference. Spanish
 Mostrar enlaces, Dónde se menciona esto and Volver are also accepted. General
 phrasing, arbitrary link authoring and span selection remain future work. Back's
-keyboard shortcut is Command+[. Document text scrolling and PDF pages are retained
+keyboard shortcut is Command+[. Command+Shift+L opens saved links; use arrow keys
+and Return to open a selected link or incoming mention. Command+Option+E chooses a
+new destination for the selected editable link. Destination search takes initial
+focus; type, press Down to select a result, then Return to save. Empty Return makes
+no choice, and Escape cancels. Document text scrolling and PDF pages are retained
 within this workbook window. A new PDF page locator works even when that file is
 already open. Copied passages forward their saved locator when opening originals.
 
 Run swift run -j 4 sevra-document-checks and swift run -j 4 sevra-preview-checks for
 focused session, real offscreen AppKit/PDFKit, link choice, provenance, keyset,
 cancellation and shell-command checks. Build the native layout before packaged
-checks. Programmatic passes do not qualify physical keyboard/VoiceOver, narrow
-layout, voice dictation of these new commands or the full visible journey. Current
-evidence and Mac-lock limitation: [[records/operations/implementation]].
+checks. A focused visible synthetic journey now checks native link activation,
+keyboard correction/navigation, exact-version incoming pages, copied-text original
+navigation and minimum-width layout. Spoken VoiceOver, new spoken shell commands,
+all formats/locators and full uncoached usability remain unqualified. Current
+evidence and retained initial failures: [[records/operations/implementation]].
 
 
 ## Local-agent references and focused native probe
@@ -1320,3 +1327,19 @@ model throughput, graph-scale memory, installation or release. Two initial wrong
 raw-route answers and the first private step-limit failure are preserved; the
 final two cases pass with limitations in [[records/operations/implementation]].
 Use scripts/check_splash_grammar.py for deterministic actual tool/mask checks.
+
+
+## Current importer limits and adopted contextual intake
+
+Current app/CLI file intake automatically converts CSV/TSV and XLSX into new tables
+after inclusion and extraction. XLSX formulas are retained as evidence with saved
+values; they do not recalculate. This is useful development behavior, not full
+Excel migration or the final contextual role UX. There is no qualified general
+CSV merge planner or start-directly-from-file Welcome action. Selected native
+table paste edits an existing bounded range only.
+
+The adopted expanded contract, implementation phases and acceptance cases are in
+[[records/specs/contextual-import]]. Until those gates pass, do not describe
+reference-only/analysis-only role routing, native Excel formulas/structure, general
+range intake or contextual update/merge as implemented. Original inclusion/link
+ownership and resumable bounded import checks remain valid in their narrower scope.

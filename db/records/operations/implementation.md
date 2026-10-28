@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T07:34:04.928831+00:00
+updated: 2026-10-28T13:47:17.734052+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -17,6 +17,13 @@ every requirement or supported hardware profile has passed.
 This remains a development build. The preserved Slotstream app is the baseline;
 the separate native preview uses the Python-free Swift adapter and pinned Splash
 C++/Metal. Native adoption and automatic compaction remain gated.
+
+- Owner-confirmed contextual import is now a first-class startup and ongoing
+  capability in the specification. CSV/Excel roles depend on request/context;
+  supported Excel work must continue with reported structure/formula translation.
+  Current suffix-based saved-value table creation does not meet this expanded
+  contract. Phased implementation and IJ01-IJ10 are in
+  [[records/specs/contextual-import]]; inspection and next actions are logged below.
 
 - The app/ask loop now checks a proposed inventory direction in a separate local
   model response using current-request and original-source text. A missing quote,
@@ -42,10 +49,11 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   unqualified. Factual completion receipts confirm saved artifacts only.
 - Manual edits now remove stale copy-span metadata from the new version while
   retaining the original immutable provenance and edit lineage. Native documents
-  expose Copied passages and exact original-version navigation. The 18 document
-  checks and native package/CLI checks pass at b165e14; visible navigation, Back,
-  narrow-window and assistive-technology qualification remain pending. The latest
-  UI attempt still reported the Mac locked after the owner said it was unlocked.
+  expose Copied passages and exact original-version navigation. A focused visible
+  text-source navigation/Back and 820-point minimum-width check now passes after
+  owner unlock. Native accessibility link activation and keyboard correction also
+  pass. Spoken VoiceOver, broader formats/locators and uncoached usability remain
+  unqualified. The current document suite has 27 passing groups.
 - Schema 6 now adds bounded shared wiki/Markdown body parsing, incremental coverage,
   deduplicated incoming/outgoing discovery and a rebuildable backlink projection.
   Saved choices remain authoritative; names do not rebind after creation or rebuild.
@@ -56,7 +64,7 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   discovery and guarded extraction publication. The focused checkpoint below passes
   132 core, 27 document, 24 body-CLI and 26 extracted-CLI checks. The native reader
   and bounded scoped agent slice have focused evidence below. Embedded hyperlinks,
-  general text/voice span authoring, visible accessibility and complete
+  general text/voice span authoring, full accessibility and complete
   L01-L14/LJ01-LJ10 remain unfinished. Partial coverage and metadata discovery
   do not establish absence, citation eligibility, business facts or acceptance.
 
@@ -4626,3 +4634,144 @@ It retains 48 diagnostic logs, both material native failures and final complete
 responses, the final native-run identity, final source/product hashes and all
 96 unchanged prior evidence hashes. Receipt validation precedes this link; the
 final store/link gates are rerun after attaching it.
+
+
+## Visible reference usability and keyboard repair, October 28
+
+Continues 518e92f after the owner reported ready. The native UI tool can now access
+the unlocked preview. This checkpoint changes only the native UI; schema 7,
+shared tools/core, model protocol, engine and grammar remain unchanged. Earlier
+Mac-lock observations remain historical evidence, not the current blocker.
+
+Actual UI checks exposed missing keyboard selection in the link list and unreliable
+activation of synthesized attributed-text accessibility links. The final reader
+keeps selectable visual text and supplies ordinary accessibility link controls over
+the same saved occurrences. A scoped selectable list opens the selected outgoing
+link or incoming mention with Return. Workbook menu actions and Command+Shift+L
+open links for the focused workbook/current item. Command+Option+E and named
+controls open correction for the selected editable occurrence. Stale absent
+selections cannot activate. These additions do not create model evidence or change
+business acceptance.
+
+Destination search hides results/cursors from other queries, clears selection on
+query changes and refuses selection of an invisible result. Down selects an exact
+visible result, Return saves only the explicit selection, and empty Return makes
+no choice. Initial focus is provided by a small AppKit field attached to its own
+sheet window. Its delegate is detached on teardown and a delayed focus request
+checks that the field still belongs to that window. No global input/settings change
+or extra permission was needed.
+
+Agent-operated native observations use only copied synthetic workbooks:
+
+- Readable body links open through their actual native accessibility control. The
+  corrected extracted Conditions pin opens the weekdays original rather than the
+  stale raw holidays URI. Open newer version opens weekends; Command+[ returns
+  through the earlier edition and file. Final source repeats that route.
+- Typed Show links and Where is this mentioned? open the correct shell views without
+  inference. A 25-origin fixture plus one historical file pin produces 20/6 incoming
+  pages; Previous restores page 1. Exact-current scope produces 20/5, excluding the
+  historical pin. Keyboard selection/Return opens the selected incoming origin.
+  These counts precede the later two intentional link corrections.
+- The final keyboard correction path starts with Command+Shift+L, Down,
+  Command+Option+E, automatic search focus, typing, Down and Return. The final field
+  also tolerates empty Return before typing. Source corrections retain original
+  labels/body bytes, publish the chosen live Intake overview destination and open
+  that saved target. CLI checks verify both corrected Sources, unchanged asset
+  hashes and pending Record, exact portable binding snapshots and three intact
+  workbooks (reference, restored and copy). A prior correction passed with a pointer
+  click to focus search; it did not qualify initial focus.
+- Copied passages expands in the draft, Open original passage 1 opens the exact
+  Unicode/CRLF text original, and Command+[ returns to the same draft. Final source
+  repeats the interaction. Business items compare exactly as decoded records
+  with the untouched fixture. The composed draft and disclosure fit the 820-point
+  minimum-width window with ordinary vertical scrolling. No horizontal clipping of
+  the inspected controls/prose was observed. Reading-offset restoration for long
+  text and PDF pages retains earlier offscreen evidence, not a new visible pass.
+
+Focused verification and retained failures are attached in the immutable receipt
+below. Document suite: 27 pass/0 fail. Preview suite: ten passing groups. Search UI
+suite: its stale/clear/cancel/page/Back/retry group passes. Native app/CLI/helper
+build and strict changed-Swift formatting pass. Package/resource checks pass with
+build-tree access denied, 1888 kernels, no baseline symbols, missing-model guidance
+and failed-run preservation, ten missing and one altered resource refused, and
+strict signature. There are no shared model/schema changes, so unchanged core and
+native grammar/model evidence is reused from the preceding checkpoint rather than
+claiming a new inference cohort. Full store and repository links close this change.
+
+Preserved failed UI attempts: initial list Down/Return did not select/open;
+accessibility actions/grouping alone left merged text or an ineffective synthesized
+link press; a selected-text secondary action worked but was insufficient. An
+explicit accessibility representation fixes the final control. SwiftUI task focus
+and later defaultFocus still left the new destination sheet unfocused; the AppKit
+field's final attach focus passes with no pointer click. All development builds
+succeeded; their logs are retained. Earlier intermediate source/binary bytes were
+not captured before replacement, so final hashes bind final qualification only.
+
+The pass also reveals technical annotation Sources cluttering Recent work and
+owner destination search. Correct that normal business-view query boundary next
+without deleting evidence or removing explicit owner inspection. General text/voice
+linking and arbitrary span selection remain planned in the reference spec. Spoken
+VoiceOver, new spoken shell commands, wider formats/embedded hyperlinks, LJ10
+retrieval comparisons, conversation-origin copies, semantic event identity,
+production context/compaction, J11, whole-app memory/hardware, fresh installation,
+main integration and release remain open. No whole-app completion, performance,
+engine-adoption, hosted CI or release claim is made. The application goal is not
+complete.
+
+See [[records/specs/references-and-relationships]],
+[[records/specs/document-composition]], [[records/operations/build-and-run]] and
+[[records/reviews/design-passes]].
+
+
+
+Immutable receipt: [native reference usability](../../../integration/evidence/2026-10-28-native-reference-usability.json.gz),
+14,828 bytes, SHA-256 `24afa76d25133eb9dcd2fe8cb447fac897c420e4cf0707efe971a3f4834449df`. It binds final native source/products,
+21 diagnostics and all 97 unchanged prior evidence files. It retains summarized
+agent-operated native observations, synthetic final invariants, failed UI attempts
+and explicit limits. No new raw AX/screenshot archive is claimed. Store/link checks
+are rerun after attaching this receipt.
+
+
+## Contextual import and Excel continuity adopted, October 28
+
+Received owner-confirmed requirements through the authorized side-conversation
+relay. Preserved them in
+[[sources/notes/2026/10/contextual-import-and-excel-continuity]] and reconciled
+product, search, storage, intelligence and reading order with
+[[records/specs/contextual-import]]. No imported file determines its own role.
+One capability must serve both start-from-existing-information and ongoing intake;
+voice/text remain central, with discoverable native entries, drag/drop and supported
+range paste. Illustrative labels are not final owner-selected copy.
+
+Inspected current app/core/CLI before assessing delivery: SpaceView has Home Add
+files, WorkbookView has a persistent plus menu/file drop, Workbook menu and exact
+composer commands reach importPanel/importFiles. Welcome has create/open/example
+only. WorkspaceState.importFiles and CLI import choose automatic new-table conversion
+by CSV/TSV/XLSX suffix. CSV assumes a header; XLSX preserves cached rows, original
+row numbers and formula text as worksheet evidence, not functioning formulas,
+cross-sheet dependencies, native table definitions, named ranges or useful styles.
+Current table paste is bounded cell editing; it is not general range intake.
+The local calculator's column formulas and single-dataset A1 reads do not repair
+these continuity gaps. No new importer capability was implemented in this pass.
+
+The new I01-I12 contract and IJ01-IJ10 acceptance cover startup and ongoing inputs,
+all contextual roles, ambiguous target/mode/mapping, preserved coordinates/formulas,
+cached versus recalculated values, advanced/legacy limits, safe retries and honest
+model completion. Microsoft primary format documentation confirms formula and
+cached-value separation; engineering choices and support scope are our decisions.
+Original file assets remain outside SQLite inside the workbook unless explicitly
+linked. This does not change existing Source/Record or business-effect acceptance.
+
+Next implementation sequence: after the saved-reference technical-noise query
+correction already identified above, separate shared capture/inspection from
+conversion and add persisted role/result state. Then connect startup/ongoing native
+entries and CSV roles, reviewed updates and range paste, bounded Excel structure/
+dependency translation, and finally agent/CLI/skill equivalence and visible native
+qualification. Do not add a cosmetic Start from file control over the unconditional
+converter and call that complete. Reuse unchanged checks; qualify each concrete
+boundary and a nearby counterexample. All expanded intake phases remain pending;
+existing preserved import evidence proves only its original narrower checks.
+
+The unchanged engine and broad release/whole-app gates remain open. The app goal
+is not complete. This checkpoint changes specifications and work ordering only for
+intake; the concurrent native link usability repair is described separately above.
