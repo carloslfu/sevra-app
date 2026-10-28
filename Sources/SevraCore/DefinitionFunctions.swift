@@ -139,6 +139,21 @@ extension Workbook {
     return resolved
   }
 
+  func validateDefinitionItemReferences(_ parameter: DefinitionParameter, _ value: Value) throws {
+    if parameter.type == "entries", value != .null {
+      for row in value.array {
+        for field in parameter.fields {
+          if let nested = row.object[field.id] {
+            try validateDefinitionItemReferences(field, nested)
+          }
+        }
+      }
+    }
+    if parameter.type == "item", value != .null {
+      try require(
+        try item(value.text).id == value.text, "definition_input", "Use exact local item versions.")
+    }
+  }
   func definitionArguments(_ descriptor: DefinitionDescriptor, _ value: Value) throws -> [String:
     Value]
   {
@@ -157,11 +172,7 @@ extension Workbook {
         continue
       }
       let normalized = try parameter.normalize(supplied)
-      if parameter.type == "item", normalized != .null {
-        try require(
-          try item(normalized.text).id == normalized.text, "definition_input",
-          "Use an exact local item version, not a live logical ID.")
-      }
+      try validateDefinitionItemReferences(parameter, normalized)
       result[parameter.id] = normalized
     }
     return result
@@ -189,6 +200,7 @@ extension Workbook {
         }
         try require(
           source.type == parameter.type && source.unit == parameter.unit
+            && (source.type != "entries" || source.signature == parameter.signature)
             && (source.type != "choice"
               || Set(source.choices).isSubset(of: Set(parameter.choices))),
           "definition_unit", "Caller and callee parameter types/units/choices must match.")
@@ -198,11 +210,7 @@ extension Workbook {
           o["parameter"] == nil && o["unit"] == parameter.unit.map(Value.string),
           "definition_unit", "A literal mapping must state the target unit exactly.")
         mapped = try parameter.normalize(literal)
-        if parameter.type == "item", literal != .null {
-          try require(
-            try item(literal.text).id == literal.text, "definition_input",
-            "Literal references need exact local item versions.")
-        }
+        try validateDefinitionItemReferences(parameter, literal)
       } else {
         throw SevraError("definition_input", "Map a parameter or a literal explicitly.")
       }

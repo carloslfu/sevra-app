@@ -10,6 +10,9 @@ extension Workbook {
       try db.budget(cancellation: control, seconds: 3) {
         try db.readTransaction {
           let definition = try applicationDefinition(id)
+          try require(
+            ["function", "query"].contains(definition.kind), "definition_kind",
+            "Actions and forms require explicit preview and invocation, not pure evaluation.")
           let descriptor = try DefinitionDescriptor(definition.content)
           let supplied = try definitionArguments(descriptor, arguments)
           let state = DefinitionEvaluation(control)

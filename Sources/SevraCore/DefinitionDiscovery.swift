@@ -7,8 +7,9 @@ extension Workbook {
     limit: Int = 20, cursor: String? = nil, cancellation: Cancellation = .init()
   ) throws -> Value {
     try require(
-      (1...50).contains(limit) && (kind == nil || ["function", "query"].contains(kind!)),
-      "definition_limit", "Use function/query scope and a page limit from 1 to 50.")
+      (1...50).contains(limit)
+        && (kind == nil || ["function", "query", "action", "form"].contains(kind!)),
+      "definition_limit", "Use function/query/action/form scope and a page limit from 1 to 50.")
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
     return try synchronized(cancellation: control) {
       try db.budget(cancellation: control, seconds: 3) {
@@ -153,6 +154,56 @@ extension Workbook {
             _ = try mapDefinitionCall(
               call, caller: descriptor, target: DefinitionDescriptor(target.content),
               arguments: nil, validateOnly: true)
+          }
+        } else if saved.kind == "action" || saved.kind == "form" {
+          let bindings = try definitionBindings(descriptor)
+          try require(
+            dependencies.count == bindings.count, "definition_integrity",
+            "Missing action/form dependencies.")
+          for (index, binding) in bindings.enumerated() {
+            let dependency = dependencies[index]
+            let target = try applicationDefinition(dependency["target_version"].text)
+            try require(
+              dependency["ordinal"].int == index && dependency["kind"].text == "definition"
+                && dependency["mode"].text == binding.mode
+                && target.id == dependency["target_version"].text
+                && target.logicalID == dependency["target_logical"].text
+                && (binding.mode == "live" ? target.logicalID : target.id) == binding.target,
+              "definition_integrity",
+              "Saved action/form binding differs from its retained dependency.")
+            if saved.kind == "form" {
+              try validateForm(DefinitionForm(descriptor), descriptor: descriptor, action: target)
+            } else {
+              let action = try DefinitionAction(descriptor)
+              let call = try action.calls[index]
+              let targetDescriptor = try DefinitionDescriptor(target.content)
+              let parameter = action.target.parameters.first { $0.id == call.alias }
+              try require(
+                target.kind == "function" && parameter?.type == "decimal"
+                  && (try DefinitionFunction(targetDescriptor)).unit == parameter?.unit,
+                "definition_integrity", "Computed action input has the wrong type or unit.")
+              _ = try mapDefinitionCall(
+                call, caller: descriptor, target: targetDescriptor, arguments: nil,
+                validateOnly: true)
+            }
+          }
+          if saved.kind == "action" {
+            let action = try DefinitionAction(descriptor)
+            let calls = try action.calls
+            var plain = action.arguments.filter { $0.value.object["function"] == nil }
+            for call in calls {
+              let parameter = action.target.parameters.first { $0.id == call.alias }!
+              var literal: [String: Value] = ["literal": parameter.sample]
+              if let unit = parameter.unit { literal["unit"] = .string(unit) }
+              plain[call.alias] = .object(literal)
+            }
+            let dummy = DefinitionFunction.Call(
+              alias: "primitive",
+              binding: try DefinitionBinding(
+                .object(["mode": .string("exact"), "versionID": .string(saved.id)])),
+              arguments: plain)
+            _ = try mapDefinitionCall(
+              dummy, caller: descriptor, target: action.target, arguments: nil, validateOnly: true)
           }
         } else {
           _ = try resolvedDefinitionQuery(

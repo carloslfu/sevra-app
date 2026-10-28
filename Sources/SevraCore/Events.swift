@@ -74,8 +74,24 @@ extension Workbook {
   @discardableResult public func movement(
     subject: String, quantity: String, occurrence: String, effective: String, input: String,
     meaning: String = "actual", status: String = "draft", supersedes: String? = nil,
-    token: String = identifier(), requestSourceID: String? = nil
+    token: String = identifier(), requestSourceID: String? = nil,
+    cancellation: Cancellation = .init(), actor: ChangeActor? = nil
   ) throws -> Item {
+    let request = try movementRequest(
+      subject: subject, quantity: quantity, occurrence: occurrence, effective: effective,
+      input: input, meaning: meaning, status: status, supersedes: supersedes,
+      requestSourceID: requestSourceID)
+    let result = try mutation(
+      "movement", token: token, request: request, cancellation: cancellation, actor: actor
+    ) { .string(try self.insertMovement(request)) }
+    return try item(result.text)
+  }
+
+  func movementRequest(
+    subject: String, quantity: String, occurrence: String, effective: String, input: String,
+    meaning: String = "actual", status: String = "draft", supersedes: String? = nil,
+    requestSourceID: String? = nil
+  ) throws -> Value {
     let effective = try BusinessTime.normalized(effective)
     try require(
       !subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !occurrence.isEmpty,
@@ -86,51 +102,74 @@ extension Workbook {
       "effective": .string(effective), "input": .string(input), "meaning": .string(meaning),
       "status": .string(status), "supersedes": supersedes.map(Value.string) ?? .null,
     ]
-    // Preserve legacy idempotency bytes when no host request accompanies a call.
     if let requestSourceID { fields["requestSourceID"] = .string(requestSourceID) }
-    let request = Value.object(fields)
-    let result = try mutation("movement", token: token, request: request) {
-      if let requestSourceID {
-        let source = try item(requestSourceID)
-        try require(
-          source.category == "source" && source.kind == "request", "movement_request",
-          "The movement request must reference its captured user submission.")
-      }
-      let previous = try supersedes.map { try item($0) }
-      if let previous {
-        try require(
-          previous.kind == "movement" && previous.data["subject"].text == subject
-            && previous.data["occurrence"].text == occurrence,
-          "movement_revision", "A correction must keep the same inventory subject and occurrence.")
-      }
-      let logical = previous?.logicalID
-      let existing = try db.execute(
-        "SELECT DISTINCT i.logical_id FROM effects e JOIN items i ON i.id=e.item_id WHERE e.occurrence=? AND e.subject=? AND e.kind='inventory'",
-        [.string(occurrence), .string(subject)])
+    return .object(fields)
+  }
+
+  /// The same read-only domain preconditions serve preview and transactional publication.
+  func validateMovement(_ request: Value) throws {
+    let subject = request["subject"].text
+    let occurrence = request["occurrence"].text
+    let input = try item(request["input"].text)
+    try require(input.id == request["input"].text, "movement_input", "Use exact local evidence.")
+    if let requestID = request["requestSourceID"].string {
+      let source = try item(requestID)
       try require(
-        existing.isEmpty
-          || (logical != nil && existing.allSatisfy { $0["logical_id"]?.text == logical }),
-        "duplicate_effect",
-        "This business occurrence already has an inventory effect. Add supporting evidence or correct its existing record."
-      )
-      let id = try insertItem(
-        category: "record", kind: "movement", title: "\(subject): \(quantity)",
-        text: "\(quantity) inventory movement for \(subject)", data: request, meaning: meaning,
-        status: status, scenario: meaning == "actual" ? "actual" : "planning",
-        inputs: Array(
-          Set([input] + (supersedes.map { [$0] } ?? []) + (requestSourceID.map { [$0] } ?? []))
-        ).sorted(),
-        transformation: "inventory-movement-v1",
-        supersedes: supersedes)
-      try db.execute(
-        "INSERT INTO effects VALUES(?,?,?,?,?,?)",
-        [
-          .string(occurrence), .string(subject), .string("inventory"), .string(id),
-          .string(quantity), .string(effective),
-        ])
-      return .string(id)
+        source.id == requestID && source.category == "source" && source.kind == "request",
+        "movement_request", "The movement request must reference its captured user submission.")
     }
-    return try item(result.text)
+    let previous = try request["supersedes"].string.map(item)
+    if let previous {
+      try require(
+        previous.id == request["supersedes"].text, "movement_revision",
+        "A correction needs the exact movement version.")
+      try require(
+        previous.kind == "movement" && previous.data["subject"].text == subject
+          && previous.data["occurrence"].text == occurrence,
+        "movement_revision", "A correction must keep the same inventory subject and occurrence.")
+      try require(
+        try item(previous.logicalID).id == previous.id, "stale_revision",
+        "This record has a newer version.")
+    }
+    let existing = try db.execute(
+      "SELECT DISTINCT i.logical_id FROM effects e JOIN items i ON i.id=e.item_id WHERE e.occurrence=? AND e.subject=? AND e.kind='inventory'",
+      [.string(occurrence), .string(subject)])
+    try require(
+      existing.isEmpty
+        || (previous != nil
+          && existing.allSatisfy {
+            $0["logical_id"]?.text == previous?.logicalID
+          }),
+      "duplicate_effect",
+      "This business occurrence already has an inventory effect. Add supporting evidence or correct its existing record."
+    )
+  }
+
+  /// Trusted callers already hold the canonical mutation transaction. Never nest mutations.
+  func insertMovement(_ request: Value, additionalInputs: [String] = []) throws -> String {
+    try validateMovement(request)
+    let subject = request["subject"].text
+    let quantity = request["quantity"].text
+    let meaning = request["meaning"].text
+    let supersedes = request["supersedes"].string
+    let id = try insertItem(
+      category: "record", kind: "movement", title: "\(subject): \(quantity)",
+      text: "\(quantity) inventory movement for \(subject)", data: request, meaning: meaning,
+      status: request["status"].text, scenario: meaning == "actual" ? "actual" : "planning",
+      inputs: Array(
+        Set(
+          [request["input"].text] + additionalInputs
+            + (supersedes.map { [$0] } ?? [])
+            + (request["requestSourceID"].string.map { [$0] } ?? []))
+      ).sorted(),
+      transformation: "inventory-movement-v1", supersedes: supersedes)
+    try db.execute(
+      "INSERT INTO effects VALUES(?,?,?,?,?,?)",
+      [
+        request["occurrence"], .string(subject), .string("inventory"), .string(id),
+        .string(quantity), request["effective"],
+      ])
+    return id
   }
   @discardableResult public func accept(
     _ id: String, token: String = identifier(), cancellation: Cancellation = .init(),

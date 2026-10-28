@@ -34,10 +34,10 @@ files remain unresolved without copied device paths or access bookmarks. Pending
 tool calls and runs remain inert; reconstruction never authorizes their execution.
 Keep the original and inspect the new workbook before replacing any working copy.
 
-## Reusable functions and queries
+## Reusable definitions
 
 Use `definition-search PATH QUERY [OPTIONS_JSON]` to discover saved application
-definitions. Options are kind (function/query), historical (Boolean), limit (1 to
+definitions. Options are kind (function/query/action/form), historical (Boolean), limit (1 to
 50) and cursor. An empty query lists definitions. Current heads are the default;
 historical search is explicit. Hits are discovery metadata, never permission to
 execute. Inspect exact content with `definition-read PATH LOGICAL_OR_VERSION_ID`
@@ -46,7 +46,7 @@ and retained bindings with `definition-dependencies PATH EXACT_VERSION_ID`.
 `definition-save PATH LOGICAL_UUID CONTENT_JSON BASE_ID_OR_NEW TOKEN [INPUTS_JSON]`
 creates with `new` or edits against the exact opened base UUID. Choose a new logical
 UUID for a new definition. Inputs are exact local authoring item IDs. Reuse tokens
-on retries. Unknown fields, arbitrary code/SQL and action/workflow kinds refuse.
+on retries. Unknown fields, arbitrary code/SQL and workflow/automation kinds refuse.
 `definition-history PATH LOGICAL_ID [BEFORE_VERSION]` pages retained versions;
 `definition-restore PATH LOGICAL_ID VERSION_ID BASE_ID TOKEN` saves a new version
 from history. A stale base preserves existing data; inspect again before deciding
@@ -81,7 +81,63 @@ schemas only while referenced stored-column meaning is compatible. Exact mode
 refuses after its bound schema changes. Both modes read current rows at the returned
 snapshot; exact schema mode is not a frozen business result. Use the outer
 evaluation's nextCursor unchanged. Changed definitions/queries/state refuse stale
-continuations. These CLI/core surfaces do not imply a new in-app model tool or form.
+continuations. These CLI/core surfaces do not imply a new in-app model tool.
+
+## Registered actions and recoverable forms
+
+Inspect `action-registry PATH` before authoring an action. Registered version 1
+primitives create local draft inventory movements only. They never accept business
+information, execute scripts or perform external effects. `inventory.receiveDelivery`
+requires an explicit delivery identity, effective date, exact evidence item and 1 to
+50 lines. Each line has line, subject and quantity. Line identities must be distinct;
+quantities are positive whole-number Decimal strings measured in discrete items.
+Ask when the receipt/current request does not establish that our stock received the
+items, the relevant date, delivery identity, counts or evidence. Do not invent new
+identities to bypass a duplicate refusal. Physical-unit conversion is unsupported.
+
+`receiving-template PATH` returns the ordinary action definition. Save it through
+`definition-save`. `form-template PATH ACTION_ID` returns a form referencing that
+action live, with its identical parameter signature. Save the form through the same
+versioned definition API. A form payload declares action binding and presentation
+fields; it cannot add independent effects. Native layout editing can add the receiving
+starter directly. A component uses type form and definitionBinding with a live logical
+ID or exact version ID. Forms cannot be frozen as result snapshots.
+
+Example receiving arguments:
+
+```json
+{"delivery":"receipt-001","effective":"2026-10-28","evidence":"EXACT_LOCAL_ITEM_ID","lines":[{"line":"1","subject":"bolts","quantity":"5"}]}
+```
+
+Call `definition-input-issues PATH ID ARGUMENTS_JSON` for bounded field-path errors.
+`action-preview PATH ACTION_OR_FORM_ID ARGUMENTS_JSON` validates and returns a
+read-only plan with exact definitions, normalized inputs, draft movements and a
+fingerprint. Keep that exact JSON for `action-invoke PATH ID ARGUMENTS_JSON
+PREVIEW_JSON TOKEN`. Invocation is a change and needs the current user's authority.
+Reusing the exact token and arguments returns the original receipt after later edits.
+Changed definitions refuse a stale preview; a new token cannot duplicate a delivery
+line. All lines, invocation Source and receipt commit atomically. Report saved draft
+proposals, never accepted stock or the semantic accuracy of interpreted evidence.
+
+Actions declare primitive {id,version} and explicit argument mappings. A mapping is
+a parameter, a literal with the target unit, or {function:BINDING,arguments:MAPPINGS}
+for a qualified pure Decimal function. Function output units must match the target.
+`inventory.proposeMovement` supports a signed nonzero whole item count, explicit
+occurrence/evidence/date/subject, meaning and optional exact corrected movement.
+Direction, correction identity and review rules are the same as direct movements.
+
+Form drafts are incomplete presentation state, outside business search/history.
+Use `form-draft-new PATH FORM_ID`, then `form-draft-save PATH KEY STATE_JSON
+EXPECTED_JSON`; null expects no existing draft. Read with `form-draft-read PATH KEY`.
+`form-draft-preview PATH STATE_JSON` checks the exact definitions opened with that
+draft. Raw incomplete inputs survive errors and reopen. Do not silently retarget a
+changed live action/function. A conflict retains both inputs only through explicit
+`--keep-both`, with at most eight alternatives. Never forge lastReceipt: it must
+match the saved invocation token, exact form and exact arguments. Native recovery
+reconciles a committed submission after a crash without submitting twice. Current
+draft checkpoints travel through portable export and inert reconstruction; keystrokes
+do not increment business revisions. These surfaces do not qualify in-app model
+authoring/invocation, workflows, schedules or release readiness.
 
 Structured datasets use managed native SQLite projections over retained immutable
 row versions and definitions. Continue to use managed commands; never edit the

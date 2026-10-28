@@ -346,6 +346,8 @@ struct NativeComponent: View {
       switch component.type {
       case "input", "reviews", "shortcuts", "tables", "intake", "recent":
         WorkbookSection(type: component.type, state: state)
+      case "form":
+        FormComponentView(component: component, workspace: state).id(state.interactionIdentity)
       case "text": Text(component.text ?? "").textSelection(.enabled).foregroundStyle(.secondary)
       case "comparison":
         ViewThatFits(in: .horizontal) {

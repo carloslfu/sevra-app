@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-28T20:31:52.288370+00:00
+updated: 2026-10-28T21:04:23.597777+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -12,6 +12,28 @@ October 28, 2026. Shared foundation for
 [[records/specs/persistence-readiness]], after the reviewed table-update slice.
 This inventories current schema/code, not cloud sync, workflow execution or the
 complete app release.
+
+## Schema14 action/form extension
+
+No new ordinary canonical family is introduced beyond schema13. Action/form content,
+heads and retained dependencies use the same captured definition tables. Invocation
+Sources, draft movements/effects and operations publish atomically through mutation;
+preview remains read-only. Events.insertMovement is the common transactional domain
+path for direct movement, forms and CLI registry execution. No duplicate effect path.
+
+`form-draft:` meta is explicitly classified portable presentation. FormDrafts saves
+raw incomplete inputs and exact bound definitions with compare-before-save and
+optional Keep both. A last receipt must match its actual invocation token, exact
+form and submitted arguments. Reconstruction copies the current checkpoint separately
+with conversation/navigation state, validates it and executes nothing. No keystroke
+history, Source admission or search indexing. FormDraftSession/Scope serializes native
+writes and participates in close/quit/workbook-switch flushing and crash reconciliation.
+
+[registered action and form receipt](../../../integration/evidence/2026-10-28-registered-actions-forms.json.gz). Broad core217/shared harnesses, final packaged two-writer race,
+publication fault, max50 lines, exact retries/actor/lineage, stale bindings, incomplete
+input, concurrent alternatives and inert/portable reopening have scoped proof. The
+Mac remains locked for visible native form/VoiceOver qualification. New model tools,
+workflow/automation state and full FJ/EJ/release still require separate qualification.
 
 ## Current schema13 application definitions
 
@@ -131,14 +153,14 @@ inspection reads small saved metadata instead of loading complete payloads.
 | Extracted evidence | Saved chunks, locators, parser/state/detail/time; immutable file-reference input regions/hashes retain replaced extraction. | `Extractor`, `Search.index`, `FileReferenceWrites`. Saved outputs replay without extraction. Worker attempt claims excluded. |
 | Tables/formulas/order | Immutable row versions and complete causal dataset definitions, stable membership/order and registered native projections; the same committed journal includes schema descriptors, projection rows and typed reset markers. | `Tables`, `Intake`, `XLSX`, `TableIntakePublication/Undo`, `TableProposals`. Existing checked apply/Undo/redo. Mapping form drafts remain an open UX gap. |
 | Inventory/decisions | Opening basis/source/effective time; occurrence/subject/kind effects; actor, exact accepted/withdrawn/restored outcomes. | `Events`, `DraftWithdrawal`, `Tables`, `TableIntakeUndo`. Explicit native human review; programmatic default; model tools stay draft-limited. |
-| Application definitions | Immutable definitions, selected heads, retained exact/live dependency bindings and authoring Sources. FTS is disposable. | `ApplicationDefinitions`, `DefinitionFunctions/Queries/Evaluation/Discovery`; exact-base save/restore, read-only evaluation, typed dependency checks, atomic failure and inert replay. Shared action/form/automation state remains open. |
+| Application definitions | Immutable definitions, selected heads, retained exact/live dependency bindings and authoring Sources. FTS is disposable. | `ApplicationDefinitions`, `DefinitionFunctions/Queries/Evaluation/Discovery`; exact-base save/restore, read-only evaluation, typed dependency checks, atomic failure and inert replay. Schema14 action/form execution reuses Events/ActionExecution. Workflow/automation state remains open. |
 | Receipts | Complete request/result, ID/kind/time/revision, atomic with changed values. | `Workbook.mutation`. Matching retries add no change; changed arguments or explicit decision actor refuse. |
 | Conversation | Bodies/payloads, exact message IDs/order, tangent parents/names, chapters/bookmarks. | `Spaces`, `ConversationNavigation/Actions`, `Runs`, `RequestHandoff`. Physical message row IDs preserve current transcript order. |
 | Tools/runs/context | Exact arguments/output/hash/prepared state, model/status/metrics/times; checkpoint summaries/ranges/inputs/parents. | `ToolReceipts`, `Runs`, `RequestHandoff`, `ConversationContext`. Replay never executes prepared calls or resumes/regenerates runs/summaries. |
 | Spaces/documents | Versioned definitions, pinned snapshots and exact composition evidence. | `Spaces`, `ComponentData`, `Documents`, `DocumentComposition`. Current and historical versions captured. |
 | References | Immutable annotation sets/predecessors/targets/locators/inputs; heads/index/coverage materializations. | `ReferenceWrites/Index`, `FileReferenceWrites`, `Search.index`. Captured exactly, with existing deterministic rebuild/validation. Broader projection-elision optimization is unimplemented. |
 | Intake | Selected source/use, reports/outcomes/dataset IDs, failure/cancel details/times. Attempt tokens are worker claims. | `ContextualIntake`, `Intake`, `TableIntakePublication`; progress meta also captured. Attempt field becomes null in portable changes. |
-| Presentation | Current portable checkpoint of draft alternatives/reading positions and space pins/recents. No business revision or semantic admission. | `ConversationViewState`, `SpaceNavigationState` via `presentationMutation`. Values copied separately; no keystroke journal. |
+| Presentation | Current portable checkpoint of draft alternatives/reading positions, space pins/recents and incomplete form drafts/bindings/receipts. No business revision or semantic admission. | `ConversationViewState`, `SpaceNavigationState`, `FormDrafts` via `presentationMutation`. Values copied separately; no keystroke journal. |
 | Search | Chunks are retained evidence. Four FTS indexes/shadows are disposable. | `Search.rebuildSearch`; reconstruction rebuilds all FTS from saved messages/chunks/definitions, without FTS shadows in changes. |
 | Device execution/access | Locks/staging, extraction attempt table, intake attempts, bookmarks/linked paths, model installs, recent-workbook/last-conversation UserDefaults. | `Workbook/Database`, `Extractor`, `Assets/URLCapture`, native/product setup. No copied grants or claims become portable authority. Pending outcome rows stay inert history. |
 | Export/copies | Coherent DB snapshot plus all included historical dependencies. | `Archive.export/openArchive`, `AssetCopies`, CSV export, reconstruction. Outward file/CSV exports are outputs, not new canonical mutations. |
@@ -257,3 +279,23 @@ This is the next storage prerequisite before dependent E2/E3 dataset/action/work
 persistence, after any coherent in-flight checkpoint. Update this inventory with
 actual paths and scoped evidence as implemented. Existing passing receipts are not
 proof of the new target; no new runtime qualification is claimed by this note.
+
+
+## Final form identity review, October 28
+
+A draft key now hashes the structured space/component ID pair. Delimiter-containing
+IDs cannot alias two components, and maximum-length legal IDs remain within the key
+budget. Native view ownership also resets with the workbook interaction identity;
+the window-owned scope retains the proper draft across Back and refuses to carry
+one workbook's session into another. Focused native-session counterexamples pass,
+along with the rebuilt native package paths/resources/signature checks, packaged CLI
+action/race/portable/reconstruction probe and strict lint of 27 Swift files.
+
+[form identity correction receipt](../../../integration/evidence/2026-10-28-form-draft-identity.json.gz): 11,074 bytes, SHA-256
+`bdda49a349db48f6371cc83d077ddfbeee6d5715b71d2f63ffcf0a3c34ad7b3f`.
+All 108 preceding receipt files remain byte-identical, including the earlier action/
+form foundation receipt. That earlier receipt retains its original source/binary
+hashes. Its broad core217/shared checks are reused; the small identity correction
+has focused proof rather than a claimed broad rerun. A first lint invocation lacked
+swift-format on PATH; the documented xcrun invocation passes. Visible native UI,
+agent invocation, complete E2-E6 and release gates remain open.

@@ -92,7 +92,7 @@ enum ChangeFormat {
     }
   }
   static func isPresentation(_ key: String) -> Bool {
-    key == "space-navigation" || key.hasPrefix("conversation-view:")
+    key == "space-navigation" || key.hasPrefix("conversation-view:") || key.hasPrefix("form-draft:")
   }
   static func portable(_ row: ChangeRow?, table: String) -> ChangeRow? {
     guard let row else { return nil }

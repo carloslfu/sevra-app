@@ -1,6 +1,9 @@
 import Foundation
 
 extension Workbook {
+  public func boundApplicationDefinition(_ binding: Value) throws -> ApplicationDefinition {
+    try synchronized { try resolveDefinition(DefinitionBinding(binding)) }
+  }
   public func applicationDefinition(_ id: String) throws -> ApplicationDefinition {
     try synchronized {
       guard
@@ -134,11 +137,11 @@ extension Workbook {
             .string("application-definition-authoring-v1"),
           ])
       }
-      if descriptor.kind == "function" {
-        for call in try DefinitionFunction(descriptor).calls {
-          let target = try resolveDefinition(call.binding)
+      if descriptor.kind != "query" {
+        for binding in try definitionBindings(descriptor) {
+          let target = try resolveDefinition(binding)
           try dependency(
-            "definition", mode: call.binding.mode, logical: target.logicalID, version: target.id,
+            "definition", mode: binding.mode, logical: target.logicalID, version: target.id,
             input: target.sourceID)
         }
       } else {
@@ -174,15 +177,22 @@ extension Workbook {
     try state.enter(definition, depth: depth)
     defer { state.active.remove(definition.id) }
     let descriptor = try DefinitionDescriptor(definition.content)
-    for parameter in descriptor.parameters where parameter.type == "item" {
+    for parameter in descriptor.parameters {
       if let value = parameter.defaultValue, value != .null {
-        try require(
-          try item(value.text).id == value.text, "definition_input",
-          "Default references need exact local item versions.")
+        try validateDefinitionItemReferences(parameter, value)
       }
     }
     if descriptor.kind == "query" {
       _ = try resolvedDefinitionQuery(descriptor, arguments: [:], samples: true)
+    } else if descriptor.kind == "form" {
+      let form = try DefinitionForm(descriptor)
+      let target = try resolveDefinition(form.binding)
+      try validateForm(form, descriptor: descriptor, action: target)
+      try validateDefinitionGraph(target, state: state, depth: depth + 1)
+    } else if descriptor.kind == "action" {
+      _ = try validateActionMapping(
+        DefinitionAction(descriptor), caller: descriptor,
+        state: state, arguments: nil, depth: depth)
     } else {
       for call in try DefinitionFunction(descriptor).calls {
         let target = try resolveDefinition(call.binding)

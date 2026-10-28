@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T20:31:52.443171+00:00
+updated: 2026-10-28T20:54:34.706985+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1466,7 +1466,7 @@ No new native query editor or in-app model tool is implied by these CLI commands
 
 ## Saved application functions and queries
 
-Current schema13 workbooks support `definition-save`, `definition-read`,
+Current schema14 workbooks carry the earlier pure-definition support: `definition-save`, `definition-read`,
 `definition-history`, `definition-restore`, `definition-dependencies`,
 `definition-search` and read-only `definition-evaluate`. Run `sevra help` and read
 skills/sevra/SKILL.md for typed examples, parameter/literal mappings and live/exact
@@ -1486,4 +1486,37 @@ inert reconstruction and portable reopen. Its JSON separates core timings from
 packaged CLI process/open observations. Current synthetic 10,001-definition corpus
 passes; see [application definition receipt](../../../integration/evidence/2026-10-28-application-definitions.json.gz). These commands do not expose a native
 form/definition editor or new in-app model tool. Old development workbooks are
-preserved unsupported; create selected fresh synthetic fixtures for schema13.
+preserved unsupported; create selected fresh synthetic fixtures for schema14.
+
+
+## Registered draft actions and native receiving form
+
+Use current schema14 fixtures. `action-registry` exposes trusted native primitive
+versions, typed inputs/results, effect/capability, deadline and retry semantics.
+`receiving-template` and `form-template` return ordinary definitions for versioned
+saving. See skills/sevra/SKILL.md for exact receiving arguments, preview/invocation,
+function bindings and recoverable `form-draft-*` commands. A saved proposal remains
+a draft. No stock change until explicit separate review/acceptance.
+
+~~~sh
+python3 scripts/check_application_actions.py --cli output/native/bin/sevra --output .build/NEW-action-cli.json --keep .build/NEW-action-fixture
+~~~
+
+The keep directory must not exist. The script creates synthetic receiving evidence,
+action/form definitions, a native form-bound space, separate-process racing submits,
+exact retries, incomplete/conflicting presentation checkpoints, inert reconstruction
+and a portable round trip. Existing fixtures are never migrated or overwritten.
+
+In the native preview, open a fresh current-format workbook, choose Edit layout,
+Add section, Receive delivery form, then Save layout. The starter definitions are
+saved ordinary catalog objects; the chosen component is added only on layout save.
+Select evidence, enter the observed delivery/date/line counts, Preview, then Save
+draft proposals. Review drafts separately. Add/remove line and Back preserve inputs.
+Changed live definitions require explicit refresh; Keep both handles a competing
+window. Crash-after-commit recovery finds the exact saved receipt rather than
+resubmitting. The automated session proof passes, but the locked Mac prevented the
+visible keyboard/VoiceOver/new-form qualification. No such result is claimed.
+
+The broad schema14 check passed with core217 before a final registry result-schema
+metadata refinement. Focused final installed CLI/package checks cover that refinement.
+See [registered action and form receipt](../../../integration/evidence/2026-10-28-registered-actions-forms.json.gz) and [[records/operations/implementation]].

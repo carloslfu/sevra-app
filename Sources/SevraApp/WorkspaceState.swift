@@ -66,6 +66,7 @@ import SwiftUI
   weak var activePreview: AssetPreviewSession?
   let documentDrafts = DocumentDraftScope()
   let conversationSession = ConversationSession()
+  let formDrafts = FormDraftScope()
   @Published private(set) var changingConversation = false
   @Published var readingRequest = UUID()
   private var restoringConversation = false
@@ -132,6 +133,10 @@ import SwiftUI
     try require(
       documentDrafts.flush(), "document_save",
       "Save or preserve the current draft before opening another workbook.")
+    let formsSaved = await formDrafts.flush()
+    try require(
+      formsSaved, "form_draft_save", "Save or preserve form drafts before opening another workbook."
+    )
     speech.stop()
     let restored = await conversationSession.open(
       opened,
@@ -140,6 +145,7 @@ import SwiftUI
     try require(
       restored, "conversation_save",
       conversationSession.failure ?? "Could not restore the conversation draft.")
+    _ = await formDrafts.open(opened)
     await spaceNavigation.open(opened)
     endInteraction()
     workbook = opened
@@ -189,6 +195,7 @@ import SwiftUI
     refresh()
   }
   init() {
+    formDrafts.changed = { [weak self] in self?.objectWillChange.send() }
     spaceNavigation.changed = { [weak self] in self?.objectWillChange.send() }
     spaceNavigation.failed = { [weak self] in self?.error = $0 }
     conversationSession.changed = { [weak self] in self?.objectWillChange.send() }
@@ -1149,7 +1156,8 @@ import SwiftUI
     guard !changingConversation, documentDrafts.flush() else { return false }
     let saved = await conversationSession.flush()
     await spaceNavigation.flush()
-    return saved && documentDrafts.flush()
+    let formsSaved = await formDrafts.flush()
+    return saved && formsSaved && documentDrafts.flush()
   }
   func restoreSavedConversationDraft(_ id: String) {
     guard !changingConversation else { return }

@@ -246,6 +246,7 @@ extension Workbook {
           "INSERT INTO definition_fts(definition_fts,rank) VALUES('integrity-check',1)")
         try verifyManagedDatasets()
         try verifyApplicationDefinitions()
+        try verifyFormDrafts()
         try verifySpaces()
         try verifyContextCheckpoints()
         try verifyToolCalls()

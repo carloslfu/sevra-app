@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-28T20:31:52.349460+00:00
+updated: 2026-10-28T21:04:23.635265+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -120,9 +120,9 @@ bindings, bounded FTS discovery and exact dependency inspection. All canonical
 families inherit the same capture/inert replay. Authoring is observed metadata;
 business review remains separate. See [[records/specs/application-definitions]],
 [application definition receipt](../../../integration/evidence/2026-10-28-application-definitions.json.gz) and [[records/operations/implementation]].
-This is a scoped E2 foundation. Shared action registry, form drafts, result publication,
-native composition bindings, model authoring/invocation and full EJ04/EJ05 remain
-open. The native visual launch attempt was blocked by the locked Mac. Unchanged
+This is a scoped E2 foundation. The registry/draft/native-form foundation now has schema14 scoped automated proof
+below. Result publication, query/function composition, model authoring/invocation and
+full EJ04/EJ05 remain open. The native visual launch attempt was blocked by the locked Mac. Unchanged
 prior native UI evidence is not a new-format proof. E3-E6 remain unimplemented.
 
 ## Home and spaces
@@ -606,3 +606,40 @@ correction and recovery. Record time/effort, interventions, errors, lineage,
 resource use and workflow expressiveness. Add another distinct user workflow
 before claiming a general application engine. No claim of being more powerful
 than Excel is justified by a single attractive demonstration.
+
+
+## E2 registered inventory actions and receiving forms
+
+Schema14 implements the first shared draft inventory registry, pure preview/exact
+submission guard, immutable action/form bindings and recoverable native form sessions.
+Home/space editing can add the receiving starter. Native fields select exact evidence,
+retain incomplete values and show field errors/preview/submitted proposal status.
+All movements use the existing domain validator/executor. Form checkpoints are
+classified presentation copied inertly, not a second journal or business evidence.
+See [[records/specs/application-definitions]] and [registered action and form receipt](../../../integration/evidence/2026-10-28-registered-actions-forms.json.gz).
+
+Automated core/CLI/native-session, independent writer, crash reconciliation, portable
+and reconstruction proof is scoped. The Mac is locked, so visible new-form/keyboard/
+VoiceOver/light-dark/narrow qualification remains open. Chat/model invocation,
+result publication and query/function composition remain E2 work; E3-E6 is not
+implemented by this foundation.
+
+
+## Final form identity review, October 28
+
+A draft key now hashes the structured space/component ID pair. Delimiter-containing
+IDs cannot alias two components, and maximum-length legal IDs remain within the key
+budget. Native view ownership also resets with the workbook interaction identity;
+the window-owned scope retains the proper draft across Back and refuses to carry
+one workbook's session into another. Focused native-session counterexamples pass,
+along with the rebuilt native package paths/resources/signature checks, packaged CLI
+action/race/portable/reconstruction probe and strict lint of 27 Swift files.
+
+[form identity correction receipt](../../../integration/evidence/2026-10-28-form-draft-identity.json.gz): 11,074 bytes, SHA-256
+`bdda49a349db48f6371cc83d077ddfbeee6d5715b71d2f63ffcf0a3c34ad7b3f`.
+All 108 preceding receipt files remain byte-identical, including the earlier action/
+form foundation receipt. That earlier receipt retains its original source/binary
+hashes. Its broad core217/shared checks are reused; the small identity correction
+has focused proof rather than a claimed broad rerun. A first lint invocation lacked
+swift-format on PATH; the documented xcrun invocation passes. Visible native UI,
+agent invocation, complete E2-E6 and release gates remain open.

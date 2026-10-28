@@ -796,3 +796,60 @@ Add current schema13 catalog entry and explicit E2 next work to project reading 
 ## [2026-10-28 20:31] verification | records/operations/build-and-run.md
 Publish delivered schema13 CLI and synthetic catalog qualification commands with actual limits.
 
+## [2026-10-28 20:36] design | records/specs/application-definitions.md
+Specify bounded receiving registry, atomic draft movement path, exact preview guards and form signature semantics before implementation.
+
+## [2026-10-28 20:54] implementation | records/operations/implementation.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:54] implementation | records/specs/application-definitions.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:54] implementation | records/specs/storage.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:54] implementation | records/operations/persistence-coverage.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:54] implementation | records/specs/native-app-engine.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:54] implementation | records/overview/start-here.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:54] implementation | records/operations/build-and-run.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:58] verification | records/operations/implementation.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 20:58] verification | records/specs/application-definitions.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 20:58] verification | records/specs/storage.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 20:58] verification | records/specs/native-app-engine.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 20:58] verification | records/operations/build-and-run.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 20:58] verification | records/operations/persistence-coverage.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 20:58] verification | records/overview/start-here.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 21:04] verification | records/operations/implementation.md
+Qualify structured native form draft identity and workbook ownership with focused lifecycle, packaged CLI, native resources/signature and strict lint checks; preserve 108 preceding receipts; visible/agent/full release gates remain open.
+
+## [2026-10-28 21:04] verification | records/specs/application-definitions.md
+Qualify structured native form draft identity and workbook ownership with focused lifecycle, packaged CLI, native resources/signature and strict lint checks; preserve 108 preceding receipts; visible/agent/full release gates remain open.
+
+## [2026-10-28 21:04] verification | records/operations/persistence-coverage.md
+Qualify structured native form draft identity and workbook ownership with focused lifecycle, packaged CLI, native resources/signature and strict lint checks; preserve 108 preceding receipts; visible/agent/full release gates remain open.
+
+## [2026-10-28 21:04] verification | records/specs/native-app-engine.md
+Qualify structured native form draft identity and workbook ownership with focused lifecycle, packaged CLI, native resources/signature and strict lint checks; preserve 108 preceding receipts; visible/agent/full release gates remain open.
+

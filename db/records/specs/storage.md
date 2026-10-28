@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T20:31:52.319082+00:00
+updated: 2026-10-28T20:54:34.581461+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -30,7 +30,7 @@ existing committed-change history. One managed transaction owns each edit.
 Logical schema changes, trusted schema materialization, indexes and dataset
 capture/apply/validation are one storage contract. No second ledger or raw-model DDL.
 
-Schema 13 retains the schema12 managed native current-state tables over retained immutable JSON
+Schema 14 retains the schema12 managed native current-state tables over retained immutable JSON
 row versions and versioned definitions. Its capture/materialization/repair foundation
 and exact-base definition lifecycle have scoped evidence in
 [[records/operations/persistence-coverage]]. Bounded stored-column typed queries
@@ -506,3 +506,21 @@ versions. definition_fts is the fourth disposable external-content FTS index.
 Inert replay rebuilds it without executing definitions. No legacy development
 migration or second ledger is introduced. See [application definition receipt](../../../integration/evidence/2026-10-28-application-definitions.json.gz)
 and [[records/operations/persistence-coverage]] for current scoped proof and gaps.
+
+
+## Registered actions and form checkpoints, schema14
+
+The canonical definition kind constraint now admits action and form, using the same
+three captured families and FTS. No additional ledger/table or old-format adapter.
+Action invocations publish one observed Source plus draft movement Records, effects
+and an operation receipt in the same captured transaction. Separate acceptance
+remains the inventory decision. Pure preview creates no business state.
+
+Unsent forms use `form-draft:` presentation keys in meta. ChangeFormat explicitly
+excludes those keystrokes from authoritative change payloads/digests. Current exact
+checkpoints, including raw incomplete input, bound definition IDs, retry identity,
+validated actual receipt and alternatives, copy separately during reconstruction.
+Portable export retains them. They are not indexed business data or replayed actions.
+Validate exact local references, receipt/arguments identity, 64 KB input, 1 MB total,
+eight alternatives and 256 keys before save/open/verify. See [registered action and form receipt](../../../integration/evidence/2026-10-28-registered-actions-forms.json.gz)
+and [[records/operations/persistence-coverage]].

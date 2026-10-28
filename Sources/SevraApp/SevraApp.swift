@@ -72,8 +72,10 @@ import SwiftUI
     guard DocumentDraftScope.flushAll() else { return .terminateCancel }
     Task {
       let saved = await ConversationSession.flushAll()
+      let formsSaved = await FormDraftScope.flushAll()
       await SpaceNavigationSession.flushAll()
-      sender.reply(toApplicationShouldTerminate: saved && DocumentDraftScope.flushAll())
+      sender.reply(
+        toApplicationShouldTerminate: saved && formsSaved && DocumentDraftScope.flushAll())
     }
     return .terminateLater
   }
@@ -118,6 +120,7 @@ struct WorkspaceWindow: View {
             NSApp.activate(ignoringOtherApps: true)
           }
           state.conversationSession.revealFailure = state.documentDrafts.revealFailure
+          state.formDrafts.revealFailure = state.documentDrafts.revealFailure
         }
         window?.representedURL = state.workbook?.url
         window?.title = state.workbook?.title ?? "Sevra"
@@ -166,6 +169,9 @@ struct WorkspaceWindow: View {
     .onReceive(NotificationCenter.default.publisher(for: .sevraOpen)) { _ in if isKey { open() } }
     .onReceive(NotificationCenter.default.publisher(for: .sevraImport)) { _ in
       if isKey { state.importPanel() }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .sevraOpenEvidence)) { event in
+      if isKey, let id = event.object as? String { state.navigate(.item(id)) }
     }
     .onReceive(NotificationCenter.default.publisher(for: .sevraSearch)) { _ in
       if isKey { state.navigate(.search) }

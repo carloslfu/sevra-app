@@ -16,12 +16,13 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
   public var children: [Component]?
   public var snapshot: ComponentSnapshot?
   public var searchSnapshot: ComponentSearchSnapshot?
+  public var definitionBinding: Value?
   public init(
     id: String = identifier(), type: String, title: String, datasetID: String? = nil,
     itemID: String? = nil, query: String? = nil, x: String? = nil, y: String? = nil,
     text: String? = nil, chartStyle: String? = nil, aggregation: String? = nil,
     unit: String? = nil, children: [Component]? = nil, snapshot: ComponentSnapshot? = nil,
-    searchSnapshot: ComponentSearchSnapshot? = nil
+    searchSnapshot: ComponentSearchSnapshot? = nil, definitionBinding: Value? = nil
   ) {
     self.id = id
     self.type = type
@@ -38,6 +39,7 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
     self.children = children
     self.snapshot = snapshot
     self.searchSnapshot = searchSnapshot
+    self.definitionBinding = definitionBinding
   }
 }
 public struct SpaceDefinition: Codable, Equatable, Sendable {
@@ -116,12 +118,29 @@ extension Workbook {
         componentCount <= 16 && depth <= 3 && ids.insert(c.id).inserted, "view",
         "Use at most 16 uniquely named components and three levels.")
       try require(
-        Set(["table", "chart", "metric", "comparison", "document", "asset", "search", "text"])
-          .union(SpaceDefinition.sectionTypes).contains(c.type), "view",
+        Set([
+          "table", "chart", "metric", "comparison", "document", "asset", "search", "text", "form",
+        ])
+        .union(SpaceDefinition.sectionTypes).contains(c.type), "view",
         "Unknown native component: \(c.type)")
       try require(
         !c.id.isEmpty && c.id.utf8.count <= 256 && c.title.utf8.count <= 500, "view",
         "Use bounded component IDs and labels.")
+      if c.type == "form" {
+        try require(
+          definition.pinnedAt == nil && c.datasetID == nil && c.itemID == nil
+            && c.snapshot == nil && c.searchSnapshot == nil, "view",
+          "Forms are explicit live actions and cannot be frozen as results.")
+        guard let binding = c.definitionBinding else {
+          throw SevraError("view", "Choose a form definition.")
+        }
+        let target = try resolveDefinition(DefinitionBinding(binding))
+        try require(target.kind == "form", "view", "Bind a form component to a form definition.")
+      } else {
+        try require(
+          c.definitionBinding == nil, "view",
+          "Only qualified form components take definition bindings.")
+      }
       if SpaceDefinition.sectionTypes.contains(c.type) {
         try require(
           definition.pinnedAt == nil && c.datasetID == nil && c.itemID == nil

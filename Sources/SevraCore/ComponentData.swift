@@ -83,8 +83,9 @@ extension Workbook {
       func pin(_ component: Component) throws -> Component {
         try cancellation.check()
         try require(
-          !SpaceDefinition.sectionTypes.contains(component.type), "view_limit",
-          "Live workbook sections cannot be frozen. Snapshot a space containing bound business views."
+          !SpaceDefinition.sectionTypes.contains(component.type) && component.type != "form",
+          "view_limit",
+          "Live workbook sections and forms cannot be frozen. Snapshot a space containing bound business views."
         )
         var copy = component
         if component.datasetID != nil {

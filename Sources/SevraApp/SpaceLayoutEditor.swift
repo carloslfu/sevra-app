@@ -82,6 +82,7 @@ struct SpaceLayoutEditor: View {
         if space.definition.pinnedAt == nil {
           Menu("Add section") {
             Button("Text") { add(.init(type: "text", title: "Note", text: "")) }
+            Button("Receive delivery form") { addReceivingForm() }
             Button("Saved search") { add(.init(type: "search", title: "Search", query: "")) }
             Menu("Table") {
               ForEach(state.datasets) { table in
@@ -145,6 +146,31 @@ struct SpaceLayoutEditor: View {
           Button("Earlier versions") { Task { await loadHistory(before: nextHistory) } }
         }
       }
+    }
+  }
+  private func addReceivingForm() {
+    guard !saving, let book = state.workbook else { return }
+    saving = true
+    Task {
+      do {
+        let form = try await Task.detached {
+          let action = try book.saveApplicationDefinition(
+            logicalID: identifier(), content: ActionRegistry.receivingDefinition(),
+            actor: .human("SevraApp.layout"))
+          return try book.saveApplicationDefinition(
+            logicalID: identifier(),
+            content: ActionRegistry.receivingFormDefinition(action: action),
+            actor: .human("SevraApp.layout"))
+        }.value
+        components.append(
+          .init(
+            type: "form", title: form.title,
+            definitionBinding: .object([
+              "mode": .string("live"), "logicalID": .string(form.logicalID),
+            ])))
+        state.refresh()
+      } catch { failure = error.localizedDescription }
+      saving = false
     }
   }
   private func add(_ component: Component) { components.append(component) }

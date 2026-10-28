@@ -265,6 +265,50 @@ import SevraProduct
         args.count == 2 || (args.count == 3 && args[2] == "--archived"), "usage",
         "tables WORKBOOK [--archived]")
       return try encoded(book.datasets(archived: args.count == 3))
+    case "definition-input-issues":
+      try require(args.count == 4, "usage", "definition-input-issues WORKBOOK ID ARGUMENTS_JSON")
+      return .array(try book.applicationInputIssues(args[2], arguments: Value.parse(args[3])))
+    case "form-template":
+      try require(args.count == 3, "usage", "form-template WORKBOOK ACTION_ID")
+      let action = try book.applicationDefinition(args[2])
+      try require(action.kind == "action", "definition_kind", "Choose an action definition.")
+      return ActionRegistry.receivingFormDefinition(action: action)
+    case "form-draft-new":
+      try require(args.count == 3, "usage", "form-draft-new WORKBOOK FORM_ID")
+      return try encoded(book.newFormDraft(args[2], cancellation: cancellation))
+    case "form-draft-read":
+      try require(args.count == 3, "usage", "form-draft-read WORKBOOK DRAFT_KEY")
+      return try book.formDraft(args[2]).map { try encoded($0) } ?? .null
+    case "form-draft-save":
+      try require(
+        args.count == 5 || (args.count == 6 && args[5] == "--keep-both"), "usage",
+        "form-draft-save WORKBOOK DRAFT_KEY STATE_JSON EXPECTED_JSON [--keep-both]")
+      let state = try JSONDecoder().decode(FormDraftState.self, from: Data(args[3].utf8))
+      let expected =
+        args[4] == "null"
+        ? nil : try JSONDecoder().decode(FormDraftState.self, from: Data(args[4].utf8))
+      return try encoded(
+        book.saveFormDraft(args[2], state: state, expected: expected, keepOther: args.count == 6))
+    case "form-draft-preview":
+      try require(args.count == 3, "usage", "form-draft-preview WORKBOOK STATE_JSON")
+      let state = try JSONDecoder().decode(FormDraftState.self, from: Data(args[2].utf8))
+      return try book.previewFormDraft(state, cancellation: cancellation)
+    case "action-registry":
+      try require(args.count == 2, "usage", "action-registry WORKBOOK")
+      return ActionRegistry.actions()
+    case "receiving-template":
+      try require(args.count == 2, "usage", "receiving-template WORKBOOK")
+      return ActionRegistry.receivingDefinition()
+    case "action-preview":
+      try require(args.count == 4, "usage", "action-preview WORKBOOK ID ARGUMENTS_JSON")
+      return try book.previewApplicationAction(
+        args[2], arguments: Value.parse(args[3]), cancellation: cancellation)
+    case "action-invoke":
+      try require(
+        args.count == 6, "usage", "action-invoke WORKBOOK ID ARGUMENTS_JSON PREVIEW_JSON TOKEN")
+      return try book.invokeApplicationAction(
+        args[2], arguments: Value.parse(args[3]), preview: Value.parse(args[4]), token: args[5],
+        cancellation: cancellation)
     case "definition-save":
       try require(
         (6...7).contains(args.count), "usage",
@@ -593,6 +637,16 @@ import SevraProduct
     table-restore-schema WORKBOOK DATASET_ID SAVED_DEFINITION_ID BASE_VERSION BASE_DEFINITION_ID TOKEN
     table-rebuild WORKBOOK DATASET_ID EXPECTED_REVISION TOKEN
     table-query WORKBOOK QUERY_JSON [CURSOR]
+    definition-input-issues WORKBOOK ID ARGUMENTS_JSON
+    form-template WORKBOOK ACTION_ID
+    form-draft-new WORKBOOK FORM_ID
+    form-draft-read WORKBOOK DRAFT_KEY
+    form-draft-save WORKBOOK DRAFT_KEY STATE_JSON EXPECTED_JSON [--keep-both]
+    form-draft-preview WORKBOOK STATE_JSON
+    action-registry WORKBOOK
+    receiving-template WORKBOOK
+    action-preview WORKBOOK ACTION_OR_FORM_ID ARGUMENTS_JSON
+    action-invoke WORKBOOK ACTION_OR_FORM_ID ARGUMENTS_JSON PREVIEW_JSON TOKEN
     definition-save WORKBOOK LOGICAL_ID CONTENT_JSON BASE_ID_OR_NEW TOKEN [INPUTS_JSON]
     definition-read WORKBOOK LOGICAL_OR_VERSION_ID
     definition-history WORKBOOK LOGICAL_ID [BEFORE_VERSION]
