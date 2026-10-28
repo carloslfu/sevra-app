@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-27T18:47:21.474542+00:00
+updated: 2026-10-28T02:32:13.036939+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -420,3 +420,33 @@ continue to distinguish saved information from current instructions. The origina
 exchange remains in its thread; sharing does not make sibling or source history
 implicitly searchable from main. The link explicitly opens that original scope.
 See [[records/specs/product]] and [[sources/notes/2026/10/conversation-threads-refinement]].
+
+## Owner-selected 75% trigger, October 27
+The owner decision relayed from the side conversation selects 75% of the actual
+configured context capacity. The original ephemeral conversation could not be
+re-read through the thread API; this records the relayed decision and its stated
+constraints, not an independent transcript verification.
+
+Use min(floor(0.75 * capacity), capacity - requiredReserves). Thus 32,768 gives
+24,576 and 65,536 gives 49,152 before any earlier reserve requirement. The complete
+rendered prompt count includes policy, tool schemas, retained history, summaries,
+receipts and template delimiters. Preserve output, next-result and recovery/framing
+reserves. Audit both native and preserved-baseline adapters and the controller's
+adaptive threshold. Never silently raise above 75%. An irreducible policy, current
+request or authoritative-state floor must produce an explicit measured outcome,
+without loops, dropped constraints or false successful compaction.
+
+Compact completed history/tool groups only. Preserve current instructions, exact
+identities/quantities, accepted/current/pending state and retrieval pointers.
+Original transcripts and receipts stay immutable and searchable. Check after tool
+results and before generation, with an independent hard overflow check. No new
+user context setting, periodic permission prompt, weight/reasoning/memory change,
+or inference-cache policy change accompanies this conversation policy.
+
+75% is an owner-selected policy, not a measured optimum for this Qwen/Splash
+quantization. Earlier evidence and 8–12K errors retain their original scope and
+cannot be attributed to this threshold. Automatic compaction remains disabled
+until repeated real jobs pass under the revised policy. Boundary accounting,
+earlier reserve triggers, irreducible floors, repeated maintenance, cancellation,
+reopen, authoritative state, retrieval and no replayed actions require focused
+verification. Implementation alignment is pending at this documentation checkpoint.

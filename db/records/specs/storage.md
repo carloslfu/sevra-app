@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T01:32:35.595691+00:00
+updated: 2026-10-28T02:32:12.994635+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -303,3 +303,14 @@ targets refuse withdrawal. Movement revisions preserve subject and occurrence.
 Original inputs and versions remain immutable; this repair needs no schema change.
 See [[records/specs/product]] and the
 [review queue receipt](../../../integration/evidence/2026-10-27-review-queue.json).
+
+## Citation version snapshots, October 27
+A citation is an exact immutable item-version ID. citationVersions reads up to 256
+references, deduplicated, in one cancellation-aware read transaction. Each entry
+contains cited/current ID, logical ID, title, version, status and meaning, plus an
+isCurrentVersion flag. The snapshot includes the workbook revision. Logical IDs
+are refused here; citations cannot float to a newer head. Metadata-only joins
+avoid decoding document bodies and structured payloads. The method never changes
+items, heads, accepted effects or action authority. The agent stores its observed
+snapshot alongside the final message and presents historical/current links.
+See [[records/specs/intelligence]] and [citation version receipt](../../../integration/evidence/2026-10-27-citation-current-version.json).

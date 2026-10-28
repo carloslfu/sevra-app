@@ -162,6 +162,7 @@ public enum WorkbookAgent {
     var nextToolScope: InferenceToolScope = .all
     var retrievalObserved = false
     var countReceipts: [String: Value] = [:]
+    var pendingVersionCitations = Set<String>()
     do {
       let conversationIdentity = try workbook.conversationIdentity(
         conversation, cancellation: cancellation)
@@ -429,6 +430,27 @@ public enum WorkbookAgent {
                 + "Put them in finish.citations; history_read and count_records are not needed to cite this calculation. "
                 + "Do not put these IDs in answer prose.")
           }
+          let versionState = try workbook.citationVersions(
+            Array(
+              Set(citations.filter { inspected.contains($0) && !$0.hasPrefix("message:") })
+                .union(pendingVersionCitations)),
+            cancellation: cancellation)
+          let checkedHistoricalVersions = versionState["versions"].array.filter {
+            $0["isCurrentVersion"] == .bool(false)
+          }
+          let historicalVersions = checkedHistoricalVersions.filter {
+            citations.contains($0["cited"]["id"].text)
+          }
+          let unrefreshed = checkedHistoricalVersions.filter {
+            !inspected.contains($0["current"]["id"].text)
+          }
+          if !unrefreshed.isEmpty {
+            pendingVersionCitations.formUnion(unrefreshed.map { $0["cited"]["id"].text })
+            nextToolScope = .inspection
+            problems.append(
+              "A cited version is historical. Read each current version below before answering. Keep the original citation for historical facts, but do not describe its old status as current. A withdrawn/rejected proposal is not waiting for acceptance. "
+                + (try Value.array(unrefreshed).json()))
+          }
           let inlineReferences = renderableReferences(
             modelAnswer, citations: citations, inspected: inspected)
           var unrenderedAnswer = modelAnswer
@@ -547,13 +569,26 @@ public enum WorkbookAgent {
               + coverageEvidence.map {
                 SearchCoverage.render($0["verified"])
               }.joined(separator: "\n")
+          let versionText =
+            historicalVersions.isEmpty
+            ? ""
+            : "\n\n"
+              + historicalVersions.map {
+                let current = $0["current"]
+                let status =
+                  current["status"].text == "rejected" ? "withdrawn" : current["status"].text
+                return "Version check: " + citationLink(current["id"].text)
+                  + ", version \(current["version"].int!), \(status). The cited version \($0["cited"]["version"].int!) is historical."
+              }.joined(separator: "\n")
           _ = try workbook.addMessage(
-            answer + suffix + coverageText, role: "assistant", conversation: conversation,
+            answer + suffix + coverageText + versionText, role: "assistant",
+            conversation: conversation,
             payload: .object([
               "receiptVersion": .number(1), "tool": .string("finish"), "arguments": a,
               "runID": .string(runID), "callID": .string(call.id),
               "assistantText": .string(response.text),
               "coverageEvidence": .array(coverageEvidence),
+              "citationVersions": versionState,
               "renderedReferences": .object(inlineReferences.mapValues(Value.string)),
               "presentation": .string(
                 countOnly ? "host_counts" : hostSearchGap ? "host_search" : "answer"),
@@ -567,7 +602,7 @@ public enum WorkbookAgent {
           try workbook.finishAgentRun(
             runID, status: "complete", steps: step, metrics: .array(metrics))
           return AgentResult(
-            answer: answer + suffix + coverageText, citations: citations, steps: step,
+            answer: answer + suffix + coverageText + versionText, citations: citations, steps: step,
             state: "complete",
             focus: focus)
         }

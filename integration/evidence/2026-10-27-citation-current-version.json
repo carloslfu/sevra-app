@@ -1,0 +1,464 @@
+{
+  "date": "2026-10-27",
+  "topic": "Exact historical citation and current-version observation",
+  "baseCommit": "e0a00389452745a4bdc5806f64e6b6be1ad2e4e8",
+  "sourceHashes": {
+    "Sources/SevraCore/CitationVersions.swift": "1ac5e8cd99cd3da85c8c24398c8fe934cbf2e40e64f82e471c0183a13e9a94eb",
+    "Sources/SevraCore/Tools.swift": "0cdb87b999cd7cc49730375ac6b3b3b682b917956f163ff729a69dd6bcf97b22",
+    "Sources/SevraAI/WorkbookAgent.swift": "b3ebb34e0b55e54655a66fd80cd07901823ee0d92271653ec8900858771fd4c7",
+    "Tests/main.swift": "e7d87a5c83763d5b6c2d2c8b705c1523c9d2dfb54dc389f28e56d4025636eb16",
+    "IntegrationTests/Agent/CitationVersionChecks.swift": "1cb70d62fb8966ec4d502e377d742d079f9866877af651ec264f628545481206",
+    "IntegrationTests/Agent/main.swift": "f196b999b2dea253e8d77d21690c98cb77980c22df4fc25ef90cd9edeb3c1b03"
+  },
+  "builds": {
+    "firstReplayExecutableSHA256": "d67e37b25b42bdd8cca8ea9057535a1aecb33dc77978dc48d8316fec53d4ca05",
+    "finalExecutableSHA256": "4c4cbef1cf364bd50cf4923bbb5af725cc758bd8f46c9658e150f24d9625882c",
+    "finalCLISHA256": "e89aacd25baf249cd74b322dd45c939e27057255f08e55a2cfe0c3c0ed2b516f"
+  },
+  "firstReplay": {
+    "run": {
+      "id": "c4ec9890-38c9-45ae-8c91-eea5bddc0317",
+      "conversation_id": "main",
+      "status": "complete",
+      "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; reasoning budget 512; within-request reasoning retained",
+      "steps": 2,
+      "metrics": "[{\"acceptedDraftTokens\":285,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":8.889054,\"deduplicatedKVTokens\":0,\"diagnosticRequestCacheIsolation\":false,\"draftedTokens\":728,\"firstTokenSeconds\":5.362187874969095,\"generatedTokens\":390,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"matchedPromptTokens\":0,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":5.361988,\"promptTokens\":9930,\"reasoningBudget\":512,\"reasoningBudgetOverrun\":0,\"reasoningHistory\":\"within-request\",\"reasoningTokens\":360,\"recoveryReserve\":256,\"requestSeconds\":14.251249624881893,\"speculativeMethod\":\"DFlash2\",\"toolScope\":\"all\"},{\"acceptedDraftTokens\":286,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":7.81992,\"deduplicatedKVTokens\":2400,\"diagnosticRequestCacheIsolation\":false,\"draftedTokens\":504,\"firstTokenSeconds\":7.510253875050694,\"generatedTokens\":359,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"matchedPromptTokens\":0,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":7.510141,\"promptTokens\":12500,\"reasoningBudget\":512,\"reasoningBudgetOverrun\":0,\"reasoningHistory\":\"within-request\",\"reasoningTokens\":206,\"recoveryReserve\":256,\"requestSeconds\":15.330189916770905,\"speculativeMethod\":\"DFlash2\",\"toolScope\":\"all\"},{\"acceptedDraftTokens\":439,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":10.304463,\"deduplicatedKVTokens\":0,\"diagnosticRequestCacheIsolation\":false,\"draftedTokens\":875,\"firstTokenSeconds\":1.5276853749528527,\"generatedTokens\":565,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"matchedPromptTokens\":0,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.527593,\"promptTokens\":875,\"reasoningBudget\":512,\"reasoningBudgetOverrun\":0,\"reasoningHistory\":\"within-request\",\"reasoningTokens\":512,\"recoveryReserve\":256,\"requestSeconds\":11.832160666584969,\"speculativeMethod\":\"DFlash2\",\"toolScope\":\"movementDirection\"}]",
+      "created": "2026-10-28T02:17:49Z",
+      "updated": "2026-10-28T02:18:36Z"
+    },
+    "calls": [
+      {
+        "id": "c65d9ef0-c9f9-4a74-af2e-e51d1a7c840e",
+        "run_id": "c4ec9890-38c9-45ae-8c91-eea5bddc0317",
+        "call_id": "call_69c355f5-e900-4fd8-a2dd-441a5ef868ad",
+        "tool": "search",
+        "arguments": "{\"query\":\"Vega receipt brass bolts\"}",
+        "operation_token": "c4ec9890-38c9-45ae-8c91-eea5bddc0317-3f6fa7a766aad2337d2f0f7e",
+        "assistant_text": "",
+        "state": "completed",
+        "result": "{\"conversation\":{\"conversation\":\"main\",\"hits\":[{\"created\":\"2026-10-28T01:11:15Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"effective\\\":\\\"2026-01-02T00:00:00Z\\\",\\\"input\\\":\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\",\\\"meaning\\\":\\\"actual\\\",\\\"occurrence\\\":\\\"vega_delivery_2026_01_02\\\",\\\"quantity\\\":\\\"2\\\",\\\"subject\\\":\\\"brass bolts\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_cf96f41d-ea13-4077-b4df-bd479a09e039\\\",\\\"receiptID\\\":\\\"31c5f712-54c7-44c0-ba1b-6f18122a9359 … \",\"id\":\"a2126f93-e28f-40ad-b206-3602d76d2d9a\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:11:09Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"effective\\\":\\\"2026-01-02T00:00:00\\\",\\\"input\\\":\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\",\\\"meaning\\\":\\\"actual\\\",\\\"occurrence\\\":\\\"vega_delivery_2026_01_02\\\",\\\"quantity\\\":\\\"2\\\",\\\"subject\\\":\\\"brass bolts\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_622a0cdc-537e-4407-8702-7bf1850cc326\\\",\\\"receiptID\\\":\\\"3444a719-5a2d-498f-8ed7-91051ea49549 … \",\"id\":\"24d30e17-cd16-410b-9e7b-262dd960182e\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:54Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"id\\\":\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_8b60fab1-15d0-4083-84f5-20b8a872eb1c\\\",\\\"receiptID\\\":\\\"0a2e3d29-1809-4900-a131-14cf04a07ceb\\\",\\\"receiptVersion\\\":1,\\\"result\\\":{\\\"chunks\\\":[{\\\"body\\\":\\\"SYNTHETIC RECEIPT VEGA 2043\\\\n2 brass bolts handed over\\\\nFulfillment evidence only\\\\nNo automatic … \",\"id\":\"ad1e789c-4bf7-44a3-bd08-f29ba529fd2b\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:44Z\",\"excerpt\":\" … Brass bolts\\\\\\\\nquantity: 20\\\\\\\\nsupplier: Vega\\\\\\\\nunit_cost: 2.75\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"Supplier_quotes.csv, row 2\\\\\\\"},{\\\\\\\"id\\\\\\\":4,\\\\\\\"itemID\\\\\\\":\\\\\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\\\\\",\\\\\\\"locator\\\\\\\":\\\\\\\"image; offset=0\\\\\\\",\\\\\\\"rank\\\\\\\":-1.9739507959479014e-06,\\\\\\\"snippet\\\\\\\":\\\\\\\"SYNTHETIC RECEIPT VEGA 2043\\\\\\\\n2 brass bolts … \",\"id\":\"a59e9f67-4450-4226-806e-3dcc756d5f59\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:38Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"query\\\":\\\"Vega brass bolts delivery\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_811b89ca-98c2-4c19-96c5-f40f6d270c14\\\",\\\"receiptID\\\":\\\"519f5f11-900f-4f88-aab8-ddce952a6eea\\\",\\\"receiptVersion\\\":1,\\\"result\\\":{\\\"conversation\\\":{\\\"conversation\\\":\\\"main\\\",\\\"hits\\\":[{\\\"created\\\":\\\"2026-10-28T01:07:02Z\\\",\\\"excerpt\\\":\\\" … Vega_2043.png\\\\\\\"},{\\\\\\\"id\\\\\\\":5,\\\\\\\"itemID … \",\"id\":\"0f1f4ed3-b991-402a-908c-fecef4ac20a1\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:35Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"query\\\":\\\"Vega brass bolts delivery receipt\\\",\\\"status\\\":\\\"accepted\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_56c21d12-c90d-44c9-bde5-53d8e048341d\\\",\\\"receiptID\\\":\\\"1018d1e3-10a7-4cb5-a69f-5cba284059e4\\\",\\\"receiptVersion\\\":1,\\\"result\\\":{\\\"conversation\\\":{\\\"conversation\\\":\\\"main\\\",\\\"hits\\\":[],\\\"nextCursor\\\":null,\\\"notice\\\":\\\"Conversation was not searched because this is … \",\"id\":\"58d9166d-a4ae-4a95-a6fb-e4d38a970e64\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:28Z\",\"excerpt\":\"The Vega receipt records two brass bolts handed over. Prepare the stock adjustment for that delivery on 2 January 2026, but leave it for my review.\",\"id\":\"e4b5ead9-7034-4983-9423-110d4c19198e\",\"role\":\"user\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:08:49Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"task\\\":\\\"If Vega reduced its unit price to 2.40, which supplier would be cheaper and by how much for 20 brass bolts?\\\",\\\"title\\\":\\\"Pricing options\\\",\\\"work\\\":\\\"answer\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_0df8c238-1c91-4dc8-a9a3-6314f9cc3335\\\",\\\"receiptID\\\":\\\"e996b0e0-f882 … \",\"id\":\"d28f235a-1c81-4f06-b1fd-8d722124f870\",\"role\":\"tool\",\"state\":\"complete\"}],\"nextCursor\":\"eyJiZWZvcmUiOiJkMjhmMjM1YS0xYzgxLTRmMDYtYjFmZC04ZDcyMjEyNGY4NzAiLCJiZWZvcmVNZXNzYWdlIjoiNTkyNDUzZWQtYWNlOS00NjU2LTkzZDktN2MwMDdlZDU2MTdmIiwiY29udmVyc2F0aW9uIjoibWFpbiIsInF1ZXJ5IjoiVmVnYSByZWNlaXB0IGJyYXNzIGJvbHRzIiwidmVyc2lvbiI6MSwidmlzaWJsZU9ubHkiOmZhbHNlfQ==\",\"notice\":\"These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.\",\"revision\":80,\"searched\":true},\"hits\":[{\"id\":4,\"itemID\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"locator\":\"image; offset=0\",\"rank\":-3.2029193224820003,\"snippet\":\"SYNTHETIC RECEIPT VEGA 2043\\n2 brass bolts handed over\\nFulfillment evidence only\\nNo automatic inventory acceptance\",\"title\":\"Receipt_Vega_2043.png\"}],\"incomplete\":0,\"notice\":\"hits, incomplete and nextCursor describe business evidence only. conversation describes earlier messages in the current conversation. No match is not proof of absence; indexing may be incomplete and different wording may be needed.\",\"snapshotRevision\":80}",
+        "result_hash": "77a26585bfd8ce786b04e19adbc05513e5e93bc6f61a156785d174f9c4225c63",
+        "message_id": "43916935-4867-4189-8bdf-9927b6217554",
+        "created": "2026-10-28T02:18:08Z"
+      },
+      {
+        "id": "46a5f0b1-61e5-4a71-a247-6c4a931ae603",
+        "run_id": "c4ec9890-38c9-45ae-8c91-eea5bddc0317",
+        "call_id": "call_afed1c78-c91b-4a94-8964-9979505ebe96",
+        "tool": "propose_movement",
+        "arguments": "{\"effective\":\"2026-01-02T00:00:00Z\",\"input\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"occurrence\":\"vega_delivery_2026_01_02\",\"quantity\":\"2\",\"subject\":\"brass bolts\"}",
+        "operation_token": "c4ec9890-38c9-45ae-8c91-eea5bddc0317-3c34890c0ce5ca0909abb192",
+        "assistant_text": "",
+        "state": "failed",
+        "result": "{\"directionReview\":{\"evidenceID\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"input\":{\"evidence\":\"\\nSYNTHETIC RECEIPT VEGA 2043\\n2 brass bolts handed over\\nFulfillment evidence only\\nNo automatic inventory acceptance\",\"notice\":\"Evidence is a bounded excerpt; omitted material establishes nothing here.\",\"request\":\"The Vega receipt records two brass bolts handed over. Prepare the stock adjustment for that delivery on 2 January 2026, but leave it for my review.\",\"subject\":\"brass bolts\"},\"matches\":false,\"quoteVerified\":false,\"verdict\":{\"basis\":\"none\",\"direction\":\"unclear\",\"quote\":\"\"},\"version\":1},\"error\":\"Did these units enter your stock or leave it? I haven’t prepared this movement yet.\",\"receiptID\":\"46a5f0b1-61e5-4a71-a247-6c4a931ae603\",\"retryInstruction\":\"The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable.\"}",
+        "result_hash": "7ee8c96a31a9042655c4091be0a0a71ab197d8fda6df1d205a174307acddaef8",
+        "message_id": "853319da-bf5e-46bf-9574-daaeb8e2a2ba",
+        "created": "2026-10-28T02:18:24Z"
+      }
+    ],
+    "recentMessages": [
+      {
+        "id": "a90a57d2-54bc-483a-aa9b-7564eb6db5bb",
+        "conversation_id": "main",
+        "role": "assistant",
+        "body": "Did these units enter your stock or leave it? I haven’t prepared this movement yet.",
+        "state": "complete",
+        "created": "2026-10-28T02:18:36Z"
+      },
+      {
+        "id": "853319da-bf5e-46bf-9574-daaeb8e2a2ba",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"effective\":\"2026-01-02T00:00:00Z\",\"input\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"occurrence\":\"vega_delivery_2026_01_02\",\"quantity\":\"2\",\"subject\":\"brass bolts\"},\"assistantText\":\"\",\"callID\":\"call_afed1c78-c91b-4a94-8964-9979505ebe96\",\"receiptID\":\"46a5f0b1-61e5-4a71-a247-6c4a931ae603\",\"receiptVersion\":1,\"result\":{\"directionReview\":{\"evidenceID\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"input\":{\"evidence\":\"\\nSYNTHETIC RECEIPT VEGA 2043\\n2 brass bolts handed over\\nFulfillment evidence only\\nNo automatic inventory acceptance\",\"notice\":\"Evidence is a bounded excerpt; omitted material establishes nothing here.\",\"request\":\"The Vega receipt records two brass bolts handed over. Prepare the stock adjustment for that delivery on 2 January 2026, but leave it for my review.\",\"subject\":\"brass bolts\"},\"matches\":false,\"quoteVerified\":false,\"verdict\":{\"basis\":\"none\",\"direction\":\"unclear\",\"quote\":\"\"},\"version\":1},\"error\":\"Did these units enter your stock or leave it? I haven’t prepared this movement yet.\",\"receiptID\":\"46a5f0b1-61e5-4a71-a247-6c4a931ae603\",\"retryInstruction\":\"The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable.\"},\"resultHash\":\"7ee8c96a31a9042655c4091be0a0a71ab197d8fda6df1d205a174307acddaef8\",\"resultIdentity\":{},\"runID\":\"c4ec9890-38c9-45ae-8c91-eea5bddc0317\",\"tool\":\"propose_movement\"}",
+        "state": "complete",
+        "created": "2026-10-28T02:18:36Z"
+      },
+      {
+        "id": "43916935-4867-4189-8bdf-9927b6217554",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"query\":\"Vega receipt brass bolts\"},\"assistantText\":\"\",\"callID\":\"call_69c355f5-e900-4fd8-a2dd-441a5ef868ad\",\"receiptID\":\"c65d9ef0-c9f9-4a74-af2e-e51d1a7c840e\",\"receiptVersion\":1,\"result\":{\"conversation\":{\"conversation\":\"main\",\"hits\":[{\"created\":\"2026-10-28T01:11:15Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"effective\\\":\\\"2026-01-02T00:00:00Z\\\",\\\"input\\\":\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\",\\\"meaning\\\":\\\"actual\\\",\\\"occurrence\\\":\\\"vega_delivery_2026_01_02\\\",\\\"quantity\\\":\\\"2\\\",\\\"subject\\\":\\\"brass bolts\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_cf96f41d-ea13-4077-b4df-bd479a09e039\\\",\\\"receiptID\\\":\\\"31c5f712-54c7-44c0-ba1b-6f18122a9359 … \",\"id\":\"a2126f93-e28f-40ad-b206-3602d76d2d9a\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:11:09Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"effective\\\":\\\"2026-01-02T00:00:00\\\",\\\"input\\\":\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\",\\\"meaning\\\":\\\"actual\\\",\\\"occurrence\\\":\\\"vega_delivery_2026_01_02\\\",\\\"quantity\\\":\\\"2\\\",\\\"subject\\\":\\\"brass bolts\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_622a0cdc-537e-4407-8702-7bf1850cc326\\\",\\\"receiptID\\\":\\\"3444a719-5a2d-498f-8ed7-91051ea49549 … \",\"id\":\"24d30e17-cd16-410b-9e7b-262dd960182e\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:54Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"id\\\":\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_8b60fab1-15d0-4083-84f5-20b8a872eb1c\\\",\\\"receiptID\\\":\\\"0a2e3d29-1809-4900-a131-14cf04a07ceb\\\",\\\"receiptVersion\\\":1,\\\"result\\\":{\\\"chunks\\\":[{\\\"body\\\":\\\"SYNTHETIC RECEIPT VEGA 2043\\\\n2 brass bolts handed over\\\\nFulfillment evidence only\\\\nNo automatic … \",\"id\":\"ad1e789c-4bf7-44a3-bd08-f29ba529fd2b\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:44Z\",\"excerpt\":\" … Brass bolts\\\\\\\\nquantity: 20\\\\\\\\nsupplier: Vega\\\\\\\\nunit_cost: 2.75\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"Supplier_quotes.csv, row 2\\\\\\\"},{\\\\\\\"id\\\\\\\":4,\\\\\\\"itemID\\\\\\\":\\\\\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\\\\\",\\\\\\\"locator\\\\\\\":\\\\\\\"image; offset=0\\\\\\\",\\\\\\\"rank\\\\\\\":-1.9739507959479014e-06,\\\\\\\"snippet\\\\\\\":\\\\\\\"SYNTHETIC RECEIPT VEGA 2043\\\\\\\\n2 brass bolts … \",\"id\":\"a59e9f67-4450-4226-806e-3dcc756d5f59\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:38Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"query\\\":\\\"Vega brass bolts delivery\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_811b89ca-98c2-4c19-96c5-f40f6d270c14\\\",\\\"receiptID\\\":\\\"519f5f11-900f-4f88-aab8-ddce952a6eea\\\",\\\"receiptVersion\\\":1,\\\"result\\\":{\\\"conversation\\\":{\\\"conversation\\\":\\\"main\\\",\\\"hits\\\":[{\\\"created\\\":\\\"2026-10-28T01:07:02Z\\\",\\\"excerpt\\\":\\\" … Vega_2043.png\\\\\\\"},{\\\\\\\"id\\\\\\\":5,\\\\\\\"itemID … \",\"id\":\"0f1f4ed3-b991-402a-908c-fecef4ac20a1\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:35Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"query\\\":\\\"Vega brass bolts delivery receipt\\\",\\\"status\\\":\\\"accepted\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_56c21d12-c90d-44c9-bde5-53d8e048341d\\\",\\\"receiptID\\\":\\\"1018d1e3-10a7-4cb5-a69f-5cba284059e4\\\",\\\"receiptVersion\\\":1,\\\"result\\\":{\\\"conversation\\\":{\\\"conversation\\\":\\\"main\\\",\\\"hits\\\":[],\\\"nextCursor\\\":null,\\\"notice\\\":\\\"Conversation was not searched because this is … \",\"id\":\"58d9166d-a4ae-4a95-a6fb-e4d38a970e64\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:28Z\",\"excerpt\":\"The Vega receipt records two brass bolts handed over. Prepare the stock adjustment for that delivery on 2 January 2026, but leave it for my review.\",\"id\":\"e4b5ead9-7034-4983-9423-110d4c19198e\",\"role\":\"user\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:08:49Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"task\\\":\\\"If Vega reduced its unit price to 2.40, which supplier would be cheaper and by how much for 20 brass bolts?\\\",\\\"title\\\":\\\"Pricing options\\\",\\\"work\\\":\\\"answer\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_0df8c238-1c91-4dc8-a9a3-6314f9cc3335\\\",\\\"receiptID\\\":\\\"e996b0e0-f882 … \",\"id\":\"d28f235a-1c81-4f06-b1fd-8d722124f870\",\"role\":\"tool\",\"state\":\"complete\"}],\"nextCursor\":\"eyJiZWZvcmUiOiJkMjhmMjM1YS0xYzgxLTRmMDYtYjFmZC04ZDcyMjEyNGY4NzAiLCJiZWZvcmVNZXNzYWdlIjoiNTkyNDUzZWQtYWNlOS00NjU2LTkzZDktN2MwMDdlZDU2MTdmIiwiY29udmVyc2F0aW9uIjoibWFpbiIsInF1ZXJ5IjoiVmVnYSByZWNlaXB0IGJyYXNzIGJvbHRzIiwidmVyc2lvbiI6MSwidmlzaWJsZU9ubHkiOmZhbHNlfQ==\",\"notice\":\"These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.\",\"revision\":80,\"searched\":true},\"hits\":[{\"id\":4,\"itemID\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"locator\":\"image; offset=0\",\"rank\":-3.2029193224820003,\"snippet\":\"SYNTHETIC RECEIPT VEGA 2043\\n2 brass bolts handed over\\nFulfillment evidence only\\nNo automatic inventory acceptance\",\"title\":\"Receipt_Vega_2043.png\"}],\"incomplete\":0,\"notice\":\"hits, incomplete and nextCursor describe business evidence only. conversation describes earlier messages in the current conversation. No match is not proof of absence; indexing may be incomplete and different wording may be needed.\",\"snapshotRevision\":80},\"resultHash\":\"77a26585bfd8ce786b04e19adbc05513e5e93bc6f61a156785d174f9c4225c63\",\"resultIdentity\":{},\"runID\":\"c4ec9890-38c9-45ae-8c91-eea5bddc0317\",\"tool\":\"search\"}",
+        "state": "complete",
+        "created": "2026-10-28T02:18:08Z"
+      },
+      {
+        "id": "592453ed-ace9-4656-93d9-7c007ed5617f",
+        "conversation_id": "main",
+        "role": "user",
+        "body": "The Vega receipt records two brass bolts handed over. Prepare the stock adjustment for that delivery on 2 January 2026, but leave it for my review.",
+        "state": "complete",
+        "created": "2026-10-28T02:17:49Z"
+      },
+      {
+        "id": "e38418d8-8c9b-4c32-88cc-f827df49f17c",
+        "conversation_id": "main",
+        "role": "event",
+        "body": "Withdrew [brass bolts: 2](sevra://item/527525fe-da59-4f92-8625-f6cbd20f7602)",
+        "state": "complete",
+        "created": "2026-10-28T01:12:38Z"
+      },
+      {
+        "id": "440e55c8-c62a-4cfb-a852-91621ea6cbad",
+        "conversation_id": "main",
+        "role": "assistant",
+        "body": "Ready to review: [brass bolts: 2](sevra://item/68d067ce-a957-47c0-a977-bb95abb778f5). Existing accepted values are unchanged. Accept this proposal to continue.",
+        "state": "needs_review",
+        "created": "2026-10-28T01:11:15Z"
+      },
+      {
+        "id": "a2126f93-e28f-40ad-b206-3602d76d2d9a",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"effective\":\"2026-01-02T00:00:00Z\",\"input\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"occurrence\":\"vega_delivery_2026_01_02\",\"quantity\":\"2\",\"subject\":\"brass bolts\"},\"assistantText\":\"\",\"callID\":\"call_cf96f41d-ea13-4077-b4df-bd479a09e039\",\"receiptID\":\"31c5f712-54c7-44c0-ba1b-6f18122a9359\",\"receiptVersion\":1,\"result\":{\"category\":\"record\",\"created\":\"2026-10-28T01:11:15Z\",\"data\":{\"effective\":\"2026-01-02T00:00:00.000Z\",\"input\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"occurrence\":\"vega_delivery_2026_01_02\",\"quantity\":\"2\",\"requestSourceID\":\"79600710-2b7b-43fb-ab11-ef23e466b825\",\"status\":\"draft\",\"subject\":\"brass bolts\",\"supersedes\":null},\"id\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"kind\":\"movement\",\"logicalID\":\"5d38bcb2-a589-4f2e-b2b3-fd209b2a0baf\",\"meaning\":\"actual\",\"scenario\":\"actual\",\"status\":\"draft\",\"text\":\"2 inventory movement for brass bolts\",\"title\":\"brass bolts: 2\",\"version\":1},\"resultHash\":\"edeabd43c6f39b7e94831d8ee12409c20ccb2a3fdcb4d4be955b9b49905609a5\",\"resultIdentity\":{\"id\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"kind\":\"movement\",\"logicalID\":\"5d38bcb2-a589-4f2e-b2b3-fd209b2a0baf\",\"meaning\":\"actual\",\"status\":\"draft\"},\"runID\":\"89121186-d03c-4890-858a-58249437dd29\",\"tool\":\"propose_movement\"}",
+        "state": "complete",
+        "created": "2026-10-28T01:11:15Z"
+      },
+      {
+        "id": "24d30e17-cd16-410b-9e7b-262dd960182e",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"effective\":\"2026-01-02T00:00:00\",\"input\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"occurrence\":\"vega_delivery_2026_01_02\",\"quantity\":\"2\",\"subject\":\"brass bolts\"},\"assistantText\":\"\",\"callID\":\"call_622a0cdc-537e-4407-8702-7bf1850cc326\",\"receiptID\":\"3444a719-5a2d-498f-8ed7-91051ea49549\",\"receiptVersion\":1,\"result\":{\"error\":\"Use an ISO 8601 date or timestamp, including a time zone.\",\"receiptID\":\"3444a719-5a2d-498f-8ed7-91051ea49549\",\"retryInstruction\":\"The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable.\"},\"resultHash\":\"b713dff949093c4564557f6c2858b788842beddce5bc14faac347539f136f1f4\",\"resultIdentity\":{},\"runID\":\"89121186-d03c-4890-858a-58249437dd29\",\"tool\":\"propose_movement\"}",
+        "state": "complete",
+        "created": "2026-10-28T01:11:09Z"
+      },
+      {
+        "id": "ad1e789c-4bf7-44a3-bd08-f29ba529fd2b",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\"},\"assistantText\":\"\",\"callID\":\"call_8b60fab1-15d0-4083-84f5-20b8a872eb1c\",\"receiptID\":\"0a2e3d29-1809-4900-a131-14cf04a07ceb\",\"receiptVersion\":1,\"result\":{\"chunks\":[{\"body\":\"SYNTHETIC RECEIPT VEGA 2043\\n2 brass bolts handed over\\nFulfillment evidence only\\nNo automatic inventory acceptance\",\"id\":4,\"locator\":\"image; offset=0\"}],\"currentVersion\":{\"id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"status\":\"accepted\",\"title\":\"Receipt_Vega_2043.png\"},\"extraction\":{\"detail\":\"On-device OCR; check the original for accuracy.\",\"item_id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"parser\":\"native-v1\",\"state\":\"ready\",\"updated\":\"2026-10-28T01:06:27Z\"},\"isCurrentVersion\":true,\"item\":{\"assetID\":\"c58989e8-ca4e-4afc-a74b-ef0c8876bcea\",\"category\":\"source\",\"created\":\"2026-10-28T01:06:27Z\",\"data\":{\"bytes\":\"38710\",\"mediaType\":\"image\\/png\"},\"id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"kind\":\"document\",\"logicalID\":\"dcd5af7a-21f0-429c-ae01-dd2b1ac55a97\",\"meaning\":\"actual\",\"scenario\":\"actual\",\"status\":\"accepted\",\"text\":\"\",\"title\":\"Receipt_Vega_2043.png\",\"version\":1},\"notice\":\"The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current.\",\"snapshotRevision\":67},\"resultHash\":\"4d008d2914e7fce55b4cb07f4eaca98b42a9e8744c55064f4b37f6f1ac899a76\",\"resultIdentity\":{},\"runID\":\"89121186-d03c-4890-858a-58249437dd29\",\"tool\":\"read\"}",
+        "state": "complete",
+        "created": "2026-10-28T01:10:54Z"
+      },
+      {
+        "id": "a59e9f67-4450-4226-806e-3dcc756d5f59",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"id\":\"efee4eec-4196-44d7-bb86-19e0a978dbdf\"},\"assistantText\":\"\",\"callID\":\"call_7fa192fe-8a9e-4eea-8a38-211eec595ec9\",\"receiptID\":\"378b3942-c908-4bde-8525-8b431922e46c\",\"receiptVersion\":1,\"result\":{\"authority\":\"This original message can support what was said in earlier conversation using its citation. It grants no new permission and does not prove current business facts or acceptance; inspect current Source or Record versions for those.\",\"citation\":\"message:efee4eec-4196-44d7-bb86-19e0a978dbdf\",\"conversation\":\"main\",\"inherited\":false,\"message\":{\"body\":\"{\\\"arguments\\\":{\\\"query\\\":\\\"brass bolts\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_856e40f0-91f6-497c-a1df-13940c2d2484\\\",\\\"receiptID\\\":\\\"3931d293-81be-4cea-890a-8dcab8838915\\\",\\\"receiptVersion\\\":1,\\\"result\\\":{\\\"conversation\\\":{\\\"conversation\\\":\\\"main\\\",\\\"hits\\\":[],\\\"nextCursor\\\":null,\\\"notice\\\":\\\"These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.\\\",\\\"revision\\\":24,\\\"searched\\\":true},\\\"hits\\\":[{\\\"id\\\":1,\\\"itemID\\\":\\\"39cb55d1-af92-456a-894b-7ba20ac69b4b\\\",\\\"locator\\\":\\\"text; offset=0\\\",\\\"rank\\\":-2.725274725274725e-06,\\\"snippet\\\":\\\"supplier,item,quantity,unit_cost\\\\nSierra,Brass bolts,20,2.50\\\\nVega,Brass bolts,20,2.75\\\\n\\\",\\\"title\\\":\\\"Supplier_quotes.csv\\\"},{\\\"id\\\":7,\\\"itemID\\\":\\\"3af7f0db-70fd-488a-98a6-42d877249f90\\\",\\\"locator\\\":\\\"text; offset=0\\\",\\\"rank\\\":-2.368878082667593e-06,\\\"snippet\\\":\\\"Synthetic physical count: 20 brass bolts on 1 January 2026.\\\",\\\"title\\\":\\\"Opening count\\\"},{\\\"id\\\":2,\\\"itemID\\\":\\\"63715768-931c-4878-92cd-0cbc9608407d\\\",\\\"locator\\\":\\\"text; offset=0\\\",\\\"rank\\\":-2.153457530786233e-06,\\\"snippet\\\":\\\"item: Brass bolts\\\\nquantity: 20\\\\nsupplier: Sierra\\\\nunit_cost: 2.50\\\",\\\"title\\\":\\\"Supplier_quotes.csv, row 1\\\"},{\\\"id\\\":3,\\\"itemID\\\":\\\"0bb32941-bbb1-4c10-ae11-9d6b9a5a848a\\\",\\\"locator\\\":\\\"text; offset=0\\\",\\\"rank\\\":-2.153457530786233e-06,\\\"snippet\\\":\\\"item: Brass bolts\\\\nquantity: 20\\\\nsupplier: Vega\\\\nunit_cost: 2.75\\\",\\\"title\\\":\\\"Supplier_quotes.csv, row 2\\\"},{\\\"id\\\":4,\\\"itemID\\\":\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\",\\\"locator\\\":\\\"image; offset=0\\\",\\\"rank\\\":-1.9739507959479014e-06,\\\"snippet\\\":\\\"SYNTHETIC RECEIPT VEGA 2043\\\\n2 brass bolts handed over\\\\nFulfillment evidence only\\\\nNo automatic inventory acceptance\\\",\\\"title\\\":\\\"Receipt_Vega_2043.png\\\"},{\\\"id\\\":5,\\\"itemID\\\":\\\"5e3c87b5-101f-4d41-9731-ac92cbe1fdd2\\\",\\\"locator\\\":\\\"page=1; offset=0\\\",\\\"rank\\\":-1.933654664020414e-06,\\\"snippet\\\":\\\"SYNTHETIC INVOICE SIERRA 1042\\\\n20 brass bolts\\\\nUnit price: 2.50\\\\nTotal: 50.00\\\\nNo currency specified\\\",\\\"title\\\":\\\"Delivery_Ñandú_2026.pdf\\\"}],\\\"incomplete\\\":0,\\\"notice\\\":\\\"hits, incomplete and nextCursor describe business evidence only. conversation describes earlier messages in the current conversation. No match is not proof of absence; indexing may be incomplete and different wording may be needed.\\\",\\\"snapshotRevision\\\":24},\\\"resultHash\\\":\\\"0bc77a5a635f97f5120c27b1ce560929a849b4f485f089cb95d6fb248f180a78\\\",\\\"resultIdentity\\\":{},\\\"runID\\\":\\\"e6cd8d32-a670-4828-a70a-9cf52c6fa030\\\",\\\"tool\\\":\\\"search\\\"}\",\"created\":\"2026-10-28T01:07:02Z\",\"id\":\"efee4eec-4196-44d7-bb86-19e0a978dbdf\",\"role\":\"tool\",\"state\":\"complete\"},\"payload\":null},\"resultHash\":\"8023333a35acb12255ef4972df84f9ea056ec6f31ecfca5931ad7cf55b3009f9\",\"resultIdentity\":{},\"runID\":\"89121186-d03c-4890-858a-58249437dd29\",\"tool\":\"history_read\"}",
+        "state": "complete",
+        "created": "2026-10-28T01:10:44Z"
+      },
+      {
+        "id": "0f1f4ed3-b991-402a-908c-fecef4ac20a1",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"query\":\"Vega brass bolts delivery\"},\"assistantText\":\"\",\"callID\":\"call_811b89ca-98c2-4c19-96c5-f40f6d270c14\",\"receiptID\":\"519f5f11-900f-4f88-aab8-ddce952a6eea\",\"receiptVersion\":1,\"result\":{\"conversation\":{\"conversation\":\"main\",\"hits\":[{\"created\":\"2026-10-28T01:07:02Z\",\"excerpt\":\" … Vega_2043.png\\\"},{\\\"id\\\":5,\\\"itemID\\\":\\\"5e3c87b5-101f-4d41-9731-ac92cbe1fdd2\\\",\\\"locator\\\":\\\"page=1; offset=0\\\",\\\"rank\\\":-1.933654664020414e-06,\\\"snippet\\\":\\\"SYNTHETIC INVOICE SIERRA 1042\\\\n20 brass bolts\\\\nUnit price: 2.50\\\\nTotal: 50.00\\\\nNo currency specified\\\",\\\"title\\\":\\\"Delivery … \",\"id\":\"efee4eec-4196-44d7-bb86-19e0a978dbdf\",\"role\":\"tool\",\"state\":\"complete\"}],\"nextCursor\":null,\"notice\":\"These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.\",\"revision\":63,\"searched\":true},\"hits\":[],\"incomplete\":0,\"notice\":\"hits, incomplete and nextCursor describe business evidence only. conversation describes earlier messages in the current conversation. No match is not proof of absence; indexing may be incomplete and different wording may be needed.\",\"snapshotRevision\":63},\"resultHash\":\"2a0ca2bf4bf9da552512155af4107fd9ea97cd6ffaf54875457d9755b4e28112\",\"resultIdentity\":{},\"runID\":\"89121186-d03c-4890-858a-58249437dd29\",\"tool\":\"search\"}",
+        "state": "complete",
+        "created": "2026-10-28T01:10:38Z"
+      },
+      {
+        "id": "58d9166d-a4ae-4a95-a6fb-e4d38a970e64",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"query\":\"Vega brass bolts delivery receipt\",\"status\":\"accepted\"},\"assistantText\":\"\",\"callID\":\"call_56c21d12-c90d-44c9-bde5-53d8e048341d\",\"receiptID\":\"1018d1e3-10a7-4cb5-a69f-5cba284059e4\",\"receiptVersion\":1,\"result\":{\"conversation\":{\"conversation\":\"main\",\"hits\":[],\"nextCursor\":null,\"notice\":\"Conversation was not searched because this is a filtered or paginated business query. Use history_search to search earlier messages separately.\",\"searched\":false},\"hits\":[],\"incomplete\":0,\"notice\":\"hits, incomplete and nextCursor describe business evidence only. conversation describes earlier messages in the current conversation. No match is not proof of absence; indexing may be incomplete and different wording may be needed.\",\"snapshotRevision\":61},\"resultHash\":\"b2515bfa23a0a99fec67f206b297b9f9604dc7ef6145ae7db000a135a15fa24b\",\"resultIdentity\":{},\"runID\":\"89121186-d03c-4890-858a-58249437dd29\",\"tool\":\"search\"}",
+        "state": "complete",
+        "created": "2026-10-28T01:10:35Z"
+      },
+      {
+        "id": "e4b5ead9-7034-4983-9423-110d4c19198e",
+        "conversation_id": "main",
+        "role": "user",
+        "body": "The Vega receipt records two brass bolts handed over. Prepare the stock adjustment for that delivery on 2 January 2026, but leave it for my review.",
+        "state": "complete",
+        "created": "2026-10-28T01:10:28Z"
+      },
+      {
+        "id": "d33b884d-d987-4e22-9021-60c2d3e22a8f",
+        "conversation_id": "main",
+        "role": "user",
+        "body": "Shared summary from a thread:\n\nWhat-if only: Vega at 2.40 would cost 48.00 for 20 brass bolts, versus Sierra's 50.00, a saving of 2.00. No quote or inventory was changed.\n\n[Open original exchange](sevra://conversation/66621c8a-2ccd-4fbf-8d8d-7e06924fb1be?message=ce6b37ac-2138-45ad-8852-4292bea4ebc1)",
+        "state": "complete",
+        "created": "2026-10-28T01:10:17Z"
+      }
+    ]
+  },
+  "historicalReplay": {
+    "run": {
+      "id": "069d065b-57d9-4907-99c0-acfc2a3b9ab9",
+      "conversation_id": "main",
+      "status": "complete",
+      "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; reasoning budget 512; within-request reasoning retained",
+      "steps": 6,
+      "metrics": "[{\"acceptedDraftTokens\":173,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":6.201141,\"deduplicatedKVTokens\":0,\"diagnosticRequestCacheIsolation\":false,\"draftedTokens\":518,\"firstTokenSeconds\":5.237907374743372,\"generatedTokens\":248,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"matchedPromptTokens\":0,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":5.23775,\"promptTokens\":9447,\"reasoningBudget\":512,\"reasoningBudgetOverrun\":0,\"reasoningHistory\":\"within-request\",\"reasoningTokens\":230,\"recoveryReserve\":256,\"requestSeconds\":11.439080333337188,\"speculativeMethod\":\"DFlash2\",\"toolScope\":\"all\"},{\"acceptedDraftTokens\":93,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":3.162523,\"deduplicatedKVTokens\":224,\"diagnosticRequestCacheIsolation\":false,\"draftedTokens\":210,\"firstTokenSeconds\":1.050437624566257,\"generatedTokens\":124,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"matchedPromptTokens\":9440,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":1.04552,\"promptTokens\":9717,\"reasoningBudget\":512,\"reasoningBudgetOverrun\":0,\"reasoningHistory\":\"within-request\",\"reasoningTokens\":68,\"recoveryReserve\":256,\"requestSeconds\":4.212959249969572,\"speculativeMethod\":\"DFlash2\",\"toolScope\":\"all\"},{\"acceptedDraftTokens\":232,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":6.119429,\"deduplicatedKVTokens\":1728,\"diagnosticRequestCacheIsolation\":false,\"draftedTokens\":420,\"firstTokenSeconds\":6.470554500352591,\"generatedTokens\":293,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"matchedPromptTokens\":0,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":6.470457,\"promptTokens\":10317,\"reasoningBudget\":512,\"reasoningBudgetOverrun\":0,\"reasoningHistory\":\"within-request\",\"reasoningTokens\":237,\"recoveryReserve\":256,\"requestSeconds\":12.590021000243723,\"speculativeMethod\":\"DFlash2\",\"toolScope\":\"all\"},{\"acceptedDraftTokens\":79,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":2.282706,\"deduplicatedKVTokens\":1664,\"diagnosticRequestCacheIsolation\":false,\"draftedTokens\":140,\"firstTokenSeconds\":7.185374833177775,\"generatedTokens\":100,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"matchedPromptTokens\":0,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":7.185264,\"promptTokens\":11155,\"reasoningBudget\":512,\"reasoningBudgetOverrun\":0,\"reasoningHistory\":\"within-request\",\"reasoningTokens\":45,\"recoveryReserve\":256,\"requestSeconds\":9.46808945806697,\"speculativeMethod\":\"DFlash2\",\"toolScope\":\"all\"},{\"acceptedDraftTokens\":304,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":7.743709,\"deduplicatedKVTokens\":5856,\"diagnosticRequestCacheIsolation\":false,\"draftedTokens\":497,\"firstTokenSeconds\":9.833138333633542,\"generatedTokens\":376,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"matchedPromptTokens\":0,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":9.833017,\"promptTokens\":11774,\"reasoningBudget\":512,\"reasoningBudgetOverrun\":0,\"reasoningHistory\":\"within-request\",\"reasoningTokens\":321,\"recoveryReserve\":256,\"requestSeconds\":17.576858791988343,\"speculativeMethod\":\"DFlash2\",\"toolScope\":\"all\"},{\"acceptedDraftTokens\":483,\"backend\":\"splash-native-candidate\",\"contextTokens\":32768,\"decodeSeconds\":12.469485,\"deduplicatedKVTokens\":1856,\"diagnosticRequestCacheIsolation\":false,\"draftedTokens\":819,\"firstTokenSeconds\":8.132750208489597,\"generatedTokens\":601,\"maintenanceRecommended\":false,\"maintenanceThreshold\":28664,\"matchedPromptTokens\":0,\"nextToolResultReserve\":2048,\"outputBudget\":1800,\"prefillSeconds\":8.132621,\"promptTokens\":12705,\"reasoningBudget\":512,\"reasoningBudgetOverrun\":0,\"reasoningHistory\":\"within-request\",\"reasoningTokens\":254,\"recoveryReserve\":256,\"requestSeconds\":20.60225108359009,\"speculativeMethod\":\"DFlash2\",\"toolScope\":\"all\"}]",
+      "created": "2026-10-28T02:27:02Z",
+      "updated": "2026-10-28T02:28:24Z"
+    },
+    "calls": [
+      {
+        "id": "29f3ae6e-6bbc-4209-86e4-c4b09271e16f",
+        "run_id": "069d065b-57d9-4907-99c0-acfc2a3b9ab9",
+        "call_id": "call_6fd0e275-39b9-4dd9-80cf-d88e584ffa5c",
+        "tool": "review_queue",
+        "arguments": "{}",
+        "operation_token": "069d065b-57d9-4907-99c0-acfc2a3b9ab9-fe9b9b397495f6dc703c1987",
+        "assistant_text": "",
+        "state": "completed",
+        "result": "{\"items\":[],\"revision\":2}",
+        "result_hash": "7197ad6590a2be371fdf4a9b8c29b39ac86b33d83b6790cc41d391cc67553e7c",
+        "message_id": "8cd366a1-c67a-4ae8-b04e-9ed98ededa97",
+        "created": "2026-10-28T02:27:19Z"
+      },
+      {
+        "id": "2aad3384-3aa5-4541-8b0d-8d4728a981f3",
+        "run_id": "069d065b-57d9-4907-99c0-acfc2a3b9ab9",
+        "call_id": "call_4046ff69-50b7-48b1-b791-ecc1aa4a227b",
+        "tool": "lineage",
+        "arguments": "{\"id\":\"68d067ce-a957-47c0-a977-bb95abb778f5\"}",
+        "operation_token": "069d065b-57d9-4907-99c0-acfc2a3b9ab9-ab112f41486bb30720885e4f",
+        "assistant_text": "",
+        "state": "completed",
+        "result": "[{\"child\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"parent\":\"79600710-2b7b-43fb-ab11-ef23e466b825\",\"relation\":\"derives-from\",\"transformation\":\"inventory-movement-v1\"},{\"child\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"parent\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"relation\":\"derives-from\",\"transformation\":\"inventory-movement-v1\"},{\"child\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"parent\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"relation\":\"derives-from\",\"transformation\":\"withdraw-draft-v1\"},{\"child\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"parent\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"relation\":\"supersedes\",\"transformation\":\"withdraw-draft-v1\"}]",
+        "result_hash": "262e9b27c9c25b9ed77ed94fdbfdd846ec26ea7a512fa563d43911f89d6ebd77",
+        "message_id": "1b0dae5e-461f-4cc5-b058-6b868f8d9105",
+        "created": "2026-10-28T02:27:23Z"
+      },
+      {
+        "id": "99e7ee9d-0f0b-4b1e-b97c-bfc771a36a71",
+        "run_id": "069d065b-57d9-4907-99c0-acfc2a3b9ab9",
+        "call_id": "call_705fe837-f698-489d-b4a5-f12f8cc12f6d",
+        "tool": "read",
+        "arguments": "{\"id\":\"68d067ce-a957-47c0-a977-bb95abb778f5\"}",
+        "operation_token": "069d065b-57d9-4907-99c0-acfc2a3b9ab9-a028fd544751498dcf13fd57",
+        "assistant_text": "",
+        "state": "completed",
+        "result": "{\"chunks\":[{\"body\":\"2 inventory movement for brass bolts\",\"id\":12,\"locator\":\"text; offset=0\"}],\"currentVersion\":{\"id\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"meaning\":\"actual\",\"status\":\"rejected\",\"title\":\"brass bolts: 2\"},\"extraction\":{},\"isCurrentVersion\":false,\"item\":{\"category\":\"record\",\"created\":\"2026-10-28T01:11:15Z\",\"data\":{\"effective\":\"2026-01-02T00:00:00.000Z\",\"input\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"occurrence\":\"vega_delivery_2026_01_02\",\"quantity\":\"2\",\"requestSourceID\":\"79600710-2b7b-43fb-ab11-ef23e466b825\",\"status\":\"draft\",\"subject\":\"brass bolts\",\"supersedes\":null},\"id\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"kind\":\"movement\",\"logicalID\":\"5d38bcb2-a589-4f2e-b2b3-fd209b2a0baf\",\"meaning\":\"actual\",\"scenario\":\"actual\",\"status\":\"draft\",\"text\":\"2 inventory movement for brass bolts\",\"title\":\"brass bolts: 2\",\"version\":1},\"notice\":\"The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.\",\"snapshotRevision\":92}",
+        "result_hash": "eba1f8e2a1d129b6a12d15c0283ebc7a5cda6673979e94746726ad80ec127534",
+        "message_id": "198f5fe5-3960-4526-b5db-67be6cb99af9",
+        "created": "2026-10-28T02:27:36Z"
+      },
+      {
+        "id": "b45282db-f689-4e15-b11a-5e146cd74592",
+        "run_id": "069d065b-57d9-4907-99c0-acfc2a3b9ab9",
+        "call_id": "call_27514cbe-61c2-4c04-8c2c-fb25cff7dc76",
+        "tool": "read",
+        "arguments": "{\"id\":\"527525fe-da59-4f92-8625-f6cbd20f7602\"}",
+        "operation_token": "069d065b-57d9-4907-99c0-acfc2a3b9ab9-ffb84aae6b05c039fa3883d2",
+        "assistant_text": "",
+        "state": "completed",
+        "result": "{\"chunks\":[{\"body\":\"2 inventory movement for brass bolts\",\"id\":14,\"locator\":\"text; offset=0\"}],\"currentVersion\":{\"id\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"meaning\":\"actual\",\"status\":\"rejected\",\"title\":\"brass bolts: 2\"},\"extraction\":{},\"isCurrentVersion\":true,\"item\":{\"category\":\"record\",\"created\":\"2026-10-28T01:12:38Z\",\"data\":{\"effective\":\"2026-01-02T00:00:00.000Z\",\"input\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"occurrence\":\"vega_delivery_2026_01_02\",\"quantity\":\"2\",\"requestSourceID\":\"79600710-2b7b-43fb-ab11-ef23e466b825\",\"status\":\"draft\",\"subject\":\"brass bolts\",\"supersedes\":null},\"id\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"kind\":\"movement\",\"logicalID\":\"5d38bcb2-a589-4f2e-b2b3-fd209b2a0baf\",\"meaning\":\"actual\",\"scenario\":\"actual\",\"status\":\"rejected\",\"supersedes\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"text\":\"2 inventory movement for brass bolts\",\"title\":\"brass bolts: 2\",\"version\":2},\"notice\":\"The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.\",\"snapshotRevision\":94}",
+        "result_hash": "aa1999ed2450c76d51f140c10d949c3573e3531df009d447dc3b847dc8a9b35b",
+        "message_id": "341a9f0b-adea-4f69-a73f-a9d3e7bc2ab4",
+        "created": "2026-10-28T02:27:45Z"
+      },
+      {
+        "id": "0b3e44be-dd78-4403-897b-0e113c6e44e4",
+        "run_id": "069d065b-57d9-4907-99c0-acfc2a3b9ab9",
+        "call_id": "call_15ba57ab-5b39-4a6a-868c-4bd3cc1d735e",
+        "tool": "read",
+        "arguments": "{\"id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\"}",
+        "operation_token": "069d065b-57d9-4907-99c0-acfc2a3b9ab9-4812917f730cbe888019e9b5",
+        "assistant_text": "",
+        "state": "completed",
+        "result": "{\"chunks\":[{\"body\":\"SYNTHETIC RECEIPT VEGA 2043\\n2 brass bolts handed over\\nFulfillment evidence only\\nNo automatic inventory acceptance\",\"id\":4,\"locator\":\"image; offset=0\"}],\"currentVersion\":{\"id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"status\":\"accepted\",\"title\":\"Receipt_Vega_2043.png\"},\"extraction\":{\"detail\":\"On-device OCR; check the original for accuracy.\",\"item_id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"parser\":\"native-v1\",\"state\":\"ready\",\"updated\":\"2026-10-28T01:06:27Z\"},\"isCurrentVersion\":true,\"item\":{\"assetID\":\"c58989e8-ca4e-4afc-a74b-ef0c8876bcea\",\"category\":\"source\",\"created\":\"2026-10-28T01:06:27Z\",\"data\":{\"bytes\":\"38710\",\"mediaType\":\"image\\/png\"},\"id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"kind\":\"document\",\"logicalID\":\"dcd5af7a-21f0-429c-ae01-dd2b1ac55a97\",\"meaning\":\"actual\",\"scenario\":\"actual\",\"status\":\"accepted\",\"text\":\"\",\"title\":\"Receipt_Vega_2043.png\",\"version\":1},\"notice\":\"The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.\",\"snapshotRevision\":96}",
+        "result_hash": "49add902683b46e4302f3f8357b939dbec4fd1b36f9780c730bb60d463ec2f0d",
+        "message_id": "ea11b5b6-bdd2-4a9c-a6a6-c7b1237c6897",
+        "created": "2026-10-28T02:28:03Z"
+      }
+    ],
+    "recentMessages": [
+      {
+        "id": "1ac108a9-96ec-4518-9193-98bba1bd1fe7",
+        "conversation_id": "main",
+        "role": "assistant",
+        "body": "The original brass-bolts movement proposal (version 1, ID: [brass bolts: 2](sevra://item/68d067ce-a957-47c0-a977-bb95abb778f5)) proposed a delivery of 2 brass bolts with an effective date of 2 January 2026, based on the Vega receipt document (ID: [Receipt\\_Vega\\_2043.png](sevra://item/8a928726-31b2-4bb7-bdfd-4e5e14ffd492)). The occurrence was recorded as \"vega_delivery_2026_01_02\".\n\nThe current status is **rejected** (version 2, ID: [brass bolts: 2](sevra://item/527525fe-da59-4f92-8625-f6cbd20f7602)), which supersedes the original. The proposal is no longer waiting for review—the active review queue is empty.\n\nVersion check: [brass bolts: 2](sevra://item/527525fe-da59-4f92-8625-f6cbd20f7602), version 2, withdrawn. The cited version 1 is historical.",
+        "state": "complete",
+        "created": "2026-10-28T02:28:24Z"
+      },
+      {
+        "id": "ea11b5b6-bdd2-4a9c-a6a6-c7b1237c6897",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\"},\"assistantText\":\"\",\"callID\":\"call_15ba57ab-5b39-4a6a-868c-4bd3cc1d735e\",\"receiptID\":\"0b3e44be-dd78-4403-897b-0e113c6e44e4\",\"receiptVersion\":1,\"result\":{\"chunks\":[{\"body\":\"SYNTHETIC RECEIPT VEGA 2043\\n2 brass bolts handed over\\nFulfillment evidence only\\nNo automatic inventory acceptance\",\"id\":4,\"locator\":\"image; offset=0\"}],\"currentVersion\":{\"id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"status\":\"accepted\",\"title\":\"Receipt_Vega_2043.png\"},\"extraction\":{\"detail\":\"On-device OCR; check the original for accuracy.\",\"item_id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"parser\":\"native-v1\",\"state\":\"ready\",\"updated\":\"2026-10-28T01:06:27Z\"},\"isCurrentVersion\":true,\"item\":{\"assetID\":\"c58989e8-ca4e-4afc-a74b-ef0c8876bcea\",\"category\":\"source\",\"created\":\"2026-10-28T01:06:27Z\",\"data\":{\"bytes\":\"38710\",\"mediaType\":\"image\\/png\"},\"id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"kind\":\"document\",\"logicalID\":\"dcd5af7a-21f0-429c-ae01-dd2b1ac55a97\",\"meaning\":\"actual\",\"scenario\":\"actual\",\"status\":\"accepted\",\"text\":\"\",\"title\":\"Receipt_Vega_2043.png\",\"version\":1},\"notice\":\"The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.\",\"snapshotRevision\":96},\"resultHash\":\"49add902683b46e4302f3f8357b939dbec4fd1b36f9780c730bb60d463ec2f0d\",\"resultIdentity\":{},\"runID\":\"069d065b-57d9-4907-99c0-acfc2a3b9ab9\",\"tool\":\"read\"}",
+        "state": "complete",
+        "created": "2026-10-28T02:28:03Z"
+      },
+      {
+        "id": "341a9f0b-adea-4f69-a73f-a9d3e7bc2ab4",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"id\":\"527525fe-da59-4f92-8625-f6cbd20f7602\"},\"assistantText\":\"\",\"callID\":\"call_27514cbe-61c2-4c04-8c2c-fb25cff7dc76\",\"receiptID\":\"b45282db-f689-4e15-b11a-5e146cd74592\",\"receiptVersion\":1,\"result\":{\"chunks\":[{\"body\":\"2 inventory movement for brass bolts\",\"id\":14,\"locator\":\"text; offset=0\"}],\"currentVersion\":{\"id\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"meaning\":\"actual\",\"status\":\"rejected\",\"title\":\"brass bolts: 2\"},\"extraction\":{},\"isCurrentVersion\":true,\"item\":{\"category\":\"record\",\"created\":\"2026-10-28T01:12:38Z\",\"data\":{\"effective\":\"2026-01-02T00:00:00.000Z\",\"input\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"occurrence\":\"vega_delivery_2026_01_02\",\"quantity\":\"2\",\"requestSourceID\":\"79600710-2b7b-43fb-ab11-ef23e466b825\",\"status\":\"draft\",\"subject\":\"brass bolts\",\"supersedes\":null},\"id\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"kind\":\"movement\",\"logicalID\":\"5d38bcb2-a589-4f2e-b2b3-fd209b2a0baf\",\"meaning\":\"actual\",\"scenario\":\"actual\",\"status\":\"rejected\",\"supersedes\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"text\":\"2 inventory movement for brass bolts\",\"title\":\"brass bolts: 2\",\"version\":2},\"notice\":\"The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.\",\"snapshotRevision\":94},\"resultHash\":\"aa1999ed2450c76d51f140c10d949c3573e3531df009d447dc3b847dc8a9b35b\",\"resultIdentity\":{},\"runID\":\"069d065b-57d9-4907-99c0-acfc2a3b9ab9\",\"tool\":\"read\"}",
+        "state": "complete",
+        "created": "2026-10-28T02:27:45Z"
+      },
+      {
+        "id": "198f5fe5-3960-4526-b5db-67be6cb99af9",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"id\":\"68d067ce-a957-47c0-a977-bb95abb778f5\"},\"assistantText\":\"\",\"callID\":\"call_705fe837-f698-489d-b4a5-f12f8cc12f6d\",\"receiptID\":\"99e7ee9d-0f0b-4b1e-b97c-bfc771a36a71\",\"receiptVersion\":1,\"result\":{\"chunks\":[{\"body\":\"2 inventory movement for brass bolts\",\"id\":12,\"locator\":\"text; offset=0\"}],\"currentVersion\":{\"id\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"meaning\":\"actual\",\"status\":\"rejected\",\"title\":\"brass bolts: 2\"},\"extraction\":{},\"isCurrentVersion\":false,\"item\":{\"category\":\"record\",\"created\":\"2026-10-28T01:11:15Z\",\"data\":{\"effective\":\"2026-01-02T00:00:00.000Z\",\"input\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"occurrence\":\"vega_delivery_2026_01_02\",\"quantity\":\"2\",\"requestSourceID\":\"79600710-2b7b-43fb-ab11-ef23e466b825\",\"status\":\"draft\",\"subject\":\"brass bolts\",\"supersedes\":null},\"id\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"kind\":\"movement\",\"logicalID\":\"5d38bcb2-a589-4f2e-b2b3-fd209b2a0baf\",\"meaning\":\"actual\",\"scenario\":\"actual\",\"status\":\"draft\",\"text\":\"2 inventory movement for brass bolts\",\"title\":\"brass bolts: 2\",\"version\":1},\"notice\":\"The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head.\",\"snapshotRevision\":92},\"resultHash\":\"eba1f8e2a1d129b6a12d15c0283ebc7a5cda6673979e94746726ad80ec127534\",\"resultIdentity\":{},\"runID\":\"069d065b-57d9-4907-99c0-acfc2a3b9ab9\",\"tool\":\"read\"}",
+        "state": "complete",
+        "created": "2026-10-28T02:27:36Z"
+      },
+      {
+        "id": "1b0dae5e-461f-4cc5-b058-6b868f8d9105",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"id\":\"68d067ce-a957-47c0-a977-bb95abb778f5\"},\"assistantText\":\"\",\"callID\":\"call_4046ff69-50b7-48b1-b791-ecc1aa4a227b\",\"receiptID\":\"2aad3384-3aa5-4541-8b0d-8d4728a981f3\",\"receiptVersion\":1,\"result\":[{\"child\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"parent\":\"79600710-2b7b-43fb-ab11-ef23e466b825\",\"relation\":\"derives-from\",\"transformation\":\"inventory-movement-v1\"},{\"child\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"parent\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"relation\":\"derives-from\",\"transformation\":\"inventory-movement-v1\"},{\"child\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"parent\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"relation\":\"derives-from\",\"transformation\":\"withdraw-draft-v1\"},{\"child\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"parent\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"relation\":\"supersedes\",\"transformation\":\"withdraw-draft-v1\"}],\"resultHash\":\"262e9b27c9c25b9ed77ed94fdbfdd846ec26ea7a512fa563d43911f89d6ebd77\",\"resultIdentity\":{},\"runID\":\"069d065b-57d9-4907-99c0-acfc2a3b9ab9\",\"tool\":\"lineage\"}",
+        "state": "complete",
+        "created": "2026-10-28T02:27:23Z"
+      },
+      {
+        "id": "8cd366a1-c67a-4ae8-b04e-9ed98ededa97",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{},\"assistantText\":\"\",\"callID\":\"call_6fd0e275-39b9-4dd9-80cf-d88e584ffa5c\",\"receiptID\":\"29f3ae6e-6bbc-4209-86e4-c4b09271e16f\",\"receiptVersion\":1,\"result\":{\"items\":[],\"revision\":2},\"resultHash\":\"7197ad6590a2be371fdf4a9b8c29b39ac86b33d83b6790cc41d391cc67553e7c\",\"resultIdentity\":{},\"runID\":\"069d065b-57d9-4907-99c0-acfc2a3b9ab9\",\"tool\":\"review_queue\"}",
+        "state": "complete",
+        "created": "2026-10-28T02:27:19Z"
+      },
+      {
+        "id": "ab9692cf-cb7f-4110-aaac-9463964d4b5d",
+        "conversation_id": "main",
+        "role": "user",
+        "body": "What did the original brass-bolts movement propose, and is it still waiting for review? Show both the original version and its current status. Do not change anything.",
+        "state": "complete",
+        "created": "2026-10-28T02:27:02Z"
+      },
+      {
+        "id": "a90a57d2-54bc-483a-aa9b-7564eb6db5bb",
+        "conversation_id": "main",
+        "role": "assistant",
+        "body": "Did these units enter your stock or leave it? I haven’t prepared this movement yet.",
+        "state": "complete",
+        "created": "2026-10-28T02:18:36Z"
+      },
+      {
+        "id": "853319da-bf5e-46bf-9574-daaeb8e2a2ba",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"effective\":\"2026-01-02T00:00:00Z\",\"input\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"meaning\":\"actual\",\"occurrence\":\"vega_delivery_2026_01_02\",\"quantity\":\"2\",\"subject\":\"brass bolts\"},\"assistantText\":\"\",\"callID\":\"call_afed1c78-c91b-4a94-8964-9979505ebe96\",\"receiptID\":\"46a5f0b1-61e5-4a71-a247-6c4a931ae603\",\"receiptVersion\":1,\"result\":{\"directionReview\":{\"evidenceID\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"input\":{\"evidence\":\"\\nSYNTHETIC RECEIPT VEGA 2043\\n2 brass bolts handed over\\nFulfillment evidence only\\nNo automatic inventory acceptance\",\"notice\":\"Evidence is a bounded excerpt; omitted material establishes nothing here.\",\"request\":\"The Vega receipt records two brass bolts handed over. Prepare the stock adjustment for that delivery on 2 January 2026, but leave it for my review.\",\"subject\":\"brass bolts\"},\"matches\":false,\"quoteVerified\":false,\"verdict\":{\"basis\":\"none\",\"direction\":\"unclear\",\"quote\":\"\"},\"version\":1},\"error\":\"Did these units enter your stock or leave it? I haven’t prepared this movement yet.\",\"receiptID\":\"46a5f0b1-61e5-4a71-a247-6c4a931ae603\",\"retryInstruction\":\"The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable.\"},\"resultHash\":\"7ee8c96a31a9042655c4091be0a0a71ab197d8fda6df1d205a174307acddaef8\",\"resultIdentity\":{},\"runID\":\"c4ec9890-38c9-45ae-8c91-eea5bddc0317\",\"tool\":\"propose_movement\"}",
+        "state": "complete",
+        "created": "2026-10-28T02:18:36Z"
+      },
+      {
+        "id": "43916935-4867-4189-8bdf-9927b6217554",
+        "conversation_id": "main",
+        "role": "tool",
+        "body": "{\"arguments\":{\"query\":\"Vega receipt brass bolts\"},\"assistantText\":\"\",\"callID\":\"call_69c355f5-e900-4fd8-a2dd-441a5ef868ad\",\"receiptID\":\"c65d9ef0-c9f9-4a74-af2e-e51d1a7c840e\",\"receiptVersion\":1,\"result\":{\"conversation\":{\"conversation\":\"main\",\"hits\":[{\"created\":\"2026-10-28T01:11:15Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"effective\\\":\\\"2026-01-02T00:00:00Z\\\",\\\"input\\\":\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\",\\\"meaning\\\":\\\"actual\\\",\\\"occurrence\\\":\\\"vega_delivery_2026_01_02\\\",\\\"quantity\\\":\\\"2\\\",\\\"subject\\\":\\\"brass bolts\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_cf96f41d-ea13-4077-b4df-bd479a09e039\\\",\\\"receiptID\\\":\\\"31c5f712-54c7-44c0-ba1b-6f18122a9359 … \",\"id\":\"a2126f93-e28f-40ad-b206-3602d76d2d9a\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:11:09Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"effective\\\":\\\"2026-01-02T00:00:00\\\",\\\"input\\\":\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\",\\\"meaning\\\":\\\"actual\\\",\\\"occurrence\\\":\\\"vega_delivery_2026_01_02\\\",\\\"quantity\\\":\\\"2\\\",\\\"subject\\\":\\\"brass bolts\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_622a0cdc-537e-4407-8702-7bf1850cc326\\\",\\\"receiptID\\\":\\\"3444a719-5a2d-498f-8ed7-91051ea49549 … \",\"id\":\"24d30e17-cd16-410b-9e7b-262dd960182e\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:54Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"id\\\":\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_8b60fab1-15d0-4083-84f5-20b8a872eb1c\\\",\\\"receiptID\\\":\\\"0a2e3d29-1809-4900-a131-14cf04a07ceb\\\",\\\"receiptVersion\\\":1,\\\"result\\\":{\\\"chunks\\\":[{\\\"body\\\":\\\"SYNTHETIC RECEIPT VEGA 2043\\\\n2 brass bolts handed over\\\\nFulfillment evidence only\\\\nNo automatic … \",\"id\":\"ad1e789c-4bf7-44a3-bd08-f29ba529fd2b\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:44Z\",\"excerpt\":\" … Brass bolts\\\\\\\\nquantity: 20\\\\\\\\nsupplier: Vega\\\\\\\\nunit_cost: 2.75\\\\\\\",\\\\\\\"title\\\\\\\":\\\\\\\"Supplier_quotes.csv, row 2\\\\\\\"},{\\\\\\\"id\\\\\\\":4,\\\\\\\"itemID\\\\\\\":\\\\\\\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\\\\\\\",\\\\\\\"locator\\\\\\\":\\\\\\\"image; offset=0\\\\\\\",\\\\\\\"rank\\\\\\\":-1.9739507959479014e-06,\\\\\\\"snippet\\\\\\\":\\\\\\\"SYNTHETIC RECEIPT VEGA 2043\\\\\\\\n2 brass bolts … \",\"id\":\"a59e9f67-4450-4226-806e-3dcc756d5f59\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:38Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"query\\\":\\\"Vega brass bolts delivery\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_811b89ca-98c2-4c19-96c5-f40f6d270c14\\\",\\\"receiptID\\\":\\\"519f5f11-900f-4f88-aab8-ddce952a6eea\\\",\\\"receiptVersion\\\":1,\\\"result\\\":{\\\"conversation\\\":{\\\"conversation\\\":\\\"main\\\",\\\"hits\\\":[{\\\"created\\\":\\\"2026-10-28T01:07:02Z\\\",\\\"excerpt\\\":\\\" … Vega_2043.png\\\\\\\"},{\\\\\\\"id\\\\\\\":5,\\\\\\\"itemID … \",\"id\":\"0f1f4ed3-b991-402a-908c-fecef4ac20a1\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:35Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"query\\\":\\\"Vega brass bolts delivery receipt\\\",\\\"status\\\":\\\"accepted\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_56c21d12-c90d-44c9-bde5-53d8e048341d\\\",\\\"receiptID\\\":\\\"1018d1e3-10a7-4cb5-a69f-5cba284059e4\\\",\\\"receiptVersion\\\":1,\\\"result\\\":{\\\"conversation\\\":{\\\"conversation\\\":\\\"main\\\",\\\"hits\\\":[],\\\"nextCursor\\\":null,\\\"notice\\\":\\\"Conversation was not searched because this is … \",\"id\":\"58d9166d-a4ae-4a95-a6fb-e4d38a970e64\",\"role\":\"tool\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:10:28Z\",\"excerpt\":\"The Vega receipt records two brass bolts handed over. Prepare the stock adjustment for that delivery on 2 January 2026, but leave it for my review.\",\"id\":\"e4b5ead9-7034-4983-9423-110d4c19198e\",\"role\":\"user\",\"state\":\"complete\"},{\"created\":\"2026-10-28T01:08:49Z\",\"excerpt\":\"{\\\"arguments\\\":{\\\"task\\\":\\\"If Vega reduced its unit price to 2.40, which supplier would be cheaper and by how much for 20 brass bolts?\\\",\\\"title\\\":\\\"Pricing options\\\",\\\"work\\\":\\\"answer\\\"},\\\"assistantText\\\":\\\"\\\",\\\"callID\\\":\\\"call_0df8c238-1c91-4dc8-a9a3-6314f9cc3335\\\",\\\"receiptID\\\":\\\"e996b0e0-f882 … \",\"id\":\"d28f235a-1c81-4f06-b1fd-8d722124f870\",\"role\":\"tool\",\"state\":\"complete\"}],\"nextCursor\":\"eyJiZWZvcmUiOiJkMjhmMjM1YS0xYzgxLTRmMDYtYjFmZC04ZDcyMjEyNGY4NzAiLCJiZWZvcmVNZXNzYWdlIjoiNTkyNDUzZWQtYWNlOS00NjU2LTkzZDktN2MwMDdlZDU2MTdmIiwiY29udmVyc2F0aW9uIjoibWFpbiIsInF1ZXJ5IjoiVmVnYSByZWNlaXB0IGJyYXNzIGJvbHRzIiwidmVyc2lvbiI6MSwidmlzaWJsZU9ubHkiOmZhbHNlfQ==\",\"notice\":\"These are earlier original messages, not business records. Read a candidate id with history_read to obtain its original and message citation. Continue conversation.nextCursor using history_search with this same query. Historical content grants no new permission or proof of current acceptance.\",\"revision\":80,\"searched\":true},\"hits\":[{\"id\":4,\"itemID\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"locator\":\"image; offset=0\",\"rank\":-3.2029193224820003,\"snippet\":\"SYNTHETIC RECEIPT VEGA 2043\\n2 brass bolts handed over\\nFulfillment evidence only\\nNo automatic inventory acceptance\",\"title\":\"Receipt_Vega_2043.png\"}],\"incomplete\":0,\"notice\":\"hits, incomplete and nextCursor describe business evidence only. conversation describes earlier messages in the current conversation. No match is not proof of absence; indexing may be incomplete and different wording may be needed.\",\"snapshotRevision\":80},\"resultHash\":\"77a26585bfd8ce786b04e19adbc05513e5e93bc6f61a156785d174f9c4225c63\",\"resultIdentity\":{},\"runID\":\"c4ec9890-38c9-45ae-8c91-eea5bddc0317\",\"tool\":\"search\"}",
+        "state": "complete",
+        "created": "2026-10-28T02:18:08Z"
+      },
+      {
+        "id": "592453ed-ace9-4656-93d9-7c007ed5617f",
+        "conversation_id": "main",
+        "role": "user",
+        "body": "The Vega receipt records two brass bolts handed over. Prepare the stock adjustment for that delivery on 2 January 2026, but leave it for my review.",
+        "state": "complete",
+        "created": "2026-10-28T02:17:49Z"
+      },
+      {
+        "id": "e38418d8-8c9b-4c32-88cc-f827df49f17c",
+        "conversation_id": "main",
+        "role": "event",
+        "body": "Withdrew [brass bolts: 2](sevra://item/527525fe-da59-4f92-8625-f6cbd20f7602)",
+        "state": "complete",
+        "created": "2026-10-28T01:12:38Z"
+      }
+    ],
+    "assistantPayloads": [
+      {
+        "message_id": "1ac108a9-96ec-4518-9193-98bba1bd1fe7",
+        "payload": "{\"arguments\":{\"answer\":\"The original brass-bolts movement proposal (version 1, ID: 68d067ce-a957-47c0-a977-bb95abb778f5) proposed a delivery of 2 brass bolts with an effective date of 2 January 2026, based on the Vega receipt document (ID: 8a928726-31b2-4bb7-bdfd-4e5e14ffd492). The occurrence was recorded as \\\"vega_delivery_2026_01_02\\\".\\n\\nThe current status is **rejected** (version 2, ID: 527525fe-da59-4f92-8625-f6cbd20f7602), which supersedes the original. The proposal is no longer waiting for review—the active review queue is empty.\",\"basis\":\"evidence\",\"citations\":[\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\"]},\"assistantText\":\"\",\"callID\":\"call_b9ef38a2-e554-4deb-a3ac-38d7eee2e9db\",\"citationVersions\":{\"snapshotRevision\":97,\"versions\":[{\"cited\":{\"id\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"logicalID\":\"5d38bcb2-a589-4f2e-b2b3-fd209b2a0baf\",\"meaning\":\"actual\",\"status\":\"rejected\",\"title\":\"brass bolts: 2\",\"version\":2},\"current\":{\"id\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"logicalID\":\"5d38bcb2-a589-4f2e-b2b3-fd209b2a0baf\",\"meaning\":\"actual\",\"status\":\"rejected\",\"title\":\"brass bolts: 2\",\"version\":2},\"isCurrentVersion\":true},{\"cited\":{\"id\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"logicalID\":\"5d38bcb2-a589-4f2e-b2b3-fd209b2a0baf\",\"meaning\":\"actual\",\"status\":\"draft\",\"title\":\"brass bolts: 2\",\"version\":1},\"current\":{\"id\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"logicalID\":\"5d38bcb2-a589-4f2e-b2b3-fd209b2a0baf\",\"meaning\":\"actual\",\"status\":\"rejected\",\"title\":\"brass bolts: 2\",\"version\":2},\"isCurrentVersion\":false},{\"cited\":{\"id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"logicalID\":\"dcd5af7a-21f0-429c-ae01-dd2b1ac55a97\",\"meaning\":\"actual\",\"status\":\"accepted\",\"title\":\"Receipt_Vega_2043.png\",\"version\":1},\"current\":{\"id\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\",\"logicalID\":\"dcd5af7a-21f0-429c-ae01-dd2b1ac55a97\",\"meaning\":\"actual\",\"status\":\"accepted\",\"title\":\"Receipt_Vega_2043.png\",\"version\":1},\"isCurrentVersion\":true}]},\"coverageEvidence\":[],\"presentation\":\"answer\",\"receiptVersion\":1,\"renderedReferences\":{\"527525fe-da59-4f92-8625-f6cbd20f7602\":\"527525fe-da59-4f92-8625-f6cbd20f7602\",\"68d067ce-a957-47c0-a977-bb95abb778f5\":\"68d067ce-a957-47c0-a977-bb95abb778f5\",\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\":\"8a928726-31b2-4bb7-bdfd-4e5e14ffd492\"},\"runID\":\"069d065b-57d9-4907-99c0-acfc2a3b9ab9\",\"searchEvidence\":null,\"tool\":\"finish\"}"
+      }
+    ]
+  },
+  "audit": {
+    "items": {
+      "originalRows": 13,
+      "originalRowsUnchanged": true,
+      "newRows": 2,
+      "newKinds": [
+        "request",
+        "request"
+      ]
+    },
+    "assets": {
+      "originalRows": 3,
+      "originalRowsUnchanged": true,
+      "newRows": 0
+    },
+    "messages": {
+      "originalRows": 33,
+      "originalRowsUnchanged": true,
+      "newRows": 11
+    },
+    "operations": {
+      "originalRows": 77,
+      "originalRowsUnchanged": true,
+      "newRows": 22,
+      "newKinds": [
+        "agent_request",
+        "agent_terminal",
+        "item",
+        "message",
+        "tool_complete",
+        "tool_prepare"
+      ]
+    },
+    "spaces": {
+      "originalRows": 2,
+      "originalRowsUnchanged": true,
+      "newRows": 0
+    }
+  },
+  "assets": [
+    {
+      "id": "82b88cb7-c9c4-4f5c-bdc5-99e4578c380b",
+      "sha256": "297b664e293f189c88b7f868e981f818b20e5b32f19fb27b2e6b7bf6dd7cc8e0",
+      "bytes": 85
+    },
+    {
+      "id": "c58989e8-ca4e-4afc-a74b-ef0c8876bcea",
+      "sha256": "6080be59c4e070df2a174889b792d2e03b85a139ea1795ee077e4fd8473b4e89",
+      "bytes": 38710
+    },
+    {
+      "id": "28a608c2-ab20-4862-b992-60d148e5d721",
+      "sha256": "8d76333cc75f053f516f901a9cfa4f5913ed7106de3c3eec2afd7c5f9c2a3455",
+      "bytes": 16047
+    }
+  ],
+  "verify": {
+    "ok": true,
+    "result": {
+      "assetIssues": [],
+      "database": "ok",
+      "ok": true
+    },
+    "schemaVersion": 1
+  },
+  "balance": {
+    "ok": true,
+    "result": {
+      "asOf": "9999-12-31T23:59:59.000Z",
+      "basis": "3af7f0db-70fd-488a-98a6-42d877249f90",
+      "effects": [],
+      "quantity": "20",
+      "subject": "brass bolts"
+    },
+    "schemaVersion": 1
+  },
+  "checks": {
+    "citation-core-build.log": "[0/1] Planning build\nBuilding for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\n[1/4] Write sources\n[3/6] Compiling SevraCore CitationVersions.swift\n[4/6] Emitting module SevraCore\n[4/7] Write Objects.LinkFileList\n[5/7] Linking sevra-checks\n[6/7] Applying sevra-checks\nBuild of product 'sevra-checks' complete! (5.94s)\n",
+    "citation-core-checks.log": "PASS create/open canonical package\nPASS decimal arithmetic and error propagation\nPASS source, lineage and current heads\nPASS draft has no inventory effect; acceptance applies once\nPASS duplicate evidence cannot duplicate effect\nPASS accepted forecast remains estimate\nPASS correction supersedes rather than adds\nPASS withdrawing and undoing a correction preserve the prior accepted inventory effect\nPASS citation snapshots preserve exact historical versions and current state without mutation\nPASS unknown basis does not become zero\nPASS idempotency requires identical request\nPASS stale concurrent revision rejected\nPASS include file, extract, Unicode FTS and filename substring\nPASS FTS escaping and empty queries\nPASS external references detect changed and missing bytes\nPASS cancelled import creates no reference\nPASS Unicode and embedded zero bytes survive database round trips\nPASS CSV quoted newlines, escaped quotes and CRLF\nPASS table values, formulas, edits, undo and reopen\nPASS native space validation and persistence\nPASS main conversation, chapter, tangent and bookmark\nPASS thread commands preserve titles and do not interpret quoted or negated instructions\nPASS selected thread summary preserves origin and does not change business state or history scope\nPASS undo acceptance withdraws effect; later draft does not erase accepted state\nPASS atomic paste, typed validation, one-step undo and redo\nPASS table proposal acceptance, retry, undo and redo preserve exact values\nPASS new table proposals preserve estimate meaning, formulas, provenance and reversible visibility\nPASS agent table creation uses the preserved user request as evidence\nPASS stale table proposal and stale undo roll back every change\nPASS include linked evidence preserves indexed content and original history\nPASS cancelled extraction retains the last usable index\nPASS XLSX shared strings, inline text, sparse cells, dates and cached formulas\nPASS XLSX refuses overflowing coordinates and expanded shared-string output\nPASS package metadata symlinks are refused before opening SQLite\nPASS rebuild search preserves results\nPASS coherent export and reopen with included bytes\nPASS archive expansion budget\nPASS reject unexpected schema before writes\nPASS conditional formulas are lazy, ranges resolve and rounding is explicit\nPASS search deduplicates chunks, paginates and rejects a stale cursor\nPASS supplier comparison uses the expensive quote as its percentage denominator\nPASS CSV export preserves calculated values and quoted multiline cells\nPASS live metric changes while a pinned result preserves values and evidence\nPASS column type changes validate existing data and formula history restores\nPASS structured import resumes committed batches without duplicating rows\nPASS copy cancellation and extraction deadlines leave the workbook usable\nPASS native PDF text and image OCR create searchable exact source locators\nPASS explicit archive intake preserves member lineage and retry identity\nPASS archive traversal entries cannot escape their destination\nPASS search cancellation and deadline preserve the next query\nPASS pinning retries return the original snapshot\nPASS Pinned document and asset bindings retain exact versions through reopen and export\nPASS Pinned search preserves its bounded hits, locators and index gaps after corrections\nPASS Empty pinned search retains its original gap after indexing and new evidence\nPASS An unpinnable component refuses the whole copy without a partial space\nPASS Pinned labels cannot be saved over live bindings and legacy spaces remain readable\nPASS extraction status keeps linked and included asset ownership separate\nPASS linked-file verification releases the workbook lock during hashing\nPASS external editing uses a verified independent copy of included or linked evidence\nPASS cancelled or changed asset copies publish nothing and retain bounded progress\nPASS copy destinations cannot overwrite evidence, aliases or competing files\nPASS recent catalog stays bounded and preserves exact current evidence metadata\nPASS search passages remain exact across dense, sparse and filename-only hits\nPASS canonical v1 migration preserves history and builds its index once\nPASS canonical v2 migration retains existing conversation data and FTS\nPASS canonical v3 migration adds review index once without changing history\nPASS future or untrusted schemas are refused; failed migration rolls back\nPASS history paging preserves Unicode, NUL, payloads and conversation scope\nPASS conversation FTS uses bounded scoped cursors and supports rebuilding\nPASS checkpoint publication validates range, revision, cancellation and exact inputs\nPASS checkpoint chain retains originals and derives current meaning/acceptance\nPASS run request linkage is scoped and preserved across reopen\nPASS mid-run checkpoint retains a complete tool group and refuses an invented boundary\nPASS Immediate threads keep exact parent context, retry identity and editable titles\nPASS History windows use scoped keysets with interleaved threads, bounded bodies and no gaps\nPASS continuation preserves exact source bindings and saved spaces, with live version status\nPASS continuation evidence is bounded, deduplicated and isolated from old, failed and foreign calls\nPASS continuation refuses a read excerpt that differs from the immutable source\nPASS journal preserves large exact results with valid bounded Unicode pages\nPASS prepared call survives mutation gap without replay or false acceptance\nPASS oversized keys have lossless raw JSON recovery and failed calls retain receipts\nPASS agent history tools find old originals and exclude tangent messages\n82 passed; 0 failed\n",
+    "citation-agent-build.log": "Building for debugging...\n[0/3] Write swift-version--1AB21518FC5DEDBE.txt\n[1/4] Write Objects.LinkFileList\n[2/4] Linking sevra-agent-checks\n[3/4] Applying sevra-agent-checks\nBuild of product 'sevra-agent-checks' complete! (2.74s)\n",
+    "citation-agent-checks.log": "PASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\nPASS terminal conversation actions, exact parent, rename, review without sharing, scope/refusal and cancellation\nPASS scoped space opening, compound continuation, shortcut/snapshot separation, read-only denial and terminal ambiguity/window refusal\nPASS exact request handoff, one lease/Source, scoped child history, no repeats, cancellation, failure, shared step budget and reopen\nPASS handoff evidence: exact same-request reads/calculation, scoped history, changed heads, projection/failure refusal, byte/count bounds and replay\nPASS conceptual differences finish directly; numeric comparisons stay checked; threads share accepted workbook data\nPASS intact user request, separate host metadata, scoped continuation and automatic request lineage without redundant reads\n{\"abandonedRunClosedBeforeProjection\":true,\"activeOtherRunPreserved\":true,\"check\":\"request_admission\",\"failedLeaseHasLinkedTerminalRequest\":true,\"liveRun\":\"b9a121bd-d13b-40a0-beae-7c0fc079f021\",\"oldRun\":\"77a1e2ce-7aa1-4f1a-a302-ae4c9fecfc48\"}\nPASS abandoned-run projection and terminal lease-refusal history preserve originals and active work\nPASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history\nPASS isolated inventory direction, exact quotes, wrong-sign refusal, original history, draft-only success and terminal duplicate refusal\nPASS stale citation refusal, current-version refresh, citation-drop bypass refusal and preserved historical evidence\nPASS exhausted correction retains all four rejected candidates and a failed run\nPASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation\nPASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data\nPASS shared agent retrieves old originals and pages oversized saved results\nPASS inherited parent evidence is readable and correctly linked without widening history search or branch scope\nPASS scoped search spans business evidence and earlier conversation without mixing citations, filters, cursors or branches\nPASS exact item candidates, separate citation authority, context rebuild, shared refusal receipts and baseline/native schema parity\nPASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery\nPASS current-request citations cannot replace missing external evidence; supplied and independently cited facts remain available\nPASS repeated context maintenance, exact original references, current acceptance, cancellation, invalid summaries and portable continuation\nPASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance\nPASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations\nPASS actual workbook schemas, open row/record data, full argument validation and schema refusals\n",
+    "citation-final-native-build.log": "[0/1] Planning build\nBuilding for production...\n[0/3] Write sources\n[1/3] Write swift-version--1AB21518FC5DEDBE.txt\n[3/4] Compiling SevraCore AgentSearch.swift\n[3/5] Write Objects.LinkFileList\n[4/5] Linking SevraDesktop\nBuild of product 'SevraDesktop' complete! (19.31s)\n",
+    "citation-final-cli-build.log": "Building for production...\n[0/2] Write swift-version--1AB21518FC5DEDBE.txt\n[1/3] Write Objects.LinkFileList\n[2/3] Linking sevra\nBuild of product 'sevra' complete! (0.82s)\n",
+    "citation-final-package.log": "$REPO/output/native/Sevra Native Preview.app: replacing existing signature\n{\"app\": \"output/native/Sevra Native Preview.app\", \"cli\": \"output/native/bin/sevra\", \"candidate\": true, \"unchangedEngine\": true}\n",
+    "citation-fixture-failure.log": "PASS create/open canonical package\nPASS decimal arithmetic and error propagation\nPASS source, lineage and current heads\nPASS draft has no inventory effect; acceptance applies once\nPASS duplicate evidence cannot duplicate effect\nPASS accepted forecast remains estimate\nPASS correction supersedes rather than adds\nPASS withdrawing and undoing a correction preserve the prior accepted inventory effect\nFAIL citation snapshots preserve exact historical versions and current state without mutation: SevraError(code: \"lineage\", message: \"Derived records require at least one exact input version.\")\nPASS unknown basis does not become zero\nPASS idempotency requires identical request\nPASS stale concurrent revision rejected\nPASS include file, extract, Unicode FTS and filename substring\nPASS FTS escaping and empty queries\nPASS external references detect changed and missing bytes\nPASS cancelled import creates no reference\nPASS Unicode and embedded zero bytes survive database round trips\nPASS CSV quoted newlines, escaped quotes and CRLF\nPASS table values, formulas, edits, undo and reopen\nPASS native space validation and persistence\nPASS main conversation, chapter, tangent and bookmark\nPASS thread commands preserve titles and do not interpret quoted or negated instructions\nPASS selected thread summary preserves origin and does not change business state or history scope\nPASS undo acceptance withdraws effect; later draft does not erase accepted state\nPASS atomic paste, typed validation, one-step undo and redo\nPASS table proposal acceptance, retry, undo and redo preserve exact values\nPASS new table proposals preserve estimate meaning, formulas, provenance and reversible visibility\nPASS agent table creation uses the preserved user request as evidence\nPASS stale table proposal and stale undo roll back every change\nPASS include linked evidence preserves indexed content and original history\nPASS cancelled extraction retains the last usable index\nPASS XLSX shared strings, inline text, sparse cells, dates and cached formulas\nPASS XLSX refuses overflowing coordinates and expanded shared-string output\nPASS package metadata symlinks are refused before opening SQLite\nPASS rebuild search preserves results\nPASS coherent export and reopen with included bytes\nPASS archive expansion budget\nPASS reject unexpected schema before writes\nPASS conditional formulas are lazy, ranges resolve and rounding is explicit\nPASS search deduplicates chunks, paginates and rejects a stale cursor\nPASS supplier comparison uses the expensive quote as its percentage denominator\nPASS CSV export preserves calculated values and quoted multiline cells\nPASS live metric changes while a pinned result preserves values and evidence\nPASS column type changes validate existing data and formula history restores\nPASS structured import resumes committed batches without duplicating rows\nPASS copy cancellation and extraction deadlines leave the workbook usable\nPASS native PDF text and image OCR create searchable exact source locators\nPASS explicit archive intake preserves member lineage and retry identity\nPASS archive traversal entries cannot escape their destination\nPASS search cancellation and deadline preserve the next query\nPASS pinning retries return the original snapshot\nPASS Pinned document and asset bindings retain exact versions through reopen and export\nPASS Pinned search preserves its bounded hits, locators and index gaps after corrections\nPASS Empty pinned search retains its original gap after indexing and new evidence\nPASS An unpinnable component refuses the whole copy without a partial space\nPASS Pinned labels cannot be saved over live bindings and legacy spaces remain readable\nPASS extraction status keeps linked and included asset ownership separate\nPASS linked-file verification releases the workbook lock during hashing\nPASS external editing uses a verified independent copy of included or linked evidence\nPASS cancelled or changed asset copies publish nothing and retain bounded progress\nPASS copy destinations cannot overwrite evidence, aliases or competing files\nPASS recent catalog stays bounded and preserves exact current evidence metadata\nPASS search passages remain exact across dense, sparse and filename-only hits\nPASS canonical v1 migration preserves history and builds its index once\nPASS canonical v2 migration retains existing conversation data and FTS\nPASS canonical v3 migration adds review index once without changing history\nPASS future or untrusted schemas are refused; failed migration rolls back\nPASS history paging preserves Unicode, NUL, payloads and conversation scope\nPASS conversation FTS uses bounded scoped cursors and supports rebuilding\nPASS checkpoint publication validates range, revision, cancellation and exact inputs\nPASS checkpoint chain retains originals and derives current meaning/acceptance\nPASS run request linkage is scoped and preserved across reopen\nPASS mid-run checkpoint retains a complete tool group and refuses an invented boundary\nPASS Immediate threads keep exact parent context, retry identity and editable titles\nPASS History windows use scoped keysets with interleaved threads, bounded bodies and no gaps\nPASS continuation preserves exact source bindings and saved spaces, with live version status\nPASS continuation evidence is bounded, deduplicated and isolated from old, failed and foreign calls\nPASS continuation refuses a read excerpt that differs from the immutable source\nPASS journal preserves large exact results with valid bounded Unicode pages\nPASS prepared call survives mutation gap without replay or false acceptance\nPASS oversized keys have lossless raw JSON recovery and failed calls retain receipts\nPASS agent history tools find old originals and exclude tangent messages\n81 passed; 1 failed\n",
+    "citation-agent-fixture-failure.log": "Tool policy assertion failed at SevraAgentChecks/CitationVersionChecks.swift:34: all != inspection\nPASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\nPASS terminal conversation actions, exact parent, rename, review without sharing, scope/refusal and cancellation\nPASS scoped space opening, compound continuation, shortcut/snapshot separation, read-only denial and terminal ambiguity/window refusal\nPASS exact request handoff, one lease/Source, scoped child history, no repeats, cancellation, failure, shared step budget and reopen\nPASS handoff evidence: exact same-request reads/calculation, scoped history, changed heads, projection/failure refusal, byte/count bounds and replay\nPASS conceptual differences finish directly; numeric comparisons stay checked; threads share accepted workbook data\nPASS intact user request, separate host metadata, scoped continuation and automatic request lineage without redundant reads\n{\"abandonedRunClosedBeforeProjection\":true,\"activeOtherRunPreserved\":true,\"check\":\"request_admission\",\"failedLeaseHasLinkedTerminalRequest\":true,\"liveRun\":\"0c041724-cc4a-4728-8af7-e47ee789d825\",\"oldRun\":\"9efe85b8-0c2b-4577-a887-a6423dc689d8\"}\nPASS abandoned-run projection and terminal lease-refusal history preserve originals and active work\nPASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history\nPASS isolated inventory direction, exact quotes, wrong-sign refusal, original history, draft-only success and terminal duplicate refusal\n",
+    "citation-version-label-failure.log": "Tool policy assertion failed at SevraAgentChecks/CitationVersionChecks.swift:82: false != true\nPASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal\nPASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block\nPASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests\nPASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused\nPASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit\nPASS terminal conversation actions, exact parent, rename, review without sharing, scope/refusal and cancellation\nPASS scoped space opening, compound continuation, shortcut/snapshot separation, read-only denial and terminal ambiguity/window refusal\nPASS exact request handoff, one lease/Source, scoped child history, no repeats, cancellation, failure, shared step budget and reopen\nPASS handoff evidence: exact same-request reads/calculation, scoped history, changed heads, projection/failure refusal, byte/count bounds and replay\nPASS conceptual differences finish directly; numeric comparisons stay checked; threads share accepted workbook data\nPASS intact user request, separate host metadata, scoped continuation and automatic request lineage without redundant reads\n{\"abandonedRunClosedBeforeProjection\":true,\"activeOtherRunPreserved\":true,\"check\":\"request_admission\",\"failedLeaseHasLinkedTerminalRequest\":true,\"liveRun\":\"31417b42-bfa2-4283-9270-9a6b6fcf7318\",\"oldRun\":\"f4155b1a-bd0e-4ce0-a1c1-bec82d2412d3\"}\nPASS abandoned-run projection and terminal lease-refusal history preserve originals and active work\nPASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history\nPASS isolated inventory direction, exact quotes, wrong-sign refusal, original history, draft-only success and terminal duplicate refusal\n"
+  },
+  "nativeObservation": {
+    "historicalAnswer": "Original v1 displayed; current v2 rejected/withdrawn; no longer waiting for review; host version footer visible with original and current links. App quit normally.",
+    "firstReplayLimit": "The retained ambiguous request went through direction review and clarification, not the citation refresh gate.",
+    "historicalReplayLimit": "The native model inspected the current version voluntarily. Deterministic tests exercise forced refresh and dropping-citation bypass.",
+    "auditCorrection": "The initial audit wrongly expected no new items or operations. Each ask legitimately records a request Source and run/receipt operations. Corrected audit checks original row preservation and no new business records.",
+    "notQualified": [
+      "general semantic truth of every answer",
+      "general duplicate-event identity",
+      "full J11 journey",
+      "native engine adoption",
+      "automatic context compaction",
+      "release"
+    ]
+  }
+}

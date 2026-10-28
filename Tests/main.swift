@@ -150,6 +150,29 @@ check("withdrawing and undoing a correction preserve the prior accepted inventor
   try expect(try b.balance(subject: "stock")["quantity"].text == "18")
   try expect(try b.verify()["ok"] == .bool(true))
 }
+check("citation snapshots preserve exact historical versions and current state without mutation") {
+  let b = try Workbook.create(
+    at: temp.appendingPathComponent("Citations.sevra"), title: "Citations")
+  let input = try b.addItem(category: "source", kind: "assumption", title: "Sales assumption")
+  let first = try b.addItem(
+    category: "record", kind: "forecast", title: "Projection", meaning: "estimate",
+    inputs: [input.id])
+  let current = try b.withdrawDraft(first.id)
+  let revision = try b.revision()
+  let snapshot = try b.citationVersions([first.id, first.id, current.id])
+  let historical = snapshot["versions"].array.first { $0["cited"]["id"].text == first.id }!
+  try expect(snapshot["versions"].array.count == 2)
+  try expect(historical["cited"]["status"].text == "draft")
+  try expect(historical["current"]["status"].text == "rejected")
+  try expect(historical["current"]["meaning"].text == "estimate")
+  try expect(historical["isCurrentVersion"] == .bool(false))
+  try expect(try b.item(first.id) == first)
+  try expect(try b.revision() == revision)
+  try refuses("citation_version") { _ = try b.citationVersions([first.logicalID]) }
+  let cancelled = Cancellation()
+  cancelled.cancel()
+  try refuses("cancelled") { _ = try b.citationVersions([first.id], cancellation: cancelled) }
+}
 check("unknown basis does not become zero") {
   try refuses("unknown_basis") { _ = try book.balance(subject: "unknown") }
 }

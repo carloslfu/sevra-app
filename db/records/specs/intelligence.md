@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T01:59:15.290333+00:00
+updated: 2026-10-28T02:32:12.968930+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -601,7 +601,8 @@ entailment or physical truth. The first isolated prompt still guessed incoming;
 explicit-versus-inferred ownership guidance passed the five revised native cases
 and the fresh native clarification/follow-up. The full retained-history UI replay
 instead falsely described a withdrawn proposal as waiting for review without
-calling propose_movement. This bypass is unresolved. Do not call J11 qualified.
+calling propose_movement. The following citation/current-status repair addresses this observed path.
+General semantic reliability and J11 remain unqualified.
 
 The current excerpt uses at most the first eight Source chunks plus original item
 text, capped at 16,000 characters. Later-page evidence selection remains work;
@@ -618,3 +619,29 @@ an earlier refusal, new runs and independent documents still require a durable
 event-identity design which also permits genuinely distinct deliveries.
 
 Evidence: [direction review receipt](../../../integration/evidence/2026-10-27-inventory-direction-review.json).
+
+## Exact citations and current status, October 27
+Before publishing an evidence answer, observe each cited exact item version and
+its current head in one read transaction. Use bounded metadata reads, without
+loading document bodies. A historical version remains a valid historical citation;
+never silently redirect it. When its current head has not been inspected, require
+inspection before finalizing. Keep that requirement even if a retry removes the
+citation or changes its answer basis to general. Existing bounded finish retries
+apply; this is not another unconstrained model loop.
+
+A historical citation receives a host-rendered version note and current-version
+link. Persist the exact snapshot and workbook revision with the answer. This is
+an observation at publication, not a promise of future status or semantic proof
+of every sentence. Historical movement creation arguments in data do not override
+item.status or currentVersion.status. No English status classifier or additional
+semantic model call is introduced.
+
+Deterministic checks refuse the stale-draft answer and citation-drop escape, then
+allow a historically accurate answer with both versions. Core checks cover exact
+IDs, deduplication, cancellation, no mutation and immutable history. The native
+historical question read both versions and correctly said the proposal was no
+longer waiting for review; the visible host note said version 2, withdrawn.
+That native run voluntarily inspected the head. The exact ambiguous handover replay
+instead took direction review and asked for clarification, so it does not establish
+the citation gate by itself. Stock stayed 20, no business records changed, and all
+original rows and assets were preserved. See [citation version receipt](../../../integration/evidence/2026-10-27-citation-current-version.json).

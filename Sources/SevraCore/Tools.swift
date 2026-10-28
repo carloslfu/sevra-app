@@ -165,7 +165,7 @@ public struct WorkbookTools {
             ]),
             "snapshotRevision": .number(Double(try workbook.revision())),
             "notice": .string(
-              "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current."
+              "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head."
             ),
             "chunks": .array(try workbook.readChunks(item.id, offset: a["offset"].int ?? 0)),
             "extraction": try workbook.extractionStatus(item.id),

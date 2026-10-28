@@ -478,3 +478,6 @@ Exercised integrated supplier journey; fixed accepted movement correction withdr
 ## [2026-10-28 01:59] implementation | records/operations/implementation
 Added isolated inventory direction review and terminal duplicate refusal; retained initial classifier and stale-status UI failures, verified fresh native clarification to -2 draft, and recorded latency and remaining identity work.
 
+## [2026-10-28 02:32] implementation | records/operations/implementation.md
+Verified exact historical citation/current-head repair with 82 core checks, agent checks and scoped native replay; recorded owner-selected 75% context trigger pending alignment.
+

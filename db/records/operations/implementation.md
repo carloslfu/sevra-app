@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T01:59:15.356563+00:00
+updated: 2026-10-28T02:32:13.017543+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -24,12 +24,17 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   movement. Exact duplicate refusal ends that run instead of permitting an ID
   rename/retry. Five revised native cases and the fresh native clarification then
   -2 draft flow passed. The initial reviewer prompt failed and remains recorded.
-- The retained-history native replay remains failed: it described a withdrawn v1
-  movement as waiting for review, without invoking the movement tool or reviewer.
-  Repair stale status claims next. Semantic event identity across different IDs
-  and runs is still unresolved. The new review adds 8.58–16.09 seconds per measured
-  call and currently sees only an initial bounded Source excerpt. Neither the
-  full inventory flow nor J11 is qualified.
+- The withdrawn-v1 failure remains preserved. Exact historical citations now
+  require inspection of their current head before finalization and display a
+  host version note. The native historical/current answer correctly reports the
+  withdrawal; deterministic tests cover the stale-answer and citation-drop paths.
+  Semantic event identity across different IDs/runs remains unresolved. Direction
+  review still adds 8.58–16.09 seconds per measured call and sees an initial bounded
+  Source excerpt. Neither the full inventory flow nor J11 is qualified.
+- The owner selected a 75% context-compaction trigger, using actual configured
+  capacity and exact rendered tokens, or earlier when reserves require. Policy
+  alignment and qualification are next. Automatic compaction stays gated; this
+  does not explain the observed errors at 8–12K prompt tokens.
 
 
 - The integrated typed/native supplier journey now has direct evidence for intake,
@@ -3697,3 +3702,32 @@ as byte-bound performance evidence. Final native app/CLI and current source hash
 are recorded in [direction review receipt](../../../integration/evidence/2026-10-27-inventory-direction-review.json) (83,311 bytes; SHA-256
 28223e17e4a37dc0461b5b303fb2d640c4484911a34ca9a84a310eb4c8ae3299).
 Other engine, context, relationship, accessibility and release gates remain unchanged.
+
+## Historical citations and current-version answer, October 27
+The observed withdrawn-v1 answer now has a deterministic current-head inspection
+boundary and a host version note. Historical citations remain usable. A retry
+cannot escape the refresh by dropping its citation or changing to general basis.
+The core lookup reads only exact-version metadata in one transaction. Original
+creation data remains unchanged and its read notice explains the status distinction.
+
+82 core checks and all agent checks pass after final changes. Early fixture failures
+were missing Source lineage and missing selected-ID context, both correctly refused.
+A new footer initially formatted numeric versions as 2.0/1.0; it now uses integers.
+Native release app/CLI builds and packaging pass, as do strict changed-file Swift
+format lint and git diff --check. No tool schemas or grammar masks changed.
+
+Two scoped native observations are retained. The original ambiguous handover asked
+for direction without creating a movement, taking the direction-review path. The
+historical/current question then read the review queue, lineage, both movement
+versions and original receipt, and correctly reported withdrawn status. Original
+and current links and the host note were visible. The final app quit normally.
+Original 13 items, 3 assets, 33 messages, 77 operations and 2 spaces match exactly;
+only the two new request Sources and conversation/run receipts were added. Included
+asset hashes match, workbook verification passes, and stock remains 20.
+
+The native run did not need forced citation refresh; deterministic tests exercise
+that refusal and the citation-drop counterexample. This does not qualify all
+freeform status claims, general event identity, J11, engine adoption, automatic
+compaction or release. No installation, full-suite, broad model or CI rerun.
+Immutable [citation version receipt](../../../integration/evidence/2026-10-27-citation-current-version.json): 91,919 bytes; SHA-256
+4bc29db55e50b5b691aef77d03705ebb3431312695af51b30d61bb050a68b736.
