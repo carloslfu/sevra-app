@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T18:04:30.468575+00:00
+updated: 2026-10-28T18:16:45.664192+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -19,6 +19,21 @@ This extends S05-S17. Schema 10 implements complete atomic typed changes and ine
 local reconstruction. The current write-path inventory, scoped synthetic proof
 and remaining qualification are in [[records/operations/persistence-coverage]].
 Cloud sync, replica coordination and a new semantic resolver remain out of scope.
+
+## Managed dataset requirement
+
+Adopt [[records/specs/managed-datasets]] M01-M10 and MJ01-MJ08. Reserved system
+tables retain immutable Sources/Records, lineage, definitions and receipts;
+structured datasets use registered native current-state tables. These are
+rebuildable projections over authoritative versions/definitions retained by the
+existing committed-change history. One managed transaction owns each edit.
+Logical schema changes, trusted schema materialization, indexes and dataset
+capture/apply/validation are one storage contract. No second ledger or raw-model DDL.
+
+Schema 10 still uses shared JSON row storage. The native dataset target is pending
+and must extend the scoped replayable foundation before dependent E2/E3 storage.
+Flexible sheet/cell data and contextual reference/analysis roles remain distinct.
+Existing local replay is not concurrent replication qualification.
 
 ## Package and ownership
 
@@ -87,8 +102,10 @@ idempotency key. Multiple evidence documents can support one effect. Identical
 independent deliveries are distinct occurrences. Only accepted actual effects in
 the requested scope/scenario change actual balances. Opening basis has an as-of
 time and unknown is not zero. Corrections supersede; later returns add events.
-S09. Tables have stable dataset/column/row IDs, typed JSON values and immutable row
-versions. Text/decimal/boolean/date columns; preserve original text on import.
+S09. Tables have stable dataset/column/row IDs, exact logical values and immutable row
+versions. The managed physical layout and type rules are in
+[[records/specs/managed-datasets]]. Text/decimal/boolean/date columns; preserve
+original text on import.
 Use Decimal arithmetic with explicit precision/rounding for financial results.
 Formula engine is a bounded expression evaluator, not eval: arithmetic, referenced
 columns/cells, SUM/AVERAGE/MIN/MAX/COUNT and conditional operations. Detect cycles,

@@ -2,7 +2,7 @@
 type: spec
 id: 01m61nphrhdhafzcdjn35zka1b
 created: 2026-10-28T16:32:39.697180+00:00
-updated: 2026-10-28T17:25:48.050412+00:00
+updated: 2026-10-28T18:14:38.837664+00:00
 summary: Required complete, causal and replayable local persistence for future syncing; cloud, transport, replica coordination and a new conflict resolver remain out of scope.
 title: Persistence readiness for future syncing
 status: reviewed
@@ -32,6 +32,23 @@ save an ID while the body lives in another table, and opening-balance receipts o
 the effective time/source. Version numbers and a single current head describe local
 editing. These observations identify audit targets, not a demand for a second
 business data model or proof that existing data has been lost.
+
+## Managed dataset extension
+
+[[records/specs/managed-datasets]] is the adopted next storage extension. Keep the
+implemented shared committed-change foundation and its existing evidence. Native
+dataset tables are projections over authoritative immutable row versions and
+versioned definitions. Register their capture/classification, record logical schema
+changes, and materialize trusted schemas before applying dependent saved rows.
+Reconstruct both schema and values; independently rebuild query projections from
+retained authority. A row-only change log with a fixed table whitelist is insufficient
+for dynamic datasets. No parallel ledger or executable SQL in historical payloads.
+
+Current FJ passes qualify the inventoried fixed-schema families. The new M/MJ
+requirements extend that coverage; they are pending and do not retroactively turn
+local physical-rowid/single-chain replay into a multi-device merge contract.
+Stable logical identities and causal/schema dependencies are required preparation.
+Cloud, transport, branch ingestion and a new resolver remain outside this slice.
 
 ## Required persistence contract
 

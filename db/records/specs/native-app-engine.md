@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-28T18:04:30.435019+00:00
+updated: 2026-10-28T18:14:38.932888+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -18,9 +18,12 @@ that these features work today. Requirement IDs use E; acceptance IDs use EJ.
 ## Required persistence foundation
 
 [[records/specs/persistence-readiness]] is an adopted implementation requirement.
-Complete the active table-update slice, then implement/audit complete committed
-changes and deterministic local reconstruction before expanding durable workflow
-and automation state. E0 establishes the shared foundation; E19/E3 reuse it.
+The shared complete committed-change foundation and E1 layout extension now have
+scoped local evidence. Extend that foundation through E0-D in
+[[records/specs/managed-datasets]] before dependent E2/E3 dataset/action/workflow
+storage expands. Registered native dataset tables are rebuildable projections;
+versioned logical schemas and immutable row authority use the same transaction,
+capture and inert reconstruction. E19/E3 reuse this foundation, never a second ledger.
 This does not authorize sync transport, cloud services, replica coordination or
 a new conflict resolver. Detailed engine proposals below retain their open status.
 
@@ -510,7 +513,8 @@ when scheduling the next coherent product slices.
 | --- | --- | --- |
 | E0 | Implement the shared persistence foundation and audit existing mutation paths under [[records/specs/persistence-readiness]] before expanding durable engine storage; agree on versioned definition/parameter/binding/action schemas, inventory reusable commands and capabilities, and update current-format schemas/fixtures. | FJ01-FJ06 for existing persistence; validate well-typed definitions, reject unknown executable behavior and preserve history/reopen. New engine mutations inherit these gates as implemented. No legacy-compatibility, sync-service or feature-complete claim from schemas alone. |
 | E1 | Version-checked editing of Home/existing spaces through core, AI, CLI and native controls; default sections become composition primitives; inspect/history/undo. | EJ01-EJ03. |
-| E2 | Shared action registry, parameters/forms, reusable queries/functions/rules, definition search and dependencies. | EJ04-EJ05. |
+| E0-D | Managed dataset catalog, trusted schema lifecycle, native current-state tables and bounded indexes integrated with the existing persistence foundation. Finish a coherent in-flight checkpoint, then establish this before dependent E2/E3 storage; independent UI work may continue. | M01-M10 and MJ01-MJ08 in [[records/specs/managed-datasets]], extending FJ01-FJ06. Current shared-row and E1 receipts do not qualify this target. |
+| E2 | Shared action registry, parameters/forms, reusable queries/functions/rules, definition search and dependencies, using E0-D managed dataset storage for dependent operations. | EJ04-EJ05. |
 | E3 | Manual durable workflow executor with explicit AI steps, approvals, cancellation and recovery; atomic outbox and effect receipts. | EJ06-EJ08. |
 | E4 | In-app schedule, committed-event and condition triggers; occurrence identity, catch-up, loops/backpressure and activity UX. | EJ09-EJ10. |
 | E5 | Folder reconciliation and explicitly enabled per-user helper; cross-process inference/resource broker and install/uninstall behavior. | EJ11-EJ12 on supported signed/packaged builds and real OS lifecycles. |

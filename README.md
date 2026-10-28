@@ -15,6 +15,9 @@ It is MIT licensed from the first commit. It is separate from Sevra Websites.
 The adopted [persistence requirement](db/records/specs/persistence-readiness.md)
 prepares complete local history and reconstruction for future syncing. Sync and
 cloud services are outside the current implementation scope.
+The adopted [managed dataset design](db/records/specs/managed-datasets.md) adds
+native structured tables over shared immutable history and replayable schemas.
+That storage extension is pending; the current build still uses shared row storage.
 
 Start with [the project knowledge map](db/records/overview/start-here.md),
 [the specification](db/records/specs/product.md) and

@@ -697,3 +697,9 @@ E1 scoped qualification: core156,42 actual grammars/359 masks, packaged concurre
 ## [2026-10-28 18:04] verification | records/operations/persistence-coverage.md
 E1 scoped qualification: core156,42 actual grammars/359 masks, packaged concurrency/reconstruction, native stale refusal/history, two successful real-model ordering jobs; initial failures retained.
 
+## [2026-10-28 18:16] design | records/specs/managed-datasets.md
+Owner adopted managed native dataset projections over reserved core and shared replayable authority. Aligned product/storage/import/search/persistence/engine/release docs and E0-D sequencing. Preserved and aligned the main thread E2 definition spec. Runtime implementation and MJ gates remain pending.
+
+## [2026-10-28 18:16] verification | records/specs/managed-datasets.md
+Documentation-only pass: full dbmd validation reports zero errors/warnings; repository Markdown links and documentation diff check pass. Reviewed product fit, atomic schema/data replay, stable identity, width/index/resource bounds and future replication limits. No runtime or model tests claimed.
+

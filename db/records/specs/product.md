@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-28T16:32:39.756488+00:00
+updated: 2026-10-28T18:14:38.980734+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
@@ -26,6 +26,16 @@ F01-F08 and FJ01-FJ06 are current implementation requirements. Future syncing is
 the motivation; cloud services, sync transport, replica coordination and a new
 conflict resolver are outside this work. Existing local interaction and business
 acceptance rules remain until a separately implemented policy changes them.
+
+## Managed workbook data
+
+P26. Adopt [[records/specs/managed-datasets]]. Structured datasets have managed
+native SQLite tables backed by immutable Record versions, versioned definitions,
+lineage and replayable history. Users work with tables, sheets, documents and
+meaning; the core manages physical layout and indexes through the same app/CLI/AI
+operations. Flexible spreadsheet structure and contextual reference/analysis roles
+remain supported goals. Complete schema/data reconstruction is required; sync and
+concurrent replica resolution remain future work. This target is not yet delivered.
 
 ## Goal and first complete job
 

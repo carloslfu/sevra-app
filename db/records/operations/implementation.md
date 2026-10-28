@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T18:04:30.397172+00:00
+updated: 2026-10-28T18:14:39.011851+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -12,6 +12,39 @@ title: Implementation and acceptance
 This is a working development build, not a qualified release. Requirements in the
 specifications remain the acceptance contract. A source commit does not imply that
 every requirement or supported hardware profile has passed.
+
+## Managed dataset decision and next storage prerequisite, October 28
+
+Carlos adopted [[records/specs/managed-datasets]] after review of the current
+replayable persistence work and main-thread interaction. Authority:
+[[sources/notes/2026/10/managed-datasets-replayable-storage]]. This is required
+implementation scope, not a completed runtime change or benchmark result.
+
+Use reserved system tables plus managed native current-state tables per structured
+dataset. Shared immutable row versions, versioned definitions, lineage and the
+existing committed_changes foundation remain authoritative. One core transaction
+publishes canonical changes, projections and receipts. Register managed tables and
+index policies, record logical schema changes, and reconstruct trusted physical
+schemas before dependent data. Independent projection rebuilding must also pass.
+Do not add raw-model DDL, a parallel ledger or a second long-term editable backend.
+Sparse/mixed worksheets and reference/analysis roles retain their own representations.
+
+Checkpoint cd5f854 retains successful fixed-schema persistence and E1 layout
+qualification. Dynamic dataset schemas/capture, physical table queries/indexes and
+MJ01-MJ08 are pending. Finish any coherent in-flight checkpoint, then implement
+E0-D before dependent E2/E3 dataset/action/workflow persistence. Independent UI work
+may continue. Follow the four-step order in the new spec and extend the persistence
+coverage register with actual paths/results. Existing review/import/Undo and AI
+scope contracts remain acceptance requirements across the storage change.
+
+Stable logical entity/version/schema identities are the future-replication boundary.
+Current physical-rowid and single-predecessor replay remains local evidence. No
+cloud, transport, concurrent replica ingestion or resolver work is added. Preserve
+historical evidence and user files; no legacy pre-1.0 migration is required.
+
+Documentation was reviewed for product fit, atomicity/schema replay and replication/
+resource limits. This side-conversation pass changes documentation only; main-thread
+implementation owns runtime changes and their tests.
 
 ## Editable Home and spaces checkpoint, October 28
 
@@ -47,13 +80,18 @@ All 102 earlier evidence files remain byte-identical to the preceding checkpoint
   rebuild changes only an unused help string/comments, retaining model-path proof.
 
 This qualifies the implemented E1 layout slice, including scoped EJ02, not complete
-EJ01-EJ03 or the app release. Next is E2 shared typed definitions/action registry,
-forms, reusable calculations/queries and bounded definition/dependency search.
+EJ01-EJ03 or the app release. The subsequent managed-dataset decision above adds
+E0-D before dependent E2/E3 storage. Then continue E2 shared typed definitions/action
+registry, forms, reusable calculations/queries and bounded definition/dependency search.
 E3 durable workflows, E4 triggers, E5 helper/folders and E6 reusable templates follow.
 Excel formula continuity, broader inventory semantics, actual VoiceOver, hardware,
 fresh installation and notarization remain tracked release work.
 
 ## Current direction, October 28
+
+The managed dataset target in [[records/specs/managed-datasets]] is adopted and
+pending. E0-D extends existing replayable persistence before dependent E2/E3
+storage; the opening decision section controls sequencing over historical Next notes.
 
 The pre-1.0 compatibility policy in [[records/specs/distribution]] is active:
 backward support starts with the first notarized production-ready 1.0 release

@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-28T18:04:30.502250+00:00
+updated: 2026-10-28T18:14:38.862152+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -153,3 +153,25 @@ reconstruction pass in the editable-Home receipt linked from
 [[records/operations/implementation]]. No new ledger or replay path was introduced.
 The 156-group core run includes this extension. Future definition/action/workflow
 state still needs its own schema classification and scoped FJ proof.
+
+## Managed dataset extension, adopted October 28
+
+[[records/specs/managed-datasets]] defines the pending E0-D storage target. Existing
+schema-10 capture and the E1 extension remain qualified within their recorded scope.
+Current datasets/dataset_rows/heads/items JSON storage, the fixed ChangeFormat table
+set, positional row values and physical-rowid/single-chain apply do not implement
+managed native dataset creation or dynamic schema reconstruction.
+
+Extend this same inventory/capture/apply system with a trusted dataset/schema
+registry, authoritative versioned definitions and row versions, registered native
+projections and managed indexes. Record logical schema changes and materialize their
+trusted physical structures before dependent rows during replay. Prove independent
+projection rebuild and schema-plus-data reconstruction under MJ01-MJ08 and FJ01-FJ06.
+One transaction preserves receipt/history/lineage/current-state consistency.
+Physical rowids remain local implementation details; new semantic references use
+stable logical identities. No second history ledger or replication service is added.
+
+This is the next storage prerequisite before dependent E2/E3 dataset/action/workflow
+persistence, after any coherent in-flight checkpoint. Update this inventory with
+actual paths and scoped evidence as implemented. Existing passing receipts are not
+proof of the new target; no new runtime qualification is claimed by this note.

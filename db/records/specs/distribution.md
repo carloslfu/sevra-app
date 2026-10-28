@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzbe4pdmde0k72e3j6n6
 created: 2026-10-25T01:48:47.342811+00:00
-updated: 2026-10-28T16:32:39.918037+00:00
+updated: 2026-10-28T18:14:38.955996+00:00
 summary: Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 title: Distribution and verification
 status: reviewed
@@ -73,6 +73,18 @@ Run focused local reconstruction, interruption/retry and portable-dependency che
 when implementing this foundation; two communicating replicas and a hosted backend
 are not prerequisites. Current-format integrity and the pre-1.0 policy still apply.
 Documentation adoption does not qualify replayability or syncing.
+
+## Managed dataset delivery
+
+D13. [[records/specs/managed-datasets]] M01-M10 and MJ01-MJ08 are the adopted
+structured storage target, extending the same FJ01-FJ06 foundation. Implement the
+registry, schema/data replay, native projections and managed query/index paths before
+claiming managed dataset support. Preserve current native/CLI import/edit/review/
+Undo behavior and exact source/asset closure. Update the shipped skill only for
+implemented operations. Reuse unchanged evidence and run focused checks for the
+changed storage boundary, then the required integration/release checks.
+No dynamic-schema, performance or replication claim follows from documentation
+adoption alone. The production compatibility milestone remains unchanged.
 
 ## Reference feature delivery
 

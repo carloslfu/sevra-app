@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-28T16:32:39.865147+00:00
+updated: 2026-10-28T18:14:38.909547+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -46,6 +46,22 @@ First version uses agent query expansion and deterministic lexical indexes;
 embedding/reranking adds a versioned replaceable index only after a measured
 recall/latency improvement. No network embedding service. Model synonyms can
 improve recall but must not be presented as exhaustive proof of absence.
+
+## Managed dataset queries and indexes
+
+Adopt [[records/specs/managed-datasets]] M07 and MJ05. Structured table filters,
+ranges, sorting, joins and aggregations compile against registered native columns
+and stable logical IDs. Managed ordinary/composite/partial indexes serve measured
+access paths; query plans must demonstrate use. Ordinary views rely on underlying
+table indexes. Bound index count/size, query work, pagination and cancellation.
+The agent can request managed operations only when exposed by the core; arbitrary
+SQL/DDL and reserved-schema changes remain unavailable.
+
+Semantic constraints are versioned definitions. Pure performance indexes/FTS are
+rebuildable local projections, with retained authoritative content and exact version
+citations. Search does not become a separate writable source of truth. Record
+correctness, latency, memory and storage before claiming improved scale; the current
+shared-row implementation is not evidence of delivered native dataset indexing.
 
 ## Intake
 

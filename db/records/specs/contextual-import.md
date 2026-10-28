@@ -2,7 +2,7 @@
 type: spec
 id: 01m61c4z13j3paexnc7xvyyqhs
 created: 2026-10-28T13:45:46.275195+00:00
-updated: 2026-10-28T16:37:51.219693+00:00
+updated: 2026-10-28T18:14:38.885806+00:00
 summary: One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 title: Contextual import and Excel continuity
 status: reviewed
@@ -24,6 +24,22 @@ authoritative content to reconstruct completed intake without reopening a change
 external original, rerunning a parser/model or repeating a business effect.
 Use shared atomic/idempotent change capture; keep device access grants local.
 This adds persistence coverage to IJ gates, not a sync or conflict-resolver feature.
+
+## Managed dataset storage
+
+[[records/specs/managed-datasets]] controls working-table persistence. Requested
+structured conversion creates managed native dataset projections with stable
+logical row/column identities, canonical immutable versions and source lineage.
+Append/replace/merge, schema mappings, Undo/redo and resumable batches use the same
+transactional history path. Retain exact parsed values/definitions so reconstruction
+never depends on rerunning the original importer or AI.
+
+Reference/analysis-only roles still avoid creating working tables. Sparse sheets,
+mixed cells, multiple regions, formulas and layout have their appropriate versioned
+representation; file suffixes and worksheet boundaries do not force one table.
+Native physical storage does not qualify Excel formula/behavior continuity.
+Existing shared-row import receipts remain evidence for their current scope;
+managed storage and its MJ gates are pending.
 
 ## One capability, two entry points
 

@@ -27,8 +27,12 @@ activate support. Current-format integrity and history remain required.
 Follow [[records/specs/persistence-readiness]] for the new local persistence
 foundation: complete saved changes, causal identities, deterministic reconstruction
 and accurate decision provenance. Cloud sync, transport, replica coordination and
-a new conflict resolver are outside this requirement. Implement the foundation
-after the active table-update slice and before expanding durable engine storage.
+a new conflict resolver are outside this requirement. The implemented foundation
+now extends through [[records/specs/managed-datasets]]: reserved core tables and
+registered native dataset projections over shared immutable authority. Record and
+reconstruct logical schema changes within the same capture/apply path. Finish a
+coherent in-flight checkpoint, then establish E0-D before dependent E2/E3 storage.
+No raw-model DDL, parallel ledger or claim that local replay solves replication.
 All maintained product/engineering prose belongs here; root documents are brief
 entry points. Finish changes with the relevant checks and a commit. Plain copy,
 no em dashes, native controls, purposeful visuals and light/dark accessibility.
