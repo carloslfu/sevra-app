@@ -37,7 +37,12 @@ refusal instead of silently targeting a newer version. `open_reviews` and
 resolution is not proof that anything opened on screen.
 
 For inventory proposals, positive quantities enter our stock and negative quantities
-leave it. A receipt or handover alone does not establish direction; ask when the
+leave it. The app and `ask` check a proposed direction in a separate local
+model call using only the current request and a bounded original-source excerpt.
+An unclear or conflicting result asks for direction without saving the movement.
+This is a fallible semantic check, not proof; direct CLI tools still require your
+own evidence review. An exact duplicate refusal ends that app/ask attempt, rather
+than allowing an occurrence rename and retry in the same run. A receipt or handover alone does not establish direction; ask when the
 source and current request leave that unclear. To correct a movement, read its
 current version and use `tool PATH propose_movement JSON` with that exact ID as
 `supersedes`, preserving its subject and occurrence. Never invent a different

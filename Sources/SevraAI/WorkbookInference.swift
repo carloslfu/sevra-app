@@ -3,12 +3,16 @@ import SevraCore
 
 /// Host-selected scope, never inferred from untrusted retrieved content.
 package enum InferenceToolScope: String, Sendable {
-  case all, finish, inspection, answer, draft, save_space, propose_movement, propose_record,
+  // Tool scopes retain the public tool names as their raw values.
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  case all, finish, inspection, movementDirection, answer, draft, save_space, propose_movement,
+    propose_record,
     propose_table, propose_table_edit
 
   package func allows(_ tool: String) -> Bool {
     switch self {
-    case .all: return true
+    case .all: return tool != "review_movement_direction"
+    case .movementDirection: return tool == "review_movement_direction"
     case .finish: return tool == "finish"
     case .inspection: return WorkbookTools.readOnlyTools.contains(tool)
     case .answer: return tool == "finish" || WorkbookTools.readOnlyTools.contains(tool)

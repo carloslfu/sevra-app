@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-28T01:32:35.574392+00:00
+updated: 2026-10-28T01:59:15.318022+00:00
 summary: Native two-pane local-AI workbook requirements, navigation, conversation, viewers and complete first-version journeys.
 title: Product and interaction specification
 status: reviewed
@@ -487,3 +487,11 @@ pipe-table Markdown literally. Native chat table presentation is pending. Full
 voice/text equivalence, interruption, narrow-window, keyboard/VoiceOver and an
 uncoached user's experience remain separate J11 requirements. Evidence:
 [supplier journey receipt](../../../integration/evidence/2026-10-27-supplier-journey.json).
+
+A follow-on native check now asks whether an ambiguous handover entered or left
+stock before saving a movement. Explicit outgoing clarification then produces a
+-2 draft showing Decrease: 2 brass bolts and its original receipt/current-request
+links. The user still accepts separately. The original retained-history replay
+failed through a different route: an answer called an already withdrawn proposal
+ready for review. Current-status claim handling remains required, alongside
+event identity, reviewer latency and the other J11 gates. See [direction review receipt](../../../integration/evidence/2026-10-27-inventory-direction-review.json).

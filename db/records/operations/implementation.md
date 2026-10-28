@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T01:32:35.649325+00:00
+updated: 2026-10-28T01:59:15.356563+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -17,6 +17,20 @@ every requirement or supported hardware profile has passed.
 This remains a development build. The preserved Slotstream app is the baseline;
 the separate native preview uses the Python-free Swift adapter and pinned Splash
 C++/Metal. Native adoption and automatic compaction remain gated.
+
+- The app/ask loop now checks a proposed inventory direction in a separate local
+  model response using current-request and original-source text. A missing quote,
+  uncertain direction or opposite sign asks for clarification without saving the
+  movement. Exact duplicate refusal ends that run instead of permitting an ID
+  rename/retry. Five revised native cases and the fresh native clarification then
+  -2 draft flow passed. The initial reviewer prompt failed and remains recorded.
+- The retained-history native replay remains failed: it described a withdrawn v1
+  movement as waiting for review, without invoking the movement tool or reviewer.
+  Repair stale status claims next. Semantic event identity across different IDs
+  and runs is still unresolved. The new review adds 8.58–16.09 seconds per measured
+  call and currently sees only an initial bounded Source excerpt. Neither the
+  full inventory flow nor J11 is qualified.
+
 
 - The integrated typed/native supplier journey now has direct evidence for intake,
   correct comparison, native table/chart composition, exact quote navigation,
@@ -158,10 +172,11 @@ Inline references, backlinks and bounded traversal are planned, not implemented.
 L01-L14 and LJ01-LJ10 define delivery and verification. Keep the active checkpoint
 and engine qualification in place; inferred associations follow measured value.
 
-Next, resolve the observed inventory-direction and semantic duplicate-event failures
-with an evidence-backed interaction and validation boundary; do not claim a tool
-description alone solved them. Continue J11 and native chat-table presentation,
-retaining the successful comparison/thread/draft evidence. Current Home review is
+Next, repair the observed stale-status claim about the withdrawn movement and
+complete durable event identity across different IDs/runs. Extend direction review
+to relevant later-page evidence and reduce its measured latency without treating
+model judgments as proof. Continue J11 and native chat-table presentation,
+retaining successful comparison/thread/draft and fresh clarification evidence. Current Home review is
 implemented. Keep navigation shortcuts distinct from snapshots and retain the
 recorded ordinary-language limitation.
 The new action checkpoint does not qualify all language, microphone or accessibility
@@ -3626,3 +3641,59 @@ Immutable evidence:
 `715552c7277d73fc9d62893482f4c93466dc4f78b186b5cdaf4da14fa8c9da4c`.
 It binds source/build hashes, both failures, check outputs, explicit correction,
 source/asset/history audit, original model messages and scoped presentation state.
+
+## Inventory direction boundary and retained-history failure, October 27
+Added a host-only direction-review scope shared by the native and baseline schema
+adapters. The main agent cannot invoke its tool; the reviewer has no workbook
+write tools and receives no earlier assistant guesses or proposed numeric sign.
+The host checks exact quote origin and direction versus sign, persists review
+inputs/results with the prepared tool receipt, and keeps human acceptance separate.
+A missing/unclear/conflicting direction ends in a question, with no movement saved.
+An exact duplicate_effect refusal now terminates that attempt, preventing the
+observed within-run resubmit-ID retry. No database schema or engine change.
+
+Evidence development was not uniformly green. The first probe invocation selected
+a nonexistent default model folder and refused before inference. Correcting the
+test invocation to the configured existing installation required no download.
+The first isolated prompt then FAILED the original handover: it returned incoming
+and quoted only Prepare the stock adjustment for that delivery. The revised
+explicit-versus-inferred ownership policy passed five native samples: ambiguous,
+outgoing, incoming, wrong sign, and Spanish. Recorded review times were 16.09,
+10.04, 12.61, 8.66 and 8.58 seconds respectively. These are single samples.
+
+The conversation probe with misleading earlier assistant history asked for direction
+and saved no movement. The native app replay using the original retained J11 package
+FAILED differently: it called withdrawn v1 ready for review. It invoked read twice
+and no movement proposal, so this path bypasses the new review. All original items,
+assets, messages and operation rows remained byte-for-byte equal as SQL values.
+
+A separate fresh workbook imported the original synthetic receipt image through
+the packaged CLI. In the native UI, the exact ambiguous request asked whether
+units entered or left stock and created no movement. The explicit outgoing
+follow-up then produced a single Actual/Draft movement of -2 with Decrease: 2 brass
+bolts and receipt/User request links. It was not accepted. Both fixture workbooks
+passed verification. The app quit after the visible checks.
+
+Validation:
+- swift build --product sevra-agent-checks -j 4 and the executable: passed,
+  including isolated inputs, fabricated quote, wrong sign, draft-only success,
+  terminal duplicate refusal, original history, receipts and integrity.
+- python3 scripts/check_splash_grammar.py: passed existing 37 actual-tool grammars
+  and 307 reference masks plus reasoning/citation/conversation boundaries. The new
+  isolated grammar also executed in the native model probes; the normal 32-tool
+  fixture did not change.
+- Native release app and CLI builds and scripts/package_native.py: passed.
+- Changed-file strict Swift format lint, skill validation and diff check: passed.
+  The tool-scope enum explicitly preserves protocol tool names for the naming rule.
+- Reused the preceding 81 core checks because no core/storage code changed.
+  No broad both-backend cohort, fresh install, hosted CI or release qualification.
+
+The review is probabilistic, has a measurable latency cost, and currently reads an
+initial bounded excerpt. Direct CLI calls retain harness evidence responsibility.
+General semantic event identity and the stale current-status claim remain open;
+this checkpoint does not qualify the whole journey. Earlier probe binaries were
+overwritten without exact digests; their observations are retained but not claimed
+as byte-bound performance evidence. Final native app/CLI and current source hashes
+are recorded in [direction review receipt](../../../integration/evidence/2026-10-27-inventory-direction-review.json) (83,311 bytes; SHA-256
+28223e17e4a37dc0461b5b303fb2d640c4484911a34ca9a84a310eb4c8ae3299).
+Other engine, context, relationship, accessibility and release gates remain unchanged.

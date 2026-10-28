@@ -3,10 +3,12 @@ import SevraCore
 
 extension NativeTools {
   package static func referenceDefinitions(
-    itemReferenceIDs: [String] = [], conversationActions: [String]? = nil
+    itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
+    toolScope: InferenceToolScope = .all
   ) throws
     -> [WorkbookToolDefinition]
   {
+    if toolScope == .movementDirection { return [MovementDirectionReview.definition] }
     let ids = try ItemReferenceCandidates.normalized(itemReferenceIDs)
     if let conversationActions {
       try require(
@@ -37,7 +39,8 @@ extension NativeTools {
     conversationActions: [String]? = nil
   ) throws -> Data {
     let definitions = try referenceDefinitions(
-      itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions
+      itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions,
+      toolScope: toolScope
     )
     .filter { toolScope.allows($0.name) }
     let values: [[String: Any]] = try definitions.map {

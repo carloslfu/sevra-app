@@ -224,7 +224,7 @@ public actor LocalModel: WorkbookInference {
     let available =
       try Self.baselineDefinitions(
         itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
-        conversationActions: messages.first?.conversationActions
+        conversationActions: messages.first?.conversationActions, toolScope: toolScope
       )
       .filter { toolScope.allows($0.name) }
     let tokens = try engine.encodeChat(

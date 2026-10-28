@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T01:32:35.614081+00:00
+updated: 2026-10-28T01:59:15.290333+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -578,3 +578,43 @@ Native review displayed Decrease: 2 brass bolts. Stock remained 20 until explici
 acceptance, then 18, and Undo restored 20. This positive result does not erase the
 ambiguous failures or qualify unrestricted inventory autonomy. See the
 [supplier journey receipt](../../../integration/evidence/2026-10-27-supplier-journey.json).
+
+## Isolated inventory direction check
+Before app/ask executes propose_movement, run one separate local model response
+with a host-only review_movement_direction tool. The normal workbook tool set
+cannot invoke this reviewer, and the reviewer cannot invoke workbook tools. It
+sees the current request, the inventory subject and a bounded original Source
+excerpt. Exclude previous assistant reasoning, proposed sign, derived Record
+interpretations and file-title assumptions. Current explicit human clarification
+may establish a direction absent from the document.
+
+Classify incoming, outgoing or unclear and return an exact quote with its request
+or evidence origin. The host verifies quote membership and compares direction
+against the proposed signed quantity. An unclear, unsupported or opposite-direction
+result ends this attempt with a direction question and no movement write. A valid
+result may create only the existing reviewable draft. Save the exact reviewer
+inputs/verdict with the tool receipt and its metrics with the run. Malformed or
+cancelled responses cannot create a movement.
+
+This is a fallible semantic check. Exact quote matching establishes origin, not
+entailment or physical truth. The first isolated prompt still guessed incoming;
+explicit-versus-inferred ownership guidance passed the five revised native cases
+and the fresh native clarification/follow-up. The full retained-history UI replay
+instead falsely described a withdrawn proposal as waiting for review without
+calling propose_movement. This bypass is unresolved. Do not call J11 qualified.
+
+The current excerpt uses at most the first eight Source chunks plus original item
+text, capped at 16,000 characters. Later-page evidence selection remains work;
+omitted material cannot establish a direction. Current direct CLI tools retain
+mechanical checks and the harness's responsibility to inspect evidence. Both
+backends share the reviewer schema; this checkpoint ran native model inference,
+not a new baseline-model qualification. Individual revised review calls took
+8.58–16.09 seconds on this Mac; improve latency without weakening evidence checks.
+
+An exact duplicate_effect refusal now ends the app/ask attempt with a question
+about the existing record versus a separate delivery. It cannot rename and retry
+inside that same run. This is not semantic deduplication: different IDs without
+an earlier refusal, new runs and independent documents still require a durable
+event-identity design which also permits genuinely distinct deliveries.
+
+Evidence: [direction review receipt](../../../integration/evidence/2026-10-27-inventory-direction-review.json).

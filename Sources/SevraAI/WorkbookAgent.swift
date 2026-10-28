@@ -584,6 +584,7 @@ public enum WorkbookAgent {
         var currencyThisStep = false
         var callFailed = false
         var navigationFailure: String?
+        var movementReview: Value?
         do {
           try require(
             tool != "start_thread_and_continue" || step < stepBudget,
@@ -594,6 +595,20 @@ public enum WorkbookAgent {
             "handoff_limit",
             "This request already moved to its new thread. Finish its remaining work here.")
           try ItemReferenceCandidates.validate(tool: tool, arguments: a, choices: itemChoices)
+          if tool == "propose_movement", !readOnly {
+            progress("Checking inventory direction…")
+            let evidence = try workbook.item(a["input"].text)
+            let chunks = evidence.category == "source" ? try workbook.readChunks(evidence.id) : []
+            let reviewed = try await MovementDirectionReview.check(
+              request: prompt, evidence: evidence, chunks: chunks, subject: a["subject"].text,
+              quantity: a["quantity"].text, model: model, directory: modelDirectory,
+              cancellation: cancellation, progress: progress)
+            metrics.append(await model.lastMetrics)
+            movementReview = reviewed.receipt
+            try require(
+              reviewed.matches, "movement_direction",
+              "Did these units enter your stock or leave it? I haven’t prepared this movement yet.")
+          }
           let value = try tools.execute(tool, a)
           if tool == "open_reviews" {
             guard let openReviews else {
@@ -627,6 +642,14 @@ public enum WorkbookAgent {
           }
         } catch {
           callFailed = true
+          if tool == "propose_movement", let failure = error as? SevraError,
+            ["movement_direction", "duplicate_effect"].contains(failure.code)
+          {
+            navigationFailure =
+              failure.code == "movement_direction"
+              ? failure.message
+              : "This event already has an inventory record. I haven’t created another movement. Should we review the existing record or identify a separate delivery?"
+          }
           if ["open_space", "open_reviews", "set_space_pinned"].contains(tool),
             let failure = error as? SevraError,
             ["space_ambiguous", "space_not_found", "workspace_unavailable", "workspace_changed"]
@@ -642,7 +665,14 @@ public enum WorkbookAgent {
             ),
           ])
         }
-        let projected = try workbook.completeToolCall(receiptID, result: result, failed: callFailed)
+        var recordedResult = result
+        if let movementReview {
+          var fields = result.object
+          fields["directionReview"] = movementReview
+          recordedResult = .object(fields)
+        }
+        let projected = try workbook.completeToolCall(
+          receiptID, result: recordedResult, failed: callFailed)
         if let navigationFailure {
           _ = try workbook.addMessage(
             navigationFailure, role: "assistant", conversation: conversation)

@@ -475,3 +475,6 @@ Implemented and verified current draft review, scoped native opening and explici
 ## [2026-10-28 01:32] implementation | records/operations/implementation.md
 Exercised integrated supplier journey; fixed accepted movement correction withdrawal/Undo with 81 passing core checks. Retained failed ambiguous-direction replay and resubmit occurrence; J11 and semantic event identity remain open.
 
+## [2026-10-28 01:59] implementation | records/operations/implementation
+Added isolated inventory direction review and terminal duplicate refusal; retained initial classifier and stale-status UI failures, verified fresh native clarification to -2 draft, and recorded latency and remaining identity work.
+

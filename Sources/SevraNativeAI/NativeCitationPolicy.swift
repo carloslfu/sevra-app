@@ -21,7 +21,7 @@ package enum NativeCitationPolicy {
     let serialized = try NativeTools.serializedDefinitions(
       toolScope: toolScope, itemReferenceIDs: itemReferenceIDs,
       conversationActions: conversationActions)
-    if toolScope == .inspection {
+    if toolScope == .inspection || toolScope == .movementDirection {
       return try SplashToolPolicy(toolsJSON: serialized, choice: .required, thinking: thinking)
     }
     var tools =
