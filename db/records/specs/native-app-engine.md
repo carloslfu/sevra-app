@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-28T14:02:50.348307+00:00
+updated: 2026-10-28T15:53:21.357466+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -52,7 +52,7 @@ This is a read-only code assessment, not a new runtime test receipt.
 
 | Area | Existing implementation | Required addition |
 | --- | --- | --- |
-| Saved interfaces | [Spaces.swift](../../../Sources/SevraCore/Spaces.swift) stores versioned compositions and history. Current types are table, chart, metric, comparison, document, asset, search and text, limited to 16 components and depth three. | Editable Home and existing spaces, richer layout/input/action primitives, migrations and explicit revision conflicts. Current bounds are qualification limits, not a permanent expressiveness ceiling. |
+| Saved interfaces | [Spaces.swift](../../../Sources/SevraCore/Spaces.swift) stores versioned compositions and history. Current types are table, chart, metric, comparison, document, asset, search and text, limited to 16 components and depth three. | Editable Home and existing spaces, richer layout/input/action primitives, current-format schema/fixture changes and explicit revision conflicts. Current bounds are qualification limits, not a permanent expressiveness ceiling. |
 | Home | [ContentViews.swift](../../../Sources/SevraApp/ContentViews.swift) renders saved components alongside fixed review, intake, table, recent and navigation sections. | Make ordinary sections part of the composition with user control over order, visibility, bindings and actions. Keep pending-work access in the stable shell. |
 | AI and CLI authoring | [Tools.swift](../../../Sources/SevraCore/Tools.swift) implements `save_space` with the operation token as the new space ID. The current CLI `space` command also creates a new ID. | Separate create from version-checked update/patch of a selected space, including Home. The existing core method accepting an ID does not itself provide the full user-facing edit contract. |
 | Behavior | Native application commands, bounded formulas and one-turn tool execution exist. `Component` has no persisted user action/form/workflow binding. | A shared action registry, user definitions with typed inputs, forms, reusable functions and durable workflow execution. Product prose mentioning action IDs is ahead of code. |
@@ -456,7 +456,7 @@ when scheduling the next coherent product slices.
 
 | Stage | Deliverable and prerequisite | Acceptance |
 | --- | --- | --- |
-| E0 | Agree on versioned definition/parameter/binding/action schemas; inventory reusable commands and capabilities; add transactional migrations and fixture plans. | Validate well-typed definitions, reject unknown executable behavior and preserve older packages. No feature-complete claim from schemas alone. |
+| E0 | Agree on versioned definition/parameter/binding/action schemas; inventory reusable commands and capabilities; add current-format schema and fixture plans under [[records/specs/distribution]]. | Validate well-typed definitions, reject unknown executable behavior and preserve current-format history/reopen. Earlier development packages are not a compatibility gate. No feature-complete claim from schemas alone. |
 | E1 | Version-checked editing of Home/existing spaces through core, AI, CLI and native controls; default sections become composition primitives; inspect/history/undo. | EJ01-EJ03. |
 | E2 | Shared action registry, parameters/forms, reusable queries/functions/rules, definition search and dependencies. | EJ04-EJ05. |
 | E3 | Manual durable workflow executor with explicit AI steps, approvals, cancellation and recovery; atomic outbox and effect receipts. | EJ06-EJ08. |

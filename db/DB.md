@@ -19,6 +19,11 @@ verification results with exact commands and limits. Do not label a target as
 implemented or tested until its acceptance check passes. Use full store-relative
 wiki-links. Never publish credentials, personal data or real customer fixtures.
 Code belongs in Sources, tooling in scripts, synthetic examples in examples.
+Follow [[records/specs/distribution]] for pre-1.0 compatibility: no old development
+schema/API preservation until the first notarized production-ready 1.0 release
+actually distributed for production use. Update canonical schemas/interfaces and
+recreate selected disposable fixtures. Test deployments/previews/tags do not
+activate support. Current-format integrity and history remain required.
 All maintained product/engineering prose belongs here; root documents are brief
 entry points. Finish changes with the relevant checks and a commit. Plain copy,
 no em dashes, native controls, purposeful visuals and light/dark accessibility.

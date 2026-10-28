@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T14:02:51.783319+00:00
+updated: 2026-10-28T15:54:50.491379+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -14,6 +14,14 @@ specifications remain the acceptance contract. A source commit does not imply th
 every requirement or supported hardware profile has passed.
 
 ## Current direction, October 28
+
+The pre-1.0 compatibility policy in [[records/specs/distribution]] is active:
+backward support starts with the first notarized production-ready 1.0 release
+actually distributed for production use. Test deployments do not qualify. Use
+current-schema changes and selected disposable fixture resets instead of new
+legacy-schema migrations or compatibility adapters. Historical migration receipts
+remain evidence; current-format integrity, recovery and portability remain gates.
+
 This remains a development build. The preserved Slotstream app is the baseline;
 the separate native preview uses the Python-free Swift adapter and pinned Splash
 C++/Metal. Native adoption and automatic compaction remain gated.
@@ -4862,7 +4870,7 @@ Central stage registry, all open:
 
 | Stage | Scheduled scope | Status |
 | --- | --- | --- |
-| E0 | Versioned definitions, parameters/bindings/action contracts, reusable command inventory and migration/fixture foundations. | Open; proposed engineering design. |
+| E0 | Versioned definitions, parameters/bindings/action contracts, reusable command inventory and current-format schema/fixture foundations under [[records/specs/distribution]]. No old-development compatibility gate. | Open; proposed engineering design. |
 | E1 | Version-safe Home/existing-space edits, composition of default sections, history/restore/Undo across native/AI/CLI paths. | Open, EJ01-EJ03. |
 | E2 | Shared typed action registry, forms/parameters, reusable queries/functions/rules and discoverable dependencies. | Open, EJ04-EJ05. |
 | E3 | Manual durable workflows with pinned inputs, AI steps, approval, cancellation, recovery and guarded effects. | Open, EJ06-EJ08. |
@@ -4880,3 +4888,25 @@ working-table/formula correctness and inventory identity remain prerequisite
 boundaries for reliable composed business workflows. Existing engine-adoption,
 context, hardware, accessibility and release gates are not closed or silently
 removed by this roadmap. Whole-app completion remains unqualified.
+
+## Development compatibility decision, October 28
+The owner removed backward-compatibility support and its development work before
+the first actual production-ready, signed/notarized 1.0 release. Tests, previews,
+prereleases, tags and notarized test artifacts do not activate support. Production
+1.0 is the first baseline; earlier development schemas/interfaces need not migrate
+into it. Record that baseline at release and qualify subsequent supported upgrades.
+
+The distribution spec owns the full policy. Storage, generated-application E0,
+contextual import, references, conversation context, the central stage registry,
+knowledge map, README and agent bootstrap apply it. Fresh fixtures and same-format
+history/reopen/export remain required. Historical migration receipts are preserved.
+No executable/migration path or prior workbook was changed in this documentation
+pass. The main implementation session owns any subsequent fixture reset or removal
+of obsolete code. Excel/CSV interoperability and Slotstream remain separate.
+
+Source: [[sources/notes/2026/10/pre-1-production-compatibility-policy]].
+
+Documentation verification: dbmd validate --all db --json passed with zero errors
+and warnings; python3 scripts/check_links.py and scoped git diff --check passed.
+This pass changed policy/projections only and did not run model inference, delete
+workbooks, modify executable code or qualify a production release.

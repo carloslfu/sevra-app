@@ -20,5 +20,13 @@ Use meaningful invariant/integration tests. Follow the owner-approved
 verify the actual fix plus a nearby counterexample, reuse unchanged evidence, and
 reserve broad reruns for concrete boundary changes or integration/release milestones.
 Run scripts/check.sh before release.
+
+Before the first notarized, production-ready 1.0 release actually distributed for
+production use, do not maintain backward compatibility for development schemas,
+formats or CLI/agent contracts. Update canonical schemas/interfaces and recreate
+selected disposable fixtures instead of adding legacy migrations/adapters. Test
+deployments/previews/tags do not activate support. Preserve current-format integrity
+and user data. The controlling policy is
+[pre-1.0 compatibility](db/records/specs/distribution.md#pre-10-compatibility-policy).
 Preserve unrelated changes. Do not change the website business or Slotstream
 repository as a side effect. Keep public claims tied to measured acceptance.

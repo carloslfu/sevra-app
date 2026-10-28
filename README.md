@@ -7,6 +7,10 @@ through conversation. Local AI, inspectable calculations, and files you own.
 integration are implemented. Release qualification is still in progress; see the
 [verification register](db/records/operations/implementation.md) for tested behavior
 and pending work.
+Development schemas, workbook formats and interfaces may change without backward
+compatibility until the first notarized production-ready 1.0 release. Test builds
+and deployments do not start that commitment. See the
+[compatibility policy](db/records/specs/distribution.md#pre-10-compatibility-policy).
 It is MIT licensed from the first commit. It is separate from Sevra Websites.
 
 Start with [the project knowledge map](db/records/overview/start-here.md),

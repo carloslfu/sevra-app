@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T13:58:39.091136+00:00
+updated: 2026-10-28T15:53:21.333926+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -101,7 +101,7 @@ target/mapping. The spec defines per-cell/cross-sheet work and support gates.
 ## Transactions and concurrency
 
 S10. One shared Swift core enforces all mutations for app, local agent and CLI.
-Use parameterized statements, foreign keys, transactional migrations, busy timeout
+Use parameterized statements, foreign keys, transactional schema changes, busy timeout
 and a process-safe workbook write lock. SQLite serializes writes; every operation
 has an idempotency token and optional expected revision. Reject stale revisions
 rather than silently overwriting. UI refreshes from revision changes.
@@ -109,11 +109,15 @@ S11. Use rollback journal initially with FULL synchronous durability and seriali
 mutations. SQLite's published WAL-reset advisory means system SQLite must not be
 assumed patched for multi-connection WAL. Reconsider WAL only against a verified
 fixed library/version and concurrency tests. Keep queries and transactions short.
-S12. Migration is transactional with known schema versions; reject future formats
-without modifying them. Opening arbitrary SQLite must not run untrusted triggers
-through our mutations: validate application ID, schema version and schema contract.
-For untrusted portable workbooks, validate and rebuild into canonical schema before
-editing if schema differs. No extension loading or SQL authored by a file/model.
+S12. Follow the pre-1.0 compatibility policy in [[records/specs/distribution]].
+Before the first notarized production-ready 1.0 release, update the canonical
+schema and recreate selected disposable development fixtures instead of requiring
+migrations from earlier development schemas. Keep schema versions for validation;
+reject unsupported formats without modifying or automatically deleting them.
+After that milestone, upgrades from supported production baselines must be
+transactional. Opening arbitrary SQLite must not run untrusted triggers: validate
+application ID, schema version and the permitted schema contract. No extension
+loading or SQL authored by a file/model.
 S13. Undo is a compensating version/operation with preserved evidence. Redo creates
 another operation. Do not erase accepted history. Non-reversible network effects
 are outside the first version; local source/view edits are reversible.
@@ -145,10 +149,17 @@ and transform identity, evidence references and workbook snapshot revision.
 Publish atomically; preserve the prior checkpoint on failure. Checkpoints travel
 with the workbook, while their indexes remain rebuildable. Reconstruct acceptance,
 meaning and completed operations from authoritative state, never from a summary.
-See C06–C11 in [[records/specs/conversation-context]]. Migration, retention and
-recovery checks are required before this storage change ships.
+See C06–C11 in [[records/specs/conversation-context]]. Current-format retention,
+recovery and portable reopen checks remain required. Earlier-development migration
+tests are not required under [[records/specs/distribution]]; supported-production
+upgrade checks start with the production 1.0 baseline.
 
 ## Current physical context storage
+
+The following paragraphs retain historical implementation/verification facts.
+They do not require preserving development schemas under the newer pre-1.0
+compatibility policy in [[records/specs/distribution]].
+
 Database schema 5 retains message_fts, message_payloads, run_requests,
 context_checkpoints, checkpoint_inputs, tool_calls and the current-draft review
 index/generation. It adds the explicit reference snapshots described below.

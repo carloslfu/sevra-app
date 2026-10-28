@@ -2,7 +2,7 @@
 type: spec
 id: 01m61c4z13j3paexnc7xvyyqhs
 created: 2026-10-28T13:45:46.275195+00:00
-updated: 2026-10-28T13:45:46.275195+00:00
+updated: 2026-10-28T15:53:21.382248+00:00
 summary: One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 title: Contextual import and Excel continuity
 status: reviewed
@@ -234,8 +234,10 @@ No contextual role planner or general merge contract is currently exposed.
 Implementation phases, all pending for this expanded contract:
 
 1. Separate capture/inspection from conversion; add durable role/intent and result
-   state to shared core without changing existing workbook evidence. Define
-   backward-compatible CLI behavior and truthful legacy operation limits.
+   state to shared core. Preserve current-format evidence and define truthful
+   versioned CLI behavior and conversion limits. Follow [[records/specs/distribution]]:
+   reset selected disposable development fixtures when schema/API changes; do not
+   require old development schema migrations or legacy CLI adapters.
 2. Add Welcome/empty Home start and persistent ongoing intake, clarification and
    explicit native choices through that same pipeline. Qualify CSV roles, native
    working/reference/analysis paths and safe paste before advertising them.

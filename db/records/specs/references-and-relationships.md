@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5zn6ks2pyv72pjs65f90rxj
 created: 2026-10-27T21:45:28.610289+00:00
-updated: 2026-10-28T13:54:13.660865+00:00
+updated: 2026-10-28T15:53:21.405879+00:00
 summary: Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.
 title: Inline references and relationships
 status: reviewed
@@ -88,8 +88,9 @@ current origin versions. Mention cycles are allowed independently of forbidden
 derivation cycles. Undo preserves historical text and bindings.
 
 L08. Coherent workbook snapshots and portable archives include bindings,
-relationship Records and unresolved states. Migrations/rebuilds preserve identity,
-locators and current/history scope. Missing/withdrawn targets remain explainable.
+relationship Records and unresolved states. Current-format rebuilds preserve
+identity, locators and current/history scope. Upgrade requirements follow
+[[records/specs/distribution]] and begin with supported production 1.0 baselines. Missing/withdrawn targets remain explainable.
 First scope is one workbook. Foreign-workbook references remain explicit external
 or unresolved links, never automatic filesystem/network access, global resolution
 or new search authority. Copying a workbook preserves or consistently remaps its
@@ -141,7 +142,7 @@ graph database is a prerequisite.
 ## Implementation and acceptance
 
 L14. Deliver in dependency order within the existing plan:
-1. Version-safe canonical storage, migrations, resolver and annotation history.
+1. Version-safe canonical storage, current-format fixtures, resolver and annotation history; apply [[records/specs/distribution]] to compatibility.
 2. Incremental parsing, indexes/backlinks, coverage and rebuild/recovery.
 3. Native links, resolution and preview; voice/text and shared-core CLI operations.
 4. Bounded agent traversal and complete evidence-inspection journeys.
@@ -169,7 +170,7 @@ Required first-slice acceptance cases:
 - LJ07: voice/text, native keyboard/VoiceOver and narrow-window journeys link,
   resolve, preview and go Back without losing draft/space/reading state. Record
   actual hardware/accessibility limits; do not simulate success.
-- LJ08: offline portable export/reopen, migration and rebuild preserve historical
+- LJ08: current-format offline portable export/reopen and rebuild preserve historical
   bindings, pinned citations, included assets and unresolved links.
 - LJ09: local agent follows bounded hops, reads originals and cites correctly;
   misleading mentions, hidden scopes and suggested relations cannot become accepted

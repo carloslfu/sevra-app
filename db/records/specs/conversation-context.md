@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-28T04:47:28.844430+00:00
+updated: 2026-10-28T15:53:21.430067+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -140,7 +140,9 @@ faster decode number.
 1. Add explicit candidate context profiles, exact-token budget decisions and
    inspectable metrics. Keep current product behavior labeled until qualification.
 2. Add durable checkpoint storage, versioned serialization, complete tool receipts,
-   indexed history/range retrieval and migration/export/recovery tests.
+   indexed history/range retrieval and current-format export/recovery tests.
+   Earlier development schemas may be reset under [[records/specs/distribution]];
+   backward upgrade tests begin with supported production 1.0 baselines.
 3. Add tool-free structured summarization, host-owned continuation state and
    proactive compaction in the shared agent loop. Maintain cancellation and leases.
 4. Test repeated maintenance and adversarial state transitions through the actual

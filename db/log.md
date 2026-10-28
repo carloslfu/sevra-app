@@ -568,3 +568,33 @@ Final code accuracy pass: credited the existing native per-user flock inference 
 ## [2026-10-28 14:02] design | records/operations/implementation.md
 Integrated the owner-authorized native application-engine design handoff and registered E0-E6 as open, retaining contextual intake as the next active slice and all qualification limits.
 
+## [2026-10-28 15:53] design | sources/notes/2026/10/pre-1-production-compatibility-policy
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/overview/start-here
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/specs/distribution
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/specs/storage
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/specs/native-app-engine
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/specs/contextual-import
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/specs/references-and-relationships
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/specs/conversation-context
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/operations/implementation
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:54] verification | records/operations/implementation
+Pre-1.0 policy documentation: full dbmd validation zero errors/warnings; repository links and scoped whitespace checks pass. Code and workbook data unchanged.
+

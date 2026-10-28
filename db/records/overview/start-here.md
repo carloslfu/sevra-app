@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-28T13:59:16.858275+00:00
+updated: 2026-10-28T15:53:21.475343+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -46,3 +46,11 @@ brain is required. The product design is adopted from the owner's conversation;
 concrete engineering choices are implementer decisions, open to measured revision.
 
 [[records/operations/build-and-run]]
+
+## Development compatibility
+Backward compatibility starts with the first notarized, production-ready 1.0
+release actually distributed for production use. Until then, schema, format and
+interface changes may recreate selected disposable development fixtures instead
+of adding legacy migrations/adapters. Test deployments do not activate support.
+Current-format integrity and history remain required. The controlling decision is
+[[records/specs/distribution]] under Pre-1.0 compatibility policy.

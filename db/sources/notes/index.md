@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-10-28T13:58:45.291896Z
+updated: 2026-10-28T15:52:27.222854Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/10/pre-1-production-compatibility-policy]] — Carlos removes backward-compatibility obligations until the first notarized production-ready 1.0 release; test deployments do not qualify.
 - [[sources/notes/2026/10/native-app-engine-direction]] — Owner requests a customizable native workbook application engine, including Home, actions, workflows and automations, and authorizes design research and documentation.
 - [[sources/notes/2026/10/contextual-import-and-excel-continuity]] — Owner-confirmed import entry points, contextual roles and Excel work continuity, relayed October 28.
 - [[sources/notes/2026/10/inline-references-adoption]] — Owner adopts inline references, backlinks and bounded relationship discovery while preserving evidence and acceptance boundaries.
