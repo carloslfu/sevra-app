@@ -163,7 +163,12 @@ public final class SplashToolPolicy {
         let body: String
         if key == "properties", let properties = object[key] as? [String: Any] {
           let required = (object["required"] as? [String] ?? []).filter { properties[$0] != nil }
-          let names = required + properties.keys.filter { !required.contains($0) }.sorted()
+          // Select the existing component before its optional edit arguments.
+          // Otherwise emitting componentID would permanently exclude at/beforeID
+          // under LLGuidance's fixed JSON property order.
+          let selectors = ["componentID"].filter { properties[$0] != nil && !required.contains($0) }
+          let first = required + selectors
+          let names = first + properties.keys.filter { !first.contains($0) }.sorted()
           body =
             "{"
             + (try names.map { try quote($0) + ":" + nestedSchemaJSON(properties[$0]!) }).joined(

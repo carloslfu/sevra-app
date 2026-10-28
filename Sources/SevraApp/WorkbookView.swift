@@ -55,6 +55,8 @@ struct WorkbookView: View {
             }
             Text(routeTitle).font(.title3.weight(.medium)).lineLimit(1)
             Spacer()
+            Button("Review drafts", systemImage: "checklist") { state.navigate(.reviews) }
+              .help("Pending work stays available regardless of this layout.")
             Button("Spaces", systemImage: "square.grid.2x2") { showSpaces.toggle() }
               .popover(isPresented: $showSpaces) {
                 SpacePickerView(state: state) { showSpaces = false }

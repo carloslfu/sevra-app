@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-28T17:25:48.027154+00:00
+updated: 2026-10-28T18:04:30.502250+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -143,3 +143,13 @@ the host Apple SDK omits those declarations. No private SDK declarations or alte
 SQLite runtime were introduced.
 
 [[records/operations/implementation]]
+
+## E1 layout mutation extension, October 28
+
+The editable Home/space slice reuses spaces/space_versions and the existing
+committed-change family, with exact-base/history checks. Native and CLI saves,
+failed publication, same-token retry, competing handles, portable history and inert
+reconstruction pass in the editable-Home receipt linked from
+[[records/operations/implementation]]. No new ledger or replay path was introduced.
+The 156-group core run includes this extension. Future definition/action/workflow
+state still needs its own schema classification and scoped FJ proof.

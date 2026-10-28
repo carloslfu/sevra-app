@@ -875,7 +875,8 @@ check("pinning retries return the original snapshot") {
   let first = try book.pinSpace(id, title: "Saved", token: "pin-once")
   _ = try book.saveSpace(
     id: id, title: "Changed",
-    definition: .init(components: [.init(type: "text", title: "Memo", text: "Changed")]))
+    definition: .init(components: [.init(type: "text", title: "Memo", text: "Changed")]),
+    expectedVersion: 1)
   let retried = try book.pinSpace(id, title: "Saved", token: "pin-once")
   try expect(first == retried)
   try expect(
@@ -899,5 +900,6 @@ checkAgentReferences(at: temp)
 checkContextualIntake(at: temp)
 checkTableIntake(at: temp)
 checkPersistence(at: temp)
+checkSpaceEditing(at: temp)
 print("\(passed) passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

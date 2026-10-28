@@ -30,8 +30,11 @@ and user data. The controlling policy is
 [pre-1.0 compatibility](db/records/specs/distribution.md#pre-10-compatibility-policy).
 The [persistence-readiness requirement](db/records/specs/persistence-readiness.md)
 adds complete saved changes, causal identities, deterministic local reconstruction
-and accurate decision provenance. Finish the active table-update slice, then build
-this shared foundation before expanding durable workflow/automation storage.
+and accurate decision provenance. The table-update and shared persistence slices
+have scoped evidence. Editable Home/space operations now reuse that foundation;
+continue the E2-E6 sequence in native-app-engine before claiming release readiness.
+New definition/workflow/automation state must inherit complete capture and inert
+reconstruction, with its own scoped proof.
 Cloud sync, transport, replica coordination and a new resolver are out of scope.
 Preserve unrelated changes. Do not change the website business or Slotstream
 repository as a side effect. Keep public claims tied to measured acceptance.

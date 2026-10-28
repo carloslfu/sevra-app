@@ -72,7 +72,8 @@ private actor HandoffModel: WorkbookInference {
 
 func checkRequestHandoffs() async throws {
   for scope in [
-    InferenceToolScope.answer, .draft, .save_space, .propose_movement, .propose_record,
+    InferenceToolScope.answer, .draft, .save_space, .edit_space, .restore_space, .propose_movement,
+    .propose_record,
     .propose_table, .propose_table_edit,
   ] {
     let values = try Value.parse(

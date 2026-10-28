@@ -87,7 +87,8 @@ func checkPersistence(at root: URL) {
       definition: .init(components: [.init(type: "text", title: "Summary", text: "Saved")]))
     _ = try book.saveSpace(
       id: space, title: "Review 2",
-      definition: .init(components: [.init(type: "text", title: "Summary", text: "Revised")]))
+      definition: .init(components: [.init(type: "text", title: "Summary", text: "Revised")]),
+      expectedVersion: 1)
     _ = try book.updateSpaceNavigation([.pin(space, true), .visit(space)])
     _ = try book.saveConversationViewState(
       "main", draft: "Keep my draft", reading: .init(message: request.messageID, fraction: 0.25),

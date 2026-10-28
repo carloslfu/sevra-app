@@ -131,156 +131,195 @@ struct SearchView: View {
 struct SpaceView: View {
   let space: Space
   @ObservedObject var state: WorkspaceState
-  private var emptyWorkbook: Bool {
-    state.items.isEmpty && state.datasets.isEmpty && state.pendingExtractions.isEmpty
-      && state.spaces.count <= 1
-  }
+  @State private var editing: Space?
   var body: some View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 28) {
-        if !space.definition.components.isEmpty {
-          HStack {
-            if let captured = space.definition.pinnedAt {
-              Text("Snapshot from " + DisplayText.date(captured))
-                .font(.caption).foregroundStyle(.secondary)
-            } else {
-              Text("Live view").font(.caption).foregroundStyle(.secondary)
-            }
-            Spacer()
+        HStack {
+          if let captured = space.definition.pinnedAt {
+            Text("Snapshot from " + DisplayText.date(captured)).font(.caption).foregroundStyle(
+              .secondary)
+          } else {
+            Text("Live view").font(.caption).foregroundStyle(.secondary)
+          }
+          Spacer()
+          Button("Edit layout") { editing = space }.disabled(state.busy)
+          if !space.definition.components.isEmpty && !containsSections(space.definition.components)
+          {
             Button("Save a snapshot") {
-              let title =
-                space.title + " · " + Date().formatted(date: .abbreviated, time: .shortened)
-              state.pinSpace(space.id, title: title)
+              state.pinSpace(
+                space.id,
+                title: space.title + " · " + Date().formatted(date: .abbreviated, time: .shortened))
             }.help("Keep exact values and input versions as of now.").disabled(state.busy)
           }
         }
-        if space.definition.components.isEmpty && (space.id != "home" || emptyWorkbook) {
+        if space.definition.components.isEmpty {
           Text("Make room for your work").font(.system(size: 28, weight: .medium))
           Text(
-            "Drop files here, or describe what you want to organize. Useful tables, documents and views can live together in this space."
-          ).foregroundStyle(.secondary).frame(maxWidth: 520, alignment: .leading)
-          HStack {
-            Button("Add files…") { state.importPanel() }
-            Button("Search workbook") { state.navigate(.search) }
-          }
+            "Describe what you want here, or edit the layout. Removing sections keeps your information in the workbook."
+          )
+          .foregroundStyle(.secondary).frame(maxWidth: 520, alignment: .leading)
         }
-        if space.id == "home", let pending = state.pendingReview, !pending.items.isEmpty {
-          HStack {
-            sectionTitle("Drafts to review")
-            Spacer()
-            Button("Show all drafts") { state.navigate(.reviews) }
-          }
-          ForEach(pending.items) { item in
-            DraftReviewRow(item: item) { state.navigate(.item(item.id)) }
-          }
-        }
-        ForEach(space.definition.components) { component in
+        ForEach(visibleComponents) { component in
           NativeComponent(component: component, state: state).id(component.id)
-        }
-        if space.id == "home" {
-          if !emptyWorkbook {
-            HStack {
-              Button("Add files…") { state.importPanel() }
-              Button("Search workbook") { state.navigate(.search) }
-            }
-          }
-          let shortcuts = SpacePickerSections(
-            spaces: state.spaces, navigation: state.spaceNavigation.state, query: "")
-          if !shortcuts.pinned.isEmpty {
-            sectionTitle("Pinned spaces")
-            ForEach(shortcuts.pinned) { saved in
-              SpaceShortcutRow(space: saved, state: state) { state.navigate(.space(saved.id)) }
-            }
-          }
-          if !shortcuts.recent.isEmpty {
-            sectionTitle("Recent spaces")
-            ForEach(Array(shortcuts.recent.prefix(4))) { saved in
-              SpaceShortcutRow(space: saved, state: state) { state.navigate(.space(saved.id)) }
-            }
-          }
-          if !state.datasets.isEmpty {
-            sectionTitle("Tables")
-            ForEach(state.datasets) { table in
-              Button {
-                state.navigate(.table(table.id))
-              } label: {
-                HStack {
-                  Image(systemName: "tablecells")
-                  Text(table.title)
-                  Spacer()
-                  Text("\(table.rowCount) rows").foregroundStyle(.secondary)
-                }.padding(.vertical, 7)
-              }.buttonStyle(.plain)
-            }
-          }
-          if !state.pendingExtractions.isEmpty {
-            sectionTitle("Intake needs attention")
-            ForEach(state.pendingExtractions, id: \.text) { job in
-              HStack {
-                VStack(alignment: .leading) {
-                  Text(job["title"].text)
-                  Text(job["detail"].text).font(.caption).foregroundStyle(.secondary)
-                }
-                Spacer()
-                if let id = job["job_id"].string {
-                  Button(job["state"].text == "awaiting_role" ? "Choose use" : "Continue") {
-                    state.presentIntake(id)
-                  }.disabled(state.busy)
-                } else if job["asset_id"].string != nil {
-                  Button("Resume") {
-                    state.run("Resuming intake") { book, cancel in
-                      try book.resumeIntake(job["item_id"].text, cancellation: cancel)
-                    }
-                  }
-                } else {
-                  Button("Review reference") { state.navigate(.item(job["item_id"].text)) }
-                }
-              }
-            }
-          }
-          ForEach(state.intakeStatus.filter { $0["state"].text != "ready" }, id: \.text) { job in
-            let title = job["title"].text
-            let completed = job["completed"].text
-            let total = job["total"].text
-            Text(
-              "\(title): \(completed) of \(total) rows imported. Resume from the original source."
-            )
-            .font(.callout).foregroundStyle(.secondary)
-          }
-          sectionTitle("Recent work")
-          let recent = state.items
-          if recent.isEmpty {
-            Text("Included files and saved work will appear here.").foregroundStyle(.secondary)
-          }
-          ForEach(Array(recent)) { item in
-            Button {
-              state.navigate(.item(item.id))
-            } label: {
-              HStack(alignment: .top, spacing: 12) {
-                Image(systemName: item.assetID == nil ? "text.alignleft" : "doc").foregroundStyle(
-                  .secondary)
-                VStack(alignment: .leading, spacing: 3) {
-                  Text(item.title)
-                  Text(
-                    item.status == "draft"
-                      ? "Draft · \(item.meaning)"
-                      : item.kind == "table-intake-update" ? "Table update" : item.kind.capitalized
-                  )
-                  .font(.caption).foregroundStyle(.secondary)
-                }
-                Spacer()
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
-              }.padding(.vertical, 6)
-            }.buttonStyle(.plain)
-          }
         }
       }.scrollTargetLayout().padding(26).frame(maxWidth: .infinity, alignment: .leading)
     }.scrollPosition(
       id: Binding(get: { state.spaceScroll[space.id] }, set: { state.spaceScroll[space.id] = $0 }),
-      anchor: .top)
+      anchor: .top
+    )
+    .sheet(item: $editing) { selected in SpaceLayoutEditor(space: selected, state: state) }
+  }
+  private var visibleComponents: [Component] {
+    space.definition.components.filter { component in
+      switch component.type {
+      case "reviews": return state.pendingReview?.items.isEmpty == false
+      case "tables": return !state.datasets.isEmpty
+      case "recent": return !state.items.isEmpty
+      case "intake":
+        return !state.pendingExtractions.isEmpty
+          || state.intakeStatus.contains { $0["state"].text != "ready" }
+      case "shortcuts":
+        let shortcuts = SpacePickerSections(
+          spaces: state.spaces, navigation: state.spaceNavigation.state, query: "")
+        return !shortcuts.pinned.isEmpty || !shortcuts.recent.isEmpty
+      default: return true
+      }
+    }
+  }
+  private func containsSections(_ components: [Component]) -> Bool {
+    components.contains {
+      SpaceDefinition.sectionTypes.contains($0.type) || containsSections($0.children ?? [])
+    }
+  }
+}
+struct WorkbookSection: View {
+  let type: String
+  @ObservedObject var state: WorkspaceState
+  @ViewBuilder var body: some View {
+    switch type {
+    case "input":
+      HStack {
+        Button("Add files…") { state.importPanel() }
+        Button("Search workbook") { state.navigate(.search) }
+      }
+    case "reviews":
+      if let pending = state.pendingReview, !pending.items.isEmpty {
+        HStack {
+          Text("\(pending.items.count) pending").font(.caption).foregroundStyle(.secondary)
+          Spacer()
+          Button("Show all drafts") { state.navigate(.reviews) }
+        }
+        ForEach(pending.items) { item in
+          DraftReviewRow(item: item) { state.navigate(.item(item.id)) }
+        }
+      }
+
+      else {
+        Text("No drafts waiting for review.").foregroundStyle(.secondary)
+      }
+    case "shortcuts":
+      let shortcuts = SpacePickerSections(
+        spaces: state.spaces, navigation: state.spaceNavigation.state, query: "")
+      if !shortcuts.pinned.isEmpty {
+        sectionTitle("Pinned spaces")
+        ForEach(shortcuts.pinned) { saved in
+          SpaceShortcutRow(space: saved, state: state) { state.navigate(.space(saved.id)) }
+        }
+      }
+      if !shortcuts.recent.isEmpty {
+        sectionTitle("Recent spaces")
+        ForEach(Array(shortcuts.recent.prefix(4))) { saved in
+          SpaceShortcutRow(space: saved, state: state) { state.navigate(.space(saved.id)) }
+        }
+      }
+
+    case "tables":
+      if !state.datasets.isEmpty {
+        ForEach(state.datasets) { table in
+          Button {
+            state.navigate(.table(table.id))
+          } label: {
+            HStack {
+              Image(systemName: "tablecells")
+              Text(table.title)
+              Spacer()
+              Text("\(table.rowCount) rows").foregroundStyle(.secondary)
+            }.padding(.vertical, 7)
+          }.buttonStyle(.plain)
+        }
+      }
+
+      else {
+        Text("No tables yet.").foregroundStyle(.secondary)
+      }
+    case "intake":
+      if !state.pendingExtractions.isEmpty {
+        ForEach(state.pendingExtractions, id: \.text) { job in
+          HStack {
+            VStack(alignment: .leading) {
+              Text(job["title"].text)
+              Text(job["detail"].text).font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            if let id = job["job_id"].string {
+              Button(job["state"].text == "awaiting_role" ? "Choose use" : "Continue") {
+                state.presentIntake(id)
+              }.disabled(state.busy)
+            } else if job["asset_id"].string != nil {
+              Button("Resume") {
+                state.run("Resuming intake") { book, cancel in
+                  try book.resumeIntake(job["item_id"].text, cancellation: cancel)
+                }
+              }
+            } else {
+              Button("Review reference") { state.navigate(.item(job["item_id"].text)) }
+            }
+          }
+        }
+      }
+      ForEach(state.intakeStatus.filter { $0["state"].text != "ready" }, id: \.text) { job in
+        let title = job["title"].text
+        let completed = job["completed"].text
+        let total = job["total"].text
+        Text(
+          "\(title): \(completed) of \(total) rows imported. Resume from the original source."
+        )
+        .font(.callout).foregroundStyle(.secondary)
+      }
+
+    case "recent":
+      let recent = state.items
+      if recent.isEmpty {
+        Text("Included files and saved work will appear here.").foregroundStyle(.secondary)
+      }
+      ForEach(Array(recent)) { item in
+        Button {
+          state.navigate(.item(item.id))
+        } label: {
+          HStack(alignment: .top, spacing: 12) {
+            Image(systemName: item.assetID == nil ? "text.alignleft" : "doc").foregroundStyle(
+              .secondary)
+            VStack(alignment: .leading, spacing: 3) {
+              Text(item.title)
+              Text(
+                item.status == "draft"
+                  ? "Draft · \(item.meaning)"
+                  : item.kind == "table-intake-update" ? "Table update" : item.kind.capitalized
+              )
+              .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+          }.padding(.vertical, 6)
+        }.buttonStyle(.plain)
+      }
+
+    default: EmptyView()
+    }
   }
   func sectionTitle(_ title: String) -> some View {
-    Text(title).font(.title3.weight(.medium)).padding(.top, 10)
+    Text(title).font(.headline).padding(.top, 6)
   }
 }
 struct NativeComponent: View {
@@ -297,6 +336,8 @@ struct NativeComponent: View {
           .secondary)
       }
       switch component.type {
+      case "input", "reviews", "shortcuts", "tables", "intake", "recent":
+        WorkbookSection(type: component.type, state: state)
       case "text": Text(component.text ?? "").textSelection(.enabled).foregroundStyle(.secondary)
       case "comparison":
         ViewThatFits(in: .horizontal) {

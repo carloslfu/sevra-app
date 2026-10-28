@@ -670,3 +670,30 @@ Schema-10 complete local history and inert reconstruction pass scoped FJ01-FJ06;
 ## [2026-10-28 17:25] verification | records/specs/persistence-readiness.md
 Schema-10 complete local history and inert reconstruction pass scoped FJ01-FJ06; 150 core groups, packaged 10k rows/cancellation, 30 writers, four interruption reconstructions and native review/reopen. Whole-app release remains open.
 
+## [2026-10-28 17:58] implementation | records/specs/native-app-engine.md
+Editable Home/space checkpoint: exact bases, stable semantic edits, retained history, native conflict handling; qualification limits and retained model/grammar failures.
+
+## [2026-10-28 17:58] implementation | records/specs/storage.md
+Editable Home/space checkpoint: exact bases, stable semantic edits, retained history, native conflict handling; qualification limits and retained model/grammar failures.
+
+## [2026-10-28 17:58] implementation | records/operations/build-and-run.md
+Editable Home/space checkpoint: exact bases, stable semantic edits, retained history, native conflict handling; qualification limits and retained model/grammar failures.
+
+## [2026-10-28 17:58] implementation | records/overview/start-here.md
+Editable Home/space checkpoint: exact bases, stable semantic edits, retained history, native conflict handling; qualification limits and retained model/grammar failures.
+
+## [2026-10-28 17:58] implementation | records/operations/implementation.md
+Editable Home/space checkpoint: exact bases, stable semantic edits, retained history, native conflict handling; qualification limits and retained model/grammar failures.
+
+## [2026-10-28 18:04] verification | records/operations/implementation.md
+E1 scoped qualification: core156,42 actual grammars/359 masks, packaged concurrency/reconstruction, native stale refusal/history, two successful real-model ordering jobs; initial failures retained.
+
+## [2026-10-28 18:04] verification | records/specs/native-app-engine.md
+E1 scoped qualification: core156,42 actual grammars/359 masks, packaged concurrency/reconstruction, native stale refusal/history, two successful real-model ordering jobs; initial failures retained.
+
+## [2026-10-28 18:04] verification | records/specs/storage.md
+E1 scoped qualification: core156,42 actual grammars/359 masks, packaged concurrency/reconstruction, native stale refusal/history, two successful real-model ordering jobs; initial failures retained.
+
+## [2026-10-28 18:04] verification | records/operations/persistence-coverage.md
+E1 scoped qualification: core156,42 actual grammars/359 masks, packaged concurrency/reconstruction, native stale refusal/history, two successful real-model ordering jobs; initial failures retained.
+

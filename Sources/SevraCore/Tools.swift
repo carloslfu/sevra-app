@@ -20,7 +20,7 @@ public struct WorkbookTools {
   public static let readOnlyTools: Set<String> = [
     "history_search", "history_read", "tool_result", "search", "count_records", "archive_members",
     "read", "lineage", "datasets", "rows", "compare_rows", "calculate", "balance", "spaces",
-    "review_queue", "references",
+    "review_queue", "references", "space_history",
   ]
   public init(
     _ workbook: Workbook, runID: String = identifier(), cancellation: Cancellation = .init(),
@@ -60,7 +60,10 @@ public struct WorkbookTools {
     balance: subject string. Deterministic accepted actual inventory balance and supporting effects.
     review_queue: optional cursor from nextCursor. Current non-row drafts across this workbook, oldest first, 20 per page. Read original versions before business claims. Requests and table rows are excluded; table changes are reviewed as proposals.
     open_reviews: no arguments. Open the current draft review list only when requested; requires the live workbook window. Does not accept anything.
-    spaces: no arguments. List saved native spaces.
+    spaces: no arguments. List saved native spaces with their exact current versions and components.
+    space_history: id space ID, optional beforeVersion. Read up to 20 saved versions. A restore creates a new version.
+    edit_space: id exact space ID, expectedVersion inspected current version, edits array. Operations: rename {title}; insert {component,at:first|last OR beforeID} at top level; remove {componentID}; move {componentID,at:first|last OR beforeID}; title {componentID,title}; text {componentID,text}; replace {componentID,component}. Omit unrelated fields. Move stays in its group. Replacement keeps the selected ID. Preserve unrelated components and snapshot bindings. Refuse stale bases and ask on ambiguous intent.
+    restore_space: id exact space ID, version explicitly selected historical version, expectedVersion current version. Restore as a new version only when requested.
     open_space: target exact space name or ID. Ask the live workbook window to open it; unavailable without that window. Use only when requested, not for interface explanations.
     set_space_pinned: target exact space name or ID, pinned boolean. Pin/unpin a navigation shortcut without copying or freezing data. Use pin_space only to create an explicitly requested fixed snapshot.
     save_space: title string, definition object {version:1,components:[{id:string,type:table|chart|document|asset|search|text,title:string,datasetID?:string,itemID?:string,x?:columnID,y?:columnID,query?:string,text?:string}]}.
@@ -294,6 +297,29 @@ public struct WorkbookTools {
         try workbook.pinSpace(
           string("id"), title: string("title"), token: token,
           cancellation: cancellation))
+    case "space_history":
+      return try encoded(workbook.spaceHistory(string("id"), before: a["beforeVersion"].int))
+    case "edit_space":
+      guard let version = a["expectedVersion"].int else {
+        throw SevraError("arguments", "Read the current space version before editing.")
+      }
+      let edits = try JSONDecoder().decode([SpaceEdit].self, from: Data(a["edits"].json().utf8))
+      let saved = try workbook.editSpace(
+        string("id"), expectedVersion: version, edits: edits, token: token)
+      return .object([
+        "spaceID": .string(saved.id), "title": .string(saved.title),
+        "version": .number(Double(saved.version)),
+      ])
+    case "restore_space":
+      guard let version = a["version"].int, let expected = a["expectedVersion"].int else {
+        throw SevraError("arguments", "Choose an exact saved version and current base.")
+      }
+      let saved = try workbook.restoreSpace(
+        string("id"), version: version, expectedVersion: expected, token: token)
+      return .object([
+        "spaceID": .string(saved.id), "title": .string(saved.title),
+        "version": .number(Double(saved.version)),
+      ])
     case "save_space":
       let definition = try JSONDecoder().decode(
         SpaceDefinition.self, from: Data(a["definition"].json().utf8))

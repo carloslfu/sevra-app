@@ -15,6 +15,16 @@ package enum NativeTools {
     "type": .string("array"),
     "items": schema("string", "Exact item version ID from retrieved evidence."),
   ])
+  /// Structural rules stay identical. Nested component fields have the same
+  /// meanings as their documented parent; avoid repeating prose at every depth.
+  static func withoutDescriptions(_ value: Value) -> Value {
+    switch value {
+    case .object(let fields):
+      return .object(fields.filter { $0.key != "description" }.mapValues(withoutDescriptions))
+    case .array(let values): return .array(values.map(withoutDescriptions))
+    default: return value
+    }
+  }
   static func componentSchema(depth: Int) -> Value {
     var fields: [String: Value] = [
 
@@ -22,7 +32,10 @@ package enum NativeTools {
       "type": .object([
         "type": .string("string"),
         "enum": .array(
-          ["table", "chart", "metric", "document", "asset", "search", "text"].map(
+          [
+            "table", "chart", "metric", "document", "asset", "search", "text", "input", "reviews",
+            "shortcuts", "tables", "intake", "recent",
+          ].map(
             Value.string)),
       ]),
       "title": schema("string", "Visible title."),
@@ -45,7 +58,10 @@ package enum NativeTools {
       fields["type"] = .object([
         "type": .string("string"),
         "enum": .array(
-          ["table", "chart", "metric", "comparison", "document", "asset", "search", "text"].map(
+          [
+            "table", "chart", "metric", "comparison", "document", "asset", "search", "text",
+            "input", "reviews", "shortcuts", "tables", "intake", "recent",
+          ].map(
             Value.string)),
       ])
       fields["children"] = .object([
@@ -55,10 +71,12 @@ package enum NativeTools {
         ), "items": componentSchema(depth: depth + 1),
       ])
     }
-    return object(fields, required: ["id", "type", "title"])
+    let schema = object(fields, required: ["id", "type", "title"])
+    return depth > 1 ? withoutDescriptions(schema) : schema
   }
   static let components: Value = .object([
-    "type": .string("array"), "maxItems": .number(16), "items": componentSchema(depth: 1),
+    "type": .string("array"), "maxItems": .number(16),
+    "items": withoutDescriptions(componentSchema(depth: 1)),
   ])
   package static let definitions: [WorkbookToolDefinition] = [
     .init(
@@ -76,11 +94,12 @@ package enum NativeTools {
             "type": .string("string"),
             "enum": .array(
               [
-                "answer", "draft", "save_space", "propose_movement", "propose_record",
+                "answer", "draft", "save_space", "edit_space", "restore_space", "propose_movement",
+                "propose_record",
                 "propose_table", "propose_table_edit",
               ].map(Value.string)),
             "description": .string(
-              "The remaining task: answer for research/calculation/explanation with no changes; propose_movement for an inventory movement proposal; propose_record for another business Record; propose_table for new structured data; propose_table_edit for changed existing values; draft for a document; save_space for a saved view. Select the requested operation exactly. An inventory proposal is propose_movement, not answer or draft. A thread title is not a request for a space/table."
+              "The remaining task: answer for research/calculation/explanation with no changes; propose_movement for an inventory movement proposal; propose_record for another business Record; propose_table for new structured data; propose_table_edit for changed existing values; draft for a document; save_space for a new saved view; edit_space to change an existing view; restore_space for an explicitly selected saved version. Select the requested operation exactly. An inventory proposal is propose_movement, not answer or draft. A thread title is not a request for a space/table."
             ),
           ]),
         ], required: ["task", "work"])),
@@ -397,9 +416,62 @@ package enum NativeTools {
       name: "spaces", description: "List saved native spaces.",
       parameters: object([:], required: [])),
     .init(
+      name: "space_history",
+      description: "Inspect bounded saved layout versions. Does not restore or alter data.",
+      parameters: object(
+        [
+          "id": schema("string", "Exact space ID."),
+          "beforeVersion": schema(
+            "integer", "Exclusive earlier version for paging; omit initially."),
+        ], required: ["id"])),
+    .init(
+      name: "edit_space",
+      description:
+        "Edit an existing space or Home when requested. Read spaces for exact IDs/version. Preserve unrelated components. Stale bases refuse. Changes layout only. Move/insert requires at:first, at:last, or beforeID; omit unrelated fields.",
+      parameters: object(
+        [
+          "id": schema("string", "Exact inspected space ID."),
+          "expectedVersion": schema("integer", "Exact current version from spaces."),
+          "edits": .object([
+            "type": .string("array"), "minItems": .number(1), "maxItems": .number(64),
+            "items": object(
+              [
+                "operation": .object([
+                  "type": .string("string"),
+                  "enum": .array(
+                    ["rename", "insert", "remove", "move", "title", "text", "replace"].map(
+                      Value.string)),
+                ]),
+                "componentID": schema(
+                  "string",
+                  "Existing stable component ID for all operations except rename or insert."),
+                "beforeID": schema(
+                  "string", "Move/insert before this ID in the same group, instead of at."),
+                "at": .object([
+                  "type": .string("string"),
+                  "enum": .array([.string("first"), .string("last")]),
+                ]),
+                "component": withoutDescriptions(componentSchema(depth: 1)),
+                "title": schema(
+                  "string", "New space title for rename or component label for title."),
+                "text": schema("string", "New content for a text component only."),
+              ], required: ["operation"]),
+          ]),
+        ], required: ["id", "expectedVersion", "edits"])),
+    .init(
+      name: "restore_space",
+      description:
+        "Restore a saved layout as a new version only when explicitly requested. Inspect space_history and the current space first. Keeps prior history and business data; stale bases refuse.",
+      parameters: object(
+        [
+          "id": schema("string", "Exact space ID."),
+          "version": schema("integer", "Explicitly selected historical layout version."),
+          "expectedVersion": schema("integer", "Exact current space version."),
+        ], required: ["id", "version", "expectedVersion"])),
+    .init(
       name: "save_space",
       description:
-        "Save a native space. Every table AND every chart requires its own datasetID. Call this before claiming creation succeeded.",
+        "Create a NEW native space. To change Home or an existing space, read spaces and use edit_space instead. Every table AND every chart requires its own datasetID. Call this before claiming creation succeeded.",
       parameters: object(
         [
           "title": schema("string", "Name of the space."),

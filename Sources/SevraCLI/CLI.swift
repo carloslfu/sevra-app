@@ -41,6 +41,13 @@ import SevraProduct
       guard args.count > i else { throw SevraError("usage", help) }
       return args[i]
     }
+    func integer(_ i: Int) throws -> Int {
+      let raw = try arg(i)
+      guard let value = Int(raw), value > 0 else {
+        throw SevraError("arguments", "Choose a positive integer version.")
+      }
+      return value
+    }
     func url(_ i: Int) throws -> URL { URL(fileURLWithPath: try arg(i)).standardizedFileURL }
     if command == "create" {
       let book = try Workbook.create(
@@ -300,6 +307,19 @@ import SevraProduct
           supersedes: a["supersedes"].string, token: a["token"].string ?? identifier()))
     case "lineage": return .array(try book.lineage(arg(2)))
     case "spaces": return try encoded(book.spaces())
+    case "space-history":
+      return try encoded(book.spaceHistory(arg(2), before: args.count > 3 ? integer(3) : nil))
+    case "space-edit":
+      let edits = try JSONDecoder().decode([SpaceEdit].self, from: Data(arg(4).utf8))
+      return try encoded(
+        book.editSpace(
+          arg(2), expectedVersion: integer(3), edits: edits,
+          token: args.count > 5 ? args[5] : identifier()))
+    case "space-restore":
+      return try encoded(
+        book.restoreSpace(
+          arg(2), version: integer(3), expectedVersion: integer(4),
+          token: args.count > 5 ? args[5] : identifier()))
     case "space":
       let definition = try JSONDecoder().decode(SpaceDefinition.self, from: Data(arg(3).utf8))
       return .string(try book.saveSpace(title: arg(2), definition: definition))
@@ -403,6 +423,9 @@ import SevraProduct
     opening WORKBOOK SUBJECT QUANTITY ISO_DATE SOURCE_ID | movement WORKBOOK JSON
     balance WORKBOOK SUBJECT | calculate EXPRESSION [VALUES_JSON]
     spaces WORKBOOK | space WORKBOOK TITLE DEFINITION_JSON | pin-space WORKBOOK SPACE_ID [TITLE]
+    space-edit WORKBOOK SPACE_ID BASE_VERSION EDITS_JSON [TOKEN]
+    space-history WORKBOOK SPACE_ID [BEFORE_VERSION]
+    space-restore WORKBOOK SPACE_ID SAVED_VERSION BASE_VERSION [TOKEN]
     column-history WORKBOOK TABLE_ID | intake-status WORKBOOK | resume-intake WORKBOOK SOURCE_ID
     runs WORKBOOK
     conversation WORKBOOK [CONVERSATION_ID] | chapter WORKBOOK TITLE MESSAGE_ID

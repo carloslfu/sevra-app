@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T17:09:03.226934+00:00
+updated: 2026-10-28T18:04:30.468575+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -133,6 +133,26 @@ loading or SQL authored by a file/model.
 S13. Undo is a compensating version/operation with preserved evidence. Redo creates
 another operation. Do not erase accepted history. Non-reversible network effects
 are outside the first version; local source/view edits are reversible.
+
+## Versioned layouts
+
+Home and other spaces use the same stable component IDs, exact base-version guard,
+atomic saved history and committed-change capture. The declared initial
+Home/version 1 projects the six default host sections; a deliberately emptied
+later layout is empty after reopening. First edit retains the initial layout as
+version 1. Every save/restore creates one retained version and checks the current
+layout against its retained version before publishing. Verify checks contiguous
+history and exact current/latest agreement. Restore is a new edit, not deletion.
+
+Semantic operations rename, insert, remove, move, title, text and replace preserve
+unrelated components. Position is explicit first/last or before a stable sibling ID;
+unknown operations, unrelated defined fields and invalid compositions refuse atomically.
+Snapshots retain their mode, saved bindings and values. System host sections are
+live host views and cannot be frozen as if they were bound business results.
+The native editor keeps its opened base version fixed across background refresh;
+a stale refusal preserves unsaved input for review. Layout history/reconstruction
+never executes tools or changes business acceptance. See
+[[records/specs/native-app-engine]] for engine scope and remaining E2-E6 gates.
 
 ## Portable copies and recovery
 

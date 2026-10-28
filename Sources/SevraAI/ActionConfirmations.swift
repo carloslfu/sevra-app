@@ -13,7 +13,7 @@ package struct ActionConfirmations {
     let task: String
     switch tool {
     case "draft": task = "saving the draft"
-    case "save_space", "pin_space": task = "saving the space"
+    case "save_space", "edit_space", "restore_space", "pin_space": task = "saving the space"
     case "set_space_pinned": task = "changing the shortcut"
     case "open_space", "open_reviews": task = "opening the view"
     default: return
@@ -37,11 +37,16 @@ package struct ActionConfirmations {
       kind = "draft"
       id = value
       title = result["title"].text
-    case "save_space", "pin_space":
+    case "save_space", "edit_space", "restore_space", "pin_space":
       guard let value = result["spaceID"].string ?? result.string else { return }
-      kind = tool == "pin_space" ? "snapshot" : "space"
+      kind =
+        tool == "pin_space"
+        ? "snapshot"
+        : tool == "edit_space"
+          ? "space_edit"
+          : tool == "restore_space" ? "space_restore" : "space"
       id = value
-      title = arguments["title"].text
+      title = result["title"].string ?? arguments["title"].text
     case "set_space_pinned":
       guard let value = result["spaceID"].string, case .bool(let pinned) = result["pinned"]
       else { return }
@@ -86,6 +91,8 @@ package struct ActionConfirmations {
       case "failure": return "Couldn’t finish " + title + ". " + entry["error"].text
       case "draft": return "Saved draft [" + title + "](sevra://item/" + id + ")."
       case "space": return "Saved space “" + title + "”."
+      case "space_edit": return "Updated space “" + title + "”."
+      case "space_restore": return "Restored a saved layout for “" + title + "”."
       case "snapshot": return "Saved snapshot “" + title + "”."
       case "shortcut":
         if qualifier == "permanent" { return "Home already has a permanent shortcut." }

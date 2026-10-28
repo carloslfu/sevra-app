@@ -1,7 +1,10 @@
 import Foundation
 
 public enum ContinuedWork: String, Codable, Sendable {
-  case answer, draft, save_space, propose_movement, propose_record, propose_table,
+  // Serialized tool identifiers match the shared command registry.
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  case answer, draft, save_space, edit_space, restore_space, propose_movement, propose_record,
+    propose_table,
     propose_table_edit
 }
 

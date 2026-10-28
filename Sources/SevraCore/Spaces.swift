@@ -72,16 +72,32 @@ extension Workbook {
           }
           return Space(
             id: row["id"]!.text, title: row["title"]!.text,
-            definition: try JSONDecoder().decode(
-              SpaceDefinition.self, from: Data(row["definition"]!.text.utf8)),
+            definition: try decodedSpaceDefinition(row),
             version: version)
         }
     }
   }
   @discardableResult public func saveSpace(
     id: String = identifier(), title: String, definition: SpaceDefinition,
-    token: String = identifier()
+    expectedVersion: Int? = nil, token: String = identifier(), actor: ChangeActor? = nil
   ) throws -> String {
+    let data = try encoded(definition).json()
+    _ = try mutation(
+      "space", token: token,
+      request: .object([
+        "id": .string(id), "title": .string(title), "definition": .string(data),
+        "expectedVersion": expectedVersion.map { .number(Double($0)) } ?? .null,
+      ]), actor: actor
+    ) {
+      let current = try spaceIfPresent(id)
+      try checkSpaceBase(current, expectedVersion: expectedVersion)
+      if let current { try preservePinnedBindings(current.definition, next: definition) }
+      try publishSpace(id: id, title: title, definition: definition, current: current)
+      return .string(id)
+    }
+    return id
+  }
+  func validateSpaceDefinition(_ definition: SpaceDefinition) throws {
     try require(
       definition.version == 1 && definition.components.count <= 16, "view",
       "Unsupported view version or too many components.")
@@ -100,8 +116,18 @@ extension Workbook {
         componentCount <= 16 && depth <= 3 && ids.insert(c.id).inserted, "view",
         "Use at most 16 uniquely named components and three levels.")
       try require(
-        ["table", "chart", "metric", "comparison", "document", "asset", "search", "text"].contains(
-          c.type), "view", "Unknown native component: \(c.type)")
+        Set(["table", "chart", "metric", "comparison", "document", "asset", "search", "text"])
+          .union(SpaceDefinition.sectionTypes).contains(c.type), "view",
+        "Unknown native component: \(c.type)")
+      try require(
+        !c.id.isEmpty && c.id.utf8.count <= 256 && c.title.utf8.count <= 500, "view",
+        "Use bounded component IDs and labels.")
+      if SpaceDefinition.sectionTypes.contains(c.type) {
+        try require(
+          definition.pinnedAt == nil && c.datasetID == nil && c.itemID == nil
+            && c.snapshot == nil && c.searchSnapshot == nil, "view",
+          "Workbook sections are live host views and cannot carry snapshot or data bindings.")
+      }
       if ["table", "chart", "metric"].contains(c.type) {
         guard let id = c.datasetID else {
           throw SevraError("view", "Component \(c.id) (\(c.type)) requires its own datasetID.")
@@ -174,28 +200,6 @@ extension Workbook {
       for child in c.children ?? [] { try validate(child, depth: depth + 1) }
     }
     for component in definition.components { try validate(component, depth: 1) }
-    let data = try encoded(definition).json()
-    _ = try mutation(
-      "space", token: token,
-      request: .object(["id": .string(id), "title": .string(title), "definition": .string(data)])
-    ) {
-      let version =
-        (try db.scalar("SELECT version FROM spaces WHERE id=?", [.string(id)]).int ?? 0) + 1
-      try db.execute(
-        "INSERT INTO spaces VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET title=excluded.title,definition=excluded.definition,version=excluded.version,updated=excluded.updated",
-        [
-          .string(id), .string(title), .string(data), .number(Double(version)),
-          .string(timestamp()),
-        ])
-      try db.execute(
-        "INSERT INTO space_versions VALUES(?,?,?,?,?)",
-        [
-          .string(id), .number(Double(version)), .string(title), .string(data),
-          .string(timestamp()),
-        ])
-      return .string(id)
-    }
-    return id
   }
   @discardableResult public func addMessage(
     _ body: String, role: String, conversation: String = "main", state: String = "complete",

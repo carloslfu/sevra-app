@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T17:25:48.077054+00:00
+updated: 2026-10-28T18:04:30.397172+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -12,6 +12,46 @@ title: Implementation and acceptance
 This is a working development build, not a qualified release. Requirements in the
 specifications remain the acceptance contract. A source commit does not imply that
 every requirement or supported hardware profile has passed.
+
+## Editable Home and spaces checkpoint, October 28
+
+Evidence: [editable Home/spaces receipt](../../../integration/evidence/2026-10-28-editable-home-spaces.json.gz),
+29,344 bytes, SHA-256 f31450dc331e1c7db2201a2962948e207693b09ec35e9dbb8ccbf2acf3a62320.
+All 102 earlier evidence files remain byte-identical to the preceding checkpoint.
+
+- Home sections and existing spaces now share exact-version semantic editing,
+  retained history and restore-as-new-version. Root native controls, CLI and agent
+  tools use the same core. Pending reviews remain accessible from the stable shell.
+- Core156 passes with no failures. Explicit positions, atomic invalid-edit refusal,
+  pinned bindings, concurrent bases, exact retry, fault rollback, export and inert
+  reconstruction are covered. Competing packaged CLI writers produce one success
+  and one stale refusal; history/restore/reconstruction pass.
+- Native testing caught and repaired a real polling race: an open edit sheet had
+  silently adopted a newer base. It now freezes its opened Space. The repeated
+  stale save refused and kept the draft. Native restore retained all six historical
+  versions; the reconstructed workbook reopened with the pending draft. Final
+  positioning controls saved version7 with Tables first and a human actor.
+- The initial real-model task put Tables last instead of first. Position validation
+  then refused incomplete edits safely, exposing a constrained JSON field-order
+  issue. Required fields now precede component selection, then edit arguments;
+  selecting componentID no longer makes at/beforeID unavailable. The pinned
+  reference agrees: 42 actual-tool cases and 359 exact masks pass, with the existing
+  8192-token prompt check unchanged. The final model request put Tables first and
+  removed only Recent; a second request moved Tables last while preserving the rest.
+  Each used spaces and one successful edit; both finished in three steps. Initial
+  failures and the native race remain in the receipt, not discarded as successes.
+- The shared-boundary full script passed pre-grammar checks but initially stopped
+  at prompt size. Final core, scripted agent, repaired grammar and remaining harness
+  checks pass separately; no final full-script pass is claimed. Strict format,
+  repo skill and final native signature/resource-path checks pass. Later final
+  rebuild changes only an unused help string/comments, retaining model-path proof.
+
+This qualifies the implemented E1 layout slice, including scoped EJ02, not complete
+EJ01-EJ03 or the app release. Next is E2 shared typed definitions/action registry,
+forms, reusable calculations/queries and bounded definition/dependency search.
+E3 durable workflows, E4 triggers, E5 helper/folders and E6 reusable templates follow.
+Excel formula continuity, broader inventory semantics, actual VoiceOver, hardware,
+fresh installation and notarization remain tracked release work.
 
 ## Current direction, October 28
 
@@ -30,7 +70,8 @@ current qualification are in [[records/operations/persistence-coverage]]. Core
 synthetic reconstruction/failure checks, packaged/native checks, concurrent writers,
 interruption, cancellation and bounded scaling pass for current families. FJ01-FJ06
 are locally qualified within that inventory, not whole-app or sync completion.
-The shared foundation now supports the next E1 Home/space editing slice.
+The shared foundation now captures the implemented E1 Home/space editing slice;
+the checkpoint below records scoped proof and remaining gates.
 E19 must reuse this commit foundation rather than create a second ledger.
 Cloud, transport/protocol, replica coordination and a new conflict resolver remain
 out of scope. Retain future semantic-resolution evidence without widening today's
@@ -45,7 +86,8 @@ C++/Metal. Native adoption and automatic compaction remain gated.
   [[records/specs/native-app-engine]]: customizable native spaces, typed reusable
   actions/forms/functions, durable workflows and local automations. Product
   direction is adopted; detailed runtime choices remain proposed and E0-E6/EJ01-EJ14
-  stay open. Existing components are a foundation, not delivery of this engine.
+  remain open as complete journeys. E1 layout editing now has scoped proof; it is
+  not delivery of the full behavior/workflow engine.
 
 - Owner-confirmed contextual import is now a first-class startup and ongoing
   capability in the specification. CSV/Excel roles depend on request/context;

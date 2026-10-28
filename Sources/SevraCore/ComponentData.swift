@@ -82,6 +82,10 @@ extension Workbook {
       let revision = try revision()
       func pin(_ component: Component) throws -> Component {
         try cancellation.check()
+        try require(
+          !SpaceDefinition.sectionTypes.contains(component.type), "view_limit",
+          "Live workbook sections cannot be frozen. Snapshot a space containing bound business views."
+        )
         var copy = component
         if component.datasetID != nil {
           let snapshot = try componentData(component)

@@ -32,7 +32,8 @@ func checkContinuationEvidence(at root: URL) {
         "spaceID"
       ].text
     let accepted = try book.accept(originals[0].id)
-    _ = try book.saveSpace(id: space, title: "Renamed by user", definition: definition)
+    _ = try book.saveSpace(
+      id: space, title: "Renamed by user", definition: definition, expectedVersion: 1)
     let revision = try book.revision()
     let state = try book.continuationState(conversation: "main", runID: run, messageIDs: [])
     let entries = state["readEvidence"]["entries"].array

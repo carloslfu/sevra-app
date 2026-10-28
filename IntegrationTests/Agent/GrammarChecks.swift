@@ -61,7 +61,11 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
     for call in output.calls { try policy.validate(call) }
     let prompt = try frontend.prepare(
       messages: [["role": "user", "content": "Read the workbook."]], tools: policy.promptTools(),
-      thinking: item.thinking)
+      thinking: item.thinking, contextLimit: 65536)
+    guard prompt.tokens.count <= 8192 else {
+      throw SplashError(
+        "Workbook tool prompt uses \(prompt.tokens.count) tokens, over its 8192-token check")
+    }
     guard !prompt.tokens.isEmpty else { throw SplashError("Workbook tool prompt is empty") }
   }
   print(

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T13:45:46.431888+00:00
+updated: 2026-10-28T18:00:21.186566+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1343,3 +1343,27 @@ The adopted expanded contract, implementation phases and acceptance cases are in
 reference-only/analysis-only role routing, native Excel formulas/structure, general
 range intake or contextual update/merge as implemented. Original inclusion/link
 ownership and resumable bounded import checks remain valid in their narrower scope.
+
+## Edit Home and existing spaces
+
+These commands apply to matching current-format baseline/native CLI builds. The
+Python-free native preview is built separately below; it is not a qualified
+production replacement for the preserved baseline.
+
+~~~sh
+sevra spaces /path/to/Work.sevra
+sevra space-edit /path/to/Work.sevra home 1 '[{"operation":"move","componentID":"tables","at":"first"},{"operation":"remove","componentID":"recent"}]' home-layout-1
+sevra space-history /path/to/Work.sevra home
+sevra space-restore /path/to/Work.sevra home 1 2 restore-home-1
+python3 scripts/check_space_editing.py output/native/bin/sevra
+~~~
+
+Read the actual ID/version first; the example assumes untouched Home/version 1.
+A stale base refuses. Retry uncertain results with exactly the same token/arguments.
+Move/insert requires at:first, at:last or beforeID; omit unrelated fields. Native
+Edit layout provides labels, text, root ordering, addition/removal and bounded
+history. Existing grouped compositions remain; chat/CLI can edit nested components.
+Restore saves another version. Pending review access remains in the workspace
+header even if its Home section is removed. Layout removal keeps underlying data.
+The repo-owned [[records/specs/native-app-engine]] tracks forms/actions and remaining
+accessibility/engine work. The matching harness skill is skills/sevra/SKILL.md.

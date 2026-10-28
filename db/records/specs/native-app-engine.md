@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-28T16:32:39.812337+00:00
+updated: 2026-10-28T18:04:30.435019+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -56,8 +56,9 @@ claiming that any earlier first-release or engine qualification gate has passed.
 
 ## Current code and the missing engine
 
-Inspection baseline: commit `1aa83726df3142bf63a4a9a48ad7be077b14c94f`.
-This is a read-only code assessment, not a new runtime test receipt.
+Historical inspection baseline: commit `1aa83726df3142bf63a4a9a48ad7be077b14c94f`.
+This table preserves the original gap assessment. The E1 checkpoint below updates
+the Home/editing rows; later behavior/workflow rows remain open.
 
 | Area | Existing implementation | Required addition |
 | --- | --- | --- |
@@ -68,6 +69,42 @@ This is a read-only code assessment, not a new runtime test receipt.
 | Durability | [Workbook.swift](../../../Sources/SevraCore/Workbook.swift) provides transactional mutations, operation tokens, expected workbook revisions and process-safe write locking. Intake and agent runs retain specific progress/receipts. | General run/step/trigger state, checkpointing, worker claims, recovery, pending approvals and effect reconciliation. Intake state and an agent's step limit are not a workflow scheduler. |
 | Automation | No general workflow/automation definitions, durable trigger queue, FSEvents adapter or SMAppService registration were found in `Sources` at this baseline. | Schedule, data-change and folder triggers; visible status; optional app-closed operation; resource/authority policy. The workflow performance executable is a benchmark, not this runtime. |
 | Calculation and search | [Calculations.swift](../../../Sources/SevraCore/Calculations.swift) supplies bounded Decimal expressions; search/index/provenance infrastructure already exists. | Typed reusable functions, broader dependency/invalidation support, discoverable application definitions and explicit partial/stale-data behavior. Existing formula support does not establish full Excel migration. |
+
+## Editable Home and space checkpoint, October 28
+
+The E1 foundation is implemented in the shared core, CLI, native preview and local
+agent tools. Home's six ordinary sections are versioned composition primitives:
+input, reviews, shortcuts, tables, intake and recent. Their rendered empty states
+can be omitted without changing the definition. The stable workspace header keeps
+Review drafts available when a custom Home removes its review section. An authored
+empty Home remains empty. Only the declared untouched Home/version 1 projects the
+default composition; this does not backfill or migrate earlier development data.
+
+Edits use stable component IDs and exact base versions, checked inside one captured
+transaction. Move/insert requires an explicit first/last/before position; unrelated
+fields refuse. The native sheet freezes the version opened with its draft; polling
+cannot upgrade that base while keeping old edited values. Conflict keeps the draft
+visible. Retained history is bounded when paged; restoring creates a new version.
+Retrying an exact token returns its original saved version even after later edits.
+Pinned layouts preserve saved values/bindings and mode; dynamic host lists cannot
+be labeled a frozen business snapshot. Removing layout never deletes business data.
+
+The core has 156 passing groups, including explicit-position/atomic-refusal,
+concurrency, snapshot, fault rollback, exact retry, portable history and inert
+reconstruction checks. The native synthetic journey exercised edit, a reproduced
+polling/base-version race, the repaired stale refusal, history restore and reopening
+the reconstructed workbook with the pending draft retained. CLI competing writers
+produce one success and one refusal. Two repaired real-model tasks now put Tables first/remove Recent, then put Tables
+last while preserving the other sections. Each completed with one successful edit.
+The initial model put Tables last and its next attempted repairs failed safely. The constrained grammar's optional field ordering was found
+to exclude placement after component selection; its repaired ordering shares the
+pinned reference contract. Do not turn the initial action receipt into task-success
+proof. See [[records/operations/implementation]] for exact evidence and limits.
+
+This does not close full EJ01-EJ03: low-stock reusable queries/forms/actions are E2,
+and actual VoiceOver, broader light/dark/narrow/media form interactions and run
+inspection still require qualification. E0's existing-family persistence is scoped
+in [[records/operations/persistence-coverage]]; future engine state must inherit it.
 
 ## Home and spaces
 
@@ -462,8 +499,9 @@ performance envelopes remain implementation/qualification decisions.
 
 ## Implementation sequence and acceptance registry
 
-All engine additions below are open as of this documentation update. Existing
-code in the baseline table is reusable foundation, not completion of these gates.
+E0 existing-family persistence and the E1 layout foundation now have scoped
+implementation evidence. E1 full journey/accessibility gates and E2-E6 remain
+open. The historical baseline table alone is not completion of these gates.
 Track implementation receipts and changes in [[records/operations/implementation]].
 Do not let this design silently displace a currently active fix; use these stages
 when scheduling the next coherent product slices.

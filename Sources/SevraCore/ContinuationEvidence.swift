@@ -16,7 +16,8 @@ extension Workbook {
     var seenCopyVersions = Set<String>()
     for call in calls.reversed() {
       guard call["state"]?.text == "completed",
-        ["read", "save_space", "pin_space"].contains(call["tool"]?.text ?? ""),
+        ["read", "save_space", "edit_space", "restore_space", "pin_space"].contains(
+          call["tool"]?.text ?? ""),
         let messageID = call["message_id"]?.string
       else { continue }
       let message = try historyMessage(messageID, conversation: conversation)
@@ -87,7 +88,9 @@ extension Workbook {
           .object([
             "spaceID": .string(id), "receiptID": receipt["receiptID"],
             "savedTitle": .string(
-              String(receipt["arguments"]["title"].text.unicodeScalars.prefix(128))),
+              String(
+                (result["title"].string ?? receipt["arguments"]["title"].text).unicodeScalars
+                  .prefix(128))),
             "currentTitle": current?["title"] ?? .null,
             "currentVersion": current?["version"] ?? .null,
             "present": .bool(current != nil),

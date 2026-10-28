@@ -19,7 +19,9 @@ is a user document, not this repository's db.md knowledge store.
 6. Use `add`/`movement` to create proposals. Do not set accepted status or call
    `accept` unless the user authorized that business interpretation. A forecast's
    meaning remains estimate when accepted. Reuse operation tokens on retries.
-7. `space` or `tool ... save_space` composes the native UI. Bind existing dataset or
+7. `space` or `tool ... save_space` creates a new native space. Read `spaces` before
+   changing Home or another existing space. Use exact base versions and semantic
+   edits below; preserve unrelated components and data. Bind existing dataset or
    item IDs; do not generate executable app code. `tool ... draft` saves a document.
 8. Verify significant changes and reopen exported archives before claiming success.
 
@@ -31,6 +33,27 @@ It refuses missing/corrupt history or required included bytes. Explicitly linked
 files remain unresolved without copied device paths or access bookmarks. Pending
 tool calls and runs remain inert; reconstruction never authorizes their execution.
 Keep the original and inspect the new workbook before replacing any working copy.
+
+`spaces PATH` returns current definitions, stable component IDs and versions.
+`space-edit PATH ID BASE_VERSION EDITS_JSON [TOKEN]` changes layout atomically.
+Edits are `rename` (title), `insert` (component), `remove` (componentID), `move`
+(componentID), `title` (componentID/title), `text` (componentID/text) or `replace`
+(componentID/component, preserving its ID). Each move/insertion requires either
+`at:"first"`, `at:"last"`, or `beforeID` in the same group. Do not supply unrelated
+fields. Insertion adds at the top level; existing nested components can be edited
+or moved within their group. Reuse exact tokens and arguments after uncertain
+results. A stale base requires a fresh read and reconsideration, never a guessed
+replacement. An empty authored Home stays empty; pending reviews remain in the
+stable native shell. Layout removal never deletes underlying workbook data.
+
+`space-history PATH ID [BEFORE_VERSION]` pages 20 saved layouts in descending
+order; the optional earlier version is exclusive. `space-restore PATH ID
+SAVED_VERSION BASE_VERSION [TOKEN]` restores a selected layout as a new version,
+retaining all history. Agent tools use `edit_space`, `space_history` and
+`restore_space` with the same rules; read-only requests cannot edit or restore.
+Native host sections are input, reviews, shortcuts, tables, intake and recent.
+Snapshots retain saved bindings/values and permit labels, text, ordering and
+removal. Dynamic host sections cannot be represented as frozen business snapshots.
 
 `import PATH FILE [--link] [--role reference|analysis|values|update] [--token TOKEN]`
 captures an original and returns `{source,intake}`. Without a role it indexes the

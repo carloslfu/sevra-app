@@ -32,6 +32,7 @@ def required_first(value):
     if 'properties' in result:
         props = result['properties']
         names = [k for k in result.get('required', []) if k in props]
+        names += [k for k in ['componentID'] if k in props and k not in names]
         names += sorted(k for k in props if k not in names)
         result['properties'] = {k: props[k] for k in names}
     return result
@@ -78,6 +79,8 @@ for tool in tools:
     elif name == 'draft': values.update(text='A new prose summary.')
     elif name == 'save_space':
         values.update(title='Overview', definition={'version':1,'components':[{'id':'table','type':'table','title':'Suppliers','datasetID':'table-1'}]})
+    elif name == 'edit_space':
+        values.update(id='home', expectedVersion=1, edits=[{'operation':'move','componentID':'tables','at':'first'}, {'operation':'remove','componentID':'recent'}])
     outputs.append((name, xml(name, values), values))
     if name == 'draft':
         composed = dict(values)
@@ -115,7 +118,7 @@ for choice_name, choice, thinking, examples in choices:
         assert constraint.matcher.is_accepting()
         cases.append(dict(name=choice_name+'_'+name, choice=choice_name, thinking=thinking,
                           output=output, arguments=arguments, tokens=tokens, steps=steps))
-result = dict(schemaVersion=1, nestedPropertyOrder='required-first', splashCommit='1744cfafee415fb463b289449cec59a864e768e9',
+result = dict(schemaVersion=1, nestedPropertyOrder='required-then-component-selector', splashCommit='1744cfafee415fb463b289449cec59a864e768e9',
               toolsSHA256=hashlib.sha256((ROOT/'IntegrationTests/Agent/workbook-tools.json').read_bytes()).hexdigest(),
               cases=cases)
 path = ROOT/'IntegrationTests/Agent/tool-grammar-fixtures.json'
