@@ -99,6 +99,7 @@ extension Workbook {
       request: .object(arguments), cancellation: cancellation, actor: actor
     ) {
       try confirmationControl?.check()
+      try self.workflowSession(session)
       let run = try self.workflowRun(session.runID)
       try require(
         try self.pendingWorkflowClarification(run) == target,

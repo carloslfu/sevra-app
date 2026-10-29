@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T09:16:26.463289+00:00
+updated: 2026-10-29T09:58:20.536454+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -691,3 +691,9 @@ Schema19 now stores exact workflow/calendar intentions in the existing immutable
 ## Durable calendar preparation qualification, October 29
 
 [[records/specs/automation-planning]] now implements schema20 authorization/occurrence/outbox storage, exact source-bound cursor/high-water state and revocable current-process planning capabilities. It passes343 full core groups at frozen V4,17 final focused groups,33 final installed CLI cases and final native package/refusal/signature checks; unchanged36 definition/31 calendar cases are reused. State is portable but authority is not reconstructed. Saved scheduling intent, process-local preparation permission and execution remain distinct. No workflow is dispatched. Persistent device grants, useful foreground execution/overlap, native configuration and E4/E5 event/condition/background/resource work remain required. This is not a new decision to make routine users repeatedly reauthorize work. Full app/release gates remain open.
+
+## Foreground execution qualification, October 29
+
+[[records/specs/automation-execution]] implements schema21's distinct explicit current-process execution/AI grant, atomic scheduled workflow dispatch, one active run, honest origin policy, source-specific claim revocation and explicit separately attributed manual control. Sources remain outside business evidence; bounded inspection and native scheduled wording distinguish execution provenance. Final359 full core/16 focused groups, synthetic lifecycle,2 actual SIGKILL boundaries/16 calls,44 execution/33 preparation/36 definition/31 calendar installed CLI cases, strict25 Swift files, skill validation and native package/resource/refusal/signature checks pass. No actual inference, visible UI or release claim.
+
+Native foreground timer/configuration, persistent device-local physical-copy/workbook registration, reopen/wake/privacy/resources and event/condition behavior remain required E4 work. The run-once CLI installs no timer and cannot substitute for that UX. E5/E6, full E3/EJ/richer graphs, contextual/Excel continuity, hardware/performance and production release gates remain open.

@@ -14,7 +14,8 @@ extension Workbook {
         return .object([
           "activations": .array(try page.map { try automationActivation($0["id"]!.text) }),
           "nextCursor": rows.count > limit ? page.last!["id"]! : .null,
-          "hasMore": .bool(rows.count > limit), "execution": .string("preparation-only"),
+          "hasMore": .bool(rows.count > limit), "execution": .string("none"),
+          "sessionRequired": .bool(true),
         ])
       }
     }
@@ -192,7 +193,8 @@ extension Workbook {
               row["slot"] = try Value.parse(row["slot"]!.text)
               return .object(row)
             }), "nextCursor": rows.count > limit ? page.last!["id"]! : .null,
-          "hasMore": .bool(rows.count > limit), "execution": .string("preparation-only"),
+          "hasMore": .bool(rows.count > limit), "execution": .string("none"),
+          "sessionRequired": .bool(true),
         ])
       }
     }

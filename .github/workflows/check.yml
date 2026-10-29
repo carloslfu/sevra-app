@@ -85,6 +85,18 @@ jobs:
         run: |
           swift build --product sevra-table-ui-checks -j 3
           .build/debug/sevra-table-ui-checks
+      - name: Check foreground automation dispatch across process death
+        run: |
+          swift build --product sevra-automation-durability -j 3
+          python3 scripts/check_automation_durability.py --output .build/automation-durability-ci
+      - name: Retain automation process-death evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automation-process-death
+          path: .build/automation-durability-ci/
+          include-hidden-files: true
+          if-no-files-found: ignore
       - name: Check manual workflow recovery across process death
         run: |
           swift build --product sevra-workflow-durability -j 3
@@ -159,6 +171,7 @@ jobs:
           python3 scripts/check_schedule_preview.py --cli output/bin/sevra --output .build/calendar-preview-installed
           python3 scripts/check_automation_definitions.py --cli output/bin/sevra --output .build/automation-definitions-installed
           python3 scripts/check_automation_planning.py --cli output/bin/sevra --output .build/automation-planning-installed
+          python3 scripts/check_automation_execution.py --cli output/bin/sevra --output .build/automation-execution-installed
           python3 scripts/check_install.py
           python3 scripts/check_document_cli.py
           python3 scripts/check_history.py
@@ -180,6 +193,7 @@ jobs:
           python3 scripts/check_schedule_preview.py --cli output/native/bin/sevra --output .build/calendar-preview-native
           python3 scripts/check_automation_definitions.py --cli output/native/bin/sevra --output .build/automation-definitions-native
           python3 scripts/check_automation_planning.py --cli output/native/bin/sevra --output .build/automation-planning-native
+          python3 scripts/check_automation_execution.py --cli output/native/bin/sevra --output .build/automation-execution-native
           python3 scripts/check_extraction_package.py
           python3 scripts/check_computation_views.py --cli output/native/bin/sevra
           python3 scripts/check_document_actions.py --cli output/native/bin/sevra

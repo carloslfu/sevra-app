@@ -19,6 +19,7 @@ extension Workbook {
       ]),
       cancellation: cancellation, actor: .programmatic("SevraCore.workflowWorker")
     ) {
+      try self.workflowSession(session)
       let run = try self.workflowRun(session.runID)
       if ["completed", "cancelled"].contains(run["state"].text) { return .null }
       try require(
@@ -66,10 +67,11 @@ extension Workbook {
       }
       let id = identifier()
       try self.db.execute(
-        "INSERT INTO workflow_attempts VALUES(?,?,?,?,?,?,'claimed',?,?)",
+        "INSERT INTO workflow_attempts VALUES(?,?,?,?,?,?,'claimed',?,?,?)",
         [
           .string(id), .string(runID), .string(stepID), .number(Double(generation)), .string(owner),
           .number(now + leaseSeconds), .string(timestamp()), .string(timestamp()),
+          .string(self.workflowClaimAuthorization(session, run: run)),
         ])
       try self.db.execute(
         "UPDATE workflow_steps SET state='claimed',updated=? WHERE run_id=? AND step_id=?",
@@ -119,6 +121,8 @@ extension Workbook {
         [claim["id"], .string(session.runID)]
       ).first,
       row["owner"] == claim["owner"], row["generation"] == claim["generation"],
+      row["authorization_source"] == claim["authorization_source"],
+      try workflowClaimAuthorityMatches(session, sourceID: row["authorization_source"]!.text),
       row["step_id"] == claim["step_id"], row["run_id"] == claim["run_id"],
       Double(row["deadline"]!.text).map({ $0 > Date().timeIntervalSince1970 }) == true
     else {
@@ -166,6 +170,7 @@ extension Workbook {
       "workflow_retry", token: token, request: .string(session.runID),
       cancellation: .init(), actor: .programmatic("SevraCore.workflowManualRetry")
     ) {
+      try self.workflowSession(session)
       let run = try self.workflowRun(session.runID)
       try require(
         run["state"] == .string("needs_attention"), "workflow_state",
@@ -188,19 +193,54 @@ extension Workbook {
       "workflow_cancel", token: token, request: .string(session.runID),
       cancellation: .init(), actor: .programmatic("SevraCore.workflowManualCancel")
     ) {
-      let run = try self.workflowRun(session.runID)
-      if ["completed", "cancelled"].contains(run["state"].text) { return run }
-      try self.db.execute(
-        "UPDATE workflow_attempts SET state='cancelled',updated=? WHERE run_id=? AND state='claimed'",
-        [.string(timestamp()), .string(session.runID)])
-      try self.db.execute(
-        "UPDATE workflow_steps SET state='cancelled',updated=? WHERE run_id=? AND state!='completed'",
-        [.string(timestamp()), .string(session.runID)])
-      try self.db.execute(
-        "UPDATE workflow_runs SET state='cancelled',detail='Completed drafts and accepted business effects are preserved.',updated=? WHERE id=?",
-        [.string(timestamp()), .string(session.runID)])
-      try self.workflowEvent(session.runID, stepID: nil, kind: "cancelled", payload: .null)
-      return try self.workflowRun(session.runID)
+      try self.workflowSession(session)
+      return try self.cancelWorkflowRun(session.runID)
     }
   }
+  public func cancelWorkflow(
+    _ runID: String, token: String, actor: ChangeActor = .programmatic("SevraCore.workflowStop"),
+    cancellation: Cancellation = .init()
+  ) throws -> Value {
+    try workflowToken(token)
+    return try mutation(
+      "workflow_stop", token: token, request: .string(runID), cancellation: cancellation,
+      actor: actor
+    ) {
+      try self.cancelWorkflowRun(runID)
+    }
+  }
+
+  private func cancelWorkflowRun(_ runID: String) throws -> Value {
+    let run = try self.workflowRun(runID)
+    if ["completed", "cancelled"].contains(run["state"].text) { return run }
+    try self.db.execute(
+      "UPDATE workflow_attempts SET state='cancelled',updated=? WHERE run_id=? AND state='claimed'",
+      [.string(timestamp()), .string(runID)])
+    try self.db.execute(
+      "UPDATE workflow_steps SET state='cancelled',updated=? WHERE run_id=? AND state!='completed'",
+      [.string(timestamp()), .string(runID)])
+    try self.db.execute(
+      "UPDATE workflow_runs SET state='cancelled',detail='Completed drafts and accepted business effects are preserved.',updated=? WHERE id=?",
+      [.string(timestamp()), .string(runID)])
+    try self.workflowEvent(runID, stepID: nil, kind: "cancelled", payload: .null)
+    return try self.workflowRun(runID)
+  }
+
+  func workflowClaimAuthorityMatches(_ session: WorkflowExecutionSession, sourceID: String) throws
+    -> Bool
+  {
+    if let automation = session.automation { return sourceID == automation.planning.sourceID }
+    if session.manualSourceID != nil {
+      let source = try item(sourceID)
+      return source.kind == "workflow_authorization" && source.category == "source"
+        && source.data["runID"] == .string(session.runID)
+        && source.data["policy"] == .string("manual-operation-v1")
+    }
+    return sourceID == (try workflowRun(session.runID))["source_id"].text
+  }
+
+  func workflowClaimAuthorization(_ session: WorkflowExecutionSession, run: Value) -> String {
+    session.automation?.planning.sourceID ?? session.manualSourceID ?? run["source_id"].text
+  }
+
 }

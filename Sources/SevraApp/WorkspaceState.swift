@@ -351,7 +351,8 @@ import SwiftUI
       defer { finishOperation(ticket, in: book) }
       do {
         let session = try await Task.detached {
-          let session = try book.authorizeWorkflowExecution(runID)
+          let session = try book.authorizeWorkflowExecution(
+            runID, actor: .human("Sevra.native-workflow-continue"))
           if retry { _ = try book.retryWorkflow(session, token: identifier()) }
           return session
         }.value

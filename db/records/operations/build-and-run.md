@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T09:16:26.518421+00:00
+updated: 2026-10-29T09:58:20.611299+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1669,3 +1669,13 @@ Use `automation-list WORKBOOK [AFTER_ID_OR_-] [LIMIT]` to discover at most50 sav
 `automation-pause WORKBOOK ACTIVATION_ID EXPECTED_GENERATION TOKEN` revokes prior planning permission and skips a pending request. It records the programmatic CLI caller and never guesses a human identity. Repeating an exact current token recovers its receipt; a superseded decision refuses. No Enable/Run CLI control is offered that would imply an operational scheduler. Authorize/prepare currently remain explicit shared-core APIs for the foreground integration that is still required.
 
 Focused checks: `.build/debug/sevra-checks --automation-planning` and `python3 scripts/check_automation_planning.py --cli output/native/bin/sevra --checks .build/debug/sevra-checks --output NEW_DIRECTORY`. Fixtures are synthetic and selected into a new directory. The schema20 slice has343 full core groups at V4,17 final focused groups and33 final installed CLI cases plus final native package proof. See [[records/specs/automation-planning]].
+
+## Explicit foreground automation execution
+
+Use `automation-preview` and inspect exact definitions/arguments first. `automation-run-once WORKBOOK EXACT_DEFINITION_ID EXPECTED_GENERATION START_AFTER OBSERVED_AT TOKEN [--allow-ai [MODEL_DIRECTORY]]` explicitly authorizes one bounded foreground operation. Generation is0 initially; later inspect automation-activation. Times need an explicit zone, observation at/after start, token1...240 UTF-8 bytes. The optional model path requires --allow-ai, and AI interpretations require that explicit allowance. Use actual observation times honestly; synthetic past observations do not prove a real-time scheduler.
+
+The operation prepares at most100 slots/3660 days, then dispatches/continues at most one eligible run, stopping for review/attention/completion. If catchUpRemaining=true it dispatches nothing: inspect progress before another explicit operation with refreshed generation/new token. Every new operation is a new authorization; a future native timer must retain its verified grant rather than using this command for routine polls. Recover with the original exact token/arguments. A superseded authorization refuses. One active waiting/failed run prevents overlap. No timer is installed and permission ends with the process. Business proposal acceptance remains separate.
+
+`workflow-inspect WORKBOOK RUN_ID` exposes original invocation policy/origin and each latest claim's authorization metadata. A business `read` intentionally refuses those technical Sources. Explicit manual Continue creates new manual-operation provenance for that run, preserving original scheduled policy and leaving future automation disabled/paused. Direct Stop creates no execution grant. Saved armed state alone is not proof of a running timer or permission. See [[records/specs/automation-execution]].
+
+Focused qualification: `swift build --product sevra-checks -j 4`, `.build/debug/sevra-checks --automation-execution`, `swift build --product sevra-automation-durability -j 4`, `python3 scripts/check_automation_durability.py --output NEW_DIRECTORY`; after a frozen native build run `python3 scripts/check_automation_execution.py --cli output/native/bin/sevra --checks .build/debug/sevra-checks --worker .build/debug/sevra-automation-durability --output ANOTHER_NEW_DIRECTORY`. The death script kills only its owned synthetic worker at dispatch publication barriers. Neither script uses user workbooks or real model inference. Final16 focused/all359 core,2 death boundaries/16 calls and44 installed execution calls pass. Native timer/device controls and whole release remain open.

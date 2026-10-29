@@ -1060,3 +1060,12 @@ Schema20 durable activation/occurrence/outbox family, revocable exact-generation
 ## [2026-10-29 09:16] verification | records/specs/automation-planning.md
 Frozen V4 full343/0; final focused17/0; final installed33 CLI and native build/resources/missing10/altered refusals/signature pass. Reuse unchanged36 definition/31 calendar CLI cases.135 earlier receipts byte-identical. Artifact62555 bytes SHA5f070252ec18a980acb93b7f872cf0e698b821da74a3f0e3dca9db22dba4d0d9. Actual execution/E4/release remain open.
 
+## [2026-10-29 09:27] design | records/specs/automation-execution.md
+Three passes cover execution versus planning authority, exact run/occurrence identity, manual controls, pause fencing, crash publication and inert reconstruction; full native scheduling remains required.
+
+## [2026-10-29 09:58] implementation | records/specs/automation-execution.md
+Schema21 explicit foreground execution/AI grant, atomic exact scheduled run binding and overlap reservation, source-specific pause/release, separately attributed manual operations/Stop and technical metadata isolation; native scheduled wording and repository skill updated. Timer/device registration remains open.
+
+## [2026-10-29 09:58] verification | records/specs/automation-execution.md
+Final359 full core/16 focused groups, synthetic lifecycle,2 actual dispatch SIGKILL boundaries/16 calls,44 execution/33 preparation/36 definition/31 calendar installed native CLI calls, strict25 Swift files, isolated skill validation and native resource/missing10/altered refusal/signature checks pass. Artifact162582 bytes SHA2cd644b06181c17fa43590ea792983c40d4fb6827bb82de60b4802e36cbab44b.136 prior artifacts unchanged. Native UI locked; full E4/release/goal unfinished.
+

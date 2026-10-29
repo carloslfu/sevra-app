@@ -1,13 +1,20 @@
 import Foundation
 
-/// Deliberate manual execution authority, held only in the invoking process.
+/// Deliberate manual or scoped automation authority, held only in this process.
 /// It is never serialized into a workbook or reconstructed from saved text.
 public final class WorkflowExecutionSession: @unchecked Sendable {
   let workbook: Workbook
   public let runID: String
-  init(_ workbook: Workbook, runID: String) {
+  let automation: AutomationExecutionSession?
+  let manualSourceID: String?
+  init(
+    _ workbook: Workbook, runID: String, automation: AutomationExecutionSession? = nil,
+    manualSourceID: String? = nil
+  ) {
     self.workbook = workbook
     self.runID = runID
+    self.automation = automation
+    self.manualSourceID = manualSourceID
   }
 }
 
@@ -44,7 +51,8 @@ extension Workbook {
   /// Trusted in-transaction body shared by direct starts and form submission.
   func insertWorkflowRun(
     _ definitionID: String, arguments: Value, actor: ChangeActor,
-    additionalInputs: [String] = [], origin: Value = .null
+    additionalInputs: [String] = [], origin: Value = .null,
+    policy: String = "manual-drafts-v1", runID: String = identifier()
   ) throws -> Value {
     let definition = try self.applicationDefinition(definitionID)
     try require(
@@ -54,7 +62,10 @@ extension Workbook {
     try self.validateWorkflowDefinition(descriptor)
     let workflow = try DefinitionWorkflow(descriptor)
     let supplied = try self.definitionArguments(descriptor, arguments)
-    let id = identifier()
+    try require(
+      ["manual-drafts-v1", "automation-drafts-v1"].contains(policy), "workflow_authority",
+      "Unknown workflow policy.")
+    let id = runID
     var inputs = Set([definition.sourceID] + additionalInputs)
     func captureItems(_ parameters: [DefinitionParameter], _ arguments: Value) {
       for parameter in parameters {
@@ -70,19 +81,22 @@ extension Workbook {
       category: "source", kind: "application_invocation",
       title: "Start " + definition.title,
       text: actor.label
-        + " started a manual workflow. Business changes remain drafts until reviewed.",
+        + (policy == "automation-drafts-v1"
+          ? " started an authorized scheduled workflow. Business changes remain drafts until reviewed."
+          : " started a manual workflow. Business changes remain drafts until reviewed."),
       data: .object([
         "workflowRunID": .string(id), "definitionID": .string(definition.id),
         "arguments": arguments, "normalizedArguments": .object(supplied),
-        "policy": .string("manual-drafts-v1"), "actor": try encoded(actor), "origin": origin,
+        "policy": .string(policy), "actor": try encoded(actor), "origin": origin,
       ]),
       meaning: "actual", status: "accepted", scenario: "actual",
       inputs: inputs.sorted(), transformation: "workflow-invocation-v1")
     try self.db.execute(
-      "INSERT INTO workflow_runs VALUES(?,?,?,?,?,'manual-drafts-v1','queued','',?,?)",
+      "INSERT INTO workflow_runs VALUES(?,?,?,?,?,?,'queued','',?,?)",
       [
         .string(id), .string(definition.id), .string(source), .string(try encoded(actor).json()),
-        .string(try Value.object(supplied).json()), .string(timestamp()), .string(timestamp()),
+        .string(try Value.object(supplied).json()), .string(policy), .string(timestamp()),
+        .string(timestamp()),
       ])
     for (index, step) in workflow.steps.enumerated() {
       try self.db.execute(
@@ -99,12 +113,45 @@ extension Workbook {
 
   /// Calling this is a new explicit manual resume decision. No open/import path
   /// calls it, and a session cannot be reused for another connection or copy.
-  public func authorizeWorkflowExecution(_ runID: String) throws -> WorkflowExecutionSession {
+  public func authorizeWorkflowExecution(
+    _ runID: String, token: String = identifier(),
+    actor: ChangeActor = .programmatic("SevraCore.manualWorkflowOperation")
+  ) throws -> WorkflowExecutionSession {
     let run = try workflowRun(runID)
+    if run["policy"] == .string("manual-drafts-v1") {
+      return WorkflowExecutionSession(self, runID: runID)
+    }
     try require(
-      run["policy"] == .string("manual-drafts-v1"), "workflow_authority",
+      run["policy"] == .string("automation-drafts-v1"), "workflow_authority",
       "Unsupported workflow authority.")
-    return WorkflowExecutionSession(self, runID: runID)
+    try workflowToken(token)
+    let result = try mutation(
+      "workflow_manual_authorize", token: token,
+      request: .string(runID), cancellation: .init(), actor: actor
+    ) {
+      let run = try self.workflowRun(runID)
+      let source = try self.insertItem(
+        category: "source", kind: "workflow_authorization", title: "Manual scheduled-run operation",
+        text: actor.label
+          + " explicitly requested a manual operation on this scheduled run. Future schedules are not enabled.",
+        data: .object([
+          "runID": .string(runID), "policy": .string("manual-operation-v1"),
+          "actor": try encoded(actor),
+        ]),
+        meaning: "actual", status: "accepted", scenario: "actual", inputs: [run["source_id"].text],
+        transformation: "workflow-manual-authorization-v1")
+      try self.workflowEvent(
+        runID, stepID: nil, kind: "manual_authorized",
+        payload: .object(["sourceID": .string(source)]))
+      return .string(source)
+    }
+    return WorkflowExecutionSession(self, runID: runID, manualSourceID: result.text)
+  }
+
+  public func validateWorkflowExecution(_ session: WorkflowExecutionSession, forAI: Bool = false)
+    throws
+  {
+    try synchronized { try db.readTransaction { try workflowSession(session, needsAI: forAI) } }
   }
 
   public func workflowRun(_ runID: String) throws -> Value {
@@ -167,11 +214,39 @@ extension Workbook {
     }
   }
 
-  func workflowSession(_ session: WorkflowExecutionSession) throws {
-    try require(
-      session.workbook === self, "workflow_authority",
-      "Explicitly authorize this open workbook before resuming.")
+  func workflowSession(_ session: WorkflowExecutionSession, needsAI: Bool = false) throws {
+    try synchronized {
+      try db.readTransaction {
+        try require(
+          session.workbook === self, "workflow_authority",
+          "Explicitly authorize this open workbook before resuming.")
+        let policy = try db.scalar(
+          "SELECT policy FROM workflow_runs WHERE id=?", [.string(session.runID)]
+        ).text
+        if let automation = session.automation {
+          try require(
+            policy == "automation-drafts-v1", "workflow_authority",
+            "The run has no scheduled execution scope.")
+          try validateAutomationWorkflow(automation, runID: session.runID)
+          try require(
+            !needsAI || automation.allowAI, "automation_ai_scope",
+            "This automation does not permit local AI.")
+        } else if let sourceID = session.manualSourceID {
+          let source = try item(sourceID)
+          try require(
+            source.kind == "workflow_authorization" && source.category == "source"
+              && source.data["runID"] == .string(session.runID)
+              && source.data["policy"] == .string("manual-operation-v1"),
+            "workflow_authority", "The manual operation lost its exact authorization Source.")
+        } else {
+          try require(
+            policy == "manual-drafts-v1", "workflow_authority",
+            "A saved scheduled run grants no execution authority.")
+        }
+      }
+    }
   }
+
   func workflowToken(_ token: String) throws {
     try require(
       !token.isEmpty && token.utf8.count <= 256, "workflow_token",

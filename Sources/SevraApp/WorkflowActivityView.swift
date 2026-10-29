@@ -47,7 +47,10 @@ struct WorkflowActivityView: View {
             } label: {
               VStack(alignment: .leading, spacing: 5) {
                 Text(run["title"].text).font(.headline)
-                Text(workflowStateTitle(run["state"].text)).font(.callout)
+                Text(
+                  (run["policy"] == .string("automation-drafts-v1") ? "Scheduled · " : "Manual · ")
+                    + workflowStateTitle(run["state"].text)
+                ).font(.callout)
                 Text("Updated " + DisplayText.date(run["updated"].text))
                   .font(.caption).foregroundStyle(.secondary)
                 if !run["detail"].text.isEmpty {
@@ -108,7 +111,9 @@ struct WorkflowRunView: View {
           )
           .font(.callout).foregroundStyle(.secondary)
           Text(
-            "Manual workflow. Each continuation stops for required review. Completed work is kept."
+            run["policy"] == .string("automation-drafts-v1")
+              ? "Scheduled draft workflow. Continue is a separate manual request for this run; it does not enable future schedules. Business changes require review."
+              : "Manual workflow. Each continuation stops for required review. Completed work is kept."
           )
           .foregroundStyle(.secondary)
           if !run["detail"].text.isEmpty,
@@ -304,7 +309,8 @@ struct WorkflowRunView: View {
         let id = runID
         workspace.run("Stopping workflow") { book, cancellation in
           try cancellation.check()
-          _ = try book.cancelWorkflow(book.authorizeWorkflowExecution(id), token: identifier())
+          _ = try book.cancelWorkflow(
+            id, token: identifier(), actor: .human("Sevra.native-workflow-stop"))
         }
       }
     } message: {

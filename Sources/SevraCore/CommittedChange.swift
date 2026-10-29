@@ -86,7 +86,7 @@ enum ChangeFormat {
     "file_reference_inputs", "file_reference_sets", "file_reference_heads", "file_reference_index",
     "intake_jobs", "app_definitions", "app_definition_heads", "app_definition_dependencies",
     "workflow_runs", "workflow_steps", "workflow_attempts", "workflow_approvals", "workflow_outbox",
-    "automation_activations", "automation_occurrences", "automation_outbox",
+    "automation_activations", "automation_occurrences", "automation_outbox", "automation_runs",
   ]
   static func isIndex(_ table: String) -> Bool {
     ["search_fts", "names_fts", "message_fts", "definition_fts"].contains {

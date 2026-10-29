@@ -93,6 +93,9 @@ import SevraProduct
     }
     if command == "demo" { return try Demo.create(at: url(1)) }
     let book = try Workbook(url(1))
+    if command == "automation-run-once" {
+      return try await runAutomationOnce(args, book: book, cancellation: cancellation)
+    }
     if command == "automation-preview" {
       return try runAutomationPreview(args, book: book, cancellation: cancellation)
     }
@@ -692,6 +695,7 @@ import SevraProduct
     automation-occurrences WORKBOOK ACTIVATION_ID [AFTER_ID_OR_-] [LIMIT]
     automation-events WORKBOOK [AFTER_SEQUENCE] [LIMIT]
     automation-pause WORKBOOK ACTIVATION_ID EXPECTED_GENERATION TOKEN
+    automation-run-once WORKBOOK EXACT_DEFINITION_ID EXPECTED_GENERATION START_AFTER OBSERVED_AT TOKEN [--allow-ai [MODEL_DIRECTORY]]
     spaces WORKBOOK | space WORKBOOK TITLE DEFINITION_JSON | pin-space WORKBOOK SPACE_ID [TITLE]
     space-edit WORKBOOK SPACE_ID BASE_VERSION EDITS_JSON [TOKEN]
     space-history WORKBOOK SPACE_ID [BEFORE_VERSION]

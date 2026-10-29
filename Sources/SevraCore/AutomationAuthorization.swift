@@ -45,6 +45,15 @@ extension Workbook {
     _ exactID: String, expectedGeneration: Int, after: Date, token: String,
     actor: ChangeActor? = nil, cancellation: Cancellation = .init()
   ) throws -> AutomationPlanningSession {
+    try authorizeAutomation(
+      exactID, expectedGeneration: expectedGeneration, after: after, policy: "calendar-prepare-v1",
+      allowAI: false, token: token, actor: actor, cancellation: cancellation)
+  }
+
+  func authorizeAutomation(
+    _ exactID: String, expectedGeneration: Int, after: Date, policy: String, allowAI: Bool,
+    token: String, actor: ChangeActor?, cancellation: Cancellation
+  ) throws -> AutomationPlanningSession {
     try workflowToken(token)
     let instant = try AutomationTime.text(after)
     let actor = actor ?? .programmatic("SevraCore.automation-authorization")
@@ -52,14 +61,21 @@ extension Workbook {
       "automation_authorize", token: token,
       request: .object([
         "definitionID": .string(exactID), "expectedGeneration": .number(Double(expectedGeneration)),
-        "after": .string(instant),
+        "after": .string(instant), "policy": .string(policy), "allowAI": .bool(allowAI),
       ]), cancellation: cancellation, actor: actor
     ) {
       let saved = try self.applicationDefinition(exactID)
       try require(
         saved.id == exactID && saved.kind == "automation", "automation_binding",
         "Authorize an exact saved automation version.")
-      _ = try self.validateAutomationDefinition(DefinitionDescriptor(saved.content))
+      let retained = try self.validateAutomationDefinition(DefinitionDescriptor(saved.content))
+      if policy == "foreground-drafts-v1" {
+        let workflow = try DefinitionWorkflow(DefinitionDescriptor(retained.workflow.content))
+        try require(
+          allowAI || !workflow.steps.contains { $0.kind == "interpret" },
+          "automation_ai_scope", "Explicit local-AI permission is required for this exact workflow."
+        )
+      }
       let previous =
         try self.db.execute(
           "SELECT * FROM automation_activations WHERE logical_id=?", [.string(saved.logicalID)]
@@ -70,22 +86,38 @@ extension Workbook {
         "Refresh the exact automation generation before authorizing.")
       let id = previous["id"].string ?? identifier()
       let cursor = max(previous["cursor"].string ?? instant, instant)
+      let active: Value
+      if let runID = previous["active_run_id"].string {
+        let run = try self.workflowRun(runID)
+        active = ["completed", "cancelled"].contains(run["state"].text) ? .null : run
+      } else {
+        active = .null
+      }
+      try require(
+        active == .null || previous["definition_id"] == .string(exactID),
+        "automation_busy",
+        "Finish or explicitly stop the active run before changing this automation version.")
+      let released = try self.revokeAutomationClaim(active, sourceID: previous["source_id"].text)
       let pending = try self.pendingAutomationOccurrence(id)
       let decisions =
         pending == .null ? [] : [self.automationDecision(pending, "authorization_changed")]
       let inputs = [
         saved.sourceID, previous["source_id"].string, previous["coverage_source"].string,
-        pending["source_id"].string,
+        pending["source_id"].string, active["source_id"].string,
       ]
       .compactMap { $0 }
       let source = try self.insertItem(
-        category: "source", kind: "automation_authorization", title: "Prepare " + saved.title,
+        category: "source", kind: "automation_authorization",
+        title: (policy == "foreground-drafts-v1" ? "Authorize " : "Prepare ") + saved.title,
         text: actor.label
-          + " authorized foreground calendar preparation only. Workflow execution is not enabled.",
+          + (policy == "foreground-drafts-v1"
+            ? " authorized exact foreground draft workflows. Business changes require separate review."
+            : " authorized foreground calendar preparation only. Workflow execution is not enabled."),
         data: .object([
           "activationID": .string(id), "logicalID": .string(saved.logicalID),
           "definitionID": .string(exactID), "generation": .number(Double(generation + 1)),
-          "state": .string("armed"), "policy": .string("calendar-prepare-v1"),
+          "state": .string("armed"), "policy": .string(policy), "allowAI": .bool(allowAI),
+          "resumedRunID": active["id"], "releasedAttempts": .array(released),
           "actor": try encoded(actor), "startAfter": .string(instant), "cursor": .string(cursor),
           "previousSourceID": previous["source_id"],
           "previousCoverageSourceID": previous["coverage_source"], "through": .string(cursor),
@@ -94,25 +126,29 @@ extension Workbook {
         inputs: Array(Set(inputs)).sorted(), transformation: "automation-authorization-v1")
       if previous == .null {
         try self.db.execute(
-          "INSERT INTO automation_activations VALUES(?,?,?,?,?,?,'armed','calendar-prepare-v1',?,?,0,?,?,?)",
+          "INSERT INTO automation_activations(id,logical_id,definition_id,source_id,actor,generation,state,policy,cursor,observed_through,catch_up_remaining,coverage_source,created,updated) VALUES(?,?,?,?,?,?,'armed',?,?,?,0,?,?,?)",
           [
             .string(id), .string(saved.logicalID), .string(exactID), .string(source),
-            .string(try encoded(actor).json()), .number(Double(generation + 1)), .string(cursor),
+            .string(try encoded(actor).json()), .number(Double(generation + 1)), .string(policy),
+            .string(cursor),
             .string(cursor), .string(source),
             .string(timestamp()), .string(timestamp()),
           ])
       } else {
         try self.db.execute(
-          "UPDATE automation_activations SET definition_id=?,source_id=?,actor=?,generation=?,state='armed',cursor=?,observed_through=?,catch_up_remaining=0,coverage_source=?,updated=? WHERE id=?",
+          "UPDATE automation_activations SET definition_id=?,source_id=?,actor=?,generation=?,state='armed',policy=?,cursor=?,observed_through=?,catch_up_remaining=0,coverage_source=?,updated=? WHERE id=?",
           [
             .string(exactID), .string(source), .string(try encoded(actor).json()),
-            .number(Double(generation + 1)), .string(cursor), .string(cursor), .string(source),
+            .number(Double(generation + 1)), .string(policy), .string(cursor), .string(cursor),
+            .string(source),
             .string(timestamp()),
             .string(id),
           ])
       }
       try self.applyAutomationDecisions(decisions, source: source)
-      try self.automationEvent(id, generation: generation + 1, kind: "authorized", source: source)
+      try self.automationEvent(
+        id, generation: generation + 1, kind: "authorized", source: source,
+        scope: policy == "foreground-drafts-v1" ? "foreground-drafts" : "preparation-only")
       return try self.automationActivation(id)
     }
     // An old operation receipt is history, not permission to revive a paused or
@@ -144,16 +180,22 @@ extension Workbook {
       try require(
         previous["generation"].int == expectedGeneration && expectedGeneration < 1_000_000_000,
         "stale_automation", "Refresh the exact automation generation before pausing.")
+      let active = try previous["active_run_id"].string.map { try self.workflowRun($0) } ?? .null
+      let released = try self.revokeAutomationClaim(active, sourceID: previous["source_id"].text)
       let pending = try self.pendingAutomationOccurrence(activationID)
       let decisions = pending == .null ? [] : [self.automationDecision(pending, "paused")]
       let source = try self.insertItem(
-        category: "source", kind: "automation_authorization", title: "Pause calendar preparation",
-        text: actor.label + " paused preparation and revoked prior planning sessions.",
+        category: "source", kind: "automation_authorization", title: "Pause automation",
+        text: actor.label
+          + " paused this automation and revoked its prior sessions. Independent manual work is preserved.",
         data: .object([
           "activationID": .string(activationID), "logicalID": previous["logical_id"],
           "definitionID": previous["definition_id"],
           "generation": .number(Double(expectedGeneration + 1)),
-          "state": .string("paused"), "policy": previous["policy"], "actor": try encoded(actor),
+          "state": .string("paused"), "releasedAttempts": .array(released),
+          "policy": previous["policy"],
+          "allowAI": try self.item(previous["source_id"].text).data["allowAI"],
+          "actor": try encoded(actor),
           "cursor": previous["cursor"], "through": previous["observed_through"],
           "previousCoverageSourceID": previous["coverage_source"],
           "previousSourceID": previous["source_id"],
@@ -174,7 +216,9 @@ extension Workbook {
         ])
       try self.applyAutomationDecisions(decisions, source: source)
       try self.automationEvent(
-        activationID, generation: expectedGeneration + 1, kind: "paused", source: source)
+        activationID, generation: expectedGeneration + 1, kind: "paused", source: source,
+        scope: previous["policy"] == .string("foreground-drafts-v1")
+          ? "foreground-drafts" : "preparation-only")
       return try self.automationActivation(activationID)
     }
     let current = try automationActivation(activationID)
@@ -194,7 +238,9 @@ extension Workbook {
         ).first
       else { throw SevraError("automation_not_found", "The activation was not found.") }
       row["actor"] = try Value.parse(row["actor"]!.text)
-      row["execution"] = .string("preparation-only")
+      row["execution"] = .string(
+        row["policy"] == .string("foreground-drafts-v1") ? "session-required" : "preparation-only")
+      row["allowAI"] = try item(row["source_id"]!.text).data["allowAI"]
       row["sessionRequired"] = .bool(true)
       return .object(row)
     }
@@ -210,6 +256,29 @@ extension Workbook {
         && current["state"] == .string("armed"), "automation_authority",
       "This planning session was revoked.")
     return current
+  }
+
+  /// Only claims under the superseded automation grant are released. A separately
+  /// requested manual operation has a different Source and keeps its own lease.
+  func revokeAutomationClaim(_ run: Value, sourceID: String) throws -> [Value] {
+    guard let runID = run["id"].string else { return [] }
+    let claims = try db.execute(
+      "SELECT id,step_id FROM workflow_attempts WHERE run_id=? AND state='claimed' AND authorization_source=?",
+      [.string(runID), .string(sourceID)])
+    for claim in claims {
+      try db.execute(
+        "UPDATE workflow_attempts SET state='expired',updated=? WHERE id=?",
+        [.string(timestamp()), claim["id"]!])
+      try db.execute(
+        "UPDATE workflow_steps SET state='pending',updated=? WHERE run_id=? AND step_id=? AND state='claimed'",
+        [.string(timestamp()), .string(runID), claim["step_id"]!])
+    }
+    if !claims.isEmpty {
+      try db.execute(
+        "UPDATE workflow_runs SET state='queued',detail='Automation permission changed; completed work is preserved.',updated=? WHERE id=? AND state='running'",
+        [.string(timestamp()), .string(runID)])
+    }
+    return claims.map { $0["id"]! }
   }
 
   func pendingAutomationOccurrence(_ id: String) throws -> Value {
@@ -235,13 +304,15 @@ extension Workbook {
         ])
     }
   }
-  func automationEvent(_ id: String, generation: Int, kind: String, source: String) throws {
+  func automationEvent(
+    _ id: String, generation: Int, kind: String, source: String, scope: String = "preparation-only"
+  ) throws {
     try db.execute(
       "INSERT INTO automation_outbox(event_id,activation_id,generation,kind,source_id,payload,created) VALUES(?,?,?,?,?,?,?)",
       [
         .string(identifier()), .string(id), .number(Double(generation)), .string(kind),
         .string(source),
-        .string(try Value.object(["scope": .string("preparation-only")]).json()),
+        .string(try Value.object(["scope": .string(scope)]).json()),
         .string(timestamp()),
       ])
   }

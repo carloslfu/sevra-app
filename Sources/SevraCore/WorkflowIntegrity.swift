@@ -149,6 +149,7 @@ extension Workbook {
           claimed <= 1 && (claimed == 1) == (run["state"] == .string("running"))
             && ((run["state"] == .string("completed")) == !unfinished),
           "workflow_integrity", "The run status disagrees with its saved steps.")
+        try verifyWorkflowAttemptAuthorities(run)
         after = run["id"].text
       }
     }

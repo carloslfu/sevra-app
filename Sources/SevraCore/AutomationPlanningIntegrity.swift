@@ -24,6 +24,9 @@ extension Workbook {
             && source.data["state"] == activation["state"]
             && source.data["policy"] == activation["policy"]
             && source.data["actor"] == actor
+            && [Value.bool(true), .bool(false)].contains(source.data["allowAI"])
+            && (activation["policy"] != .string("calendar-prepare-v1")
+              || source.data["allowAI"] == .bool(false))
             && source.data["cursor"].text <= activation["cursor"].text,
           "automation_integrity", "The activation disagrees with its exact authorization Source.")
         try JSONDecoder().decode(ChangeActor.self, from: Data(actor.json().utf8)).validate()
@@ -63,6 +66,7 @@ extension Workbook {
         try require(
           invalidPending.int == 0, "automation_integrity",
           "A revoked activation retains pending work.")
+        try verifyAutomationOverlap(activation)
         after = activation["id"].text
       }
     }
@@ -92,16 +96,22 @@ extension Workbook {
             && slot["slotKey"] == occurrence["slot_key"] && slot["due"] == occurrence["due"]
             && source.data["cursor"].text >= occurrence["due"].text
             && decision.category == "source"
-            && ["automation_planning", "automation_authorization"].contains(decision.kind)
+            && ["automation_planning", "automation_authorization", "automation_dispatch"].contains(
+              decision.kind)
             && decision.data["activationID"] == occurrence["activation_id"]
             && retained.count == 1 && retained[0]["state"] == occurrence["state"]
             && retained[0]["detail"] == occurrence["detail"]
             && (occurrence["state"] == .string("pending")
               ? occurrence["detail"] == .string("awaiting_dispatch")
-              : ["late", "coalesced", "paused", "authorization_changed"].contains(
-                occurrence["detail"].text)),
+              : occurrence["state"] == .string("dispatched")
+                ? occurrence["detail"] == .string("workflow_queued")
+                : ["late", "coalesced", "paused", "authorization_changed"].contains(
+                  occurrence["detail"].text)),
           "automation_integrity",
           "An occurrence lost its original slot or latest decision evidence.")
+        if decision.kind == "automation_dispatch" {
+          try verifyAutomationDispatchDecision(occurrence, source: decision)
+        }
         let due = try AutomationTime.date(occurrence["due"].text)
         let rule = try DefinitionAutomation(DefinitionDescriptor(saved.content)).schedule
         let planned = try rule.preview(
@@ -121,6 +131,7 @@ extension Workbook {
         after = occurrence["id"].text
       }
     }
+    try verifyAutomationRuns()
     var sequence = 0
     while true {
       let rows = try db.execute(
@@ -130,23 +141,30 @@ extension Workbook {
       for row in rows {
         let source = try item(row["source_id"]!.text)
         let planned = row["kind"] == .string("planned")
+        let dispatched = ["dispatched", "dispatch_skipped"].contains(row["kind"]!.text)
+        let scope =
+          planned || source.data["policy"] != .string("foreground-drafts-v1")
+          ? "preparation-only" : "foreground-drafts"
         try require(
           source.category == "source"
-            && source.kind == (planned ? "automation_planning" : "automation_authorization")
+            && source.kind
+              == (planned
+                ? "automation_planning"
+                : dispatched ? "automation_dispatch" : "automation_authorization")
             && source.data["activationID"] == row["activation_id"]
             && source.data["generation"] == row["generation"]
-            && (planned
+            && (planned || dispatched
               || source.data["state"]
                 == .string(row["kind"] == .string("authorized") ? "armed" : "paused"))
             && (try Value.parse(row["payload"]!.text))
-              == .object(["scope": .string("preparation-only")]),
+              == .object(["scope": .string(scope)]),
           "automation_integrity", "The automation outbox disagrees with its saved Source.")
         sequence = row["sequence"]!.int!
       }
     }
   }
 
-  private func automationLineage(_ child: String, _ parent: String) throws {
+  func automationLineage(_ child: String, _ parent: String) throws {
     try require(
       try db.scalar(
         "SELECT EXISTS(SELECT 1 FROM lineage WHERE child=? AND parent=?)",

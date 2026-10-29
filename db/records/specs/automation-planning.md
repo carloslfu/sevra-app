@@ -2,14 +2,14 @@
 type: spec
 id: 01m63dsdvsbbd8bjwhc3gmw353
 created: 2026-10-29T08:52:54.265681+00:00
-updated: 2026-10-29T09:16:26.397271+00:00
+updated: 2026-10-29T09:58:20.686282+00:00
 summary: 'Reviewed schema20 activation and bounded calendar occurrence preparation: explicit process-local permission, revocation, skipped reasons and inert reconstruction; dispatch remains open.'
 title: Durable automation occurrence preparation
 status: implemented
 ---
 # Durable calendar activation and occurrence preparation
 
-This implements the next portion of [[records/specs/native-app-engine]] E4 over [[records/specs/automation-definitions]] and [[records/specs/automation-schedules]]. The full foreground scheduler, workflow dispatch, durable device registration, native controls and E5 remain required. Process-local planning permission is an incremental foundation, not a replacement for the adopted useful scheduler or a final UX that asks users to repeatedly authorize routine work. This slice must not be presented as an operational scheduler.
+This implements the next portion of [[records/specs/native-app-engine]] E4 over [[records/specs/automation-definitions]] and [[records/specs/automation-schedules]]. The full foreground scheduler, durable device registration, native controls and E5 remain required. Scoped explicit workflow dispatch is now qualified in [[records/specs/automation-execution]]. Process-local planning permission is an incremental foundation, not a replacement for the adopted useful scheduler or a final UX that asks users to repeatedly authorize routine work. This slice must not be presented as an operational scheduler.
 
 ## Contract
 
@@ -19,7 +19,7 @@ This implements the next portion of [[records/specs/native-app-engine]] E4 over 
 - Preparation previews outside a write transaction, then commits only if generation, authorization Source and cursor still match. Each call examines at most100 slots and3660 civil days. It advances only over proven coverage, never beyond an unexamined slot or exclusive day boundary. Clock rollback cannot clear an unfinished catch-up target. Cursor/target values must equal their retained coverage Source; plausible but unsourced changes fail integrity. Response explicitly reports whether bounded catch-up remains. Cancellation, stale bases, injected publication faults and concurrent processes leave the earlier state intact.
 - Calendar draft requests coalesce to one latest pending slot. Older slots remain durable skipped rows with a reason. Slots older than24 hours at observation are skipped as late. This policy only prepares draft workflow requests, never accepts business effects. Future business-event triggers must preserve distinct business occurrences and cannot reuse this coalescing policy.
 - Occurrence identity is unique per activation/exact definition/local date across generations, independently of business occurrence/effect identity. Each row retains its original planning Source and latest decision Source. Clock rollback, repeated polling, two connections and retries cannot create duplicate slots. All times are normalized UTC milliseconds; explicit schedule zones and DST semantics remain those of native-calendar-v1.
-- Authorizations, pause, occurrence decisions, coverage cursor and an indexed transactional automation outbox share the existing captured-change ledger. There is no second history ledger. Schema20 is canonical; pre-1.0 unsupported documents refuse without reset. Inert reconstruction preserves intent, queue and attribution while creating no sessions, timers, workflow runs or effects.
+- Authorizations, pause, occurrence decisions, coverage cursor and an indexed transactional automation outbox share the existing captured-change ledger. There is no second history ledger. This checkpoint introduced schema20; schema21 now extends it for explicit execution; pre-1.0 unsupported documents refuse without reset. Inert reconstruction preserves intent, queue and attribution while creating no sessions, timers, workflow runs or effects.
 - Inspection and outbox/occurrence pagination are bounded and read only. Model tools cannot authorize or plan. No inference, hidden background execution, runtime registrations or new prompt descriptors in this slice.
 
 ## Three review passes

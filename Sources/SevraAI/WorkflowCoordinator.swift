@@ -1,8 +1,8 @@
 import Foundation
 import SevraCore
 
-/// An explicit foreground continuation. No scheduler, persisted activation or
-/// reconstruction path calls this coordinator.
+/// A bounded foreground continuation under a live manual or automation grant.
+/// Reading saved activation or reconstructing a workbook never calls it.
 package enum WorkflowCoordinator {
   package static func run(
     workbook: Workbook, session: WorkflowExecutionSession, owner: String,
@@ -10,9 +10,11 @@ package enum WorkflowCoordinator {
     progress: @escaping @Sendable (String) -> Void,
     model: () async throws -> any WorkbookInference
   ) async throws -> Value {
+    try workbook.validateWorkflowExecution(session)
     var run = try workbook.workflowRun(session.runID)
     for _ in 0..<16 {
       try cancellation.check()
+      try workbook.validateWorkflowExecution(session)
       if ["completed", "cancelled", "needs_attention"].contains(run["state"].text) { return run }
       guard let next = run["steps"].array.first(where: { $0["state"] != .string("completed") })
       else {
@@ -51,7 +53,9 @@ package enum WorkflowCoordinator {
           }.value
         }
       } else if next["kind"] == .string("interpret") {
+        try workbook.validateWorkflowExecution(session, forAI: true)
         let inference = try await model()
+        try workbook.validateWorkflowExecution(session, forAI: true)
         try await inference.beginRun()
         do {
           run = try await interpret(

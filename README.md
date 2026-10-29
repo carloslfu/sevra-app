@@ -22,17 +22,19 @@ evidence. Bounded typed stored-column queries and disposable performance indexes
 now have core/CLI qualification. Versioned reusable functions/query templates and
 searchable definition history are available through the core/CLI. Registered draft
 inventory actions and recoverable native receiving forms now have scoped automated
-proof. In-app model authoring/invocation, full Excel continuity, workflows and release
-checks remain open.
+proof. Conversation can author saved behavior and queue durable workflows;
+explicit continuation stops for required review. Foreground scheduled draft
+execution has scoped recovery proof. Native scheduling controls, full Excel
+continuity, richer workflows and release checks remain open.
 
 Start with [the project knowledge map](db/records/overview/start-here.md),
 [the specification](db/records/specs/product.md) and
 [the implementation plan](db/records/operations/implementation.md).
 
-The app uses SwiftUI, AppKit and SQLite. The current build uses Slotstream;
-the adopted [inference design](db/records/specs/splash-integration.md) integrates
-Splash's C++/Metal engine through Swift, with no Python runtime. That migration
-is being qualified. Sevra Workbook is the primary product; Sevra Websites is
+The app uses SwiftUI, AppKit and SQLite. The native preview integrates pinned
+Splash C++/Metal through Swift, with no Python runtime. Production adoption is
+still being qualified under the [inference design](db/records/specs/splash-integration.md).
+The preserved Slotstream build remains available separately. Sevra Workbook is the primary product; Sevra Websites is
 the separate managed service. A workbook
 contains a database and ordinary asset files. The repository's `db/` is its
 independent [db.md](https://github.com/carloslfu/db.md) knowledge store, not the
@@ -46,10 +48,15 @@ installation, model setup, the synthetic example and uninstall.
 ~~~sh
 git clone https://github.com/carloslfu/sevra-app.git
 cd sevra-app
-./scripts/build.sh
-./scripts/install.sh --no-build
+bash scripts/build_native.sh
+./output/native/bin/sevra version
+open "output/native/Sevra Native Preview.app"
 ~~~
 
-Source builds require Apple Silicon, a recent Swift toolchain and initial
-network access for dependencies. Model weights are a separate optional setup.
+The native source build requires Apple Silicon, Swift 6.3, Git,
+Python 3, Rust 1.96.0 and initial network access for dependencies.
+See Build and run for the exact prerequisites, model layout and preserved
+baseline installation instructions. Model weights are a separate optional setup.
+The current native AI engine requires Apple M3 or newer and macOS 26.4 or newer;
+supported memory profiles still need qualification.
 There is no hosted-model fallback or in-app telemetry.

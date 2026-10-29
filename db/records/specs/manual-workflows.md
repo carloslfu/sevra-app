@@ -2,7 +2,7 @@
 type: spec
 id: 01m62fhep3b8sz1bjdqwf4p8nf
 created: 2026-10-29T00:04:15.683210+00:00
-updated: 2026-10-29T08:06:44.191277+00:00
+updated: 2026-10-29T09:58:20.591689+00:00
 summary: Manual durable workflow contract and scoped implementation sequence; full E3 remains open.
 title: Manual durable workflows
 status: reviewed
@@ -410,3 +410,9 @@ Evidence: [conversation confirmation receipt](../../../integration/evidence/2026
 A focused cross-run receiving journey now proves the explicit EJ06/E20 occurrence boundary: stock20 becomes26 after review, stays26 when a new Source/run repeats the same fulfillment, and becomes32 only after a separate Source and genuine independent occurrence is reviewed. Cancelling the first run after acceptance preserves its completed prefix and accepted effect. Inert reconstruction retains cancelled, needs_attention and completed run outcomes and stock32. The duplicate refusal does not erase the new supporting Source. This does not infer business occurrence identity from file similarity; explicit domain identity remains required.
 
 Final test-only V2 passes67 focused workflow groups/0 and strict one-file Swift lint. V1 incorrectly counted historical effect rows as live effects; V2 checks the accepted balance projection. Production source/validation is unchanged; final native/session/model/package proof from the conversation-confirmation checkpoint is reused. No new model, native build or process-death matrix. Evidence: [receiving occurrence receipt](../../../integration/evidence/2026-10-29-receiving-occurrences.json.gz), SHA-256 8c57759fe9bb5fab23d6060238ebef322f79c5c1c2530acf333df7129842b901. All132 prior evidence artifacts remain byte-identical. Full E3/richer graphs, E4-E6, Excel continuity and visible/release gates remain open.
+
+## Scheduled origin and independent manual control
+
+[[records/specs/automation-execution]] adds original automation-drafts-v1 runs through the same workflow core. They retain exact automation/occurrence/authorization/dispatch origin and continue only under a current live automation grant or a separately requested manual-operation Source. Manual Continue never changes original scheduled provenance or enables future schedules. Stop requires no execution grant. Every worker claim records its authorization Source, so Pause fences automation claims and immediately releases them for explicit same-run resume, while an independent manual claim retains its own lease. Separate explicit CLI processes can operate the same manual claim, but cannot take over an automation claim. Native manual gestures preserve human attribution; CLI is programmatic.
+
+Workflow inspection now exposes bounded invocation and latest claim-authorization metadata. Technical automation/manual-operation Sources remain excluded from business evidence. Native run wording distinguishes scheduled drafts, with visible validation still open. Final359 full core groups,16 focused execution groups, synthetic lifecycle,2 actual dispatch SIGKILL boundaries and44 installed execution calls pass. This reuses existing interpretation/extraction/intake/review machinery; it does not complete richer graphs, full E3/E4, native timer/device UX or release qualification. Full evidence/limits are in the execution spec.

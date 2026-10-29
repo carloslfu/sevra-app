@@ -7,7 +7,7 @@ extension Workbook {
     _ session: WorkflowExecutionSession, claim: Value, model: String,
     cancellation: Cancellation = .init()
   ) throws -> Value {
-    try workflowSession(session)
+    try workflowSession(session, needsAI: true)
     try require(
       !model.isEmpty && model.utf8.count <= 4096, "workflow_model",
       "Use the actual local model identity.")
@@ -150,7 +150,7 @@ extension Workbook {
     _ session: WorkflowExecutionSession, claim: Value, response: Value,
     cancellation: Cancellation = .init()
   ) throws -> Value {
-    try workflowSession(session)
+    try workflowSession(session, needsAI: true)
     var deadline: Double?
     let guardLease: () throws -> Void = {
       if let deadline {

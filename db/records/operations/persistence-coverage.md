@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T09:16:26.499373+00:00
+updated: 2026-10-29T09:58:20.573002+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -394,3 +394,9 @@ Automation reuses app_definitions, heads/dependencies, authoring Sources/lineage
 ## Schema20 activation and occurrence capture
 
 All new automation_activations, automation_occurrences and automation_outbox rows join ChangeFormat.tables and the trusted canonical capture/apply path. Sources retain authorization/pause attribution, original slots, skipped reasons and exact cursor/observed coverage. Tests cover publication rollback, cancellation, stale receipts/session revocation, two-connection authority, concurrent planning, altered evidence and inert reconstruction with no runs/events. Frozen V4 passes343 full core groups; final read-only list addition passes17 focused groups. Final33 installed CLI cases and native resource/refusal/signature proof pass; unchanged36 definition/31 calendar CLI cases are reused from V4. This is not fresh model or whole process-death/release qualification. Contract/evidence: [[records/specs/automation-planning]].
+
+## Schema21 occurrence-to-workflow capture
+
+automation_runs and the new activation active-run pointer, dispatched occurrences/outbox, workflow policy and attempt authorization_source all join the existing capture/apply path. Exact original grant/dispatch/invocation evidence survives manual continuation, generation changes and inert reconstruction/archive. Integrity checks original normalized inputs, exact workflow version, invocation origin/actor, eligible time, one active reservation, Source decisions/lineage and per-attempt authority. Pause releases only its own claims; independently authorized manual work is preserved.
+
+Final359 full core/16 focused groups, synthetic lifecycle,2 actual SIGKILL dispatch boundaries/16 worker calls,44 execution/33 preparation/36 definition/31 calendar installed CLI cases and final native package proof pass. No whole previous manual crash-matrix rerun or broad model/release claim. Metadata isolation and the repository skill are updated; all136 prior evidence artifacts are byte-identical. Device-local persistent authority/timer and full release gates remain open. Contract/evidence: [[records/specs/automation-execution]].

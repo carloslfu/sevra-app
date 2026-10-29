@@ -42,7 +42,7 @@ extension Workbook {
           }
           values.append(.number(Double(limit + 1)))
           let rows = try db.execute(
-            "SELECT r.id,r.definition_id,r.state,r.detail,r.created,r.updated,d.title FROM workflow_runs r JOIN app_definitions d ON d.id=r.definition_id"
+            "SELECT r.id,r.definition_id,r.state,r.policy,r.detail,r.created,r.updated,d.title FROM workflow_runs r JOIN app_definitions d ON d.id=r.definition_id"
               + (predicates.isEmpty ? "" : " WHERE " + predicates.joined(separator: " AND "))
               + " ORDER BY r.updated DESC,r.id DESC LIMIT ?",
             values, maxRows: limit + 1, maxBytes: 2_097_152)
@@ -115,9 +115,16 @@ extension Workbook {
             step["proposals"] = .array(proposals)
             var attempt =
               try db.execute(
-                "SELECT id,generation,state,deadline,updated FROM workflow_attempts WHERE run_id=? AND step_id=? ORDER BY generation DESC LIMIT 1",
+                "SELECT id,generation,state,deadline,updated,authorization_source FROM workflow_attempts WHERE run_id=? AND step_id=? ORDER BY generation DESC LIMIT 1",
                 [.string(runID), saved["step_id"]]
               ).first ?? [:]
+            if let authorization = attempt["authorization_source"]?.string {
+              let source = try item(authorization)
+              attempt["authorization"] = .object([
+                "sourceID": .string(source.id), "kind": .string(source.kind),
+                "policy": source.data["policy"], "actor": source.data["actor"],
+              ])
+            }
             if let id = attempt["id"]?.string,
               let response = try db.scalar(
                 "SELECT result FROM operations WHERE id=? AND kind='workflow_interpretation_response'",
@@ -132,7 +139,13 @@ extension Workbook {
             step["attempt"] = .object(attempt)
             steps.append(.object(step))
           }
+          let invocation = try item(run["source_id"].text)
           return .object([
+            "invocation": .object([
+              "sourceID": .string(invocation.id), "policy": invocation.data["policy"],
+              "actor": invocation.data["actor"], "origin": invocation.data["origin"],
+              "description": .string(invocation.text),
+            ]),
             "run": run, "definition": try encoded(definition), "steps": .array(steps),
             "actorLabel": .string(actor.label),
           ])

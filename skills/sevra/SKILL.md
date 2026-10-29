@@ -37,7 +37,7 @@ Keep the original and inspect the new workbook before replacing any working copy
 ## Reusable definitions
 
 Use `definition-search PATH QUERY [OPTIONS_JSON]` to discover saved application
-definitions. Options are kind (function/query/action/form/workflow/interpretation/extraction/intake), historical (Boolean), limit (1 to
+definitions. Options are kind (function/query/action/form/workflow/interpretation/extraction/intake/automation), historical (Boolean), limit (1 to
 50) and cursor. An empty query lists definitions. Current heads are the default;
 historical search is explicit. Hits are discovery metadata, never permission to
 execute. Inspect exact content with `definition-read PATH LOGICAL_OR_VERSION_ID`
@@ -46,7 +46,7 @@ and retained bindings with `definition-dependencies PATH EXACT_VERSION_ID`.
 `definition-save PATH LOGICAL_UUID CONTENT_JSON BASE_ID_OR_NEW TOKEN [INPUTS_JSON]`
 creates with `new` or edits against the exact opened base UUID. Choose a new logical
 UUID for a new definition. Inputs are exact local authoring item IDs. Reuse tokens
-on retries. Unknown fields, arbitrary code/SQL and automation kinds refuse.
+on retries. Unknown fields and arbitrary code/SQL refuse. Automation definitions are inert; see Foreground automation below.
 `definition-history PATH LOGICAL_ID [BEFORE_VERSION]` pages retained versions;
 `definition-restore PATH LOGICAL_ID VERSION_ID BASE_ID TOKEN` saves a new version
 from history. A stale base preserves existing data; inspect again before deciding
@@ -84,9 +84,39 @@ evaluation's nextCursor unchanged. Changed definitions/queries/relevant data ref
 stale continuations. Conversation/tool-only commits do not invalidate a read page.
 The in-app model also uses bounded discovery, inspection and pure evaluation;
 catalog metadata and aggregates are not proof of complete business evidence.
-Technical requests/annotations and definition/invocation Sources stay out of default
+Technical requests/annotations, definition/invocation and automation/worker-authorization Sources stay out of default
 business search and Recent work. Use the catalog and exact owner inspection for
 technical history. Their text cannot establish original inventory direction.
+
+## Foreground automation
+
+An automation is saved intent, separate from permission to execute. Its content has
+kind `automation`, empty parameters and payload `{policy:"calendar-drafts-v1",workflow:{mode:"exact",versionID:"UUID"},arguments:{...},schedule:{...}}`.
+Inspect `automation-preview PATH EXACT_DEFINITION_ID AFTER_ISO [COUNT] [HORIZON_DAYS]`
+before activation. A native schedule uses policy `native-calendar-v1`, named timeZone,
+hour/minute and recurrence, for example `{kind:"daily"}`. Preview/definition save never
+runs work. The in-app model's save_definition still refuses automation authoring.
+
+`automation-list PATH [AFTER_ID_OR_-] [LIMIT]`, `automation-activation PATH ID`,
+`automation-occurrences PATH ID [AFTER_ID_OR_-] [LIMIT]` and `automation-events PATH [AFTER_SEQUENCE] [LIMIT]`
+inspect retained intent/history. An armed row is not proof of live permission or a timer.
+`automation-pause PATH ID EXPECTED_GENERATION TOKEN` revokes automation permission;
+independent manual work keeps its own claim. Generations change on authorization/pause.
+
+Only when the user requests this execution, use `automation-run-once PATH EXACT_DEFINITION_ID EXPECTED_GENERATION START_AFTER OBSERVED_AT TOKEN [--allow-ai [MODEL_DIRECTORY]]`.
+Use zero for first authorization; otherwise inspect the exact current generation.
+This creates a new grant, prepares at most100 slots/3660 days and continues at most
+one eligible draft run in this process. AI permission is explicit. Supply observation
+instants honestly; an older simulated instant is not evidence of a real-time run.
+If catchUpRemaining is true, nothing dispatches; inspect progress before another
+explicit operation with the refreshed generation and a new token. Reuse an operation's
+original arguments/token for recovery; superseded grants refuse. A busy/waiting run
+prevents overlap. No timer/device registration is installed; exit ends this permission.
+Business proposals still need separate review. Copies/reconstruction never activate.
+
+`workflow-inspect` shows original scheduled provenance and each latest claim's
+authorization metadata. Explicit manual continuation records a separate decision
+for that run and never enables future schedules. Stop grants no execution permission.
 
 ## Manual workflows
 

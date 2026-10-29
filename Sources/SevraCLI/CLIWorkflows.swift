@@ -57,6 +57,10 @@ extension CLI {
       try require(
         args.count == counts[command] || (command == "workflow-continue" && args.count == 4),
         "usage", "Use the workflow command fields shown in help.")
+      if command == "workflow-cancel" {
+        return try book.cancelWorkflow(
+          args[2], token: args[3], actor: actor, cancellation: cancellation)
+      }
       let session = try book.authorizeWorkflowExecution(args[2])
       switch command {
       case "workflow-continue":
