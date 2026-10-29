@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T22:25:44.274614+00:00
+updated: 2026-10-29T22:57:12.996646+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -63,8 +63,11 @@ journey and simplifies the existing surfaces: immediate reference capture withou
 a role modal, one Add files control, secondary workbook actions, direct Home,
 contextual review, progressive filters/settings and cleaner empty/history/search
 results. Explicit conversion, review and acceptance remain. Instructions in
-[[records/operations/build-and-run]] reflect these current controls. Advanced
-editors and broad AI source selection remain known limitations.
+[[records/operations/build-and-run]] reflect these current controls. Explicit table
+mappings and broad AI source selection remain known limitations.
+The second control pass removes duplicate ellipsis/disclosure glyphs, simplifies
+column/time editors, groups file actions and adds clear failed-PDF presentation.
+The review records retained controls, actual observations and accessibility limits.
 
 ## Architecture
 

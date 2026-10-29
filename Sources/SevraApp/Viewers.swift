@@ -70,6 +70,11 @@ import SwiftUI
         }
         if item.assetID != nil {
           Menu("File actions") {
+            if file != nil {
+              Button("Open a copy…") { state.openAssetCopy() }.disabled(state.busy)
+                .help("Save a copy for another app. The workbook original stays unchanged.")
+              Divider()
+            }
             Button("Use saved file…") { state.useSavedFile(item.id) }.disabled(state.busy)
             if let ext = file?.pathExtension.lowercased(), ["csv", "tsv"].contains(ext) {
               Button("Update a working table…") { state.navigate(.tableUpdate(item.id, nil)) }
@@ -78,16 +83,21 @@ import SwiftUI
             if let ext = file?.pathExtension.lowercased(),
               ["mp4", "mov", "m4v", "mp3", "wav", "m4a", "aiff"].contains(ext)
             {
-              Button("Transcribe on this Mac") { state.transcribe(item.id) }
+              Button("Transcribe on this Mac") { state.transcribe(item.id) }.disabled(state.busy)
             }
             if file?.pathExtension.lowercased() == "zip" {
               Button("Choose files from ZIP…") { choosingArchiveMembers = true }
             }
-            Button("Resume or retry intake") {
-              let id = item.id
-              state.run("Resuming intake") { book, cancel in
-                try book.resumeIntake(id, cancellation: cancel)
-              }
+            if state.pendingExtractions.contains(where: {
+              $0["item_id"].text == item.id
+                && ["queued", "running", "failed", "cancelled"].contains($0["state"].text)
+            }) {
+              Button("Resume file processing") {
+                let id = item.id
+                state.run("Resuming intake") { book, cancel in
+                  try book.resumeIntake(id, cancellation: cancel)
+                }
+              }.disabled(state.busy)
             }
             if asset?.mode == "linked" {
               Divider()
@@ -101,11 +111,7 @@ import SwiftUI
             }
           }
         }
-        if file != nil {
-          Button("Open a copy…") { state.openAssetCopy() }
-            .disabled(state.busy)
-            .help("Save a copy for another app. The workbook original stays unchanged.")
-        } else if document.editable {
+        if file == nil && document.editable {
           Button(document.editing ? "Done" : "Edit draft") {
             if document.editing { document.end() } else { document.begin() }
           }
@@ -500,10 +506,12 @@ import SwiftUI
   @Published var pages = 0
   @Published var query = ""
   @Published var status = ""
+  @Published var unavailable = false
   private var previousQuery = ""
   private var lastPage = -1
   private var lastEnd = 0
   func refresh() {
+    unavailable = view?.document == nil
     pages = view?.document?.pageCount ?? 0
     page = (view?.currentPage.flatMap { view?.document?.index(for: $0) } ?? 0) + 1
   }
@@ -548,29 +556,50 @@ struct PDFWorkspace: View {
   @StateObject private var controls = PDFControls()
   var body: some View {
     VStack(spacing: 0) {
-      HStack {
-        Button {
-          controls.view?.goToPreviousPage(nil)
-        } label: {
-          Image(systemName: "chevron.up")
-        }.accessibilityLabel("Previous PDF page").disabled(controls.page <= 1)
-        Button {
-          controls.view?.goToNextPage(nil)
-        } label: {
-          Image(systemName: "chevron.down")
-        }.accessibilityLabel("Next PDF page").disabled(controls.page >= controls.pages)
-        Text("\(controls.page) / \(controls.pages)").font(.caption).monospacedDigit()
-        Spacer()
-        TextField("Search this PDF", text: $controls.query).textFieldStyle(.roundedBorder).frame(
-          maxWidth: 220
-        ).onSubmit { controls.nextMatch() }
-        Button("Next match") { controls.nextMatch() }.disabled(controls.query.isEmpty)
-      }.padding(10)
-      if !controls.status.isEmpty {
-        Text(controls.status).font(.caption).foregroundStyle(.secondary).padding(.horizontal, 10)
+      if !controls.unavailable {
+        HStack {
+          if controls.pages > 1 {
+            Button {
+              controls.view?.goToPreviousPage(nil)
+            } label: {
+              Image(systemName: "chevron.up")
+            }.accessibilityLabel("Previous PDF page").help("Previous PDF page")
+              .disabled(controls.page <= 1)
+            Button {
+              controls.view?.goToNextPage(nil)
+            } label: {
+              Image(systemName: "chevron.down")
+            }.accessibilityLabel("Next PDF page").help("Next PDF page")
+              .disabled(controls.page >= controls.pages)
+          }
+          if controls.pages > 0 {
+            Text(controls.pages == 1 ? "1 page" : "\(controls.page) / \(controls.pages)")
+              .font(.caption).monospacedDigit()
+              .accessibilityLabel("Page \(controls.page) of \(controls.pages)")
+          }
+          Spacer()
+          TextField("Search this PDF", text: $controls.query).textFieldStyle(.roundedBorder).frame(
+            maxWidth: 220
+          ).onSubmit { controls.nextMatch() }
+          Button("Next match") { controls.nextMatch() }.disabled(controls.query.isEmpty)
+        }.padding(10)
+        if !controls.status.isEmpty {
+          Text(controls.status).font(.caption).foregroundStyle(.secondary).padding(.horizontal, 10)
+        }
+        Divider()
       }
-      Divider()
       PDFViewer(url: url, locator: locator, onSelection: onSelection, controls: controls)
+        .overlay {
+          if controls.unavailable {
+            ContentUnavailableView(
+              "PDF preview unavailable", systemImage: "doc.badge.ellipsis",
+              description: Text(
+                "This file could not be opened as a PDF. Use File actions to open a copy in another app."
+              )
+            ).frame(maxWidth: .infinity, maxHeight: .infinity)
+              .background(Color(nsColor: .windowBackgroundColor))
+          }
+        }
     }
     .onChange(of: controls.page) { _, page in onPage(page) }
   }

@@ -72,7 +72,7 @@ struct WorkbookView: View {
               .popover(isPresented: $showSpaces) {
                 SpacePickerView(state: state) { showSpaces = false }
               }
-            Menu {
+            MoreActionsMenu("Workbook actions") {
               if case .space(let id) = state.route,
                 let space = state.spaces.first(where: { $0.id == id })
               {
@@ -92,10 +92,7 @@ struct WorkbookView: View {
               Button("Automations") { state.navigate(.automations) }
               Divider()
               Button("Make a shareable copy…", action: state.exportPanel).disabled(state.busy)
-            } label: {
-              Image(systemName: "ellipsis")
-            }.menuStyle(.borderlessButton).frame(width: 28, height: 28)
-              .help("Workbook actions").accessibilityLabel("Workbook actions")
+            }
           }.padding(.horizontal, 20).padding(.vertical, 14)
           Divider()
           workspace.frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -212,22 +209,26 @@ struct WorkbookView: View {
   var conversationHeader: some View {
     VStack(spacing: 0) {
       HStack {
-        Menu {
-          Button("Conversation") { state.changeConversation("main") }
-          let threads = state.conversations.filter { $0["id"].text != "main" }
-          if !threads.isEmpty {
+        let threads = state.conversations.filter { $0["id"].text != "main" }
+        if threads.isEmpty {
+          Text(state.conversationTitle).font(.subheadline.weight(.medium)).lineLimit(1)
+        } else {
+          Menu {
+            Button("Conversation") { state.changeConversation("main") }
             Section("Threads") {
               ForEach(threads, id: \.text) { chat in
                 Button(chat["title"].text) { state.changeConversation(chat["id"].text) }
               }
             }
+          } label: {
+            Text(state.conversationTitle).font(.subheadline.weight(.medium)).lineLimit(1)
           }
-        } label: {
-          Text(state.conversationTitle).font(.subheadline.weight(.medium)).lineLimit(1)
+          .help("Switch between the main conversation and its threads")
+          .accessibilityLabel("Switch conversation: " + state.conversationTitle)
         }
         Spacer()
-        Menu {
-          Button("Start a chapter") {
+        MoreActionsMenu("Conversation actions") {
+          Button("Start a chapter…") {
             if let message = state.messages.last {
               state.conversationDraft = .init(message: message.id)
             }
@@ -240,7 +241,7 @@ struct WorkbookView: View {
           if state.conversation != "main" {
             Button("Rename thread…", action: state.requestRenameThread)
             Button("Back to conversation") { state.changeConversation("main") }
-            Button("Share summary with conversation") { state.requestSummary() }
+            Button("Share summary with conversation…") { state.requestSummary() }
               .disabled(
                 !state.messages.contains { $0.role == "assistant" && $0.state == "complete" })
           }
@@ -252,12 +253,14 @@ struct WorkbookView: View {
               }
             }
           }
-          ForEach(state.chapters, id: \.text) { chapter in
-            Button(chapter["title"].text) { state.jumpToMessage(chapter["message_id"].text) }
+          if !state.chapters.isEmpty {
+            Menu("Chapters") {
+              ForEach(state.chapters, id: \.text) { chapter in
+                Button(chapter["title"].text) { state.jumpToMessage(chapter["message_id"].text) }
+              }
+            }
           }
-        } label: {
-          Image(systemName: "ellipsis")
-        }.menuStyle(.borderlessButton).frame(width: 20)
+        }
       }.padding(16)
       if state.conversation != "main" {
         HStack {

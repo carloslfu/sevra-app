@@ -411,6 +411,7 @@ struct ScheduleOccurrencePreview: View {
       Text("Upcoming times · " + calendar["schedule"]["timeZone"].text).font(.headline)
       ForEach(calendar["occurrences"].array, id: \.text) { slot in
         Text(description(slot)).font(.callout).textSelection(.enabled)
+          .help("Exact UTC time: " + slot["due"].text)
       }
       if calendar["countReached"] != .bool(true) {
         Text("Preview reached its calendar horizon; only the times above were found.")
@@ -421,6 +422,16 @@ struct ScheduleOccurrencePreview: View {
   private func description(_ slot: Value) -> String {
     let clock = slot["localDate"].text + " " + slot["actualLocalTime"].text
     let adjustment = slot["shifted"] == .bool(true) ? " (adjusted for daylight saving)" : ""
-    return clock + adjustment + " · " + slot["due"].text
+    let parser = ISO8601DateFormatter()
+    parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    guard let date = parser.date(from: slot["due"].text),
+      let zone = TimeZone(identifier: calendar?["schedule"]["timeZone"].text ?? "")
+    else { return clock + adjustment }
+    let formatter = DateFormatter()
+    formatter.locale = .autoupdatingCurrent
+    formatter.timeZone = zone
+    formatter.dateStyle = .medium
+    formatter.timeStyle = slot["actualLocalTime"].text.hasSuffix(":00") ? .short : .medium
+    return formatter.string(from: date) + adjustment
   }
 }

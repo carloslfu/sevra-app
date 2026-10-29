@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-29T22:17:11.488786+00:00
+updated: 2026-10-29T22:56:41.534496+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
@@ -70,8 +70,20 @@ Advanced filters and model storage settings use progressive disclosure. Hide
 paging controls when no other page exists; retain loading, failure, retry and
 coverage messages. Review/Accept, Stop and current-form conflict choices remain
 explicit where consequential. File intake follows I04 without a mandatory modal.
-See [[records/reviews/native-journey-polish]] for the audited surface inventory and
-verification limits. These shell changes do not qualify broad AI reliability.
+Use one ellipsis for icon-only overflow menus, with the automatic disclosure
+indicator hidden, a consistent native target, contextual name and help. Retain
+arrows for meaningful text pickers, disclosures, split-control alternatives and
+actual multi-page navigation. A conversation with no threads is a title, not a
+one-option menu. Keep primary actions visible and group secondary file actions,
+including Open a copy, in File actions. Offer Resume only for jobs needing recovery.
+An unreadable PDF shows an explicit unavailable state with guidance, not a blank
+preview. Table definitions show title/type first with per-column options; summaries
+retain calculated, unit, required and unique meaning. Time input is a native
+wall-clock editor with an explicit schedule timezone, matching accessible value
+and human upcoming dates. Preserve exact UTC in help and existing review/device
+authority gates. See [[records/reviews/native-journey-polish]] for the audited
+surface inventory and verification limits. These changes do not qualify broad AI
+reliability.
 
 P03. Searchable space picker: Home, pinned/recent, all spaces. No unbounded tab strip.
 Home shows useful recent sources, tables and pending work without dashboard setup.

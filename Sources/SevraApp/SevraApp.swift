@@ -41,7 +41,7 @@ import SwiftUI
           .keyboardShortcut("o")
       }
       CommandMenu("Workbook") {
-        Button("Import Files…") { NotificationCenter.default.post(name: .sevraImport, object: nil) }
+        Button("Add Files…") { NotificationCenter.default.post(name: .sevraImport, object: nil) }
           .keyboardShortcut("i")
         Button("Search Workbook") {
           NotificationCenter.default.post(name: .sevraSearch, object: nil)
@@ -221,8 +221,8 @@ struct WorkspaceWindow: View {
             Button("Open workbook…", action: open).controlSize(.large)
           }
           HStack(spacing: 16) {
-            Button("Create blank", action: create).buttonStyle(.link)
-            Button("Try an example", action: demo).buttonStyle(.link)
+            Button("Create blank…", action: create).buttonStyle(.link)
+            Button("Try an example…", action: demo).buttonStyle(.link)
           }
         }
         let recent = UserDefaults.standard.stringArray(forKey: "recentWorkbooks") ?? []

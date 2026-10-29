@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T22:25:44.254160+00:00
+updated: 2026-10-29T22:56:41.704884+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -13,6 +13,75 @@ This is MVP 0.1, a native source test preview for the focused file-to-result
 workflow below. The expanded specification is unfinished. The owner-directed
 [[records/specs/mvp-delivery]] controls delivery order; preview evidence does not
 qualify broad model reliability, supported hardware or a production release.
+
+## Native control follow-up, October 29
+
+Owner screenshots revealed duplicated ellipsis/disclosure indicators that the
+first pass missed. [[records/reviews/native-journey-polish]] records the second
+control inventory, rationale and final observations, linked to the exact feedback
+in [[sources/notes/2026/10/native-control-follow-up]]. P28 now specifies the control
+contract. The installed native preview includes these refinements:
+
+- One shared ellipsis-only native menu at workbook, conversation, message and table
+  locations, with consistent 28-point targets, contextual names and help. A title
+  with no alternative conversations is static. Meaningful pickers/disclosures and
+  the Add files split control retain arrows. Chapters are grouped; sheet actions
+  and Add Files naming are consistent.
+- Column title/type first, useful summaries and optional unit/formula/validation
+  controls. A native save adds unit USD while preserving quantity*unit_cost and
+  creates definition version 2. Final controls retain distinct accessible labels.
+- Native clock input, named month choices, explicit timezone and human upcoming
+  dates. Changing UTC to America/Bogota keeps 10:00 and previews 15:00 UTC. Final
+  accessible value matches display. Native save leaves zero device activations.
+- Open a copy inside File actions; direct analysis/reference choices for PDFs;
+  Resume processing only when useful. One-page PDFs lose inactive arrows while
+  two-page navigation works. Unreadable PDF shows a clear unavailable state;
+  a valid PDF still renders. Layout move actions gain contextual pointer help.
+
+### Focused follow-up verification
+
+The final native build succeeds and is installed. Package paths/signature checks
+pass with the build tree denied, ten missing-resource refusals and altered-resource
+refusal. Installed desktop executable payload matches the build after comparing
+unsigned disposable copies; the installed CLI matches byte-for-byte. The pinned
+Splash executable and both Metal resources retain their hashes. No engine change,
+new model call, throughput claim or reliability qualification is made.
+
+The release preview suite passes all 18 invariant groups. Dataset-definition
+checks pass five schema versions, stale-writer refusal, retained/restore values,
+reconstruction and portable reopen. Schedule-preview checks pass 31 calls including
+DST gaps/folds and non-hour offsets. These checks were run for this follow-up;
+subsequent label/failure-view edits reuse the unchanged core/controller proof.
+Strict formatting passes all 11 changed Swift files. The matching installed CLI
+verifies the synthetic workbook with database ok and no asset issues.
+
+Native observations include all four menu locations, optional column save,
+clock/zone/preview/save, chapter and copy destination Cancel, ready/failed file
+menus, one/two-page PDF navigation, final unavailable/valid PDF counterexamples,
+a meaningful thread picker and Home at 822 by 632 points. Wide tables scroll
+horizontally. Earlier failing label/clock/blank-preview observations remain in the
+private evidence beside their final fixes. Automated arrow-key menu activation
+was inconclusive; this does not establish full keyboard/VoiceOver behavior.
+No real business workbook, acceptance, automation enablement, privacy grant or
+external application launch is involved.
+
+The [immutable control receipt](../../../integration/evidence/2026-10-29-native-controls.json.gz)
+binds 290 source files, final build/installed binaries, check artifacts and 56
+private screenshot/accessibility hashes. Its SHA-256 is
+3a64f4754d4dc3044a31133d2ea7f290baf2eb201335c6d4cc188c634c26e120.
+It reuses unchanged intake/portable/engine evidence from the prior journey.
+Hosted CI for prior commit 0611eb13 was still in progress when checked:
+[run 40966197706](https://github.com/carloslfu/sevra-app/actions/runs/40966197706).
+It is not a passing CI receipt; local results above are independent.
+
+### Current remaining priorities
+
+1. Broad AI evidence selection and truthful coverage, including the retained Brio
+   PDF omission. Focused open-document questions remain the tested preview route.
+2. Explicit table-mapping effort and reference CSV inspection before conversion.
+   This follow-up simplifies definition/time editors but does not add a grid viewer.
+3. Full keyboard/VoiceOver, appearance/contrast/motion, media transport, hardware
+   and production distribution qualification. This remains a source test preview.
 
 ## Native journey simplification, October 29
 
@@ -67,13 +136,14 @@ README and [[records/operations/build-and-run]] now match native intake and curr
 Download model / Verify model files / Use existing model files labels. P28 and I04
 record the interaction decisions rather than leaving behavior in UI code alone.
 
-### Current remaining priorities
+### Priorities at that checkpoint
 
 1. Broad AI evidence selection and grounded coverage, including the retained Brio
    PDF omission in the activity iteration below. A focused open-PDF question is
    still the supported preview route; this UI change does not fix the broad case.
-2. Advanced authoring effort: schema/mapping and time input remain technical;
-   reference CSV inspection still displays delimited text before conversion.
+2. At that checkpoint schema/mapping and time input remained technical. The later
+   control follow-up simplifies definition/time editors; reference CSV inspection
+   still displays delimited text before conversion.
 3. Remaining release qualification: full accessibility/appearance/media transport,
    hardware profiles and production distribution. These are not completed by this
    focused source-preview pass.

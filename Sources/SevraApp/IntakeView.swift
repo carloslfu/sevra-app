@@ -46,15 +46,25 @@ struct IntakeView: View {
                     Button("Create table from saved values") {
                       state.continueIntake(choice, role: .values)
                     }
+                  } else {
+                    Button("Inspect for analysis") {
+                      state.continueIntake(choice, role: .analysis)
+                    }
                   }
-                  Menu("Other uses") {
-                    Button("Keep as reference") { state.continueIntake(choice, role: .reference) }
-                    Button("Inspect for analysis") { state.continueIntake(choice, role: .analysis) }
-                    if choice.supportsUpdate {
-                      Button("Update a working table…") {
-                        state.continueIntake(choice, role: .update)
+                  if choice.supportsTable {
+                    Menu("Other uses") {
+                      Button("Keep as reference") { state.continueIntake(choice, role: .reference) }
+                      Button("Inspect for analysis") {
+                        state.continueIntake(choice, role: .analysis)
+                      }
+                      if choice.supportsUpdate {
+                        Button("Update a working table…") {
+                          state.continueIntake(choice, role: .update)
+                        }
                       }
                     }
+                  } else {
+                    Button("Keep as reference") { state.continueIntake(choice, role: .reference) }
                   }
                 }
                 if choice.supportsTable {
@@ -85,6 +95,6 @@ struct IntakeView: View {
           state.composerFocusRequest = UUID()
         }.keyboardShortcut(.cancelAction)
       }
-    }.padding(24).frame(width: 630, height: 430)
+    }.padding(24).frame(width: 630, height: prompt.choices.count == 1 ? 360 : 430)
   }
 }

@@ -36,13 +36,11 @@ struct ConversationMessageRow: View {
           }
         }
         Spacer()
-        Menu {
+        MoreActionsMenu(
+          speaker + " message actions", help: "Open links, save this exchange or start a thread"
+        ) {
           ConversationMessageActions(state: state, message: message, content: content)
-        } label: {
-          Image(systemName: "ellipsis")
-        }.menuStyle(.borderlessButton).frame(width: 22)
-          .accessibilityLabel(speaker + " message actions")
-          .help("Open links, save this exchange or start a thread")
+        }
       }
       Text(content.text).textSelection(.enabled).lineSpacing(4)
         .accessibilityActions {
@@ -82,7 +80,7 @@ struct ConversationMessageActions: View {
     if state.conversation != "main", message.state == "complete",
       ["user", "assistant"].contains(message.role)
     {
-      Button("Share summary with conversation") { state.requestSummary(message: message) }
+      Button("Share summary with conversation…") { state.requestSummary(message: message) }
     }
   }
 }

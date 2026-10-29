@@ -1372,3 +1372,6 @@ Live agent activity and polished structured presentation installed; final focuse
 ## [2026-10-29 22:27] verification | records/reviews/native-journey-polish.md
 Native journey simplification: installed visual checks, 18 preview invariant groups, nine intake checks, isolated package/signatures, 201-row boundary and offline portable reopen. Exact evidence in integration/evidence/2026-10-29-native-journey.json.gz; retained retrieval and accessibility/release limits.
 
+## [2026-10-29 22:57] verification | records/operations/implementation.md
+Second native control pass implemented and installed: single ellipsis menus, progressive column options, wall-clock/timezone input, contextual file recovery and unavailable-PDF state. Final build, 18 preview groups, schema lifecycle, 31 schedule calls, package resource refusals/signatures, source hashes and installed payload checks pass. Representative native counterexamples observed. Link gate and full db.md validation pass with zero errors or warnings; broad AI and full accessibility qualification remain open. Receipt integration/evidence/2026-10-29-native-controls.json.gz.
+

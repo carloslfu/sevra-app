@@ -566,7 +566,7 @@ struct DatasetView: View {
         )
         .textFieldStyle(.roundedBorder).frame(maxWidth: 220)
         Spacer()
-        Menu {
+        MoreActionsMenu("Table actions: " + table.title) {
           Button("Copy selected rows", action: copyRows).disabled(selection.isEmpty)
           Button("Paste cells", action: pasteCells).disabled(selection.isEmpty)
           Button("Undo") { undo(false) }.disabled(state.tableUndo[table.id] == nil)
@@ -574,9 +574,7 @@ struct DatasetView: View {
           Divider()
           Button("Table definition…") { schemaEditing = table }
           Button("Export CSV…", action: export)
-        } label: {
-          Image(systemName: "ellipsis.circle")
-        }.menuStyle(.borderlessButton).frame(width: 22).help("Table actions")
+        }
       }.padding(compact ? 8 : 14)
       if table.archived {
         Text(
@@ -745,39 +743,28 @@ struct ColumnEditor: View {
   @State private var title = ""
   @State private var archived = false
   @State private var history: [DatasetDefinition] = []
+  @State private var expandedColumns = Set<String>()
   @State private var saving = false
   @State private var failure: String?
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text("Table definition").font(.title2)
       TextField("Table title", text: $title).accessibilityLabel("Table title")
-      Text("Formulas use column IDs, such as quantity * unit_cost. Empty cells remain unknown.")
+      Text("Open a column’s options to set units, formulas or validation.")
         .foregroundStyle(.secondary)
-      Text(
-        "Removing a column preserves its saved values. Restore a definition from History to recover it."
-      )
-      .font(.caption).foregroundStyle(.secondary)
       ScrollView {
         VStack(spacing: 12) {
           ForEach($columns) { $c in
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 10) {
               HStack {
-                TextField("Column title", text: $c.title).frame(width: 130)
+                TextField("Column title", text: $c.title)
                   .accessibilityLabel("Column title, " + c.id)
-                Text(c.id).font(.caption.monospaced()).frame(width: 90, alignment: .leading)
-                TextField(
-                  "Unit",
-                  text: Binding(get: { c.unit ?? "" }, set: { c.unit = $0.isEmpty ? nil : $0 })
-                ).frame(width: 65)
                 Picker("Type", selection: $c.type) {
-                  ForEach(["text", "decimal", "boolean", "date"], id: \.self) { Text($0).tag($0) }
-                }.labelsHidden().frame(width: 90)
-                TextField(
-                  "Formula (optional)",
-                  text: Binding(
-                    get: { c.formula ?? "" }, set: { c.formula = $0.isEmpty ? nil : $0 })
-                )
-                .accessibilityLabel("Formula, " + c.id)
+                  Text("Text").tag("text")
+                  Text("Number").tag("decimal")
+                  Text("Yes or no").tag("boolean")
+                  Text("Date").tag("date")
+                }.frame(width: 180).accessibilityLabel("Type, " + c.id)
                 Button(role: .destructive) {
                   columns.removeAll { $0.id == c.id }
                 } label: {
@@ -785,23 +772,58 @@ struct ColumnEditor: View {
                 }.help("Remove column " + c.title).accessibilityLabel("Remove column " + c.title)
                   .disabled(columns.count == 1)
               }
-              HStack {
-                Toggle(
-                  "Required",
-                  isOn: Binding(get: { c.required == true }, set: { c.required = $0 ? true : nil })
-                )
-                .accessibilityLabel("Required, " + c.id)
-                Toggle(
-                  "Unique",
-                  isOn: Binding(get: { c.unique == true }, set: { c.unique = $0 ? true : nil })
-                )
-                .accessibilityLabel("Unique, " + c.id)
-              }.disabled(c.formula != nil)
+              DisclosureGroup(
+                isExpanded: Binding(
+                  get: { expandedColumns.contains(c.id) },
+                  set: { expanded in
+                    if expanded {
+                      expandedColumns.insert(c.id)
+                    } else {
+                      expandedColumns.remove(c.id)
+                    }
+                  })
+              ) {
+                VStack(alignment: .leading, spacing: 10) {
+                  LabeledContent("Column ID") {
+                    Text(c.id).font(.callout.monospaced()).textSelection(.enabled)
+                  }
+                  TextField(
+                    "Unit (optional)",
+                    text: Binding(get: { c.unit ?? "" }, set: { c.unit = $0.isEmpty ? nil : $0 })
+                  ).accessibilityLabel("Unit, " + c.id)
+                  TextField(
+                    "Formula (optional)",
+                    text: Binding(
+                      get: { c.formula ?? "" }, set: { c.formula = $0.isEmpty ? nil : $0 })
+                  ).accessibilityLabel("Formula, " + c.id)
+                  HStack {
+                    Toggle(
+                      "Required",
+                      isOn: Binding(
+                        get: { c.required == true }, set: { c.required = $0 ? true : nil })
+                    ).accessibilityLabel("Required, " + c.id)
+                    Toggle(
+                      "Unique",
+                      isOn: Binding(get: { c.unique == true }, set: { c.unique = $0 ? true : nil })
+                    ).accessibilityLabel("Unique, " + c.id)
+                  }.disabled(c.formula != nil)
+                }.padding(.top, 8)
+              } label: {
+                Text(columnOptions(c))
+                  .accessibilityLabel("Options for " + c.title + ", " + columnOptions(c))
+              }
+              Divider()
             }
           }
         }
       }
       if let failure { Text(failure).foregroundStyle(.red) }
+      DisclosureGroup("About formulas and history") {
+        Text("Formulas use column IDs, such as quantity * unit_cost. Empty cells remain unknown.")
+        Text(
+          "Removing a column preserves its saved values. Restore a definition from History to recover it."
+        )
+      }.font(.caption).foregroundStyle(.secondary)
       Toggle("Archive table", isOn: $archived)
       Text(
         "Archive hides this table from the working list and prevents row edits. Saved views and history remain available."
@@ -852,6 +874,14 @@ struct ColumnEditor: View {
           failure = error.localizedDescription
         }
       }
+  }
+  private func columnOptions(_ column: Column) -> String {
+    var details: [String] = []
+    if column.formula != nil { details.append("calculated") }
+    if let unit = column.unit, !unit.isEmpty { details.append(unit) }
+    if column.required == true { details.append("required") }
+    if column.unique == true { details.append("unique") }
+    return details.isEmpty ? "Options" : "Options · " + details.joined(separator: ", ")
   }
   private func save() {
     guard let book = state.workbook else { return }

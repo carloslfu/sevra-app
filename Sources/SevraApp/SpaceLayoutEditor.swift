@@ -42,12 +42,14 @@ struct SpaceLayoutEditor: View {
                   } label: {
                     Image(systemName: "arrow.up")
                   }.accessibilityLabel("Move " + component.title + " up")
+                    .help("Move " + component.title + " up")
                     .disabled(components.first?.id == component.id)
                   Button {
                     move(component.id, direction: 1)
                   } label: {
                     Image(systemName: "arrow.down")
                   }.accessibilityLabel("Move " + component.title + " down")
+                    .help("Move " + component.title + " down")
                     .disabled(components.last?.id == component.id)
                   Button("Remove") { components.removeAll { $0.id == component.id } }
                     .accessibilityLabel("Remove " + component.title + " from layout")

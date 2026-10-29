@@ -101,11 +101,14 @@ struct AutomationScheduleEditor: View {
               Text("Monthly").tag("monthly")
               Text("Yearly").tag("yearly")
             }
-            HStack {
-              Stepper("Hour: \(hour)", value: $hour, in: 0...23)
-              Stepper("Minute: \(minute)", value: $minute, in: 0...59)
+            DatePicker("Time", selection: clockTime, displayedComponents: .hourAndMinute)
+              .environment(\.timeZone, clockCalendar.timeZone)
+              .accessibilityValue(String(format: "%02d:%02d", hour, minute) + " " + zone)
+              .help("Uses the time zone below, even when this Mac’s time zone changes")
+            LabeledContent("Time zone") {
+              TextField("America/Bogota or UTC", text: $zone)
+                .accessibilityLabel("Time zone")
             }
-            TextField("Time zone (for example America/Bogota or UTC)", text: $zone)
             if recurrence == "weekly" {
               HStack {
                 ForEach(
@@ -132,7 +135,12 @@ struct AutomationScheduleEditor: View {
               if !lastDay { Stepper("Day: \(day)", value: $day, in: 1...31) }
             }
             if recurrence == "yearly" {
-              Stepper("Month: \(month)", value: $month, in: 1...12)
+              Picker("Month", selection: $month) {
+                ForEach(Array(clockCalendar.monthSymbols.enumerated()), id: \.offset) {
+                  index, name in
+                  Text(name).tag(index + 1)
+                }
+              }
               Stepper("Day: \(day)", value: $day, in: 1...31)
             }
             Text(
@@ -174,6 +182,24 @@ struct AutomationScheduleEditor: View {
       .task { await open() }
       .onChange(of: workflow?.id) { _, id in if id != nil { choosingWorkflow = false } }
       .task(id: query + String(workspace.revision)) { await loadChoices() }
+  }
+  // This is a wall-clock editor, not an instant in the Mac's time zone. Bind
+  // through a fixed UTC date so changing the schedule's zone never shifts it.
+  private var clockCalendar: Calendar {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    return calendar
+  }
+  private var clockTime: Binding<Date> {
+    Binding(
+      get: {
+        clockCalendar.date(
+          from: DateComponents(year: 2001, month: 1, day: 1, hour: hour, minute: minute))!
+      },
+      set: { time in
+        hour = clockCalendar.component(.hour, from: time)
+        minute = clockCalendar.component(.minute, from: time)
+      })
   }
   private var content: Value {
     let rule: Value

@@ -192,7 +192,7 @@ struct ReferencesPanel: View {
                 .accessibilityLabel("Open link: " + occurrence.reference.label)
               Spacer()
               if canChoose(occurrence) {
-                Button("Choose destination") {
+                Button("Choose destination…") {
                   state.referenceChoice = occurrence
                 }.buttonStyle(.link).disabled(state.busy)
                   .accessibilityLabel("Choose destination for " + occurrence.reference.label)
@@ -202,7 +202,7 @@ struct ReferencesPanel: View {
               .accessibilityActions {
                 Button("Open " + occurrence.reference.label) { open(occurrence) }
                 if canChoose(occurrence) {
-                  Button("Choose destination for " + occurrence.reference.label) {
+                  Button("Choose destination for " + occurrence.reference.label + "…") {
                     state.referenceChoice = occurrence
                   }.disabled(state.busy)
                 }
