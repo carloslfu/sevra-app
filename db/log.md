@@ -1090,3 +1090,12 @@ Pure NativeConditionRule and no-workbook condition-preview CLI implement six Dec
 ## [2026-10-29 11:06] verification | records/specs/condition-transitions.md
 13 condition groups/243 trajectories,31 installed CLI calls,13 calendar/16 execution groups,18 registry/controller groups plus5 fresh starts/30 workers, strict7 Swift files and native resource/missing10/altered refusal/signature pass. fab2a83 CI failed16/17 and is retained; corrective head needs CI. Receipt61244bytes SHA1559bf286dec9681b20ac23d78c4c7e5902fbb1d884eb6933fa74f78634b05f6,139 prior artifacts unchanged. Mac locked; no model/real event/release proof, goal unfinished.
 
+## [2026-10-29 11:46] design | records/specs/business-events.md
+Reviewed schema22 feed in semantics, recovery and scale passes: one atomic committed batch, final settled versions, exact meaning, immutable history/captured maps, sparse scope keysets and no execution authority. Dataset row-value scope and inventory effect/time eligibility remain explicit.
+
+## [2026-10-29 11:46] implementation | records/specs/business-events.md
+Schema22 business_batches/business_events join complete capture/apply. Atomic publisher binds exact commit actor/time; semantic integrity checks stream retained input versions; core/CLI bound global/scope/batch pages with lossless positions, output limits, short busy waits and cancellation. Conditions remain inert.
+
+## [2026-10-29 11:46] verification | records/specs/business-events.md
+Final386 full core/0,14 focused,76 installed native CLI calls including6 concurrent publishers/2 SIGKILL boundaries, owner18/ProductAI lifecycle/44 automation calls, strict12 Swift and native resource/missing10/altered refusal/signature pass. V8 only test-label delta; failed iterations retained. Artifact102021bytes SHAace21c59cf049e5770858e2f1742793f33dd48688ad2343abe6dba9701bfe61d;140 prior artifacts unchanged. Mac locked; own CI/condition consumers/full release open.
+

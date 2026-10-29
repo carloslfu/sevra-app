@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T11:06:54.232817+00:00
+updated: 2026-10-29T11:47:43.630302+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -26,6 +26,7 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 ## Reading order
 
+- [[records/specs/business-events]]: schema22 committed semantic feed, indexed inert delivery, atomic batch/coverage limits and remaining condition consumers.
 - [[records/specs/condition-transitions]]: inert numeric condition preview and remaining real event/cursor/causality contract.
 - [[records/specs/native-automation-owner]]: current native schedule controls, device grants and active-app qualification limits.
 - [[records/specs/identity]]: approved Sevra logo, app icon and native appearance.
@@ -86,3 +87,7 @@ Native Activity/Schedules now provides typed create/edit/preview, explicit exact
 ## Condition preview and registry CI repair
 
 The pure numeric preview now has 13 focused groups/243 truth trajectories, 31 installed CLI cases and explicit fixture-only/inert output. It does not activate real condition triggers. Nearby calendar/execution groups pass. Hosted fab2a83 failed the registry concurrency case; atomic private directory creation now passes all 18 owner groups plus five fresh starts/30 workers without repairing unsafe existing directories. The failed CI log is retained. Final native app/CLI, resource/refusal/signature and strict seven-file lint pass; the corrective source needs its own hosted run. All 139 prior artifacts remain unchanged. Schema21 is unchanged and the Mac remains locked. Real business-event outbox/cursors, condition delivery/loops/native authoring, background lifecycle, Excel continuity and release gates remain open. Full evidence: [[records/specs/condition-transitions]].
+
+## Committed business feed checkpoint
+
+The schema22 semantic outbox and bounded core/CLI delivery now have 386 full core groups with zero failures,14 focused groups and 76 installed native CLI calls, including six concurrent publishers and two actual SIGKILL boundaries. Nearby owner/ProductAI/automation and native packaging checks pass. All 140 prior artifacts remain unchanged. Exact proof, source scope and failed test iterations: [[records/specs/business-events]]. No condition execution is enabled. Persistent baselines/cursors, event-time state, causality/backpressure, native/conversational triggers, full background/Excel/visible/hardware/release qualification remain open. A fresh app inventory still reports the Mac locked.

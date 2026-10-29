@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 21
+  static let version = 22
   static let sql = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=\(version);
@@ -34,6 +34,7 @@ enum Schema {
     CREATE TABLE extraction(item_id TEXT PRIMARY KEY REFERENCES items(id),state TEXT NOT NULL,detail TEXT NOT NULL,parser TEXT NOT NULL,updated TEXT NOT NULL);
     CREATE TABLE effects(occurrence TEXT NOT NULL,subject TEXT NOT NULL,kind TEXT NOT NULL,item_id TEXT NOT NULL REFERENCES items(id),quantity TEXT NOT NULL,effective TEXT NOT NULL,PRIMARY KEY(occurrence,subject,kind,item_id));
     CREATE INDEX effects_subject ON effects(subject,effective);
+    CREATE INDEX effects_item ON effects(item_id);
     CREATE TABLE bases(subject TEXT PRIMARY KEY,quantity TEXT NOT NULL,effective TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id));
     CREATE TABLE datasets(id TEXT PRIMARY KEY,title TEXT NOT NULL,columns TEXT NOT NULL,source_id TEXT REFERENCES items(id),storage_table TEXT NOT NULL UNIQUE,storage_version INTEGER NOT NULL CHECK(storage_version>0),archived INTEGER NOT NULL CHECK(archived IN (0,1)),definition_id TEXT NOT NULL REFERENCES column_versions(id) DEFERRABLE INITIALLY DEFERRED);
     CREATE TABLE dataset_rows(dataset_id TEXT NOT NULL REFERENCES datasets(id),row_id TEXT NOT NULL,ordinal INTEGER NOT NULL,logical_id TEXT NOT NULL REFERENCES heads(logical_id),PRIMARY KEY(dataset_id,row_id));
@@ -132,6 +133,12 @@ enum Schema {
     CREATE TRIGGER app_definitions_ad AFTER DELETE ON app_definitions BEGIN
       INSERT INTO definition_fts(definition_fts,rowid,title,description,parameter_text) VALUES('delete',old.rowid,old.title,old.description,old.parameter_text);
     END;
+    CREATE TABLE business_batches(id TEXT PRIMARY KEY REFERENCES committed_changes(id) DEFERRABLE INITIALLY DEFERRED,position INTEGER NOT NULL UNIQUE CHECK(typeof(position)='integer' AND position>0),recorded TEXT NOT NULL,actor TEXT NOT NULL,policy TEXT NOT NULL CHECK(policy='business-versions-v1'),UNIQUE(id,position));
+    CREATE TABLE business_events(id TEXT PRIMARY KEY,batch_id TEXT NOT NULL,batch_position INTEGER NOT NULL,ordinal INTEGER NOT NULL CHECK(typeof(ordinal)='integer' AND ordinal>=0),family TEXT NOT NULL CHECK(family IN ('record-settled','inventory-basis','dataset-membership','dataset-schema')),scope_kind TEXT NOT NULL CHECK(scope_kind IN ('record','inventory','dataset')),scope_key TEXT NOT NULL,record_kind TEXT NOT NULL,logical_id TEXT,before_id TEXT REFERENCES items(id),after_id TEXT REFERENCES items(id),payload TEXT NOT NULL,UNIQUE(batch_id,ordinal),FOREIGN KEY(batch_id,batch_position) REFERENCES business_batches(id,position));
+    CREATE INDEX business_events_scope ON business_events(scope_kind,scope_key,batch_position,ordinal);
+    CREATE INDEX business_events_position ON business_events(batch_position,ordinal);
+    CREATE INDEX business_events_kind ON business_events(record_kind,batch_position,ordinal);
+    CREATE INDEX business_events_logical ON business_events(logical_id,batch_position,ordinal);
     CREATE TABLE committed_changes(id TEXT PRIMARY KEY,previous_id TEXT UNIQUE REFERENCES committed_changes(id),payload TEXT NOT NULL,hash TEXT NOT NULL,recorded TEXT NOT NULL,writer_id TEXT NOT NULL,actor TEXT NOT NULL,row_changes INTEGER NOT NULL CHECK(row_changes>0));
     """
 }

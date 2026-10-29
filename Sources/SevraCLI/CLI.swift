@@ -96,6 +96,9 @@ import SevraProduct
     }
     if command == "demo" { return try Demo.create(at: url(1)) }
     let book = try Workbook(url(1))
+    if ["business-batches", "business-batch"].contains(command) {
+      return try runBusinessFeed(args, book: book, cancellation: cancellation)
+    }
     if command == "automation-run-once" {
       return try await runAutomationOnce(args, book: book, cancellation: cancellation)
     }
@@ -716,6 +719,8 @@ import SevraProduct
     start-thread WORKBOOK MESSAGE_ID [TITLE] | rename-thread WORKBOOK THREAD_ID TITLE
     export WORKBOOK PATH.sevraz | open-archive PATH.sevraz DEST.sevra
     commits WORKBOOK [LIMIT] | reconstruct WORKBOOK NEW_WORKBOOK
+    business-batches WORKBOOK [AFTER_BATCH_ID|-] [LIMIT] [SCOPE_KIND SCOPE_KEY]
+    business-batch WORKBOOK BATCH_ID [AFTER_ORDINAL|-] [LIMIT]
     table-schema WORKBOOK DATASET_ID
     table-schema-history WORKBOOK DATASET_ID [BEFORE_VERSION]
     table-edit-schema WORKBOOK DATASET_ID BASE_VERSION BASE_DEFINITION_ID OPTIONS_JSON TOKEN

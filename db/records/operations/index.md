@@ -2,11 +2,11 @@
 type: index
 scope: type-folder
 folder: records/operations
-updated: 2026-10-29T11:06:54.196071Z
+updated: 2026-10-29T11:48:05.885260Z
 ---
 
 # records/operations
 
-- [[records/operations/build-and-run]] — Source installation, local AI setup, independent CLI use, verification and uninstall.
 - [[records/operations/implementation]] — Ordered work and honest requirement status for the first Sevra release.
+- [[records/operations/build-and-run]] — Source installation, local AI setup, independent CLI use, verification and uninstall.
 - [[records/operations/persistence-coverage]] — Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.

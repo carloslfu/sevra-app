@@ -2,7 +2,7 @@
 type: spec
 id: 01m63mskyw17ghqe41k3rhh631
 created: 2026-10-29T10:55:20.540673+00:00
-updated: 2026-10-29T11:06:54.092551+00:00
+updated: 2026-10-29T11:47:43.572229+00:00
 summary: Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.
 title: Condition transitions
 status: reviewed
@@ -64,3 +64,7 @@ Final V2 native app/CLI build, installed build-tree-denied resource reads, 10 mi
 Evidence: [condition and registry repair receipt](../../../integration/evidence/2026-10-29-condition-transitions-registry-repair.json.gz), 61244 bytes, SHA-256 1559bf286dec9681b20ac23d78c4c7e5902fbb1d884eb6933fa74f78634b05f6. All 139 preceding artifacts remain byte-identical.
 
 A fresh native inventory still reports no apps and a locked Mac. Visible controls, keyboard/VoiceOver/dictation/light/dark/narrow/media and actual OS lifecycle remain unverified. Committed business-event outbox/cursor, exact event-time state, real condition delivery, loop/backpressure controls and native/conversational trigger authoring remain next; the pure preview is not a condition scheduler. Full E3/E4/E5/E6, contextual/Excel continuity, complete E0/E1/E2 journeys, hardware/performance, production engine adoption and signing/notarization/distribution remain open. App, release and goal are unfinished.
+
+## Committed feed foundation, October 29
+
+[[records/specs/business-events]] now implements the schema22 semantic outbox and bounded inert delivery over the existing captured ledger. It has386 full core groups with zero failures,14 focused groups and 76 installed CLI calls, including six concurrent publishers and two actual SIGKILL boundaries. Native/nearby regression proof and exact source scope are recorded there. This replaces the need to poll only latest state; it does not yet implement a condition consumer. Persistent baselines/cursors/working state, exact historical inventory/dataset adapters, atomic occurrences/outbox and causal loop/fan-out/backpressure bounds remain required before event execution. Dataset-only feed scopes cover membership/schema rather than claiming all row-value changes. Read-only delivery creates no grant.

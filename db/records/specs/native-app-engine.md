@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T11:06:54.177639+00:00
+updated: 2026-10-29T11:47:43.591547+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -709,3 +709,7 @@ Final 17 native registry/controller groups, six independent registration workers
 [[records/specs/condition-transitions]] defines the reviewed staged business-event integration and implements its first pure numeric preview. It passes 13 focused groups including 243 short truth trajectories, 31 installed native CLI cases and nearby 13 calendar/16 execution groups. Unknown is not false; it cannot reset a condition. Duplicate identity cannot rewind state; changed content refuses. Explicitly inert fixture output grants no authority and proves no real event coverage. Exact committed-event state/cursor/outbox, loop/backpressure and native/conversation authoring remain required E4 work.
 
 This checkpoint also repairs the registry creation race found by fab2a83 hosted CI, preserving the failed receipt. Final 18 registry/controller groups and five fresh starts/30 workers, strict seven-file Swift lint and native package/resource/refusal/signature gates pass. Schema21 and model/engine behavior are unchanged. The corrective head needs fresh CI; full release remains open.
+
+## Committed business-event foundation, October 29
+
+[[records/specs/business-events]] now implements schema22 semantic delivery within shared capture/apply, with exact versions, indexed bounded read pages and inert reconstruction. Final 386 full core groups with zero failures,14 focused groups, 76 installed CLI calls with six actual publishers/two actual SIGKILL boundaries, nearby owner/ProductAI/automation and native resource/refusal/signature checks pass. Persistent condition consumers, historical state, causality/backpressure and native/conversational event authoring remain required E4 work. The app remains a working development build.

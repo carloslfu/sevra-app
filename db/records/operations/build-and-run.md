@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T11:06:54.196071+00:00
+updated: 2026-10-29T11:47:43.611945+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1707,3 +1707,9 @@ This returns one transition candidate. Starting already below the threshold esta
 At most 100 observations and 64 KiB encoded observation input. IDs/scope are nonempty bounded strings; unknown reasons are bounded. Each inline/file JSON argument is limited to 64 KiB. @FILE reads require a regular file and refuse symlink/FIFO/directory substitutions. Output says fixture-observations, businessEvidence=false, enabled=false and execution=inert. Supplied IDs/order cannot prove that an actual business crossing occurred or that all events were observed.
 
 Focused verification: `.build/debug/sevra-checks --conditions` and `python3 scripts/check_condition_transitions.py --cli output/native/bin/sevra --output NEW_DIRECTORY`. The first passes 13 groups including 243 trajectories; the second passes 31 installed CLI cases. It uses synthetic inputs and no model/workbook. Real trigger delivery, durable cursors and native authoring remain open under [[records/specs/condition-transitions]].
+
+## Committed business-event inspection
+
+`business-batches WORKBOOK [AFTER_BATCH_ID|-] [LIMIT] [SCOPE_KIND SCOPE_KEY]` lists global or exact-scope semantic batches. `business-batch WORKBOOK BATCH_ID [AFTER_ORDINAL|-] [LIMIT]` pages every entry in one atomic batch. Use - for an absent cursor. Batch limits are 1 to 50; entry limits 1 to 100. Finish an entire batch before evaluating conditions or advancing consumer state. Position strings are lossless. Reads create no acknowledgements or authority. Exact scope meanings, tail/cursor coverage, 8 MiB and three-second query bounds and transient busy/cancellation behavior are in [[records/specs/business-events]]. Dataset scopes select membership/schema, while row-value versions are record-scoped.
+
+Run `.build/debug/sevra-checks --business-events` and `python3 scripts/check_business_events.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_JSON_PATH` for synthetic qualification. The installed script uses its own temporary fixtures, six concurrent CLI publishers and two actual process deaths. No model or automatic condition execution. Schema22 development files preserve/refuse unsupported versions without adapters or reset.

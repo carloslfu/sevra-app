@@ -6,6 +6,15 @@ extension Database {
   func visitCommittedChanges(
     cancellation: Cancellation = .init(), _ visit: (String, String) throws -> Void
   ) throws {
+    try visitCommittedEnvelopes(cancellation: cancellation) { _, payload, hash in
+      try visit(payload, hash)
+    }
+  }
+
+  func visitCommittedEnvelopes(
+    cancellation: Cancellation = .init(),
+    _ visit: (CommittedChange, String, String) throws -> Void
+  ) throws {
     var ordinal = String(Int64.min)
     var previousID: String?
     var previousHash: String?
@@ -39,7 +48,7 @@ extension Database {
       try require(
         saved.previousID == previousID && saved.previousHash == previousHash, "change_predecessor",
         "Missing or out-of-order saved change predecessor.")
-      try visit(payload, hash)
+      try visit(saved, payload, hash)
       previousID = saved.id
       previousHash = hash
       ordinal = row["ordinal"]!.text

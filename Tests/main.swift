@@ -7,6 +7,11 @@ import ZIPFoundation
 
 setbuf(stdout, nil)
 
+if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--business-death-worker" {
+  try businessEventDeathWorker(CommandLine.arguments[2], stage: CommandLine.arguments[3])
+  exit(0)
+}
+
 if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--history-fixture" {
   print(
     try createCLIHistoryFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
@@ -74,6 +79,11 @@ if CommandLine.arguments.dropFirst() == ["--schedules"] {
 }
 if CommandLine.arguments.dropFirst() == ["--conditions"] {
   checkConditionTransitions()
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--business-events"] {
+  checkBusinessEvents(at: temp)
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
@@ -980,6 +990,7 @@ checkWorkflowIntakes(at: temp)
 checkDefinitionResults(at: temp)
 checkWorkflows(at: temp)
 checkPersistence(at: temp)
+checkBusinessEvents(at: temp)
 checkSpaceEditing(at: temp)
 checkCalendarSchedules()
 checkConditionTransitions()

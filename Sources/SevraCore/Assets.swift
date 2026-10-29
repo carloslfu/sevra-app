@@ -231,7 +231,7 @@ extension Workbook {
         try require(
           try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
           "Invalid workbook references.")
-        try db.visitCommittedChanges { _, _ in }
+        try db.verifyBusinessEvents()
         var missing: [Value] = []
         for row in try db.execute("SELECT id,name FROM assets") {
           do { _ = try assetURL(row["id"]!.text, verify: true) } catch {

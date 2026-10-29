@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T10:46:56.431805+00:00
+updated: 2026-10-29T11:47:43.552025+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -404,3 +404,9 @@ Final359 full core/16 focused groups, synthetic lifecycle,2 actual SIGKILL dispa
 ## Device-local automation permission persistence
 
 The native owner's private registration is separate from canonical workbook capture and never travels in .sevra/.sevraz, reconstruction or Sources. Schema21 and its ledger are unchanged. Restoring a verified exact physical registration reuses the same authorization Source and generation; it creates no new authorization record. Registry removal and exact physical replacement fence already-restored workers at commit. Two actual SIGKILL barriers cover before/after atomic registry publication; six independent writers, exact stale-entry removal, corrupt/oversize/symlink refusal, copy/reconstruction and no-write idle/review are in the final 17-group synthetic controller/real-file pass. Cross-file atomicity is not claimed, and an error after rename is an uncertain durable outcome until reload. Full contract and evidence: [[records/specs/native-automation-owner]].
+
+## Schema22 semantic business-event capture
+
+business_batches and business_events now join the canonical capture/apply family. Exact batch/commit/actor/time and lossless semantic position, normalized stable entry identity, before/final immutable records, inventory bases and captured dataset membership/schema share one commit. Technical activity/drafts do not generate business batches. Replay applies saved rows inertly; ordinary verify additionally compares semantic entries to their original committed inputs. Effects have an exact-item lookup index. Existing Sources/Records and committed changes remain authority, without another independently written business ledger.
+
+Final 386 full core groups with zero failures,14 focused groups, 76 installed native CLI calls with six actual concurrent publishers/two actual SIGKILL boundaries, byte-preserved unsupported-format refusal, semantic tampering checks and reconstruction pass. Bounded reads include real exclusive-lock cancellation. Native package/resources/refusal/signature and strict 12-file Swift lint pass. Exact evidence and source/iteration limits: [[records/specs/business-events]]. Persistent condition consumers and causality controls remain open; no release or new model/hardware proof.

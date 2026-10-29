@@ -136,6 +136,7 @@ final class ChangeCapture {
       operationIDs.count <= 1, "change_transaction",
       "A transaction cannot contain independent operation receipts.")
     let changeID = operationIDs.first ?? identifier()
+    let recorded = timestamp()
     // Cursor clocks share the transaction and captured metadata. Agent journal,
     // context and conversation writes must not stale their own next read page.
     // These are invalidation tokens, not another business ledger or cache value.
@@ -159,6 +160,9 @@ final class ChangeCapture {
         "INSERT INTO meta VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
         [.string(key), .string(changeID)])
     }
+    // Classify the original mutation, before capturing the outbox itself.
+    try database.publishBusinessEvents(
+      pending!, commitID: changeID, recorded: recorded, actor: actor)
     if let failure { throw failure }
     guard let pending else {
       throw SevraError("change_capture", "The change transaction lost its rows.")
@@ -167,7 +171,7 @@ final class ChangeCapture {
       version: 1, storageVersion: Schema.version, id: changeID,
       workbookID: workbookID, previousID: prior?["id"]?.string,
       previousHash: prior?["hash"]?.string,
-      recorded: timestamp(), writerID: writerID, actor: actor, changes: pending)
+      recorded: recorded, writerID: writerID, actor: actor, changes: pending)
     let payload = try ChangeFormat.encode(change)
     publishing = true
     defer { publishing = false }
