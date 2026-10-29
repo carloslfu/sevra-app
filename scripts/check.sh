@@ -20,6 +20,8 @@ python3 scripts/check_automation_durability.py
 python3 scripts/check_automation_execution.py --cli "$BIN/sevra" --checks "$BIN/sevra-checks" --worker "$BIN/sevra-automation-durability"
 python3 scripts/check_condition_transitions.py --cli "$BIN/sevra"
 python3 scripts/check_business_events.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
+"$BIN/sevra-checks" --inventory-event-limit
+python3 scripts/check_inventory_event_state.py --cli "$BIN/sevra"
 python3 scripts/check_references.py --cli "$BIN/sevra"
 python3 scripts/check_extracted_references.py --cli "$BIN/sevra"
 python3 scripts/check_contextual_intake.py --cli "$BIN/sevra"

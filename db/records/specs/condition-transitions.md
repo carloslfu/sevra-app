@@ -2,7 +2,7 @@
 type: spec
 id: 01m63mskyw17ghqe41k3rhh631
 created: 2026-10-29T10:55:20.540673+00:00
-updated: 2026-10-29T11:47:43.572229+00:00
+updated: 2026-10-29T12:04:34.669040+00:00
 summary: Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.
 title: Condition transitions
 status: reviewed
@@ -68,3 +68,7 @@ A fresh native inventory still reports no apps and a locked Mac. Visible control
 ## Committed feed foundation, October 29
 
 [[records/specs/business-events]] now implements the schema22 semantic outbox and bounded inert delivery over the existing captured ledger. It has386 full core groups with zero failures,14 focused groups and 76 installed CLI calls, including six concurrent publishers and two actual SIGKILL boundaries. Native/nearby regression proof and exact source scope are recorded there. This replaces the need to poll only latest state; it does not yet implement a condition consumer. Persistent baselines/cursors/working state, exact historical inventory/dataset adapters, atomic occurrences/outbox and causal loop/fan-out/backpressure bounds remain required before event execution. Dataset-only feed scopes cover membership/schema rather than claiming all row-value changes. Read-only delivery creates no grant.
+
+## Exact inventory reconciliation foundation
+
+[[records/specs/inventory-event-state]] implements the first historical adapter: exact committed knowledge batch plus explicit effective-through time, retained basis and settled accepted actual effects, without a current-head shortcut. Final 11 focused groups, real 10,000-effect success/10,001-effect refusal, 14 feed regressions and 37 installed native CLI calls plus native packaging pass. It is read-only and creates no consumer state, occurrence or permission. Do not install it as a full-history scan on every poll. Persistent incremental working state/cursors, live effective-time policy, atomic decisions and persisted causality/backpressure remain required before dispatch. Dataset row-value coverage remains separately explicit.

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T11:47:43.611945+00:00
+updated: 2026-10-29T12:04:34.706757+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1713,3 +1713,9 @@ Focused verification: `.build/debug/sevra-checks --conditions` and `python3 scri
 `business-batches WORKBOOK [AFTER_BATCH_ID|-] [LIMIT] [SCOPE_KIND SCOPE_KEY]` lists global or exact-scope semantic batches. `business-batch WORKBOOK BATCH_ID [AFTER_ORDINAL|-] [LIMIT]` pages every entry in one atomic batch. Use - for an absent cursor. Batch limits are 1 to 50; entry limits 1 to 100. Finish an entire batch before evaluating conditions or advancing consumer state. Position strings are lossless. Reads create no acknowledgements or authority. Exact scope meanings, tail/cursor coverage, 8 MiB and three-second query bounds and transient busy/cancellation behavior are in [[records/specs/business-events]]. Dataset scopes select membership/schema, while row-value versions are record-scoped.
 
 Run `.build/debug/sevra-checks --business-events` and `python3 scripts/check_business_events.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_JSON_PATH` for synthetic qualification. The installed script uses its own temporary fixtures, six concurrent CLI publishers and two actual process deaths. No model or automatic condition execution. Schema22 development files preserve/refuse unsupported versions without adapters or reset.
+
+## Historical inventory inspection
+
+`inventory-at-batch WORKBOOK BATCH_ID SUBJECT EFFECTIVE_THROUGH` answers using the exact committed batch and mandatory explicit business date/time. Example: `sevra inventory-at-batch Shop.sevra BATCH_ID bolts 2026-10-29`. Obtain an exact batch ID through business-batches. The result retains basis and effect IDs, both coordinates and an inert label. Missing/removed/future bases are unknown with null quantity. Accepted estimates, other scenarios, drafts and fake movement labels do not affect actual stock. Future dates describe an explicit ledger projection.
+
+Run `.build/debug/sevra-checks --inventory-event-state`, `.build/debug/sevra-checks --inventory-event-limit` and `python3 scripts/check_inventory_event_state.py --cli output/native/bin/sevra --output NEW_JSON_PATH`. The separate scale group creates disposable real workbook history and checks all 10,000 effects plus explicit refusal at 10,001. No model or activation. See [[records/specs/inventory-event-state]] for limits, retained query failure/fix and qualification scope. This reconciliation oracle is not a live per-poll scheduler.

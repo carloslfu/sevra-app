@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T11:47:43.630302+00:00
+updated: 2026-10-29T12:04:34.744641+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -26,6 +26,7 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 ## Reading order
 
+- [[records/specs/inventory-event-state]]: exact batch/effective-time inventory reconciliation and remaining incremental condition state.
 - [[records/specs/business-events]]: schema22 committed semantic feed, indexed inert delivery, atomic batch/coverage limits and remaining condition consumers.
 - [[records/specs/condition-transitions]]: inert numeric condition preview and remaining real event/cursor/causality contract.
 - [[records/specs/native-automation-owner]]: current native schedule controls, device grants and active-app qualification limits.
@@ -91,3 +92,7 @@ The pure numeric preview now has 13 focused groups/243 truth trajectories, 31 in
 ## Committed business feed checkpoint
 
 The schema22 semantic outbox and bounded core/CLI delivery now have 386 full core groups with zero failures,14 focused groups and 76 installed native CLI calls, including six concurrent publishers and two actual SIGKILL boundaries. Nearby owner/ProductAI/automation and native packaging checks pass. All 140 prior artifacts remain unchanged. Exact proof, source scope and failed test iterations: [[records/specs/business-events]]. No condition execution is enabled. Persistent baselines/cursors, event-time state, causality/backpressure, native/conversational triggers, full background/Excel/visible/hardware/release qualification remain open. A fresh app inventory still reports the Mac locked.
+
+## Historical inventory qualification
+
+The exact retained-batch inventory oracle now passes 11 focused groups, a real 10,000-effect success/10,001-effect refusal, 14 feed regressions, 37 installed native CLI calls and fresh native resource/refusal/signature plus strict Swift checks. It distinguishes committed knowledge from explicit effective time, preserves earlier answers and remains read-only. Its first scale deadline failure and SQL correction are retained. All 141 prior artifacts remain unchanged. Full evidence: [[records/specs/inventory-event-state]]. Persistent condition consumers/cursors, causality/backpressure, native/conversational triggers and full release qualification remain open.

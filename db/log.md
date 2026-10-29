@@ -1099,3 +1099,12 @@ Schema22 business_batches/business_events join complete capture/apply. Atomic pu
 ## [2026-10-29 11:46] verification | records/specs/business-events.md
 Final386 full core/0,14 focused,76 installed native CLI calls including6 concurrent publishers/2 SIGKILL boundaries, owner18/ProductAI lifecycle/44 automation calls, strict12 Swift and native resource/missing10/altered refusal/signature pass. V8 only test-label delta; failed iterations retained. Artifact102021bytes SHAace21c59cf049e5770858e2f1742793f33dd48688ad2343abe6dba9701bfe61d;140 prior artifacts unchanged. Mac locked; own CI/condition consumers/full release open.
 
+## [2026-10-29 12:04] design | records/specs/inventory-event-state.md
+Reviewed exact historical inventory in meaning, history and scale passes: explicit knowledge/effective cutoffs, unknown basis, actual-only settled effects, immutable lineage, bounded reconciliation and no per-poll history scan or execution authority.
+
+## [2026-10-29 12:04] implementation | records/specs/inventory-event-state.md
+Schema22 read-only inventoryAtBusinessBatch and installed inventory-at-batch CLI resolve retained bases/settled effects with exact contribution IDs, strict Decimal addition and bounded output/time. Fixed subject-first exact joins avoid the observed scale timeout. No model/schema/authority change.
+
+## [2026-10-29 12:04] verification | records/specs/inventory-event-state.md
+Final11 focused groups, real10000 success/10001 refusal,14 feed regressions,37 installed native CLI calls, strict5 Swift files and native resource/missing10/altered refusal/signature pass. V2 deadline/V3 profile retained. Artifact38331bytes SHAc4f9cc2540c91ed557fa1e4027cae9f3a6ebd6572c07a64eaab223ad36de92aa;141 prior artifacts unchanged. Prior386 full core retains scope. CI8634c6c still running; adapter needsCI. Goal/release unfinished.
+

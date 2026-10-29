@@ -99,6 +99,12 @@ import SevraProduct
     if ["business-batches", "business-batch"].contains(command) {
       return try runBusinessFeed(args, book: book, cancellation: cancellation)
     }
+    if command == "inventory-at-batch" {
+      try require(
+        args.count == 5, "usage", "inventory-at-batch WORKBOOK BATCH_ID SUBJECT EFFECTIVE_THROUGH")
+      return try book.inventoryAtBusinessBatch(
+        args[2], subject: args[3], effectiveThrough: args[4], cancellation: cancellation)
+    }
     if command == "automation-run-once" {
       return try await runAutomationOnce(args, book: book, cancellation: cancellation)
     }
@@ -721,6 +727,7 @@ import SevraProduct
     commits WORKBOOK [LIMIT] | reconstruct WORKBOOK NEW_WORKBOOK
     business-batches WORKBOOK [AFTER_BATCH_ID|-] [LIMIT] [SCOPE_KIND SCOPE_KEY]
     business-batch WORKBOOK BATCH_ID [AFTER_ORDINAL|-] [LIMIT]
+    inventory-at-batch WORKBOOK BATCH_ID SUBJECT EFFECTIVE_THROUGH
     table-schema WORKBOOK DATASET_ID
     table-schema-history WORKBOOK DATASET_ID [BEFORE_VERSION]
     table-edit-schema WORKBOOK DATASET_ID BASE_VERSION BASE_DEFINITION_ID OPTIONS_JSON TOKEN

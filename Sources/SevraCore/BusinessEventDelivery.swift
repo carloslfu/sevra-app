@@ -88,7 +88,7 @@ extension Workbook {
     }
   }
 
-  private func readBusinessFeed<T>(cancellation: Cancellation, _ body: () throws -> T) throws -> T {
+  func readBusinessFeed<T>(cancellation: Cancellation, _ body: () throws -> T) throws -> T {
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
     return try synchronized(cancellation: control) {
       try db.shortWait {
@@ -115,7 +115,7 @@ extension Workbook {
     else { return .null }
     return .object(row)
   }
-  private func businessBatchMetadata(_ id: String) throws -> Value {
+  func businessBatchMetadata(_ id: String) throws -> Value {
     guard
       let row = try db.execute(
         "SELECT id,CAST(position AS TEXT) AS position,recorded,actor,policy,(SELECT count(*) FROM business_events e WHERE e.batch_id=b.id) AS event_count FROM business_batches b WHERE id=?",
@@ -128,7 +128,7 @@ extension Workbook {
       "eventCount": row["event_count"]!, "atomic": .bool(true),
     ])
   }
-  private func boundedBusinessOutput(_ result: Value) throws {
+  func boundedBusinessOutput(_ result: Value) throws {
     try require(
       try result.json().utf8.count <= 8_388_608, "business_limit",
       "Business output exceeds 8 MiB. Read fewer entries; the cursor has not advanced.")

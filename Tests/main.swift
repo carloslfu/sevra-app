@@ -87,6 +87,16 @@ if CommandLine.arguments.dropFirst() == ["--business-events"] {
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
+if CommandLine.arguments.dropFirst() == ["--inventory-event-state"] {
+  checkInventoryEventState(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--inventory-event-limit"] {
+  checkInventoryEventLimit(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.dropFirst() == ["--automations"] {
   checkAutomationDefinitions(at: temp)
   print("\(passed) passed; \(failed) failed")
@@ -991,6 +1001,7 @@ checkDefinitionResults(at: temp)
 checkWorkflows(at: temp)
 checkPersistence(at: temp)
 checkBusinessEvents(at: temp)
+checkInventoryEventState(at: temp)
 checkSpaceEditing(at: temp)
 checkCalendarSchedules()
 checkConditionTransitions()

@@ -2,7 +2,7 @@
 type: spec
 id: 01m63pbtkqgpmeas26bahejmj0
 created: 2026-10-29T11:22:45.751359+00:00
-updated: 2026-10-29T11:47:43.505031+00:00
+updated: 2026-10-29T12:04:34.686918+00:00
 summary: 'Reviewed schema22 semantic outbox over captured history: atomic settled versions, inventory basis and dataset membership/schema events, bounded indexed delivery and no execution authority.'
 title: Committed business-event delivery
 status: implemented
@@ -78,3 +78,7 @@ Retained iterations include the V1 throwing-expression compile error, V3 worker 
 Evidence: [business-event delivery receipt](../../../integration/evidence/2026-10-29-business-event-delivery.json.gz), 102021 bytes, SHA-256 ace21c59cf049e5770858e2f1742793f33dd48688ad2343abe6dba9701bfe61d. All 140 prior artifacts remain byte-identical.
 
 This completes the semantic feed slice, not E4 or the app. Persistent condition baselines/cursors/working state, exact event-time evaluation, atomic occurrences/outbox, causal ancestry and restart-safe self-loop/cascade/fan-out/backpressure bounds remain next. Native/conversation trigger authoring, complete background/closed-window/resource lifecycle, E5/E6, full E3 recovery/abuse/richer-graph journeys, contextual/Excel continuity, complete E0/E1/E2 journeys and release gates remain open. A fresh native app inventory still reports the Mac locked; latest visible controls/voice/accessibility/appearance/media remain unverified. Goal and release are unfinished.
+
+## Historical inventory adapter
+
+[[records/specs/inventory-event-state]] now consumes exact retained batch cutoffs for bounded inventory reconciliation, preserving earlier settled versions after later corrections/withdrawals and keeping effective dates explicit. It passes 11 focused groups, the real 10,000/10,001-effect boundary, 14 feed regressions and 37 installed native CLI calls, with fresh native resource/refusal/signature proof. A scale timeout and its measured query correction are preserved. Feed storage/schema22 is unchanged. This adapter adds no persistent consumer, condition occurrence, live clock policy or execution authority.
