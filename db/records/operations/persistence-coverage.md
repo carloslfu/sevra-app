@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T04:06:11.351980+00:00
+updated: 2026-10-29T04:34:25.358483+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -351,3 +351,8 @@ workflow_extraction_request captures exact included business item/asset/hash, de
 
 ## Conversation preparation and real SQLite failure checks
 Extraction authoring/templates use the same immutable application Sources, exact current-request lineage, saved receipts and committed-change ledger. Queueing remains inert. Final actual-model original/reconstructed packages verify with no business Records and unchanged retained file text. Actual SQLITE_FULL from a bounded max_page_count and SQLITE_BUSY from a second writer refuse preparation publication without changing index/reference/revision. Clearing the condition permits exact retained-result retry; no re-parsing or duplicate checkpoint is needed. Whole-volume filesystem exhaustion remains a separate release test. No new ledger or schema change beyond17. See [[records/specs/manual-workflows]].
+
+## Registered document action capture, schema17
+Registered records.draftDocument adds no canonical table family or alternate ledger. Existing application definitions, invocation Sources, document Records, lineage, chunks/reference indexes, workflow steps/attempts/approvals/outbox and operation receipts use the same captured mutation and inert reconstruction. Review accepts an unchanged direct successor with preserved meaning/scenario and authentic acceptance decision provenance. Accepted report estimates have no inventory effect.
+
+The [registered document receipt](../../../integration/evidence/2026-10-28-registered-documents.json.gz) preserves 278 passing core groups, 15 process-death boundaries/116 worker calls, native form receipt recovery and a 37-call actual packaged-model receiving/report flow. The final run has six completed steps, separate report/inventory review, report estimate preserved, stock 25 only after stock acceptance and inert original/reconstructed integrity. This is scoped local persistence proof, not cloud sync, all FJ/EJ journeys or production readiness. Structured intake must inherit the capture and retained-plan requirements in [[records/specs/manual-workflows]] before new state is implemented.

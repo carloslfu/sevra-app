@@ -976,3 +976,6 @@ Conversation preparation qualified with preserved actual-model failures: final a
 ## [2026-10-29 04:28] implementation | records/specs/manual-workflows.md
 Registered report drafts share native forms/CLI/workflows and exact review.278 core,15 SIGKILL boundaries, final whole shared/native/grammar checks and a37-call actual receiving/report/reconstruction job pass. Full E3 and release remain open.
 
+## [2026-10-29 04:33] design | records/specs/manual-workflows.md
+Reviewed next CSV/TSV workflow intake from usefulness, correctness and adversarial angles. Identified parsing/write-lock, workflow revision and table acceptance data-enrichment constraints; no intake execution implementation claim. Added document capture coverage.
+
