@@ -3,6 +3,7 @@ import Foundation
 @testable import SevraCore
 
 func checkWorkflowTools(at root: URL) {
+  checkWorkflowIntakeTools(at: root)
   func fixture(_ name: String) throws -> (Workbook, AgentRequest, Item, WorkbookTools, Value) {
     let book = try Workbook.create(
       at: root.appendingPathComponent("WorkflowTools-" + name + ".sevra"), title: name)

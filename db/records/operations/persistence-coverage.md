@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T05:04:27.467641+00:00
+updated: 2026-10-29T05:32:59.517512+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -362,3 +362,7 @@ The [registered document receipt](../../../integration/evidence/2026-10-28-regis
 Schema18 extends only the existing definition/step kind constraints; no independent ordinary-table family or ledger. Exact intake definitions/dependencies and workflow_intake_request use captured application/operation state. The host retains request identity, actual read revision, original/hash, schema/mapping, parser/helper digest and limits. Complete mapped values and source coordinates live in the existing table-intake-update Record. Its proposal, lineage, small digest/count checkpoint, approval, attempt, receipt and outbox publish together. A final lease/cancellation fence covers capture through COMMIT.
 
 Canonical acceptance atomically records row versions/membership/fingerprint plus its exact operation/decision identity. Workflow review checks the unchanged original plan and authentic acceptance receipt; it cannot accept edited/copied-looking/undone alternatives. Assets remain outside SQLite. Existing schema reconstruction recreates constraints and all retained records/definitions without parsing, model calls or row execution. Full 289 core, 21 SIGKILL boundaries/189 worker calls, real SQLite BUSY/FULL/child-lock cancellation checks and final actual-model original/reconstructed integrity pass. This is scoped local proof, not all FJ/EJ journeys or sync semantics. See [[records/specs/manual-workflows]] and the final intake receipt linked there.
+
+## Conversation intake metadata, October 29
+
+This slice adds no durable family or independent ledger. Intake definitions, exact workflow/template copies, request Sources, model/tool receipts and queued runs use existing captured changes. Two focused tests cover current-request lineage, idempotent saves, forged/stale/read-only refusal and inert reconstruction. The actual model saves only behavior/queue metadata; row versions, business Records, stock and extraction remain unchanged. The prior schema18 parsing/publication/acceptance crash proof is unchanged and reused. Details and evidence: [[records/specs/manual-workflows]].

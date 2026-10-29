@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T05:04:27.483429+00:00
+updated: 2026-10-29T05:32:59.547524+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1622,4 +1622,8 @@ Build sevra-checks and run .build/debug/sevra-checks --workflow-intake for 21 fo
 
 After bash scripts/build_native.sh, run python3 scripts/check_workflow_intake.py --cli output/native/bin/sevra --model-root MODELS_ROOT --output NEW_DIRECTORY for the synthetic six-step preparation/interpretation/intake/review/report/review job. MODELS_ROOT is the installed native model layout. Output must not exist. Omit --model-root for the deterministic form/intake/review/reconstruction path with no inference. Explicit synthetic reviews occur only in the synthetic fixture. Do not point qualification scripts at user workbooks. The CLI script contains a full valid metadata example; intake-schema details are in [[records/specs/application-definitions]].
 
-The final actual qualification is .build/workflow-intake-native-model-v2, 38 independent CLI calls, with no expected-quantity example in its instruction. V1 remains preserved. Source and CLI identities are captured before inference. Final shared checks are intake-v8, frozen native release intake-v9 and package paths checks intake-v10. Evidence and remaining release limits are in [[records/specs/manual-workflows]]. The in-app conversation authoring boundary stays closed for intake; use the explicit CLI definition contract until qualified. These are functional/ownership checks, not a speed or full Excel-support claim.
+The final actual qualification is .build/workflow-intake-native-model-v2, 38 independent CLI calls, with no expected-quantity example in its instruction. V1 remains preserved. Source and CLI identities are captured before inference. Final shared checks are intake-v8, frozen native release intake-v9 and package paths checks intake-v10. Evidence and remaining release limits are in [[records/specs/manual-workflows]]. Conversation intake authoring now has the separate scoped qualification below; its saving/queueing still cannot execute or accept rows. These are functional/ownership checks, not a speed or full Excel-support claim.
+
+## Conversation intake authoring check
+
+Build sevra-agent-checks and run .build/debug/sevra-agent-checks --intake-authoring MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY. Use installed native model layout. The four actual-model jobs save exact CSV/TSV mapping, compose its exact mandatory-review workflow, queue an included file without executing it, and clarify missing intent under an explicit ask-before-save restriction. The probe verifies unchanged business rows/stock/extraction, exact definition/mapping/inputs, one pending run and inert reconstruction. It retains before-inference identities, exact messages, metrics and failures. Never use user workbooks for qualification. Do not package output/native while this runner uses that runtime. Final evidence and scoped limits are in [[records/specs/manual-workflows]].

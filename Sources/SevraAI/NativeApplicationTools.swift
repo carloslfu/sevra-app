@@ -13,9 +13,12 @@ extension NativeTools {
           "kind": .object([
             "type": .string("string"),
             "enum": .array(
-              ["function", "query", "action", "form", "workflow", "interpretation", "extraction"]
-                .map(
-                  Value.string)),
+              [
+                "function", "query", "action", "form", "workflow", "interpretation", "extraction",
+                "intake",
+              ]
+              .map(
+                Value.string)),
           ]),
           "historical": .object(["type": .string("boolean")]),
           "cursor": schema("string", "nextCursor; retain filters."),
@@ -28,7 +31,7 @@ extension NativeTools {
     .init(
       name: "definition_registry",
       description:
-        "Native primitives/formats; no execution.",
+        "Behavior formats.",
       parameters: object([:], required: [])),
     .init(
       name: "receiving_template",
@@ -38,7 +41,7 @@ extension NativeTools {
     .init(
       name: "form_template",
       description:
-        "Form template; copy with save_template.",
+        "Form template.",
       parameters: object(
         ["id": schema("string", "Current action/workflow version.")], required: ["id"])),
     .init(
@@ -83,7 +86,7 @@ extension NativeTools {
     .init(
       name: "save_definition",
       description:
-        "Save behavior; inspect definition_registry. New: omit edit base. Templates: save_template.",
+        "Read definition_registry first. New omits edit base.",
       parameters: object(
         [
           "expectedDefinitionID": schema(
@@ -91,10 +94,14 @@ extension NativeTools {
           "content": .object([
             "type": .string("object"),
             "description": .string(
-              "Typed formats: definition_registry."
+              "Registry format; required is Boolean."
             ),
           ]),
-          "inputs": evidenceList,
+          "inputs": .object([
+            "type": .string("array"), "items": .object(["type": .string("string")]),
+            "description": .string(
+              "Optional evidence item IDs, not parameter names. Omit for this request."),
+          ]),
         ], required: ["content"])),
     .init(
       name: "save_template",

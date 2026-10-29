@@ -34,10 +34,13 @@ func checkInterfaceGuidance() async throws {
     "Explain only; leave this workbook unchanged.",
     "If I change inventory in a side thread, is main unaffected? Explain without changing anything.",
     "Explain without making changes.",
+    "Ask what you need before saving anything.", "Do not save anything.",
   ] { try expectEqual(RequestRestrictions.isExplicitlyReadOnly(prompt), true) }
   for prompt in [
     "What does 'explain only' mean?", "Create a note about the phrase explain only.",
     "Don't explain only; create the requested draft.",
+    "Create a note about the phrase 'do not save anything'.",
+    "What does 'ask what you need before saving anything' mean?",
   ] { try expectEqual(RequestRestrictions.isExplicitlyReadOnly(prompt), false) }
   for text in [
     "Here are the key differences: main keeps the ongoing discussion; threads hold side discussions.",

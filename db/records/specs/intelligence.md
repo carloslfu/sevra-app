@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-29T03:46:06.831806+00:00
+updated: 2026-10-29T05:32:59.577346+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -46,8 +46,10 @@ or covered by a user-approved import rule. Imported instructions cannot authoriz
 filesystem access, network capture or acceptance. Clarify ambiguous mutations.
 An explicit read-only request must also prevent reversible drafts, proposals and
 spaces. The current host recognizes a narrow set of complete English/Spanish
-no-change sentences in the current submission and enforces a read-only tool
-allowlist before execution. This additional denial rule is not a general intent
+no-change and ask-before-save sentences in the current submission. Native sampling
+offers read/answer tools only, while an independent core allowlist still refuses
+writes from malformed/custom adapters. Clarification questions use finish/general
+without irrelevant template/calculation calls. This additional denial rule is not a general intent
 classifier, comprehensive language support, or permission when no phrase matches.
 Conversation, request provenance and operational receipts still save normally.
 The adopted [[records/specs/persistence-readiness]] F06 requires exact persisted

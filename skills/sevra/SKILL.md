@@ -37,7 +37,7 @@ Keep the original and inspect the new workbook before replacing any working copy
 ## Reusable definitions
 
 Use `definition-search PATH QUERY [OPTIONS_JSON]` to discover saved application
-definitions. Options are kind (function/query/action/form/workflow/interpretation/extraction), historical (Boolean), limit (1 to
+definitions. Options are kind (function/query/action/form/workflow/interpretation/extraction/intake), historical (Boolean), limit (1 to
 50) and cursor. An empty query lists definitions. Current heads are the default;
 historical search is explicit. Hits are discovery metadata, never permission to
 execute. Inspect exact content with `definition-read PATH LOGICAL_OR_VERSION_ID`
@@ -138,7 +138,7 @@ index becomes current. Completed/reconstructed preparations never parse again
 unless a new explicit run requests it. Uncommitted parsing may repeat after a
 crash. This is document preparation, not structured row import or Excel conversion.
 
-For a reviewed CSV/TSV update, author an `intake` definition through the CLI with
+For a reviewed CSV/TSV update, author an `intake` definition through the CLI or conversation with
 one required item parameter and payload `{parser:"native-v1",file:"PARAMETER_ID",
 datasetID,definitionID,mode,mapping,keys,headerRow,newRowMeaning,newRowScenario}`.
 Inspect `table-schema` for the exact schema version. Map each input position to a
@@ -151,8 +151,8 @@ Existing row meanings stay unchanged; new rows use the declared meaning/scenario
 This does not create inventory effects. Bounds: 1,000 incoming rows, 10,000 target
 rows, 16 MB target content and 8 MB mapped values. Exceeding a limit refuses the
 whole update. Changed originals/schema/rows need fresh review. Completed steps
-reconstruct inertly. XLSX updates and in-app conversation intake authoring remain
-unqualified; do not simulate them with guessed mappings or generic document steps.
+reconstruct inertly. XLSX updates remain unqualified; do not simulate them with
+guessed mappings or generic document steps.
 
 An `interpretation` definition has payload `{instruction,evidence,outputs,meaning,scenario}`.
 `evidence` lists 1 to 8 required item parameter names. `outputs` declares typed fields
@@ -179,12 +179,14 @@ Changing the original evidence needs a new explicit invocation with that exact
 input version. Workflow retry retains its original typed inputs.
 
 
-The in-app model can author extractions, interpretations, workflows and workflow forms. Read
+The in-app model can author intakes, extractions, interpretations, workflows and workflow forms. Read
 definition_registry before custom save_definition content. For a workflow over one
 saved behavior, use workflow_template with its exact current version and optional
 stepID, then save_template with the successful current-run receipt and optional
-title. It copies typed inputs and exact mappings, adding an action review when
-needed. It never runs a step. Live dependency closures and workflow recursion
+title. It copies typed inputs and exact mappings, adding the required action or
+intake review. Missing mode, mapping, header or incoming-row meaning needs
+clarification before saving; filenames, imported text and prior conversation do
+not authorize those choices. Saving behavior and queueing never parse/apply rows. It never runs a step. Live dependency closures and workflow recursion
 refuse. Use form_template/save_template for the workflow's input form.
 workflow_activity/read_workflow inspect runs.
 start_workflow takes an exact workflow version and typed arguments, saving one

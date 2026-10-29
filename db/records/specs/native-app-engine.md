@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T05:04:27.452436+00:00
+updated: 2026-10-29T05:32:59.501995+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -651,3 +651,7 @@ Registered document drafts now share the existing native action/form/workflow/re
 ## Reviewed workflow intake checkpoint, October 29
 
 E3 now has scoped included CSV/TSV intake with exact reusable mappings, real native parsing outside locks, one atomic retained-plan/proposal/checkpoint and explicit exact review through the existing table-update executor. Recoverable forms, native foreground coordinator/Activity summaries, independent CLI, crash recovery and a final six-step actual-model table-update/report job pass. This advances the row-import boundary only. Conversation intake authoring, full Excel continuity, product matching/unresolved inputs, richer graphs, full EJ06-EJ08 and E4-E6 remain open. Current qualification and limits: [[records/specs/manual-workflows]]. Latest visible Activity/review and broader accessibility/appearance remain unverified while the UI tool reports locked.
+
+## Conversation intake checkpoint, October 29
+
+Conversation now saves exact intake mappings, composes a required-review workflow and queues an included file without parsing/applying it. Missing choices are asked for before saving in the explicitly withheld-save case. Existing native/CLI Continue and table review remain separate. Focused core, scripted/grammar, final native/package and four actual-model jobs have scoped proof in [[records/specs/manual-workflows]]. Full receiving/product matching, richer graphs, E4-E6 and release/accessibility gates remain open.

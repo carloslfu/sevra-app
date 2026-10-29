@@ -985,3 +985,12 @@ Schema18 reviewed CSV/TSV workflow intake shares captured plans and exact table 
 ## [2026-10-29 05:04] verification | records/specs/manual-workflows.md
 Final intake model V2 passes38 independent CLI calls without expected-quantity prompt hint. Full shared V8, frozen native V9, package V10,21-file strict Swift lint and skill validation pass. Final store/link/diff gates recorded; visible UI and full release remain open.
 
+## [2026-10-29 05:06] design | records/specs/manual-workflows.md
+Reviewed next conversation intake slice: existing metadata tools, exact mapping/schema/meaning, mandatory review templates and inert queue; no new executor/tool or widened model budgets. Execution remains unqualified until scoped tests pass.
+
+## [2026-10-29 05:32] implementation | records/specs/manual-workflows.md
+Conversation intake exact mapping, mandatory-review template and inert queue qualify in 53 focused groups, 64 grammars/542 masks and four actual-model jobs. Read-only sampling/clarification failures repaired and retained. Full E3 and release remain open.
+
+## [2026-10-29 05:33] verification | records/specs/manual-workflows.md
+Conversation intake V3 completes author/template/inert queue/explicit clarification in 7/4/4/4 calls. Focused workflows 53/0, scripted agent and 64 grammars/542 masks at 8171/8192, final frozen native build, packaged 31-call deterministic intake, resource/signature checks, strict 11-file lint, skill, links and all-store zero errors/warnings pass. Prior 125 evidence files unchanged; full E3/release remain open.
+

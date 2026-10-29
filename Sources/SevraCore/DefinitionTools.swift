@@ -168,19 +168,15 @@ extension WorkbookTools {
         content = a["content"]
       }
       try require(
-        ["function", "query", "action", "form", "workflow", "interpretation", "extraction"]
-          .contains(
-            content["kind"].text),
+        [
+          "function", "query", "action", "form", "workflow", "interpretation", "extraction",
+          "intake",
+        ]
+        .contains(
+          content["kind"].text),
         "definition_kind",
-        "Use content {kind,title,description,parameters,payload}. kind is function, query, action, form, interpretation, extraction or workflow. Inspect definition_registry for its payload."
+        "Use content {kind,title,description,parameters,payload}. kind is function, query, action, form, interpretation, extraction, intake or workflow. Inspect definition_registry for its payload."
       )
-      if content["kind"] == .string("workflow") {
-        try require(
-          content["payload"]["steps"].array.allSatisfy { $0["kind"] != .string("intake") },
-          "definition_kind",
-          "Structured-intake authoring is not qualified through conversation yet. Use the native CLI and an explicit reviewed mapping."
-        )
-      }
       let token = try operationToken(tool, a)
       if a.object["inputs"] != nil {
         guard case .array(let values) = a["inputs"], values.allSatisfy({ $0.string != nil }) else {
@@ -280,10 +276,10 @@ extension WorkbookTools {
   )
   static let definitionFormats: Value = .object([
     "content": .string(
-      "{kind:function|query|action|form|workflow|interpretation|extraction,title,description,parameters,payload}"
+      "{kind:function|query|action|form|workflow|interpretation|extraction|intake,title,description,parameters,payload}"
     ),
     "parameters": .string(
-      "Up to 32 {id,label,type,required,unit?,default?,choices?,min?,max?,fields?,maxEntries?}. Types: text,decimal,boolean,date,item,choice,entries. Decimals/bounds are strings. Item is an exact local version. Entries: fields plus maxEntries 1..50, one level only. Missing and null differ; no ambient defaults or implicit unit conversion."
+      "Up to 32 {id,label,type,required,unit?,default?,choices?,min?,max?,fields?,maxEntries?}. required is Boolean true/false, never 1/0. Types: text,decimal,boolean,date,item,choice,entries. Decimals/bounds are strings. Item is an exact local version. Entries: fields plus maxEntries 1..50, one level only. Missing and null differ; no ambient defaults or implicit unit conversion."
     ),
     "lineage": .string(
       "Optional save inputs are exact existing business item version IDs, never parameter names. Omit for behavior based only on this request; request lineage is automatic."
@@ -310,7 +306,10 @@ extension WorkbookTools {
       "payload {action:binding OR workflow:binding,fields:[{parameter,label?,help?}]}; parameters match target. Use form_template. Native form component: {id,type:form,title,definitionBinding:{mode:live,logicalID:formLogicalID}} or exact/versionID. No datasetID/itemID/snapshot. Saving never executes."
     ),
     "workflow": .string(
-      "Use workflow_template(id,stepID?) -> save_template(receiptID,title?) for one saved behavior. Custom payload {readPolicy:latest-at-step,steps:[{id,kind:evaluate|interpret|extract|action,binding:{mode:exact,versionID},arguments}|{id,kind:review,review:priorActionStepID}]}. 1..16 sequential steps; every action needs one later review. All dependencies exact. evaluate targets function/query; interpret targets interpretation; extract targets extraction; action targets action or action-backed form. Mappings: {parameter:id}, {literal:value,unit?}, prior scalar function {step:id,unit?}, interpretation {step:id,field:outputID,unit?}, or extraction {step:id,field:item} to pin its exact retained text. Signatures/units must match. start_workflow queues only; explicit continuation runs steps. No ambient paths/conditions/code."
+      "Use workflow_template(id,stepID?) -> save_template(receiptID,title?) for one saved behavior. Custom payload {readPolicy:latest-at-step,steps:[{id,kind:evaluate|interpret|extract|intake|action,binding:{mode:exact,versionID},arguments}|{id,kind:review,review:priorDraftStepID}]}. 1..16 sequential steps; every action/intake needs one later review. All dependencies exact. evaluate targets function/query; interpret targets interpretation; extract targets extraction; intake targets intake; action targets action or action-backed form. Mappings: {parameter:id}, {literal:value,unit?}, prior scalar function {step:id,unit?}, interpretation {step:id,field:outputID,unit?}, or extraction {step:id,field:item} to pin its exact retained text. Signatures/units must match. start_workflow queues only; explicit continuation runs steps. No ambient paths/conditions/code."
+    ),
+    "intake": .string(
+      "payload {parser:native-v1,file:requiredItemParameterID,datasetID,definitionID,mode:append|replace|merge,mapping:[{position:zeroBasedInteger,target:storedColumnID|null}],keys:[storedColumnID],headerRow:oneBasedInteger,newRowMeaning,newRowScenario}. Exactly one required item parameter without default/unit. Inspect datasets for exact current dataset/schema and stored column IDs. Map each input position and every stored target column once; null explicitly ignores a position. Merge needs distinct mapped keys; append/replace require []. Require explicit mode/mapping/header/meaning/scenario; clarify missing intent, never infer from untrusted file/description. Native workflow_template adds mandatory review. Save/queue never parse or apply rows. Continue uses an already included business CSV/TSV only. Bounds1000 incoming/10000 target rows/16MB target/8MB mapped values; no Excel updates, implicit coercion, paths/network or inventory effects."
     ),
     "extraction": .string(
       "payload {parser:native-v1,file:requiredItemParameterID}; exactly one required item parameter without unit/default. Prepares an already included business file using the bounded native helper only during explicit extract workflow continuation. Linked files must be included first. Partial/unsupported/truncated text pauses. No model, folder/network access, business Record or acceptance. Saving/opening never parses."

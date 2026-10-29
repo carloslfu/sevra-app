@@ -9,6 +9,8 @@ package enum RequestRestrictions {
       "make no changes", "do not change anything", "do not change the workbook",
       "do not make any changes", "don't make any changes", "do not make changes",
       "don't make changes",
+      "do not save anything", "don't save anything", "ask before saving anything",
+      "ask me before saving anything", "ask what you need before saving anything",
       "explain only", "explain without changing anything", "explain without making changes",
       "leave this workbook unchanged", "leave the workbook unchanged",
       "don't change anything", "don't change the workbook", "no changes",

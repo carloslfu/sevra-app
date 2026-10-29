@@ -68,7 +68,7 @@ private actor ScriptedInference: WorkbookInference {
           ])
       }
       try expectEqual(responses, initialBasis == "evidence" ? 3 : 2)
-      try expectEqual(toolScope, .all)
+      try expectEqual(toolScope, .answer)
       if initialBasis != "evidence" {
         try expectEqual(messages.last!.content.contains("error"), true)
       }
@@ -76,6 +76,7 @@ private actor ScriptedInference: WorkbookInference {
     if fail { throw SevraError("fixture_failure", "Synthetic failure") }
     if cancelAfterResponse { cancellation.cancel() }
     if violateReadOnly {
+      try expectEqual(toolScope, .answer)
       if responses == 1 {
         return NativeReply(
           text: "",

@@ -311,6 +311,10 @@ do {
     try await runWorkflowToolProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--intake-authoring" {
+    try await runIntakeAuthoringProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--application-tools" {
     try await runApplicationToolProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
