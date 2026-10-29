@@ -2,7 +2,7 @@
 type: spec
 id: 01m62fhep3b8sz1bjdqwf4p8nf
 created: 2026-10-29T00:04:15.683210+00:00
-updated: 2026-10-29T08:00:09.120074+00:00
+updated: 2026-10-29T08:06:44.191277+00:00
 summary: Manual durable workflow contract and scoped implementation sequence; full E3 remains open.
 title: Manual durable workflows
 status: reviewed
@@ -404,3 +404,9 @@ Final frozen V3 passes66 focused workflow groups/0, all headless native preview 
 The model's preparation reason now says paused, and the read-only answer describes needs_input/pending steps without saying failed. Both original runs remain unchanged at stock20. This fixes the observed wording in these two synthetic cases, not broad model accuracy. Core counterexamples cover wrong conversation/instance/inert copy, quoted/negated/yes, intervening messages, changed inputs, cancellation at publication, SQLite outbox rollback, exact receipt recovery and inert integrity. V1's nonexistent test Database.exec call was corrected to execute; retained diagnostics remain visible.
 
 Evidence: [conversation confirmation receipt](../../../integration/evidence/2026-10-29-conversation-answer-confirmation.json.gz),62533bytes, SHA-256 300010004b9e78646e09623b937887b9614fcab93b1cf24ba369034a294b85c5. All131 previous evidence artifacts remain byte-identical. Exact5fe51e1 hosted CI completed successfully; later exact commits are dispatched separately. Actual native text/dictation/VoiceOver and light/dark/narrow checks remain unverified because the native UI tool still reports locked. Full E3 receiving/failure/abuse journeys and richer graphs, E4-E6, Excel continuity, supported hardware, production engine/performance, signing/notarization and distribution remain open. The app and active goal are unfinished.
+
+## Cross-run receiving qualification, October 29
+
+A focused cross-run receiving journey now proves the explicit EJ06/E20 occurrence boundary: stock20 becomes26 after review, stays26 when a new Source/run repeats the same fulfillment, and becomes32 only after a separate Source and genuine independent occurrence is reviewed. Cancelling the first run after acceptance preserves its completed prefix and accepted effect. Inert reconstruction retains cancelled, needs_attention and completed run outcomes and stock32. The duplicate refusal does not erase the new supporting Source. This does not infer business occurrence identity from file similarity; explicit domain identity remains required.
+
+Final test-only V2 passes67 focused workflow groups/0 and strict one-file Swift lint. V1 incorrectly counted historical effect rows as live effects; V2 checks the accepted balance projection. Production source/validation is unchanged; final native/session/model/package proof from the conversation-confirmation checkpoint is reused. No new model, native build or process-death matrix. Evidence: [receiving occurrence receipt](../../../integration/evidence/2026-10-29-receiving-occurrences.json.gz), SHA-256 8c57759fe9bb5fab23d6060238ebef322f79c5c1c2530acf333df7129842b901. All132 prior evidence artifacts remain byte-identical. Full E3/richer graphs, E4-E6, Excel continuity and visible/release gates remain open.

@@ -1030,3 +1030,6 @@ Standalone native composer answer preview/confirmation with exact live instance/
 ## [2026-10-29 08:00] verification | records/specs/manual-workflows.md
 Final frozen V3:66 workflow groups/0, headless preview, strict10 Swift files, native build/package/refusals/signature. V2 scripted agent/27 deterministic/30 actual CLI calls reused with hash-reconstructed display/keep-both deltas. Paused wording correct in both synthetic model cases.131 prior artifacts unchanged. Receipt300010004b9e78646e09623b937887b9614fcab93b1cf24ba369034a294b85c5. Exact5fe51e1 hosted CI green; latest visible/dictation/release gates open.
 
+## [2026-10-29 08:06] verification | records/specs/manual-workflows.md
+Test-only cross-run receiving: accepted26 survives cancel and duplicate evidence/run; independent reviewed delivery reaches32, inert copy retains all outcomes.67 focused groups/0, one-file strict lint. Production code unchanged; receipt8c57759fe9bb5fab23d6060238ebef322f79c5c1c2530acf333df7129842b901.
+

@@ -281,6 +281,62 @@ func checkWorkflows(at root: URL) {
   }
 
   check(
+    "receiving across runs preserves accepted work and separates evidence retries from deliveries"
+  ) {
+    let (b, definition, args) = try fixture("DistinctDeliveries")
+    let first = try start(b, definition, args)
+    let waiting = try b.continueWorkflow(first, owner: "first delivery")
+    _ = try b.accept(draft(waiting), actor: .human("synthetic-review"))
+    let acceptedPrefix = try b.workflowRun(first.runID)
+    let cancelled = try b.cancelWorkflow(first, token: "stop-after-acceptance")
+    try expect(cancelled["state"] == .string("cancelled"))
+    try expect(cancelled["steps"].array[0] == acceptedPrefix["steps"].array[0])
+    try expect(cancelled["steps"].array[1] == acceptedPrefix["steps"].array[1])
+    try expect(try b.balance(subject: "bolts")["quantity"] == .string("26"))
+    let supporting = try b.addItem(
+      category: "source", kind: "observation", title: "Second evidence for the same delivery",
+      text: "Another view of the same fulfillment, not another delivery.", status: "accepted",
+      inputs: [args["evidence"].text], transformation: "synthetic-supporting-evidence")
+    var repeated = args.object
+    repeated["evidence"] = .string(supporting.id)
+    let repeatedRun = try b.startWorkflow(
+      definition.id, arguments: .object(repeated), token: "new-request-same-delivery")
+    let duplicate = try b.authorizeWorkflowExecution(repeatedRun["id"].text)
+    try refuses("duplicate_effect") {
+      _ = try b.continueWorkflow(duplicate, owner: "same fulfillment")
+    }
+    let refused = try b.workflowRun(duplicate.runID)
+    try expect(refused["state"] == .string("needs_attention"))
+    try expect(refused["steps"].array[0]["state"] == .string("completed"))
+    try expect(refused["steps"].array[1]["output"] == .null)
+    try expect(try b.item(supporting.id).id == supporting.id)
+    try expect(try b.balance(subject: "bolts")["quantity"] == .string("26"))
+    try expect(try b.balance(subject: "bolts")["effects"].array.count == 1)
+    repeated["occurrence"] = .string("genuinely-independent-delivery")
+    let independent = try b.addItem(
+      category: "source", kind: "observation", title: "Independent second delivery",
+      text:
+        "Another genuine delivery with the same six units, distinct from the earlier fulfillment.",
+      status: "accepted")
+    repeated["evidence"] = .string(independent.id)
+    let nextRun = try b.startWorkflow(
+      definition.id, arguments: .object(repeated), token: "distinct-delivery")
+    let next = try b.authorizeWorkflowExecution(nextRun["id"].text)
+    let nextWaiting = try b.continueWorkflow(next, owner: "second delivery")
+    try expect(try b.balance(subject: "bolts")["quantity"] == .string("26"))
+    _ = try b.accept(draft(nextWaiting), actor: .human("synthetic-review"))
+    let completed = try b.continueWorkflow(next, owner: "second delivery reviewed")
+    try expect(completed["state"] == .string("completed"))
+    try expect(try b.balance(subject: "bolts")["quantity"] == .string("32"))
+    try expect(try b.balance(subject: "bolts")["effects"].array.count == 2)
+    let copy = try b.reconstruct(to: root.appendingPathComponent("DeliveriesReconstructed.sevra"))
+    try expect(try copy.workflowRun(first.runID) == cancelled)
+    try expect(try copy.workflowRun(duplicate.runID) == refused)
+    try expect(try copy.workflowRun(next.runID) == completed)
+    try expect(try copy.balance(subject: "bolts")["quantity"] == .string("32"))
+    try expect(try copy.verify()["ok"] == .bool(true) && b.verify()["ok"] == .bool(true))
+  }
+  check(
     "expired and replaced workflow claims cannot publish; exact completion retries remain inert"
   ) {
     let (b, definition, args) = try fixture("Lease")
