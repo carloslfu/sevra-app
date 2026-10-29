@@ -257,7 +257,8 @@ package enum NativeTools {
           "Search business evidence (itemID) and conversation (id; history_read before citation). Filters/paging are business-only. No match proves no absence.",
         parameters: object(
           [
-            "query": schema("string", "Words or a filename fragment."),
+            "query": schema(
+              "string", "All words must match. Start with one name or filename fragment. Empty: remove words."),
             "kind": schema(
               "string",
               "Optional domain kind such as document, note, row, movement. Not actual/estimate."),

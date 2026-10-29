@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-28T18:14:38.909547+00:00
+updated: 2026-10-29T18:54:58.412663+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -37,6 +37,12 @@ Q05. Query language is a typed API. Ordinary user text is safely tokenized/quote
 advanced FTS syntax is explicit. No raw SQL from an LLM. Bound term count, query
 length, results, page size, traversal hops and context bytes. Escape highlights
 before rendering. Empty/hostile queries must never crash or expose another file.
+The current lexical API requires all query words to match. Agent-facing guidance
+starts with short distinctive names or filename fragments and broadens an empty
+query by removing words. Extra generic terms such as document or original can
+exclude the very quotation being sought. Before calling a requested supplier term
+unknown, inspect related originals instead of treating an imported row as complete.
+
 Q06. Agent search traces list queries, inspected evidence and omissions. A zero
 match is different from incomplete indexing. The answer must say when sources
 were unsupported, truncated or absent. A summary is derived content and cannot

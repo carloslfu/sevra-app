@@ -1342,3 +1342,6 @@ MVP journey found and repaired source-specific tax wording and chart-axis guidan
 ## [2026-10-29 18:48] verification | records/operations/implementation.md
 MVP candidate: full check.sh passed, 557 core groups; source-specific tax and chart-column fixes have real-model retries, deterministic edit/Undo and sandboxed portable reopening pass; native install/setup pass; focused visible startup and final journey ongoing.
 
+## [2026-10-29 19:02] verification | records/operations/implementation.md
+Visible native intake, ready CSV/PDF indexes, working values and formula 130/135 pass. Retained missed-PDF and literal-query/step-limit failures. Current focused PDF summary and original citation navigation pass; broad automated comparison remains unqualified. Updated literal search guidance passes agent and grammar checks.
+

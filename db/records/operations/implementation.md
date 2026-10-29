@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T18:47:03.688377+00:00
+updated: 2026-10-29T19:02:02.560833+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -55,6 +55,17 @@ the expanded E2-E6 roadmap. The candidate is not yet delivered.
   uses ordinary modal dialogs, retains owner identity/visibility checks across both
   choices and explicitly configures file selection. The attached-sheet experiment
   did not reliably advance under the UI tool and is not retained.
+
+The visible broad supplier question exposed a second limit: the model read only
+CSV evidence and missed the PDF's explicit tax exclusion. Requiring related original
+inspection then exposed overly specific AND queries and a later bounded step-limit
+failure. The current guidance explains literal all-word search, short names and
+query broadening, and keeps supplier terms separate. Broad automatic comparison
+is still unqualified. Opening the included quotation and asking for a focused cited
+summary succeeds with the correct tax exclusion; its citation opens the original
+PDF. A native formula column computes the two comparable goods-plus-shipping
+values as 130 and 135. The remaining acceptance uses focused view-saving requests;
+it does not hide those broad-request failures or claim universal task completion.
 
 Active blockers, at most three:
 
