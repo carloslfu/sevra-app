@@ -31,6 +31,7 @@ python3 scripts/check_automatic_ancestry.py --cli "$BIN/sevra" --worker "$BIN/se
 python3 scripts/check_derivation_roles.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
 python3 scripts/check_business_origins.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
 python3 scripts/check_condition_origins.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
+python3 scripts/check_business_inputs.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
 python3 scripts/check_references.py --cli "$BIN/sevra"
 python3 scripts/check_extracted_references.py --cli "$BIN/sevra"
 python3 scripts/check_contextual_intake.py --cli "$BIN/sevra"

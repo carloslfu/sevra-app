@@ -160,7 +160,8 @@ extension Workbook {
     }
     defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
     let origin = Self.safeOrigin(response.url ?? url)
-    let captured = try importFile(file, origin: origin, cancellation: cancellation)
+    let captured = try importFile(
+      file, origin: origin, cancellation: cancellation, independentInput: true)
     do { try extract(captured.id, cancellation: cancellation) } catch { try cancellation.check() }
     return captured
   }
@@ -194,7 +195,7 @@ extension Workbook {
     let old = try item(id)
     guard let asset = old.assetID else { throw SevraError("asset", "This record has no asset.") }
     let source = try assetURL(asset, verify: true, cancellation: cancellation)
-    let imported = try importFile(source, cancellation: cancellation)
+    let imported = try importFile(source, cancellation: cancellation, inputs: [old.id])
     try extract(imported.id, cancellation: cancellation)
     let included = try addItem(
       category: old.category, kind: old.kind, title: old.title, text: old.text, data: old.data,

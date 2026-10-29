@@ -157,7 +157,7 @@ def run(cli: Path, worker: Path, output: Path) -> dict:
         call('create', old)
         manifest = old / 'manifest.json'
         with sqlite3.connect(old / 'workbook.sqlite') as connection:
-            assert connection.execute('PRAGMA user_version').fetchone()[0] == 27
+            assert connection.execute('PRAGMA user_version').fetchone()[0] == 28
             connection.execute('PRAGMA user_version=26')
         paths = [manifest, old / 'workbook.sqlite']
         hashes = [hashlib.sha256(p.read_bytes()).hexdigest() for p in paths]

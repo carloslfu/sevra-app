@@ -7,6 +7,7 @@ extension Workbook {
   @discardableResult public func importFile(
     _ source: URL, linked: Bool = false, origin: String? = nil,
     cancellation: Cancellation = .init(), token: String = identifier(), inputs: [String] = [],
+    independentInput: Bool = false,
     progress: @escaping (Int64, Int64) -> Void = { _, _ in }
   ) throws -> Item {
     let info = try source.resourceValues(forKeys: [
@@ -73,6 +74,7 @@ extension Workbook {
       request: .object([
         "hash": .string(hash), "linked": .bool(linked), "name": .string(source.lastPathComponent),
         "origin": origin.map(Value.string) ?? .null, "inputs": .array(inputs.map(Value.string)),
+        "independentInput": .bool(independentInput),
       ])
     ) {
       try cancellation.check()
@@ -111,6 +113,7 @@ extension Workbook {
         data: .object(["bytes": .string(String(copied)), "mediaType": .string(media)]),
         meaning: "actual", status: "accepted", scenario: "actual", inputs: inputs,
         transformation: "import-v1", assetID: assetID)
+      if independentInput { try declareNewBusinessInput(id, kind: "external-file") }
       try db.execute(
         "INSERT INTO extraction VALUES(?,?,?,?,?)",
         [
@@ -250,6 +253,7 @@ extension Workbook {
         try verifyAutomationPlanning()
         try verifyConditionInputStorage()
         try verifyItemDerivations()
+        try verifyBusinessInputDeclarations()
         try verifyFormDrafts()
         try verifyWorkflowClarificationDrafts()
         try verifySpaces()

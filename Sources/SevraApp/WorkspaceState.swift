@@ -571,7 +571,7 @@ import SwiftUI
         defer { try? FileManager.default.removeItem(at: folder) }
         try Data(text.utf8).write(to: file, options: .atomic)
         let source = try book.importFile(
-          file, origin: "clipboard:values-only", cancellation: cancel)
+          file, origin: "clipboard:values-only", cancellation: cancel, independentInput: true)
         let job = try book.beginIntake(sourceID: source.id)
         let result = try book.runIntake(job.id, cancellation: cancel)
         return IntakeChoice(

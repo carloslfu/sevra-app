@@ -110,7 +110,7 @@ import SevraProduct
     }
     if [
       "condition-create", "condition-step", "condition-state", "condition-observations",
-      "condition-dismiss", "condition-inputs", "condition-origins",
+      "condition-dismiss", "condition-inputs", "condition-origins", "condition-causes",
     ].contains(command) {
       return try runInventoryCondition(args, book: book, cancellation: cancellation)
     }
@@ -559,6 +559,17 @@ import SevraProduct
       return try book.datasetSchema(arg(2))
     case "rows":
       return try encoded(book.rows(arg(2), offset: args.count > 3 ? Int(args[3]) ?? 0 : 0))
+    case "observe":
+      try require(args.count == 3, "usage", "observe WORKBOOK OBSERVATION_JSON")
+      let observation = try Value.parse(arg(2))
+      try require(
+        Set(observation.object.keys).isSubset(of: ["title", "text", "data", "token"]),
+        "business_input", "An independent observation cannot replace or claim existing inputs.")
+      return try encoded(
+        book.recordBusinessObservation(
+          title: observation["title"].text, text: observation["text"].text,
+          data: observation["data"] == .null ? .object([:]) : observation["data"],
+          token: observation["token"].string ?? identifier(), cancellation: cancellation))
     case "add":
       let v = try Value.parse(arg(2))
       return try encoded(
@@ -706,6 +717,7 @@ import SevraProduct
     table-update-inspect WORKBOOK SOURCE_ID [HEADER_RECORD]
     table-update-propose WORKBOOK SOURCE_ID TABLE_ID OPTIONS_JSON
     records WORKBOOK [KIND] | tables WORKBOOK [--archived] | rows WORKBOOK TABLE_ID [OFFSET]
+    observe WORKBOOK OBSERVATION_JSON
     add WORKBOOK JSON | edit-row WORKBOOK ITEM_ID VALUES_JSON [EXPECTED_REVISION]
     edit-document WORKBOOK VERSION_ID UTF8_FILE [--separate] [--token TOKEN] [--revision REVISION] [--references JSON_FILE]
     references WORKBOOK VERSION_ID [OPTIONS_JSON] | backlinks WORKBOOK VERSION_ID [OPTIONS_JSON]
@@ -754,6 +766,7 @@ import SevraProduct
     automation-causality WORKBOOK RUN_ID
     condition-observations WORKBOOK CONSUMER_ID [AFTER_ID|-] [LIMIT]
     condition-inputs WORKBOOK OBSERVATION_ID [AFTER_INPUT_ID|-] [LIMIT]
+    condition-causes WORKBOOK OBSERVATION_ID
     condition-origins WORKBOOK OBSERVATION_ID
     condition-dismiss WORKBOOK CANDIDATE_ID REASON TOKEN
     table-schema WORKBOOK DATASET_ID

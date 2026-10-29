@@ -195,8 +195,8 @@ extension Workbook {
       let evidence = try insertItem(
         category: "source", kind: "decision", title: "Accept \(old.title)",
         text: actor.label + " accepted this interpretation.", data: try decisionData(id),
-        meaning: "actual", status: "accepted", scenario: "actual", inputs: decisionInputs(),
-        transformation: "decision-accept-v2")
+        meaning: "actual", status: "accepted", scenario: "actual", inputs: [old.id],
+        transformation: "decision-accept-v2", controlInputs: decisionInputs())
       var acceptedData = old.data
       if old.kind == "table-intake-update" {
         acceptedData = try applyTableIntake(old, decision: evidence, cancellation: cancellation)

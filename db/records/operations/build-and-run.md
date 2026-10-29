@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T15:42:47.017760+00:00
+updated: 2026-10-29T16:21:27.655311+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1779,3 +1779,11 @@ The bounded inspector permits 1,024 visited items, 4,096 inspected edges includi
 `sevra condition-origins WORKBOOK OBSERVATION_ID` reads one exact completed window, validates every member and traces changed/activated versions through the shared business-origin graph. It returns coordinates, count, a canonical input-set digest and historical automatic producer IDs. Follow `condition-inputs` for detailed event/version/time pages. Baseline, unknown-gap, overflow or graph limits refuse explicitly. Numeric state and paginated inputs remain available; no read advances a candidate/cursor or grants execution. Original candidates are still not qualified independent roots.
 
 Run `.build/debug/sevra-checks --condition-origins` for 41 focused window/input/origin groups. `--condition-input-limit` includes the real 10,000/10,001 refusal counterexample. Installed proof: `python3 scripts/check_condition_origins.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`, covering 40 calls, 205 members, six readers, independent hashes and damaged-copy refusals. Shared roots and actual dispatch remain unfinished. See [[records/specs/business-provenance]].
+
+## Explicit original inputs and shared condition causes
+
+`sevra observe WORKBOOK OBSERVATION_JSON` records a genuinely new original business observation through the host path. Accepted keys are title, text, data and optional nonempty token up to512 UTF-8 bytes. Reuse the token for an exact retry. For a review/correction/republication, retain exact existing inputs rather than declaring a new independent cause. Top-level intake records external-file intent; derived archive members and including an existing linked Source retain their input instead. No ordinary local-model tool can declare a new original input. Declaration proves recorded intent, not authenticity.
+
+`sevra condition-causes WORKBOOK OBSERVATION_ID` reads the complete retained window and reports resolved or blocked, declared/inherited root IDs and exact automatic parents. Different consumers of one input share its root. Effective-time activation does not mint another. Missing/unclassified causes and more than eight roots/parents stay blocked; no partial roots become dispatchable. The bounded reader adds at most16MiB of creating envelopes to existing graph limits, before decoding. No live permission, charge or automatic work follows from reading it.
+
+Focused check: `.build/debug/sevra-checks --business-inputs`. Installed synthetic check: `python3 scripts/check_business_inputs.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Both packaged CI paths and check.sh include it. Schema28 is the canonical development contract; unsupported prior workbooks stay preserved/refused. Evidence and unfinished dispatch/production gates: [[records/specs/business-provenance]].

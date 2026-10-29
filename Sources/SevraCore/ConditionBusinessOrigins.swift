@@ -12,40 +12,46 @@ extension Workbook {
       "condition_input", "Use an exact complete condition observation.")
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
     return try readBusinessFeed(cancellation: control) {
-      let (row, observation) = try conditionInputObservation(observationID)
-      try require(
-        observation["changeInputs"]["coverage"] == .string("complete"),
-        "condition_origin_coverage",
-        "Only complete retained change windows have resolvable origins. Baseline, unknown-gap or overflow coverage cannot establish an origin."
-      )
-      let consumer = try inventoryConditionRow(row["consumer_id"]!.text)
-      let window = try conditionBusinessInputSet(
-        row, observation: observation, consumer: consumer, cancellation: control)
-      let origins = try inspectBusinessOrigins(
-        inputs: window.inputs.sorted(), cancellation: control)
-      let result: Value = .object([
-        "workbookID": .string(id), "policy": .string("condition-business-origins-v1"),
-        "observationID": .string(observationID), "consumerID": row["consumer_id"]!,
-        "knowledgeBatchID": observation["knowledgeBatchID"],
-        "effectiveThrough": observation["effectiveThrough"],
-        "previousObservationID": observation["previousObservationID"],
-        "previousCertainObservationID": observation["previousCertainObservationID"],
-        "retainedChangeInputs": observation["changeInputs"],
-        "inputCount": .number(Double(window.count)), "inputSetHash": .string(window.hash),
-        "inputInspection": .object([
-          "command": .string("condition-inputs"), "observationID": .string(observationID),
-        ]),
-        "origins": origins,
-        "automaticProducerRunIDs": .array(origins["automaticProducers"].array.map { $0["runID"] }),
-        "coverage": .string("complete-retained-window-to-automatic-producers"),
-        "minimalCauseSet": .bool(false), "independentBusinessRoots": .string("not-established"),
-        "dispatchEligibility": .string("not-evaluated"), "execution": .string("none"),
-        "enabled": .bool(false),
-      ])
-      try boundedBusinessOutput(result)
-      try control.check()
-      return result
+      try inspectInventoryConditionOrigins(observationID, cancellation: control)
     }
+  }
+
+  func inspectInventoryConditionOrigins(_ observationID: String, cancellation: Cancellation)
+    throws -> Value
+  {
+    let (row, observation) = try conditionInputObservation(observationID)
+    try require(
+      observation["changeInputs"]["coverage"] == .string("complete"),
+      "condition_origin_coverage",
+      "Only complete retained change windows have resolvable origins. Baseline, unknown-gap or overflow coverage cannot establish an origin."
+    )
+    let consumer = try inventoryConditionRow(row["consumer_id"]!.text)
+    let window = try conditionBusinessInputSet(
+      row, observation: observation, consumer: consumer, cancellation: cancellation)
+    let origins = try inspectBusinessOrigins(
+      inputs: window.inputs.sorted(), cancellation: cancellation)
+    let result: Value = .object([
+      "workbookID": .string(id), "policy": .string("condition-business-origins-v1"),
+      "observationID": .string(observationID), "consumerID": row["consumer_id"]!,
+      "knowledgeBatchID": observation["knowledgeBatchID"],
+      "effectiveThrough": observation["effectiveThrough"],
+      "previousObservationID": observation["previousObservationID"],
+      "previousCertainObservationID": observation["previousCertainObservationID"],
+      "retainedChangeInputs": observation["changeInputs"],
+      "inputCount": .number(Double(window.count)), "inputSetHash": .string(window.hash),
+      "inputInspection": .object([
+        "command": .string("condition-inputs"), "observationID": .string(observationID),
+      ]),
+      "origins": origins,
+      "automaticProducerRunIDs": .array(origins["automaticProducers"].array.map { $0["runID"] }),
+      "coverage": .string("complete-retained-window-to-automatic-producers"),
+      "minimalCauseSet": .bool(false), "independentBusinessRoots": .string("not-established"),
+      "dispatchEligibility": .string("not-evaluated"), "execution": .string("none"),
+      "enabled": .bool(false),
+    ])
+    try boundedBusinessOutput(result)
+    try cancellation.check()
+    return result
   }
 
   private func conditionBusinessInputSet(

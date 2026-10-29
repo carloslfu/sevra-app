@@ -188,6 +188,7 @@ jobs:
           python3 scripts/check_derivation_roles.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/derivation-roles-installed.json
           python3 scripts/check_business_origins.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/business-origins-installed.json
           python3 scripts/check_condition_origins.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-origins-installed.json
+          python3 scripts/check_business_inputs.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/business-inputs-installed.json
           python3 scripts/check_automation_definitions.py --cli output/bin/sevra --output .build/automation-definitions-installed
           python3 scripts/check_automation_planning.py --cli output/bin/sevra --output .build/automation-planning-installed
           python3 scripts/check_automation_execution.py --cli output/bin/sevra --output .build/automation-execution-installed
@@ -220,6 +221,7 @@ jobs:
           python3 scripts/check_derivation_roles.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/derivation-roles-native.json
           python3 scripts/check_business_origins.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/business-origins-native.json
           python3 scripts/check_condition_origins.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-origins-native.json
+          python3 scripts/check_business_inputs.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/business-inputs-native.json
           python3 scripts/check_automation_definitions.py --cli output/native/bin/sevra --output .build/automation-definitions-native
           python3 scripts/check_automation_planning.py --cli output/native/bin/sevra --output .build/automation-planning-native
           python3 scripts/check_automation_execution.py --cli output/native/bin/sevra --output .build/automation-execution-native

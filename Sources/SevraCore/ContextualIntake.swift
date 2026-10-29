@@ -46,7 +46,7 @@ extension Workbook {
     } else {
       captured = try importFile(
         file, linked: linked, origin: "intake:" + token,
-        cancellation: cancellation, token: token + "-file")
+        cancellation: cancellation, token: token + "-file", independentInput: true)
     }
     return try beginIntake(sourceID: captured.id, role: role, token: token + "-use")
   }

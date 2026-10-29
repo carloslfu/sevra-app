@@ -52,6 +52,21 @@ let temp = FileManager.default.temporaryDirectory.appendingPathComponent(
   "sevra-checks-" + identifier())
 try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: temp) }
+if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--business-input-death-worker" {
+  try businessInputDeathWorker(
+    at: URL(fileURLWithPath: CommandLine.arguments[2]), stage: CommandLine.arguments[3])
+  exit(0)
+}
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--condition-cause-fixture" {
+  print(try createConditionCauseFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--business-inputs"] {
+  checkBusinessInputs(at: temp)
+  checkConditionCauses(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--condition-origin-fixture" {
   print(try createConditionOriginFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
   exit(0)
@@ -1108,5 +1123,7 @@ checkConditionInputs(at: temp)
 checkDerivationRoles(at: temp)
 checkBusinessOrigins(at: temp)
 checkConditionOrigins(at: temp)
+checkBusinessInputs(at: temp)
+checkConditionCauses(at: temp)
 print("\(passed) passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

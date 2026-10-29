@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 27
+  static let version = 28
   static let sql = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=\(version);
@@ -139,6 +139,8 @@ enum Schema {
     CREATE TRIGGER app_definitions_ad AFTER DELETE ON app_definitions BEGIN
       INSERT INTO definition_fts(definition_fts,rowid,title,description,parameter_text) VALUES('delete',old.rowid,old.title,old.description,old.parameter_text);
     END;
+    CREATE TABLE business_inputs(source_id TEXT PRIMARY KEY REFERENCES items(id),commit_id TEXT NOT NULL REFERENCES committed_changes(id) DEFERRABLE INITIALLY DEFERRED,item_index INTEGER NOT NULL CHECK(typeof(item_index)='integer' AND item_index BETWEEN 0 AND 249999),kind TEXT NOT NULL CHECK(kind IN ('observation','external-file')),policy TEXT NOT NULL CHECK(policy='business-input-v1'));
+    CREATE INDEX business_inputs_commit ON business_inputs(commit_id,source_id);
     CREATE TABLE business_batches(id TEXT PRIMARY KEY REFERENCES committed_changes(id) DEFERRABLE INITIALLY DEFERRED,position INTEGER NOT NULL UNIQUE CHECK(typeof(position)='integer' AND position>0),recorded TEXT NOT NULL,actor TEXT NOT NULL,policy TEXT NOT NULL CHECK(policy='business-versions-v1'),UNIQUE(id,position));
     CREATE TABLE business_events(id TEXT PRIMARY KEY,batch_id TEXT NOT NULL,batch_position INTEGER NOT NULL,ordinal INTEGER NOT NULL CHECK(typeof(ordinal)='integer' AND ordinal>=0),family TEXT NOT NULL CHECK(family IN ('record-settled','inventory-basis','dataset-membership','dataset-schema')),scope_kind TEXT NOT NULL CHECK(scope_kind IN ('record','inventory','dataset')),scope_key TEXT NOT NULL,record_kind TEXT NOT NULL,logical_id TEXT,before_id TEXT REFERENCES items(id),after_id TEXT REFERENCES items(id),payload TEXT NOT NULL,UNIQUE(batch_id,ordinal),FOREIGN KEY(batch_id,batch_position) REFERENCES business_batches(id,position));
     CREATE INDEX business_events_scope ON business_events(scope_kind,scope_key,batch_position,ordinal);

@@ -49,8 +49,22 @@ change window through the same bounded graph. It validates every member across
 100-entry pages and returns an input-set digest; `condition-inputs` retains the
 detailed event/version/time pages. Baseline, unknown-gap or overflow coverage
 refuses. Large graphs also refuse while numeric state and input pages remain
-available. This establishes historical dependencies, with independent business
-roots and automatic dispatch still unfinished.
+available. This establishes historical dependencies.
+`condition-causes PATH OBSERVATION_ID` additionally resolves declared business
+roots and inherited automatic roots, or returns blocked with unresolved reasons.
+An automatic producer accounts for its output's existing inputs; later independent
+observations can add their own root. Roots belong to original atomic input capture
+and are shared across consumers, reused records and effective-time wakeups. These
+are historical identities; budget enforcement and candidate dispatch remain disabled.
+
+`observe PATH OBSERVATION_JSON` captures an explicitly new independent observation.
+Fields are title, optional text/data and a stable retry token. Use it only when the
+user's current request supplies new business information. Review, correction,
+copied prior information and derived facts must keep their existing inputs instead.
+Ordinary `add` and an actor/policy label cannot declare independence. Top-level
+`import` captures external-input intent automatically; extracted archive members
+and included linked originals retain their prior origin. Declarations preserve
+intent, not proof of authenticity, truth or current execution authority.
 
 ## Reusable definitions
 

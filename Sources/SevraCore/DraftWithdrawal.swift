@@ -29,8 +29,8 @@ extension Workbook {
         category: "source", kind: "decision", title: "Withdraw \(old.title)",
         text: actor.label + " withdrew this draft without applying it.",
         data: try decisionData(id),
-        meaning: "actual", status: "accepted", scenario: "actual", inputs: decisionInputs(),
-        transformation: "decision-withdraw-v2")
+        meaning: "actual", status: "accepted", scenario: "actual", inputs: [old.id],
+        transformation: "decision-withdraw-v2", controlInputs: decisionInputs())
       let next = try insertItem(
         category: old.category, kind: old.kind, title: content.title, text: content.text,
         data: content.data, meaning: content.meaning,

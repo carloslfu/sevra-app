@@ -2,7 +2,7 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-29T15:43:11.713877Z
+updated: 2026-10-29T16:21:27.620080Z
 ---
 
 # records/specs
@@ -11,7 +11,7 @@ updated: 2026-10-29T15:43:11.713877Z
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
 - [[records/specs/automation-causality]] — Schema 25 retains calendar roots and bounded trusted inherited admissions atomically. Condition cause discovery and dispatch remain required; scoped checks and failures are retained.
 - [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
-- [[records/specs/business-provenance]] — Sealed business origins and exact complete condition windows have bounded native CLI/core proof. Independent roots and atomic current-grant dispatch remain pending.
+- [[records/specs/business-provenance]] — Schema28 explicit original inputs and shared condition cause identities pass core/native CLI persistence and bounded checks. Shared admission enforcement and current-grant dispatch remain next.
 - [[records/specs/automatic-ancestry]] — Schema 24 indexed workflow source identities and bounded automatic ancestry; synthetic acceptance preserves origin. Exact trigger causes and persisted dispatch admission remain required.
 - [[records/specs/inventory-condition-consumers]] — Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
 - [[records/specs/condition-transitions]] — Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.

@@ -2,7 +2,7 @@
 type: spec
 id: 01m63zpzv9f62m9b8qzm1d360d
 created: 2026-10-29T14:06:08.745428+00:00
-updated: 2026-10-29T15:43:11.713877+00:00
+updated: 2026-10-29T16:21:27.620080+00:00
 summary: Exact retained condition inputs now support bounded historical producer resolution. Complete windows, real limits and native CLI checks pass; independent roots and dispatch remain open.
 title: Exact condition transition change inputs
 status: implemented
@@ -72,3 +72,7 @@ Publication recovery: the preceding exact head2baf12ae pushed successfully this 
 ## Exact condition-window origin checkpoint, October 29
 
 Read-only condition-origins now resolves exact complete retained changes/clock versions through the shared sealed business graph. It validates member count, identities, scope and observation coordinates; streams 100-entry pages; returns a canonical input-set digest; and preserves detailed condition-inputs navigation. Baseline/unknown-gap/overflow and excessive graph bounds refuse without changing numeric state. Final 41 focused groups, real input/graph bounds, installed 40 window/30 input/42 origin calls, strict seven-file lint, isolated skill validation and native package checks pass. The previous 499-group full checkpoint and unchanged writer/runtime proof are reused. All 148 prior artifacts remain unchanged. [[records/specs/business-provenance]] retains exact evidence, failures and limits. Shared independent roots and atomic current-grant candidate dispatch remain unimplemented; full app/release remains open.
+
+## Schema28 original-input capture and shared causes, October 29
+
+business_inputs is an immutable captured registry over exact original Sources and their creating committed change/item insertion index, kind and business-input-v1 policy. Several declared inputs in one transaction share one business root. Host observation/top-level file intake can declare intent; ordinary model output, generic Source labels, review, derived imports and copied metadata cannot. Human acceptance/withdrawal now links the exact proposal. Verification and inert reconstruction retain complete declarations, without live grants. Read-only condition-causes merges validated automatic production boundaries and declared independent inputs; missing/unclassified/over-budget origins block. It creates no automatic admissions/charges or dispatch. Broad530 core checkpoint, final20 focused/39 installed calls, two actual publication deaths, native package/controller/ProductAI and visible Activity continuation pass. The exact receipt, iterations and limits are in [[records/specs/business-provenance]]. Shared business-root admission/current-grant candidate dispatch remains next.

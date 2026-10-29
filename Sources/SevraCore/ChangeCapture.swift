@@ -7,6 +7,7 @@ final class ChangeCapture {
   let workbookID: String
   let writerID = identifier()
   var actor = ChangeActor.programmatic("SevraCore")
+  var businessInputs: [String: String] = [:]
   var pending: [RowChange]?
   var failure: SevraError?
   var bytes = 0
@@ -33,6 +34,7 @@ final class ChangeCapture {
   }
   func reset() {
     pending = nil
+    businessInputs = [:]
     failure = nil
     bytes = 0
     publishing = false
@@ -160,6 +162,7 @@ final class ChangeCapture {
         "INSERT INTO meta VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
         [.string(key), .string(changeID)])
     }
+    try publishBusinessInputs(database, commitID: changeID)
     // Classify the original mutation, before capturing the outbox itself.
     try database.publishBusinessEvents(
       pending!, commitID: changeID, recorded: recorded, actor: actor)
