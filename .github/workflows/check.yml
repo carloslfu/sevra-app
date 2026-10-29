@@ -38,6 +38,8 @@ jobs:
         run: .build/debug/sevra-checks
       - name: Check exact historical inventory bounds
         run: .build/debug/sevra-checks --inventory-event-limit
+      - name: Check incremental inventory projection bounds
+        run: .build/debug/sevra-checks --inventory-condition-limit
       - name: Check search-scale fixture recall, paging and reports
         run: |
           swift build --product sevra-benchmark -j 3
@@ -178,6 +180,7 @@ jobs:
           python3 scripts/check_condition_transitions.py --cli output/bin/sevra --output .build/condition-preview-installed
           python3 scripts/check_business_events.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/business-events-installed.json
           python3 scripts/check_inventory_event_state.py --cli output/bin/sevra --output .build/inventory-event-state-installed.json
+          python3 scripts/check_inventory_conditions.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/inventory-conditions-installed.json
           python3 scripts/check_automation_definitions.py --cli output/bin/sevra --output .build/automation-definitions-installed
           python3 scripts/check_automation_planning.py --cli output/bin/sevra --output .build/automation-planning-installed
           python3 scripts/check_automation_execution.py --cli output/bin/sevra --output .build/automation-execution-installed
@@ -203,6 +206,7 @@ jobs:
           python3 scripts/check_condition_transitions.py --cli output/native/bin/sevra --output .build/condition-preview-native
           python3 scripts/check_business_events.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/business-events-native.json
           python3 scripts/check_inventory_event_state.py --cli output/native/bin/sevra --output .build/inventory-event-state-native.json
+          python3 scripts/check_inventory_conditions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/inventory-conditions-native.json
           python3 scripts/check_automation_definitions.py --cli output/native/bin/sevra --output .build/automation-definitions-native
           python3 scripts/check_automation_planning.py --cli output/native/bin/sevra --output .build/automation-planning-native
           python3 scripts/check_automation_execution.py --cli output/native/bin/sevra --output .build/automation-execution-native

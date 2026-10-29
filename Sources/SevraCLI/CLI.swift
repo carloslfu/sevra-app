@@ -96,6 +96,12 @@ import SevraProduct
     }
     if command == "demo" { return try Demo.create(at: url(1)) }
     let book = try Workbook(url(1))
+    if [
+      "condition-create", "condition-step", "condition-state", "condition-observations",
+      "condition-dismiss",
+    ].contains(command) {
+      return try runInventoryCondition(args, book: book, cancellation: cancellation)
+    }
     if ["business-batches", "business-batch"].contains(command) {
       return try runBusinessFeed(args, book: book, cancellation: cancellation)
     }
@@ -728,6 +734,11 @@ import SevraProduct
     business-batches WORKBOOK [AFTER_BATCH_ID|-] [LIMIT] [SCOPE_KIND SCOPE_KEY]
     business-batch WORKBOOK BATCH_ID [AFTER_ORDINAL|-] [LIMIT]
     inventory-at-batch WORKBOOK BATCH_ID SUBJECT EFFECTIVE_THROUGH
+    condition-create WORKBOOK SUBJECT RULE_JSON EFFECTIVE_THROUGH TOKEN
+    condition-step WORKBOOK CONSUMER_ID THROUGH TOKEN
+    condition-state WORKBOOK CONSUMER_ID
+    condition-observations WORKBOOK CONSUMER_ID [AFTER_ID|-] [LIMIT]
+    condition-dismiss WORKBOOK CANDIDATE_ID REASON TOKEN
     table-schema WORKBOOK DATASET_ID
     table-schema-history WORKBOOK DATASET_ID [BEFORE_VERSION]
     table-edit-schema WORKBOOK DATASET_ID BASE_VERSION BASE_DEFINITION_ID OPTIONS_JSON TOKEN

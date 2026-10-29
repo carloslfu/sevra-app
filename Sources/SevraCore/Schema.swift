@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 22
+  static let version = 23
   static let sql = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=\(version);
@@ -139,6 +139,13 @@ enum Schema {
     CREATE INDEX business_events_position ON business_events(batch_position,ordinal);
     CREATE INDEX business_events_kind ON business_events(record_kind,batch_position,ordinal);
     CREATE INDEX business_events_logical ON business_events(logical_id,batch_position,ordinal);
+    CREATE TABLE condition_consumers(id TEXT PRIMARY KEY,source_id TEXT NOT NULL REFERENCES items(id),subject TEXT NOT NULL,rule TEXT NOT NULL,anchor_id TEXT REFERENCES business_batches(id),state TEXT NOT NULL,created TEXT NOT NULL);
+    CREATE TABLE condition_effects(consumer_id TEXT NOT NULL REFERENCES condition_consumers(id),logical_id TEXT NOT NULL,item_id TEXT NOT NULL REFERENCES items(id),event_id TEXT NOT NULL REFERENCES business_events(id),batch_id TEXT NOT NULL REFERENCES business_batches(id),occurrence TEXT NOT NULL,quantity TEXT NOT NULL,effective TEXT NOT NULL,PRIMARY KEY(consumer_id,logical_id),UNIQUE(consumer_id,occurrence));
+    CREATE INDEX condition_effects_time ON condition_effects(consumer_id,effective,logical_id);
+    CREATE TABLE condition_observations(id TEXT PRIMARY KEY,consumer_id TEXT NOT NULL REFERENCES condition_consumers(id),batch_id TEXT REFERENCES business_batches(id),effective TEXT NOT NULL,disposition TEXT NOT NULL CHECK(disposition IN ('baseline','unknown','transition','reset','unchanged')),payload TEXT NOT NULL,created TEXT NOT NULL);
+    CREATE INDEX condition_observations_consumer ON condition_observations(consumer_id);
+    CREATE TABLE condition_candidates(id TEXT PRIMARY KEY,consumer_id TEXT NOT NULL REFERENCES condition_consumers(id),observation_id TEXT NOT NULL UNIQUE REFERENCES condition_observations(id),state TEXT NOT NULL CHECK(state IN ('pending','dismissed')),detail TEXT NOT NULL,decision_source TEXT REFERENCES items(id));
+    CREATE INDEX condition_candidates_pending ON condition_candidates(consumer_id,state,id);
     CREATE TABLE committed_changes(id TEXT PRIMARY KEY,previous_id TEXT UNIQUE REFERENCES committed_changes(id),payload TEXT NOT NULL,hash TEXT NOT NULL,recorded TEXT NOT NULL,writer_id TEXT NOT NULL,actor TEXT NOT NULL,row_changes INTEGER NOT NULL CHECK(row_changes>0));
     """
 }

@@ -1108,3 +1108,15 @@ Schema22 read-only inventoryAtBusinessBatch and installed inventory-at-batch CLI
 ## [2026-10-29 12:04] verification | records/specs/inventory-event-state.md
 Final11 focused groups, real10000 success/10001 refusal,14 feed regressions,37 installed native CLI calls, strict5 Swift files and native resource/missing10/altered refusal/signature pass. V2 deadline/V3 profile retained. Artifact38331bytes SHAc4f9cc2540c91ed557fa1e4027cae9f3a6ebd6572c07a64eaab223ad36de92aa;141 prior artifacts unchanged. Prior386 full core retains scope. CI8634c6c still running; adapter needsCI. Goal/release unfinished.
 
+## [2026-10-29 12:16] design | records/specs/inventory-condition-consumers.md
+Reviewed incremental inventory condition consumer in three passes: exact baseline/time, atomic paged recovery and bounded pending candidates. No dispatch or authority inferred.
+
+## [2026-10-29 12:42] implementation | records/specs/inventory-condition-consumers.md
+Schema23 captures incremental inventory intent/current effects/working pages, exact observations and inert candidates. Baseline, explicit monotonic clock, atomic batch/basis rebuild and100-candidate backpressure are implemented without workflow authority. Integer feed/tail ordering is fixed after capacity diagnostics.
+
+## [2026-10-29 12:42] verification | records/specs/inventory-condition-consumers.md
+Final416 full core/18 focused/real10000 success10001 refusal,94 native condition calls with2 SIGKILL boundaries/6 writers,76 feed/37 historical calls,registry18/ProductAI,strict13 Swift files and native resources1888each/missing10/altered refusal/signature pass. Prior142 unchanged. Receipt102821bytes SHA112266cb15e0e415adab344dcddf90bee6ae5378901f1b7c5267718e3e088e3c. Failed iterations retained; no new model/visible/hardware/release proof.
+
+## [2026-10-29 12:45] verification | records/specs/inventory-condition-consumers.md
+Final repo-owned documentation passes dbmd validate --all with zero errors/warnings, repository links and git diff --check. All 386 frozen Swift files and 142 earlier evidence files remain byte-identical. Final native consumer, feed and historical probes use the same binary hash. Exact CI will be dispatched after committing this checkpoint.
+

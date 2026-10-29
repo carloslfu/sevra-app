@@ -100,6 +100,10 @@ public struct NativeConditionRule: Sendable {
     ])
   }
 
+  func truth(_ value: String) throws -> Bool {
+    try Numbers.binary(Numbers.decimal(value), threshold, op: comparison) != 0
+  }
+
   private struct Observation {
     let id: String
     let content: Value

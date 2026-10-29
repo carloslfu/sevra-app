@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T11:47:43.591547+00:00
+updated: 2026-10-29T12:45:51.394861+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -713,3 +713,7 @@ This checkpoint also repairs the registry creation race found by fab2a83 hosted 
 ## Committed business-event foundation, October 29
 
 [[records/specs/business-events]] now implements schema22 semantic delivery within shared capture/apply, with exact versions, indexed bounded read pages and inert reconstruction. Final 386 full core groups with zero failures,14 focused groups, 76 installed CLI calls with six actual publishers/two actual SIGKILL boundaries, nearby owner/ProductAI/automation and native resource/refusal/signature checks pass. Persistent condition consumers, historical state, causality/backpressure and native/conversational event authoring remain required E4 work. The app remains a working development build.
+
+## Persistent condition computation checkpoint
+
+[[records/specs/inventory-condition-consumers]] now supplies schema 23 incremental inventory baselines, explicit ledger clocks, saved atomic working pages, exact observations and inert candidate queues.416 full core groups and 94 installed condition calls/two process-death boundaries pass with scoped native/nearby proof. It creates no timer or workflow authority. E4 still requires causality-aware admission/dispatch with exact physical grants, native/conversational authoring, dataset-query adapters and complete lifecycle qualification. Full E3/E5/E6, contextual/Excel and release journeys remain open.

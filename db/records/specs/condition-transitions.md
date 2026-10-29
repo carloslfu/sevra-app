@@ -2,7 +2,7 @@
 type: spec
 id: 01m63mskyw17ghqe41k3rhh631
 created: 2026-10-29T10:55:20.540673+00:00
-updated: 2026-10-29T12:04:34.669040+00:00
+updated: 2026-10-29T12:45:51.290812+00:00
 summary: Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.
 title: Condition transitions
 status: reviewed
@@ -72,3 +72,7 @@ A fresh native inventory still reports no apps and a locked Mac. Visible control
 ## Exact inventory reconciliation foundation
 
 [[records/specs/inventory-event-state]] implements the first historical adapter: exact committed knowledge batch plus explicit effective-through time, retained basis and settled accepted actual effects, without a current-head shortcut. Final 11 focused groups, real 10,000-effect success/10,001-effect refusal, 14 feed regressions and 37 installed native CLI calls plus native packaging pass. It is read-only and creates no consumer state, occurrence or permission. Do not install it as a full-history scan on every poll. Persistent incremental working state/cursors, live effective-time policy, atomic decisions and persisted causality/backpressure remain required before dispatch. Dataset row-value coverage remains separately explicit.
+
+## Durable inventory consumer qualification
+
+[[records/specs/inventory-condition-consumers]] now implements schema 23 baselines, incremental actual inventory state, saved atomic batch/clock/rebuild pages, exact complete observations and inert candidates. First-known baselines and unknown gaps retain their original semantics. Distinct recrossings survive 100-candidate backpressure without coalescing. Final 416 full core,18 focused consumer groups, real 10,000/10,001 boundary, 94 installed condition calls/two SIGKILL boundaries and nearby feed/history/native checks pass. The capacity fixture also fixes integer feed ordering beyond 9. No automatic dispatch or permission. Causal ancestry/admission, native/conversation authoring, dataset adapters and release remain required; the earlier pure-preview receipt remains scoped and unchanged.

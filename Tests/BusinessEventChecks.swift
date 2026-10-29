@@ -23,6 +23,25 @@ func insertBusinessFixtureRecord(
 }
 
 func checkBusinessEvents(at root: URL) {
+  check("global business pages and tail preserve integer order beyond nine batches") {
+    let (book, source) = try businessFixture(root, "BusinessIntegerOrder")
+    for n in 1...23 {
+      _ = try book.addItem(
+        category: "record", kind: "metric", title: "Metric \(n)", status: "accepted",
+        inputs: [source.id])
+    }
+    var cursor: String?
+    var positions: [String] = []
+    for _ in 0..<6 {
+      let page = try book.businessBatches(after: cursor, limit: 4)
+      positions += page["batches"].array.map { $0["position"].text }
+      try expect(page["tail"]["position"].text == "23")
+      cursor = page["nextCursor"].string
+      if page["hasMore"] == .bool(false) { break }
+    }
+    try expect(positions == (1...23).map(String.init))
+    try expect(try book.businessBatches(after: cursor)["batches"].array.isEmpty)
+  }
   check("business feed excludes Sources, drafts, rejected proposals and operational kinds") {
     let (book, source) = try businessFixture(root, "BusinessFiltering")
     for status in ["draft", "rejected"] {

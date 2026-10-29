@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T12:04:34.706757+00:00
+updated: 2026-10-29T12:45:51.421483+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1719,3 +1719,21 @@ Run `.build/debug/sevra-checks --business-events` and `python3 scripts/check_bus
 `inventory-at-batch WORKBOOK BATCH_ID SUBJECT EFFECTIVE_THROUGH` answers using the exact committed batch and mandatory explicit business date/time. Example: `sevra inventory-at-batch Shop.sevra BATCH_ID bolts 2026-10-29`. Obtain an exact batch ID through business-batches. The result retains basis and effect IDs, both coordinates and an inert label. Missing/removed/future bases are unknown with null quantity. Accepted estimates, other scenarios, drafts and fake movement labels do not affect actual stock. Future dates describe an explicit ledger projection.
 
 Run `.build/debug/sevra-checks --inventory-event-state`, `.build/debug/sevra-checks --inventory-event-limit` and `python3 scripts/check_inventory_event_state.py --cli output/native/bin/sevra --output NEW_JSON_PATH`. The separate scale group creates disposable real workbook history and checks all 10,000 effects plus explicit refusal at 10,001. No model or activation. See [[records/specs/inventory-event-state]] for limits, retained query failure/fix and qualification scope. This reconciliation oracle is not a live per-poll scheduler.
+
+## Explicit inventory condition tracking
+
+These commands save and advance an inert condition; they do not enable a schedule, run a workflow or accept business changes:
+
+~~~sh
+sevra condition-create Shop.sevra parts '{"policy":"native-condition-v1","scope":"inventory:parts","operator":"<","threshold":"10"}' 2026-10-29 CREATE_TOKEN
+sevra condition-step Shop.sevra CONSUMER_ID 2026-10-29 STEP_TOKEN
+sevra condition-state Shop.sevra CONSUMER_ID
+sevra condition-observations Shop.sevra CONSUMER_ID - 20
+sevra condition-dismiss Shop.sevra CANDIDATE_ID 'Reviewed and dismissed' DISMISS_TOKEN
+~~~
+
+Creation returns CONSUMER_ID and captures the current business-tail baseline. Repeat bounded steps with fresh tokens while hasMore is true; retain each original token/arguments to recover its original receipt on retry. Inspect condition-state afterward for current coverage. phase exposes unfinished batch/clock/rebuild work; lastCompleteObservation and effectiveThrough describe the last fully published result, while workingEffectiveThrough is explicitly separate. A backwards horizon refuses. A future horizon is an explicit ledger projection, not physical current stock proof.
+
+condition-observations accepts an optional exact observation cursor and a limit of 1 to 50. A request candidate stays inert. At 100 pending candidates, backpressure stops progress without losing the crossing. Explicit dismissal needs a reason and keeps its Source/history. Saving/reconstructing creates no timer, model acquisition or device permission. Current projection is bounded to 10,000 effects; unsupported precision or limits refuse without partial completion. See [[records/specs/inventory-condition-consumers]].
+
+Run `.build/debug/sevra-checks --inventory-conditions`, the separate `--inventory-condition-limit`, and `python3 scripts/check_inventory_conditions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_JSON_PATH`. The worker adds actual SIGKILL publication checks; all workbooks and inputs are temporary synthetic fixtures. No selected-model inference.

@@ -24,7 +24,7 @@ extension Workbook {
           maxRows: limit + 1, maxBytes: 1_048_576)
       } else {
         candidates = try db.execute(
-          "SELECT id,CAST(position AS TEXT) AS position FROM business_batches WHERE position>CAST(? AS INTEGER) ORDER BY position LIMIT ?",
+          "SELECT id,CAST(position AS TEXT) AS position FROM business_batches b WHERE b.position>CAST(? AS INTEGER) ORDER BY b.position LIMIT ?",
           [.string(position), .number(Double(limit + 1))], maxRows: limit + 1, maxBytes: 1_048_576)
       }
       let more = candidates.count > limit
@@ -110,7 +110,7 @@ extension Workbook {
   private func businessTail() throws -> Value {
     guard
       let row = try db.execute(
-        "SELECT id,CAST(position AS TEXT) AS position FROM business_batches ORDER BY position DESC LIMIT 1"
+        "SELECT id,CAST(position AS TEXT) AS position FROM business_batches b ORDER BY b.position DESC LIMIT 1"
       ).first
     else { return .null }
     return .object(row)

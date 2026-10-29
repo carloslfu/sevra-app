@@ -2,7 +2,7 @@
 type: spec
 id: 01m63qzvdy3wsnm72v7xvtezs7
 created: 2026-10-29T11:51:10.526544+00:00
-updated: 2026-10-29T12:04:34.598315+00:00
+updated: 2026-10-29T12:45:51.343103+00:00
 summary: 'Reviewed historical inventory adapter: exact committed cutoff and explicit effective time, retained basis and settled effects, bounded read-only reconciliation, no condition execution.'
 title: Inventory state at a retained business batch
 status: implemented
@@ -50,3 +50,7 @@ Retained failures: V2's real 10,000-effect case reached the query deadline. V3 p
 Evidence: [historical inventory receipt](../../../integration/evidence/2026-10-29-inventory-event-state.json.gz), 38331 bytes, SHA-256 c4f9cc2540c91ed557fa1e4027cae9f3a6ebd6572c07a64eaab223ad36de92aa. All 141 preceding artifacts remain byte-identical.
 
 Next remains persistent condition baselines/cursors and incremental working state, exact atomic occurrence decisions/outbox, durable causal ancestry and restart-safe self-loop/cascade/fan-out/backpressure controls, then native/conversational trigger authoring with current physical-file grants. A live effective-time clock policy is not implied by this explicit-date oracle. Dataset-query historical adapters, complete background/resource lifecycle, E5/E6, full E3 and E0/E1/E2/Excel journeys, visible voice/accessibility/appearance/media, physical performance/engine adoption and production notarized distribution remain open. The UI tool's last fresh inventory reports a locked Mac; no bypass or additional unlock request was made. App, goal and release are unfinished.
+
+## Consumer cross-check at schema 23
+
+[[records/specs/inventory-condition-consumers]] now uses this exact historical adapter as a reconciliation oracle in correction, basis and atomic-new-basis tests while retaining bounded incremental current effects between changes. It processes explicit future eligibility without rescanning full history each poll. Final 416 full core and 37 installed historical calls pass with the schema 23 native product. The original10,000-effect historical read bound remains distinct from the consumer's10,000-current-effect bound. No causal dispatch or new live/background authority is implied.

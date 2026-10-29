@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T12:04:34.744641+00:00
+updated: 2026-10-29T12:45:51.261194+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -26,6 +26,7 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 ## Reading order
 
+- [[records/specs/inventory-condition-consumers]]: schema 23 saved incremental inventory conditions, exact clocks/cursors/observations and inert candidate backpressure; causal dispatch remains next.
 - [[records/specs/inventory-event-state]]: exact batch/effective-time inventory reconciliation and remaining incremental condition state.
 - [[records/specs/business-events]]: schema22 committed semantic feed, indexed inert delivery, atomic batch/coverage limits and remaining condition consumers.
 - [[records/specs/condition-transitions]]: inert numeric condition preview and remaining real event/cursor/causality contract.
@@ -96,3 +97,7 @@ The schema22 semantic outbox and bounded core/CLI delivery now have 386 full cor
 ## Historical inventory qualification
 
 The exact retained-batch inventory oracle now passes 11 focused groups, a real 10,000-effect success/10,001-effect refusal, 14 feed regressions, 37 installed native CLI calls and fresh native resource/refusal/signature plus strict Swift checks. It distinguishes committed knowledge from explicit effective time, preserves earlier answers and remains read-only. Its first scale deadline failure and SQL correction are retained. All 141 prior artifacts remain unchanged. Full evidence: [[records/specs/inventory-event-state]]. Persistent condition consumers/cursors, causality/backpressure, native/conversational triggers and full release qualification remain open.
+
+## Durable inventory conditions
+
+Schema 23 now saves bounded incremental inventory conditions across restarts, including baseline establishment, atomic business and clock pages, exact complete observations and distinct inert candidates.416 full groups, 18 focused groups, real 10,000/10,001 projection bound, 94 condition, 76 feed and 37 historical installed calls, 18 registry/controller groups and synthetic ProductAI and native packaging pass. An ordering defect beyond 9 batches is fixed and retained. All 142 prior artifacts remain unchanged. Exact proof: [[records/specs/inventory-condition-consumers]]. Causality-aware dispatch, native/conversational authoring and full product/release qualification remain required. Latest visible checks remain locked and unverified.

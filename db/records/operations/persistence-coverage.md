@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T11:47:43.552025+00:00
+updated: 2026-10-29T12:45:51.368985+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -410,3 +410,7 @@ The native owner's private registration is separate from canonical workbook capt
 business_batches and business_events now join the canonical capture/apply family. Exact batch/commit/actor/time and lossless semantic position, normalized stable entry identity, before/final immutable records, inventory bases and captured dataset membership/schema share one commit. Technical activity/drafts do not generate business batches. Replay applies saved rows inertly; ordinary verify additionally compares semantic entries to their original committed inputs. Effects have an exact-item lookup index. Existing Sources/Records and committed changes remain authority, without another independently written business ledger.
 
 Final 386 full core groups with zero failures,14 focused groups, 76 installed native CLI calls with six actual concurrent publishers/two actual SIGKILL boundaries, byte-preserved unsupported-format refusal, semantic tampering checks and reconstruction pass. Bounded reads include real exclusive-lock cancellation. Native package/resources/refusal/signature and strict 12-file Swift lint pass. Exact evidence and source/iteration limits: [[records/specs/business-events]]. Persistent condition consumers and causality controls remain open; no release or new model/hardware proof.
+
+## Schema 23 condition control families
+
+The declared condition_consumers, condition_effects, condition_observations and condition_candidates families use the same canonical row capture and inert reconstruction. Saved partial working state is distinct from completed coverage. Observation/candidate/completed cursor publish together; projection precision/limit/lock failure rolls back its page, and backpressure leaves an exact unfinished decision. Native installed proof includes two actual SIGKILL boundaries, stable retry and inert reconstruction, with 416 full core groups. Control Sources remain technical. See [[records/specs/inventory-condition-consumers]]. This does not add replica coordination, cloud transport, automatic permission or causal dispatch.

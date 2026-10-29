@@ -7,6 +7,12 @@ import ZIPFoundation
 
 setbuf(stdout, nil)
 
+if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--condition-death-worker" {
+  try inventoryConditionDeathWorker(
+    CommandLine.arguments[2], consumer: CommandLine.arguments[3], stage: CommandLine.arguments[4])
+  exit(0)
+}
+
 if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--business-death-worker" {
   try businessEventDeathWorker(CommandLine.arguments[2], stage: CommandLine.arguments[3])
   exit(0)
@@ -84,6 +90,16 @@ if CommandLine.arguments.dropFirst() == ["--conditions"] {
 }
 if CommandLine.arguments.dropFirst() == ["--business-events"] {
   checkBusinessEvents(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--inventory-condition-limit"] {
+  checkInventoryConditionLimit(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--inventory-conditions"] {
+  checkInventoryConditions(at: temp)
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
@@ -1002,6 +1018,7 @@ checkWorkflows(at: temp)
 checkPersistence(at: temp)
 checkBusinessEvents(at: temp)
 checkInventoryEventState(at: temp)
+checkInventoryConditions(at: temp)
 checkSpaceEditing(at: temp)
 checkCalendarSchedules()
 checkConditionTransitions()

@@ -2,7 +2,7 @@
 type: spec
 id: 01m63pbtkqgpmeas26bahejmj0
 created: 2026-10-29T11:22:45.751359+00:00
-updated: 2026-10-29T12:04:34.686918+00:00
+updated: 2026-10-29T12:45:51.316493+00:00
 summary: 'Reviewed schema22 semantic outbox over captured history: atomic settled versions, inventory basis and dataset membership/schema events, bounded indexed delivery and no execution authority.'
 title: Committed business-event delivery
 status: implemented
@@ -82,3 +82,9 @@ This completes the semantic feed slice, not E4 or the app. Persistent condition 
 ## Historical inventory adapter
 
 [[records/specs/inventory-event-state]] now consumes exact retained batch cutoffs for bounded inventory reconciliation, preserving earlier settled versions after later corrections/withdrawals and keeping effective dates explicit. It passes 11 focused groups, the real 10,000/10,001-effect boundary, 14 feed regressions and 37 installed native CLI calls, with fresh native resource/refusal/signature proof. A scale timeout and its measured query correction are preserved. Feed storage/schema22 is unchanged. This adapter adds no persistent consumer, condition occurrence, live clock policy or execution authority.
+
+## Integer ordering and durable inventory consumption
+
+The schema 23 checkpoint in [[records/specs/inventory-condition-consumers]] exposes a feed-read defect that the original scoped feed tests missed: ORDER BY position could resolve to the displayed CAST(position AS TEXT) alias. Current global pages/tail and the consumer explicitly order by b.position. The new 23-batch pagination/tail regression and 101 distinct crossings pass. Lossless string positions remain the public representation, with numeric ordering by stored integers.
+
+Final 416 full core and 76 installed feed calls, including six writers/two SIGKILL boundaries, pass on the final native CLI. Incremental inventory baseline/clock/cursor/observation/candidate state is now captured and reconstructible. Dataset-only scope limitations remain unchanged. Causality-aware condition dispatch, dataset-query adapters and native authoring remain open. Earlier artifacts are immutable and do not retroactively prove the newly tested ordering boundary.
