@@ -11,7 +11,7 @@ extension Workbook {
         && inputs.allSatisfy { !$0.isEmpty && $0.utf8.count <= 256 },
       "ancestry_input", "Inspect 1 to 16 exact item versions, each up to 256 UTF-8 bytes.")
     return try readBusinessFeed(cancellation: cancellation) {
-      var graph = AutomaticAncestryGraph()
+      var graph = DerivationInspectionGraph()
       var queue = Array(Set(inputs)).sorted()
       var discovered = Set(queue)
       var index = 0
@@ -77,7 +77,7 @@ extension Workbook {
     }
   }
 
-  private func automaticAncestryBinding(_ item: [String: Value]) throws -> Value? {
+  func automaticAncestryBinding(_ item: [String: Value]) throws -> Value? {
     let source = item["id"]!.text
     let registered = try db.execute(
       "SELECT w.id,w.source_id,w.policy,w.definition_id,a.run_id,a.occurrence_id,a.activation_id,a.definition_id AS automation_id,a.authorization_source,a.dispatch_source,a.generation,d.logical_id,d.kind FROM workflow_runs w LEFT JOIN automation_runs a ON a.run_id=w.id LEFT JOIN app_definitions d ON d.id=a.definition_id WHERE w.source_id=?",
@@ -133,7 +133,7 @@ extension Workbook {
   }
 }
 
-private struct AutomaticAncestryGraph {
+struct DerivationInspectionGraph {
   var parents: [String: Set<String>] = [:]
   var edges: [Value] = []
   var runs: [Value] = []

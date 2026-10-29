@@ -52,6 +52,17 @@ let temp = FileManager.default.temporaryDirectory.appendingPathComponent(
   "sevra-checks-" + identifier())
 try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: temp) }
+if CommandLine.arguments.dropFirst() == ["--business-origins"] {
+  checkBusinessOrigins(at: temp)
+  checkAutomaticAncestry(at: temp)
+  checkDefinitionResults(at: temp)
+  checkWorkflowLookups(at: temp)
+  checkWorkflowInterpretations(at: temp)
+  checkWorkflowIntakes(at: temp)
+  checkAutomationCausalityCorruption(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.dropFirst() == ["--derivation-roles"] {
   checkDerivationRoles(at: temp)
   print("\(passed) passed; \(failed) failed")
@@ -1084,5 +1095,6 @@ checkAutomationExecution(at: temp)
 checkAutomationCausality(at: temp)
 checkConditionInputs(at: temp)
 checkDerivationRoles(at: temp)
+checkBusinessOrigins(at: temp)
 print("\(passed) passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

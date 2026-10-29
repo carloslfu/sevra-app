@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T15:02:47.656918+00:00
+updated: 2026-10-29T15:27:11.966476+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -430,3 +430,7 @@ condition_pending_inputs and condition_observation_inputs join ChangeFormat.tabl
 ## Schema27 complete role and seal capture
 
 items.derivation and lineage.roles join the existing captured schema columns; no new table or parallel origin ledger. Exact role sets, complete canonical tuple hashes and unclassified-original/retained-derivation labels reconstruct inertly. Initial seals are computed before insert; definition dependency resealing requires the item's creating transaction. Final484 core groups/13 focused groups, a750KB single-insert body,206-edge canonical hashing, rollback/retry, six damaged installed copies and both real10,000/10,001 input/projection limits pass. Nearby condition/feed process-death checks still pass. All146 earlier artifacts remain unchanged. Full receipt and scope: [[records/specs/business-provenance]]. No independent roots, live grants or condition dispatch from this metadata.
+
+## Bounded business-origin checkpoint, October 29
+
+Schema27 now has read-only business-origin inspection over complete sealed data/producer/revision links. Control-only configuration is visible separately and excluded from business traversal; registered automatic producer boundaries validate exact workflow/run/automation/admission history. Direct/manual producer arguments, actors and supported policies are checked. Final 499 core/74 focused groups, real item/edge/depth limits, lock cancellation, installed 42 origin/22 ancestry/21 admission calls and fresh native package checks pass. No independent-root policy or permission follows. Evidence, retained failures and exact limits: [[records/specs/business-provenance]]. Condition-window resolution, shared roots and current-grant candidate dispatch remain next; full app/release qualification remains open.

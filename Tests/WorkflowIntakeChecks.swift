@@ -104,6 +104,13 @@ func checkWorkflowIntakes(at root: URL) {
       book, child: draft.id, parent: book.datasetDefinition(table.id).sourceID, roles: 2)
     try expectInputRole(book, child: draft.id, parent: saved["source_id"].text, roles: 4)
     for row in original { try expectInputRole(book, child: draft.id, parent: row.id, roles: 1) }
+    let origins = try book.businessOrigins(inputs: [draft.id])
+    try expect(origins["items"].array.contains { $0["id"] == .string(source.id) })
+    for row in original {
+      try expect(origins["items"].array.contains { $0["id"] == .string(row.id) })
+    }
+    try expect(origins["automaticProducers"].array.isEmpty)
+    try expect(!origins["items"].array.contains { $0["id"] == .string(intake.sourceID) })
     try expect(draft.data["incoming"].array[0]["sku"] == .string("0012"))
     try expect(draft.data["additionRecords"] == .array([.number(4)]))
     try expect(try book.rows(table.id).map(\.id) == original.map(\.id))

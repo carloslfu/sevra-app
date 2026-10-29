@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-29T15:02:47.674992+00:00
+updated: 2026-10-29T15:27:11.999003+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -566,3 +566,7 @@ Dedicated cross-process locking, private no-follow/type/owner/size checks, lossl
 ## Schema27 input roles and derivation seals
 
 The canonical development schema is27. lineage appends roles, a set encoded by data1/control2/producer4/revision8. items appends the canonical item-derivation-v1 JSON seal binding exact item, complete ordered edge count/hash and explicit unclassified-original/retained-derivation classification. Named public roles preserve combined uses. Metadata shares existing captured families and inert reconstruction. Same-creating-transaction definition dependencies alone may reseal through the trusted helper; ordinary item insertion seals before writing the body. Generic public inputs remain data. Unsupported schema26 documents refuse unchanged, without a development migration or reset. Qualification and remaining origin/dispatch gates: [[records/specs/business-provenance]].
+
+## Bounded business-origin checkpoint, October 29
+
+Schema27 now has read-only business-origin inspection over complete sealed data/producer/revision links. Control-only configuration is visible separately and excluded from business traversal; registered automatic producer boundaries validate exact workflow/run/automation/admission history. Direct/manual producer arguments, actors and supported policies are checked. Final 499 core/74 focused groups, real item/edge/depth limits, lock cancellation, installed 42 origin/22 ancestry/21 admission calls and fresh native package checks pass. No independent-root policy or permission follows. Evidence, retained failures and exact limits: [[records/specs/business-provenance]]. Condition-window resolution, shared roots and current-grant candidate dispatch remain next; full app/release qualification remains open.

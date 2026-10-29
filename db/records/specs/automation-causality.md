@@ -2,7 +2,7 @@
 type: spec
 id: 01m63xbjef018f5q5byn9acp7s
 created: 2026-10-29T13:24:57.423588+00:00
-updated: 2026-10-29T15:02:47.692471+00:00
+updated: 2026-10-29T15:27:12.031435+00:00
 summary: Schema 25 retains calendar roots and bounded trusted inherited admissions atomically. Condition cause discovery and dispatch remain required; scoped checks and failures are retained.
 title: Durable automatic-run origins and admission
 status: implemented
@@ -78,3 +78,7 @@ The schema26 [[records/specs/condition-transition-inputs]] checkpoint now retain
 ## Explicit producer roles retained, resolution remains next
 
 Schema27 now retains automatic parent invocation edges as producer roles, workflow/form/authorization/configuration as controls, and typed business arguments as data. Human review/corrections preserve old automatic versions through data/revision links. Shared admission/root policies and live permission boundaries are unchanged. The full484-group core pass and21 installed admission calls pass against the new packaged CLI. Named broad ancestry remains non-minimal and includes controls. Bounded business-origin resolution must validate the exact saved producer/admission binding before condition dispatch. See [[records/specs/business-provenance]].
+
+## Bounded business-origin checkpoint, October 29
+
+Schema27 now has read-only business-origin inspection over complete sealed data/producer/revision links. Control-only configuration is visible separately and excluded from business traversal; registered automatic producer boundaries validate exact workflow/run/automation/admission history. Direct/manual producer arguments, actors and supported policies are checked. Final 499 core/74 focused groups, real item/edge/depth limits, lock cancellation, installed 42 origin/22 ancestry/21 admission calls and fresh native package checks pass. No independent-root policy or permission follows. Evidence, retained failures and exact limits: [[records/specs/business-provenance]]. Condition-window resolution, shared roots and current-grant candidate dispatch remain next; full app/release qualification remains open.

@@ -165,7 +165,7 @@ extension Workbook {
     for parent in parents {
       try require(
         try db.scalar(
-          "SELECT EXISTS(SELECT 1 FROM workflow_runs p JOIN lineage l ON l.parent=p.source_id WHERE p.id=? AND l.child=? AND l.relation='derives-from')",
+          "SELECT EXISTS(SELECT 1 FROM workflow_runs p JOIN lineage l ON l.parent=p.source_id WHERE p.id=? AND l.child=? AND l.relation='derives-from' AND (l.roles & 4)<>0)",
           [.string(parent), row["invocation"]!]
         ).int == 1,
         "causal_integrity", "An automatic parent lost its exact invocation lineage.")

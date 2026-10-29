@@ -2,7 +2,7 @@
 type: spec
 id: 01m63vytee21f2t86w8x1t4h3n
 created: 2026-10-29T13:00:31.054263+00:00
-updated: 2026-10-29T13:51:24.732446+00:00
+updated: 2026-10-29T15:27:12.098823+00:00
 summary: Schema 24 indexed workflow source identities and bounded automatic ancestry; synthetic acceptance preserves origin. Exact trigger causes and persisted dispatch admission remain required.
 title: Automatic derivation ancestry
 status: implemented
@@ -66,3 +66,7 @@ No actual selected-model inference, new throughput/hardware proof, production en
 ## Durable admission follows this inspector
 
 [[records/specs/automation-causality]] adds schema25 persisted calendar roots and trusted inherited run/root/parent admission. Its automatic depth and charges are distinct from this inspector's broad lineage depth/control graph. Final22 installed ancestry calls remain passing. Existing missing-binding corruption fixtures now remove dependent admission rows before targeting the inspector; otherwise foreign-key integrity correctly refuses earlier. Exact trigger-cause discovery remains required and must not treat this graph as a minimal business cause set.
+
+## Bounded business-origin checkpoint, October 29
+
+Schema27 now has read-only business-origin inspection over complete sealed data/producer/revision links. Control-only configuration is visible separately and excluded from business traversal; registered automatic producer boundaries validate exact workflow/run/automation/admission history. Direct/manual producer arguments, actors and supported policies are checked. Final 499 core/74 focused groups, real item/edge/depth limits, lock cancellation, installed 42 origin/22 ancestry/21 admission calls and fresh native package checks pass. No independent-root policy or permission follows. Evidence, retained failures and exact limits: [[records/specs/business-provenance]]. Condition-window resolution, shared roots and current-grant candidate dispatch remain next; full app/release qualification remains open.

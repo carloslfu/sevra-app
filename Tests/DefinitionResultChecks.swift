@@ -177,6 +177,10 @@ func checkDefinitionResults(at root: URL) {
     try expectInputRole(b, child: item.id, parent: definition.sourceID, roles: 2)
     try expectInputRole(b, child: invocation.id, parent: evidence.id, roles: 1)
     try expectInputRole(b, child: invocation.id, parent: definition.sourceID, roles: 2)
+    let origins = try b.businessOrigins(inputs: [item.id])
+    try expect(origins["originalInputCandidates"].array == [.string(evidence.id)])
+    try expect(origins["automaticProducers"].array.isEmpty)
+    try expect(!origins["items"].array.contains { $0["id"] == .string(definition.sourceID) })
     try expect(
       try b.componentDefinitionResult(item.applicationResultComponent!)["result"] == .string("36"))
     try expect(try b.publishedApplicationResultComponent(item.id) != nil)
@@ -233,6 +237,12 @@ func checkDefinitionResults(at root: URL) {
     try expectInputRole(
       b, child: published.id, parent: b.datasetDefinition(table.id).sourceID, roles: 2)
     try expect(published.data["populationScope"].text.contains("Not per-group membership"))
+    let origins = try b.businessOrigins(inputs: [published.id])
+    for row in try b.rows(table.id) {
+      try expect(origins["items"].array.contains { $0["id"] == .string(row.id) })
+    }
+    try expect(origins["automaticProducers"].array.isEmpty)
+    try expect(!origins["items"].array.contains { $0["id"] == .string(definition.sourceID) })
     let saved = published.applicationResultComponent!
     try expect(try b.componentDefinitionResult(saved)["result"] == evaluation["result"])
     try expect(saved.evaluationSnapshot?.inputPopulation?.first?["rows"].array.count == 2)

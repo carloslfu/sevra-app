@@ -1147,3 +1147,33 @@ Schema27 role/seal capture and audited producers: full484/0, focused13/0, real10
 ## [2026-10-29 15:02] verification | records/specs/business-provenance.md
 Schema27 role/seal capture and audited producers: full484/0, focused13/0, real10000/10001 input/projection bounds, installed19/30/97/76/22/21 calls, owner18/ProductAI/native package, strict41 Swift files; all146 receipts unchanged. Business-origin resolution and actual condition dispatch remain next.
 
+## [2026-10-29 15:07] design | records/specs/business-provenance.md
+Review the next read-only business-origins API: complete sealed data graph, explicit manual producer markers, authoritative automatic/admission boundaries, bounded output and no independent-root/dispatch grant. Capture checkpoint35d7bf8 is pushed; exact CI40897726707 running.
+
+## [2026-10-29 15:27] implementation | records/specs/business-provenance.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/operations/implementation.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/overview/start-here.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/operations/persistence-coverage.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/specs/storage.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/specs/automation-causality.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/specs/native-app-engine.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/specs/automatic-ancestry.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/operations/build-and-run.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+

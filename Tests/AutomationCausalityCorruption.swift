@@ -4,7 +4,7 @@ import Foundation
 
 func checkAutomationCausalityCorruption(at directory: URL) {
   check("missing admissions, roots, lineage, changed origin and inconsistent depth all refuse") {
-    for corruption in 0..<7 {
+    for corruption in 0..<8 {
       let f = try CausalFixture(
         directory.appendingPathComponent("CausalDamage-\(corruption).sevra"))
       let seed = try f.admit(f.initial)
@@ -37,6 +37,10 @@ func checkAutomationCausalityCorruption(at directory: URL) {
           try f.book.db.execute(
             "UPDATE items SET data=? WHERE id=?",
             [.string(String(repeating: "x", count: 1_048_577)), run["source_id"]])
+        case 6:
+          let parent = try f.book.workflowRun(seed.id)["source_id"]
+          try f.book.db.execute(
+            "UPDATE lineage SET roles=1 WHERE child=? AND parent=?", [run["source_id"], parent])
         default:
           try f.book.db.execute("DELETE FROM automatic_parents WHERE run_id=?", [.string(child.id)])
           try f.book.db.execute(

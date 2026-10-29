@@ -96,6 +96,11 @@ import SevraProduct
     }
     if command == "demo" { return try Demo.create(at: url(1)) }
     let book = try Workbook(url(1))
+    if command == "business-origins" {
+      try require(
+        (3...18).contains(args.count), "usage", "business-origins WORKBOOK ITEM_ID [ITEM_ID...]")
+      return try book.businessOrigins(inputs: Array(args.dropFirst(2)), cancellation: cancellation)
+    }
     if command == "automation-ancestry" {
       try require(
         args.count >= 3 && args.count <= 18, "usage",
@@ -744,6 +749,7 @@ import SevraProduct
     condition-create WORKBOOK SUBJECT RULE_JSON EFFECTIVE_THROUGH TOKEN
     condition-step WORKBOOK CONSUMER_ID THROUGH TOKEN
     condition-state WORKBOOK CONSUMER_ID
+    business-origins WORKBOOK ITEM_ID [ITEM_ID...]
     automation-ancestry WORKBOOK ITEM_ID [ITEM_ID...]
     automation-causality WORKBOOK RUN_ID
     condition-observations WORKBOOK CONSUMER_ID [AFTER_ID|-] [LIMIT]

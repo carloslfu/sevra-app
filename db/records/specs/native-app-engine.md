@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T15:02:47.712011+00:00
+updated: 2026-10-29T15:27:12.065488+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -733,3 +733,7 @@ Schema26 now captures the exact condition change-input windows specified by [[re
 ## E4 sealed producer capture
 
 Schema27 captures complete role sets and per-item seals across audited producer families. Final484 core groups,13 focused role groups, both real10,000/10,001 condition limits, installed19 role/30 input/97 condition/76 feed/22 ancestry/21 admission calls, owner18, synthetic ProductAI and native resource/refusal/signature checks pass. No new model behavior, native authoring or device grant. Bounded role-aware business-origin resolution, exact condition-window resolution, independent roots/shared budgets and current-grant candidate dispatch remain next. Evidence: [[records/specs/business-provenance]]. Full E4-E6 and release remain unfinished.
+
+## Bounded business-origin checkpoint, October 29
+
+Schema27 now has read-only business-origin inspection over complete sealed data/producer/revision links. Control-only configuration is visible separately and excluded from business traversal; registered automatic producer boundaries validate exact workflow/run/automation/admission history. Direct/manual producer arguments, actors and supported policies are checked. Final 499 core/74 focused groups, real item/edge/depth limits, lock cancellation, installed 42 origin/22 ancestry/21 admission calls and fresh native package checks pass. No independent-root policy or permission follows. Evidence, retained failures and exact limits: [[records/specs/business-provenance]]. Condition-window resolution, shared roots and current-grant candidate dispatch remain next; full app/release qualification remains open.

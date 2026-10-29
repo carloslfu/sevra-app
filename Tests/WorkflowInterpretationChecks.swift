@@ -177,6 +177,10 @@ func checkWorkflowInterpretations(at root: URL) {
     try expectInputRole(
       book, child: supplied["recordID"].text,
       parent: book.applicationDefinition(originalValue["definitionID"].text).sourceID, roles: 2)
+    let origins = try book.businessOrigins(inputs: [supplied["recordID"].text])
+    try expect(origins["items"].array.contains { $0["id"] == supplied["sourceID"] })
+    try expect(origins["items"].array.contains { $0["id"] == originalValue["recordID"] })
+    try expect(origins["automaticProducers"].array.isEmpty)
     let after = try book.revision()
     try expect(
       try book.clarifyWorkflow(
@@ -581,6 +585,9 @@ func checkWorkflowInterpretations(at root: URL) {
     try expectInputRole(
       book, child: record.id,
       parent: book.applicationDefinition(request["definitionID"].text).sourceID, roles: 2)
+    let origins = try book.businessOrigins(inputs: [record.id])
+    try expect(origins["originalInputCandidates"].array == [.string(source.id)])
+    try expect(origins["automaticProducers"].array.isEmpty)
     let after = try book.revision()
     try expect(
       try book.completeWorkflowStep(

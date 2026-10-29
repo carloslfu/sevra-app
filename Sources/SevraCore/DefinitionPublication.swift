@@ -103,6 +103,8 @@ extension Workbook {
         text: actual.label + " supplied these arguments and requested a draft calculation result.",
         data: .object([
           "definitionID": fresh["definitionID"], "arguments": arguments,
+          "resolvedDefinitions": fresh["resolvedDefinitions"],
+          "producerPolicy": .string("application-result-v1"),
           "actor": try encoded(actual), "meaning": .string(meaning), "scenario": .string(scenario),
           "inputs": .array(inputs.map(Value.string)),
         ]),

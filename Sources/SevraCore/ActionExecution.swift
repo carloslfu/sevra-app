@@ -68,7 +68,10 @@ extension Workbook {
       category: "source", kind: "application_invocation",
       title: "Submitted " + plan["title"].text,
       text: actual.label + " submitted draft proposals. Acceptance remains separate.",
-      data: .object(["submitted": request, "plan": plan, "actor": try encoded(actual)]),
+      data: .object([
+        "submitted": request, "plan": plan, "actor": try encoded(actual),
+        "producerPolicy": .string("application-action-v1"),
+      ]),
       meaning: "actual", status: "accepted", scenario: "actual",
       inputs: Array(
         Set(

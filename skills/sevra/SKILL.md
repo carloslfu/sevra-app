@@ -34,6 +34,18 @@ files remain unresolved without copied device paths or access bookmarks. Pending
 tool calls and runs remain inert; reconstruction never authorizes their execution.
 Keep the original and inspect the new workbook before replacing any working copy.
 
+`business-origins PATH ITEM_ID [ITEM_ID...]` traces retained business dependencies
+from 1 to 16 exact versions. It follows data, producer and revision links, shows
+configuration/control links separately, and validates automatic producers against
+saved runs and admissions. A parent with both data and control roles is followed.
+`automation-ancestry` is the broader inspector, including configuration ancestry.
+Neither command evaluates permission or executes work. Original-input candidates
+are not proof of independence or truth; conservative query populations are not
+minimal causes. Missing/corrupt provenance, unsupported producer metadata, cycles
+or limits refuse the whole inspection. The business inspector bounds 1,024 visited
+items, 4,096 inspected edges, depth 128, 8 MiB and a three-second cancellable snapshot.
+Condition-window origin resolution and automatic dispatch remain unfinished.
+
 ## Reusable definitions
 
 Use `definition-search PATH QUERY [OPTIONS_JSON]` to discover saved application

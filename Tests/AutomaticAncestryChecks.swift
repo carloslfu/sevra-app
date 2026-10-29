@@ -236,6 +236,8 @@ func checkAutomaticAncestry(at root: URL) {
     try expect(
       try book.automaticDerivationAncestry(inputs: [chain[128]])["maximumLineageDepth"].int == 128)
     try refuses("ancestry_limit") { _ = try book.automaticDerivationAncestry(inputs: [chain[129]]) }
+    try expect(try book.businessOrigins(inputs: [chain[128]])["maximumLineageDepth"].int == 128)
+    try refuses("ancestry_limit") { _ = try book.businessOrigins(inputs: [chain[129]]) }
   }
   check("real 1024-item boundary succeeds and 1025-item ancestry refuses") {
     let book = try Workbook.create(
@@ -255,6 +257,8 @@ func checkAutomaticAncestry(at root: URL) {
     try expect(try book.automaticDerivationAncestry(inputs: [first])["itemCount"].int == 1024)
     let over = try independent(book, "1025", inputs: [first])
     try refuses("ancestry_limit") { _ = try book.automaticDerivationAncestry(inputs: [over]) }
+    try expect(try book.businessOrigins(inputs: [first])["itemCount"].int == 1024)
+    try refuses("origin_limit") { _ = try book.businessOrigins(inputs: [over]) }
   }
   check("real 4096-edge boundary succeeds and 4097 edges refuse") {
     let book = try Workbook.create(
@@ -287,6 +291,8 @@ func checkAutomaticAncestry(at root: URL) {
     try expect(edgeCount == 4095)
     try expect(try book.automaticDerivationAncestry(inputs: [exact])["edgeCount"].int == 4096)
     try refuses("ancestry_limit") { _ = try book.automaticDerivationAncestry(inputs: [over]) }
+    try expect(try book.businessOrigins(inputs: [exact])["edgeCount"].int == 4096)
+    try refuses("origin_limit") { _ = try book.businessOrigins(inputs: [over]) }
   }
   check("malformed, missing, excessive and already-cancelled ancestry requests refuse") {
     let book = try Workbook.create(

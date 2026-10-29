@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T15:02:47.731798+00:00
+updated: 2026-10-29T15:27:12.131767+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1767,3 +1767,9 @@ Focused checks: `.build/debug/sevra-checks --condition-inputs`; actual boundary:
 `sevra lineage Shop.sevra EXACT_ITEM_ID` and the existing `sevra automation-ancestry Shop.sevra EXACT_ITEM_ID [ITEM_ID...]` now render named data/control/producer/revision arrays. The broad ancestry inspector continues to include control links and does not resolve business causes or dispatch eligibility. `sevra verify Shop.sevra` checks each item's complete role/revision seal. Schema26 development workbooks are preserved/refused; there is no migration/reset command.
 
 Focused core: `.build/debug/sevra-checks --derivation-roles`. Installed check: `python3 scripts/check_derivation_roles.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. It creates disposable synthetic fixtures, independently recomputes canonical seals, checks named role output and unchanged commits, reconstructs inertly and refuses damaged copies. scripts/check.sh and both packaged CI paths include it. Role-aware bounded business-origin/condition resolution is still pending. See [[records/specs/business-provenance]].
+
+## Inspect business origins
+
+Use `sevra business-origins WORKBOOK ITEM_ID [ITEM_ID...]` for one to 16 exact versions. It follows retained data, producer and revision links, shows controls separately and validates historical automatic producer/admission boundaries. The broader `automation-ancestry` inspector also includes configuration. Neither command grants permission or executes work. Original candidates are not proof of independence; query candidate populations are not minimal causes. Missing/corrupt metadata, unsupported policies, cycles or bounds refuse the whole response.
+
+The bounded inspector permits 1,024 visited items, 4,096 inspected edges including controls/boundary inputs, depth 128, 8 MiB and a three-second cancellable snapshot. Run `.build/debug/sevra-checks --business-origins` for its focused producer checks and `python3 scripts/check_business_origins.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json` for the installed fixture. Final 74 focused/499 full groups and 42 installed calls pass. This is schema27 development metadata, with no legacy adapter or automatic reset. Condition-window origin resolution and dispatch remain unfinished. Evidence: [[records/specs/business-provenance]].

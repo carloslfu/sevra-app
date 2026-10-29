@@ -198,6 +198,10 @@ func checkWorkflowLookups(at root: URL) {
     let proposal = try book.item(action["proposals"].array[0].text)
     try expect(proposal.data["quantity"] == .string("2"))
     try expectInputRole(book, child: proposal.id, parent: action["sourceID"].text, roles: 4)
+    let origins = try book.businessOrigins(inputs: [proposal.id])
+    try expect(origins["items"].array.contains { $0["id"] == .string(row.id) })
+    try expect(!origins["items"].array.contains { $0["id"] == .string(query.sourceID) })
+    try expect(origins["automaticProducers"].array.isEmpty)
     _ = try book.verify()
   }
   check("lookup checkpoint faults and cancellation preserve history before exact retry") {
