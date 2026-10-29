@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-29T14:25:09.832957Z
+updated: 2026-10-29T14:37:39.118255Z
 ---
 
 # records/specs
 
+- [[records/specs/business-provenance]] — Reviewed schema27 role/seal capture, producer audit and bounded business-origin inspection. Implementation, independent roots and condition dispatch remain open.
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
 - [[records/specs/automation-causality]] — Schema 25 retains calendar roots and bounded trusted inherited admissions atomically. Condition cause discovery and dispatch remain required; scoped checks and failures are retained.
 - [[records/specs/inventory-condition-consumers]] — Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
