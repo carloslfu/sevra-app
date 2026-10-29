@@ -23,7 +23,7 @@ struct WorkflowActivityView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text(
-        "Saved workflow runs, newest first. Open a run to inspect its saved state or deliberately continue unfinished work."
+        "Saved workflows, newest first. Open a run to inspect or continue it. Conversation activity stays with each message."
       )
       .foregroundStyle(.secondary)
       HStack {
@@ -70,12 +70,14 @@ struct WorkflowActivityView: View {
           }
         }
       }
-      HStack {
-        Button("Previous") { Task { await load(direction: -1) } }
-          .disabled(!pages.hasPrevious || pages.loading)
-        Text("Page \(pages.pageNumber)").font(.callout).foregroundStyle(.secondary)
-        Button("Next") { Task { await load(direction: 1) } }
-          .disabled(!pages.hasNext || pages.loading)
+      if pages.hasPrevious || pages.hasNext {
+        HStack {
+          Button("Previous") { Task { await load(direction: -1) } }
+            .disabled(!pages.hasPrevious || pages.loading)
+          Text("Page \(pages.pageNumber)").font(.callout).foregroundStyle(.secondary)
+          Button("Next") { Task { await load(direction: 1) } }
+            .disabled(!pages.hasNext || pages.loading)
+        }
       }
     }.padding(22)
       .task(id: scope) { await load() }

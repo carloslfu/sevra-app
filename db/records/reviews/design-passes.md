@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-29T04:06:11.366554+00:00
+updated: 2026-10-29T22:25:44.291277+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -478,3 +478,15 @@ Usefulness pass: explicit prepare -> interpret -> propose -> review keeps the or
 
 ## Conversation preparation failure review, October 28
 The actual V1 success still required three refused saves. Two treated parameter name evidence as a lineage item ID; explicit UUID validation and actionable authoring guidance preserve request lineage without accepting that mistake. V2 then failed by searching for native workflow starters among saved definitions. Tool descriptions and structured registry guidance distinguish the template call from saved data. Final V3 uses workflow_template and queues exactly one pending run; two malformed first-job saves remain visible in its evidence. Fullcore271, final grammar/reference/native/package/model checks and actual SQLite full/lock rollback pass. These are bounded synthetic functional results, not general reliability or instant interaction claims. Preserve the failed probes and improve from them rather than widen limits.
+
+## Native journey and control hierarchy, October 29
+
+The owner requested a full native journey/spacing/button review after the first
+supplier attempt. [[records/reviews/native-journey-polish]] records the inventory,
+three passes, implemented simplifications, actual installed observations and
+remaining limits. The main changes reduce premature decisions and persistent
+controls; they preserve evidence, optional authoring, progress/Stop and explicit
+business review. The third pass found JSON search snippets, raw history links and
+blank link scopes, which were corrected. This is scoped MVP polish, not completion
+of deferred infrastructure or broad AI reliability. Exact verification is in
+[[records/operations/implementation]].

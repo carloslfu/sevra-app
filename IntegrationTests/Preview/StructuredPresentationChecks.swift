@@ -2,6 +2,21 @@ import SevraCore
 import SevraPreviewUI
 
 func checkStructuredPresentation() throws {
+  let excerpt = StructuredPresentation.searchExcerpt(
+    #"{"code":9007199254740993,"enabled":false,"quantity":0,"tax":null}"#, title: "quote.json")
+  try require(
+    excerpt.contains("Code: 9007199254740993") && excerpt.contains("Enabled: No")
+      && excerpt.contains("Quantity: 0") && excerpt.contains("Tax: Not provided")
+      && !excerpt.contains("{") && !excerpt.contains("\""),
+    "presentation_check", "Search exposed raw JSON or changed exact values")
+  try require(
+    StructuredPresentation.searchExcerpt(#"{"code":90"#, title: "quote.json")
+      == "Structured data. Open the file to inspect its contents."
+      && StructuredPresentation.searchExcerpt("[Draft] Compare quotes.", title: "Notes.txt")
+        == "[Draft] Compare quotes."
+      && StructuredPresentation.searchExcerpt("[]", title: "data.json") == "Empty list"
+      && StructuredPresentation.searchExcerpt("[1,2]", title: "data.json").contains("2 entries"),
+    "presentation_check", "Partial data became a complete claim or ordinary prose was hidden")
   try require(
     StructuredPresentation.scalar(.string("0014")) == "0014"
       && StructuredPresentation.scalar(.number(1.23456789)) == "1.23456789",

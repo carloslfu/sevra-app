@@ -8,40 +8,42 @@ import SwiftUI
 struct WorkbookView: View {
   @ObservedObject var state: WorkspaceState
   @State private var showSpaces = false
+  @State private var editingSpace: Space?
   @State private var conversationFrames: [String: CGRect] = [:]
   @FocusState private var composerFocused: Bool
   let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
   var body: some View {
     VStack(spacing: 0) {
       HStack {
+        Button {
+          state.focus.toggle()
+        } label: {
+          Image(systemName: "sidebar.left")
+        }.help(state.focus ? "Show conversation" : "Focus workspace")
+          .accessibilityLabel(state.focus ? "Show conversation" : "Focus workspace")
         ObserverMark().fill(.primary).frame(width: 28, height: 28).accessibilityHidden(true)
-        Text(state.workbook?.title ?? "Sevra").font(.headline)
+        Text(state.workbook?.title ?? "Sevra").font(.headline).lineLimit(1)
         Spacer()
         if state.busy {
           ProgressView().controlSize(.small)
           Text(state.status).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            .frame(maxWidth: 160).help(state.status)
           Button("Stop", action: state.stop)
         }
         Button {
           state.navigate(.search)
         } label: {
           Image(systemName: "magnifyingglass")
-        }.help("Search documents, records and filenames")
-        Button("Add files…") { state.importPanel() }.disabled(state.busy)
+        }.help("Search documents, records and filenames").accessibilityLabel("Search workbook")
         Menu {
           Button("Include files…") { state.importPanel() }
           Button("Link external files…") { state.importPanel(linked: true) }
           Button("Paste table data…", action: state.pasteTableData)
-          Divider()
-          Button("Make a shareable copy…", action: state.exportPanel)
         } label: {
-          Image(systemName: "plus")
-        }.menuStyle(.borderlessButton).frame(width: 24)
-        Button {
-          state.focus.toggle()
-        } label: {
-          Image(systemName: "sidebar.left")
-        }.help("Focus workspace")
+          Label("Add files…", systemImage: "plus")
+        } primaryAction: {
+          state.importPanel()
+        }.disabled(state.busy)
       }.padding(.horizontal, 20).padding(.vertical, 12)
       Divider()
       HSplitView {
@@ -53,16 +55,48 @@ struct WorkbookView: View {
                 .accessibilityLabel("Back to previous view")
                 .keyboardShortcut("[", modifiers: .command)
             }
-            Text(routeTitle).font(.title3.weight(.medium)).lineLimit(1)
+            if state.route != .space("home") {
+              Button {
+                state.navigate(.space("home"))
+              } label: {
+                Image(systemName: "house")
+              }.help("Home").accessibilityLabel("Home")
+            }
+            Text(routeTitle).font(.title3.weight(.medium)).lineLimit(1).help(routeTitle)
             Spacer()
-            Button("Activity", systemImage: "clock") { state.navigate(.activity) }
-            Button("Review drafts", systemImage: "checklist") { state.navigate(.reviews) }
-              .help("Pending work stays available regardless of this layout.")
+            if state.pendingReview?.items.isEmpty == false, state.route != .reviews {
+              Button("Review drafts", systemImage: "checklist") { state.navigate(.reviews) }
+                .help("Open drafts that need your review")
+            }
             Button("Spaces", systemImage: "square.grid.2x2") { showSpaces.toggle() }
               .popover(isPresented: $showSpaces) {
                 SpacePickerView(state: state) { showSpaces = false }
               }
-          }.padding(18)
+            Menu {
+              if case .space(let id) = state.route,
+                let space = state.spaces.first(where: { $0.id == id })
+              {
+                Button("Edit layout…") { editingSpace = space }.disabled(state.busy)
+                if !space.definition.components.isEmpty && !space.definition.containsSections {
+                  Button("Save a snapshot") {
+                    state.pinSpace(
+                      space.id,
+                      title: space.title + " · "
+                        + Date().formatted(date: .abbreviated, time: .shortened))
+                  }.disabled(state.busy)
+                }
+                Divider()
+              }
+              Button("Drafts to review") { state.navigate(.reviews) }
+              Button("Workflow runs") { state.navigate(.activity) }
+              Button("Automations") { state.navigate(.automations) }
+              Divider()
+              Button("Make a shareable copy…", action: state.exportPanel).disabled(state.busy)
+            } label: {
+              Image(systemName: "ellipsis")
+            }.menuStyle(.borderlessButton).frame(width: 28, height: 28)
+              .help("Workbook actions").accessibilityLabel("Workbook actions")
+          }.padding(.horizontal, 20).padding(.vertical, 14)
           Divider()
           workspace.frame(maxWidth: .infinity, maxHeight: .infinity)
           if let player = state.backgroundPlayer {
@@ -118,6 +152,7 @@ struct WorkbookView: View {
         ConversationHistorySheet(state: state, search: state.historySearch)
       }
       .sheet(item: $state.intakePrompt) { prompt in IntakeView(state: state, prompt: prompt) }
+      .sheet(item: $editingSpace) { space in SpaceLayoutEditor(space: space, state: state) }
       .sheet(item: $state.summaryDraft) { draft in
         ConversationSummarySheet(draft: draft) { summary in
           guard let book = state.workbook else { return }
@@ -168,7 +203,7 @@ struct WorkbookView: View {
     case .tableUpdate: return "Review table update"
     case .search: return "Search workbook"
     case .reviews: return "Drafts to review"
-    case .activity: return "Activity"
+    case .activity: return "Workflow runs"
     case .automations: return "Automations"
     case .automation: return "Automation"
     case .workflow: return "Workflow"

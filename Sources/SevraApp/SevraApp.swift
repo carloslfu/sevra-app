@@ -49,7 +49,7 @@ import SwiftUI
         Button("Drafts to Review") {
           NotificationCenter.default.post(name: .sevraReviews, object: nil)
         }
-        Button("Workflow Activity") {
+        Button("Workflow Runs") {
           NotificationCenter.default.post(name: .sevraActivity, object: nil)
         }.keyboardShortcut("y", modifiers: [.command, .shift])
         Divider()
@@ -203,40 +203,47 @@ struct WorkspaceWindow: View {
   }
   var isKey: Bool { ownWindow != nil && NSApp.keyWindow === ownWindow }
   var welcome: some View {
-    VStack(alignment: .leading, spacing: 26) {
-      HStack(spacing: 13) {
-        ObserverMark().fill(.primary).frame(width: 70, height: 70)
-        SevraWordmark().fill(.primary).frame(width: 189, height: 40)
-      }.accessibilityElement(children: .ignore).accessibilityLabel("Sevra")
-      Text("A workbook for the work in front of you.").font(.title2)
-      Text(
-        "Bring your documents and tables together. Explore them through conversation, keep the evidence, and make the result your own."
-      )
-      .font(.body).foregroundStyle(.secondary).frame(maxWidth: 470, alignment: .leading)
-      HStack(spacing: 14) {
-        Button("Start from files…", action: startFromFiles).buttonStyle(.borderedProminent)
-          .controlSize(
-            .large)
-        Button("Create blank", action: create).controlSize(.large)
-        Button("Open…", action: open).controlSize(.large)
-        Button("Try an example", action: demo).controlSize(.large)
-      }
-      let recent = UserDefaults.standard.stringArray(forKey: "recentWorkbooks") ?? []
-      if !recent.isEmpty {
-        VStack(alignment: .leading, spacing: 8) {
-          Text("Recent workbooks").font(.headline)
-          ForEach(recent, id: \.self) { path in
-            Button(URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent) {
-              openWindow(value: path)
-            }
-            .buttonStyle(.link)
+    ScrollView {
+      VStack(alignment: .leading, spacing: 24) {
+        HStack(spacing: 13) {
+          ObserverMark().fill(.primary).frame(width: 70, height: 70)
+          SevraWordmark().fill(.primary).frame(width: 189, height: 40)
+        }.accessibilityElement(children: .ignore).accessibilityLabel("Sevra")
+        Text("A workbook for the work in front of you.").font(.title2)
+        Text(
+          "Bring your files together. Ask questions, compare options, and build tables with the evidence at hand."
+        )
+        .font(.body).foregroundStyle(.secondary).frame(maxWidth: 470, alignment: .leading)
+        VStack(alignment: .leading, spacing: 12) {
+          HStack(spacing: 12) {
+            Button("Start from files…", action: startFromFiles).buttonStyle(.borderedProminent)
+              .controlSize(.large)
+            Button("Open workbook…", action: open).controlSize(.large)
+          }
+          HStack(spacing: 16) {
+            Button("Create blank", action: create).buttonStyle(.link)
+            Button("Try an example", action: demo).buttonStyle(.link)
           }
         }
-      }
-      if let error = welcomeError { Text(error).foregroundStyle(.red).textSelection(.enabled) }
-      Text("Your work stays on this Mac. Local AI setup is available in Settings.").font(.callout)
-        .foregroundStyle(.secondary)
-    }.padding(60).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        let recent = UserDefaults.standard.stringArray(forKey: "recentWorkbooks") ?? []
+        if !recent.isEmpty {
+          VStack(alignment: .leading, spacing: 8) {
+            Text("Recent workbooks").font(.headline)
+            ForEach(recent, id: \.self) { path in
+              Button(URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent) {
+                openWindow(value: path)
+              }
+              .buttonStyle(.link)
+            }
+          }
+        }
+        if let error = welcomeError { Text(error).foregroundStyle(.red).textSelection(.enabled) }
+        Text("Your work stays on this Mac.").font(.callout)
+          .foregroundStyle(.secondary)
+        SettingsLink { Text("Local AI settings…") }
+      }.frame(maxWidth: 520, alignment: .leading).padding(40)
+        .frame(maxWidth: .infinity, alignment: .center)
+    }.frame(maxWidth: .infinity, maxHeight: .infinity)
       .background(Color(nsColor: .windowBackgroundColor))
   }
   func create() {

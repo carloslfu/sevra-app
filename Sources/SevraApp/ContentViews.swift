@@ -15,6 +15,7 @@ struct SearchView: View {
   private var searching: Bool { results.loading }
   private var failure: String? { results.query == query ? results.failure : nil }
   @State private var facets: Value = .null
+  @State private var showingFilters = false
   @FocusState private var focused: Bool
   var query: SearchQuery {
     SearchQuery(
@@ -36,14 +37,38 @@ struct SearchView: View {
           .plain
         ).focused($focused)
         if searching { ProgressView().controlSize(.small) }
+        if !state.searchQuery.isEmpty {
+          Button {
+            state.searchQuery = ""
+          } label: {
+            Image(systemName: "xmark.circle.fill")
+          }
+          .buttonStyle(.plain).foregroundStyle(.secondary).accessibilityLabel("Clear search")
+        }
       }.padding(12).background(
         Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
-      ViewThatFits(in: .horizontal) {
-        HStack { filters }
-        VStack(alignment: .leading) { filters }
+      DisclosureGroup(
+        activeFilters == 0 ? "Filters" : "Filters (\(activeFilters) active)",
+        isExpanded: $showingFilters
+      ) {
+        VStack(alignment: .leading, spacing: 12) {
+          ViewThatFits(in: .horizontal) {
+            HStack { filters }
+            VStack(alignment: .leading) { filters }
+          }
+          Toggle("Include earlier versions", isOn: $state.searchHistorical)
+            .toggleStyle(.checkbox).font(.callout)
+          if activeFilters > 0 {
+            Button("Clear filters") {
+              state.searchKind = ""
+              state.searchMeaning = ""
+              state.searchStatus = ""
+              state.searchScenario = ""
+              state.searchHistorical = false
+            }
+          }
+        }.padding(.top, 8)
       }
-      Toggle("Include earlier versions", isOn: $state.searchHistorical).toggleStyle(.checkbox).font(
-        .callout)
       if incomplete > 0 {
         Text(
           (incomplete == 1
@@ -62,7 +87,8 @@ struct SearchView: View {
               } label: {
                 VStack(alignment: .leading, spacing: 6) {
                   Text(hit.title).font(.headline)
-                  Text(hit.snippet).lineLimit(4).foregroundStyle(.secondary)
+                  Text(StructuredPresentation.searchExcerpt(hit.snippet, title: hit.title))
+                    .lineLimit(4).foregroundStyle(.secondary)
                   if let location = DisplayText.location(hit.locator) {
                     Text(location).font(.caption).foregroundStyle(.tertiary)
                   }
@@ -91,23 +117,30 @@ struct SearchView: View {
           }
       }
       if let failure { Text(failure).foregroundStyle(.red) }
-    }.padding(22).task { focused = true }
-      .task(id: facetIdentity) {
-        let identity = facetIdentity
-        if let book = state.workbook {
-          let found = try? await Task.detached { try book.searchFacets() }.value
-          guard !Task.isCancelled, facetIdentity == identity else { return }
-          facets = found ?? .null
-        }
+    }.padding(24).task {
+      focused = true
+      showingFilters = activeFilters > 0
+    }
+    .task(id: facetIdentity) {
+      let identity = facetIdentity
+      if let book = state.workbook {
+        let found = try? await Task.detached { try book.searchFacets() }.value
+        guard !Task.isCancelled, facetIdentity == identity else { return }
+        facets = found ?? .null
       }
-      .task(id: query) { await search(more: false) }
-      .onDisappear { results.cancelRead() }
+    }
+    .task(id: query) { await search(more: false) }
+    .onDisappear { results.cancelRead() }
   }
   @ViewBuilder var filters: some View {
     facet("Kind", key: "kind", selection: $state.searchKind)
     facet("Meaning", key: "meaning", selection: $state.searchMeaning)
     facet("Status", key: "status", selection: $state.searchStatus)
     facet("Scenario", key: "scenario", selection: $state.searchScenario)
+  }
+  private var activeFilters: Int {
+    [state.searchKind, state.searchMeaning, state.searchStatus, state.searchScenario]
+      .filter { !$0.isEmpty }.count + (state.searchHistorical ? 1 : 0)
   }
   func facet(_ title: String, key: String, selection: Binding<String>) -> some View {
     Picker(title, selection: selection) {
@@ -131,27 +164,12 @@ struct SearchView: View {
 struct SpaceView: View {
   let space: Space
   @ObservedObject var state: WorkspaceState
-  @State private var editing: Space?
   var body: some View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 28) {
-        HStack {
-          if let captured = space.definition.pinnedAt {
-            Text("Snapshot from " + DisplayText.date(captured)).font(.caption).foregroundStyle(
-              .secondary)
-          } else {
-            Text("Live view").font(.caption).foregroundStyle(.secondary)
-          }
-          Spacer()
-          Button("Edit layout") { editing = space }.disabled(state.busy)
-          if !space.definition.components.isEmpty && !containsSections(space.definition.components)
-          {
-            Button("Save a snapshot") {
-              state.pinSpace(
-                space.id,
-                title: space.title + " · " + Date().formatted(date: .abbreviated, time: .shortened))
-            }.help("Keep exact values and input versions as of now.").disabled(state.busy)
-          }
+        if let captured = space.definition.pinnedAt {
+          Text("Snapshot from " + DisplayText.date(captured)).font(.caption).foregroundStyle(
+            .secondary)
         }
         if space.definition.components.isEmpty {
           Text("Make room for your work").font(.system(size: 28, weight: .medium))
@@ -168,7 +186,6 @@ struct SpaceView: View {
       id: Binding(get: { state.spaceScroll[space.id] }, set: { state.spaceScroll[space.id] = $0 }),
       anchor: .top
     )
-    .sheet(item: $editing) { selected in SpaceLayoutEditor(space: selected, state: state) }
   }
   private var visibleComponents: [Component] {
     space.definition.components.filter { component in
@@ -187,7 +204,10 @@ struct SpaceView: View {
       }
     }
   }
-  private func containsSections(_ components: [Component]) -> Bool {
+}
+extension SpaceDefinition {
+  var containsSections: Bool { Self.containsSections(components) }
+  private static func containsSections(_ components: [Component]) -> Bool {
     components.contains {
       SpaceDefinition.sectionTypes.contains($0.type) || containsSections($0.children ?? [])
     }
@@ -596,14 +616,20 @@ struct DatasetView: View {
         ProgressView("Loading table").frame(maxWidth: .infinity, maxHeight: .infinity)
       }
       HStack {
-        Button("Previous") {
-          state.tableOffsets[table.id] = max(0, offset - 200)
-        }.disabled(offset == 0)
-        Text("\(min(displayedOffset+1,total))–\(min(displayedOffset+rows.count,total)) of \(total)")
+        if total > 200 || offset > 0 {
+          Button("Previous") {
+            state.tableOffsets[table.id] = max(0, offset - 200)
+          }.disabled(offset == 0)
+          Text(
+            "\(min(displayedOffset+1,total))–\(min(displayedOffset+rows.count,total)) of \(total)"
+          )
           .font(.caption)
-        Button("Next") {
-          state.tableOffsets[table.id] = offset + 200
-        }.disabled(offset + rows.count >= total)
+          Button("Next") {
+            state.tableOffsets[table.id] = offset + 200
+          }.disabled(offset + rows.count >= total)
+        } else {
+          Text(total == 1 ? "1 row" : "\(total) rows").font(.caption).foregroundStyle(.secondary)
+        }
         Spacer()
         if state.tableUndo[table.id] != nil { Button("Undo") { undo(false) } }
         if compact { Button("Open table") { state.navigate(.table(table.id)) } }
@@ -812,10 +838,10 @@ struct ColumnEditor: View {
           columns.append(.init(id: "column_" + String(identifier().prefix(8)), title: "New column"))
         }
         Spacer()
-        Button("Cancel") { dismiss() }
-        Button("Save") {
+        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+        Button("Save definition") {
           save()
-        }.buttonStyle(.borderedProminent)
+        }.keyboardShortcut(.defaultAction).buttonStyle(.borderedProminent)
       }
     }.padding(24).frame(width: 780, height: 540).disabled(saving)
       .interactiveDismissDisabled(saving).onAppear {

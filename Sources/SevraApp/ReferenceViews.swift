@@ -1,6 +1,7 @@
 import AppKit
 import SevraCore
 import SevraDocumentUI
+import SevraPreviewUI
 import SevraSearchUI
 import SwiftUI
 
@@ -135,6 +136,12 @@ struct ReferencesPanel: View {
               .tag(hit["evidence"]["id"].text)
           }
         }
+        .overlay {
+          if !incoming.loading && incoming.hits.isEmpty && incoming.failure == nil {
+            Text("No saved mentions in this scope.")
+              .foregroundStyle(.secondary).padding(20)
+          }
+        }
         .onKeyPress(.return) {
           guard
             let hit = incoming.hits.first(where: { $0["evidence"]["id"].text == selectedMention })
@@ -142,16 +149,14 @@ struct ReferencesPanel: View {
           openMention(hit)
           return .handled
         }
-        if !incoming.loading && incoming.hits.isEmpty && incoming.failure == nil {
-          Text("No saved mentions were found in this scope. Other content may be unindexed.")
-            .foregroundStyle(.secondary)
-        }
         HStack {
-          Button("Previous") { Task { await incoming.load(query, workbook: workbook, step: -1) } }
-            .disabled(!incoming.canGoBack || incoming.loading)
-          Text("Page \(incoming.page)").font(.caption)
-          Button("Next") { Task { await incoming.load(query, workbook: workbook, step: 1) } }
-            .disabled(incoming.nextCursor == nil || incoming.loading)
+          if incoming.canGoBack || incoming.nextCursor != nil {
+            Button("Previous") { Task { await incoming.load(query, workbook: workbook, step: -1) } }
+              .disabled(!incoming.canGoBack || incoming.loading)
+            Text("Page \(incoming.page)").font(.caption)
+            Button("Next") { Task { await incoming.load(query, workbook: workbook, step: 1) } }
+              .disabled(incoming.nextCursor == nil || incoming.loading)
+          }
           Spacer()
           Button("Start over") { Task { await incoming.load(query, workbook: workbook) } }
             .disabled(incoming.loading)
@@ -211,6 +216,14 @@ struct ReferencesPanel: View {
               }
           }
         }
+        .overlay {
+          if !session.loading, session.failure == nil,
+            session.document?.occurrences.isEmpty == true
+          {
+            Text("No saved links in this document.")
+              .foregroundStyle(.secondary).padding(20)
+          }
+        }
         .onKeyPress(.return) {
           guard
             let occurrence = session.document?.occurrences.first(where: { $0.id == selectedLink })
@@ -219,17 +232,19 @@ struct ReferencesPanel: View {
           return .handled
         }
         HStack {
-          Button("Open selected link") {
-            if let occurrence = selectedOccurrence { open(occurrence) }
-          }.disabled(selectedOccurrence == nil)
-          Button("Choose destination…") {
-            if let occurrence = selectedOccurrence { state.referenceChoice = occurrence }
+          if session.document?.occurrences.isEmpty == false {
+            Button("Open selected link") {
+              if let occurrence = selectedOccurrence { open(occurrence) }
+            }.disabled(selectedOccurrence == nil)
+            Button("Choose destination…") {
+              if let occurrence = selectedOccurrence { state.referenceChoice = occurrence }
+            }
+            .keyboardShortcut("e", modifiers: [.command, .option])
+            .disabled(state.busy || selectedOccurrence.map { !canChoose($0) } != false)
+            .accessibilityLabel(
+              selectedOccurrence.map { "Choose destination for " + $0.reference.label }
+                ?? "Choose destination for the selected link")
           }
-          .keyboardShortcut("e", modifiers: [.command, .option])
-          .disabled(state.busy || selectedOccurrence.map { !canChoose($0) } != false)
-          .accessibilityLabel(
-            selectedOccurrence.map { "Choose destination for " + $0.reference.label }
-              ?? "Choose destination for the selected link")
           Spacer()
         }
         if let document = session.document {
@@ -316,7 +331,8 @@ struct ReferenceTargetPicker: View {
           } label: {
             VStack(alignment: .leading, spacing: 4) {
               Text(hit.title).foregroundStyle(.primary)
-              Text(hit.snippet).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+              Text(StructuredPresentation.searchExcerpt(hit.snippet, title: hit.title))
+                .font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }
           }.buttonStyle(.plain).disabled(working)
             .accessibilityLabel("Link to " + hit.title)

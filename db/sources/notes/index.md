@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-10-28T18:12:10.937609Z
+updated: 2026-10-29T22:24:34.262579Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/10/native-journey-simplification]] — Owner requests a thorough review and simplification of the native Sevra journey, controls, spacing and polish.
 - [[sources/notes/2026/10/managed-datasets-replayable-storage]] — Owner adoption of managed native datasets aligned with existing replayable persistence; replication remains future work.
 - [[sources/notes/2026/10/persistence-readiness-requirement]] — Carlos authorizes persistence readiness for future syncing, explicitly excluding sync implementation and a new conflict-resolution service.
 - [[sources/notes/2026/10/pre-1-production-compatibility-policy]] — Carlos removes backward-compatibility obligations until the first notarized production-ready 1.0 release; test deployments do not qualify.

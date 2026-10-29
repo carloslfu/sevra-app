@@ -31,12 +31,12 @@ struct SpacePickerView: View {
         }
       }
       Divider()
-      Button("Create a space through conversation") {
+      Button("Create a space…") {
         if state.prompt.isEmpty { state.prompt = "Create a space for " }
         state.composerFocusRequest = UUID()
         dismiss()
       }
-    }.padding(16).frame(width: 340, height: 400)
+    }.padding(16).frame(width: 320, height: min(400, 130 + CGFloat(state.spaces.count) * 60))
       .onAppear { searchFocused = true }
   }
   @ViewBuilder private func section(_ title: String, _ spaces: [Space]) -> some View {

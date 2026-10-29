@@ -1369,3 +1369,6 @@ Owner clarification: native excerpts, tables and structured fields replace JSON 
 ## [2026-10-29 21:56] verification | records/operations/implementation.md
 Live agent activity and polished structured presentation installed; final focused preview, source freeze, strict 21-file format, native release/resource/refusal/signature checks pass. Actual local Stop/retry and portable activity history verified; broad source-selection failure retained in immutable receipts.
 
+## [2026-10-29 22:27] verification | records/reviews/native-journey-polish.md
+Native journey simplification: installed visual checks, 18 preview invariant groups, nine intake checks, isolated package/signatures, 201-row boundary and offline portable reopen. Exact evidence in integration/evidence/2026-10-29-native-journey.json.gz; retained retrieval and accessibility/release limits.
+

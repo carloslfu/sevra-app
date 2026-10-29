@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T21:56:06.804295+00:00
+updated: 2026-10-29T22:25:44.254160+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -13,6 +13,76 @@ This is MVP 0.1, a native source test preview for the focused file-to-result
 workflow below. The expanded specification is unfinished. The owner-directed
 [[records/specs/mvp-delivery]] controls delivery order; preview evidence does not
 qualify broad model reliability, supported hardware or a production release.
+
+## Native journey simplification, October 29
+
+Owner-requested review and control inventory:
+[[records/reviews/native-journey-polish]]. The native preview now captures ordinary
+added files as indexed references without a mandatory role dialog, then focuses
+conversation. Explicit later conversion/update remains available. The shell has
+one Add files split control, direct Home, contextual pending review and a secondary
+workbook menu for layout/snapshot/workflow/automation/share actions. Filters and
+model storage use disclosure. Empty and one-page views lose inactive controls;
+links/mentions have centered empty states. Working-table editing, exact target
+review, source lineage, Stop and acceptance boundaries remain.
+
+A secondary visual pass caught raw JSON search snippets and raw Markdown/internal
+URLs in conversation history cards. Search uses bounded native field summaries
+with exact number lexemes; history shows readable labels. Imported JSON still uses
+the structured viewer with optional identifiers. The original failed captures are
+kept in private build evidence and their fixes were checked in the installed app.
+
+### Verification and scope
+
+- `bash scripts/build_native.sh` succeeds for the final native app/CLI/extractor;
+  release preview checks build and all 18 printed invariant groups pass. These
+  cover ownership, cancellation, bounded results, exact values, context/history,
+  form recovery, clarification and saved outcomes. Strict Swift formatting and
+  diff checks pass for the changed sources.
+- `python3 scripts/check_contextual_intake.py --cli <installed-workbook-cli>` passes
+  all nine role, retry, idempotence, saved-values and portability checks. Native
+  inclusion adds the explicit reference default; the lower-level CLI preserves
+  its separate ambiguous-intake contract. A real native saved CSV conversion
+  creates an editable table only after explicit selection, preserves 0014 and
+  keeps the original. A cell edit from 20 to 21 and Undo back to 20 is observed.
+- `python3 scripts/check_native_package.py --paths-only` passes isolated app/CLI
+  resource checks with the build tree denied, ten missing-resource refusals,
+  altered-resource refusal, safe setup arguments and signature verification.
+  This reuses the unchanged engine/kernel/model proof from the activity checkpoint;
+  no fresh throughput, broad model accuracy or hardware claim is made.
+- Installed synthetic walkthrough covers the surfaces listed in the review,
+  including near-minimum window fit, direct intake, native evidence, structured
+  search, review/form, optional editors, focus mode, settings, archive member
+  picker, video preview, navigation and conversation history. Native appearance
+  is inspected, not every possible action/state combination. The final history
+  card additionally verifies readable supplier-quotes.csv without internal URI.
+- Matching installed CLI checks a 201-row table as 200 plus 1, verifies the workbook,
+  exports and reopens a portable copy preserving table/row identities, and reads
+  the included original with network/original fixture folders denied. No model,
+  real business acceptance, device enablement or new privacy grant is used.
+
+The exact source/binary/check/observation receipt is
+[the native journey receipt](../../../integration/evidence/2026-10-29-native-journey.json.gz).
+README and [[records/operations/build-and-run]] now match native intake and current
+Download model / Verify model files / Use existing model files labels. P28 and I04
+record the interaction decisions rather than leaving behavior in UI code alone.
+
+### Current remaining priorities
+
+1. Broad AI evidence selection and grounded coverage, including the retained Brio
+   PDF omission in the activity iteration below. A focused open-PDF question is
+   still the supported preview route; this UI change does not fix the broad case.
+2. Advanced authoring effort: schema/mapping and time input remain technical;
+   reference CSV inspection still displays delimited text before conversion.
+3. Remaining release qualification: full accessibility/appearance/media transport,
+   hardware profiles and production distribution. These are not completed by this
+   focused source-preview pass.
+
+The prior activity commit 8f3f6ce hosted CI run
+[40961953826](https://github.com/carloslfu/sevra-app/actions/runs/40961953826)
+was still in progress when checked during this review. It is not a passing CI
+receipt. Local checks above passed independently. This is a native source test
+preview, not a notarized production release or proof of the expanded specification.
 
 ## Live agent activity iteration, October 29
 

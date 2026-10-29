@@ -3,14 +3,14 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-29T21:56:06.859962+00:00
+updated: 2026-10-29T22:17:11.488786+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
 ---
 # Product and interaction
 
-Revision 8, October 28, 2026. Status refers to specification review, not delivery.
+Revision 9, October 29, 2026. Status refers to specification review, not delivery.
 Normative requirements use IDs so implementation and verification can map back.
 
 Sevra Workbook is the primary product and homepage. A small Websites link in the
@@ -58,6 +58,21 @@ creates an editable package at a user-chosen location without overwriting a file
 P02. Adjustable conversation-left/workspace-right split, initial 34/66 proportion.
 Keep a composer visible. Minimum usable window 820x600; at narrow widths allow
 focus on one pane and an accessible switch. Never hide pending changes in a pane.
+P28. Keep the default shell focused on the ongoing conversation and current work.
+Use one persistent Add files split control, search and an accessible pane-focus
+switch. Home has a direct shortcut outside Home; Back preserves the viewer stack.
+Spaces uses a searchable picker sized to its contents, not a fixed empty panel.
+Review drafts is contextual when work is pending, with the full queue always
+available from the workbook menu. Layout editing, snapshots, workflow history,
+automations and portable-copy actions are secondary menu destinations. Call
+workflow history Workflow runs so it does not compete with live agent activity.
+Advanced filters and model storage settings use progressive disclosure. Hide
+paging controls when no other page exists; retain loading, failure, retry and
+coverage messages. Review/Accept, Stop and current-form conflict choices remain
+explicit where consequential. File intake follows I04 without a mandatory modal.
+See [[records/reviews/native-journey-polish]] for the audited surface inventory and
+verification limits. These shell changes do not qualify broad AI reliability.
+
 P03. Searchable space picker: Home, pinned/recent, all spaces. No unbounded tab strip.
 Home shows useful recent sources, tables and pending work without dashboard setup.
 P04. Stable title, selection and scroll state per saved space; temporary viewers
@@ -85,9 +100,8 @@ P20. Excel conversion targets continuity of supported existing work, including
 structure, formulas/dependencies, ranges and useful formatting. Preserve originals,
 lineage and an explicit feature report. Saved values/formula text alone do not
 constitute functioning migration. Implementation, phased scope and IJ01-IJ10 are in
-[[records/specs/contextual-import]]. Checkpoint 63cd642 saves originals and
-selected roles without suffix-driven table creation; explicit saved-values
-conversion is available. Table-update and Excel-continuity gates remain open.
+[[records/specs/contextual-import]]. The native capture default saves/indexes references without a role modal or
+suffix-driven table creation. Explicit later saved-values conversion is available. Table-update and Excel-continuity gates remain open.
 
 ## Live agent activity
 

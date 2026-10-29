@@ -3,6 +3,46 @@ import SevraCore
 
 /// Presentation only. Labels never alter saved keys, values or identities.
 public enum StructuredPresentation {
+  /// Search may return a truncated fragment. Never present JSON syntax as prose
+  /// or imply that a fragment contains the whole file.
+  public static func searchExcerpt(_ text: String, title: String) -> String {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    let isStructuredFile = ["json", "jsonl", "ndjson"].contains(
+      (title as NSString).pathExtension.lowercased())
+    let parsed = parseJSON(trimmed)
+    let collection: Bool
+    switch parsed {
+    case .array?, .object?: collection = true
+    default: collection = false
+    }
+    guard
+      isStructuredFile || collection || trimmed.hasPrefix("{\"")
+        || trimmed.hasPrefix("[{\"") || trimmed.hasPrefix("[\"") || trimmed.hasPrefix("{\n")
+    else { return text }
+    guard let value = parsed else {
+      return "Structured data. Open the file to inspect its contents."
+    }
+    func detail(_ value: Value) -> String {
+      if let scalar = scalar(value) { return String(scalar.prefix(160)) }
+      switch value {
+      case .array(let entries): return "\(entries.count) entries"
+      case .object(let fields): return "\(fields.count) fields"
+      default: return "Not provided"
+      }
+    }
+    switch value {
+    case .object(let fields):
+      if fields.isEmpty { return "Empty structured data" }
+      let keys = fields.keys.sorted()
+      let excerpt = keys.prefix(6).map { label($0) + ": " + detail(fields[$0]!) }.joined(
+        separator: " · ")
+      return excerpt + (keys.count > 6 ? " · More fields in file" : "")
+    case .array(let entries):
+      return entries.isEmpty ? "Empty list" : "Structured list · \(entries.count) entries"
+    default: return detail(value)
+    }
+  }
+
   public static func label(_ key: String) -> String {
     let known = [
       "id": "Identifier", "itemID": "Record", "datasetID": "Table", "assetID": "File",

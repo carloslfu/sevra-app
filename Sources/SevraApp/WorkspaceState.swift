@@ -459,21 +459,18 @@ import SwiftUI
       linked ? "Linking files" : "Including files",
       operation: { book, cancel in
         var failures: [String] = []
-        var choices: [IntakeChoice] = []
         for url in urls {
           try cancel.check()
           do {
-            let job = try book.captureIntake(url, linked: linked, cancellation: cancel)
+            // Capturing a file is enough to make it evidence. Table conversion
+            // remains an explicit later request, never an import prerequisite.
+            let job = try book.captureIntake(
+              url, linked: linked, role: .reference, cancellation: cancel)
             let item = try book.item(job.sourceID)
             _ = try book.addMessage(
               (linked ? "Linked " : "Included ") + item.referenceMarkdown, role: "event",
               conversation: chat)
-            let result = try book.runIntake(job.id, cancellation: cancel)
-            choices.append(
-              .init(
-                job: result, title: item.title,
-                supportsTable: ["csv", "tsv", "xlsx"].contains(url.pathExtension.lowercased()),
-                supportsUpdate: ["csv", "tsv"].contains(url.pathExtension.lowercased())))
+            _ = try book.runIntake(job.id, cancellation: cancel)
           } catch {
             if cancel.isCancelled { throw error }
             failures.append(url.lastPathComponent + ": " + error.localizedDescription)
@@ -482,10 +479,10 @@ import SwiftUI
         if !failures.isEmpty {
           throw SevraError("import_partial", failures.joined(separator: "\n"))
         }
-        return choices
+        return urls.count
       },
-      completion: { choices in
-        if !choices.isEmpty { self.intakePrompt = .init(choices: choices) }
+      completion: { _ in
+        self.composerFocusRequest = UUID()
       })
   }
   func presentIntake(_ id: String) {

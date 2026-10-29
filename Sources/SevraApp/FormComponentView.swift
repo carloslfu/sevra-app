@@ -116,7 +116,7 @@ private struct NativeFormEditor: View {
           } else {
             Button("Preview") { Task { await session.prepare() } }.disabled(session.busy)
           }
-          if let currentFormID {
+          if let currentFormID, currentFormID != state.definitionID {
             Button("Use current form and keep these inputs") {
               Task { await session.useCurrent(currentFormID, carryInputs: true) }
             }.font(.callout).disabled(session.busy)

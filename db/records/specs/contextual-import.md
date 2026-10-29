@@ -2,7 +2,7 @@
 type: spec
 id: 01m61c4z13j3paexnc7xvyyqhs
 created: 2026-10-28T13:45:46.275195+00:00
-updated: 2026-10-28T19:13:11.742057+00:00
+updated: 2026-10-29T22:17:11.466704+00:00
 summary: One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 title: Contextual import and Excel continuity
 status: reviewed
@@ -87,10 +87,16 @@ I04. Use the current request, selected destination and trusted current intake
 state to infer intent. On a blank workbook, an explicit start-working-from-this
 request usually supports native conversion; a request to consult a price list
 supports reference/analysis. Neither inference is unconditional on a file suffix.
-If a bare drop supports materially different uses, include/index the evidence
-under the default asset policy and ask one short contextual clarification before
-changing working data. Prefer a useful question such as whether to create a new
-table or update the selected one. Never ask users to choose storage internals.
+A bare Add files, start-from-files or drop includes/indexes the evidence as a
+reference and returns focus to the composer. Do not interrupt capture with a
+mandatory role questionnaire. This default changes no working table or business
+state. Preserve the original, a readable inclusion message and later-use actions.
+Ask a short contextual clarification only when a requested operation would change
+working data and its target or method is ambiguous. Explicit native File actions >
+Use saved file offers conversion or table update without reimporting the original.
+Prefer a useful question such as whether to create a new table or update the
+selected one. Never ask users to choose storage internals. The October 29 native
+journey review is [[records/reviews/native-journey-polish]].
 
 I05. Updating needs an exact target, expected revision, explicit operation and
 validated column/key mapping. Preview affected row counts, conflicts, duplicates,

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T19:17:16.971247+00:00
+updated: 2026-10-29T22:17:23.832219+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -42,8 +42,8 @@ Source builds are locally ad-hoc signed, not production Developer ID notarized.
 The documented source route is the current preview installation path. This preview
 uses Open inside Sevra; it does not register itself as the Finder default for workbooks.
 
-In Settings, use Download / verify model, or Reuse an existing Fast model and
-select a compatible Qwen3.6 35B A3B 4-bit folder containing `dflash/`. Reuse verifies
+In Settings, choose Download model, Verify model files when files are found, or
+expand Model files and storage > Use existing model files… and select a compatible Qwen3.6 35B A3B 4-bit folder containing `dflash/`. Reuse verifies
 weights in place; keep that folder available. Fresh weights total 21,481,698,956
 bytes, with additional build/runtime working space. Default model storage is
 `~/Library/Application Support/Sevra/Models`, separate from workbook documents.
@@ -68,9 +68,12 @@ The repository includes two small synthetic files under `examples/`:
 `supplier-quotes.csv` and `Brio-quotation.pdf`. No real customer data is involved.
 The quotation is searchable PDF text, not a scanned-image extraction claim.
 
-1. Choose Start from files, select both files, and save a new workbook. For the
-   CSV, choose Create tables from values; for the PDF, Keep as reference. Wait for
-   indexing to report ready. Originals are included outside SQLite inside the workbook.
+1. Choose Start from files, select both files, and save a new workbook. The
+   files are included and indexed as references without an extra decision dialog.
+   Open the CSV from its Included message or Home, then choose File actions >
+   Use saved file… > Create table from saved values. Wait for indexing/conversion
+   to finish. Originals are outside SQLite inside the workbook; no business event
+   is accepted by inclusion or table creation.
 2. Open Brio-quotation.pdf from Home and ask: “Summarize this quotation, including
    quantity, prices, shipping, delivery and tax terms. Cite the original.” Open its
    citation to inspect the included PDF. Brio explicitly excludes tax and provides
@@ -157,8 +160,9 @@ formulas and export work without model setup.
 
 ## Local AI
 
-Open Settings and choose an existing compatible Slotstream Fast model folder or
-use Download / verify model. Setup needs roughly 21.5 GB of model files plus
+The preserved baseline settings below use their own model setup controls; do not
+confuse them with the native preview settings described above. Select an existing
+compatible Slotstream Fast model folder or download/verify it in that build. Setup needs roughly 21.5 GB of model files plus
 working space. The pinned model is Qwen3.6 35B A3B 4-bit with the Fast pack's DFlash
 draft files. Only that verified pack is qualified by this integration. The default
 location is ~/.slotstream/models/qwen36-35b-a3b-4bit.

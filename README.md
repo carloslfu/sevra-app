@@ -39,7 +39,8 @@ signed, with no production notarized installer yet.
 Use `~/.local/bin/sevra version` to verify the installed workbook CLI if another
 program named `sevra` appears earlier in your shell's PATH.
 
-In Settings, choose **Download / verify model**, or **Reuse an existing Fast model**
+In Settings, choose **Download model**, or **Verify model files** when files are
+found. To reuse weights, expand **Model files and storage > Use existing model files…**
 for compatible Qwen3.6 35B A3B 4-bit weights with DFlash 2. A fresh download is
 21.48 GB plus working space. Models stay outside workbooks. Import, search, tables,
 calculations and saved results also work without AI setup. There is no hosted-model
@@ -47,7 +48,8 @@ fallback or in-app telemetry.
 
 Start from the two files in [examples](examples), then follow the
 [supplier comparison walkthrough](db/records/operations/build-and-run.md#native-mvp-supplier-comparison).
-The CSV becomes a working table; the searchable PDF stays an included reference.
+Files are saved and indexed without an extra dialog. Convert the saved CSV into
+a working table when needed; the searchable PDF stays an included reference.
 Open the quotation and ask for a cited summary, calculate goods plus shipping,
 keep a live table/chart in a space, edit an input, Undo, and make a portable copy.
 Use focused requests: broad questions can miss relevant files or hit the step limit.

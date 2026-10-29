@@ -26,15 +26,17 @@ struct ReviewQueueView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 18) {
       Text(
-        "Current drafts across this workbook, oldest first. Open one to inspect its evidence before accepting. Table rows are reviewed through their table proposals."
+        "Open a draft to check its evidence before accepting. Drafts appear oldest first."
       )
       .foregroundStyle(.secondary)
       HStack {
-        Button("Previous") { Task { await load(direction: -1) } }
-          .disabled(!results.hasPrevious || results.loading)
-        Text("Page \(results.pageNumber)").font(.callout).foregroundStyle(.secondary)
-        Button("Next") { Task { await load(direction: 1) } }
-          .disabled(results.nextCursor == nil || results.loading)
+        if results.hasPrevious || results.nextCursor != nil {
+          Button("Previous") { Task { await load(direction: -1) } }
+            .disabled(!results.hasPrevious || results.loading)
+          Text("Page \(results.pageNumber)").font(.callout).foregroundStyle(.secondary)
+          Button("Next") { Task { await load(direction: 1) } }
+            .disabled(results.nextCursor == nil || results.loading)
+        }
         Spacer()
         if results.loading { ProgressView().controlSize(.small) }
         Button("Refresh") { Task { await load(force: true) } }.disabled(results.loading)

@@ -56,7 +56,9 @@ struct SpaceLayoutEditor: View {
                   TextField(
                     "Text",
                     text: Binding(
-                      get: { component.text ?? "" }, set: { component.text = $0 }))
+                      get: { component.text ?? "" }, set: { component.text = $0 }), axis: .vertical
+                  )
+                  .lineLimit(2...8)
                 }
                 if component.type == "search", space.definition.pinnedAt == nil {
                   TextField(

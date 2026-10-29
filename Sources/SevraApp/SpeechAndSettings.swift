@@ -11,6 +11,7 @@ struct ModelSettingsView: View {
   @State private var status = ""
   @State private var error: String?
   @State private var cancellation = Cancellation()
+  @State private var filesFound = false
   var body: some View {
     Form {
       Picker("Appearance", selection: $appearance) {
@@ -21,45 +22,55 @@ struct ModelSettingsView: View {
       Section("Local AI") {
         Text(ProductAI.name).font(.headline)
         Text(ProductAI.detail).foregroundStyle(.secondary)
+        Label(
+          filesFound ? "Model files found" : "Set up local AI to start asking questions",
+          systemImage: filesFound ? "checkmark.circle" : "arrow.down.circle")
+        if filesFound {
+          Text("Sevra verifies the files before using them.").font(.caption).foregroundStyle(
+            .secondary)
+        }
         Text(
           "The model stays on this Mac and is shared across workbooks. Setup downloads approximately \(ByteCountFormatter.string(fromByteCount:ProductAI.downloadBytes,countStyle:.file))."
         )
-        TextField(
-          ProductAI.canReuseModel ? "Model storage folder" : "Model folder", text: $modelDirectory
-        )
-        .disabled(busy)
-        HStack {
-          Button("Choose folder…") {
-            let panel = NSOpenPanel()
-            panel.canChooseDirectories = true
-            panel.canChooseFiles = false
-            if panel.runModal() == .OK, let url = panel.url { modelDirectory = url.path }
-          }.disabled(busy)
-          Button("Download / verify model") { setup() }.disabled(busy)
-        }
-        if ProductAI.canReuseModel {
-          Button("Reuse an existing Fast model…") {
-            let panel = NSOpenPanel()
-            panel.title = "Choose the Fast model folder containing its dflash folder"
-            panel.directoryURL = ProductAI.suggestedReuseDirectory
-            panel.canChooseDirectories = true
-            panel.canChooseFiles = false
-            if panel.runModal() == .OK, let source = panel.url { setup(reusing: source) }
-          }.disabled(busy)
-          Text(
-            "Existing weights are verified and reused in place. Keep their original folder available."
+        Button(filesFound ? "Verify model files" : "Download model") { setup() }
+          .buttonStyle(.borderedProminent).disabled(busy)
+        DisclosureGroup("Model files and storage") {
+          TextField(
+            ProductAI.canReuseModel ? "Model storage folder" : "Model folder", text: $modelDirectory
           )
-          .font(.caption).foregroundStyle(.secondary)
-        }
-        Button("Unload model from memory") {
-          Task {
-            let released = await ProductAI.shared.unload()
-            status =
-              released
-              ? "Idle model released."
-              : "The model is working. Cancel its current turn before unloading."
+          .disabled(busy)
+          HStack {
+            Button("Choose folder…") {
+              let panel = NSOpenPanel()
+              panel.canChooseDirectories = true
+              panel.canChooseFiles = false
+              if panel.runModal() == .OK, let url = panel.url { modelDirectory = url.path }
+            }.disabled(busy)
           }
-        }.disabled(busy)
+          if ProductAI.canReuseModel {
+            Button("Use existing model files…") {
+              let panel = NSOpenPanel()
+              panel.title = "Choose the model folder containing its dflash folder"
+              panel.directoryURL = ProductAI.suggestedReuseDirectory
+              panel.canChooseDirectories = true
+              panel.canChooseFiles = false
+              if panel.runModal() == .OK, let source = panel.url { setup(reusing: source) }
+            }.disabled(busy)
+            Text(
+              "Existing weights are verified and reused in place. Keep their original folder available."
+            )
+            .font(.caption).foregroundStyle(.secondary)
+          }
+          Button("Unload model from memory") {
+            Task {
+              let released = await ProductAI.shared.unload()
+              status =
+                released
+                ? "Idle model released."
+                : "The model is working. Cancel its current turn before unloading."
+            }
+          }.disabled(busy)
+        }
         if busy {
           ProgressView()
           Button("Cancel") { cancellation.cancel() }
@@ -73,6 +84,12 @@ struct ModelSettingsView: View {
         ).foregroundStyle(.secondary)
       }
     }.formStyle(.grouped).padding(12).frame(width: 600, height: 580)
+      .task(id: modelDirectory) {
+        filesFound = false
+        let found = await ProductAI.shared.installed(at: URL(fileURLWithPath: modelDirectory))
+        guard !Task.isCancelled else { return }
+        filesFound = found
+      }
       .onDisappear { cancellation.cancel() }
   }
   func setup(reusing source: URL? = nil) {
@@ -93,6 +110,7 @@ struct ModelSettingsView: View {
             }
           })
         status = "Model files are ready."
+        filesFound = true
       } catch {
         if cancel.isCancelled {
           status = "Setup cancelled. Downloaded files are kept so you can resume."

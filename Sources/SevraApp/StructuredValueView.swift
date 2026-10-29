@@ -165,7 +165,8 @@ struct ActivityResultView: View {
               Text(hit["title"].string ?? "Match").fontWeight(.medium)
             }
             if let snippet = hit["snippet"].string {
-              StructuredValueView(value: .string(snippet))
+              Text(StructuredPresentation.searchExcerpt(snippet, title: hit["title"].text))
+                .textSelection(.enabled)
             }
           }
         }

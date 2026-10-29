@@ -10,6 +10,7 @@ struct AutomationScheduleEditor: View {
   @StateObject private var choices = DefinitionResultSession()
   @State private var query = ""
   @State private var workflow: ApplicationDefinition?
+  @State private var choosingWorkflow = true
   @State private var title = ""
   @State private var arguments: Value = .object([:])
   @State private var trigger = "calendar"
@@ -41,17 +42,29 @@ struct AutomationScheduleEditor: View {
             Text("Workflow: " + workflow.title + " · version \(workflow.version)").font(.headline)
             Text(workflow.description).foregroundStyle(.secondary)
           }
-          DisclosureGroup(workflow == nil ? "Choose a saved workflow" : "Choose another workflow") {
+          DisclosureGroup(
+            workflow == nil ? "Choose a saved workflow" : "Choose another workflow",
+            isExpanded: $choosingWorkflow
+          ) {
             TextField("Search workflows", text: $query)
             ForEach(choices.evaluation?["hits"].array ?? [], id: \.text) { row in
               Button(row["title"].text + " · version \(row["version"].int ?? 0)") {
                 select(row["id"].text)
               }
             }
-            HStack {
-              Button("Previous") { Task { await loadChoices(-1) } }.disabled(!choices.hasPrevious)
-              Button("Next") { Task { await loadChoices(1) } }.disabled(!choices.hasNext)
-            }.disabled(choices.loading)
+            if choices.evaluation?["hits"].array.isEmpty == true && !choices.loading {
+              Text(
+                query.isEmpty
+                  ? "Save a workflow in the conversation first." : "No workflows match this search."
+              )
+              .foregroundStyle(.secondary)
+            }
+            if choices.hasPrevious || choices.hasNext {
+              HStack {
+                Button("Previous") { Task { await loadChoices(-1) } }.disabled(!choices.hasPrevious)
+                Button("Next") { Task { await loadChoices(1) } }.disabled(!choices.hasNext)
+              }.disabled(choices.loading)
+            }
             if let failure = choices.failure { Text(failure).foregroundStyle(.red) }
           }
           if let workflow {
@@ -159,6 +172,7 @@ struct AutomationScheduleEditor: View {
         choices.cancel()
       }
       .task { await open() }
+      .onChange(of: workflow?.id) { _, id in if id != nil { choosingWorkflow = false } }
       .task(id: query + String(workspace.revision)) { await loadChoices() }
   }
   private var content: Value {

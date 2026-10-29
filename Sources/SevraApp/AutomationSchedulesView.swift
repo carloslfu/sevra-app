@@ -49,11 +49,13 @@ struct AutomationSchedulesView: View {
         }
       }
       HStack {
-        Button("Previous") { Task { await load(direction: -1) } }
-          .disabled(!pages.hasPrevious || pages.loading)
-        Text("Page \(pages.pageNumber)").font(.caption)
-        Button("Next") { Task { await load(direction: 1) } }
-          .disabled(!pages.hasNext || pages.loading)
+        if pages.hasPrevious || pages.hasNext {
+          Button("Previous") { Task { await load(direction: -1) } }
+            .disabled(!pages.hasPrevious || pages.loading)
+          Text("Page \(pages.pageNumber)").font(.caption)
+          Button("Next") { Task { await load(direction: 1) } }
+            .disabled(!pages.hasNext || pages.loading)
+        }
         Spacer()
         Button("Refresh") {
           Task {

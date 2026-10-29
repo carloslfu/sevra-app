@@ -46,14 +46,14 @@ import SwiftUI
   var body: some View {
     VStack(spacing: 0) {
       HStack {
-        Text(classification).font(.caption).foregroundStyle(.secondary)
+        Text(classification).font(.caption).foregroundStyle(.secondary).lineLimit(2)
         Spacer()
         Button("Links", systemImage: "link") { state.referencePanel = .outgoing }
           .help("Links in this document and documents that mention it")
         if item.status == "draft" {
           Button("Accept") {
             if document.end() { state.review(document.current.id, accepting: true) }
-          }.disabled(state.busy)
+          }.buttonStyle(.borderedProminent).disabled(state.busy)
         }
         if item.status == "draft" {
           Button("Withdraw") {
@@ -89,17 +89,16 @@ import SwiftUI
                 try book.resumeIntake(id, cancellation: cancel)
               }
             }
-          }
-        }
-        if asset?.mode == "linked" {
-          Menu("External file") {
-            Button("Include in workbook") {
-              let id = item.id
-              state.run("Including original") { book, cancel in
-                _ = try book.includeLinked(id, cancellation: cancel)
+            if asset?.mode == "linked" {
+              Divider()
+              Button("Include in workbook") {
+                let id = item.id
+                state.run("Including original") { book, cancel in
+                  _ = try book.includeLinked(id, cancellation: cancel)
+                }
               }
+              Button("Find original…") { state.findOriginal() }
             }
-            Button("Find original…") { state.findOriginal() }
           }
         }
         if file != nil {

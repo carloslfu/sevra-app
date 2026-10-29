@@ -38,6 +38,7 @@ struct ConversationHistorySheet: View {
             ).foregroundStyle(.secondary)
           }
           ForEach(search.hits, id: \.text) { hit in
+            let excerpt = String(ConversationPresentation(hit["excerpt"].text).text.characters)
             Button {
               state.jumpToMessage(hit["id"].text)
             } label: {
@@ -49,24 +50,27 @@ struct ConversationHistorySheet: View {
                   )
                   .font(.caption.weight(.semibold))
                   Spacer()
-                  Text(DisplayText.date(hit["created"].text)).font(.caption).foregroundStyle(.secondary)
+                  Text(DisplayText.date(hit["created"].text)).font(.caption).foregroundStyle(
+                    .secondary)
                 }
-                Text(hit["excerpt"].text).lineLimit(5).multilineTextAlignment(.leading)
+                Text(excerpt).lineLimit(5).multilineTextAlignment(.leading)
               }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
                 .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 8))
             }.buttonStyle(.plain).accessibilityLabel(
-              "Open original message: " + hit["excerpt"].text)
+              "Open original message: " + excerpt)
           }
         }
       }
-      HStack {
-        Button("Previous matches") { Task { await load(direction: -1) } }.disabled(
-          !search.hasPrevious || search.loading)
-        Spacer()
-        Text("Page \(search.pageNumber)").font(.caption).foregroundStyle(.secondary)
-        Spacer()
-        Button("Next matches") { Task { await load(direction: 1) } }.disabled(
-          search.nextCursor == nil || search.loading)
+      if search.hasPrevious || search.nextCursor != nil {
+        HStack {
+          Button("Previous matches") { Task { await load(direction: -1) } }.disabled(
+            !search.hasPrevious || search.loading)
+          Spacer()
+          Text("Page \(search.pageNumber)").font(.caption).foregroundStyle(.secondary)
+          Spacer()
+          Button("Next matches") { Task { await load(direction: 1) } }.disabled(
+            search.nextCursor == nil || search.loading)
+        }
       }
     }.padding(22).frame(width: 560, height: 520)
       .onAppear {

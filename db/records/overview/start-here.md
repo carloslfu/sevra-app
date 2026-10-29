@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T21:56:06.835062+00:00
+updated: 2026-10-29T22:25:44.274614+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -57,6 +57,14 @@ polished native content instead of JSON dumps: excerpts, tables, matches and
 structured fields now share that presentation. This is observed MVP feedback,
 not a reason to resume deferred infrastructure. Exact verification and retained
 AI source-selection failures belong in [[records/operations/implementation]].
+
+The follow-up [[records/reviews/native-journey-polish]] inventories the full native
+journey and simplifies the existing surfaces: immediate reference capture without
+a role modal, one Add files control, secondary workbook actions, direct Home,
+contextual review, progressive filters/settings and cleaner empty/history/search
+results. Explicit conversion, review and acceptance remain. Instructions in
+[[records/operations/build-and-run]] reflect these current controls. Advanced
+editors and broad AI source selection remain known limitations.
 
 ## Architecture
 
