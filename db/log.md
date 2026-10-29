@@ -1000,3 +1000,9 @@ Adopt bounded single-row query-field workflow mappings for deterministic receivi
 ## [2026-10-29 05:53] implementation | records/specs/manual-workflows.md
 Exact scalar catalog lookup qualifies:59 focused workflow groups/0,64 grammars/542 masks8171/8192, frozen native/package and32/39-call deterministic/actual-model jobs. Missing-match catalog repair preserves completed AI prefix; stock20->25 only after review.126 prior artifacts unchanged. Full E3/release remain open.
 
+## [2026-10-29 05:58] design | records/specs/manual-workflows.md
+Three-pass human clarification contract: preserve original needs_input model result; add exact-bound human Source and typed clarification Record through shared atomic checkpoint. Core/CLI first; native persistent input and conversation attribution need separate qualification.
+
+## [2026-10-29 06:29] implementation | records/specs/manual-workflows.md
+Supplied clarification qualifies shared core/CLI:63 workflow groups,101 calls/two SIGKILL boundaries,27 packaged/27 actual missing-count and39 known-count calls. Native masks and terminal validation now constrain state/values together; original model output remains preserved. Persistent native/conversation input and full E3 remain open.
+

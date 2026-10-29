@@ -194,7 +194,8 @@ package actor NativeWorkbookModel: WorkbookInference {
       }
       lastMetrics = result.1
       return .object([
-        "request": request, "response": try Value.parse(call.inputJSON), "metrics": result.1,
+        "request": request, "response": try Value.parse(call.inputJSON)["result"],
+        "metrics": result.1,
       ])
     } onCancel: {
       cancellation.cancel()
@@ -476,19 +477,8 @@ private final class NativeWorker: @unchecked Sendable {
     let reasoning = configuration.reasoning
     let policy: SplashToolPolicy
     if let interpretation {
-      let declaration: Value = .array([
-        .object([
-          "type": .string("function"),
-          "function": .object([
-            "name": .string("interpretation_result"),
-            "description": .string(
-              "Return only the requested interpretation. No execution or acceptance."),
-            "parameters": interpretation["schema"],
-          ]),
-        ])
-      ])
-      policy = try SplashToolPolicy(
-        toolsJSON: Data(declaration.json().utf8), thinking: reasoning.enabled)
+      policy = try SplashToolPolicy.interpretationResult(
+        schemaJSON: Data(interpretation["schema"].json().utf8), thinking: reasoning.enabled)
     } else {
       policy = try NativeCitationPolicy.make(
         citationIDs, toolScope: toolScope, thinking: reasoning.enabled,

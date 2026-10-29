@@ -720,6 +720,8 @@ import SevraProduct
     workflow-activity WORKBOOK [STATE|- [CURSOR]] | workflow-inspect WORKBOOK RUN_ID
     workflow-continue WORKBOOK RUN_ID [MODEL_DIRECTORY]
     workflow-read WORKBOOK RUN_ID
+    workflow-clarification WORKBOOK RUN_ID
+    workflow-clarify WORKBOOK RUN_ID TARGET_JSON VALUES_JSON REASON TOKEN
     workflow-list WORKBOOK [STATE]
     workflow-advance WORKBOOK RUN_ID
     workflow-claim WORKBOOK RUN_ID OWNER LEASE_SECONDS TOKEN

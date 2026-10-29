@@ -92,6 +92,13 @@ extension Workbook {
                   && output["readRevision"] == value["request"]["readRevision"],
                 "workflow_integrity",
                 "The saved interpretation disagrees with its exact model request or draft Record.")
+              try validateWorkflowClarification(output, runID: run["id"].text, stepID: expected.id)
+              try require(
+                (state != "completed" || response["state"] == .string("ready")
+                  || value["clarification"] != .null)
+                  && (value["clarification"] == .null || state == "completed"),
+                "workflow_integrity",
+                "An unresolved interpretation cannot complete without clarification.")
             }
           } else {
             try require(

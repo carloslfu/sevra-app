@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T05:53:38.017323+00:00
+updated: 2026-10-29T06:29:07.701859+00:00
 summary: Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
@@ -627,3 +627,7 @@ One dataset dependency and ordinary authoring Source retain the schema/mapping. 
 ## Workflow scalar lookup
 
 Saved workflow evaluate-query steps now permit {step,field,unit?} mappings into matching scalar parameters. The first boundary requires one ungrouped source and exactly one complete result row. Every consumer field is validated before checkpoint; null/empty/ambiguous/partial matches refuse. Exact selected row versions and query Source join transitive action lineage and meaning checks, including after later catalog edits. Explicit catalog repair/retry preserves completed preparation/model work. No new schema/catalog or first-row guessing. Contract, proof and remaining limits: [[records/specs/manual-workflows]].
+
+## Interpretation clarification
+
+Interpretations returning needs_input preserve their original result and declared schema. An exact current target may receive complete typed supplied values and reason through shared core/CLI. This creates a separate Source/Record and downstream lineage, without changing meaning/scenario or accepting business effects. Model defaults remain prohibited. Native response grammar now constrains state and values together in one result parameter and shares terminal validation. Human provenance is reserved for actual native submission; CLI remains programmatic and AI submission is closed. Contract and scoped proof: [[records/specs/manual-workflows]].

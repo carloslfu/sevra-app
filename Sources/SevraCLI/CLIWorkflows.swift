@@ -29,6 +29,17 @@ extension CLI {
     case "workflow-read":
       try require(args.count == 3, "usage", "workflow-read WORKBOOK RUN_ID")
       return try book.workflowRun(args[2])
+    case "workflow-clarification":
+      try require(args.count == 3, "usage", "workflow-clarification WORKBOOK RUN_ID")
+      return try book.workflowClarification(args[2])
+    case "workflow-clarify":
+      try require(
+        args.count == 7, "usage",
+        "workflow-clarify WORKBOOK RUN_ID TARGET_JSON VALUES_JSON REASON TOKEN")
+      return try book.clarifyWorkflow(
+        book.authorizeWorkflowExecution(args[2]), target: Value.parse(args[3]),
+        values: Value.parse(args[4]), reason: args[5], token: args[6],
+        actor: .programmatic("SevraCLI.workflowClarification"), cancellation: cancellation)
     case "workflow-list":
       try require((2...3).contains(args.count), "usage", "workflow-list WORKBOOK [STATE]")
       return .array(try book.workflowRuns(state: args.count == 3 ? args[2] : nil))

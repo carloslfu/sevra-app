@@ -91,35 +91,54 @@ struct DefinitionInterpretation {
       }
       return .object(s)
     }
-    return object(
-      [
-        "state": .object([
-          "type": .string("string"), "enum": .array([.string("ready"), .string("needs_input")]),
+    let common: [String: Value] = [
+      "citations": .object([
+        "type": .string("array"), "maxItems": .number(32),
+        "items": object(
+          [
+            "field": .object([
+              "type": .string("string"), "enum": .array(outputs.map { .string($0.id) }),
+            ]),
+            "itemID": .object([
+              "type": .string("string"), "enum": .array(itemIDs.map(Value.string)),
+            ]),
+            "quote": .object([
+              "type": .string("string"), "minLength": .number(1), "maxLength": .number(4096),
+            ]),
+          ], required: ["field", "itemID", "quote"]),
+      ]),
+      "issues": .object([
+        "type": .string("array"), "maxItems": .number(16),
+        "items": .object([
+          "type": .string("string"), "minLength": .number(1), "maxLength": .number(2048),
         ]),
-        "values": object(
-          Dictionary(uniqueKeysWithValues: outputs.map { ($0.id, field($0)) }), required: []),
-        "citations": .object([
-          "type": .string("array"), "maxItems": .number(32),
-          "items": object(
-            [
-              "field": .object([
-                "type": .string("string"), "enum": .array(outputs.map { .string($0.id) }),
-              ]),
-              "itemID": .object([
-                "type": .string("string"), "enum": .array(itemIDs.map(Value.string)),
-              ]),
-              "quote": .object([
-                "type": .string("string"), "minLength": .number(1), "maxLength": .number(4096),
-              ]),
-            ], required: ["field", "itemID", "quote"]),
-        ]),
-        "issues": .object([
-          "type": .string("array"), "maxItems": .number(16),
-          "items": .object([
-            "type": .string("string"), "minLength": .number(1), "maxLength": .number(2048),
-          ]),
-        ]),
-      ], required: ["state", "values", "citations", "issues"])
+      ]),
+    ]
+    // Separate disjoint states prevent a constrained model from reporting
+    // missing information while filling required values with invented defaults.
+    func variant(_ state: String, unresolved: Bool) -> Value {
+      var properties = common
+      properties["state"] = .object([
+        "type": .string("string"), "enum": .array([.string(state)]),
+      ])
+      properties["values"] =
+        unresolved
+        ? object([:], required: [])
+        : object(
+          Dictionary(uniqueKeysWithValues: outputs.map { ($0.id, field($0)) }),
+          required: outputs.filter(\.required).map(\.id))
+      if unresolved {
+        var issues = properties["issues"]!.object
+        issues["minItems"] = .number(1)
+        properties["issues"] = .object(issues)
+      }
+      return object(properties, required: ["state", "values", "citations", "issues"])
+    }
+    return .object([
+      "anyOf": .array([
+        variant("ready", unresolved: false), variant("needs_input", unresolved: true),
+      ])
+    ])
   }
 
   func validateResponse(_ response: Value, evidence: [Value]) throws -> Value {

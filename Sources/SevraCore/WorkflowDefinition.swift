@@ -248,12 +248,16 @@ extension Workbook {
             "workflow_lookup", "A mapped lookup needs one complete retained row and field.")
           value = rows[0]["values"][field]
         } else {
+          let values =
+            output["clarification"] != .null
+            ? output["clarification"]["values"] : output["response"]["values"]
           try require(
             output["kind"] == .string("interpretation")
-              && output["response"]["state"] == .string("ready")
-              && output["response"]["values"].object[field] != nil, "workflow_mapping",
+              && (output["response"]["state"] == .string("ready")
+                || output["clarification"] != .null)
+              && values.object[field] != nil, "workflow_mapping",
             "The prior interpretation field is unresolved.")
-          value = output["response"]["values"][field]
+          value = values[field]
         }
       } else {
         try require(
@@ -284,7 +288,9 @@ extension Workbook {
         guard let previousID = mapping["step"].string, visited.insert(previousID).inserted,
           let previous = workflow.steps.first(where: { $0.id == previousID })
         else { continue }
-        if previous.kind == "interpret", let recordID = outputs[previousID]?["recordID"].string {
+        if previous.kind == "interpret", let output = outputs[previousID] {
+          let recordID =
+            output["clarification"]["recordID"].string ?? output["recordID"].text
           records.append(try item(recordID))
         }
         if previous.kind == "evaluate", let output = outputs[previousID],

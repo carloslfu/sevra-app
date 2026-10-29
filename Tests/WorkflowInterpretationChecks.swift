@@ -129,6 +129,185 @@ func checkWorkflowInterpretations(at root: URL) {
       ]),
     ])
   }
+  func paused(
+    _ name: String, outputMeaning: String = "actual", inventory: Bool = false
+  ) throws -> (Workbook, WorkflowExecutionSession, Value, Value) {
+    let (book, _, session) = try fixture(
+      name, outputMeaning: outputMeaning, inventory: inventory)
+    let claim = try book.claimWorkflowStep(session, owner: "synthetic")
+    let request = try book.prepareWorkflowInterpretation(session, claim: claim, model: "synthetic")
+    let result = try book.completeWorkflowStep(
+      session, claim: claim,
+      interpretation: .object([
+        "request": request, "metrics": .object(["synthetic": .bool(true)]),
+        "response": .object([
+          "state": .string("needs_input"), "values": .object([:]), "citations": .array([]),
+          "issues": .array([.string("Please confirm the received count.")]),
+        ]),
+      ]))
+    return (book, session, result, claim)
+  }
+  check(
+    "supplied clarification preserves the model result, exact lineage and separate stock review"
+  ) {
+    let (book, session, original, claim) = try paused("Clarified", inventory: true)
+    let target = try book.workflowClarification(session.runID)
+    let before = try book.revision()
+    try expect(try book.workflowClarification(session.runID) == target)
+    try expect(try book.revision() == before)
+    let actor = ChangeActor.human("synthetic-native-submission")
+    let values: Value = .object(["quantity": .string("5.00")])
+    let result = try book.clarifyWorkflow(
+      session, target: target, values: values, reason: "I counted five received units.",
+      token: "clarify", actor: actor)
+    let supplied = result["steps"].array[0]["output"]["value"]["clarification"]
+    try expect(supplied["values"]["quantity"] == .string("5"))
+    try expect(result["state"] == .string("queued") && result["steps"].array[1]["output"] == .null)
+    var preserved = result["steps"].array[0]["output"]["value"].object
+    preserved.removeValue(forKey: "clarification")
+    try expect(.object(preserved) == original["steps"].array[0]["output"]["value"])
+    try expect(try book.balance(subject: "bolts")["quantity"] == .string("0"))
+    try expect(try book.items().filter { $0.kind == "movement" }.isEmpty)
+    try expect(try book.item(supplied["sourceID"].text).data["actor"]["kind"] == .string("human"))
+    let after = try book.revision()
+    try expect(
+      try book.clarifyWorkflow(
+        session, target: target, values: values, reason: "I counted five received units.",
+        token: "clarify", actor: actor) == result)
+    try expect(try book.revision() == after)
+    let waiting = try book.continueWorkflow(session, owner: "continue")
+    try expect(waiting["state"] == .string("waiting_review"))
+    let action = waiting["steps"].array[2]["output"]["value"]
+    let parents = try book.lineage(action["sourceID"].text).map { $0["parent"].text }
+    try expect(parents.contains(supplied["recordID"].text))
+    try expect(try book.balance(subject: "bolts")["quantity"] == .string("0"))
+    _ = try book.accept(action["proposals"].array[0].text, actor: .human("synthetic-review"))
+    let done = try book.continueWorkflow(session, owner: "finish")
+    try expect(done["state"] == .string("completed"))
+    try expect(try book.balance(subject: "bolts")["quantity"] == .string("10"))
+    try refuses("idempotency") {
+      _ = try book.completeWorkflowStep(
+        session, claim: claim,
+        interpretation: .object([
+          "request": original["steps"].array[0]["output"]["value"]["request"],
+          "metrics": .object([:]), "response": .object([:]),
+        ]))
+    }
+    let copy = try book.reconstruct(to: root.appendingPathComponent("ClarifiedCopy.sevra"))
+    try expect(try copy.workflowRun(session.runID) == done)
+    try expect(try copy.balance(subject: "bolts")["quantity"] == .string("10"))
+    try expect(try book.verify()["ok"] == .bool(true) && copy.verify()["ok"] == .bool(true))
+  }
+  check(
+    "clarification refuses invented fields, invalid values, foreign targets and AI or read-only submission"
+  ) {
+    let (book, session, original, _) = try paused("ClarificationRefusals")
+    let target = try book.workflowClarification(session.runID)
+    let before = try book.committedHistory(limit: 1000)
+    for values: Value in [
+      .object([:]), .object(["quantity": .bool(false)]), .object(["quantity": .string("5 items")]),
+      .object(["quantity": .null]),
+      .object(["quantity": .string("5"), "extra": .string("invented")]),
+    ] {
+      try refuses {
+        _ = try book.clarifyWorkflow(
+          session, target: target, values: values, reason: "Synthetic refusal.", token: identifier()
+        )
+      }
+    }
+    let values: Value = .object(["quantity": .string("5")])
+    for key in ["workbookID", "runID", "stepID", "outputHash", "meaning", "definitionID"] {
+      var forged = target.object
+      forged[key] = .string("forged")
+      try refuses("stale_workflow_clarification") {
+        _ = try book.clarifyWorkflow(
+          session, target: .object(forged), values: values, reason: "Synthetic refusal.",
+          token: identifier())
+      }
+    }
+    try refuses("workflow_clarification") {
+      _ = try book.clarifyWorkflow(
+        session, target: target, values: values, reason: "AI cannot supply missing facts.",
+        token: "ai", actor: .ai("synthetic", model: "synthetic", policy: "synthetic"))
+    }
+    try refuses("read_only_request") {
+      _ = try book.clarifyWorkflow(
+        session, target: target, values: values, reason: "No writes.", token: "readonly",
+        readOnly: true)
+    }
+    try expect(try book.workflowRun(session.runID) == original)
+    try expect(try book.committedHistory(limit: 1000) == before)
+    let copy = try book.reconstruct(
+      to: root.appendingPathComponent("ClarificationRefusedCopy.sevra"))
+    try refuses("workflow_authority") {
+      _ = try copy.clarifyWorkflow(
+        session, target: target, values: values, reason: "Wrong package.", token: "foreign")
+    }
+    _ = try book.retryWorkflow(session, token: "retry-instead")
+    try refuses {
+      _ = try book.clarifyWorkflow(
+        session, target: target, values: values, reason: "Stale submission.", token: "stale")
+    }
+    try expect(try book.verify()["ok"] == .bool(true) && copy.verify()["ok"] == .bool(true))
+  }
+  check(
+    "clarification publication faults and cancellation preserve all state before programmatic exact retry"
+  ) {
+    let (book, session, original, _) = try paused("ClarificationFault")
+    let target = try book.workflowClarification(session.runID)
+    let before = try book.committedHistory(limit: 1000)
+    let counts = try book.counts()
+    let values: Value = .object(["quantity": .string("5")])
+    try book.db.execute(
+      "CREATE TEMP TRIGGER clarification_fault BEFORE INSERT ON workflow_outbox WHEN NEW.kind='clarified' BEGIN SELECT RAISE(ABORT,'clarification_fault'); END"
+    )
+    try refuses("database") {
+      _ = try book.clarifyWorkflow(
+        session, target: target, values: values, reason: "Program supplied five units.",
+        token: "answer")
+    }
+    try book.db.execute("DROP TRIGGER clarification_fault")
+    try expect(try book.workflowRun(session.runID) == original)
+    try expect(try book.counts() == counts && book.committedHistory(limit: 1000) == before)
+    let cancellation = Cancellation()
+    cancellation.cancel()
+    try refuses("cancelled") {
+      _ = try book.clarifyWorkflow(
+        session, target: target, values: values, reason: "Program supplied five units.",
+        token: "answer",
+        cancellation: cancellation)
+    }
+    try expect(try book.counts() == counts && book.committedHistory(limit: 1000) == before)
+    let result = try book.clarifyWorkflow(
+      session, target: target, values: values, reason: "Program supplied five units.",
+      token: "answer")
+    try expect(
+      result["steps"].array[0]["output"]["value"]["clarification"]["actor"]["kind"]
+        == .string("programmatic"))
+    try expect(
+      try book.clarifyWorkflow(
+        session, target: target, values: values, reason: "Program supplied five units.",
+        token: "answer") == result)
+    let done = try book.continueWorkflow(session, owner: "calculate")
+    try expect(done["steps"].array[1]["output"]["value"]["result"] == .string("10"))
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check("clarification cannot promote an estimate through a calculation into actual inventory") {
+    let (book, session, _, _) = try paused(
+      "ClarificationEstimate", outputMeaning: "estimate", inventory: true)
+    let target = try book.workflowClarification(session.runID)
+    let clarified = try book.clarifyWorkflow(
+      session, target: target, values: .object(["quantity": .string("5")]),
+      reason: "My estimate is five.", token: "estimate", actor: .human("synthetic-submission"))
+    let record = try book.item(
+      clarified["steps"].array[0]["output"]["value"]["clarification"]["recordID"].text)
+    try expect(record.meaning == "estimate")
+    _ = try book.advanceWorkflow(session, owner: "calculation")
+    try refuses("interpretation_meaning") { _ = try book.advanceWorkflow(session, owner: "action") }
+    try expect(try book.items().filter { $0.kind == "movement" }.isEmpty)
+    try expect(try book.balance(subject: "bolts")["quantity"] == .string("0"))
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
   check("workflow interpretation retains exact model input, typed output and inert reconstruction")
   {
     let (book, source, session) = try fixture("Saved")

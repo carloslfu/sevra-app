@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T05:53:38.001997+00:00
+updated: 2026-10-29T06:29:07.687059+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -659,3 +659,7 @@ Conversation now saves exact intake mappings, composes a required-review workflo
 ## Exact catalog lookup checkpoint, October 29
 
 E3 now maps one exact complete catalog-query row into typed later steps, preserving selected-row/query lineage and meanings through calculations. Missing or ambiguous matches pause before checkpoint; explicit catalog repair/retry preserves completed AI work. Core/CLI/native coordinator paths share that validation. Final 59 focused groups, grammar/prompt checks, native package and a 39-call actual-model seven-step receiving/repair/review/report job have scoped proof in [[records/specs/manual-workflows]]. Inline human answers, richer graphs, full EJ06-EJ08, E4-E6 and release/accessibility gates remain open.
+
+## Supplied workflow information
+
+E3 core/CLI now supports explicit typed clarification against an exact paused interpretation. Preserve original AI response; add a submission Source and draft clarification Record with honest actor; complete only that step. Native Activity displays provenance, while native persistent input and conversation submission remain next.63 focused groups,101 deterministic calls/two SIGKILL boundaries, packaged27/actual27 plus39-call known-count job and strengthened native state-dependent grammar have scoped proof. Full E3 and release gates stay open. See [[records/specs/manual-workflows]].

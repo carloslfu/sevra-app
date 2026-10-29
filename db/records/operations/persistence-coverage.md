@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T05:53:15.056745+00:00
+updated: 2026-10-29T06:29:07.717073+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -370,3 +370,7 @@ This slice adds no durable family or independent ledger. Intake definitions, exa
 ## Workflow scalar lookup, October 29
 
 No new durable family or schema. Lookup definitions reuse the captured catalog; complete query results retain their exact selected row versions/snapshot/input population in the existing workflow checkpoint. Action invocation Sources include exact query-definition and selected-row lineage through calculations. A publication fault/cancellation leaves saved history/run unchanged; exact retry and inert reconstruction pass. The actual model job repairs an unfinished lookup without rerunning completed extraction/interpretation. Earlier schema18 lease/disk/process-death proof is unchanged and reused. See [[records/specs/manual-workflows]] and its immutable lookup receipt.
+
+## Workflow clarification, October 29
+
+No new canonical family or physical schema. The existing captured mutation atomically publishes submission Source, draft clarification Record, completed step/run state, exact receipt, event and outbox. The original request/model response stays unchanged. Exact token retries, forced rollback/cancellation, inert reconstruction, and two new actual process-death boundaries prove this publication path.101 deterministic calls qualify before/after death recovery; prior shared lease/disk proofs are reused. Typed downstream lineage retains supplied provenance and meaning. Native input drafts and presentation recovery remain unimplemented for this boundary. See [[records/specs/manual-workflows]].

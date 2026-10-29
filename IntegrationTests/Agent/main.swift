@@ -208,6 +208,20 @@ final class ToolPolicyChecks {
         "additionalProperties": false,
       ],
       ["type": "object", "properties": [:], "additionalProperties": true],
+      [
+        "type": "object", "properties": [:], "additionalProperties": false,
+        "anyOf": [["type": "object"]],
+      ],
+      [
+        "type": "object", "properties": ["x": ["type": "object", "anyOf": []]],
+        "additionalProperties": false,
+      ],
+      [
+        "type": "object",
+        "properties": [
+          "x": ["type": "object", "anyOf": [["$ref": "https://invalid.test/schema"]]]
+        ], "additionalProperties": false,
+      ],
     ] {
       let data = try JSONSerialization.data(withJSONObject: [
         [
@@ -412,6 +426,7 @@ do {
     try checkDocumentCopyGrammar(frontend: frontend, factory: factory)
     try checkConversationActionGrammar(frontend: frontend, factory: factory)
     try checkActionDirectionGrammar(frontend: frontend, factory: factory)
+    try checkInterpretationGrammar(frontend: frontend, factory: factory)
     if CommandLine.arguments.count == 5 {
       try runNativeWorkbookProbe(
         frontend: frontend, factory: factory, engine: CommandLine.arguments[3],

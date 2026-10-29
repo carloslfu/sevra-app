@@ -35,6 +35,10 @@ import SevraCore
       try require(args.count == 2, "usage", "Expected operation and disposable fixture directory.")
       let operation = args[0]
       let root = URL(fileURLWithPath: args[1])
+      if operation.hasPrefix("clarify-") {
+        try WorkflowClarificationDurability.run(operation, root: root)
+        return
+      }
       if operation.hasPrefix("intake-") {
         try WorkflowIntakeDurability.run(operation, root: root)
         return

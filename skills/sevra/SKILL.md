@@ -132,6 +132,19 @@ These commands provide no scheduler or background automation. Document preparati
 Claims, heartbeats and fenced completion are advanced worker commands in `help`;
 use the ordinary bounded continuation unless implementing a qualified worker.
 
+For a saved interpretation that returned `needs_input`, inspect
+`workflow-clarification PATH RUN_ID`. Ask the user for the missing facts. Use
+`workflow-clarify PATH RUN_ID TARGET_JSON VALUES_JSON REASON TOKEN` only with
+explicitly supplied values and their explanation, never invented answers. The
+target must be the exact current inspection. The CLI records its calling program,
+without claiming a human identity or that original evidence proved the answer.
+This saves a new submission Source and draft clarification Record, preserves the
+original model response and keeps the pinned meaning/scenario. It completes only
+the paused interpretation; deliberate continuation and business review remain
+separate. Exact retries reuse the token. A stale/cancelled/retried target refuses.
+This does not revise ready interpretations or provide a qualified native input or
+in-app conversation submission surface yet.
+
 An `extraction` definition can be authored through the core, CLI or conversation.
 It has exactly one required item parameter with no
 default, and payload `{parser:"native-v1",file:"PARAMETER_ID"}`. Bind its exact

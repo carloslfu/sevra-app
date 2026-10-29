@@ -197,6 +197,28 @@ struct WorkflowRunView: View {
                     }
                   }
                 }
+                if output["clarification"] != .null {
+                  let supplied = output["clarification"]
+                  Text(
+                    supplied["actor"]["kind"] == .string("human")
+                      ? "Information supplied by you"
+                      : "Information supplied by the calling program"
+                  ).font(.headline)
+                  Text(
+                    "The original model response is preserved above. Business review is separate."
+                  )
+                  .font(.caption).foregroundStyle(.secondary)
+                  WorkflowInputsView(
+                    parameters: step["outputFields"].array, arguments: supplied["values"],
+                    workspace: workspace)
+                  Text(supplied["reason"].text).textSelection(.enabled)
+                  Button("Open clarification source") {
+                    workspace.navigate(.item(supplied["sourceID"].text))
+                  }
+                  Button("Open clarification record") {
+                    workspace.navigate(.item(supplied["recordID"].text))
+                  }
+                }
               } else if output["kind"] == .string("query") {
                 Text(
                   "Saved \(output["result"]["rows"].array.count) result rows and their scoped inputs."

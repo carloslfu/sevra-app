@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T05:53:15.071880+00:00
+updated: 2026-10-29T06:29:07.731760+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1631,3 +1631,7 @@ Build sevra-agent-checks and run .build/debug/sevra-agent-checks --intake-author
 ## Workflow lookup qualification
 
 Build sevra-checks and run .build/debug/sevra-checks --workflows for focused workflow checks. Run python3 scripts/check_workflow_lookup.py --cli output/native/bin/sevra --output NEW_DIRECTORY for deterministic exact match/repair/review/reconstruction, after bash scripts/build_native.sh. Add --model-root MODELS_ROOT for the synthetic seven-step actual native preparation/interpretation/match/stock-review/report-review job. The output directory must not exist. It captures source/product/runtime identities before inference. It expects a zero-match refusal, repairs only its synthetic catalog, explicitly retries the same run and resumes with an absent model directory to prove completed AI outputs are reused. Synthetic human acceptance occurs only inside the synthetic fixture. Never use user workbooks. scripts/check.sh and both packaged CI products include the default deterministic job. Do not replace output/native while a probe uses its runtime. Current proof/limits: [[records/specs/manual-workflows]].
+
+## Workflow clarification qualification
+
+After building sevra-workflow-durability, run python3 scripts/check_workflow_clarification.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --output NEW_DIRECTORY for the deterministic submission/review/reconstruction job plus two SIGKILL boundaries. The default worker produces a clearly labeled synthetic missing-information response. Add --skip-crashes to reuse unchanged death proof. For actual local inference use --model-root MODELS_ROOT --skip-crashes and omit the worker. The script captures source/product/pin identities before inference. All values, acceptances and files are synthetic; CLI attribution remains programmatic. Native and baseline packaged CI and scripts/check.sh include the deterministic job. workflow-clarification reads the exact target; workflow-clarify supplies target JSON, values JSON, reason and retry token. Never substitute user data or replace output/native during a probe. See [[records/specs/manual-workflows]].
