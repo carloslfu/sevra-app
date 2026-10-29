@@ -72,6 +72,11 @@ if CommandLine.arguments.dropFirst() == ["--schedules"] {
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
+if CommandLine.arguments.dropFirst() == ["--conditions"] {
+  checkConditionTransitions()
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.dropFirst() == ["--automations"] {
   checkAutomationDefinitions(at: temp)
   print("\(passed) passed; \(failed) failed")
@@ -977,6 +982,7 @@ checkWorkflows(at: temp)
 checkPersistence(at: temp)
 checkSpaceEditing(at: temp)
 checkCalendarSchedules()
+checkConditionTransitions()
 checkAutomationDefinitions(at: temp)
 checkAutomationPlanning(at: temp)
 checkAutomationExecution(at: temp)

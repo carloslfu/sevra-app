@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m63j49s9re5f080dvrddxp9d
 created: 2026-10-29T10:08:44.841064+00:00
-updated: 2026-10-29T10:49:28.157735+00:00
+updated: 2026-10-29T11:06:54.112341+00:00
 summary: Native schedule controls and persistent physical-workbook device grants with a conservative active-app owner; scoped synthetic, process-death and installed-package proof, full lifecycle/release open.
 title: Native automation owner
 status: reviewed
@@ -71,3 +71,11 @@ No actual-model inference or engine/model/prompt/grammar/budget change, new thro
 Final shutdown review found an admission race while quit-time saves awaited completion. V11 adds a host termination gate before quiescence; every timer tick remains deferred through save flushing. Success stops the owner. A failed save cancels termination and restores ordinary eligibility. Only NativeAutomationHost.swift and SevraApp.swift change after V10. Fresh native app/CLI build, strict two-file lint and installed resource/refusal/signature gates pass. The installed CLI hash is unchanged, so the V10 44-call installed CLI, 17 registry/controller groups, 16 execution groups and synthetic ProductAI lifecycle are reused at their original scope. No claim that an automated headless runner tested the actual macOS quit dialog or native lifecycle.
 
 Evidence: [shutdown admission receipt](../../../integration/evidence/2026-10-29-native-automation-shutdown.json.gz), 13530 bytes, SHA-256 574879fdd274cd055ac2ce1a6043203b7c80377379f7c6c5291fb1e214044c37. It binds the prior owner receipt and both frozen source manifests. All 137 preceding artifacts and the owner receipt remain unchanged. Visible and full release gates above remain open.
+
+## CI directory creation repair, October 29
+
+[Hosted fab2a83 CI](https://github.com/carloslfu/sevra-app/actions/runs/40860689895) failed 16/17 groups when one independent registration worker observed an unsafe directory, despite the earlier local pass. A Foundation create/attribute window is the supported engineering diagnosis; the earlier V4 undiagnosed child failure is not retroactively assigned this cause. The native registry now creates its parent separately and uses POSIX mkdir(0700) for atomic private leaf creation. Existing unsafe directories still refuse unchanged. It does not auto-chmod another directory or relax the owner/type/mode check.
+
+Final 18 owner groups pass, including the new unsafe-directory preservation case, plus five fresh concurrent-start rounds with 30 registration workers. The two actual registry SIGKILL barriers also pass in that final run. Native app/CLI, resource/missing10/altered refusal/signature and strict changed-Swift checks pass. Full local evidence and the failed hosted log are retained in [[records/specs/condition-transitions]]. The corrective source needs its own exact hosted run; fab2a83 is not green. The Mac remains locked and full lifecycle/release gates are unchanged.
+
+Evidence: [condition and registry repair receipt](../../../integration/evidence/2026-10-29-condition-transitions-registry-repair.json.gz), 61244 bytes, SHA-256 1559bf286dec9681b20ac23d78c4c7e5902fbb1d884eb6933fa74f78634b05f6. All 139 preceding artifacts remain byte-identical.

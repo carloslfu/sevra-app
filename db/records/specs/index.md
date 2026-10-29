@@ -2,15 +2,16 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-29T10:49:28.157735Z
+updated: 2026-10-29T11:06:54.177639Z
 ---
 
 # records/specs
 
+- [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
 - [[records/specs/native-automation-owner]] — Native schedule controls and persistent physical-workbook device grants with a conservative active-app owner; scoped synthetic, process-death and installed-package proof, full lifecycle/release open.
+- [[records/specs/condition-transitions]] — Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.
 - [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 - [[records/specs/automation-execution]] — Schema21 foreground scheduled draft execution with distinct AI scope, atomic occurrence binding, one active run and pause-safe claims; native device restoration is scoped in native-automation-owner.
-- [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
 - [[records/specs/automation-planning]] — Reviewed schema20 activation and bounded calendar occurrence preparation: explicit process-local permission, revocation, skipped reasons and inert reconstruction; dispatch remains open.
 - [[records/specs/manual-workflows]] — Manual durable workflow contract and scoped implementation sequence; full E3 remains open.
 - [[records/specs/automation-schedules]] — Reviewed native calendar preview contract: explicit zones, recurrence, DST, bounded coverage and no execution authority. First E4 slice; runtime open.

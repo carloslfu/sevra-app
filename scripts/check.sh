@@ -18,6 +18,7 @@ python3 scripts/check_automation_planning.py --cli "$BIN/sevra" --checks "$BIN/s
 swift build --product sevra-automation-durability -j "${SEVRA_BUILD_JOBS:-4}"
 python3 scripts/check_automation_durability.py
 python3 scripts/check_automation_execution.py --cli "$BIN/sevra" --checks "$BIN/sevra-checks" --worker "$BIN/sevra-automation-durability"
+python3 scripts/check_condition_transitions.py --cli "$BIN/sevra"
 python3 scripts/check_references.py --cli "$BIN/sevra"
 python3 scripts/check_extracted_references.py --cli "$BIN/sevra"
 python3 scripts/check_contextual_intake.py --cli "$BIN/sevra"

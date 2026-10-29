@@ -40,6 +40,9 @@ import SevraProduct
     if command == "schedule-preview" {
       return try runSchedulePreview(args, cancellation: cancellation)
     }
+    if command == "condition-preview" {
+      return try runConditionPreview(args, cancellation: cancellation)
+    }
     func arg(_ i: Int) throws -> String {
       guard args.count > i else { throw SevraError("usage", help) }
       return args[i]
@@ -690,6 +693,7 @@ import SevraProduct
     balance WORKBOOK SUBJECT | calculate EXPRESSION [VALUES_JSON]
     schedule-preview SCHEDULE_JSON_OR_@FILE AFTER_ISO [COUNT] [HORIZON_DAYS]
     automation-preview WORKBOOK EXACT_DEFINITION_ID AFTER_ISO [COUNT] [HORIZON_DAYS]
+    condition-preview RULE_JSON_OR_@FILE OBSERVATIONS_JSON_OR_@FILE
     automation-activation WORKBOOK ACTIVATION_ID
     automation-list WORKBOOK [AFTER_ID_OR_-] [LIMIT]
     automation-occurrences WORKBOOK ACTIVATION_ID [AFTER_ID_OR_-] [LIMIT]

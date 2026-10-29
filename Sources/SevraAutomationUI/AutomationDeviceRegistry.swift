@@ -153,16 +153,15 @@ public final class AutomationDeviceRegistry: @unchecked Sendable {
   }
 
   private func locked<T>(_ body: () throws -> T) throws -> T {
-    do {
-      try FileManager.default.createDirectory(
-        at: directory, withIntermediateDirectories: true,
-        attributes: [.posixPermissions: 0o700])
-    } catch {
-      // An independent owner may have created the same directory meanwhile.
-      // The complete ownership/type/permission check below still applies.
-      var existing = stat()
-      guard lstat(directory.path, &existing) == 0 else { throw error }
-    }
+    try FileManager.default.createDirectory(
+      at: directory.deletingLastPathComponent(), withIntermediateDirectories: true)
+    // Foundation may apply attributes after creating the directory. Another
+    // process can observe that interim mode. mkdir establishes the private leaf
+    // atomically, and an existing unsafe directory still refuses below.
+    let created = mkdir(directory.path, 0o700)
+    try require(
+      created == 0 || errno == EEXIST, "automation_registry",
+      "Cannot create the private device registry directory.")
     var info = stat()
     try require(
       lstat(directory.path, &info) == 0 && info.st_mode & S_IFMT == S_IFDIR

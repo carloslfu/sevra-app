@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T10:46:56.486607+00:00
+updated: 2026-10-29T11:06:54.232817+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -26,6 +26,7 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 ## Reading order
 
+- [[records/specs/condition-transitions]]: inert numeric condition preview and remaining real event/cursor/causality contract.
 - [[records/specs/native-automation-owner]]: current native schedule controls, device grants and active-app qualification limits.
 - [[records/specs/identity]]: approved Sevra logo, app icon and native appearance.
 - [[records/specs/product]]: requirements and user experience.
@@ -81,3 +82,7 @@ Current schema21 has distinct current-process execution/AI permission, atomic oc
 ## Native scheduling preview
 
 Native Activity/Schedules now provides typed create/edit/preview, explicit exact-version Enable on this Mac, pause/removal, manual Run once and saved-run inspection. A private physical-workbook registry restores permission without repeated authorization; copies/reconstructed workbooks stay inactive. A single active-app/key-window owner executes the existing bounded draft workflow path and yields to interactive work. Schema21 is unchanged. Final 17 registry/controller groups, six independent writers, two registry SIGKILL boundaries, 16 execution groups, synthetic ProductAI lifecycle, 44 installed CLI cases, strict 16-file Swift lint and native package/resource/refusal/signature checks pass. All 137 prior artifacts remain unchanged. The 359-group full core pass ran on V4; final focused checks cover subsequent same-guard naming. Native UI remains locked/unverified. Full background/closed-window/event/condition/conversation scheduling, Excel continuity, hardware/performance and release gates remain open. Details and immutable evidence: [[records/specs/native-automation-owner]].
+
+## Condition preview and registry CI repair
+
+The pure numeric preview now has 13 focused groups/243 truth trajectories, 31 installed CLI cases and explicit fixture-only/inert output. It does not activate real condition triggers. Nearby calendar/execution groups pass. Hosted fab2a83 failed the registry concurrency case; atomic private directory creation now passes all 18 owner groups plus five fresh starts/30 workers without repairing unsafe existing directories. The failed CI log is retained. Final native app/CLI, resource/refusal/signature and strict seven-file lint pass; the corrective source needs its own hosted run. All 139 prior artifacts remain unchanged. Schema21 is unchanged and the Mac remains locked. Real business-event outbox/cursors, condition delivery/loops/native authoring, background lifecycle, Excel continuity and release gates remain open. Full evidence: [[records/specs/condition-transitions]].

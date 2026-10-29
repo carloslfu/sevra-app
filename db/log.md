@@ -1081,3 +1081,12 @@ Final17 registry/controller groups,6 independent writers,2 actual registry SIGKI
 ## [2026-10-29 10:49] verification | records/specs/native-automation-owner.md
 Final V11 two-file shutdown admission race corrected; fresh native build, strict lint, installed resource/missing10/altered refusal/signature pass. CLI SHA unchanged, V10 focused/controller/ProductAI/44 CLI proof reused. Receipt 13530bytes SHA574879fdd274cd055ac2ce1a6043203b7c80377379f7c6c5291fb1e214044c37;137 prior artifacts plus owner receipt unchanged. Visible OS/goal/release unfinished.
 
+## [2026-10-29 11:06] design | records/specs/condition-transitions.md
+Condition E4 reviewed in three passes: known/unknown/baseline/reset semantics, normalized duplicate identity, bounded inert previews and remaining atomic business-event/cursor/event-time/causality integration. A current read cannot prove intermediate historical crossings.
+
+## [2026-10-29 11:06] implementation | records/specs/condition-transitions.md
+Pure NativeConditionRule and no-workbook condition-preview CLI implement six Decimal comparisons, no-repeat transitions/reset/unknown gaps, duplicate/changed-content behavior and bounded no-follow regular-file inputs. CI-found registry race repaired with atomic mkdir0700; unsafe existing directories refuse unchanged. Schema21 unchanged, real triggers remain closed.
+
+## [2026-10-29 11:06] verification | records/specs/condition-transitions.md
+13 condition groups/243 trajectories,31 installed CLI calls,13 calendar/16 execution groups,18 registry/controller groups plus5 fresh starts/30 workers, strict7 Swift files and native resource/missing10/altered refusal/signature pass. fab2a83 CI failed16/17 and is retained; corrective head needs CI. Receipt61244bytes SHA1559bf286dec9681b20ac23d78c4c7e5902fbb1d884eb6933fa74f78634b05f6,139 prior artifacts unchanged. Mac locked; no model/real event/release proof, goal unfinished.
+

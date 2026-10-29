@@ -77,6 +77,11 @@ func enable(
   var failures = 0
   var checks = 0
   func check(_ name: String, _ body: () async throws -> Void) async {
+    if CommandLine.arguments.dropFirst() == ["--registry-concurrency"],
+      !name.hasPrefix("registry creation") && !name.hasPrefix("independent registry writers")
+    {
+      return
+    }
     checks += 1
     do {
       try await body()
@@ -245,6 +250,21 @@ func enable(
     try FileManager.default.moveItem(at: file, to: held)
     try FileManager.default.createSymbolicLink(at: file, withDestinationURL: held)
     try refuses { _ = try store.grants() }
+  }
+  await check(
+    "registry creation is private and refuses an existing unsafe directory without repair"
+  ) {
+    let store = registry("Registry-Private")
+    _ = try store.grants()
+    var info = stat()
+    try expect(lstat(store.directory.path, &info) == 0 && info.st_mode & 0o777 == 0o700)
+    try FileManager.default.setAttributes(
+      [.posixPermissions: 0o755], ofItemAtPath: store.directory.path)
+    try refuses { _ = try store.grants() }
+    try expect(lstat(store.directory.path, &info) == 0 && info.st_mode & 0o777 == 0o755)
+    try FileManager.default.setAttributes(
+      [.posixPermissions: 0o700], ofItemAtPath: store.directory.path)
+    try expect(try store.grants().isEmpty)
   }
   await check("independent registry writers preserve every explicit registration") {
     let store = registry("Registry-Concurrent")

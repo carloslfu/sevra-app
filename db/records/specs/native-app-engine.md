@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T10:46:56.342499+00:00
+updated: 2026-10-29T11:06:54.177639+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -703,3 +703,9 @@ Native foreground timer/configuration, persistent device-local physical-copy/wor
 [[records/specs/native-automation-owner]] adds native Activity/Schedules authoring/preview/enable/pause/manual Run once, persistent exact physical-workbook grants and a single active-app driver through the existing schema21 planner/dispatcher and ProductAI coordinator. Reopen restores the same explicit grant without new authorization. Copies/imports/reconstruction remain inactive; live registry/physical/cancellation fences protect claims, model admission and publication. Interactive work yields automatic work before model use.
 
 Final 17 native registry/controller groups, six independent registration workers, two actual registry SIGKILL barriers, 16 execution groups, synthetic product lifecycle, 44 installed native CLI cases, strict 16-file Swift lint and native package/refusal/signature gates pass. The 359-group core run was on V4; final focused regressions cover subsequent same-guard closure naming. Detailed retained failures/evidence are in the owner contract. No actual model or visible UI was tested in this slice. This owner currently requires the active app and a key window; E22 background/closed-window behavior, real OS sleep/wake/privacy/resource interaction, E4 event/condition/conversation authoring and full E5/E6 are still required. The original full acceptance contract is unchanged.
+
+## Condition transition foundation, October 29
+
+[[records/specs/condition-transitions]] defines the reviewed staged business-event integration and implements its first pure numeric preview. It passes 13 focused groups including 243 short truth trajectories, 31 installed native CLI cases and nearby 13 calendar/16 execution groups. Unknown is not false; it cannot reset a condition. Duplicate identity cannot rewind state; changed content refuses. Explicitly inert fixture output grants no authority and proves no real event coverage. Exact committed-event state/cursor/outbox, loop/backpressure and native/conversation authoring remain required E4 work.
+
+This checkpoint also repairs the registry creation race found by fab2a83 hosted CI, preserving the failed receipt. Final 18 registry/controller groups and five fresh starts/30 workers, strict seven-file Swift lint and native package/resource/refusal/signature gates pass. Schema21 and model/engine behavior are unchanged. The corrective head needs fresh CI; full release remains open.

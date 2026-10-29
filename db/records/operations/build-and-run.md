@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T10:46:56.450783+00:00
+updated: 2026-10-29T11:06:54.196071+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1691,3 +1691,19 @@ Pause removes this Mac's grant before attempting the workbook's exact-generation
 This implementation currently runs automatic work only while Sevra is active with a key window, no interactive operation, normal memory pressure, acceptable thermal state and Low Power Mode off. Focus/sleep/session/resource loss cancels/defer work; app quit stops it. One app-wide owner serializes automatic work and yields to interactive work. Closed-window/background behavior, event/condition triggers, voice/conversation authoring and real native lifecycle/visible accessibility remain unqualified. Do not use this preview for unattended scheduling assumptions.
 
 Focused checks: `swift build --product sevra-automation-ui-checks -j 4` then `.build/debug/sevra-automation-ui-checks`. They create synthetic workbooks and private temporary registries, run six independent registration workers and kill only owned fixture processes at two registry publication barriers. An injected deterministic runner checks controller behavior without loading a model or simulating proof of real OS notifications. The checks also run in scripts/check.sh and CI. Contract/evidence: [[records/specs/native-automation-owner]].
+
+## Inert condition transition preview
+
+`condition-preview RULE_JSON_OR_@FILE OBSERVATIONS_JSON_OR_@FILE` previews supplied numeric observations without opening a workbook or enabling anything. Example:
+
+~~~sh
+sevra condition-preview \
+  '{"policy":"native-condition-v1","scope":"stock:bolts","operator":"<","threshold":"10"}' \
+  '[{"id":"first","value":"20"},{"id":"second","value":"5"},{"id":"third","value":"4"}]'
+~~~
+
+This returns one transition candidate. Starting already below the threshold establishes a baseline; staying below does not repeat. A known false observation resets it. Unknown values use null plus a reason, preserve the last certain truth and label a coverage gap. Same ID/equivalent normalized content is duplicate delivery; changed content under the same ID refuses. Operators are <, <=, >, >=, = and <>. Decimal values are strings, never JSON numbers.
+
+At most 100 observations and 64 KiB encoded observation input. IDs/scope are nonempty bounded strings; unknown reasons are bounded. Each inline/file JSON argument is limited to 64 KiB. @FILE reads require a regular file and refuse symlink/FIFO/directory substitutions. Output says fixture-observations, businessEvidence=false, enabled=false and execution=inert. Supplied IDs/order cannot prove that an actual business crossing occurred or that all events were observed.
+
+Focused verification: `.build/debug/sevra-checks --conditions` and `python3 scripts/check_condition_transitions.py --cli output/native/bin/sevra --output NEW_DIRECTORY`. The first passes 13 groups including 243 trajectories; the second passes 31 installed CLI cases. It uses synthetic inputs and no model/workbook. Real trigger delivery, durable cursors and native authoring remain open under [[records/specs/condition-transitions]].
