@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T09:58:20.648347+00:00
+updated: 2026-10-29T10:46:56.486607+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -26,6 +26,7 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 ## Reading order
 
+- [[records/specs/native-automation-owner]]: current native schedule controls, device grants and active-app qualification limits.
 - [[records/specs/identity]]: approved Sevra logo, app icon and native appearance.
 - [[records/specs/product]]: requirements and user experience.
 - [[records/specs/application-definitions]]: schema19 versioned inert automations/extraction/interpretation/functions/queries plus registered inventory/document actions and recoverable native forms have scoped automated proof. Agent authoring/invocation, focused native forms, reusable native computation and exact result publication have scoped proof; full EJ, workflows and release qualification remain open.
@@ -76,3 +77,7 @@ The schema20 preparation checkpoint adds explicit exact-generation process-local
 ## Foreground execution foundation
 
 Current schema21 has distinct current-process execution/AI permission, atomic occurrence-to-workflow binding, one active run, honest scheduled provenance, source-specific pause fencing and separately attributed manual control. Technical authorization history stays outside business evidence. Final359 full core groups/0,16 focused groups, synthetic model lifecycle,2 actual SIGKILL dispatch boundaries/16 calls,44 execution/33 preparation/36 definition/31 calendar installed CLI cases, strict25 Swift files, skill validation and native package/resource/refusal/signature checks pass. All136 prior receipts remain byte-identical. No fresh actual-model or visible/native release qualification. The run-once CLI installs no timer. Native scheduling/configuration, persistent device-local physical-copy authority, event/condition/background work, Excel continuity and whole-app release gates remain open. Contract and scoped evidence: [[records/specs/automation-execution]].
+
+## Native scheduling preview
+
+Native Activity/Schedules now provides typed create/edit/preview, explicit exact-version Enable on this Mac, pause/removal, manual Run once and saved-run inspection. A private physical-workbook registry restores permission without repeated authorization; copies/reconstructed workbooks stay inactive. A single active-app/key-window owner executes the existing bounded draft workflow path and yields to interactive work. Schema21 is unchanged. Final 17 registry/controller groups, six independent writers, two registry SIGKILL boundaries, 16 execution groups, synthetic ProductAI lifecycle, 44 installed CLI cases, strict 16-file Swift lint and native package/resource/refusal/signature checks pass. All 137 prior artifacts remain unchanged. The 359-group full core pass ran on V4; final focused checks cover subsequent same-guard naming. Native UI remains locked/unverified. Full background/closed-window/event/condition/conversation scheduling, Excel continuity, hardware/performance and release gates remain open. Details and immutable evidence: [[records/specs/native-automation-owner]].

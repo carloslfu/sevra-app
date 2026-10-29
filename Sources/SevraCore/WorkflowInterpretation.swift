@@ -13,6 +13,7 @@ extension Workbook {
       "Use the actual local model identity.")
     var deadline: Double?
     let guardLease: () throws -> Void = {
+      try session.automation?.deviceFence?()
       if let deadline {
         try require(
           Date().timeIntervalSince1970 < deadline, "workflow_fenced",
@@ -153,6 +154,7 @@ extension Workbook {
     try workflowSession(session, needsAI: true)
     var deadline: Double?
     let guardLease: () throws -> Void = {
+      try session.automation?.deviceFence?()
       if let deadline {
         try require(
           Date().timeIntervalSince1970 < deadline, "workflow_fenced",

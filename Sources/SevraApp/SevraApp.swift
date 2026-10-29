@@ -71,16 +71,25 @@ import SwiftUI
 
 @MainActor final class DocumentDelegate: NSObject, NSApplicationDelegate, ObservableObject {
   @Published var pending: [URL] = []
+  func applicationDidFinishLaunching(_ notification: Notification) {
+    NativeAutomationHost.shared.start()
+  }
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
     guard DocumentDraftScope.flushAll() else { return .terminateCancel }
+    NativeAutomationHost.shared.beginTermination()
     Task {
+      await NativeAutomationHost.shared.yieldForInteractive()
       let saved = await ConversationSession.flushAll()
       let formsSaved = await FormDraftScope.flushAll()
       let clarificationsSaved = await WorkflowClarificationScope.flushAll()
       await SpaceNavigationSession.flushAll()
-      sender.reply(
-        toApplicationShouldTerminate: saved && formsSaved && clarificationsSaved
-          && DocumentDraftScope.flushAll())
+      let complete = saved && formsSaved && clarificationsSaved && DocumentDraftScope.flushAll()
+      if complete {
+        await NativeAutomationHost.shared.stop()
+      } else {
+        NativeAutomationHost.shared.cancelTermination()
+      }
+      sender.reply(toApplicationShouldTerminate: complete)
     }
     return .terminateLater
   }

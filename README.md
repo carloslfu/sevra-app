@@ -24,8 +24,10 @@ searchable definition history are available through the core/CLI. Registered dra
 inventory actions and recoverable native receiving forms now have scoped automated
 proof. Conversation can author saved behavior and queue durable workflows;
 explicit continuation stops for required review. Foreground scheduled draft
-execution has scoped recovery proof. Native scheduling controls, full Excel
-continuity, richer workflows and release checks remain open.
+execution has scoped recovery proof. Native schedule controls and persistent
+per-Mac permission now have [scoped active-app proof](db/records/specs/native-automation-owner.md).
+Background scheduling, full Excel continuity, richer workflows and release checks
+remain open.
 
 Start with [the project knowledge map](db/records/overview/start-here.md),
 [the specification](db/records/specs/product.md) and

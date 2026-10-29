@@ -22,6 +22,10 @@ jobs:
         run: |
           swift build --product sevra-voice-checks -j 3
           .build/debug/sevra-voice-checks
+      - name: Check device-local scheduling and physical workbook identity
+        run: |
+          swift build --product sevra-automation-ui-checks -j 3
+          .build/debug/sevra-automation-ui-checks
       - name: Build core checks
         run: |
           swift build --product sevra-extract -j 3

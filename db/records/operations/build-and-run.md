@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T09:58:20.611299+00:00
+updated: 2026-10-29T10:46:56.450783+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1679,3 +1679,15 @@ The operation prepares at most100 slots/3660 days, then dispatches/continues at 
 `workflow-inspect WORKBOOK RUN_ID` exposes original invocation policy/origin and each latest claim's authorization metadata. A business `read` intentionally refuses those technical Sources. Explicit manual Continue creates new manual-operation provenance for that run, preserving original scheduled policy and leaving future automation disabled/paused. Direct Stop creates no execution grant. Saved armed state alone is not proof of a running timer or permission. See [[records/specs/automation-execution]].
 
 Focused qualification: `swift build --product sevra-checks -j 4`, `.build/debug/sevra-checks --automation-execution`, `swift build --product sevra-automation-durability -j 4`, `python3 scripts/check_automation_durability.py --output NEW_DIRECTORY`; after a frozen native build run `python3 scripts/check_automation_execution.py --cli output/native/bin/sevra --checks .build/debug/sevra-checks --worker .build/debug/sevra-automation-durability --output ANOTHER_NEW_DIRECTORY`. The death script kills only its owned synthetic worker at dispatch publication barriers. Neither script uses user workbooks or real model inference. Final16 focused/all359 core,2 death boundaries/16 calls and44 installed execution calls pass. Native timer/device controls and whole release remain open.
+
+## Native Schedules preview
+
+In the native preview, open a workbook, choose Activity, then Schedules. Create a schedule using an existing saved workflow, typed inputs, named time zone and daily/weekly/monthly/yearly recurrence. Preview shows bounded upcoming local/UTC times and DST adjustments. Save retains inert intent. Enable on this Mac separately authorizes the exact saved version and inputs, with local AI off unless explicitly allowed. Edits create a new immutable version and need a new enable. A currently active older version must finish or be stopped before changing its scope.
+
+Registered on this Mac lists workbook and schedule names, status, Open workbook and Pause/removal. Device status is checked against exact current authority, not inferred from an armed row. Reopening the same physical workbook restores its grant without another authorization. Copied, reconstructed, symlinked, replaced or inaccessible packages cannot borrow it. Renames may work through passive bookmark resolution when both physical objects match; the app does not scan disks. Private registration lives under Application Support for the app bundle identifier, in DeviceSchedules, outside workbooks. It is intentionally not portable workbook content.
+
+Pause removes this Mac's grant before attempting the workbook's exact-generation pause. Missing/replaced workbooks may prevent recording that pause while local scheduling is disabled; the message states both outcomes. An unknown registry publication result is reported as unconfirmed and actual state is reloaded. Run once is a separate manual request and does not consume a calendar occurrence or enable future runs. Continue, retry, Stop and business review remain explicit existing controls.
+
+This implementation currently runs automatic work only while Sevra is active with a key window, no interactive operation, normal memory pressure, acceptable thermal state and Low Power Mode off. Focus/sleep/session/resource loss cancels/defer work; app quit stops it. One app-wide owner serializes automatic work and yields to interactive work. Closed-window/background behavior, event/condition triggers, voice/conversation authoring and real native lifecycle/visible accessibility remain unqualified. Do not use this preview for unattended scheduling assumptions.
+
+Focused checks: `swift build --product sevra-automation-ui-checks -j 4` then `.build/debug/sevra-automation-ui-checks`. They create synthetic workbooks and private temporary registries, run six independent registration workers and kill only owned fixture processes at two registry publication barriers. An injected deterministic runner checks controller behavior without loading a model or simulating proof of real OS notifications. The checks also run in scripts/check.sh and CI. Contract/evidence: [[records/specs/native-automation-owner]].

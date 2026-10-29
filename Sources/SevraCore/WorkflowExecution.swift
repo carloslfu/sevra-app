@@ -28,6 +28,7 @@ extension Workbook {
     }
     var deadline: Double?
     let guardLease: () throws -> Void = {
+      try session.automation?.deviceFence?()
       if let deadline {
         try require(
           Date().timeIntervalSince1970 < deadline, "workflow_fenced",

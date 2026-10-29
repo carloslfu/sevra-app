@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T09:58:20.573002+00:00
+updated: 2026-10-29T10:46:56.431805+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -400,3 +400,7 @@ All new automation_activations, automation_occurrences and automation_outbox row
 automation_runs and the new activation active-run pointer, dispatched occurrences/outbox, workflow policy and attempt authorization_source all join the existing capture/apply path. Exact original grant/dispatch/invocation evidence survives manual continuation, generation changes and inert reconstruction/archive. Integrity checks original normalized inputs, exact workflow version, invocation origin/actor, eligible time, one active reservation, Source decisions/lineage and per-attempt authority. Pause releases only its own claims; independently authorized manual work is preserved.
 
 Final359 full core/16 focused groups, synthetic lifecycle,2 actual SIGKILL dispatch boundaries/16 worker calls,44 execution/33 preparation/36 definition/31 calendar installed CLI cases and final native package proof pass. No whole previous manual crash-matrix rerun or broad model/release claim. Metadata isolation and the repository skill are updated; all136 prior evidence artifacts are byte-identical. Device-local persistent authority/timer and full release gates remain open. Contract/evidence: [[records/specs/automation-execution]].
+
+## Device-local automation permission persistence
+
+The native owner's private registration is separate from canonical workbook capture and never travels in .sevra/.sevraz, reconstruction or Sources. Schema21 and its ledger are unchanged. Restoring a verified exact physical registration reuses the same authorization Source and generation; it creates no new authorization record. Registry removal and exact physical replacement fence already-restored workers at commit. Two actual SIGKILL barriers cover before/after atomic registry publication; six independent writers, exact stale-entry removal, corrupt/oversize/symlink refusal, copy/reconstruction and no-write idle/review are in the final 17-group synthetic controller/real-file pass. Cross-file atomicity is not claimed, and an error after rename is an uncertain durable outcome until reload. Full contract and evidence: [[records/specs/native-automation-owner]].

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-29T09:58:20.667542+00:00
+updated: 2026-10-29T10:46:56.414197+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -556,3 +556,9 @@ The canonical initial schema is20. automation_activations stores exact definitio
 The canonical initial schema is21. automation_runs binds one dispatched occurrence to one exact scheduled run, definition, original authorization/dispatch Sources and generation. Activations retain active_run_id; dispatched occurrence state and outbox kinds are added. workflow_runs policy distinguishes original manual-drafts-v1 and automation-drafts-v1. Each workflow_attempts row retains authorization_source and indexed authority/order lookup. Manual continuation adds a separate workflow_authorization Source without relabeling original intent.
 
 All new fields/family rows share ChangeFormat capture/apply, current-format validation and inert reconstruction. Dispatch invocation, decisions, steps/outbox, binding and overlap pointer commit together. Integrity verifies original exact arguments/origin, lineage, authorizations, dispatch eligibility, overlap and worker authority; pause releases only claims bound to its superseded Source. Technical execution Sources cannot become business evidence. Unsupported older development documents remain preserved/refused. No legacy adapter/reset, second ledger or serialized live grant. Final359 core groups and scoped native/process-death/CLI evidence: [[records/specs/automation-execution]].
+
+## Device-local scheduling registry
+
+Schema21 is unchanged. Explicit per-Mac automation grants live outside every workbook under this app's Application Support DeviceSchedules directory. A private, bounded version1 JSON registry retains exact workbook UUID, physical package/database identities, bookmark, immutable definition/activation/generation/authorization Source and AI scope. It contains neither canonical business state nor a second ledger. Core still stores authorization history, run/occurrence state and captured changes in the workbook. Registry restoration validates that history and creates a new live process capability; copying/exporting/reconstructing the workbook does not copy authority.
+
+Dedicated cross-process locking, private no-follow/type/owner/size checks, lossless identity strings, atomic durable replacement and exact-entry removal preserve the device boundary. Corrupt bytes refuse without reset. The registry and workbook are not one distributed transaction; the native UI reports uncertain publication outcomes honestly. Package and workbook.sqlite replacement revoke the old physical binding even at the same pathname. Renames preserve authority only if passive resolution and both identities match. Contract/evidence: [[records/specs/native-automation-owner]].

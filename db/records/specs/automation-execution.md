@@ -2,14 +2,14 @@
 type: spec
 id: 01m63fsbde30gp34z969yt19sc
 created: 2026-10-29T09:27:48.910880+00:00
-updated: 2026-10-29T09:58:20.472364+00:00
-summary: Qualified schema21 foreground draft execution with distinct AI scope, atomic occurrence binding, one active run, honest provenance and pause-safe claims; native timer/device controls remain open.
+updated: 2026-10-29T10:46:56.394516+00:00
+summary: Schema21 foreground scheduled draft execution with distinct AI scope, atomic occurrence binding, one active run and pause-safe claims; native device restoration is scoped in native-automation-owner.
 title: Foreground automation workflow execution
 status: implemented
 ---
 # Foreground automated workflow execution
 
-This extends [[records/specs/automation-planning]] toward E4 in [[records/specs/native-app-engine]]. Native timer/configuration/device registration, event/condition triggers and E5 remain required. A bounded foreground core/CLI path is an implementation step, not a substitute for useful native scheduling.
+This extends [[records/specs/automation-planning]] toward E4 in [[records/specs/native-app-engine]]. Native timer/configuration/device registration now have the scoped active-app implementation in [[records/specs/native-automation-owner]]; event/condition triggers, final lifecycle qualification and E5 remain required. A bounded foreground core/CLI path is an implementation step, not a substitute for useful native scheduling.
 
 ## Authority
 
@@ -57,6 +57,12 @@ The native UI inventory again reports no apps and a locked Mac, so final native 
 
 `automation-run-once WORKBOOK EXACT_DEFINITION_ID EXPECTED_GENERATION START_AFTER OBSERVED_AT TOKEN [--allow-ai [MODEL_DIRECTORY]]` creates a new exact current-process execution grant and performs one bounded preparation/dispatch/continuation. Expected generation is0 for first authorization. Instants require an explicit zone; observed time must not precede start. Tokens are1...240 UTF-8 bytes, reserving suffix space for child operation receipts. AI permission is explicit; model path requires that flag. A deliberately supplied old observation is simulation/advanced tooling, not evidence of real-time dispatch.
 
-A page with catchUpRemaining=true does not dispatch. Inspect progress before another explicit operation using the refreshed generation and a new token. Reauthorization preserves coverage but supersedes pending preparation and earlier capabilities. Repeating an original operation uses its original arguments/token; current receipts recover without duplication, superseded grants refuse. No routine timer poll should use run-once because every new operation is a new grant. The future native timer will retain one verified local grant and call the shared bounded planner/dispatcher instead. Exit ends this process's permission. Output states timerInstalled=false and permission=this-process-only. Business review is separate.
+A page with catchUpRemaining=true does not dispatch. Inspect progress before another explicit operation using the refreshed generation and a new token. Reauthorization preserves coverage but supersedes pending preparation and earlier capabilities. Repeating an original operation uses its original arguments/token; current receipts recover without duplication, superseded grants refuse. No routine timer poll should use run-once because every new operation is a new grant. The native owner in [[records/specs/native-automation-owner]] retains one verified device-local grant and calls the shared bounded planner/dispatcher instead. Exit ends this process's permission. Output states timerInstalled=false and permission=this-process-only. Business review is separate.
 
 Manual continuation of an existing scheduled run creates a separate Source; CLI attribution remains programmatic. Native Continue/Stop use their direct human gestures. `workflow-inspect` exposes original scheduled invocation and latest claim authorization metadata. Business read intentionally refuses those technical Sources.
+
+## Native device restoration and publication fences
+
+The later [[records/specs/native-automation-owner]] slice extends the existing process capability with a package-only restore entry point and a live device fence. Trusted native code first verifies its private exact physical-workbook registration. Restoration checks exact definition, generation, authorization Source and AI scope; workbook rows alone still cannot create authority. Every automation check invokes the fence, and workflow claim/heartbeat/failure/retry/cancel, interpretation request/response and completion invoke it in the publication guard. Independent manual work retains its separate authority. No physical schema change, serialization of a process capability or change to the explicit CLI permission lifetime.
+
+The native owner is a real active-app timer, distinct from this original process-only CLI checkpoint. Its final proof includes real registry process death/removal and deterministic injected controller execution, not new selected-model inference or closed-window/background qualification. Full scope, failure semantics and immutable evidence are in the owner spec.

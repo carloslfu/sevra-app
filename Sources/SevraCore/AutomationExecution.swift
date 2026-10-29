@@ -5,13 +5,50 @@ import Foundation
 public final class AutomationExecutionSession: @unchecked Sendable {
   public let planning: AutomationPlanningSession
   public let allowAI: Bool
-  init(_ planning: AutomationPlanningSession, allowAI: Bool) {
+  let deviceFence: (@Sendable () throws -> Void)?
+  init(
+    _ planning: AutomationPlanningSession, allowAI: Bool,
+    deviceFence: (@Sendable () throws -> Void)? = nil
+  ) {
     self.planning = planning
     self.allowAI = allowAI
+    self.deviceFence = deviceFence
   }
 }
 
 extension Workbook {
+  package func deviceAutomationPending(_ session: AutomationExecutionSession) throws -> Value {
+    try synchronized {
+      _ = try automationExecutionSession(session)
+      return try pendingAutomationOccurrence(session.planning.activationID)
+    }
+  }
+
+  package func deviceAutomationScope(_ session: AutomationExecutionSession) throws -> Value {
+    try synchronized { try automationExecutionSession(session) }
+  }
+  /// Trusted native owner only. The owner verifies its private, physical-file
+  /// registration before calling; saved workbook state alone never invokes this.
+  package func restoreDeviceAutomationExecution(
+    activationID: String, definitionID: String, generation: Int, sourceID: String,
+    allowAI: Bool, fence: @escaping @Sendable () throws -> Void
+  ) throws -> AutomationExecutionSession {
+    try synchronized {
+      try fence()
+      let current = try automationActivation(activationID)
+      try require(
+        current["definition_id"] == .string(definitionID)
+          && current["generation"].int == generation
+          && current["source_id"] == .string(sourceID)
+          && current["state"] == .string("armed"),
+        "automation_authority", "This device registration was superseded. Enable the scope again.")
+      let session = AutomationExecutionSession(
+        AutomationPlanningSession(self, activation: current), allowAI: allowAI, deviceFence: fence)
+      _ = try automationExecutionSession(session)
+      return session
+    }
+  }
+
   public func authorizeAutomationExecution(
     _ exactID: String, expectedGeneration: Int, after: Date, allowAI: Bool = false,
     token: String, actor: ChangeActor? = nil, cancellation: Cancellation = .init()
@@ -25,6 +62,7 @@ extension Workbook {
   }
 
   func automationExecutionSession(_ session: AutomationExecutionSession) throws -> Value {
+    try session.deviceFence?()
     let activation = try automationSession(session.planning)
     try require(
       activation["policy"] == .string("foreground-drafts-v1")

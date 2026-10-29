@@ -9,6 +9,7 @@ let nativeCandidate = ProcessInfo.processInfo.environment["SEVRA_NATIVE_CANDIDAT
 let package = Package(
   name: "Sevra", platforms: [.macOS(.v14)],
   products: [
+    .executable(name: "sevra-automation-ui-checks", targets: ["SevraAutomationUIChecks"]),
     .library(name: "SevraCore", targets: ["SevraCore"]),
     .executable(name: "SevraDesktop", targets: ["SevraApp"]),
     .executable(name: "sevra", targets: ["SevraCLI"]),
@@ -42,6 +43,12 @@ let package = Package(
     .package(url: "https://github.com/swiftlang/swift-markdown.git", exact: "0.9.0"),
   ],
   targets: [
+    .target(
+      name: "SevraAutomationUI", dependencies: ["SevraCore"],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(
+      name: "SevraAutomationUIChecks", dependencies: ["SevraCore", "SevraAutomationUI"],
+      path: "IntegrationTests/AutomationUI", swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraPreviewUI", dependencies: ["SevraCore"], swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
@@ -168,7 +175,7 @@ let package = Package(
       name: "SevraApp",
       dependencies: [
         "SevraCore", "SevraAI", "SevraProduct", "SevraTableUI", "SevraSearchUI", "SevraVoice",
-        "SevraDocumentUI", "SevraPreviewUI",
+        "SevraDocumentUI", "SevraPreviewUI", "SevraAutomationUI",
       ],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(

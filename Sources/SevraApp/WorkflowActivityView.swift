@@ -27,6 +27,7 @@ struct WorkflowActivityView: View {
       )
       .foregroundStyle(.secondary)
       HStack {
+        Button("Schedules", systemImage: "calendar") { workspace.navigate(.automations) }
         Picker("Show", selection: $filter) {
           Text("All runs").tag("")
           ForEach(

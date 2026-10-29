@@ -12,12 +12,14 @@ extension Workbook {
       !owner.isEmpty && owner.utf8.count <= 128 && leaseSeconds.isFinite
         && (0.05...60).contains(leaseSeconds), "workflow_claim",
       "Use a bounded worker identity and lease from 0.05 to 60 seconds.")
+    let deviceFence: () throws -> Void = { try session.automation?.deviceFence?() }
     let result = try mutation(
       "workflow_claim", token: token,
       request: .object([
         "runID": .string(session.runID), "owner": .string(owner), "seconds": .number(leaseSeconds),
       ]),
-      cancellation: cancellation, actor: .programmatic("SevraCore.workflowWorker")
+      cancellation: cancellation, actor: .programmatic("SevraCore.workflowWorker"),
+      commitGuard: deviceFence
     ) {
       try self.workflowSession(session)
       let run = try self.workflowRun(session.runID)
@@ -97,10 +99,12 @@ extension Workbook {
     try require(
       leaseSeconds.isFinite && (0.05...60).contains(leaseSeconds), "workflow_claim",
       "Use a lease from 0.05 to 60 seconds.")
+    let deviceFence: () throws -> Void = { try session.automation?.deviceFence?() }
     return try mutation(
       "workflow_heartbeat", token: token,
       request: .object(["claim": claim, "seconds": .number(leaseSeconds)]),
-      cancellation: .init(), actor: .programmatic("SevraCore.workflowWorker")
+      cancellation: .init(), actor: .programmatic("SevraCore.workflowWorker"),
+      commitGuard: deviceFence
     ) {
       _ = try self.validateWorkflowClaim(session, claim: claim)
       try self.db.execute(
@@ -142,10 +146,12 @@ extension Workbook {
     try require(
       !detail.isEmpty && detail.utf8.count <= 4096, "workflow_limit",
       "Use an error detail from 1 to 4096 bytes.")
+    let deviceFence: () throws -> Void = { try session.automation?.deviceFence?() }
     return try mutation(
       "workflow_failure", token: token,
       request: .object(["claim": claim, "detail": .string(detail)]), cancellation: .init(),
-      actor: .programmatic("SevraCore.workflowWorker")
+      actor: .programmatic("SevraCore.workflowWorker"),
+      commitGuard: deviceFence
     ) {
       _ = try self.validateWorkflowClaim(session, claim: claim)
       try self.db.execute(
@@ -166,9 +172,11 @@ extension Workbook {
   public func retryWorkflow(_ session: WorkflowExecutionSession, token: String) throws -> Value {
     try workflowSession(session)
     try workflowToken(token)
+    let deviceFence: () throws -> Void = { try session.automation?.deviceFence?() }
     return try mutation(
       "workflow_retry", token: token, request: .string(session.runID),
-      cancellation: .init(), actor: .programmatic("SevraCore.workflowManualRetry")
+      cancellation: .init(), actor: .programmatic("SevraCore.workflowManualRetry"),
+      commitGuard: deviceFence
     ) {
       try self.workflowSession(session)
       let run = try self.workflowRun(session.runID)
@@ -189,9 +197,11 @@ extension Workbook {
   public func cancelWorkflow(_ session: WorkflowExecutionSession, token: String) throws -> Value {
     try workflowSession(session)
     try workflowToken(token)
+    let deviceFence: () throws -> Void = { try session.automation?.deviceFence?() }
     return try mutation(
       "workflow_cancel", token: token, request: .string(session.runID),
-      cancellation: .init(), actor: .programmatic("SevraCore.workflowManualCancel")
+      cancellation: .init(), actor: .programmatic("SevraCore.workflowManualCancel"),
+      commitGuard: deviceFence
     ) {
       try self.workflowSession(session)
       return try self.cancelWorkflowRun(session.runID)

@@ -1069,3 +1069,15 @@ Schema21 explicit foreground execution/AI grant, atomic exact scheduled run bind
 ## [2026-10-29 09:58] verification | records/specs/automation-execution.md
 Final359 full core/16 focused groups, synthetic lifecycle,2 actual dispatch SIGKILL boundaries/16 calls,44 execution/33 preparation/36 definition/31 calendar installed native CLI calls, strict25 Swift files, isolated skill validation and native resource/missing10/altered refusal/signature checks pass. Artifact162582 bytes SHA2cd644b06181c17fa43590ea792983c40d4fb6827bb82de60b4802e36cbab44b.136 prior artifacts unchanged. Native UI locked; full E4/release/goal unfinished.
 
+## [2026-10-29 10:08] design | records/specs/native-automation-owner.md
+Three-pass native scheduling/device registry contract: exact physical and authorization binding, atomic local registry, native controls and conservative active-app lifecycle; full background/privacy gates remain open.
+
+## [2026-10-29 10:46] implementation | records/specs/native-automation-owner.md
+Native Activity/Schedules typed create/edit/preview, exact enable/pause/manual Run once; private durable physical-workbook device registry, exact-generation restoration and live publication fences; one active-app owner yields to interactive work. Schema21 unchanged, full background/event/condition/release open.
+
+## [2026-10-29 10:46] verification | records/specs/native-automation-owner.md
+Final17 registry/controller groups,6 independent writers,2 actual registry SIGKILL barriers,16 execution groups, synthetic ProductAI lifecycle,44 installed CLI calls, strict16 Swift files and native package/resource10 missing/altered refusal/signature pass. Full359 core V4 reused after guard naming; no actual-model/visible OS proof. 109853bytes SHAa8dbedf09a52fa7357d3d18a3ddba61e6eb8f16b62686b41f785b74adf0e21f0;137 prior artifacts unchanged. CI f759f47 green, new exact CI required; Mac locked, goal unfinished.
+
+## [2026-10-29 10:49] verification | records/specs/native-automation-owner.md
+Final V11 two-file shutdown admission race corrected; fresh native build, strict lint, installed resource/missing10/altered refusal/signature pass. CLI SHA unchanged, V10 focused/controller/ProductAI/44 CLI proof reused. Receipt 13530bytes SHA574879fdd274cd055ac2ce1a6043203b7c80377379f7c6c5291fb1e214044c37;137 prior artifacts plus owner receipt unchanged. Visible OS/goal/release unfinished.
+

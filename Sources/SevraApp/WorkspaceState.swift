@@ -28,6 +28,7 @@ import SwiftUI
     case search
     case reviews
     case activity
+    case automations
     case workflow(String)
   }
   @Published var workbook: Workbook?
@@ -86,7 +87,10 @@ import SwiftUI
       if !restoringConversation { conversationSession.updateDraft(prompt) }
     }
   }
-  @Published var busy = false
+  private let automationBusyOwner = UUID()
+  @Published var busy = false {
+    didSet { NativeAutomationHost.shared.setBusy(automationBusyOwner, busy) }
+  }
   @Published var status = ""
   @Published var error: String?
   @Published var selectedContext = "" {
@@ -356,6 +360,8 @@ import SwiftUI
           if retry { _ = try book.retryWorkflow(session, token: identifier()) }
           return session
         }.value
+        await NativeAutomationHost.shared.yieldForInteractive()
+        try ticket.cancellation.check()
         _ = try await ProductAI.shared.continueWorkflow(
           workbook: book, session: session, owner: "native:" + identifier(),
           modelDirectory: path, cancellation: ticket.cancellation,
@@ -695,6 +701,8 @@ import SwiftUI
           )
         }
         try ticket.cancellation.check()
+        await NativeAutomationHost.shared.yieldForInteractive()
+        try ticket.cancellation.check()
         let result = try await ProductAI.shared.run(
           input, workbook: book, conversation: chat, context: context, modelDirectory: path,
           cancellation: ticket.cancellation,
@@ -798,7 +806,7 @@ import SwiftUI
     case .tableUpdate(let source, _):
       return routeContext + "\nTable-update review for source ID: " + source
     case .workflow(let id): return routeContext + "\nActive workflow run ID: " + id
-    case .search, .reviews, .activity: return routeContext
+    case .search, .reviews, .activity, .automations: return routeContext
     }
   }
   var routeContext: String {
@@ -811,6 +819,7 @@ import SwiftUI
     case .search: return "Workbook search"
     case .reviews: return "Drafts to review"
     case .activity: return "Workflow activity"
+    case .automations: return "Schedules"
     case .workflow:
       return "Inspecting a saved workflow run; opening it does not authorize execution."
     }

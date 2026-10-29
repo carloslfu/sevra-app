@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T09:58:20.536454+00:00
+updated: 2026-10-29T10:46:56.342499+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -697,3 +697,9 @@ Schema19 now stores exact workflow/calendar intentions in the existing immutable
 [[records/specs/automation-execution]] implements schema21's distinct explicit current-process execution/AI grant, atomic scheduled workflow dispatch, one active run, honest origin policy, source-specific claim revocation and explicit separately attributed manual control. Sources remain outside business evidence; bounded inspection and native scheduled wording distinguish execution provenance. Final359 full core/16 focused groups, synthetic lifecycle,2 actual SIGKILL boundaries/16 calls,44 execution/33 preparation/36 definition/31 calendar installed CLI cases, strict25 Swift files, skill validation and native package/resource/refusal/signature checks pass. No actual inference, visible UI or release claim.
 
 Native foreground timer/configuration, persistent device-local physical-copy/workbook registration, reopen/wake/privacy/resources and event/condition behavior remain required E4 work. The run-once CLI installs no timer and cannot substitute for that UX. E5/E6, full E3/EJ/richer graphs, contextual/Excel continuity, hardware/performance and production release gates remain open.
+
+## Native schedule owner qualification, October 29
+
+[[records/specs/native-automation-owner]] adds native Activity/Schedules authoring/preview/enable/pause/manual Run once, persistent exact physical-workbook grants and a single active-app driver through the existing schema21 planner/dispatcher and ProductAI coordinator. Reopen restores the same explicit grant without new authorization. Copies/imports/reconstruction remain inactive; live registry/physical/cancellation fences protect claims, model admission and publication. Interactive work yields automatic work before model use.
+
+Final 17 native registry/controller groups, six independent registration workers, two actual registry SIGKILL barriers, 16 execution groups, synthetic product lifecycle, 44 installed native CLI cases, strict 16-file Swift lint and native package/refusal/signature gates pass. The 359-group core run was on V4; final focused regressions cover subsequent same-guard closure naming. Detailed retained failures/evidence are in the owner contract. No actual model or visible UI was tested in this slice. This owner currently requires the active app and a key window; E22 background/closed-window behavior, real OS sleep/wake/privacy/resource interaction, E4 event/condition/conversation authoring and full E5/E6 are still required. The original full acceptance contract is unchanged.

@@ -2,16 +2,17 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-29T09:58:20.686282Z
+updated: 2026-10-29T10:49:28.157735Z
 ---
 
 # records/specs
 
-- [[records/specs/automation-planning]] — Reviewed schema20 activation and bounded calendar occurrence preparation: explicit process-local permission, revocation, skipped reasons and inert reconstruction; dispatch remains open.
+- [[records/specs/native-automation-owner]] — Native schedule controls and persistent physical-workbook device grants with a conservative active-app owner; scoped synthetic, process-death and installed-package proof, full lifecycle/release open.
 - [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
-- [[records/specs/manual-workflows]] — Manual durable workflow contract and scoped implementation sequence; full E3 remains open.
+- [[records/specs/automation-execution]] — Schema21 foreground scheduled draft execution with distinct AI scope, atomic occurrence binding, one active run and pause-safe claims; native device restoration is scoped in native-automation-owner.
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
-- [[records/specs/automation-execution]] — Qualified schema21 foreground draft execution with distinct AI scope, atomic occurrence binding, one active run, honest provenance and pause-safe claims; native timer/device controls remain open.
+- [[records/specs/automation-planning]] — Reviewed schema20 activation and bounded calendar occurrence preparation: explicit process-local permission, revocation, skipped reasons and inert reconstruction; dispatch remains open.
+- [[records/specs/manual-workflows]] — Manual durable workflow contract and scoped implementation sequence; full E3 remains open.
 - [[records/specs/automation-schedules]] — Reviewed native calendar preview contract: explicit zones, recurrence, DST, bounded coverage and no execution authority. First E4 slice; runtime open.
 - [[records/specs/application-definitions]] — Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
 - [[records/specs/automation-definitions]] — Inert exact-bound calendar automation definitions over shared immutable versions, typed evidence lineage and capture. Activation and dispatch remain separate.

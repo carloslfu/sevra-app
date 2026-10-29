@@ -1,6 +1,22 @@
 import Foundation
 
 extension Workbook {
+  /// Exact definition lookup avoids scanning an unbounded activation catalog.
+  public func automationState(_ exactDefinitionID: String) throws -> Value {
+    try synchronized {
+      let definition = try applicationDefinition(exactDefinitionID)
+      try require(
+        definition.id == exactDefinitionID && definition.kind == "automation",
+        "automation_binding", "Inspect an exact saved schedule version.")
+      guard
+        let id = try db.scalar(
+          "SELECT id FROM automation_activations WHERE logical_id=?",
+          [.string(definition.logicalID)]
+        ).string
+      else { return .null }
+      return try automationActivation(id)
+    }
+  }
   public func automationActivations(after: String = "", limit: Int = 20) throws -> Value {
     try require(
       (1...50).contains(limit) && after.utf8.count <= 256, "automation_limit",
