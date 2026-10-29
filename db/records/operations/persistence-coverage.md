@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T07:37:57.631395+00:00
+updated: 2026-10-29T08:00:09.245975+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -382,3 +382,7 @@ WorkflowClarificationDraft stores bounded raw values, explanation, exact histori
 ## Conversation answer preparation persistence
 
 The existing portable clarification checkpoint now retains optional exact current-request/read-receipt preparation provenance. Shared presentation transactions compare/save it without business revision. Human edits keep original prepared values; captured canonical clarification submission retains final values plus both original model and current request Source lineage. A synthetic outbox trigger fault proves rollback and retry; inert reconstruction validates retained metadata. Scoped65-group/session/agent and30-call actual packaged-model proof is in [[records/specs/manual-workflows]]. This adds no new schema family or ledger.
+
+## Conversation confirmation capture
+
+Native composer confirmation uses the existing workflow_clarification operation/token, supplied Source/Record and captured ledger/outbox. Metadata retains exact human confirmation and host preview message/hash identities. Current transaction checks saved typed inputs/target/current-message adjacency/cancellation; historical integrity checks exact retained messages/hash. Outbox fault and prepared-stage cancellation roll back; receipt recovery and inert reconstruction validate retained confirmation without restoring live authority. Final66 focused workflow groups and native session/package checks pass. This is scoped local persistence, not a new ledger, sync or background execution. Details: [[records/specs/manual-workflows]].

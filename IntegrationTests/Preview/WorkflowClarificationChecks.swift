@@ -330,6 +330,58 @@ private func clarificationFault(_ book: Workbook, _ sql: String) throws {
     "Human edits overwrote original AI preparation")
   try expectClarification(
     preparedSupplied["actor"]["kind"] == .string("human"), "Native submission lost human actor")
+  let confirmedRun = try start()
+  let confirmationSession = scope.session(confirmedRun)!
+  await confirmationSession.open()
+  var withEvidence = values("5.00").object
+  withEvidence["original"] = .string(evidence.id)
+  confirmationSession.update(values: .object(withEvidence), reason: "I counted five units.")
+  try await confirmationSession.prepareForConversation("main")
+  try expectClarification(
+    confirmationSession.conversationPreview != nil
+      && confirmationSession.preview?["values"]["quantity"] == .string("5"),
+    "Conversation preview lost normalized values")
+  try expectClarification(
+    try book.messages().last!.body.contains(evidence.referenceMarkdown),
+    "The preview lost the exact item link behind its title")
+  let live = confirmationSession.conversationPreview!
+  scope.invalidateConversationPreviews()
+  try expectClarification(
+    confirmationSession.conversationPreview == nil && live.cancellation.isCancelled,
+    "Leaving context retained confirmation authority")
+  var confirmationMessage = try book.addMessage("Save my answer", role: "user")
+  do {
+    try await confirmationSession.confirmForConversation("main", messageID: confirmationMessage)
+    throw SevraError("test", "Historical preview granted live confirmation")
+  } catch let error as SevraError {
+    try expectClarification(error.code != "test", "Historical preview submitted")
+  }
+  try await confirmationSession.prepareForConversation("main")
+  confirmationSession.update(values: values("6"), reason: "I recounted six units.")
+  try expectClarification(
+    confirmationSession.conversationPreview == nil, "Editing retained earlier authority")
+  try await confirmationSession.prepareForConversation("main")
+  let reopenConfirmation = WorkflowClarificationSession(workbook: book, runID: confirmedRun)
+  await reopenConfirmation.open()
+  try expectClarification(
+    reopenConfirmation.conversationPreview == nil, "Reopening restored confirmation authority")
+  confirmationMessage = try book.addMessage("Save my answer", role: "user")
+  try await confirmationSession.confirmForConversation("main", messageID: confirmationMessage)
+  try expectClarification(
+    confirmationSession.state?.entry.receipt != nil
+      && confirmationSession.conversationPreview == nil,
+    "Confirmation did not retain receipt or clear authority")
+  let confirmed = try book.workflowRun(confirmedRun)
+  let confirmedSupplied = confirmed["steps"].array[0]["output"]["value"]["clarification"]
+  try expectClarification(
+    confirmed["state"] == .string("queued") && confirmed["steps"].array[1]["output"] == .null
+      && confirmedSupplied["values"]["quantity"] == .string("6")
+      && confirmedSupplied["confirmation"]["messageID"] == .string(confirmationMessage),
+    "Text confirmation lost exact values, provenance or separate continuation")
+  try expectClarification(try book.verify()["ok"] == .bool(true), "Confirmation integrity failed")
+  print(
+    "PASS conversation answer confirmation: exact live preview, explicit current intent, context/edit invalidation, no reopening authority, retained receipt and separate continuation"
+  )
   print(
     "PASS native clarification inputs: incomplete/stale/reconstructed drafts, scoped evidence, zero/false, conflict/keep-both, exact receipt recovery, separate continuation, failed save/switch/quit gates"
   )

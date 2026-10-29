@@ -17,6 +17,9 @@ import SevraCore
   private var scheduled: Task<Void, Never>?
   private var keepOther = false
   private var targetRequest = UUID()
+  public private(set) var conversationPreview: WorkflowAnswerConversationPreview?
+  private var conversationGeneration = UUID()
+  private var confirmationControl: Cancellation?
   public var changed: (() -> Void)?
   public var dirty: Bool { state != baseline }
   public init(workbook: Workbook, runID: String) {
@@ -42,6 +45,7 @@ import SevraCore
   }
   public func reloadSaved() async {
     guard !busy, await flush() else { return }
+    invalidateConversationPreview()
     state = nil
     baseline = nil
     preview = nil
@@ -54,11 +58,15 @@ import SevraCore
       try workbook.workflowClarification(runID)
     }.value
     guard targetRequest == request, !Task.isCancelled else { return }
-    if currentTarget != target { preview = nil }
+    if currentTarget != target {
+      preview = nil
+      invalidateConversationPreview()
+    }
     currentTarget = target
   }
   public func update(values: Value, reason: String) {
     guard !busy, state != nil, state?.entry.receipt == nil else { return }
+    invalidateConversationPreview()
     state?.entry.values = values
     state?.entry.reason = reason
     preview = nil
@@ -73,6 +81,7 @@ import SevraCore
   public func prepare() async {
     guard !busy, let draft = state, draft.entry.receipt == nil else { return }
     busy = true
+    invalidateConversationPreview()
     preview = nil
     defer { busy = false }
     do {
@@ -86,10 +95,12 @@ import SevraCore
     }
   }
   public func submit() async {
-    guard !busy, let draft = state, let preview, draft.entry.receipt == nil else { return }
+    guard !busy, preview != nil, state?.entry.receipt == nil else { return }
     busy = true
+    invalidateConversationPreview()
     defer { busy = false }
     guard await flush() else { return }
+    guard let draft = state, let preview, draft.entry.receipt == nil else { return }
     do {
       let receipt = try await Task.detached { [workbook] in
         try workbook.submitWorkflowClarificationDraft(draft, preview: preview)
@@ -100,8 +111,81 @@ import SevraCore
       changed?()
     } catch { fail(error) }
   }
+  public func invalidateConversationPreview() {
+    conversationGeneration = UUID()
+    conversationPreview?.cancellation.cancel()
+    conversationPreview = nil
+    confirmationControl?.cancel()
+    confirmationControl = nil
+  }
+  public func prepareForConversation(
+    _ conversation: String, cancellation: Cancellation = .init()
+  ) async throws {
+    try require(!busy, "clarification_busy", "Wait for the current answer operation.")
+    invalidateConversationPreview()
+    let generation = conversationGeneration
+    busy = true
+    defer { busy = false }
+    do {
+      try cancellation.check()
+      guard await flush(), let draft = state else {
+        throw SevraError("clarification_draft", "Save or preserve your answer inputs first.")
+      }
+      let ticket = try await Task.detached { [workbook] in
+        try workbook.previewWorkflowAnswerForConversation(
+          draft, conversation: conversation, cancellation: cancellation)
+      }.value
+      guard generation == conversationGeneration, !cancellation.isCancelled,
+        state?.entry == draft.entry
+      else {
+        ticket.cancellation.cancel()
+        throw SevraError(
+          "workflow_answer_confirmation", "The view or inputs changed. Preview your answer again.")
+      }
+      preview = ticket.preview
+      conversationPreview = ticket
+      failure = nil
+    } catch {
+      fail(error)
+      throw error
+    }
+  }
+  public func confirmForConversation(
+    _ conversation: String, messageID: String, cancellation: Cancellation = .init()
+  ) async throws {
+    try require(!busy, "clarification_busy", "Wait for the current answer operation.")
+    guard let ticket = conversationPreview, ticket.conversation == conversation else {
+      throw SevraError(
+        "workflow_answer_confirmation", "Say or type “Preview my answer” before confirming it.")
+    }
+    busy = true
+    confirmationControl = cancellation
+    defer {
+      busy = false
+      confirmationControl = nil
+    }
+    do {
+      try cancellation.check()
+      try ticket.cancellation.check()
+      guard await flush(), state?.entry == ticket.entry, preview == ticket.preview else {
+        throw SevraError("stale_workflow_clarification", "Your inputs changed. Preview them again.")
+      }
+      let receipt = try await Task.detached { [workbook] in
+        try workbook.confirmWorkflowAnswer(ticket, messageID: messageID, cancellation: cancellation)
+      }.value
+      state?.entry.receipt = receipt
+      preview = nil
+      conversationPreview = nil
+      _ = await flush()
+      changed?()
+    } catch {
+      fail(error)
+      throw error
+    }
+  }
   public func useCurrent() async {
     guard !busy, await flush(), let old = state else { return }
+    invalidateConversationPreview()
     busy = true
     defer { busy = false }
     do {
@@ -128,6 +212,7 @@ import SevraCore
     guard !busy, await flush(), var draft = state,
       let entry = draft.alternatives.first(where: { $0.id == id })
     else { return }
+    invalidateConversationPreview()
     draft.alternatives.removeAll { $0.id == id }
     draft.alternatives.append(draft.entry)
     busy = true
@@ -149,6 +234,7 @@ import SevraCore
     _ = await flush()
   }
   public func keepBoth() async {
+    invalidateConversationPreview()
     keepOther = true
     _ = await flush()
   }
@@ -211,6 +297,7 @@ import SevraCore
   }
   public func open(_ workbook: Workbook) async -> Bool {
     guard await flush() else { return false }
+    invalidateConversationPreviews()
     self.workbook = workbook
     sessions = [:]
     return true
@@ -227,6 +314,9 @@ import SevraCore
     var saved = true
     for session in sessions.values { if !(await session.flush()) { saved = false } }
     return saved
+  }
+  public func invalidateConversationPreviews() {
+    for session in sessions.values { session.invalidateConversationPreview() }
   }
   public static func flushAll() async -> Bool {
     Self.scopes.removeAll { $0.value == nil }

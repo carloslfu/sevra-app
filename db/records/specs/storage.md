@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-29T07:37:57.616179+00:00
+updated: 2026-10-29T08:00:09.229332+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -538,3 +538,7 @@ Current schema18 adds no canonical family for raw clarification inputs. meta key
 ## Conversation preparation provenance
 
 An optional preparation value in the existing clarification presentation entry retains policy, original agent run/current request Source, exact workflow read receipt, normalized prepared values and exact current-submission quotations. Historical validation checks saved request/read bytes and target. Human edits retain this original preparation; canonical submission additionally retains the original prepared values and current request lineage beside the final confirmed values. No new physical schema, canonical family or ledger. Read-only/foreign/stale/fabricated evidence and silent replacement refuse. See [[records/specs/manual-workflows]].
+
+## Retained conversation confirmation
+
+The existing captured workflow_clarification operation may additionally retain confirmation metadata: policy, exact user message text/ID, conversation, host preview message/hash and draft entry/retry identity. It is present in the supplied Source and saved step clarification; integrity validates the referenced immutable messages and exact typed preview. It adds no canonical family or physical schema. Canonical receipt recovery validates optional confirmation separately from the presentation entry. The live native capability is deliberately not serialized or reconstructed. See [[records/specs/manual-workflows]].

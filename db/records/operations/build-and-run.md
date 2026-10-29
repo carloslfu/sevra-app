@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T07:37:57.646747+00:00
+updated: 2026-10-29T08:00:09.261319+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1641,3 +1641,9 @@ Freeze all Swift sources before builds. Sequentially run swift build --product s
 ## Conversation answer preparation verification
 
 Run the existing focused workflow, agent, native grammar and headless preview harnesses after freezing all changed Swift sources. Build/package sequentially, then run python3 scripts/check_conversation_workflow_answer.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --model-root .build/native-fresh-setup --output NEW_DIRECTORY. Model weights must already be installed; the script performs no hidden download. Do not rebuild/replace native products during inference or run simultaneous GPU jobs. It records source/product identities, uses disclosed synthetic paused interpretation fixtures, tests actual current-message preparation plus a read-only counterexample, and verifies unchanged runs/balances and inert copies. It does not confirm, continue or accept inputs. Final V6 passes30 CLI calls/two cases. Voice/text confirmation and latest visible checks remain open. See [[records/specs/manual-workflows]].
+
+## Previewing and confirming answers in conversation
+
+Open a paused workflow with complete saved input values and an explanation. Say or type Preview my answer in the main composer. Check the host-generated values, exact document links, explanation, meaning and scenario. Then send Save my answer or Confirm my answer as its own message. This uses no model. A bare yes does not submit. Edits, another message or leaving the context require a fresh preview. Only the supplied interpretation completes; Continue and business review remain separate. Native Preview answer / Save my answer controls remain optional equivalents.
+
+Final automated checks pass66 workflow groups plus native session/context invalidation, canonical fault/cancellation, exact receipt and inert reconstruction cases. The actual packaged-model preparation/read-only jobs pass30 calls with corrected paused-state wording in those cases; no actual native microphone/window interaction is claimed while UI access is locked. Use existing workflow, agent, preview and native-package commands, freezing sources before builds. The two V3 display/invalidation deltas have final core/preview/native/package proof and reuse V2 model/agent/deterministic evidence. Exact evidence and limits: [[records/specs/manual-workflows]].

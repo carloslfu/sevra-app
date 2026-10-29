@@ -36,6 +36,10 @@ struct WorkflowClarificationView: View {
           Text("Continue the workflow deliberately. Business changes still need review.")
             .foregroundStyle(.secondary)
         } else {
+          Text(
+            "You can also say or type “Preview my answer” in the conversation, then “Save my answer”."
+          )
+          .font(.callout).foregroundStyle(.secondary)
           if session.failure == nil {
             Text(session.dirty ? "Saving inputs…" : "Inputs saved on this device.")
               .font(.caption).foregroundStyle(.secondary)

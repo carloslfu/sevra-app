@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T07:37:57.601293+00:00
+updated: 2026-10-29T08:00:09.211729+00:00
 summary: Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
@@ -639,3 +639,7 @@ Shared declared output types drive the native clarification editor. Raw incomple
 ## Conversation answer preparation scope
 
 prepare_workflow_answer is offered only after a successful same-request read_workflow result with an exact clarification target. It is excluded from the default full tool prompt. Its required read receipt, complete typed values, per-field current-message quotations and explanation pass shared core validation before any presentation save. Existing nonempty native inputs refuse silent replacement. It cannot submit an answer or execute a workflow. See [[records/specs/manual-workflows]].
+
+## Human conversation confirmation boundary
+
+The model can only prepare unsent inputs. Standalone local composer commands preview and confirm an exact paused interpretation through the same core clarification operation. No additional AI tool or execution authority. Host preview values/document links, current message adjacency, live workbook/session/conversation capability and canonical current-target checks gate submission. Continue/review stay separate. Full qualification and limits: [[records/specs/manual-workflows]].

@@ -1054,7 +1054,7 @@ public enum WorkbookAgent {
         }
         if tool == "prepare_workflow_answer", !callFailed {
           let receipt =
-            "Prepared an unsent answer from your current message. Open the workflow to preview the values and confirm them yourself. The paused interpretation and business balances are unchanged."
+            "Prepared an unsent answer from your current message. Say or type “Preview my answer” to check every value before confirming. The paused interpretation and business balances are unchanged."
           _ = try workbook.addMessage(
             receipt, role: "assistant", conversation: conversation,
             payload: .object([

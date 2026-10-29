@@ -75,7 +75,8 @@ extension Workbook {
   public func clarifyWorkflow(
     _ session: WorkflowExecutionSession, target: Value, values: Value, reason: String,
     token: String, actor: ChangeActor = .programmatic("SevraCore.workflowClarification"),
-    readOnly: Bool = false, preparation: Value? = nil, cancellation: Cancellation = .init()
+    readOnly: Bool = false, preparation: Value? = nil, confirmation: Value? = nil,
+    confirmationControl: Cancellation? = nil, cancellation: Cancellation = .init()
   ) throws -> Value {
     try workflowSession(session)
     try workflowToken(token)
@@ -92,10 +93,12 @@ extension Workbook {
       "target": target, "values": values, "reason": .string(reason), "actor": try encoded(actor),
     ]
     if let preparation { arguments["preparation"] = preparation }
+    if let confirmation { arguments["confirmation"] = confirmation }
     let result = try mutation(
       "workflow_clarification", token: token,
       request: .object(arguments), cancellation: cancellation, actor: actor
     ) {
+      try confirmationControl?.check()
       let run = try self.workflowRun(session.runID)
       try require(
         try self.pendingWorkflowClarification(run) == target,
@@ -114,6 +117,16 @@ extension Workbook {
         try self.validateWorkflowAnswerPreparation(preparation, target: target)
         inputIDs.append(preparation["requestSourceID"].text)
         sourceData["preparation"] = preparation
+      }
+      if let confirmation {
+        try require(
+          actor.kind == "human" && confirmation["token"].text == token,
+          "workflow_answer_confirmation",
+          "Only native human confirmation can submit this exact preview.")
+        try self.validateWorkflowAnswerConfirmation(
+          confirmation, target: target, values: normalized, reason: reason,
+          preparation: preparation, current: true)
+        sourceData["confirmation"] = confirmation
       }
       let source = try self.insertItem(
         category: "source", kind: "submission", title: "Clarification: " + definition.title,
@@ -138,6 +151,7 @@ extension Workbook {
         "actor": try encoded(actor), "reason": .string(reason), "target": target,
       ]
       if let preparation { supplied["preparation"] = preparation }
+      if let confirmation { supplied["confirmation"] = confirmation }
       value["clarification"] = .object(supplied)
       var output = saved["output"].object
       output["value"] = .object(value)
@@ -160,6 +174,7 @@ extension Workbook {
         session.runID, stepID: target["stepID"].text, kind: "clarified",
         payload: .object(value)["clarification"])
       WorkflowPublicationProbe.observer?(.prepared, session.runID)
+      try confirmationControl?.check()
       return try self.workflowRun(session.runID)
     }
     WorkflowPublicationProbe.observer?(.committed, session.runID)
@@ -172,7 +187,10 @@ extension Workbook {
     guard clarification != .null else { return }
     let c = try definitionObject(
       clarification,
-      keys: ["sourceID", "recordID", "values", "actor", "reason", "target", "preparation"])
+      keys: [
+        "sourceID", "recordID", "values", "actor", "reason", "target", "preparation",
+        "confirmation",
+      ])
     let actor = try JSONDecoder().decode(
       ChangeActor.self, from: Data(clarification["actor"].json().utf8))
     try actor.validate()
@@ -200,8 +218,17 @@ extension Workbook {
       expectedData["preparation"] = preparation
       sourceInputs.append(preparation["requestSourceID"].text)
     }
+    if let confirmation = c["confirmation"] {
+      try require(
+        actor.kind == "human", "workflow_integrity", "Confirmation must retain its human actor.")
+      try validateWorkflowAnswerConfirmation(
+        confirmation, target: target, values: normalized, reason: clarification["reason"].text,
+        preparation: c["preparation"])
+      expectedData["confirmation"] = confirmation
+    }
     try require(
-      c.count == (c["preparation"] == nil ? 6 : 7) && actor.kind != "ai"
+      c.count == 6 + (c["preparation"] == nil ? 0 : 1) + (c["confirmation"] == nil ? 0 : 1)
+        && actor.kind != "ai"
         && !clarification["reason"].text.isEmpty
         && clarification["reason"].text.utf8.count <= 4096
         && value["response"]["state"] == .string("needs_input")

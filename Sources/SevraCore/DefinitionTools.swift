@@ -47,7 +47,7 @@ extension WorkbookTools {
           result["receiptID"] = receiptID.map(Value.string) ?? .null
           if result["clarification"] != nil {
             result["clarificationNotice"] = .string(
-              "For an answer explicitly supplied in the current message, prepare_workflow_answer may prepare unsent typed inputs with exact current-message quotes. Ask about missing or ambiguous values. Only native human confirmation submits; reads and preparation never continue or accept."
+              "This interpretation is paused awaiting missing information; later steps remain pending. For an answer explicitly supplied in the current message, prepare_workflow_answer may prepare unsent typed inputs with exact current-message quotes. Ask about missing or ambiguous values. Only native human confirmation submits; reads and preparation never continue or accept."
             )
           }
           return .object(result)

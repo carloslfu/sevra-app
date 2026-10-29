@@ -70,9 +70,15 @@ extension Workbook {
         "actor": try encoded(WorkflowClarificationDraft.nativeActor),
       ]
       if let preparation = entry.preparation { expected["preparation"] = preparation }
+      var comparable = arguments.object
+      if let confirmation = comparable.removeValue(forKey: "confirmation") {
+        try validateWorkflowAnswerConfirmation(
+          confirmation, target: entry.target, values: entry.values, reason: entry.reason,
+          preparation: entry.preparation)
+      }
       try require(
         saved["kind"] == .string("workflow_clarification")
-          && arguments == .object(expected),
+          && Value.object(comparable) == .object(expected),
         "clarification_draft_token",
         "This retry identity belongs to different supplied information.")
       return try clarificationDraftReceipt(Value.parse(saved["result"]!.text), entry: entry)
@@ -256,7 +262,17 @@ extension Workbook {
   public func submitWorkflowClarificationDraft(
     _ draft: WorkflowClarificationDraft, preview: Value, cancellation: Cancellation = .init()
   ) throws -> Value {
+    try submitWorkflowClarificationDraft(
+      draft, preview: preview, confirmation: nil, confirmationControl: nil,
+      cancellation: cancellation)
+  }
+
+  func submitWorkflowClarificationDraft(
+    _ draft: WorkflowClarificationDraft, preview: Value, confirmation: Value?,
+    confirmationControl: Cancellation?, cancellation: Cancellation
+  ) throws -> Value {
     try cancellation.check()
+    try confirmationControl?.check()
     try synchronized {
       try validateClarificationDraft(draft, runID: draft.entry.target["runID"].text)
     }
@@ -268,6 +284,7 @@ extension Workbook {
       authorizeWorkflowExecution(draft.entry.target["runID"].text), target: draft.entry.target,
       values: draft.entry.values, reason: draft.entry.reason, token: draft.entry.token,
       actor: WorkflowClarificationDraft.nativeActor, preparation: draft.entry.preparation,
+      confirmation: confirmation, confirmationControl: confirmationControl,
       cancellation: cancellation)
     return try clarificationDraftReceipt(result, entry: draft.entry)
   }

@@ -1021,3 +1021,12 @@ Contextual conversation preparation of unsent workflow answers, exact current-me
 ## [2026-10-29 07:37] verification | records/specs/manual-workflows.md
 Frozen V6:65 focused workflow groups/0, scripted agent, headless preview, strict15 Swift files, native build/package/refusals/signature and30 actual packaged CLI calls/two cases. V5 grammar reused at matching hashes; budgets unchanged.130 preceding evidence artifacts unchanged. Receipt95a67530ff30a80da135c1fb55b7984e17f8dda88ca2bb8f0f5fc60d1bc1f506. Paused-versus-failed wording, post-reload cancellation guard, visible and release gates remain open.
 
+## [2026-10-29 07:42] design | records/specs/manual-workflows.md
+Three-pass conversation confirmation contract: standalone explicit local commands, exact host preview/live instance/conversation capability, current message adjacency, canonical confirmation provenance, cancellation and inert recovery boundaries.
+
+## [2026-10-29 08:00] implementation | records/specs/manual-workflows.md
+Standalone native composer answer preview/confirmation with exact live instance/session/conversation authority, retained human confirmation bytes, separate continuation/review, post-flush entry and post-reload ownership guards. No model submission tool.
+
+## [2026-10-29 08:00] verification | records/specs/manual-workflows.md
+Final frozen V3:66 workflow groups/0, headless preview, strict10 Swift files, native build/package/refusals/signature. V2 scripted agent/27 deterministic/30 actual CLI calls reused with hash-reconstructed display/keep-both deltas. Paused wording correct in both synthetic model cases.131 prior artifacts unchanged. Receipt300010004b9e78646e09623b937887b9614fcab93b1cf24ba369034a294b85c5. Exact5fe51e1 hosted CI green; latest visible/dictation/release gates open.
+

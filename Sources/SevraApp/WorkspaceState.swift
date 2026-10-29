@@ -58,9 +58,16 @@ import SwiftUI
   @Published var intakeStatus: [Value] = []
   @Published var intakePrompt: IntakePrompt?
   @Published var conversation = "main" {
-    didSet { if conversation != oldValue { speech.stop() } }
+    didSet {
+      if conversation != oldValue {
+        speech.stop()
+        clarificationDrafts.invalidateConversationPreviews()
+      }
+    }
   }
-  @Published var route: Route = .space("home")
+  @Published var route: Route = .space("home") {
+    didSet { if route != oldValue { clarificationDrafts.invalidateConversationPreviews() } }
+  }
   @Published var navigation: [Route] = []
   @Published var viewedItemVersion: String?
   @Published var itemPreviewIdentity = UUID()
@@ -598,6 +605,12 @@ import SwiftUI
     else { return }
     speech.stop()
     let input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+    if let answerCommand = WorkflowAnswerCommand.parse(input) {
+      prompt = ""
+      workflowAnswerCommand(answerCommand, input: input, book: book)
+      return
+    }
+    clarificationDrafts.invalidateConversationPreviews()
     if let command = WorkspaceControlCommand.parse(input) {
       prompt = ""
       control(command, input: input, book: book)
@@ -713,7 +726,8 @@ import SwiftUI
             if let session = clarificationDrafts.session(focus.id) { await session.reloadSaved() }
             guard owns(ticket, in: book), conversation == chat,
               itemPreviewIdentity == expectedNavigationID,
-              conversationNavigationIdentity == conversationOrigin
+              conversationNavigationIdentity == conversationOrigin,
+              !ticket.cancellation.isCancelled, !changingConversation
             else { return }
             navigate(.workflow(focus.id))
           default: navigate(.item(focus.id))
@@ -721,6 +735,58 @@ import SwiftUI
         }
       } catch { report(error, for: ticket, in: book) }
     }
+  }
+  private func workflowAnswerCommand(
+    _ command: WorkflowAnswerCommand, input: String, book: Workbook
+  ) {
+    do {
+      let chat = conversation
+      let message = try book.addMessage(input, role: "user", conversation: chat)
+      guard case .workflow(let runID) = route else {
+        _ = try book.addMessage(
+          "Open the workflow containing your answer, then say or type “Preview my answer”. No answer was submitted.",
+          role: "event", conversation: chat)
+        refresh()
+        return
+      }
+      guard
+        let (_, ticket) = beginOperation(
+          command == .preview ? "Preparing answer preview" : "Saving your answer")
+      else { return }
+      let navigationID = itemPreviewIdentity
+      let conversationOrigin = conversationNavigationIdentity
+      Task {
+        defer { finishOperation(ticket, in: book) }
+        do {
+          guard let session = clarificationDrafts.session(runID) else {
+            throw SevraError(
+              "clarification_draft", "Open the workflow again to load its saved inputs.")
+          }
+          await session.open()
+          guard owns(ticket, in: book), conversation == chat, !changingConversation,
+            route == .workflow(runID), itemPreviewIdentity == navigationID,
+            conversationNavigationIdentity == conversationOrigin,
+            !ticket.cancellation.isCancelled
+          else { return }
+          switch command {
+          case .preview:
+            try await session.prepareForConversation(chat, cancellation: ticket.cancellation)
+          case .confirm:
+            try await session.confirmForConversation(
+              chat, messageID: message, cancellation: ticket.cancellation)
+            _ = try book.addMessage(
+              "Your supplied answer was saved. Only the paused interpretation completed. Continue the workflow when ready; business changes still need review.",
+              role: "event", conversation: chat,
+              payload: .object([
+                "kind": .string("workflow_answer_confirmed"),
+                "receipt": session.state?.entry.receipt ?? .null,
+              ]))
+          }
+          guard owns(ticket, in: book), conversation == chat else { return }
+          refresh()
+        } catch { report(error, for: ticket, in: book) }
+      }
+    } catch { self.error = error.localizedDescription }
   }
   var agentContext: String {
     switch route {
@@ -1144,6 +1210,7 @@ import SwiftUI
   func changeConversation(_ id: String, anchor: String? = nil) {
     guard interactionActive, !changingConversation else { return }
     speech.stop()
+    clarificationDrafts.invalidateConversationPreviews()
     changingConversation = true
     let owner = interactionIdentity
     Task {
@@ -1172,6 +1239,7 @@ import SwiftUI
   func startThread(from message: String, title: String? = nil) {
     guard interactionActive, !changingConversation, let book = workbook else { return }
     speech.stop()
+    clarificationDrafts.invalidateConversationPreviews()
     changingConversation = true
     let owner = interactionIdentity
     Task {
@@ -1263,6 +1331,7 @@ import SwiftUI
     showingHistorySearch = false
     historySearch.reset()
     interactionIdentity = UUID()
+    clarificationDrafts.invalidateConversationPreviews()
     operations.invalidate()
     refreshSession.reset()
     loadedRefreshIdentity = nil

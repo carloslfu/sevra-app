@@ -300,6 +300,102 @@ func checkWorkflowInterpretations(at root: URL) {
     try expect(try book.verify()["ok"] == .bool(true))
   }
   check(
+    "conversation confirmation requires a live exact preview and standalone current user intent"
+  ) {
+    let (book, session, original, _) = try paused("ConversationConfirmation", inventory: true)
+    var draft = try book.newWorkflowClarificationDraft(session.runID)
+    draft.entry.values = .object(["quantity": .string("5.00")])
+    draft.entry.reason = "I counted five received units."
+    draft = try book.saveWorkflowClarificationDraft(session.runID, draft: draft, expected: nil)
+    try expect(WorkflowAnswerCommand.parse("Preview my answer!") == .preview)
+    try expect(WorkflowAnswerCommand.parse("Save my answer.") == .confirm)
+    try expect(WorkflowAnswerCommand.parse("Confirm my answer") == .confirm)
+    for phrase in [
+      "yes", "Don't save my answer", "\"Save my answer\"", "Should I save my answer?",
+      "Preview my answer and save it", "Save my answer then continue",
+    ] {
+      try expect(WorkflowAnswerCommand.parse(phrase) == nil)
+      let shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+      let message = try book.addMessage(phrase, role: "user")
+      try refuses("workflow_answer_confirmation") {
+        _ = try book.confirmWorkflowAnswer(shown, messageID: message)
+      }
+    }
+    var shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+    try expect(try book.messages().last!.body.contains("Count: 5 items"))
+    let intervening = try book.addMessage("What does that mean?", role: "user")
+    let tangent = try book.startThread(parentMessage: intervening, title: "Other context")
+    var message = try book.addMessage("Save my answer", role: "user", conversation: tangent)
+    try refuses("workflow_answer_confirmation") {
+      _ = try book.confirmWorkflowAnswer(shown, messageID: message)
+    }
+    message = try book.addMessage("Save my answer", role: "user")
+    try refuses("workflow_answer_confirmation") {
+      _ = try book.confirmWorkflowAnswer(shown, messageID: message)
+    }
+    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+    message = try book.addMessage("Save my answer", role: "user")
+    let reopened = try Workbook(book.url)
+    try refuses("workflow_answer_confirmation") {
+      _ = try reopened.confirmWorkflowAnswer(shown, messageID: message)
+    }
+    let inert = try book.reconstruct(to: root.appendingPathComponent("UnconfirmedCopy.sevra"))
+    try refuses("workflow_answer_confirmation") {
+      _ = try inert.confirmWorkflowAnswer(shown, messageID: message)
+    }
+    shown.cancellation.cancel()
+    try refuses("cancelled") { _ = try book.confirmWorkflowAnswer(shown, messageID: message) }
+    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+    let prior = draft
+    draft.entry.values = .object(["quantity": .string("6")])
+    draft = try book.saveWorkflowClarificationDraft(session.runID, draft: draft, expected: prior)
+    message = try book.addMessage("Save my answer", role: "user")
+    try refuses("stale_workflow_clarification") {
+      _ = try book.confirmWorkflowAnswer(shown, messageID: message)
+    }
+    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+    message = try book.addMessage("Save my answer", role: "user")
+    let late = try book.addMessage("Actually, wait", role: "user")
+    try refuses("workflow_answer_confirmation") {
+      _ = try book.confirmWorkflowAnswer(shown, messageID: message)
+    }
+    try expect(!late.isEmpty)
+    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+    message = try book.addMessage("Save my answer", role: "user")
+    let before = try book.revision()
+    let history = try book.committedHistory()
+    try book.db.execute(
+      "CREATE TEMP TRIGGER confirmation_fault BEFORE INSERT ON workflow_outbox WHEN NEW.kind='clarified' BEGIN SELECT RAISE(ABORT,'confirmation_fault'); END"
+    )
+    try refuses { _ = try book.confirmWorkflowAnswer(shown, messageID: message) }
+    try expect(try book.revision() == before && book.committedHistory() == history)
+    try expect(try book.workflowRun(session.runID) == original)
+    try book.db.execute("DROP TRIGGER confirmation_fault")
+    let stopDuringPublication = shown.cancellation
+    try WorkflowPublicationProbe.$observer.withValue({ boundary, _ in
+      if boundary == .prepared { stopDuringPublication.cancel() }
+    }) {
+      try refuses("cancelled") { _ = try book.confirmWorkflowAnswer(shown, messageID: message) }
+    }
+    try expect(try book.revision() == before && book.workflowRun(session.runID) == original)
+    shown = try book.previewWorkflowAnswerForConversation(draft, conversation: "main")
+    message = try book.addMessage("Confirm my answer!", role: "user")
+    let receipt = try book.confirmWorkflowAnswer(shown, messageID: message)
+    let supplied = try book.item(receipt["sourceID"].text)
+    try expect(supplied.data["confirmation"]["messageID"] == .string(message))
+    try expect(supplied.data["confirmation"]["text"] == .string("Confirm my answer!"))
+    try expect(supplied.data["values"]["quantity"] == .string("6"))
+    try expect(supplied.data["actor"]["kind"] == .string("human"))
+    let run = try book.workflowRun(session.runID)
+    try expect(run["state"] == .string("queued") && run["steps"].array[1]["output"] == .null)
+    try expect(try book.balance(subject: "bolts")["quantity"] == .string("0"))
+    _ = try book.addMessage("Another conversation turn", role: "user")
+    try expect(try book.workflowClarificationDraftReceipt(draft.entry) == receipt)
+    let copy = try book.reconstruct(to: root.appendingPathComponent("ConfirmedCopy.sevra"))
+    try expect(try copy.workflowRun(session.runID) == run && copy.verify()["ok"] == .bool(true))
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check(
     "native clarification receipt stays bounded and cache cleanup never discards unsent alternatives"
   ) {
     let (book, session, _, _) = try paused("NativeDraftCache")
