@@ -68,6 +68,53 @@ struct DefinitionWorkflow {
 }
 
 extension Workbook {
+  /// Builds metadata only. Publication still uses the ordinary definition
+  /// validator, and no execution session is created by inspecting a template.
+  func workflowTemplate(_ id: String, stepID: String? = nil) throws -> Value {
+    let target = try applicationDefinition(id)
+    try require(
+      target.id == id
+        && ["function", "query", "interpretation", "action", "form"].contains(target.kind),
+      "definition_kind", "Choose an exact function, query, interpretation or action/form version.")
+    try require(
+      try applicationDefinition(target.logicalID).id == target.id, "stale_definition",
+      "Inspect the current target version before creating its workflow template.")
+    let kind =
+      target.kind == "interpretation"
+      ? "interpret"
+      : ["function", "query"].contains(target.kind) ? "evaluate" : "action"
+    let name =
+      stepID ?? (kind == "interpret" ? "read" : kind == "evaluate" ? "calculate" : "prepare")
+    var steps: [Value] = [
+      .object([
+        "id": .string(name), "kind": .string(kind),
+        "binding": .object(["mode": .string("exact"), "versionID": .string(target.id)]),
+        "arguments": .object(
+          Dictionary(
+            uniqueKeysWithValues: target.parameters.array.map {
+              ($0["id"].text, .object(["parameter": $0["id"]]))
+            })),
+      ])
+    ]
+    if kind == "action" {
+      steps.append(
+        .object([
+          "id": .string(name == "review" ? "review_result" : "review"),
+          "kind": .string("review"), "review": .string(name),
+        ]))
+    }
+    let content: Value = .object([
+      "kind": .string("workflow"), "title": .string(target.title),
+      "description": .string("Manually run the exact saved behavior: " + target.title),
+      "parameters": target.parameters,
+      "payload": .object([
+        "readPolicy": .string("latest-at-step"), "steps": .array(steps),
+      ]),
+    ])
+    try validateWorkflowDefinition(DefinitionDescriptor(content))
+    return content
+  }
+
   func validateWorkflowDefinition(_ descriptor: DefinitionDescriptor, historical: Bool = false)
     throws
   {

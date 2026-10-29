@@ -82,7 +82,7 @@ func checkWorkflowAgentTools() async throws {
     let runs = try book.workflowActivity()["runs"].array
     if readOnly {
       try expectEqual(runs.isEmpty, true)
-      try expectEqual(result.answer.contains("could not start"), true)
+      try expectEqual(result.answer.contains("Couldn’t finish queueing the workflow."), true)
     } else {
       try expectEqual(runs.count, 1)
       try expectEqual(await model.calls, 2)

@@ -4,7 +4,8 @@ import Foundation
 extension WorkbookTools {
   static let applicationTools: Set<String> = [
     "find_definitions", "read_definition", "definition_registry", "receiving_template",
-    "form_template", "evaluate_definition", "save_definition", "save_template", "preview_action",
+    "form_template", "workflow_template", "evaluate_definition", "save_definition", "save_template",
+    "preview_action",
     "commit_action_preview", "publish_result", "workflow_activity", "read_workflow",
     "start_workflow",
   ]
@@ -47,7 +48,7 @@ extension WorkbookTools {
         cancellation: cancellation)
     case "publish_result": return try publishDefinitionResult(a)
     case "find_definitions", "read_definition", "definition_registry", "receiving_template",
-      "form_template":
+      "form_template", "workflow_template":
       switch tool {
       case "find_definitions":
         try fields(
@@ -97,6 +98,17 @@ extension WorkbookTools {
           "content": ActionRegistry.receivingDefinition(),
           "receiptID": receiptID.map(Value.string) ?? .null,
         ])
+      case "workflow_template":
+        try fields(["id", "stepID"], required: ["id"])
+        let step = try a.object["stepID"].map { _ in try string("stepID") }
+        return try workbook.synchronized {
+          try workbook.db.readTransaction {
+            .object([
+              "content": try workbook.workflowTemplate(string("id"), stepID: step),
+              "receiptID": receiptID.map(Value.string) ?? .null,
+            ])
+          }
+        }
       case "form_template":
         try fields(["id"], required: ["id"])
         let action = try workbook.applicationDefinition(string("id"))
@@ -130,8 +142,8 @@ extension WorkbookTools {
     case "save_definition", "save_template":
       try fields(
         tool == "save_template"
-          ? ["logicalID", "expectedDefinitionID", "inputs", "templateReceiptID", "title"]
-          : ["logicalID", "expectedDefinitionID", "content", "inputs"],
+          ? ["expectedDefinitionID", "inputs", "templateReceiptID", "title"]
+          : ["expectedDefinitionID", "content", "inputs"],
         required: [tool == "save_template" ? "templateReceiptID" : "content"])
       let content: Value
       if tool == "save_template" {
@@ -156,17 +168,11 @@ extension WorkbookTools {
         content = a["content"]
       }
       try require(
-        ["function", "query", "action", "form", "workflow"].contains(content["kind"].text),
+        ["function", "query", "action", "form", "workflow", "interpretation"].contains(
+          content["kind"].text),
         "definition_kind",
-        "Author functions, queries, actions, forms or manual workflows.")
+        "Author functions, queries, actions, forms, interpretations or manual workflows.")
       let token = try operationToken(tool, a)
-      let existing = a["logicalID"].string
-      try require(
-        (existing == nil && a.object["expectedDefinitionID"] == nil && a.object["logicalID"] == nil)
-          || (existing != nil && a["expectedDefinitionID"].string != nil),
-        "definition_binding",
-        "Omit identity/base for a new definition; edits require both logicalID and exact expectedDefinitionID."
-      )
       if a.object["inputs"] != nil {
         guard case .array(let values) = a["inputs"], values.allSatisfy({ $0.string != nil }) else {
           throw SevraError("arguments", "Authoring inputs must be exact item version strings.")
@@ -175,6 +181,16 @@ extension WorkbookTools {
       try workbook.synchronized {
         try workbook.validateApplicationToolRun(
           runID, conversation: conversation, requestSourceID: requestSourceID)
+      }
+      let existing: String?
+      if let base = a["expectedDefinitionID"].string {
+        let target = try workbook.applicationDefinition(base)
+        try require(
+          target.id == base, "definition_binding",
+          "Use the exact inspected definition version as the edit base.")
+        existing = target.logicalID
+      } else {
+        existing = nil
       }
       let saved = try workbook.saveApplicationDefinition(
         logicalID: existing ?? Self.definitionIdentity(token), content: content,
@@ -245,7 +261,8 @@ extension WorkbookTools {
   )
   static let definitionFormats: Value = .object([
     "content": .string(
-      "{kind:function|query|action|form|workflow,title,description,parameters,payload}"),
+      "{kind:function|query|action|form|workflow|interpretation,title,description,parameters,payload}"
+    ),
     "parameters": .string(
       "Up to 32 {id,label,type,required,unit?,default?,choices?,min?,max?,fields?,maxEntries?}. Types: text,decimal,boolean,date,item,choice,entries. Decimals/bounds are strings. Item is an exact local version. Entries: fields plus maxEntries 1..50, one level only. Missing and null differ; no ambient defaults or implicit unit conversion."
     ),
@@ -265,8 +282,24 @@ extension WorkbookTools {
       "payload {action:binding OR workflow:binding,fields:[{parameter,label?,help?}]}; parameters match target. Use form_template. Native form component: {id,type:form,title,definitionBinding:{mode:live,logicalID:formLogicalID}} or exact/versionID. No datasetID/itemID/snapshot. Saving never executes."
     ),
     "workflow": .string(
-      "payload {readPolicy:latest-at-step,steps:[{id,kind:evaluate|action,binding,arguments}|{id,kind:review,review:priorActionStepID}]}. 1..16 sequential steps; every action needs exactly one later review. All bindings including dependencies exact versions. evaluate targets function/query, action targets action or action-backed form. Argument mappings: {parameter:id}, {literal:value,unit?} or prior scalar function {step:id,unit?}. start_workflow queues only; explicit native/CLI continuation runs steps. No model/import/conditions/code yet."
+      "Use workflow_template(id,stepID?) -> save_template(receiptID,title?) for one saved behavior. Custom payload {readPolicy:latest-at-step,steps:[{id,kind:evaluate|interpret|action,binding:{mode:exact,versionID},arguments}|{id,kind:review,review:priorActionStepID}]}. 1..16 sequential steps; every action needs one later review. All dependencies exact. evaluate targets function/query; interpret targets interpretation; action targets action or action-backed form. Mappings: {parameter:id}, {literal:value,unit?}, prior scalar function {step:id,unit?}, or interpretation {step:id,field:outputID,unit?}. Signatures/units must match. start_workflow queues only; explicit continuation runs steps. No import/conditions/code."
     ),
+    "interpretation": .string(
+      "payload {instruction,evidence:[requiredItemParameterID],outputs:[parameterField],meaning,scenario}. Up to8 exact business evidence items/64KiB retained input,1..32 typed outputs without defaults. Evidence must be required item parameters. meaning: actual|estimate|plan|commitment|rule|assumption. scenario explicit. Only an exact interpret workflow step invokes the installed local model; no tools, network, search or acceptance. Saves typed values/exact quotations or needs_input with issues, as a draft Record. Quotes establish attribution, not truth. Saving/opening never invokes AI."
+    ),
+    "interpretationExample": .object([
+      "kind": .string("interpretation"), "title": .string("Read received count"),
+      "description": .string("Extract an explicitly received count for separate review."),
+      "parameters": .array([ActionRegistry.field("evidence", "Evidence", "item")]),
+      "payload": .object([
+        "instruction": .string(
+          "Extract the explicitly received item count. Missing or ambiguous facts require needs_input, never a default."
+        ),
+        "evidence": .array([.string("evidence")]),
+        "outputs": .array([ActionRegistry.field("quantity", "Count", "decimal", unit: "items")]),
+        "meaning": .string("actual"), "scenario": .string("actual"),
+      ]),
+    ]),
   ])
 }
 
@@ -281,7 +314,8 @@ extension Workbook {
         let call = try toolCall(receiptID, conversation: conversation)
         try require(
           call["run_id"].text == runID && call["state"].text == "completed"
-            && ["receiving_template", "form_template"].contains(call["tool"].text),
+            && ["receiving_template", "form_template", "workflow_template"].contains(
+              call["tool"].text),
           "definition_template", "Choose this active run's successful template receipt.")
         let row = try db.execute(
           "SELECT result,result_hash FROM tool_calls WHERE id=?", [.string(receiptID)]
@@ -296,6 +330,14 @@ extension Workbook {
           try require(
             call["arguments"].object.isEmpty, "definition_template", "Invalid template call.")
           expected = ActionRegistry.receivingDefinition()
+        } else if call["tool"].text == "workflow_template" {
+          let arguments = call["arguments"]
+          try require(
+            Set(arguments.object.keys).isSubset(of: ["id", "stepID"])
+              && arguments["id"].string != nil
+              && (arguments.object["stepID"] == nil || arguments["stepID"].string != nil),
+            "definition_template", "Invalid workflow-template call.")
+          expected = try workflowTemplate(arguments["id"].text, stepID: arguments["stepID"].string)
         } else {
           try require(
             Set(call["arguments"].object.keys) == ["id"], "definition_template",

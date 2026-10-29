@@ -955,3 +955,6 @@ Retained hosted710bdbe document-scroll failure; revised native observation test 
 ## [2026-10-29 02:49] verification | records/specs/references-and-relationships.md
 Retained hosted55b1595 scroll failure; reproduced reflow defect locally and corrected observed position/layout/navigation ownership. Final local document27/0; exact-commit hosted qualification pending.
 
+## [2026-10-29 03:19] implementation | records/specs/manual-workflows.md
+Qualified schema16 conversation interpretation authoring, exact workflow templates, host-owned identities and truthful failed-action outcomes; retained four native-model attempts and scoped checks. Full app remains unfinished.
+

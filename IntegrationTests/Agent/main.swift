@@ -43,6 +43,11 @@ final class ToolPolicyChecks {
     try expectEqual(
       (function("save_template")["parameters"] as! [String: Any])["required"] as? [String],
       ["templateReceiptID"])
+    for name in ["save_definition", "save_template"] {
+      let properties =
+        (function(name)["parameters"] as! [String: Any])["properties"] as! [String: Any]
+      try expectEqual(properties["logicalID"] == nil, true)
+    }
     let export = ProcessInfo.processInfo.environment["SEVRA_SCHEMA_FIXTURE_OUTPUT"]
     if let export {
       try policy.toolsJSON.write(to: URL(fileURLWithPath: export), options: .atomic)
@@ -316,6 +321,12 @@ do {
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--request-handoff" {
     try await runRequestHandoffProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6
+    && CommandLine.arguments[1] == "--interpretation-authoring"
+  {
+    try await runInterpretationAuthoringProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--interface-guidance" {

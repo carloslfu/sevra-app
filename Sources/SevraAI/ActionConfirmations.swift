@@ -6,6 +6,19 @@ import SevraCore
 package struct ActionConfirmations {
   private var entries: [Value] = []
   package var evidence: Value { .array(entries) }
+  private func recoveredFailure(_ entry: Value, at index: Int) -> Bool {
+    guard entry["kind"].text == "failure", let title = entry["attemptedTitle"].string,
+      !title.isEmpty
+    else { return false }
+    return entries.dropFirst(index + 1).contains {
+      $0["tool"] == entry["tool"] && $0["kind"].text != "failure" && $0["title"].text == title
+    }
+  }
+  package var hasUnresolvedFailure: Bool {
+    entries.enumerated().contains {
+      $0.element["kind"].text == "failure" && !recoveredFailure($0.element, at: $0.offset)
+    }
+  }
 
   package mutating func recordFailure(
     tool: String, arguments: Value, result: Value, receiptID: String
@@ -14,6 +27,7 @@ package struct ActionConfirmations {
     switch tool {
     case "draft": task = "saving the draft"
     case "save_definition", "save_template": task = "saving reusable behavior"
+    case "start_workflow": task = "queueing the workflow"
     case "save_space", "edit_space", "restore_space", "pin_space": task = "saving the space"
     case "set_space_pinned": task = "changing the shortcut"
     case "open_space", "open_reviews": task = "opening the view"
@@ -81,15 +95,7 @@ package struct ActionConfirmations {
     var seen = Set<String>()
     let lines = entries.enumerated().compactMap { index, entry -> String? in
       let kind = entry["kind"].text
-      if kind == "failure", let attemptedTitle = entry["attemptedTitle"].string,
-        !attemptedTitle.isEmpty,
-        entries.dropFirst(index + 1).contains(where: {
-          $0["tool"] == entry["tool"] && $0["kind"].text != "failure"
-            && $0["title"].text == attemptedTitle
-        })
-      {
-        return nil
-      }
+      if recoveredFailure(entry, at: index) { return nil }
       let id = entry["targetID"].text
       let qualifier = entry["qualifier"].text
       guard seen.insert(kind + ":" + id + ":" + qualifier).inserted else { return nil }

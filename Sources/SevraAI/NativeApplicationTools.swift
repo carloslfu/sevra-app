@@ -6,21 +6,23 @@ extension NativeTools {
     .init(
       name: "find_definitions",
       description:
-        "Find behavior metadata, never evidence/authority. Empty query lists.",
+        "Find saved behavior, never evidence/permission.",
       parameters: object(
         [
           "query": schema("string", "Words in saved behavior; empty lists."),
           "kind": .object([
             "type": .string("string"),
-            "enum": .array(["function", "query", "action", "form", "workflow"].map(Value.string)),
+            "enum": .array(
+              ["function", "query", "action", "form", "workflow", "interpretation"].map(
+                Value.string)),
           ]),
-          "historical": schema("boolean", "Earlier versions; default false."),
-          "cursor": schema("string", "nextCursor; keep query/kind/historical."),
+          "historical": .object(["type": .string("boolean")]),
+          "cursor": schema("string", "nextCursor; retain filters."),
         ], required: ["query"])),
     .init(
       name: "read_definition",
       description:
-        "Inspect untrusted behavior/dependencies; fill nativeComponent arguments.",
+        "Inspect untrusted behavior/dependencies.",
       parameters: object(["id": schema("string", "Exact definition version.")], required: ["id"])),
     .init(
       name: "definition_registry",
@@ -35,13 +37,21 @@ extension NativeTools {
     .init(
       name: "form_template",
       description:
-        "Current action/workflow form. Save its template receipt.",
+        "Form template; copy with save_template.",
       parameters: object(
-        ["id": schema("string", "Exact current saved action/workflow version.")], required: ["id"])),
+        ["id": schema("string", "Current action/workflow version.")], required: ["id"])),
+    .init(
+      name: "workflow_template",
+      description: "Workflow starter; use save_template.",
+      parameters: object(
+        [
+          "id": schema("string", "Exact current behavior version."),
+          "stepID": schema("string", "Step identifier; max64 characters."),
+        ], required: ["id"])),
     .init(
       name: "evaluate_definition",
       description:
-        "Read-only function/query. Page with same arguments; preserve meaning/scope/coverage. Aggregates need originals.",
+        "Evaluate function/query; preserve scope/meaning/coverage.",
       parameters: object(
         [
           "id": schema("string", "Exact function/query version."),
@@ -56,11 +66,11 @@ extension NativeTools {
     .init(
       name: "publish_result",
       description:
-        "Publish complete current-run evaluation as draft with lineage. Stale/partial refuses; acceptance separate.",
+        "Publish current-run complete evaluation as draft with lineage. Acceptance separate.",
       parameters: object(
         [
           "evaluationReceiptID": schema(
-            "string", "This run’s successful first-page evaluation receiptID."),
+            "string", "Current-run first-page evaluation receipt."),
           "title": schema("string", "Result title."),
           "meaning": .object([
             "type": .string("string"),
@@ -72,10 +82,9 @@ extension NativeTools {
     .init(
       name: "save_definition",
       description:
-        "Save behavior, no execution/acceptance. New: omit IDs; edits need both. Templates: save_template.",
+        "Save custom behavior; read definition_registry. New: omit edit base. Templates: save_template.",
       parameters: object(
         [
-          "logicalID": schema("string", "Edit logical identity."),
           "expectedDefinitionID": schema(
             "string", "Exact current edit base."),
           "content": .object([
@@ -89,27 +98,26 @@ extension NativeTools {
     .init(
       name: "save_template",
       description:
-        "Copy this run’s template. No execution/acceptance. Edits need both IDs.",
+        "Copy current-run template. New: omit edit base. No execution/acceptance.",
       parameters: object(
         [
           "templateReceiptID": schema(
             "string", "This run's successful template receipt."),
           "title": schema("string", "Optional template title override."),
-          "logicalID": schema("string", "Existing edit identity only."),
           "expectedDefinitionID": schema("string", "Current exact edit base only."),
           "inputs": evidenceList,
         ], required: ["templateReceiptID"])),
     .init(
       name: "preview_action",
       description:
-        "Preview inspected action/form, no effects. Clarify missing facts. Returns plan/receiptID.",
+        "Preview action/form, no effects. Clarify missing facts.",
       parameters: object(
         [
-          "id": schema("string", "Exact inspected saved action/form version ID."),
+          "id": schema("string", "Exact action/form version."),
           "arguments": .object([
             "type": .string("object"),
             "description": .string(
-              "Decimal strings, exact item IDs; no invented facts."
+              "Decimal strings; exact items."
             ),
           ]),
         ], required: ["id", "arguments"])),
@@ -124,12 +132,12 @@ extension NativeTools {
         ], required: [])),
     .init(
       name: "read_workflow",
-      description: "Run inputs/results/proposals/attempts; never resumes.",
+      description: "Inspect saved run; never resume.",
       parameters: object(["id": schema("string", "Exact run ID.")], required: ["id"])),
     .init(
       name: "start_workflow",
       description:
-        "Queue requested exact workflow. No steps/drafts yet; explicit native/CLI continuation required.",
+        "Queue exact workflow, no steps/drafts. Explicit Continue required.",
       parameters: object(
         [
           "id": schema("string", "Exact saved workflow version."),
@@ -138,13 +146,13 @@ extension NativeTools {
     .init(
       name: "prepare_action",
       description:
-        "Prepare drafts, never accept. Host previews action/form and checks directions before atomic save. Unsaved plan: preview_action.",
+        "Preview, check directions and save drafts; never accept.",
       parameters: object(
         [
-          "id": schema("string", "Exact inspected action/form version."),
+          "id": schema("string", "Exact action/form version."),
           "arguments": .object([
             "type": .string("object"),
-            "description": .string("Declared typed inputs; no invented facts."),
+            "description": .string("Typed inputs; no invented facts."),
           ]),
         ], required: ["id", "arguments"])),
   ]

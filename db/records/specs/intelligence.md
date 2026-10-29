@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-28T16:32:39.785197+00:00
+updated: 2026-10-29T03:18:54.629224+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -797,3 +797,6 @@ and requested native changes. Capture/extraction success cannot satisfy merge or
 functional Excel migration. This is an expanded contract, not an implemented new
 tool/grammar claim. Add scoped role, retry, stale-target, injection and truthful
 completion cases as those tools are implemented, reusing unchanged engine evidence.
+
+## Truthful artifact action outcomes
+Saved success/failure receipts determine artifact outcomes independently of a model finish label. General/unresolved/completed-action answers with tracked writes/navigation render host outcomes. Failed current-request answers do the same. Independently cited facts and successful checked current-request arithmetic remain validated, with explicit outcomes appended. Keep raw finish arguments and receipt history for inspection. A failed save cannot become a successful save by changing basis to general. A queued workflow receipt says no steps/proposals executed. Actual V3 authoring failed this invariant; the repair has scripted counterexamples and a final actual-model job in [[records/specs/manual-workflows]]. Host success establishes saved state, not semantic fidelity of generated behavior.

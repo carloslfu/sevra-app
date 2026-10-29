@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-29T02:16:40.082791+00:00
+updated: 2026-10-29T03:18:54.644409+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -469,3 +469,6 @@ Form draft persistence, broader usability and all Excel continuity gates remain.
 Before implementing, separated captured evidence, probabilistic interpretation and accepted business effects. A quotation proves where text came from, not that a derived value is true. Host validation checks shape, types, exact inputs/quotes, meaning/scenario and final worker authority. Missing facts pause with empty values and useful issues. Interpretation has no application tools or automatic approval.
 
 Implementation review found three important edges: retain rejected raw responses for diagnosis; preserve transitive interpretation lineage through scalar calculations so estimates cannot become actual stock; compare final publication to the exact raw response while allowing deterministic decimal normalization during reconstruction. Focused counterexamples and actual malformed-model evidence are retained. An unresolved result may cite the exact text explaining what is absent without inventing that absent value. No generic prompt or successful demonstration can establish broad semantic reliability. Full EJ06-EJ08 and release qualification remain open.
+
+## Conversation interpretation adversarial review, October 28
+First pass, usability: raw workflow JSON caused repeated real-model invalid bindings and Boolean fields. A trusted exact workflow_template copies declared parameters, adds required action review and validates closure before save; it grants no execution. Second pass, identity: model-generated logical IDs caused refused saves. Host creation identity and exact inspected edit bases simplify the in-app contract, with stale/foreign/read-only refusal preserved. Third pass, truth: actual V3 falsely said saved after a failed write by relabeling its answer as general. Receipt-owned outcomes prevent this bypass; cited evidence and checked arithmetic remain independently useful. An overbroad first presentation fix bypassed arithmetic verification and failed the compaction counterexample, so the final fix narrows current-request replacement to unresolved failures. All failed probes and budget regressions remain retained. Final actual model passes metadata/run assertions, including two corrected workflow-save failures. This does not establish broad semantic reliability or release readiness.

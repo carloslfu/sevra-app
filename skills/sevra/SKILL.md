@@ -147,8 +147,14 @@ Changing the original evidence needs a new explicit invocation with that exact
 input version. Workflow retry retains its original typed inputs.
 
 
-The in-app model can author workflows and workflow forms through save_definition,
-form_template and save_template. workflow_activity/read_workflow inspect runs.
+The in-app model can author interpretations, workflows and workflow forms. Read
+definition_registry before custom save_definition content. For a workflow over one
+saved behavior, use workflow_template with its exact current version and optional
+stepID, then save_template with the successful current-run receipt and optional
+title. It copies typed inputs and exact mappings, adding an action review when
+needed. It never runs a step. Live dependency closures and workflow recursion
+refuse. Use form_template/save_template for the workflow's input form.
+workflow_activity/read_workflow inspect runs.
 start_workflow takes an exact workflow version and typed arguments, saving one
 queued run linked to the current request. It ends with a host-owned status and
 Activity destination. It does not execute steps or prepare proposals. Use explicit
@@ -195,7 +201,9 @@ starter directly. A component uses type form and definitionBinding with a live l
 ID or exact version ID. Forms cannot be frozen as result snapshots.
 
 In-app authoring uses separate `save_definition` (required custom content) and
-`save_template` (required current-run template receipt, optional title). The CLI
+`save_template` (required current-run template receipt, optional title). New saves
+omit expectedDefinitionID; edits supply only that exact inspected version. The
+host derives logical identity; logicalID is not an in-app save argument. The CLI
 uses the ordinary content returned above. In-app `prepare_action(id,arguments)`
 performs the requested draft preparation in one call. Its host journals a fresh
 preview, independently checks every inventory direction against the current request

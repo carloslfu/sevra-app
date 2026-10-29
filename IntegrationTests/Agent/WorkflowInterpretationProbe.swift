@@ -4,7 +4,7 @@ import SevraAI
 import SevraCore
 import SevraNativeAI
 
-private final class InterpretationProbeTrace: @unchecked Sendable {
+final class InterpretationProbeTrace: @unchecked Sendable {
   private let lock = NSLock()
   private let directory: URL
   private var index = 0

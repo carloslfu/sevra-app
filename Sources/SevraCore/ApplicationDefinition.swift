@@ -52,7 +52,10 @@ public struct ApplicationDefinition: Codable, Identifiable, Sendable {
 
 func definitionObject(_ value: Value, keys: Set<String>) throws -> [String: Value] {
   guard case .object(let object) = value, Set(object.keys).isSubset(of: keys) else {
-    throw SevraError("definition", "Use a typed application definition with known fields.")
+    throw SevraError(
+      "definition",
+      "Use a typed object with only these fields: " + keys.sorted().joined(separator: ", ")
+        + ". Read definition_registry for the complete format.")
   }
   return object
 }
@@ -87,7 +90,9 @@ struct DefinitionParameter {
       case .bool(let required) = o["required"]
     else {
       throw SevraError(
-        "definition_parameter", "A parameter needs an ID, label, type and required flag.")
+        "definition_parameter",
+        "Each parameter/output needs id and label strings, a supported type, and required:true or required:false (Boolean, not 1 or 0)."
+      )
     }
     if let unit = o["unit"] {
       try require(

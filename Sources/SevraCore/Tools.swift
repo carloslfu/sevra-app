@@ -21,7 +21,8 @@ public struct WorkbookTools {
     "history_search", "history_read", "tool_result", "search", "count_records", "archive_members",
     "read", "lineage", "datasets", "rows", "compare_rows", "calculate", "balance", "spaces",
     "review_queue", "references", "space_history", "find_definitions", "read_definition",
-    "definition_registry", "receiving_template", "form_template", "evaluate_definition",
+    "definition_registry", "receiving_template", "form_template", "workflow_template",
+    "evaluate_definition",
     "preview_action", "workflow_activity", "read_workflow",
   ]
   public init(

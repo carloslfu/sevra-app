@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T02:16:40.066808+00:00
+updated: 2026-10-29T03:18:54.614252+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1596,3 +1596,6 @@ workflow-continue WORKBOOK RUN_ID [MODEL_DIRECTORY] uses the shared ProductAI ow
 Save interpretation/workflow JSON with definition-save and the typed contract in [[records/specs/manual-workflows]]. Interpretation output becomes a draft Record and cannot accept inventory. Inspect workflow-inspect/Activity for exact retained evidence, model, issues and any rejected raw response; Retry is deliberate, not automatic model correction.
 
 Run .build/debug/sevra-checks --workflows for focused core checks and .build/debug/sevra-product-checks for async ownership/lifecycle. scripts/check_workflow_durability.py includes nine real process-death boundaries. The agent check runner accepts --workflow-interpretation MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT for clear/incomplete actual-model fixtures; it runs normal scripted checks first. The output directory must not exist. This proves bounded task behavior, not throughput. The native packaged CLI imported-file/interpret/propose/review/reconstruct job and focused visible UI observations are retained in [[records/operations/implementation]].
+
+## Conversation interpretation authoring checks
+Build sevra-agent-checks, then run .build/debug/sevra-agent-checks for scripted authority, truthful outcomes and compaction checks. Its --interpretation-authoring MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT mode runs three actual native-model tasks: author interpretation, compose exact one-step workflow, queue without executing. The output must not exist and retains pre-inference source/runner identity, exact requests/messages/results and two inert synthetic packages. Use the installed model layout,32K and bounded512. This is functional evidence, not throughput. The pinned Python reference generator is test tooling only; the app runtime remains Python-free. See [[records/specs/manual-workflows]].

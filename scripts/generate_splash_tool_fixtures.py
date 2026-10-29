@@ -82,6 +82,9 @@ for tool in tools:
     elif name == 'edit_space':
         values.update(id='home', expectedVersion=1, edits=[{'operation':'move','componentID':'tables','at':'first'}, {'operation':'remove','componentID':'recent'}])
     outputs.append((name, xml(name, values), values))
+    if name == 'find_definitions':
+        interpretations = {'query': '', 'kind': 'interpretation'}
+        outputs.append(('find_definitions_interpretation', xml(name, interpretations), interpretations))
     if name in ('save_space', 'edit_space'):
         for kind in ('calculation', 'query'):
             component = {'id': 'result', 'type': kind, 'title': 'Reusable result',

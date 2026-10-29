@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T02:16:39.919996+00:00
+updated: 2026-10-29T03:18:54.584593+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -59,4 +59,4 @@ Current-format integrity and history remain required. The controlling decision i
 [[records/specs/distribution]] under Pre-1.0 compatibility policy.
 
 ## Manual workflow foundation
-[[records/specs/manual-workflows]] defines the schema16 manual execution boundary: exact typed sequential steps, saved evaluation outputs, inventory drafts and exact review waits, transactional checkpoints/outbox, worker fencing, explicit retry/cancel and inert reconstruction. Native Activity and recoverable workflow forms have scoped automated proof. Conversation workflow authoring, workflow forms and truthful queued starts also have scoped actual-model and automated proof. Explicit native AI interpretation now has core/CLI, actual-model, process-death and focused visible UI proof. Import/document workflow steps, richer graphs, schedulers, background execution and full accessibility qualification remain open. This does not change the repository's working-development-build status.
+[[records/specs/manual-workflows]] defines the schema16 manual execution boundary: exact typed sequential steps, saved evaluation outputs, inventory drafts and exact review waits, transactional checkpoints/outbox, worker fencing, explicit retry/cancel and inert reconstruction. Native Activity and recoverable workflow forms have scoped automated proof. Conversation workflow authoring, workflow forms and truthful queued starts also have scoped actual-model and automated proof. Explicit native AI interpretation now has core/CLI, conversation authoring/queueing, actual-model, process-death and focused earlier visible UI proof. Import/document workflow steps, richer graphs, schedulers, background execution and full accessibility qualification remain open. This does not change the repository's working-development-build status.

@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T02:16:40.035565+00:00
+updated: 2026-10-29T03:18:54.659349+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -342,3 +342,6 @@ The workflow-read-snapshot meta key records the current committed-change identit
 workflow_interpretation_request retains exact normalized arguments, evidence/extraction identities, model/messages/schema/budget and observed revision before inference. workflow_interpretation_response retains the bounded raw envelope as diagnostic history before validation. Neither operation alone creates a business Record. Publishing requires the exact retained envelope; normalized decimal output is independently verified against it during integrity/reconstruction. Validated output/Record/lineage/checkpoint/attempt/receipt/outbox commit together under a fresh final claim/deadline/cancellation fence.
 
 Core256/0, focused25/0 and final product lifecycle checks pass. Nine real process-death boundaries now include interpretation request, raw response, pre-COMMIT and post-COMMIT. Reconstructed copies preserve diagnostics and saved results without inference. Async tests prove other workbook writes proceed while the model waits. These local guarantees do not establish exactly-once model invocation or sync/replica semantics. The [interpretation receipt](../../../integration/evidence/2026-10-28-workflow-interpretation.json.gz) retains scoped proof and failed cases.
+
+## Conversation interpretation authoring capture
+Conversation interpretation saves and exact workflow templates reuse schema16 application definition Sources/dependencies, stable retry tokens and the same committed-change ledger. In-app logical identity belongs to the host; edits identify an exact base. The template read is metadata-only, not a mutation or execution grant. Raw failed tool receipts and model finish arguments remain available even when host presentation replaces false success. Fullcore260/0 and the final native-model author/workflow/queue fixture preserve one pending run and no business Records; inert reconstructed copies verify. No schema17, new independent ledger or sync claim is introduced. See [[records/specs/manual-workflows]].

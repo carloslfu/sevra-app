@@ -62,7 +62,7 @@ func checkDefinitionTools(at root: URL) {
     var content = saved.content.object
     content["title"] = .string("Receiving v2")
     let edit: Value = .object([
-      "logicalID": .string(saved.logicalID), "expectedDefinitionID": .string(saved.id),
+      "expectedDefinitionID": .string(saved.id),
       "content": .object(content),
     ])
     let second = try tools.execute("save_definition", edit)

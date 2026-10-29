@@ -2,8 +2,8 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T02:16:40.005330+00:00
-summary: '"Schema14 definitions, native forms and computations have scoped local-model and visible native proof; full journeys, workflows and release gates remain open."'
+updated: 2026-10-29T03:18:54.689131+00:00
+summary: Schema16 definitions, interpretation authoring and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
 ---
@@ -49,7 +49,7 @@ Retry tokens and exact arguments return the original version after later edits.
 Removing a component never removes a definition or its history.
 
 Definition kinds start with function and query, followed by action and form.
-Workflow now has the scoped manual core/CLI executor in [[records/specs/manual-workflows]]. Agent workflow authoring, native workflow surfaces and automation kinds remain refused until their paths qualify.
+Workflow now has the scoped manual core/CLI executor in [[records/specs/manual-workflows]]. Agent workflow authoring and native workflow surfaces now have scoped qualification in that specification. Automation kinds remain refused until their paths qualify.
 Use UUID logical/exact IDs independently from names. Exact bindings keep their
 version; live bindings follow the head. Current and historical scope is explicit.
 Saving executable intent never grants authority to run it or accept business data.
@@ -607,4 +607,4 @@ Workflow discovery/save/form templates reuse the same catalog validation and exa
 ## Explicit interpretation definitions, schema16
 A reusable interpretation declares bounded instruction text, required exact business item evidence parameters,1..32 typed output fields without defaults, meaning and scenario. Exact interpret workflow steps capture full bounded text/data or ready/untruncated extraction, actual model/schema/budget/read revision and exact quotations. Output is a separately reviewable draft Record. No tools, raw code, search or acceptance run inside interpretation. Typed named output mappings and transitive calculation lineage retain actual/estimate/scenario boundaries. See [[records/specs/manual-workflows]] for contracts and scoped core/native/actual-model qualification.
 
-This first surface is core/CLI JSON authoring. Conversation save_definition/find_definitions formats do not yet advertise interpretation and still need their own scoped grammar/model qualification. Standalone evaluate_definition remains pure function/query evaluation. No implicit inference on discovery, opening, reconstruction or saved Home rendering.
+Core/CLI and conversation save_definition/find_definitions now author/discover interpretation with scoped grammar/model qualification in [[records/specs/manual-workflows]]. In-app creation omits expectedDefinitionID; editing supplies only its exact inspected base. The host derives identity. workflow_template copies exact validated behavior parameters/bindings for save_template without execution. Standalone evaluate_definition remains pure function/query evaluation. No implicit inference on discovery, opening, reconstruction or saved Home rendering.

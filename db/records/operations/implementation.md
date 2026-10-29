@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T02:49:33.059687+00:00
+updated: 2026-10-29T03:18:54.674484+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -5803,3 +5803,14 @@ The revised test waits for stable initial native geometry and then the actual ob
 
 ## Native scroll reflow correction, October 28
 Hosted40806771272 for55b1595 still fails: requested scroll700 returns to400, so the initial timing-only test revision did not establish a fix. A local added reflow counterexample reproduces the observer defect. It retained the original caller position and did not always schedule restoration after native layout changed. The corrected observer retains the latest observed position, schedules from layout, and honors explicit new positions even when geometry is unchanged. Local document checks pass27/0, including two manual offsets, resize/reflow and deliberate navigation. The [reflow receipt](../../../integration/evidence/2026-10-28-native-scroll-reflow.json.gz) preserves the hosted failure, red/intermediate/green local results and all118 earlier artifacts byte-identically. A new exact-commit hosted run and final package remain to qualify. Conversation interpretation authoring is a separate active slice; whole-app readiness is not established.
+
+## Conversation interpretation authoring and truthful failure checkpoint, October 28
+Schema16 conversation discovery/save now includes interpretation, with one trusted workflow_template metadata tool. New in-app saves omit the edit base; edits provide its exact inspected version. No model-generated logical identity is accepted. Saving templates/interpretations creates no business Record, run or model execution. Final core260/0, scripted agent,62 actual grammars/526 exact reference masks,14-file strict formatting, skill validation, native release and installed resource/refusal/signature checks pass. The largest bare tool prompt is8178/8192; no context/reasoning/output ceiling increased. The [conversation interpretation receipt](../../../integration/evidence/2026-10-28-conversation-interpretations.json.gz) preserves identities, exact requests/messages and119 prior artifacts byte-identically.
+
+The final pinned native model authors Read received count, authors exactly bound Read delivery, and queues it in4/8/3 calls (59.506/79.938/35.055s). Independent saved-state checks confirm one pending run, no business Records, exact actual/actual interpretation metadata and inert reconstruction with integrity passing. The workflow job needed two corrected malformed saves. These are synthetic functional observations under development load, not throughput or general reliability qualification.
+
+V1-V3 failures remain retained, including a V3 false success after a refused save. Host outcomes now come from receipts even when the model relabels finish basis. Failed queueing cannot become a success claim. Cited facts and checked arithmetic remain independently validated with explicit action outcomes appended. Grammar/compaction failures during development led to smaller descriptions and a narrower presentation fix, not widened budgets. The final actual-model source/runner identity was captured before inference. No new visible/VoiceOver/appearance proof is claimed. Agent starts remain queue-only; explicit native/CLI Continue executes. Import/document steps and full E3/EJ06-EJ08 remain next.
+
+Final fullcore260 predates the last AI-only presentation refinement; final scripted agent/grammar/native release and actual-model checks cover that refinement. Unchanged explicit-interpretation process-death/full Metal/packaged CLI evidence is reused. A final extra malformed-edit-base test changes tests only. Hosted3d60b36 document reflow stage now passes; the complete run is still in progress. Current authoring changes require a new exact-commit CI after push.
+
+Next qualify document preparation/import workflow boundaries without nesting existing multi-transaction intake under a checkpoint. Preserve file bytes, exact extraction identity/coverage, asynchronous lock release and final lease-fenced publication. Full receiving recovery, richer graphs, general outbox, E4-E6, contextual Excel continuity, broad voice/accessibility/hardware and production adoption/distribution remain open. The active goal and whole app remain unfinished.
