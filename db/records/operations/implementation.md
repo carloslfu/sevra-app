@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T13:51:24.610624+00:00
+updated: 2026-10-29T13:55:45.474929+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -6119,3 +6119,10 @@ This is read-only derivation inspection, including control dependencies, with no
 The calendar/admission/inspector slice is qualified, with exact root membership as the persisted charge and no reset from retry, completion, cancellation, pause, restart or inert reconstruction. Schema 25 captures all four control families in the existing ledger. V3 full core456/0, final V4 trusted nine-process race, 21 admission/47 execution/22 ancestry/94 condition/76 feed installed calls, two dispatch SIGKILL boundaries/16 calls, owner18, synthetic ProductAI, strict15 Swift files and native package/resource/refusal/signature checks pass. Final V4 only fixes a synthetic worker operation-key collision; production source and ordinary test bodies remain identical to the full-pass V3. All144 earlier artifacts remain unchanged. Retained failures, limits and exact receipt: [[records/specs/automation-causality]], [automatic admission receipt](../../../integration/evidence/2026-10-29-automation-causality.json.gz), 135806 bytes, SHA-256 dd26b95f8d980d7cc74a2e91028c1c9b89dab52b5d57ac35bb92d144cac2090b.
 
 Next remains exact condition cause selection across pages/clocks/unknown gaps, contribution/control separation and independent business roots, then candidate dispatch/admission binding with exact physical grants, native/conversation authoring and dataset adapters. Background/resource lifecycle, E5/E6, full E3, contextual/Excel/E0-E2 and whole-app hardware/visible/distribution qualification remain open. CUA still reports locked. The goal remains active.
+
+
+## Publication pending, October 29 at 13:55 UTC
+
+Code, immutable evidence and maintained specifications are committed locally as af1b627. Final local db.md validation has zero errors/warnings; repository links and diff checks pass. GitHub API requests failed to connect. The initial owned push stalled and was stopped before a bounded retry; the retry failed with `Could not resolve hostname github.com`. Remote publication is not confirmed. Do not report this checkpoint pushed, its PR description updated or exact-head CI dispatched. The preceding09e6ca2 CI was last observed in progress.
+
+When GitHub connectivity returns, push the current branch including this status record, update PR1 around the final schema25 implementation and dispatch check.yml for the exact resulting remote head. Keep the existing immutable receipt unchanged. Continue local condition-cause/dispatch work while publication is unavailable; this transient network failure does not make the overall goal complete or require a new product/design decision.

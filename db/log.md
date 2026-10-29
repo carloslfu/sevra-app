@@ -1129,3 +1129,6 @@ Final checkpoint gates: dbmd validate --all db has zero errors/warnings; reposit
 ## [2026-10-29 13:51] implementation | records/specs/automation-causality.md
 Schema25 atomic automatic roots/admissions, bounded trusted inherited budgets, inert inspection and final dispatch cancellation; full456/0, installed21/47/22/94/76 calls, nine competing writers, real dispatch/condition/feed deaths, native checks. Failed iterations retained. Actual condition causes/dispatch and release remain open.
 
+## [2026-10-29 13:55] verification | records/operations/implementation.md
+Local af1b627 checkpoint passes zero-warning db.md, links and diff. GitHub API unreachable; bounded push retry fails github.com DNS. Publication, PR refresh and exact CI remain pending; continue condition-cause work.
+
