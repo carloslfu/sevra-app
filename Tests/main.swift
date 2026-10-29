@@ -52,6 +52,16 @@ let temp = FileManager.default.temporaryDirectory.appendingPathComponent(
   "sevra-checks-" + identifier())
 try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: temp) }
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--automatic-ancestry-fixture" {
+  print(
+    try createAutomaticAncestryFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--automatic-ancestry"] {
+  checkAutomaticAncestry(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.count == 3
   && ["--automation-execution-fixture", "--automation-ai-fixture"].contains(
     CommandLine.arguments[1])
@@ -1019,6 +1029,7 @@ checkPersistence(at: temp)
 checkBusinessEvents(at: temp)
 checkInventoryEventState(at: temp)
 checkInventoryConditions(at: temp)
+checkAutomaticAncestry(at: temp)
 checkSpaceEditing(at: temp)
 checkCalendarSchedules()
 checkConditionTransitions()

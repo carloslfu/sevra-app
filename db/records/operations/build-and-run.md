@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T12:45:51.421483+00:00
+updated: 2026-10-29T13:12:33.455937+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1737,3 +1737,11 @@ Creation returns CONSUMER_ID and captures the current business-tail baseline. Re
 condition-observations accepts an optional exact observation cursor and a limit of 1 to 50. A request candidate stays inert. At 100 pending candidates, backpressure stops progress without losing the crossing. Explicit dismissal needs a reason and keeps its Source/history. Saving/reconstructing creates no timer, model acquisition or device permission. Current projection is bounded to 10,000 effects; unsupported precision or limits refuse without partial completion. See [[records/specs/inventory-condition-consumers]].
 
 Run `.build/debug/sevra-checks --inventory-conditions`, the separate `--inventory-condition-limit`, and `python3 scripts/check_inventory_conditions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_JSON_PATH`. The worker adds actual SIGKILL publication checks; all workbooks and inputs are temporary synthetic fixtures. No selected-model inference.
+
+## Inspect automatic derivation ancestry
+
+Use `sevra automation-ancestry Shop.sevra EXACT_ITEM_ID [EXACT_ITEM_ID...]` to inspect up to 16 exact versions. It reports saved automatic workflow/definition/logical/occurrence bindings and the retained graph, including control/configuration dependencies. Acceptance/manual derivation does not clear origin. This is a read-only diagnostic: execution=none, enabled=false, minimalCausalSlice=false and dispatchEligibility=not-evaluated. It cannot enable work or establish a minimal business cause set.
+
+Limits are 1,024 distinct items, 4,096 edges, 128 lineage-edge depth, 1 MiB invocation metadata and 8 MiB output within a short-wait/cancellable three-second read. Cycles, missing/inconsistent/erased bindings and unsupported sizes refuse without partial output. Current schema 24 uniquely indexes workflow source identity. Unsupported older development files remain preserved/refused; do not reset a user's file.
+
+Focused check: `.build/debug/sevra-checks --automatic-ancestry`. Installed check: `python3 scripts/check_automatic_ancestry.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_JSON_PATH`. The worker creates only a temporary synthetic registered action/review fixture, with no model inference. See [[records/specs/automatic-ancestry]].

@@ -2,7 +2,7 @@
 type: spec
 id: 01m63mskyw17ghqe41k3rhh631
 created: 2026-10-29T10:55:20.540673+00:00
-updated: 2026-10-29T12:45:51.290812+00:00
+updated: 2026-10-29T13:12:33.361573+00:00
 summary: Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.
 title: Condition transitions
 status: reviewed
@@ -76,3 +76,7 @@ A fresh native inventory still reports no apps and a locked Mac. Visible control
 ## Durable inventory consumer qualification
 
 [[records/specs/inventory-condition-consumers]] now implements schema 23 baselines, incremental actual inventory state, saved atomic batch/clock/rebuild pages, exact complete observations and inert candidates. First-known baselines and unknown gaps retain their original semantics. Distinct recrossings survive 100-candidate backpressure without coalescing. Final 416 full core,18 focused consumer groups, real 10,000/10,001 boundary, 94 installed condition calls/two SIGKILL boundaries and nearby feed/history/native checks pass. The capacity fixture also fixes integer feed ordering beyond 9. No automatic dispatch or permission. Causal ancestry/admission, native/conversation authoring, dataset adapters and release remain required; the earlier pure-preview receipt remains scoped and unchanged.
+
+## Automatic ancestry inspection foundation
+
+[[records/specs/automatic-ancestry]] implements schema-24 indexed authoritative workflow-source identities and a bounded read-only graph inspector. Synthetic human-attributed acceptance/manual derivation cannot clear automatic origin; forged or erased bindings refuse. Final 434 full core/18 focused groups and 22 ancestry/94 condition/76 feed installed calls pass with scoped native proof. Broad derivation/control lineage is expressly not minimal business causality, a root budget or dispatch permission. Exact cause retention and persisted admission remain next.

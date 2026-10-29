@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 23
+  static let version = 24
   static let sql = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=\(version);
@@ -105,7 +105,7 @@ enum Schema {
     CREATE TABLE app_definition_dependencies(definition_id TEXT NOT NULL REFERENCES app_definitions(id),ordinal INTEGER NOT NULL CHECK(ordinal>=0),kind TEXT NOT NULL CHECK(kind IN ('definition','dataset')),mode TEXT NOT NULL CHECK(mode IN ('live','exact')),target_logical TEXT,target_version TEXT REFERENCES app_definitions(id),target_dataset TEXT REFERENCES datasets(id),target_dataset_definition TEXT REFERENCES column_versions(id),PRIMARY KEY(definition_id,ordinal),CHECK((kind='definition' AND target_logical IS NOT NULL AND target_version IS NOT NULL AND target_dataset IS NULL AND target_dataset_definition IS NULL) OR (kind='dataset' AND target_logical IS NULL AND target_version IS NULL AND target_dataset IS NOT NULL AND target_dataset_definition IS NOT NULL)));
     CREATE INDEX app_dependencies_definition ON app_definition_dependencies(target_logical,definition_id);
     CREATE INDEX app_dependencies_dataset ON app_definition_dependencies(target_dataset,definition_id);
-    CREATE TABLE workflow_runs(id TEXT PRIMARY KEY,definition_id TEXT NOT NULL REFERENCES app_definitions(id),source_id TEXT NOT NULL REFERENCES items(id),actor TEXT NOT NULL,arguments TEXT NOT NULL,policy TEXT NOT NULL CHECK(policy IN ('manual-drafts-v1','automation-drafts-v1')),state TEXT NOT NULL CHECK(state IN ('queued','running','waiting_review','needs_attention','completed','cancelled')),detail TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
+    CREATE TABLE workflow_runs(id TEXT PRIMARY KEY,definition_id TEXT NOT NULL REFERENCES app_definitions(id),source_id TEXT NOT NULL UNIQUE REFERENCES items(id),actor TEXT NOT NULL,arguments TEXT NOT NULL,policy TEXT NOT NULL CHECK(policy IN ('manual-drafts-v1','automation-drafts-v1')),state TEXT NOT NULL CHECK(state IN ('queued','running','waiting_review','needs_attention','completed','cancelled')),detail TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
     CREATE INDEX workflow_runs_ready ON workflow_runs(state,updated,id);
     CREATE INDEX workflow_runs_order ON workflow_runs(updated,id);
     CREATE TABLE workflow_steps(run_id TEXT NOT NULL REFERENCES workflow_runs(id),step_id TEXT NOT NULL,ordinal INTEGER NOT NULL CHECK(typeof(ordinal)='integer' AND ordinal>=0 AND ordinal<16),kind TEXT NOT NULL CHECK(kind IN ('evaluate','action','review','interpret','extract','intake')),state TEXT NOT NULL CHECK(state IN ('pending','claimed','waiting_review','completed','needs_attention','cancelled')),output TEXT NOT NULL,detail TEXT NOT NULL,updated TEXT NOT NULL,attempt_base INTEGER NOT NULL DEFAULT 0 CHECK(typeof(attempt_base)='integer' AND attempt_base>=0 AND attempt_base<=1000000000),PRIMARY KEY(run_id,step_id),UNIQUE(run_id,ordinal));

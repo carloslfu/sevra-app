@@ -87,6 +87,7 @@ extension Workbook {
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
     let publicationGuard: () throws -> Void = {
       try InventoryConditionPublicationProbe.observer?(.prepared)
+      try control.check()
     }
     let result = try mutation(
       "condition_step", token: token,

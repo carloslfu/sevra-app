@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T12:45:51.261194+00:00
+updated: 2026-10-29T13:12:33.436102+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -26,6 +26,7 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 ## Reading order
 
+- [[records/specs/automatic-ancestry]]: schema 24 authoritative indexed workflow source identities and read-only derivation inspection; exact trigger causes and persisted admission remain next.
 - [[records/specs/inventory-condition-consumers]]: schema 23 saved incremental inventory conditions, exact clocks/cursors/observations and inert candidate backpressure; causal dispatch remains next.
 - [[records/specs/inventory-event-state]]: exact batch/effective-time inventory reconciliation and remaining incremental condition state.
 - [[records/specs/business-events]]: schema22 committed semantic feed, indexed inert delivery, atomic batch/coverage limits and remaining condition consumers.
@@ -101,3 +102,7 @@ The exact retained-batch inventory oracle now passes 11 focused groups, a real 1
 ## Durable inventory conditions
 
 Schema 23 now saves bounded incremental inventory conditions across restarts, including baseline establishment, atomic business and clock pages, exact complete observations and distinct inert candidates.416 full groups, 18 focused groups, real 10,000/10,001 projection bound, 94 condition, 76 feed and 37 historical installed calls, 18 registry/controller groups and synthetic ProductAI and native packaging pass. An ordering defect beyond 9 batches is fixed and retained. All 142 prior artifacts remain unchanged. Exact proof: [[records/specs/inventory-condition-consumers]]. Causality-aware dispatch, native/conversational authoring and full product/release qualification remain required. Latest visible checks remain locked and unverified.
+
+## Automatic derivation foundation
+
+The current schema-24 checkpoint retains automatic origin through synthetic human-attributed acceptance and manual derived work. Its indexed saved workflow binding remains authoritative even if invocation metadata is erased. Final 434 full core/18 focused groups, 22 ancestry/94 condition/76 feed installed calls and scoped native checks pass. The inspector includes broad control provenance and expressly does not decide causal admission or grant execution. See [[records/specs/automatic-ancestry]] for exact evidence and remaining work. The product remains a working development preview.

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T12:45:51.394861+00:00
+updated: 2026-10-29T13:12:33.397972+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -717,3 +717,7 @@ This checkpoint also repairs the registry creation race found by fab2a83 hosted 
 ## Persistent condition computation checkpoint
 
 [[records/specs/inventory-condition-consumers]] now supplies schema 23 incremental inventory baselines, explicit ledger clocks, saved atomic working pages, exact observations and inert candidate queues.416 full core groups and 94 installed condition calls/two process-death boundaries pass with scoped native/nearby proof. It creates no timer or workflow authority. E4 still requires causality-aware admission/dispatch with exact physical grants, native/conversational authoring, dataset-query adapters and complete lifecycle qualification. Full E3/E5/E6, contextual/Excel and release journeys remain open.
+
+## E4 derivation ancestry inspection
+
+[[records/specs/automatic-ancestry]] now provides the schema-24 uniquely indexed workflow-source invariant and bounded read-only historical automatic ancestry. Synthetic acceptance/manual derivation retain origin; erased metadata cannot hide the registered source. Final 434 full core groups and 22 installed ancestry calls pass with focused native packaging/nearby proof. This includes control lineage, so it is not a minimal trigger cause slice or cascade budget. Exact condition causes, durable causal admission, atomic event dispatch with physical grants, native/conversation authoring and complete E4 remain open.

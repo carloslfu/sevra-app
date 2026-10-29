@@ -2,7 +2,7 @@
 type: spec
 id: 01m63sd9zxhrxzv360z74w3pyn
 created: 2026-10-29T12:15:59.997610+00:00
-updated: 2026-10-29T12:45:03.897983+00:00
+updated: 2026-10-29T13:12:33.343711+00:00
 summary: Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
 title: Durable inventory condition consumers
 status: implemented
@@ -68,3 +68,7 @@ Evidence: [durable inventory consumer receipt](../../../integration/evidence/202
 The previous 26c4bfe hosted run remains in progress in this immutable receipt; 8634c6c CI passed. This source requires its own exact dispatched CI after commit. Final documentation/link/diff gates are recorded separately after the receipt. The Mac inventory still reports locked, so no fresh visible Activity/answers/voice/accessibility/appearance/media or actual closed-window/background proof exists.
 
 This completes the persistent inventory consumer slice, not condition execution, E4 or the app. Next: retained causal ancestry through automatic proposals and human acceptance, restart-safe self-loop/cascade/depth/fan-out/root admission, trigger-to-workflow binding with current physical-file grants, native/conversational authoring and dataset-query condition adapters. Full background/resource lifecycle, E5/E6, E3 receiving/failure/abuse/richer graphs, contextual/Excel continuity and complete E0/E1/E2 journeys, physical hardware/performance/production engine adoption and signing/notarization/distribution remain required. Goal and release remain unfinished.
+
+## Authoritative ancestry and publication cancellation
+
+The later [[records/specs/automatic-ancestry]] checkpoint advances the development schema to 24 solely to make existing workflow invocation Source identity unique/indexed. Consumer families and semantics remain unchanged. The condition publication guard now checks cancellation immediately before COMMIT, after the qualification barrier; a focused test proves complete derived-state/cursor/receipt rollback and same-token retry. Final 434 full core groups and 94 installed condition calls/two actual SIGKILL boundaries pass. The new inspector retains broad derivation ancestry, including synthetic acceptance, but is not a minimal trigger cause set or dispatch decision. Exact cause capture and persisted causal admission remain required.

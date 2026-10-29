@@ -181,6 +181,7 @@ jobs:
           python3 scripts/check_business_events.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/business-events-installed.json
           python3 scripts/check_inventory_event_state.py --cli output/bin/sevra --output .build/inventory-event-state-installed.json
           python3 scripts/check_inventory_conditions.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/inventory-conditions-installed.json
+          python3 scripts/check_automatic_ancestry.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/automatic-ancestry-installed.json
           python3 scripts/check_automation_definitions.py --cli output/bin/sevra --output .build/automation-definitions-installed
           python3 scripts/check_automation_planning.py --cli output/bin/sevra --output .build/automation-planning-installed
           python3 scripts/check_automation_execution.py --cli output/bin/sevra --output .build/automation-execution-installed
@@ -207,6 +208,7 @@ jobs:
           python3 scripts/check_business_events.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/business-events-native.json
           python3 scripts/check_inventory_event_state.py --cli output/native/bin/sevra --output .build/inventory-event-state-native.json
           python3 scripts/check_inventory_conditions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/inventory-conditions-native.json
+          python3 scripts/check_automatic_ancestry.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/automatic-ancestry-native.json
           python3 scripts/check_automation_definitions.py --cli output/native/bin/sevra --output .build/automation-definitions-native
           python3 scripts/check_automation_planning.py --cli output/native/bin/sevra --output .build/automation-planning-native
           python3 scripts/check_automation_execution.py --cli output/native/bin/sevra --output .build/automation-execution-native

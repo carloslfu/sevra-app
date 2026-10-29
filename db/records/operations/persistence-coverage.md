@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T12:45:51.368985+00:00
+updated: 2026-10-29T13:12:33.379662+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -414,3 +414,7 @@ Final 386 full core groups with zero failures,14 focused groups, 76 installed na
 ## Schema 23 condition control families
 
 The declared condition_consumers, condition_effects, condition_observations and condition_candidates families use the same canonical row capture and inert reconstruction. Saved partial working state is distinct from completed coverage. Observation/candidate/completed cursor publish together; projection precision/limit/lock failure rolls back its page, and backpressure leaves an exact unfinished decision. Native installed proof includes two actual SIGKILL boundaries, stable retry and inert reconstruction, with 416 full core groups. Control Sources remain technical. See [[records/specs/inventory-condition-consumers]]. This does not add replica coordination, cloud transport, automatic permission or causal dispatch.
+
+## Schema 24 workflow invocation identity
+
+Schema 24 strengthens workflow_runs.source_id with a unique index in its existing canonical family. Capture columns and replay ownership remain unchanged; reconstruction enforces the new identity inertly. The bounded read-only ancestry inspector resolves exact saved binding/version/occurrence coordinates across accepted and superseded inputs, with no second ledger or live capability from history. Final 434 full core, 18 ancestry and 22 installed ancestry calls include reconstruction and erased-binding refusal. Condition/feed installed proof retains four SIGKILL boundaries. Schema-23 files are preserved/refused, without a development migration. See [[records/specs/automatic-ancestry]].

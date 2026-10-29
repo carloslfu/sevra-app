@@ -1120,3 +1120,9 @@ Final416 full core/18 focused/real10000 success10001 refusal,94 native condition
 ## [2026-10-29 12:45] verification | records/specs/inventory-condition-consumers.md
 Final repo-owned documentation passes dbmd validate --all with zero errors/warnings, repository links and git diff --check. All 386 frozen Swift files and 142 earlier evidence files remain byte-identical. Final native consumer, feed and historical probes use the same binary hash. Exact CI will be dispatched after committing this checkpoint.
 
+## [2026-10-29 13:11] implementation | records/specs/automatic-ancestry.md
+Schema24 authoritative indexed workflow invocation identity and bounded read-only ancestry; acceptance/manual derivation preserves origin. Final434 full core/18 focused,22 ancestry/94 condition/76 feed installed calls,4 SIGKILL boundaries total,owner18/ProductAI,strict6 Swift files/native package pass. All143 earlier artifacts unchanged; exact trigger causes/persisted admission and product/release remain open.
+
+## [2026-10-29 13:13] verification | records/specs/automatic-ancestry.md
+Final checkpoint gates: dbmd validate --all db has zero errors/warnings; repository links and diff pass. Frozen388 Swift hashes and all143 prior artifacts unchanged. Native CLI 14b7693e292a458f8561b0d7f7fbff22bfbdb2cee2f03f8a2f3bf803fd02fae4 binds22 ancestry/94 condition/76 feed calls.434 full core groups pass. No actual-model or visible-OS/release claim.
+
