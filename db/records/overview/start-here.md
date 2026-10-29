@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T16:48:33.837982+00:00
+updated: 2026-10-29T17:21:32.168113+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -26,9 +26,9 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 ## Reading order
 
-- [[records/specs/condition-dispatch]]: reviewed atomic owned-condition activation, exact candidate/run binding, shared causes and live-grant execution contract. This is the next E4 integration, not implementation proof.
+- [[records/specs/condition-dispatch]]: schema30 actual owned-condition dispatch, atomic candidate/run/admission binding, live grants, native editor/owner and visible deterministic proof; conversation/model journeys and release remain open.
 
-- [[records/specs/business-provenance]]: schema28 shared original-input causes now feed the schema29 trusted admission primitive in [[records/specs/automation-causality]]. Shared budgets are qualified; actual condition selection/binding/current-grant dispatch remains next.
+- [[records/specs/business-provenance]]: schema28 shared original-input causes now feed the schema29 trusted admission primitive in [[records/specs/automation-causality]]. Shared budgets and actual inventory candidate dispatch now have scoped proof in [[records/specs/condition-dispatch]].
 - [[records/specs/condition-transition-inputs]]: schema26 exact scope-relevant changed versions/events/activation times and linked observation windows, with truthful unknown/overflow coverage; actual automatic parents and candidate dispatch remain next.
 - [[records/specs/automation-causality]]: schema 25 atomic calendar origins and bounded trusted inherited admissions; exact condition causes and dispatch remain next.
 - [[records/specs/automatic-ancestry]]: schema 24 authoritative indexed workflow source identities and read-only derivation inspection; durable calendar/admission state now follows in [[records/specs/automation-causality]], while exact trigger causes remain open.
@@ -139,3 +139,7 @@ Explicit original observations and included top-level files now retain exact cre
 ## Shared admission checkpoint
 
 Schema29 retains calendar/business root coordinates and exact independent inputs through the same ledger, with shared32-run budgets across unrelated targets. Full539 core checkpoint, final30 focused groups and22 installed calls pass, including nine racing writers for seven slots and two actual publication deaths. Native owner/ProductAI/package proof passes; all150 prior receipts stay unchanged. Current authorized local speech reaches the composer and is stopped/cleared unsent. This is a trusted admission primitive, not actual automatic condition selection or dispatch. [[records/specs/automation-causality]] retains exact proof, failures and remaining gates.
+
+## Schema30 condition execution, October 29
+
+Actual owned inventory-condition candidates now dispatch through exact current physical-file grants and the same captured workflow/admission ledger, with complete original/automatic causes and persisted shared budgets. Native typed preview/save/Enable/Pause, ordered queue dismissal/resume/from-now and read-only idle polling are connected. Broad555 core checkpoint, final18 focused/21 owner groups,17 condition/21 calendar/22 shared/39 cause installed calls, nine candidate writers/two actual SIGKILL boundaries and fresh visible deterministic native crossing/Activity/pause/reconstruction pass. No final full-core rerun or fresh model inference is claimed. [[records/specs/condition-dispatch]] retains exact source/package hashes, failures, prepared-probe correction and limits. Conversational authoring/Enable, real-model condition review/restart, dataset adapters and E5-E6/release remain open.

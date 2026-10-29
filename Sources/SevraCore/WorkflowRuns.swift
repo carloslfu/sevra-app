@@ -83,7 +83,9 @@ extension Workbook {
       title: "Start " + definition.title,
       text: actor.label
         + (policy == "automation-drafts-v1"
-          ? " started an authorized scheduled workflow. Business changes remain drafts until reviewed."
+          ? (origin["candidateID"] == .null
+            ? " started an authorized scheduled workflow. Business changes remain drafts until reviewed."
+            : " started an authorized inventory-condition workflow. Business changes remain drafts until reviewed.")
           : " started a manual workflow. Business changes remain drafts until reviewed."),
       data: .object([
         "workflowRunID": .string(id), "definitionID": .string(definition.id),

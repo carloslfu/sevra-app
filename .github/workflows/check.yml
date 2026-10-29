@@ -194,6 +194,7 @@ jobs:
           python3 scripts/check_automation_execution.py --cli output/bin/sevra --output .build/automation-execution-installed
           python3 scripts/check_automation_causality.py --cli output/bin/sevra --output .build/automation-causality-installed
           python3 scripts/check_shared_admissions.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/shared-admissions-installed.json
+          python3 scripts/check_condition_dispatch.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-dispatch-installed.json
           python3 scripts/check_install.py
           python3 scripts/check_document_cli.py
           python3 scripts/check_history.py
@@ -228,6 +229,7 @@ jobs:
           python3 scripts/check_automation_execution.py --cli output/native/bin/sevra --output .build/automation-execution-native
           python3 scripts/check_automation_causality.py --cli output/native/bin/sevra --output .build/automation-causality-native
           python3 scripts/check_shared_admissions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/shared-admissions-native.json
+          python3 scripts/check_condition_dispatch.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-dispatch-native.json
           python3 scripts/check_extraction_package.py
           python3 scripts/check_computation_views.py --cli output/native/bin/sevra
           python3 scripts/check_document_actions.py --cli output/native/bin/sevra
@@ -244,6 +246,10 @@ jobs:
           path: |
             .build/automation-causality-installed/result.json
             .build/automation-causality-native/result.json
+            .build/shared-admissions-installed.json
+            .build/shared-admissions-native.json
+            .build/condition-dispatch-installed.json
+            .build/condition-dispatch-native.json
           include-hidden-files: true
           if-no-files-found: ignore
       - name: Retain condition change-input evidence

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m63j49s9re5f080dvrddxp9d
 created: 2026-10-29T10:08:44.841064+00:00
-updated: 2026-10-29T11:06:54.112341+00:00
+updated: 2026-10-29T17:21:32.264113+00:00
 summary: Native schedule controls and persistent physical-workbook device grants with a conservative active-app owner; scoped synthetic, process-death and installed-package proof, full lifecycle/release open.
 title: Native automation owner
 status: reviewed
@@ -79,3 +79,7 @@ Evidence: [shutdown admission receipt](../../../integration/evidence/2026-10-29-
 Final 18 owner groups pass, including the new unsafe-directory preservation case, plus five fresh concurrent-start rounds with 30 registration workers. The two actual registry SIGKILL barriers also pass in that final run. Native app/CLI, resource/missing10/altered refusal/signature and strict changed-Swift checks pass. Full local evidence and the failed hosted log are retained in [[records/specs/condition-transitions]]. The corrective source needs its own exact hosted run; fab2a83 is not green. The Mac remains locked and full lifecycle/release gates are unchanged.
 
 Evidence: [condition and registry repair receipt](../../../integration/evidence/2026-10-29-condition-transitions-registry-repair.json.gz), 61244 bytes, SHA-256 1559bf286dec9681b20ac23d78c4c7e5902fbb1d884eb6933fa74f78634b05f6. All 139 preceding artifacts remain byte-identical.
+
+## Schema30 condition execution, October 29
+
+Actual owned inventory-condition candidates now dispatch through exact current physical-file grants and the same captured workflow/admission ledger, with complete original/automatic causes and persisted shared budgets. Native typed preview/save/Enable/Pause, ordered queue dismissal/resume/from-now and read-only idle polling are connected. Broad555 core checkpoint, final18 focused/21 owner groups,17 condition/21 calendar/22 shared/39 cause installed calls, nine candidate writers/two actual SIGKILL boundaries and fresh visible deterministic native crossing/Activity/pause/reconstruction pass. No final full-core rerun or fresh model inference is claimed. [[records/specs/condition-dispatch]] retains exact source/package hashes, failures, prepared-probe correction and limits. Conversational authoring/Enable, real-model condition review/restart, dataset adapters and E5-E6/release remain open.

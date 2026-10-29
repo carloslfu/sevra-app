@@ -68,6 +68,9 @@ extension Workbook {
       try require(
         saved.id == exactID && saved.kind == "automation", "automation_binding",
         "Authorize an exact saved automation version.")
+      try require(
+        try DefinitionAutomation(DefinitionDescriptor(saved.content)).condition == nil,
+        "automation_trigger", "Use explicit inventory-condition authorization for this definition.")
       let retained = try self.validateAutomationDefinition(DefinitionDescriptor(saved.content))
       if policy == "foreground-drafts-v1" {
         let workflow = try DefinitionWorkflow(DefinitionDescriptor(retained.workflow.content))
@@ -137,7 +140,7 @@ extension Workbook {
           ])
       } else {
         try self.db.execute(
-          "UPDATE automation_activations SET definition_id=?,source_id=?,actor=?,generation=?,state='armed',policy=?,cursor=?,observed_through=?,catch_up_remaining=0,coverage_source=?,updated=? WHERE id=?",
+          "UPDATE automation_activations SET definition_id=?,source_id=?,actor=?,generation=?,state='armed',policy=?,cursor=?,observed_through=?,catch_up_remaining=0,coverage_source=?,updated=?,consumer_id=NULL WHERE id=?",
           [
             .string(exactID), .string(source), .string(try encoded(actor).json()),
             .number(Double(generation + 1)), .string(policy), .string(cursor), .string(cursor),
@@ -194,7 +197,7 @@ extension Workbook {
           "definitionID": previous["definition_id"],
           "generation": .number(Double(expectedGeneration + 1)),
           "state": .string("paused"), "releasedAttempts": .array(released),
-          "policy": previous["policy"],
+          "policy": previous["policy"], "consumerID": previous["consumer_id"],
           "allowAI": try self.item(previous["source_id"].text).data["allowAI"],
           "actor": try encoded(actor),
           "cursor": previous["cursor"], "through": previous["observed_through"],
@@ -218,7 +221,8 @@ extension Workbook {
       try self.applyAutomationDecisions(decisions, source: source)
       try self.automationEvent(
         activationID, generation: expectedGeneration + 1, kind: "paused", source: source,
-        scope: previous["policy"] == .string("foreground-drafts-v1")
+        scope: [.string("foreground-drafts-v1"), .string("condition-drafts-v1")].contains(
+          previous["policy"])
           ? "foreground-drafts" : "preparation-only")
       return try self.automationActivation(activationID)
     }
@@ -240,7 +244,8 @@ extension Workbook {
       else { throw SevraError("automation_not_found", "The activation was not found.") }
       row["actor"] = try Value.parse(row["actor"]!.text)
       row["execution"] = .string(
-        row["policy"] == .string("foreground-drafts-v1") ? "session-required" : "preparation-only")
+        [.string("foreground-drafts-v1"), .string("condition-drafts-v1")].contains(row["policy"]!)
+          ? "session-required" : "preparation-only")
       row["allowAI"] = try item(row["source_id"]!.text).data["allowAI"]
       row["sessionRequired"] = .bool(true)
       return .object(row)

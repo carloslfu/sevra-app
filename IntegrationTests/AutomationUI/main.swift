@@ -69,6 +69,38 @@ func enable(
   return try registry.register(book, session: session)
 }
 
+func conditionFixture(_ root: URL, _ name: String) throws -> (Workbook, ApplicationDefinition) {
+  let (book, calendar) = try fixture(root, name)
+  let input = try book.recordBusinessObservation(title: "Counted opening stock")
+  try book.setOpeningBalance(
+    subject: "parts", quantity: "20", effective: "2026-01-01", sourceID: input.id)
+  let definition = try book.saveApplicationDefinition(
+    logicalID: identifier(),
+    content: .object([
+      "kind": .string("automation"), "title": .string(name),
+      "description": .string("Synthetic native condition"),
+      "parameters": .array([]),
+      "payload": .object([
+        "policy": .string("inventory-condition-drafts-v1"),
+        "workflow": calendar.payload["workflow"], "arguments": .object([:]),
+        "condition": .object([
+          "subject": .string("parts"),
+          "rule": .object([
+            "policy": .string("native-condition-v1"), "scope": .string("inventory:parts"),
+            "operator": .string("<"), "threshold": .string("10"),
+          ]),
+        ]),
+      ]),
+    ]))
+  return (book, definition)
+}
+func conditionSale(_ book: Workbook) throws {
+  let input = try book.recordBusinessObservation(title: "Counted sale")
+  _ = try book.movement(
+    subject: "parts", quantity: "-15", occurrence: identifier(),
+    effective: "2026-01-02", input: input.id, status: "accepted")
+}
+
 @MainActor func runChecks() async throws -> Int {
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-automation-ui-" + identifier())
@@ -495,6 +527,108 @@ func enable(
     await owner.waitForCurrentPoll()
     let runs = try book.workflowRuns()
     try expect(runs.count == 1 && runs[0]["state"] != .string("completed"))
+    _ = try book.verify()
+  }
+  func establishCondition(
+    _ owner: NativeAutomationController, _ book: Workbook,
+    _ definition: ApplicationDefinition, now: Date
+  ) async throws {
+    for _ in 0..<100 {
+      owner.poll(now: now)
+      await owner.waitForCurrentPoll()
+      let state = try book.automationState(definition.id)
+      let status = try book.inventoryCondition(state["consumer_id"].text)
+      if status["established"] == .bool(true) && status["hasMore"] == .bool(false) { return }
+    }
+    throw SevraError("fixture", "Baseline did not finish: " + String(describing: owner.statuses))
+  }
+  func observeCondition(_ book: Workbook, _ session: AutomationExecutionSession) throws {
+    let id = try book.automationActivation(session.planning.activationID)["consumer_id"].text
+    for _ in 0..<100 {
+      _ = try book.stepAutomationCondition(
+        session, through: "2026-10-01T09:00:00Z", token: identifier())
+      if try book.inventoryCondition(id)["hasMore"] == .bool(false) { return }
+    }
+    throw SevraError("fixture", "Candidate observation did not finish.")
+  }
+  await check(
+    "native condition owner restores physical authority and dispatches an actual stock crossing"
+  ) {
+    let (book, definition) = try conditionFixture(root, "ConditionOwner")
+    let store = registry("Registry-ConditionOwner")
+    let owner = NativeAutomationController(registry: store, runner: runner)
+    try await owner.enable(
+      book, exactID: definition.id, expectedGeneration: 0, allowAI: false, now: start)
+    try await establishCondition(owner, book, definition, now: start)
+    let state = try book.automationState(definition.id)
+    try expect(try book.inventoryCondition(state["consumer_id"].text)["established"] == .bool(true))
+    let history = try book.committedHistory()
+    owner.poll(now: start.addingTimeInterval(11))
+    await owner.waitForCurrentPoll()
+    try expect(try book.committedHistory() == history, "Idle owner wrote a checkpoint")
+    try conditionSale(book)
+    let reopened = NativeAutomationController(registry: store, runner: runner)
+    for _ in 0..<100 {
+      reopened.poll(now: due)
+      await reopened.waitForCurrentPoll()
+      if try !book.workflowRuns().isEmpty { break }
+    }
+    let runs = try book.workflowRuns()
+    try expect(runs.count == 1 && runs[0]["state"] == .string("completed"))
+    try expect(
+      try book.inspectWorkflow(runs[0]["id"].text)["invocation"]["origin"]["candidateID"].string
+        != nil)
+    let copy = root.appendingPathComponent("ConditionOwnerCopy.sevra")
+    try FileManager.default.copyItem(at: book.url, to: copy)
+    try expect(try !store.matches(store.grants()[0], workbook: Workbook(copy)))
+    _ = try book.verify()
+  }
+  await check("native condition pause and resume keep one exact queued transition") {
+    let (book, definition) = try conditionFixture(root, "ConditionResume")
+    let store = registry("Registry-ConditionResume")
+    let owner = NativeAutomationController(registry: store, runner: runner)
+    try await owner.enable(
+      book, exactID: definition.id, expectedGeneration: 0, allowAI: false, now: start)
+    try await establishCondition(owner, book, definition, now: start)
+    try conditionSale(book)
+    let restored = try store.restore(store.grants()[0])
+    try observeCondition(restored.0, restored.1)
+    let consumer = try book.automationState(definition.id)["consumer_id"].text
+    try expect(try book.inventoryConditionQueue(consumer)["candidates"].array.count == 1)
+    try await owner.pause(store.grants()[0])
+    try await owner.enable(
+      book, exactID: definition.id, expectedGeneration: 2, allowAI: false, now: due)
+    try expect(try book.automationState(definition.id)["consumer_id"].text == consumer)
+    for _ in 0..<100 {
+      owner.poll(now: due)
+      await owner.waitForCurrentPoll()
+      if try !book.workflowRuns().isEmpty { break }
+    }
+    try expect(
+      try book.workflowRuns().count == 1
+        && book.inventoryConditionQueue(consumer)["candidates"].array.isEmpty)
+    _ = try book.verify()
+  }
+  await check("native explicit from-now keeps history and starts a new already-true baseline") {
+    let (book, definition) = try conditionFixture(root, "ConditionFromNow")
+    let store = registry("Registry-ConditionFromNow")
+    let owner = NativeAutomationController(registry: store, runner: runner)
+    try await owner.enable(
+      book, exactID: definition.id, expectedGeneration: 0, allowAI: false, now: start)
+    try await establishCondition(owner, book, definition, now: start)
+    try conditionSale(book)
+    let restored = try store.restore(store.grants()[0])
+    try observeCondition(restored.0, restored.1)
+    let old = try book.automationState(definition.id)["consumer_id"].text
+    try await owner.pause(store.grants()[0])
+    try await owner.enable(
+      book, exactID: definition.id, expectedGeneration: 2, allowAI: false, now: due, fromNow: true)
+    let current = try book.automationState(definition.id)["consumer_id"].text
+    try expect(current != old && book.inventoryConditionQueue(old)["candidates"].array.isEmpty)
+    try await establishCondition(owner, book, definition, now: due)
+    try expect(
+      try book.workflowRuns().isEmpty
+        && book.inventoryCondition(current)["lastCompleteObservation"]["truth"] == .bool(true))
     _ = try book.verify()
   }
   print(

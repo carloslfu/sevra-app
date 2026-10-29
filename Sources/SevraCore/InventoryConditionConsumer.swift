@@ -51,27 +51,40 @@ extension Workbook {
       request: .object(["subject": .string(subject), "rule": rule, "through": .string(through)]),
       cancellation: control, actor: actor
     ) {
-      let anchor = try self.db.scalar(
-        "SELECT id FROM business_batches ORDER BY position DESC LIMIT 1")
-      let source = try self.insertItem(
-        category: "source", kind: "condition_intent", title: "Track an inventory condition",
-        text:
-          "Save a condition baseline and inert candidate requests. No automatic work is enabled.",
-        data: .object([
-          "subject": .string(subject), "rule": rule, "anchorID": anchor,
-          "effectiveThrough": .string(through), "policy": .string("inventory-condition-v1"),
-        ]), meaning: "rule", status: "accepted", scenario: "actual", inputs: [],
-        transformation: "inventory-condition-v1")
-      let consumer = identifier()
-      let state = InventoryConditionWork(through: through, requestedThrough: through)
-      try self.db.execute(
-        "INSERT INTO condition_consumers VALUES(?,?,?,?,?,?,?)",
-        [
-          .string(consumer), .string(source), .string(subject), .string(try rule.json()), anchor,
-          .string(try ChangeFormat.encode(state)), .string(timestamp()),
-        ])
+      let consumer = try self.insertInventoryCondition(
+        subject: subject, rule: rule, through: through)
       return try self.inventoryConditionStatus(consumer)
     }
+  }
+
+  func insertInventoryCondition(
+    subject: String, rule: Value, through: String,
+    owner: ApplicationDefinition? = nil
+  ) throws -> String {
+    let anchor = try db.scalar(
+      "SELECT id FROM business_batches ORDER BY position DESC LIMIT 1")
+    let source = try insertItem(
+      category: "source", kind: "condition_intent", title: "Track an inventory condition",
+      text:
+        "Save a condition baseline and inert candidate requests. No automatic work is enabled.",
+      data: .object([
+        "subject": .string(subject), "rule": rule, "anchorID": anchor,
+        "effectiveThrough": .string(through), "policy": .string("inventory-condition-v1"),
+        "ownerLogicalID": owner.map { .string($0.logicalID) } ?? .null,
+        "definitionID": owner.map { .string($0.id) } ?? .null,
+      ]), meaning: "rule", status: "accepted", scenario: "actual", inputs: [],
+      transformation: "inventory-condition-v1",
+      controlInputs: owner.map { [$0.sourceID] } ?? [])
+    let consumer = identifier()
+    let state = InventoryConditionWork(through: through, requestedThrough: through)
+    try db.execute(
+      "INSERT INTO condition_consumers VALUES(?,?,?,?,?,?,?,?,?)",
+      [
+        .string(consumer), .string(source), .string(subject), .string(try rule.json()), anchor,
+        .string(try ChangeFormat.encode(state)), .string(timestamp()),
+        owner.map { .string($0.logicalID) } ?? .null, owner.map { .string($0.id) } ?? .null,
+      ])
+    return consumer
   }
 
   public func inventoryCondition(_ id: String, cancellation: Cancellation = .init()) throws -> Value
@@ -84,11 +97,19 @@ extension Workbook {
   public func stepInventoryCondition(
     _ id: String, through: String, token: String, cancellation: Cancellation = .init()
   ) throws -> Value {
+    try advanceInventoryCondition(id, through: through, token: token, cancellation: cancellation)
+  }
+
+  func advanceInventoryCondition(
+    _ id: String, through: String, token: String, cancellation: Cancellation,
+    fence: (() throws -> Void)? = nil
+  ) throws -> Value {
     try workflowToken(token)
     let through = try BusinessTime.normalized(through)
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
     let publicationGuard: () throws -> Void = {
       try InventoryConditionPublicationProbe.observer?(.prepared)
+      try fence?()
       try control.check()
     }
     let result = try mutation(
@@ -97,6 +118,7 @@ extension Workbook {
       cancellation: control, actor: .programmatic("SevraCore.inventory-condition"),
       commitGuard: publicationGuard
     ) {
+      try fence?()
       let row = try self.inventoryConditionRow(id)
       var work = try self.inventoryConditionWork(row)
       try require(

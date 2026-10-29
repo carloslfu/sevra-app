@@ -819,7 +819,7 @@ import SwiftUI
     case .search: return "Workbook search"
     case .reviews: return "Drafts to review"
     case .activity: return "Workflow activity"
-    case .automations: return "Schedules"
+    case .automations: return "Automations"
     case .workflow:
       return "Inspecting a saved workflow run; opening it does not authorize execution."
     }

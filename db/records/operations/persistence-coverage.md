@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T16:39:01.199534+00:00
+updated: 2026-10-29T17:21:32.231743+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -446,3 +446,7 @@ business_inputs is an immutable captured registry over exact original Sources an
 ## Schema29 shared business admissions, October 29
 
 The existing automatic_roots family now distinguishes calendar occurrences and business-input-v1 creating commits. The new captured automatic_independent_inputs relation retains exact selected originals per admission and invocation data lineage. Roots merge with existing automatic parents under the same writer; the shared32-run and logical/depth/fan-out limits never reset through new input, retry or reconstruction. Graph reads cache at most1,024 selected Sources plus eight representatives within one16MiB creating-envelope budget. Full539 core, final30 focused,22 shared/21 calendar/39 cause/42 origin installed calls, racing writers, real process deaths and native owner/ProductAI/package checks pass. Actual pending-condition selection/binding/current-grant dispatch is still next. Current local speech-to-unsent-composer/stop/clear/close is visible; controlled accuracy and full voice/accessibility remain open. Exact receipt and limits: [[records/specs/automation-causality]].
+
+## Schema30 condition execution, October 29
+
+Actual owned inventory-condition candidates now dispatch through exact current physical-file grants and the same captured workflow/admission ledger, with complete original/automatic causes and persisted shared budgets. Native typed preview/save/Enable/Pause, ordered queue dismissal/resume/from-now and read-only idle polling are connected. Broad555 core checkpoint, final18 focused/21 owner groups,17 condition/21 calendar/22 shared/39 cause installed calls, nine candidate writers/two actual SIGKILL boundaries and fresh visible deterministic native crossing/Activity/pause/reconstruction pass. No final full-core rerun or fresh model inference is claimed. [[records/specs/condition-dispatch]] retains exact source/package hashes, failures, prepared-probe correction and limits. Conversational authoring/Enable, real-model condition review/restart, dataset adapters and E5-E6/release remain open.

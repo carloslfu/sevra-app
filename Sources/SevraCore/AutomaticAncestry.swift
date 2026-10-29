@@ -80,7 +80,7 @@ extension Workbook {
   func automaticAncestryBinding(_ item: [String: Value]) throws -> Value? {
     let source = item["id"]!.text
     let registered = try db.execute(
-      "SELECT w.id,w.source_id,w.policy,w.definition_id,a.run_id,a.occurrence_id,a.activation_id,a.definition_id AS automation_id,a.authorization_source,a.dispatch_source,a.generation,d.logical_id,d.kind FROM workflow_runs w LEFT JOIN automation_runs a ON a.run_id=w.id LEFT JOIN app_definitions d ON d.id=a.definition_id WHERE w.source_id=?",
+      "SELECT w.id,w.source_id,w.policy,w.definition_id,a.run_id,a.occurrence_id,a.candidate_id,a.activation_id,a.definition_id AS automation_id,a.authorization_source,a.dispatch_source,a.generation,d.logical_id,d.kind FROM workflow_runs w LEFT JOIN automation_runs a ON a.run_id=w.id LEFT JOIN app_definitions d ON d.id=a.definition_id WHERE w.source_id=?",
       [.string(source)], maxRows: 1, maxBytes: 65_536
     ).first
     if item["kind"] != .string("application_invocation") && registered == nil { return nil }
@@ -116,6 +116,7 @@ extension Workbook {
       run["policy"] == .string("automation-drafts-v1") && run["kind"] == .string("automation")
         && run["run_id"] == .string(runID) && origin["automationID"] == run["automation_id"]
         && origin["occurrenceID"] == run["occurrence_id"]
+        && origin["candidateID"] == run["candidate_id"]
         && origin["activationID"] == run["activation_id"]
         && origin["authorizationSourceID"] == run["authorization_source"]
         && origin["dispatchSourceID"] == run["dispatch_source"]
@@ -127,7 +128,8 @@ extension Workbook {
       "workflowDefinitionID": run["definition_id"]!,
       "automationDefinitionID": run["automation_id"]!,
       "automationLogicalID": run["logical_id"]!, "occurrenceID": run["occurrence_id"]!,
-      "activationID": run["activation_id"]!, "authorizationSourceID": run["authorization_source"]!,
+      "candidateID": run["candidate_id"]!, "activationID": run["activation_id"]!,
+      "authorizationSourceID": run["authorization_source"]!,
       "dispatchSourceID": run["dispatch_source"]!, "generation": run["generation"]!,
     ])
   }

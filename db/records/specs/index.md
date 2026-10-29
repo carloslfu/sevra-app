@@ -2,23 +2,23 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-29T16:48:33.954427Z
+updated: 2026-10-29T17:21:32.426436Z
 ---
 
 # records/specs
 
-- [[records/specs/inventory-condition-consumers]] — Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
-- [[records/specs/business-provenance]] — Schema29 shared input roots and persisted admission budgets have scoped core/native CLI proof. Actual condition-candidate binding/current-grant dispatch remains next.
 - [[records/specs/automation-causality]] — Schema29 captures shared business and calendar roots with bounded trusted admissions. Racing writers and process-death proof pass; actual condition selection/current-grant dispatch remains open.
-- [[records/specs/condition-dispatch]] — Reviewed next E4 integration: owned condition consumers, exact live grants, atomic candidate/run/admission binding, backlog semantics and native dispatch acceptance. Not implemented.
+- [[records/specs/business-provenance]] — Schema29 shared input roots and persisted admission budgets have scoped core/native CLI proof. Actual condition-candidate binding/current-grant dispatch remains next.
 - [[records/specs/condition-transition-inputs]] — Exact retained condition inputs now support bounded historical producer resolution. Complete windows, real limits and native CLI checks pass; independent roots and dispatch remain open.
+- [[records/specs/inventory-condition-consumers]] — Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
+- [[records/specs/native-automation-owner]] — Native schedule controls and persistent physical-workbook device grants with a conservative active-app owner; scoped synthetic, process-death and installed-package proof, full lifecycle/release open.
 - [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
+- [[records/specs/condition-dispatch]] — Schema30 owned condition dispatch and native deterministic journeys have scoped proof. Conversation/model journeys, dataset adapters and release remain open.
 - [[records/specs/automatic-ancestry]] — Schema 24 indexed workflow source identities and bounded automatic ancestry; synthetic acceptance preserves origin. Exact trigger causes and persisted dispatch admission remain required.
 - [[records/specs/condition-transitions]] — Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.
 - [[records/specs/inventory-event-state]] — Reviewed historical inventory adapter: exact committed cutoff and explicit effective time, retained basis and settled effects, bounded read-only reconciliation, no condition execution.
 - [[records/specs/business-events]] — Reviewed schema22 semantic outbox over captured history: atomic settled versions, inventory basis and dataset membership/schema events, bounded indexed delivery and no execution authority.
-- [[records/specs/native-automation-owner]] — Native schedule controls and persistent physical-workbook device grants with a conservative active-app owner; scoped synthetic, process-death and installed-package proof, full lifecycle/release open.
 - [[records/specs/automation-execution]] — Schema21 foreground scheduled draft execution with distinct AI scope, atomic occurrence binding, one active run and pause-safe claims; native device restoration is scoped in native-automation-owner.
 - [[records/specs/automation-planning]] — Reviewed schema20 activation and bounded calendar occurrence preparation: explicit process-local permission, revocation, skipped reasons and inert reconstruction; dispatch remains open.
 - [[records/specs/manual-workflows]] — Manual durable workflow contract and scoped implementation sequence; full E3 remains open.

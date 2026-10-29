@@ -98,6 +98,7 @@ extension Workbook {
   func verifyConditionInputStorage() throws {
     let consumers = try db.execute("SELECT * FROM condition_consumers")
     for consumer in consumers {
+      try verifyConditionOwner(consumer)
       let work = try inventoryConditionWork(consumer)
       let count = try db.scalar(
         "SELECT count(*) FROM (SELECT id FROM condition_pending_inputs WHERE consumer_id=? LIMIT 10001)",

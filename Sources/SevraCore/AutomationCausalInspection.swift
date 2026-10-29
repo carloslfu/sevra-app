@@ -145,7 +145,7 @@ extension Workbook {
   private func automationCausalNode(_ runID: String) throws -> AutomationCausalNode {
     guard
       let row = try db.execute(
-        "SELECT c.*,a.definition_id AS bound_definition,a.dispatch_source,a.activation_id,a.occurrence_id,a.generation,a.authorization_source,d.logical_id AS bound_logical,d.kind,w.policy AS run_policy,w.definition_id AS workflow_definition,w.source_id AS invocation FROM automatic_admissions c JOIN automation_runs a ON a.run_id=c.run_id JOIN workflow_runs w ON w.id=c.run_id JOIN app_definitions d ON d.id=a.definition_id WHERE c.run_id=?",
+        "SELECT c.*,a.definition_id AS bound_definition,a.dispatch_source,a.activation_id,a.occurrence_id,a.candidate_id,a.generation,a.authorization_source,d.logical_id AS bound_logical,d.kind,w.policy AS run_policy,w.definition_id AS workflow_definition,w.source_id AS invocation FROM automatic_admissions c JOIN automation_runs a ON a.run_id=c.run_id JOIN workflow_runs w ON w.id=c.run_id JOIN app_definitions d ON d.id=a.definition_id WHERE c.run_id=?",
         [.string(runID)], maxRows: 1, maxBytes: 65_536
       ).first
     else {
@@ -196,6 +196,7 @@ extension Workbook {
         && origin["automationID"] == row["definition_id"]
         && origin["activationID"] == row["activation_id"]
         && origin["occurrenceID"] == row["occurrence_id"]
+        && origin["candidateID"] == row["candidate_id"]
         && origin["generation"] == row["generation"]
         && origin["authorizationSourceID"] == row["authorization_source"]
         && origin["dispatchSourceID"] == row["source_id"],

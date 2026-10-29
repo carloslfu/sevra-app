@@ -27,7 +27,9 @@ struct WorkflowActivityView: View {
       )
       .foregroundStyle(.secondary)
       HStack {
-        Button("Schedules", systemImage: "calendar") { workspace.navigate(.automations) }
+        Button("Automations", systemImage: "clock.arrow.circlepath") {
+          workspace.navigate(.automations)
+        }
         Picker("Show", selection: $filter) {
           Text("All runs").tag("")
           ForEach(
@@ -49,7 +51,7 @@ struct WorkflowActivityView: View {
               VStack(alignment: .leading, spacing: 5) {
                 Text(run["title"].text).font(.headline)
                 Text(
-                  (run["policy"] == .string("automation-drafts-v1") ? "Scheduled · " : "Manual · ")
+                  (run["policy"] == .string("automation-drafts-v1") ? "Automatic · " : "Manual · ")
                     + workflowStateTitle(run["state"].text)
                 ).font(.callout)
                 Text("Updated " + DisplayText.date(run["updated"].text))
@@ -113,10 +115,21 @@ struct WorkflowRunView: View {
           .font(.callout).foregroundStyle(.secondary)
           Text(
             run["policy"] == .string("automation-drafts-v1")
-              ? "Scheduled draft workflow. Continue is a separate manual request for this run; it does not enable future schedules. Business changes require review."
+              ? "Automatic draft workflow. Continue is a separate manual request for this run; it does not enable future automations. Business changes require review."
               : "Manual workflow. Each continuation stops for required review. Completed work is kept."
           )
           .foregroundStyle(.secondary)
+          if saved["invocation"]["origin"]["candidateID"].string != nil {
+            let origin = saved["invocation"]["origin"]
+            Text(
+              "Stock at the trigger: " + origin["trigger"]["quantity"].text + " · "
+                + DisplayText.date(origin["trigger"]["effectiveThrough"].text))
+            Text("Each later step shows its own saved inputs.").font(.caption).foregroundStyle(
+              .secondary)
+            Button("Trigger and evidence") {
+              workspace.navigate(.item(origin["dispatchSourceID"].text))
+            }
+          }
           if !run["detail"].text.isEmpty,
             !saved["steps"].array.contains(where: { $0["detail"] == run["detail"] })
           {

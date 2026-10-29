@@ -61,6 +61,37 @@ if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--condition-
   print(try createConditionCauseFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
   exit(0)
 }
+if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--condition-dispatch-fixture" {
+  print(
+    try createConditionDispatchFixture(
+      at: URL(fileURLWithPath: CommandLine.arguments[2]),
+      targets: Int(CommandLine.arguments[3])!, admitted: Int(CommandLine.arguments[4])!
+    ).json())
+  exit(0)
+}
+if (4...5).contains(CommandLine.arguments.count)
+  && CommandLine.arguments[1] == "--condition-dispatch-worker"
+{
+  do {
+    print(
+      try conditionDispatchWorker(
+        at: URL(fileURLWithPath: CommandLine.arguments[2]),
+        definition: CommandLine.arguments[3],
+        stage: CommandLine.arguments.count == 5 ? CommandLine.arguments[4] : nil
+      ).json())
+  } catch {
+    fputs(
+      (try! encoded(error as? SevraError ?? SevraError("fixture", error.localizedDescription))
+        .json()) + "\n", stderr)
+    exit(1)
+  }
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--condition-dispatch"] {
+  checkConditionDispatch(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.dropFirst() == ["--business-inputs"] {
   checkBusinessInputs(at: temp)
   checkConditionCauses(at: temp)
@@ -1152,5 +1183,6 @@ checkBusinessOrigins(at: temp)
 checkConditionOrigins(at: temp)
 checkBusinessInputs(at: temp)
 checkConditionCauses(at: temp)
+checkConditionDispatch(at: temp)
 print("\(passed) passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

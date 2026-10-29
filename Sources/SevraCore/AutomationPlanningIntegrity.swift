@@ -23,6 +23,7 @@ extension Workbook {
             && source.data["generation"] == activation["generation"]
             && source.data["state"] == activation["state"]
             && source.data["policy"] == activation["policy"]
+            && source.data["consumerID"] == activation["consumer_id"]
             && source.data["actor"] == actor
             && [Value.bool(true), .bool(false)].contains(source.data["allowAI"])
             && (activation["policy"] != .string("calendar-prepare-v1")
@@ -66,6 +67,7 @@ extension Workbook {
         try require(
           invalidPending.int == 0, "automation_integrity",
           "A revoked activation retains pending work.")
+        try verifyConditionActivation(activation)
         try verifyAutomationOverlap(activation)
         after = activation["id"].text
       }
@@ -143,7 +145,9 @@ extension Workbook {
         let planned = row["kind"] == .string("planned")
         let dispatched = ["dispatched", "dispatch_skipped"].contains(row["kind"]!.text)
         let scope =
-          planned || source.data["policy"] != .string("foreground-drafts-v1")
+          planned
+            || ![.string("foreground-drafts-v1"), .string("condition-drafts-v1")].contains(
+              source.data["policy"])
           ? "preparation-only" : "foreground-drafts"
         try require(
           source.category == "source"

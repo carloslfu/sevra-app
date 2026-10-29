@@ -15,19 +15,19 @@ struct AutomationSchedulesView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       HStack {
-        TextField("Find a schedule", text: $query)
-        Button("New schedule…") { creating = true }.disabled(workspace.busy)
+        TextField("Find an automation", text: $query)
+        Button("New automation…") { creating = true }.disabled(workspace.busy)
         Button("Runs") { workspace.navigate(.activity) }
       }
       Text(owner.gate).font(.callout).foregroundStyle(.secondary)
       Text(
-        "Saved schedules travel with this workbook. Enable each exact version on this Mac to run it here."
+        "Saved automations travel with this workbook. Enable each exact version on this Mac to run it here."
       )
       .font(.caption).foregroundStyle(.secondary)
       if let failure = failure ?? pages.failure ?? owner.failure {
         Text(failure).foregroundStyle(.red).textSelection(.enabled)
       }
-      if pages.loading { ProgressView("Reading schedules") }
+      if pages.loading { ProgressView("Reading automations") }
       ScrollView {
         LazyVStack(alignment: .leading, spacing: 14) {
           ForEach(pages.evaluation?["hits"].array ?? [], id: \.text) { row in
@@ -43,7 +43,7 @@ struct AutomationSchedulesView: View {
             Divider()
           }
           if pages.evaluation?["hits"].array.isEmpty == true && !pages.loading {
-            Text("No schedules yet. Save a workflow, then choose New schedule.")
+            Text("No automations yet. Save a workflow, then choose New automation.")
               .foregroundStyle(.secondary)
           }
         }
@@ -144,6 +144,12 @@ private struct AutomationScheduleDetail: View {
   @Environment(\.dismiss) private var dismiss
   @State private var preview: Value?
   @State private var state: Value = .null
+  @State private var conditionState: Value = .null
+  @State private var conditionQueue: Value = .null
+  @State private var confirmingFromNow = false
+  @State private var dismissing: String?
+  @State private var dismissalReason = ""
+  @State private var inspectionOwner = UUID()
   @State private var workflow: ApplicationDefinition?
   @State private var grant: AutomationDeviceGrant?
   @State private var allowAI = false
@@ -152,6 +158,10 @@ private struct AutomationScheduleDetail: View {
   @State private var failure: String?
   @State private var updatedDefinition: ApplicationDefinition?
   private var shown: ApplicationDefinition { updatedDefinition ?? definition }
+  private var isCondition: Bool {
+    shown.payload["policy"] == .string("inventory-condition-drafts-v1")
+  }
+  private var waitingCount: Int { conditionState["pendingCandidates"].int ?? 0 }
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text(shown.title).font(.title2)
@@ -165,7 +175,47 @@ private struct AutomationScheduleDetail: View {
               parameters: workflow.parameters.array,
               arguments: shown.payload["arguments"], workspace: workspace)
           }
-          ScheduleOccurrencePreview(calendar: preview?["calendar"])
+          if isCondition {
+            let condition = shown.payload["condition"]
+            Text(
+              "When \(condition["subject"].text) stock becomes \(condition["rule"]["operator"].text) \(condition["rule"]["threshold"].text)"
+            ).font(.headline)
+            Text(
+              "Initial enable establishes current stock. Already-true stock waits for a new crossing. Resume keeps every saved transition and checks missed changes."
+            )
+            .font(.caption).foregroundStyle(.secondary)
+            if conditionState["lastCompleteObservation"]["quantity"].string != nil {
+              Text(
+                "Last observed stock: " + conditionState["lastCompleteObservation"]["quantity"].text
+                  + " · "
+                  + DisplayText.date(
+                    conditionState["lastCompleteObservation"]["effectiveThrough"].text))
+            }
+            if waitingCount > 0 {
+              Text("\(waitingCount) saved transitions waiting").font(.headline)
+              DisclosureGroup("Review waiting transitions") {
+                ForEach(conditionQueue["candidates"].array, id: \.text) { candidate in
+                  HStack {
+                    Text(
+                      candidate["observation"]["quantity"].text + " · "
+                        + DisplayText.date(candidate["observation"]["effectiveThrough"].text))
+                    Spacer()
+                    Button("Dismiss…") {
+                      dismissing = candidate["candidateID"].text
+                      dismissalReason = ""
+                    }
+                  }
+                }
+                if conditionQueue["hasMore"] == .bool(true) {
+                  Text(
+                    "More transitions remain saved. Dismissed entries leave room to inspect the next ones."
+                  ).font(.caption)
+                }
+              }
+            }
+          } else {
+            ScheduleOccurrencePreview(calendar: preview?["calendar"])
+          }
           if let grant {
             Text(
               grantIsCurrent
@@ -178,7 +228,7 @@ private struct AutomationScheduleDetail: View {
               perform { try await owner.pause(grant) }
             }
           } else {
-            Text("This schedule is not enabled for this physical workbook on this Mac.")
+            Text("This automation is not enabled for this physical workbook on this Mac.")
           }
           Toggle("Allow this exact workflow to use local AI", isOn: $allowAI)
           Text(
@@ -186,7 +236,10 @@ private struct AutomationScheduleDetail: View {
           )
           .font(.caption).foregroundStyle(.secondary)
           HStack {
-            Button("Enable on this Mac") {
+            Button(
+              isCondition && waitingCount > 0
+                ? "Resume waiting transitions on this Mac" : "Enable on this Mac"
+            ) {
               guard let book = workspace.workbook else { return }
               perform {
                 try await owner.enable(
@@ -198,6 +251,9 @@ private struct AutomationScheduleDetail: View {
                 || (grantIsCurrent && grant?.definitionID == shown.id && grant?.allowAI == allowAI))
             Button("Run once") { runOnce() }.disabled(preview == nil)
             Button("Edit…") { editing = true }
+            if isCondition && state["consumer_id"].string != nil {
+              Button("Only from now…") { confirmingFromNow = true }
+            }
           }
           if let runID = state["active_run_id"].string {
             Button("Open saved run") {
@@ -207,7 +263,7 @@ private struct AutomationScheduleDetail: View {
           }
         }
       }
-      if working { ProgressView("Updating schedule") }
+      if working { ProgressView("Updating automation") }
       if let failure { Text(failure).foregroundStyle(.red).textSelection(.enabled) }
       HStack {
         Spacer()
@@ -216,6 +272,50 @@ private struct AutomationScheduleDetail: View {
     }.padding(24).frame(minWidth: 540, idealWidth: 620, minHeight: 440, idealHeight: 660)
       .disabled(working || workspace.busy).interactiveDismissDisabled(working)
       .task(id: shown.id) { await load() }
+      .onAppear { NativeAutomationHost.shared.setBusy(inspectionOwner, true) }
+      .onDisappear { NativeAutomationHost.shared.setBusy(inspectionOwner, false) }
+      .confirmationDialog("Start only from now?", isPresented: $confirmingFromNow) {
+        Button("Skip earlier transitions and start from now") {
+          guard let book = workspace.workbook else { return }
+          perform {
+            try await owner.enable(
+              book, exactID: shown.id,
+              expectedGeneration: state["generation"].int ?? 0, allowAI: allowAI, fromNow: true)
+          }
+        }
+      } message: {
+        Text(
+          "This records an explicit skip for the \(waitingCount) saved transitions and starts a fresh stock baseline. Earlier missed changes will not start new work. Completed work and history remain saved."
+        )
+      }
+      .sheet(isPresented: Binding(get: { dismissing != nil }, set: { if !$0 { dismissing = nil } }))
+    {
+      VStack(alignment: .leading, spacing: 16) {
+        Text("Dismiss this transition").font(.title2)
+        TextField("Reason", text: $dismissalReason, axis: .vertical)
+        Text(
+          "The transition and your reason remain in history. No workflow or business change is created."
+        ).font(.caption)
+        HStack {
+          Button("Cancel") { dismissing = nil }
+          Spacer()
+          Button("Dismiss transition") {
+            guard let candidate = dismissing, let book = workspace.workbook else { return }
+            let reason = dismissalReason
+            dismissing = nil
+            perform {
+              _ = try await Task.detached {
+                try book.dismissInventoryConditionCandidate(
+                  candidate, reason: reason, token: identifier(),
+                  actor: .human("Sevra.native-condition-dismiss"))
+              }.value
+            }
+          }.disabled(
+            dismissalReason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              || dismissalReason.utf8.count > 1024)
+        }
+      }.padding(24).frame(minWidth: 420)
+    }
       .sheet(isPresented: $editing, onDismiss: workspace.refresh) {
         AutomationScheduleEditor(
           workspace: workspace, existing: shown, onSave: { updatedDefinition = $0 })
@@ -223,7 +323,8 @@ private struct AutomationScheduleDetail: View {
   }
   private var grantIsCurrent: Bool {
     guard let grant else { return false }
-    return state["state"] == .string("armed") && state["policy"] == .string("foreground-drafts-v1")
+    return state["state"] == .string("armed")
+      && [.string("foreground-drafts-v1"), .string("condition-drafts-v1")].contains(state["policy"])
       && state["id"] == .string(grant.id) && state["source_id"] == .string(grant.sourceID)
       && state["definition_id"] == .string(grant.definitionID)
       && state["generation"].int == grant.generation && state["allowAI"] == .bool(grant.allowAI)
@@ -243,6 +344,17 @@ private struct AutomationScheduleDetail: View {
       preview = saved.0
       state = saved.1
       workflow = saved.2
+      if let id = state["consumer_id"].string {
+        let status = try await Task.detached {
+          (try book.inventoryCondition(id), try book.inventoryConditionQueue(id))
+        }.value
+        guard !Task.isCancelled, workspace.workbook === book else { return }
+        conditionState = status.0
+        conditionQueue = status.1
+      } else {
+        conditionState = .null
+        conditionQueue = .null
+      }
       await owner.reload()
       let registry = owner.registry
       let candidates = owner.grants.filter { $0.id == state["id"].text }

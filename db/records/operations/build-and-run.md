@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T16:39:01.339839+00:00
+updated: 2026-10-29T17:21:32.458534+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1793,3 +1793,9 @@ Focused check: `.build/debug/sevra-checks --business-inputs`. Installed syntheti
 `sevra automation-causality WORKBOOK RUN_ID` now renders retained independentInputs in each automatic origin alongside parents/roots and charged work. Business roots come from explicit original-input creating commits; calendar roots remain exact clock occurrences. Historical output still grants no live permission. The internal admission primitive enforces one shared32-run budget across unrelated reacting targets, with existing self/depth/fan-out limits. Production calendar calls use calendar causes. Actual automatic condition selection/binding/dispatch remains unfinished; condition-causes stays read-only.
 
 Focused check: `.build/debug/sevra-checks --automation-causality`. Installed synthetic race/death check: `python3 scripts/check_shared_admissions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Both packaged CI paths and check.sh include it. The fixture bridge is test-only, with no ordinary model/CLI override for independent inputs or parents. Schema29 is canonical; unsupported prior development workbooks stay preserved/refused. [[records/specs/automation-causality]] records539 broad/30 final focused groups,22 installed calls, failures, exact resource checks and open production gates.
+
+## Condition dispatch qualification
+
+Schema30 is canonical. The native Automations editor supports exact calendar and inventory-threshold workflows. Preview and Save stay inactive; Enable on this Mac authorizes that physical workbook/version. Ordinary Resume preserves saved and missed transitions, while Only from now records an explicit skip and new baseline. Run once remains a separate manual workflow. Automatic business changes require review.
+
+Focused core: `.build/debug/sevra-checks --condition-dispatch`. Actual synthetic candidate process/race/recovery check: `python3 scripts/check_condition_dispatch.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Native controller/registry: `.build/debug/sevra-automation-ui-checks`. check.sh and both installed CI paths include condition dispatch; artifact upload includes its JSON. No ordinary CLI/model dispatch override or arbitrary parent/root input is exposed. The public condition-causes inspector stays read-only and grants no authority. Full scope/evidence: [[records/specs/condition-dispatch]].

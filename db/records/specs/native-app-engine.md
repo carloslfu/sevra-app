@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T16:48:33.933027+00:00
+updated: 2026-10-29T17:21:32.426436+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -752,4 +752,8 @@ The existing automatic_roots family now distinguishes calendar occurrences and b
 
 ## Next condition execution integration
 
-The reviewed [[records/specs/condition-dispatch]] contract governs owned consumers, baseline versus resume/from-now behavior, exact authority, real condition bindings and atomic candidate/workflow/admission publication. It separates trigger-time evidence from workflow reads and requires race, recovery and native interaction proof. It is the next implementation contract, not a completed feature.
+The reviewed [[records/specs/condition-dispatch]] contract governs owned consumers, baseline versus resume/from-now behavior, exact authority, real condition bindings and atomic candidate/workflow/admission publication. It separates trigger-time evidence from workflow reads and requires race, recovery and native interaction proof. Its schema30 core/native dispatch slice now has scoped proof below; conversational and real-model interaction acceptance remains open.
+
+## Schema30 condition execution, October 29
+
+Actual owned inventory-condition candidates now dispatch through exact current physical-file grants and the same captured workflow/admission ledger, with complete original/automatic causes and persisted shared budgets. Native typed preview/save/Enable/Pause, ordered queue dismissal/resume/from-now and read-only idle polling are connected. Broad555 core checkpoint, final18 focused/21 owner groups,17 condition/21 calendar/22 shared/39 cause installed calls, nine candidate writers/two actual SIGKILL boundaries and fresh visible deterministic native crossing/Activity/pause/reconstruction pass. No final full-core rerun or fresh model inference is claimed. [[records/specs/condition-dispatch]] retains exact source/package hashes, failures, prepared-probe correction and limits. Conversational authoring/Enable, real-model condition review/restart, dataset adapters and E5-E6/release remain open.

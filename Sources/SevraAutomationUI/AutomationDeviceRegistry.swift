@@ -66,7 +66,8 @@ public final class AutomationDeviceRegistry: @unchecked Sendable {
     let state = try book.deviceAutomationScope(session)
     try require(
       state["state"] == .string("armed") && state["generation"].int == session.planning.generation
-        && state["policy"] == .string("foreground-drafts-v1")
+        && [.string("foreground-drafts-v1"), .string("condition-drafts-v1")].contains(
+          state["policy"])
         && state["allowAI"] == .bool(session.allowAI),
       "automation_authority", "This workbook permission was superseded.")
     let definition = try book.applicationDefinition(state["definition_id"].text)

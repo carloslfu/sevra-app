@@ -2,7 +2,7 @@
 type: spec
 id: 01m63xbjef018f5q5byn9acp7s
 created: 2026-10-29T13:24:57.423588+00:00
-updated: 2026-10-29T16:48:33.890766+00:00
+updated: 2026-10-29T17:21:32.393313+00:00
 summary: Schema29 captures shared business and calendar roots with bounded trusted admissions. Racing writers and process-death proof pass; actual condition selection/current-grant dispatch remains open.
 title: Durable automatic-run origins and admission
 status: implemented
@@ -111,3 +111,7 @@ The current native preview opens an owned schema29 workbook. Authorized on-devic
 ## Next condition execution integration
 
 The reviewed [[records/specs/condition-dispatch]] contract governs owned consumers, baseline versus resume/from-now behavior, exact authority, real condition bindings and atomic candidate/workflow/admission publication. It separates trigger-time evidence from workflow reads and requires race, recovery and native interaction proof. It is the next implementation contract, not a completed feature.
+
+## Schema30 condition execution, October 29
+
+Actual owned inventory-condition candidates now dispatch through exact current physical-file grants and the same captured workflow/admission ledger, with complete original/automatic causes and persisted shared budgets. Native typed preview/save/Enable/Pause, ordered queue dismissal/resume/from-now and read-only idle polling are connected. Broad555 core checkpoint, final18 focused/21 owner groups,17 condition/21 calendar/22 shared/39 cause installed calls, nine candidate writers/two actual SIGKILL boundaries and fresh visible deterministic native crossing/Activity/pause/reconstruction pass. No final full-core rerun or fresh model inference is claimed. [[records/specs/condition-dispatch]] retains exact source/package hashes, failures, prepared-probe correction and limits. Conversational authoring/Enable, real-model condition review/restart, dataset adapters and E5-E6/release remain open.

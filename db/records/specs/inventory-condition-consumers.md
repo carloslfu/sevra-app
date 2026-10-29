@@ -2,7 +2,7 @@
 type: spec
 id: 01m63sd9zxhrxzv360z74w3pyn
 created: 2026-10-29T12:15:59.997610+00:00
-updated: 2026-10-29T16:48:33.954427+00:00
+updated: 2026-10-29T17:21:32.298563+00:00
 summary: Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
 title: Durable inventory condition consumers
 status: implemented
@@ -84,3 +84,7 @@ The later [[records/specs/automation-causality]] checkpoint advances development
 ## Next condition execution integration
 
 The reviewed [[records/specs/condition-dispatch]] contract governs owned consumers, baseline versus resume/from-now behavior, exact authority, real condition bindings and atomic candidate/workflow/admission publication. It separates trigger-time evidence from workflow reads and requires race, recovery and native interaction proof. It is the next implementation contract, not a completed feature.
+
+## Schema30 condition execution, October 29
+
+Actual owned inventory-condition candidates now dispatch through exact current physical-file grants and the same captured workflow/admission ledger, with complete original/automatic causes and persisted shared budgets. Native typed preview/save/Enable/Pause, ordered queue dismissal/resume/from-now and read-only idle polling are connected. Broad555 core checkpoint, final18 focused/21 owner groups,17 condition/21 calendar/22 shared/39 cause installed calls, nine candidate writers/two actual SIGKILL boundaries and fresh visible deterministic native crossing/Activity/pause/reconstruction pass. No final full-core rerun or fresh model inference is claimed. [[records/specs/condition-dispatch]] retains exact source/package hashes, failures, prepared-probe correction and limits. Conversational authoring/Enable, real-model condition review/restart, dataset adapters and E5-E6/release remain open.

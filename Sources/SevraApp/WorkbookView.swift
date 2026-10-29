@@ -169,7 +169,7 @@ struct WorkbookView: View {
     case .search: return "Search workbook"
     case .reviews: return "Drafts to review"
     case .activity: return "Activity"
-    case .automations: return "Schedules"
+    case .automations: return "Automations"
     case .workflow: return "Workflow"
     }
   }

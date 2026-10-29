@@ -20,6 +20,7 @@ python3 scripts/check_automation_durability.py
 python3 scripts/check_automation_execution.py --cli "$BIN/sevra" --checks "$BIN/sevra-checks" --worker "$BIN/sevra-automation-durability"
 python3 scripts/check_automation_causality.py --cli "$BIN/sevra" --checks "$BIN/sevra-checks"
 python3 scripts/check_shared_admissions.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks" --output .build/shared-admissions-check.json
+python3 scripts/check_condition_dispatch.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks" --output .build/condition-dispatch-check.json
 python3 scripts/check_condition_transitions.py --cli "$BIN/sevra"
 python3 scripts/check_business_events.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
 "$BIN/sevra-checks" --inventory-event-limit

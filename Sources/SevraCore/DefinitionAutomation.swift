@@ -1,23 +1,54 @@
 import Foundation
 
+struct InventoryAutomationCondition {
+  let subject: String
+  let rule: Value
+  init(_ value: Value) throws {
+    let subject = value["subject"].text
+    try require(
+      Set(value.object.keys) == ["subject", "rule"] && !subject.isEmpty
+        && subject.utf8.count <= 200
+        && !subject.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains),
+      "condition_scope", "Use an exact inventory subject and numeric rule.")
+    self.subject = subject
+    rule = try NativeConditionRule(value["rule"]).definition
+    try require(
+      rule["scope"] == .string("inventory:" + subject), "condition_scope",
+      "The rule scope must match the exact inventory subject.")
+  }
+}
+
 struct DefinitionAutomation {
   let workflow: DefinitionBinding
   let arguments: Value
-  let schedule: NativeCalendarSchedule
-
+  let condition: InventoryAutomationCondition?
+  private let calendar: NativeCalendarSchedule?
+  var schedule: NativeCalendarSchedule {
+    get throws {
+      guard let calendar else {
+        throw SevraError(
+          "automation_trigger", "This automation uses an inventory condition, not a calendar.")
+      }
+      return calendar
+    }
+  }
   init(_ descriptor: DefinitionDescriptor) throws {
+    let policy = descriptor.payload["policy"].text
+    let isCalendar = policy == "calendar-drafts-v1"
     try require(
       descriptor.kind == "automation" && descriptor.parameters.isEmpty
-        && Set(descriptor.payload.object.keys) == ["policy", "workflow", "arguments", "schedule"]
-        && descriptor.payload["policy"] == .string("calendar-drafts-v1"),
+        && ["calendar-drafts-v1", "inventory-condition-drafts-v1"].contains(policy)
+        && Set(descriptor.payload.object.keys)
+          == ["policy", "workflow", "arguments", isCalendar ? "schedule" : "condition"],
       "automation_definition",
-      "An inert calendar-drafts-v1 definition needs exact workflow, arguments and schedule, without parameters."
+      "Use an exact workflow, arguments and one supported calendar or inventory condition, without parameters."
     )
     workflow = try DefinitionBinding(descriptor.payload["workflow"])
     try require(
       workflow.mode == "exact", "automation_binding", "Pin an exact saved workflow version.")
     arguments = descriptor.payload["arguments"]
-    schedule = try NativeCalendarSchedule(descriptor.payload["schedule"])
+    calendar = isCalendar ? try NativeCalendarSchedule(descriptor.payload["schedule"]) : nil
+    condition = isCalendar ? nil : try InventoryAutomationCondition(descriptor.payload["condition"])
   }
 }
 
@@ -63,6 +94,17 @@ extension Workbook {
           "Preview an exact saved automation version.")
         let descriptor = try DefinitionDescriptor(saved.content)
         let retained = try validateAutomationDefinition(descriptor, historical: true)
+        if let condition = try DefinitionAutomation(descriptor).condition {
+          return .object([
+            "automationID": .string(saved.id), "logicalID": .string(saved.logicalID),
+            "version": .number(Double(saved.version)), "sourceID": .string(saved.sourceID),
+            "workflowID": .string(retained.workflow.id), "arguments": retained.arguments,
+            "condition": .object(["subject": .string(condition.subject), "rule": condition.rule]),
+            "activation": try automationState(saved.id), "execution": .string("inert"),
+            "enabled": .bool(false), "baselinePolicy": .string("initial-enable-no-prior-crossing"),
+            "backlogPolicy": .string("resume-retains-explicit-from-now-dismisses"),
+          ])
+        }
         return .object([
           "automationID": .string(saved.id), "logicalID": .string(saved.logicalID),
           "version": .number(Double(saved.version)), "sourceID": .string(saved.sourceID),

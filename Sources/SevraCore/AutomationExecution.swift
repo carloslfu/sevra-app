@@ -65,9 +65,16 @@ extension Workbook {
     try session.deviceFence?()
     let activation = try automationSession(session.planning)
     try require(
-      activation["policy"] == .string("foreground-drafts-v1")
+      [.string("foreground-drafts-v1"), .string("condition-drafts-v1")].contains(
+        activation["policy"])
         && activation["allowAI"] == .bool(session.allowAI),
       "automation_authority", "Explicitly authorize the exact foreground execution scope.")
+    let condition = try DefinitionAutomation(
+      DefinitionDescriptor(applicationDefinition(activation["definition_id"].text).content)
+    ).condition
+    try require(
+      (condition != nil) == (activation["policy"] == .string("condition-drafts-v1")),
+      "automation_authority", "The execution policy does not match its exact trigger.")
     return activation
   }
 
@@ -125,7 +132,9 @@ extension Workbook {
     let observation = try AutomationTime.date(instant)
     let authority = session.planning
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
+    var prepared = false
     let fence: () throws -> Void = {
+      if prepared { AutomationPublicationProbe.observer?(.prepared, authority.activationID) }
       try control.check()
       _ = try self.automationExecutionSession(session)
       try control.check()
@@ -142,6 +151,9 @@ extension Workbook {
       commitGuard: fence
     ) {
       let activation = try self.automationExecutionSession(session)
+      try require(
+        activation["policy"] == .string("foreground-drafts-v1"),
+        "automation_trigger", "Dispatch condition candidates through their own exact trigger path.")
       try require(
         activation["catch_up_remaining"].int == 0, "automation_catch_up",
         "Complete bounded catch-up before dispatching a stale intermediate request.")
@@ -218,7 +230,7 @@ extension Workbook {
             try self.db.scalar("SELECT source_id FROM workflow_runs WHERE id=?", [.string($0)]).text
           })
         try self.db.execute(
-          "INSERT INTO automation_runs VALUES(?,?,?,?,?,?,?,?)",
+          "INSERT INTO automation_runs VALUES(?,?,?,?,?,?,?,?,NULL)",
           [
             pending["id"], activation["id"], .string(runID), activation["definition_id"],
             .string(authority.sourceID), .string(source), .number(Double(authority.generation)),
@@ -232,7 +244,7 @@ extension Workbook {
       try self.automationEvent(
         authority.activationID, generation: authority.generation,
         kind: late ? "dispatch_skipped" : "dispatched", source: source, scope: "foreground-drafts")
-      AutomationPublicationProbe.observer?(.prepared, authority.activationID)
+      prepared = true
       return .object([
         "status": .string(late ? "late" : "queued"), "occurrenceID": pending["id"],
         "runID": runID.map(Value.string) ?? .null, "sourceID": .string(source),
