@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-29T03:46:06.846712+00:00
+updated: 2026-10-29T04:06:11.366554+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -475,3 +475,6 @@ First pass, usability: raw workflow JSON caused repeated real-model invalid bind
 
 ## Document workflow review and qualification, October 28
 Usefulness pass: explicit prepare -> interpret -> propose -> review keeps the original and pins the exact parsed text. Transaction pass: extracting through the public multi-transaction intake API would split the workflow checkpoint; trusted insertIndex now shares the outer captured mutation instead. No workbook lock spans helper parsing. Adversarial pass: linked files require deliberate inclusion, competing index attempts fence old publication, stale/cancelled/expired claims roll back index/checkpoint, incomplete text pauses, later indexing cannot replace a prepared interpretation input, and copies grant no execution. Eight focused groups plus four new actual process-death boundaries and the packaged receiving flow pass. Initial schema17/SQL16 disagreement failed fresh fixtures and is corrected by one canonical interpolated version. Formatting and harness failures remain preserved. Full business journeys/accessibility/automation and production readiness remain open.
+
+## Conversation preparation failure review, October 28
+The actual V1 success still required three refused saves. Two treated parameter name evidence as a lineage item ID; explicit UUID validation and actionable authoring guidance preserve request lineage without accepting that mistake. V2 then failed by searching for native workflow starters among saved definitions. Tool descriptions and structured registry guidance distinguish the template call from saved data. Final V3 uses workflow_template and queues exactly one pending run; two malformed first-job saves remain visible in its evidence. Fullcore271, final grammar/reference/native/package/model checks and actual SQLite full/lock rollback pass. These are bounded synthetic functional results, not general reliability or instant interaction claims. Preserve the failed probes and improve from them rather than widen limits.

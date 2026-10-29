@@ -964,3 +964,12 @@ Reviewed document preparation workflow boundary for usefulness, atomic recovery 
 ## [2026-10-29 03:46] implementation | records/specs/manual-workflows.md
 Schema17 included-document preparation qualified:268 broad core groups,37 final focused workflows,13 process-death boundaries, native packaged prepare/interpret/propose/review/reconstruct; conversation preparation authoring and whole release remain open.
 
+## [2026-10-29 03:47] design | records/specs/manual-workflows.md
+Define conversation preparation authoring/template qualification: metadata-only saves, queued starts, exact current-run templates, unchanged grammar/prompt caps and independent actual-model saved-state assertions.
+
+## [2026-10-29 04:03] design | records/specs/manual-workflows.md
+Plan shared registered draft-document action for E3: required typed prose/evidence/meaning/scenario, generic native preview/review, atomic shared publication, preserved semantic provenance and explicit capability/intent checks. Not implemented.
+
+## [2026-10-29 04:06] implementation | records/specs/manual-workflows.md
+Conversation preparation qualified with preserved actual-model failures: final author/workflow/queue5/4/4 calls;271 core,63 grammars/534 masks, final native/package and actual SQLite full/busy retry pass. Registered document drafting remains next; whole app unfinished.
+

@@ -168,15 +168,21 @@ extension WorkbookTools {
         content = a["content"]
       }
       try require(
-        ["function", "query", "action", "form", "workflow", "interpretation"].contains(
-          content["kind"].text),
+        ["function", "query", "action", "form", "workflow", "interpretation", "extraction"]
+          .contains(
+            content["kind"].text),
         "definition_kind",
-        "Author functions, queries, actions, forms, interpretations or manual workflows.")
+        "Use content {kind,title,description,parameters,payload}. kind is function, query, action, form, interpretation, extraction or workflow. Inspect definition_registry for its payload."
+      )
       let token = try operationToken(tool, a)
       if a.object["inputs"] != nil {
         guard case .array(let values) = a["inputs"], values.allSatisfy({ $0.string != nil }) else {
           throw SevraError("arguments", "Authoring inputs must be exact item version strings.")
         }
+        try require(
+          values.allSatisfy { UUID(uuidString: $0.text) != nil }, "definition_input",
+          "Authoring inputs are exact existing item version IDs, never parameter names. Omit inputs when using only this request; request lineage is automatic."
+        )
       }
       try workbook.synchronized {
         try workbook.validateApplicationToolRun(
@@ -261,11 +267,20 @@ extension WorkbookTools {
   )
   static let definitionFormats: Value = .object([
     "content": .string(
-      "{kind:function|query|action|form|workflow|interpretation,title,description,parameters,payload}"
+      "{kind:function|query|action|form|workflow|interpretation|extraction,title,description,parameters,payload}"
     ),
     "parameters": .string(
       "Up to 32 {id,label,type,required,unit?,default?,choices?,min?,max?,fields?,maxEntries?}. Types: text,decimal,boolean,date,item,choice,entries. Decimals/bounds are strings. Item is an exact local version. Entries: fields plus maxEntries 1..50, one level only. Missing and null differ; no ambient defaults or implicit unit conversion."
     ),
+    "lineage": .string(
+      "Optional save inputs are exact existing business item version IDs, never parameter names. Omit for behavior based only on this request; request lineage is automatic."
+    ),
+    "templateTools": .object([
+      "workflow": .string(
+        "Call workflow_template with {id: exact saved behavior version ID, stepID: optional step name}. Then call save_template with {templateReceiptID: returned receiptID, title: desired workflow title}. Template starters are tools, not saved definitions to search for."
+      ),
+      "form": .string("Call form_template with a current action/workflow ID, then save_template."),
+    ]),
     "function": .string(
       "payload {expression,unit?,rounding?,calls:[]}; call {alias,binding,arguments}. Mappings are {parameter:id} or {literal:value,unit?}. Bindings are {mode:live,logicalID} or {mode:exact,versionID}. Bounded Decimal formulas only, no executable code."
     ),
@@ -282,8 +297,17 @@ extension WorkbookTools {
       "payload {action:binding OR workflow:binding,fields:[{parameter,label?,help?}]}; parameters match target. Use form_template. Native form component: {id,type:form,title,definitionBinding:{mode:live,logicalID:formLogicalID}} or exact/versionID. No datasetID/itemID/snapshot. Saving never executes."
     ),
     "workflow": .string(
-      "Use workflow_template(id,stepID?) -> save_template(receiptID,title?) for one saved behavior. Custom payload {readPolicy:latest-at-step,steps:[{id,kind:evaluate|interpret|action,binding:{mode:exact,versionID},arguments}|{id,kind:review,review:priorActionStepID}]}. 1..16 sequential steps; every action needs one later review. All dependencies exact. evaluate targets function/query; interpret targets interpretation; action targets action or action-backed form. Mappings: {parameter:id}, {literal:value,unit?}, prior scalar function {step:id,unit?}, or interpretation {step:id,field:outputID,unit?}. Signatures/units must match. start_workflow queues only; explicit continuation runs steps. No import/conditions/code."
+      "Use workflow_template(id,stepID?) -> save_template(receiptID,title?) for one saved behavior. Custom payload {readPolicy:latest-at-step,steps:[{id,kind:evaluate|interpret|extract|action,binding:{mode:exact,versionID},arguments}|{id,kind:review,review:priorActionStepID}]}. 1..16 sequential steps; every action needs one later review. All dependencies exact. evaluate targets function/query; interpret targets interpretation; extract targets extraction; action targets action or action-backed form. Mappings: {parameter:id}, {literal:value,unit?}, prior scalar function {step:id,unit?}, interpretation {step:id,field:outputID,unit?}, or extraction {step:id,field:item} to pin its exact retained text. Signatures/units must match. start_workflow queues only; explicit continuation runs steps. No ambient paths/conditions/code."
     ),
+    "extraction": .string(
+      "payload {parser:native-v1,file:requiredItemParameterID}; exactly one required item parameter without unit/default. Prepares an already included business file using the bounded native helper only during explicit extract workflow continuation. Linked files must be included first. Partial/unsupported/truncated text pauses. No model, folder/network access, business Record or acceptance. Saving/opening never parses."
+    ),
+    "extractionExample": .object([
+      "kind": .string("extraction"), "title": .string("Prepare receipt"),
+      "description": .string("Prepare an included document only when explicitly continued."),
+      "parameters": .array([ActionRegistry.field("evidence", "Evidence", "item")]),
+      "payload": .object(["parser": .string("native-v1"), "file": .string("evidence")]),
+    ]),
     "interpretation": .string(
       "payload {instruction,evidence:[requiredItemParameterID],outputs:[parameterField],meaning,scenario}. Up to8 exact business evidence items/64KiB retained input,1..32 typed outputs without defaults. Evidence must be required item parameters. meaning: actual|estimate|plan|commitment|rule|assumption. scenario explicit. Only an exact interpret workflow step invokes the installed local model; no tools, network, search or acceptance. Saves typed values/exact quotations or needs_input with issues, as a draft Record. Quotes establish attribution, not truth. Saving/opening never invokes AI."
     ),

@@ -199,6 +199,64 @@ func checkWorkflowExtractions(at root: URL) {
       try expect(try book.verify()["ok"] == .bool(true))
     }
   }
+  check("SQLite full during preparation publication preserves index and permits exact retry") {
+    let (book, item, session) = try fixture("SQLiteFull")
+    let old = try book.fileReferenceSet(item.id)
+    let (claim, request, _) = try prepared(book, session)
+    let result: Value = .object([
+      "request": request,
+      "result": try encoded(
+        ExtractionResult(
+          chunks: [Chunk(String(repeating: "Received5 bolts. ", count: 12_000))],
+          state: "ready", detail: "Synthetic page allocation pressure")),
+    ])
+    let revision = try book.revision()
+    let pageCount = try book.db.scalar("PRAGMA page_count").int!
+    let maximum = try book.db.scalar("PRAGMA max_page_count").int!
+    try book.db.execute("PRAGMA max_page_count=\(pageCount)")
+    defer { _ = try? book.db.execute("PRAGMA max_page_count=\(maximum)") }
+    do {
+      _ = try book.completeWorkflowStep(session, claim: claim, extraction: result)
+      throw SevraError("test", "SQLite page pressure did not refuse publication")
+    } catch let error as SevraError {
+      try expect(
+        error.code == "database" && error.message.contains("full"),
+        "Expected actual SQLITE_FULL: \(error)")
+    }
+    try expect(try book.revision() == revision)
+    try expect(try book.fileReferenceSet(item.id) == old)
+    try expect(try book.search("Prior").hits.count == 1)
+    try expect(try book.verify()["ok"] == .bool(true))
+    try book.db.execute("PRAGMA max_page_count=\(maximum)")
+    let done = try book.completeWorkflowStep(session, claim: claim, extraction: result)
+    try expect(done["state"] == .string("completed"))
+    try expect(try book.completeWorkflowStep(session, claim: claim, extraction: result) == done)
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check("a real competing SQLite writer refuses preparation without partial state or re-parsing") {
+    let (book, item, session) = try fixture("SQLiteBusy")
+    let old = try book.fileReferenceSet(item.id)
+    let (claim, _, result) = try prepared(book, session)
+    let revision = try book.revision()
+    let other = try Database(book.url.appendingPathComponent("workbook.sqlite"))
+    try other.execute("BEGIN IMMEDIATE")
+    defer { _ = try? other.execute("ROLLBACK") }
+    do {
+      _ = try book.completeWorkflowStep(session, claim: claim, extraction: result)
+      throw SevraError("test", "The competing writer did not refuse publication")
+    } catch let error as SevraError {
+      try expect(
+        error.code == "database" && error.message.contains("locked"),
+        "Expected real SQLite busy refusal: \(error)")
+    }
+    try expect(try book.revision() == revision)
+    try expect(try book.fileReferenceSet(item.id) == old)
+    try other.execute("ROLLBACK")
+    let done = try book.completeWorkflowStep(session, claim: claim, extraction: result)
+    try expect(done["state"] == .string("completed"))
+    try expect(try book.completeWorkflowStep(session, claim: claim, extraction: result) == done)
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
   check("document preparation refuses linked files and cannot start from saved metadata alone") {
     let (book, _, session) = try fixture("Linked", linked: true)
     let claim = try book.claimWorkflowStep(session, owner: "synthetic")

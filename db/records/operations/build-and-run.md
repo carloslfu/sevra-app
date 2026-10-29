@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T03:46:06.801755+00:00
+updated: 2026-10-29T04:06:11.337513+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1604,3 +1604,8 @@ Build sevra-agent-checks, then run .build/debug/sevra-agent-checks for scripted 
 Save an extraction definition through definition-save: kind extraction, exactly one required item parameter, payload {parser: native-v1, file: PARAMETER_ID}. Bind an exact workflow extract step to that definition. The file must already be included as a workbook business item; explicitly include linked files first. workflow-continue and native Continue run the bundled bounded helper without loading a model. workflow-advance alone refuses this asynchronous step. Ready/untruncated preparation returns itemID and exact retained extraction identity. Map {step: PREPARE_ID, field: item} into an interpretation item parameter; the model reads that exact snapshot rather than a later current index. Partial/unsupported/truncated parsing pauses for attention. No original file is deleted or inventory accepted. The baseline preserves its interpretation refusal.
 
 Build sevra-checks/sevra-product-checks/sevra-workflow-durability and run their focused workflow/lifecycle/process-death checks. The shared check suite includes these automatically. Final packaged prepare/interpret/propose/review/reconstruct proof is retained in [[records/operations/implementation]]. Conversation extraction authoring and structured-data/report workflow steps remain separate work.
+
+## Conversation preparation authoring checks
+The agent can find/read/save extraction definitions, make exact workflow_template starters and queue their workflows. Explicit Continue owns execution. Authoring inputs, when supplied, are exact existing item-version UUIDs; parameter names belong in parameters/payload, and current request lineage is automatic. Native template starters are tools, not saved definitions to search for.
+
+The sevra-agent-checks --preparation-authoring MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT mode runs actual native-model author/workflow/queue jobs. The directory must be new. It retains pre-inference source/runner identities, exact frames, messages, results and synthetic original/reconstructed workbooks. It independently checks metadata, queued pending state, no business Records and unchanged retained file text. Use the installed native model layout,32K and bounded512. The same runner keeps --interpretation-authoring. Functional times do not qualify performance. See [[records/specs/manual-workflows]] for retained failures and exact scope.

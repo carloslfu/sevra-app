@@ -76,15 +76,19 @@ extension Workbook {
     let target = try applicationDefinition(id)
     try require(
       target.id == id
-        && ["function", "query", "interpretation", "action", "form"].contains(target.kind),
-      "definition_kind", "Choose an exact function, query, interpretation or action/form version.")
+        && ["function", "query", "interpretation", "extraction", "action", "form"].contains(
+          target.kind),
+      "definition_kind",
+      "Choose an exact function, query, interpretation, extraction or action/form.")
     try require(
       try applicationDefinition(target.logicalID).id == target.id, "stale_definition",
       "Inspect the current target version before creating its workflow template.")
     let kind =
-      target.kind == "interpretation"
-      ? "interpret"
-      : ["function", "query"].contains(target.kind) ? "evaluate" : "action"
+      target.kind == "extraction"
+      ? "extract"
+      : target.kind == "interpretation"
+        ? "interpret"
+        : ["function", "query"].contains(target.kind) ? "evaluate" : "action"
     let name =
       stepID ?? (kind == "interpret" ? "read" : kind == "evaluate" ? "calculate" : "prepare")
     var steps: [Value] = [

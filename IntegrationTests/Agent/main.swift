@@ -324,11 +324,12 @@ do {
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6
-    && CommandLine.arguments[1] == "--interpretation-authoring"
+    && ["--interpretation-authoring", "--preparation-authoring"].contains(CommandLine.arguments[1])
   {
     try await runInterpretationAuthoringProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
-      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5],
+      preparation: CommandLine.arguments[1] == "--preparation-authoring")
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--interface-guidance" {
     try await runInterfaceGuidanceProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],

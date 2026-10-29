@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T03:46:06.862835+00:00
+updated: 2026-10-29T04:06:11.399872+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -12,6 +12,15 @@ title: Implementation and acceptance
 This is a working development build, not a qualified release. Requirements in the
 specifications remain the acceptance contract. A source commit does not imply that
 every requirement or supported hardware profile has passed.
+
+## Current status, October 28
+
+- Working development build, schema17. The native Swift/SwiftUI app and CLI use the pinned Python-free Splash C++/Metal candidate; Slotstream remains a separate preserved baseline. No production engine/performance adoption is claimed.
+- Native Home/spaces, search/extraction, managed data, reusable calculations/queries, inventory actions/forms, manual workflow Activity, explicit local AI interpretation and included-document preparation have scoped implementation proof. Conversation can author preparation/interpretation/workflows and queue runs; explicit Continue executes.
+- Latest fullcore271/0, final agent/grammar/native-package checks pass. Final grammar63 cases/534 masks stays at8183/8192. The earlier packaged prepare/interpret/propose/review/reconstruct flow and13 actual process-death boundaries apply to unchanged execution paths. Failed model probes and their corrections are preserved in the dated checkpoints below.
+- Next: implement registered draft-document actions through the same atomic action/form/workflow path, then finish receiving recovery/structured import boundaries. E4 triggers, E5 optional background helper and E6 portable applications remain open.
+- Other release gaps include contextual intake/Excel work continuity, full E0/E1/E2 journeys, voice/accessibility/appearance/media and supported hardware qualification, controlled performance/native adoption, signing/notarization and production distribution. The Mac is currently locked, so latest visible checks are blocked; automated work continues.
+- Specifications remain the acceptance contract. Dated sections below are historical scoped checkpoints, not whole-app readiness claims.
 
 ## Agent definitions and saved actions, checkpoint, October 28
 
@@ -5827,3 +5836,14 @@ Preserved failures include optional-chain compilation, schema constant17/SQL16 m
 Previous3d60b36 hosted CI40808719447 is fully green, including native document reflow. Authoring4de0dfe CI40811548594 is still building native products at this checkpoint; no current whole-CI pass is claimed. Dispatch a new exact-commit run after this push.
 
 Next qualify conversation preparation discovery/authoring and exact workflow templates within unchanged grammar/prompt budgets, then complete receiving recovery and report-creation/structured import boundaries. General business outbox effects, richer graphs, E4-E6, contextual Excel continuity, broad voice/accessibility/hardware, measured engine adoption and notarized release remain open. The active goal and whole app remain unfinished.
+
+## Conversation preparation checkpoint, October 28
+Conversation discovery/save now supports extraction. workflow_template makes an exact one-step extract workflow from the current saved behavior, and save_template revalidates this active request's successful receipt. Host-owned identities, stale edit checks and queued-only start semantics remain. Authoring/opening/reconstruction never parses a file or loads a model for preparation. Exact retained file text remains unchanged until explicit Continue.
+
+Fullcore271/0, focused workflows40/0, final scripted agent/compaction checks,63 actual grammars/534 pinned reference masks, strict7-file formatting, native release and installed-resource/refusal/signature checks pass. The maximum bare tool prompt is8183/8192 with no budget increase. A real SQLite full error during index publication preserves prior index/reference/revision; a competing SQLite writer does the same. Both accept exact retained-result retry afterward, with integrity passing. SQLite page-allocation exhaustion is scoped proof, not a whole-volume disk-full claim. The [conversation preparation receipt](../../../integration/evidence/2026-10-28-conversation-preparation.json.gz) preserves exact identities, failed probes and all121 prior immutable artifacts byte-identically.
+
+Final actual native-model V3 authors preparation, composes its exact workflow and queues it in5/4/4 calls (40.678/37.191/39.111s under development load). Independent metadata checks confirm native-v1, one required item parameter, exact extract binding, one pending queued run, no business Records and inert reconstruction with integrity passing. Its first job corrects two refused malformed saves. These are synthetic functional observations, not throughput or broad reliability qualification.
+
+V1 completed but required three refused saves, including parameter names supplied as lineage inputs. Authoring inputs now validate exact item-version UUIDs with actionable guidance; current request lineage is automatic. V2 authored the behavior but hit its step limit searching for built-in workflow starters as saved definitions. Nothing executed or created a business Record. Clarified tool descriptions and structured registry template guidance address that distinction. All failures remain retained. Fullcore271 precedes the final metadata-only guidance; final agent/grammar/reference/native/package/model checks cover it. The Mac remains locked, so no latest visible/VoiceOver/appearance proof is claimed. Unchanged13-boundary preparation recovery and packaged receiving/model evidence are reused. The whole app and full E3 remain unfinished.
+
+Hosted CI40811548594 for4de0dfe is fully green. Included-document3a2b25b CI40814006168 is still in progress at this checkpoint. Dispatch new exact-commit CI after this push. Next implement the registered document drafting contract in [[records/specs/manual-workflows]], sharing native action/form/workflow publication and generic review. Full receiving recovery, richer graphs/general effects, E4-E6, contextual Excel continuity, broad voice/accessibility/hardware and production engine/distribution gates remain open. The active goal is unfinished.

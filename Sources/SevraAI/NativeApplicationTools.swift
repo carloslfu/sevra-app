@@ -6,15 +6,16 @@ extension NativeTools {
     .init(
       name: "find_definitions",
       description:
-        "Find saved behavior, never evidence/permission.",
+        "Find saved definitions; starters use template tools.",
       parameters: object(
         [
           "query": schema("string", "Words in saved behavior; empty lists."),
           "kind": .object([
             "type": .string("string"),
             "enum": .array(
-              ["function", "query", "action", "form", "workflow", "interpretation"].map(
-                Value.string)),
+              ["function", "query", "action", "form", "workflow", "interpretation", "extraction"]
+                .map(
+                  Value.string)),
           ]),
           "historical": .object(["type": .string("boolean")]),
           "cursor": schema("string", "nextCursor; retain filters."),
@@ -27,7 +28,7 @@ extension NativeTools {
     .init(
       name: "definition_registry",
       description:
-        "Trusted primitives/formats; no execution.",
+        "Native primitives/formats; no execution.",
       parameters: object([:], required: [])),
     .init(
       name: "receiving_template",
@@ -42,10 +43,10 @@ extension NativeTools {
         ["id": schema("string", "Current action/workflow version.")], required: ["id"])),
     .init(
       name: "workflow_template",
-      description: "Workflow starter; use save_template.",
+      description: "Make workflow from behavior ID; then save_template.",
       parameters: object(
         [
-          "id": schema("string", "Exact current behavior version."),
+          "id": schema("string", "Current behavior version ID."),
           "stepID": schema("string", "Step identifier; max64 characters."),
         ], required: ["id"])),
     .init(
@@ -82,7 +83,7 @@ extension NativeTools {
     .init(
       name: "save_definition",
       description:
-        "Save custom behavior; read definition_registry. New: omit edit base. Templates: save_template.",
+        "Save behavior; inspect definition_registry. New: omit edit base. Templates: save_template.",
       parameters: object(
         [
           "expectedDefinitionID": schema(

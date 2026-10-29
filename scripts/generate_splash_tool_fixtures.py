@@ -85,6 +85,8 @@ for tool in tools:
     if name == 'find_definitions':
         interpretations = {'query': '', 'kind': 'interpretation'}
         outputs.append(('find_definitions_interpretation', xml(name, interpretations), interpretations))
+        extractions = {'query': '', 'kind': 'extraction'}
+        outputs.append(('find_definitions_extraction', xml(name, extractions), extractions))
     if name in ('save_space', 'edit_space'):
         for kind in ('calculation', 'query'):
             component = {'id': 'result', 'type': kind, 'title': 'Reusable result',

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T03:46:06.699851+00:00
+updated: 2026-10-29T04:06:11.307085+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -59,4 +59,4 @@ Current-format integrity and history remain required. The controlling decision i
 [[records/specs/distribution]] under Pre-1.0 compatibility policy.
 
 ## Manual workflow foundation
-[[records/specs/manual-workflows]] defines the schema17 manual execution boundary: exact typed sequential steps, saved evaluation outputs, inventory drafts and exact review waits, transactional checkpoints/outbox, worker fencing, explicit retry/cancel and inert reconstruction. Native Activity and recoverable workflow forms have scoped automated proof. Conversation workflow authoring, workflow forms and truthful queued starts also have scoped actual-model and automated proof. Explicit native AI interpretation now has core/CLI, conversation authoring/queueing, actual-model, process-death and focused earlier visible UI proof. Included-document preparation now has core/CLI, native coordinator, process-death and actual packaged-model proof. Conversation preparation authoring, structured row/Excel import, new report-creation steps, richer graphs, schedulers, background execution and full accessibility qualification remain open. This does not change the repository's working-development-build status.
+[[records/specs/manual-workflows]] defines the schema17 manual execution boundary: exact typed sequential steps, saved evaluation outputs, inventory drafts and exact review waits, transactional checkpoints/outbox, worker fencing, explicit retry/cancel and inert reconstruction. Native Activity and recoverable workflow forms have scoped automated proof. Conversation workflow authoring, workflow forms and truthful queued starts also have scoped actual-model and automated proof. Explicit native AI interpretation now has core/CLI, conversation authoring/queueing, actual-model, process-death and focused earlier visible UI proof. Included-document preparation now has core/CLI, native coordinator, process-death and actual packaged-model proof. Conversation preparation authoring/queueing now has scoped actual-model/grammar proof. Structured row/Excel import, new report-creation steps, richer graphs, schedulers, background execution and full accessibility qualification remain open. This does not change the repository's working-development-build status.

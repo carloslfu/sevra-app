@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T03:46:06.816656+00:00
+updated: 2026-10-29T04:06:11.351980+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -348,3 +348,6 @@ Conversation interpretation saves and exact workflow templates reuse schema16 ap
 
 ## Native preparation capture, schema17
 workflow_extraction_request captures exact included business item/asset/hash, definition/parser, actual worker executable digest, limits, read revision and attempt identity. No DB lock spans helper hashing/parsing. The same captured publication contains index/FTS/status/reference input+snapshot and workflow output/checkpoint/attempt/receipt/outbox, with final worker lease/cancel/extraction-owner fencing. Retry may repeat uncommitted parsing but returns the exact committed receipt. Retained extraction lineage remains independent of later current index changes. Thirteen actual SIGKILL boundaries,268 broad core groups,37 final focused workflow groups, async real-child lock/cancel checks and the final packaged-model receiving flow pass. Inert reconstruction preserves exact output and stock. No parallel ledger or sync semantics are introduced. See [[records/specs/manual-workflows]].
+
+## Conversation preparation and real SQLite failure checks
+Extraction authoring/templates use the same immutable application Sources, exact current-request lineage, saved receipts and committed-change ledger. Queueing remains inert. Final actual-model original/reconstructed packages verify with no business Records and unchanged retained file text. Actual SQLITE_FULL from a bounded max_page_count and SQLITE_BUSY from a second writer refuse preparation publication without changing index/reference/revision. Clearing the condition permits exact retained-result retry; no re-parsing or duplicate checkpoint is needed. Whole-volume filesystem exhaustion remains a separate release test. No new ledger or schema change beyond17. See [[records/specs/manual-workflows]].

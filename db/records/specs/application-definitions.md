@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T03:46:06.727968+00:00
+updated: 2026-10-29T04:06:11.292798+00:00
 summary: Schema16 definitions, interpretation authoring and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
@@ -610,4 +610,4 @@ A reusable interpretation declares bounded instruction text, required exact busi
 Core/CLI and conversation save_definition/find_definitions now author/discover interpretation with scoped grammar/model qualification in [[records/specs/manual-workflows]]. In-app creation omits expectedDefinitionID; editing supplies only its exact inspected base. The host derives identity. workflow_template copies exact validated behavior parameters/bindings for save_template without execution. Standalone evaluate_definition remains pure function/query evaluation. No implicit inference on discovery, opening, reconstruction or saved Home rendering.
 
 ## Native document preparation definitions, schema17
-extraction declares payload parser=native-v1 and file=the one required item parameter ID, without defaults or units. Exact extract workflow steps accept an included business file; no folder/path/network capability is granted. Map a completed extract output with {step: PREPARE_ID, field: item} to an interpretation item parameter to pin its exact retained extraction. Saving a definition never parses or invokes a model. Core/CLI preparation authoring and native execution have scoped proof in [[records/specs/manual-workflows]]. Conversation tools do not yet advertise this kind; workflow_template support and actual grammar/model authoring require separate qualification.
+extraction declares payload parser=native-v1 and file=the one required item parameter ID, without defaults or units. Exact extract workflow steps accept an included business file; no folder/path/network capability is granted. Map a completed extract output with {step: PREPARE_ID, field: item} to an interpretation item parameter to pin its exact retained extraction. Saving a definition never parses or invokes a model. Core/CLI preparation authoring and native execution have scoped proof in [[records/specs/manual-workflows]]. Conversation discovery/save and workflow_template now support extraction with scoped grammar/actual-model qualification in [[records/specs/manual-workflows]]. Authoring inputs are exact existing item-version UUIDs, not parameter names. Current request lineage is automatic; saving/queueing does not parse or execute.
