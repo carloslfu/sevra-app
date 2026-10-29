@@ -21,6 +21,9 @@ extension CLI {
     case "condition-state":
       try require(args.count == 3, "usage", "condition-state WORKBOOK CONSUMER_ID")
       return try book.inventoryCondition(args[2], cancellation: cancellation)
+    case "condition-origins":
+      try require(args.count == 3, "usage", "condition-origins WORKBOOK OBSERVATION_ID")
+      return try book.inventoryConditionOrigins(args[2], cancellation: cancellation)
     case "condition-inputs":
       try require(
         (3...5).contains(args.count), "usage",

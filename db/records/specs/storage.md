@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-29T15:27:11.999003+00:00
+updated: 2026-10-29T15:42:46.913975+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -570,3 +570,7 @@ The canonical development schema is27. lineage appends roles, a set encoded by d
 ## Bounded business-origin checkpoint, October 29
 
 Schema27 now has read-only business-origin inspection over complete sealed data/producer/revision links. Control-only configuration is visible separately and excluded from business traversal; registered automatic producer boundaries validate exact workflow/run/automation/admission history. Direct/manual producer arguments, actors and supported policies are checked. Final 499 core/74 focused groups, real item/edge/depth limits, lock cancellation, installed 42 origin/22 ancestry/21 admission calls and fresh native package checks pass. No independent-root policy or permission follows. Evidence, retained failures and exact limits: [[records/specs/business-provenance]]. Condition-window resolution, shared roots and current-grant candidate dispatch remain next; full app/release qualification remains open.
+
+## Exact condition-window origin checkpoint, October 29
+
+Read-only condition-origins now resolves exact complete retained changes/clock versions through the shared sealed business graph. It validates member count, identities, scope and observation coordinates; streams 100-entry pages; returns a canonical input-set digest; and preserves detailed condition-inputs navigation. Baseline/unknown-gap/overflow and excessive graph bounds refuse without changing numeric state. Final 41 focused groups, real input/graph bounds, installed 40 window/30 input/42 origin calls, strict seven-file lint, isolated skill validation and native package checks pass. The previous 499-group full checkpoint and unchanged writer/runtime proof are reused. All 148 prior artifacts remain unchanged. [[records/specs/business-provenance]] retains exact evidence, failures and limits. Shared independent roots and atomic current-grant candidate dispatch remain unimplemented; full app/release remains open.

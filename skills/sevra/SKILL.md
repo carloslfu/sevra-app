@@ -44,7 +44,13 @@ are not proof of independence or truth; conservative query populations are not
 minimal causes. Missing/corrupt provenance, unsupported producer metadata, cycles
 or limits refuse the whole inspection. The business inspector bounds 1,024 visited
 items, 4,096 inspected edges, depth 128, 8 MiB and a three-second cancellable snapshot.
-Condition-window origin resolution and automatic dispatch remain unfinished.
+`condition-origins PATH OBSERVATION_ID` resolves an exact complete condition
+change window through the same bounded graph. It validates every member across
+100-entry pages and returns an input-set digest; `condition-inputs` retains the
+detailed event/version/time pages. Baseline, unknown-gap or overflow coverage
+refuses. Large graphs also refuse while numeric state and input pages remain
+available. This establishes historical dependencies, with independent business
+roots and automatic dispatch still unfinished.
 
 ## Reusable definitions
 

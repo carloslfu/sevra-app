@@ -154,6 +154,9 @@ func checkConditionInputLimit(at root: URL) {
       exact["changeInputs"]["coverage"].text == "complete"
         && exact["changeInputs"]["overflow"] == .bool(false))
     try expect(try conditionInputPages(book, exact["id"].text).count == 10_000)
+    try refuses("condition_origin_limit") {
+      _ = try book.inventoryConditionOrigins(exact["id"].text)
+    }
     _ = try book.mutation("synthetic.input-limit-overflow") {
       for (n, old) in originals.enumerated() {
         _ = try book.insertMovement(
@@ -171,6 +174,9 @@ func checkConditionInputLimit(at root: URL) {
       overflow["changeInputs"]["coverage"].text == "limit-exceeded"
         && overflow["changeInputs"]["overflow"] == .bool(true))
     try expect(try conditionInputPages(book, overflow["id"].text).count == 10_000)
+    try refuses("condition_origin_coverage") {
+      _ = try book.inventoryConditionOrigins(overflow["id"].text)
+    }
     try expect(
       try book.db.scalar(
         "SELECT count(*) FROM condition_pending_inputs WHERE consumer_id=?", [.string(id)]

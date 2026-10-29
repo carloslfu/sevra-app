@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T15:27:12.131767+00:00
+updated: 2026-10-29T15:42:47.017760+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1773,3 +1773,9 @@ Focused core: `.build/debug/sevra-checks --derivation-roles`. Installed check: `
 Use `sevra business-origins WORKBOOK ITEM_ID [ITEM_ID...]` for one to 16 exact versions. It follows retained data, producer and revision links, shows controls separately and validates historical automatic producer/admission boundaries. The broader `automation-ancestry` inspector also includes configuration. Neither command grants permission or executes work. Original candidates are not proof of independence; query candidate populations are not minimal causes. Missing/corrupt metadata, unsupported policies, cycles or bounds refuse the whole response.
 
 The bounded inspector permits 1,024 visited items, 4,096 inspected edges including controls/boundary inputs, depth 128, 8 MiB and a three-second cancellable snapshot. Run `.build/debug/sevra-checks --business-origins` for its focused producer checks and `python3 scripts/check_business_origins.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json` for the installed fixture. Final 74 focused/499 full groups and 42 installed calls pass. This is schema27 development metadata, with no legacy adapter or automatic reset. Condition-window origin resolution and dispatch remain unfinished. Evidence: [[records/specs/business-provenance]].
+
+## Inspect exact condition-window origins
+
+`sevra condition-origins WORKBOOK OBSERVATION_ID` reads one exact completed window, validates every member and traces changed/activated versions through the shared business-origin graph. It returns coordinates, count, a canonical input-set digest and historical automatic producer IDs. Follow `condition-inputs` for detailed event/version/time pages. Baseline, unknown-gap, overflow or graph limits refuse explicitly. Numeric state and paginated inputs remain available; no read advances a candidate/cursor or grants execution. Original candidates are still not qualified independent roots.
+
+Run `.build/debug/sevra-checks --condition-origins` for 41 focused window/input/origin groups. `--condition-input-limit` includes the real 10,000/10,001 refusal counterexample. Installed proof: `python3 scripts/check_condition_origins.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`, covering 40 calls, 205 members, six readers, independent hashes and damaged-copy refusals. Shared roots and actual dispatch remain unfinished. See [[records/specs/business-provenance]].

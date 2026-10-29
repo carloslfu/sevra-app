@@ -1177,3 +1177,33 @@ Qualify bounded business origins: 499 core, 74 focused groups, installed 42 orig
 ## [2026-10-29 15:27] implementation | records/operations/build-and-run.md
 Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
 
+## [2026-10-29 15:31] design | records/specs/business-provenance.md
+Specify exact read-only condition-window origin resolution with bounded member validation, shared graph budgets and explicit coverage refusal.
+
+## [2026-10-29 15:42] implementation | records/specs/business-provenance.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/operations/implementation.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/overview/start-here.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/specs/condition-transition-inputs.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/operations/persistence-coverage.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/specs/storage.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/specs/automation-causality.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/specs/native-app-engine.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/operations/build-and-run.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+

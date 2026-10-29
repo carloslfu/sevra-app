@@ -52,6 +52,17 @@ let temp = FileManager.default.temporaryDirectory.appendingPathComponent(
   "sevra-checks-" + identifier())
 try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: temp) }
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--condition-origin-fixture" {
+  print(try createConditionOriginFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--condition-origins"] {
+  checkConditionOrigins(at: temp)
+  checkConditionInputs(at: temp)
+  checkBusinessOrigins(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.dropFirst() == ["--business-origins"] {
   checkBusinessOrigins(at: temp)
   checkAutomaticAncestry(at: temp)
@@ -1096,5 +1107,6 @@ checkAutomationCausality(at: temp)
 checkConditionInputs(at: temp)
 checkDerivationRoles(at: temp)
 checkBusinessOrigins(at: temp)
+checkConditionOrigins(at: temp)
 print("\(passed) passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

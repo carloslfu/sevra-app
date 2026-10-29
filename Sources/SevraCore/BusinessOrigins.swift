@@ -12,71 +12,80 @@ extension Workbook {
       "origin_input", "Inspect 1 to 16 exact item versions, each up to 256 UTF-8 bytes.")
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
     return try readBusinessFeed(cancellation: control) {
-      var report = BusinessOriginReport()
-      var queue = Array(Set(inputs)).sorted()
-      var discovered = Set(queue)
-      var index = 0
-      while index < queue.count {
-        try control.check()
-        let id = queue[index]
-        index += 1
-        let item = try businessOriginItem(id)
-        let edges = try businessOriginEdges(item, remaining: 4096 - report.edgeCount)
-        report.edgeCount += edges.count
-        let producer = try businessOriginProducer(
-          item, edges: edges, admissions: &report.admissions, cancellation: control)
-        if let producer {
-          try report.charge(producer)
-          report.graph.runs.append(producer)
+      try inspectBusinessOrigins(inputs: inputs, cancellation: control)
+    }
+  }
+
+  /// Shared only inside an already bounded snapshot. A complete condition
+  /// window can supply more exact starts than the public selection inspector.
+  func inspectBusinessOrigins(inputs: [String], cancellation: Cancellation) throws -> Value {
+    try require(
+      inputs.count <= 1024 && inputs.allSatisfy { !$0.isEmpty && $0.utf8.count <= 256 },
+      "origin_limit", "The complete business window exceeds 1,024 exact starting versions.")
+    var report = BusinessOriginReport()
+    var queue = Array(Set(inputs)).sorted()
+    var discovered = Set(queue)
+    var index = 0
+    while index < queue.count {
+      try cancellation.check()
+      let id = queue[index]
+      index += 1
+      let item = try businessOriginItem(id)
+      let edges = try businessOriginEdges(item, remaining: 4096 - report.edgeCount)
+      report.edgeCount += edges.count
+      let producer = try businessOriginProducer(
+        item, edges: edges, admissions: &report.admissions, cancellation: cancellation)
+      if let producer {
+        try report.charge(producer)
+        report.graph.runs.append(producer)
+      }
+      let business = edges.filter { ($0["roles"]!.int! & DerivationRole.business) != 0 }
+      report.graph.parents[id] = producer == nil ? Set(business.map { $0["parent"]!.text }) : []
+      for edge in edges {
+        try cancellation.check()
+        var fields = try ItemDerivation.publicEdge(edge).object
+        let follows = producer == nil && (edge["roles"]!.int! & DerivationRole.business) != 0
+        fields["traversed"] = .bool(follows)
+        let visible = Value.object(fields)
+        try report.charge(visible)
+        report.graph.edges.append(visible)
+        if (edge["roles"]!.int! & DerivationRole.control) != 0 {
+          let link: Value = .object([
+            "child": edge["child"]!, "parent": edge["parent"]!, "roles": fields["roles"]!,
+          ])
+          try report.charge(link)
+          report.controls.append(link)
         }
-        let business = edges.filter { ($0["roles"]!.int! & DerivationRole.business) != 0 }
-        report.graph.parents[id] = producer == nil ? Set(business.map { $0["parent"]!.text }) : []
-        for edge in edges {
-          try control.check()
-          var fields = try ItemDerivation.publicEdge(edge).object
-          let follows = producer == nil && (edge["roles"]!.int! & DerivationRole.business) != 0
-          fields["traversed"] = .bool(follows)
-          let visible = Value.object(fields)
-          try report.charge(visible)
-          report.graph.edges.append(visible)
-          if (edge["roles"]!.int! & DerivationRole.control) != 0 {
-            let link: Value = .object([
-              "child": edge["child"]!, "parent": edge["parent"]!, "roles": fields["roles"]!,
-            ])
-            try report.charge(link)
-            report.controls.append(link)
-          }
-          if follows, discovered.insert(edge["parent"]!.text).inserted {
-            try require(
-              discovered.count <= 1024, "origin_limit",
-              "The business graph exceeds 1,024 item versions. No partial origin was returned.")
-            queue.append(edge["parent"]!.text)
-          }
-        }
-        var summary = item
-        summary.removeValue(forKey: "derivation")
-        summary["automaticBoundary"] = .bool(producer != nil)
-        try report.charge(.object(summary))
-        report.items.append(.object(summary))
-        if producer == nil && business.isEmpty {
-          if item["category"] == .string("source") && edges.isEmpty
-            && !Item.technicalKinds.contains(item["kind"]!.text)
-          {
-            report.originals.append(.string(id))
-          } else {
-            report.unclassified.append(
-              .object([
-                "itemID": .string(id), "reason": .string("no-retained-business-inputs"),
-              ]))
-          }
+        if follows, discovered.insert(edge["parent"]!.text).inserted {
+          try require(
+            discovered.count <= 1024, "origin_limit",
+            "The business graph exceeds 1,024 item versions. No partial origin was returned.")
+          queue.append(edge["parent"]!.text)
         }
       }
-      let depth = try report.graph.depth(cancellation: control)
-      let result = report.value(workbookID: self.id, inputs: inputs, depth: depth)
-      try boundedBusinessOutput(result)
-      try control.check()
-      return result
+      var summary = item
+      summary.removeValue(forKey: "derivation")
+      summary["automaticBoundary"] = .bool(producer != nil)
+      try report.charge(.object(summary))
+      report.items.append(.object(summary))
+      if producer == nil && business.isEmpty {
+        if item["category"] == .string("source") && edges.isEmpty
+          && !Item.technicalKinds.contains(item["kind"]!.text)
+        {
+          report.originals.append(.string(id))
+        } else {
+          report.unclassified.append(
+            .object([
+              "itemID": .string(id), "reason": .string("no-retained-business-inputs"),
+            ]))
+        }
+      }
     }
+    let depth = try report.graph.depth(cancellation: cancellation)
+    let result = report.value(workbookID: self.id, inputs: inputs, depth: depth)
+    try boundedBusinessOutput(result)
+    try cancellation.check()
+    return result
   }
 
   private func businessOriginItem(_ id: String) throws -> [String: Value] {

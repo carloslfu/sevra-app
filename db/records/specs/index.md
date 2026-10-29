@@ -2,18 +2,18 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-29T15:27:12.098823Z
+updated: 2026-10-29T15:43:11.713877Z
 ---
 
 # records/specs
 
-- [[records/specs/automatic-ancestry]] — Schema 24 indexed workflow source identities and bounded automatic ancestry; synthetic acceptance preserves origin. Exact trigger causes and persisted dispatch admission remain required.
+- [[records/specs/condition-transition-inputs]] — Exact retained condition inputs now support bounded historical producer resolution. Complete windows, real limits and native CLI checks pass; independent roots and dispatch remain open.
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
 - [[records/specs/automation-causality]] — Schema 25 retains calendar roots and bounded trusted inherited admissions atomically. Condition cause discovery and dispatch remain required; scoped checks and failures are retained.
 - [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
-- [[records/specs/business-provenance]] — Schema27 sealed roles and bounded read-only business origins pass 499 core/74 focused groups and native CLI proof. Condition windows, independent roots and dispatch remain pending.
+- [[records/specs/business-provenance]] — Sealed business origins and exact complete condition windows have bounded native CLI/core proof. Independent roots and atomic current-grant dispatch remain pending.
+- [[records/specs/automatic-ancestry]] — Schema 24 indexed workflow source identities and bounded automatic ancestry; synthetic acceptance preserves origin. Exact trigger causes and persisted dispatch admission remain required.
 - [[records/specs/inventory-condition-consumers]] — Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
-- [[records/specs/condition-transition-inputs]] — Schema 26 retains exact condition change inputs across pages, clocks and unknown windows. Full470/0 and real10000/10001 bounds pass. Actual parent discovery and dispatch remain open.
 - [[records/specs/condition-transitions]] — Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.
 - [[records/specs/inventory-event-state]] — Reviewed historical inventory adapter: exact committed cutoff and explicit effective time, retained basis and settled effects, bounded read-only reconciliation, no condition execution.
 - [[records/specs/business-events]] — Reviewed schema22 semantic outbox over captured history: atomic settled versions, inventory basis and dataset membership/schema events, bounded indexed delivery and no execution authority.

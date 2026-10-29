@@ -2,14 +2,14 @@
 type: spec
 id: 01m63zpzv9f62m9b8qzm1d360d
 created: 2026-10-29T14:06:08.745428+00:00
-updated: 2026-10-29T14:25:09.674400+00:00
-summary: Schema 26 retains exact condition change inputs across pages, clocks and unknown windows. Full470/0 and real10000/10001 bounds pass. Actual parent discovery and dispatch remain open.
+updated: 2026-10-29T15:43:11.713877+00:00
+summary: Exact retained condition inputs now support bounded historical producer resolution. Complete windows, real limits and native CLI checks pass; independent roots and dispatch remain open.
 title: Exact condition transition change inputs
 status: implemented
 ---
 # Exact condition transition change inputs
 
-This E4 extension follows [[records/specs/inventory-condition-consumers]] and [[records/specs/automation-causality]]. It retains the exact scope-relevant changes between complete condition observations, before actual condition-parent discovery and dispatch. It is not a minimal cause set, a complete list of unchanged numeric contributors, an independent-business-root decision or execution authority.
+This E4 extension follows [[records/specs/inventory-condition-consumers]] and [[records/specs/automation-causality]]. It retains exact scope-relevant changes between complete condition observations. The later bounded condition-origins inspector now resolves historical business producers from complete windows; independent roots and actual dispatch remain separate. It is not a minimal cause set, a complete list of unchanged numeric contributors, an independent-business-root decision or execution authority.
 
 ## Meaning and UX
 
@@ -68,3 +68,7 @@ Evidence: [condition input receipt](../../../integration/evidence/2026-10-29-con
 Next: discover actual automatic contribution/control parents from these retained windows, define independent business roots without laundering unknown/overflow gaps, then atomically bind condition candidates to workflow runs through persisted admission and current physical-file grants. Native/conversational authoring and dataset-query adapters remain open. E5/E6, full E3, contextual/Excel/E0-E2 journeys, hardware and production signing/notarization/distribution are unfinished. The app and overall goal remain active.
 
 Publication recovery: the preceding exact head2baf12ae pushed successfully this turn; PR1 was refreshed and manual run40887294554 dispatched. It was in progress at receipt capture. Earlier09e6ca2 and6fb5eff CI passed. This source requires its own exact CI after commit. Final knowledge/link/diff checks and publication follow this receipt.
+
+## Exact condition-window origin checkpoint, October 29
+
+Read-only condition-origins now resolves exact complete retained changes/clock versions through the shared sealed business graph. It validates member count, identities, scope and observation coordinates; streams 100-entry pages; returns a canonical input-set digest; and preserves detailed condition-inputs navigation. Baseline/unknown-gap/overflow and excessive graph bounds refuse without changing numeric state. Final 41 focused groups, real input/graph bounds, installed 40 window/30 input/42 origin calls, strict seven-file lint, isolated skill validation and native package checks pass. The previous 499-group full checkpoint and unchanged writer/runtime proof are reused. All 148 prior artifacts remain unchanged. [[records/specs/business-provenance]] retains exact evidence, failures and limits. Shared independent roots and atomic current-grant candidate dispatch remain unimplemented; full app/release remains open.
