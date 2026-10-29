@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T07:08:10.456196+00:00
+updated: 2026-10-29T07:37:57.601293+00:00
 summary: Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
@@ -635,3 +635,7 @@ Interpretations returning needs_input preserve their original result and declare
 ## Native clarification controls
 
 Shared declared output types drive the native clarification editor. Raw incomplete values remain presentation data until complete typed preview and deliberate human submission. The original model result, meaning/scenario and evidence scope stay fixed. Reuse the exact core clarification operation and canonical receipt; no new definition kind or execution authority. Persistent input/lifecycle proof is scoped in [[records/specs/manual-workflows]].
+
+## Conversation answer preparation scope
+
+prepare_workflow_answer is offered only after a successful same-request read_workflow result with an exact clarification target. It is excluded from the default full tool prompt. Its required read receipt, complete typed values, per-field current-message quotations and explanation pass shared core validation before any presentation save. Existing nonempty native inputs refuse silent replacement. It cannot submit an answer or execute a workflow. See [[records/specs/manual-workflows]].

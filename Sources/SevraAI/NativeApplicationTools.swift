@@ -152,6 +152,26 @@ extension NativeTools {
           "arguments": .object(["type": .string("object")]),
         ], required: ["id", "arguments"])),
     .init(
+      name: "prepare_workflow_answer",
+      description:
+        "Prepare unsent answer from this message only. Native preview and human confirmation required. Never submit or continue.",
+      parameters: object(
+        [
+          "readReceiptID": schema(
+            "string", "This request's successful read_workflow receipt with clarification."),
+          "values": .object([
+            "type": .string("object"),
+            "description": .string("Complete typed declared outputs; no guesses."),
+          ]),
+          "quotes": .object([
+            "type": .string("object"),
+            "description": .string(
+              "Each value's field ID maps to its exact quotation from the current user message, never history/evidence."
+            ),
+          ]),
+          "reason": schema("string", "Explain supplied information; at most4096 UTF-8 bytes."),
+        ], required: ["readReceiptID", "values", "quotes", "reason"])),
+    .init(
       name: "prepare_action",
       description:
         "Preview, check directions and save drafts; never accept.",

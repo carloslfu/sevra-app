@@ -674,6 +674,13 @@ import SwiftUI
         self.refresh()
       }
       do {
+        guard await clarificationDrafts.flush() else {
+          throw SevraError(
+            "clarification_draft",
+            "Your workflow inputs could not be saved. Preserve them before sending another request."
+          )
+        }
+        try ticket.cancellation.check()
         let result = try await ProductAI.shared.run(
           input, workbook: book, conversation: chat, context: context, modelDirectory: path,
           cancellation: ticket.cancellation,
@@ -702,7 +709,13 @@ import SwiftUI
         if present, let focus = result.focus {
           switch focus.kind {
           case "space": navigate(.space(focus.id))
-          case "workflow": navigate(.workflow(focus.id))
+          case "workflow":
+            if let session = clarificationDrafts.session(focus.id) { await session.reloadSaved() }
+            guard owns(ticket, in: book), conversation == chat,
+              itemPreviewIdentity == expectedNavigationID,
+              conversationNavigationIdentity == conversationOrigin
+            else { return }
+            navigate(.workflow(focus.id))
           default: navigate(.item(focus.id))
           }
         }

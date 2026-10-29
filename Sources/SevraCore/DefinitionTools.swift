@@ -7,7 +7,7 @@ extension WorkbookTools {
     "form_template", "workflow_template", "evaluate_definition", "save_definition", "save_template",
     "preview_action",
     "commit_action_preview", "publish_result", "workflow_activity", "read_workflow",
-    "start_workflow",
+    "start_workflow", "prepare_workflow_answer",
   ]
 
   func executeApplicationTool(_ tool: String, _ a: Value, receiptID: String?) throws -> Value {
@@ -39,7 +39,30 @@ extension WorkbookTools {
         cancellation: cancellation)
     case "read_workflow":
       try fields(["id"], required: ["id"])
-      return try workbook.inspectWorkflow(string("id"), cancellation: cancellation)
+      return try workbook.synchronized {
+        try workbook.db.readTransaction {
+          let id = try string("id")
+          var result = try workbook.inspectWorkflow(id, cancellation: cancellation).object
+          result["clarification"] = try? workbook.workflowClarification(id)
+          result["receiptID"] = receiptID.map(Value.string) ?? .null
+          if result["clarification"] != nil {
+            result["clarificationNotice"] = .string(
+              "For an answer explicitly supplied in the current message, prepare_workflow_answer may prepare unsent typed inputs with exact current-message quotes. Ask about missing or ambiguous values. Only native human confirmation submits; reads and preparation never continue or accept."
+            )
+          }
+          return .object(result)
+        }
+      }
+    case "prepare_workflow_answer":
+      try fields(
+        ["readReceiptID", "values", "quotes", "reason"],
+        required: ["readReceiptID", "values", "quotes", "reason"])
+      return try workbook.prepareConversationWorkflowAnswer(
+        readReceiptID: string("readReceiptID"), values: a["values"], quotes: a["quotes"],
+        reason: string("reason"),
+        runID: runID, conversation: conversation, requestSourceID: requestSourceID,
+        readOnly: readOnly,
+        cancellation: cancellation)
     case "start_workflow":
       try fields(["id", "arguments"], required: ["id", "arguments"])
       return try workbook.startWorkflow(

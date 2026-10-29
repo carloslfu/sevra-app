@@ -75,7 +75,7 @@ extension Workbook {
   public func clarifyWorkflow(
     _ session: WorkflowExecutionSession, target: Value, values: Value, reason: String,
     token: String, actor: ChangeActor = .programmatic("SevraCore.workflowClarification"),
-    readOnly: Bool = false, cancellation: Cancellation = .init()
+    readOnly: Bool = false, preparation: Value? = nil, cancellation: Cancellation = .init()
   ) throws -> Value {
     try workflowSession(session)
     try workflowToken(token)
@@ -88,11 +88,13 @@ extension Workbook {
       !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         && reason.utf8.count <= 4096,
       "workflow_clarification", "Explain the supplied information in at most 4096 UTF-8 bytes.")
+    var arguments: [String: Value] = [
+      "target": target, "values": values, "reason": .string(reason), "actor": try encoded(actor),
+    ]
+    if let preparation { arguments["preparation"] = preparation }
     let result = try mutation(
       "workflow_clarification", token: token,
-      request: .object([
-        "target": target, "values": values, "reason": .string(reason), "actor": try encoded(actor),
-      ]), cancellation: cancellation, actor: actor
+      request: .object(arguments), cancellation: cancellation, actor: actor
     ) {
       let run = try self.workflowRun(session.runID)
       try require(
@@ -103,14 +105,22 @@ extension Workbook {
       let interpretation = try DefinitionInterpretation(DefinitionDescriptor(definition.content))
       let normalized = try self.clarificationValues(
         values, interpretation: interpretation, evidenceIDs: target["evidenceIDs"].array)
+      var inputIDs = [target["originalRecordID"].text]
+      var sourceData: [String: Value] = [
+        "target": target, "values": normalized, "reason": .string(reason),
+        "actor": try encoded(actor), "policy": .string("workflow-clarification-v1"),
+      ]
+      if let preparation {
+        try self.validateWorkflowAnswerPreparation(preparation, target: target)
+        inputIDs.append(preparation["requestSourceID"].text)
+        sourceData["preparation"] = preparation
+      }
       let source = try self.insertItem(
         category: "source", kind: "submission", title: "Clarification: " + definition.title,
         text: reason + "\n" + (try normalized.json()),
-        data: .object([
-          "target": target, "values": normalized, "reason": .string(reason),
-          "actor": try encoded(actor), "policy": .string("workflow-clarification-v1"),
-        ]), meaning: interpretation.meaning, status: "accepted", scenario: interpretation.scenario,
-        inputs: [target["originalRecordID"].text],
+        data: .object(sourceData), meaning: interpretation.meaning, status: "accepted",
+        scenario: interpretation.scenario,
+        inputs: inputIDs.sorted(),
         transformation: "workflow-clarification-submission-v1")
       let record = try self.insertItem(
         category: "record", kind: "interpretation_clarification", title: definition.title,
@@ -123,10 +133,12 @@ extension Workbook {
         inputs: [source, target["originalRecordID"].text, definition.sourceID].sorted(),
         transformation: "workflow-clarification-v1")
       var value = saved["output"]["value"].object
-      value["clarification"] = .object([
+      var supplied: [String: Value] = [
         "sourceID": .string(source), "recordID": .string(record), "values": normalized,
         "actor": try encoded(actor), "reason": .string(reason), "target": target,
-      ])
+      ]
+      if let preparation { supplied["preparation"] = preparation }
+      value["clarification"] = .object(supplied)
       var output = saved["output"].object
       output["value"] = .object(value)
       try require(
@@ -159,7 +171,8 @@ extension Workbook {
     let clarification = value["clarification"]
     guard clarification != .null else { return }
     let c = try definitionObject(
-      clarification, keys: ["sourceID", "recordID", "values", "actor", "reason", "target"])
+      clarification,
+      keys: ["sourceID", "recordID", "values", "actor", "reason", "target", "preparation"])
     let actor = try JSONDecoder().decode(
       ChangeActor.self, from: Data(clarification["actor"].json().utf8))
     try actor.validate()
@@ -177,19 +190,26 @@ extension Workbook {
     originalOutput["value"] = .object(originalValue)
     let expectedTarget = try workflowClarificationTarget(
       runID: runID, step: .object(["step_id": .string(stepID), "output": .object(originalOutput)]))
+    var expectedData: [String: Value] = [
+      "target": target, "values": normalized, "reason": clarification["reason"],
+      "actor": clarification["actor"], "policy": .string("workflow-clarification-v1"),
+    ]
+    var sourceInputs = [value["recordID"].text]
+    if let preparation = c["preparation"] {
+      try validateWorkflowAnswerPreparation(preparation, target: target)
+      expectedData["preparation"] = preparation
+      sourceInputs.append(preparation["requestSourceID"].text)
+    }
     try require(
-      c.count == 6 && actor.kind != "ai" && !clarification["reason"].text.isEmpty
+      c.count == (c["preparation"] == nil ? 6 : 7) && actor.kind != "ai"
+        && !clarification["reason"].text.isEmpty
         && clarification["reason"].text.utf8.count <= 4096
         && value["response"]["state"] == .string("needs_input")
         && target == expectedTarget
         && source.id == clarification["sourceID"].text && source.category == "source"
         && source.kind == "submission" && source.status == "accepted"
         && source.meaning == interpretation.meaning && source.scenario == interpretation.scenario
-        && source.data
-          == .object([
-            "target": target, "values": normalized, "reason": clarification["reason"],
-            "actor": clarification["actor"], "policy": .string("workflow-clarification-v1"),
-          ])
+        && source.data == .object(expectedData)
         && source.text == clarification["reason"].text + "\n" + (try normalized.json())
         && record.id == clarification["recordID"].text && record.category == "record"
         && record.kind == "interpretation_clarification" && record.status == "draft"
@@ -203,6 +223,13 @@ extension Workbook {
         && normalized == clarification["values"],
       "workflow_integrity",
       "The clarification lost its exact original output or supplied provenance.")
+    let sourceParents = try db.execute(
+      "SELECT parent FROM lineage WHERE child=?", [.string(source.id)]
+    )
+    .map { $0["parent"]!.text }
+    try require(
+      Set(sourceParents) == Set(sourceInputs), "workflow_integrity",
+      "The supplied information lost its exact request lineage.")
     let parents = try db.execute("SELECT parent FROM lineage WHERE child=?", [.string(record.id)])
       .map { $0["parent"]!.text }
     try require(

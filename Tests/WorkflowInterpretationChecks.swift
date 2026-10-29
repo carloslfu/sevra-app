@@ -199,6 +199,107 @@ func checkWorkflowInterpretations(at root: URL) {
     try expect(try book.verify()["ok"] == .bool(true) && copy.verify()["ok"] == .bool(true))
   }
   check(
+    "conversation preparation is unsent, request-bound, non-overwriting and retained through human edits"
+  ) {
+    let (book, session, original, _) = try paused("ConversationAnswer")
+    let prompt = "I counted 5 received bolts. Prepare my answer for review."
+    let active = try book.startAgentRequest(
+      prompt, conversation: "main", model: "synthetic-answer-preparation")
+    let source = try book.addItem(
+      category: "source", kind: "request", title: "Current submission", text: prompt,
+      data: .object(["messageID": .string(active.messageID), "conversationID": .string("main")]),
+      meaning: "plan", status: "accepted")
+    let tools = WorkbookTools(book, runID: active.runID, requestSourceID: source.id)
+    let read = try book.prepareToolCall(
+      runID: active.runID, callID: identifier(), tool: "read_workflow",
+      arguments: .object(["id": .string(session.runID)]))
+    let observed = try tools.execute(
+      "read_workflow", .object(["id": .string(session.runID)]), receiptID: read)
+    _ = try book.completeToolCall(read, result: observed)
+    let arguments: Value = .object([
+      "readReceiptID": .string(read), "values": .object(["quantity": .string("5.00")]),
+      "quotes": .object(["quantity": .string("I counted 5 received bolts.")]),
+      "reason": .string("Supplied in the current conversation message."),
+    ])
+    let before = try book.revision()
+    try refuses("read_only_request") {
+      _ = try WorkbookTools(book, runID: active.runID, requestSourceID: source.id, readOnly: true)
+        .execute("prepare_workflow_answer", arguments)
+    }
+    var bad = arguments.object
+    bad["quotes"] = .object(["quantity": .string("We received 50")])
+    try refuses("workflow_answer") {
+      _ = try tools.execute("prepare_workflow_answer", .object(bad))
+    }
+    bad = arguments.object
+    bad["readReceiptID"] = .string(identifier())
+    try refuses { _ = try tools.execute("prepare_workflow_answer", .object(bad)) }
+    let cancelled = Cancellation()
+    cancelled.cancel()
+    try refuses {
+      _ = try WorkbookTools(
+        book, runID: active.runID, cancellation: cancelled, requestSourceID: source.id
+      ).execute("prepare_workflow_answer", arguments)
+    }
+    try expect(try book.workflowClarificationDraft(session.runID) == nil)
+    let prepared = try tools.execute("prepare_workflow_answer", arguments)
+    try expect(prepared["state"] == .string("prepared_inputs"))
+    try expect(try book.revision() == before)
+    try expect(try book.workflowRun(session.runID) == original)
+    try expect(try tools.execute("prepare_workflow_answer", arguments) == prepared)
+    var draft = try book.workflowClarificationDraft(session.runID)!
+    let saved = draft
+    draft.entry.values = .object(["quantity": .string("6")])
+    draft.entry.reason = "I recounted: six bolts were received."
+    draft = try book.saveWorkflowClarificationDraft(session.runID, draft: draft, expected: saved)
+    try refuses("clarification_draft_conflict") {
+      _ = try tools.execute("prepare_workflow_answer", arguments)
+    }
+    let foreign = try book.startAgentRequest(
+      prompt, conversation: "main", model: "synthetic-foreign")
+    let foreignSource = try book.addItem(
+      category: "source", kind: "request", title: "Other submission", text: prompt,
+      data: .object(["messageID": .string(foreign.messageID), "conversationID": .string("main")]),
+      meaning: "plan", status: "accepted")
+    try refuses("workflow_answer") {
+      _ = try WorkbookTools(book, runID: foreign.runID, requestSourceID: foreignSource.id).execute(
+        "prepare_workflow_answer", arguments)
+    }
+    try book.finishAgentRun(active.runID, status: "complete", steps: 2, metrics: .array([]))
+    let preview = try book.previewWorkflowClarificationDraft(draft)
+    let historyBeforeHuman = try book.committedHistory()
+    try book.db.execute(
+      "CREATE TEMP TRIGGER conversation_answer_fault BEFORE INSERT ON workflow_outbox WHEN NEW.kind='clarified' BEGIN SELECT RAISE(ABORT,'conversation_answer_fault'); END"
+    )
+    try refuses { _ = try book.submitWorkflowClarificationDraft(draft, preview: preview) }
+    try book.db.execute("DROP TRIGGER conversation_answer_fault")
+    try expect(try book.committedHistory() == historyBeforeHuman)
+    try expect(try book.workflowRun(session.runID) == original)
+    try expect(try book.workflowClarificationDraft(session.runID) == draft)
+    let result = try book.submitWorkflowClarificationDraft(draft, preview: preview)
+    let supplied = try book.workflowRun(session.runID)["steps"].array[0]["output"]["value"][
+      "clarification"]
+    try expect(supplied["values"]["quantity"] == .string("6"))
+    try expect(supplied["preparation"]["values"]["quantity"] == .string("5"))
+    try expect(supplied["actor"]["kind"] == .string("human"))
+    try expect(
+      try book.lineage(result["sourceID"].text).contains { $0["parent"] == .string(source.id) })
+    try expect(try book.submitWorkflowClarificationDraft(draft, preview: preview) == result)
+    try refuses("action_run") { _ = try tools.execute("prepare_workflow_answer", arguments) }
+    var forged = draft
+    var forgedPreparation = forged.entry.preparation!.object
+    forgedPreparation["values"] = .object(["quantity": .string("99")])
+    forgedPreparation["quotes"] = .object(["quantity": .string("I counted 99 received bolts.")])
+    forged.entry.preparation = .object(forgedPreparation)
+    try refuses("workflow_answer") {
+      _ = try book.saveWorkflowClarificationDraft(session.runID, draft: forged, expected: draft)
+    }
+    let copy = try book.reconstruct(to: root.appendingPathComponent("ConversationAnswerCopy.sevra"))
+    try expect(try copy.workflowClarificationDraft(session.runID) == draft)
+    try expect(try copy.verify()["ok"] == .bool(true))
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check(
     "native clarification receipt stays bounded and cache cleanup never discards unsent alternatives"
   ) {
     let (book, session, _, _) = try paused("NativeDraftCache")

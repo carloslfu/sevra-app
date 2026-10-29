@@ -10,7 +10,9 @@ import SevraSplashText
 
 final class ToolPolicyChecks {
   func actualTools() throws -> Data {
-    let definitions: [[String: Any]] = try NativeTools.definitions.map {
+    let definitions: [[String: Any]] = try NativeTools.definitions.filter {
+      $0.name != "prepare_workflow_answer"
+    }.map {
       [
         "type": "function",
         "function": [
@@ -25,7 +27,7 @@ final class ToolPolicyChecks {
 
   func testActualWorkbookSchemas() throws {
     let policy = try SplashToolPolicy(toolsJSON: actualTools())
-    try expectEqual(policy.outputTools.count, NativeTools.definitions.count)
+    try expectEqual(policy.outputTools.count, NativeTools.definitions.count - 1)
     let normalized = try JSONSerialization.jsonObject(with: policy.toolsJSON) as! [[String: Any]]
     func function(_ name: String) -> [String: Any] {
       (normalized.first { ($0["function"] as! [String: Any])["name"] as? String == name }![
@@ -57,7 +59,7 @@ final class ToolPolicyChecks {
       try expectEqual(policy.toolsJSON, stored)
     }
     let prompt = try policy.promptTools()
-    try expectEqual(prompt.count, NativeTools.definitions.count)
+    try expectEqual(prompt.count, NativeTools.definitions.count - 1)
   }
 
   func candidate(_ name: String, _ fields: [(String, String)], policy: SplashToolPolicy) throws
@@ -272,6 +274,7 @@ do {
   try await checkMovementDirection()
   try await checkApplicationTools()
   try await checkWorkflowAgentTools()
+  try await checkWorkflowAnswerAgent()
   try await checkComputationTools()
   try await checkCitationVersions()
   try await checkActionConfirmations()

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-29T07:08:10.501129+00:00
+updated: 2026-10-29T07:37:57.616179+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -534,3 +534,7 @@ The canonical development schema is17. application_definitions admits extraction
 ## Workflow clarification presentation storage
 
 Current schema18 adds no canonical family for raw clarification inputs. meta keys prefixed workflow-clarification-draft: hold portable presentation state, bounded to1MB per run,128 cached runs,65,536 UTF-8 bytes of raw values,4096 bytes of explanation and eight alternatives. Saved targets are checked against their exact historical interpretation publication. A matching canonical operation supplies a six-field receipt projection; never duplicate the full run into this cache. Exact-baseline saves require explicit keep-both on conflict. At capacity evict only checkpoints for which every answer has an exact durable submission receipt, preserving all unsent alternatives and all canonical history. Presentation state does not advance business revision, enter authoritative change payloads or grant execution. Inert reconstruction copies it separately and validates it. See [[records/specs/manual-workflows]] and [[records/operations/persistence-coverage]].
+
+## Conversation preparation provenance
+
+An optional preparation value in the existing clarification presentation entry retains policy, original agent run/current request Source, exact workflow read receipt, normalized prepared values and exact current-submission quotations. Historical validation checks saved request/read bytes and target. Human edits retain this original preparation; canonical submission additionally retains the original prepared values and current request lineage beside the final confirmed values. No new physical schema, canonical family or ledger. Read-only/foreign/stale/fabricated evidence and silent replacement refuse. See [[records/specs/manual-workflows]].

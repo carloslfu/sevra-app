@@ -1012,3 +1012,12 @@ Native clarification editor and portable drafts, human submission, historical ta
 ## [2026-10-29 07:08] verification | records/specs/manual-workflows.md
 Frozen V9:302 core groups/0, headless preview, strict14-file Swift lint, native build/package/refusal/signature and27 deterministic calls. V8 overlapping build retained unqualified;129 prior evidence files unchanged. Receipt95f786f7c5397bd642ce1af32c2c28de58037101ac747e7624ccf6d9223314cd. Visible checks blocked by locked native UI; no ready claim.
 
+## [2026-10-29 07:13] design | records/specs/manual-workflows.md
+Three-pass conversation-answer preparation contract: exact current request/read receipt, unsent provenance and no silent replacement; contextual tools preserve full-prompt budget. Native confirmation remains separate.
+
+## [2026-10-29 07:37] implementation | records/specs/manual-workflows.md
+Contextual conversation preparation of unsent workflow answers, exact current-message/read-receipt provenance, typed normalization, original-versus-human-edited values, native reload and captured confirmation lineage. Voice/text confirmation remains open.
+
+## [2026-10-29 07:37] verification | records/specs/manual-workflows.md
+Frozen V6:65 focused workflow groups/0, scripted agent, headless preview, strict15 Swift files, native build/package/refusals/signature and30 actual packaged CLI calls/two cases. V5 grammar reused at matching hashes; budgets unchanged.130 preceding evidence artifacts unchanged. Receipt95a67530ff30a80da135c1fb55b7984e17f8dda88ca2bb8f0f5fc60d1bc1f506. Paused-versus-failed wording, post-reload cancellation guard, visible and release gates remain open.
+

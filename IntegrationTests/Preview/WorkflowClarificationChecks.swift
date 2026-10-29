@@ -289,6 +289,47 @@ private func clarificationFault(_ book: Workbook, _ sql: String) throws {
   try clarificationFault(book, "DROP TRIGGER fail_clarification_draft")
   try expectClarification(await scope.flush(), "Retry did not save retained input")
   _ = try book.verify()
+  let preparedRun = try start()
+  let preparedSession = scope.session(preparedRun)!
+  await preparedSession.open()
+  let message = "I counted 5 received bolts. Prepare my answer."
+  let agent = try book.startAgentRequest(
+    message, conversation: "main", model: "Synthetic preparation")
+  let requestSource = try book.addItem(
+    category: "source", kind: "request", title: "Synthetic current message", text: message,
+    data: .object(["messageID": .string(agent.messageID), "conversationID": .string("main")]),
+    meaning: "plan", status: "accepted")
+  let tools = WorkbookTools(book, runID: agent.runID, requestSourceID: requestSource.id)
+  let read = try book.prepareToolCall(
+    runID: agent.runID, callID: identifier(), tool: "read_workflow",
+    arguments: .object(["id": .string(preparedRun)]))
+  _ = try book.completeToolCall(
+    read,
+    result: tools.execute("read_workflow", .object(["id": .string(preparedRun)]), receiptID: read))
+  _ = try tools.execute(
+    "prepare_workflow_answer",
+    .object([
+      "readReceiptID": .string(read), "values": .object(["quantity": .string("5")]),
+      "quotes": .object(["quantity": .string("I counted 5 received bolts.")]),
+      "reason": .string("Current message."),
+    ]))
+  await preparedSession.reloadSaved()
+  try expectClarification(
+    preparedSession.state?.entry.values["quantity"] == .string("5"),
+    "Native session failed to reload prepared inputs")
+  try expectClarification(
+    preparedSession.state?.entry.preparation != nil, "Preparation provenance missing")
+  preparedSession.update(values: .object(["quantity": .string("6")]), reason: "I recounted six.")
+  await preparedSession.prepare()
+  await preparedSession.submit()
+  let preparedSupplied = try book.workflowRun(preparedRun)["steps"].array[0]["output"]["value"][
+    "clarification"]
+  try expectClarification(
+    preparedSupplied["values"]["quantity"] == .string("6")
+      && preparedSupplied["preparation"]["values"]["quantity"] == .string("5"),
+    "Human edits overwrote original AI preparation")
+  try expectClarification(
+    preparedSupplied["actor"]["kind"] == .string("human"), "Native submission lost human actor")
   print(
     "PASS native clarification inputs: incomplete/stale/reconstructed drafts, scoped evidence, zero/false, conflict/keep-both, exact receipt recovery, separate continuation, failed save/switch/quit gates"
   )

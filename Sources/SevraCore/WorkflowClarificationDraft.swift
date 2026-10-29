@@ -7,6 +7,7 @@ public struct WorkflowClarificationEntry: Codable, Equatable, Identifiable, Send
   public var reason = ""
   public let token: String
   public var receipt: Value?
+  public var preparation: Value?
   public init(target: Value) {
     id = identifier()
     self.target = target
@@ -64,13 +65,14 @@ extension Workbook {
         ).first
       else { return nil }
       let arguments = try Value.parse(saved["request"]!.text)["arguments"]
+      var expected: [String: Value] = [
+        "target": entry.target, "values": entry.values, "reason": .string(entry.reason),
+        "actor": try encoded(WorkflowClarificationDraft.nativeActor),
+      ]
+      if let preparation = entry.preparation { expected["preparation"] = preparation }
       try require(
         saved["kind"] == .string("workflow_clarification")
-          && arguments
-            == .object([
-              "target": entry.target, "values": entry.values, "reason": .string(entry.reason),
-              "actor": try encoded(WorkflowClarificationDraft.nativeActor),
-            ]),
+          && arguments == .object(expected),
         "clarification_draft_token",
         "This retry identity belongs to different supplied information.")
       return try clarificationDraftReceipt(Value.parse(saved["result"]!.text), entry: entry)
@@ -102,6 +104,9 @@ extension Workbook {
       "clarification_draft_limit", "Keep at most eight distinct saved alternatives.")
     for entry in entries {
       try checkClarificationDraftTarget(entry.target)
+      if let preparation = entry.preparation {
+        try validateWorkflowAnswerPreparation(preparation, target: entry.target)
+      }
       let fields = Set(entry.target["fields"].array.map { $0["id"].text })
       guard UUID(uuidString: entry.id) != nil, UUID(uuidString: entry.token) != nil,
         entry.target["runID"] == .string(runID), case .object(let values) = entry.values,
@@ -148,68 +153,78 @@ extension Workbook {
     keepOther: Bool = false
   ) throws -> WorkflowClarificationDraft {
     try presentationMutation {
-      let current = try workflowClarificationDraft(runID)
-      try require(
-        current == expected || current == draft || keepOther, "clarification_draft_conflict",
-        "Another window changed these inputs. Keep both drafts before continuing.")
-      var saved = draft
-      if keepOther, let current, current != expected && current != draft {
-        let candidates = [current.entry] + current.alternatives + saved.alternatives
-        if saved.entry.receipt == nil {
-          var replacement = WorkflowClarificationEntry(target: saved.entry.target)
-          replacement.values = saved.entry.values
-          replacement.reason = saved.entry.reason
-          saved.entry = replacement
-        }
-        saved.alternatives = []
-        for var candidate in candidates {
-          if candidate == saved.entry || saved.alternatives.contains(candidate) { continue }
-          if candidate.receipt == nil {
-            do {
-              candidate.receipt = try workflowClarificationDraftReceipt(candidate)
-            } catch let error as SevraError where error.code == "clarification_draft_token" {
-              // Another window submitted different values under this former
-              // draft identity. Preserve these unsent values with a fresh token.
-              var replacement = WorkflowClarificationEntry(target: candidate.target)
-              replacement.values = candidate.values
-              replacement.reason = candidate.reason
-              candidate = replacement
-            }
-          }
-          if candidate == saved.entry || saved.alternatives.contains(candidate) { continue }
-          let entries = [saved.entry] + saved.alternatives
-          if entries.contains(where: { $0.id == candidate.id || $0.token == candidate.token }) {
-            try require(
-              candidate.receipt == nil, "clarification_draft_conflict",
-              "A saved receipt cannot share a retry identity with different inputs.")
+      try saveClarificationDraft(runID, draft: draft, expected: expected, keepOther: keepOther)
+    }
+  }
+
+  func saveClarificationDraft(
+    _ runID: String, draft: WorkflowClarificationDraft, expected: WorkflowClarificationDraft?,
+    keepOther: Bool
+  ) throws -> WorkflowClarificationDraft {
+    let current = try workflowClarificationDraft(runID)
+    try require(
+      current == expected || current == draft || keepOther, "clarification_draft_conflict",
+      "Another window changed these inputs. Keep both drafts before continuing.")
+    var saved = draft
+    if keepOther, let current, current != expected && current != draft {
+      let candidates = [current.entry] + current.alternatives + saved.alternatives
+      if saved.entry.receipt == nil {
+        var replacement = WorkflowClarificationEntry(target: saved.entry.target)
+        replacement.values = saved.entry.values
+        replacement.reason = saved.entry.reason
+        replacement.preparation = saved.entry.preparation
+        saved.entry = replacement
+      }
+      saved.alternatives = []
+      for var candidate in candidates {
+        if candidate == saved.entry || saved.alternatives.contains(candidate) { continue }
+        if candidate.receipt == nil {
+          do {
+            candidate.receipt = try workflowClarificationDraftReceipt(candidate)
+          } catch let error as SevraError where error.code == "clarification_draft_token" {
+            // Another window submitted different values under this former
+            // draft identity. Preserve these unsent values with a fresh token.
             var replacement = WorkflowClarificationEntry(target: candidate.target)
             replacement.values = candidate.values
             replacement.reason = candidate.reason
+            replacement.preparation = candidate.preparation
             candidate = replacement
           }
-          saved.alternatives.append(candidate)
         }
+        if candidate == saved.entry || saved.alternatives.contains(candidate) { continue }
+        let entries = [saved.entry] + saved.alternatives
+        if entries.contains(where: { $0.id == candidate.id || $0.token == candidate.token }) {
+          try require(
+            candidate.receipt == nil, "clarification_draft_conflict",
+            "A saved receipt cannot share a retry identity with different inputs.")
+          var replacement = WorkflowClarificationEntry(target: candidate.target)
+          replacement.values = candidate.values
+          replacement.reason = candidate.reason
+          replacement.preparation = candidate.preparation
+          candidate = replacement
+        }
+        saved.alternatives.append(candidate)
       }
-      try validateClarificationDraft(saved, runID: runID)
-      let raw = try encoded(saved).json()
-      try require(raw.utf8.count <= 1_000_000, "clarification_draft_limit", "Drafts exceed 1 MB.")
-      let key = try clarificationDraftKey(runID)
-      if current == nil {
-        let count =
-          try db.scalar(
-            "SELECT count(*) FROM meta WHERE key LIKE 'workflow-clarification-draft:%'"
-          ).int ?? 0
-        try require(
-          count < 128 || pruneSubmittedClarificationDrafts(limit: 1) == 1,
-          "clarification_draft_limit",
-          "This workbook already has 128 drafts with unsent answers. Preserve or finish those inputs before adding another."
-        )
-      }
-      try db.execute(
-        "INSERT INTO meta(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
-        [.string(key), .string(raw)])
-      return saved
     }
+    try validateClarificationDraft(saved, runID: runID)
+    let raw = try encoded(saved).json()
+    try require(raw.utf8.count <= 1_000_000, "clarification_draft_limit", "Drafts exceed 1 MB.")
+    let key = try clarificationDraftKey(runID)
+    if current == nil {
+      let count =
+        try db.scalar(
+          "SELECT count(*) FROM meta WHERE key LIKE 'workflow-clarification-draft:%'"
+        ).int ?? 0
+      try require(
+        count < 128 || pruneSubmittedClarificationDrafts(limit: 1) == 1,
+        "clarification_draft_limit",
+        "This workbook already has 128 drafts with unsent answers. Preserve or finish those inputs before adding another."
+      )
+    }
+    try db.execute(
+      "INSERT INTO meta(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+      [.string(key), .string(raw)])
+    return saved
   }
 
   public func previewWorkflowClarificationDraft(_ draft: WorkflowClarificationDraft) throws -> Value
@@ -252,7 +267,8 @@ extension Workbook {
     let result = try clarifyWorkflow(
       authorizeWorkflowExecution(draft.entry.target["runID"].text), target: draft.entry.target,
       values: draft.entry.values, reason: draft.entry.reason, token: draft.entry.token,
-      actor: WorkflowClarificationDraft.nativeActor, cancellation: cancellation)
+      actor: WorkflowClarificationDraft.nativeActor, preparation: draft.entry.preparation,
+      cancellation: cancellation)
     return try clarificationDraftReceipt(result, entry: draft.entry)
   }
 

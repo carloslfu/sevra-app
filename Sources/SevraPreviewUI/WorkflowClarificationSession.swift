@@ -40,6 +40,13 @@ import SevraCore
       _ = await flush()
     } catch { fail(error) }
   }
+  public func reloadSaved() async {
+    guard !busy, await flush() else { return }
+    state = nil
+    baseline = nil
+    preview = nil
+    await open()
+  }
   public func refreshTarget() async {
     let request = UUID()
     targetRequest = request

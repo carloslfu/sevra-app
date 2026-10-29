@@ -1,11 +1,42 @@
 import Foundation
+import SevraAI
 import SevraCore
+import SevraNativeAI
 import SevraSplash
 import SevraSplashGrammar
 import SevraSplashText
 
 func checkInterpretationGrammar(frontend: SplashTextFrontend, factory: SplashGrammarFactory) throws
 {
+  var answerPromptTokens = 0
+  for thinking in [false, true] {
+    let answerPolicy = try NativeCitationPolicy.make(
+      [], toolScope: .workflowAnswer, thinking: thinking)
+    let parser = try SplashOutputParser(tools: answerPolicy.outputTools)
+    // XML parameters use the same sorted order as the native tool grammar.
+    let body =
+      "<tool_call>\n<function=prepare_workflow_answer>\n<parameter=quotes>\n{\"quantity\":\"I counted 5 received bolts.\"}\n</parameter>\n<parameter=readReceiptID>\nread-receipt\n</parameter>\n<parameter=reason>\nSupplied in the current message.\n</parameter>\n<parameter=values>\n{\"quantity\":\"5\"}\n</parameter>\n</function>\n</tool_call>"
+    let answer = (thinking ? "Inspect the current submission.</think>" : "") + body
+    let grammar = try factory.create(grammar: answerPolicy.grammar)
+    try grammar.finish(committed: frontend.encode(answer), requireComplete: true)
+    _ = try parser.append(body)
+    try answerPolicy.validate(expectValue(parser.finish(.stop).0.calls.first))
+    let invalid = body.replacingOccurrences(
+      of: "<parameter=readReceiptID>\nread-receipt\n</parameter>\n", with: "")
+    let refused = try factory.create(grammar: answerPolicy.grammar)
+    try expectThrows(
+      try refused.finish(
+        committed: frontend.encode((thinking ? "Inspect.</think>" : "") + invalid),
+        requireComplete: true))
+    let prompt = try frontend.prepare(
+      messages: [["role": "user", "content": "Prepare my answer."]],
+      tools: answerPolicy.promptTools(), thinking: thinking, contextLimit: 65536)
+    answerPromptTokens = max(answerPromptTokens, prompt.tokens.count)
+    try expectEqual(prompt.tokens.count <= 8192, true)
+  }
+  print(
+    "PASS contextual workflow answer grammar/validation and missing-receipt refusal with reasoning on/off, largest tool prompt \(answerPromptTokens)/8192"
+  )
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "interpretation-grammar-" + identifier() + ".sevra")
   defer { try? FileManager.default.removeItem(at: root) }

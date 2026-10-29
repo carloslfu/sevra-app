@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T07:08:10.486024+00:00
+updated: 2026-10-29T07:37:57.631395+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -378,3 +378,7 @@ No new canonical family or physical schema. The existing captured mutation atomi
 ## Clarification presentation checkpoints
 
 WorkflowClarificationDraft stores bounded raw values, explanation, exact historical target/retry identity, a small receipt projection and up to eight alternatives under meta workflow-clarification-draft:RUN_ID. ChangeFormat excludes this prefix from authoritative payloads/digests; presentationMutation uses exact-baseline compare-and-save. Reconstruction copies the checkpoint separately and Assets verification validates targets against retained historical publication receipts. Exact canonical operations recover missing presentation acknowledgement. At128 cached runs only wholly submitted checkpoints may be pruned; every unsent alternative and canonical history is retained. Headless fault/switch/quit, cross-window conflict, stale/reconstructed draft and submission-recovery checks plus302 core groups pass. This is local presentation persistence, not sync or a new ledger. See [[records/specs/manual-workflows]].
+
+## Conversation answer preparation persistence
+
+The existing portable clarification checkpoint now retains optional exact current-request/read-receipt preparation provenance. Shared presentation transactions compare/save it without business revision. Human edits keep original prepared values; captured canonical clarification submission retains final values plus both original model and current request Source lineage. A synthetic outbox trigger fault proves rollback and retry; inert reconstruction validates retained metadata. Scoped65-group/session/agent and30-call actual packaged-model proof is in [[records/specs/manual-workflows]]. This adds no new schema family or ledger.

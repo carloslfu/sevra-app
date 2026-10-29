@@ -15,6 +15,21 @@ struct WorkflowClarificationView: View {
         Text(target["title"].text).font(.callout.weight(.medium))
         Text("Meaning: " + target["meaning"].text + " · Scenario: " + target["scenario"].text)
           .font(.caption).foregroundStyle(.secondary)
+        if let preparation = state.entry.preparation {
+          Text("AI prepared these inputs from your message. Check every value before saving.")
+            .font(.callout).foregroundStyle(.secondary)
+          ForEach(preparation["quotes"].object.keys.sorted(), id: \.self) { field in
+            let label =
+              target["fields"].array.first { $0["id"].text == field }?["label"].text ?? field
+            Text(label + ": “" + preparation["quotes"][field].text + "”")
+              .font(.caption).textSelection(.enabled)
+          }
+          DisclosureGroup("Original prepared answer") {
+            WorkflowInputsView(
+              parameters: target["fields"].array, arguments: preparation["values"],
+              workspace: workspace)
+          }
+        }
         ForEach(target["issues"].array, id: \.text) { issue in Text(issue.text) }
         if state.entry.receipt != nil {
           Label("Your information was saved", systemImage: "checkmark.circle")

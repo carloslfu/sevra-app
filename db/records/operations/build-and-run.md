@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T07:08:10.531545+00:00
+updated: 2026-10-29T07:37:57.646747+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1637,3 +1637,7 @@ After building sevra-workflow-durability, run python3 scripts/check_workflow_cla
 ## Native clarification verification
 
 Freeze all Swift sources before builds. Sequentially run swift build --product sevra-preview-checks, .build/debug/sevra-preview-checks, swift build --product sevra-checks, .build/debug/sevra-checks, scripts/build_native.sh, python3 scripts/check_native_package.py --paths-only and swift build --product sevra-workflow-durability. Then run python3 scripts/check_workflow_clarification.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --skip-crashes --output NEW_DIRECTORY. The new headless native checks cover incomplete/stale input, original-evidence scope, cross-window alternatives, exact receipt recovery, and failed-save switch/quit gates. Core checks cover bounded receipt/cache retention. V9 frozen proof passes302 core groups and27 deterministic calls; latest visible editor/keyboard/VoiceOver/appearance checks remain open. Reuse unchanged actual-model and process-death evidence only when its code boundary is unchanged. Full details: [[records/specs/manual-workflows]].
+
+## Conversation answer preparation verification
+
+Run the existing focused workflow, agent, native grammar and headless preview harnesses after freezing all changed Swift sources. Build/package sequentially, then run python3 scripts/check_conversation_workflow_answer.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --model-root .build/native-fresh-setup --output NEW_DIRECTORY. Model weights must already be installed; the script performs no hidden download. Do not rebuild/replace native products during inference or run simultaneous GPU jobs. It records source/product identities, uses disclosed synthetic paused interpretation fixtures, tests actual current-message preparation plus a read-only counterexample, and verifies unchanged runs/balances and inert copies. It does not confirm, continue or accept inputs. Final V6 passes30 CLI calls/two cases. Voice/text confirmation and latest visible checks remain open. See [[records/specs/manual-workflows]].

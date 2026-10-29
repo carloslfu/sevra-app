@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T07:08:10.441194+00:00
+updated: 2026-10-29T07:37:57.586144+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -667,3 +667,7 @@ E3 core/CLI now supports explicit typed clarification against an exact paused in
 ## Persistent native workflow answers
 
 Native Activity now adds typed input, exact original-evidence choices, preview and explicit human submission for paused interpretations. Window-owned presentation checkpoints preserve incomplete/stale alternatives, refuse silent conflicts and failed-save abandonment, and recover exact submission receipts. This has scoped headless/core/package proof, not current visible or conversation/voice qualification. See [[records/specs/manual-workflows]] for exact acceptance evidence and limits.
+
+## Contextual conversation workflow answers
+
+After an exact same-request workflow read, a contextual tool can prepare unsent typed inputs from byte-exact quotations in the current submission. It cannot confirm, continue or accept. Native reload preserves local edits; the editor shows original AI preparation separately from final human-confirmed values. Focused core/agent/session/package and actual-model proof is scoped in [[records/specs/manual-workflows]]. Voice/text confirmation, post-reload focus guard and paused-state wording remain follow-ups.

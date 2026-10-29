@@ -337,7 +337,7 @@ public enum WorkbookAgent {
           toolScope.allows(tool), "tool_scope",
           "The model did not perform the required evidence inspection. No action from this response was applied."
         )
-        nextToolScope = .all
+        nextToolScope = toolScope == .workflowAnswer ? .workflowAnswer : .all
         let action: Value = .object(["tool": .string(tool), "arguments": a])
         messages.append(
           InferenceMessage(
@@ -1046,6 +1046,26 @@ public enum WorkbookAgent {
           return AgentResult(
             answer: receipt, citations: proposals.map(\.id), steps: step, state: "needs_review",
             focus: AgentFocus(kind: "item", id: proposals[0].id))
+        }
+        if tool == "read_workflow", !callFailed, result["clarification"] != .null, !readOnly,
+          handoff == nil
+        {
+          nextToolScope = .workflowAnswer
+        }
+        if tool == "prepare_workflow_answer", !callFailed {
+          let receipt =
+            "Prepared an unsent answer from your current message. Open the workflow to preview the values and confirm them yourself. The paused interpretation and business balances are unchanged."
+          _ = try workbook.addMessage(
+            receipt, role: "assistant", conversation: conversation,
+            payload: .object([
+              "kind": .string("workflow_answer_prepared"), "workflowRunID": result["workflowRunID"],
+              "entryID": result["entryID"], "receiptID": .string(receiptID),
+            ]))
+          try workbook.finishAgentRun(
+            runID, status: "complete", steps: step, metrics: .array(metrics))
+          return AgentResult(
+            answer: receipt, citations: [], steps: step, state: "complete",
+            focus: AgentFocus(kind: "workflow", id: result["workflowRunID"].text))
         }
         if tool == "start_workflow", !callFailed {
           let saved = try workbook.workflowRun(result["id"].text)
