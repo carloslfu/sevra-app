@@ -52,6 +52,20 @@ let temp = FileManager.default.temporaryDirectory.appendingPathComponent(
   "sevra-checks-" + identifier())
 try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: temp) }
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--condition-inputs-fixture" {
+  print(try createConditionInputFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--condition-inputs"] {
+  checkConditionInputs(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--condition-input-limit"] {
+  checkConditionInputLimit(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--automation-causality-fixture"
 {
   print(
@@ -1063,5 +1077,6 @@ checkAutomationDefinitions(at: temp)
 checkAutomationPlanning(at: temp)
 checkAutomationExecution(at: temp)
 checkAutomationCausality(at: temp)
+checkConditionInputs(at: temp)
 print("\(passed) passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

@@ -105,7 +105,7 @@ import SevraProduct
     }
     if [
       "condition-create", "condition-step", "condition-state", "condition-observations",
-      "condition-dismiss",
+      "condition-dismiss", "condition-inputs",
     ].contains(command) {
       return try runInventoryCondition(args, book: book, cancellation: cancellation)
     }
@@ -747,6 +747,7 @@ import SevraProduct
     automation-ancestry WORKBOOK ITEM_ID [ITEM_ID...]
     automation-causality WORKBOOK RUN_ID
     condition-observations WORKBOOK CONSUMER_ID [AFTER_ID|-] [LIMIT]
+    condition-inputs WORKBOOK OBSERVATION_ID [AFTER_INPUT_ID|-] [LIMIT]
     condition-dismiss WORKBOOK CANDIDATE_ID REASON TOKEN
     table-schema WORKBOOK DATASET_ID
     table-schema-history WORKBOOK DATASET_ID [BEFORE_VERSION]

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T13:51:24.650643+00:00
+updated: 2026-10-29T14:25:09.759122+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -26,6 +26,7 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 ## Reading order
 
+- [[records/specs/condition-transition-inputs]]: schema26 exact scope-relevant changed versions/events/activation times and linked observation windows, with truthful unknown/overflow coverage; actual automatic parents and candidate dispatch remain next.
 - [[records/specs/automation-causality]]: schema 25 atomic calendar origins and bounded trusted inherited admissions; exact condition causes and dispatch remain next.
 - [[records/specs/automatic-ancestry]]: schema 24 authoritative indexed workflow source identities and read-only derivation inspection; durable calendar/admission state now follows in [[records/specs/automation-causality]], while exact trigger causes remain open.
 - [[records/specs/inventory-condition-consumers]]: schema 23 saved incremental inventory conditions, exact clocks/cursors/observations and inert candidate backpressure; causal dispatch remains next.
@@ -111,3 +112,7 @@ The current schema-24 checkpoint retains automatic origin through synthetic huma
 ## Durable automatic admission foundation
 
 The current schema-25 checkpoint atomically retains calendar roots and bounded trusted inherited admissions. V3 full core456/0 includes22 admission groups; the final synthetic worker-key-only correction qualifies nine competing processes. Installed21 admission/47 execution/22 ancestry/94 condition/76 feed calls and scoped native/durability checks pass. Saving/copying/inspection never enables execution. [[records/specs/automation-causality]] documents exact source scope, retained failures and remaining actual condition-cause/dispatch integration. This is still a development preview.
+
+## Exact condition input-history foundation
+
+Current development schema26 captures unfinished and completed condition input windows in the same ledger. Final470 core groups/14 focused input groups, the real10000/10001 bound and installed30 input/97 condition/76 feed/22 ancestry/21 admission calls pass. Pending pages, clocks, backpressure, unknown windows and inert reconstruction retain exact references. Overflow remains visibly incomplete while the balance stays exact. [[records/specs/condition-transition-inputs]] records retained failures and limits. Actual automatic-parent discovery and candidate dispatch are still unfinished.

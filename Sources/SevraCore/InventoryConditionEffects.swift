@@ -15,6 +15,11 @@ extension Workbook {
     let previous = try db.execute(
       "SELECT * FROM condition_effects WHERE consumer_id=? AND logical_id=?", identity
     ).first
+    let expectedBefore = try conditionInputEffect(
+      event["before_id"]!, subject: consumer["subject"]!.text)
+    try require(
+      previous?["item_id"] == expectedBefore?["item_id"], "condition_integrity",
+      "The inventory projection lost the exact prior settled effect.")
     // Every settled revision, including a generic cross-scope replacement, can
     // remove the old logical effect. Only an exact accepted actual adds one.
     if let previous {
@@ -33,6 +38,9 @@ extension Workbook {
     try require(
       effects.count <= 1, "condition_integrity", "A settled version has multiple inventory effects."
     )
+    if previous != nil || !effects.isEmpty {
+      try retainConditionInput(consumer, event: event, kind: "record-change", work: &work)
+    }
     guard let effect = effects.first else { return }
     _ = try Numbers.decimal(effect["quantity"]!.text)
     try require(

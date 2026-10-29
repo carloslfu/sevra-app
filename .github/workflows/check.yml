@@ -40,6 +40,8 @@ jobs:
         run: .build/debug/sevra-checks --inventory-event-limit
       - name: Check incremental inventory projection bounds
         run: .build/debug/sevra-checks --inventory-condition-limit
+      - name: Check real condition change-input bounds
+        run: .build/debug/sevra-checks --condition-input-limit
       - name: Check search-scale fixture recall, paging and reports
         run: |
           swift build --product sevra-benchmark -j 3
@@ -181,6 +183,7 @@ jobs:
           python3 scripts/check_business_events.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/business-events-installed.json
           python3 scripts/check_inventory_event_state.py --cli output/bin/sevra --output .build/inventory-event-state-installed.json
           python3 scripts/check_inventory_conditions.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/inventory-conditions-installed.json
+          python3 scripts/check_condition_inputs.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-inputs-installed.json
           python3 scripts/check_automatic_ancestry.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/automatic-ancestry-installed.json
           python3 scripts/check_automation_definitions.py --cli output/bin/sevra --output .build/automation-definitions-installed
           python3 scripts/check_automation_planning.py --cli output/bin/sevra --output .build/automation-planning-installed
@@ -209,6 +212,7 @@ jobs:
           python3 scripts/check_business_events.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/business-events-native.json
           python3 scripts/check_inventory_event_state.py --cli output/native/bin/sevra --output .build/inventory-event-state-native.json
           python3 scripts/check_inventory_conditions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/inventory-conditions-native.json
+          python3 scripts/check_condition_inputs.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-inputs-native.json
           python3 scripts/check_automatic_ancestry.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/automatic-ancestry-native.json
           python3 scripts/check_automation_definitions.py --cli output/native/bin/sevra --output .build/automation-definitions-native
           python3 scripts/check_automation_planning.py --cli output/native/bin/sevra --output .build/automation-planning-native
@@ -230,5 +234,15 @@ jobs:
           path: |
             .build/automation-causality-installed/result.json
             .build/automation-causality-native/result.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+      - name: Retain condition change-input evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: condition-change-inputs
+          path: |
+            .build/condition-inputs-installed.json
+            .build/condition-inputs-native.json
           include-hidden-files: true
           if-no-files-found: ignore

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T13:51:24.753478+00:00
+updated: 2026-10-29T14:25:09.853049+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1753,3 +1753,11 @@ Use `sevra automation-causality Shop.sevra EXACT_RUN_ID` to inspect an admitted 
 Schema25 uses policy automation-causality-v1 with at most eight parents/eight roots/depth eight/eight direct successors/32 runs perroot. Exhausted or inconsistent histories refuse. Internal inherited admissions remain a trusted core primitive, not a public condition dispatch command. Unsupported schema24 files are preserved/refused without migration/reset.
 
 Focused checks: `.build/debug/sevra-checks --automation-causality`. Installed check: `python3 scripts/check_automation_causality.py --cli output/native/bin/sevra --checks .build/debug/sevra-checks --output NEW_DIRECTORY`. The latter creates synthetic fixtures and races nine independent trusted test writers for eight slots. It uses no model and does not establish automatic business-cause discovery. Process-death dispatch checks also verify retained admissions. See [[records/specs/automation-causality]].
+
+## Inspect exact condition change inputs
+
+Use `sevra condition-inputs Shop.sevra EXACT_OBSERVATION_ID [AFTER_INPUT_ID|-] [LIMIT]` for a stable read-only page of one to50 exact scope-relevant changed inputs. Read observation IDs through condition-observations. The result includes exact event/before/after/activation coordinates and immediate previous/previous-certain observation links. It reports execution=none, enabled=false, minimalCauseSet=false, automaticParents=not-resolved and dispatchEligibility=not-evaluated.
+
+Coverage is baseline, complete, unknown-gap or limit-exceeded. A complete window lists relevant changes, not every unchanged numeric contributor or a minimal automatic cause. At most10000 entries are retained per window; overflow keeps exact numeric processing but marks the retained prefix incomplete. Unknown/overflow history cannot grant execution or establish independent origin. Schema25 files are preserved/refused with no migration/reset.
+
+Focused checks: `.build/debug/sevra-checks --condition-inputs`; actual boundary: `.build/debug/sevra-checks --condition-input-limit`. Installed check: `python3 scripts/check_condition_inputs.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. It creates only synthetic fixtures, pages205members, uses six readers and tests inert copies/corruption refusal. Existing installed condition process-death tests now also verify input atomicity. See [[records/specs/condition-transition-inputs]].

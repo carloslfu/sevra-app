@@ -294,12 +294,20 @@ func checkInventoryConditions(at root: URL) {
     try expect(
       blocked["pendingCandidates"].int == 100 && blocked["backpressure"] == .bool(true),
       "Expected capacity block: \(blocked)")
+    let pendingInputs = try book.db.execute(
+      "SELECT id FROM condition_pending_inputs WHERE consumer_id=?", [.string(id)])
+    try expect(pendingInputs.count == 1)
+    _ = try book.verify()
     let cursor = blocked["cursorID"]
     let retry = try book.stepInventoryCondition(id, through: "2026-12-31", token: "still-full")
     try expect(
       retry["cursorID"] == cursor
         && retry["lastCompleteObservation"] == blocked["lastCompleteObservation"],
       "Blocked retry changed complete observation")
+    try expect(
+      try book.db.execute(
+        "SELECT id FROM condition_pending_inputs WHERE consumer_id=?", [.string(id)])
+        == pendingInputs)
     let candidate = try book.inventoryConditionObservations(id, limit: 50)["observations"].array
       .first { $0["candidateID"] != .null }!["candidateID"].text
     let dismissal = try book.dismissInventoryConditionCandidate(
@@ -315,6 +323,16 @@ func checkInventoryConditions(at root: URL) {
       try book.db.scalar(
         "SELECT count(*) FROM condition_candidates WHERE consumer_id=?", [.string(id)]
       ).int == 101, "Expected 101 retained candidates")
+    let crossing = try book.db.scalar(
+      "SELECT observation_id FROM condition_candidates WHERE consumer_id=? ORDER BY rowid DESC LIMIT 1",
+      [.string(id)]
+    ).text
+    try expect(try book.inventoryConditionInputs(crossing)["changeInputs"]["count"].int == 1)
+    try expect(
+      try book.db.scalar(
+        "SELECT count(*) FROM condition_pending_inputs WHERE consumer_id=?", [.string(id)]
+      ).int == 0)
+    _ = try book.verify()
   }
   check("atomic basis replacement avoids arithmetic against the superseded opening basis") {
     let (book, source, id) = try fixture(

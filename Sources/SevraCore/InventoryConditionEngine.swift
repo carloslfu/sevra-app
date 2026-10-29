@@ -42,6 +42,9 @@ extension Workbook {
       work.scanLogical = ""
       work.pendingBatch = nil
       if basisWasFuture && work.basis["effective"].text <= due {
+        try retainConditionClockInput(
+          row, eventID: work.basis["eventID"].text,
+          kind: "basis-clock", work: &work)
         try beginInventoryConditionRebuild(&work)
       } else {
         work.phase = "clock"
@@ -83,6 +86,7 @@ extension Workbook {
       } else if entry["family"] == .string("inventory-basis")
         && entry["scope_key"] == row["subject"]
       {
+        try retainConditionInput(row, event: entry, kind: "basis-change", work: &work)
         let basis = try Value.parse(entry["payload"]!.text)["after"]
         if basis == .null {
           work.basis = .null
@@ -135,6 +139,9 @@ extension Workbook {
     for effect in effects.prefix(100) {
       try control.check()
       if inventoryConditionEligible(effect, work: work), let total = work.quantity {
+        try retainConditionClockInput(
+          row, eventID: effect["event_id"]!.text,
+          kind: "effect-clock", work: &work)
         work.quantity = try conditionExactSum(total, effect["quantity"]!.text)
       }
       work.scanLogical = effect["logical_id"]!.text
@@ -216,7 +223,11 @@ extension Workbook {
       "truth": truth.map(Value.bool) ?? .null, "disposition": .string(disposition),
       "basis": work.basis,
       "previousCertainObservationID": work.lastCertainID.map(Value.string) ?? .null,
+      "previousObservationID": work.lastObservation.map(Value.string) ?? .null,
       "coverageGap": .bool(work.gap && truth != nil),
+      "changeInputs": ConditionInput.summary(
+        count: work.pendingInputCount, overflow: work.inputOverflow,
+        baseline: work.lastCertainID == nil, gap: work.gap || truth == nil),
       "candidateID": candidateID.map(Value.string) ?? .null,
       "execution": .string("inert"), "enabled": .bool(false),
     ])
@@ -226,6 +237,12 @@ extension Workbook {
         .string(observationID), row["id"]!, batch.map(Value.string) ?? .null, .string(work.through),
         .string(disposition), .string(try observation.json()), .string(timestamp()),
       ])
+    try db.execute(
+      "INSERT INTO condition_observation_inputs SELECT ?,id,payload FROM condition_pending_inputs WHERE consumer_id=?",
+      [.string(observationID), row["id"]!])
+    try db.execute("DELETE FROM condition_pending_inputs WHERE consumer_id=?", [row["id"]!])
+    work.pendingInputCount = 0
+    work.inputOverflow = false
     if let candidateID {
       try db.execute(
         "INSERT INTO condition_candidates VALUES(?,?,?,'pending','awaiting_dispatch_contract',NULL)",

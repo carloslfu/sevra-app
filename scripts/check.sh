@@ -23,8 +23,10 @@ python3 scripts/check_condition_transitions.py --cli "$BIN/sevra"
 python3 scripts/check_business_events.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
 "$BIN/sevra-checks" --inventory-event-limit
 "$BIN/sevra-checks" --inventory-condition-limit
+"$BIN/sevra-checks" --condition-input-limit
 python3 scripts/check_inventory_event_state.py --cli "$BIN/sevra"
 python3 scripts/check_inventory_conditions.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
+python3 scripts/check_condition_inputs.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
 python3 scripts/check_automatic_ancestry.py --cli "$BIN/sevra" --worker "$BIN/sevra-checks"
 python3 scripts/check_references.py --cli "$BIN/sevra"
 python3 scripts/check_extracted_references.py --cli "$BIN/sevra"

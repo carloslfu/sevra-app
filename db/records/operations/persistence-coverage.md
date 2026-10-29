@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T13:51:24.670924+00:00
+updated: 2026-10-29T14:25:09.776927+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -422,3 +422,7 @@ Schema 24 strengthens workflow_runs.source_id with a unique index in its existin
 ## Schema 25 automatic origins and charges
 
 automatic_roots, automatic_admissions, automatic_root_members and automatic_parents join ChangeFormat.tables and complete captured changes. Parent/root memberships supply the persisted fan-out/total-work charges; reverse indexes bound counts. Exact run/definition/logical/source/origin/depth relations are verified, and reconstruction restores them inertly. Run/occurrence/invocation/root/membership/active pointer/receipt/outbox share one dispatch writer transaction. Two actual dispatch SIGKILL boundaries retain all or none, copied inspection stays identical and completion does not refund charges. No new ledger or migration. Schema24 development files are preserved/refused; selected disposable synthetic fixtures only are recreated. Exact evidence and full456/0 plus scoped installed proof: [[records/specs/automation-causality]].
+
+## Schema 26 condition input windows
+
+condition_pending_inputs and condition_observation_inputs join ChangeFormat.tables with count/overflow in captured consumer state. Pending atomic-batch/clock/rebuild members survive page boundaries, restart and backpressure; finalization moves the exact set into its complete observation transaction with candidate/cursor. Immediate previous and previous-certain links preserve unknown intervals without quadratic copying. Two installed actual SIGKILL boundaries now assert input atomicity too. Full470 core groups, real10000/10001 input bounds and inert copies pass. Exact scope/evidence: [[records/specs/condition-transition-inputs]]. No new ledger, schema25 adapter or live authority in replay.

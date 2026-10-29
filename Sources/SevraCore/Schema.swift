@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 25
+  static let version = 26
   static let sql = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=\(version);
@@ -151,6 +151,8 @@ enum Schema {
     CREATE TABLE condition_observations(id TEXT PRIMARY KEY,consumer_id TEXT NOT NULL REFERENCES condition_consumers(id),batch_id TEXT REFERENCES business_batches(id),effective TEXT NOT NULL,disposition TEXT NOT NULL CHECK(disposition IN ('baseline','unknown','transition','reset','unchanged')),payload TEXT NOT NULL,created TEXT NOT NULL);
     CREATE INDEX condition_observations_consumer ON condition_observations(consumer_id);
     CREATE TABLE condition_candidates(id TEXT PRIMARY KEY,consumer_id TEXT NOT NULL REFERENCES condition_consumers(id),observation_id TEXT NOT NULL UNIQUE REFERENCES condition_observations(id),state TEXT NOT NULL CHECK(state IN ('pending','dismissed')),detail TEXT NOT NULL,decision_source TEXT REFERENCES items(id));
+    CREATE TABLE condition_pending_inputs(consumer_id TEXT NOT NULL REFERENCES condition_consumers(id),id TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(consumer_id,id));
+    CREATE TABLE condition_observation_inputs(observation_id TEXT NOT NULL REFERENCES condition_observations(id),id TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(observation_id,id));
     CREATE INDEX condition_candidates_pending ON condition_candidates(consumer_id,state,id);
     CREATE TABLE committed_changes(id TEXT PRIMARY KEY,previous_id TEXT UNIQUE REFERENCES committed_changes(id),payload TEXT NOT NULL,hash TEXT NOT NULL,recorded TEXT NOT NULL,writer_id TEXT NOT NULL,actor TEXT NOT NULL,row_changes INTEGER NOT NULL CHECK(row_changes>0));
     """

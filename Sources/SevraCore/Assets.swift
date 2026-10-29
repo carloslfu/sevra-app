@@ -248,6 +248,7 @@ extension Workbook {
         try verifyApplicationDefinitions()
         try verifyWorkflows()
         try verifyAutomationPlanning()
+        try verifyConditionInputStorage()
         try verifyFormDrafts()
         try verifyWorkflowClarificationDrafts()
         try verifySpaces()

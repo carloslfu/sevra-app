@@ -1132,3 +1132,9 @@ Schema25 atomic automatic roots/admissions, bounded trusted inherited budgets, i
 ## [2026-10-29 13:55] verification | records/operations/implementation.md
 Local af1b627 checkpoint passes zero-warning db.md, links and diff. GitHub API unreachable; bounded push retry fails github.com DNS. Publication, PR refresh and exact CI remain pending; continue condition-cause work.
 
+## [2026-10-29 14:25] implementation | records/specs/condition-transition-inputs.md
+Schema26 exact condition input windows and inert inspection: full470/0, focused14/0, actual10000/10001, installed30/97/76/22/21 calls, real condition/feed deaths, owner18/ProductAI/native package and strict14 Swift files. Earlier failures retained; actual parent discovery/dispatch and app release remain open.
+
+## [2026-10-29 14:25] verification | records/specs/condition-transition-inputs.md
+Schema26 exact condition input windows and inert inspection: full470/0, focused14/0, actual10000/10001, installed30/97/76/22/21 calls, real condition/feed deaths, owner18/ProductAI/native package and strict14 Swift files. Earlier failures retained; actual parent discovery/dispatch and app release remain open.
+

@@ -90,6 +90,7 @@ enum ChangeFormat {
     "automatic_roots", "automatic_admissions", "automatic_root_members", "automatic_parents",
     "business_batches", "business_events",
     "condition_consumers", "condition_effects", "condition_observations", "condition_candidates",
+    "condition_pending_inputs", "condition_observation_inputs",
   ]
   static func isIndex(_ table: String) -> Bool {
     ["search_fts", "names_fts", "message_fts", "definition_fts"].contains {

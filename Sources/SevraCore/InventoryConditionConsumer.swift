@@ -25,6 +25,8 @@ struct InventoryConditionWork: Codable {
   var lastCertainID: String?
   var lastCertainTruth: Bool?
   var gap = false
+  var pendingInputCount = 0
+  var inputOverflow = false
 }
 
 extension Workbook {

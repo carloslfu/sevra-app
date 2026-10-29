@@ -2,7 +2,7 @@
 type: spec
 id: 01m63xbjef018f5q5byn9acp7s
 created: 2026-10-29T13:24:57.423588+00:00
-updated: 2026-10-29T13:51:24.562491+00:00
+updated: 2026-10-29T14:25:09.813890+00:00
 summary: Schema 25 retains calendar roots and bounded trusted inherited admissions atomically. Condition cause discovery and dispatch remain required; scoped checks and failures are retained.
 title: Durable automatic-run origins and admission
 status: implemented
@@ -70,3 +70,7 @@ V1's retained 19 passes/three failures exposed the final cancellation gap and tw
 Evidence: [automatic admission receipt](../../../integration/evidence/2026-10-29-automation-causality.json.gz), 135806 bytes, SHA-256 dd26b95f8d980d7cc74a2e91028c1c9b89dab52b5d57ac35bb92d144cac2090b. Previous head09e6ca2 CI was still in progress when this receipt was captured; this source requires its own exact CI. Final db.md/link/diff gates and commit follow the immutable receipt. Implemented status here means the qualified calendar/admission/inspection foundation only.
 
 No selected-model/prompt/grammar/engine change or fresh actual-model/hardware/performance/production-adoption proof. Native app inventory still reports the Mac locked; no fresh visible UI, voice/accessibility/appearance/media, closed-window or background lifecycle proof. Exact business trigger causes across pages/clocks/unknown gaps, independent business-root policy, contribution-versus-control provenance, condition candidate-to-run binding with current physical grants and native/conversation/dataset adapters remain required. E5/E6, complete E3, contextual/Excel/E0-E2 and production distribution remain open. The app and overall goal are unfinished.
+
+## Condition change inputs available, parent discovery still required
+
+The schema26 [[records/specs/condition-transition-inputs]] checkpoint now retains exact scope-relevant business changes and activation instants between complete observations. Linked unknown windows and explicit10000-entry overflow avoid an empty-origin fallback. Final21 installed admission calls still pass against the same new native CLI. These inputs do not identify the minimal contribution slice or establish independent human business roots. Resolve exact contribution/control provenance and inherited automatic parents before connecting candidates to the existing bounded admission primitive. No new condition executor or permission is added.

@@ -94,6 +94,9 @@ def run(cli: Path, worker: Path | None, output: Path):
         assert all(r['execution'] == 'inert' for r in results)
         final = drain(book, consumer, through='2030-01-03')
         assert final['pendingCandidates'] == 3
+        concurrent_input = call('condition-inputs', book, final['lastCompleteObservation']['id'])
+        assert concurrent_input['changeInputs']['count'] == 1
+        assert len(concurrent_input['entries']) == 1
         before = call('commits', book)
         call('condition-state', book, consumer)
         records = call('condition-observations', book, consumer, '-', '50')
@@ -139,10 +142,13 @@ def run(cli: Path, worker: Path | None, output: Path):
                     assert after['pendingCandidates'] == 1 and after['cursorID'] != initial['cursorID']
                 retry = call('condition-step', target, cid, '2026-12-31', 'condition-death-step')
                 assert retry['pendingCandidates'] == 1
+                retained = call('condition-inputs', target, retry['lastCompleteObservation']['id'])
+                assert retained['changeInputs']['count'] == 1 and len(retained['entries']) == 1
+                assert retained['entries'][0]['input']['kind'] == 'record-change'
                 assert call('condition-step', target, cid, '2026-12-31', 'condition-death-step') == retry
                 assert call('verify', target)['ok']
                 deaths.append({'stage': stage, 'actualSignal': 'SIGKILL', 'returncode': process.returncode,
-                               'atomicCursorObservationCandidate': True, 'retryIdentical': True})
+                               'atomicCursorObservationCandidate': True, 'atomicChangeInputs': True, 'retryIdentical': True})
     result = {'policy': 'synthetic-inventory-condition-v1', 'cliSHA256': hashlib.sha256(cli.read_bytes()).hexdigest(),
               'workerSHA256': hashlib.sha256(worker.read_bytes()).hexdigest() if worker else None,
               'calls': calls, 'callCount': len(calls), 'concurrentWriters': 6,
