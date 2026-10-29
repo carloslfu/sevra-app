@@ -45,7 +45,7 @@ private func fixtureSQL(_ workbook: Workbook, _ statement: String) throws {
 nonisolated(unsafe) private var checksCompleted = false
 
 @main private struct DocumentChecks {
-  @MainActor static func main() async {
+  @MainActor static func main() {
     setbuf(stdout, nil)
     _ = NSApplication.shared
     NSApp.setActivationPolicy(.prohibited)
@@ -57,6 +57,15 @@ nonisolated(unsafe) private var checksCompleted = false
         _Exit(1)
       }
     }
+    // AppKit owns its run loop. An async command-line main can otherwise exit
+    // while a window-close callback is suspended on a hosted macOS runner.
+    Task { @MainActor in await runChecks(applicationDelegate) }
+    NSApp.run()
+    fputs("FAIL AppKit stopped before the document checks completed.\n", stderr)
+    exit(1)
+  }
+
+  @MainActor private static func runChecks(_ applicationDelegate: CheckApplicationDelegate) async {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       "sevra-document-checks-" + UUID().uuidString)
     try! FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -416,26 +425,40 @@ nonisolated(unsafe) private var checksCompleted = false
       let original = PreviousDelegate()
       var continuation: CheckedContinuation<Bool, Never>?
       var attempts = 0
+      var finished = 0
       let guarder = DocumentCloseGuard(asyncFlush: {
         attempts += 1
-        return await withCheckedContinuation { continuation = $0 }
+        let result = await withCheckedContinuation { continuation = $0 }
+        finished += 1
+        return result
       })
       window.delegate = original
       guarder.attach(to: window)
       window.orderFront(nil)
       window.performClose(nil)
-      await Task.yield()
+      func waitUntil(_ condition: () -> Bool) async throws {
+        let deadline = ProcessInfo.processInfo.systemUptime + 3
+        while !condition() && ProcessInfo.processInfo.systemUptime < deadline {
+          try await Task.sleep(nanoseconds: 1_000_000)
+        }
+        try expect(condition(), "Timed out waiting for the native close callback")
+      }
+      try await waitUntil { continuation != nil }
       window.performClose(nil)
       try expect(
         window.isVisible && attempts == 1 && original.requests == 0,
         "Close did not await the save or started duplicate saves")
-      continuation?.resume(returning: false)
-      await Task.yield()
+      let refused = continuation
+      continuation = nil
+      refused?.resume(returning: false)
+      try await waitUntil { finished == 1 }
       try expect(window.isVisible && original.requests == 0, "Failed save closed the window")
       window.performClose(nil)
-      await Task.yield()
-      continuation?.resume(returning: true)
-      await Task.yield()
+      try await waitUntil { attempts == 2 && continuation != nil }
+      let accepted = continuation
+      continuation = nil
+      accepted?.resume(returning: true)
+      try await waitUntil { !window.isVisible }
       try expect(
         !window.isVisible && original.requests == 1 && original.closes == 1,
         "Successful asynchronous flush did not close through the original delegate")

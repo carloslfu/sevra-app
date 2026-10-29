@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-28T23:52:27.447080+00:00
+updated: 2026-10-29T00:03:16.724953+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -5732,3 +5732,10 @@ Retained failures: V1/V2 grammar optional ordering prevented arguments after def
 Native inspection caught an empty initial saved-result container, first-open empty sheet, stale feedback behind that sheet and internal empty arrays leaking through a scalar test. Stable loading, item-bound exact evaluation, owned inline failures and actual scalar cases fix them. V36 shows atomic stale refusal with entries retained, refreshed42 draft, live42/pinned36 and bounded query pages. V37 reopens clean42; acceptance preserves estimate meaning and all typed data. These are focused AX/keyboard/screenshot checks, not actual VoiceOver or full appearance/media qualification.
 
 Integration PR CI at d0ef272 failed at its old import-response assertion after earlier checks passed. The script is fixed and locally qualified. Push this coherent checkpoint, refresh CI on its new head and inspect it. Continue remaining EJ04/EJ05 scale/voice/native reuse qualification, E3 manual durable workflows, E4-E6, contextual/Excel continuity and whole-release gates. The app and active goal remain incomplete.
+
+## Hosted document-check lifecycle repair, October 28
+CI run 40790418624 at abee6e0 passed core, extraction and search checks, then the document-check executable exited during the asynchronous native close check before reporting its final result. The atexit guard correctly failed the run. Subsequent jobs were skipped; this run does not qualify installation or release readiness.
+
+The test executable now enters NSApplication.run from synchronous main and starts its async checks inside that owned AppKit lifecycle. The close test waits for explicit continuation and flush completion with bounded deadlines. Task.yield did not guarantee that either callback had completed. The product close guard and persisted document behavior are unchanged.
+
+Two independent local processes passed all 27 document checks after the final change. Preserve the failed hosted output and local outputs in the [lifecycle receipt](../../../integration/evidence/2026-10-28-document-check-lifecycle.json.gz). A new exact-commit hosted run must qualify the runner fix. Manual workflows remain the next E3 implementation task; the whole app is unfinished.

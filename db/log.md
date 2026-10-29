@@ -916,3 +916,6 @@ Refine bounded query snapshot closure, deterministic searchable results, host-pr
 ## [2026-10-28 23:52] implementation | records/specs/application-definitions
 Qualify scoped native computation and exact result publication; retain failed model/UI attempts, preserve 110 prior receipts, keep full E2-E6 and release gates open.
 
+## [2026-10-29 00:03] verification | records/operations/implementation.md
+Retain hosted document-check premature-exit failure and two passing final local runs; repair AppKit test lifecycle and timing waits. Hosted requalification remains required.
+
