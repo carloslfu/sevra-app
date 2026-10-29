@@ -22,41 +22,53 @@ struct ArchiveMemberPicker: View {
         .foregroundStyle(.secondary)
       if loading { ProgressView("Reading file list") }
       if let error { Text(error).foregroundStyle(.red) }
-      List(members) { member in
-        Toggle(
-          isOn: Binding(
-            get: { selected.contains(member.path) },
-            set: { value in
-              if value { selected.insert(member.path) } else { selected.remove(member.path) }
-            })
-        ) {
-          HStack {
-            Text(member.path).lineLimit(2)
-            Spacer()
-            Text(
-              ByteCountFormatter.string(
-                fromByteCount: Int64(clamping: member.bytes), countStyle: .file)
-            ).foregroundStyle(.secondary)
+      if !loading && members.isEmpty && error == nil {
+        Text("This ZIP has no files to include.").foregroundStyle(.secondary)
+      }
+      if !members.isEmpty {
+        List(members) { member in
+          Toggle(
+            isOn: Binding(
+              get: { selected.contains(member.path) },
+              set: { value in
+                if value { selected.insert(member.path) } else { selected.remove(member.path) }
+              })
+          ) {
+            HStack {
+              Text(member.path).lineLimit(2)
+              Spacer()
+              Text(
+                ByteCountFormatter.string(
+                  fromByteCount: Int64(clamping: member.bytes), countStyle: .file)
+              ).foregroundStyle(.secondary)
+            }
           }
         }
+      } else {
+        Spacer(minLength: 0)
       }
       HStack {
-        Text(
-          "\(selected.count) selected · "
-            + ByteCountFormatter.string(fromByteCount: Int64(clamping: total), countStyle: .file)
-        ).font(.caption)
+        if !members.isEmpty {
+          Text(
+            "\(selected.count) selected · "
+              + ByteCountFormatter.string(fromByteCount: Int64(clamping: total), countStyle: .file)
+          ).font(.caption)
+        }
         Spacer()
-        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
-        Button("Include selected") {
-          let paths = selected.sorted()
-          state.run("Including selected files") { book, cancel in
-            _ = try book.includeArchiveMembers(source.id, paths: paths, cancellation: cancel)
-          }
-          dismiss()
-        }.keyboardShortcut(.defaultAction).disabled(
-          selected.isEmpty || selected.count > 50 || total > 1_000_000_000 || state.busy)
+        Button(!loading && members.isEmpty ? "Done" : "Cancel") { dismiss() }
+          .keyboardShortcut(.cancelAction)
+        if !members.isEmpty {
+          Button("Include selected") {
+            let paths = selected.sorted()
+            state.run("Including selected files") { book, cancel in
+              _ = try book.includeArchiveMembers(source.id, paths: paths, cancellation: cancel)
+            }
+            dismiss()
+          }.keyboardShortcut(.defaultAction).disabled(
+            selected.isEmpty || selected.count > 50 || total > 1_000_000_000 || state.busy)
+        }
       }
-    }.padding(22).frame(width: 620, height: 460).task {
+    }.padding(22).frame(width: 620, height: !loading && members.isEmpty ? 220 : 460).task {
       do {
         if let book = state.workbook {
           members = try await Task.detached { try book.archiveMembers(source.id) }.value

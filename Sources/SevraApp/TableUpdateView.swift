@@ -51,9 +51,14 @@ struct TableUpdateView: View {
           HStack {
             TextField("Header record", text: $header).frame(maxWidth: 190)
             Button("Read headings") { Task { await inspect() } }
+              .disabled(Int(header).map { $0 > 0 } != true)
           }.disabled(session.busy || state.busy)
           Text("Header record is counted from 1. Quoted fields may span several lines.")
             .font(.caption).foregroundStyle(.secondary)
+          if Int(header).map({ $0 > 0 }) != true {
+            Text("Enter a whole header record number of 1 or more.")
+              .font(.caption).foregroundStyle(.secondary)
+          }
           if let source = session.source {
             Text("\(source.incoming) incoming rows · CSV/TSV values only").font(.callout)
             configuration(source)

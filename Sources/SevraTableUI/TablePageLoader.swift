@@ -28,17 +28,27 @@ public struct TableQuery: Hashable, Sendable {
 @MainActor public final class TablePageLoader: ObservableObject {
   @Published public private(set) var page: TablePage?
   @Published public private(set) var failure: String?
+  @Published public private(set) var loading = false
   public private(set) var loadedQuery: TableQuery?
   private var request = UUID()
   public init() {}
+
+  public func cancel() {
+    request = UUID()
+    loading = false
+  }
 
   /// Old successes and failures are discarded even if the underlying read cannot cancel.
   public func load(
     _ query: TableQuery, debounce: Bool = false,
     read: @escaping @Sendable () async throws -> TablePage
   ) async {
+    guard !Task.isCancelled else { return }
     let identity = UUID()
     request = identity
+    loading = true
+    failure = nil
+    defer { if request == identity { loading = false } }
     if let loadedQuery,
       loadedQuery.workbook != query.workbook || loadedQuery.dataset != query.dataset
     {

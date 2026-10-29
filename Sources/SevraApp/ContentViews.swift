@@ -116,7 +116,14 @@ struct SearchView: View {
             if let id = results.anchor { proxy.scrollTo(id, anchor: .center) }
           }
       }
-      if let failure { Text(failure).foregroundStyle(.red) }
+      if let failure {
+        HStack {
+          Text(failure).foregroundStyle(.red).textSelection(.enabled)
+          Spacer()
+          Button("Retry search") { Task { await search(more: results.loadedQuery == query) } }
+            .disabled(searching)
+        }
+      }
     }.padding(24).task {
       focused = true
       showingFilters = activeFilters > 0
@@ -549,6 +556,11 @@ struct DatasetView: View {
       descending: state.tableDescending[table.id] ?? false)
   }
   @State private var column = 0
+  @State private var clipboardStatus = ""
+  private var pageIsCurrent: Bool { loader.loadedQuery == query && !loader.loading }
+  private var canPaste: Bool {
+    pageIsCurrent && !selection.isEmpty && !table.archived && !state.busy
+  }
   @State private var schemaEditing: Dataset?
   private var offset: Int { state.tableOffsets[table.id] ?? 0 }
   private var filter: String { state.tableFilters[table.id] ?? "" }
@@ -565,12 +577,28 @@ struct DatasetView: View {
             })
         )
         .textFieldStyle(.roundedBorder).frame(maxWidth: 220)
+        .accessibilityLabel("Filter rows in " + table.title)
+        if !filter.isEmpty {
+          Button {
+            state.tableFilters[table.id] = ""
+            state.tableOffsets[table.id] = 0
+          } label: {
+            Image(systemName: "xmark.circle.fill")
+          }
+          .buttonStyle(.plain).foregroundStyle(.secondary)
+          .accessibilityLabel("Clear row filter").help("Show all rows")
+        }
         Spacer()
+        if loader.loading { ProgressView().controlSize(.small).accessibilityLabel("Updating rows") }
         MoreActionsMenu("Table actions: " + table.title) {
-          Button("Copy selected rows", action: copyRows).disabled(selection.isEmpty)
-          Button("Paste cells", action: pasteCells).disabled(selection.isEmpty)
-          Button("Undo") { undo(false) }.disabled(state.tableUndo[table.id] == nil)
-          Button("Redo") { undo(true) }.disabled(state.tableRedo[table.id] == nil)
+          Button("Copy selected rows") { copyRows() }.disabled(selection.isEmpty || !pageIsCurrent)
+          Button("Copy with headings") { copyRows(headings: true) }
+            .disabled(selection.isEmpty || !pageIsCurrent)
+          Button("Paste cells", action: pasteCells).disabled(!canPaste)
+            .help("Starts at the first selected row and last clicked column")
+          Divider()
+          Button("Undo") { undo(false) }.disabled(state.tableUndo[table.id] == nil || state.busy)
+          Button("Redo") { undo(true) }.disabled(state.tableRedo[table.id] == nil || state.busy)
           Divider()
           Button("Table definition…") { schemaEditing = table }
           Button("Export CSV…", action: export)
@@ -589,68 +617,110 @@ struct DatasetView: View {
           onSelect: { selected, c in
             selection = Set(selected.map(\.logicalID))
             column = c
-            guard let row = selected.first,
-              let n = page.rows.firstIndex(where: { $0.logicalID == row.logicalID })
-            else {
-              state.selectedContext = ""
-              return
-            }
-            state.selectedContext = "\(table.title), data row \(page.offset+n+1): \(row.data.text)"
-            let selectedColumn =
-              page.dataset.columns.indices.contains(c) ? page.dataset.columns[c] : nil
-            if let selectedColumn {
-              state.selectionLabel =
-                "\(table.title), row \(page.offset+n+1) · \(selectedColumn.title): \(page.values[n][selectedColumn.id]?.text ?? "Empty")"
-            } else {
-              state.selectionLabel = "\(table.title), row \(page.offset+n+1)"
-            }
+            clipboardStatus = ""
+            let shown = TableSelectionPresentation(page: page, selected: selected, column: c)
+            state.selectedContext = shown.context
+            state.selectionLabel = shown.label
           },
           onSort: { id, descending in
             state.tableSorts[table.id] = id
             state.tableDescending[table.id] = descending
             state.tableOffsets[table.id] = 0
-          }, onCopy: copyRows, onPaste: pasteCells)
-      } else {
+          }, onCopy: { copyRows() }, onPaste: pasteCells,
+          onUndo: state.tableUndo[table.id] == nil || state.busy ? nil : { undo(false) },
+          onRedo: state.tableRedo[table.id] == nil || state.busy ? nil : { undo(true) },
+          editable: pageIsCurrent && !state.busy
+        )
+        .overlay {
+          if page.rows.isEmpty && !loader.loading && loader.failure == nil {
+            Text(filter.isEmpty ? "No rows in this table." : "No rows match this filter.")
+              .foregroundStyle(.secondary).padding(20)
+          }
+        }
+      } else if loader.failure == nil {
         ProgressView("Loading table").frame(maxWidth: .infinity, maxHeight: .infinity)
       }
-      HStack {
-        if total > 200 || offset > 0 {
-          Button("Previous") {
-            state.tableOffsets[table.id] = max(0, offset - 200)
-          }.disabled(offset == 0)
-          Text(
-            "\(min(displayedOffset+1,total))–\(min(displayedOffset+rows.count,total)) of \(total)"
-          )
-          .font(.caption)
-          Button("Next") {
-            state.tableOffsets[table.id] = offset + 200
-          }.disabled(offset + rows.count >= total)
-        } else {
-          Text(total == 1 ? "1 row" : "\(total) rows").font(.caption).foregroundStyle(.secondary)
+      if let failure = loader.failure {
+        HStack {
+          Text(failure).foregroundStyle(.red).textSelection(.enabled)
+          Spacer()
+          Button("Retry table") { Task { await loadTable() } }.disabled(loader.loading)
+        }.padding(10)
+      }
+      ViewThatFits(in: .horizontal) {
+        HStack {
+          rowCount
+          Spacer()
+          tableFeedback
         }
-        Spacer()
-        if state.tableUndo[table.id] != nil { Button("Undo") { undo(false) } }
-        if compact { Button("Open table") { state.navigate(.table(table.id)) } }
+        VStack(alignment: .leading, spacing: 6) {
+          rowCount
+          HStack {
+            tableFeedback
+            Spacer()
+          }
+        }
       }.padding(10)
     }
-    .task(id: query) {
-      let request = query
-      guard let book = state.workbook else { return }
-      await loader.load(request, debounce: !request.filter.isEmpty) {
-        try await Task.detached {
-          try book.tablePage(
-            request.dataset, offset: request.offset, query: request.filter,
-            sort: request.sort, descending: request.descending)
-        }.value
-      }
-      guard !Task.isCancelled, query == request else { return }
-      if let failure = loader.failure { state.error = failure }
-      if let page = loader.page, page.revision != state.revision { state.refresh() }
-    }
+    .task(id: query) { await loadTable() }
+    .onChange(of: query) { _, _ in clipboardStatus = "" }
+    .onDisappear { loader.cancel() }
     .sheet(item: $schemaEditing) { frozen in ColumnEditor(table: frozen, state: state) }
+  }
+  private var rowCount: some View {
+    HStack {
+      if total > 200 || offset > 0 {
+        Button("Previous") {
+          state.tableOffsets[table.id] = max(0, offset - 200)
+        }.disabled(offset == 0)
+        Text(
+          rows.isEmpty
+            ? "0 rows on this page of \(total)"
+            : "\(displayedOffset+1)–\(min(displayedOffset+rows.count,total)) of \(total)"
+        )
+        .font(.caption)
+        Button("Next") {
+          state.tableOffsets[table.id] = offset + 200
+        }.disabled(offset + rows.count >= total)
+      } else {
+        Text(total == 1 ? "1 row" : "\(total) rows").font(.caption).foregroundStyle(.secondary)
+      }
+      if !selection.isEmpty {
+        Text("\(selection.count) selected on this page").font(.caption).foregroundStyle(.secondary)
+      }
+    }
+  }
+  private var tableFeedback: some View {
+    HStack {
+      if !clipboardStatus.isEmpty {
+        Text(clipboardStatus).font(.caption).foregroundStyle(.secondary)
+      }
+      if state.tableUndo[table.id] != nil {
+        Button("Undo") { undo(false) }.disabled(state.busy)
+      }
+      if compact { Button("Open table") { state.navigate(.table(table.id)) } }
+    }
+  }
+  func loadTable() async {
+    let request = query
+    guard let book = state.workbook else { return }
+    await loader.load(request, debounce: !request.filter.isEmpty) {
+      try await Task.detached {
+        try book.tablePage(
+          request.dataset, offset: request.offset, query: request.filter,
+          sort: request.sort, descending: request.descending)
+      }.value
+    }
+    guard !Task.isCancelled, query == request else { return }
+    if let page = loader.page, page.revision != state.revision { state.refresh() }
   }
   func apply(_ edits: [RowEdit], expectedRevision: Int? = nil) {
     guard let revision = expectedRevision ?? loader.page?.revision else { return }
+    guard !state.busy else {
+      state.error =
+        "This table change was not saved because another task is running. Try the edit again when it finishes."
+      return
+    }
     let tableID = table.id
     state.run(
       "Saving table changes",
@@ -683,47 +753,21 @@ struct DatasetView: View {
         }
       })
   }
-  func copyRows() {
-    guard let page = loader.page else { return }
-    let data = page.rows.indices.filter { selection.contains(page.rows[$0].logicalID) }.map { n in
-      page.dataset.columns.map { page.values[n][$0.id]?.text ?? "" }
-    }
-    let text = data.map {
-      $0.map { v in
-        v.contains("\t") || v.contains("\n") || v.contains("\"")
-          ? "\"" + v.replacingOccurrences(of: "\"", with: "\"\"") + "\"" : v
-      }.joined(separator: "\t")
-    }.joined(separator: "\n")
-    NSPasteboard.general.clearContents()
-    NSPasteboard.general.setString(text, forType: .string)
+  func copyRows(headings: Bool = false) {
+    guard pageIsCurrent, let page = loader.page else { return }
+    do {
+      let copied = try TableClipboard(page: page, selection: selection, headings: headings)
+      try copied.write()
+      clipboardStatus =
+        "Copied \(selection.count) \(selection.count == 1 ? "row" : "rows")"
+        + (headings ? " with headings" : "")
+    } catch { state.error = error.localizedDescription }
   }
   func pasteCells() {
-    guard let page = loader.page,
-      let start = page.rows.firstIndex(where: { selection.contains($0.logicalID) }),
-      let text = NSPasteboard.general.string(forType: .string)
-    else { return }
-    let rows = page.rows
-    let columns = page.dataset.columns
+    guard canPaste, let page = loader.page else { return }
     do {
-      try require(text.utf8.count <= 4_000_000, "paste_limit", "Paste at most 4 MB at a time.")
-      let cells = try CSV.parse(text, delimiter: "\t")
-      try require(
-        start + cells.count <= rows.count, "paste_range",
-        "The paste exceeds the visible rows. Import a file to add a larger table.")
-      var edits: [RowEdit] = []
-      for (r, values) in cells.enumerated() {
-        try require(
-          column >= 0 && column + values.count <= columns.count, "paste_range",
-          "The paste exceeds the table columns.")
-        var data = rows[start + r].data.object
-        for (c, value) in values.enumerated() {
-          let target = columns[column + c]
-          try require(
-            target.formula == nil, "calculated_cell", "The paste includes a calculated column.")
-          data[target.id] = value.isEmpty ? .null : .string(value)
-        }
-        edits.append(.init(id: rows[start + r].id, values: data))
-      }
+      let edits = try TableClipboard.edits(
+        cells: TableClipboard.read(), page: page, selection: selection, column: column)
       apply(edits, expectedRevision: page.revision)
     } catch { state.error = error.localizedDescription }
   }

@@ -4,6 +4,7 @@ import SwiftUI
 
 final class GridTable: NSTableView {
   var copyAction: (() -> Void)?, pasteAction: (() -> Void)?, selectionAction: (() -> Void)?
+  var undoAction: (() -> Void)?, redoAction: (() -> Void)?
   var activeColumn = 0
   override func mouseDown(with event: NSEvent) {
     let c = column(at: convert(event.locationInWindow, from: nil))
@@ -23,7 +24,13 @@ final class GridTable: NSTableView {
   }
   @objc func copy(_ sender: Any?) { copyAction?() }
   @objc func paste(_ sender: Any?) { pasteAction?() }
+  @objc func undo(_ sender: Any?) { undoAction?() }
+  @objc func redo(_ sender: Any?) { redoAction?() }
   override func keyDown(with event: NSEvent) {
+    if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers == "z" {
+      if event.modifierFlags.contains(.shift) { redoAction?() } else { undoAction?() }
+      return
+    }
     if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers == "c" {
       copyAction?()
       return
@@ -45,11 +52,14 @@ public struct NativeTable: NSViewRepresentable {
   let onSelect: ([Item], Int) -> Void
   let onSort: (String, Bool) -> Void
   let onCopy: () -> Void, onPaste: () -> Void
+  let onUndo: (() -> Void)?, onRedo: (() -> Void)?
+  let editable: Bool
 
   public init(
     page: TablePage, onEdit: @escaping (RowEdit, Int) -> Void,
     onSelect: @escaping ([Item], Int) -> Void, onSort: @escaping (String, Bool) -> Void,
-    onCopy: @escaping () -> Void, onPaste: @escaping () -> Void
+    onCopy: @escaping () -> Void, onPaste: @escaping () -> Void,
+    onUndo: (() -> Void)? = nil, onRedo: (() -> Void)? = nil, editable: Bool = true
   ) {
     self.page = page
     self.onEdit = onEdit
@@ -57,6 +67,9 @@ public struct NativeTable: NSViewRepresentable {
     self.onSort = onSort
     self.onCopy = onCopy
     self.onPaste = onPaste
+    self.onUndo = onUndo
+    self.onRedo = onRedo
+    self.editable = editable
   }
   public func makeCoordinator() -> Coordinator { Coordinator(self) }
   public func makeNSView(context: Context) -> NSScrollView {
@@ -64,11 +77,16 @@ public struct NativeTable: NSViewRepresentable {
     table.delegate = context.coordinator
     table.dataSource = context.coordinator
     table.rowHeight = 30
-    table.usesAlternatingRowBackgroundColors = true
+    // Empty space must not resemble additional records in a full-height table.
+    table.usesAlternatingRowBackgroundColors = false
     table.allowsMultipleSelection = true
     table.columnAutoresizingStyle = .noColumnAutoresizing
     table.headerView = NSTableHeaderView()
     table.gridStyleMask = [.solidHorizontalGridLineMask]
+    table.setAccessibilityLabel("Working table")
+    table.setAccessibilityHelp(
+      "Select rows with Shift or Command. Command-C copies selected rows on this page. Double-click an editable cell or press Return to edit. Paste starts in the last clicked column."
+    )
     let scroll = NSScrollView()
     scroll.hasVerticalScroller = true
     scroll.hasHorizontalScroller = true
@@ -91,10 +109,14 @@ public struct NativeTable: NSViewRepresentable {
     let columns = page.dataset.columns
     let columnsChanged = coordinator.columns != columns
     let rowsChanged = coordinator.rowIDs != page.rows.map(\.id)
-    let changed = columnsChanged || rowsChanged || coordinator.revision != page.revision
+    let changed =
+      columnsChanged || rowsChanged || coordinator.revision != page.revision
+      || coordinator.parent.editable != editable
     coordinator.parent = self
     table.copyAction = onCopy
     table.pasteAction = onPaste
+    table.undoAction = onUndo
+    table.redoAction = onRedo
     table.selectionAction = { [weak coordinator, weak table] in
       guard let coordinator, let table else { return }
       coordinator.publishSelection(table)
@@ -107,7 +129,7 @@ public struct NativeTable: NSViewRepresentable {
       for c in columns {
         let column = NSTableColumn(identifier: .init(c.id))
         column.title = c.title
-        column.isEditable = c.formula == nil && !page.dataset.archived
+        column.isEditable = editable && c.formula == nil && !page.dataset.archived
         column.width = 160
         column.minWidth = 80
         if c.formula == nil {
@@ -117,6 +139,9 @@ public struct NativeTable: NSViewRepresentable {
       }
       table.activeColumn = columns.firstIndex { $0.id == activeColumnID } ?? 0
       coordinator.columns = columns
+    }
+    for (index, column) in table.tableColumns.enumerated() {
+      column.isEditable = editable && columns[index].formula == nil && !page.dataset.archived
     }
     coordinator.rowIDs = page.rows.map(\.id)
     coordinator.revision = page.revision
@@ -153,7 +178,7 @@ public struct NativeTable: NSViewRepresentable {
       cell.isBordered = false
       cell.backgroundColor = .clear
       cell.font = .systemFont(ofSize: 13)
-      cell.isEditable = c.formula == nil && !parent.page.dataset.archived
+      cell.isEditable = parent.editable && c.formula == nil && !parent.page.dataset.archived
       cell.isSelectable = true
       cell.delegate = self
       cell.identifier = .init(c.id)
@@ -168,6 +193,12 @@ public struct NativeTable: NSViewRepresentable {
         cell.setAccessibilityHelp("Calculated from " + (c.formula ?? ""))
       } else {
         cell.setAccessibilityRole(.textField)
+        cell.setAccessibilityHelp(
+          parent.page.dataset.archived
+            ? "Archived table, read only"
+            : parent.editable
+              ? "Double-click or press Return to edit"
+              : "Read only while the table updates or another task runs")
       }
       return cell
     }

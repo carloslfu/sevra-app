@@ -42,9 +42,15 @@ struct AutomationSchedulesView: View {
             }.buttonStyle(.plain)
             Divider()
           }
-          if pages.evaluation?["hits"].array.isEmpty == true && !pages.loading {
-            Text("No automations yet. Save a workflow, then choose New automation.")
-              .foregroundStyle(.secondary)
+          if pages.evaluation?["hits"].array.isEmpty == true && !pages.loading
+            && pages.failure == nil
+          {
+            Text(
+              query.isEmpty
+                ? "No automations yet. Save a workflow, then choose New automation."
+                : "No automations match “\(query)”."
+            )
+            .foregroundStyle(.secondary)
           }
         }
       }
@@ -62,7 +68,7 @@ struct AutomationSchedulesView: View {
             await load(force: true)
             await owner.reload()
           }
-        }
+        }.disabled(pages.loading)
       }
       if !owner.grants.isEmpty {
         DisclosureGroup("Registered on this Mac (\(owner.grants.count))") {

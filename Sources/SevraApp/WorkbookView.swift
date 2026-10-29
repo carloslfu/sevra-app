@@ -379,11 +379,18 @@ struct WorkbookView: View {
         }
       }
       if !state.selectedContext.isEmpty {
-        Text("About: " + (state.selectionLabel ?? String(state.selectedContext.prefix(100)))).font(
-          .caption
-        ).foregroundStyle(
-          .secondary
-        ).lineLimit(2)
+        HStack(alignment: .top) {
+          Text("About: " + (state.selectionLabel ?? String(state.selectedContext.prefix(100))))
+            .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+          Spacer(minLength: 0)
+          Button {
+            state.selectedContext = ""
+          } label: {
+            Image(systemName: "xmark.circle.fill")
+          }
+          .buttonStyle(.plain).foregroundStyle(.secondary)
+          .help("Ask without this selection").accessibilityLabel("Remove selection from message")
+        }
       }
       TextField("Type or speak…", text: $state.prompt, axis: .vertical).textFieldStyle(.plain)
         .focused($composerFocused).lineLimit(2...7).onSubmit { state.send() }.accessibilityLabel(

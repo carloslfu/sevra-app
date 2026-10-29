@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m64w7mfc74gf1h0cqhykr0p4
 created: 2026-10-29T22:24:34.284218+00:00
-updated: 2026-10-29T22:56:41.515619+00:00
+updated: 2026-10-29T23:41:31.171430+00:00
 summary: Full native journey/control review, simpler intake and shell, polished search/history, verification coverage and retained limits.
 title: Native journey simplification and polish
 ---
@@ -115,6 +115,92 @@ page arrows while multi-page navigation stays. A deliberately unreadable PDF
 exposed a blank preview with only a footer error. The final view shows an explicit
 PDF preview unavailable message and points to File actions without destroying or
 rewriting the original. A valid PDF was checked alongside this failure case.
+
+## Ten additional usability passes, October 29
+
+Owner request [[sources/notes/2026/10/native-ten-pass-review]]: review the entire existing UI through ten lenses, including small
+interactions such as selecting several rows and copying to another app. These are
+ten distinct review passes over the same native surface inventory, not ten claims
+of exhaustive execution of every possible workbook or generated interface.
+
+| Pass | What was evaluated | Decision and result |
+| --- | --- | --- |
+| 1. Journey and navigation | Welcome, capture, Home, spaces, Back, evidence return, conversation/thread ownership and sharing | Retain the two panes and direct Home. Keep space search and optional pinning rather than adding tabs. No inference needed to open originals or cancel a picker. Existing draft and reading-position ownership remains. |
+| 2. Control purpose | Every declared native button, menu, picker, toggle, disclosure and input; visibility, distinct jobs and labels | Keep one ellipsis per action menu. Retain meaningful Add files alternatives, disclosures and pickers. Avoid new permanent toolbar controls. Optional Copy with headings lives inside table actions. Zoom controls disable at their limits and Reset zoom appears only after a change. |
+| 3. Selection and context | Single/multiple rows, sort/filter/refresh, selected column and conversation scope | An observed two-row selection formerly described only row one. The label now states the complete selected count and page scope; context carries every exact row version. Users can remove selection from the next message without changing data. |
+| 4. Clipboard interoperability | Row order, calculated values, headings, native paste formats, delimiters and bounded size | Command-C copies selected visible rows in displayed order, without headings by default. Include plain TSV, native tabular text and escaped HTML table presentations. Copy with headings is explicit; CSV remains file export. Preserve exact Value types on a local round trip, including null versus empty and false versus zero. Other apps decide their own text/type/formula inference; external leading-zero preservation is not promised. |
+| 5. Editing and paste safety | Field text selection versus row selection, paste anchor, overflow, formulas, stale versions, atomic Undo/Redo | Editing fields keep normal text copy/paste. Range paste starts at the first selected visible row and last clicked column, validates all cells before a single immutable-version edit, and undoes as one change. Refuse calculated targets, archived tables, overflow and discontiguous destination selection instead of partially changing neighbors. Preserve local typed literals; copy calculated results rather than Sevra formula definitions or row authority. External receivers may interpret text beginning with a formula marker. |
+| 6. Feedback and recovery | Busy/loading, old reads, search/table errors, indexing, empty results, cancelled operations | Add local Retry search/table, settle table loading on failure/cancel and fence old callbacks. Keep last loaded data visible while updating but prevent new editing/paste on an outdated page. A rejected busy edit explicitly says it was not saved. Copy confirms row count. No permanent spinner replaces a failure message. |
+| 7. Keyboard and accessibility | Names, help, target sizes, native responder behavior, selection scope and Undo/Redo | Add contextual table help and native Undo/Redo actions, retaining field-editor behavior. Existing named icon controls and 28-point menus stay. Native observed keyboard paths supplement invariant tests; full VoiceOver and all keyboard preferences remain unqualified. |
+| 8. Compact layout and spacing | Two panes, focused workspace, footer, long labels, sheets and scrolling | Table footer uses horizontal layout when it fits and stacked feedback otherwise. Remove stripes beyond actual table rows. Preserve horizontal table scrolling, bounded fields and existing sheet padding. Do not squeeze wide table columns into unreadable cells. |
+| 9. Data meaning and empty states | Null/empty/zero/false, current versus historical data, filtered lists, invalid inputs, assets | Keep structured presentation, exact number strings, provenance, review boundaries and coverage caveats. Distinguish no matching automations from no automations; show compact empty-ZIP and filtered-table explanations, without inactive inclusion controls. Disable invalid header-record reading and explain the valid positive integer. A zero-row page never claims a false row range. |
+| 10. Consistency and regression | Final source diff, changed controls in the installed app, focused tests, packaged resources and documentation | Use synthetic workbooks only, verify clipboard and edit invariants plus adjacent failure cases, rebuild/install, and record actual native observations separately from source inspection and reused controller/engine proof. |
+
+### Clipboard design details
+
+The [Apple pasteboard](https://developer.apple.com/documentation/appkit/nspasteboard)
+allows multiple representations of the same content, including
+[tabular text](https://developer.apple.com/documentation/appkit/nspasteboard/pasteboardtype/tabulartext).
+The table supplies TSV and HTML rather than assuming every receiver wants CSV.
+Commas in ordinary pasted text stay inside a cell; explicit CSV import handles
+comma-separated files. TSV quotes tabs, quotes, line breaks and empty cells so a
+final empty row is not lost. HTML escapes literal markup and contains no scripts,
+external assets, internal row identities or model instructions.
+
+Copy and paste are bounded to 4 MB text and 100,000 cells, with 500 columns per
+row. Copy validates before replacing the clipboard. Selected rows are scoped to
+the loaded page of at most 200 rows; Copy is not an export of all filtered rows.
+CSV export remains the whole-table file operation. Pasted cells never automatically
+create accepted events, inventory effects, formulas or new rows. Validation failure
+leaves the whole operation unapplied. Local typed clipboard input is untrusted:
+schema, size and correspondence to its visible text are checked before use.
+
+
+### Final observations and checks for these ten passes
+
+The final installed build was checked with synthetic workbooks. Two selected rows
+produce complete page-scoped context and copy feedback. Command-C pastes separated
+rows/columns into plain TextEdit; Copy with headings pastes a native rich table.
+The first rich table exposed cramped cells and a wrapped short heading. The final
+HTML presentation has bounded column widths, padding and borders, and
+its headings fit. This checks TextEdit rich/plain interoperability, not all Excel,
+Numbers or other receiver behavior. External apps control inference, including
+leading zeroes and formula-like text; Sevra preserves exact types locally.
+
+Actual native range paste changes two values and recalculates totals. Keyboard
+Command-Z and Command-Shift-Z restore and reapply the whole change. Pasting into a
+calculated target refuses without changing either row. Editing-cell text copy
+copies just that text, retaining native field-editor behavior. Final Undo restores
+the two original quantities, and installed-CLI integrity reports no asset issues.
+
+Filter clearing and empty rows, image zoom minimum/maximum/reset, no matching
+automations, workflow-run emptiness and invalid header input were observed.
+Empty ZIP now uses a short explanation and Done; a populated ZIP still presents
+member selection, count, size and explicit Include, with Cancel preserving data.
+The spaces picker and empty required-field form preview were inspected without
+submission or device enablement. Final Home has no misleading blank row stripes.
+
+The final default-debug table suite passes 11 groups plus its completion line,
+including native pasteboard and atomic edit/Undo refusal checks. Search paging,
+query ownership/cancellation and retry pass. The 18 preview ownership/presentation/
+form/history groups pass. Native build/install, isolated package path checks,
+10 missing-resource refusals, altered-resource refusal and signatures pass.
+Strict formatting passes all 11 changed Swift files. Installed CLI bytes match;
+disposable signature-free desktop copies match while real signatures stay intact.
+Splash engine/Metal and grammar identity is unchanged from the prior receipt.
+
+The [immutable ten-pass receipt](../../../integration/evidence/2026-10-29-native-ten-passes.json.gz) binds 295 source files, 56 private UI
+artifact hashes and 25 private diagnostic/check artifact hashes. The first test
+build required enabling testing for its release @testable module; the documented
+default debug build succeeds. A malformed synthetic image was preserved and a
+separate valid image used for zoom. Two window-edge resize attempts returned the
+UI tool's noWindowsAvailable error while the app remained available; there is no
+new narrow-window claim. Prior compact-window observations remain historical;
+new footer fallback is source-reviewed. No fresh inference, privacy permission,
+live dictation, real customer data, business acceptance or automation activation
+was part of this follow-up. Full keyboard/VoiceOver, appearance and release gates
+remain open.
+
 
 ## Verification coverage and honest limits
 

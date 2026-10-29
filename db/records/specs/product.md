@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-29T22:56:41.534496+00:00
+updated: 2026-10-29T23:40:46.754849+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
@@ -202,6 +202,24 @@ Table selection follows stable logical row and column IDs through sorting and re
 An in-progress cell edit keeps the immutable row version and workbook revision the
 user saw. A concurrent correction must refuse a stale edit, never retarget it to a
 screen position. Copy uses the displayed snapshot; paste is based on its revision.
+Command-C copies selected rows on the loaded page, in displayed order and with
+calculated values, without headings by default. Supply plain TSV, native tabular
+text and an escaped, legible HTML table. Copy with headings is an explicit menu
+action; CSV is a separate whole-table file export. Quote cell delimiters, line
+breaks and empty cells; preserve exact types on local round trips. Validate typed
+clipboard data against its visible text. Other apps control their own text/type/formula inference; copying calculated
+results does not transfer Sevra formula definitions.
+Ordinary pasted text is tab-separated; do not guess commas to be column boundaries.
+Validate the complete paste before changing rows. Use the first selected visible
+row and last clicked column as anchor; refuse discontiguous destination selection,
+formula targets, archived tables and page/column overflow with a useful message.
+Copy/paste are bounded to 4 MB text, 100,000 cells and 500 columns per row. A failed
+copy validation keeps the clipboard; a failed paste applies no partial edits.
+Field editing keeps normal text-selection copy/paste. Table Undo/Redo also works
+through the native keyboard responder. Show copied/selected counts and page scope;
+multi-row conversation context includes every selected immutable version. Offer
+an explicit way to remove selection from the next message. Empty/filter/failure
+states are distinct; retry is local and stale/loading data is not a new paste target.
 Rows, schema, calculated values and total count load from one SQLite read snapshot.
 Only the latest table query may publish results or errors; query identity includes
 workbook, dataset, revision, filter, offset, sort column and direction. Cancelled

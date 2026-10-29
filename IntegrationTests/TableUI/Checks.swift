@@ -201,12 +201,14 @@ actor ReadGate {
     let oldGate = ReadGate()
     let old = Task { await loader.load(query()) { try await oldGate.read() } }
     await oldGate.waitForRead()
+    try expect(loader.loading, "An in-flight table read did not show loading")
     await loader.load(query(sort: "supplier")) { sortedPage }
     await oldGate.finish(firstPage)
     await old.value
     try expect(
       loader.page?.rows == sortedPage.rows && loader.loadedQuery == query(sort: "supplier"),
       "Old slow query replaced latest sort")
+    try expect(!loader.loading, "Completed table read left a spinner")
     let failureGate = ReadGate()
     let failed = Task { await loader.load(query()) { try await failureGate.read() } }
     await failureGate.waitForRead()
@@ -234,10 +236,26 @@ actor ReadGate {
     try expect(
       loader.page == nil && loader.loadedQuery == nil,
       "Failed table navigation retained another table's data")
+    try expect(!loader.loading && loader.failure != nil, "Failed table read did not settle")
+    await loader.load(query()) { firstPage }
+    try expect(
+      loader.page?.rows == firstPage.rows && loader.failure == nil, "Retry did not recover")
+    let detachedGate = ReadGate()
+    let detached = Task {
+      await loader.load(query(sort: "supplier")) { try await detachedGate.read() }
+    }
+    await detachedGate.waitForRead()
+    loader.cancel()
+    try expect(!loader.loading, "Leaving the table left its loading state active")
+    await detachedGate.finish(sortedPage)
+    await detached.value
+    try expect(
+      loader.page?.rows == firstPage.rows, "Read after detachment replaced the retained page")
     print(
       "PASS deterministic out-of-order reads, stale errors and cancellation cannot replace the latest page"
     )
     try expect(try book.verify()["ok"] == .bool(true), "Workbook integrity failed")
     try await checkTableUpdateSession()
+    try checkTableClipboard()
   }
 }

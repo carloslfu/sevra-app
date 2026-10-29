@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T22:17:23.832219+00:00
+updated: 2026-10-29T23:40:46.737998+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -105,6 +105,28 @@ values. Portable copies include conversations and unsent drafts, so review befor
 sharing. This walkthrough is the focused preview example, not proof of broad
 commercial accuracy or every format/hardware claim. Current proof and remaining
 blockers are in [[records/operations/implementation]].
+
+## Table selection, copy and paste
+
+Click a row, then use Shift or Command to select more. Command-C copies the
+selected rows on this page in displayed order, including calculated values. It
+supplies tab-separated text and a formatted table so a receiving app can choose
+its supported representation. Choose Table actions > Copy with headings when
+needed. Export CSV writes the whole table as a file. Copy stays scoped to the
+loaded page, at most 200 rows; it does not copy all filtered pages.
+
+Double-click a cell or press Return to edit; text selection keeps normal copy.
+For a range paste, click the starting column and select the first destination row.
+Command-V fills from that row. The full range must fit this page and editable
+columns. The app refuses calculated targets and discontiguous selected destinations
+before applying any change. Undo and Redo affect the entire paste. Pasting never
+automatically creates rows or accepted business events. Commas in ordinary pasted
+text stay in one cell; use explicit CSV import for a comma-separated file.
+
+Local copying preserves exact typed values, including null versus empty. Other
+apps control their own number/text/formula interpretation; verify identifiers
+such as leading-zero codes after pasting elsewhere. Clipboard operations are
+bounded to 4 MB text and 100,000 cells. Select less or export CSV for larger data.
 
 ## Preserved baseline instructions
 

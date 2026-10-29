@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T22:56:41.704884+00:00
+updated: 2026-10-29T23:40:46.702966+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -13,6 +13,52 @@ This is MVP 0.1, a native source test preview for the focused file-to-result
 workflow below. The expanded specification is unfinished. The owner-directed
 [[records/specs/mvp-delivery]] controls delivery order; preview evidence does not
 qualify broad model reliability, supported hardware or a production release.
+
+## Ten-pass native usability follow-up, October 29
+
+The owner requested ten further review passes, including multi-row selection and
+copy/paste: [[sources/notes/2026/10/native-ten-pass-review]].
+[[records/reviews/native-journey-polish]] records every lens, control inventory,
+observations and limits. P12 specifies the clipboard and selection contract.
+This follow-up is implemented, installed and verified within the existing MVP.
+
+- Complete selected-row context, removable message scope, optional headings,
+  native TSV/tabular/escaped HTML copy with exact local typed round trip, readable
+  bounded rich-table widths and row-count confirmation. CSV remains file export.
+- Range paste validates all cells against immutable row versions and commits one
+  change for Undo/Redo. Formula targets, overflow and discontiguous destinations
+  refuse atomically; native text editing keeps normal copy/paste behavior.
+- Retry search/table, settled loading/cancellation, blocked stale-page edits,
+  explicit busy rejection, accurate filtered empty/count states, adaptive footer,
+  no blank row stripes, bounded zoom/reset, automation no-match, header validation
+  and compact empty-ZIP view. No new permanent toolbar controls.
+
+Verification from final source: `bash scripts/build_native.sh` and
+`bash scripts/install.sh --native --no-build`; `swift build --product
+sevra-table-ui-checks -j 4` and its debug runner (11 groups plus final PASS);
+native-candidate release search runner (ownership/paging/cancel/retry); native
+preview runner (18 groups); `python3 scripts/check_native_package.py --paths-only`
+(isolated resource paths, 10 missing and altered resource refusals, signatures);
+`xcrun swift-format lint --strict` on all 11 changed Swift files; installed CLI
+`verify` and `rows` on the synthetic workbook; deep strict installed signature and
+signature-free disposable payload comparison. Final quantities restored to 10
+and 10 after native paste/keyboard Undo/Redo. Integrity has no asset issues.
+
+[immutable ten-pass receipt](../../../integration/evidence/2026-10-29-native-ten-passes.json.gz), SHA-256
+`153ac396ab44cb1a2e3236c78e3526363b024483ad2854d30af1d8d4cbb848ab`,
+binds 295 source files, build/installed payloads, unchanged engine/grammar,
+56 private UI hashes and 25 private check/diagnostic hashes. Existing receipts
+remain immutable. Build and test diagnostics and failed resize automation are
+recorded; no every-state, new compact-window or Excel/Numbers recipient claim.
+Native TextEdit rich/plain table paste, calculated-target refusal, text-field copy,
+filter clear, zoom bounds/reset, empty/populated ZIP, no-match automations and
+empty form validation were actually exercised. No model calls or engine changes.
+
+Remaining priorities stay at three: broad AI evidence selection/coverage; explicit
+table mapping and raw reference-CSV readability; full accessibility/appearance,
+hardware and production distribution gates. External receivers own inference,
+including leading-zero and formula-like text behavior. This improves a source
+preview and does not qualify production or broad unattended business accuracy.
 
 ## Native control follow-up, October 29
 

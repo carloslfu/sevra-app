@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-10-29T22:48:58.955703Z
+updated: 2026-10-29T23:29:43.681520Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/10/native-ten-pass-review]] — Owner requests ten full native UI review passes including selection, copying and small interaction details.
 - [[sources/notes/2026/10/native-control-follow-up]] — Owner requests a second full native UI pass after observing redundant ellipsis and disclosure indicators.
 - [[sources/notes/2026/10/native-journey-simplification]] — Owner requests a thorough review and simplification of the native Sevra journey, controls, spacing and polish.
 - [[sources/notes/2026/10/managed-datasets-replayable-storage]] — Owner adoption of managed native datasets aligned with existing replayable persistence; replication remains future work.

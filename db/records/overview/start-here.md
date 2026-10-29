@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T22:57:12.996646+00:00
+updated: 2026-10-29T23:40:46.721716+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -68,6 +68,12 @@ mappings and broad AI source selection remain known limitations.
 The second control pass removes duplicate ellipsis/disclosure glyphs, simplifies
 column/time editors, groups file actions and adds clear failed-PDF presentation.
 The review records retained controls, actual observations and accessibility limits.
+The ten additional passes cover selection/context, native TSV and readable rich
+copy, optional headings, atomic paste and keyboard Undo/Redo, recovery and empty
+states, bounded zoom and compact feedback. Final installed TextEdit rich/plain
+paste and adjacent refusal cases have scoped proof. The review distinguishes
+source inspection, actual interactions and reused evidence; it does not claim
+every possible UI state or all external paste recipients are qualified.
 
 ## Architecture
 
