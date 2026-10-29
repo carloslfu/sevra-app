@@ -30,16 +30,13 @@ and user data. The controlling policy is
 [pre-1.0 compatibility](db/records/specs/distribution.md#pre-10-compatibility-policy).
 The [persistence-readiness requirement](db/records/specs/persistence-readiness.md)
 adds complete saved changes, causal identities, deterministic local reconstruction
-and accurate decision provenance. The table-update and shared persistence slices
-have scoped evidence. Editable Home/space operations now reuse that foundation;
-implement the adopted [managed dataset foundation](db/records/specs/managed-datasets.md)
-(E0-D) before dependent E2/E3 storage, after a coherent in-flight checkpoint.
-Reserve system tables; register native dataset projections over shared immutable
-versions/definitions and the same committed-change ledger. Schema changes must be
-reconstructible through trusted core code. No raw-model DDL or independent ledger.
-Then continue E2-E6 without claiming release readiness from a scoped checkpoint.
-New definition/workflow/automation state must inherit complete capture and inert
-reconstruction, with its own scoped proof.
+and accurate decision provenance. The next deliverable is the owner-directed [fast MVP](db/records/specs/mvp-delivery.md):
+run the native supplier CSV/PDF to cited comparison, saved result, edit/recalculate/Undo,
+reopen and portable-copy journey first, fix observed blockers, then ship MVP 0.1 test
+preview. Finish only a coherent in-flight checkpoint. Further E2-E6, condition/dataset/
+background infrastructure and full engine/hardware/release research are deferred.
+Existing safeguards, history and current-format integrity remain required. Keep at
+most three active blockers in the progress record and reuse unchanged proof.
 Cloud sync, transport, replica coordination and a new resolver are out of scope.
 Preserve unrelated changes. Do not change the website business or Slotstream
 repository as a side effect. Keep public claims tied to measured acceptance.

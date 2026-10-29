@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T17:47:21.678397+00:00
+updated: 2026-10-29T18:01:00.679542+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -23,6 +23,13 @@ leads to the secondary service. Website pricing/support does not apply to this a
 Slotstream remains independent. The native qualification build integrates upstream
 Splash C++/Metal through Swift, with no Python runtime. The prior Slotstream build
 is retained as a separate baseline until native adoption gates pass. See [[records/specs/splash-integration]].
+
+## Controlling next delivery
+
+Follow [[records/specs/mvp-delivery]] for the owner-directed fast MVP. Complete the
+actual supplier CSV/PDF to cited, deterministic saved comparison, edit/recalculate/Undo,
+reopen and portable-copy journey, fixing observed blockers. The expanded roadmap
+below remains deferred beyond that preview.
 
 ## Reading order
 

@@ -2,13 +2,14 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-29T17:47:21.697001Z
+updated: 2026-10-29T17:58:47.247749Z
 ---
 
 # records/specs
 
-- [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
+- [[records/specs/mvp-delivery]] — Owner-directed fast MVP: one complete native file-to-result journey, focused verification, coherent setup and deferred infrastructure.
 - [[records/specs/condition-dispatch]] — "Schema30 dispatch and conversational rule saving/native handoff have scoped proof. Text/voice Enable, model workflow/restart, dataset adapters and release remain open."
+- [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
 - [[records/specs/automation-causality]] — Schema29 captures shared business and calendar roots with bounded trusted admissions. Racing writers and process-death proof pass; actual condition selection/current-grant dispatch remains open.
 - [[records/specs/business-provenance]] — Schema29 shared input roots and persisted admission budgets have scoped core/native CLI proof. Actual condition-candidate binding/current-grant dispatch remains next.
 - [[records/specs/condition-transition-inputs]] — Exact retained condition inputs now support bounded historical producer resolution. Complete windows, real limits and native CLI checks pass; independent roots and dispatch remain open.

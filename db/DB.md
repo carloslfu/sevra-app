@@ -30,8 +30,10 @@ and accurate decision provenance. Cloud sync, transport, replica coordination an
 a new conflict resolver are outside this requirement. The implemented foundation
 now extends through [[records/specs/managed-datasets]]: reserved core tables and
 registered native dataset projections over shared immutable authority. Record and
-reconstruct logical schema changes within the same capture/apply path. Finish a
-coherent in-flight checkpoint, then establish E0-D before dependent E2/E3 storage.
+reconstruct logical schema changes within the same capture/apply path. The next deliverable follows [[records/specs/mvp-delivery]]: one complete native
+supplier-comparison journey and coherent install/setup, then MVP 0.1 test preview.
+Finish only a coherent in-flight checkpoint. Further E2-E6 and new automation,
+condition/dataset/background infrastructure are deferred; preserve safeguards.
 No raw-model DDL, parallel ledger or claim that local replay solves replication.
 All maintained product/engineering prose belongs here; root documents are brief
 entry points. Finish changes with the relevant checks and a commit. Plain copy,

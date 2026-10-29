@@ -232,8 +232,7 @@ func checkAutomationDefinitions(at root: URL) {
     try expect(try book.revision() == revision)
     _ = try book.verify()
   }
-  check("ordinary agent tools can inspect inert automation metadata but cannot author or start it")
-  {
+  check("agent automation authoring respects read-only requests and never grants execution") {
     let (book, workflow, args, _) = try fixture("AgentBoundary")
     let content = content(workflow, args)
     let saved = try save(book, content)
@@ -244,19 +243,38 @@ func checkAutomationDefinitions(at root: URL) {
       data: .object([
         "conversationID": .string("main"), "messageID": .string(request.messageID),
       ]))
-    let tools = WorkbookTools(book, runID: request.runID, requestSourceID: source.id)
+    let tools = WorkbookTools(
+      book, runID: request.runID, requestSourceID: source.id, readOnly: true)
     let revision = try book.revision()
     try expect(
       try tools.execute("read_definition", .object(["id": .string(saved.id)]))["content"] == content
     )
-    try refuses("definition_kind") {
+    try refuses("read_only_request") {
       _ = try tools.execute("save_definition", .object(["content": content]))
     }
-    try refuses("workflow_definition") {
+    try refuses("read_only_request") {
       _ = try tools.execute(
         "start_workflow", .object(["id": .string(saved.id), "arguments": .object([:])]))
     }
     try expect(try book.revision() == revision && book.workflowRuns().isEmpty)
+    try book.finishAgentRun(request.runID, status: "complete", steps: 1, metrics: .object([:]))
+    let savePrompt = "Save a copy of this schedule. Do not enable or run it."
+    let saveRequest = try book.startAgentRequest(
+      savePrompt, conversation: "main", model: "synthetic")
+    let saveSource = try book.addItem(
+      category: "source", kind: "request", title: "Save request", text: savePrompt,
+      data: .object([
+        "conversationID": .string("main"), "messageID": .string(saveRequest.messageID),
+      ]))
+    let author = WorkbookTools(book, runID: saveRequest.runID, requestSourceID: saveSource.id)
+    let copy = try author.execute("save_definition", .object(["content": content]))
+    let copied = try book.applicationDefinition(copy["id"].text)
+    try expect(copied.content == content && copied.kind == "automation")
+    try expect(try book.automationState(copied.id) == .null && book.workflowRuns().isEmpty)
+    try refuses("workflow_definition") {
+      _ = try author.execute(
+        "start_workflow", .object(["id": .string(copied.id), "arguments": .object([:])]))
+    }
     _ = try book.verify()
   }
   check("automation reconstruction retains typed intent and provenance without activation") {

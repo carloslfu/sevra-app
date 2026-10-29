@@ -1327,3 +1327,12 @@ Qualified schema30 conversational inventory-rule saving and exact native review 
 ## [2026-10-29 17:47] verification | records/specs/condition-dispatch
 Final conversational authoring checkpoint: actual model4 calls, packaged native3 calls, zero activations/consumers/runs/admissions and inert reconstruction; full agent/current65 grammars555 masks8161/8192, strict14 Swift files, frozen415 sources, native package/refusals/signature, dbmd all zero errors/warnings, links/diff; all152 prior evidence unchanged.
 
+## [2026-10-29 17:51] design | records/specs/condition-dispatch
+Reviewed native text/voice preview-confirm-enable and pause interaction before implementation: strict current commands, exact target, live physical/generation/registry preview ticket, final publication fence and no model authority.
+
+## [2026-10-29 17:59] design | records/specs/mvp-delivery.md
+Owner course correction: prioritize one complete native MVP journey, focused verification and coherent setup; defer further infrastructure and full-roadmap completion.
+
+## [2026-10-29 18:01] implementation | records/operations/implementation.md
+Bounded checkpoint: corrected stale automation refusal test; eight focused groups pass. Deferred uncompiled Enable sketch preserved. Owner fast-MVP supplier journey now controls delivery; native installer and final candidate remain open.
+

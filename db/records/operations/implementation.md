@@ -3,14 +3,15 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T17:47:21.657308+00:00
+updated: 2026-10-29T18:01:00.694025+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
 
-This is a working development build, not a qualified release. Requirements in the
-specifications remain the acceptance contract. A source commit does not imply that
+This is a working development build, not a qualified release. The next deliverable
+follows [[records/specs/mvp-delivery]], which supersedes completing the expanded
+roadmap before a useful MVP 0.1 test preview. A source commit does not imply that
 every requirement or supported hardware profile has passed.
 
 ## Current status, October 29
@@ -41,7 +42,8 @@ every requirement or supported hardware profile has passed.
 - Schema29 now retains shared business-root admissions, exact input relations and merged parent/root budgets through the existing captured writer. Full539 core/30 final focused groups,22 installed shared-admission calls, nine racing writers for seven slots and two actual SIGKILL boundaries pass. Current local speech reaches the unsent composer, Stop/clear/close leave no sent work. See [[records/specs/automation-causality]].
 - Schema30 now connects actual owned inventory-condition candidates, exact live physical-file grants and atomic workflow/admission binding. Broad555 core, final18 focused/21 owner groups and current installed race/death/native package checks pass. Fresh native editor/preview/save/Enable, stock20-to5 automatic deterministic completion, trigger evidence, Pause and inert reconstruction pass. See [[records/specs/condition-dispatch]].
 - Conversation now saves exact inventory rules and opens native review without enabling them. Seven scripted modes, full agent/65 grammars/555 masks at8161/8192, real local-model authoring and packaged native handoff/close/inert reconstruction pass; all152 prior artifacts remain unchanged. See [[records/specs/condition-dispatch]].
-- Next: text/voice explicit Enable confirmation, a real local-model condition workflow through human review and restart, then dataset-query condition adapters. Final background/closed-window/resource lifecycle and full E3 receiving/failure/abuse/richer-graph journeys remain open. The timer is active-app/key-window only; E5-E6, visible checks and release remain unqualified.
+- Next: run the native supplier CSV/PDF to cited answer, deterministic comparison, saved result, edit/recalculate/Undo, close/reopen and portable-copy journey. Fix observed blockers and coherent native installation/setup before delivering the scoped MVP. Further automation confirmation/conditions/background infrastructure is deferred; its unfinished sketch is preserved separately in [[records/specs/condition-dispatch]].
+- Current active blockers: native installer still installs the baseline; actual first supplier journey not yet qualified; candidate required checks pending. CI for 0906fe4 exposed one stale automation-save refusal test. The corrected focused eight groups pass; no green corrective CI is claimed yet.
 - Release gaps also include contextual/Excel continuity and complete E0/E1/E2 journeys, voice/accessibility/appearance/media and supported physical hardware, native parity/performance adoption, production signing/notarization and distribution. Latest native Activity continuation and local speech-to-composer/stop/clear/close now have visible proof. Controlled-phrase accuracy and full accessibility/appearance/media remain unverified. Specifications are the acceptance contract; scoped checkpoints do not make the app ready.
 
 ## Agent definitions and saved actions, checkpoint, October 28
