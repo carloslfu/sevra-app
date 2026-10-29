@@ -300,13 +300,15 @@ public final class Workbook: @unchecked Sendable {
     category: String, kind: String, title: String, text: String, data: Value, meaning: String,
     status: String, scenario: String, inputs: [String], transformation: String,
     assetID: String? = nil, supersedes: String? = nil, referenceOrigin: String? = nil,
-    inheritReferenceBindings: Bool = true
+    inheritReferenceBindings: Bool = true, controlInputs: [String] = [],
+    producerInputs: [String] = []
   ) throws -> String {
     try require(
       !title.isEmpty && title.utf8.count <= 4096 && text.utf8.count <= 16_000_000, "limit",
       "Record title or text exceeds the supported bounds.")
     try require(
-      category != "record" || !inputs.isEmpty, "lineage",
+      category != "record" || !inputs.isEmpty || !producerInputs.isEmpty || !controlInputs.isEmpty,
+      "lineage",
       "Derived records require at least one exact input version.")
     let old = try supersedes.map { try item($0) }
     var savedData = data
@@ -339,28 +341,29 @@ public final class Workbook: @unchecked Sendable {
     }
     let id = identifier()
     let logical = old?.logicalID ?? identifier()
+    let edges = try prepareDerivationEdges(
+      inputs: inputs, controls: schemaInputs + controlInputs,
+      producers: producerInputs, supersedes: supersedes, transformation: transformation)
+    let derivation = try ItemDerivation.seal(id, edges: edges)
     try db.execute(
-      "INSERT INTO items VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+      "INSERT INTO items VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [
         .string(id), .string(logical), .number(Double((old?.version ?? 0) + 1)), .string(category),
         .string(kind), .string(title), .string(meaning), .string(status), .string(scenario),
         .string(text), .string(try savedData.json()), assetID.map(Value.string) ?? .null,
-        supersedes.map(Value.string) ?? .null, .string(timestamp()),
+        supersedes.map(Value.string) ?? .null, .string(timestamp()), .string(try derivation.json()),
       ])
     try db.execute(
       "INSERT INTO heads VALUES(?,?) ON CONFLICT(logical_id) DO UPDATE SET item_id=excluded.item_id",
       [.string(logical), .string(id)])
     if kind == "row" { try refreshManagedRow(logical) }
-    for parent in Set(inputs + schemaInputs) {
-      _ = try item(parent)
+    for edge in edges {
       try db.execute(
-        "INSERT INTO lineage VALUES(?,?,?,?)",
-        [.string(id), .string(parent), .string("derives-from"), .string(transformation)])
-    }
-    if let supersedes {
-      try db.execute(
-        "INSERT OR IGNORE INTO lineage VALUES(?,?,?,?)",
-        [.string(id), .string(supersedes), .string("supersedes"), .string(transformation)])
+        "INSERT INTO lineage VALUES(?,?,?,?,?)",
+        [
+          .string(id), edge["parent"]!,
+          edge["relation"]!, edge["transformation"]!, edge["roles"]!,
+        ])
     }
     try insertChunks(id, title: title, chunks: [Chunk(text.isEmpty ? data.text : text)])
     if inheritReferenceBindings, let origin = referenceOrigin ?? old?.id {
@@ -378,7 +381,7 @@ public final class Workbook: @unchecked Sendable {
     try synchronized {
       try db.execute(
         "SELECT * FROM lineage WHERE child=? OR parent=? LIMIT 200", [.string(id), .string(id)]
-      ).map(Value.object)
+      ).map(ItemDerivation.publicEdge)
     }
   }
   public func counts() throws -> Value {

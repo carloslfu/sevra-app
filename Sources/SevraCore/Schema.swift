@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 26
+  static let version = 27
   static let sql = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=\(version);
@@ -12,12 +12,12 @@ enum Schema {
     INSERT INTO meta VALUES('revision','0');
     CREATE TABLE assets(id TEXT PRIMARY KEY,name TEXT NOT NULL,path TEXT NOT NULL,hash TEXT NOT NULL,bytes INTEGER NOT NULL,media_type TEXT NOT NULL,mode TEXT NOT NULL CHECK(mode IN ('included','linked')),origin TEXT,bookmark TEXT,created TEXT NOT NULL);
     CREATE INDEX assets_hash ON assets(hash);
-    CREATE TABLE items(id TEXT PRIMARY KEY,logical_id TEXT NOT NULL,version INTEGER NOT NULL,category TEXT NOT NULL CHECK(category IN ('source','record')),kind TEXT NOT NULL,title TEXT NOT NULL,meaning TEXT NOT NULL CHECK(meaning IN ('actual','estimate','plan','commitment','assumption','rule')),status TEXT NOT NULL CHECK(status IN ('draft','accepted','rejected')),scenario TEXT NOT NULL DEFAULT 'actual',body TEXT NOT NULL,data TEXT NOT NULL,asset_id TEXT REFERENCES assets(id),supersedes TEXT REFERENCES items(id),created TEXT NOT NULL,UNIQUE(logical_id,version));
+    CREATE TABLE items(id TEXT PRIMARY KEY,logical_id TEXT NOT NULL,version INTEGER NOT NULL,category TEXT NOT NULL CHECK(category IN ('source','record')),kind TEXT NOT NULL,title TEXT NOT NULL,meaning TEXT NOT NULL CHECK(meaning IN ('actual','estimate','plan','commitment','assumption','rule')),status TEXT NOT NULL CHECK(status IN ('draft','accepted','rejected')),scenario TEXT NOT NULL DEFAULT 'actual',body TEXT NOT NULL,data TEXT NOT NULL,asset_id TEXT REFERENCES assets(id),supersedes TEXT REFERENCES items(id),created TEXT NOT NULL,derivation TEXT NOT NULL,UNIQUE(logical_id,version));
     CREATE TABLE heads(logical_id TEXT PRIMARY KEY,item_id TEXT NOT NULL UNIQUE REFERENCES items(id));
     CREATE INDEX items_filter ON items(kind,meaning,status,scenario,created);
     CREATE INDEX items_asset ON items(asset_id);
     CREATE INDEX items_logical ON items(logical_id,version);
-    CREATE TABLE lineage(child TEXT NOT NULL REFERENCES items(id),parent TEXT NOT NULL REFERENCES items(id),relation TEXT NOT NULL,transformation TEXT NOT NULL,PRIMARY KEY(child,parent,relation));
+    CREATE TABLE lineage(child TEXT NOT NULL REFERENCES items(id),parent TEXT NOT NULL REFERENCES items(id),relation TEXT NOT NULL,transformation TEXT NOT NULL,roles INTEGER NOT NULL CHECK(roles BETWEEN 1 AND 15),PRIMARY KEY(child,parent,relation));
     CREATE INDEX lineage_parent ON lineage(parent);
     CREATE TABLE chunks(id INTEGER PRIMARY KEY,item_id TEXT NOT NULL REFERENCES items(id),title TEXT NOT NULL,body TEXT NOT NULL,locator TEXT NOT NULL,is_current INTEGER NOT NULL,kind TEXT NOT NULL,meaning TEXT NOT NULL,status TEXT NOT NULL,scenario TEXT NOT NULL);
     CREATE INDEX chunks_item ON chunks(item_id);

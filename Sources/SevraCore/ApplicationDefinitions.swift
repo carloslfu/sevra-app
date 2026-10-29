@@ -140,12 +140,8 @@ extension Workbook {
             dataset.map(Value.string) ?? .null, schema.map(Value.string) ?? .null,
           ])
         ordinal += 1
-        try db.execute(
-          "INSERT OR IGNORE INTO lineage VALUES(?,?,?,?)",
-          [
-            .string(source), .string(input), .string("definition-input"),
-            .string("application-definition-authoring-v1"),
-          ])
+        try insertDefinitionDerivation(
+          source, parent: input, transformation: "application-definition-authoring-v1")
       }
       if descriptor.kind == "intake" {
         let intake = try DefinitionIntake(descriptor)
@@ -169,6 +165,7 @@ extension Workbook {
             schema: target.id, input: target.sourceID)
         }
       }
+      try sealNewDefinitionDerivation(source)
       return .string(id)
     }
     return try applicationDefinition(result.text)

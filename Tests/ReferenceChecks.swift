@@ -148,7 +148,8 @@ func checkReferences(at root: URL) {
     try expect(snapshot.coverage == "partial" && snapshot.references.count == 2)
     try expect(snapshot.references[0].label.utf8.elementsEqual("Cafe\u{301}".utf8))
     try expect(try book.item(origin.id) == origin && book.item(origin.logicalID).id == origin.id)
-    try expect(try book.lineage(origin.id).isEmpty && book.counts()["records"] == beforeRecords)
+    try expectTechnicalReference(book, origin: origin.id, annotation: snapshot.sourceID!)
+    try expect(try book.counts()["records"] == beforeRecords)
     let revised = try book.addItem(
       category: "source", kind: "observation", title: "Renamed quote", text: "Corrected 0.25 kg",
       supersedes: target.id)

@@ -174,7 +174,7 @@ extension Workbook {
         "inheritedSnapshotID": inherited.map(Value.string) ?? .null,
         "parser": .string(parser), "coverage": .string(coverage), "references": bindings,
       ]), meaning: "actual", status: "accepted", scenario: "actual", inputs: [],
-      transformation: parser)
+      transformation: parser, controlInputs: [origin])
     let set = identifier()
     try db.execute(
       "INSERT INTO file_reference_sets VALUES(?,?,?,?,?,?,?,?,?,?,?)",

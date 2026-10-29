@@ -164,6 +164,14 @@ func checkWorkflowLookups(at root: URL) {
     let action = waiting["steps"].array[1]["output"]["value"]
     let parents = try book.lineage(action["sourceID"].text).map { $0["parent"].text }
     try expect(parents.contains(row.id) && parents.contains(query.sourceID))
+    try expectInputRole(book, child: action["sourceID"].text, parent: row.id, roles: 1)
+    try expectInputRole(book, child: action["sourceID"].text, parent: query.sourceID, roles: 2)
+    try expectInputRole(
+      book, child: action["sourceID"].text,
+      parent: book.datasetDefinition(table.id).sourceID, roles: 2)
+    try expectInputRole(
+      book, child: action["sourceID"].text,
+      parent: book.workflowRun(session.runID)["source_id"].text, roles: 4)
     try expect(try book.balance(subject: "bolts")["quantity"] == .string("20"))
     _ = try book.accept(action["proposals"].array[0].text, actor: .human("test-review"))
     let done = try book.continueWorkflow(session, owner: "finish")
@@ -173,6 +181,24 @@ func checkWorkflowLookups(at root: URL) {
     try expect(try copy.workflowRun(session.runID) == done)
     try expect(try copy.balance(subject: "bolts")["quantity"] == .string("22"))
     try expect(try book.verify()["ok"] == .bool(true) && copy.verify()["ok"] == .bool(true))
+  }
+  check("selected catalog values retain data provenance through an intervening scalar function") {
+    let (book, table, query, workflow, args) = try fixture("ScalarRoles", calculation: true)
+    let row = try book.rows(table.id)[0]
+    let session = try start(book, workflow, args)
+    let waiting = try book.continueWorkflow(session, owner: "scalar-roles")
+    try expect(waiting["state"] == .string("waiting_review"))
+    let action = waiting["steps"].array[2]["output"]["value"]
+    let calculation = waiting["steps"].array[1]["output"]["value"]
+    try expectInputRole(book, child: action["sourceID"].text, parent: row.id, roles: 1)
+    try expectInputRole(book, child: action["sourceID"].text, parent: query.sourceID, roles: 2)
+    try expectInputRole(
+      book, child: action["sourceID"].text,
+      parent: book.applicationDefinition(calculation["definitionID"].text).sourceID, roles: 2)
+    let proposal = try book.item(action["proposals"].array[0].text)
+    try expect(proposal.data["quantity"] == .string("2"))
+    try expectInputRole(book, child: proposal.id, parent: action["sourceID"].text, roles: 4)
+    _ = try book.verify()
   }
   check("lookup checkpoint faults and cancellation preserve history before exact retry") {
     let (book, _, _, workflow, args) = try fixture("Checkpoint")

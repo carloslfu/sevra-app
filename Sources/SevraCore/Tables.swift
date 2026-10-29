@@ -243,8 +243,8 @@ extension Workbook {
         category: "record", kind: "row", title: "\(title.prefix(500)), row \(n+1)",
         text: values.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.text)" }.joined(
           separator: "\n"), data: .object(values), meaning: meaning, status: "accepted",
-        scenario: meaning == "actual" ? "actual" : "planning", inputs: inputs + [definitionSource],
-        transformation: "table-intake-v1")
+        scenario: meaning == "actual" ? "actual" : "planning", inputs: inputs,
+        transformation: "table-intake-v1", controlInputs: [definitionSource])
       let row = try item(itemID)
       try insertDatasetMember(id, ordinal: n, logicalID: row.logicalID)
     }

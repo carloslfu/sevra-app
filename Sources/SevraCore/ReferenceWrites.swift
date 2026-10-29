@@ -149,7 +149,8 @@ extension Workbook {
         : "Deterministic body-link parsing event for an immutable item version. This does not establish a business relationship.",
       data: .object(evidenceData), meaning: "actual", status: "accepted", scenario: "actual",
       inputs: [],
-      transformation: parser == "explicit-selections-v1" ? "reference-selection-v1" : parser)
+      transformation: parser == "explicit-selections-v1" ? "reference-selection-v1" : parser,
+      controlInputs: [origin])
     let set = identifier()
     try db.execute(
       "INSERT INTO reference_sets VALUES(?,?,?,?,?,?,?,?,?,?,?)",

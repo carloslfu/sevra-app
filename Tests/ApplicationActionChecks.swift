@@ -75,7 +75,12 @@ func checkApplicationActions(at root: URL) {
     try expect(try b.lineage(saved.id).contains { $0["parent"] == result["sourceID"] })
     let invocation = try b.item(result["sourceID"].text)
     try expect(invocation.data["actor"]["kind"] == .string("human"))
-    try expect(try b.lineage(invocation.id).contains { $0["parent"] == .string(f.sourceID) })
+    try expectInputRole(b, child: saved.id, parent: invocation.id, roles: 4)
+    try expectInputRole(b, child: saved.id, parent: s.id, roles: 1)
+    try expectInputRole(b, child: invocation.id, parent: s.id, roles: 1)
+    for definition in [a, f] {
+      try expectInputRole(b, child: invocation.id, parent: definition.sourceID, roles: 2)
+    }
     _ = try b.accept(saved.id)
     try expect(try b.balance(subject: "bolts")["quantity"] == .string("25"))
     _ = try b.verify()
@@ -254,7 +259,10 @@ func checkApplicationActions(at root: URL) {
     try expect(estimate["movements"].array[0]["meaning"] == .string("estimate"))
     try expect(estimate["effect"].text.contains("1 draft inventory proposal (estimate)"))
     try expect(!estimate["effect"].text.contains("actual"))
-    _ = try b.invokeApplicationAction(a.id, arguments: input, preview: preview, token: "cases")
+    let result = try b.invokeApplicationAction(
+      a.id, arguments: input, preview: preview, token: "cases")
+    try expectInputRole(b, child: result["sourceID"].text, parent: function.sourceID, roles: 2)
+    try expectInputRole(b, child: result["sourceID"].text, parent: s.id, roles: 1)
     _ = try b.verify()
   }
   check("receiving maximum batch is atomic and field diagnostics preserve nested input paths") {

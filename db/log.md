@@ -1141,3 +1141,9 @@ Schema26 exact condition input windows and inert inspection: full470/0, focused1
 ## [2026-10-29 14:37] design | records/specs/business-provenance.md
 Reviewed next E4 data/control/producer/revision role/seal representation, producer inventory, bounded inspection and independent-root/dispatch boundaries. Schema27 is planned only; app remains qualified scoped schema26 at cddcdc5 with exact CI running.
 
+## [2026-10-29 15:02] implementation | records/specs/business-provenance.md
+Schema27 role/seal capture and audited producers: full484/0, focused13/0, real10000/10001 input/projection bounds, installed19/30/97/76/22/21 calls, owner18/ProductAI/native package, strict41 Swift files; all146 receipts unchanged. Business-origin resolution and actual condition dispatch remain next.
+
+## [2026-10-29 15:02] verification | records/specs/business-provenance.md
+Schema27 role/seal capture and audited producers: full484/0, focused13/0, real10000/10001 input/projection bounds, installed19/30/97/76/22/21 calls, owner18/ProductAI/native package, strict41 Swift files; all146 receipts unchanged. Business-origin resolution and actual condition dispatch remain next.
+

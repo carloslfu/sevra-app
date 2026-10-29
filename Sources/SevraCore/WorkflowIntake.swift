@@ -178,9 +178,8 @@ extension Workbook {
     let proposal = try insertTableUpdatePlan(
       preparation.plan, newRowMeaning: intake.meaning, newRowScenario: intake.scenario,
       workflow: request,
-      additionalInputs: [
-        run["source_id"].text, try applicationDefinition(step.binding!.target).sourceID,
-      ],
+      controlInputs: [try applicationDefinition(step.binding!.target).sourceID],
+      producerInputs: [run["source_id"].text],
       cancellation: cancellation)
     let data = try item(proposal).data
     let preview = preparation.preview

@@ -2,14 +2,15 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-29T14:37:39.118255Z
+updated: 2026-10-29T15:02:47.712011Z
 ---
 
 # records/specs
 
-- [[records/specs/business-provenance]] — Reviewed schema27 role/seal capture, producer audit and bounded business-origin inspection. Implementation, independent roots and condition dispatch remain open.
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
 - [[records/specs/automation-causality]] — Schema 25 retains calendar roots and bounded trusted inherited admissions atomically. Condition cause discovery and dispatch remain required; scoped checks and failures are retained.
+- [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
+- [[records/specs/business-provenance]] — Schema27 role/seal capture and audited producer classifications pass484/0 core checks and installed native proof. Bounded business origins, roots and condition dispatch remain pending.
 - [[records/specs/inventory-condition-consumers]] — Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
 - [[records/specs/condition-transition-inputs]] — Schema 26 retains exact condition change inputs across pages, clocks and unknown windows. Full470/0 and real10000/10001 bounds pass. Actual parent discovery and dispatch remain open.
 - [[records/specs/automatic-ancestry]] — Schema 24 indexed workflow source identities and bounded automatic ancestry; synthetic acceptance preserves origin. Exact trigger causes and persisted dispatch admission remain required.
@@ -17,7 +18,6 @@ updated: 2026-10-29T14:37:39.118255Z
 - [[records/specs/inventory-event-state]] — Reviewed historical inventory adapter: exact committed cutoff and explicit effective time, retained basis and settled effects, bounded read-only reconciliation, no condition execution.
 - [[records/specs/business-events]] — Reviewed schema22 semantic outbox over captured history: atomic settled versions, inventory basis and dataset membership/schema events, bounded indexed delivery and no execution authority.
 - [[records/specs/native-automation-owner]] — Native schedule controls and persistent physical-workbook device grants with a conservative active-app owner; scoped synthetic, process-death and installed-package proof, full lifecycle/release open.
-- [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 - [[records/specs/automation-execution]] — Schema21 foreground scheduled draft execution with distinct AI scope, atomic occurrence binding, one active run and pause-safe claims; native device restoration is scoped in native-automation-owner.
 - [[records/specs/automation-planning]] — Reviewed schema20 activation and bounded calendar occurrence preparation: explicit process-local permission, revocation, skipped reasons and inert reconstruction; dispatch remains open.
 - [[records/specs/manual-workflows]] — Manual durable workflow contract and scoped implementation sequence; full E3 remains open.

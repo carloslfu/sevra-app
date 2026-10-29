@@ -186,8 +186,8 @@ extension Workbook {
           "observedAt": .string(instant), "policy": .string("foreground-drafts-v1"),
           "decisions": .array([decision]),
         ]), meaning: "actual", status: "accepted", scenario: "actual",
-        inputs: [authority.sourceID, pending["source_id"].text].sorted(),
-        transformation: "automation-dispatch-v1")
+        inputs: [], transformation: "automation-dispatch-v1",
+        controlInputs: [authority.sourceID, pending["source_id"].text].sorted())
       try self.applyAutomationDecisions([decision], source: source)
       if let runID {
         let automation = try self.applicationDefinition(activation["definition_id"].text)
@@ -207,13 +207,12 @@ extension Workbook {
         _ = try self.insertWorkflowRun(
           retained.workflow.id, arguments: retained.arguments,
           actor: .programmatic("SevraCore.automationDispatcher"),
-          additionalInputs: [authority.sourceID, pending["source_id"].text, source]
-            + (try causal.parents.map {
-              try self.db.scalar("SELECT source_id FROM workflow_runs WHERE id=?", [.string($0)])
-                .text
-            }),
           origin: origin,
-          policy: "automation-drafts-v1", runID: runID)
+          policy: "automation-drafts-v1", runID: runID,
+          controlInputs: [authority.sourceID, pending["source_id"].text, source],
+          producerInputs: try causal.parents.map {
+            try self.db.scalar("SELECT source_id FROM workflow_runs WHERE id=?", [.string($0)]).text
+          })
         try self.db.execute(
           "INSERT INTO automation_runs VALUES(?,?,?,?,?,?,?,?)",
           [

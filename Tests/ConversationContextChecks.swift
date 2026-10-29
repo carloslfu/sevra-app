@@ -67,7 +67,7 @@ func checkConversationContext(at root: URL) {
           "CREATE TRIGGER unexpected AFTER INSERT ON messages BEGIN DELETE FROM items; END;"
       default:
         alteration =
-          "INSERT INTO lineage VALUES('missing-child','missing-parent','derives-from','fixture');"
+          "INSERT INTO lineage VALUES('missing-child','missing-parent','derives-from','fixture',1);"
       }
       _ = try sql(database, alteration)
       let before = try Data(contentsOf: database)

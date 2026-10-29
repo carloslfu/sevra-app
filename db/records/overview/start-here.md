@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T14:37:39.164793+00:00
+updated: 2026-10-29T15:02:47.639140+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -26,7 +26,7 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 ## Reading order
 
-- [[records/specs/business-provenance]]: reviewed next schema27 role/seal capture and producer audit; implementation and actual independent-root/condition dispatch remain pending.
+- [[records/specs/business-provenance]]: schema27 sealed role capture, audited native producer classifications and named broad lineage are qualified; bounded business-origin resolution, independent roots and condition dispatch remain next.
 - [[records/specs/condition-transition-inputs]]: schema26 exact scope-relevant changed versions/events/activation times and linked observation windows, with truthful unknown/overflow coverage; actual automatic parents and candidate dispatch remain next.
 - [[records/specs/automation-causality]]: schema 25 atomic calendar origins and bounded trusted inherited admissions; exact condition causes and dispatch remain next.
 - [[records/specs/automatic-ancestry]]: schema 24 authoritative indexed workflow source identities and read-only derivation inspection; durable calendar/admission state now follows in [[records/specs/automation-causality]], while exact trigger causes remain open.
@@ -117,3 +117,7 @@ The current schema-25 checkpoint atomically retains calendar roots and bounded t
 ## Exact condition input-history foundation
 
 Current development schema26 captures unfinished and completed condition input windows in the same ledger. Final470 core groups/14 focused input groups, the real10000/10001 bound and installed30 input/97 condition/76 feed/22 ancestry/21 admission calls pass. Pending pages, clocks, backpressure, unknown windows and inert reconstruction retain exact references. Overflow remains visibly incomplete while the balance stays exact. [[records/specs/condition-transition-inputs]] records retained failures and limits. Actual automatic-parent discovery and candidate dispatch are still unfinished.
+
+## Sealed input roles and producer classifications
+
+Current schema27 stores complete data/control/producer/revision sets and per-item seals in existing captured families. Final484 core groups/13 focused role groups, both real10,000/10,001 condition limits,19 installed role calls and nearby installed/native checks pass. Public lineage names roles; the existing broad automatic graph still includes configuration. [[records/specs/business-provenance]] retains exact evidence and failures. Bounded business-origin inspection, condition-window resolution, independent roots and actual dispatch remain unfinished.

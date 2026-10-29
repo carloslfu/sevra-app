@@ -169,6 +169,14 @@ func checkWorkflowInterpretations(at root: URL) {
     try expect(try book.balance(subject: "bolts")["quantity"] == .string("0"))
     try expect(try book.items().filter { $0.kind == "movement" }.isEmpty)
     try expect(try book.item(supplied["sourceID"].text).data["actor"]["kind"] == .string("human"))
+    let originalValue = original["steps"].array[0]["output"]["value"]
+    try expectInputRole(
+      book, child: supplied["recordID"].text, parent: originalValue["recordID"].text, roles: 1)
+    try expectInputRole(
+      book, child: supplied["recordID"].text, parent: supplied["sourceID"].text, roles: 1)
+    try expectInputRole(
+      book, child: supplied["recordID"].text,
+      parent: book.applicationDefinition(originalValue["definitionID"].text).sourceID, roles: 2)
     let after = try book.revision()
     try expect(
       try book.clarifyWorkflow(
@@ -568,7 +576,11 @@ func checkWorkflowInterpretations(at root: URL) {
     let record = try book.item(step["output"]["value"]["recordID"].text)
     try expect(
       record.category == "record" && record.status == "draft" && record.meaning == "actual")
-    try expect(try book.lineage(record.id).contains { $0["parent"] == .string(source.id) })
+    try expectInputRole(book, child: record.id, parent: source.id, roles: 1)
+    try expectInputRole(book, child: record.id, parent: result["source_id"].text, roles: 4)
+    try expectInputRole(
+      book, child: record.id,
+      parent: book.applicationDefinition(request["definitionID"].text).sourceID, roles: 2)
     let after = try book.revision()
     try expect(
       try book.completeWorkflowStep(

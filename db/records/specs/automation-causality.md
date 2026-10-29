@@ -2,7 +2,7 @@
 type: spec
 id: 01m63xbjef018f5q5byn9acp7s
 created: 2026-10-29T13:24:57.423588+00:00
-updated: 2026-10-29T14:25:09.813890+00:00
+updated: 2026-10-29T15:02:47.692471+00:00
 summary: Schema 25 retains calendar roots and bounded trusted inherited admissions atomically. Condition cause discovery and dispatch remain required; scoped checks and failures are retained.
 title: Durable automatic-run origins and admission
 status: implemented
@@ -74,3 +74,7 @@ No selected-model/prompt/grammar/engine change or fresh actual-model/hardware/pe
 ## Condition change inputs available, parent discovery still required
 
 The schema26 [[records/specs/condition-transition-inputs]] checkpoint now retains exact scope-relevant business changes and activation instants between complete observations. Linked unknown windows and explicit10000-entry overflow avoid an empty-origin fallback. Final21 installed admission calls still pass against the same new native CLI. These inputs do not identify the minimal contribution slice or establish independent human business roots. Resolve exact contribution/control provenance and inherited automatic parents before connecting candidates to the existing bounded admission primitive. No new condition executor or permission is added.
+
+## Explicit producer roles retained, resolution remains next
+
+Schema27 now retains automatic parent invocation edges as producer roles, workflow/form/authorization/configuration as controls, and typed business arguments as data. Human review/corrections preserve old automatic versions through data/revision links. Shared admission/root policies and live permission boundaries are unchanged. The full484-group core pass and21 installed admission calls pass against the new packaged CLI. Named broad ancestry remains non-minimal and includes controls. Bounded business-origin resolution must validate the exact saved producer/admission binding before condition dispatch. See [[records/specs/business-provenance]].

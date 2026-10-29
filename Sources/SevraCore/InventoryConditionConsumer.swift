@@ -185,8 +185,9 @@ extension Workbook {
         text: reason,
         data: .object(["candidateID": .string(candidate), "execution": .string("inert")]),
         meaning: "actual", status: "accepted", scenario: "actual",
-        inputs: [try self.inventoryConditionRow(row["consumer_id"]!.text)["source_id"]!.text],
-        transformation: "inventory-condition-dismissal-v1")
+        inputs: [], transformation: "inventory-condition-dismissal-v1",
+        controlInputs: [try self.inventoryConditionRow(row["consumer_id"]!.text)["source_id"]!.text]
+      )
       try self.db.execute(
         "UPDATE condition_candidates SET state='dismissed',detail=?,decision_source=? WHERE id=?",
         [.string(reason), .string(source), .string(candidate)])

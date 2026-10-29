@@ -31,8 +31,8 @@ extension Workbook {
         "The workflow form changed. Your inputs are retained; preview it again.")
       let run = try self.insertWorkflowRun(
         plan["workflowID"].text, arguments: state.arguments, actor: actual,
-        additionalInputs: [definition.sourceID],
-        origin: .object(["formID": .string(definition.id), "plan": plan]))
+        origin: .object(["formID": .string(definition.id), "plan": plan]),
+        controlInputs: [definition.sourceID])
       WorkflowPublicationProbe.observer?(.prepared, run["id"].text)
       return .object([
         "kind": .string("workflow"), "workbookID": .string(self.id),

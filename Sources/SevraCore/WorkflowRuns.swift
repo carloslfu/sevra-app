@@ -52,7 +52,8 @@ extension Workbook {
   func insertWorkflowRun(
     _ definitionID: String, arguments: Value, actor: ChangeActor,
     additionalInputs: [String] = [], origin: Value = .null,
-    policy: String = "manual-drafts-v1", runID: String = identifier()
+    policy: String = "manual-drafts-v1", runID: String = identifier(),
+    controlInputs: [String] = [], producerInputs: [String] = []
   ) throws -> Value {
     let definition = try self.applicationDefinition(definitionID)
     try require(
@@ -66,7 +67,7 @@ extension Workbook {
       ["manual-drafts-v1", "automation-drafts-v1"].contains(policy), "workflow_authority",
       "Unknown workflow policy.")
     let id = runID
-    var inputs = Set([definition.sourceID] + additionalInputs)
+    var inputs = Set(additionalInputs)
     func captureItems(_ parameters: [DefinitionParameter], _ arguments: Value) {
       for parameter in parameters {
         let value = arguments[parameter.id]
@@ -90,7 +91,8 @@ extension Workbook {
         "policy": .string(policy), "actor": try encoded(actor), "origin": origin,
       ]),
       meaning: "actual", status: "accepted", scenario: "actual",
-      inputs: inputs.sorted(), transformation: "workflow-invocation-v1")
+      inputs: inputs.sorted(), transformation: "workflow-invocation-v1",
+      controlInputs: [definition.sourceID] + controlInputs, producerInputs: producerInputs)
     try self.db.execute(
       "INSERT INTO workflow_runs VALUES(?,?,?,?,?,?,'queued','',?,?)",
       [
@@ -138,8 +140,8 @@ extension Workbook {
           "runID": .string(runID), "policy": .string("manual-operation-v1"),
           "actor": try encoded(actor),
         ]),
-        meaning: "actual", status: "accepted", scenario: "actual", inputs: [run["source_id"].text],
-        transformation: "workflow-manual-authorization-v1")
+        meaning: "actual", status: "accepted", scenario: "actual", inputs: [],
+        transformation: "workflow-manual-authorization-v1", controlInputs: [run["source_id"].text])
       try self.workflowEvent(
         runID, stepID: nil, kind: "manual_authorized",
         payload: .object(["sourceID": .string(source)]))

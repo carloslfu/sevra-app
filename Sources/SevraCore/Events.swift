@@ -146,7 +146,9 @@ extension Workbook {
   }
 
   /// Trusted callers already hold the canonical mutation transaction. Never nest mutations.
-  func insertMovement(_ request: Value, additionalInputs: [String] = []) throws -> String {
+  func insertMovement(
+    _ request: Value, additionalInputs: [String] = [], producerInputs: [String] = []
+  ) throws -> String {
     try validateMovement(request)
     let subject = request["subject"].text
     let quantity = request["quantity"].text
@@ -162,7 +164,8 @@ extension Workbook {
             + (supersedes.map { [$0] } ?? [])
             + (request["requestSourceID"].string.map { [$0] } ?? []))
       ).sorted(),
-      transformation: "inventory-movement-v1", supersedes: supersedes)
+      transformation: "inventory-movement-v1", supersedes: supersedes,
+      producerInputs: producerInputs)
     try db.execute(
       "INSERT INTO effects VALUES(?,?,?,?,?,?)",
       [

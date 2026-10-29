@@ -66,7 +66,7 @@ func checkAutomationCausalityCorruption(at directory: URL) {
       try f.book.db.execute(
         "INSERT INTO automatic_parents VALUES(?,?)", [.string(seed.id), .string(child.id)])
       try f.book.db.execute(
-        "INSERT INTO lineage VALUES(?,?,'derives-from','synthetic-corruption')",
+        "INSERT INTO lineage VALUES(?,?,'derives-from','synthetic-corruption',1)",
         [source, childSource])
       try f.book.db.execute(
         "UPDATE items SET data=? WHERE id=?", [.string(try Value.object(data).json()), source])

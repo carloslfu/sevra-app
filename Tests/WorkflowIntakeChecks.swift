@@ -84,7 +84,7 @@ func checkWorkflowIntakes(at root: URL) {
   check(
     "structured workflow retains an exact mapped plan, tolerates unrelated revisions and applies only after review"
   ) {
-    let (book, source, table, _, session) = try fixture("Merge")
+    let (book, source, table, intake, session) = try fixture("Merge")
     let original = try book.rows(table.id)
     try expect(try book.items().allSatisfy { $0.kind != "table-intake-update" })
     let claim = try book.claimWorkflowStep(session, owner: "synthetic", leaseSeconds: 60)
@@ -98,6 +98,12 @@ func checkWorkflowIntakes(at root: URL) {
     let saved = try book.completeWorkflowStep(session, claim: claim, intake: result)
     let draft = try proposal(book, saved)
     try expect(draft.status == "draft" && draft.data["incoming"].array.count == 3)
+    try expectInputRole(book, child: draft.id, parent: source.id, roles: 1)
+    try expectInputRole(book, child: draft.id, parent: intake.sourceID, roles: 2)
+    try expectInputRole(
+      book, child: draft.id, parent: book.datasetDefinition(table.id).sourceID, roles: 2)
+    try expectInputRole(book, child: draft.id, parent: saved["source_id"].text, roles: 4)
+    for row in original { try expectInputRole(book, child: draft.id, parent: row.id, roles: 1) }
     try expect(draft.data["incoming"].array[0]["sku"] == .string("0012"))
     try expect(draft.data["additionRecords"] == .array([.number(4)]))
     try expect(try book.rows(table.id).map(\.id) == original.map(\.id))
@@ -113,6 +119,9 @@ func checkWorkflowIntakes(at root: URL) {
     let rows = try book.rows(table.id)
     try expect(rows.map { $0.data["qty"].text } == ["7", "5", "2"])
     try expect(rows[0].meaning == "actual" && rows[2].meaning == "estimate")
+    try expectInputRole(book, child: rows[2].id, parent: source.id, roles: 1)
+    try expectInputRole(
+      book, child: rows[2].id, parent: book.datasetDefinition(table.id).sourceID, roles: 2)
     try expect(
       try book.lineage(rows[2].id).contains {
         $0["parent"] == .string(source.id) && $0["transformation"].text.contains("source-record=4")

@@ -250,11 +250,9 @@ extension Workbook {
         "response": response, "requestID": request["requestID"], "model": request["model"],
         "policy": request["policy"],
       ]), meaning: interpretation.meaning, status: "draft", scenario: interpretation.scenario,
-      inputs: Array(
-        Set(
-          [definition.sourceID, run["source_id"].text]
-            + request["evidence"].array.map { $0["id"].text })
-      ).sorted(), transformation: "workflow-interpretation-v1")
+      inputs: Array(Set(request["evidence"].array.map { $0["id"].text })).sorted(),
+      transformation: "workflow-interpretation-v1", controlInputs: [definition.sourceID],
+      producerInputs: [run["source_id"].text])
     return .object([
       "kind": .string("interpretation"), "definitionID": .string(definition.id), "request": request,
       "response": response, "recordID": .string(record), "metrics": supplied["metrics"],

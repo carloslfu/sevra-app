@@ -135,13 +135,12 @@ extension Workbook {
           "occurrences": .array(entries), "decisions": .array(decisions),
           "policy": .string("calendar-prepare-v1"),
         ]), meaning: "actual", status: "accepted", scenario: "actual",
-        inputs: Array(
+        inputs: [], transformation: "automation-calendar-preparation-v1",
+        controlInputs: Array(
           Set(
             [session.sourceID, activation["coverage_source"].text]
               + (pending["source_id"].string.map { [$0] } ?? []))
-        )
-        .sorted(),
-        transformation: "automation-calendar-preparation-v1")
+        ).sorted())
       // Clear the previous pending row before publishing the new one. The unique
       // partial index enforces one pending request even across independent writers.
       try self.applyAutomationDecisions(decisions, source: source)

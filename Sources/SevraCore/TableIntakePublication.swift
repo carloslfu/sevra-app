@@ -80,7 +80,8 @@ extension Workbook {
   /// and final cancellation/lease guard. No parser or file I/O occurs here.
   func insertTableUpdatePlan(
     _ plan: TableUpdatePlan, newRowMeaning: String, newRowScenario: String,
-    workflow: Value? = nil, additionalInputs: [String] = [], cancellation: Cancellation
+    workflow: Value? = nil, additionalInputs: [String] = [], controlInputs: [String] = [],
+    producerInputs: [String] = [], cancellation: Cancellation
   ) throws -> String {
     try cancellation.check()
     let preview = plan.preview
@@ -121,7 +122,9 @@ extension Workbook {
       title: "Review \(preview.mode.rawValue): \(table.title)", text: text,
       data: .object(data), meaning: "plan", status: "draft", scenario: "actual",
       inputs: [preview.sourceID] + plan.membership.map { $0["item_id"].text } + additionalInputs,
-      transformation: "proposed-table-intake-v1")
+      transformation: "proposed-table-intake-v1",
+      controlInputs: [try datasetDefinition(preview.datasetID).sourceID] + controlInputs,
+      producerInputs: producerInputs)
   }
 
   /// Called only within the acceptance transaction. No parser or external effect runs here.
@@ -214,8 +217,9 @@ extension Workbook {
         title: "\(table.title.prefix(500)), imported row \(ordinal + 1)",
         text: rowDescription(values), data: .object(values), meaning: meaning,
         status: "accepted", scenario: scenario,
-        inputs: inputs + [try datasetDefinition(datasetID).sourceID],
-        transformation: "table-intake-add-v1;source-record=\(additionRecords[index])")
+        inputs: inputs,
+        transformation: "table-intake-add-v1;source-record=\(additionRecords[index])",
+        controlInputs: [try datasetDefinition(datasetID).sourceID])
       try insertDatasetMember(datasetID, ordinal: ordinal, logicalID: try item(id).logicalID)
       versions.append(.object(["before": .null, "after": .string(id)]))
       ordinal += 1

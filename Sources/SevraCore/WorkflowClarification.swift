@@ -144,8 +144,8 @@ extension Workbook {
           "definitionID": target["definitionID"], "values": normalized,
           "policy": .string("workflow-clarification-v1"),
         ]), meaning: interpretation.meaning, status: "draft", scenario: interpretation.scenario,
-        inputs: [source, target["originalRecordID"].text, definition.sourceID].sorted(),
-        transformation: "workflow-clarification-v1")
+        inputs: [source, target["originalRecordID"].text].sorted(),
+        transformation: "workflow-clarification-v1", controlInputs: [definition.sourceID])
       var value = saved["output"]["value"].object
       var supplied: [String: Value] = [
         "sourceID": .string(source), "recordID": .string(record), "values": normalized,

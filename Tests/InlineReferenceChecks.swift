@@ -121,7 +121,8 @@ func checkInlineReferences(at root: URL) {
     try expect(try book.indexReferences(origin.id) == saved)
     let before = try book.counts()
     try expect(try book.referenceLinks(origin.id)["hits"].array.count == 3)
-    try expect(try book.counts() == before && book.lineage(origin.id).isEmpty)
+    try expectTechnicalReference(book, origin: origin.id, annotation: saved.sourceID!)
+    try expect(try book.counts() == before)
     try expect(try book.verify()["ok"] == .bool(true))
   }
   check("indexed backlinks deduplicate exact origins and preserve live versus pinned history") {

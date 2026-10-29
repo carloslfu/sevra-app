@@ -53,6 +53,23 @@ func checkAutomaticAncestry(at root: URL) {
   }
   check("automatic ancestry survives the real registered action and human acceptance") {
     let (book, data) = try fixture("Acceptance")
+    let proposal = data["proposalID"].text
+    let action = try book.db.scalar(
+      "SELECT parent FROM lineage WHERE child=? AND roles=4", [.string(proposal)]
+    ).text
+    try expectInputRole(book, child: proposal, parent: action, roles: 4)
+    try expectInputRole(book, child: action, parent: data["invocationID"].text, roles: 4)
+    try expectInputRole(book, child: action, parent: data["sourceID"].text, roles: 1)
+    try expectInputRole(
+      book, child: data["acceptedID"].text, parent: proposal, roles: 8, relation: "supersedes")
+    let invocation = try book.item(data["invocationID"].text)
+    for technical in ["authorizationSourceID", "dispatchSourceID"] {
+      try expectInputRole(
+        book, child: invocation.id, parent: invocation.data["origin"][technical].text, roles: 2)
+    }
+    try expectInputRole(
+      book, child: invocation.id,
+      parent: book.applicationDefinition(data["workflowID"].text).sourceID, roles: 2)
     for key in ["proposalID", "acceptedID"] {
       let trace = try book.automaticDerivationAncestry(inputs: [data[key].text])
       try expect(trace["automaticRuns"].array.count == 1)
@@ -63,6 +80,7 @@ func checkAutomaticAncestry(at root: URL) {
           && run["automationDefinitionID"] == data["automationID"])
       try expect(trace["dispatchEligibility"].text == "not-evaluated")
       try expect(trace["minimalCausalSlice"] == .bool(false))
+      try expect(trace["edges"].array.allSatisfy { !$0["roles"].array.isEmpty })
     }
     try expect(try book.verify()["ok"] == .bool(true))
   }
@@ -195,7 +213,7 @@ func checkAutomaticAncestry(at root: URL) {
     let child = try independent(book, "Child", inputs: [base])
     _ = try book.db.transaction {
       try book.db.execute(
-        "INSERT INTO lineage VALUES(?,?,'derives-from','synthetic-corruption')",
+        "INSERT INTO lineage VALUES(?,?,'derives-from','synthetic-corruption',1)",
         [.string(base), .string(child)])
     }
     try refuses("ancestry_cycle") { _ = try book.automaticDerivationAncestry(inputs: [child]) }

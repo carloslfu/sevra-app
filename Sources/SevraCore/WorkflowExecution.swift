@@ -146,7 +146,7 @@ extension Workbook {
           step, workflow: workflow, outputs: outputs)
         for movement in plan["movements"].array where movement["meaning"] == .string("actual") {
           try require(
-            interpretationInputs.allSatisfy {
+            interpretationInputs.data.allSatisfy {
               $0.meaning == "actual" && $0.scenario == "actual"
             }, "interpretation_meaning",
             "Actual proposals cannot promote a mapped estimate, plan or another scenario into actuals."
@@ -154,7 +154,7 @@ extension Workbook {
         }
         for document in plan["documents"].array where document["meaning"] == .string("actual") {
           try require(
-            interpretationInputs.allSatisfy {
+            interpretationInputs.data.allSatisfy {
               $0.meaning == "actual" && $0.scenario == document["scenario"].text
             }, "interpretation_meaning",
             "Actual documents cannot promote mapped estimates, plans or another scenario.")
@@ -166,7 +166,8 @@ extension Workbook {
             "operationID": .string("workflow-effect:" + session.runID + ":" + step.id),
             "arguments": args,
           ]), actor: .programmatic("SevraCore.workflowWorker"),
-          additionalInputs: [run["source_id"].text] + interpretationInputs.map(\.id),
+          additionalInputs: interpretationInputs.data.map(\.id),
+          controlInputs: interpretationInputs.controls, producerInputs: [run["source_id"].text],
           cancellation: cancellation)
         let review = workflow.steps.first { $0.review == step.id }!
         for proposal in output["proposals"].array {

@@ -52,8 +52,8 @@ extension Workbook {
             category: "record", kind: "row", title: "\(title.prefix(500)), row \(offset+index+1)",
             text: values.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.text)" }.joined(
               separator: "\n"), data: .object(values), meaning: "actual", status: "accepted",
-            scenario: "actual", inputs: [sourceID, definition.sourceID],
-            transformation: "structured-import-v1")
+            scenario: "actual", inputs: [sourceID],
+            transformation: "structured-import-v1", controlInputs: [definition.sourceID])
           try insertDatasetMember(
             table.id, ordinal: offset + index,
             logicalID: try item(id).logicalID)

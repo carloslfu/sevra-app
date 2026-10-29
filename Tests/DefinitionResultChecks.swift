@@ -172,6 +172,11 @@ func checkDefinitionResults(at root: URL) {
       $0.kind == "application_invocation"
     }!
     try expect(invocation.data["actor"]["kind"] == .string("human"))
+    try expectInputRole(b, child: item.id, parent: evidence.id, roles: 1)
+    try expectInputRole(b, child: item.id, parent: invocation.id, roles: 4)
+    try expectInputRole(b, child: item.id, parent: definition.sourceID, roles: 2)
+    try expectInputRole(b, child: invocation.id, parent: evidence.id, roles: 1)
+    try expectInputRole(b, child: invocation.id, parent: definition.sourceID, roles: 2)
     try expect(
       try b.componentDefinitionResult(item.applicationResultComponent!)["result"] == .string("36"))
     try expect(try b.publishedApplicationResultComponent(item.id) != nil)
@@ -222,8 +227,11 @@ func checkDefinitionResults(at root: URL) {
     let population = published.data["inputPopulation"].array[0]["rows"].array
     try expect(population.count == 2)
     for row in try b.rows(table.id) {
-      try expect(try b.lineage(published.id).contains { $0["parent"] == .string(row.id) })
+      try expectInputRole(b, child: published.id, parent: row.id, roles: 1)
     }
+    try expectInputRole(b, child: published.id, parent: definition.sourceID, roles: 2)
+    try expectInputRole(
+      b, child: published.id, parent: b.datasetDefinition(table.id).sourceID, roles: 2)
     try expect(published.data["populationScope"].text.contains("Not per-group membership"))
     let saved = published.applicationResultComponent!
     try expect(try b.componentDefinitionResult(saved)["result"] == evaluation["result"])

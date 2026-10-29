@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T14:25:09.776927+00:00
+updated: 2026-10-29T15:02:47.656918+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -426,3 +426,7 @@ automatic_roots, automatic_admissions, automatic_root_members and automatic_pare
 ## Schema 26 condition input windows
 
 condition_pending_inputs and condition_observation_inputs join ChangeFormat.tables with count/overflow in captured consumer state. Pending atomic-batch/clock/rebuild members survive page boundaries, restart and backpressure; finalization moves the exact set into its complete observation transaction with candidate/cursor. Immediate previous and previous-certain links preserve unknown intervals without quadratic copying. Two installed actual SIGKILL boundaries now assert input atomicity too. Full470 core groups, real10000/10001 input bounds and inert copies pass. Exact scope/evidence: [[records/specs/condition-transition-inputs]]. No new ledger, schema25 adapter or live authority in replay.
+
+## Schema27 complete role and seal capture
+
+items.derivation and lineage.roles join the existing captured schema columns; no new table or parallel origin ledger. Exact role sets, complete canonical tuple hashes and unclassified-original/retained-derivation labels reconstruct inertly. Initial seals are computed before insert; definition dependency resealing requires the item's creating transaction. Final484 core groups/13 focused groups, a750KB single-insert body,206-edge canonical hashing, rollback/retry, six damaged installed copies and both real10,000/10,001 input/projection limits pass. Nearby condition/feed process-death checks still pass. All146 earlier artifacts remain unchanged. Full receipt and scope: [[records/specs/business-provenance]]. No independent roots, live grants or condition dispatch from this metadata.

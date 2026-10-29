@@ -57,7 +57,10 @@ func checkDocumentActions(at root: URL) {
       draft.kind == "document" && draft.text == args["body"].text && draft.meaning == "estimate"
         && draft.scenario == "actual" && draft.status == "draft")
     try expect(try book.lineage(draft.id).contains { $0["parent"] == .string(source.id) })
-    try expect(try book.lineage(draft.id).contains { $0["parent"] == result["sourceID"] })
+    try expectInputRole(book, child: draft.id, parent: result["sourceID"].text, roles: 4)
+    try expectInputRole(book, child: draft.id, parent: source.id, roles: 1)
+    try expectInputRole(book, child: result["sourceID"].text, parent: action.sourceID, roles: 2)
+    try expectInputRole(book, child: result["sourceID"].text, parent: form.sourceID, roles: 2)
     try expect(
       try book.invokeApplicationAction(
         form.id, arguments: args, preview: preview, token: "save-document",

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-29T10:46:56.414197+00:00
+updated: 2026-10-29T15:02:47.674992+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -562,3 +562,7 @@ All new fields/family rows share ChangeFormat capture/apply, current-format vali
 Schema21 is unchanged. Explicit per-Mac automation grants live outside every workbook under this app's Application Support DeviceSchedules directory. A private, bounded version1 JSON registry retains exact workbook UUID, physical package/database identities, bookmark, immutable definition/activation/generation/authorization Source and AI scope. It contains neither canonical business state nor a second ledger. Core still stores authorization history, run/occurrence state and captured changes in the workbook. Registry restoration validates that history and creates a new live process capability; copying/exporting/reconstructing the workbook does not copy authority.
 
 Dedicated cross-process locking, private no-follow/type/owner/size checks, lossless identity strings, atomic durable replacement and exact-entry removal preserve the device boundary. Corrupt bytes refuse without reset. The registry and workbook are not one distributed transaction; the native UI reports uncertain publication outcomes honestly. Package and workbook.sqlite replacement revoke the old physical binding even at the same pathname. Renames preserve authority only if passive resolution and both identities match. Contract/evidence: [[records/specs/native-automation-owner]].
+
+## Schema27 input roles and derivation seals
+
+The canonical development schema is27. lineage appends roles, a set encoded by data1/control2/producer4/revision8. items appends the canonical item-derivation-v1 JSON seal binding exact item, complete ordered edge count/hash and explicit unclassified-original/retained-derivation classification. Named public roles preserve combined uses. Metadata shares existing captured families and inert reconstruction. Same-creating-transaction definition dependencies alone may reseal through the trusted helper; ordinary item insertion seals before writing the body. Generic public inputs remain data. Unsupported schema26 documents refuse unchanged, without a development migration or reset. Qualification and remaining origin/dispatch gates: [[records/specs/business-provenance]].

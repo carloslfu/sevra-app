@@ -72,6 +72,10 @@ func checkWorkflowExtractions(at root: URL) {
     try expect(complete["state"] == .string("completed"))
     let output = complete["steps"].array[0]["output"]["value"]
     try expect(output["complete"] == .bool(true) && output["itemID"] == .string(item.id))
+    try expect(
+      try book.verifiedItemDerivation(derivationRow(book, item.id))["edgeCount"].int == 0)
+    let annotation = try book.fileReferenceSet(item.id)!["source_id"]!.text
+    try expectInputRole(book, child: annotation, parent: item.id, roles: 2)
     try expect(try book.search("Prior").hits.isEmpty)
     try expect(try book.search("Received5").hits.count == 1)
     let revision = try book.revision()

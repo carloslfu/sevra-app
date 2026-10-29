@@ -280,14 +280,18 @@ extension Workbook {
   /// or selected catalog inputs before a later business proposal.
   func workflowValueInputs(
     _ step: DefinitionWorkflow.Step, workflow: DefinitionWorkflow, outputs: [String: Value]
-  ) throws -> [Item] {
+  ) throws -> (data: [Item], controls: [String]) {
     var visited = Set<String>()
     var records: [Item] = []
+    var controls = Set<String>()
     func visit(_ current: DefinitionWorkflow.Step) throws {
       for mapping in current.arguments.values {
         guard let previousID = mapping["step"].string, visited.insert(previousID).inserted,
           let previous = workflow.steps.first(where: { $0.id == previousID })
         else { continue }
+        if let binding = previous.binding {
+          controls.insert(try applicationDefinition(binding.target).sourceID)
+        }
         if previous.kind == "interpret", let output = outputs[previousID] {
           let recordID =
             output["clarification"]["recordID"].string ?? output["recordID"].text
@@ -300,12 +304,12 @@ extension Workbook {
           for input in output["result"]["rows"].array[0]["inputs"].array {
             records.append(try item(input["versionID"].text))
           }
-          records.append(try item(applicationDefinition(previous.binding!.target).sourceID))
+          for source in output["inputPopulation"].array { controls.insert(source["sourceID"].text) }
         }
         try visit(previous)
       }
     }
     try visit(step)
-    return records.sorted { $0.id < $1.id }
+    return (records.sorted { $0.id < $1.id }, controls.sorted())
   }
 }

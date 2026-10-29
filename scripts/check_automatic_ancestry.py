@@ -97,7 +97,7 @@ def run(cli, worker, output):
         cycle = folder / "Cycle.sevra"
         shutil.copytree(book, cycle)
         with sqlite3.connect(str(cycle / "workbook.sqlite")) as db:
-            db.execute("INSERT INTO lineage VALUES(?,?,'derives-from','synthetic-corruption')",
+            db.execute("INSERT INTO lineage VALUES(?,?,'derives-from','synthetic-corruption',1)",
                        [data["sourceID"], data["acceptedID"]])
         call("automation-ancestry", cycle, data["acceptedID"], error="ancestry_cycle")
         assert inspect(book, data["acceptedID"]) == accepted

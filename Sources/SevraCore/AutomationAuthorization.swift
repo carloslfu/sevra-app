@@ -123,7 +123,8 @@ extension Workbook {
           "previousCoverageSourceID": previous["coverage_source"], "through": .string(cursor),
           "decisions": .array(decisions),
         ]), meaning: "actual", status: "accepted", scenario: "actual",
-        inputs: Array(Set(inputs)).sorted(), transformation: "automation-authorization-v1")
+        inputs: [], transformation: "automation-authorization-v1",
+        controlInputs: Array(Set(inputs)).sorted())
       if previous == .null {
         try self.db.execute(
           "INSERT INTO automation_activations(id,logical_id,definition_id,source_id,actor,generation,state,policy,cursor,observed_through,catch_up_remaining,coverage_source,created,updated) VALUES(?,?,?,?,?,?,'armed',?,?,?,0,?,?,?)",
@@ -201,12 +202,12 @@ extension Workbook {
           "previousSourceID": previous["source_id"],
           "decisions": .array(decisions),
         ]), meaning: "actual", status: "accepted", scenario: "actual",
-        inputs: Array(
+        inputs: [], transformation: "automation-authorization-v1",
+        controlInputs: Array(
           Set(
             [previous["source_id"].text, previous["coverage_source"].text]
               + (pending["source_id"].string.map { [$0] } ?? []))
-        ).sorted(),
-        transformation: "automation-authorization-v1")
+        ).sorted())
       try self.db.execute(
         "UPDATE automation_activations SET source_id=?,actor=?,generation=?,state='paused',coverage_source=?,updated=? WHERE id=?",
         [

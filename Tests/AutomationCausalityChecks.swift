@@ -84,6 +84,8 @@ func checkAutomationCausality(at directory: URL) {
     try expect(b["origin"]["roots"] == a["origin"]["roots"] && b["origin"]["depth"].int == 2)
     try expect(a["rootCharges"].array[0]["admittedRuns"].int == 2 && a["directSuccessors"].int == 1)
     let invocation = try f.book.workflowRun(child.id)["source_id"].text
+    try expectInputRole(
+      f.book, child: invocation, parent: f.book.workflowRun(seed.id)["source_id"].text, roles: 4)
     try expect(
       try f.book.automaticDerivationAncestry(inputs: [invocation])["automaticRuns"].array.count == 2
     )

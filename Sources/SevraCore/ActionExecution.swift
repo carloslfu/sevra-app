@@ -54,7 +54,8 @@ extension Workbook {
   /// registered effect body and its step checkpoint in one captured transaction.
   func insertApplicationAction(
     plan: Value, request: Value, actor actual: ChangeActor, requestSourceID: String? = nil,
-    additionalInputs: [String] = [], cancellation: Cancellation
+    additionalInputs: [String] = [], controlInputs: [String] = [], producerInputs: [String] = [],
+    cancellation: Cancellation
   ) throws -> Value {
     if let requestSourceID {
       let source = try self.item(requestSourceID)
@@ -71,16 +72,18 @@ extension Workbook {
       meaning: "actual", status: "accepted", scenario: "actual",
       inputs: Array(
         Set(
-          definitionInputs + additionalInputs + [plan["primitiveArguments"]["evidence"].text]
+          additionalInputs + [plan["primitiveArguments"]["evidence"].text]
             + (requestSourceID.map { [$0] } ?? []))
       ).sorted(),
-      transformation: "application-action-invocation-v1")
+      transformation: "application-action-invocation-v1",
+      controlInputs: definitionInputs + controlInputs,
+      producerInputs: producerInputs)
     var proposals: [Value] = []
     for raw in plan["movements"].array {
       try cancellation.check()
       var movement = raw.object
       if let requestSourceID { movement["requestSourceID"] = .string(requestSourceID) }
-      let proposal = try self.insertMovement(.object(movement), additionalInputs: [invocation])
+      let proposal = try self.insertMovement(.object(movement), producerInputs: [invocation])
       proposals.append(.string(proposal))
     }
     for document in plan["documents"].array {
@@ -93,8 +96,9 @@ extension Workbook {
           "invocationSourceID": .string(invocation),
         ]),
         meaning: document["meaning"].text, status: "draft", scenario: document["scenario"].text,
-        inputs: Array(Set([invocation, document["evidence"].text] + additionalInputs)).sorted(),
-        transformation: "application-document-v1")
+        inputs: Array(Set([document["evidence"].text] + additionalInputs)).sorted(),
+        transformation: "application-document-v1", controlInputs: controlInputs,
+        producerInputs: [invocation] + producerInputs)
       proposals.append(.string(proposal))
     }
     return .object([

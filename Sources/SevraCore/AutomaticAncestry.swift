@@ -30,7 +30,7 @@ extension Workbook {
         }
         let remaining = 4096 - graph.edges.count
         let parents = try db.execute(
-          "SELECT child,parent,relation FROM lineage WHERE child=? ORDER BY parent,relation LIMIT ?",
+          "SELECT child,parent,relation,transformation,roles FROM lineage WHERE child=? ORDER BY parent,relation LIMIT ?",
           [.string(id), .number(Double(remaining + 1))], maxRows: remaining + 1,
           maxBytes: 2_097_152)
         try require(
@@ -48,7 +48,7 @@ extension Workbook {
           try require(
             ["derives-from", "supersedes", "definition-input"].contains(edge["relation"]!.text),
             "ancestry_integrity", "The derivation contains an unsupported lineage relation.")
-          graph.edges.append(.object(edge))
+          graph.edges.append(try ItemDerivation.publicEdge(edge))
           let parent = edge["parent"]!.text
           if discovered.insert(parent).inserted {
             try require(

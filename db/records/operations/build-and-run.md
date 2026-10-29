@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T14:25:09.853049+00:00
+updated: 2026-10-29T15:02:47.731798+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1761,3 +1761,9 @@ Use `sevra condition-inputs Shop.sevra EXACT_OBSERVATION_ID [AFTER_INPUT_ID|-] [
 Coverage is baseline, complete, unknown-gap or limit-exceeded. A complete window lists relevant changes, not every unchanged numeric contributor or a minimal automatic cause. At most10000 entries are retained per window; overflow keeps exact numeric processing but marks the retained prefix incomplete. Unknown/overflow history cannot grant execution or establish independent origin. Schema25 files are preserved/refused with no migration/reset.
 
 Focused checks: `.build/debug/sevra-checks --condition-inputs`; actual boundary: `.build/debug/sevra-checks --condition-input-limit`. Installed check: `python3 scripts/check_condition_inputs.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. It creates only synthetic fixtures, pages205members, uses six readers and tests inert copies/corruption refusal. Existing installed condition process-death tests now also verify input atomicity. See [[records/specs/condition-transition-inputs]].
+
+## Inspect named roles and verify complete input capture
+
+`sevra lineage Shop.sevra EXACT_ITEM_ID` and the existing `sevra automation-ancestry Shop.sevra EXACT_ITEM_ID [ITEM_ID...]` now render named data/control/producer/revision arrays. The broad ancestry inspector continues to include control links and does not resolve business causes or dispatch eligibility. `sevra verify Shop.sevra` checks each item's complete role/revision seal. Schema26 development workbooks are preserved/refused; there is no migration/reset command.
+
+Focused core: `.build/debug/sevra-checks --derivation-roles`. Installed check: `python3 scripts/check_derivation_roles.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. It creates disposable synthetic fixtures, independently recomputes canonical seals, checks named role output and unchanged commits, reconstructs inertly and refuses damaged copies. scripts/check.sh and both packaged CI paths include it. Role-aware bounded business-origin/condition resolution is still pending. See [[records/specs/business-provenance]].

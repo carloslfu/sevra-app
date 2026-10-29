@@ -56,6 +56,7 @@ extension Workbook {
         fresh["nextCursor"] == .null && fresh["result"]["hasMore"] != .bool(true),
         "partial_evaluation", "Publish a complete bounded query result; this page has more rows.")
       var parents = Set(inputs)
+      var controls = Set<String>()
       if let requestSourceID { parents.insert(requestSourceID) }
       for input in parents {
         try require(
@@ -63,13 +64,13 @@ extension Workbook {
         )
       }
       for resolved in fresh["resolvedDefinitions"].array {
-        parents.insert(resolved["sourceID"].text)
+        controls.insert(resolved["sourceID"].text)
       }
       var population: [Value] = []
       if fresh["kind"] == .string("query") {
         population = try definitionQueryPopulation(fresh, cancellation: control)
         for source in population {
-          parents.insert(source["sourceID"].text)
+          controls.insert(source["sourceID"].text)
           for row in source["rows"].array { parents.insert(row["versionID"].text) }
         }
       }
@@ -106,13 +107,13 @@ extension Workbook {
           "inputs": .array(inputs.map(Value.string)),
         ]),
         meaning: "actual", status: "accepted", scenario: "actual", inputs: parents.sorted(),
-        transformation: "application-result-request-v1")
-      parents.insert(invocation)
+        transformation: "application-result-request-v1", controlInputs: controls.sorted())
       let result = try insertItem(
         category: "record", kind: "calculation", title: title,
         text: title + "\n" + meaning + " · " + scenario + "\n" + definitionResultText(fresh),
         data: data, meaning: meaning, status: "draft", scenario: scenario, inputs: parents.sorted(),
-        transformation: "application-result-v1; exact definition=" + fresh["definitionID"].text)
+        transformation: "application-result-v1; exact definition=" + fresh["definitionID"].text,
+        controlInputs: controls.sorted(), producerInputs: [invocation])
       try control.check()
       return .string(result)
     }
