@@ -1345,3 +1345,6 @@ MVP candidate: full check.sh passed, 557 core groups; source-specific tax and ch
 ## [2026-10-29 19:02] verification | records/operations/implementation.md
 Visible native intake, ready CSV/PDF indexes, working values and formula 130/135 pass. Retained missed-PDF and literal-query/step-limit failures. Current focused PDF summary and original citation navigation pass; broad automated comparison remains unqualified. Updated literal search guidance passes agent and grammar checks.
 
+## [2026-10-29 19:17] verification | records/operations/implementation.md
+MVP 0.1 focused native supplier journey passes: actual CSV/PDF intake, cited PDF summary, saved table/chart, keyboard edit/Undo/cancel, native close/reopen and UI export/reopen. Actual exported copy passes fresh installed CLI reopen with network and original-example access denied; hashes/history/formulas/spaces preserved and zero activations. Final native table, lint, package/refusal/signature and isolated installation checks pass. Retain broad-query missed evidence/step-limit failures as explicit preview limits; immutable receipt 86def378658bfcdd6acc870520359fc33d2f8cc36f9306dfa130e6cdec11ea03. Hosted CI still pending.
+

@@ -3,80 +3,107 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T19:02:02.560833+00:00
+updated: 2026-10-29T19:17:26.400200+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
 
-This is a working development build, not a qualified release. The next deliverable
-follows [[records/specs/mvp-delivery]], which supersedes completing the expanded
-roadmap before a useful MVP 0.1 test preview. A source commit does not imply that
-every requirement or supported hardware profile has passed.
+This is MVP 0.1, a native source test preview for the focused file-to-result
+workflow below. The expanded specification is unfinished. The owner-directed
+[[records/specs/mvp-delivery]] controls delivery order; preview evidence does not
+qualify broad model reliability, supported hardware or a production release.
 
-## Fast MVP candidate, October 29
+## MVP 0.1 native preview, October 29
 
-The controlling next delivery is [[records/specs/mvp-delivery]], not completion of
-the expanded E2-E6 roadmap. The candidate is not yet delivered.
+The installed Python-free native app completes the focused supplier workflow.
+This is a bounded preview route, with manual native formula authoring and short
+model requests. Broad autonomous supplier comparison remains unqualified.
 
-- Native CLI intake includes and indexes the synthetic supplier CSV and searchable
-  quotation PDF. The first selected-model answer wrongly spread Brio's tax exclusion
-  to Atlas. Source-specific terms are now explicit in the agent policy; the retry
-  distinguishes Brio excluded tax from Atlas unknown tax. A nearby actual-model
-  missing-rate question returns unknown without inventing an all-in price.
-- The first compound save exhausted its step budget after interpreting chart axes
-  as layout coordinates. Validation refused the invalid calls without saving a
-  partial space. The native tool/policy now state that x/y are column IDs, and core
-  error feedback names that distinction. The focused retry saves the existing table
-  and correct supplier/total bar chart in three calls. This qualifies that small
-  save request, not arbitrary compound-task completion.
-- Fresh native CLI processes verify deterministic totals 130/135, Atlas shipping
-  edit to total 140, Undo to 130, saved-space persistence, and a missing-model failure
-  that preserves saved work. Portable reopening with network and original-example
-  reads denied retains both exact original hashes, history, formulas and space, with
-  zero automation activations. This is CLI/process proof; visible app proof is pending.
-- The native installer stages matching app/CLI/extraction/engine resources, preserves
-  upstream engine bytes and supports safe native update/uninstall. Explicit native
-  installation can retarget the identified baseline CLI while preserving that app.
-  Native and baseline isolated checks pass, including unrelated-CLI and mismatched
-  baseline-identity refusal. Packaged checks pass with 1,888 Metal kernels, expected
-  missing/altered-resource refusal and no Python runtime. The actual native app and
-  CLI are installed in normal user locations. Model setup verifies reused weights in
-  place from normal Application Support storage, independently of repo .build files.
-- The complete corrected scripts/check.sh run passes, including 557 core groups,
-  native grammar/agent checks, links and zero-error/zero-warning knowledge validation.
-  The earlier attempt stopped on the expected stale save_space description snapshot.
-  Regenerating the fixture changed that description and its hash only: all 52 tool
-  parameter structures, 65 cases and 555 masks remain unchanged. The subsequent
-  app-only dialog correction uses focused build/visible verification; core proof is reused.
-- Visible opening of the existing comparison confirms conversation and saved state.
-  Intake Cancel returns to the welcome window. The initial post-modal isKey guard
-  can interrupt startup when a dialog changes key-window focus. The candidate now
-  uses ordinary modal dialogs, retains owner identity/visibility checks across both
-  choices and explicitly configures file selection. The attached-sheet experiment
-  did not reliably advance under the UI tool and is not retained.
+- Start from files includes the synthetic supplier CSV and searchable PDF in a new
+  workbook. CSV intake creates the working table; the PDF remains an indexed
+  reference. Both originals stay outside SQLite inside the workbook.
+- With the PDF open, the actual selected model correctly summarizes 100 bolts,
+  SKU 0014, unit price 1.15, goods 115, shipping 20, goods plus shipping 135 USD,
+  excluded tax without a rate, delivery 5 business days and validity 14 days.
+  Its citation opens the original included PDF, including from the portable copy.
+- A native formula column `quantity * unit_price + shipping`, unit USD, gives Atlas
+  130 and Brio 135. The visible fixture's column declaration is text; this verifies
+  numeric formula results, not a decimal-column selection interaction. A short
+  actual-model request saves the existing table and correct supplier/cost bar chart
+  as Supplier comparison. No evidence duplication or business acceptance occurs.
+- Native keyboard editing changes Atlas shipping 10 to 20 and the live total 130
+  to 140. Undo restores 10/130. Escape cancels a later edit. Original CSV bytes stay
+  unchanged. Editable table cells now expose the text-field accessibility role;
+  computed cells stay static. Existing identity/stale-read/cancel checks pass.
+- Native quit/reopen retains conversation, files, formula and saved space. Native
+  Make Shareable Copy exports `.sevraz`; opening it creates a separate editable
+  workbook whose saved chart and cited PDF are visibly usable. A separate installed
+  CLI reopens that actual exported archive with network and original-example reads
+  denied. Both original hashes, rows, formulas, spaces and history match; copied
+  automation activations remain zero. The portable file is 254,589 bytes.
+- Model setup verifies compatible Qwen3.6 35B A3B 4-bit plus DFlash 2 weights in place
+  through normal Application Support settings. The native Splash 1.4.1 C++/Metal
+  engine uses Swift frontend orchestration without Python at runtime. The actual
+  app/CLI are installed in normal user locations. Existing on-device speech reaches
+  the unsent composer; controlled-phrase accuracy is not newly qualified here.
+- Native install/update/uninstall and baseline-to-native CLI transition pass isolated
+  checks. Other apps/CLIs are protected and workbooks/models remain. The final
+  native app builds, installs and passes resource/refusal/signature checks. Full
+  1,888-kernel proof is reused for unchanged engine bytes. The install re-signs the
+  outer app after including its CLI; executable payload outside its code signature
+  and installed CLI match the frozen build.
 
-The visible broad supplier question exposed a second limit: the model read only
-CSV evidence and missed the PDF's explicit tax exclusion. Requiring related original
-inspection then exposed overly specific AND queries and a later bounded step-limit
-failure. The current guidance explains literal all-word search, short names and
-query broadening, and keeps supplier terms separate. Broad automatic comparison
-is still unqualified. Opening the included quotation and asking for a focused cited
-summary succeeds with the correct tax exclusion; its citation opens the original
-PDF. A native formula column computes the two comparable goods-plus-shipping
-values as 130 and 135. The remaining acceptance uses focused view-saving requests;
-it does not hide those broad-request failures or claim universal task completion.
+### Failures and actual limits
 
-Active blockers, at most three:
+The first broad selected-model answer transferred Brio tax exclusion to Atlas;
+source-specific guidance corrected the headless retry and its missing-rate
+counterexample. A later visible broad request read only CSV and missed the PDF.
+Requiring original inspection then produced overly specific literal AND searches,
+and the clarified short-query guidance still exhausted twelve steps while hunting
+another Atlas quotation. Those failures remain retained. They are not passed
+comparison tests. Focused PDF summary and short saved-view requests succeed.
+A user must inspect original evidence; this preview is not qualified for unattended
+business decisions or arbitrary compound questions.
 
-1. Finish the visible native file-to-result, edit/Undo, reopen/share journey on the
-   corrected installed candidate. Do not infer visible completion from CLI proof.
-2. Finish focused final package/install checks, commit/push and inspect the candidate
-   CI outcome. Prior 0906fe4 CI failed only the stale authoring-tool expectation,
-   already corrected in e73303a. Production signing and broad hardware work remain
-   deferred preview limits, not new infrastructure prerequisites.
+The first compound save also used numeric chart axes. Validation refused without
+publishing a partial space. Tool/policy guidance and core feedback now explain
+column IDs; the focused retry succeeds. The initial startup dialog isKey guard could
+interrupt handoff after modal focus changes. Owner identity/visibility checks replace
+it, and the final visible two-file startup succeeds; Cancel returns to welcome.
+The unsuccessful attached-sheet experiment is not retained.
 
-## Current status, October 29
+The corrected complete `scripts/check.sh` milestone passes 557 core groups and the
+existing integration/agent/grammar/links/knowledge checks. An earlier attempt failed
+on a stale save_space description snapshot, which was corrected without changing
+52 parameter structures, 65 grammar cases or 555 masks. Later final AI guidance,
+table accessibility and app-dialog changes have focused agent/native-grammar,
+table, build, visible journey and package/install checks. The largest tool prompt
+remains 8,174/8,192 tokens. Unchanged broad core proof is reused per policy.
+
+Exact source/binary hashes, real tool calls, retained failed and successful native
+runs, UI observations, check tails and offline-copy results are in
+[the immutable native MVP receipt](../../../integration/evidence/2026-10-29-mvp-native-journey.json.gz)
+(89,303 bytes, SHA256
+`86def378658bfcdd6acc870520359fc33d2f8cc36f9306dfa130e6cdec11ea03`).
+The build is based on 36cc49c with the recorded formatting/accessibility source delta;
+the final commit records that exact delta. Earlier immutable receipts stay unchanged.
+
+Active delivery work, at most three:
+
+1. Finish knowledge/link/diff checks, publish this coherent source preview and
+   record the hosted CI outcome. CI 40934376437 and 40936358619 were still running
+   at the receipt capture, so neither is claimed as passed. Prior 0906fe4 CI failed
+   the stale authoring assertion corrected in e73303a.
+2. Let an external user attempt the documented supplier workflow, then prioritize
+   observed friction. Broad retrieval/reasoning reliability remains the main product
+   limit. Do not restart E2-E6/background work before that attempt.
+
+Production signing/notarization, other physical hardware, speed/parity, complete
+Excel continuity and full accessibility/appearance/media qualification remain
+outside this source preview. No 100-150 token/second or any-device claim is made.
+
+## Earlier implementation checkpoints, October 29
 
 - Working development build, schema30. Native Swift/SwiftUI app and CLI use the pinned Python-free Splash C++/Metal candidate; Slotstream remains the separate preserved baseline. Production engine/performance adoption remains unqualified.
 - Native Home/spaces, search/extraction, managed data, reusable computation, inventory/document actions/forms and foreground durable workflows now include reviewed CSV/TSV intake and exact single-table scalar catalog matching with explicit missing-match repair/retry. Conversation can author preparation/interpretation/intake/workflows and queue runs. Intake now has scoped exact-mapping/template/inert-queue/missing-intent proof. Registered document-action direct chat submission remains closed pending separate intent qualification. Continue executes; reviews apply business changes.
@@ -104,8 +131,8 @@ Active blockers, at most three:
 - Schema29 now retains shared business-root admissions, exact input relations and merged parent/root budgets through the existing captured writer. Full539 core/30 final focused groups,22 installed shared-admission calls, nine racing writers for seven slots and two actual SIGKILL boundaries pass. Current local speech reaches the unsent composer, Stop/clear/close leave no sent work. See [[records/specs/automation-causality]].
 - Schema30 now connects actual owned inventory-condition candidates, exact live physical-file grants and atomic workflow/admission binding. Broad555 core, final18 focused/21 owner groups and current installed race/death/native package checks pass. Fresh native editor/preview/save/Enable, stock20-to5 automatic deterministic completion, trigger evidence, Pause and inert reconstruction pass. See [[records/specs/condition-dispatch]].
 - Conversation now saves exact inventory rules and opens native review without enabling them. Seven scripted modes, full agent/65 grammars/555 masks at8161/8192, real local-model authoring and packaged native handoff/close/inert reconstruction pass; all152 prior artifacts remain unchanged. See [[records/specs/condition-dispatch]].
-- Next: run the native supplier CSV/PDF to cited answer, deterministic comparison, saved result, edit/recalculate/Undo, close/reopen and portable-copy journey. Fix observed blockers and coherent native installation/setup before delivering the scoped MVP. Further automation confirmation/conditions/background infrastructure is deferred; its unfinished sketch is preserved separately in [[records/specs/condition-dispatch]].
-- Current MVP evidence and active blockers are maintained in the Fast MVP candidate section above.
+- The focused native MVP supplier journey is now complete as scoped above. Further automation confirmation/conditions/background infrastructure is deferred; its unfinished sketch is preserved separately in [[records/specs/condition-dispatch]].
+- Current MVP evidence, limits and active delivery work are maintained in the MVP 0.1 native preview section above.
 - Release gaps also include contextual/Excel continuity and complete E0/E1/E2 journeys, voice/accessibility/appearance/media and supported physical hardware, native parity/performance adoption, production signing/notarization and distribution. Latest native Activity continuation and local speech-to-composer/stop/clear/close now have visible proof. Controlled-phrase accuracy and full accessibility/appearance/media remain unverified. Specifications are the acceptance contract; scoped checkpoints do not make the app ready.
 
 ## Agent definitions and saved actions, checkpoint, October 28

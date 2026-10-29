@@ -1,7 +1,7 @@
 ---
 type: index
 scope: root
-updated: 2026-10-29T19:02:02.560833Z
+updated: 2026-10-29T19:17:26.400200Z
 ---
 
 # Knowledge base index

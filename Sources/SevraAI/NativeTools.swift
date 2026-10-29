@@ -258,7 +258,9 @@ package enum NativeTools {
         parameters: object(
           [
             "query": schema(
-              "string", "All words must match. Start with one name or filename fragment. Empty: remove words."),
+              "string",
+              "All words must match. Start with one name or filename fragment. Empty: remove words."
+            ),
             "kind": schema(
               "string",
               "Optional domain kind such as document, note, row, movement. Not actual/estimate."),

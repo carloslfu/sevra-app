@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T18:43:17.244030+00:00
+updated: 2026-10-29T19:17:16.971247+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -10,7 +10,7 @@ title: Build and run
 
 ## Native MVP source installation
 
-Use this route for the current Python-free native MVP candidate. The preserved
+Use this route for the Python-free native MVP 0.1 source preview. The preserved
 baseline instructions below are separate development history.
 
 Prerequisites: Apple M3 or newer, macOS 26.4+, Swift 6.3, Git, Python 3 for build
@@ -29,7 +29,7 @@ open "$HOME/Applications/Sevra Native Preview.app"
 "$HOME/.local/bin/sevra" version
 ~~~
 
-For an already built candidate, use `bash scripts/install.sh --native --no-build`.
+For an already built preview, use `bash scripts/install.sh --native --no-build`.
 The installer stages the matching native app, CLI, extraction helper and all engine/
 grammar resources, verifies them before replacement, and preserves upstream signed
 engine bytes. The CLI link is `~/.local/bin/sevra`; add that folder to PATH or use
@@ -71,15 +71,16 @@ The quotation is searchable PDF text, not a scanned-image extraction claim.
 1. Choose Start from files, select both files, and save a new workbook. For the
    CSV, choose Create tables from values; for the PDF, Keep as reference. Wait for
    indexing to report ready. Originals are included outside SQLite inside the workbook.
-2. Ask: “What do Atlas and Brio offer for 100 brass M6 bolts, SKU 0014? Cite the
-   included files and distinguish stated tax from unknown tax.” Only Brio explicitly
-   excludes tax. Atlas tax treatment is unspecified. Open the cited quotation to
-   inspect it. Missing tax is not an all-in price.
-3. Open the CSV table, choose its table definition, add a decimal column titled
+2. Open Brio-quotation.pdf from Home and ask: “Summarize this quotation, including
+   quantity, prices, shipping, delivery and tax terms. Cite the original.” Open its
+   citation to inspect the included PDF. Brio explicitly excludes tax and provides
+   no rate; the CSV does not establish Atlas tax treatment. Missing tax is not an
+   all-in price. Focused requests are the supported preview route: a broad combined
+   supplier/tax question can still miss a file or exhaust its bounded tool steps.
+3. Open the CSV table, choose its table definition, add a column titled
    Goods plus shipping, unit USD, with formula `quantity * unit_price + shipping`,
    then Save. The deterministic totals are Atlas 130 and Brio 135. Column IDs are
-   shown beside their titles. Ask: “Compare the existing table using its computed
-   Goods plus shipping column.” Then ask: “Save a Supplier comparison space with the
+   shown beside their titles. Ask: “Save a Supplier comparison space with the
    existing table and a bar chart showing goods plus shipping for each supplier.
    Reuse the existing data.”
    A saved space follows the working table; it does not duplicate the evidence.
@@ -98,7 +99,7 @@ Stop or unavailable dictation leaves normal typing available.
 Working tables use native formulas, not full Excel formula/layout fidelity.
 A saved space is editable and live; use an explicitly requested snapshot to freeze
 values. Portable copies include conversations and unsent drafts, so review before
-sharing. This walkthrough is the candidate acceptance job, not proof of broad
+sharing. This walkthrough is the focused preview example, not proof of broad
 commercial accuracy or every format/hardware claim. Current proof and remaining
 blockers are in [[records/operations/implementation]].
 

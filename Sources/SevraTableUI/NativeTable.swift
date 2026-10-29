@@ -166,6 +166,8 @@ public struct NativeTable: NSViewRepresentable {
         cell.setAccessibilityRole(.staticText)
         cell.setAccessibilityValue(cell.stringValue)
         cell.setAccessibilityHelp("Calculated from " + (c.formula ?? ""))
+      } else {
+        cell.setAccessibilityRole(.textField)
       }
       return cell
     }

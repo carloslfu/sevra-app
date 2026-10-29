@@ -3,10 +3,10 @@
 A private native Mac workbook for working with documents, tables and business
 information through conversation. Local AI, checked calculations, and files you own.
 
-**MVP 0.1 candidate.** Bring supplier files, compare costs with cited evidence,
+**MVP 0.1 test preview.** Bring supplier files, inspect cited evidence, compare costs,
 keep a useful native table/chart, edit inputs, and share a portable workbook.
 The [verification register](db/records/operations/implementation.md) tracks current
-proof and remaining blockers. This candidate is not yet a qualified release.
+proof and limitations. This is a source preview for trying the example workflow.
 
 MIT licensed and open source. Development formats and interfaces may change
 without backward compatibility until the first notarized production-ready 1.0
@@ -19,7 +19,7 @@ through Swift. A workbook contains its database plus ordinary included asset fil
 The repo's independent [db.md knowledge store](db/DB.md) owns its specifications
 and progress. Cloud/sync and the expanded roadmap are outside this next MVP slice.
 
-## Try the native MVP candidate
+## Try the native MVP preview
 
 Requires Apple M3 or newer, macOS 26.4+, Swift 6.3, Git, Python 3 and Rust 1.96.0.
 The current test host has 48 GB unified memory; other memory profiles are unqualified.
@@ -46,10 +46,12 @@ fallback or in-app telemetry.
 Start from the two files in [examples](examples), then follow the
 [supplier comparison walkthrough](db/records/operations/build-and-run.md#native-mvp-supplier-comparison).
 The CSV becomes a working table; the searchable PDF stays an included reference.
-Ask for a cited cost comparison, keep a live table/chart in a space, edit a price,
-Undo, and make a portable copy. Unknown tax remains unknown.
+Open the quotation and ask for a cited summary, calculate goods plus shipping,
+keep a live table/chart in a space, edit an input, Undo, and make a portable copy.
+Use focused requests: broad questions can miss relevant files or hit the step limit.
+Check the original evidence before relying on an answer. Unknown tax remains unknown.
 
 See [Build and run](db/records/operations/build-and-run.md) for setup, the exact
 walkthrough, CLI, safe uninstall and limits. The
-[fast MVP contract](db/records/specs/mvp-delivery.md) controls this next deliverable;
+[fast MVP contract](db/records/specs/mvp-delivery.md) defines this preview;
 the expanded specifications remain the roadmap.
