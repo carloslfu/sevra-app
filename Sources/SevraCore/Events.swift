@@ -197,6 +197,12 @@ extension Workbook {
       var acceptedData = old.data
       if old.kind == "table-intake-update" {
         acceptedData = try applyTableIntake(old, decision: evidence, cancellation: cancellation)
+        if old.data["workflow"] != .null {
+          var applied = acceptedData.object
+          applied["acceptanceOperationID"] = .string(token)
+          applied["decisionID"] = .string(evidence)
+          acceptedData = .object(applied)
+        }
       }
       if old.kind == "table-creation" {
         let columns = try JSONDecoder().decode(
@@ -228,9 +234,17 @@ extension Workbook {
       try db.execute(
         "INSERT INTO effects SELECT occurrence,subject,kind,?,quantity,effective FROM effects WHERE item_id=?",
         [.string(newID), .string(old.id)])
+      if old.kind == "table-intake-update", let runID = old.data["workflow"]["runID"].string {
+        WorkflowPublicationProbe.observer?(.prepared, runID)
+      }
       return .string(newID)
     }
-    return try item(result.text)
+    let accepted = try item(result.text)
+    if accepted.kind == "table-intake-update", let runID = accepted.data["workflow"]["runID"].string
+    {
+      WorkflowPublicationProbe.observer?(.committed, runID)
+    }
+    return accepted
   }
   public func balance(subject: String, asOf: String = "9999-12-31T23:59:59Z") throws -> Value {
     let asOf = try BusinessTime.normalized(asOf)

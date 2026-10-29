@@ -165,6 +165,17 @@ struct WorkflowRunView: View {
                 Button("Open original document") {
                   workspace.navigate(.item(output["itemID"].text))
                 }
+              } else if output["kind"] == .string("intake") {
+                let summary = output["summary"]
+                Text("Table update prepared for review").font(.callout)
+                Text(
+                  "\(summary["added"].int ?? 0) added · \(summary["changed"].int ?? 0) changed · \(summary["removed"].int ?? 0) removed"
+                )
+                Text(
+                  "New rows: " + summary["newRowMeaning"].text + ", scenario "
+                    + summary["newRowScenario"].text
+                ).font(.caption).foregroundStyle(.secondary)
+                Text(output["notice"].text).font(.caption).foregroundStyle(.secondary)
               } else if output["kind"] == .string("interpretation") {
                 Text("Local AI interpretation · Review before business use").font(.callout)
                 WorkflowInputsView(

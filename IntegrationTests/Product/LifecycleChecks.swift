@@ -263,6 +263,10 @@ actor PausedModel: WorkbookInference {
 
     try await checkWorkflowModelLifecycle()
     try await checkWorkflowExtractionLifecycle()
+    try await checkWorkflowIntakeLifecycle()
+    print(
+      "PASS structured intake uses the native helper without a model, releases workbook locks, fences cancellation and requires exact review"
+    )
 
     let parent = Cancellation()
     let child = Cancellation(parent: parent)

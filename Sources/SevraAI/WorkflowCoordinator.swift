@@ -34,6 +34,22 @@ package enum WorkflowCoordinator {
               session, claim: claim, extraction: result, cancellation: control)
           }.value
         }
+      } else if next["kind"] == .string("intake") {
+        run = try await claimed(
+          workbook: workbook, session: session, owner: owner, cancellation: cancellation
+        ) { claim, control in
+          progress("Preparing the mapped table update for review…")
+          return try await Task.detached {
+            let worker = ExtractionWorker()
+            let request = try workbook.prepareWorkflowIntake(
+              session, claim: claim, worker: worker.workflowIdentity(cancellation: control),
+              cancellation: control)
+            let result = try workbook.performWorkflowIntake(
+              session, claim: claim, request: request, worker: worker, cancellation: control)
+            return try workbook.completeWorkflowStep(
+              session, claim: claim, intake: result, cancellation: control)
+          }.value
+        }
       } else if next["kind"] == .string("interpret") {
         let inference = try await model()
         try await inference.beginRun()

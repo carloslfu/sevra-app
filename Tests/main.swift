@@ -46,11 +46,18 @@ if CommandLine.arguments.dropFirst() == ["--document-actions"] {
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
+if CommandLine.arguments.dropFirst() == ["--workflow-intake"] {
+  checkTableIntake(at: temp)
+  checkWorkflowIntakes(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.dropFirst() == ["--workflows"] {
   checkWorkflows(at: temp)
   checkWorkflowTools(at: temp)
   checkWorkflowInterpretations(at: temp)
   checkWorkflowExtractions(at: temp)
+  checkWorkflowIntakes(at: temp)
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
@@ -928,6 +935,7 @@ checkDefinitionTools(at: temp)
 checkWorkflowTools(at: temp)
 checkWorkflowInterpretations(at: temp)
 checkWorkflowExtractions(at: temp)
+checkWorkflowIntakes(at: temp)
 checkDefinitionResults(at: temp)
 checkWorkflows(at: temp)
 checkPersistence(at: temp)

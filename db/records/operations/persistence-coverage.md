@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T04:34:25.358483+00:00
+updated: 2026-10-29T05:04:27.467641+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -356,3 +356,9 @@ Extraction authoring/templates use the same immutable application Sources, exact
 Registered records.draftDocument adds no canonical table family or alternate ledger. Existing application definitions, invocation Sources, document Records, lineage, chunks/reference indexes, workflow steps/attempts/approvals/outbox and operation receipts use the same captured mutation and inert reconstruction. Review accepts an unchanged direct successor with preserved meaning/scenario and authentic acceptance decision provenance. Accepted report estimates have no inventory effect.
 
 The [registered document receipt](../../../integration/evidence/2026-10-28-registered-documents.json.gz) preserves 278 passing core groups, 15 process-death boundaries/116 worker calls, native form receipt recovery and a 37-call actual packaged-model receiving/report flow. The final run has six completed steps, separate report/inventory review, report estimate preserved, stock 25 only after stock acceptance and inert original/reconstructed integrity. This is scoped local persistence proof, not cloud sync, all FJ/EJ journeys or production readiness. Structured intake must inherit the capture and retained-plan requirements in [[records/specs/manual-workflows]] before new state is implemented.
+
+## Reviewed workflow intake capture, schema18
+
+Schema18 extends only the existing definition/step kind constraints; no independent ordinary-table family or ledger. Exact intake definitions/dependencies and workflow_intake_request use captured application/operation state. The host retains request identity, actual read revision, original/hash, schema/mapping, parser/helper digest and limits. Complete mapped values and source coordinates live in the existing table-intake-update Record. Its proposal, lineage, small digest/count checkpoint, approval, attempt, receipt and outbox publish together. A final lease/cancellation fence covers capture through COMMIT.
+
+Canonical acceptance atomically records row versions/membership/fingerprint plus its exact operation/decision identity. Workflow review checks the unchanged original plan and authentic acceptance receipt; it cannot accept edited/copied-looking/undone alternatives. Assets remain outside SQLite. Existing schema reconstruction recreates constraints and all retained records/definitions without parsing, model calls or row execution. Full 289 core, 21 SIGKILL boundaries/189 worker calls, real SQLite BUSY/FULL/child-lock cancellation checks and final actual-model original/reconstructed integrity pass. This is scoped local proof, not all FJ/EJ journeys or sync semantics. See [[records/specs/manual-workflows]] and the final intake receipt linked there.

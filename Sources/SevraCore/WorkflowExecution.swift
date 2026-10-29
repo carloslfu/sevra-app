@@ -4,11 +4,27 @@ extension Workbook {
   public func completeWorkflowStep(
     _ session: WorkflowExecutionSession, claim: Value,
     interpretation: Value? = nil, extraction: Value? = nil,
+    intake: WorkflowIntakePreparation? = nil,
     cancellation: Cancellation = .init()
   ) throws -> Value {
     try workflowSession(session)
     guard let attemptID = claim["id"].string, UUID(uuidString: attemptID) != nil else {
       throw SevraError("workflow_claim", "Use a saved worker claim.")
+    }
+    if let intake {
+      let committed = try synchronized {
+        try db.scalar(
+          "SELECT EXISTS(SELECT 1 FROM operations WHERE id=?)",
+          [
+            .string("workflow-step:" + attemptID)
+          ]
+        ).int == 1
+      }
+      if !committed {
+        // Exact retries need no original/helper. A new publication verifies the
+        // included original again before taking the workbook transaction lock.
+        _ = try assetURL(intake.request["assetID"].text, verify: true, cancellation: cancellation)
+      }
     }
     var deadline: Double?
     let guardLease: () throws -> Void = {
@@ -26,6 +42,7 @@ extension Workbook {
           .string(ToolResultProjection.digest(try $0.json()))
         }
           ?? .null,
+        "intakeDigest": intake.map { .string($0.digest) } ?? .null,
       ]),
       cancellation: cancellation,
       actor: interpretation.map {
@@ -61,6 +78,9 @@ extension Workbook {
       try require(
         step.kind == "extract" || extraction == nil, "workflow_extraction",
         "Only document preparation consumes a native extraction result.")
+      try require(
+        step.kind == "intake" || intake == nil, "workflow_intake",
+        "Only structured intake consumes a prepared table update.")
       if step.kind == "evaluate" {
         output = try self.evaluateApplicationDefinition(
           step.binding!.target,
@@ -87,6 +107,21 @@ extension Workbook {
         if output["complete"] != .bool(true) {
           state = "needs_attention"
           detail = String(output["detail"].text.prefix(1000))
+        }
+      } else if step.kind == "intake" {
+        guard let intake else {
+          throw SevraError(
+            "workflow_intake", "Continue structured intake through the workflow coordinator.")
+        }
+        output = try self.insertWorkflowIntake(
+          intake, run: run, step: step, arguments: args,
+          attemptID: attemptID, cancellation: cancellation)
+        revision = output["request"]["readRevision"].int!
+        let review = workflow.steps.first { $0.review == step.id }!
+        for proposal in output["proposals"].array {
+          try self.db.execute(
+            "INSERT INTO workflow_approvals VALUES(?,?,?,NULL)",
+            [.string(session.runID), .string(review.id), proposal])
         }
       } else if step.kind == "interpret" {
         guard let interpretation else {
@@ -237,13 +272,16 @@ extension Workbook {
 
   func workflowAcceptedVersion(_ proposal: Item, _ accepted: Item) throws -> Bool {
     guard
-      ["movement", "document"].contains(proposal.kind) && proposal.status == "draft"
+      ["movement", "document", "table-intake-update"].contains(proposal.kind)
+        && proposal.status == "draft"
         && accepted.supersedes == proposal.id && accepted.status == "accepted"
-        && accepted.logicalID == proposal.logicalID && accepted.data == proposal.data
+        && accepted.kind == proposal.kind && accepted.category == proposal.category
+        && accepted.logicalID == proposal.logicalID
         && accepted.meaning == proposal.meaning && accepted.scenario == proposal.scenario
         && accepted.title == proposal.title && accepted.text == proposal.text
         && accepted.assetID == proposal.assetID
     else { return false }
+    if proposal.kind != "table-intake-update" && accepted.data != proposal.data { return false }
     let lineage = try db.scalar(
       "SELECT count(*) FROM lineage WHERE child=? AND parent=? AND relation='supersedes' AND transformation='accept-v1'",
       [.string(accepted.id), .string(proposal.id)]
@@ -260,9 +298,44 @@ extension Workbook {
         try JSONDecoder().decode(
           ChangeActor.self, from: Data(source.data["attribution"].json().utf8)
         ).validate()
+        if proposal.kind == "table-intake-update" {
+          return try workflowAcceptedTableIntake(proposal, accepted, decision: source)
+        }
         return true
       }
     }
     return false
+  }
+
+  /// A table application adds canonical row-result metadata. Require the exact
+  /// original plan and the trusted acceptance receipt, without weakening the
+  /// unchanged-data rule used for documents and inventory movements.
+  func workflowAcceptedTableIntake(_ proposal: Item, _ accepted: Item, decision: Item) throws
+    -> Bool
+  {
+    let applied: Set<String> = [
+      "beforeMembership", "afterMembership", "rowVersions", "afterFingerprint",
+      "acceptanceOperationID", "decisionID",
+    ]
+    guard proposal.data["workflow"] != .null,
+      Set(accepted.data.object.keys) == Set(proposal.data.object.keys).union(applied),
+      proposal.data.object.allSatisfy({ accepted.data[$0.key] == $0.value }),
+      accepted.data["decisionID"] == .string(decision.id),
+      case .array = accepted.data["beforeMembership"],
+      case .array = accepted.data["afterMembership"],
+      case .array = accepted.data["rowVersions"],
+      let operationID = accepted.data["acceptanceOperationID"].string,
+      let receipt = try db.execute(
+        "SELECT kind,request,result FROM operations WHERE id=?", [.string(operationID)]
+      ).first
+    else { return false }
+    let request = try Value.parse(receipt["request"]!.text)
+    let result = try Value.parse(receipt["result"]!.text)
+    return receipt["kind"] == .string("accept")
+      && request["arguments"] == .string(proposal.id)
+      && request["actor"] == decision.data["attribution"]
+      && result == .string(accepted.id)
+      && accepted.data["afterFingerprint"].text.range(
+        of: "^[0-9a-f]{64}\\z", options: .regularExpression) != nil
   }
 }

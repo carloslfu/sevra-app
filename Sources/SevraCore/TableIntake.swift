@@ -43,7 +43,30 @@ public struct TableUpdatePreview: Codable, Sendable {
   public let limitations: [String]
 }
 
-struct TableUpdatePlan {
+/// Created only by the verified native parser boundary. Planning consumes this
+/// value without reopening a file or running a child under a workbook lock.
+struct TableUpdateInput: Sendable {
+  let sourceID: String
+  let assetID: String
+  let assetHash: String
+  let headerRow: Int
+  let headings: [String]
+  let rows: [[String]]
+
+  fileprivate init(
+    sourceID: String, assetID: String, assetHash: String,
+    headerRow: Int, headings: [String], rows: [[String]]
+  ) {
+    self.sourceID = sourceID
+    self.assetID = assetID
+    self.assetHash = assetHash
+    self.headerRow = headerRow
+    self.headings = headings
+    self.rows = rows
+  }
+}
+
+struct TableUpdatePlan: Sendable {
   let preview: TableUpdatePreview
   let columns: [Column]
   let membership: [Value]
@@ -59,21 +82,23 @@ extension Workbook {
   public func inspectTableUpdateSource(
     _ sourceID: String, headerRow: Int = 1, cancellation: Cancellation = .init()
   ) throws -> TableUpdateSource {
-    let (headings, rows) = try tableUpdateInput(
+    let input = try tableUpdateInput(
       sourceID, headerRow: headerRow, cancellation: cancellation)
     return .init(
-      sourceID: sourceID, headerRow: headerRow, headings: headings,
-      incoming: rows.count, examples: Array(rows.prefix(5)))
+      sourceID: sourceID, headerRow: headerRow, headings: input.headings,
+      incoming: input.rows.count, examples: Array(input.rows.prefix(5)))
   }
 
-  private func tableUpdateInput(
-    _ sourceID: String, headerRow: Int, cancellation: Cancellation
-  ) throws -> ([String], [[String]]) {
+  func tableUpdateInput(
+    _ sourceID: String, headerRow: Int, worker: ExtractionWorker = .init(),
+    cancellation: Cancellation
+  ) throws -> TableUpdateInput {
     try cancellation.check()
     let source = try item(sourceID)
     guard source.category == "source", let assetID = source.assetID else {
       throw SevraError("intake_source", "Choose a captured original CSV or TSV.")
     }
+    let asset = try self.asset(assetID)
     let file = try assetURL(assetID, verify: true, cancellation: cancellation)
     guard let format = StructuredFormat(rawValue: file.pathExtension.lowercased()), format != .xlsx
     else {
@@ -81,7 +106,7 @@ extension Workbook {
         "update_format",
         "Reviewed updates currently support CSV and TSV. Excel update mapping is not implemented.")
     }
-    let parsed = try ExtractionWorker().readTable(file, format: format, cancellation: cancellation)
+    let parsed = try worker.readTable(file, format: format, cancellation: cancellation)
     _ = try assetURL(assetID, verify: true, cancellation: cancellation)
     let sheet = parsed.sheets[0]
     try require(
@@ -95,7 +120,9 @@ extension Workbook {
     try require(
       input.allSatisfy { $0.count <= header.count }, "update_mapping",
       "An input row extends beyond the selected headings.")
-    return (header, input)
+    return .init(
+      sourceID: source.id, assetID: assetID, assetHash: asset.hash,
+      headerRow: headerRow, headings: header, rows: input)
   }
 
   /// Inspect only. A preview cannot apply rows or accept inventory/financial effects.
@@ -134,8 +161,20 @@ extension Workbook {
     mapping: [IntakeColumnMapping], keys: [String], headerRow: Int,
     cancellation: Cancellation
   ) throws -> TableUpdatePlan {
-    let (header, input) = try tableUpdateInput(
+    let input = try tableUpdateInput(
       sourceID, headerRow: headerRow, cancellation: cancellation)
+    return try tableUpdatePlan(
+      input: input, datasetID: datasetID, mode: mode, mapping: mapping, keys: keys,
+      cancellation: cancellation)
+  }
+
+  func tableUpdatePlan(
+    input parsed: TableUpdateInput, datasetID: String, mode: TableUpdateMode,
+    mapping: [IntakeColumnMapping], keys: [String], cancellation: Cancellation
+  ) throws -> TableUpdatePlan {
+    let header = parsed.headings
+    let input = parsed.rows
+    let headerRow = parsed.headerRow
     try require(
       mapping.count == header.count && Set(mapping.map(\.position)) == Set(header.indices),
       "update_mapping", "Map or explicitly ignore each incoming column once.")
@@ -263,7 +302,7 @@ extension Workbook {
           }
         }
         let preview = TableUpdatePreview(
-          sourceID: sourceID, datasetID: datasetID, mode: mode,
+          sourceID: parsed.sourceID, datasetID: datasetID, mode: mode,
           mapping: mapping, keys: keys, headerRow: headerRow, headings: header,
           columns: table.columns,
           revision: try revision(),

@@ -174,6 +174,13 @@ extension WorkbookTools {
         "definition_kind",
         "Use content {kind,title,description,parameters,payload}. kind is function, query, action, form, interpretation, extraction or workflow. Inspect definition_registry for its payload."
       )
+      if content["kind"] == .string("workflow") {
+        try require(
+          content["payload"]["steps"].array.allSatisfy { $0["kind"] != .string("intake") },
+          "definition_kind",
+          "Structured-intake authoring is not qualified through conversation yet. Use the native CLI and an explicit reviewed mapping."
+        )
+      }
       let token = try operationToken(tool, a)
       if a.object["inputs"] != nil {
         guard case .array(let values) = a["inputs"], values.allSatisfy({ $0.string != nil }) else {

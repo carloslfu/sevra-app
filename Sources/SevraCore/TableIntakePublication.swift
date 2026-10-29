@@ -42,14 +42,6 @@ extension Workbook {
     try require(
       plan.preview.added + plan.preview.changed + plan.preview.removed > 0,
       "update_unchanged", "The reviewed input makes no working changes.")
-    let data: Value = .object([
-      "version": .number(1), "sourceID": .string(sourceID), "datasetID": .string(datasetID),
-      "mode": .string(mode.rawValue), "preview": try encoded(plan.preview),
-      "changes": try encoded(plan.changes), "additions": .array(plan.additions.map(Value.object)),
-      "changeRecords": try encoded(plan.changeRecords),
-      "additionRecords": try encoded(plan.additionRecords),
-      "newRowMeaning": .string(newRowMeaning), "newRowScenario": .string(newRowScenario),
-    ])
     let result = try mutation(
       "propose_table_update", token: token, request: request,
       expected: expectedRevision, cancellation: cancellation
@@ -57,24 +49,15 @@ extension Workbook {
       try require(
         try tableFingerprint(datasetID) == expectedFingerprint, "stale_revision",
         "The target changed. Review it again.")
-      let table = try dataset(datasetID)
       if let intakeID {
         let job = try intakeJob(intakeID)
         try require(
           job.sourceID == sourceID && job.role == .update && job.state == "awaiting_update",
           "intake_update", "Choose a pending update intake for this original.")
       }
-      let text =
-        "\(mode.rawValue.capitalized) into \(table.title): \(plan.preview.added) added, \(plan.preview.changed) changed, \(plan.preview.removed) removed, \(plan.preview.unchanged) matched rows unchanged.\n"
-        + "\(plan.preview.repeatedIncomingRows) repeated incoming rows; \(plan.preview.rowsMatchingTarget) incoming rows exactly match existing values.\n"
-        + "New rows: \(newRowMeaning), scenario \(newRowScenario).\n"
-        + plan.preview.limitations.joined(separator: "\n")
-      let proposal = try insertItem(
-        category: "record", kind: "table-intake-update",
-        title: "Review \(mode.rawValue): \(table.title)", text: text,
-        data: data, meaning: "plan", status: "draft", scenario: "actual",
-        inputs: [sourceID] + plan.membership.map { $0["item_id"].text },
-        transformation: "proposed-table-intake-v1")
+      let proposal = try insertTableUpdatePlan(
+        plan, newRowMeaning: newRowMeaning, newRowScenario: newRowScenario,
+        cancellation: cancellation)
       if let intakeID {
         var report = try intakeJob(intakeID).report.object
         report["conversion"] = .string("proposed_update")
@@ -91,6 +74,54 @@ extension Workbook {
       return .string(proposal)
     }
     return try item(result.text)
+  }
+
+  /// Shared insertion body. The caller owns the transaction, exact retry receipt
+  /// and final cancellation/lease guard. No parser or file I/O occurs here.
+  func insertTableUpdatePlan(
+    _ plan: TableUpdatePlan, newRowMeaning: String, newRowScenario: String,
+    workflow: Value? = nil, additionalInputs: [String] = [], cancellation: Cancellation
+  ) throws -> String {
+    try cancellation.check()
+    let preview = plan.preview
+    try require(
+      ["actual", "estimate", "plan", "commitment", "assumption", "rule"].contains(newRowMeaning)
+        && !newRowScenario.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        && newRowScenario.utf8.count <= 256,
+      "update_meaning", "Choose the meaning and scenario for new rows explicitly.")
+    try require(
+      try tableFingerprint(preview.datasetID) == preview.fingerprint, "stale_revision",
+      "The target changed. Review it again.")
+    try require(
+      preview.added + preview.changed + preview.removed > 0,
+      "update_unchanged", "The reviewed input makes no working changes.")
+    let table = try dataset(preview.datasetID)
+    var data: [String: Value] = [
+      "version": .number(1), "sourceID": .string(preview.sourceID),
+      "datasetID": .string(preview.datasetID), "mode": .string(preview.mode.rawValue),
+      "preview": try encoded(preview), "changes": try encoded(plan.changes),
+      "additions": .array(plan.additions.map(Value.object)),
+      "changeRecords": try encoded(plan.changeRecords),
+      "additionRecords": try encoded(plan.additionRecords),
+      "newRowMeaning": .string(newRowMeaning), "newRowScenario": .string(newRowScenario),
+    ]
+    if let workflow {
+      data["workflow"] = workflow
+      // Retain all mapped rows, including exact matches that cause no edits.
+      // Original bytes and explicit mappings preserve ignored source columns.
+      data["incoming"] = .array(plan.incoming.map(Value.object))
+    }
+    let text =
+      "\(preview.mode.rawValue.capitalized) into \(table.title): \(preview.added) added, \(preview.changed) changed, \(preview.removed) removed, \(preview.unchanged) matched rows unchanged.\n"
+      + "\(preview.repeatedIncomingRows) repeated incoming rows; \(preview.rowsMatchingTarget) incoming rows exactly match existing values.\n"
+      + "New rows: \(newRowMeaning), scenario \(newRowScenario).\n"
+      + preview.limitations.joined(separator: "\n")
+    return try insertItem(
+      category: "record", kind: "table-intake-update",
+      title: "Review \(preview.mode.rawValue): \(table.title)", text: text,
+      data: .object(data), meaning: "plan", status: "draft", scenario: "actual",
+      inputs: [preview.sourceID] + plan.membership.map { $0["item_id"].text } + additionalInputs,
+      transformation: "proposed-table-intake-v1")
   }
 
   /// Called only within the acceptance transaction. No parser or external effect runs here.

@@ -55,6 +55,12 @@ extension Workbook {
                   && output["readRevision"] == value["request"]["readRevision"]
                   && (state != "completed" || value["complete"] == .bool(true)),
                 "workflow_integrity", "An incomplete document cannot complete its workflow step.")
+            } else if expected.kind == "intake" {
+              let value = output["value"]
+              try validateWorkflowIntakeOutput(value, runID: run["id"].text, step: expected)
+              try require(
+                output["readRevision"] == value["request"]["readRevision"],
+                "workflow_integrity", "The intake lost its preparation read revision.")
             } else if expected.kind == "interpret" {
               let value = output["value"]
               let (_, response) = try validatedWorkflowInterpretation(

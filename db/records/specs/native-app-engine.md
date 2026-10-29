@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T04:29:41.479904+00:00
+updated: 2026-10-29T05:04:27.452436+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -647,3 +647,7 @@ agent invocation, complete E2-E6 and release gates remain open.
 ## Registered document workflow checkpoint, October 28
 
 Registered document drafts now share the existing native action/form/workflow/review path with inventory, with scoped implementation and a six-step actual packaged-model receiving/report proof in [[records/specs/manual-workflows]]. Report acceptance preserves an estimate and stock 20; separately accepting the actual stock proposal changes it to 25. Reconstruction stays inert. This advances E3 but does not close EJ06-EJ08: workflow structured import, product matching/unresolved inputs, richer graphs, broader failure/abuse cases and external effect semantics remain open. E4-E6 remain subsequent work; no release readiness claim.
+
+## Reviewed workflow intake checkpoint, October 29
+
+E3 now has scoped included CSV/TSV intake with exact reusable mappings, real native parsing outside locks, one atomic retained-plan/proposal/checkpoint and explicit exact review through the existing table-update executor. Recoverable forms, native foreground coordinator/Activity summaries, independent CLI, crash recovery and a final six-step actual-model table-update/report job pass. This advances the row-import boundary only. Conversation intake authoring, full Excel continuity, product matching/unresolved inputs, richer graphs, full EJ06-EJ08 and E4-E6 remain open. Current qualification and limits: [[records/specs/manual-workflows]]. Latest visible Activity/review and broader accessibility/appearance remain unverified while the UI tool reports locked.

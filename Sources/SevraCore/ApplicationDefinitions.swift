@@ -143,7 +143,13 @@ extension Workbook {
             .string("application-definition-authoring-v1"),
           ])
       }
-      if descriptor.kind != "query" {
+      if descriptor.kind == "intake" {
+        let intake = try DefinitionIntake(descriptor)
+        let target = try savedDatasetDefinition(intake.datasetID, definitionID: intake.definitionID)
+        try dependency(
+          "dataset", mode: "exact", dataset: target.datasetID, schema: target.id,
+          input: target.sourceID)
+      } else if descriptor.kind != "query" {
         for binding in try definitionBindings(descriptor) {
           let target = try resolveDefinition(binding)
           try dependency(
@@ -188,7 +194,9 @@ extension Workbook {
         try validateDefinitionItemReferences(parameter, value)
       }
     }
-    if descriptor.kind == "extraction" {
+    if descriptor.kind == "intake" {
+      try validateIntakeDefinition(descriptor)
+    } else if descriptor.kind == "extraction" {
       _ = try DefinitionExtraction(descriptor)
     } else if descriptor.kind == "interpretation" {
       _ = try DefinitionInterpretation(descriptor)

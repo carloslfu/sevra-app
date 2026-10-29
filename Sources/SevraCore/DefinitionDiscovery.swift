@@ -9,8 +9,11 @@ extension Workbook {
     try require(
       (1...50).contains(limit)
         && (kind == nil
-          || ["function", "query", "action", "form", "workflow", "interpretation", "extraction"]
-            .contains(kind!)),
+          || [
+            "function", "query", "action", "form", "workflow", "interpretation", "extraction",
+            "intake",
+          ]
+          .contains(kind!)),
       "definition_limit",
       "Use function/query/action/form/workflow scope and a page limit from 1 to 50.")
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
@@ -156,6 +159,16 @@ extension Workbook {
               call, caller: descriptor, target: DefinitionDescriptor(target.content),
               arguments: nil, validateOnly: true)
           }
+        } else if saved.kind == "intake" {
+          let intake = try DefinitionIntake(descriptor)
+          try validateIntakeDefinition(descriptor, historical: true)
+          try require(
+            dependencies.count == 1 && dependencies[0]["ordinal"] == .number(0)
+              && dependencies[0]["kind"] == .string("dataset")
+              && dependencies[0]["mode"] == .string("exact")
+              && dependencies[0]["target_dataset"] == .string(intake.datasetID)
+              && dependencies[0]["target_dataset_definition"] == .string(intake.definitionID),
+            "definition_integrity", "Intake lost its exact target schema dependency.")
         } else if saved.kind == "extraction" {
           _ = try DefinitionExtraction(descriptor)
           try require(

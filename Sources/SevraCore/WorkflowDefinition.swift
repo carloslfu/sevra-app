@@ -26,17 +26,18 @@ struct DefinitionWorkflow {
         id.range(of: "^[A-Za-z_][A-Za-z0-9_]{0,63}\\z", options: .regularExpression) != nil,
         !id.hasPrefix("_sevra_"), seen[id] == nil,
         let kind = o["kind"]?.string,
-        ["evaluate", "action", "review", "interpret", "extract"].contains(kind)
+        ["evaluate", "action", "review", "interpret", "extract", "intake"].contains(kind)
       else {
         throw SevraError(
           "workflow_definition",
-          "Use distinct named evaluate/action/review/interpret/extract steps.")
+          "Use distinct named evaluate/action/review/interpret/extract/intake steps.")
       }
       if kind == "review" {
-        guard let from = o["review"]?.string, seen[from] == "action",
+        guard let from = o["review"]?.string, ["action", "intake"].contains(seen[from] ?? ""),
           reviews.insert(from).inserted, o["binding"] == nil, o["arguments"] == nil
         else {
-          throw SevraError("workflow_definition", "Review one preceding action exactly once.")
+          throw SevraError(
+            "workflow_definition", "Review one preceding draft action or intake exactly once.")
         }
         result.append(.init(id: id, kind: kind, binding: nil, arguments: [:], review: from))
       } else {
@@ -63,8 +64,8 @@ struct DefinitionWorkflow {
       seen[id] = kind
     }
     try require(
-      Set(seen.filter { $0.value == "action" }.keys) == reviews,
-      "workflow_definition", "Each draft action needs a subsequent review step.")
+      Set(seen.filter { ["action", "intake"].contains($0.value) }.keys) == reviews,
+      "workflow_definition", "Each draft action or intake needs a subsequent review step.")
     steps = result
   }
 }
@@ -147,7 +148,8 @@ extension Workbook {
           ? ["function", "query"]
           : step.kind == "interpret"
             ? ["interpretation"]
-            : step.kind == "extract" ? ["extraction"] : ["action", "form"]).contains(
+            : step.kind == "extract"
+              ? ["extraction"] : step.kind == "intake" ? ["intake"] : ["action", "form"]).contains(
             target.kind),
         "workflow_binding", "The workflow step targets the wrong definition kind.")
       if target.kind == "form" {

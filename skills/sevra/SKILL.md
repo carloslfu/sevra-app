@@ -108,7 +108,7 @@ query pages cannot complete a workflow step. This is not a frozen input database
 
 `workflow-start PATH EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN` saves a queued
 manual run. `workflow-continue PATH RUN_ID [MODEL_DIRECTORY]` explicitly executes at most16 steps
-until review, attention or completion; `workflow-advance` executes one deterministic core step; extraction and interpretation require the shared continuation coordinator.
+until review, attention or completion; `workflow-advance` executes one deterministic core step; extraction, intake and interpretation require the shared continuation coordinator.
 Inspect the exact saved proposals and obtain the user's business approval before
 accepting them. Continue after acceptance; changed proposals require attention.
 Accepted estimates remain estimates. Never replace a failed run just to bypass
@@ -137,6 +137,22 @@ item parameter. This also pins the exact retained extraction, even after another
 index becomes current. Completed/reconstructed preparations never parse again
 unless a new explicit run requests it. Uncommitted parsing may repeat after a
 crash. This is document preparation, not structured row import or Excel conversion.
+
+For a reviewed CSV/TSV update, author an `intake` definition through the CLI with
+one required item parameter and payload `{parser:"native-v1",file:"PARAMETER_ID",
+datasetID,definitionID,mode,mapping,keys,headerRow,newRowMeaning,newRowScenario}`.
+Inspect `table-schema` for the exact schema version. Map each input position to a
+stored column or explicit null; calculated columns cannot be imported. Merge needs
+unique mapped keys. Append/replace use an empty keys array. A workflow `intake`
+step binds the exact definition and needs one later `review` step. The input is
+an exact included business-file Source, not a path. Native/CLI Continue prepares
+one draft; inspect its counts and exact mapped values before approved acceptance.
+Existing row meanings stay unchanged; new rows use the declared meaning/scenario.
+This does not create inventory effects. Bounds: 1,000 incoming rows, 10,000 target
+rows, 16 MB target content and 8 MB mapped values. Exceeding a limit refuses the
+whole update. Changed originals/schema/rows need fresh review. Completed steps
+reconstruct inertly. XLSX updates and in-app conversation intake authoring remain
+unqualified; do not simulate them with guessed mappings or generic document steps.
 
 An `interpretation` definition has payload `{instruction,evidence,outputs,meaning,scenario}`.
 `evidence` lists 1 to 8 required item parameter names. `outputs` declares typed fields

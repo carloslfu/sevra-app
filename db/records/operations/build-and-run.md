@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T04:29:41.496286+00:00
+updated: 2026-10-29T05:04:27.483429+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1615,3 +1615,11 @@ The sevra-agent-checks --preparation-authoring MODEL_ROOT GRAMMAR_LIBRARY ENGINE
 Run swift build --product sevra-checks -j 3 and .build/debug/sevra-checks --document-actions for focused invariants. scripts/check.sh includes scripts/check_document_actions.py --cli .build/debug/sevra and 15 workflow process-death boundaries. Use python3 scripts/check_document_actions.py --cli output/native/bin/sevra --model-root MODELS_ROOT --output NEW_DIRECTORY for the explicit actual native six-step receiving/report job. The output directory must be new; retain prior results. It uses synthetic evidence and explicit synthetic human review, not user data. Without --model-root, the check exercises document form/workflow/review and keeps stock unchanged without inference. GitHub checks run the default job against the baseline and native packaged CLI products.
 
 The actual qualification output is .build/document-actions-native-model-v2, with 37 independent CLI calls; its immutable receipt is linked from [[records/specs/manual-workflows]]. The final frozen-source native build is document-action-v8; final whole shared checks are document-action-v11. Earlier diagnostics remain retained. Native resource tests are paths-only; latest UI/VoiceOver and full engine/performance release qualification remain open.
+
+## Reviewed workflow intake checks
+
+Build sevra-checks and run .build/debug/sevra-checks --workflow-intake for 21 focused direct-table/workflow groups. The shared scripts/check.sh runs the full 289 core groups and scripts/check_workflow_intake.py --cli .build/debug/sevra, plus 21 actual workflow SIGKILL boundaries. Product lifecycle checks exercise a delayed real child parser, independent writer and cancellation without model loading.
+
+After bash scripts/build_native.sh, run python3 scripts/check_workflow_intake.py --cli output/native/bin/sevra --model-root MODELS_ROOT --output NEW_DIRECTORY for the synthetic six-step preparation/interpretation/intake/review/report/review job. MODELS_ROOT is the installed native model layout. Output must not exist. Omit --model-root for the deterministic form/intake/review/reconstruction path with no inference. Explicit synthetic reviews occur only in the synthetic fixture. Do not point qualification scripts at user workbooks. The CLI script contains a full valid metadata example; intake-schema details are in [[records/specs/application-definitions]].
+
+The final actual qualification is .build/workflow-intake-native-model-v2, 38 independent CLI calls, with no expected-quantity example in its instruction. V1 remains preserved. Source and CLI identities are captured before inference. Final shared checks are intake-v8, frozen native release intake-v9 and package paths checks intake-v10. Evidence and remaining release limits are in [[records/specs/manual-workflows]]. The in-app conversation authoring boundary stays closed for intake; use the explicit CLI definition contract until qualified. These are functional/ownership checks, not a speed or full Excel-support claim.

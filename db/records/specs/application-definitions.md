@@ -2,8 +2,8 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T04:29:41.464889+00:00
-summary: Schema16 definitions, interpretation authoring and queued native workflows have scoped proof; full journeys and release gates remain open.
+updated: 2026-10-29T05:04:27.437775+00:00
+summary: Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
 ---
@@ -11,7 +11,7 @@ status: reviewed
 
 This elaborates E2 in [[records/specs/native-app-engine]]. It is an implementation
 contract, not a statement of whole-feature completion. E1 is captured at cd5f854.
-The current schema17 catalog retains scoped core/CLI registered inventory actions and
+The current schema18 catalog retains scoped core/CLI registered inventory actions and
 recoverable native form implementation in addition to the earlier pure computation.
 Agent tools, focused native forms, reusable native computation and exact result
 publication have scoped qualification below. Full EJ04/EJ05 remain open. E3 owns durable multi-step execution; do not hide
@@ -617,3 +617,9 @@ extraction declares payload parser=native-v1 and file=the one required item para
 records.draftDocument v1 declares required title/body/evidence/meaning/scenario. The body is new prose up to 16,384 UTF-8 bytes, with no original-copy fidelity claim. Its preview is pure; execution creates one lineage-bound draft document through the shared captured action transaction. Retry returns that same proposal. Native forms retain multiline inputs and recover the committed receipt without duplication. Workflow review accepts only unchanged direct acceptance successors for movements or documents, with exact meaning/scenario and decision provenance. Mapped estimates cannot become actual reports. Document acceptance never changes stock.
 
 The registry exposes the distinct workbook.draft_document capability. Direct registered-action chat submission remains closed while native forms, CLI and explicit workflow continuation have scoped proof. Existing inventory semantic direction checks remain intact. The existing draft tool and exact-source composition remain separate surfaces. See [[records/specs/manual-workflows]] for the current qualification and remaining E3/EJ release limits.
+
+## Structured intake definitions, schema18
+
+The intake kind describes one reusable reviewed CSV/TSV update over an existing managed dataset. Parameters contain exactly one required item with no default or unit. Payload fields are parser (native-v1), file (that parameter ID), datasetID, definitionID (exact schema version), mode (append/replace/merge), mapping, keys, headerRow, newRowMeaning and newRowScenario. mapping accounts for every consecutive input position using {position,target}, where null explicitly ignores a column. Each stored target column is mapped once; calculated targets refuse. Merge requires distinct mapped keys; append/replace use an empty keys array. Header row and incoming meaning/scenario are explicit. Current schema/archive checks apply at save and execution; historical integrity uses its saved schema.
+
+One dataset dependency and ordinary authoring Source retain the schema/mapping. An exact intake workflow step supplies the included business-file version and must have one later review. Parsing outside locks returns a host-only opaque preparation. The shared table-update insertion/application path owns both direct and workflow row changes; no new SQL family, parser in a mutation or separate ledger. Native Activity shows affected counts and new-row semantics, with exact proposal navigation. Recoverable workflow forms queue inertly. In-app conversation save/template authoring for intake remains refused until separately qualified. See [[records/specs/manual-workflows]] for bounds, exact review provenance and current proof.

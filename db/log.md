@@ -979,3 +979,9 @@ Registered report drafts share native forms/CLI/workflows and exact review.278 c
 ## [2026-10-29 04:33] design | records/specs/manual-workflows.md
 Reviewed next CSV/TSV workflow intake from usefulness, correctness and adversarial angles. Identified parsing/write-lock, workflow revision and table acceptance data-enrichment constraints; no intake execution implementation claim. Added document capture coverage.
 
+## [2026-10-29 05:03] implementation | records/specs/manual-workflows.md
+Schema18 reviewed CSV/TSV workflow intake shares captured plans and exact table review.289 core,21 SIGKILL boundaries/189 calls, final shared/native checks and38-call actual-model six-step reconstruction pass. Full E3/release remain open.
+
+## [2026-10-29 05:04] verification | records/specs/manual-workflows.md
+Final intake model V2 passes38 independent CLI calls without expected-quantity prompt hint. Full shared V8, frozen native V9, package V10,21-file strict Swift lint and skill validation pass. Final store/link/diff gates recorded; visible UI and full release remain open.
+
