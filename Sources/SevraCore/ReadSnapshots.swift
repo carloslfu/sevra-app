@@ -9,4 +9,7 @@ extension Workbook {
   func datasetReadSnapshot() throws -> String {
     try db.scalar("SELECT value FROM meta WHERE key='dataset-read-snapshot'").string ?? "initial"
   }
+  func workflowReadSnapshot() throws -> String {
+    try db.scalar("SELECT value FROM meta WHERE key='workflow-read-snapshot'").string ?? "initial"
+  }
 }

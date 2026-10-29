@@ -11,7 +11,8 @@ package enum NativeTools {
     let concise: Set<String> = [
       "title", "id", "target", "pinned", "subject", "text", "version", "expectedVersion",
       "expectedDefinitionID", "logicalID", "previewReceiptID", "datasetID", "offset", "cursor",
-      "kind", "meaning", "status", "scenario",
+      "kind", "meaning", "status", "scenario", "arguments", "inputs", "query",
+      "evaluationReceiptID", "templateReceiptID",
     ]
     let properties = fields.map { key, value in
       var schema = value.object
@@ -99,13 +100,13 @@ package enum NativeTools {
       .init(
         name: "start_thread_and_continue",
         description:
-          "For an explicit NEW side discussion with additional work there. Prefer before evidence work; refused after attempted changes. Reporting an already calculated result still counts: quote that remaining task verbatim, work=answer. Branch-only requests use start_thread. Never infer work from titles/history. Continues once, without acceptance or a business scenario.",
+          "Explicit NEW thread plus work: use before changes, preferably before reads. Reporting calculated results is remaining work (answer). Quote the current task, never infer it from titles/history. Branch-only: start_thread. Continues once; no acceptance/scenario.",
         parameters: object(
           [
             "title": schema("string", "Optional title requested for the new discussion."),
             "task": schema(
               "string",
-              "The exact verbatim span of the current user request specifying additional work, such as calculate the difference between 14.80 and 12.40. Exclude the branching instruction. Never invent or paraphrase a task or take it from earlier messages. Required."
+              "Verbatim span from THIS request specifying remaining work. Exclude branching. Never paraphrase, invent or reuse past tasks."
             ),
             "work": .object([
               "type": .string("string"),
@@ -117,20 +118,20 @@ package enum NativeTools {
                   "propose_table", "propose_table_edit",
                 ].map(Value.string)),
               "description": .string(
-                "Remaining operation: answer for research/calculation/reporting; propose_movement for inventory; propose_record for other Records; propose_table for new data; propose_table_edit for existing values; draft for documents; save_space for NEW views; edit_space for existing views; restore_space for a selected version. A title alone requests no space/table."
+                "Requested operation: answer (research/calculation/reporting), draft (document), propose_movement (inventory), propose_record (other Record), propose_table (new data), propose_table_edit (values), save/edit/restore_space (new/existing/historical view). A title requests no view/table."
               ),
             ]),
           ], required: ["task", "work"])),
       .init(
         name: "start_thread",
         description:
-          "Create a NEW side discussion and STOP for branch-only requests. Additional comparison, calculation, drafting or reporting requires start_thread_and_continue, preferably first. A calculated result is not a delivered answer. Never use for rename, return, review or hypothetical explanations. Clarify unavailable targets. No business scenario.",
+          "NEW branch-only discussion; stops. Additional work/reporting requires start_thread_and_continue first, even after calculation. Never rename/return/review or act on hypothetical explanations. Clarify unavailable targets; no business scenario.",
         parameters: object(
           [
             "title": schema("string", "Optional title for the new discussion."),
             "message": schema(
               "string",
-              "Omit to keep the latest exchange including its answer. Supply an exact earlier message ID only when the user explicitly selects that earlier exchange in this conversation."
+              "Omit for latest exchange/answer. Exact earlier message only when explicitly selected in this conversation."
             ),
           ], required: [])),
       .init(
@@ -158,7 +159,7 @@ package enum NativeTools {
             ),
             "summary": schema(
               "string",
-              "Optional selected findings to review. Omit to review the original answer. Preserve uncertainty; nothing is shared until the user reviews and confirms."
+              "Selected findings; omit for original answer. Preserve uncertainty. User reviews/confirms before sharing."
             ),
           ], required: [])),
       .init(
@@ -269,7 +270,7 @@ package enum NativeTools {
       .init(
         name: "references",
         description:
-          "Follow saved mentions, one hop,12/page: incoming mentions or outgoing destinations. Read originals before citing. Mentions grant no authority, lineage, business relationship or cross-scope access. Empty proves no absence.",
+          "Mentions: incoming/outgoing, one hop,12/page. Read originals before citing. No authority, lineage, business relationship or cross-scope access. Empty proves no absence.",
         parameters: object(
           [
             "id": schema("string", "Exact item version ID from visible workbook evidence."),
@@ -305,7 +306,7 @@ package enum NativeTools {
       .init(
         name: "count_records",
         description:
-          "Count classified Sources/Records only when asked. Never inventory units, document facts or real events. Unneeded for balances/citations. finish.counts renders its exact scoped receiptID.",
+          "Count classified Sources/Records when asked; not units/document facts/events or citation checks. finish.counts renders exact scope.",
         parameters: object(
           [
             "category": .object([
@@ -321,7 +322,7 @@ package enum NativeTools {
       .init(
         name: "read",
         description:
-          "Read exact evidence, bounded chunks and saved references. Follow references.hits: corrected bindings can differ from raw URIs. Read destinations before citing; page via references. Earlier request Sources require scoped history_read.",
+          "Exact evidence/chunks and references.hits: use corrected bindings, not raw URIs. Read destinations before citing; page via references. Request Sources use scoped history_read.",
         parameters: object(
           [
             "id": schema("string", "Exact item version ID returned by search."),
@@ -364,7 +365,7 @@ package enum NativeTools {
       .init(
         name: "review_queue",
         description:
-          "List current drafts, oldest first, 20/page via nextCursor. Excludes requests/rows; edits appear as table proposals. Titles/IDs are discovery: read originals before claims.",
+          "Current drafts, oldest first,20/page. No requests/rows; edits are table proposals. Read originals before claims. Page nextCursor.",
         parameters: object(
           ["cursor": schema("string", "nextCursor from the previous review page.")], required: [])),
       .init(
@@ -375,14 +376,14 @@ package enum NativeTools {
       .init(
         name: "open_space",
         description:
-          "Open a requested existing space by exact name/ID. Use visible active ID for this space; clarify ambiguity. Host confirms navigation. Not for explanations or creation.",
+          "Open requested exact space name/ID; this space uses visible active ID. Clarify ambiguity. Host confirms; never create/explain.",
         parameters: object(
           ["target": schema("string", "Exact space name or ID; Home opens the workbook home.")],
           required: ["target"])),
       .init(
         name: "set_space_pinned",
         description:
-          "Pin/unpin a requested existing navigation shortcut. Use active space ID for this space; clarify ambiguity. Does not freeze/copy values.",
+          "Requested shortcut pin/unpin; this space uses active ID. Clarify ambiguity. Never freezes/copies values.",
         parameters: object(
           [
             "target": schema("string", "Exact space name or ID."),
@@ -573,7 +574,7 @@ package enum NativeTools {
               "type": .string("array"), "maxItems": .number(4),
               "items": schema(
                 "string",
-                "Current-run count_records receipts for requested entry counts only. Not inventory quantities, calculations, search or historical receipts. Host renders exact count/scope."
+                "Requested entry counts: current-run count_records receipts only. Never inventory/calculation/search/history. Host renders scope."
               ),
             ]),
             "basis": .object([
@@ -585,7 +586,7 @@ package enum NativeTools {
                 ].map(
                   Value.string)),
               "description": .string(
-                "evidence: workbook/history facts with inspected citations. current_request: this request's supplied facts/checked arithmetic. completed_action: successful current-run action only. preview: host renders an unsaved action preview. general: guidance/greeting/clarification/verified UI; no business/history facts. unresolved: cannot establish facts; no guessing."
+                "evidence: inspected workbook/history citations. current_request: supplied facts/checked math. completed_action: current-run success. preview: host unsaved plan. general: guidance/greeting/clarification/UI, no stored facts. unresolved: unknown; no guesses."
               ),
             ]),
             "citations": .object([

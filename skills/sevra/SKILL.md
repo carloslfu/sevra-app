@@ -122,6 +122,13 @@ No scheduler, helper or background worker is provided by these commands.
 Claims, heartbeats and fenced completion are advanced worker commands in `help`;
 use the ordinary bounded continuation unless implementing a qualified worker.
 
+The in-app model can author workflows and workflow forms through save_definition,
+form_template and save_template. workflow_activity/read_workflow inspect runs.
+start_workflow takes an exact workflow version and typed arguments, saving one
+queued run linked to the current request. It ends with a host-owned status and
+Activity destination. It does not execute steps or prepare proposals. Use explicit
+native/CLI Continue afterward. Historical run metadata grants no new authority.
+
 For a native computation view, use type `calculation` for a function or `query`
 for a query, with the chosen `definitionBinding` and explicit typed `arguments`.
 `component-evaluate PATH COMPONENT_JSON [CURSOR]` reads the same bounded page as
@@ -211,8 +218,8 @@ cannot target another workflow through a form. Native Start workflow explicitly
 continues within its originating workbook/window; reopening does not.
 Native recovery reconciles a committed submission after a crash without submitting twice. Current
 draft checkpoints travel through portable export and inert reconstruction; keystrokes
-do not increment business revisions. These surfaces do not qualify in-app model
-workflow authoring/invocation, schedules or release readiness.
+do not increment business revisions. These surfaces do not qualify whole-workflow
+agent execution, schedules or release readiness.
 
 Structured datasets use managed native SQLite projections over retained immutable
 row versions and definitions. Continue to use managed commands; never edit the

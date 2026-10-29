@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T00:54:38.820360+00:00
+updated: 2026-10-29T01:26:56.374962+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -5764,3 +5764,21 @@ Forms now bind either an action or a workflow with identical parameter signature
 Core247/0 and focused workflow16/0 checks pass. The complete native-preview ownership/session suite and existing scripted agent suite pass. Actual child-process SIGKILL passes five boundaries, including before and after form commit. Debug and packaged native CLI pass six cohorts, including cross-process exact retry, separate review and reconstruction. Release native app/CLI, paths-only resource/refusal/signature checks and strict formatting of18 changed Swift files pass. Full engine checks are reused from unchanged prior engine evidence. All114 prior artifacts remain byte-identical. See [workflow-form receipt](../../../integration/evidence/2026-10-28-workflow-forms.json.gz).
 
 The V3 process-death probe stopped on an assertion that required an optional omitted lastReceipt field; the corrected V4 probe passes. The first lint command used unavailable swiftlint; the repository's xcrun swift-format check passes. Neither failure is hidden. No visible native/VoiceOver/appearance pass while the Mac is locked. E3 agent workflow authoring/invocation, explicit AI/import/document steps, richer graphs and general effect consumers remain next; E4-E6 and wider release gates remain open. The app and active goal are unfinished.
+
+## Hosted baseline CLI path correction, October 28
+Hosted run40794958919 qualifies the corrected history test: unsupported formats are refused byte-identically, eight concurrent openers pass,700 messages are paged, and offline export/reopen passes. It also passes isolated installation/update/uninstall and packaged document/receipt tests. Its next concurrency command fails before launch because that script defaults to output/native/bin/sevra, but this earlier stage has only built output/bin/sevra.
+
+Commit140af04 explicitly selects the baseline CLI in that CI stage. The same exact command passes locally:30 concurrent writers, coherent exported snapshot, cross-process intake retry, idempotent write retry, stale-write refusal and preserved inventory. This is a CI wiring correction, not a product concurrency fix. Retain the hosted failure and inspect the next pushed revision; no whole-CI success is claimed from local scope.
+
+## Conversation workflow authoring and queued starts, October 28
+The local agent now discovers/authors exact manual workflows, makes their native form templates, inspects Activity and queues a requested run with typed inputs. Its active request/Source is revalidated inside the atomic write and retained as invocation lineage. A successful start terminates with host-owned saved-status text, explicitly saying no steps or drafts ran, and opens that run. Native Workflow Activity is also in the Workbook menu at Command-Shift-Y. Read-only and unrelated task handoffs refuse queued work.
+
+Activity paging now uses a captured workflow-run clock instead of the whole workbook revision, fixing agent journal writes invalidating their own continuation. Thirteen-run tests use actual journal prepare/complete calls, unrelated writes, reconstructed continuations and a changed-run refusal. The response still reports the actual read revision.
+
+Final core251/0, focused20/0 and the complete scripts/check.sh pass. Native release build, packaged CLI six cohorts, five actual process-death boundaries, installed-resource/refusal/signature paths checks, strict16-file formatting and repo skill validation pass. All115 prior artifacts remain byte-identical. The [agent workflow receipt](../../../integration/evidence/2026-10-28-agent-workflows.json.gz) retains source/final-binary identities, model results/history and all failed diagnostics.
+
+The pinned native model completes authoring (11 calls,88.087 s), Home form creation (12 calls,87.871 s) and queueing (2 calls,18.913 s), with no execution/business Records. Independent saved-Home inspection confirms six unchanged original sections plus one form. The model run precedes the final family-clock correction; final automated/native checks cover that correction. The model-run binary digest was not captured before rebuilding, so final digests cannot identify its old runner. These are functional task times under development load, not throughput/performance claims.
+
+Retained failures include invalid test API calls, compaction-floor overflow, two actual grammar prompt overflows and one Value array-index compile error. Redundant descriptions were shortened while retaining structural schema/host checks;60 actual grammars/511 masks pass at8179/8192. Hosted run40797267672 on798baac passes through native build, then repeats the baseline concurrency binary-path failure already fixed in140af04. Dispatch a new exact-commit run after pushing this checkpoint. No whole-CI success is claimed.
+
+The Mac is still locked. Latest Activity/form visual, VoiceOver/appearance/narrow checks remain pending. Next implement explicit AI interpretation with saved inputs/results and asynchronous fenced publication, then import/document steps and complete receiving recovery. E3 richer graphs/general outbox consumers, E4-E6, Excel continuity, broader voice/accessibility/hardware and native production adoption remain open. The full app and active goal remain unfinished.

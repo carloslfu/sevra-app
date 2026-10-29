@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T00:54:38.804754+00:00
+updated: 2026-10-29T01:26:56.360575+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1578,9 +1578,14 @@ The shared check script and CI include the process-death and independent CLI pro
 Definitions use kind workflow and the contract in [[records/specs/manual-workflows]]. Current development schema 15 replaces schema 14 without a legacy adapter. Preserve old packages and use a matching earlier development build for recovery. Only recreate selected disposable fixtures. No installed user package is reset or upgraded automatically.
 
 ## Manual workflow activity
-Use workflow-activity WORKBOOK [STATE|- [CURSOR]] for bounded newest-first pages, workflow-inspect WORKBOOK RUN_ID for exact inputs/steps/proposals/attempts, and workflow-continue WORKBOOK RUN_ID for a deliberate continuation to the next review or terminal state. Read/inspect never resumes a run. Native Activity is accessible beside Review drafts; Continue, Retry unfinished work and Stop workflow use the same trusted core commands. A changed activity revision requires refresh. Full workflow/automation and accessibility gates remain open.
+Use workflow-activity WORKBOOK [STATE|- [CURSOR]] for bounded newest-first pages, workflow-inspect WORKBOOK RUN_ID for exact inputs/steps/proposals/attempts, and workflow-continue WORKBOOK RUN_ID for a deliberate continuation to the next review or terminal state. Read/inspect never resumes a run. Native Activity is accessible beside Review drafts; Continue, Retry unfinished work and Stop workflow use the same trusted core commands. A changed workflow-run family clock requires refresh; agent journal and unrelated writes preserve continuation. Full workflow/automation and accessibility gates remain open.
 
 ## Workflow form submission
 Use form-template WORKBOOK TARGET_ID for an exact inspected current action or workflow. The returned form follows that target live. Its payload has exactly one action/workflow binding, with identical typed parameters. Save it through definition-save and bind it as a normal native form component. Workflow action steps may use only action-backed forms, preventing hidden recursive workflow execution.
 
 form-draft-preview WORKBOOK STATE_JSON is pure. For a workflow form it checks exact opened definitions and parameters and lists steps; it does not execute queries/model/import/effects. form-draft-submit WORKBOOK STATE_JSON PREVIEW_JSON uses the saved draft's invocation token and creates a queued run plus receipt atomically. Repeating exact submission returns that receipt. Save lastReceipt through the compare-and-set form-draft-save command if using the low-level CLI; native sessions reconcile it after crashes automatically. Continue the returned workflowRunID explicitly. Native Start workflow also deliberately continues under its originating workbook/window; Open workflow remains available after submission. No scheduled/background execution is granted.
+
+## Conversation workflow tools and local-model probe
+The agent can find/read/save exact workflow definitions, create associated form templates and queue a requested run. start_workflow returns a saved run and ends with the host-owned no-execution receipt. Open Activity through Workbook > Workflow Activity (Command-Shift-Y), then inspect and explicitly Continue. Opening/reconstructing/queuing never starts a worker. Native form Start is a separate deliberate continuation.
+
+Run swift build --product sevra-agent-checks -j3, then .build/debug/sevra-agent-checks for scripted scope/receipt checks. Use --workflow-tools MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT for the three actual-model author/form/queue jobs. MODEL_ROOT is the native installed layout. The output must not exist. It retains results/messages and a synthetic workbook. This is functional32K/bounded512 proof, not throughput or full workflow execution. The final shared check script includes paging/recovery/grammar checks; historical and current evidence is in [[records/operations/implementation]].

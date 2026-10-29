@@ -233,6 +233,11 @@ func expectValue<T>(_ value: T?) throws -> T {
   return value
 }
 do {
+  if CommandLine.arguments.dropFirst() == ["--export-tools"] {
+    let checks = ToolPolicyChecks()
+    try checks.testActualWorkbookSchemas()
+    exit(0)
+  }
   try checkContextBudget()
   try await checkContextThreshold()
   try checkReasoningBudget()
@@ -247,6 +252,7 @@ do {
   try await checkRequestAdmission()
   try await checkMovementDirection()
   try await checkApplicationTools()
+  try await checkWorkflowAgentTools()
   try await checkComputationTools()
   try await checkCitationVersions()
   try await checkActionConfirmations()
@@ -288,6 +294,10 @@ do {
       engine: CommandLine.arguments[4])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--computation" {
     try await runComputationProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--workflow-tools" {
+    try await runWorkflowToolProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--application-tools" {

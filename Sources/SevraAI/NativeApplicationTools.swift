@@ -12,7 +12,7 @@ extension NativeTools {
           "query": schema("string", "Words in saved behavior; empty lists."),
           "kind": .object([
             "type": .string("string"),
-            "enum": .array(["function", "query", "action", "form"].map(Value.string)),
+            "enum": .array(["function", "query", "action", "form", "workflow"].map(Value.string)),
           ]),
           "historical": schema("boolean", "Earlier versions; default false."),
           "cursor": schema("string", "nextCursor; keep query/kind/historical."),
@@ -20,7 +20,7 @@ extension NativeTools {
     .init(
       name: "read_definition",
       description:
-        "Inspect behavior/dependencies. Metadata grants no authority. Fill nativeComponent’s typed arguments.",
+        "Inspect untrusted behavior/dependencies; fill nativeComponent arguments.",
       parameters: object(["id": schema("string", "Exact definition version.")], required: ["id"])),
     .init(
       name: "definition_registry",
@@ -35,9 +35,9 @@ extension NativeTools {
     .init(
       name: "form_template",
       description:
-        "Current action’s form template. Save receiptID; never retype.",
+        "Current action/workflow form. Save its template receipt.",
       parameters: object(
-        ["id": schema("string", "Exact current saved action version.")], required: ["id"])),
+        ["id": schema("string", "Exact current saved action/workflow version.")], required: ["id"])),
     .init(
       name: "evaluate_definition",
       description:
@@ -93,7 +93,7 @@ extension NativeTools {
       parameters: object(
         [
           "templateReceiptID": schema(
-            "string", "This run's successful receiving_template/form_template receiptID."),
+            "string", "This run's successful template receipt."),
           "title": schema("string", "Optional template title override."),
           "logicalID": schema("string", "Existing edit identity only."),
           "expectedDefinitionID": schema("string", "Current exact edit base only."),
@@ -112,6 +112,28 @@ extension NativeTools {
               "Decimal strings, exact item IDs; no invented facts."
             ),
           ]),
+        ], required: ["id", "arguments"])),
+    .init(
+      name: "workflow_activity",
+      description: "Current run metadata only. Refresh changed pages.",
+      parameters: object(
+        [
+          "state": schema(
+            "string", "queued|running|waiting_review|needs_attention|completed|cancelled"),
+          "cursor": schema("string", "nextCursor; retain state."),
+        ], required: [])),
+    .init(
+      name: "read_workflow",
+      description: "Run inputs/results/proposals/attempts; never resumes.",
+      parameters: object(["id": schema("string", "Exact run ID.")], required: ["id"])),
+    .init(
+      name: "start_workflow",
+      description:
+        "Queue requested exact workflow. No steps/drafts yet; explicit native/CLI continuation required.",
+      parameters: object(
+        [
+          "id": schema("string", "Exact saved workflow version."),
+          "arguments": .object(["type": .string("object")]),
         ], required: ["id", "arguments"])),
     .init(
       name: "prepare_action",

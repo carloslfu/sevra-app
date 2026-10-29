@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T00:54:38.790380+00:00
+updated: 2026-10-29T01:26:56.329583+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -332,3 +332,8 @@ Process-local execution sessions are deliberately outside the workbook. Replay a
 A form targets exactly one action or workflow. Workflow submission inserts the queued run, original actor/invocation Source linked to both definitions, typed inputs, steps, outbox and operation receipt in one shared captured transaction. It creates no process-local execution session. The trusted workflow-start body is shared rather than nesting public mutations. Optional origin data retains the exact preview; no new table or schema version is required.
 
 Form presentation keeps its stable submission token. The generic saved form receipt reconciles either registered-action or workflow submission before rendering another submit opportunity. Reconstruct/copy both committed and pre-presentation-save states without worker activation. Actual process death before commit leaves no run/receipt; after commit retains exactly one queued run. Explicit native Start can continue only in its originating workbook/window. [Workflow-form scoped proof](../../../integration/evidence/2026-10-28-workflow-forms.json.gz); broader workflow/trigger/helper and release gates remain open.
+
+## Conversation workflow queue and Activity clock
+Agent starts carry the active request run/Source into the same atomic workflow-start operation; captured invocation lineage retains the actual AI actor. Revalidate request scope inside the transaction. Exact retries return the same saved run without worker authority. Reconstruction retains all run state without execution.
+
+The workflow-read-snapshot meta key records the current committed-change identity only when workflow_runs changes. It is captured and reconstructed in the existing ledger. Activity cursors bind this family clock plus workbook/filter/page size, so their own tool-journal receipts and unrelated writes cannot stale their next page. Run changes still refuse stale continuation; the response retains actual workbook revision independently. Core251, focused20 and full shared checks pass; [agent workflow evidence](../../../integration/evidence/2026-10-28-agent-workflows.json.gz).

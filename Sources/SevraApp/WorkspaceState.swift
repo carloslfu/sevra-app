@@ -665,7 +665,11 @@ import SwiftUI
           applyConversationAction(action)
         }
         if present, let focus = result.focus {
-          navigate(focus.kind == "space" ? .space(focus.id) : .item(focus.id))
+          switch focus.kind {
+          case "space": navigate(.space(focus.id))
+          case "workflow": navigate(.workflow(focus.id))
+          default: navigate(.item(focus.id))
+          }
         }
       } catch { report(error, for: ticket, in: book) }
     }

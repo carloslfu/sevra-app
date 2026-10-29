@@ -151,6 +151,9 @@ final class ChangeCapture {
     }) {
       clocks.append("dataset-read-snapshot")
     }
+    if pending!.contains(where: { $0.table == "workflow_runs" }) {
+      clocks.append("workflow-read-snapshot")
+    }
     for key in clocks {
       try database.execute(
         "INSERT INTO meta VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",

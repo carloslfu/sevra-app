@@ -49,6 +49,9 @@ import SwiftUI
         Button("Drafts to Review") {
           NotificationCenter.default.post(name: .sevraReviews, object: nil)
         }
+        Button("Workflow Activity") {
+          NotificationCenter.default.post(name: .sevraActivity, object: nil)
+        }.keyboardShortcut("y", modifiers: [.command, .shift])
         Divider()
         if let workspace {
           ReferenceCommandContent(state: workspace)
@@ -89,6 +92,7 @@ extension Notification.Name {
   static let sevraNew = Notification.Name("sevraNew"), sevraOpen = Notification.Name("sevraOpen"),
     sevraImport = Notification.Name("sevraImport"), sevraSearch = Notification.Name("sevraSearch"),
     sevraReviews = Notification.Name("sevraReviews"),
+    sevraActivity = Notification.Name("sevraActivity"),
     sevraExport = Notification.Name("sevraExport")
 }
 struct WorkspaceWindow: View {
@@ -178,6 +182,9 @@ struct WorkspaceWindow: View {
     }
     .onReceive(NotificationCenter.default.publisher(for: .sevraReviews)) { _ in
       if isKey { state.navigate(.reviews) }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .sevraActivity)) { _ in
+      if isKey { state.navigate(.activity) }
     }
     .onReceive(NotificationCenter.default.publisher(for: .sevraExport)) { _ in
       if isKey { state.exportPanel() }

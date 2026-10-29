@@ -931,3 +931,9 @@ Added native manual workflow Activity, bounded coherent paging and explicit cont
 ## [2026-10-29 00:54] verification | records/specs/manual-workflows.md
 Qualified atomic workflow forms, exact receipt recovery and five actual process-death boundaries; native build/core247/focused16 pass. Visible UI and full E3 remain open.
 
+## [2026-10-29 01:09] verification | records/operations/implementation.md
+Retained hosted40794958919 history/installation passes and later missing-preview CLI failure;140af04 selects the built baseline explicitly. Local concurrency command passes.
+
+## [2026-10-29 01:26] verification | records/specs/manual-workflows.md
+Conversation workflow author/form/queued-start model jobs pass; core251/focused20/full shared suite/native package pass. Activity family clock survives agent journaling. Full E3 and visible UI remain open.
+

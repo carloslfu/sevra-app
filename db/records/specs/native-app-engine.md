@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T00:26:47.140865+00:00
+updated: 2026-10-29T01:26:56.299818+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -123,7 +123,7 @@ business review remains separate. See [[records/specs/application-definitions]],
 This is a scoped E2 foundation. The registry/draft/native-form foundation now has schema14 scoped automated proof
 below. Model authoring/invocation and focused visible native form journeys now have
 scoped proof in the [agent application definition receipt](../../../integration/evidence/2026-10-28-agent-application-definitions.json.gz). Native calculation/query views and result publication now have scoped proof in the
-[native computation receipt](../../../integration/evidence/2026-10-28-native-computation.json.gz). Full EJ04/EJ05 remain open. The schema 15 manual workflow core/CLI foundation is tracked in [[records/specs/manual-workflows]]; full E3/EJ06-EJ08 remain open. E4-E6 remain unimplemented.
+[native computation receipt](../../../integration/evidence/2026-10-28-native-computation.json.gz). Full EJ04/EJ05 remain open. The schema15 manual workflow core/CLI, native Activity/recoverable forms and conversation authoring/queued starts are tracked in [[records/specs/manual-workflows]]. Actual-model jobs qualify authoring and queueing without execution; explicit model/import/document steps and full E3/EJ06-EJ08 remain open. E4-E6 remain unimplemented.
 
 ## Home and spaces
 
@@ -183,7 +183,7 @@ from coherent revisions and invalidate only affected bindings. Performance
 limits must be explicit and tested on named hardware and fixtures; no universal
 subsecond or million-row claim is established by this specification.
 
-E08. A form binds typed fields to an action, not directly to arbitrary SQL. Support
+E08. A form binds typed fields to a registered action or manual workflow, not directly to arbitrary SQL. Support
 required/optional fields, defaults, validation, units, dates/time zones, choices,
 record/file references and structured repeating entries within stated bounds.
 Form-local unsaved input survives recoverable errors. Show the target and effect

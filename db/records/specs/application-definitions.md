@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T00:26:47.168602+00:00
+updated: 2026-10-29T01:26:56.314069+00:00
 summary: '"Schema14 definitions, native forms and computations have scoped local-model and visible native proof; full journeys, workflows and release gates remain open."'
 title: Shared application definitions and actions
 status: reviewed
@@ -600,3 +600,6 @@ Successful evaluate_definition includes its host-generated receiptID. Publicatio
 Visible native checks show live30/33/42 after explicit definition edits, pinned36, saved query values/provenance, one-row Next/Previous pages and a pinned first page with no live continuation. The item-bound save sheet retains its chosen evaluation. Stale refusal appears inside it with title/scenario retained and no result Record. Refreshed42 saves as an estimate draft and remains an estimate with unchanged exact data after native acceptance. Internal empty arrays do not appear as scalar fields.
 
 Final packaged CLI, portable/inert reconstruction, full native Metal/resources/refusals/signature, strict29-file Swift lint and skill checks pass. Isolated baseline installation passes after repairing its import-response assertion. Native Splash stays separate from the preserved Slotstream baseline. Full EJ04/EJ05 scale/voice, broad accessibility/appearance/media/hardware gates, E3-E6, Excel continuity and notarized release remain open.
+
+## Conversation workflow surface
+Workflow discovery/save/form templates reuse the same catalog validation and exact-base writes. workflow_activity/read_workflow are bounded reads. start_workflow queues an exact saved workflow with explicit typed inputs, current AI request lineage and in-transaction authority revalidation. It never executes a step. A host-owned terminal receipt names saved status and native Activity; business acceptance remains separate. Read-only and unrelated task handoffs cannot queue runs. See [[records/specs/manual-workflows]] and the [scoped receipt](../../../integration/evidence/2026-10-28-agent-workflows.json.gz). Full workflow AI execution remains open.

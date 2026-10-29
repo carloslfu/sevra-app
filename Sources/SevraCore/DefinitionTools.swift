@@ -5,7 +5,8 @@ extension WorkbookTools {
   static let applicationTools: Set<String> = [
     "find_definitions", "read_definition", "definition_registry", "receiving_template",
     "form_template", "evaluate_definition", "save_definition", "save_template", "preview_action",
-    "commit_action_preview", "publish_result",
+    "commit_action_preview", "publish_result", "workflow_activity", "read_workflow",
+    "start_workflow",
   ]
 
   func executeApplicationTool(_ tool: String, _ a: Value, receiptID: String?) throws -> Value {
@@ -27,6 +28,23 @@ extension WorkbookTools {
         key + " must be a nonempty string.")
     }
     switch tool {
+    case "workflow_activity":
+      try fields(["state", "cursor"], required: [])
+      for key in ["state", "cursor"] where a.object[key] != nil {
+        _ = try string(key)
+      }
+      return try workbook.workflowActivity(
+        state: a["state"].string, limit: 12, cursor: a["cursor"].string,
+        cancellation: cancellation)
+    case "read_workflow":
+      try fields(["id"], required: ["id"])
+      return try workbook.inspectWorkflow(string("id"), cancellation: cancellation)
+    case "start_workflow":
+      try fields(["id", "arguments"], required: ["id", "arguments"])
+      return try workbook.startWorkflow(
+        string("id"), arguments: a["arguments"], token: operationToken(tool, a),
+        readOnly: readOnly, requestRunID: runID, requestSourceID: requestSourceID,
+        cancellation: cancellation)
     case "publish_result": return try publishDefinitionResult(a)
     case "find_definitions", "read_definition", "definition_registry", "receiving_template",
       "form_template":
@@ -83,8 +101,9 @@ extension WorkbookTools {
         try fields(["id"], required: ["id"])
         let action = try workbook.applicationDefinition(string("id"))
         try require(
-          action.id == a["id"].text && action.kind == "action", "definition_kind",
-          "Choose an exact saved action version.")
+          action.id == a["id"].text && ["action", "workflow"].contains(action.kind),
+          "definition_kind",
+          "Choose an exact saved action or workflow version.")
         try require(
           try workbook.applicationDefinition(action.logicalID).id == action.id, "stale_definition",
           "The form template follows the live action. Inspect its current version, or author an explicit exact binding."
@@ -137,9 +156,9 @@ extension WorkbookTools {
         content = a["content"]
       }
       try require(
-        ["function", "query", "action", "form"].contains(content["kind"].text),
+        ["function", "query", "action", "form", "workflow"].contains(content["kind"].text),
         "definition_kind",
-        "Agent authoring currently supports functions, queries, actions and forms.")
+        "Author functions, queries, actions, forms or manual workflows.")
       let token = try operationToken(tool, a)
       let existing = a["logicalID"].string
       try require(
@@ -225,7 +244,8 @@ extension WorkbookTools {
     "Copy nativeComponent into space components, filling function/query arguments from declared parameters (decimal strings). Keep its definitionBinding. Omit x,y,query,unit,datasetID,itemID: x/y are chart data columns, never layout coordinates. Forms obtain inputs interactively and omit arguments."
   )
   static let definitionFormats: Value = .object([
-    "content": .string("{kind:function|query|action|form,title,description,parameters,payload}"),
+    "content": .string(
+      "{kind:function|query|action|form|workflow,title,description,parameters,payload}"),
     "parameters": .string(
       "Up to 32 {id,label,type,required,unit?,default?,choices?,min?,max?,fields?,maxEntries?}. Types: text,decimal,boolean,date,item,choice,entries. Decimals/bounds are strings. Item is an exact local version. Entries: fields plus maxEntries 1..50, one level only. Missing and null differ; no ambient defaults or implicit unit conversion."
     ),
@@ -242,7 +262,10 @@ extension WorkbookTools {
       "calculation/function and query/query components bind definitionBinding and explicit typed arguments. Fill required arguments on returned nativeComponent before saving. Live refreshes; Pin space captures first-page values/coverage. publish_result uses this run evaluation receipt and saves a separate draft Record, never acceptance."
     ),
     "form": .string(
-      "payload {action:binding,fields:[{parameter,label?,help?}]}; parameters exactly match its action. Use form_template. Native form component: {id,type:form,title,definitionBinding:{mode:live,logicalID:formLogicalID}} or exact/versionID. No datasetID/itemID/snapshot. Definitions and submitted proposals remain separate."
+      "payload {action:binding OR workflow:binding,fields:[{parameter,label?,help?}]}; parameters match target. Use form_template. Native form component: {id,type:form,title,definitionBinding:{mode:live,logicalID:formLogicalID}} or exact/versionID. No datasetID/itemID/snapshot. Saving never executes."
+    ),
+    "workflow": .string(
+      "payload {readPolicy:latest-at-step,steps:[{id,kind:evaluate|action,binding,arguments}|{id,kind:review,review:priorActionStepID}]}. 1..16 sequential steps; every action needs exactly one later review. All bindings including dependencies exact versions. evaluate targets function/query, action targets action or action-backed form. Argument mappings: {parameter:id}, {literal:value,unit?} or prior scalar function {step:id,unit?}. start_workflow queues only; explicit native/CLI continuation runs steps. No model/import/conditions/code yet."
     ),
   ])
 }
@@ -279,8 +302,9 @@ extension Workbook {
             "Invalid form-template call.")
           let action = try applicationDefinition(call["arguments"]["id"].text)
           try require(
-            action.id == call["arguments"]["id"].text && action.kind == "action",
-            "definition_template", "The form template needs an exact action version.")
+            action.id == call["arguments"]["id"].text
+              && ["action", "workflow"].contains(action.kind),
+            "definition_template", "The form template needs an exact action/workflow version.")
           expected = ActionRegistry.formDefinition(target: action)
         }
         try require(

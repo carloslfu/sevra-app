@@ -18,6 +18,7 @@ extension Workbook {
       try db.budget(cancellation: control, seconds: 3) {
         try db.readTransaction {
           let revision = try revision()
+          let snapshot = try workflowReadSnapshot()
           var predicates: [String] = []
           var values: [Value] = []
           if let state {
@@ -34,7 +35,7 @@ extension Workbook {
               let updated = saved["updated"].string, updated.utf8.count <= 64
             else { throw SevraError("workflow_cursor", "Invalid activity continuation.") }
             try require(
-              saved["revision"] == .number(Double(revision)), "stale_workflow_activity",
+              saved["snapshot"] == .string(snapshot), "stale_workflow_activity",
               "Workflow activity changed. Refresh to see current work.")
             predicates.append("(r.updated<? OR (r.updated=? AND r.id<?))")
             values += [.string(updated), .string(updated), .string(after)]
@@ -51,7 +52,7 @@ extension Workbook {
             next = .string(
               Data(
                 try Value.object([
-                  "workbookID": .string(id), "revision": .number(Double(revision)),
+                  "workbookID": .string(id), "snapshot": .string(snapshot),
                   "state": state.map(Value.string) ?? .null, "limit": .number(Double(limit)),
                   "after": last["id"]!, "updated": last["updated"]!,
                 ]).json().utf8
@@ -59,6 +60,7 @@ extension Workbook {
           }
           return .object([
             "workbookID": .string(id), "revision": .number(Double(revision)),
+            "snapshot": .string(snapshot),
             "runs": .array(page.map(Value.object)), "nextCursor": next,
           ])
         }

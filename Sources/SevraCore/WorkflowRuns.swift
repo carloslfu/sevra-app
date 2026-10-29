@@ -15,6 +15,7 @@ extension Workbook {
   @discardableResult public func startWorkflow(
     _ definitionID: String, arguments: Value, token: String,
     readOnly: Bool = false, actor: ChangeActor? = nil,
+    requestRunID: String? = nil, requestSourceID: String? = nil,
     cancellation: Cancellation = .init()
   ) throws -> Value {
     try require(!readOnly, "read_only_request", "This request does not permit a workflow.")
@@ -22,10 +23,21 @@ extension Workbook {
     let actor = actor ?? ChangeAttribution.actor ?? .programmatic("SevraCore.workflow")
     return try mutation(
       "workflow_start", token: token,
-      request: .object(["definitionID": .string(definitionID), "arguments": arguments]),
+      request: .object([
+        "definitionID": .string(definitionID), "arguments": arguments,
+        "requestRunID": requestRunID.map(Value.string) ?? .null,
+        "requestSourceID": requestSourceID.map(Value.string) ?? .null,
+      ]),
       cancellation: cancellation, actor: actor
     ) {
-      try self.insertWorkflowRun(definitionID, arguments: arguments, actor: actor)
+      if let requestRunID {
+        try self.validateApplicationToolRun(requestRunID, requestSourceID: requestSourceID)
+      } else {
+        try require(requestSourceID == nil, "action_run", "A request Source needs its active run.")
+      }
+      return try self.insertWorkflowRun(
+        definitionID, arguments: arguments, actor: actor,
+        additionalInputs: requestSourceID.map { [$0] } ?? [])
     }
   }
 
