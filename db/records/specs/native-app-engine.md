@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T13:12:33.397972+00:00
+updated: 2026-10-29T13:51:24.691402+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -721,3 +721,7 @@ This checkpoint also repairs the registry creation race found by fab2a83 hosted 
 ## E4 derivation ancestry inspection
 
 [[records/specs/automatic-ancestry]] now provides the schema-24 uniquely indexed workflow-source invariant and bounded read-only historical automatic ancestry. Synthetic acceptance/manual derivation retain origin; erased metadata cannot hide the registered source. Final 434 full core groups and 22 installed ancestry calls pass with focused native packaging/nearby proof. This includes control lineage, so it is not a minimal trigger cause slice or cascade budget. Exact condition causes, durable causal admission, atomic event dispatch with physical grants, native/conversation authoring and complete E4 remain open.
+
+## E4 durable admission foundation
+
+[[records/specs/automation-causality]] qualifies schema25 calendar roots and the internal trusted inherited admission primitive, including persisted self/cross-loop, depth, fan-out and root-total bounds. Full456 core groups, final nine independent successor writers, installed21 admission/47 execution/22 ancestry/94 condition/76 feed calls and native/durability checks pass with retained iteration scope. The existing foreground/native owner continues through the same dispatcher; no condition input selection, timer expansion or new device permission is added. Exact causal trigger inputs, independent business roots, current-grant candidate binding and native/conversation/dataset authoring remain next. Full E4-E6 and release are unfinished.

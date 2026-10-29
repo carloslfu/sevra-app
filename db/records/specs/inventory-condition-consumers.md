@@ -2,7 +2,7 @@
 type: spec
 id: 01m63sd9zxhrxzv360z74w3pyn
 created: 2026-10-29T12:15:59.997610+00:00
-updated: 2026-10-29T13:12:33.343711+00:00
+updated: 2026-10-29T13:51:24.712226+00:00
 summary: Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
 title: Durable inventory condition consumers
 status: implemented
@@ -72,3 +72,7 @@ This completes the persistent inventory consumer slice, not condition execution,
 ## Authoritative ancestry and publication cancellation
 
 The later [[records/specs/automatic-ancestry]] checkpoint advances the development schema to 24 solely to make existing workflow invocation Source identity unique/indexed. Consumer families and semantics remain unchanged. The condition publication guard now checks cancellation immediately before COMMIT, after the qualification barrier; a focused test proves complete derived-state/cursor/receipt rollback and same-token retry. Final 434 full core groups and 94 installed condition calls/two actual SIGKILL boundaries pass. The new inspector retains broad derivation ancestry, including synthetic acceptance, but is not a minimal trigger cause set or dispatch decision. Exact cause capture and persisted causal admission remain required.
+
+## Persisted admission available, exact causes still required
+
+The later [[records/specs/automation-causality]] checkpoint advances development schema25 with four captured automatic-origin/admission families. Existing condition consumer semantics remain unchanged. Installed94 condition and76 feed calls, each with two process-death boundaries and six writers, pass against the same new native CLI. The trusted inherited primitive now bounds exact supplied automatic parent runs. Condition consumers still need exact contribution inputs across batch pages, clock groups and unknown intervals; broad derivation/control ancestry cannot substitute. No candidate executes automatically yet.

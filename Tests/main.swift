@@ -52,6 +52,32 @@ let temp = FileManager.default.temporaryDirectory.appendingPathComponent(
   "sevra-checks-" + identifier())
 try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: temp) }
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--automation-causality-fixture"
+{
+  print(
+    try createAutomationCausalityFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--automation-causality-worker" {
+  do {
+    print(
+      try automationCausalityWorker(
+        path: CommandLine.arguments[2], definition: CommandLine.arguments[3],
+        parent: CommandLine.arguments[4]
+      ).json())
+  } catch {
+    fputs(
+      (try? encoded(error as? SevraError ?? SevraError("error", error.localizedDescription)).json())
+        ?? "{}", stderr)
+    exit(1)
+  }
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--automation-causality"] {
+  checkAutomationCausality(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--automatic-ancestry-fixture" {
   print(
     try createAutomaticAncestryFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
@@ -1036,5 +1062,6 @@ checkConditionTransitions()
 checkAutomationDefinitions(at: temp)
 checkAutomationPlanning(at: temp)
 checkAutomationExecution(at: temp)
+checkAutomationCausality(at: temp)
 print("\(passed) passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

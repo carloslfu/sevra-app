@@ -745,6 +745,7 @@ import SevraProduct
     condition-step WORKBOOK CONSUMER_ID THROUGH TOKEN
     condition-state WORKBOOK CONSUMER_ID
     automation-ancestry WORKBOOK ITEM_ID [ITEM_ID...]
+    automation-causality WORKBOOK RUN_ID
     condition-observations WORKBOOK CONSUMER_ID [AFTER_ID|-] [LIMIT]
     condition-dismiss WORKBOOK CANDIDATE_ID REASON TOKEN
     table-schema WORKBOOK DATASET_ID

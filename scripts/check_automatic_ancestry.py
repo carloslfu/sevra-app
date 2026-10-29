@@ -74,6 +74,8 @@ def run(cli, worker, output):
         missing = folder / "MissingBinding.sevra"
         shutil.copytree(book, missing)
         with sqlite3.connect(str(missing / "workbook.sqlite")) as db:
+            db.execute("DELETE FROM automatic_root_members WHERE run_id=?", [data["runID"]])
+            db.execute("DELETE FROM automatic_admissions WHERE run_id=?", [data["runID"]])
             db.execute("DELETE FROM automation_runs WHERE run_id=?", [data["runID"]])
         call("automation-ancestry", missing, data["acceptedID"], error="ancestry_integrity")
         damaged = folder / "DamagedOrigin.sevra"

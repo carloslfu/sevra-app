@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T13:12:33.455937+00:00
+updated: 2026-10-29T13:51:24.753478+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1745,3 +1745,11 @@ Use `sevra automation-ancestry Shop.sevra EXACT_ITEM_ID [EXACT_ITEM_ID...]` to i
 Limits are 1,024 distinct items, 4,096 edges, 128 lineage-edge depth, 1 MiB invocation metadata and 8 MiB output within a short-wait/cancellable three-second read. Cycles, missing/inconsistent/erased bindings and unsupported sizes refuse without partial output. Current schema 24 uniquely indexes workflow source identity. Unsupported older development files remain preserved/refused; do not reset a user's file.
 
 Focused check: `.build/debug/sevra-checks --automatic-ancestry`. Installed check: `python3 scripts/check_automatic_ancestry.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_JSON_PATH`. The worker creates only a temporary synthetic registered action/review fixture, with no model inference. See [[records/specs/automatic-ancestry]].
+
+## Inspect retained automatic charges
+
+Use `sevra automation-causality Shop.sevra EXACT_RUN_ID` to inspect an admitted automatic run, roots, direct automatic parents, depth and current retained charges. This is read-only historical inspection with execution=none, enabled=false and dispatchEligibility=not-evaluated. It grants no device/session authority. Ordinary calendar occurrences each start an independent root. Pause/completion/cancellation/restart/copy do not clear earlier charges.
+
+Schema25 uses policy automation-causality-v1 with at most eight parents/eight roots/depth eight/eight direct successors/32 runs perroot. Exhausted or inconsistent histories refuse. Internal inherited admissions remain a trusted core primitive, not a public condition dispatch command. Unsupported schema24 files are preserved/refused without migration/reset.
+
+Focused checks: `.build/debug/sevra-checks --automation-causality`. Installed check: `python3 scripts/check_automation_causality.py --cli output/native/bin/sevra --checks .build/debug/sevra-checks --output NEW_DIRECTORY`. The latter creates synthetic fixtures and races nine independent trusted test writers for eight slots. It uses no model and does not establish automatic business-cause discovery. Process-death dispatch checks also verify retained admissions. See [[records/specs/automation-causality]].

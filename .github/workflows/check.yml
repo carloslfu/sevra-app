@@ -185,6 +185,7 @@ jobs:
           python3 scripts/check_automation_definitions.py --cli output/bin/sevra --output .build/automation-definitions-installed
           python3 scripts/check_automation_planning.py --cli output/bin/sevra --output .build/automation-planning-installed
           python3 scripts/check_automation_execution.py --cli output/bin/sevra --output .build/automation-execution-installed
+          python3 scripts/check_automation_causality.py --cli output/bin/sevra --output .build/automation-causality-installed
           python3 scripts/check_install.py
           python3 scripts/check_document_cli.py
           python3 scripts/check_history.py
@@ -212,6 +213,7 @@ jobs:
           python3 scripts/check_automation_definitions.py --cli output/native/bin/sevra --output .build/automation-definitions-native
           python3 scripts/check_automation_planning.py --cli output/native/bin/sevra --output .build/automation-planning-native
           python3 scripts/check_automation_execution.py --cli output/native/bin/sevra --output .build/automation-execution-native
+          python3 scripts/check_automation_causality.py --cli output/native/bin/sevra --output .build/automation-causality-native
           python3 scripts/check_extraction_package.py
           python3 scripts/check_computation_views.py --cli output/native/bin/sevra
           python3 scripts/check_document_actions.py --cli output/native/bin/sevra
@@ -220,3 +222,13 @@ jobs:
           python3 scripts/check_workflow_clarification.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --skip-crashes
           SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra-extraction-checks -j 3
           .build/native-product/release/sevra-extraction-checks
+      - name: Retain automatic admission race evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automatic-admission-races
+          path: |
+            .build/automation-causality-installed/result.json
+            .build/automation-causality-native/result.json
+          include-hidden-files: true
+          if-no-files-found: ignore

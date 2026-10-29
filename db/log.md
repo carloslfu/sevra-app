@@ -1126,3 +1126,6 @@ Schema24 authoritative indexed workflow invocation identity and bounded read-onl
 ## [2026-10-29 13:13] verification | records/specs/automatic-ancestry.md
 Final checkpoint gates: dbmd validate --all db has zero errors/warnings; repository links and diff pass. Frozen388 Swift hashes and all143 prior artifacts unchanged. Native CLI 14b7693e292a458f8561b0d7f7fbff22bfbdb2cee2f03f8a2f3bf803fd02fae4 binds22 ancestry/94 condition/76 feed calls.434 full core groups pass. No actual-model or visible-OS/release claim.
 
+## [2026-10-29 13:51] implementation | records/specs/automation-causality.md
+Schema25 atomic automatic roots/admissions, bounded trusted inherited budgets, inert inspection and final dispatch cancellation; full456/0, installed21/47/22/94/76 calls, nine competing writers, real dispatch/condition/feed deaths, native checks. Failed iterations retained. Actual condition causes/dispatch and release remain open.
+

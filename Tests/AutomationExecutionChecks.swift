@@ -430,6 +430,8 @@ func checkAutomationExecution(at root: URL) {
       _ = try book.claimWorkflowStep(worker, owner: "fixture", token: "claim")
       _ = try book.db.transaction {
         if corruption == 0 {
+          try book.db.execute("DELETE FROM automatic_root_members WHERE run_id=?", [.string(id)])
+          try book.db.execute("DELETE FROM automatic_admissions WHERE run_id=?", [.string(id)])
           try book.db.execute("DELETE FROM automation_runs WHERE run_id=?", [.string(id)])
         } else if corruption == 1 {
           try book.db.execute(

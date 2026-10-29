@@ -109,18 +109,34 @@ extension Workbook {
     _ session: AutomationExecutionSession, observedAt: Date = Date(), token: String,
     cancellation: Cancellation = .init()
   ) throws -> Value {
+    try dispatchAutomaticCalendarRun(
+      session, observedAt: observedAt, token: token, cancellation: cancellation)
+  }
+
+  /// Shared trusted admission path. Production calendar callers leave inherited
+  /// parents nil. Business-trigger selection is not exposed by this primitive.
+  func dispatchAutomaticCalendarRun(
+    _ session: AutomationExecutionSession, observedAt: Date, token: String,
+    cancellation: Cancellation = .init(), inheriting parentRuns: [String]? = nil
+  ) throws -> Value {
     try workflowToken(token)
     let instant = try AutomationTime.text(observedAt)
     let observation = try AutomationTime.date(instant)
     let authority = session.planning
-    let fence: () throws -> Void = { _ = try self.automationExecutionSession(session) }
+    let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
+    let fence: () throws -> Void = {
+      try control.check()
+      _ = try self.automationExecutionSession(session)
+      try control.check()
+    }
     let result = try mutation(
       "automation_dispatch", token: token,
       request: .object([
         "activationID": .string(authority.activationID),
         "generation": .number(Double(authority.generation)),
         "authorizationSourceID": .string(authority.sourceID), "observedAt": .string(instant),
-      ]), cancellation: cancellation, actor: .programmatic("SevraCore.automationDispatcher"),
+        "inheritedParents": parentRuns.map { .array($0.map(Value.string)) } ?? .null,
+      ]), cancellation: control, actor: .programmatic("SevraCore.automationDispatcher"),
       commitGuard: fence
     ) {
       let activation = try self.automationExecutionSession(session)
@@ -177,16 +193,26 @@ extension Workbook {
         let automation = try self.applicationDefinition(activation["definition_id"].text)
         let retained = try self.validateAutomationDefinition(
           DefinitionDescriptor(automation.content))
+        let causal = try self.planAutomationCausality(
+          definitionID: automation.id,
+          calendarOccurrence: parentRuns == nil ? pending["id"].text : nil,
+          parents: parentRuns ?? [])
         let origin: Value = .object([
           "activationID": activation["id"], "automationID": activation["definition_id"],
           "occurrenceID": pending["id"], "generation": .number(Double(authority.generation)),
           "authorizationSourceID": .string(authority.sourceID), "dispatchSourceID": .string(source),
           "due": pending["due"],
+          "causality": causal.context,
         ])
         _ = try self.insertWorkflowRun(
           retained.workflow.id, arguments: retained.arguments,
           actor: .programmatic("SevraCore.automationDispatcher"),
-          additionalInputs: [authority.sourceID, pending["source_id"].text, source], origin: origin,
+          additionalInputs: [authority.sourceID, pending["source_id"].text, source]
+            + (try causal.parents.map {
+              try self.db.scalar("SELECT source_id FROM workflow_runs WHERE id=?", [.string($0)])
+                .text
+            }),
+          origin: origin,
           policy: "automation-drafts-v1", runID: runID)
         try self.db.execute(
           "INSERT INTO automation_runs VALUES(?,?,?,?,?,?,?,?)",
@@ -195,6 +221,7 @@ extension Workbook {
             .string(authority.sourceID), .string(source), .number(Double(authority.generation)),
             .string(timestamp()),
           ])
+        try self.retainAutomationCausality(causal, runID: runID, sourceID: source)
         try self.db.execute(
           "UPDATE automation_activations SET active_run_id=?,updated=? WHERE id=?",
           [.string(runID), .string(timestamp()), activation["id"]])

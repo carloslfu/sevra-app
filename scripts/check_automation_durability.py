@@ -43,7 +43,7 @@ def main():
             root = output / phase
             root.mkdir()
             baseline = run('setup', root)
-            assert baseline['runs'] == [] and baseline['occurrences']['occurrences'][0]['state'] == 'pending'
+            assert baseline['runs'] == [] and baseline['admissions'] == [] and baseline['occurrences']['occurrences'][0]['state'] == 'pending'
             worker = subprocess.Popen([str(binary), phase, str(root)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             try:
                 assert select.select([worker.stdout], [], [], 20)[0], 'Dispatch barrier timed out'
@@ -65,18 +65,21 @@ def main():
                 assert interrupted == baseline, 'Uncommitted dispatch leaked authority, run, occurrence state or event'
             else:
                 assert len(interrupted['runs']) == 1 and interrupted['runs'][0]['state'] == 'queued'
+                assert len(interrupted['admissions']) == 1 and interrupted['admissions'][0]['rootCharges'][0]['admittedRuns'] == 1
                 assert interrupted['occurrences']['occurrences'][0]['state'] == 'dispatched'
                 assert len(interrupted['events']['events']) == len(baseline['events']['events']) + 1
             copies = run('copies', root)
             assert all(value == interrupted for value in copies.values()), 'Copy changed or executed saved work'
             dispatched = run('dispatch', root)
             assert len(dispatched['runs']) == 1 and dispatched['runs'][0]['state'] == 'queued'
+            assert len(dispatched['admissions']) == 1 and dispatched['admissions'][0]['rootCharges'][0]['admittedRuns'] == 1
             if phase == 'committed':
                 assert dispatched == interrupted, 'Recovery duplicated committed dispatch'
             assert run('dispatch', root) == dispatched, 'Dispatch retry duplicated work'
             completed = run('resume', root)
             assert len(completed['runs']) == 1 and completed['runs'][0]['state'] == 'completed'
             assert completed['integrity']['ok']
+            assert completed['admissions'] == dispatched['admissions'], 'Completion refunded or changed admission'
             assert run('resume', root) == completed, 'Explicit repeat re-executed completed work'
             evidence['checks'].append({'phase': phase, 'ok': True})
         evidence['ok'] = True

@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T13:12:33.379662+00:00
+updated: 2026-10-29T13:51:24.670924+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -418,3 +418,7 @@ The declared condition_consumers, condition_effects, condition_observations and 
 ## Schema 24 workflow invocation identity
 
 Schema 24 strengthens workflow_runs.source_id with a unique index in its existing canonical family. Capture columns and replay ownership remain unchanged; reconstruction enforces the new identity inertly. The bounded read-only ancestry inspector resolves exact saved binding/version/occurrence coordinates across accepted and superseded inputs, with no second ledger or live capability from history. Final 434 full core, 18 ancestry and 22 installed ancestry calls include reconstruction and erased-binding refusal. Condition/feed installed proof retains four SIGKILL boundaries. Schema-23 files are preserved/refused, without a development migration. See [[records/specs/automatic-ancestry]].
+
+## Schema 25 automatic origins and charges
+
+automatic_roots, automatic_admissions, automatic_root_members and automatic_parents join ChangeFormat.tables and complete captured changes. Parent/root memberships supply the persisted fan-out/total-work charges; reverse indexes bound counts. Exact run/definition/logical/source/origin/depth relations are verified, and reconstruction restores them inertly. Run/occurrence/invocation/root/membership/active pointer/receipt/outbox share one dispatch writer transaction. Two actual dispatch SIGKILL boundaries retain all or none, copied inspection stays identical and completion does not refund charges. No new ledger or migration. Schema24 development files are preserved/refused; selected disposable synthetic fixtures only are recreated. Exact evidence and full456/0 plus scoped installed proof: [[records/specs/automation-causality]].

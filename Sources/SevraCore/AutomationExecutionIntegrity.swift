@@ -74,6 +74,7 @@ extension Workbook {
           "occurrenceID": binding["occurrence_id"], "generation": binding["generation"],
           "authorizationSourceID": binding["authorization_source"],
           "dispatchSourceID": binding["dispatch_source"], "due": occurrence["due"],
+          "causality": try automationCausalGraph([run["id"].text])[run["id"].text]!.context,
         ])
         let decision: Value = .object([
           "id": occurrence["id"], "state": .string("dispatched"),
@@ -127,6 +128,7 @@ extension Workbook {
         after = run["id"].text
       }
     }
+    try verifyAutomationCausality()
   }
 
   func verifyWorkflowAttemptAuthorities(_ run: Value) throws {

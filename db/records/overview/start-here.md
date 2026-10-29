@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T13:12:33.436102+00:00
+updated: 2026-10-29T13:51:24.650643+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -26,7 +26,8 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 ## Reading order
 
-- [[records/specs/automatic-ancestry]]: schema 24 authoritative indexed workflow source identities and read-only derivation inspection; exact trigger causes and persisted admission remain next.
+- [[records/specs/automation-causality]]: schema 25 atomic calendar origins and bounded trusted inherited admissions; exact condition causes and dispatch remain next.
+- [[records/specs/automatic-ancestry]]: schema 24 authoritative indexed workflow source identities and read-only derivation inspection; durable calendar/admission state now follows in [[records/specs/automation-causality]], while exact trigger causes remain open.
 - [[records/specs/inventory-condition-consumers]]: schema 23 saved incremental inventory conditions, exact clocks/cursors/observations and inert candidate backpressure; causal dispatch remains next.
 - [[records/specs/inventory-event-state]]: exact batch/effective-time inventory reconciliation and remaining incremental condition state.
 - [[records/specs/business-events]]: schema22 committed semantic feed, indexed inert delivery, atomic batch/coverage limits and remaining condition consumers.
@@ -106,3 +107,7 @@ Schema 23 now saves bounded incremental inventory conditions across restarts, in
 ## Automatic derivation foundation
 
 The current schema-24 checkpoint retains automatic origin through synthetic human-attributed acceptance and manual derived work. Its indexed saved workflow binding remains authoritative even if invocation metadata is erased. Final 434 full core/18 focused groups, 22 ancestry/94 condition/76 feed installed calls and scoped native checks pass. The inspector includes broad control provenance and expressly does not decide causal admission or grant execution. See [[records/specs/automatic-ancestry]] for exact evidence and remaining work. The product remains a working development preview.
+
+## Durable automatic admission foundation
+
+The current schema-25 checkpoint atomically retains calendar roots and bounded trusted inherited admissions. V3 full core456/0 includes22 admission groups; the final synthetic worker-key-only correction qualifies nine competing processes. Installed21 admission/47 execution/22 ancestry/94 condition/76 feed calls and scoped native/durability checks pass. Saving/copying/inspection never enables execution. [[records/specs/automation-causality]] documents exact source scope, retained failures and remaining actual condition-cause/dispatch integration. This is still a development preview.

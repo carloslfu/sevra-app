@@ -6,6 +6,9 @@ extension CLI {
     _ args: [String], book: Workbook, cancellation: Cancellation
   ) throws -> Value? {
     switch args[0] {
+    case "automation-causality":
+      try require(args.count == 3, "usage", "automation-causality WORKBOOK RUN_ID")
+      return try book.automationCausality(args[2], cancellation: cancellation)
     case "automation-list":
       try require(
         (2...4).contains(args.count), "usage", "automation-list WORKBOOK [AFTER_ID_OR_-] [LIMIT]")

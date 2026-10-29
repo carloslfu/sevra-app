@@ -2,7 +2,7 @@
 type: spec
 id: 01m63vytee21f2t86w8x1t4h3n
 created: 2026-10-29T13:00:31.054263+00:00
-updated: 2026-10-29T13:12:33.274404+00:00
+updated: 2026-10-29T13:51:24.732446+00:00
 summary: Schema 24 indexed workflow source identities and bounded automatic ancestry; synthetic acceptance preserves origin. Exact trigger causes and persisted dispatch admission remain required.
 title: Automatic derivation ancestry
 status: implemented
@@ -62,3 +62,7 @@ V1 retains six passes/seven failures: the inspector omitted the real definition-
 Evidence: [automatic ancestry receipt](../../../integration/evidence/2026-10-29-automatic-ancestry.json.gz), 90327 bytes, SHA-256 16b57e1a29edc7f032ba999b57739fb4d3c63f74180b93da99b175fa215e6bd0. Its captured previous 6fb5eff CI remains in progress; earlier 26c4bfe and 8634c6c runs are successful. This source needs its own exact dispatched CI. Final db.md/link/diff gates are recorded after the immutable receipt.
 
 No actual selected-model inference, new throughput/hardware proof, production engine adoption or fresh visible/OS lifecycle qualification. The native app inventory still reports locked. Exact triggering input capture across pages/clocks/unknown intervals and persisted self-loop/cross-automation/root/depth/fan-out admission remain next, followed by atomic trigger/workflow binding with physical-file grants, native/conversation authoring and dataset-query adapters. This inspector is a completed foundation, not condition execution, E4, the app or a production release.
+
+## Durable admission follows this inspector
+
+[[records/specs/automation-causality]] adds schema25 persisted calendar roots and trusted inherited run/root/parent admission. Its automatic depth and charges are distinct from this inspector's broad lineage depth/control graph. Final22 installed ancestry calls remain passing. Existing missing-binding corruption fixtures now remove dependent admission rows before targeting the inspector; otherwise foreign-key integrity correctly refuses earlier. Exact trigger-cause discovery remains required and must not treat this graph as a minimal business cause set.

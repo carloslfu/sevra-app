@@ -119,6 +119,8 @@ func checkAutomaticAncestry(at root: URL) {
       _ = try book.automaticDerivationAncestry(inputs: [forged.id])
     }
     _ = try book.db.transaction {
+      try book.db.execute("DELETE FROM automatic_root_members WHERE run_id=?", [data["runID"]])
+      try book.db.execute("DELETE FROM automatic_admissions WHERE run_id=?", [data["runID"]])
       try book.db.execute("DELETE FROM automation_runs WHERE run_id=?", [data["runID"]])
     }
     try refuses("ancestry_integrity") {

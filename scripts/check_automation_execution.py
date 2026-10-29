@@ -61,6 +61,10 @@ def main():
         assert first['dispatch']['status'] == 'queued' and first['run']['state'] == 'completed'
         assert first['run']['policy'] == 'automation-drafts-v1' and first['run']['steps'][0]['output']['value']['result'] == '3'
         source = call('workflow-inspect', book, first['run']['id'])['invocation']
+        origin = call('automation-causality', book, first['run']['id'])
+        assert origin['origin'] == source['origin']['causality']
+        assert origin['origin']['parents'] == [] and origin['origin']['depth'] == 1
+        assert origin['rootCharges'][0]['admittedRuns'] == 1 and origin['enabled'] is False
         assert source['origin']['automationID'] == exact and source['actor']['kind'] == 'programmatic'
         assert 'scheduled' in source['description'] and 'manual workflow' not in source['description']
         call('read', book, first['run']['source_id'], error='item_scope')
@@ -74,6 +78,8 @@ def main():
         next_run = call('automation-run-once', book, exact, 1, due, tomorrow, 'next')
         assert next_run['generation'] == 2 and next_run['run']['id'] != first['run']['id'] and next_run['run']['state'] == 'completed'
         assert len(call('workflow-list', book)) == 2
+        next_origin = call('automation-causality', book, next_run['run']['id'])
+        assert next_origin['origin']['roots'] != origin['origin']['roots'] and next_origin['origin']['depth'] == 1
         call('automation-run-once', book, exact, 0, start, due, 'first', error='stale_automation')
         paused = call('automation-pause', book, first['activationID'], 2, 'pause')
         assert paused['state'] == 'paused' and paused['generation'] == 3
@@ -82,6 +88,7 @@ def main():
         assert call('reconstruct', book, restored)['execution'] == 'inert'
         assert call('automation-activation', restored, first['activationID']) == paused
         assert call('workflow-list', restored) == call('workflow-list', book)
+        assert call('automation-causality', restored, first['run']['id']) == origin
         assert call('verify', restored)['ok'] and call('verify', book)['ok']
         ai_book, ai_identity = fixture('--automation-ai-fixture', 'AI.sevra')
         initial = call('commits', ai_book)

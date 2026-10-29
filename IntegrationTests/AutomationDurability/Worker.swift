@@ -10,6 +10,8 @@ import SevraCore
       "activation": try book.automationActivation(id),
       "occurrences": try book.automationOccurrences(id),
       "events": try book.automationEvents(limit: 50), "runs": .array(try book.workflowRuns()),
+      "admissions": .array(
+        try book.workflowRuns().map { try book.automationCausality($0["id"].text) }),
       "counts": try book.counts(), "integrity": try book.verify(),
     ])
   }
