@@ -1,64 +1,55 @@
 # Sevra
 
-A native Mac workbook for working with documents, tables and business information
-through conversation. Local AI, inspectable calculations, and files you own.
+A private native Mac workbook for working with documents, tables and business
+information through conversation. Local AI, checked calculations, and files you own.
 
-**Development preview.** The native app, shared core, CLI and real local-model
-integration are implemented. Release qualification is still in progress; see the
-[verification register](db/records/operations/implementation.md) for tested behavior
-and pending work.
-Development schemas, workbook formats and interfaces may change without backward
-compatibility until the first notarized production-ready 1.0 release. Test builds
-and deployments do not start that commitment. See the
+**MVP 0.1 candidate.** Bring supplier files, compare costs with cited evidence,
+keep a useful native table/chart, edit inputs, and share a portable workbook.
+The [verification register](db/records/operations/implementation.md) tracks current
+proof and remaining blockers. This candidate is not yet a qualified release.
+
+MIT licensed and open source. Development formats and interfaces may change
+without backward compatibility until the first notarized production-ready 1.0
+release. Current-format history and originals remain protected. See the
 [compatibility policy](db/records/specs/distribution.md#pre-10-compatibility-policy).
-It is MIT licensed from the first commit. It is separate from Sevra Websites.
-The adopted [persistence requirement](db/records/specs/persistence-readiness.md)
-prepares complete local history and reconstruction for future syncing. Sync and
-cloud services are outside the current implementation scope.
-The adopted [managed dataset design](db/records/specs/managed-datasets.md) adds
-native structured tables over shared immutable history and replayable schemas.
-Native storage, capture, reconstruction and versioned schema editing have scoped
-evidence. Bounded typed stored-column queries and disposable performance indexes
-now have core/CLI qualification. Versioned reusable functions/query templates and
-searchable definition history are available through the core/CLI. Registered draft
-inventory actions and recoverable native receiving forms now have scoped automated
-proof. Conversation can author saved behavior and queue durable workflows;
-explicit continuation stops for required review. Foreground scheduled draft
-execution has scoped recovery proof. Native schedule controls and persistent
-per-Mac permission now have [scoped active-app proof](db/records/specs/native-automation-owner.md).
-Background scheduling, full Excel continuity, richer workflows and release checks
-remain open.
+Sevra Websites and Slotstream remain separate products.
 
-Start with [the project knowledge map](db/records/overview/start-here.md),
-[the specification](db/records/specs/product.md) and
-[the implementation plan](db/records/operations/implementation.md).
+The app uses SwiftUI, AppKit and SQLite, with native Splash C++/Metal inference
+through Swift. A workbook contains its database plus ordinary included asset files.
+The repo's independent [db.md knowledge store](db/DB.md) owns its specifications
+and progress. Cloud/sync and the expanded roadmap are outside this next MVP slice.
 
-The app uses SwiftUI, AppKit and SQLite. The native preview integrates pinned
-Splash C++/Metal through Swift, with no Python runtime. Production adoption is
-still being qualified under the [inference design](db/records/specs/splash-integration.md).
-The preserved Slotstream build remains available separately. Sevra Workbook is the primary product; Sevra Websites is
-the separate managed service. A workbook
-contains a database and ordinary asset files. The repository's `db/` is its
-independent [db.md](https://github.com/carloslfu/db.md) knowledge store, not the
-workbook storage format.
+## Try the native MVP candidate
 
-## Try the development build
-
-Read [Build and run](db/records/operations/build-and-run.md) for prerequisites,
-installation, model setup, the synthetic example and uninstall.
+Requires Apple M3 or newer, macOS 26.4+, Swift 6.3, Git, Python 3 and Rust 1.96.0.
+The current test host has 48 GB unified memory; other memory profiles are unqualified.
+Initial build/setup needs network access. Installed inference uses no Python.
 
 ~~~sh
 git clone https://github.com/carloslfu/sevra-app.git
 cd sevra-app
-bash scripts/build_native.sh
-./output/native/bin/sevra version
-open "output/native/Sevra Native Preview.app"
+rustup toolchain install 1.96.0 --profile minimal
+bash scripts/install.sh --native
+open "$HOME/Applications/Sevra Native Preview.app"
 ~~~
 
-The native source build requires Apple Silicon, Swift 6.3, Git,
-Python 3, Rust 1.96.0 and initial network access for dependencies.
-See Build and run for the exact prerequisites, model layout and preserved
-baseline installation instructions. Model weights are a separate optional setup.
-The current native AI engine requires Apple M3 or newer and macOS 26.4 or newer;
-supported memory profiles still need qualification.
-There is no hosted-model fallback or in-app telemetry.
+The installer includes the matching `sevra` CLI in `~/.local/bin`. It refuses to
+replace another app or an unrelated CLI. This source preview is locally ad-hoc
+signed, with no production notarized installer yet.
+
+In Settings, choose **Download / verify model**, or **Reuse an existing Fast model**
+for compatible Qwen3.6 35B A3B 4-bit weights with DFlash 2. A fresh download is
+21.48 GB plus working space. Models stay outside workbooks. Import, search, tables,
+calculations and saved results also work without AI setup. There is no hosted-model
+fallback or in-app telemetry.
+
+Start from the two files in [examples](examples), then follow the
+[supplier comparison walkthrough](db/records/operations/build-and-run.md#native-mvp-supplier-comparison).
+The CSV becomes a working table; the searchable PDF stays an included reference.
+Ask for a cited cost comparison, keep a live table/chart in a space, edit a price,
+Undo, and make a portable copy. Unknown tax remains unknown.
+
+See [Build and run](db/records/operations/build-and-run.md) for setup, the exact
+walkthrough, CLI, safe uninstall and limits. The
+[fast MVP contract](db/records/specs/mvp-delivery.md) controls this next deliverable;
+the expanded specifications remain the roadmap.

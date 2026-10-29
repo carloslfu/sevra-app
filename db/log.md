@@ -1336,3 +1336,9 @@ Owner course correction: prioritize one complete native MVP journey, focused ver
 ## [2026-10-29 18:01] implementation | records/operations/implementation.md
 Bounded checkpoint: corrected stale automation refusal test; eight focused groups pass. Deferred uncompiled Enable sketch preserved. Owner fast-MVP supplier journey now controls delivery; native installer and final candidate remain open.
 
+## [2026-10-29 18:24] implementation | records/operations/implementation.md
+MVP journey found and repaired source-specific tax wording and chart-axis guidance; actual-model short save and missing-rate counterexample pass. Native install handles the owned baseline CLI. CLI edit/Undo and offline portable reopen pass; visible app journey and final candidate checks remain open.
+
+## [2026-10-29 18:48] verification | records/operations/implementation.md
+MVP candidate: full check.sh passed, 557 core groups; source-specific tax and chart-column fixes have real-model retries, deterministic edit/Undo and sandboxed portable reopening pass; native install/setup pass; focused visible startup and final journey ongoing.
+

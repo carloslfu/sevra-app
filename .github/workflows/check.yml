@@ -213,6 +213,7 @@ jobs:
         run: |
           bash scripts/build_native.sh
           python3 scripts/check_native_package.py --paths-only
+          python3 scripts/check_install.py --native
           python3 scripts/check_schedule_preview.py --cli output/native/bin/sevra --output .build/calendar-preview-native
           python3 scripts/check_condition_transitions.py --cli output/native/bin/sevra --output .build/condition-preview-native
           python3 scripts/check_business_events.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/business-events-native.json

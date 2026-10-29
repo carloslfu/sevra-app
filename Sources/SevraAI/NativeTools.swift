@@ -497,7 +497,7 @@ package enum NativeTools {
       .init(
         name: "save_space",
         description:
-          "Create a NEW space; Home/existing changes use spaces then edit_space. Each table/chart requires datasetID. Confirm only successful receipts.",
+          "Create a NEW space; Home/existing changes use spaces then edit_space. Each table/chart requires datasetID. Chart x/y are column IDs, never positions; omit query. Confirm only successful receipts.",
         parameters: object(
           [
             "title": schema("string", "Name of the space."),

@@ -440,6 +440,8 @@ import SwiftUI
     let chat = conversation
     let identity = interactionIdentity
     let panel = NSOpenPanel()
+    panel.canChooseFiles = true
+    panel.canChooseDirectories = false
     panel.allowsMultipleSelection = true
     guard panel.runModal() == .OK, interactionActive, workbook === book,
       conversation == chat, interactionIdentity == identity
@@ -1101,6 +1103,8 @@ import SwiftUI
     }
     let panel = NSOpenPanel()
     panel.title = "Find the original file"
+    panel.canChooseFiles = true
+    panel.canChooseDirectories = false
     guard panel.runModal() == .OK, let url = panel.url,
       activePreview === preview, workbook === book, interactionActive
     else { return }

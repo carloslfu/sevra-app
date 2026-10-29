@@ -252,16 +252,26 @@ struct WorkspaceWindow: View {
     }
   }
   func startFromFiles() {
+    guard let owner = ownWindow, owner.isVisible else { return }
     let input = NSOpenPanel()
     input.title = "Start a workbook from your files"
+    input.canChooseFiles = true
+    input.canChooseDirectories = false
     input.allowsMultipleSelection = true
-    guard input.runModal() == .OK, !input.urls.isEmpty, isKey else { return }
-    let files = input.urls
+    guard input.runModal() == .OK, ownWindow === owner, owner.isVisible,
+      !input.urls.isEmpty
+    else { return }
+    saveWorkbook(from: input.urls, owner: owner)
+  }
+  private func saveWorkbook(from files: [URL], owner: NSWindow) {
+    guard ownWindow === owner, owner.isVisible else { return }
     let destination = NSSavePanel()
     destination.title = "Save your new workbook"
     destination.nameFieldStringValue = files[0].deletingPathExtension().lastPathComponent + ".sevra"
     destination.canCreateDirectories = true
-    guard destination.runModal() == .OK, let url = destination.url, isKey else { return }
+    guard destination.runModal() == .OK, ownWindow === owner, owner.isVisible,
+      let url = destination.url
+    else { return }
     do {
       _ = try Workbook.create(at: url, title: url.deletingPathExtension().lastPathComponent)
       startingFiles = (url.path, files)

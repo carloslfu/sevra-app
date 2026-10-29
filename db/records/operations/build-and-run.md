@@ -2,11 +2,108 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T17:47:21.716739+00:00
+updated: 2026-10-29T18:43:17.244030+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
 # Build and run
+
+## Native MVP source installation
+
+Use this route for the current Python-free native MVP candidate. The preserved
+baseline instructions below are separate development history.
+
+Prerequisites: Apple M3 or newer, macOS 26.4+, Swift 6.3, Git, Python 3 for build
+tooling, and Rust 1.96.0 through rustup. The checked host is macOS 26.6.2 with 48 GB
+unified memory. Smaller-memory support and other hardware remain unqualified.
+The first build needs network access for pinned dependencies and native artifacts.
+Installed inference uses Swift plus the pinned Splash C++/Metal engine and native
+grammar, with no Python runtime.
+
+~~~sh
+git clone https://github.com/carloslfu/sevra-app.git
+cd sevra-app
+rustup toolchain install 1.96.0 --profile minimal
+bash scripts/install.sh --native
+open "$HOME/Applications/Sevra Native Preview.app"
+"$HOME/.local/bin/sevra" version
+~~~
+
+For an already built candidate, use `bash scripts/install.sh --native --no-build`.
+The installer stages the matching native app, CLI, extraction helper and all engine/
+grammar resources, verifies them before replacement, and preserves upstream signed
+engine bytes. The CLI link is `~/.local/bin/sevra`; add that folder to PATH or use
+its full path. An unrelated existing CLI is preserved and the installation refuses.
+Explicit `--native` can retarget the CLI link from an identified Sevra baseline
+installation to the native preview, preserving that baseline app and all workbooks.
+It refuses a different tool or a mismatched application identity.
+
+Source builds are locally ad-hoc signed, not production Developer ID notarized.
+The documented source route is the current preview installation path. This preview
+uses Open inside Sevra; it does not register itself as the Finder default for workbooks.
+
+In Settings, use Download / verify model, or Reuse an existing Fast model and
+select a compatible Qwen3.6 35B A3B 4-bit folder containing `dflash/`. Reuse verifies
+weights in place; keep that folder available. Fresh weights total 21,481,698,956
+bytes, with additional build/runtime working space. Default model storage is
+`~/Library/Application Support/Sevra/Models`, separate from workbook documents.
+Progress and Cancel are visible; partial downloads can resume. No hidden hosted
+fallback is used. First generation may compile native components.
+Deterministic document operations remain usable without a model.
+
+Quit before updating the installed app. To uninstall only the native preview:
+
+~~~sh
+bash scripts/uninstall.sh --native
+~~~
+
+This moves its app to Trash and removes only its own CLI link. Workbooks,
+preferences and model files remain. The environment overrides documented below
+also support isolated native installations. `python3 scripts/check_install.py
+--native` checks that route using disposable targets.
+
+## Native MVP supplier comparison
+
+The repository includes two small synthetic files under `examples/`:
+`supplier-quotes.csv` and `Brio-quotation.pdf`. No real customer data is involved.
+The quotation is searchable PDF text, not a scanned-image extraction claim.
+
+1. Choose Start from files, select both files, and save a new workbook. For the
+   CSV, choose Create tables from values; for the PDF, Keep as reference. Wait for
+   indexing to report ready. Originals are included outside SQLite inside the workbook.
+2. Ask: “What do Atlas and Brio offer for 100 brass M6 bolts, SKU 0014? Cite the
+   included files and distinguish stated tax from unknown tax.” Only Brio explicitly
+   excludes tax. Atlas tax treatment is unspecified. Open the cited quotation to
+   inspect it. Missing tax is not an all-in price.
+3. Open the CSV table, choose its table definition, add a decimal column titled
+   Goods plus shipping, unit USD, with formula `quantity * unit_price + shipping`,
+   then Save. The deterministic totals are Atlas 130 and Brio 135. Column IDs are
+   shown beside their titles. Ask: “Compare the existing table using its computed
+   Goods plus shipping column.” Then ask: “Save a Supplier comparison space with the
+   existing table and a bar chart showing goods plus shipping for each supplier.
+   Reuse the existing data.”
+   A saved space follows the working table; it does not duplicate the evidence.
+4. Edit Atlas shipping from 10 to 20 in the table. Its computed total becomes 140;
+   Brio stays 135. Undo restores Atlas shipping 10 and total 130. The original CSV
+   remains unchanged. This is a working-data correction, not a purchase or inventory event.
+5. Close and reopen. Inspect the conversation, files, table, formula and saved space.
+   Choose Workbook > Make Shareable Copy, save a new `.sevraz`, then Open it and
+   choose a new editable `.sevra` destination. Included evidence and saved work
+   must remain available offline. Copied workbooks gain no execution permissions.
+
+Text completes the journey. The microphone inserts unsent dictated text when
+on-device recognition is available and permissions are granted. Review before Send;
+Stop or unavailable dictation leaves normal typing available.
+
+Working tables use native formulas, not full Excel formula/layout fidelity.
+A saved space is editable and live; use an explicitly requested snapshot to freeze
+values. Portable copies include conversations and unsent drafts, so review before
+sharing. This walkthrough is the candidate acceptance job, not proof of broad
+commercial accuracy or every format/hardware claim. Current proof and remaining
+blockers are in [[records/operations/implementation]].
+
+## Preserved baseline instructions
+
 
 The baseline commands below describe the preserved Slotstream build. Explicit native candidate sections use the pinned Python-free Splash build under [[records/specs/splash-integration]]. Keep product output paths and model requirements distinct. Native candidate scoped proof does not establish production engine adoption.
 

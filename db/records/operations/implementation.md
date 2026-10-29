@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T18:01:00.694025+00:00
+updated: 2026-10-29T18:47:03.688377+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -13,6 +13,57 @@ This is a working development build, not a qualified release. The next deliverab
 follows [[records/specs/mvp-delivery]], which supersedes completing the expanded
 roadmap before a useful MVP 0.1 test preview. A source commit does not imply that
 every requirement or supported hardware profile has passed.
+
+## Fast MVP candidate, October 29
+
+The controlling next delivery is [[records/specs/mvp-delivery]], not completion of
+the expanded E2-E6 roadmap. The candidate is not yet delivered.
+
+- Native CLI intake includes and indexes the synthetic supplier CSV and searchable
+  quotation PDF. The first selected-model answer wrongly spread Brio's tax exclusion
+  to Atlas. Source-specific terms are now explicit in the agent policy; the retry
+  distinguishes Brio excluded tax from Atlas unknown tax. A nearby actual-model
+  missing-rate question returns unknown without inventing an all-in price.
+- The first compound save exhausted its step budget after interpreting chart axes
+  as layout coordinates. Validation refused the invalid calls without saving a
+  partial space. The native tool/policy now state that x/y are column IDs, and core
+  error feedback names that distinction. The focused retry saves the existing table
+  and correct supplier/total bar chart in three calls. This qualifies that small
+  save request, not arbitrary compound-task completion.
+- Fresh native CLI processes verify deterministic totals 130/135, Atlas shipping
+  edit to total 140, Undo to 130, saved-space persistence, and a missing-model failure
+  that preserves saved work. Portable reopening with network and original-example
+  reads denied retains both exact original hashes, history, formulas and space, with
+  zero automation activations. This is CLI/process proof; visible app proof is pending.
+- The native installer stages matching app/CLI/extraction/engine resources, preserves
+  upstream engine bytes and supports safe native update/uninstall. Explicit native
+  installation can retarget the identified baseline CLI while preserving that app.
+  Native and baseline isolated checks pass, including unrelated-CLI and mismatched
+  baseline-identity refusal. Packaged checks pass with 1,888 Metal kernels, expected
+  missing/altered-resource refusal and no Python runtime. The actual native app and
+  CLI are installed in normal user locations. Model setup verifies reused weights in
+  place from normal Application Support storage, independently of repo .build files.
+- The complete corrected scripts/check.sh run passes, including 557 core groups,
+  native grammar/agent checks, links and zero-error/zero-warning knowledge validation.
+  The earlier attempt stopped on the expected stale save_space description snapshot.
+  Regenerating the fixture changed that description and its hash only: all 52 tool
+  parameter structures, 65 cases and 555 masks remain unchanged. The subsequent
+  app-only dialog correction uses focused build/visible verification; core proof is reused.
+- Visible opening of the existing comparison confirms conversation and saved state.
+  Intake Cancel returns to the welcome window. The initial post-modal isKey guard
+  can interrupt startup when a dialog changes key-window focus. The candidate now
+  uses ordinary modal dialogs, retains owner identity/visibility checks across both
+  choices and explicitly configures file selection. The attached-sheet experiment
+  did not reliably advance under the UI tool and is not retained.
+
+Active blockers, at most three:
+
+1. Finish the visible native file-to-result, edit/Undo, reopen/share journey on the
+   corrected installed candidate. Do not infer visible completion from CLI proof.
+2. Finish focused final package/install checks, commit/push and inspect the candidate
+   CI outcome. Prior 0906fe4 CI failed only the stale authoring-tool expectation,
+   already corrected in e73303a. Production signing and broad hardware work remain
+   deferred preview limits, not new infrastructure prerequisites.
 
 ## Current status, October 29
 
@@ -43,7 +94,7 @@ every requirement or supported hardware profile has passed.
 - Schema30 now connects actual owned inventory-condition candidates, exact live physical-file grants and atomic workflow/admission binding. Broad555 core, final18 focused/21 owner groups and current installed race/death/native package checks pass. Fresh native editor/preview/save/Enable, stock20-to5 automatic deterministic completion, trigger evidence, Pause and inert reconstruction pass. See [[records/specs/condition-dispatch]].
 - Conversation now saves exact inventory rules and opens native review without enabling them. Seven scripted modes, full agent/65 grammars/555 masks at8161/8192, real local-model authoring and packaged native handoff/close/inert reconstruction pass; all152 prior artifacts remain unchanged. See [[records/specs/condition-dispatch]].
 - Next: run the native supplier CSV/PDF to cited answer, deterministic comparison, saved result, edit/recalculate/Undo, close/reopen and portable-copy journey. Fix observed blockers and coherent native installation/setup before delivering the scoped MVP. Further automation confirmation/conditions/background infrastructure is deferred; its unfinished sketch is preserved separately in [[records/specs/condition-dispatch]].
-- Current active blockers: native installer still installs the baseline; actual first supplier journey not yet qualified; candidate required checks pending. CI for 0906fe4 exposed one stale automation-save refusal test. The corrected focused eight groups pass; no green corrective CI is claimed yet.
+- Current MVP evidence and active blockers are maintained in the Fast MVP candidate section above.
 - Release gaps also include contextual/Excel continuity and complete E0/E1/E2 journeys, voice/accessibility/appearance/media and supported physical hardware, native parity/performance adoption, production signing/notarization and distribution. Latest native Activity continuation and local speech-to-composer/stop/clear/close now have visible proof. Controlled-phrase accuracy and full accessibility/appearance/media remain unverified. Specifications are the acceptance contract; scoped checkpoints do not make the app ready.
 
 ## Agent definitions and saved actions, checkpoint, October 28

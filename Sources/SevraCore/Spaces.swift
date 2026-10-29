@@ -164,13 +164,15 @@ extension Workbook {
         let table = try dataset(id)
         if ["chart", "metric"].contains(c.type) {
           try require(
-            table.columns.contains { $0.id == c.y }, "view", "Choose an existing value column.")
+            table.columns.contains { $0.id == c.y }, "view",
+            "Set y to an existing dataset column ID, not a layout position. Inspect datasets for column IDs."
+          )
         }
         if c.type == "chart" {
           try require(
             table.columns.contains { $0.id == c.x }
               && ["bar", "line"].contains(c.chartStyle ?? "bar"), "view",
-            "Choose valid chart columns and bar or line style.")
+            "Set x to an existing dataset column ID, not a layout position; use bar or line style.")
         }
         if c.type == "metric" {
           try require(
