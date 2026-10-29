@@ -160,7 +160,7 @@ jobs:
           python3 scripts/check_document_cli.py
           python3 scripts/check_history.py
           python3 scripts/check_receipts.py
-          python3 scripts/check_concurrency.py
+          python3 scripts/check_concurrency.py --cli output/bin/sevra
           python3 scripts/check_urls.py
           python3 scripts/check_extraction_package.py --product output
           python3 scripts/check_computation_views.py --cli output/bin/sevra
