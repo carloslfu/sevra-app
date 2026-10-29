@@ -123,6 +123,48 @@ try:
         assert again['balance'] == completed['balance']
         evidence['checks'].append({'phase': phase, 'ok': True})
         save()
+    for phase in ['form-prepared', 'form-committed']:
+        root = output / phase
+        root.mkdir()
+        baseline = run('setup-form', root)
+        assert baseline['receipt'] is None and baseline['runs'] == []
+        p = subprocess.Popen([str(binary), phase, str(root)], stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            assert select.select([p.stdout], [], [], 20)[0], 'Form publication barrier timed out'
+            barrier = json.loads(p.stdout.readline())
+            assert barrier['stage'] == phase, barrier
+            p.kill()
+            stdout, stderr = p.communicate(timeout=20)
+            evidence['calls'].append({'operation': phase, 'fixture': root.name,
+                                      'barrier': barrier, 'returncode': p.returncode,
+                                      'stdout': stdout, 'stderr': stderr, 'sentSIGKILL': True})
+            save()
+            assert p.returncode == -9
+        finally:
+            if p.poll() is None:
+                p.kill()
+                p.communicate(timeout=20)
+        interrupted = run('form-inspect', root)
+        assert interrupted['integrity']['ok'] and interrupted['draft'] == baseline['draft']
+        assert interrupted['counts']['records'] == 0
+        if phase == 'form-prepared':
+            assert interrupted['receipt'] is None and interrupted['runs'] == []
+            assert interrupted['counts'] == baseline['counts']
+        else:
+            assert interrupted['receipt']['workflowRunID'] == barrier['value']
+            assert len(interrupted['runs']) == 1 and interrupted['runs'][0]['state'] == 'queued'
+        copies = run('form-copies', root)
+        assert all(copy == interrupted for copy in copies.values()), 'Form copy resumed or changed work'
+        resumed = run('form-resume', root)
+        assert len(resumed['runs']) == 1 and resumed['runs'][0]['state'] == 'queued'
+        assert resumed['draft'].get('lastReceipt') is None, 'Worker invented a presentation checkpoint'
+        assert resumed['receipt']['workflowRunID'] == resumed['runs'][0]['id']
+        if phase == 'form-committed':
+            assert resumed == interrupted, 'Exact retry changed a committed run'
+        assert run('form-resume', root) == resumed, 'Repeated submission created another run'
+        evidence['checks'].append({'phase': phase, 'ok': True})
+        save()
     evidence['ok'] = True
     save()
     print(json.dumps({'ok': True, 'checks': evidence['checks'], 'output': str(output)}))

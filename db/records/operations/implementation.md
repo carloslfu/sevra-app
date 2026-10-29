@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T00:44:39.071797+00:00
+updated: 2026-10-29T00:54:38.820360+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -5757,3 +5757,10 @@ Native Activity now exposes bounded newest-first/filterable run pages and exact 
 Core244/0, focused13/0, independent debug/native packaged CLI, stable-source release native build, resource/refusal/signature paths checks, strict7-file Swift lint and repo-owned skill validation pass. The new [Activity receipt](../../../integration/evidence/2026-10-28-native-workflow-activity.json.gz) preserves exact identities and all113 prior artifacts unchanged. The initial exhaustive-switch compiler findings and source-edited-during-build failure are retained; corrected stable-source build passes. Existing process-death and full native Metal/model-unavailable evidence apply to unchanged paths. The Mac is locked, so visible Activity, keyboard/VoiceOver, appearance/narrow layout and full receiving journey remain unqualified.
 
 The workflow forms contract is now recorded before implementation: reuse saved native form input/identity, preview a typed plan without executing, create the run and receipt atomically, recover without a second run and keep imported copies inert. Continue form integration, agent workflow tools and explicit interpretation/import/document steps; full E3, E4-E6 and release gates remain unfinished. Hosted CI40794958919 on25930cf is still running at this checkpoint.
+
+## Recoverable native workflow forms, October 28
+Forms now bind either an action or a workflow with identical parameter signatures. Workflow preview is pure definition/input validation. Submission creates one queued run, exact form/workflow invocation lineage, typed inputs, steps, outbox and receipt atomically. The existing native draft/session recovers the stable receipt after interruption before its presentation checkpoint; copies and reconstruction remain inert. Native Start workflow deliberately continues the saved run under the same workbook/window owner. Open workflow remains available. Action-step forms cannot hide another workflow start.
+
+Core247/0 and focused workflow16/0 checks pass. The complete native-preview ownership/session suite and existing scripted agent suite pass. Actual child-process SIGKILL passes five boundaries, including before and after form commit. Debug and packaged native CLI pass six cohorts, including cross-process exact retry, separate review and reconstruction. Release native app/CLI, paths-only resource/refusal/signature checks and strict formatting of18 changed Swift files pass. Full engine checks are reused from unchanged prior engine evidence. All114 prior artifacts remain byte-identical. See [workflow-form receipt](../../../integration/evidence/2026-10-28-workflow-forms.json.gz).
+
+The V3 process-death probe stopped on an assertion that required an optional omitted lastReceipt field; the corrected V4 probe passes. The first lint command used unavailable swiftlint; the repository's xcrun swift-format check passes. Neither failure is hidden. No visible native/VoiceOver/appearance pass while the Mac is locked. E3 agent workflow authoring/invocation, explicit AI/import/document steps, richer graphs and general effect consumers remain next; E4-E6 and wider release gates remain open. The app and active goal are unfinished.

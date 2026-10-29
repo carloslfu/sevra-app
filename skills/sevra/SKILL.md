@@ -155,10 +155,10 @@ items, the relevant date, delivery identity, counts or evidence. Do not invent n
 identities to bypass a duplicate refusal. Physical-unit conversion is unsupported.
 
 `receiving-template PATH` returns the ordinary action definition. Save it through
-`definition-save`. `form-template PATH ACTION_ID` returns a form referencing that
-action live, with its identical parameter signature. Save the form through the same
-versioned definition API. A form payload declares action binding and presentation
-fields; it cannot add independent effects. Native layout editing can add the receiving
+`definition-save`. `form-template PATH TARGET_ID` returns a form referencing a current
+action or workflow live, with its identical parameter signature. Save it through the
+same versioned definition API. A form payload declares exactly one action/workflow
+binding plus presentation fields; it cannot add independent effects. Native layout editing can add the receiving
 starter directly. A component uses type form and definitionBinding with a live logical
 ID or exact version ID. Forms cannot be frozen as result snapshots.
 
@@ -202,11 +202,17 @@ EXPECTED_JSON`; null expects no existing draft. Read with `form-draft-read PATH 
 draft. Raw incomplete inputs survive errors and reopen. Do not silently retarget a
 changed live action/function. A conflict retains both inputs only through explicit
 `--keep-both`, with at most eight alternatives. Never forge lastReceipt: it must
-match the saved invocation token, exact form and exact arguments. Native recovery
-reconciles a committed submission after a crash without submitting twice. Current
+match the saved invocation token, exact form and exact arguments. Submit the saved
+state and exact preview with `form-draft-submit PATH STATE_JSON PREVIEW_JSON`.
+Action forms create draft proposals. Workflow forms create one queued run and return
+workflowRunID; preview only checks definitions/inputs and does not run steps.
+Deliberately continue that run through workflow-continue. A workflow action step
+cannot target another workflow through a form. Native Start workflow explicitly
+continues within its originating workbook/window; reopening does not.
+Native recovery reconciles a committed submission after a crash without submitting twice. Current
 draft checkpoints travel through portable export and inert reconstruction; keystrokes
 do not increment business revisions. These surfaces do not qualify in-app model
-authoring/invocation, workflows, schedules or release readiness.
+workflow authoring/invocation, schedules or release readiness.
 
 Structured datasets use managed native SQLite projections over retained immutable
 row versions and definitions. Continue to use managed commands; never edit the

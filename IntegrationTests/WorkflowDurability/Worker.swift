@@ -18,6 +18,17 @@ import SevraCore
       "integrity": try book.verify(),
     ])
   }
+  static func formSnapshot(_ book: Workbook) throws -> Value {
+    let state = try book.formDraft("workflow-form")!
+    return .object([
+      "draft": try encoded(state),
+      "receipt": try book.applicationFormReceipt(
+        state.invocationToken, definitionID: state.definitionID, arguments: state.arguments)
+        ?? .null,
+      "runs": .array(try book.workflowRuns()), "counts": try book.counts(),
+      "integrity": try book.verify(),
+    ])
+  }
   static func main() {
     do {
       let args = Array(CommandLine.arguments.dropFirst())
@@ -26,7 +37,7 @@ import SevraCore
       let root = URL(fileURLWithPath: args[1])
       let path = root.appendingPathComponent("Workflow.sevra")
       let plan = root.appendingPathComponent("run.json")
-      if operation == "setup" {
+      if operation == "setup" || operation == "setup-form" {
         let book = try Workbook.create(at: path, title: "Synthetic workflow")
         let source = try book.addItem(
           category: "source", kind: "observation", title: "Synthetic delivery", status: "accepted")
@@ -70,22 +81,66 @@ import SevraCore
               ]),
             ]),
           ]))
-        let run = try book.startWorkflow(
-          workflow.id,
-          arguments: .object([
-            "delivery": .string("delivery-one"), "effective": .string("2026-10-28"),
-            "evidence": .string(source.id),
-            "lines": .array([
-              .object([
-                "line": .string("one"), "subject": .string("bolts"), "quantity": .string("5"),
-              ])
-            ]),
-          ]), token: "start")
+        let arguments: Value = .object([
+          "delivery": .string("delivery-one"), "effective": .string("2026-10-28"),
+          "evidence": .string(source.id),
+          "lines": .array([
+            .object([
+              "line": .string("one"), "subject": .string("bolts"), "quantity": .string("5"),
+            ])
+          ]),
+        ])
+        if operation == "setup-form" {
+          let form = try book.saveApplicationDefinition(
+            logicalID: identifier(), content: ActionRegistry.formDefinition(target: workflow))
+          var state = try book.newFormDraft(form.id)
+          state.arguments = arguments
+          _ = try book.saveFormDraft("workflow-form", state: state, expected: nil)
+          try emit(formSnapshot(book))
+          return
+        }
+        let run = try book.startWorkflow(workflow.id, arguments: arguments, token: "start")
         let runID = run["id"].text
         try Data(try Value.object(["runID": .string(runID)]).json().utf8).write(to: plan)
         _ = try book.advanceWorkflow(
           book.authorizeWorkflowExecution(runID), owner: "fixture-preflight")
         try emit(snapshot(book, runID: runID))
+        return
+      }
+      if operation.hasPrefix("form-") {
+        let book = try Workbook(path)
+        if operation == "form-inspect" {
+          try emit(formSnapshot(book))
+          return
+        }
+        if operation == "form-copies" {
+          let rebuilt = try book.reconstruct(to: root.appendingPathComponent("Reconstructed.sevra"))
+          try book.export(to: root.appendingPathComponent("Workflow.sevraz"))
+          let restored = try Workbook.openArchive(
+            root.appendingPathComponent("Workflow.sevraz"),
+            at: root.appendingPathComponent("Restored.sevra"))
+          try emit(
+            .object([
+              "reconstructed": try formSnapshot(rebuilt), "restored": try formSnapshot(restored),
+            ]))
+          return
+        }
+        try require(
+          ["form-prepared", "form-committed", "form-resume"].contains(operation), "usage",
+          "Unknown form worker operation.")
+        let state = try book.formDraft("workflow-form")!
+        let preview = try book.previewFormDraft(state)
+        let observer: @Sendable (WorkflowPublicationProbe.Stage, String) -> Void = { stage, id in
+          if (operation == "form-prepared" && stage == .prepared)
+            || (operation == "form-committed" && stage == .committed)
+          {
+            barrier(operation, .string(id))
+          }
+        }
+        _ = try WorkflowPublicationProbe.$observer.withValue(observer) {
+          try book.submitFormDraft(state, preview: preview, actor: .human("SevraNativeForm"))
+        }
+        try emit(formSnapshot(book))
         return
       }
       let runID = try Value.parse(String(contentsOf: plan, encoding: .utf8))["runID"].text

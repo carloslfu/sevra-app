@@ -928,3 +928,6 @@ Qualified schema15 manual workflow core/CLI, review/retry fencing, actual proces
 ## [2026-10-29 00:44] implementation | records/specs/manual-workflows.md
 Added native manual workflow Activity, bounded coherent paging and explicit continuation. Core244/focused13 and packaged checks pass; visible UI blocked by locked Mac. Workflow forms specified next.
 
+## [2026-10-29 00:54] verification | records/specs/manual-workflows.md
+Qualified atomic workflow forms, exact receipt recovery and five actual process-death boundaries; native build/core247/focused16 pass. Visible UI and full E3 remain open.
+

@@ -159,7 +159,7 @@ struct SpaceLayoutEditor: View {
             actor: .human("SevraApp.layout"))
           return try book.saveApplicationDefinition(
             logicalID: identifier(),
-            content: ActionRegistry.receivingFormDefinition(action: action),
+            content: ActionRegistry.formDefinition(target: action),
             actor: .human("SevraApp.layout"))
         }.value
         components.append(

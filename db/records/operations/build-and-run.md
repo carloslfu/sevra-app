@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T00:43:27.912074+00:00
+updated: 2026-10-29T00:54:38.804754+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1579,3 +1579,8 @@ Definitions use kind workflow and the contract in [[records/specs/manual-workflo
 
 ## Manual workflow activity
 Use workflow-activity WORKBOOK [STATE|- [CURSOR]] for bounded newest-first pages, workflow-inspect WORKBOOK RUN_ID for exact inputs/steps/proposals/attempts, and workflow-continue WORKBOOK RUN_ID for a deliberate continuation to the next review or terminal state. Read/inspect never resumes a run. Native Activity is accessible beside Review drafts; Continue, Retry unfinished work and Stop workflow use the same trusted core commands. A changed activity revision requires refresh. Full workflow/automation and accessibility gates remain open.
+
+## Workflow form submission
+Use form-template WORKBOOK TARGET_ID for an exact inspected current action or workflow. The returned form follows that target live. Its payload has exactly one action/workflow binding, with identical typed parameters. Save it through definition-save and bind it as a normal native form component. Workflow action steps may use only action-backed forms, preventing hidden recursive workflow execution.
+
+form-draft-preview WORKBOOK STATE_JSON is pure. For a workflow form it checks exact opened definitions and parameters and lists steps; it does not execute queries/model/import/effects. form-draft-submit WORKBOOK STATE_JSON PREVIEW_JSON uses the saved draft's invocation token and creates a queued run plus receipt atomically. Repeating exact submission returns that receipt. Save lastReceipt through the compare-and-set form-draft-save command if using the low-level CLI; native sessions reconcile it after crashes automatically. Continue the returned workflowRunID explicitly. Native Start workflow also deliberately continues under its originating workbook/window; Open workflow remains available after submission. No scheduled/background execution is granted.

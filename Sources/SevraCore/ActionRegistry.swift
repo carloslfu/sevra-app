@@ -108,15 +108,17 @@ public enum ActionRegistry {
       })
   }
   /// A reusable starter is ordinary versioned user data, not an implicit installed rule.
-  public static func receivingFormDefinition(action: ApplicationDefinition) -> Value {
+  public static func formDefinition(target: ApplicationDefinition) -> Value {
     .object([
-      "kind": .string("form"), "title": .string(action.title),
-      "description": .string(action.description),
-      "parameters": action.parameters,
+      "kind": .string("form"), "title": .string(target.title),
+      "description": .string(target.description),
+      "parameters": target.parameters,
       "payload": .object([
-        "action": .object(["mode": .string("live"), "logicalID": .string(action.logicalID)]),
+        (target.kind == "workflow" ? "workflow" : "action"): .object([
+          "mode": .string("live"), "logicalID": .string(target.logicalID),
+        ]),
         "fields": .array(
-          action.parameters.array.map { parameter in
+          target.parameters.array.map { parameter in
             var field: [String: Value] = ["parameter": parameter["id"]]
             if parameter["id"].text == "delivery" {
               field["label"] = .string("Delivery or receipt number")
@@ -194,9 +196,14 @@ struct DefinitionAction {
 struct DefinitionForm {
   let binding: DefinitionBinding
   let fields: [Value]
+  let targetKind: String
   init(_ descriptor: DefinitionDescriptor) throws {
-    let raw = try definitionObject(descriptor.payload, keys: ["action", "fields"])
-    binding = try DefinitionBinding(raw["action"] ?? .null)
+    let raw = try definitionObject(descriptor.payload, keys: ["action", "workflow", "fields"])
+    try require(
+      (raw["action"] != nil) != (raw["workflow"] != nil), "definition_form",
+      "A form targets one action or workflow.")
+    targetKind = raw["workflow"] == nil ? "action" : "workflow"
+    binding = try DefinitionBinding(raw[targetKind] ?? .null)
     guard case .array(let fields) = raw["fields"], fields.count == descriptor.parameters.count
     else {
       throw SevraError("definition_form", "Declare one presentation field for every parameter.")
@@ -294,8 +301,8 @@ extension Workbook {
     _ form: DefinitionForm, descriptor: DefinitionDescriptor, action: ApplicationDefinition
   ) throws {
     try require(
-      action.kind == "action" && action.parameters == descriptor.value["parameters"],
+      action.kind == form.targetKind && action.parameters == descriptor.value["parameters"],
       "stale_form_definition",
-      "The form and action parameter signatures differ. Keep the draft and reopen explicitly.")
+      "The form and target parameter signatures differ. Keep the draft and reopen explicitly.")
   }
 }

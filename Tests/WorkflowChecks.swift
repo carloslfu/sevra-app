@@ -84,6 +84,105 @@ func checkWorkflows(at root: URL) {
     run["steps"].array[1]["output"]["value"]["proposals"].array[0].text
   }
 
+  check("workflow forms save one queued run and recover the exact receipt without execution") {
+    let (b, workflow, args) = try fixture("Form")
+    let form = try b.saveApplicationDefinition(
+      logicalID: identifier(), content: ActionRegistry.formDefinition(target: workflow))
+    var state = try b.newFormDraft(form.id)
+    state.arguments = args
+    _ = try b.saveFormDraft("workflow", state: state, expected: nil)
+    let revision = try b.revision()
+    let preview = try b.previewFormDraft(state)
+    try expect(preview["kind"] == .string("workflow") && preview["steps"].array.count == 3)
+    try expect(try b.revision() == revision && b.workflowRuns().isEmpty)
+    let actor = ChangeActor.human("test-form")
+    let receipt = try b.submitFormDraft(state, preview: preview, actor: actor)
+    let runID = receipt["workflowRunID"].text
+    try expect(try b.workflowRun(runID)["state"] == .string("queued"))
+    try expect(try b.balance(subject: "bolts")["quantity"] == .string("20"))
+    let source = try b.item(receipt["sourceID"].text)
+    try expect(source.data["origin"]["formID"] == .string(form.id))
+    try expect(try b.lineage(source.id).contains { $0["parent"] == .string(form.sourceID) })
+    try expect(try b.submitFormDraft(state, preview: preview, actor: actor) == receipt)
+    try expect(try b.workflowRuns().count == 1)
+    let reopened = try Workbook(b.url)
+    try expect(try reopened.formDraft("workflow")?.lastReceipt == nil)
+    try expect(
+      try reopened.applicationFormReceipt(
+        state.invocationToken, definitionID: form.id, arguments: args) == receipt)
+    state.lastReceipt = receipt
+    _ = try b.saveFormDraft("workflow", state: state, expected: b.formDraft("workflow"))
+    let rebuilt = try b.reconstruct(to: root.appendingPathComponent("Workflow-form-rebuilt.sevra"))
+    try expect(try rebuilt.formDraft("workflow")?.lastReceipt == receipt)
+    try expect(try rebuilt.workflowRun(runID)["state"] == .string("queued"))
+    try expect(try rebuilt.workflowRuns().count == 1)
+    try refuses("read_only_request") {
+      _ = try b.submitFormDraft(state, preview: preview, readOnly: true)
+    }
+    _ = try b.verify()
+    _ = try rebuilt.verify()
+  }
+
+  check("workflow form submission rolls back every effect and refuses stale opened bindings") {
+    let (b, workflow, args) = try fixture("FormFailure")
+    let form = try b.saveApplicationDefinition(
+      logicalID: identifier(), content: ActionRegistry.formDefinition(target: workflow))
+    var state = try b.newFormDraft(form.id)
+    state.arguments = args
+    let preview = try b.previewFormDraft(state)
+    let before = try b.counts()
+    let history = try b.committedHistory(limit: 1000)
+    try b.db.execute(
+      "CREATE TEMP TRIGGER fail_workflow_form BEFORE INSERT ON workflow_outbox BEGIN SELECT RAISE(ABORT,'synthetic workflow form publication failure'); END"
+    )
+    try refuses { _ = try b.submitFormDraft(state, preview: preview) }
+    try b.db.execute("DROP TRIGGER fail_workflow_form")
+    try expect(try b.counts() == before && b.committedHistory(limit: 1000) == history)
+    try expect(try b.workflowRuns().isEmpty)
+    var changed = workflow.content.object
+    changed["description"] = .string("Explicit new workflow version")
+    _ = try b.saveApplicationDefinition(
+      logicalID: workflow.logicalID, content: .object(changed), expectedDefinitionID: workflow.id)
+    try refuses("stale_form_definition") { _ = try b.submitFormDraft(state, preview: preview) }
+    try expect(state.arguments == args && b.workflowRuns().isEmpty)
+    var current = try b.newFormDraft(form.id)
+    current.arguments = args
+    let currentPreview = try b.previewFormDraft(current)
+    var forged = currentPreview.object
+    forged["workflowID"] = .string(workflow.id)
+    try refuses("stale_workflow_preview") {
+      _ = try b.submitFormDraft(current, preview: .object(forged))
+    }
+    _ = try b.submitFormDraft(current, preview: currentPreview)
+    try expect(try b.workflowRuns().count == 1)
+    _ = try b.verify()
+  }
+
+  check("workflow forms reject ambiguous targets and hidden recursive workflow starts") {
+    let (b, workflow, _) = try fixture("FormAuthority")
+    var form = ActionRegistry.formDefinition(target: workflow).object
+    var payload = form["payload"]!.object
+    payload["action"] = payload["workflow"]
+    form["payload"] = .object(payload)
+    try refuses("definition_form") {
+      _ = try b.saveApplicationDefinition(logicalID: identifier(), content: .object(form))
+    }
+    let savedForm = try b.saveApplicationDefinition(
+      logicalID: identifier(), content: ActionRegistry.formDefinition(target: workflow))
+    var content = workflow.content.object
+    var workflowPayload = workflow.payload.object
+    var steps = workflowPayload["steps"]!.array
+    var action = steps[1].object
+    action["binding"] = .object(["mode": .string("exact"), "versionID": .string(savedForm.id)])
+    steps[1] = .object(action)
+    workflowPayload["steps"] = .array(steps)
+    content["payload"] = .object(workflowPayload)
+    try refuses("workflow_binding") {
+      _ = try b.saveApplicationDefinition(logicalID: identifier(), content: .object(content))
+    }
+    _ = try b.verify()
+  }
+
   check("workflow activity is bounded, coherent, scoped and read-only") {
     let (b, definition, args) = try fixture("Activity")
     var runIDs = Set<String>()

@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T00:26:47.210680+00:00
+updated: 2026-10-29T00:54:38.790380+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -327,3 +327,8 @@ The [native computation receipt](../../../integration/evidence/2026-10-28-native
 The shared capture inventory now includes workflow runs, ordered steps, worker attempts, exact proposal approvals and a workflow outbox. Step effects, result/provenance, run state and outbox commit with one ordinary operation receipt. A final lease guard executes after capture and immediately before COMMIT; expiry rolls the entire transaction back. Worker generations remain monotonic across explicit retry-budget renewal.
 
 Process-local execution sessions are deliberately outside the workbook. Replay and portable copies preserve claim history and exact outputs without acquiring execution authority or invoking a calculation/action/LLM. SIGKILL fixtures cover claim, prepared transaction and committed checkpoint boundaries. Broader import/AI/native/background and full portability journeys remain open in [[records/specs/manual-workflows]].
+
+## Workflow-form submission and presentation recovery
+A form targets exactly one action or workflow. Workflow submission inserts the queued run, original actor/invocation Source linked to both definitions, typed inputs, steps, outbox and operation receipt in one shared captured transaction. It creates no process-local execution session. The trusted workflow-start body is shared rather than nesting public mutations. Optional origin data retains the exact preview; no new table or schema version is required.
+
+Form presentation keeps its stable submission token. The generic saved form receipt reconciles either registered-action or workflow submission before rendering another submit opportunity. Reconstruct/copy both committed and pre-presentation-save states without worker activation. Actual process death before commit leaves no run/receipt; after commit retains exactly one queued run. Explicit native Start can continue only in its originating workbook/window. [Workflow-form scoped proof](../../../integration/evidence/2026-10-28-workflow-forms.json.gz); broader workflow/trigger/helper and release gates remain open.

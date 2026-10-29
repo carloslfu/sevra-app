@@ -90,7 +90,7 @@ extension WorkbookTools {
           "The form template follows the live action. Inspect its current version, or author an explicit exact binding."
         )
         return .object([
-          "content": ActionRegistry.receivingFormDefinition(action: action),
+          "content": ActionRegistry.formDefinition(target: action),
           "receiptID": receiptID.map(Value.string) ?? .null,
         ])
       default:
@@ -281,7 +281,7 @@ extension Workbook {
           try require(
             action.id == call["arguments"]["id"].text && action.kind == "action",
             "definition_template", "The form template needs an exact action version.")
-          expected = ActionRegistry.receivingFormDefinition(action: action)
+          expected = ActionRegistry.formDefinition(target: action)
         }
         try require(
           result["receiptID"] == .string(receiptID)

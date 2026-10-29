@@ -13,7 +13,7 @@ import SevraPreviewUI
   let action = try b.saveApplicationDefinition(
     logicalID: identifier(), content: ActionRegistry.receivingDefinition())
   let form = try b.saveApplicationDefinition(
-    logicalID: identifier(), content: ActionRegistry.receivingFormDefinition(action: action))
+    logicalID: identifier(), content: ActionRegistry.formDefinition(target: action))
   func inputs(_ number: String) -> Value {
     .object([
       "delivery": .string(number), "effective": .string("2026-10-28"), "evidence": .string(s.id),

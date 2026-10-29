@@ -48,13 +48,18 @@ private struct NativeFormEditor: View {
             .font(.callout).foregroundStyle(.secondary)
         }
         if let receipt = state.lastReceipt {
-          Label(
-            "Saved \(receipt["proposals"].array.count) draft \(receipt["proposals"].array.count == 1 ? "proposal" : "proposals")",
-            systemImage: "checkmark.circle")
-          Text("Open the saved proposals to inspect their current status.").foregroundStyle(
-            .secondary)
-          HStack {
+          if let runID = receipt["workflowRunID"].string {
+            Label("Saved workflow run", systemImage: "checkmark.circle")
+            Button("Open workflow") { workspace.navigate(.workflow(runID)) }
+          } else {
+            Label(
+              "Saved \(receipt["proposals"].array.count) draft \(receipt["proposals"].array.count == 1 ? "proposal" : "proposals")",
+              systemImage: "checkmark.circle")
+            Text("Open the saved proposals to inspect their current status.").foregroundStyle(
+              .secondary)
             Button("Review drafts") { workspace.navigate(.reviews) }
+          }
+          HStack {
             Button("New entry") {
               Task { await session.useCurrent(currentFormID ?? definition.id, carryInputs: false) }
             }
@@ -83,12 +88,31 @@ private struct NativeFormEditor: View {
               Text(movement["quantity"].text + " items · " + movement["subject"].text)
                 .textSelection(.enabled)
             }
-            Button("Save draft proposals") {
+            ForEach(Array(preview["steps"].array.enumerated()), id: \.offset) { index, step in
+              Text("\(index + 1). " + step["title"].text).font(.callout)
+            }
+            Button(
+              preview["kind"] == .string("workflow") ? "Start workflow" : "Save draft proposals"
+            ) {
+              let book = workspace.workbook
+              let owner = workspace.interactionIdentity
+              let origin = workspace.route
               Task {
                 await session.submit()
+                guard workspace.workbook === book, workspace.interactionIdentity == owner else {
+                  return
+                }
                 workspace.refresh()
+                if let runID = session.state?.lastReceipt?["workflowRunID"].string {
+                  if workspace.route == origin { workspace.navigate(.workflow(runID)) }
+                  workspace.run("Starting workflow") { book, cancellation in
+                    _ = try book.continueWorkflow(
+                      book.authorizeWorkflowExecution(runID), owner: "native-form:" + identifier(),
+                      cancellation: cancellation)
+                  }
+                }
               }
-            }.disabled(session.busy)
+            }.disabled(session.busy || workspace.busy)
           } else {
             Button("Preview") { Task { await session.prepare() } }.disabled(session.busy)
           }

@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 import tempfile
+import uuid
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cli', type=Path, required=True)
@@ -83,11 +84,39 @@ try:
         assert events['events'] and isinstance(events['after'], int)
         invalid = dict(run['arguments'], unknown='not declared')
         call('workflow-start', book, run['definition_id'], j(invalid), 'invalid', error='definition_input')
+        template = call('form-template', book, run['definition_id'])
+        assert template['payload']['workflow']['mode'] == 'live'
+        form = call('definition-save', book, str(uuid.uuid4()), j(template), 'new', 'workflow-form')
+        state = call('form-draft-new', book, form['id'])
+        state['arguments'] = dict(run['arguments'], delivery='delivery-form')
+        state = call('form-draft-save', book, 'workflow-form', j(state), 'null')
+        preview = call('form-draft-preview', book, j(state))
+        assert preview['kind'] == 'workflow' and len(preview['steps']) == 3
+        receipt = call('form-draft-submit', book, j(state), j(preview))
+        form_run = receipt['workflowRunID']
+        assert call('workflow-read', book, form_run)['state'] == 'queued'
+        assert call('form-draft-read', book, 'workflow-form').get('lastReceipt') is None
+        assert call('form-draft-submit', book, j(state), j(preview)) == receipt
+        submitted = dict(state, lastReceipt=receipt)
+        call('form-draft-save', book, 'workflow-form', j(submitted), j(state))
+        assert call('form-draft-read', book, 'workflow-form')['lastReceipt'] == receipt
+        form_waiting = call('workflow-continue', book, form_run)
+        assert form_waiting['state'] == 'waiting_review'
+        assert call('balance', book, 'bolts')['quantity'] == '30'
+        call('accept', book, form_waiting['steps'][1]['output']['value']['proposals'][0])
+        assert call('workflow-continue', book, form_run)['state'] == 'completed'
+        assert call('balance', book, 'bolts')['quantity'] == '35'
+        restored = root / 'FormReconstructed.sevra'
+        call('reconstruct', book, restored)
+        assert call('form-draft-read', restored, 'workflow-form')['lastReceipt'] == receipt
+        assert call('workflow-read', restored, form_run)['state'] == 'completed'
+        assert call('verify', restored)['ok']
         result['checks'] = ['CLI claim/heartbeat/fenced finish and exact retries',
                             'review wait and canonical business acceptance',
                             'duplicate evidence versus two genuine deliveries',
                             'explicit retry and cancellation preserve completed effects',
-                            'bounded discovery, events and validation']
+                            'bounded discovery, events and validation',
+                            'workflow form submission, retry, review and inert reconstruction']
         result['ok'] = True
 finally:
     if args.output:

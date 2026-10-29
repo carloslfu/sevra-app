@@ -104,6 +104,9 @@ extension Workbook {
     let action: ApplicationDefinition
     if root.kind == "form" {
       let form = try DefinitionForm(descriptor)
+      try require(
+        form.targetKind == "action", "definition_kind",
+        "Use workflow-form submission for this form.")
       action = try resolveDefinition(form.binding)
       try validateForm(form, descriptor: descriptor, action: action)
       try state.enter(action, depth: 1)

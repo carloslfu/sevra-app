@@ -121,7 +121,7 @@ func checkApplicationTools() async throws {
     let action = try book.saveApplicationDefinition(
       logicalID: identifier(), content: ActionRegistry.receivingDefinition())
     let form = try book.saveApplicationDefinition(
-      logicalID: identifier(), content: ActionRegistry.receivingFormDefinition(action: action))
+      logicalID: identifier(), content: ActionRegistry.formDefinition(target: action))
     let large = ["valid50", "lateUnclear"].contains(mode)
     let lines: [Value] =
       large

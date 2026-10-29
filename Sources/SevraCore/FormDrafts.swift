@@ -91,13 +91,18 @@ extension Workbook {
             "stale_form_definition",
             "A live action or function changed. Your inputs are retained. Open the current definition explicitly before submitting."
           )
+          let definition = try applicationDefinition(state.definitionID)
+          if try DefinitionForm(DefinitionDescriptor(definition.content)).targetKind == "workflow" {
+            return try workflowFormPlan(
+              state.definitionID, arguments: state.arguments, cancellation: control)
+          }
           return try applicationActionPlan(
             state.definitionID, arguments: state.arguments, cancellation: control)
         }
       }
     }
   }
-  public func applicationActionReceipt(_ token: String, definitionID: String, arguments: Value)
+  public func applicationFormReceipt(_ token: String, definitionID: String, arguments: Value)
     throws -> Value?
   {
     try synchronized {
@@ -108,7 +113,8 @@ extension Workbook {
       else { return nil }
       let stored = try Value.parse(row["request"]!.text)["arguments"]
       try require(
-        row["kind"] == .string("invoke_application_action") && stored["id"] == .string(definitionID)
+        ["invoke_application_action", "submit_workflow_form"].contains(row["kind"]!.text)
+          && stored["id"] == .string(definitionID)
           && stored["arguments"] == arguments, "action_token",
         "This retry identity belongs to another request.")
       return try Value.parse(row["result"]!.text)
@@ -210,7 +216,7 @@ extension Workbook {
       }
       if let receipt {
         guard
-          try applicationActionReceipt(token, definitionID: id, arguments: arguments) == receipt,
+          try applicationFormReceipt(token, definitionID: id, arguments: arguments) == receipt,
           receipt["definitionID"] == .string(id)
         else {
           throw SevraError(

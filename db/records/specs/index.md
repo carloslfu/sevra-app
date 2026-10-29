@@ -2,7 +2,7 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-29T00:44:07.687885Z
+updated: 2026-10-29T00:54:38.776956Z
 ---
 
 # records/specs

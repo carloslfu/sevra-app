@@ -274,13 +274,21 @@ import SevraProduct
       try require(args.count == 4, "usage", "definition-input-issues WORKBOOK ID ARGUMENTS_JSON")
       return .array(try book.applicationInputIssues(args[2], arguments: Value.parse(args[3])))
     case "form-template":
-      try require(args.count == 3, "usage", "form-template WORKBOOK ACTION_ID")
+      try require(args.count == 3, "usage", "form-template WORKBOOK ACTION_OR_WORKFLOW_ID")
       let action = try book.applicationDefinition(args[2])
-      try require(action.kind == "action", "definition_kind", "Choose an action definition.")
-      return ActionRegistry.receivingFormDefinition(action: action)
+      try require(
+        ["action", "workflow"].contains(action.kind), "definition_kind",
+        "Choose an action or workflow definition.")
+      return ActionRegistry.formDefinition(target: action)
     case "form-draft-new":
       try require(args.count == 3, "usage", "form-draft-new WORKBOOK FORM_ID")
       return try encoded(book.newFormDraft(args[2], cancellation: cancellation))
+    case "form-draft-submit":
+      try require(args.count == 4, "usage", "form-draft-submit WORKBOOK STATE_JSON PREVIEW_JSON")
+      let state = try JSONDecoder().decode(FormDraftState.self, from: Data(args[2].utf8))
+      return try book.submitFormDraft(
+        state, preview: Value.parse(args[3]), actor: .programmatic("SevraCLI.form"),
+        cancellation: cancellation)
     case "form-draft-read":
       try require(args.count == 3, "usage", "form-draft-read WORKBOOK DRAFT_KEY")
       return try book.formDraft(args[2]).map { try encoded($0) } ?? .null
@@ -707,6 +715,7 @@ import SevraProduct
     component-evaluate WORKBOOK COMPONENT_JSON [CURSOR]
     definition-publish WORKBOOK REQUEST_JSON_OR_@FILE TOKEN
     definition-search WORKBOOK QUERY [OPTIONS_JSON]
+    form-draft-submit WORKBOOK STATE_JSON PREVIEW_JSON
     workflow-start WORKBOOK EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN
     workflow-activity WORKBOOK [STATE|- [CURSOR]] | workflow-inspect WORKBOOK RUN_ID
     workflow-continue WORKBOOK RUN_ID

@@ -34,7 +34,7 @@ import SevraCore
         let existing = try workbook.formDraft(key)
         let value = try existing ?? workbook.newFormDraft(formID)
         let definition = try workbook.applicationDefinition(value.definitionID)
-        let receipt = try workbook.applicationActionReceipt(
+        let receipt = try workbook.applicationFormReceipt(
           value.invocationToken, definitionID: value.definitionID, arguments: value.arguments)
         return (existing, value, definition, receipt)
       }.value
@@ -82,9 +82,7 @@ import SevraCore
     guard await flush() else { return }
     do {
       let receipt = try await Task.detached { [workbook] in
-        try workbook.invokeApplicationAction(
-          value.definitionID, arguments: value.arguments,
-          preview: preview, token: value.invocationToken, actor: .human("SevraNativeForm"))
+        try workbook.submitFormDraft(value, preview: preview, actor: .human("SevraNativeForm"))
       }.value
       state?.lastReceipt = receipt
       self.preview = nil

@@ -90,6 +90,12 @@ extension Workbook {
         (step.kind == "evaluate" ? ["function", "query"] : ["action", "form"]).contains(
           target.kind),
         "workflow_binding", "The workflow step targets the wrong definition kind.")
+      if target.kind == "form" {
+        try require(
+          try DefinitionForm(DefinitionDescriptor(target.content)).targetKind == "action",
+          "workflow_binding",
+          "A workflow action step cannot launch another workflow through a form.")
+      }
       if !historical {
         try validateDefinitionGraph(target, state: DefinitionEvaluation(.init()), depth: 0)
       }

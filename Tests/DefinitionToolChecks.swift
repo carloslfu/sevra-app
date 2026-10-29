@@ -236,7 +236,7 @@ func checkDefinitionTools(at root: URL) {
     let action = try book.saveApplicationDefinition(
       logicalID: identifier(), content: ActionRegistry.receivingDefinition())
     let form = try book.saveApplicationDefinition(
-      logicalID: identifier(), content: ActionRegistry.receivingFormDefinition(action: action))
+      logicalID: identifier(), content: ActionRegistry.formDefinition(target: action))
     let input: Value = .object([
       "delivery": .string("R1"), "effective": .string("2026-10-28"), "evidence": .string(source.id),
       "lines": .array([

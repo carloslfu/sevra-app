@@ -25,56 +25,64 @@ extension Workbook {
       request: .object(["definitionID": .string(definitionID), "arguments": arguments]),
       cancellation: cancellation, actor: actor
     ) {
-      let definition = try self.applicationDefinition(definitionID)
-      try require(
-        definition.id == definitionID && definition.kind == "workflow",
-        "workflow_definition", "Start an exact saved workflow version.")
-      let descriptor = try DefinitionDescriptor(definition.content)
-      try self.validateWorkflowDefinition(descriptor)
-      let workflow = try DefinitionWorkflow(descriptor)
-      let supplied = try self.definitionArguments(descriptor, arguments)
-      let id = identifier()
-      var inputs = Set([definition.sourceID])
-      func captureItems(_ parameters: [DefinitionParameter], _ arguments: Value) {
-        for parameter in parameters {
-          let value = arguments[parameter.id]
-          if parameter.type == "item", let id = value.string { inputs.insert(id) }
-          if parameter.type == "entries" {
-            for row in value.array { captureItems(parameter.fields, row) }
-          }
+      try self.insertWorkflowRun(definitionID, arguments: arguments, actor: actor)
+    }
+  }
+
+  /// Trusted in-transaction body shared by direct starts and form submission.
+  func insertWorkflowRun(
+    _ definitionID: String, arguments: Value, actor: ChangeActor,
+    additionalInputs: [String] = [], origin: Value = .null
+  ) throws -> Value {
+    let definition = try self.applicationDefinition(definitionID)
+    try require(
+      definition.id == definitionID && definition.kind == "workflow",
+      "workflow_definition", "Start an exact saved workflow version.")
+    let descriptor = try DefinitionDescriptor(definition.content)
+    try self.validateWorkflowDefinition(descriptor)
+    let workflow = try DefinitionWorkflow(descriptor)
+    let supplied = try self.definitionArguments(descriptor, arguments)
+    let id = identifier()
+    var inputs = Set([definition.sourceID] + additionalInputs)
+    func captureItems(_ parameters: [DefinitionParameter], _ arguments: Value) {
+      for parameter in parameters {
+        let value = arguments[parameter.id]
+        if parameter.type == "item", let id = value.string { inputs.insert(id) }
+        if parameter.type == "entries" {
+          for row in value.array { captureItems(parameter.fields, row) }
         }
       }
-      captureItems(descriptor.parameters, .object(supplied))
-      let source = try self.insertItem(
-        category: "source", kind: "application_invocation",
-        title: "Start " + definition.title,
-        text: actor.label
-          + " started a manual workflow. Inventory changes remain drafts until reviewed.",
-        data: .object([
-          "workflowRunID": .string(id), "definitionID": .string(definition.id),
-          "arguments": arguments, "normalizedArguments": .object(supplied),
-          "policy": .string("manual-drafts-v1"), "actor": try encoded(actor),
-        ]),
-        meaning: "actual", status: "accepted", scenario: "actual",
-        inputs: inputs.sorted(), transformation: "workflow-invocation-v1")
-      try self.db.execute(
-        "INSERT INTO workflow_runs VALUES(?,?,?,?,?,'manual-drafts-v1','queued','',?,?)",
-        [
-          .string(id), .string(definition.id), .string(source), .string(try encoded(actor).json()),
-          .string(try Value.object(supplied).json()), .string(timestamp()), .string(timestamp()),
-        ])
-      for (index, step) in workflow.steps.enumerated() {
-        try self.db.execute(
-          "INSERT INTO workflow_steps VALUES(?,?,?,?,'pending','null','',?,0)",
-          [
-            .string(id), .string(step.id), .number(Double(index)), .string(step.kind),
-            .string(timestamp()),
-          ])
-      }
-      try self.workflowEvent(
-        id, stepID: nil, kind: "started", payload: .object(["sourceID": .string(source)]))
-      return try self.workflowRun(id)
     }
+    captureItems(descriptor.parameters, .object(supplied))
+    let source = try self.insertItem(
+      category: "source", kind: "application_invocation",
+      title: "Start " + definition.title,
+      text: actor.label
+        + " started a manual workflow. Inventory changes remain drafts until reviewed.",
+      data: .object([
+        "workflowRunID": .string(id), "definitionID": .string(definition.id),
+        "arguments": arguments, "normalizedArguments": .object(supplied),
+        "policy": .string("manual-drafts-v1"), "actor": try encoded(actor), "origin": origin,
+      ]),
+      meaning: "actual", status: "accepted", scenario: "actual",
+      inputs: inputs.sorted(), transformation: "workflow-invocation-v1")
+    try self.db.execute(
+      "INSERT INTO workflow_runs VALUES(?,?,?,?,?,'manual-drafts-v1','queued','',?,?)",
+      [
+        .string(id), .string(definition.id), .string(source), .string(try encoded(actor).json()),
+        .string(try Value.object(supplied).json()), .string(timestamp()), .string(timestamp()),
+      ])
+    for (index, step) in workflow.steps.enumerated() {
+      try self.db.execute(
+        "INSERT INTO workflow_steps VALUES(?,?,?,?,'pending','null','',?,0)",
+        [
+          .string(id), .string(step.id), .number(Double(index)), .string(step.kind),
+          .string(timestamp()),
+        ])
+    }
+    try self.workflowEvent(
+      id, stepID: nil, kind: "started", payload: .object(["sourceID": .string(source)]))
+    return try self.workflowRun(id)
   }
 
   /// Calling this is a new explicit manual resume decision. No open/import path
