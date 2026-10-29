@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T05:32:59.501995+00:00
+updated: 2026-10-29T05:53:38.001997+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -655,3 +655,7 @@ E3 now has scoped included CSV/TSV intake with exact reusable mappings, real nat
 ## Conversation intake checkpoint, October 29
 
 Conversation now saves exact intake mappings, composes a required-review workflow and queues an included file without parsing/applying it. Missing choices are asked for before saving in the explicitly withheld-save case. Existing native/CLI Continue and table review remain separate. Focused core, scripted/grammar, final native/package and four actual-model jobs have scoped proof in [[records/specs/manual-workflows]]. Full receiving/product matching, richer graphs, E4-E6 and release/accessibility gates remain open.
+
+## Exact catalog lookup checkpoint, October 29
+
+E3 now maps one exact complete catalog-query row into typed later steps, preserving selected-row/query lineage and meanings through calculations. Missing or ambiguous matches pause before checkpoint; explicit catalog repair/retry preserves completed AI work. Core/CLI/native coordinator paths share that validation. Final 59 focused groups, grammar/prompt checks, native package and a 39-call actual-model seven-step receiving/repair/review/report job have scoped proof in [[records/specs/manual-workflows]]. Inline human answers, richer graphs, full EJ06-EJ08, E4-E6 and release/accessibility gates remain open.

@@ -89,6 +89,7 @@ extension Workbook {
           output["nextCursor"] == .null, "workflow_partial",
           "This query has more pages. A partial result cannot complete this workflow step.")
         if output["kind"] == .string("query") {
+          try self.validateWorkflowLookupResult(output, stepID: step.id, workflow: workflow)
           var retained = output.object
           retained["inputPopulation"] = .array(
             try self.definitionQueryPopulation(output, cancellation: cancellation))
@@ -140,7 +141,7 @@ extension Workbook {
         let plan = try self.applicationActionPlan(
           step.binding!.target, arguments: args,
           cancellation: cancellation)
-        let interpretationInputs = try self.workflowInterpretationInputs(
+        let interpretationInputs = try self.workflowValueInputs(
           step, workflow: workflow, outputs: outputs)
         for movement in plan["movements"].array where movement["meaning"] == .string("actual") {
           try require(

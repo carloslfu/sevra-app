@@ -994,3 +994,9 @@ Conversation intake exact mapping, mandatory-review template and inert queue qua
 ## [2026-10-29 05:33] verification | records/specs/manual-workflows.md
 Conversation intake V3 completes author/template/inert queue/explicit clarification in 7/4/4/4 calls. Focused workflows 53/0, scripted agent and 64 grammars/542 masks at 8171/8192, final frozen native build, packaged 31-call deterministic intake, resource/signature checks, strict 11-file lint, skill, links and all-store zero errors/warnings pass. Prior 125 evidence files unchanged; full E3/release remain open.
 
+## [2026-10-29 05:37] design | records/specs/manual-workflows.md
+Adopt bounded single-row query-field workflow mappings for deterministic receiving lookup. Three passes cover ambiguity, retry, selected-row lineage, semantics and inert reconstruction; execution unqualified until focused proof.
+
+## [2026-10-29 05:53] implementation | records/specs/manual-workflows.md
+Exact scalar catalog lookup qualifies:59 focused workflow groups/0,64 grammars/542 masks8171/8192, frozen native/package and32/39-call deterministic/actual-model jobs. Missing-match catalog repair preserves completed AI prefix; stock20->25 only after review.126 prior artifacts unchanged. Full E3/release remain open.
+

@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T05:32:59.517512+00:00
+updated: 2026-10-29T05:53:15.056745+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -366,3 +366,7 @@ Canonical acceptance atomically records row versions/membership/fingerprint plus
 ## Conversation intake metadata, October 29
 
 This slice adds no durable family or independent ledger. Intake definitions, exact workflow/template copies, request Sources, model/tool receipts and queued runs use existing captured changes. Two focused tests cover current-request lineage, idempotent saves, forged/stale/read-only refusal and inert reconstruction. The actual model saves only behavior/queue metadata; row versions, business Records, stock and extraction remain unchanged. The prior schema18 parsing/publication/acceptance crash proof is unchanged and reused. Details and evidence: [[records/specs/manual-workflows]].
+
+## Workflow scalar lookup, October 29
+
+No new durable family or schema. Lookup definitions reuse the captured catalog; complete query results retain their exact selected row versions/snapshot/input population in the existing workflow checkpoint. Action invocation Sources include exact query-definition and selected-row lineage through calculations. A publication fault/cancellation leaves saved history/run unchanged; exact retry and inert reconstruction pass. The actual model job repairs an unfinished lookup without rerunning completed extraction/interpretation. Earlier schema18 lease/disk/process-death proof is unchanged and reused. See [[records/specs/manual-workflows]] and its immutable lookup receipt.

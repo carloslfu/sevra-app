@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T05:32:59.547524+00:00
+updated: 2026-10-29T05:53:15.071880+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1627,3 +1627,7 @@ The final actual qualification is .build/workflow-intake-native-model-v2, 38 ind
 ## Conversation intake authoring check
 
 Build sevra-agent-checks and run .build/debug/sevra-agent-checks --intake-authoring MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY. Use installed native model layout. The four actual-model jobs save exact CSV/TSV mapping, compose its exact mandatory-review workflow, queue an included file without executing it, and clarify missing intent under an explicit ask-before-save restriction. The probe verifies unchanged business rows/stock/extraction, exact definition/mapping/inputs, one pending run and inert reconstruction. It retains before-inference identities, exact messages, metrics and failures. Never use user workbooks for qualification. Do not package output/native while this runner uses that runtime. Final evidence and scoped limits are in [[records/specs/manual-workflows]].
+
+## Workflow lookup qualification
+
+Build sevra-checks and run .build/debug/sevra-checks --workflows for focused workflow checks. Run python3 scripts/check_workflow_lookup.py --cli output/native/bin/sevra --output NEW_DIRECTORY for deterministic exact match/repair/review/reconstruction, after bash scripts/build_native.sh. Add --model-root MODELS_ROOT for the synthetic seven-step actual native preparation/interpretation/match/stock-review/report-review job. The output directory must not exist. It captures source/product/runtime identities before inference. It expects a zero-match refusal, repairs only its synthetic catalog, explicitly retries the same run and resumes with an absent model directory to prove completed AI outputs are reused. Synthetic human acceptance occurs only inside the synthetic fixture. Never use user workbooks. scripts/check.sh and both packaged CI products include the default deterministic job. Do not replace output/native while a probe uses its runtime. Current proof/limits: [[records/specs/manual-workflows]].

@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T05:32:59.487373+00:00
+updated: 2026-10-29T05:53:38.017323+00:00
 summary: Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
@@ -531,7 +531,7 @@ No accepted physical-event or semantic-correctness claim follows from a model ch
 The latest native receiving form preserves incomplete inputs across quit/reopen,
 opens exact evidence and returns, supports keyboard list selection and empty-search
 feedback, previews/saves one draft and reaches review. Accept/undo/restore changes
-stock20/25/20/25 with one effect at most. Final verify passes. These are focused
+stock 20/25/20/25 with one effect at most. Final verify passes. These are focused
 visible AX/keyboard observations, not actual VoiceOver or full appearance/media
 qualification. Result publication/native computation views and full EJ04/EJ05 remain
 open, together with E3-E6 and the release gates in the implementation record.
@@ -623,3 +623,7 @@ The registry exposes the distinct workbook.draft_document capability. Direct reg
 The intake kind describes one reusable reviewed CSV/TSV update over an existing managed dataset. Parameters contain exactly one required item with no default or unit. Payload fields are parser (native-v1), file (that parameter ID), datasetID, definitionID (exact schema version), mode (append/replace/merge), mapping, keys, headerRow, newRowMeaning and newRowScenario. mapping accounts for every consecutive input position using {position,target}, where null explicitly ignores a column. Each stored target column is mapped once; calculated targets refuse. Merge requires distinct mapped keys; append/replace use an empty keys array. Header row and incoming meaning/scenario are explicit. Current schema/archive checks apply at save and execution; historical integrity uses its saved schema.
 
 One dataset dependency and ordinary authoring Source retain the schema/mapping. An exact intake workflow step supplies the included business-file version and must have one later review. Parsing outside locks returns a host-only opaque preparation. The shared table-update insertion/application path owns both direct and workflow row changes; no new SQL family, parser in a mutation or separate ledger. Native Activity shows affected counts and new-row semantics, with exact proposal navigation. Recoverable workflow forms queue inertly. In-app conversation save/template authoring for intake now has scoped exact-mapping, mandatory-review, inert-queue and explicit missing-intent qualification. It adds no execution authority. See [[records/specs/manual-workflows]] for bounds, exact review provenance and current proof.
+
+## Workflow scalar lookup
+
+Saved workflow evaluate-query steps now permit {step,field,unit?} mappings into matching scalar parameters. The first boundary requires one ungrouped source and exactly one complete result row. Every consumer field is validated before checkpoint; null/empty/ambiguous/partial matches refuse. Exact selected row versions and query Source join transitive action lineage and meaning checks, including after later catalog edits. Explicit catalog repair/retry preserves completed preparation/model work. No new schema/catalog or first-row guessing. Contract, proof and remaining limits: [[records/specs/manual-workflows]].

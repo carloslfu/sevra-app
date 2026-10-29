@@ -166,6 +166,7 @@ jobs:
           python3 scripts/check_computation_views.py --cli output/bin/sevra
           python3 scripts/check_document_actions.py --cli output/bin/sevra
           python3 scripts/check_workflow_intake.py --cli output/bin/sevra
+          python3 scripts/check_workflow_lookup.py --cli output/bin/sevra
       - name: Build and check the isolated Splash preview
         env:
           SEVRA_BUILD_JOBS: 3
@@ -176,5 +177,6 @@ jobs:
           python3 scripts/check_computation_views.py --cli output/native/bin/sevra
           python3 scripts/check_document_actions.py --cli output/native/bin/sevra
           python3 scripts/check_workflow_intake.py --cli output/native/bin/sevra
+          python3 scripts/check_workflow_lookup.py --cli output/native/bin/sevra
           SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra-extraction-checks -j 3
           .build/native-product/release/sevra-extraction-checks

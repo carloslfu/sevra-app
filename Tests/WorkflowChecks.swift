@@ -3,6 +3,7 @@ import Foundation
 @testable import SevraCore
 
 func checkWorkflows(at root: URL) {
+  checkWorkflowLookups(at: root)
   func fixture(_ name: String, meaning: String = "actual") throws -> (
     Workbook, ApplicationDefinition, Value
   ) {

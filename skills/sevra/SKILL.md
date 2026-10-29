@@ -106,6 +106,16 @@ are declared parameters, typed literals or a preceding scalar function result
 Queries read current data at their step and retain the actual snapshot. Partial
 query pages cannot complete a workflow step. This is not a frozen input database.
 
+Map a selected query field with `{step:"MATCH_STEP_ID",field:"OUTPUT_ID",unit?}`.
+This scalar lookup requires one ungrouped source, exactly one complete row and
+matching scalar types/units. No joins, aggregates, coercion or first-row guessing.
+Missing, duplicate, null or empty matches pause before completing the lookup.
+Inspect and repair the catalog, then explicitly retry the same run. Completed
+preparation/model steps are retained. A completed match keeps its exact selected
+row versions and query definition even after catalog edits, including their
+meaning/scenario and transitive action lineage. It cannot promote an estimate
+into actual stock. This does not provide fuzzy matching or inline human answers.
+
 `workflow-start PATH EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN` saves a queued
 manual run. `workflow-continue PATH RUN_ID [MODEL_DIRECTORY]` explicitly executes at most16 steps
 until review, attention or completion; `workflow-advance` executes one deterministic core step; extraction, intake and interpretation require the shared continuation coordinator.

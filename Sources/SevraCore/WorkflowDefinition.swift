@@ -180,6 +180,14 @@ extension Workbook {
             mapping["field"] == .string("item") && parameter.type == "item"
               && parameter.unit == nil,
             "workflow_mapping", "Map an extraction's item field to an item parameter.")
+        } else if source.kind == "query" {
+          guard let field = mapping["field"].string else {
+            throw SevraError("workflow_lookup", "Name a selected scalar query field.")
+          }
+          let column = try workflowLookupColumn(source, field: field, historical: historical)
+          try require(
+            column.type == parameter.type && column.unit == parameter.unit,
+            "workflow_mapping", "Lookup fields and target scalar types/units must match exactly.")
         } else if source.kind == "interpretation" {
           let interpretation = try DefinitionInterpretation(DefinitionDescriptor(source.content))
           guard let field = mapping["field"].string,
@@ -232,6 +240,13 @@ extension Workbook {
               && output["itemID"].string != nil,
             "workflow_mapping", "The prior document preparation is incomplete.")
           value = output["itemID"]
+        } else if output["kind"] == .string("query") {
+          let rows = output["result"]["rows"].array
+          try require(
+            output["nextCursor"] == .null && output["result"]["hasMore"] == .bool(false)
+              && rows.count == 1 && rows[0]["values"].object[field] != nil,
+            "workflow_lookup", "A mapped lookup needs one complete retained row and field.")
+          value = rows[0]["values"][field]
         } else {
           try require(
             output["kind"] == .string("interpretation")
@@ -258,8 +273,8 @@ extension Workbook {
   }
 
   /// Scalar calculations cannot erase the semantic provenance of model-derived
-  /// inputs before a later business proposal.
-  func workflowInterpretationInputs(
+  /// or selected catalog inputs before a later business proposal.
+  func workflowValueInputs(
     _ step: DefinitionWorkflow.Step, workflow: DefinitionWorkflow, outputs: [String: Value]
   ) throws -> [Item] {
     var visited = Set<String>()
@@ -271,6 +286,15 @@ extension Workbook {
         else { continue }
         if previous.kind == "interpret", let recordID = outputs[previousID]?["recordID"].string {
           records.append(try item(recordID))
+        }
+        if previous.kind == "evaluate", let output = outputs[previousID],
+          output["kind"] == .string("query")
+        {
+          try validateWorkflowLookupResult(output, stepID: previousID, workflow: workflow)
+          for input in output["result"]["rows"].array[0]["inputs"].array {
+            records.append(try item(input["versionID"].text))
+          }
+          records.append(try item(applicationDefinition(previous.binding!.target).sourceID))
         }
         try visit(previous)
       }

@@ -47,6 +47,10 @@ extension Workbook {
                   && output["value"]["nextCursor"] == .null
                   && output["value"]["readOnly"] == .bool(true),
                 "workflow_integrity", "An evaluation output is incomplete or mismatched.")
+              if output["value"]["kind"] == .string("query") {
+                try validateWorkflowLookupResult(
+                  output["value"], stepID: expected.id, workflow: workflow)
+              }
             } else if expected.kind == "extract" {
               let value = output["value"]
               try validateWorkflowExtractionOutput(value, runID: run["id"].text, step: expected)
