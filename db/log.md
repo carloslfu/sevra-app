@@ -1354,3 +1354,6 @@ Published source MVP on public main through merged PR1 acc5307, final source che
 ## [2026-10-29 19:25] implementation | records/overview/start-here.md
 Replace contradictory accumulated checkpoint summaries in the entry document with the verified current MVP, honest AI limits, controlling delivery order and a complete specification map. Historical proof remains in implementation history and owning specs; no roadmap requirement is marked completed.
 
+## [2026-10-29 19:38] verification | records/operations/implementation.md
+Hosted MVP candidate40934376437 completed successfully at6c84cdf: all39 steps pass, including native Splash package/installer checks. Immutable receipt6b34d1cbf6dedaa7a3831713eaf066c2107e6c0a5babd1123bcd8aa78df3a879 preserves exact metadata; subsequent AI guidance/table accessibility have focused local proof. Newer main runs remain live and unqualified. Per owner-directed fast-MVP stopping rule, first real-user walkthrough feedback is pending across three goal turns; expanded work is deferred rather than complete.
+

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T19:21:55.897609+00:00
+updated: 2026-10-29T19:38:36.950343+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -98,17 +98,35 @@ that commit and passes repository links and full db.md validation with zero erro
 or warnings. The README now leads with native installation and the focused example.
 The installed app remains open with the restored portable comparison.
 
+### Hosted candidate result and next gate
+
+[Hosted run 40934376437](https://github.com/carloslfu/sevra-app/actions/runs/40934376437)
+passes for exact candidate `6c84cdfc89538c15b10ed5685449d06d3b160e33`.
+All 39 steps succeed, including the invariant/integration suite, native grammar,
+knowledge validation, baseline build and installed CLI tests, and isolated native
+Splash app/package/installer checks. This does not test actual-model accuracy or
+qualify hardware/performance. The public
+[immutable hosted receipt](../../../integration/evidence/2026-10-29-mvp-hosted-ci.json.gz)
+retains the complete run/step metadata and the later source delta.
+
+Current main differs in three code files: WorkbookAgent and NativeTools guidance,
+and the native editable-cell accessibility role. These have the separate focused
+local proof above. Newer hosted runs, including
+[main run 40940435149](https://github.com/carloslfu/sevra-app/actions/runs/40940435149),
+remain live at this observation. They are not passed checks; the prior watch has
+completed successfully rather than being restarted. Prior 0906fe4 CI failed the
+stale authoring assertion corrected in e73303a.
+
 Active follow-up, at most three:
 
-1. Hosted CI is still running. The [main candidate run](https://github.com/carloslfu/sevra-app/actions/runs/40939063191)
-   covers the final source. Earlier candidate runs 40934376437 and 40936358619
-   remain separate observations, not passed checks. Local required and focused
-   checks are complete. Record the actual hosted outcome when available; do not
-   imply production qualification from this source preview. Prior 0906fe4 CI failed
-   the stale authoring assertion corrected in e73303a.
-2. Let an external user attempt the documented supplier workflow, then prioritize
-   observed friction. Broad retrieval/reasoning reliability remains the main product
-   limit. Do not restart E2-E6/background work before that attempt.
+1. The controlling fast-MVP stopping rule requires a real external user attempt
+   before selecting more development. That feedback was requested and remains
+   pending after three consecutive goal turns. The installed preview and public
+   walkthrough are available. Broader E2-E6/background work stays deferred while
+   waiting; full product completion has not been established.
+2. Record the actual results of the still-live main CI runs when available and fix
+   any concrete failure. The successful earlier candidate cannot stand in for a
+   green result on a newer commit. No running job is claimed stopped or passed.
 
 Production signing/notarization, other physical hardware, speed/parity, complete
 Excel continuity and full accessibility/appearance/media qualification remain
