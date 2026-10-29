@@ -88,7 +88,7 @@ enum ChangeFormat {
     "workflow_runs", "workflow_steps", "workflow_attempts", "workflow_approvals", "workflow_outbox",
     "automation_activations", "automation_occurrences", "automation_outbox", "automation_runs",
     "automatic_roots", "automatic_admissions", "automatic_root_members", "automatic_parents",
-    "business_inputs", "business_batches", "business_events",
+    "business_inputs", "automatic_independent_inputs", "business_batches", "business_events",
     "condition_consumers", "condition_effects", "condition_observations", "condition_candidates",
     "condition_pending_inputs", "condition_observation_inputs",
   ]

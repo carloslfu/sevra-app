@@ -38,7 +38,7 @@ def run(cli, worker, output):
         assert not fixture.stderr, fixture.stderr
         data = json.loads(fixture.stdout)
         with sqlite3.connect(book / "workbook.sqlite") as db:
-            assert db.execute("PRAGMA user_version").fetchone()[0] == 28
+            assert db.execute("PRAGMA user_version").fetchone()[0] == 29
             workbook_id = db.execute("SELECT value FROM meta WHERE key='workbook-id'").fetchone()[0]
             declaration = db.execute("SELECT commit_id,kind,policy FROM business_inputs WHERE source_id=?",
                                      [data["sourceID"]]).fetchone()
@@ -148,7 +148,7 @@ def run(cli, worker, output):
 
         assert call("verify", book)["ok"]
         output.parent.mkdir(parents=True, exist_ok=True)
-        report = {"version": 1, "scope": "schema28 explicit original input capture and shared condition cause identity; admission enforcement and dispatch remain disabled",
+        report = {"version": 1, "scope": "schema29 explicit original input capture and shared condition cause identity; admission enforcement and dispatch remain disabled",
                   "cliSHA256": hashlib.sha256(cli.read_bytes()).hexdigest(),
                   "workerSHA256": hashlib.sha256(worker.read_bytes()).hexdigest(),
                   "independentRootHash": True, "concurrentReaders": 6, "damagedCopies": 5,

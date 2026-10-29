@@ -1243,3 +1243,36 @@ Qualify schema28 explicit input capture/shared causes, final20 focused/39 instal
 ## [2026-10-29 16:21] verification | records/specs/business-provenance.md
 Final schema28 checkpoint: zero-error/zero-warning full knowledge validation, repository links and git diff check pass; final strict18 Swift files,20 focused/39 installed and retained broad530 results qualified in immutable receipt. Publish source next.
 
+## [2026-10-29 16:24] design | records/specs/automation-causality.md
+Adopt shared business-root admission on existing captured ledger: exact declaration relation, calendar/business root coordinates, mixed root limits and writer rechecks; actual condition dispatch remains separate.
+
+## [2026-10-29 16:39] implementation | records/specs/automation-causality.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/specs/business-provenance.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/operations/implementation.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/overview/start-here.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/operations/persistence-coverage.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/specs/storage.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/specs/native-app-engine.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/specs/condition-transition-inputs.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/operations/build-and-run.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:40] verification | records/specs/automation-causality.md
+Final schema29 knowledge validation has zero errors/warnings; repository Markdown links, git diff check and strict nine changed Swift files pass. Immutable receipt binds539 broad/30 final focused,22 shared installed calls, race/death and native package/local speech proof. Publish source next.
+

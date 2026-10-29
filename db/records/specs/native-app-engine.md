@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T16:21:27.585152+00:00
+updated: 2026-10-29T16:39:01.268229+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -745,3 +745,7 @@ Read-only condition-origins now resolves exact complete retained changes/clock v
 ## Schema28 original-input capture and shared causes, October 29
 
 business_inputs is an immutable captured registry over exact original Sources and their creating committed change/item insertion index, kind and business-input-v1 policy. Several declared inputs in one transaction share one business root. Host observation/top-level file intake can declare intent; ordinary model output, generic Source labels, review, derived imports and copied metadata cannot. Human acceptance/withdrawal now links the exact proposal. Verification and inert reconstruction retain complete declarations, without live grants. Read-only condition-causes merges validated automatic production boundaries and declared independent inputs; missing/unclassified/over-budget origins block. It creates no automatic admissions/charges or dispatch. Broad530 core checkpoint, final20 focused/39 installed calls, two actual publication deaths, native package/controller/ProductAI and visible Activity continuation pass. The exact receipt, iterations and limits are in [[records/specs/business-provenance]]. Shared business-root admission/current-grant candidate dispatch remains next.
+
+## Schema29 shared business admissions, October 29
+
+The existing automatic_roots family now distinguishes calendar occurrences and business-input-v1 creating commits. The new captured automatic_independent_inputs relation retains exact selected originals per admission and invocation data lineage. Roots merge with existing automatic parents under the same writer; the shared32-run and logical/depth/fan-out limits never reset through new input, retry or reconstruction. Graph reads cache at most1,024 selected Sources plus eight representatives within one16MiB creating-envelope budget. Full539 core, final30 focused,22 shared/21 calendar/39 cause/42 origin installed calls, racing writers, real process deaths and native owner/ProductAI/package checks pass. Actual pending-condition selection/binding/current-grant dispatch is still next. Current local speech-to-unsent-composer/stop/clear/close is visible; controlled accuracy and full voice/accessibility remain open. Exact receipt and limits: [[records/specs/automation-causality]].

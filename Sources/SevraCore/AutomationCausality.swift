@@ -8,12 +8,27 @@ struct AutomationCausalPlan: Equatable {
   let parents: [String]
   let roots: [String]
   let calendarOccurrence: String?
+  let independentInputs: [String]
+
+  init(
+    definitionID: String, logicalID: String, depth: Int, parents: [String], roots: [String],
+    calendarOccurrence: String?, independentInputs: [String] = []
+  ) {
+    self.definitionID = definitionID
+    self.logicalID = logicalID
+    self.depth = depth
+    self.parents = parents
+    self.roots = roots
+    self.calendarOccurrence = calendarOccurrence
+    self.independentInputs = independentInputs
+  }
 
   var context: Value {
     .object([
       "policy": .string(Self.policy), "definitionID": .string(definitionID),
       "logicalID": .string(logicalID), "depth": .number(Double(depth)),
       "parents": .array(parents.map(Value.string)), "roots": .array(roots.map(Value.string)),
+      "independentInputs": .array(independentInputs.map(Value.string)),
     ])
   }
 
@@ -27,7 +42,8 @@ extension Workbook {
   /// Internal admission primitive. Its caller owns the captured dispatch
   /// transaction and exact execution grant; saved origins confer no authority.
   func planAutomationCausality(
-    definitionID: String, calendarOccurrence: String? = nil, parents supplied: [String] = []
+    definitionID: String, calendarOccurrence: String? = nil, parents supplied: [String] = [],
+    independentInputs suppliedInputs: [String] = []
   ) throws -> AutomationCausalPlan {
     try requireCausalMutation()
     let definition = try applicationDefinition(definitionID)
@@ -35,9 +51,13 @@ extension Workbook {
       definition.id == definitionID && definition.kind == "automation", "causal_target",
       "Admission requires an exact saved automation version.")
     let parents = Array(Set(supplied)).sorted()
+    let independent = Array(Set(suppliedInputs)).sorted()
     try require(
-      supplied.count <= 8 && (calendarOccurrence != nil ? parents.isEmpty : !parents.isEmpty),
-      "causal_parents", "Use a new calendar occurrence or one to eight exact automatic parents.")
+      supplied.count <= 8 && suppliedInputs.count <= 1024
+        && (calendarOccurrence != nil
+          ? parents.isEmpty && independent.isEmpty : !parents.isEmpty || !independent.isEmpty),
+      "causal_parents",
+      "Use an exact calendar occurrence or bounded automatic/declared input causes.")
     if let occurrence = calendarOccurrence {
       try require(
         try db.scalar(
@@ -54,12 +74,17 @@ extension Workbook {
     }
     let graph = try automationCausalGraph(parents)
     try require(
+      Set(graph.values.flatMap(\.independentInputs) + independent).count <= 1024,
+      "causal_inputs", "Automatic ancestry can retain at most1,024 distinct independent inputs.")
+    try require(
       !graph.values.contains { $0.logicalID == definition.logicalID }, "causal_self_trigger",
       "This automation already appears in the automatic ancestry. Its output cannot trigger itself."
     )
     let depth = 1 + (parents.compactMap { graph[$0]?.depth }.max() ?? 0)
     try require(depth <= 8, "causal_depth", "The automatic chain reached its depth limit of eight.")
-    let roots = Set(parents.flatMap { graph[$0]!.roots }).sorted()
+    let declarations = try qualifiedAdmissionInputs(independent)
+    let roots = Set(parents.flatMap { graph[$0]!.roots } + declarations.map { $0["rootID"].text })
+      .sorted()
     try require(roots.count <= 8, "causal_roots", "A run can inherit at most eight roots.")
     for parent in parents {
       try require(
@@ -73,7 +98,7 @@ extension Workbook {
     }
     return AutomationCausalPlan(
       definitionID: definitionID, logicalID: definition.logicalID, depth: depth,
-      parents: parents, roots: roots, calendarOccurrence: nil)
+      parents: parents, roots: roots, calendarOccurrence: nil, independentInputs: independent)
   }
 
   func retainAutomationCausality(_ plan: AutomationCausalPlan, runID: String, sourceID: String)
@@ -102,7 +127,9 @@ extension Workbook {
         definitionID: definition.id, logicalID: definition.logicalID, depth: 1, parents: [],
         roots: [try AutomationCausalPlan.calendarRoot(occurrence)], calendarOccurrence: occurrence)
     } else {
-      fresh = try planAutomationCausality(definitionID: plan.definitionID, parents: plan.parents)
+      fresh = try planAutomationCausality(
+        definitionID: plan.definitionID, parents: plan.parents,
+        independentInputs: plan.independentInputs)
     }
     try require(
       fresh == plan, "causal_stale", "The automatic admission changed before publication.")
@@ -122,12 +149,13 @@ extension Workbook {
       "causal_integrity", "The admission does not match its exact saved automatic invocation.")
     if let occurrence = plan.calendarOccurrence {
       try db.execute(
-        "INSERT INTO automatic_roots VALUES(?,?,?,?,?)",
+        "INSERT INTO automatic_roots VALUES(?,'calendar',?,NULL,?,?,?)",
         [
           .string(plan.roots[0]), .string(occurrence), .string(AutomationCausalPlan.policy),
           .string(sourceID), .string(timestamp()),
         ])
     }
+    try retainBusinessCausalRoots(try qualifiedAdmissionInputs(plan.independentInputs))
     try db.execute(
       "INSERT INTO automatic_admissions VALUES(?,?,?,?,?,?)",
       [
@@ -141,6 +169,10 @@ extension Workbook {
     for parent in plan.parents {
       try db.execute(
         "INSERT INTO automatic_parents VALUES(?,?)", [.string(runID), .string(parent)])
+    }
+    for source in plan.independentInputs {
+      try db.execute(
+        "INSERT INTO automatic_independent_inputs VALUES(?,?)", [.string(runID), .string(source)])
     }
   }
 

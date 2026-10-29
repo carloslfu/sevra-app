@@ -8,10 +8,11 @@ struct AutomationCausalNode {
   let sourceID: String
   let roots: [String]
   let parents: [String]
+  let independentInputs: [String]
   var context: Value {
     AutomationCausalPlan(
       definitionID: definitionID, logicalID: logicalID, depth: depth, parents: parents,
-      roots: roots, calendarOccurrence: nil
+      roots: roots, calendarOccurrence: nil, independentInputs: independentInputs
     ).context
   }
 }
@@ -24,8 +25,9 @@ extension Workbook {
     try require(
       !runID.isEmpty && runID.utf8.count <= 256, "causal_input",
       "Inspect an exact automatic run identity.")
-    return try readBusinessFeed(cancellation: cancellation) {
-      let graph = try automationCausalGraph([runID], cancellation: cancellation)
+    let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
+    return try readBusinessFeed(cancellation: control) {
+      let graph = try automationCausalGraph([runID], cancellation: control)
       let node = graph[runID]!
       return .object([
         "runID": .string(runID), "origin": node.context, "dispatchSourceID": .string(node.sourceID),
@@ -69,6 +71,24 @@ extension Workbook {
       }
     }
     var ancestors: [String: Set<String>] = [:]
+    var independentSources = Set(graph.values.flatMap(\.independentInputs))
+    try require(
+      independentSources.count <= 1024, "causal_integrity",
+      "The automatic ancestry exceeds1,024 distinct independent inputs.")
+    let allRoots = Set(graph.values.flatMap(\.roots))
+    try require(allRoots.count <= 8, "causal_roots", "The ancestry merges more than eight roots.")
+    for root in allRoots {
+      let row = try db.execute(
+        "SELECT kind,source_id FROM automatic_roots WHERE id=?", [.string(root)],
+        maxRows: 1, maxBytes: 8192
+      ).first
+      if row?["kind"] == .string("business") { independentSources.insert(row!["source_id"]!.text) }
+    }
+    let declarations = try qualifiedAdmissionInputs(
+      independentSources.sorted(), cancellation: cancellation, limit: 1032)
+    let declarationsBySource = Dictionary(
+      uniqueKeysWithValues: declarations.map { ($0["sourceID"].text, $0) })
+    var validatedBusinessRoots = Set<String>()
     var roots: Set<String> = []
     for node in graph.values.sorted(by: { $0.depth < $1.depth }) {
       try cancellation.check()
@@ -89,12 +109,26 @@ extension Workbook {
         inheritedRoots.formUnion(parent.roots)
         expectedDepth = max(expectedDepth, parent.depth + 1)
       }
+      let independent = node.independentInputs.compactMap { declarationsBySource[$0] }
+      try require(
+        independent.count == node.independentInputs.count, "causal_integrity",
+        "An automatic run lost its exact independent input declarations.")
+      for declaration in independent {
+        try cancellation.check()
+        if validatedBusinessRoots.insert(declaration["rootID"].text).inserted {
+          try validateBusinessCausalRoot(
+            declaration["rootID"].text, commit: declaration["creatingCommitID"].text,
+            cancellation: cancellation, declarations: declarationsBySource)
+        }
+        inheritedRoots.insert(declaration["rootID"].text)
+      }
+      let calendarSeed = node.parents.isEmpty && independent.isEmpty
       try require(
         expectedDepth == node.depth && !logicals.contains(node.logicalID)
-          && (node.parents.isEmpty ? node.roots.count == 1 : inheritedRoots == Set(node.roots)),
+          && (calendarSeed ? node.roots.count == 1 : inheritedRoots == Set(node.roots)),
         "causal_integrity",
         "The automatic admission lost its depth, roots or self-output protection.")
-      if node.parents.isEmpty { try validateCalendarCausalRoot(node) }
+      if calendarSeed { try validateCalendarCausalRoot(node) }
       ancestors[node.runID] = logicals
       try require(
         try causalSuccessorCount(node.runID) <= 8, "causal_integrity",
@@ -125,8 +159,12 @@ extension Workbook {
       "SELECT root_id FROM automatic_root_members WHERE run_id=? ORDER BY root_id LIMIT 9",
       [.string(runID)], maxRows: 9, maxBytes: 65_536
     ).map { $0["root_id"]!.text }
+    let independent = try db.execute(
+      "SELECT source_id FROM automatic_independent_inputs WHERE run_id=? ORDER BY source_id LIMIT 1025",
+      [.string(runID)], maxRows: 1025, maxBytes: 524_288
+    ).map { $0["source_id"]!.text }
     try require(
-      parents.count <= 8 && (1...8).contains(roots.count)
+      parents.count <= 8 && independent.count <= 1024 && (1...8).contains(roots.count)
         && (1...8).contains(row["depth"]!.int ?? 0)
         && row["policy"] == .string(AutomationCausalPlan.policy)
         && row["kind"] == .string("automation")
@@ -139,7 +177,7 @@ extension Workbook {
       runID: runID, definitionID: row["definition_id"]!.text,
       logicalID: row["logical_id"]!.text, depth: row["depth"]!.int!,
       sourceID: row["source_id"]!.text,
-      roots: roots, parents: parents)
+      roots: roots, parents: parents, independentInputs: independent)
     let invocation = try db.execute(
       "SELECT category,kind,CASE WHEN length(CAST(data AS BLOB))<=1048576 THEN data END AS data FROM items WHERE id=?",
       [row["invocation"]!], maxRows: 1, maxBytes: 1_049_000
@@ -170,6 +208,14 @@ extension Workbook {
         ).int == 1,
         "causal_integrity", "An automatic parent lost its exact invocation lineage.")
     }
+    for source in independent {
+      try require(
+        try db.scalar(
+          "SELECT EXISTS(SELECT 1 FROM lineage WHERE child=? AND parent=? AND relation='derives-from' AND (roles & 1)<>0)",
+          [row["invocation"]!, .string(source)]
+        ).int == 1,
+        "causal_integrity", "An independent cause lost its exact invocation input lineage.")
+    }
     return node
   }
 
@@ -183,7 +229,8 @@ extension Workbook {
       throw SevraError("causal_integrity", "An automatic root lost its exact calendar occurrence.")
     }
     try require(
-      root["run_id"] == .string(node.runID) && root["source_id"] == .string(node.sourceID)
+      root["kind"] == .string("calendar") && root["commit_id"] == .null
+        && root["run_id"] == .string(node.runID) && root["source_id"] == .string(node.sourceID)
         && root["source_id"] == root["dispatch_source"]
         && root["policy"] == .string(AutomationCausalPlan.policy)
         && root["id"]

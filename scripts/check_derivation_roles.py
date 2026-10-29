@@ -16,7 +16,7 @@ def sha(path):
 
 def snapshot(book):
     with sqlite3.connect(book / "workbook.sqlite") as db:
-        assert db.execute("PRAGMA user_version").fetchone()[0] == 28
+        assert db.execute("PRAGMA user_version").fetchone()[0] == 29
         items = db.execute("SELECT id,supersedes,derivation FROM items ORDER BY id").fetchall()
         result = []
         for identity, supersedes, raw in items:
@@ -112,7 +112,7 @@ def run(cli, worker, output):
                     db.execute("UPDATE items SET derivation=json_set(derivation,'$.policy','unsupported') WHERE id=?", [data["sourceID"]])
             call("verify", damaged, error="derivation_integrity")
         assert call("commits", book) == before and snapshot(book) == retained
-    report = {"version": 1, "scope": "schema28 role capture and named lineage; no business-origin resolution or condition dispatch",
+    report = {"version": 1, "scope": "schema29 role capture and named lineage; no business-origin resolution or condition dispatch",
               "cliSHA256": sha(cli), "workerSHA256": sha(worker), "callCount": len(calls),
               "verifiedItems": len(retained), "independentSealHashes": True,
               "actualModel": False, "automaticDispatch": False, "visibleOS": False, "calls": calls}

@@ -193,6 +193,7 @@ jobs:
           python3 scripts/check_automation_planning.py --cli output/bin/sevra --output .build/automation-planning-installed
           python3 scripts/check_automation_execution.py --cli output/bin/sevra --output .build/automation-execution-installed
           python3 scripts/check_automation_causality.py --cli output/bin/sevra --output .build/automation-causality-installed
+          python3 scripts/check_shared_admissions.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/shared-admissions-installed.json
           python3 scripts/check_install.py
           python3 scripts/check_document_cli.py
           python3 scripts/check_history.py
@@ -226,6 +227,7 @@ jobs:
           python3 scripts/check_automation_planning.py --cli output/native/bin/sevra --output .build/automation-planning-native
           python3 scripts/check_automation_execution.py --cli output/native/bin/sevra --output .build/automation-execution-native
           python3 scripts/check_automation_causality.py --cli output/native/bin/sevra --output .build/automation-causality-native
+          python3 scripts/check_shared_admissions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/shared-admissions-native.json
           python3 scripts/check_extraction_package.py
           python3 scripts/check_computation_views.py --cli output/native/bin/sevra
           python3 scripts/check_document_actions.py --cli output/native/bin/sevra

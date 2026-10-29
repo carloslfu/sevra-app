@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T16:21:27.655311+00:00
+updated: 2026-10-29T16:39:01.339839+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1787,3 +1787,9 @@ Run `.build/debug/sevra-checks --condition-origins` for 41 focused window/input/
 `sevra condition-causes WORKBOOK OBSERVATION_ID` reads the complete retained window and reports resolved or blocked, declared/inherited root IDs and exact automatic parents. Different consumers of one input share its root. Effective-time activation does not mint another. Missing/unclassified causes and more than eight roots/parents stay blocked; no partial roots become dispatchable. The bounded reader adds at most16MiB of creating envelopes to existing graph limits, before decoding. No live permission, charge or automatic work follows from reading it.
 
 Focused check: `.build/debug/sevra-checks --business-inputs`. Installed synthetic check: `python3 scripts/check_business_inputs.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Both packaged CI paths and check.sh include it. Schema28 is the canonical development contract; unsupported prior workbooks stay preserved/refused. Evidence and unfinished dispatch/production gates: [[records/specs/business-provenance]].
+
+## Shared automatic business-root admission qualification
+
+`sevra automation-causality WORKBOOK RUN_ID` now renders retained independentInputs in each automatic origin alongside parents/roots and charged work. Business roots come from explicit original-input creating commits; calendar roots remain exact clock occurrences. Historical output still grants no live permission. The internal admission primitive enforces one shared32-run budget across unrelated reacting targets, with existing self/depth/fan-out limits. Production calendar calls use calendar causes. Actual automatic condition selection/binding/dispatch remains unfinished; condition-causes stays read-only.
+
+Focused check: `.build/debug/sevra-checks --automation-causality`. Installed synthetic race/death check: `python3 scripts/check_shared_admissions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Both packaged CI paths and check.sh include it. The fixture bridge is test-only, with no ordinary model/CLI override for independent inputs or parents. Schema29 is canonical; unsupported prior development workbooks stay preserved/refused. [[records/specs/automation-causality]] records539 broad/30 final focused groups,22 installed calls, failures, exact resource checks and open production gates.

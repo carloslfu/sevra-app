@@ -36,11 +36,12 @@ final class CausalFixture {
 
   func admit(
     _ definition: ApplicationDefinition? = nil, parents: [String]? = nil,
-    generation: Int = 0, after: Date? = nil, at: Date? = nil
+    generation: Int = 0, after: Date? = nil, at: Date? = nil, independentInputs: [String] = []
   ) throws -> CausalRun {
     let (target, session) = try prepare(definition, generation: generation, after: after, at: at)
     let receipt = try book.dispatchAutomaticCalendarRun(
-      session, observedAt: at ?? due, token: identifier(), inheriting: parents)
+      session, observedAt: at ?? due, token: identifier(), inheriting: parents,
+      independentInputs: independentInputs)
     return CausalRun(
       id: receipt["runID"].text, definition: target, session: session, receipt: receipt)
   }

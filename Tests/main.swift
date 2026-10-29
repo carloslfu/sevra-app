@@ -131,8 +131,34 @@ if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--automation
 }
 if CommandLine.arguments.dropFirst() == ["--automation-causality"] {
   checkAutomationCausality(at: temp)
+  checkSharedBusinessAdmissions(at: temp)
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--shared-admission-fixture" {
+  print(try createSharedAdmissionFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--shared-admission-worker" {
+  do {
+    print(
+      try sharedAdmissionWorker(
+        path: CommandLine.arguments[2], definition: CommandLine.arguments[3],
+        input: CommandLine.arguments[4]
+      ).json())
+  } catch {
+    fputs(
+      (try? encoded(error as? SevraError ?? SevraError("error", error.localizedDescription)).json())
+        ?? "{}", stderr)
+    exit(1)
+  }
+  exit(0)
+}
+if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--shared-admission-death-worker"
+{
+  try sharedAdmissionDeathWorker(
+    at: URL(fileURLWithPath: CommandLine.arguments[2]), stage: CommandLine.arguments[3])
+  exit(0)
 }
 if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--automatic-ancestry-fixture" {
   print(
@@ -1119,6 +1145,7 @@ checkAutomationDefinitions(at: temp)
 checkAutomationPlanning(at: temp)
 checkAutomationExecution(at: temp)
 checkAutomationCausality(at: temp)
+checkSharedBusinessAdmissions(at: temp)
 checkConditionInputs(at: temp)
 checkDerivationRoles(at: temp)
 checkBusinessOrigins(at: temp)

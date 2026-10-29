@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T16:21:27.447479+00:00
+updated: 2026-10-29T16:39:01.165957+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -26,7 +26,7 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 ## Reading order
 
-- [[records/specs/business-provenance]]: schema28 adds explicit original-input declarations and shared business/automatic cause identities to sealed complete-window inspection. Persisted shared business-root budgets and current-grant condition dispatch remain next.
+- [[records/specs/business-provenance]]: schema28 shared original-input causes now feed the schema29 trusted admission primitive in [[records/specs/automation-causality]]. Shared budgets are qualified; actual condition selection/binding/current-grant dispatch remains next.
 - [[records/specs/condition-transition-inputs]]: schema26 exact scope-relevant changed versions/events/activation times and linked observation windows, with truthful unknown/overflow coverage; actual automatic parents and candidate dispatch remain next.
 - [[records/specs/automation-causality]]: schema 25 atomic calendar origins and bounded trusted inherited admissions; exact condition causes and dispatch remain next.
 - [[records/specs/automatic-ancestry]]: schema 24 authoritative indexed workflow source identities and read-only derivation inspection; durable calendar/admission state now follows in [[records/specs/automation-causality]], while exact trigger causes remain open.
@@ -133,3 +133,7 @@ The read-only condition-origins API validates every complete-window member in bo
 ## Shared input/cause checkpoint
 
 Explicit original observations and included top-level files now retain exact creating declarations; one atomic input has one shared root across consumers and time. Complete condition windows resolve inherited automatic and independently declared causes without treating human review as a fresh origin. This is conservative historical identity, not truth or execution authority. Broad530 core checkpoint, final20 focused/39 installed calls and actual publication process-death checks pass. Native Activity review continuation now has current visible proof; dictation start/stop is visible but fresh speech transcription is still unverified. [[records/specs/business-provenance]] retains the exact evidence and open dispatch/release gates.
+
+## Shared admission checkpoint
+
+Schema29 retains calendar/business root coordinates and exact independent inputs through the same ledger, with shared32-run budgets across unrelated targets. Full539 core checkpoint, final30 focused groups and22 installed calls pass, including nine racing writers for seven slots and two actual publication deaths. Native owner/ProductAI/package proof passes; all150 prior receipts stay unchanged. Current authorized local speech reaches the composer and is stopped/cleared unsent. This is a trusted admission primitive, not actual automatic condition selection or dispatch. [[records/specs/automation-causality]] retains exact proof, failures and remaining gates.

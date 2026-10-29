@@ -117,7 +117,8 @@ extension Workbook {
   /// parents nil. Business-trigger selection is not exposed by this primitive.
   func dispatchAutomaticCalendarRun(
     _ session: AutomationExecutionSession, observedAt: Date, token: String,
-    cancellation: Cancellation = .init(), inheriting parentRuns: [String]? = nil
+    cancellation: Cancellation = .init(), inheriting parentRuns: [String]? = nil,
+    independentInputs: [String] = []
   ) throws -> Value {
     try workflowToken(token)
     let instant = try AutomationTime.text(observedAt)
@@ -136,6 +137,7 @@ extension Workbook {
         "generation": .number(Double(authority.generation)),
         "authorizationSourceID": .string(authority.sourceID), "observedAt": .string(instant),
         "inheritedParents": parentRuns.map { .array($0.map(Value.string)) } ?? .null,
+        "independentInputs": .array(independentInputs.map(Value.string)),
       ]), cancellation: control, actor: .programmatic("SevraCore.automationDispatcher"),
       commitGuard: fence
     ) {
@@ -195,8 +197,9 @@ extension Workbook {
           DefinitionDescriptor(automation.content))
         let causal = try self.planAutomationCausality(
           definitionID: automation.id,
-          calendarOccurrence: parentRuns == nil ? pending["id"].text : nil,
-          parents: parentRuns ?? [])
+          calendarOccurrence: parentRuns == nil && independentInputs.isEmpty
+            ? pending["id"].text : nil,
+          parents: parentRuns ?? [], independentInputs: independentInputs)
         let origin: Value = .object([
           "activationID": activation["id"], "automationID": activation["definition_id"],
           "occurrenceID": pending["id"], "generation": .number(Double(authority.generation)),
@@ -207,6 +210,7 @@ extension Workbook {
         _ = try self.insertWorkflowRun(
           retained.workflow.id, arguments: retained.arguments,
           actor: .programmatic("SevraCore.automationDispatcher"),
+          additionalInputs: causal.independentInputs,
           origin: origin,
           policy: "automation-drafts-v1", runID: runID,
           controlInputs: [authority.sourceID, pending["source_id"].text, source],

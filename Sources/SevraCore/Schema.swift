@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 28
+  static let version = 29
   static let sql = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=\(version);
@@ -126,12 +126,13 @@ enum Schema {
     CREATE INDEX automation_outbox_activation ON automation_outbox(activation_id,sequence);
     CREATE TABLE automation_runs(occurrence_id TEXT PRIMARY KEY REFERENCES automation_occurrences(id),activation_id TEXT NOT NULL REFERENCES automation_activations(id),run_id TEXT NOT NULL UNIQUE REFERENCES workflow_runs(id),definition_id TEXT NOT NULL REFERENCES app_definitions(id),authorization_source TEXT NOT NULL REFERENCES items(id),dispatch_source TEXT NOT NULL REFERENCES items(id),generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),created TEXT NOT NULL);
     CREATE INDEX automation_runs_activation ON automation_runs(activation_id,run_id);
-    CREATE TABLE automatic_roots(id TEXT PRIMARY KEY,occurrence_id TEXT NOT NULL UNIQUE REFERENCES automation_occurrences(id),policy TEXT NOT NULL CHECK(policy='automation-causality-v1'),source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL);
+    CREATE TABLE automatic_roots(id TEXT PRIMARY KEY,kind TEXT NOT NULL CHECK(kind IN ('calendar','business')),occurrence_id TEXT UNIQUE REFERENCES automation_occurrences(id),commit_id TEXT UNIQUE REFERENCES committed_changes(id),policy TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,CHECK((kind='calendar' AND occurrence_id IS NOT NULL AND commit_id IS NULL AND policy='automation-causality-v1') OR (kind='business' AND occurrence_id IS NULL AND commit_id IS NOT NULL AND policy='business-input-v1')));
     CREATE TABLE automatic_admissions(run_id TEXT PRIMARY KEY REFERENCES automation_runs(run_id),definition_id TEXT NOT NULL REFERENCES app_definitions(id),logical_id TEXT NOT NULL,depth INTEGER NOT NULL CHECK(typeof(depth)='integer' AND depth BETWEEN 1 AND 8),policy TEXT NOT NULL CHECK(policy='automation-causality-v1'),source_id TEXT NOT NULL REFERENCES items(id));
     CREATE TABLE automatic_root_members(run_id TEXT NOT NULL REFERENCES automatic_admissions(run_id),root_id TEXT NOT NULL REFERENCES automatic_roots(id),PRIMARY KEY(run_id,root_id));
     CREATE INDEX automatic_members_root ON automatic_root_members(root_id,run_id);
     CREATE TABLE automatic_parents(run_id TEXT NOT NULL REFERENCES automatic_admissions(run_id),parent_run_id TEXT NOT NULL REFERENCES automatic_admissions(run_id),PRIMARY KEY(run_id,parent_run_id),CHECK(run_id<>parent_run_id));
     CREATE INDEX automatic_parent_successors ON automatic_parents(parent_run_id,run_id);
+    CREATE TABLE automatic_independent_inputs(run_id TEXT NOT NULL REFERENCES automatic_admissions(run_id),source_id TEXT NOT NULL REFERENCES business_inputs(source_id),PRIMARY KEY(run_id,source_id));
     CREATE VIRTUAL TABLE definition_fts USING fts5(title,description,parameter_text,content='app_definitions',content_rowid='rowid',tokenize='unicode61 remove_diacritics 2',prefix='2 3 4');
     CREATE TRIGGER app_definitions_ai AFTER INSERT ON app_definitions BEGIN
       INSERT INTO definition_fts(rowid,title,description,parameter_text) VALUES(new.rowid,new.title,new.description,new.parameter_text);
