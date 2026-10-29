@@ -1276,3 +1276,9 @@ Qualify schema29 shared business-root admission:539 broad/30 final focused,22 in
 ## [2026-10-29 16:40] verification | records/specs/automation-causality.md
 Final schema29 knowledge validation has zero errors/warnings; repository Markdown links, git diff check and strict nine changed Swift files pass. Immutable receipt binds539 broad/30 final focused,22 shared installed calls, race/death and native package/local speech proof. Publish source next.
 
+## [2026-10-29 16:44] design | records/specs/condition-dispatch.md
+Review actual condition dispatch from meaning/UX, atomic authority/recovery and adversity/scale: consumer ownership, baseline/resume/from-now, true trigger binding, no calendar placeholders, live grants and shared limits. Implementation remains next.
+
+## [2026-10-29 16:48] design | records/specs/condition-dispatch.md
+Review owned condition dispatch from UX, authority/recovery and adversarial scale; link next E4 implementation contract. No implementation claim.
+

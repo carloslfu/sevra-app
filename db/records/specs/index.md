@@ -2,18 +2,19 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-29T16:39:01.303216Z
+updated: 2026-10-29T16:48:33.954427Z
 ---
 
 # records/specs
 
-- [[records/specs/condition-transition-inputs]] — Exact retained condition inputs now support bounded historical producer resolution. Complete windows, real limits and native CLI checks pass; independent roots and dispatch remain open.
+- [[records/specs/inventory-condition-consumers]] — Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
-- [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 - [[records/specs/business-provenance]] — Schema29 shared input roots and persisted admission budgets have scoped core/native CLI proof. Actual condition-candidate binding/current-grant dispatch remains next.
 - [[records/specs/automation-causality]] — Schema29 captures shared business and calendar roots with bounded trusted admissions. Racing writers and process-death proof pass; actual condition selection/current-grant dispatch remains open.
+- [[records/specs/condition-dispatch]] — Reviewed next E4 integration: owned condition consumers, exact live grants, atomic candidate/run/admission binding, backlog semantics and native dispatch acceptance. Not implemented.
+- [[records/specs/condition-transition-inputs]] — Exact retained condition inputs now support bounded historical producer resolution. Complete windows, real limits and native CLI checks pass; independent roots and dispatch remain open.
+- [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 - [[records/specs/automatic-ancestry]] — Schema 24 indexed workflow source identities and bounded automatic ancestry; synthetic acceptance preserves origin. Exact trigger causes and persisted dispatch admission remain required.
-- [[records/specs/inventory-condition-consumers]] — Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
 - [[records/specs/condition-transitions]] — Reviewed inert numeric transition preview and remaining committed-business-event/cursor/causality integration; no execution or authority from supplied observations.
 - [[records/specs/inventory-event-state]] — Reviewed historical inventory adapter: exact committed cutoff and explicit effective time, retained basis and settled effects, bounded read-only reconciliation, no condition execution.
 - [[records/specs/business-events]] — Reviewed schema22 semantic outbox over captured history: atomic settled versions, inventory basis and dataset membership/schema events, bounded indexed delivery and no execution authority.

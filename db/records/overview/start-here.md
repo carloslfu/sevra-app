@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T16:39:01.165957+00:00
+updated: 2026-10-29T16:48:33.837982+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -25,6 +25,8 @@ Splash C++/Metal through Swift, with no Python runtime. The prior Slotstream bui
 is retained as a separate baseline until native adoption gates pass. See [[records/specs/splash-integration]].
 
 ## Reading order
+
+- [[records/specs/condition-dispatch]]: reviewed atomic owned-condition activation, exact candidate/run binding, shared causes and live-grant execution contract. This is the next E4 integration, not implementation proof.
 
 - [[records/specs/business-provenance]]: schema28 shared original-input causes now feed the schema29 trusted admission primitive in [[records/specs/automation-causality]]. Shared budgets are qualified; actual condition selection/binding/current-grant dispatch remains next.
 - [[records/specs/condition-transition-inputs]]: schema26 exact scope-relevant changed versions/events/activation times and linked observation windows, with truthful unknown/overflow coverage; actual automatic parents and candidate dispatch remain next.

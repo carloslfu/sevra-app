@@ -2,7 +2,7 @@
 type: spec
 id: 01m63xbjef018f5q5byn9acp7s
 created: 2026-10-29T13:24:57.423588+00:00
-updated: 2026-10-29T16:39:01.036599+00:00
+updated: 2026-10-29T16:48:33.890766+00:00
 summary: Schema29 captures shared business and calendar roots with bounded trusted admissions. Racing writers and process-death proof pass; actual condition selection/current-grant dispatch remains open.
 title: Durable automatic-run origins and admission
 status: implemented
@@ -107,3 +107,7 @@ The independent installed race starts with25 unrelated targets sharing one root.
 The current native preview opens an owned schema29 workbook. Authorized on-device speech reaches the composer. Stop restores Start dictation; the text is cleared without sending, and close leaves zero items/messages/agent runs. Public evidence omits actual speech text and keeps redacted accessibility state plus empty-composer screenshots. This proves the local speech-to-composer path, not controlled-phrase accuracy or broad dictation quality. Prior visible Activity review continuation remains qualified by the previous receipt.
 
 [shared admission receipt](../../../integration/evidence/2026-10-29-shared-business-admission.json.gz), 310029 bytes, SHA-256 1921065227e9a1f7da8e7b27667d3888e8f8e0882b98793ba675e93c1c804202. This qualifies the trusted shared admission primitive. Its internal synthetic bridge uses the real captured calendar-run binding to test independent causes; production public calendar calls retain clock roots. Actual condition-candidate selection/binding/current-physical-file dispatch is still required. The condition-causes inspector remains read-only with budgetEnforcement=not-enabled, and reading saved origins never grants execution. Next: bind exact pending candidates and their complete cause resolution atomically to one authorized workflow, recheck current device/execution/AI authority and preserve candidate/run recovery. Then finish native/conversational/dataset triggers, E4-E6 and the remaining E3/contextual/Excel/accessibility/hardware/distribution gates. This conservative initial limit policy has scoped synthetic proof, not broad usability evidence. No model/prompt/grammar/engine/provider change or fresh Splash inference. Unsupported schema28 files are preserved/refused; selected disposable fixtures alone are recreated. Prior-head f9ff00c CI40910824349 remains in progress at capture. Whole app and goal remain unfinished.
+
+## Next condition execution integration
+
+The reviewed [[records/specs/condition-dispatch]] contract governs owned consumers, baseline versus resume/from-now behavior, exact authority, real condition bindings and atomic candidate/workflow/admission publication. It separates trigger-time evidence from workflow reads and requires race, recovery and native interaction proof. It is the next implementation contract, not a completed feature.

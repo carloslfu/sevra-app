@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T16:39:01.268229+00:00
+updated: 2026-10-29T16:48:33.933027+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -749,3 +749,7 @@ business_inputs is an immutable captured registry over exact original Sources an
 ## Schema29 shared business admissions, October 29
 
 The existing automatic_roots family now distinguishes calendar occurrences and business-input-v1 creating commits. The new captured automatic_independent_inputs relation retains exact selected originals per admission and invocation data lineage. Roots merge with existing automatic parents under the same writer; the shared32-run and logical/depth/fan-out limits never reset through new input, retry or reconstruction. Graph reads cache at most1,024 selected Sources plus eight representatives within one16MiB creating-envelope budget. Full539 core, final30 focused,22 shared/21 calendar/39 cause/42 origin installed calls, racing writers, real process deaths and native owner/ProductAI/package checks pass. Actual pending-condition selection/binding/current-grant dispatch is still next. Current local speech-to-unsent-composer/stop/clear/close is visible; controlled accuracy and full voice/accessibility remain open. Exact receipt and limits: [[records/specs/automation-causality]].
+
+## Next condition execution integration
+
+The reviewed [[records/specs/condition-dispatch]] contract governs owned consumers, baseline versus resume/from-now behavior, exact authority, real condition bindings and atomic candidate/workflow/admission publication. It separates trigger-time evidence from workflow reads and requires race, recovery and native interaction proof. It is the next implementation contract, not a completed feature.

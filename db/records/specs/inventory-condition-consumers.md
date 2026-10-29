@@ -2,7 +2,7 @@
 type: spec
 id: 01m63sd9zxhrxzv360z74w3pyn
 created: 2026-10-29T12:15:59.997610+00:00
-updated: 2026-10-29T14:25:09.795293+00:00
+updated: 2026-10-29T16:48:33.954427+00:00
 summary: Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
 title: Durable inventory condition consumers
 status: implemented
@@ -80,3 +80,7 @@ The later [[records/specs/automation-causality]] checkpoint advances development
 ## Exact change-input retention follows the consumer
 
 [[records/specs/condition-transition-inputs]] extends development schema26 with exact changed event/version/time windows. It preserves the consumer's numeric meanings and first-baseline/inert-candidate behavior. Final470 full core/14 focused groups and installed97 condition calls pass, including two actual SIGKILL boundaries with exact input rows, six writers and real100-candidate backpressure. The real10000/10001 input boundary retains numeric accuracy and explicit incomplete coverage. These changes are neither unchanged numeric contributors nor discovered automatic parents. Candidate dispatch remains unfinished.
+
+## Next condition execution integration
+
+The reviewed [[records/specs/condition-dispatch]] contract governs owned consumers, baseline versus resume/from-now behavior, exact authority, real condition bindings and atomic candidate/workflow/admission publication. It separates trigger-time evidence from workflow reads and requires race, recovery and native interaction proof. It is the next implementation contract, not a completed feature.
