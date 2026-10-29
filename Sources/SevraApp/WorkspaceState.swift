@@ -44,6 +44,8 @@ import SwiftUI
     (datasets + archivedDatasets).first { $0.id == id }
   }
   @Published var messages: [Message] = []
+  @Published var requestActivities: [RequestActivity] = []
+  @Published var liveActivity: LiveRequestActivity?
   @Published var proposalReviews: [String: ProposalReviewState] = [:]
   @Published var hasEarlierMessages = false
   @Published var hasLaterMessages = false
@@ -251,6 +253,7 @@ import SwiftUI
     if changedView && refreshSession.identity?.conversation != conversation {
       messages = []
       proposalReviews = [:]
+      requestActivities = []
       hasEarlierMessages = false
       hasLaterMessages = false
     }
@@ -293,6 +296,7 @@ import SwiftUI
         self.datasets = snapshot.datasets
         self.archivedDatasets = snapshot.archivedDatasets
         self.messages = snapshot.messages
+        self.requestActivities = snapshot.requestActivities
         self.proposalReviews = snapshot.proposalReviews
         self.hasEarlierMessages = snapshot.hasEarlierMessages
         self.hasLaterMessages = snapshot.hasLaterMessages
@@ -412,6 +416,7 @@ import SwiftUI
     guard owns(ticket, in: book), operations.finish(ticket) else { return }
     busy = false
     status = ""
+    liveActivity = nil
     refresh()
   }
   private func report(_ failure: Error, for ticket: WorkspaceOperation, in book: Workbook) {
@@ -666,6 +671,7 @@ import SwiftUI
       return
     }
     guard let (_, ticket) = beginOperation("Preparing local AI") else { return }
+    liveActivity = LiveRequestActivity(conversation: conversation)
     let chat = conversation
     let navigationID = itemPreviewIdentity
     let context = agentContext + (selectedContext.isEmpty ? "" : "\nSelection: " + selectedContext)
@@ -715,6 +721,18 @@ import SwiftUI
                 return
               }
               self.status = value
+              self.liveActivity?.update(value)
+              // Phase/count updates are ephemeral; only fetch saved history when
+              // the workbook revision changed. Reads remain off the UI actor.
+              self.requestRefresh(polling: true)
+            }
+          },
+          requestStarted: { request, destination in
+            Task { @MainActor in
+              guard self.owns(ticket, in: book), self.operations.acceptsProgress(ticket) else {
+                return
+              }
+              self.liveActivity?.attach(request, conversation: destination)
               self.refresh()
             }
           },
@@ -1035,7 +1053,10 @@ import SwiftUI
       finishOperation(pending, in: book)
     }
     if activePreview?.loading == true { activePreview?.stop() }
-    if busy { status = "Stopping…" }
+    if busy {
+      status = "Stopping…"
+      liveActivity?.stop()
+    }
   }
   private func control(_ command: WorkspaceControlCommand, input: String, book: Workbook) {
     let notice: String
@@ -1358,6 +1379,8 @@ import SwiftUI
     awaitingSpeechPermission = nil
     busy = false
     status = ""
+    liveActivity = nil
+    requestActivities = []
     activePreview?.cancel()
     activePreview = nil
     searchResults.reset()

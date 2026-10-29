@@ -670,30 +670,56 @@ struct SafeTextViewer: View {
   let file: URL
   @State private var text = ""
   @State private var detail = ""
+  @State private var structured: Value?
   var body: some View {
     ScrollView {
-      Text(text).font(.system(.body, design: .monospaced)).textSelection(.enabled).frame(
-        maxWidth: .infinity, alignment: .leading
-      ).padding(20)
+      if let structured {
+        StructuredValueView(value: structured).padding(20)
+      } else if file.pathExtension.lowercased() != "json" {
+        Text(text).font(.system(.body, design: .monospaced)).textSelection(.enabled).frame(
+          maxWidth: .infinity, alignment: .leading
+        ).padding(20)
+      }
       if !detail.isEmpty { Text(detail).font(.caption).foregroundStyle(.secondary).padding(10) }
     }.task(id: file) {
       guard !Task.isCancelled else { return }
       text = ""
       detail = ""
+      structured = nil
       do {
-        let result = try await Task.detached { () -> (String, String) in
+        let result = try await Task.detached { () -> (String, String, Value?) in
           let handle = try FileHandle(forReadingFrom: file)
           defer { try? handle.close() }
           let bytes = try handle.read(upToCount: 1_000_001) ?? Data()
+          if file.pathExtension.lowercased() == "json" {
+            guard bytes.count <= 1_000_000 else {
+              return (
+                "",
+                "This file exceeds the 1 MB structured preview limit. Open a copy to inspect the original.",
+                nil
+              )
+            }
+            guard let source = String(data: bytes, encoding: .utf8),
+              let value = StructuredPresentation.parseJSON(source)
+            else {
+              return (
+                "",
+                "This file could not be read as structured data. The original remains available through Open a copy.",
+                nil
+              )
+            }
+            return ("", "", value)
+          }
           return (
             String(decoding: bytes.prefix(1_000_000), as: UTF8.self),
             bytes.count > 1_000_000
-              ? "Previewing the first 1 MB. The original file remains intact." : ""
+              ? "Previewing the first 1 MB. The original file remains intact." : "", nil
           )
         }.value
         try Task.checkCancellation()
         text = result.0
         detail = result.1
+        structured = result.2
       } catch {
         guard !Task.isCancelled else { return }
         detail = error.localizedDescription

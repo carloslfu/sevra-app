@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T19:38:36.950343+00:00
+updated: 2026-10-29T21:56:06.804295+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -13,6 +13,81 @@ This is MVP 0.1, a native source test preview for the focused file-to-result
 workflow below. The expanded specification is unfinished. The owner-directed
 [[records/specs/mvp-delivery]] controls delivery order; preview evidence does not
 qualify broad model reliability, supported hardware or a production release.
+
+## Live agent activity iteration, October 29
+
+Implemented after the owner's first supplier walkthrough and reviewed against
+AA01-AA08 in [[records/specs/agent-activity]]. The installed native preview now
+shows a compact shimmering real phase, elapsed time and Stop below its request.
+Expansion shows actual saved searches/reads/results and original navigation.
+Native document excerpts, row tables, titled search matches and structured field
+views replace JSON dumps. Request fields, identifiers and model details stay in
+optional disclosure. Workflow diagnostics and imported JSON files use the same
+readable presentation. No additional model calls or activity ledger are added;
+private model reasoning stays ephemeral.
+
+The coherent snapshot uses exact visible request/conversation identities, at most
+64 steps per run and a 512 KiB aggregate small-result budget. Exact saved results
+use bounded pages with nested exploration, Back to result and explicit partial
+coverage. Stop latches before late callbacks. Saved terminal states never shimmer
+without a live owner. Wide, long and deep structured content reveals progressively.
+Codes, stored numeric precision, false, zero, empty and missing remain distinct.
+Imported and embedded JSON presentation additionally preserves written numeric
+values such as 9007199254740993, 1.2300, 1e-20 and negative zero; formatting does
+not rewrite workbook data or the original file.
+
+### Focused verification
+
+- Final preview checks pass request/run ownership, conversation scope, prepared/
+  failed/cancelled receipts, reopen, large-result nested paging, long-journal bounds,
+  late Stop progress and structured value fidelity. ProductAI checks pass exact
+  admission callbacks, pressure/release and cancel/overlap lifecycle behavior.
+- Scripted agent grounding/context/handoff checks pass. Text/parser checks pass
+  all 24 pinned prompt fixtures, 80 streaming decodes and 31 output projections
+  across 3,216 chunk layouts. Later presentation changes reuse these unchanged
+  inference contracts. The earlier test-label expectation was corrected from
+  sentence case to the actual split camel-case label; its failed receipt remains.
+- The frozen final native release builds and installs. Resource checks deny the
+  build tree, verify signatures, reject 10 missing-resource cases and altered
+  resources, and preserve pinned C++/Metal bytes. This paths-only check reuses the
+  unchanged full kernel proof; it is not a new hardware/performance qualification.
+- Actual native model question What is this table about? finishes with correct
+  supplier-row citations. A real Stop produces Stopped with no late revival. A
+  subsequent open-PDF question reads Brio-quotation.pdf and correctly cites delivery
+  in 5 business days and excluded tax with no rate. Counts/times are observations,
+  not throughput or correctness benchmarks.
+- Native quit/reopen of a freshly exported/reopened portable copy retains completed
+  and Stopped activity, elapsed times, exact saved result and working Open original
+  PDF navigation. The polished views are visibly checked against the saved runs,
+  a native row table and imported synthetic JSON files. Progressive disclosure
+  reveals all 25 entries in the wide-list fixture without a serialized dump.
+
+### Retained limitations
+
+During the native activity test, a broad question to find the Brio quotation reads only its CSV row and
+incorrectly says the quotation has no delivery/tax information, missing the included
+PDF. The activity correctly exposes that limited read. This is a failed retrieval/
+answer case, not a passing quotation test. Opening the PDF and asking a focused
+question succeeds. Broad document selection remains unqualified. Full VoiceOver,
+Reduce Motion, increased-contrast and appearance qualification are not established
+by these focused visual checks; the code supplies semantic labels and static
+motion/contrast fallbacks.
+
+Initial native builds exposed a detached-read main-actor capture warning and a
+Sendable method-conversion warning, corrected before the final frozen builds.
+The shell also resolved an unrelated historical Cloud CLI ahead of the installed
+workbook CLI. Verification uses the explicit installed workbook executable; no
+unrelated CLI or shell configuration is replaced. README records that distinction.
+
+Exact hashes, focused check logs, synthetic real-model runs including the failure,
+native UI observations and portable-copy results are retained in
+[the immutable activity receipt](../../../integration/evidence/2026-10-29-agent-activity.json.gz)
+and [the final exact-value presentation receipt](../../../integration/evidence/2026-10-29-agent-activity-exact-values.json.gz).
+The first receipt preserves the prior polished checkpoint, including the retained
+AI failure. The final layout adds intrinsic vertical sizing. Early expansion captures show
+transient clipping during the native disclosure animation; the settled native
+view verifies complete field text. The final receipt
+binds the subsequent number-fidelity change to its final source/build hashes.
 
 ## MVP 0.1 native preview, October 29
 
@@ -109,24 +184,22 @@ qualify hardware/performance. The public
 [immutable hosted receipt](../../../integration/evidence/2026-10-29-mvp-hosted-ci.json.gz)
 retains the complete run/step metadata and the later source delta.
 
-Current main differs in three code files: WorkbookAgent and NativeTools guidance,
-and the native editable-cell accessibility role. These have the separate focused
-local proof above. Newer hosted runs, including
-[main run 40940435149](https://github.com/carloslfu/sevra-app/actions/runs/40940435149),
-remain live at this observation. They are not passed checks; the prior watch has
-completed successfully rather than being restarted. Prior 0906fe4 CI failed the
-stale authoring assertion corrected in e73303a.
+Subsequent main checkpoints, including 9a4a865 in
+[run 40941965612](https://github.com/carloslfu/sevra-app/actions/runs/40941965612),
+passed hosted CI. The intervening main and PR-merge runs also completed
+successfully. These predate the live activity change. This new activity checkpoint
+has focused local qualification above; its later hosted run must be checked
+independently. Prior 0906fe4 CI failed the stale authoring assertion corrected
+in e73303a.
 
 Active follow-up, at most three:
 
-1. The controlling fast-MVP stopping rule requires a real external user attempt
-   before selecting more development. That feedback was requested and remains
-   pending after three consecutive goal turns. The installed preview and public
-   walkthrough are available. Broader E2-E6/background work stays deferred while
-   waiting; full product completion has not been established.
-2. Record the actual results of the still-live main CI runs when available and fix
-   any concrete failure. The successful earlier candidate cannot stand in for a
-   green result on a newer commit. No running job is claimed stopped or passed.
+1. The owner can retry the installed preview with the live activity disclosure.
+   Inspect the original evidence. Record the next real user confusion or failure
+   before selecting further MVP work.
+2. Broad AI document selection remains an observed limitation. A focused open-
+   document question is the qualified route; do not call broad autonomous business
+   analysis reliable. Further E2-E6/background infrastructure remains deferred.
 
 Production signing/notarization, other physical hardware, speed/parity, complete
 Excel continuity and full accessibility/appearance/media qualification remain

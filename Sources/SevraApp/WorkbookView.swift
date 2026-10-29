@@ -255,7 +255,20 @@ struct WorkbookView: View {
               }.padding(.top, 30)
             }
             ForEach(state.messages.filter { $0.role != "tool" }) { message in
-              ConversationMessageRow(state: state, message: message).id(message.id)
+              VStack(alignment: .leading, spacing: 12) {
+                ConversationMessageRow(state: state, message: message)
+                ForEach(state.requestActivities.filter { $0.requestID == message.id }) { activity in
+                  AgentActivityView(
+                    workspace: state, activity: activity,
+                    live: state.liveActivity?.runID == activity.id ? state.liveActivity : nil)
+                }
+                if let live = state.liveActivity, live.conversation == state.conversation,
+                  live.requestID == message.id,
+                  !state.requestActivities.contains(where: { $0.id == live.runID })
+                {
+                  AgentActivityView(workspace: state, activity: nil, live: live)
+                }
+              }.id(message.id)
                 .background(
                   GeometryReader { geometry in
                     Color.clear.preference(
@@ -266,8 +279,15 @@ struct WorkbookView: View {
             if state.hasLaterMessages {
               Button("Load later exchanges") { state.pageConversation(earlier: false) }
             }
-            if state.busy {
-              Text(state.status).font(.callout).foregroundStyle(.secondary).id("working")
+            if let live = state.liveActivity, live.conversation == state.conversation,
+              !state.messages.contains(where: { $0.id == live.requestID })
+            {
+              AgentActivityView(workspace: state, activity: nil, live: live).id("working")
+            } else if state.busy && state.liveActivity == nil {
+              HStack {
+                ProgressView().controlSize(.small)
+                Text(state.status).font(.callout).foregroundStyle(.secondary)
+              }.id("working")
             }
           }.padding(20)
             .coordinateSpace(name: "conversation-content")

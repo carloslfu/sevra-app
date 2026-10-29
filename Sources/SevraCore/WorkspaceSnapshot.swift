@@ -10,6 +10,7 @@ public struct WorkspaceSnapshot: Sendable {
   public let datasets: [Dataset]
   public let archivedDatasets: [Dataset]
   public let messages: [Message]
+  public let requestActivities: [RequestActivity]
   public let reviewQueue: ReviewQueuePage
   public let proposalReviews: [String: ProposalReviewState]
   public let hasEarlierMessages: Bool
@@ -49,7 +50,11 @@ extension Workbook {
             revision: current, spaces: spaces(), spaceNavigation: spaceNavigation,
             items: recentItemSummaries(), datasets: datasets(),
             archivedDatasets: datasets(archived: true),
-            messages: history.messages, reviewQueue: reviewQueue(limit: 5, cancellation: control),
+            messages: history.messages,
+            requestActivities: requestActivities(
+              messageIDs: history.messages.filter { $0.role == "user" }.map(\.id),
+              conversation: conversation),
+            reviewQueue: reviewQueue(limit: 5, cancellation: control),
             proposalReviews: proposalReviewStates(
               messages: history.messages, conversation: conversation, cancellation: control),
             hasEarlierMessages: history.hasEarlier,

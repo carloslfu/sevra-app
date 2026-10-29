@@ -3,6 +3,21 @@ import SevraAI
 import SevraCore
 import SevraProduct
 
+private final class RequestObservations: @unchecked Sendable {
+  private let lock = NSLock()
+  private var values: [(String, String)] = []
+  func receive(_ request: AgentRequest, _ conversation: String) {
+    lock.lock()
+    defer { lock.unlock() }
+    values.append((request.runID, conversation))
+  }
+  func snapshot() -> [(String, String)] {
+    lock.lock()
+    defer { lock.unlock() }
+    return values
+  }
+}
+
 func expect(_ condition: @autoclosure () throws -> Bool, _ message: String) throws {
   if try !condition() { throw SevraError("lifecycle_check", message) }
 }
@@ -138,11 +153,20 @@ actor PausedModel: WorkbookInference {
     let criticalModel = PausedModel()
     let critical = ProductAI(qualifying: criticalModel)
     let token = Cancellation()
+    let observed = RequestObservations()
     let criticalJob = Task {
       try await critical.run(
-        "Save a Memory check space.", workbook: criticalBook, cancellation: token)
+        "Save a Memory check space.", workbook: criticalBook, cancellation: token,
+        requestStarted: { request, conversation in observed.receive(request, conversation) })
     }
     await criticalModel.waitForResponse()
+    let starts = observed.snapshot()
+    try expect(
+      starts.count == 1 && starts[0].1 == "main",
+      "Request admission callback was missing or duplicated")
+    try expect(
+      try criticalBook.agentRuns().first?["id"].text == starts[0].0,
+      "Live activity reported the wrong run identity")
     let beforePressure = try criticalBook.items()
     let beforeSpaces = try criticalBook.spaces()
     try expect(

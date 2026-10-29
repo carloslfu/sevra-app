@@ -36,6 +36,8 @@ open "$HOME/Applications/Sevra Native Preview.app"
 The installer includes the matching `sevra` CLI in `~/.local/bin`. It refuses to
 replace another app or an unrelated CLI. This source preview is locally ad-hoc
 signed, with no production notarized installer yet.
+Use `~/.local/bin/sevra version` to verify the installed workbook CLI if another
+program named `sevra` appears earlier in your shell's PATH.
 
 In Settings, choose **Download / verify model**, or **Reuse an existing Fast model**
 for compatible Qwen3.6 35B A3B 4-bit weights with DFlash 2. A fresh download is
@@ -50,6 +52,11 @@ Open the quotation and ask for a cited summary, calculate goods plus shipping,
 keep a live table/chart in a space, edit an input, Undo, and make a portable copy.
 Use focused requests: broad questions can miss relevant files or hit the step limit.
 Check the original evidence before relying on an answer. Unknown tax remains unknown.
+
+While Sevra works, the activity line shows its current phase, elapsed time and Stop.
+Expand it to inspect actual tool steps and saved results, including after reopening
+the workbook. Documents, rows and structured results use native readable views.
+See the [activity design](db/records/specs/agent-activity.md).
 
 See [Build and run](db/records/operations/build-and-run.md) for setup, the exact
 walkthrough, CLI, safe uninstall and limits. The

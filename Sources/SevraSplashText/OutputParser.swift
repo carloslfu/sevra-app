@@ -51,6 +51,7 @@ public final class SplashOutputParser {
   private let textTags: [Data]
   private let reasoningEnds: [Data]
   private var state: State
+  public var isReasoning: Bool { reasoningOpen }
   private var reasoningOpen: Bool
   private var reasoningPending = Data()
   private var separator = false

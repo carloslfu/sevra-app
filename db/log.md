@@ -1357,3 +1357,15 @@ Replace contradictory accumulated checkpoint summaries in the entry document wit
 ## [2026-10-29 19:38] verification | records/operations/implementation.md
 Hosted MVP candidate40934376437 completed successfully at6c84cdf: all39 steps pass, including native Splash package/installer checks. Immutable receipt6b34d1cbf6dedaa7a3831713eaf066c2107e6c0a5babd1123bcd8aa78df3a879 preserves exact metadata; subsequent AI guidance/table accessibility have focused local proof. Newer main runs remain live and unqualified. Per owner-directed fast-MVP stopping rule, first real-user walkthrough feedback is pending across three goal turns; expanded work is deferred rather than complete.
 
+## [2026-10-29 21:27] design | records/specs/agent-activity.md
+Owner approved live shimmering activity after the supplier walkthrough; recorded truthful engine phases, exact receipts, bounded detail, cancellation and reopen contracts.
+
+## [2026-10-29 21:33] implementation | records/specs/agent-activity.md
+Added bounded request-journal activity, exact admission ownership, native phase/token progress, SwiftUI shimmer and lazy result inspection; first actual native table question passed, with final visual polish and cancellation checks underway.
+
+## [2026-10-29 21:56] design | records/specs/agent-activity.md
+Owner clarification: native excerpts, tables and structured fields replace JSON dumps; exact values and bounded exploration are required.
+
+## [2026-10-29 21:56] verification | records/operations/implementation.md
+Live agent activity and polished structured presentation installed; final focused preview, source freeze, strict 21-file format, native release/resource/refusal/signature checks pass. Actual local Stop/retry and portable activity history verified; broad source-selection failure retained in immutable receipts.
+

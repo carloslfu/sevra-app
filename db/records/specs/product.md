@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-28T18:14:38.980734+00:00
+updated: 2026-10-29T21:56:06.859962+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
@@ -88,6 +88,17 @@ constitute functioning migration. Implementation, phased scope and IJ01-IJ10 are
 [[records/specs/contextual-import]]. Checkpoint 63cd642 saves originals and
 selected roles without suffix-driven table creation; explicit saved-values
 conversion is available. Table-update and Excel-continuity gates remain open.
+
+## Live agent activity
+
+P27. Adopt [[records/specs/agent-activity]]. Replace the static inference label
+with a native shimmering current phase, elapsed time, Stop and expandable real
+execution steps at the originating request. Preserve saved receipts and terminal
+outcomes after reopening. Use actual engine/tool events, bounded inspection and
+reduced-motion accessibility; never fabricate a thought or coverage claim.
+Display structured information as native excerpts, tables, matches and readable
+fields, with optional identifiers and bounded exploration. Never serialize a
+result into raw JSON for the user. Preserve exact displayed values.
 
 ## Conversation
 

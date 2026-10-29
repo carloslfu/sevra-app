@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T19:25:19.461371+00:00
+updated: 2026-10-29T21:56:06.835062+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -46,6 +46,17 @@ coherent preview and let an external user attempt the job before choosing furthe
 work. The expanded E2-E6, condition/dataset/background infrastructure and full
 engine/hardware/release research remain deferred. The long-term design remains
 intact; deferred requirements are not completed requirements.
+
+## First user feedback
+
+The owner began the supplier walkthrough on October 29 and found that the static
+Thinking locally label did not communicate ongoing agent work. The implemented
+[[records/specs/agent-activity]] replaces it with a shimmering real phase, elapsed
+time, Stop and expandable saved searches/reads/results. The owner also requested
+polished native content instead of JSON dumps: excerpts, tables, matches and
+structured fields now share that presentation. This is observed MVP feedback,
+not a reason to resume deferred infrastructure. Exact verification and retained
+AI source-selection failures belong in [[records/operations/implementation]].
 
 ## Architecture
 

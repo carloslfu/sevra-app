@@ -510,7 +510,10 @@ private final class NativeWorker: @unchecked Sendable {
       request.saltHigh = 0x5345_5652_4149_3200
     }
     try cancellation.check()
-    progress("Thinking locally")
+    progress("Processing context · \(prompt.tokens.count) tokens")
+    var generatedCount = 0
+    var generationPhase = "Preparing a response"
+    var lastProgress = -Double.infinity
     var matchedPromptTokens = 0
     let generated = try session.helper.generate(
       request,
@@ -522,7 +525,17 @@ private final class NativeWorker: @unchecked Sendable {
         return values
       },
       event: { event in
-        if case .tokens(_, _, let tokens) = event { _ = try output.append(tokens: tokens) }
+        if case .tokens(_, _, let tokens) = event {
+          _ = try output.append(tokens: tokens)
+          generatedCount += tokens.count
+          let phase = output.isReasoning ? "Reasoning" : "Preparing a response"
+          let now = ProcessInfo.processInfo.systemUptime
+          if phase != generationPhase || now - lastProgress >= 0.3 {
+            generationPhase = phase
+            lastProgress = now
+            progress("\(phase) · \(generatedCount) tokens generated")
+          }
+        }
         if case .start(_, _, let matched) = event { matchedPromptTokens = Int(matched) }
       })
     try cancellation.check()

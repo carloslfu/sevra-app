@@ -283,14 +283,7 @@ struct WorkflowRunView: View {
                     )
                     .foregroundStyle(.secondary)
                     Text(step["attempt"]["model"].text).font(.caption)
-                    Text(
-                      String(((try? step["attempt"]["modelResponse"].json()) ?? "").prefix(16_384))
-                    )
-                    .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
-                    Text(
-                      "Preview limited to 16,384 characters. The saved operation retains the response."
-                    )
-                    .font(.caption).foregroundStyle(.secondary)
+                    StructuredValueView(value: step["attempt"]["modelResponse"])
                   }
                 }
                 if step["state"] == .string("claimed"),

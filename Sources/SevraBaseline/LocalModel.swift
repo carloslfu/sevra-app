@@ -247,7 +247,7 @@ public actor LocalModel: WorkbookInference {
     params.maxTokens = 1800
     params.presencePenalty = 0
     params.seed = 42
-    progress("Thinking locally")
+    progress("Preparing a response")
     let result = engine.generate(
       promptIds: tokens, params: params, shouldContinue: { !cancellation.isCancelled })
     try cancellation.check()

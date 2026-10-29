@@ -236,7 +236,9 @@ public actor ProductAI {
   public func run(
     _ prompt: String, workbook: Workbook, conversation: String = "main", context: String = "",
     modelDirectory: URL = ProductAI.defaultDirectory, cancellation: Cancellation = .init(),
-    progress: @escaping @Sendable (String) -> Void = { _ in }, openSpace: SpaceOpener? = nil,
+    progress: @escaping @Sendable (String) -> Void = { _ in },
+    requestStarted: @escaping @Sendable (AgentRequest, String) -> Void = { _, _ in },
+    openSpace: SpaceOpener? = nil,
     openReviews: ReviewQueueOpener? = nil
   ) async throws -> AgentResult {
     try await perform(cancellation: cancellation) {
@@ -251,7 +253,7 @@ public actor ProductAI {
       return try await WorkbookAgent.run(
         prompt, workbook: workbook, conversation: conversation, context: context,
         modelDirectory: modelDirectory, cancellation: cancellation, progress: progress,
-        model: model,
+        model: model, requestStarted: requestStarted,
         openSpace: openSpace, openReviews: openReviews
       )
     }

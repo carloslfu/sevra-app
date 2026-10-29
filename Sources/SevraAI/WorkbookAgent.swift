@@ -27,7 +27,9 @@ public enum WorkbookAgent {
     modelDirectory: URL = FileManager.default.temporaryDirectory,
     cancellation: Cancellation = .init(),
     progress: @escaping @Sendable (String) -> Void = { _ in }, model: any WorkbookInference,
-    enableCompaction: Bool = true, openSpace: SpaceOpener? = nil,
+    enableCompaction: Bool = true,
+    requestStarted: @escaping @Sendable (AgentRequest, String) -> Void = { _, _ in },
+    openSpace: SpaceOpener? = nil,
     openReviews: ReviewQueueOpener? = nil
   ) async throws -> AgentResult {
     try require(prompt.utf8.count <= 16000, "prompt_limit", "Please shorten this message.")
@@ -52,7 +54,8 @@ public enum WorkbookAgent {
       let result = try await runPhase(
         prompt, workbook: workbook, conversation: conversation,
         context: context, modelDirectory: modelDirectory, cancellation: cancellation,
-        progress: progress, model: model, enableCompaction: enableCompaction, openSpace: openSpace,
+        progress: progress, model: model, enableCompaction: enableCompaction,
+        requestStarted: requestStarted, openSpace: openSpace,
         openReviews: openReviews)
       await model.endRun()
       return result
@@ -66,7 +69,8 @@ public enum WorkbookAgent {
     modelDirectory: URL = FileManager.default.temporaryDirectory,
     cancellation: Cancellation = .init(),
     progress: @escaping @Sendable (String) -> Void = { _ in }, model: any WorkbookInference,
-    enableCompaction: Bool, openSpace: SpaceOpener? = nil, openReviews: ReviewQueueOpener? = nil,
+    enableCompaction: Bool, requestStarted: @escaping @Sendable (AgentRequest, String) -> Void,
+    openSpace: SpaceOpener? = nil, openReviews: ReviewQueueOpener? = nil,
     handoff: AgentRequestHandoff? = nil,
     handoffReceipt: CompletedHandoff? = nil, stepBudget: Int = 12
   ) async throws -> AgentResult {
@@ -150,6 +154,8 @@ public enum WorkbookAgent {
       try handoff?.request
       ?? workbook.startAgentRequest(
         prompt, conversation: conversation, model: modelIdentity)
+    requestStarted(request, conversation)
+    progress("Reading request context")
     let runID = request.runID
     let requestMessage = request.messageID
     var metrics: [Value] = []
@@ -674,10 +680,11 @@ public enum WorkbookAgent {
             state: "complete",
             focus: focus)
         }
-        progress("\(tool.replacingOccurrences(of:"_",with:" ").capitalized)…")
         let receiptID = try workbook.prepareToolCall(
           runID: runID, callID: call.id, tool: tool, arguments: a,
           assistantText: response.text)
+        let activity = ToolActivityLabel.title(tool, arguments: a)
+        progress(activity)
         let result: Value
         var observedThisStep = Set<String>()
         var computedThisStep = false
@@ -824,6 +831,7 @@ public enum WorkbookAgent {
         }
         let projected = try workbook.completeToolCall(
           receiptID, result: recordedResult, failed: callFailed)
+        progress(callFailed ? "Reviewing a tool failure" : "Reviewing the saved result")
         if let navigationFailure {
           _ = try workbook.addMessage(
             navigationFailure, role: "assistant", conversation: conversation)
@@ -848,7 +856,8 @@ public enum WorkbookAgent {
               prompt, workbook: workbook, conversation: child.conversation,
               context: context, modelDirectory: modelDirectory, cancellation: cancellation,
               progress: progress, model: model, enableCompaction: enableCompaction,
-              handoff: child, handoffReceipt: .init(call: call, result: result),
+              requestStarted: requestStarted, handoff: child,
+              handoffReceipt: .init(call: call, result: result),
               stepBudget: stepBudget - step)
             return AgentResult(
               answer: result.answer, citations: result.citations,
