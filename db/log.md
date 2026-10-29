@@ -973,3 +973,6 @@ Plan shared registered draft-document action for E3: required typed prose/eviden
 ## [2026-10-29 04:06] implementation | records/specs/manual-workflows.md
 Conversation preparation qualified with preserved actual-model failures: final author/workflow/queue5/4/4 calls;271 core,63 grammars/534 masks, final native/package and actual SQLite full/busy retry pass. Registered document drafting remains next; whole app unfinished.
 
+## [2026-10-29 04:28] implementation | records/specs/manual-workflows.md
+Registered report drafts share native forms/CLI/workflows and exact review.278 core,15 SIGKILL boundaries, final whole shared/native/grammar checks and a37-call actual receiving/report/reconstruction job pass. Full E3 and release remain open.
+

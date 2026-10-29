@@ -24,7 +24,7 @@ evidence = {'ok': False, 'schemaVersion': 1, 'checks': [], 'calls': [],
             'sourceSHA256': {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                              for p in [*sorted((ROOT / 'Sources/SevraCore').glob('*.swift')),
                                        *sorted((ROOT / 'IntegrationTests/WorkflowDurability').glob('*.swift')), Path(__file__).resolve()]},
-            'limits': ['Synthetic manual core workflows, structured interpretation and native document preparation publication.',
+            'limits': ['Synthetic manual core workflows, structured interpretation, native document preparation and registered document drafting publication.',
                        'No real model, structured row import, UI, background automation or schedule qualification.']}
 
 
@@ -261,6 +261,61 @@ try:
         assert run('extract-resume', root) == resumed, 'Completed preparation repeated'
         if phase == 'extract-committed':
             assert resumed == interrupted, 'Recovery changed committed document text or identity'
+        evidence['checks'].append({'phase': phase, 'ok': True})
+        save()
+    for phase in ['document-prepared', 'document-committed']:
+        root = output / phase
+        root.mkdir()
+        baseline = run('document-setup', root)
+        assert baseline['documents'] == [] and baseline['reportHits'] == 0
+        p = subprocess.Popen([str(binary), phase, str(root)], stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            assert select.select([p.stdout], [], [], 20)[0], 'Report publication barrier timed out'
+            barrier = json.loads(p.stdout.readline())
+            assert barrier['stage'] == phase, barrier
+            (root / 'claim.json').write_text(json.dumps(barrier['value']))
+            p.kill()
+            stdout, stderr = p.communicate(timeout=20)
+            evidence['calls'].append({'operation': phase, 'fixture': root.name, 'barrier': barrier,
+                                      'returncode': p.returncode, 'stdout': stdout, 'stderr': stderr,
+                                      'sentSIGKILL': True})
+            save()
+            assert p.returncode == -9
+        finally:
+            if p.poll() is None:
+                p.kill()
+                p.communicate(timeout=20)
+        interrupted = run('document-inspect', root)
+        assert interrupted['integrity']['ok'] is True
+        if phase == 'document-committed':
+            assert step(interrupted, 0)['state'] == 'completed'
+            assert len(interrupted['documents']) == interrupted['reportHits'] == 1
+            assert interrupted['documents'][0]['meaning'] == 'estimate'
+        else:
+            assert step(interrupted, 0)['state'] == 'claimed'
+            assert interrupted['documents'] == [] and interrupted['reportHits'] == 0
+            assert interrupted['counts'] == dict(baseline['counts'], revision=baseline['counts']['revision'] + 1)
+            assert interrupted['events'] == baseline['events']
+        copies = run('document-copies', root)
+        assert all(copy == interrupted for copy in copies.values()), 'Copied report executed or changed'
+        if phase != 'document-committed':
+            time.sleep(2.1)
+            run('document-late', root, error='workflow_fenced')
+        resumed = run('document-resume', root)
+        assert len(resumed['documents']) == resumed['reportHits'] == 1 and resumed['integrity']['ok']
+        assert resumed['documents'][0]['status'] == 'draft'
+        assert run('document-resume', root) == resumed, 'Completed report repeated'
+        if phase == 'document-committed':
+            assert resumed == interrupted, 'Recovery changed a committed report'
+        waiting = run('document-review', root)
+        assert waiting['run']['state'] == 'waiting_review'
+        accepted = run('document-accept', root)
+        assert accepted['documents'][0]['status'] == 'accepted'
+        assert accepted['documents'][0]['meaning'] == 'estimate'
+        completed = run('document-review', root)
+        assert completed['run']['state'] == 'completed' and completed['integrity']['ok']
+        assert run('document-review', root) == completed
         evidence['checks'].append({'phase': phase, 'ok': True})
         save()
     evidence['ok'] = True

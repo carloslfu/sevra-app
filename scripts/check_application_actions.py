@@ -37,7 +37,7 @@ def qualify(root):
     source = call('add', book, j({'category': 'source', 'kind': 'observation', 'title': 'Delivery receipt',
                                   'text': 'Received 5 bolts and 2 nuts.', 'status': 'accepted'}))
     registry = call('action-registry', book)
-    assert {x['id'] for x in registry} == {'inventory.receiveDelivery', 'inventory.proposeMovement'}
+    assert {x['id'] for x in registry} == {'inventory.receiveDelivery', 'inventory.proposeMovement', 'records.draftDocument'}
     template = call('receiving-template', book)
     action = call('definition-save', book, ident(), j(template), 'new', 'define-action')
     form_content = call('form-template', book, action['id'])
@@ -112,7 +112,7 @@ def qualify(root):
     assert call('form-draft-read', imported, 'Home:receiving') == submitted
     assert call('definition-read', imported, form['id']) == form
     call('verify', imported)
-    return {'schema': 14, 'registry': [x['id'] for x in registry], 'proposalCount': len(winner['proposals']),
+    return {'schema': 17, 'registry': [x['id'] for x in registry], 'proposalCount': len(winner['proposals']),
             'race': [{'code': code, 'error': result.get('error')} for code, result in race],
             'portableBytes': portable.stat().st_size, 'portableSHA256': hashlib.sha256(portable.read_bytes()).hexdigest(),
             'scope': 'Synthetic independent CLI writers, exact retries, draft conflict retention, reconstruction and portable round trip; no model or visible UI claim'}

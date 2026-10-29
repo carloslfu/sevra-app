@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T04:06:11.322201+00:00
+updated: 2026-10-29T04:29:41.479904+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -643,3 +643,7 @@ hashes. Its broad core217/shared checks are reused; the small identity correctio
 has focused proof rather than a claimed broad rerun. A first lint invocation lacked
 swift-format on PATH; the documented xcrun invocation passes. Visible native UI,
 agent invocation, complete E2-E6 and release gates remain open.
+
+## Registered document workflow checkpoint, October 28
+
+Registered document drafts now share the existing native action/form/workflow/review path with inventory, with scoped implementation and a six-step actual packaged-model receiving/report proof in [[records/specs/manual-workflows]]. Report acceptance preserves an estimate and stock 20; separately accepting the actual stock proposal changes it to 25. Reconstruction stays inert. This advances E3 but does not close EJ06-EJ08: workflow structured import, product matching/unresolved inputs, richer graphs, broader failure/abuse cases and external effect semantics remain open. E4-E6 remain subsequent work; no release readiness claim.

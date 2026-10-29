@@ -17,6 +17,27 @@ public enum ActionRegistry {
     ]),
   ]
   static let movementID = "inventory.proposeMovement"
+  static let documentID = "records.draftDocument"
+  static let documentParameters: [Value] = [
+    field("title", "Document title", "text"), field("body", "New prose", "text"),
+    field("evidence", "Evidence", "item"),
+    .object([
+      "id": .string("meaning"), "label": .string("Meaning"), "type": .string("choice"),
+      "required": .bool(true),
+      "choices": .array(
+        ["actual", "estimate", "plan", "commitment", "assumption", "rule"].map(Value.string)),
+    ]),
+    field("scenario", "Scenario", "text"),
+  ]
+  private static func title(_ id: String) -> String {
+    id == documentID
+      ? "Draft document"
+      : id == receivingID ? "Receive delivery" : "Propose inventory movement"
+  }
+  private static func parameters(_ id: String) -> [Value] {
+    id == documentID
+      ? documentParameters : id == receivingID ? receivingParameters : movementParameters
+  }
   static let movementParameters: [Value] = [
     field("subject", "Inventory subject", "text"),
     field("quantity", "Signed item count", "decimal", unit: "items"),
@@ -44,14 +65,14 @@ public enum ActionRegistry {
   }
   static func descriptor(_ id: String, version: Int) throws -> DefinitionDescriptor {
     try require(
-      [receivingID, movementID].contains(id) && version == 1, "action_primitive",
+      [receivingID, movementID, documentID].contains(id) && version == 1, "action_primitive",
       "Unknown registered action version.")
     return try DefinitionDescriptor(
       .object([
         "kind": .string("action"),
-        "title": .string(id == receivingID ? "Receive delivery" : "Propose inventory movement"),
-        "description": .string("Propose discrete-item inventory movements for separate review."),
-        "parameters": .array(id == receivingID ? receivingParameters : movementParameters),
+        "title": .string(title(id)),
+        "description": .string("Prepare local drafts for separate review."),
+        "parameters": .array(parameters(id)),
         "payload": .object([:]),
       ]))
   }
@@ -90,20 +111,28 @@ public enum ActionRegistry {
   ])
   public static func actions() -> Value {
     .array(
-      [receivingID, movementID].map { id in
+      [receivingID, movementID, documentID].map { id in
         .object([
           "id": .string(id), "version": .number(1),
-          "title": .string(id == receivingID ? "Receive delivery" : "Propose inventory movement"),
-          "parameters": .array(id == receivingID ? receivingParameters : movementParameters),
+          "title": .string(title(id)),
+          "parameters": .array(parameters(id)),
           "resultSchema": resultSchema,
           "effectCategory": .string("local_proposal"),
           "deadlineSeconds": .number(3),
-          "effect": .string("local draft inventory proposals; no accepted balance change"),
-          "capabilities": .array([.string("workbook.propose_inventory")]),
+          "effect": .string(
+            id == documentID
+              ? "local draft document from new prose; no acceptance or original-copy fidelity claim"
+              : "local draft inventory proposals; no accepted balance change"),
+          "capabilities": .array([
+            .string(id == documentID ? "workbook.draft_document" : "workbook.propose_inventory")
+          ]),
           "cancellation": .string(
             "bounded atomic transaction; cancellation rolls back before commit"),
           "retry": .string("exact token/arguments return the original receipt"),
-          "units": .string("discrete items only; no conversion or inferred units"),
+          "units": .string(
+            id == documentID
+              ? "bounded prose; explicit meaning and scenario"
+              : "discrete items only; no conversion or inferred units"),
         ])
       })
   }

@@ -84,6 +84,10 @@ private struct NativeFormEditor: View {
           if let preview = session.preview {
             Divider()
             Text(preview["effect"].text).font(.callout)
+            ForEach(Array(preview["documents"].array.enumerated()), id: \.offset) { _, document in
+              Text(document["title"].text).font(.headline)
+              Text(document["body"].text).textSelection(.enabled)
+            }
             ForEach(Array(preview["movements"].array.enumerated()), id: \.offset) { _, movement in
               Text(movement["quantity"].text + " items · " + movement["subject"].text)
                 .textSelection(.enabled)
@@ -242,9 +246,10 @@ private struct FormParameterField: View {
       default:
         TextField(
           parameter["type"].text == "date" ? "YYYY-MM-DD" : title,
-          text: Binding(get: { value == .null ? "" : value.text }, set: { value = .string($0) })
+          text: Binding(get: { value == .null ? "" : value.text }, set: { value = .string($0) }),
+          axis: parameter["type"].text == "text" ? .vertical : .horizontal
         )
-        .textFieldStyle(.roundedBorder).accessibilityLabel(title)
+        .lineLimit(1...12).textFieldStyle(.roundedBorder).accessibilityLabel(title)
         if let unit = parameter["unit"].string {
           Text(unit).font(.caption).foregroundStyle(.secondary)
         }

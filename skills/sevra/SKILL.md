@@ -37,7 +37,7 @@ Keep the original and inspect the new workbook before replacing any working copy
 ## Reusable definitions
 
 Use `definition-search PATH QUERY [OPTIONS_JSON]` to discover saved application
-definitions. Options are kind (function/query/action/form/workflow/interpretation), historical (Boolean), limit (1 to
+definitions. Options are kind (function/query/action/form/workflow/interpretation/extraction), historical (Boolean), limit (1 to
 50) and cursor. An empty query lists definitions. Current heads are the default;
 historical search is explicit. Hits are discovery metadata, never permission to
 execute. Inspect exact content with `definition-read PATH LOGICAL_OR_VERSION_ID`
@@ -122,8 +122,8 @@ These commands provide no scheduler or background automation. Document preparati
 Claims, heartbeats and fenced completion are advanced worker commands in `help`;
 use the ordinary bounded continuation unless implementing a qualified worker.
 
-An `extraction` definition is currently authored through the core/CLI, not the
-conversation authoring schema. It has exactly one required item parameter with no
+An `extraction` definition can be authored through the core, CLI or conversation.
+It has exactly one required item parameter with no
 default, and payload `{parser:"native-v1",file:"PARAMETER_ID"}`. Bind its exact
 version from an `extract` step. The input must already be an included business
 file; linked files require explicit inclusion first. Parsing and file verification
@@ -163,7 +163,7 @@ Changing the original evidence needs a new explicit invocation with that exact
 input version. Workflow retry retains its original typed inputs.
 
 
-The in-app model can author interpretations, workflows and workflow forms. Read
+The in-app model can author extractions, interpretations, workflows and workflow forms. Read
 definition_registry before custom save_definition content. For a workflow over one
 saved behavior, use workflow_template with its exact current version and optional
 stepID, then save_template with the successful current-run receipt and optional
@@ -199,8 +199,18 @@ accept it or prove its inputs describe all real business activity.
 ## Registered actions and recoverable forms
 
 Inspect `action-registry PATH` before authoring an action. Registered version 1
-primitives create local draft inventory movements only. They never accept business
-information, execute scripts or perform external effects. `inventory.receiveDelivery`
+primitives create local draft inventory movements or documents. They never accept business
+information, execute scripts or perform external effects. `records.draftDocument`
+requires title, body, one exact business evidence item, meaning and scenario.
+Body is bounded new prose up to 16,384 UTF-8 bytes, not an exact original copy.
+Use source-bound composition when original-byte fidelity is required. Native
+forms, CLI and explicit workflow continuation share the same atomic action and
+review path. An actual document cannot promote mapped estimates or another
+scenario. Accepting an estimate preserves its meaning and never changes stock.
+The in-app model can author/queue these workflows and preview document actions;
+direct document-action submission remains closed pending qualification. The
+ordinary draft tool remains a separate prose creation surface.
+`inventory.receiveDelivery`
 requires an explicit delivery identity, effective date, exact evidence item and 1 to
 50 lines. Each line has line, subject and quantity. Line identities must be distinct;
 quantities are positive whole-number Decimal strings measured in discrete items.

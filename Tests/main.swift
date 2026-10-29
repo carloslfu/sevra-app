@@ -41,6 +41,11 @@ let temp = FileManager.default.temporaryDirectory.appendingPathComponent(
   "sevra-checks-" + identifier())
 try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: temp) }
+if CommandLine.arguments.dropFirst() == ["--document-actions"] {
+  checkDocumentActions(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.dropFirst() == ["--workflows"] {
   checkWorkflows(at: temp)
   checkWorkflowTools(at: temp)
@@ -918,6 +923,7 @@ checkDatasetDefinitions(at: temp)
 checkDatasetQueries(at: temp)
 checkApplicationDefinitions(at: temp)
 checkApplicationActions(at: temp)
+checkDocumentActions(at: temp)
 checkDefinitionTools(at: temp)
 checkWorkflowTools(at: temp)
 checkWorkflowInterpretations(at: temp)

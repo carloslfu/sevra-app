@@ -91,7 +91,8 @@ private actor ApplicationToolModel: WorkbookInference {
         name = "finish"
         args = .object([
           "answer": .string("I could not submit this action."),
-          "basis": .string(verdictMode == "readOnly" ? "preview" : "unresolved"),
+          "basis": .string(
+            ["readOnly", "documentSubmit"].contains(verdictMode) ? "preview" : "unresolved"),
           "citations": .array([]),
         ])
       }
@@ -193,6 +194,68 @@ func checkApplicationTools() async throws {
     try expectEqual(try book.verify()["ok"], .bool(true))
   }
   try expectEqual(InferenceToolScope.all.allows("review_action_directions"), false)
+  for previewOnly in [true, false] {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent(
+        previewOnly ? "document-preview.sevra" : "document-submit.sevra"),
+      title: "Report form")
+    let source = try book.addItem(
+      category: "source", kind: "observation", title: "R1", text: "Received 5 bolts.")
+    let primitive = ActionRegistry.actions().array.first {
+      $0["id"] == .string("records.draftDocument")
+    }!
+    let action = try book.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: .object([
+        "kind": .string("action"), "title": .string("Receiving report"),
+        "description": .string("New report prose for review"),
+        "parameters": primitive["parameters"],
+        "payload": .object([
+          "primitive": .object(["id": primitive["id"], "version": primitive["version"]]),
+          "arguments": .object(
+            Dictionary(
+              uniqueKeysWithValues: primitive["parameters"].array.map {
+                ($0["id"].text, Value.object(["parameter": $0["id"]]))
+              })),
+        ]),
+      ]))
+    let form = try book.saveApplicationDefinition(
+      logicalID: identifier(), content: ActionRegistry.formDefinition(target: action))
+    let input: Value = .object([
+      "title": .string("Receiving memo"), "body": .string("Five bolts appear to have arrived."),
+      "evidence": .string(source.id), "meaning": .string("estimate"), "scenario": .string("actual"),
+    ])
+    let model = ApplicationToolModel(
+      formID: form.id, input: input, evidence: source.id,
+      verdictMode: previewOnly ? "previewOnly" : "documentSubmit")
+    let result = try await WorkbookAgent.run(
+      previewOnly
+        ? "Preview the receiving memo; save nothing."
+        : "Use the saved form to draft the receiving memo.",
+      workbook: book, model: model)
+    try expectEqual(try book.items(kind: "document").isEmpty, true)
+    try expectEqual(try book.items(kind: "application_invocation").isEmpty, true)
+    try expectEqual(await model.scopes.contains(.actionDirection), false)
+    if previewOnly {
+      try expectEqual(result.answer.contains("Receiving memo"), true)
+      try expectEqual(result.answer.contains("estimate"), true)
+      try expectEqual(result.answer.lowercased().contains("new prose"), true)
+      try expectEqual(result.answer.contains("fabricated"), false)
+    } else {
+      let failures = try book.messages().filter { $0.role == "tool" }.map {
+        try Value.parse($0.body)
+      }
+      try expectEqual(
+        failures.contains {
+          $0["tool"] == .string("prepare_action")
+            && $0["result"]["error"].text.contains("not qualified yet")
+        }, true)
+    }
+    try expectEqual(try book.verify()["ok"], .bool(true))
+  }
+  print(
+    "PASS document action preview identifies meaning and new prose; unqualified direct chat submission stays closed without inventory review"
+  )
   try expectEqual(InferenceToolScope.actionDirection.allows("prepare_action"), false)
   try expectEqual(InferenceToolScope.propose_movement.allows("prepare_action"), true)
   try expectEqual(InferenceToolScope.draft.allows("prepare_action"), false)

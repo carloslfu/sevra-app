@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T04:06:11.337513+00:00
+updated: 2026-10-29T04:29:41.496286+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1609,3 +1609,9 @@ Build sevra-checks/sevra-product-checks/sevra-workflow-durability and run their 
 The agent can find/read/save extraction definitions, make exact workflow_template starters and queue their workflows. Explicit Continue owns execution. Authoring inputs, when supplied, are exact existing item-version UUIDs; parameter names belong in parameters/payload, and current request lineage is automatic. Native template starters are tools, not saved definitions to search for.
 
 The sevra-agent-checks --preparation-authoring MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT mode runs actual native-model author/workflow/queue jobs. The directory must be new. It retains pre-inference source/runner identities, exact frames, messages, results and synthetic original/reconstructed workbooks. It independently checks metadata, queued pending state, no business Records and unchanged retained file text. Use the installed native model layout,32K and bounded512. The same runner keeps --interpretation-authoring. Functional times do not qualify performance. See [[records/specs/manual-workflows]] for retained failures and exact scope.
+
+## Registered document workflow checks
+
+Run swift build --product sevra-checks -j 3 and .build/debug/sevra-checks --document-actions for focused invariants. scripts/check.sh includes scripts/check_document_actions.py --cli .build/debug/sevra and 15 workflow process-death boundaries. Use python3 scripts/check_document_actions.py --cli output/native/bin/sevra --model-root MODELS_ROOT --output NEW_DIRECTORY for the explicit actual native six-step receiving/report job. The output directory must be new; retain prior results. It uses synthetic evidence and explicit synthetic human review, not user data. Without --model-root, the check exercises document form/workflow/review and keeps stock unchanged without inference. GitHub checks run the default job against the baseline and native packaged CLI products.
+
+The actual qualification output is .build/document-actions-native-model-v2, with 37 independent CLI calls; its immutable receipt is linked from [[records/specs/manual-workflows]]. The final frozen-source native build is document-action-v8; final whole shared checks are document-action-v11. Earlier diagnostics remain retained. Native resource tests are paths-only; latest UI/VoiceOver and full engine/performance release qualification remain open.

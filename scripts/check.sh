@@ -24,6 +24,7 @@ swift build --product sevra-workflow-durability -j "${SEVRA_BUILD_JOBS:-4}"
 python3 scripts/check_workflow_durability.py
 python3 scripts/check_workflow_cli.py --cli "$BIN/sevra" --worker "$BIN/sevra-workflow-durability"
 python3 scripts/check_application_actions.py --cli "$BIN/sevra"
+python3 scripts/check_document_actions.py --cli "$BIN/sevra"
 python3 scripts/check_space_editing.py "$BIN/sevra"
 swift build --product sevra-benchmark -j "${SEVRA_BUILD_JOBS:-4}"
 "$BIN/sevra-benchmark" --self-check

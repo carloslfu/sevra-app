@@ -115,6 +115,13 @@ extension Workbook {
             "Actual proposals cannot promote a mapped estimate, plan or another scenario into actuals."
           )
         }
+        for document in plan["documents"].array where document["meaning"] == .string("actual") {
+          try require(
+            interpretationInputs.allSatisfy {
+              $0.meaning == "actual" && $0.scenario == document["scenario"].text
+            }, "interpretation_meaning",
+            "Actual documents cannot promote mapped estimates, plans or another scenario.")
+        }
         output = try self.insertApplicationAction(
           plan: plan,
           request: .object([
@@ -230,7 +237,7 @@ extension Workbook {
 
   func workflowAcceptedVersion(_ proposal: Item, _ accepted: Item) throws -> Bool {
     guard
-      proposal.kind == "movement" && proposal.status == "draft"
+      ["movement", "document"].contains(proposal.kind) && proposal.status == "draft"
         && accepted.supersedes == proposal.id && accepted.status == "accepted"
         && accepted.logicalID == proposal.logicalID && accepted.data == proposal.data
         && accepted.meaning == proposal.meaning && accepted.scenario == proposal.scenario

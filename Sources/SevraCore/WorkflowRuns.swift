@@ -70,7 +70,7 @@ extension Workbook {
       category: "source", kind: "application_invocation",
       title: "Start " + definition.title,
       text: actor.label
-        + " started a manual workflow. Inventory changes remain drafts until reviewed.",
+        + " started a manual workflow. Business changes remain drafts until reviewed.",
       data: .object([
         "workflowRunID": .string(id), "definitionID": .string(definition.id),
         "arguments": arguments, "normalizedArguments": .object(supplied),

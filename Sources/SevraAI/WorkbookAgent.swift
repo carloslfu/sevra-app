@@ -359,7 +359,9 @@ public enum WorkbookAgent {
           var problems: [String] = []
           if pendingActionPreview != nil && basis != "preview" {
             problems.append(
-              "preview_action saved no proposals. If the user asked to prepare drafts for review, call prepare_action with its exact requestedID and submittedArguments. For a preview-only request, use basis=preview; the host will show the plan and that no proposals were saved. Do not claim completed drafts from a preview."
+              pendingActionPreview?.plan["primitive"]["id"].text == "records.draftDocument"
+                ? "preview_action saved no documents. Use basis=preview to show this unsaved plan, or author and queue a workflow for explicit continuation. Direct document-action submission is not qualified yet."
+                : "preview_action saved no proposals. If the user asked to prepare drafts for review, call prepare_action with its exact requestedID and submittedArguments. For a preview-only request, use basis=preview; the host will show the plan and that no proposals were saved. Do not claim completed drafts from a preview."
             )
           }
           if basis == "preview" && (previewText == nil || !a["counts"].array.isEmpty) {
@@ -729,6 +731,10 @@ public enum WorkbookAgent {
             let plan = try workbook.applicationPreviewForRun(
               previewID, runID: runID, conversation: conversation,
               requestSourceID: requestSource.id, cancellation: cancellation)
+            try require(
+              plan["primitive"]["id"].text != "records.draftDocument", "action_capability",
+              "Use the native form or explicit workflow continuation for document action drafts. Direct chat submission is not qualified yet."
+            )
             progress("Checking every inventory direction…")
             let reviewed = try await ActionDirectionReview.check(
               request: prompt, plan: plan, workbook: workbook, model: model,
@@ -1292,6 +1298,11 @@ public enum WorkbookAgent {
       + plan["movements"].array.map {
         "- " + $0["quantity"].text + " items · " + citationLabel($0["subject"].text)
           + " · " + $0["meaning"].text + " (" + $0["effective"].text + ")"
+      }.joined(separator: "\n")
+      + plan["documents"].array.map {
+        "\nDocument: " + citationLabel($0["title"].text) + "\nMeaning: "
+          + $0["meaning"].text + "; scenario: " + citationLabel($0["scenario"].text)
+          + "\nNew prose: " + $0["body"].text
       }.joined(separator: "\n")
   }
   static func jsonObject(in text: String) throws -> String {

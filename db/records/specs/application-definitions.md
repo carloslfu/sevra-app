@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T04:06:11.292798+00:00
+updated: 2026-10-29T04:29:41.464889+00:00
 summary: Schema16 definitions, interpretation authoring and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
@@ -283,7 +283,7 @@ result publication, model tools and native journeys remain separately qualified.
 
 ## Registered action and form implementation
 
-Current development schema14 extends the immutable definition catalog to action and
+The initial development schema14 implementation extended the immutable definition catalog to action and
 form kinds. The same three canonical definition families remain in the complete
 capture inventory. No old-schema adapter. `inventory.receiveDelivery` v1 accepts
 an explicit delivery identity/date/evidence and one to fifty distinct lines with
@@ -611,3 +611,9 @@ Core/CLI and conversation save_definition/find_definitions now author/discover i
 
 ## Native document preparation definitions, schema17
 extraction declares payload parser=native-v1 and file=the one required item parameter ID, without defaults or units. Exact extract workflow steps accept an included business file; no folder/path/network capability is granted. Map a completed extract output with {step: PREPARE_ID, field: item} to an interpretation item parameter to pin its exact retained extraction. Saving a definition never parses or invokes a model. Core/CLI preparation authoring and native execution have scoped proof in [[records/specs/manual-workflows]]. Conversation discovery/save and workflow_template now support extraction with scoped grammar/actual-model qualification in [[records/specs/manual-workflows]]. Authoring inputs are exact existing item-version UUIDs, not parameter names. Current request lineage is automatic; saving/queueing does not parse or execute.
+
+## Registered document action, schema17
+
+records.draftDocument v1 declares required title/body/evidence/meaning/scenario. The body is new prose up to 16,384 UTF-8 bytes, with no original-copy fidelity claim. Its preview is pure; execution creates one lineage-bound draft document through the shared captured action transaction. Retry returns that same proposal. Native forms retain multiline inputs and recover the committed receipt without duplication. Workflow review accepts only unchanged direct acceptance successors for movements or documents, with exact meaning/scenario and decision provenance. Mapped estimates cannot become actual reports. Document acceptance never changes stock.
+
+The registry exposes the distinct workbook.draft_document capability. Direct registered-action chat submission remains closed while native forms, CLI and explicit workflow continuation have scoped proof. Existing inventory semantic direction checks remain intact. The existing draft tool and exact-source composition remain separate surfaces. See [[records/specs/manual-workflows]] for the current qualification and remaining E3/EJ release limits.

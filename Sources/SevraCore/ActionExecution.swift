@@ -66,7 +66,7 @@ extension Workbook {
     let invocation = try self.insertItem(
       category: "source", kind: "application_invocation",
       title: "Submitted " + plan["title"].text,
-      text: actual.label + " submitted draft inventory proposals. Acceptance remains separate.",
+      text: actual.label + " submitted draft proposals. Acceptance remains separate.",
       data: .object(["submitted": request, "plan": plan, "actor": try encoded(actual)]),
       meaning: "actual", status: "accepted", scenario: "actual",
       inputs: Array(
@@ -81,6 +81,20 @@ extension Workbook {
       var movement = raw.object
       if let requestSourceID { movement["requestSourceID"] = .string(requestSourceID) }
       let proposal = try self.insertMovement(.object(movement), additionalInputs: [invocation])
+      proposals.append(.string(proposal))
+    }
+    for document in plan["documents"].array {
+      try cancellation.check()
+      let proposal = try self.insertItem(
+        category: "record", kind: "document", title: document["title"].text,
+        text: document["body"].text,
+        data: .object([
+          "origin": .string("application-prose-v1"), "definitionID": plan["definitionID"],
+          "invocationSourceID": .string(invocation),
+        ]),
+        meaning: document["meaning"].text, status: "draft", scenario: document["scenario"].text,
+        inputs: Array(Set([invocation, document["evidence"].text] + additionalInputs)).sorted(),
+        transformation: "application-document-v1")
       proposals.append(.string(proposal))
     }
     return .object([
@@ -118,9 +132,13 @@ extension Workbook {
     let mapped = try validateActionMapping(
       primitive, caller: actionDescriptor, state: state,
       arguments: supplied, depth: root.kind == "form" ? 1 : 0)
+    let documents =
+      try primitive.primitiveID == ActionRegistry.documentID ? proposedDocuments(mapped) : []
     let movements =
-      try primitive.primitiveID == ActionRegistry.receivingID
-      ? receivingMovements(mapped) : proposedMovements(mapped)
+      try primitive.primitiveID == ActionRegistry.documentID
+      ? []
+      : primitive.primitiveID == ActionRegistry.receivingID
+        ? receivingMovements(mapped) : proposedMovements(mapped)
     for movement in movements {
       try cancellation.check()
       try validateMovement(movement)
@@ -142,14 +160,39 @@ extension Workbook {
             "sourceID": .string($0.sourceID),
           ])
         }),
-      "movements": .array(movements), "readOnly": .bool(true),
+      "movements": .array(movements), "documents": .array(documents), "readOnly": .bool(true),
       "effect": .string(
-        "Save \(movements.count) draft inventory \(proposalLabel) (\(meanings)). No accepted balance changes in this step. Review drafts separately."
+        documents.isEmpty
+          ? "Save \(movements.count) draft inventory \(proposalLabel) (\(meanings)). No accepted balance changes in this step. Review drafts separately."
+          : "Save one draft document (\(documents[0]["meaning"].text), scenario \(documents[0]["scenario"].text)). New prose with evidence lineage; verify its claims separately. No acceptance or stock change."
       ),
-      "units": .string("discrete items"),
+      "units": .string(documents.isEmpty ? "discrete items" : "new prose"),
     ]
     plan["fingerprint"] = .string(ChangeFormat.hash(try Value.object(plan).json()))
     return .object(plan)
+  }
+
+  private func proposedDocuments(_ arguments: [String: Value]) throws -> [Value] {
+    let title = arguments["title"]!.text
+    let body = arguments["body"]!.text
+    let scenario = arguments["scenario"]!.text
+    try require(
+      !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && title.utf8.count <= 2048
+        && !body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        && !scenario.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        && scenario.utf8.count <= 256,
+      "action_document", "Enter a document title, bounded new prose and an explicit scenario.")
+    let evidence = try item(arguments["evidence"]!.text)
+    try require(
+      evidence.id == arguments["evidence"]!.text && evidence.isBusinessEvidence,
+      "action_document", "Use one exact local business evidence item.")
+    if arguments["meaning"] == .string("actual") {
+      try require(
+        evidence.meaning == "actual" && evidence.scenario == scenario,
+        "interpretation_meaning",
+        "Actual documents cannot promote estimates or change their evidence scenario.")
+    }
+    return [.object(arguments)]
   }
 
   private func proposedMovements(_ arguments: [String: Value]) throws -> [Value] {

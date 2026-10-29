@@ -221,7 +221,9 @@ extension WorkbookTools {
       return .object([
         "plan": plan, "receiptID": receiptID.map(Value.string) ?? .null,
         "notice": .string(
-          "Preview only. Submit this current-run receiptID only when the current request authorizes these draft proposals. The host rechecks direction and the exact plan; balances stay unchanged until separate acceptance."
+          plan["primitive"]["id"].text == ActionRegistry.documentID
+            ? "Preview only. Submit document actions through a native form or explicit workflow continuation. Chat can author and queue the workflow; direct document-action submission is not qualified yet."
+            : "Preview only. Submit this current-run receiptID only when the current request authorizes these draft proposals. The host rechecks direction and the exact plan; balances stay unchanged until separate acceptance."
         ),
       ])
     case "commit_action_preview":
@@ -229,6 +231,10 @@ extension WorkbookTools {
       let plan = try workbook.applicationPreviewForRun(
         string("previewReceiptID"), runID: runID, conversation: conversation,
         requestSourceID: requestSourceID, cancellation: cancellation)
+      try require(
+        plan["primitive"]["id"].text != ActionRegistry.documentID, "action_capability",
+        "Use the native form or explicit workflow continuation for document action drafts. Chat can author and queue their workflows; direct document-action submission is not qualified yet."
+      )
       return try workbook.invokeApplicationAction(
         plan["requestedID"].text, arguments: plan["submittedArguments"], preview: plan,
         token: operationToken(tool, a), requestSourceID: requestSourceID, readOnly: readOnly,

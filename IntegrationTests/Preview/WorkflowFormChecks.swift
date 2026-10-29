@@ -93,4 +93,67 @@ import SevraPreviewUI
     try book.counts()["records"].int == 0 && book.verify()["ok"] == .bool(true),
     "workflow_form_check", "Preview/recovery changed business data")
   print("PASS workflow form input ownership, exact submission recovery and inert queued runs")
+  try await checkDocumentFormDraft(at: root)
+}
+
+@MainActor private func checkDocumentFormDraft(at root: URL) async throws {
+  let book = try Workbook.create(
+    at: root.appendingPathComponent("ReportForm.sevra"), title: "Report")
+  let source = try book.addItem(
+    category: "source", kind: "observation", title: "Receipt", text: "Received5 bolts.")
+  let primitive = ActionRegistry.actions().array.first {
+    $0["id"] == .string("records.draftDocument")
+  }!
+  let action = try book.saveApplicationDefinition(
+    logicalID: identifier(),
+    content: .object([
+      "kind": .string("action"), "title": .string("Draft report"),
+      "description": .string("New prose"),
+      "parameters": primitive["parameters"],
+      "payload": .object([
+        "primitive": .object(["id": primitive["id"], "version": primitive["version"]]),
+        "arguments": .object(
+          Dictionary(
+            uniqueKeysWithValues: primitive["parameters"].array.map {
+              ($0["id"].text, Value.object(["parameter": $0["id"]]))
+            })),
+      ]),
+    ]))
+  let form = try book.saveApplicationDefinition(
+    logicalID: identifier(), content: ActionRegistry.formDefinition(target: action))
+  let arguments: Value = .object([
+    "title": .string("Receiving report"), "body": .string("First line.\nSecond line. 💡"),
+    "evidence": .string(source.id), "meaning": .string("estimate"), "scenario": .string("actual"),
+  ])
+  let session = FormDraftSession(workbook: book, key: "report")
+  await session.open(form.id)
+  session.update(arguments)
+  let saved = await session.flush()
+  try require(saved, "document_form_check", session.failure ?? "Report inputs were not saved")
+  await session.prepare()
+  try require(
+    session.preview?["documents"].array.count == 1, "document_form_check",
+    session.failure ?? "Missing report preview")
+  let state = session.state!
+  let committed = try book.submitFormDraft(
+    state, preview: session.preview!, actor: .human("SevraNativeForm"))
+  try require(
+    try book.formDraft("report")?.lastReceipt == nil, "document_form_check",
+    "Fixture missed presentation interruption")
+  let recovered = FormDraftSession(workbook: try Workbook(book.url), key: "report")
+  await recovered.open(form.id)
+  let revision = try book.revision()
+  await recovered.submit()
+  try require(
+    recovered.state?.lastReceipt == committed && book.revision() == revision, "document_form_check",
+    "Recovery duplicated or changed the report")
+  let documents = try book.items(kind: "document")
+  try require(
+    documents.count == 1 && documents[0].text == arguments["body"].text
+      && documents[0].meaning == "estimate" && documents[0].status == "draft",
+    "document_form_check", "Multiline report or semantics changed")
+  try require(
+    try book.verify()["ok"] == .bool(true), "document_form_check", "Invalid report recovery")
+  print(
+    "PASS native document form preview, multiline input retention and receipt-owned draft recovery")
 }
