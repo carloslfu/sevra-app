@@ -25,10 +25,12 @@ struct DefinitionWorkflow {
       guard let id = o["id"]?.string,
         id.range(of: "^[A-Za-z_][A-Za-z0-9_]{0,63}\\z", options: .regularExpression) != nil,
         !id.hasPrefix("_sevra_"), seen[id] == nil,
-        let kind = o["kind"]?.string, ["evaluate", "action", "review", "interpret"].contains(kind)
+        let kind = o["kind"]?.string,
+        ["evaluate", "action", "review", "interpret", "extract"].contains(kind)
       else {
         throw SevraError(
-          "workflow_definition", "Use distinct named evaluate/action/review/interpret steps.")
+          "workflow_definition",
+          "Use distinct named evaluate/action/review/interpret/extract steps.")
       }
       if kind == "review" {
         guard let from = o["review"]?.string, seen[from] == "action",
@@ -52,9 +54,9 @@ struct DefinitionWorkflow {
           _ = try definitionObject(mapping, keys: ["step", "field", "unit"])
           try require(
             mapping["step"].string != nil
-              && ["evaluate", "interpret"].contains(seen[mapping["step"].text] ?? ""),
+              && ["evaluate", "interpret", "extract"].contains(seen[mapping["step"].text] ?? ""),
             "workflow_mapping",
-            "A result mapping must name a preceding evaluation or interpretation.")
+            "A result mapping must name a preceding evaluation, interpretation or extraction.")
         }
         result.append(.init(id: id, kind: kind, binding: binding, arguments: mappings, review: nil))
       }
@@ -139,7 +141,9 @@ extension Workbook {
       try require(
         (step.kind == "evaluate"
           ? ["function", "query"]
-          : step.kind == "interpret" ? ["interpretation"] : ["action", "form"]).contains(
+          : step.kind == "interpret"
+            ? ["interpretation"]
+            : step.kind == "extract" ? ["extraction"] : ["action", "form"]).contains(
             target.kind),
         "workflow_binding", "The workflow step targets the wrong definition kind.")
       if target.kind == "form" {
@@ -162,7 +166,12 @@ extension Workbook {
           throw SevraError(
             "workflow_mapping", "Map an existing prior output with its declared unit.")
         }
-        if source.kind == "interpretation" {
+        if source.kind == "extraction" {
+          try require(
+            mapping["field"] == .string("item") && parameter.type == "item"
+              && parameter.unit == nil,
+            "workflow_mapping", "Map an extraction's item field to an item parameter.")
+        } else if source.kind == "interpretation" {
           let interpretation = try DefinitionInterpretation(DefinitionDescriptor(source.content))
           guard let field = mapping["field"].string,
             let output = interpretation.outputs.first(where: { $0.id == field }),
@@ -208,12 +217,20 @@ extension Workbook {
       }
       let value: Value
       if let field = mapping["field"].string {
-        try require(
-          output["kind"] == .string("interpretation")
-            && output["response"]["state"] == .string("ready")
-            && output["response"]["values"].object[field] != nil, "workflow_mapping",
-          "The prior interpretation field is unresolved.")
-        value = output["response"]["values"][field]
+        if output["kind"] == .string("extraction") {
+          try require(
+            field == "item" && output["complete"] == .bool(true)
+              && output["itemID"].string != nil,
+            "workflow_mapping", "The prior document preparation is incomplete.")
+          value = output["itemID"]
+        } else {
+          try require(
+            output["kind"] == .string("interpretation")
+              && output["response"]["state"] == .string("ready")
+              && output["response"]["values"].object[field] != nil, "workflow_mapping",
+            "The prior interpretation field is unresolved.")
+          value = output["response"]["values"][field]
+        }
       } else {
         try require(
           output["result"].string != nil, "workflow_mapping",

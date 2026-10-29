@@ -47,6 +47,14 @@ extension Workbook {
                   && output["value"]["nextCursor"] == .null
                   && output["value"]["readOnly"] == .bool(true),
                 "workflow_integrity", "An evaluation output is incomplete or mismatched.")
+            } else if expected.kind == "extract" {
+              let value = output["value"]
+              try validateWorkflowExtractionOutput(value, runID: run["id"].text, step: expected)
+              try require(
+                value["kind"] == .string("extraction")
+                  && output["readRevision"] == value["request"]["readRevision"]
+                  && (state != "completed" || value["complete"] == .bool(true)),
+                "workflow_integrity", "An incomplete document cannot complete its workflow step.")
             } else if expected.kind == "interpret" {
               let value = output["value"]
               let (_, response) = try validatedWorkflowInterpretation(

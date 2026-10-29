@@ -3,7 +3,7 @@ import Foundation
 extension Workbook {
   public func completeWorkflowStep(
     _ session: WorkflowExecutionSession, claim: Value,
-    interpretation: Value? = nil,
+    interpretation: Value? = nil, extraction: Value? = nil,
     cancellation: Cancellation = .init()
   ) throws -> Value {
     try workflowSession(session)
@@ -20,7 +20,13 @@ extension Workbook {
     }
     let result = try mutation(
       "workflow_step", token: "workflow-step:" + attemptID,
-      request: .object(["claim": claim, "interpretation": interpretation ?? .null]),
+      request: .object([
+        "claim": claim, "interpretation": interpretation ?? .null,
+        "extractionDigest": try extraction.map {
+          .string(ToolResultProjection.digest(try $0.json()))
+        }
+          ?? .null,
+      ]),
       cancellation: cancellation,
       actor: interpretation.map {
         .ai(
@@ -52,6 +58,9 @@ extension Workbook {
       try require(
         step.kind == "interpret" || interpretation == nil, "workflow_model",
         "Only an interpretation step consumes a model result.")
+      try require(
+        step.kind == "extract" || extraction == nil, "workflow_extraction",
+        "Only document preparation consumes a native extraction result.")
       if step.kind == "evaluate" {
         output = try self.evaluateApplicationDefinition(
           step.binding!.target,
@@ -64,6 +73,20 @@ extension Workbook {
           retained["inputPopulation"] = .array(
             try self.definitionQueryPopulation(output, cancellation: cancellation))
           output = .object(retained)
+        }
+      } else if step.kind == "extract" {
+        guard let extraction else {
+          throw SevraError(
+            "workflow_extraction", "Continue document preparation through the workflow coordinator."
+          )
+        }
+        output = try self.insertWorkflowExtraction(
+          extraction, run: run, step: step, arguments: args,
+          attemptID: attemptID, cancellation: cancellation)
+        revision = output["request"]["readRevision"].int!
+        if output["complete"] != .bool(true) {
+          state = "needs_attention"
+          detail = String(output["detail"].text.prefix(1000))
         }
       } else if step.kind == "interpret" {
         guard let interpretation else {

@@ -108,7 +108,7 @@ query pages cannot complete a workflow step. This is not a frozen input database
 
 `workflow-start PATH EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN` saves a queued
 manual run. `workflow-continue PATH RUN_ID [MODEL_DIRECTORY]` explicitly executes at most16 steps
-until review, attention or completion; `workflow-advance` executes one step.
+until review, attention or completion; `workflow-advance` executes one deterministic core step; extraction and interpretation require the shared continuation coordinator.
 Inspect the exact saved proposals and obtain the user's business approval before
 accepting them. Continue after acceptance; changed proposals require attention.
 Accepted estimates remain estimates. Never replace a failed run just to bypass
@@ -118,9 +118,25 @@ duplicate occurrence checks.
 inspection. `workflow-cancel PATH RUN_ID TOKEN` stops unfinished work and retains
 completed drafts/accepted effects. Cancellation is not business compensation.
 Opening, importing, exporting or reconstructing does not authorize execution.
-No scheduler, helper or background worker is provided by these commands.
+These commands provide no scheduler or background automation. Document preparation uses its bounded foreground parser helper.
 Claims, heartbeats and fenced completion are advanced worker commands in `help`;
 use the ordinary bounded continuation unless implementing a qualified worker.
+
+An `extraction` definition is currently authored through the core/CLI, not the
+conversation authoring schema. It has exactly one required item parameter with no
+default, and payload `{parser:"native-v1",file:"PARAMETER_ID"}`. Bind its exact
+version from an `extract` step. The input must already be an included business
+file; linked files require explicit inclusion first. Parsing and file verification
+run outside the workbook lock using the isolated native helper. The original
+stays outside SQLite; bounded extracted text/reference identity and the workflow
+checkpoint publish atomically under the worker lease. Failed/cancelled attempts
+retain the prior index. Partial/unsupported/truncated text pauses for attention.
+
+A later interpretation maps `{step:"PREPARE_STEP",field:"item"}` to its evidence
+item parameter. This also pins the exact retained extraction, even after another
+index becomes current. Completed/reconstructed preparations never parse again
+unless a new explicit run requests it. Uncommitted parsing may repeat after a
+crash. This is document preparation, not structured row import or Excel conversion.
 
 An `interpretation` definition has payload `{instruction,evidence,outputs,meaning,scenario}`.
 `evidence` lists 1 to 8 required item parameter names. `outputs` declares typed fields

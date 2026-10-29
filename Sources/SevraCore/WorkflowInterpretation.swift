@@ -66,14 +66,27 @@ extension Workbook {
         ]
         var content = item.text
         if item.assetID != nil {
-          guard let set = try self.fileReferenceSet(item.id) else {
-            throw SevraError(
-              "interpretation_coverage", "Extract this file before interpreting its content.")
+          let input: [String: Value]
+          if let from = step.arguments[parameter]?["step"].string,
+            let prepared = outputs[from], prepared["kind"] == .string("extraction"),
+            prepared["itemID"] == .string(item.id),
+            step.arguments[parameter]?["field"] == .string("item")
+          {
+            input = try self.fileReferenceInput(prepared["extractionInputID"].text)
+            fields["extractionStepID"] = .string(from)
+          } else {
+            guard let set = try self.fileReferenceSet(item.id) else {
+              throw SevraError(
+                "interpretation_coverage", "Extract this file before interpreting its content.")
+            }
+            input = try self.fileReferenceInput(set["input_id"]!.text)
+            try require(
+              self.extractionStatus(item.id)["state"] == .string("ready"),
+              "interpretation_coverage", "Resolve incomplete indexing before interpretation.")
           }
-          let input = try self.fileReferenceInput(set["input_id"]!.text)
           try require(
             input["extraction_state"] == .string("ready") && input["truncated"] == .number(0)
-              && self.extractionStatus(item.id)["state"] == .string("ready"),
+              && input["origin_id"] == .string(item.id),
             "interpretation_coverage",
             "Interpretation requires a ready, untruncated retained extraction. Resolve incomplete indexing first."
           )

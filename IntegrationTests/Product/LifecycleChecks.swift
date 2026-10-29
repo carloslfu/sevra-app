@@ -262,6 +262,7 @@ actor PausedModel: WorkbookInference {
       "PASS setup release failure prevents subsequent model reuse without writing workbook data")
 
     try await checkWorkflowModelLifecycle()
+    try await checkWorkflowExtractionLifecycle()
 
     let parent = Cancellation()
     let child = Cancellation(parent: parent)

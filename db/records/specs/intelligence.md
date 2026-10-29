@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-29T03:18:54.629224+00:00
+updated: 2026-10-29T03:46:06.831806+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -800,3 +800,6 @@ completion cases as those tools are implemented, reusing unchanged engine eviden
 
 ## Truthful artifact action outcomes
 Saved success/failure receipts determine artifact outcomes independently of a model finish label. General/unresolved/completed-action answers with tracked writes/navigation render host outcomes. Failed current-request answers do the same. Independently cited facts and successful checked current-request arithmetic remain validated, with explicit outcomes appended. Keep raw finish arguments and receipt history for inspection. A failed save cannot become a successful save by changing basis to general. A queued workflow receipt says no steps/proposals executed. Actual V3 authoring failed this invariant; the repair has scripted counterexamples and a final actual-model job in [[records/specs/manual-workflows]]. Host success establishes saved state, not semantic fidelity of generated behavior.
+
+## Workflow-owned prepared document evidence
+An interpretation item argument mapped directly from a completed extract step reads that step's exact immutable retained extraction input. It does not silently switch to a later current index. The same ready/untruncated limit, exact quote validation and meaning/scenario rules apply. Ready text does not prove complete facts, embedded-object coverage or OCR accuracy; native Activity shows retained-text coverage and an original-document link. Preparation itself uses the bounded bundled helper without a model. Core/actual packaged-model qualification and limits are in [[records/specs/manual-workflows]].

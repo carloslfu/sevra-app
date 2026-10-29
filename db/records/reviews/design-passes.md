@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-29T03:18:54.644409+00:00
+updated: 2026-10-29T03:46:06.846712+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -472,3 +472,6 @@ Implementation review found three important edges: retain rejected raw responses
 
 ## Conversation interpretation adversarial review, October 28
 First pass, usability: raw workflow JSON caused repeated real-model invalid bindings and Boolean fields. A trusted exact workflow_template copies declared parameters, adds required action review and validates closure before save; it grants no execution. Second pass, identity: model-generated logical IDs caused refused saves. Host creation identity and exact inspected edit bases simplify the in-app contract, with stale/foreign/read-only refusal preserved. Third pass, truth: actual V3 falsely said saved after a failed write by relabeling its answer as general. Receipt-owned outcomes prevent this bypass; cited evidence and checked arithmetic remain independently useful. An overbroad first presentation fix bypassed arithmetic verification and failed the compaction counterexample, so the final fix narrows current-request replacement to unresolved failures. All failed probes and budget regressions remain retained. Final actual model passes metadata/run assertions, including two corrected workflow-save failures. This does not establish broad semantic reliability or release readiness.
+
+## Document workflow review and qualification, October 28
+Usefulness pass: explicit prepare -> interpret -> propose -> review keeps the original and pins the exact parsed text. Transaction pass: extracting through the public multi-transaction intake API would split the workflow checkpoint; trusted insertIndex now shares the outer captured mutation instead. No workbook lock spans helper parsing. Adversarial pass: linked files require deliberate inclusion, competing index attempts fence old publication, stale/cancelled/expired claims roll back index/checkpoint, incomplete text pauses, later indexing cannot replace a prepared interpretation input, and copies grant no execution. Eight focused groups plus four new actual process-death boundaries and the packaged receiving flow pass. Initial schema17/SQL16 disagreement failed fresh fixtures and is corrected by one canonical interpolated version. Formatting and harness failures remain preserved. Full business journeys/accessibility/automation and production readiness remain open.

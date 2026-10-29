@@ -958,3 +958,9 @@ Retained hosted55b1595 scroll failure; reproduced reflow defect locally and corr
 ## [2026-10-29 03:19] implementation | records/specs/manual-workflows.md
 Qualified schema16 conversation interpretation authoring, exact workflow templates, host-owned identities and truthful failed-action outcomes; retained four native-model attempts and scoped checks. Full app remains unfinished.
 
+## [2026-10-29 03:25] design | records/specs/manual-workflows.md
+Reviewed document preparation workflow boundary for usefulness, atomic recovery and adversarial coverage. Implementation/qualification next; whole E3 remains open.
+
+## [2026-10-29 03:46] implementation | records/specs/manual-workflows.md
+Schema17 included-document preparation qualified:268 broad core groups,37 final focused workflows,13 process-death boundaries, native packaged prepare/interpret/propose/review/reconstruct; conversation preparation authoring and whole release remain open.
+

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T03:18:54.674484+00:00
+updated: 2026-10-29T03:46:06.862835+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -5814,3 +5814,16 @@ V1-V3 failures remain retained, including a V3 false success after a refused sav
 Final fullcore260 predates the last AI-only presentation refinement; final scripted agent/grammar/native release and actual-model checks cover that refinement. Unchanged explicit-interpretation process-death/full Metal/packaged CLI evidence is reused. A final extra malformed-edit-base test changes tests only. Hosted3d60b36 document reflow stage now passes; the complete run is still in progress. Current authoring changes require a new exact-commit CI after push.
 
 Next qualify document preparation/import workflow boundaries without nesting existing multi-transaction intake under a checkpoint. Preserve file bytes, exact extraction identity/coverage, asynchronous lock release and final lease-fenced publication. Full receiving recovery, richer graphs, general outbox, E4-E6, contextual Excel continuity, broad voice/accessibility/hardware and production adoption/distribution remain open. The active goal and whole app remain unfinished.
+
+## Included-document workflow preparation checkpoint, October 28
+Development schema17 adds a reusable extraction definition and exact extract workflow step for an already included business file. The bounded bundled native helper runs outside workbook locks, with before/after asset and helper identity checks. It captures exact input/parser/worker/budget/read revision first. Search index, immutable reference input/snapshot, step output, attempt, receipt and outbox publish in one captured transaction under the final lease/cancellation/index-owner fences. Partial, unsupported or truncated text pauses for attention. The original file remains outside SQLite inside the workbook. No model is loaded for preparation.
+
+The broad shared suite passes268 core groups and all integration stages. Final focused workflows37/0, native release build, installed-resource/refusal/signature checks, strict20-file formatting and skill validation pass. Product lifecycle checks demonstrate another writer proceeds while a real child parser waits; cancellation keeps the previous index. All13 actual SIGKILL boundaries pass, including preparation request, parsed output, inside index/checkpoint publication and after commit. Original and reconstructed copies verify, and reconstructed runs stay inert. The [document workflow receipt](../../../integration/evidence/2026-10-28-workflow-documents.json.gz) preserves exact identities, failures and all120 earlier immutable artifacts byte-identically.
+
+The final packaged native CLI includes a synthetic file, prepares it, interprets its exact retained extraction as count5 and drafts an inventory movement, stopping at review with stock20. Explicit synthetic human review changes stock to25. Post-review continuation completes with an intentionally absent model directory. Reconstruction preserves the completed run and25 balance; both packages verify. The first continuation takes18.543s under development load, not a performance/throughput claim. Source and binary identities were captured before inference.
+
+Preserved failures include optional-chain compilation, schema constant17/SQL16 mismatch, an incorrect expected authority error and strict closure formatting. SQL now derives user_version from the canonical version constant. No compatibility adapter or user-workbook reset is added. Broad V7 precedes a message-only wording change and style-only guard hoist; final V9 focused/native/package/model checks cover those. No latest visible, VoiceOver/appearance or new full Metal qualification is claimed. Preparation authoring is core/CLI only. Conversation authoring, structured row/Excel import, new report-creation workflow steps, richer graphs, full EJ06-EJ08, E4-E6 and production release gates remain open.
+
+Previous3d60b36 hosted CI40808719447 is fully green, including native document reflow. Authoring4de0dfe CI40811548594 is still building native products at this checkpoint; no current whole-CI pass is claimed. Dispatch a new exact-commit run after this push.
+
+Next qualify conversation preparation discovery/authoring and exact workflow templates within unchanged grammar/prompt budgets, then complete receiving recovery and report-creation/structured import boundaries. General business outbox effects, richer graphs, E4-E6, contextual Excel continuity, broad voice/accessibility/hardware, measured engine adoption and notarized release remain open. The active goal and whole app remain unfinished.

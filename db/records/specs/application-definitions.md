@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T03:18:54.689131+00:00
+updated: 2026-10-29T03:46:06.727968+00:00
 summary: Schema16 definitions, interpretation authoring and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
@@ -11,7 +11,7 @@ status: reviewed
 
 This elaborates E2 in [[records/specs/native-app-engine]]. It is an implementation
 contract, not a statement of whole-feature completion. E1 is captured at cd5f854.
-The current schema16 catalog retains scoped core/CLI registered inventory actions and
+The current schema17 catalog retains scoped core/CLI registered inventory actions and
 recoverable native form implementation in addition to the earlier pure computation.
 Agent tools, focused native forms, reusable native computation and exact result
 publication have scoped qualification below. Full EJ04/EJ05 remain open. E3 owns durable multi-step execution; do not hide
@@ -608,3 +608,6 @@ Workflow discovery/save/form templates reuse the same catalog validation and exa
 A reusable interpretation declares bounded instruction text, required exact business item evidence parameters,1..32 typed output fields without defaults, meaning and scenario. Exact interpret workflow steps capture full bounded text/data or ready/untruncated extraction, actual model/schema/budget/read revision and exact quotations. Output is a separately reviewable draft Record. No tools, raw code, search or acceptance run inside interpretation. Typed named output mappings and transitive calculation lineage retain actual/estimate/scenario boundaries. See [[records/specs/manual-workflows]] for contracts and scoped core/native/actual-model qualification.
 
 Core/CLI and conversation save_definition/find_definitions now author/discover interpretation with scoped grammar/model qualification in [[records/specs/manual-workflows]]. In-app creation omits expectedDefinitionID; editing supplies only its exact inspected base. The host derives identity. workflow_template copies exact validated behavior parameters/bindings for save_template without execution. Standalone evaluate_definition remains pure function/query evaluation. No implicit inference on discovery, opening, reconstruction or saved Home rendering.
+
+## Native document preparation definitions, schema17
+extraction declares payload parser=native-v1 and file=the one required item parameter ID, without defaults or units. Exact extract workflow steps accept an included business file; no folder/path/network capability is granted. Map a completed extract output with {step: PREPARE_ID, field: item} to an interpretation item parameter to pin its exact retained extraction. Saving a definition never parses or invokes a model. Core/CLI preparation authoring and native execution have scoped proof in [[records/specs/manual-workflows]]. Conversation tools do not yet advertise this kind; workflow_template support and actual grammar/model authoring require separate qualification.

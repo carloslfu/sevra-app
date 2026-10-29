@@ -146,12 +146,25 @@ struct WorkflowRunView: View {
               Text("Updated " + DisplayText.date(step["updated"].text))
                 .font(.caption).foregroundStyle(.secondary)
               let output = step["output"]["value"]
-              if !step["detail"].text.isEmpty, output["kind"] != .string("interpretation") {
+              if !step["detail"].text.isEmpty,
+                !["interpretation", "extraction"].contains(output["kind"].text)
+              {
                 Text(step["detail"].text).foregroundStyle(.red)
               }
               if output["kind"] == .string("function") {
                 Text(output["result"].text + (output["unit"].string.map { " " + $0 } ?? ""))
                   .font(.title3).textSelection(.enabled)
+              } else if output["kind"] == .string("extraction") {
+                Text(
+                  output["complete"] == .bool(true)
+                    ? "Document prepared" : "Document needs attention"
+                )
+                .font(.callout)
+                Text(output["detail"].text).foregroundStyle(.secondary)
+                Text(output["coverage"].text).font(.caption).foregroundStyle(.secondary)
+                Button("Open original document") {
+                  workspace.navigate(.item(output["itemID"].text))
+                }
               } else if output["kind"] == .string("interpretation") {
                 Text("Local AI interpretation · Review before business use").font(.callout)
                 WorkflowInputsView(

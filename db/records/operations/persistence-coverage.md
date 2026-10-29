@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T03:18:54.659349+00:00
+updated: 2026-10-29T03:46:06.816656+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -345,3 +345,6 @@ Core256/0, focused25/0 and final product lifecycle checks pass. Nine real proces
 
 ## Conversation interpretation authoring capture
 Conversation interpretation saves and exact workflow templates reuse schema16 application definition Sources/dependencies, stable retry tokens and the same committed-change ledger. In-app logical identity belongs to the host; edits identify an exact base. The template read is metadata-only, not a mutation or execution grant. Raw failed tool receipts and model finish arguments remain available even when host presentation replaces false success. Fullcore260/0 and the final native-model author/workflow/queue fixture preserve one pending run and no business Records; inert reconstructed copies verify. No schema17, new independent ledger or sync claim is introduced. See [[records/specs/manual-workflows]].
+
+## Native preparation capture, schema17
+workflow_extraction_request captures exact included business item/asset/hash, definition/parser, actual worker executable digest, limits, read revision and attempt identity. No DB lock spans helper hashing/parsing. The same captured publication contains index/FTS/status/reference input+snapshot and workflow output/checkpoint/attempt/receipt/outbox, with final worker lease/cancel/extraction-owner fencing. Retry may repeat uncommitted parsing but returns the exact committed receipt. Retained extraction lineage remains independent of later current index changes. Thirteen actual SIGKILL boundaries,268 broad core groups,37 final focused workflow groups, async real-child lock/cancel checks and the final packaged-model receiving flow pass. Inert reconstruction preserves exact output and stock. No parallel ledger or sync semantics are introduced. See [[records/specs/manual-workflows]].

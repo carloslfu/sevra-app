@@ -40,25 +40,36 @@ extension Workbook {
     expectedAttemptID: String? = nil
   ) throws {
     _ = try mutation("index", request: .string(id), cancellation: cancellation) {
-      if let expectedAttemptID {
-        try require(
-          try db.scalar("SELECT attempt_id FROM extraction_attempts WHERE item_id=?", [.string(id)])
-            .text == expectedAttemptID,
-          "stale_extraction", "A newer extraction attempt owns this file's current index.")
-      } else {
-        try db.execute("DELETE FROM extraction_attempts WHERE item_id=?", [.string(id)])
-      }
-      let record = try item(id)
-      try db.execute("DELETE FROM chunks WHERE item_id=?", [.string(id)])
-      try insertChunks(id, title: record.title, chunks: chunks.isEmpty ? [Chunk("")] : chunks)
-      try db.execute(
-        "INSERT INTO extraction VALUES(?,?,?,?,?) ON CONFLICT(item_id) DO UPDATE SET state=excluded.state,detail=excluded.detail,parser=excluded.parser,updated=excluded.updated",
-        [.string(id), .string(state), .string(detail), .string(parser), .string(timestamp())])
-      try captureFileReferences(
-        id, chunks: chunks, state: state, detail: detail, parser: parser, cancellation: cancellation
-      )
+      try insertIndex(
+        id, chunks: chunks, state: state, detail: detail, parser: parser,
+        cancellation: cancellation, expectedAttemptID: expectedAttemptID)
       return .string(id)
     }
+  }
+
+  /// Trusted transactional body shared with workflow publication. Call only
+  /// inside the ordinary captured mutation; never nest public index/extract.
+  func insertIndex(
+    _ id: String, chunks: [Chunk], state: String, detail: String, parser: String,
+    cancellation: Cancellation, expectedAttemptID: String?
+  ) throws {
+    if let expectedAttemptID {
+      try require(
+        try db.scalar("SELECT attempt_id FROM extraction_attempts WHERE item_id=?", [.string(id)])
+          .text == expectedAttemptID,
+        "stale_extraction", "A newer extraction attempt owns this file's current index.")
+    } else {
+      try db.execute("DELETE FROM extraction_attempts WHERE item_id=?", [.string(id)])
+    }
+    let record = try item(id)
+    try db.execute("DELETE FROM chunks WHERE item_id=?", [.string(id)])
+    try insertChunks(id, title: record.title, chunks: chunks.isEmpty ? [Chunk("")] : chunks)
+    try db.execute(
+      "INSERT INTO extraction VALUES(?,?,?,?,?) ON CONFLICT(item_id) DO UPDATE SET state=excluded.state,detail=excluded.detail,parser=excluded.parser,updated=excluded.updated",
+      [.string(id), .string(state), .string(detail), .string(parser), .string(timestamp())])
+    try captureFileReferences(
+      id, chunks: chunks, state: state, detail: detail, parser: parser, cancellation: cancellation
+    )
   }
   public func extractionStatus(_ id: String) throws -> Value {
     try synchronized {

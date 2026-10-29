@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T03:18:54.598993+00:00
+updated: 2026-10-29T03:46:06.772266+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -123,7 +123,7 @@ business review remains separate. See [[records/specs/application-definitions]],
 This is a scoped E2 foundation. The registry/draft/native-form foundation now has schema14 scoped automated proof
 below. Model authoring/invocation and focused visible native form journeys now have
 scoped proof in the [agent application definition receipt](../../../integration/evidence/2026-10-28-agent-application-definitions.json.gz). Native calculation/query views and result publication now have scoped proof in the
-[native computation receipt](../../../integration/evidence/2026-10-28-native-computation.json.gz). Full EJ04/EJ05 remain open. The schema16 manual workflow core/CLI, explicit native AI interpretation, native Activity/recoverable forms and conversation authoring/queued starts are tracked in [[records/specs/manual-workflows]]. Actual-model jobs qualify interpretation/workflow authoring and queueing without execution; import/document steps and full E3/EJ06-EJ08 remain open. E4-E6 remain unimplemented.
+[native computation receipt](../../../integration/evidence/2026-10-28-native-computation.json.gz). Full EJ04/EJ05 remain open. The schema17 manual workflow core/CLI, explicit native AI interpretation, native Activity/recoverable forms and conversation authoring/queued starts are tracked in [[records/specs/manual-workflows]]. Actual-model jobs qualify interpretation/workflow authoring and queueing without execution; Included-document preparation now has scoped core/CLI, native coordinator, process-death and actual packaged-model proof. Conversation preparation authoring, structured import/report-creation steps and full E3/EJ06-EJ08 remain open. E4-E6 remain unimplemented.
 
 ## Home and spaces
 

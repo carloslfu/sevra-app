@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-29T02:16:40.020540+00:00
+updated: 2026-10-29T03:46:06.756618+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -526,4 +526,7 @@ eight alternatives and 256 keys before save/open/verify. See [registered action 
 and [[records/operations/persistence-coverage]].
 
 ## Current workflow interpretation storage, schema16
-The canonical development schema is16, with no legacy adapter. interpretation extends application_definitions; interpret extends workflow_steps. Exact prepared model requests and bounded raw response diagnostics use captured operations in the shared committed-change ledger. Validated typed output, a draft Record, exact evidence/definition/run lineage, step result, receipt and outbox publish atomically with the final worker lease check. Reconstruct normalized results against original raw envelopes without invoking a model. Assets remain outside SQLite inside the workbook. Preserve old development workbooks; only selected synthetic fixtures are recreated. See [[records/specs/manual-workflows]].
+The interpretation foundation introduced schema16; current development schema17 below retains it without a legacy adapter. interpretation extends application_definitions; interpret extends workflow_steps. Exact prepared model requests and bounded raw response diagnostics use captured operations in the shared committed-change ledger. Validated typed output, a draft Record, exact evidence/definition/run lineage, step result, receipt and outbox publish atomically with the final worker lease check. Reconstruct normalized results against original raw envelopes without invoking a model. Assets remain outside SQLite inside the workbook. Preserve old development workbooks; only selected synthetic fixtures are recreated. See [[records/specs/manual-workflows]].
+
+## Current native document preparation storage, schema17
+The canonical development schema is17. application_definitions admits extraction and workflow_steps admits extract. Exact preparation requests and extraction-attempt ownership use the same captured operation/change ledger. The trusted transactional index body publishes chunks/FTS, extraction status, retained reference input/snapshot, workflow checkpoint/attempt/receipt/outbox together. It does not nest the public multi-transaction intake/extract operations. Exact retained extraction inputs survive later current-index changes and inert reconstruction. Uncommitted parsing can repeat; committed preparation does not. Assets remain outside SQLite inside the workbook. Preserve old workbooks and recreate only selected synthetic fixtures. See [[records/specs/manual-workflows]].

@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T03:18:54.614252+00:00
+updated: 2026-10-29T03:46:06.801755+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1575,7 +1575,7 @@ python3 scripts/check_workflow_cli.py --cli .build/debug/sevra --worker .build/d
 
 The shared check script and CI include the process-death and independent CLI probes. The native fixture worker is a test executable, not a shipped background helper. CLI help lists workflow-start/read/list/advance/claim/finish/heartbeat/retry/cancel/events. Every advance is one explicit bounded step; reaching review returns waiting_review without accepting proposals. Inspect and accept the exact proposals through the ordinary review path, then deliberately advance again.
 
-Definitions use kind workflow and the contract in [[records/specs/manual-workflows]]. Current development schema16 replaces earlier development schemas without a legacy adapter. Preserve old packages and use a matching earlier development build for recovery. Only recreate selected disposable fixtures. No installed user package is reset or upgraded automatically.
+Definitions use kind workflow and the contract in [[records/specs/manual-workflows]]. Current development schema17 replaces earlier development schemas without a legacy adapter. Preserve old packages and use a matching earlier development build for recovery. Only recreate selected disposable fixtures. No installed user package is reset or upgraded automatically.
 
 ## Manual workflow activity
 Use workflow-activity WORKBOOK [STATE|- [CURSOR]] for bounded newest-first pages, workflow-inspect WORKBOOK RUN_ID for exact inputs/steps/proposals/attempts, and workflow-continue WORKBOOK RUN_ID for a deliberate continuation to the next review or terminal state. Read/inspect never resumes a run. Native Activity is accessible beside Review drafts; Continue, Retry unfinished work and Stop workflow use the same trusted core commands. A changed workflow-run family clock requires refresh; agent journal and unrelated writes preserve continuation. Full workflow/automation and accessibility gates remain open.
@@ -1595,7 +1595,12 @@ workflow-continue WORKBOOK RUN_ID [MODEL_DIRECTORY] uses the shared ProductAI ow
 
 Save interpretation/workflow JSON with definition-save and the typed contract in [[records/specs/manual-workflows]]. Interpretation output becomes a draft Record and cannot accept inventory. Inspect workflow-inspect/Activity for exact retained evidence, model, issues and any rejected raw response; Retry is deliberate, not automatic model correction.
 
-Run .build/debug/sevra-checks --workflows for focused core checks and .build/debug/sevra-product-checks for async ownership/lifecycle. scripts/check_workflow_durability.py includes nine real process-death boundaries. The agent check runner accepts --workflow-interpretation MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT for clear/incomplete actual-model fixtures; it runs normal scripted checks first. The output directory must not exist. This proves bounded task behavior, not throughput. The native packaged CLI imported-file/interpret/propose/review/reconstruct job and focused visible UI observations are retained in [[records/operations/implementation]].
+Run .build/debug/sevra-checks --workflows for focused core checks and .build/debug/sevra-product-checks for async ownership/lifecycle. scripts/check_workflow_durability.py now includes13 real process-death boundaries, including four preparation boundaries. The agent check runner accepts --workflow-interpretation MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT for clear/incomplete actual-model fixtures; it runs normal scripted checks first. The output directory must not exist. This proves bounded task behavior, not throughput. The native packaged CLI imported-file/interpret/propose/review/reconstruct job and focused visible UI observations are retained in [[records/operations/implementation]].
 
 ## Conversation interpretation authoring checks
 Build sevra-agent-checks, then run .build/debug/sevra-agent-checks for scripted authority, truthful outcomes and compaction checks. Its --interpretation-authoring MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT mode runs three actual native-model tasks: author interpretation, compose exact one-step workflow, queue without executing. The output must not exist and retains pre-inference source/runner identity, exact requests/messages/results and two inert synthetic packages. Use the installed model layout,32K and bounded512. This is functional evidence, not throughput. The pinned Python reference generator is test tooling only; the app runtime remains Python-free. See [[records/specs/manual-workflows]].
+
+## Explicit native document preparation workflow
+Save an extraction definition through definition-save: kind extraction, exactly one required item parameter, payload {parser: native-v1, file: PARAMETER_ID}. Bind an exact workflow extract step to that definition. The file must already be included as a workbook business item; explicitly include linked files first. workflow-continue and native Continue run the bundled bounded helper without loading a model. workflow-advance alone refuses this asynchronous step. Ready/untruncated preparation returns itemID and exact retained extraction identity. Map {step: PREPARE_ID, field: item} into an interpretation item parameter; the model reads that exact snapshot rather than a later current index. Partial/unsupported/truncated parsing pauses for attention. No original file is deleted or inventory accepted. The baseline preserves its interpretation refusal.
+
+Build sevra-checks/sevra-product-checks/sevra-workflow-durability and run their focused workflow/lifecycle/process-death checks. The shared check suite includes these automatically. Final packaged prepare/interpret/propose/review/reconstruct proof is retained in [[records/operations/implementation]]. Conversation extraction authoring and structured-data/report workflow steps remain separate work.

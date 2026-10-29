@@ -25,6 +25,32 @@ public struct ExtractionWorker: Sendable {
       .resolvingSymlinksInPath().deletingLastPathComponent().appendingPathComponent("sevra-extract")
   }
 
+  public func workflowIdentity(cancellation: Cancellation = .init()) throws -> Value {
+    try require(arguments.isEmpty, "workflow_extraction_worker", "Use the native document helper.")
+    let identity: Value = .object([
+      "protocol": .string("sevra-extract-v1"),
+      "sha256": .string(try Workbook.hashFile(executable, cancellation: cancellation)),
+      "timeoutSeconds": .number(timeout), "memoryBytes": .number(Double(maximumMemoryBytes)),
+    ])
+    try Self.validateWorkflowIdentity(identity)
+    return identity
+  }
+
+  static func validateWorkflowIdentity(_ value: Value) throws {
+    guard case .number(let timeout) = value["timeoutSeconds"],
+      case .number(let memory) = value["memoryBytes"]
+    else {
+      throw SevraError("workflow_extraction_worker", "Use numeric native helper limits.")
+    }
+    try require(
+      Set(value.object.keys) == ["protocol", "sha256", "timeoutSeconds", "memoryBytes"]
+        && value["protocol"] == .string("sevra-extract-v1")
+        && value["sha256"].text.range(of: "^[0-9a-f]{64}\\z", options: .regularExpression) != nil
+        && timeout.isFinite && timeout > 0 && timeout <= 60
+        && memory.isFinite && memory > 0 && memory <= 1_073_741_824,
+      "workflow_extraction_worker", "Use the bounded native document helper identity.")
+  }
+
   public func extract(_ url: URL, cancellation: Cancellation = .init()) throws -> ExtractionResult {
     let result: ExtractionResult = try run(url, mode: [], cancellation: cancellation)
     try result.validate()
