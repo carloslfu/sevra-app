@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T08:28:19.450439+00:00
+updated: 2026-10-29T08:44:38.057524+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1653,3 +1653,11 @@ Final automated checks pass66 workflow groups plus native session/context invali
 Use `output/native/bin/sevra schedule-preview '{"policy":"native-calendar-v1","timeZone":"America/Bogota","hour":9,"minute":0,"recurrence":{"kind":"weekly","weekdays":[1,2,3,4,5]}}' 2026-10-29T12:00:00Z 5` for the next five weekday mornings. The command also accepts @PATH to an explicitly selected regular UTF-8 JSON file up to64 KiB. It does not take a workbook path or require a model. Count is1 through100 and optional horizon is1 through3660 local days. A horizon result can be empty without establishing there are no later occurrences. Local date slot keys still need an exact automation/trigger-version identity before durable dispatch.
 
 Focused checks: `swift build --product sevra-checks -j 4`, `.build/debug/sevra-checks --schedules`, then after a frozen native build `python3 scripts/check_schedule_preview.py --cli output/native/bin/sevra --output NEW_DIRECTORY`. Final13 groups and31 packaged calls pass. Existing package/refusal/signature checks pass; no UI activation or background execution is implemented here. See [[records/specs/automation-schedules]].
+
+## Saving inert automation definitions
+
+Use the existing definition-save command with kind automation, title/description, parameters [] and payload {policy:calendar-drafts-v1,workflow:{mode:exact,versionID},arguments,schedule}. Arguments must satisfy the exact workflow signature; use exact local item versions, not paths or logical item IDs. Schedule uses the native calendar contract. Save is metadata only. Search with definition-search WORKBOOK QUERY followed by options JSON containing kind automation; read, history and restore use existing definition commands.
+
+Use `output/native/bin/sevra automation-preview WORKBOOK EXACT_DEFINITION_ID 2026-10-29T12:00:00Z 5` to inspect pinned normalized inputs and next dates without execution. Enabled fields are rejected. The agent save tool intentionally cannot create this kind yet. Native configuration and activation are still pending.
+
+Focused checks: `.build/debug/sevra-checks --automations` and `python3 scripts/check_automation_definitions.py --cli output/native/bin/sevra --output NEW_DIRECTORY`. The schema19 checkpoint passes all326 core groups,8 focused automation groups,36 installed automation and31 calendar calls, strict10-file lint and native package checks. No existing user workbook is reset; old development formats require their matching build. See [[records/specs/automation-definitions]].

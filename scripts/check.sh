@@ -11,6 +11,7 @@ BIN=$(swift build --show-bin-path)
 "$BIN/sevra-checks"
 swift build --product sevra -j "${SEVRA_BUILD_JOBS:-4}"
 python3 scripts/check_schedule_preview.py --cli "$BIN/sevra"
+python3 scripts/check_automation_definitions.py --cli "$BIN/sevra"
 python3 scripts/check_references.py --cli "$BIN/sevra"
 python3 scripts/check_extracted_references.py --cli "$BIN/sevra"
 python3 scripts/check_contextual_intake.py --cli "$BIN/sevra"

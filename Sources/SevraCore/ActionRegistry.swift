@@ -274,6 +274,7 @@ extension Workbook {
     case "action": return try DefinitionAction(descriptor).calls.map(\.binding)
     case "form": return [try DefinitionForm(descriptor).binding]
     case "workflow": return try DefinitionWorkflow(descriptor).steps.compactMap(\.binding)
+    case "automation": return [try DefinitionAutomation(descriptor).workflow]
     default: return []
     }
   }

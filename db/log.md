@@ -1042,3 +1042,12 @@ Pure bounded native calendar preview/core/CLI with exact zones and local-day/UTC
 ## [2026-10-29 08:28] verification | records/specs/automation-schedules.md
 Final13 calendar groups/0 and strict5 Swift files. Frozen V2 native build,31 installed CLI cases, resource/missing10/altered refusals and signature; V3 test-only whole-date boundary group reuses identical production proof.133 prior evidence files unchanged. Receipt e608825e2adedb6d11795bdd26e77997411e2e012b89bd5f47bf7768248b7eb2. Full E4 runtime/UI and app/release gates remain open.
 
+## [2026-10-29 08:33] design | records/specs/automation-definitions.md
+Three passes: shared schema19 definition capture; portable intent versus device execution authority; exact bindings, typed/nested item lineage, stale/retry/fault and inert reconstruction. No activation or agent authoring.
+
+## [2026-10-29 08:44] implementation | records/specs/automation-definitions.md
+Schema19 inert automation kind over shared immutable definitions, exact workflow/nested typed evidence lineage, FTS and capture. New exact read-only preview; no activation, runtime or ordinary agent authoring.
+
+## [2026-10-29 08:44] verification | records/specs/automation-definitions.md
+Final frozen V2 passes326 full core groups/0,8 automation groups, strict10 Swift files, native app/CLI build,36 automation+31 calendar installed calls, resource/missing10/altered refusals and signature.134 prior evidence artifacts byte-identical. Receipt b837e7b50ef0cae81fc0e246f5f963889e4fc61d37e49d7b0a11539f74e37ed7. Exact9d0f15c prior CI green; full E4/release remain open.
+

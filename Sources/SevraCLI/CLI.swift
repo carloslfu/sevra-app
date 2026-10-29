@@ -93,6 +93,9 @@ import SevraProduct
     }
     if command == "demo" { return try Demo.create(at: url(1)) }
     let book = try Workbook(url(1))
+    if command == "automation-preview" {
+      return try runAutomationPreview(args, book: book, cancellation: cancellation)
+    }
     if command == "commits" {
       try require(args.count == 2 || args.count == 3, "usage", "commits WORKBOOK [LIMIT]")
       return .array(try book.committedHistory(limit: args.count == 3 ? Int(args[2]) ?? 0 : 100))
@@ -678,6 +681,7 @@ import SevraProduct
     opening WORKBOOK SUBJECT QUANTITY ISO_DATE SOURCE_ID | movement WORKBOOK JSON
     balance WORKBOOK SUBJECT | calculate EXPRESSION [VALUES_JSON]
     schedule-preview SCHEDULE_JSON_OR_@FILE AFTER_ISO [COUNT] [HORIZON_DAYS]
+    automation-preview WORKBOOK EXACT_DEFINITION_ID AFTER_ISO [COUNT] [HORIZON_DAYS]
     spaces WORKBOOK | space WORKBOOK TITLE DEFINITION_JSON | pin-space WORKBOOK SPACE_ID [TITLE]
     space-edit WORKBOOK SPACE_ID BASE_VERSION EDITS_JSON [TOKEN]
     space-history WORKBOOK SPACE_ID [BEFORE_VERSION]

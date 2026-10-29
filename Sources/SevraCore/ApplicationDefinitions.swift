@@ -99,13 +99,17 @@ extension Workbook {
         try db.scalar("SELECT count(*) FROM app_definition_heads WHERE logical_id=?", [.string(id)])
           .int == 0,
         "definition_identity", "Logical and exact definition identities must be distinct.")
+      let automationInputs =
+        descriptor.kind == "automation" ? try validateAutomationDefinition(descriptor).inputs : []
+      let sourceInputs = inputs + (previous.map { [$0.sourceID] } ?? [])
       let source = try insertItem(
         category: "source", kind: "application_definition", title: "Define " + descriptor.title,
         text: actual.label + " saved a reusable " + descriptor.kind
           + ". Execution and business acceptance are separate decisions.",
         data: .object(["submitted": request, "actor": try encoded(actual)]), meaning: "actual",
         status: "accepted", scenario: "actual",
-        inputs: inputs + (previous.map { [$0.sourceID] } ?? []),
+        inputs: descriptor.kind == "automation"
+          ? Array(Set(sourceInputs + automationInputs)).sorted() : sourceInputs,
         transformation: "application-definition-authoring-v1")
       try db.execute(
         "INSERT INTO app_definitions VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -194,7 +198,9 @@ extension Workbook {
         try validateDefinitionItemReferences(parameter, value)
       }
     }
-    if descriptor.kind == "intake" {
+    if descriptor.kind == "automation" {
+      _ = try validateAutomationDefinition(descriptor)
+    } else if descriptor.kind == "intake" {
       try validateIntakeDefinition(descriptor)
     } else if descriptor.kind == "extraction" {
       _ = try DefinitionExtraction(descriptor)

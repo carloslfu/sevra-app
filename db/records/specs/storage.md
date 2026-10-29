@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-29T08:00:09.229332+00:00
+updated: 2026-10-29T08:44:38.017022+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -542,3 +542,7 @@ An optional preparation value in the existing clarification presentation entry r
 ## Retained conversation confirmation
 
 The existing captured workflow_clarification operation may additionally retain confirmation metadata: policy, exact user message text/ID, conversation, host preview message/hash and draft entry/retry identity. It is present in the supplied Source and saved step clarification; integrity validates the referenced immutable messages and exact typed preview. It adds no canonical family or physical schema. Canonical receipt recovery validates optional confirmation separately from the presentation entry. The live native capability is deliberately not serialized or reconstructed. See [[records/specs/manual-workflows]].
+
+## Current schema19 automation metadata
+
+The canonical initial schema is now19, extending only the app_definitions kind CHECK constraint with automation. It adds no physical table or parallel ledger. Shared immutable versions/heads/dependencies, Source lineage, FTS and capture/reconstruction retain exact workflow and argument evidence. Original submitted content and actor remain separate from normalized preview values. No enabled/device grant or trigger dispatch state exists in this slice. Existing development files remain preserved and unsupported formats refuse; no legacy adapter/reset. Final326 full core groups and native-package/36 automation/31 calendar CLI evidence pass. Details: [[records/specs/automation-definitions]].

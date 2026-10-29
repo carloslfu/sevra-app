@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T08:00:09.245975+00:00
+updated: 2026-10-29T08:44:38.037477+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -386,3 +386,7 @@ The existing portable clarification checkpoint now retains optional exact curren
 ## Conversation confirmation capture
 
 Native composer confirmation uses the existing workflow_clarification operation/token, supplied Source/Record and captured ledger/outbox. Metadata retains exact human confirmation and host preview message/hash identities. Current transaction checks saved typed inputs/target/current-message adjacency/cancellation; historical integrity checks exact retained messages/hash. Outbox fault and prepared-stage cancellation roll back; receipt recovery and inert reconstruction validate retained confirmation without restoring live authority. Final66 focused workflow groups and native session/package checks pass. This is scoped local persistence, not a new ledger, sync or background execution. Details: [[records/specs/manual-workflows]].
+
+## Schema19 inert automation capture
+
+Automation reuses app_definitions, heads/dependencies, authoring Sources/lineage and the same committed-change ledger. The only physical schema change is the kind constraint. Exact-base/idempotent versioning, nested item evidence, pinned workflow history, publication-fault/cancellation rollback, source/dependency corruption checks and inert reconstruction have new scoped proof within the326-group full core pass.36 installed automation CLI calls plus31 calendar calls and final native package/refusal/signature checks pass. No activation, new ledger, trigger execution or claim of a fresh whole SIGKILL matrix. Details: [[records/specs/automation-definitions]].

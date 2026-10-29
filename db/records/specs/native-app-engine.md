@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T08:28:19.430285+00:00
+updated: 2026-10-29T08:44:37.975708+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -683,3 +683,7 @@ Preview my answer and Save/Confirm my answer now bypass model loading in the nat
 ## Calendar preview qualification, October 29
 
 The shared pure Swift planner and standalone CLI have13 focused groups/0,31 installed CLI cases and final native package/resource/refusal/signature proof. It exposes bounded coverage and exact local/UTC outcomes, and fixes the observed half-hour gap skip through bounded day-local resolution. No activation, new schema, model tool or execution. Full E4 durable state/runtime and native UI remain open. Exact evidence and three-pass contract: [[records/specs/automation-schedules]].
+
+## Inert automation definition qualification, October 29
+
+Schema19 now stores exact workflow/calendar intentions in the existing immutable application-definition family, with typed/nested item lineage, FTS, stale-base/idempotent saves and inert reconstruction. All326 core groups pass, plus36 installed automation/31 calendar CLI calls and native package/refusal/signature checks. Saving, importing, restoring and previewing grant no execution authority. Ordinary agent authoring stays closed. Explicit activation/device-local grants, durable occurrences/catch-up/overlap, foreground dispatch and E5 remain open. Contract and evidence: [[records/specs/automation-definitions]].

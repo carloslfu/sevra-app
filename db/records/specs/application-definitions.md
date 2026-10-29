@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T08:00:09.211729+00:00
+updated: 2026-10-29T08:44:37.996764+00:00
 summary: Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
@@ -643,3 +643,7 @@ prepare_workflow_answer is offered only after a successful same-request read_wor
 ## Human conversation confirmation boundary
 
 The model can only prepare unsent inputs. Standalone local composer commands preview and confirm an exact paused interpretation through the same core clarification operation. No additional AI tool or execution authority. Host preview values/document links, current message adjacency, live workbook/session/conversation capability and canonical current-target checks gate submission. Continue/review stay separate. Full qualification and limits: [[records/specs/manual-workflows]].
+
+## Schema19 inert automation definitions
+
+Automation now joins the shared version/head/dependency/Source/FTS/captured-change family. It pins an exact saved workflow and typed fixed inputs, including nested item evidence, plus a native calendar rule. Empty parameters and calendar-drafts-v1 policy; no enabled or execution fields. Definition save/search/read/history/restore and exact automation-preview are core/CLI only; ordinary save_definition still refuses this kind. Normalized preview values remain separate from original authoring bytes. Final326 full core groups,36 automation and31 calendar installed CLI calls, native package/refusal/signature and inert/fault evidence pass. No activation or operational scheduler. See [[records/specs/automation-definitions]].

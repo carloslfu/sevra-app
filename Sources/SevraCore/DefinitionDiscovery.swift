@@ -11,7 +11,7 @@ extension Workbook {
         && (kind == nil
           || [
             "function", "query", "action", "form", "workflow", "interpretation", "extraction",
-            "intake",
+            "intake", "automation",
           ]
           .contains(kind!)),
       "definition_limit",
@@ -159,6 +159,8 @@ extension Workbook {
               call, caller: descriptor, target: DefinitionDescriptor(target.content),
               arguments: nil, validateOnly: true)
           }
+        } else if saved.kind == "automation" {
+          try verifyAutomationDefinition(saved, dependencies: dependencies)
         } else if saved.kind == "intake" {
           let intake = try DefinitionIntake(descriptor)
           try validateIntakeDefinition(descriptor, historical: true)
