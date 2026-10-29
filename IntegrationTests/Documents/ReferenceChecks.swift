@@ -243,7 +243,8 @@ private actor ReferenceReadGate<T: Sendable> {
     }
   }
   await checkAsync("Native scroll observation restores and retains a real clip-view position") {
-    var saved = DocumentReadingPosition(offset: 400, scrollable: 1600, width: 400)
+    let initial = DocumentReadingPosition(offset: 400, scrollable: 1600, width: 400)
+    var saved = initial
     let host = NSHostingView(
       rootView: ScrollView {
         VStack {
@@ -262,23 +263,45 @@ private actor ReferenceReadGate<T: Sendable> {
     }
     let deadline = ProcessInfo.processInfo.systemUptime + 2
     var scroll: NSScrollView?
+    var lastGeometry: CGRect?
+    var stableLayouts = 0
     while ProcessInfo.processInfo.systemUptime < deadline {
       host.layoutSubtreeIfNeeded()
       scroll = findScroll(host)
-      if let scroll, scroll.contentView.bounds.minY > 0 { break }
+      if let scroll, let content = scroll.documentView {
+        let geometry = CGRect(
+          x: scroll.contentView.bounds.width, y: scroll.contentView.bounds.height,
+          width: content.bounds.width, height: content.bounds.height)
+        stableLayouts = lastGeometry == geometry ? stableLayouts + 1 : 0
+        lastGeometry = geometry
+        if stableLayouts >= 3 && scroll.contentView.bounds.minY > 0 { break }
+      }
       try await Task.sleep(nanoseconds: 5_000_000)
     }
     guard let scroll, let content = scroll.documentView else {
       throw SevraError("scroll_check", "The native scroll view did not attach")
     }
-    let expected = saved.restoredOffset(
+    let expected = initial.restoredOffset(
       width: scroll.contentView.bounds.width,
       scrollable: content.bounds.height - scroll.contentView.bounds.height)
     try expect(abs(scroll.contentView.bounds.minY - expected) < 1, "Clip view did not restore")
-    scroll.contentView.scroll(to: NSPoint(x: 0, y: 700))
-    scroll.reflectScrolledClipView(scroll.contentView)
-    try await Task.sleep(nanoseconds: 10_000_000)
-    try expect(abs(saved.offset - 700) < 1, "Manual scrolling was not retained")
+    for offset in [700.0, 900.0] {
+      scroll.contentView.scroll(to: NSPoint(x: 0, y: offset))
+      scroll.reflectScrolledClipView(scroll.contentView)
+      // Bounds notifications are delivered through the native run loop. Wait
+      // for the observed state, rather than assuming a hosted Mac delivers it
+      // within10ms. A wrong or missing value still fails at the deadline.
+      let observationDeadline = ProcessInfo.processInfo.systemUptime + 2
+      while abs(saved.offset - offset) >= 1
+        && ProcessInfo.processInfo.systemUptime < observationDeadline
+      {
+        try await Task.sleep(nanoseconds: 5_000_000)
+      }
+      try expect(
+        abs(saved.offset - offset) < 1,
+        "Manual scrolling was not retained: requested \(offset), clip \(scroll.contentView.bounds.minY), saved \(saved.offset), stable layouts \(stableLayouts)"
+      )
+    }
     withExtendedLifetime(window) {}
   }
   await checkAsync("Cancelled and superseded link reads cannot replace the current preview") {

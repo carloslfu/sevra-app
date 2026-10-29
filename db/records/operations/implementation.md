@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T02:16:40.097759+00:00
+updated: 2026-10-29T02:30:27.991342+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -5795,3 +5795,8 @@ The final native packaged CLI imports/extracts an actual synthetic text receipt,
 The unlocked Mac permits focused visible checks: completed values/draft warning/model/quote, source navigation, Command-Shift-Y, a fresh queued run staying inert until native Continue and the actual native count5 result. Final build shows the missing quantity issue once. Earlier actual native Continue and final packaged CLI have separate captured runner identities. Full VoiceOver, narrow/light/dark and all media journeys are still unqualified.
 
 Hosted CI40800549659 is green for previous commit4020c6b. Current interpretation changes need a new exact-commit CI dispatch after push. Next expose interpretation definitions in conversation authoring/discovery without widening grammar/prompt gates, then implement qualified import/document steps and full receiving recovery. Richer graphs/general business outbox, E4-E6, contextual Excel continuity, broader voice/accessibility/hardware, performance/native adoption and notarized production release remain open. The whole app is not ready and the active goal remains unfinished.
+
+## Hosted native scroll check follow-up, October 28
+Hosted run40805445098 on710bdbe passes earlier stages, then fails the existing native document scroll observation (26/27). It expected a retained clip offset within10ms. Local runs previously passed. The [retained CI receipt](../../../integration/evidence/2026-10-28-native-scroll-ci.json.gz) preserves the failure and limits; it is not a whole-CI pass.
+
+The revised test waits for stable initial native geometry and then the actual observed value under a bounded deadline, compares restoration against the immutable initial position, and checks two successive scroll offsets. It never substitutes a synthetic notification or relaxes the value assertion. Timeout diagnostics retain requested/clip/saved positions and layout count. Local document checks pass27/0. An exact-commit hosted rerun is required before claiming this resolves the hosted failure. App behavior is unchanged. Explicit-interpretation710bdbe remains locally qualified; conversation authoring is a separate in-progress slice.

@@ -2,7 +2,7 @@
 type: spec
 id: 01m62fhep3b8sz1bjdqwf4p8nf
 created: 2026-10-29T00:04:15.683210+00:00
-updated: 2026-10-29T02:16:39.960516+00:00
+updated: 2026-10-29T02:18:40.243220+00:00
 summary: Manual durable workflow contract and scoped implementation sequence; full E3 remains open.
 title: Manual durable workflows
 status: reviewed
@@ -155,3 +155,8 @@ Native Activity exposes completed values, draft warning, model and exact quotati
 Asynchronous integration checks cover free workbook writes while inference waits, competing conversation refusal, cancellation, critical memory pressure, late response fencing and no duplicate inference on completed copies. Four additional real process-death barriers cover saved request, retained raw response, pre-COMMIT and post-COMMIT publication. Completed results reconstruct without inference; an uncommitted attempt may need another model call.
 
 Interpretation definitions are currently saved through core/CLI JSON. Exposing them in conversation definition discovery/authoring is the next bounded slice and must retain unchanged grammar/prompt limits. Agent start_workflow remains queue-only. Import/document steps, richer graphs, general business outbox consumers and full EJ06-EJ08 remain open, followed by E4-E6 and release gates.
+
+## Conversation interpretation authoring contract
+Expose interpretation in the existing definition discovery/save tool schemas and registry format. Reuse the exact schema16 validator, current request actor/lineage, stable create identity and stale-base edits. Saving/discovery must not invoke a model, produce business Records, queue a run or approve anything. Standalone evaluation remains function/query only; interpretation runs only as an explicitly continued workflow step.
+
+Document exact interpret bindings and typed field mappings in the registry. Test author/read/find/edit, missing facts/default refusal, read-only and completed-request refusal, inert reconstruction and no model loading. Keep the existing tool count, structural requirements, grammar dialect and8192-token prompt ceiling. Regenerate pinned-reference fixtures and verify exact grammar masks after the schema enum change. Qualify a real native-model authoring request, preserving its exact messages/requests and identities. Do not claim actual model usability solely from scripted checks. Queueing an authored workflow still ends with the host-owned no-execution receipt. Full receiving/import/document steps remain separate.

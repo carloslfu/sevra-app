@@ -946,3 +946,9 @@ Refined explicit interpretation contract after native probes: needs-input citati
 ## [2026-10-29 02:16] verification | records/specs/manual-workflows.md
 Schema16 explicit native interpretation qualified with core256/focused25, async lifecycle, nine SIGKILL boundaries, final packaged actual-model receiving/review/reconstruction and focused visible Activity checks. Full E3 and release remain open.
 
+## [2026-10-29 02:18] design | records/specs/manual-workflows.md
+Next bounded slice exposes interpretation through existing conversation definition tools, preserving no-execution semantics, exact request attribution and unchanged grammar/prompt gates.
+
+## [2026-10-29 02:30] verification | records/operations/implementation.md
+Retained hosted710bdbe document-scroll failure; revised native observation test passes27 local groups and awaits exact-commit hosted qualification. No app behavior change.
+
