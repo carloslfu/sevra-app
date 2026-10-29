@@ -55,6 +55,7 @@ struct WorkbookView: View {
             }
             Text(routeTitle).font(.title3.weight(.medium)).lineLimit(1)
             Spacer()
+            Button("Activity", systemImage: "clock") { state.navigate(.activity) }
             Button("Review drafts", systemImage: "checklist") { state.navigate(.reviews) }
               .help("Pending work stays available regardless of this layout.")
             Button("Spaces", systemImage: "square.grid.2x2") { showSpaces.toggle() }
@@ -167,6 +168,8 @@ struct WorkbookView: View {
     case .tableUpdate: return "Review table update"
     case .search: return "Search workbook"
     case .reviews: return "Drafts to review"
+    case .activity: return "Activity"
+    case .workflow: return "Workflow"
     }
   }
   var conversationHeader: some View {
@@ -361,6 +364,8 @@ struct WorkbookView: View {
         TableUpdateView(book: book, sourceID: source, intakeID: job, state: state)
           .id(source + (job ?? ""))
       case .reviews: ReviewQueueView(state: state, results: state.reviewResults)
+      case .activity: WorkflowActivityView(workspace: state)
+      case .workflow(let id): WorkflowRunView(runID: id, workspace: state)
       }
     }
   }

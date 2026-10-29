@@ -9,6 +9,15 @@ extension CLI {
     guard command.hasPrefix("workflow-") else { return nil }
     let actor = ChangeActor.programmatic("SevraCLI.manualWorkflow")
     switch command {
+    case "workflow-activity":
+      try require(
+        (2...4).contains(args.count), "usage", "workflow-activity WORKBOOK [STATE|- [CURSOR]]")
+      return try book.workflowActivity(
+        state: args.count > 2 && args[2] != "-" ? args[2] : nil,
+        cursor: args.count > 3 ? args[3] : nil, cancellation: cancellation)
+    case "workflow-inspect":
+      try require(args.count == 3, "usage", "workflow-inspect WORKBOOK RUN_ID")
+      return try book.inspectWorkflow(args[2], cancellation: cancellation)
     case "workflow-start":
       try require(
         args.count == 5, "usage", "workflow-start WORKBOOK EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN"
@@ -26,16 +35,20 @@ extension CLI {
       try require(
         (2...3).contains(args.count), "usage", "workflow-events WORKBOOK [AFTER_SEQUENCE]")
       return try book.workflowEvents(after: args.count == 3 ? Int(args[2]) ?? -1 : 0)
-    case "workflow-advance", "workflow-finish", "workflow-claim", "workflow-heartbeat",
+    case "workflow-continue", "workflow-advance", "workflow-finish", "workflow-claim",
+      "workflow-heartbeat",
       "workflow-retry", "workflow-cancel":
       let counts = [
-        "workflow-advance": 3, "workflow-finish": 4, "workflow-claim": 6,
+        "workflow-continue": 3, "workflow-advance": 3, "workflow-finish": 4, "workflow-claim": 6,
         "workflow-heartbeat": 6, "workflow-retry": 4, "workflow-cancel": 4,
       ]
       try require(
         args.count == counts[command], "usage", "Use the workflow command fields shown in help.")
       let session = try book.authorizeWorkflowExecution(args[2])
       switch command {
+      case "workflow-continue":
+        return try book.continueWorkflow(
+          session, owner: "cli:" + identifier(), cancellation: cancellation)
       case "workflow-advance":
         return try book.advanceWorkflow(
           session, owner: "cli:" + identifier(), cancellation: cancellation)

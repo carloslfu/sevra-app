@@ -84,6 +84,68 @@ func checkWorkflows(at root: URL) {
     run["steps"].array[1]["output"]["value"]["proposals"].array[0].text
   }
 
+  check("workflow activity is bounded, coherent, scoped and read-only") {
+    let (b, definition, args) = try fixture("Activity")
+    var runIDs = Set<String>()
+    for n in 0..<7 {
+      runIDs.insert(
+        try b.startWorkflow(definition.id, arguments: args, token: "run-\(n)")["id"].text)
+    }
+    let revision = try b.revision()
+    let first = try b.workflowActivity(limit: 3)
+    try expect(first["runs"].array.count == 3 && first["nextCursor"].string != nil)
+    let second = try b.workflowActivity(limit: 3, cursor: first["nextCursor"].text)
+    let third = try b.workflowActivity(limit: 3, cursor: second["nextCursor"].text)
+    let observed = first["runs"].array + second["runs"].array + third["runs"].array
+    try expect(Set(observed.map { $0["id"].text }) == runIDs && observed.count == 7)
+    try expect(third["nextCursor"] == .null)
+    for run in observed {
+      let read = try b.inspectWorkflow(run["id"].text)
+      try expect(read["run"]["state"] == .string("queued"))
+      try expect(read["definition"]["id"] == .string(definition.id))
+      try expect(read["steps"].array.allSatisfy { $0["output"] == .null })
+    }
+    try expect(try b.revision() == revision, "Inspection changed durable state")
+    try refuses("workflow_cursor") {
+      _ = try b.workflowActivity(state: "queued", limit: 3, cursor: first["nextCursor"].text)
+    }
+    let (other, _, _) = try fixture("OtherActivity")
+    try refuses("workflow_cursor") {
+      _ = try other.workflowActivity(limit: 3, cursor: first["nextCursor"].text)
+    }
+    _ = try b.startWorkflow(definition.id, arguments: args, token: "run-8")
+    try refuses("stale_workflow_activity") {
+      _ = try b.workflowActivity(limit: 3, cursor: first["nextCursor"].text)
+    }
+    try refuses("workflow_limit") { _ = try b.workflowActivity(state: "unknown") }
+    try refuses("workflow_limit") { _ = try b.workflowActivity(limit: 100) }
+    _ = try b.verify()
+  }
+
+  check("explicit continuation stops for exact review and preserves a cancelled prefix") {
+    let (b, definition, args) = try fixture("Continue")
+    let session = try start(b, definition, args)
+    let waiting = try b.continueWorkflow(session, owner: "manual")
+    try expect(waiting["state"] == .string("waiting_review"))
+    let inspection = try b.inspectWorkflow(session.runID)
+    try expect(inspection["steps"].array[0]["title"] == .string("Double items"))
+    try expect(inspection["steps"].array[1]["proposals"].array.count == 1)
+    try expect(inspection["steps"].array[1]["proposals"].array[0]["changed"] == .bool(false))
+    let before = try b.workflowRun(session.runID)
+    let cancellation = Cancellation()
+    cancellation.cancel()
+    try refuses {
+      _ = try b.continueWorkflow(session, owner: "cancelled", cancellation: cancellation)
+    }
+    try expect(try b.workflowRun(session.runID) == before)
+    _ = try b.accept(draft(waiting), actor: .human("review"))
+    let inspected = try b.inspectWorkflow(session.runID)
+    try expect(inspected["steps"].array[1]["proposals"].array[0]["status"] == .string("accepted"))
+    try expect(try b.continueWorkflow(session, owner: "resumed")["state"] == .string("completed"))
+    try expect(try b.balance(subject: "bolts")["quantity"] == .string("26"))
+    _ = try b.verify()
+  }
+
   check("manual workflows retain exact outputs, wait for review and apply inventory once") {
     let (b, definition, args) = try fixture("Receiving")
     let session = try start(b, definition, args)

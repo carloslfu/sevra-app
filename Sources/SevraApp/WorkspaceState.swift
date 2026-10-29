@@ -27,6 +27,8 @@ import SwiftUI
     case tableUpdate(String, String?)
     case search
     case reviews
+    case activity
+    case workflow(String)
   }
   @Published var workbook: Workbook?
   @Published var spaces: [Space] = []
@@ -676,7 +678,8 @@ import SwiftUI
     case .table(let id): return routeContext + "\nActive dataset ID: " + id
     case .tableUpdate(let source, _):
       return routeContext + "\nTable-update review for source ID: " + source
-    case .search, .reviews: return routeContext
+    case .workflow(let id): return routeContext + "\nActive workflow run ID: " + id
+    case .search, .reviews, .activity: return routeContext
     }
   }
   var routeContext: String {
@@ -688,6 +691,9 @@ import SwiftUI
     case .tableUpdate: return "Review table update"
     case .search: return "Workbook search"
     case .reviews: return "Drafts to review"
+    case .activity: return "Workflow activity"
+    case .workflow:
+      return "Inspecting a saved workflow run; opening it does not authorize execution."
     }
   }
   private func conversationCommand(_ input: String, book: Workbook) -> Bool {

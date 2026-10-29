@@ -42,6 +42,8 @@ try:
         assert run == baseline['run']
         assert call('definition-search', book, 'Receive', j({'kind': 'workflow'}))['hits'][0]['id'] == run['definition_id']
         assert call('workflow-list', book, 'queued')[0]['id'] == run_id
+        assert call('workflow-activity', book)['runs'][0]['id'] == run_id
+        assert call('workflow-inspect', book, run_id)['definition']['title'] == 'Receive evidence'
         claim = call('workflow-claim', book, run_id, 'cli-test', 30, 'claim')
         call('workflow-claim', book, run_id, 'competitor', 30, 'competing', error='workflow_busy')
         call('workflow-heartbeat', book, run_id, j(claim), 30, 'heartbeat')
@@ -49,10 +51,10 @@ try:
         history = call('commits', book, 1000)
         assert call('workflow-finish', book, run_id, j(claim)) == proposed
         assert call('commits', book, 1000) == history
-        assert call('workflow-advance', book, run_id)['state'] == 'waiting_review'
+        assert call('workflow-continue', book, run_id)['state'] == 'waiting_review'
         proposal = proposed['steps'][1]['output']['value']['proposals'][0]
         call('accept', book, proposal)
-        assert call('workflow-advance', book, run_id)['state'] == 'completed'
+        assert call('workflow-continue', book, run_id)['state'] == 'completed'
         assert call('balance', book, 'bolts')['quantity'] == '25'
         # Delivery occurrence identity still matters across different workflow runs.
         duplicate = call('workflow-start', book, run['definition_id'], j(run['arguments']), 'duplicate')

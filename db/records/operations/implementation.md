@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T00:33:30.390859+00:00
+updated: 2026-10-29T00:44:39.071797+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -5750,3 +5750,10 @@ The broad V9 shared suite passes before the final retry-budget/schema refinement
 Retained failures include the initial review test expecting only one lineage relation, fixed by verifying the canonical supersedes/accept-v1 edge plus attributed decision evidence. Hosted CI40791589647 on5de9a4a passes the document lifecycle correction and all stages through release build, then fails the obsolete history test that expected automatic version1 migration. The corrected CLI history probe creates700 messages through current trusted core APIs, tests eight concurrent openers, bounded history/search and offline export/reopen, and separately verifies unsupported old-format refusal without any file change. It passes locally. This changes test expectations to the adopted pre-1.0 contract; it adds no legacy migration. Preserve hosted failure diagnostics and qualify the next exact pushed commit in CI.
 
 Full E3 is still open: native workflow activity/forms, agent authoring/invocation, explicit AI/import/document steps, broader typed graphs, general business outbox consumers and receiving journeys. E4-E6, E2 voice/scale journeys, contextual/Excel continuity, full accessibility/hardware and production engine/distribution gates remain open. Continue these after this coherent checkpoint; the application and active goal are unfinished.
+
+## Native manual workflow Activity checkpoint, October 28
+Native Activity now exposes bounded newest-first/filterable run pages and exact definition/start-request evidence, actor, typed inputs, saved step outputs, proposal/current-version links, attempts and lease deadlines. Continue explicitly executes at most16 steps and stops for review, attention or completion. Retry/Stop use the same captured core operations and preserve completed work. Inspection never authorizes execution. Cursor scope includes workbook/filter/page size/revision and refuses changed observations.
+
+Core244/0, focused13/0, independent debug/native packaged CLI, stable-source release native build, resource/refusal/signature paths checks, strict7-file Swift lint and repo-owned skill validation pass. The new [Activity receipt](../../../integration/evidence/2026-10-28-native-workflow-activity.json.gz) preserves exact identities and all113 prior artifacts unchanged. The initial exhaustive-switch compiler findings and source-edited-during-build failure are retained; corrected stable-source build passes. Existing process-death and full native Metal/model-unavailable evidence apply to unchanged paths. The Mac is locked, so visible Activity, keyboard/VoiceOver, appearance/narrow layout and full receiving journey remain unqualified.
+
+The workflow forms contract is now recorded before implementation: reuse saved native form input/identity, preview a typed plan without executing, create the run and receipt atomically, recover without a second run and keep imported copies inert. Continue form integration, agent workflow tools and explicit interpretation/import/document steps; full E3, E4-E6 and release gates remain unfinished. Hosted CI40794958919 on25930cf is still running at this checkpoint.

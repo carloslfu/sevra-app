@@ -708,6 +708,8 @@ import SevraProduct
     definition-publish WORKBOOK REQUEST_JSON_OR_@FILE TOKEN
     definition-search WORKBOOK QUERY [OPTIONS_JSON]
     workflow-start WORKBOOK EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN
+    workflow-activity WORKBOOK [STATE|- [CURSOR]] | workflow-inspect WORKBOOK RUN_ID
+    workflow-continue WORKBOOK RUN_ID
     workflow-read WORKBOOK RUN_ID
     workflow-list WORKBOOK [STATE]
     workflow-advance WORKBOOK RUN_ID

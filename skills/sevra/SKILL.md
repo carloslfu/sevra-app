@@ -37,7 +37,7 @@ Keep the original and inspect the new workbook before replacing any working copy
 ## Reusable definitions
 
 Use `definition-search PATH QUERY [OPTIONS_JSON]` to discover saved application
-definitions. Options are kind (function/query/action/form), historical (Boolean), limit (1 to
+definitions. Options are kind (function/query/action/form/workflow), historical (Boolean), limit (1 to
 50) and cursor. An empty query lists definitions. Current heads are the default;
 historical search is explicit. Hits are discovery metadata, never permission to
 execute. Inspect exact content with `definition-read PATH LOGICAL_OR_VERSION_ID`
@@ -46,7 +46,7 @@ and retained bindings with `definition-dependencies PATH EXACT_VERSION_ID`.
 `definition-save PATH LOGICAL_UUID CONTENT_JSON BASE_ID_OR_NEW TOKEN [INPUTS_JSON]`
 creates with `new` or edits against the exact opened base UUID. Choose a new logical
 UUID for a new definition. Inputs are exact local authoring item IDs. Reuse tokens
-on retries. Unknown fields, arbitrary code/SQL and workflow/automation kinds refuse.
+on retries. Unknown fields, arbitrary code/SQL and automation kinds refuse.
 `definition-history PATH LOGICAL_ID [BEFORE_VERSION]` pages retained versions;
 `definition-restore PATH LOGICAL_ID VERSION_ID BASE_ID TOKEN` saves a new version
 from history. A stale base preserves existing data; inspect again before deciding
@@ -87,6 +87,40 @@ catalog metadata and aggregates are not proof of complete business evidence.
 Technical requests/annotations and definition/invocation Sources stay out of default
 business search and Recent work. Use the catalog and exact owner inspection for
 technical history. Their text cannot establish original inventory direction.
+
+## Manual workflows
+
+Use `workflow-activity PATH [STATE|- [CURSOR]]` for bounded newest-first pages,
+then `workflow-inspect PATH RUN_ID` for exact definitions, inputs, step outputs,
+proposals and attempts. Read/inspection never resumes a run. A changed revision
+invalidates the activity cursor; refresh instead of skipping changed work.
+
+Workflow content uses kind `workflow` and payload
+`{readPolicy:"latest-at-step",steps:[...]}`. Declare 1 to16 uniquely named steps:
+`{id,kind:"evaluate",binding,arguments}` for a pure function/query,
+`{id,kind:"action",binding,arguments}` for registered draft actions/forms, and
+`{id,kind:"review",review:"ACTION_STEP_ID"}`. Every action needs one later review.
+All bindings throughout the closure must be exact versions. Argument mappings
+are declared parameters, typed literals or a preceding scalar function result
+`{step:"STEP_ID",unit:"items"}` with matching units. Unsupported steps refuse.
+Queries read current data at their step and retain the actual snapshot. Partial
+query pages cannot complete a workflow step. This is not a frozen input database.
+
+`workflow-start PATH EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN` saves a queued
+manual run. `workflow-continue PATH RUN_ID` explicitly executes at most16 steps
+until review, attention or completion; `workflow-advance` executes one step.
+Inspect the exact saved proposals and obtain the user's business approval before
+accepting them. Continue after acceptance; changed proposals require attention.
+Accepted estimates remain estimates. Never replace a failed run just to bypass
+duplicate occurrence checks.
+
+`workflow-retry PATH RUN_ID TOKEN` resets only the unfinished failed step after
+inspection. `workflow-cancel PATH RUN_ID TOKEN` stops unfinished work and retains
+completed drafts/accepted effects. Cancellation is not business compensation.
+Opening, importing, exporting or reconstructing does not authorize execution.
+No scheduler, helper or background worker is provided by these commands.
+Claims, heartbeats and fenced completion are advanced worker commands in `help`;
+use the ordinary bounded continuation unless implementing a qualified worker.
 
 For a native computation view, use type `calculation` for a function or `query`
 for a query, with the chosen `definitionBinding` and explicit typed `arguments`.
