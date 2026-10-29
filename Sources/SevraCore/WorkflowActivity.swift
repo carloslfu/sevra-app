@@ -94,6 +94,9 @@ extension Workbook {
               let target = try applicationDefinition(binding.target)
               step["title"] = .string(target.title)
               step["definitionSource"] = .string(target.sourceID)
+              if target.kind == "interpretation" {
+                step["outputFields"] = target.payload["outputs"]
+              }
             } else {
               step["title"] = .string("Review proposals")
             }
@@ -110,11 +113,23 @@ extension Workbook {
                 ]))
             }
             step["proposals"] = .array(proposals)
-            step["attempt"] = .object(
+            var attempt =
               try db.execute(
-                "SELECT generation,state,deadline,updated FROM workflow_attempts WHERE run_id=? AND step_id=? ORDER BY generation DESC LIMIT 1",
+                "SELECT id,generation,state,deadline,updated FROM workflow_attempts WHERE run_id=? AND step_id=? ORDER BY generation DESC LIMIT 1",
                 [.string(runID), saved["step_id"]]
-              ).first ?? [:])
+              ).first ?? [:]
+            if let id = attempt["id"]?.string,
+              let response = try db.scalar(
+                "SELECT result FROM operations WHERE id=? AND kind='workflow_interpretation_response'",
+                [.string("workflow-response:" + id)]
+              ).string
+            {
+              let captured = try Value.parse(response)
+              attempt["modelResponse"] = captured["response"]
+              attempt["model"] = captured["request"]["model"]
+              attempt["requestID"] = captured["request"]["requestID"]
+            }
+            step["attempt"] = .object(attempt)
             steps.append(.object(step))
           }
           return .object([

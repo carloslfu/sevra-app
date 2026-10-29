@@ -325,6 +325,31 @@ import SwiftUI
       if case .space(let id) = prior { spaceNavigation.visit(id) }
     }
   }
+  func continueWorkflow(_ runID: String, retry: Bool = false) {
+    guard let (book, ticket) = beginOperation("Continuing workflow") else { return }
+    let path =
+      UserDefaults.standard.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
+      ?? ProductAI.defaultDirectory
+    Task {
+      defer { finishOperation(ticket, in: book) }
+      do {
+        let session = try await Task.detached {
+          let session = try book.authorizeWorkflowExecution(runID)
+          if retry { _ = try book.retryWorkflow(session, token: identifier()) }
+          return session
+        }.value
+        _ = try await ProductAI.shared.continueWorkflow(
+          workbook: book, session: session, owner: "native:" + identifier(),
+          modelDirectory: path, cancellation: ticket.cancellation,
+          progress: { update in
+            Task { @MainActor in
+              if self.owns(ticket, in: book) { self.status = update }
+            }
+          })
+      } catch { report(error, for: ticket, in: book) }
+    }
+  }
+
   func run(_ title: String, operation: @escaping @Sendable (Workbook, Cancellation) throws -> Void)
   {
     run(title, operation: operation, completion: { _ in })

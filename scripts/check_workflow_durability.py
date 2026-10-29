@@ -23,8 +23,9 @@ evidence = {'ok': False, 'schemaVersion': 1, 'checks': [], 'calls': [],
             'sourceCommit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
             'sourceSHA256': {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                              for p in [*sorted((ROOT / 'Sources/SevraCore').glob('*.swift')),
-                                       ROOT / 'IntegrationTests/WorkflowDurability/Worker.swift', Path(__file__).resolve()]},
-            'limits': ['Synthetic manual core workflows only.', 'No import, AI step, UI, background helper or schedule qualification.']}
+                                       *sorted((ROOT / 'IntegrationTests/WorkflowDurability').glob('*.swift')), Path(__file__).resolve()]},
+            'limits': ['Synthetic manual core workflows and structured interpretation publication only.',
+                       'No real model, import, UI, background helper or schedule qualification.']}
 
 
 def save():
@@ -163,6 +164,56 @@ try:
         if phase == 'form-committed':
             assert resumed == interrupted, 'Exact retry changed a committed run'
         assert run('form-resume', root) == resumed, 'Repeated submission created another run'
+        evidence['checks'].append({'phase': phase, 'ok': True})
+        save()
+    for phase in ['interpret-request', 'interpret-response', 'interpret-prepared', 'interpret-committed']:
+        root = output / phase
+        root.mkdir()
+        baseline = run('interpret-setup', root)
+        assert baseline['counts']['records'] == 0
+        p = subprocess.Popen([str(binary), phase, str(root)], stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            assert select.select([p.stdout], [], [], 20)[0], 'Interpretation barrier timed out'
+            barrier = json.loads(p.stdout.readline())
+            assert barrier['stage'] == phase, barrier
+            (root / 'capture.json').write_text(json.dumps(barrier['value']))
+            p.kill()
+            stdout, stderr = p.communicate(timeout=20)
+            evidence['calls'].append({'operation': phase, 'fixture': root.name, 'barrier': barrier,
+                                      'returncode': p.returncode, 'stdout': stdout, 'stderr': stderr,
+                                      'sentSIGKILL': True})
+            save()
+            assert p.returncode == -9
+        finally:
+            if p.poll() is None:
+                p.kill()
+                p.communicate(timeout=20)
+        interrupted = run('interpret-inspect', root)
+        assert interrupted['integrity']['ok'] is True
+        saved = interrupted['inspection']['steps'][0]
+        if phase == 'interpret-committed':
+            assert saved['state'] == 'completed' and interrupted['counts']['records'] == 1
+            assert saved['output']['value']['response'] == barrier['value']['envelope']['response']
+        else:
+            assert saved['state'] == 'claimed' and saved['output'] is None
+            assert interrupted['counts']['records'] == 0
+            assert interrupted['events'] == baseline['events']
+        if phase == 'interpret-request':
+            assert 'modelResponse' not in saved['attempt']
+        else:
+            assert saved['attempt']['modelResponse'] == barrier['value']['envelope']['response']
+        copies = run('interpret-copies', root)
+        assert all(copy == interrupted for copy in copies.values()), 'Copied interpretation executed or changed'
+        if phase != 'interpret-committed':
+            time.sleep(2.1)
+            run('interpret-late', root, error='workflow_fenced')
+        resumed = run('interpret-resume', root)
+        assert resumed['inspection']['run']['state'] == 'completed'
+        assert resumed['counts']['records'] == 1 and resumed['integrity']['ok']
+        assert run('interpret-resume', root) == resumed, 'Completed interpretation repeated'
+        if phase == 'interpret-committed':
+            assert resumed == interrupted, 'Recovery changed the committed interpretation'
         evidence['checks'].append({'phase': phase, 'ok': True})
         save()
     evidence['ok'] = True

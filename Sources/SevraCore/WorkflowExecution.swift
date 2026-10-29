@@ -3,6 +3,7 @@ import Foundation
 extension Workbook {
   public func completeWorkflowStep(
     _ session: WorkflowExecutionSession, claim: Value,
+    interpretation: Value? = nil,
     cancellation: Cancellation = .init()
   ) throws -> Value {
     try workflowSession(session)
@@ -19,8 +20,13 @@ extension Workbook {
     }
     let result = try mutation(
       "workflow_step", token: "workflow-step:" + attemptID,
-      request: claim, cancellation: cancellation,
-      actor: .programmatic("SevraCore.workflowWorker"), commitGuard: guardLease
+      request: .object(["claim": claim, "interpretation": interpretation ?? .null]),
+      cancellation: cancellation,
+      actor: interpretation.map {
+        .ai(
+          "SevraCore.workflowInterpretation", model: $0["request"]["model"].text,
+          policy: "workflow-evidence-only-v1")
+      } ?? .programmatic("SevraCore.workflowWorker"), commitGuard: guardLease
     ) {
       let saved = try self.validateWorkflowClaim(session, claim: claim)
       deadline = Double(saved["deadline"].text)
@@ -39,9 +45,13 @@ extension Workbook {
       let args = try self.workflowArguments(
         step, descriptor: descriptor,
         supplied: run["arguments"], outputs: outputs)
-      let revision = try self.revision()
+      var revision = try self.revision()
       var output: Value
       var state = "completed"
+      var detail = ""
+      try require(
+        step.kind == "interpret" || interpretation == nil, "workflow_model",
+        "Only an interpretation step consumes a model result.")
       if step.kind == "evaluate" {
         output = try self.evaluateApplicationDefinition(
           step.binding!.target,
@@ -55,10 +65,33 @@ extension Workbook {
             try self.definitionQueryPopulation(output, cancellation: cancellation))
           output = .object(retained)
         }
+      } else if step.kind == "interpret" {
+        guard let interpretation else {
+          throw SevraError(
+            "workflow_model", "Continue this step through the local AI workflow coordinator.")
+        }
+        output = try self.insertWorkflowInterpretation(
+          interpretation, run: run, step: step, attemptID: attemptID)
+        revision = output["request"]["readRevision"].int!
+        if output["response"]["state"] == .string("needs_input") {
+          state = "needs_attention"
+          detail = String(
+            output["response"]["issues"].array.map(\.text).joined(separator: " ").prefix(1000))
+        }
       } else if step.kind == "action" {
         let plan = try self.applicationActionPlan(
           step.binding!.target, arguments: args,
           cancellation: cancellation)
+        let interpretationInputs = try self.workflowInterpretationInputs(
+          step, workflow: workflow, outputs: outputs)
+        for movement in plan["movements"].array where movement["meaning"] == .string("actual") {
+          try require(
+            interpretationInputs.allSatisfy {
+              $0.meaning == "actual" && $0.scenario == "actual"
+            }, "interpretation_meaning",
+            "Actual proposals cannot promote a mapped estimate, plan or another scenario into actuals."
+          )
+        }
         output = try self.insertApplicationAction(
           plan: plan,
           request: .object([
@@ -66,7 +99,8 @@ extension Workbook {
             "operationID": .string("workflow-effect:" + session.runID + ":" + step.id),
             "arguments": args,
           ]), actor: .programmatic("SevraCore.workflowWorker"),
-          additionalInputs: [run["source_id"].text], cancellation: cancellation)
+          additionalInputs: [run["source_id"].text] + interpretationInputs.map(\.id),
+          cancellation: cancellation)
         let review = workflow.steps.first { $0.review == step.id }!
         for proposal in output["proposals"].array {
           try self.db.execute(
@@ -90,11 +124,12 @@ extension Workbook {
       _ = try self.validateWorkflowClaim(session, claim: claim)
       try self.db.execute(
         "UPDATE workflow_attempts SET state=?,updated=? WHERE id=?",
-        [.string(state), .string(timestamp()), saved["id"]])
+        [.string(state == "needs_attention" ? "failed" : state), .string(timestamp()), saved["id"]])
       try self.db.execute(
-        "UPDATE workflow_steps SET state=?,output=?,detail='',updated=? WHERE run_id=? AND step_id=?",
+        "UPDATE workflow_steps SET state=?,output=?,detail=?,updated=? WHERE run_id=? AND step_id=?",
         [
-          .string(state), .string(try output.json()), .string(timestamp()), .string(session.runID),
+          .string(state), .string(try output.json()), .string(detail), .string(timestamp()),
+          .string(session.runID),
           .string(step.id),
         ])
       let remaining =
@@ -102,10 +137,12 @@ extension Workbook {
           "SELECT count(*) FROM workflow_steps WHERE run_id=? AND state!='completed'",
           [.string(session.runID)]
         ).int ?? 0
-      let runState = state == "waiting_review" ? state : (remaining == 0 ? "completed" : "queued")
+      let runState =
+        ["waiting_review", "needs_attention"].contains(state)
+        ? state : (remaining == 0 ? "completed" : "queued")
       try self.db.execute(
-        "UPDATE workflow_runs SET state=?,detail='',updated=? WHERE id=?",
-        [.string(runState), .string(timestamp()), .string(session.runID)])
+        "UPDATE workflow_runs SET state=?,detail=?,updated=? WHERE id=?",
+        [.string(runState), .string(detail), .string(timestamp()), .string(session.runID)])
       try self.workflowEvent(session.runID, stepID: step.id, kind: state, payload: output)
       WorkflowPublicationProbe.observer?(.prepared, session.runID)
       return try self.workflowRun(session.runID)

@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T01:26:56.314069+00:00
+updated: 2026-10-29T02:16:40.005330+00:00
 summary: '"Schema14 definitions, native forms and computations have scoped local-model and visible native proof; full journeys, workflows and release gates remain open."'
 title: Shared application definitions and actions
 status: reviewed
@@ -11,7 +11,7 @@ status: reviewed
 
 This elaborates E2 in [[records/specs/native-app-engine]]. It is an implementation
 contract, not a statement of whole-feature completion. E1 is captured at cd5f854.
-The current schema 15 catalog retains scoped core/CLI registered inventory actions and
+The current schema16 catalog retains scoped core/CLI registered inventory actions and
 recoverable native form implementation in addition to the earlier pure computation.
 Agent tools, focused native forms, reusable native computation and exact result
 publication have scoped qualification below. Full EJ04/EJ05 remain open. E3 owns durable multi-step execution; do not hide
@@ -603,3 +603,8 @@ Final packaged CLI, portable/inert reconstruction, full native Metal/resources/r
 
 ## Conversation workflow surface
 Workflow discovery/save/form templates reuse the same catalog validation and exact-base writes. workflow_activity/read_workflow are bounded reads. start_workflow queues an exact saved workflow with explicit typed inputs, current AI request lineage and in-transaction authority revalidation. It never executes a step. A host-owned terminal receipt names saved status and native Activity; business acceptance remains separate. Read-only and unrelated task handoffs cannot queue runs. See [[records/specs/manual-workflows]] and the [scoped receipt](../../../integration/evidence/2026-10-28-agent-workflows.json.gz). Full workflow AI execution remains open.
+
+## Explicit interpretation definitions, schema16
+A reusable interpretation declares bounded instruction text, required exact business item evidence parameters,1..32 typed output fields without defaults, meaning and scenario. Exact interpret workflow steps capture full bounded text/data or ready/untruncated extraction, actual model/schema/budget/read revision and exact quotations. Output is a separately reviewable draft Record. No tools, raw code, search or acceptance run inside interpretation. Typed named output mappings and transitive calculation lineage retain actual/estimate/scenario boundaries. See [[records/specs/manual-workflows]] for contracts and scoped core/native/actual-model qualification.
+
+This first surface is core/CLI JSON authoring. Conversation save_definition/find_definitions formats do not yet advertise interpretation and still need their own scoped grammar/model qualification. Standalone evaluate_definition remains pure function/query evaluation. No implicit inference on discovery, opening, reconstruction or saved Home rendering.

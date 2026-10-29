@@ -8,7 +8,8 @@ extension Workbook {
   ) throws -> Value {
     try require(
       (1...50).contains(limit)
-        && (kind == nil || ["function", "query", "action", "form", "workflow"].contains(kind!)),
+        && (kind == nil
+          || ["function", "query", "action", "form", "workflow", "interpretation"].contains(kind!)),
       "definition_limit",
       "Use function/query/action/form/workflow scope and a page limit from 1 to 50.")
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
@@ -154,6 +155,10 @@ extension Workbook {
               call, caller: descriptor, target: DefinitionDescriptor(target.content),
               arguments: nil, validateOnly: true)
           }
+        } else if saved.kind == "interpretation" {
+          _ = try DefinitionInterpretation(descriptor)
+          try require(
+            dependencies.isEmpty, "definition_integrity", "Interpretations cannot call behavior.")
         } else if saved.kind == "workflow" {
           try validateWorkflowDefinition(descriptor, historical: true)
           let bindings = try definitionBindings(descriptor)

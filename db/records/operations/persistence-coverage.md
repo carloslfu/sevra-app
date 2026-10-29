@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T01:26:56.329583+00:00
+updated: 2026-10-29T02:16:40.035565+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -337,3 +337,8 @@ Form presentation keeps its stable submission token. The generic saved form rece
 Agent starts carry the active request run/Source into the same atomic workflow-start operation; captured invocation lineage retains the actual AI actor. Revalidate request scope inside the transaction. Exact retries return the same saved run without worker authority. Reconstruction retains all run state without execution.
 
 The workflow-read-snapshot meta key records the current committed-change identity only when workflow_runs changes. It is captured and reconstructed in the existing ledger. Activity cursors bind this family clock plus workbook/filter/page size, so their own tool-journal receipts and unrelated writes cannot stale their next page. Run changes still refuse stale continuation; the response retains actual workbook revision independently. Core251, focused20 and full shared checks pass; [agent workflow evidence](../../../integration/evidence/2026-10-28-agent-workflows.json.gz).
+
+## Explicit AI workflow capture, schema16
+workflow_interpretation_request retains exact normalized arguments, evidence/extraction identities, model/messages/schema/budget and observed revision before inference. workflow_interpretation_response retains the bounded raw envelope as diagnostic history before validation. Neither operation alone creates a business Record. Publishing requires the exact retained envelope; normalized decimal output is independently verified against it during integrity/reconstruction. Validated output/Record/lineage/checkpoint/attempt/receipt/outbox commit together under a fresh final claim/deadline/cancellation fence.
+
+Core256/0, focused25/0 and final product lifecycle checks pass. Nine real process-death boundaries now include interpretation request, raw response, pre-COMMIT and post-COMMIT. Reconstructed copies preserve diagnostics and saved results without inference. Async tests prove other workbook writes proceed while the model waits. These local guarantees do not establish exactly-once model invocation or sync/replica semantics. The [interpretation receipt](../../../integration/evidence/2026-10-28-workflow-interpretation.json.gz) retains scoped proof and failed cases.

@@ -47,6 +47,33 @@ extension Workbook {
                   && output["value"]["nextCursor"] == .null
                   && output["value"]["readOnly"] == .bool(true),
                 "workflow_integrity", "An evaluation output is incomplete or mismatched.")
+            } else if expected.kind == "interpret" {
+              let value = output["value"]
+              let (_, response) = try validatedWorkflowInterpretation(
+                .object([
+                  "request": value["request"], "response": value["response"],
+                  "metrics": value["metrics"],
+                ]),
+                runID: run["id"].text, step: expected, attemptID: value["request"]["attemptID"].text
+              )
+              let record = try item(value["recordID"].text)
+              let interpretation = try DefinitionInterpretation(
+                DefinitionDescriptor(try applicationDefinition(output["definitionID"].text).content)
+              )
+              try require(
+                record.id == value["recordID"].text && record.kind == "interpretation"
+                  && record.category == "record" && record.status == "draft"
+                  && record.meaning == interpretation.meaning
+                  && record.scenario == interpretation.scenario
+                  && record.data["response"] == response
+                  && record.data["requestID"] == value["request"]["requestID"]
+                  && record.data["model"] == value["model"]
+                  && value["model"] == value["request"]["model"]
+                  && record.data["policy"] == value["request"]["policy"]
+                  && value["definitionID"] == output["definitionID"]
+                  && output["readRevision"] == value["request"]["readRevision"],
+                "workflow_integrity",
+                "The saved interpretation disagrees with its exact model request or draft Record.")
             }
           } else {
             try require(

@@ -105,11 +105,7 @@ private struct NativeFormEditor: View {
                 workspace.refresh()
                 if let runID = session.state?.lastReceipt?["workflowRunID"].string {
                   if workspace.route == origin { workspace.navigate(.workflow(runID)) }
-                  workspace.run("Starting workflow") { book, cancellation in
-                    _ = try book.continueWorkflow(
-                      book.authorizeWorkflowExecution(runID), owner: "native-form:" + identifier(),
-                      cancellation: cancellation)
-                  }
+                  workspace.continueWorkflow(runID)
                 }
               }
             }.disabled(session.busy || workspace.busy)

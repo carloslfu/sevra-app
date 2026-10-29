@@ -1,11 +1,12 @@
 import Foundation
 import SevraCore
+import SevraProduct
 
 extension CLI {
   static func runWorkflowCommand(
     _ command: String, book: Workbook, args: [String],
     cancellation: Cancellation
-  ) throws -> Value? {
+  ) async throws -> Value? {
     guard command.hasPrefix("workflow-") else { return nil }
     let actor = ChangeActor.programmatic("SevraCLI.manualWorkflow")
     switch command {
@@ -43,12 +44,16 @@ extension CLI {
         "workflow-heartbeat": 6, "workflow-retry": 4, "workflow-cancel": 4,
       ]
       try require(
-        args.count == counts[command], "usage", "Use the workflow command fields shown in help.")
+        args.count == counts[command] || (command == "workflow-continue" && args.count == 4),
+        "usage", "Use the workflow command fields shown in help.")
       let session = try book.authorizeWorkflowExecution(args[2])
       switch command {
       case "workflow-continue":
-        return try book.continueWorkflow(
-          session, owner: "cli:" + identifier(), cancellation: cancellation)
+        return try await ProductAI.shared.continueWorkflow(
+          workbook: book, session: session, owner: "cli:" + identifier(),
+          modelDirectory: args.count == 4
+            ? URL(fileURLWithPath: args[3]) : ProductAI.defaultDirectory, cancellation: cancellation
+        )
       case "workflow-advance":
         return try book.advanceWorkflow(
           session, owner: "cli:" + identifier(), cancellation: cancellation)

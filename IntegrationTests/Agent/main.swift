@@ -296,6 +296,12 @@ do {
     try await runComputationProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6
+    && CommandLine.arguments[1] == "--workflow-interpretation"
+  {
+    try await runWorkflowInterpretationProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--workflow-tools" {
     try await runWorkflowToolProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],

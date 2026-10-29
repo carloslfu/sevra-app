@@ -37,7 +37,7 @@ Keep the original and inspect the new workbook before replacing any working copy
 ## Reusable definitions
 
 Use `definition-search PATH QUERY [OPTIONS_JSON]` to discover saved application
-definitions. Options are kind (function/query/action/form/workflow), historical (Boolean), limit (1 to
+definitions. Options are kind (function/query/action/form/workflow/interpretation), historical (Boolean), limit (1 to
 50) and cursor. An empty query lists definitions. Current heads are the default;
 historical search is explicit. Hits are discovery metadata, never permission to
 execute. Inspect exact content with `definition-read PATH LOGICAL_OR_VERSION_ID`
@@ -92,8 +92,8 @@ technical history. Their text cannot establish original inventory direction.
 
 Use `workflow-activity PATH [STATE|- [CURSOR]]` for bounded newest-first pages,
 then `workflow-inspect PATH RUN_ID` for exact definitions, inputs, step outputs,
-proposals and attempts. Read/inspection never resumes a run. A changed revision
-invalidates the activity cursor; refresh instead of skipping changed work.
+proposals and attempts. Read/inspection never resumes a run. A changed workflow-run family clock
+invalidates the activity cursor; unrelated writes do not. Refresh changed work.
 
 Workflow content uses kind `workflow` and payload
 `{readPolicy:"latest-at-step",steps:[...]}`. Declare 1 to16 uniquely named steps:
@@ -107,7 +107,7 @@ Queries read current data at their step and retain the actual snapshot. Partial
 query pages cannot complete a workflow step. This is not a frozen input database.
 
 `workflow-start PATH EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN` saves a queued
-manual run. `workflow-continue PATH RUN_ID` explicitly executes at most16 steps
+manual run. `workflow-continue PATH RUN_ID [MODEL_DIRECTORY]` explicitly executes at most16 steps
 until review, attention or completion; `workflow-advance` executes one step.
 Inspect the exact saved proposals and obtain the user's business approval before
 accepting them. Continue after acceptance; changed proposals require attention.
@@ -121,6 +121,31 @@ Opening, importing, exporting or reconstructing does not authorize execution.
 No scheduler, helper or background worker is provided by these commands.
 Claims, heartbeats and fenced completion are advanced worker commands in `help`;
 use the ordinary bounded continuation unless implementing a qualified worker.
+
+An `interpretation` definition has payload `{instruction,evidence,outputs,meaning,scenario}`.
+`evidence` lists 1 to 8 required item parameter names. `outputs` declares typed fields
+with the ordinary parameter format and no defaults. An exact `interpret` workflow
+step binds that definition. Map a prior interpretation output using
+`{step:"STEP_ID",field:"FIELD_ID",unit:"items"}` with a compatible signature.
+Native/CLI continuation uses the installed Python-free native model only for these
+steps; deterministic-only workflows do not load it. The preserved Slotstream
+baseline cannot execute interpretation steps.
+
+The host retains exact bounded evidence and a model request before releasing the
+write lock. Files require ready, untruncated retained extraction. The first bound
+is 64 KiB across 8 evidence items, with an additional model context gate. A model
+response has no tools or acceptance authority. Valid typed values need exact input
+quotations and remain a draft interpretation Record. Quotes prove attribution,
+not semantic truth. Missing values stop with issues; no values are guessed.
+Rejected responses remain inspectable diagnostics and cannot create proposals.
+Actual proposals cannot promote mapped estimates/plans through calculations.
+
+Interpretation output, exact evidence/model/budget and step result persist through
+reconstruction without inference. Process loss before commit may require a new
+model attempt; no exactly-once inference claim. Inspect before deliberate retry.
+Changing the original evidence needs a new explicit invocation with that exact
+input version. Workflow retry retains its original typed inputs.
+
 
 The in-app model can author workflows and workflow forms through save_definition,
 form_template and save_template. workflow_activity/read_workflow inspect runs.

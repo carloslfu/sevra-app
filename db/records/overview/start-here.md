@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T01:26:56.253284+00:00
+updated: 2026-10-29T02:16:39.919996+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -28,8 +28,8 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 - [[records/specs/identity]]: approved Sevra logo, app icon and native appearance.
 - [[records/specs/product]]: requirements and user experience.
-- [[records/specs/application-definitions]]: schema 15 versioned functions/queries plus registered inventory actions and recoverable native receiving forms have scoped automated proof. Agent authoring/invocation, focused native forms, reusable native computation and exact result publication have scoped proof; full EJ, workflows and release qualification remain open.
-- [[records/specs/native-app-engine]]: adopted customizable Home/application-engine direction, shared definitions/actions/forms and manual workflow core/CLI foundations, native workflow Activity/forms and agent queued starts, plus planned full workflow AI execution and automations, code gaps and phased acceptance. E1 Home/editing foundation is implemented with scoped evidence; full journeys and E2-E6 remain open.
+- [[records/specs/application-definitions]]: schema16 versioned interpretations/functions/queries plus registered inventory actions and recoverable native receiving forms have scoped automated proof. Agent authoring/invocation, focused native forms, reusable native computation and exact result publication have scoped proof; full EJ, workflows and release qualification remain open.
+- [[records/specs/native-app-engine]]: adopted customizable Home/application-engine direction, shared definitions/actions/forms and manual workflow core/CLI foundations, native workflow Activity/forms and agent queued starts, explicit native AI interpretation and planned automations, code gaps and phased acceptance. E1 Home/editing foundation is implemented with scoped evidence; full journeys and E2-E6 remain open.
 - [[records/specs/storage]]: package, data, transactions, history and calculations.
 - [[records/specs/managed-datasets]]: adopted reserved core and managed native dataset tables over shared immutable authority/replayable history. Schema12 native storage, exact-base definitions and typed stored-scalar query/index paths have scoped proof, supporting E2 catalog work; full E0-D/MJ and Excel continuity remain open.
 - [[records/specs/persistence-readiness]]: required audit and complete/replayable local persistence for future syncing; no cloud, sync protocol, replica coordination or new resolver. Schema-10 foundation, schema 12 registered projections/definitions and scoped FJ qualification are tracked in [[records/operations/persistence-coverage]]; whole-release gates remain open.
@@ -59,4 +59,4 @@ Current-format integrity and history remain required. The controlling decision i
 [[records/specs/distribution]] under Pre-1.0 compatibility policy.
 
 ## Manual workflow foundation
-[[records/specs/manual-workflows]] defines the schema 15 manual execution boundary: exact typed sequential steps, saved evaluation outputs, inventory drafts and exact review waits, transactional checkpoints/outbox, worker fencing, explicit retry/cancel and inert reconstruction. Native Activity and recoverable workflow forms have scoped automated proof. Conversation workflow authoring, workflow forms and truthful queued starts also have scoped actual-model and automated proof. Explicit AI/import steps, schedulers, background execution and visible accessibility qualification remain open. This does not change the repository's working-development-build status.
+[[records/specs/manual-workflows]] defines the schema16 manual execution boundary: exact typed sequential steps, saved evaluation outputs, inventory drafts and exact review waits, transactional checkpoints/outbox, worker fencing, explicit retry/cancel and inert reconstruction. Native Activity and recoverable workflow forms have scoped automated proof. Conversation workflow authoring, workflow forms and truthful queued starts also have scoped actual-model and automated proof. Explicit native AI interpretation now has core/CLI, actual-model, process-death and focused visible UI proof. Import/document workflow steps, richer graphs, schedulers, background execution and full accessibility qualification remain open. This does not change the repository's working-development-build status.

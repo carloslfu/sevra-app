@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T01:26:56.360575+00:00
+updated: 2026-10-29T02:16:40.066808+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1575,7 +1575,7 @@ python3 scripts/check_workflow_cli.py --cli .build/debug/sevra --worker .build/d
 
 The shared check script and CI include the process-death and independent CLI probes. The native fixture worker is a test executable, not a shipped background helper. CLI help lists workflow-start/read/list/advance/claim/finish/heartbeat/retry/cancel/events. Every advance is one explicit bounded step; reaching review returns waiting_review without accepting proposals. Inspect and accept the exact proposals through the ordinary review path, then deliberately advance again.
 
-Definitions use kind workflow and the contract in [[records/specs/manual-workflows]]. Current development schema 15 replaces schema 14 without a legacy adapter. Preserve old packages and use a matching earlier development build for recovery. Only recreate selected disposable fixtures. No installed user package is reset or upgraded automatically.
+Definitions use kind workflow and the contract in [[records/specs/manual-workflows]]. Current development schema16 replaces earlier development schemas without a legacy adapter. Preserve old packages and use a matching earlier development build for recovery. Only recreate selected disposable fixtures. No installed user package is reset or upgraded automatically.
 
 ## Manual workflow activity
 Use workflow-activity WORKBOOK [STATE|- [CURSOR]] for bounded newest-first pages, workflow-inspect WORKBOOK RUN_ID for exact inputs/steps/proposals/attempts, and workflow-continue WORKBOOK RUN_ID for a deliberate continuation to the next review or terminal state. Read/inspect never resumes a run. Native Activity is accessible beside Review drafts; Continue, Retry unfinished work and Stop workflow use the same trusted core commands. A changed workflow-run family clock requires refresh; agent journal and unrelated writes preserve continuation. Full workflow/automation and accessibility gates remain open.
@@ -1589,3 +1589,10 @@ form-draft-preview WORKBOOK STATE_JSON is pure. For a workflow form it checks ex
 The agent can find/read/save exact workflow definitions, create associated form templates and queue a requested run. start_workflow returns a saved run and ends with the host-owned no-execution receipt. Open Activity through Workbook > Workflow Activity (Command-Shift-Y), then inspect and explicitly Continue. Opening/reconstructing/queuing never starts a worker. Native form Start is a separate deliberate continuation.
 
 Run swift build --product sevra-agent-checks -j3, then .build/debug/sevra-agent-checks for scripted scope/receipt checks. Use --workflow-tools MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT for the three actual-model author/form/queue jobs. MODEL_ROOT is the native installed layout. The output must not exist. It retains results/messages and a synthetic workbook. This is functional32K/bounded512 proof, not throughput or full workflow execution. The final shared check script includes paging/recovery/grammar checks; historical and current evidence is in [[records/operations/implementation]].
+
+## Explicit local AI workflow continuation
+workflow-continue WORKBOOK RUN_ID [MODEL_DIRECTORY] uses the shared ProductAI owner and installed native Qwen/DFlash2 engine only for an unfinished interpret step. Native Activity Continue and workflow form Start use the same asynchronous coordinator. Deterministic steps and post-review completion do not require a model. The preserved Slotstream baseline intentionally refuses explicit interpretation; it remains separately usable for its existing features. Agent start_workflow still queues without executing.
+
+Save interpretation/workflow JSON with definition-save and the typed contract in [[records/specs/manual-workflows]]. Interpretation output becomes a draft Record and cannot accept inventory. Inspect workflow-inspect/Activity for exact retained evidence, model, issues and any rejected raw response; Retry is deliberate, not automatic model correction.
+
+Run .build/debug/sevra-checks --workflows for focused core checks and .build/debug/sevra-product-checks for async ownership/lifecycle. scripts/check_workflow_durability.py includes nine real process-death boundaries. The agent check runner accepts --workflow-interpretation MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT for clear/incomplete actual-model fixtures; it runs normal scripted checks first. The output directory must not exist. This proves bounded task behavior, not throughput. The native packaged CLI imported-file/interpret/propose/review/reconstruct job and focused visible UI observations are retained in [[records/operations/implementation]].

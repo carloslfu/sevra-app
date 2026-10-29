@@ -104,6 +104,10 @@ package protocol WorkbookInference: Actor {
   func beginRun() async throws
   func endRun() async
   func releaseResources() async -> Bool
+  func interpret(
+    request: Value, directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void
+  ) async throws -> Value
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
@@ -113,6 +117,13 @@ package protocol WorkbookInference: Actor {
 
 // Synthetic inference fixtures must explicitly opt in to context maintenance.
 extension WorkbookInference {
+  package func interpret(
+    request: Value, directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void
+  ) async throws -> Value {
+    throw SevraError(
+      "workflow_model", "This model build does not support structured workflow interpretation.")
+  }
   // Synthetic fixtures without a resident engine have nothing to release.
   package func releaseResources() async -> Bool { true }
   package var supportsCompaction: Bool { false }

@@ -109,7 +109,9 @@ struct WorkflowRunView: View {
             "Manual workflow. Each continuation stops for required review. Completed work is kept."
           )
           .foregroundStyle(.secondary)
-          if !run["detail"].text.isEmpty {
+          if !run["detail"].text.isEmpty,
+            !saved["steps"].array.contains(where: { $0["detail"] == run["detail"] })
+          {
             Text(run["detail"].text).foregroundStyle(.red).textSelection(.enabled)
           }
           HStack {
@@ -143,11 +145,34 @@ struct WorkflowRunView: View {
               Text(workflowStateTitle(step["state"].text)).font(.callout)
               Text("Updated " + DisplayText.date(step["updated"].text))
                 .font(.caption).foregroundStyle(.secondary)
-              if !step["detail"].text.isEmpty { Text(step["detail"].text).foregroundStyle(.red) }
               let output = step["output"]["value"]
+              if !step["detail"].text.isEmpty, output["kind"] != .string("interpretation") {
+                Text(step["detail"].text).foregroundStyle(.red)
+              }
               if output["kind"] == .string("function") {
                 Text(output["result"].text + (output["unit"].string.map { " " + $0 } ?? ""))
                   .font(.title3).textSelection(.enabled)
+              } else if output["kind"] == .string("interpretation") {
+                Text("Local AI interpretation · Review before business use").font(.callout)
+                WorkflowInputsView(
+                  parameters: step["outputFields"].array, arguments: output["response"]["values"],
+                  workspace: workspace)
+                ForEach(output["response"]["issues"].array, id: \.text) { issue in
+                  Text(issue.text).foregroundStyle(.secondary)
+                }
+                Button("Open saved interpretation") {
+                  workspace.navigate(.item(output["recordID"].text))
+                }
+                DisclosureGroup("Model and exact evidence quotations") {
+                  Text(output["model"].text).font(.caption).textSelection(.enabled)
+                  ForEach(output["response"]["citations"].array, id: \.text) { citation in
+                    Text(citation["field"].text + ": “" + citation["quote"].text + "”")
+                      .textSelection(.enabled)
+                    Button("Open quoted evidence") {
+                      workspace.navigate(.item(citation["itemID"].text))
+                    }
+                  }
+                }
               } else if output["kind"] == .string("query") {
                 Text(
                   "Saved \(output["result"]["rows"].array.count) result rows and their scoped inputs."
@@ -178,6 +203,23 @@ struct WorkflowRunView: View {
               }
               if let generation = step["attempt"]["generation"].int {
                 Text("Attempt \(generation)").font(.caption).foregroundStyle(.secondary)
+                if step["output"] == .null, step["attempt"]["modelResponse"] != .null {
+                  DisclosureGroup("Unvalidated model response") {
+                    Text(
+                      "This response did not complete the step. Treat it as a diagnostic, not an established fact."
+                    )
+                    .foregroundStyle(.secondary)
+                    Text(step["attempt"]["model"].text).font(.caption)
+                    Text(
+                      String(((try? step["attempt"]["modelResponse"].json()) ?? "").prefix(16_384))
+                    )
+                    .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+                    Text(
+                      "Preview limited to 16,384 characters. The saved operation retains the response."
+                    )
+                    .font(.caption).foregroundStyle(.secondary)
+                  }
+                }
                 if step["state"] == .string("claimed"),
                   let deadline = Double(step["attempt"]["deadline"].text)
                 {
@@ -229,12 +271,7 @@ struct WorkflowRunView: View {
   }
   private func resume(retry: Bool = false) {
     let id = runID
-    workspace.run("Continuing workflow") { book, cancellation in
-      let session = try book.authorizeWorkflowExecution(id)
-      if retry { _ = try book.retryWorkflow(session, token: identifier()) }
-      _ = try book.continueWorkflow(
-        session, owner: "native:" + identifier(), cancellation: cancellation)
-    }
+    workspace.continueWorkflow(id, retry: retry)
   }
 }
 

@@ -2,10 +2,10 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 15
+  static let version = 16
   static let sql = """
     PRAGMA application_id=1398166081;
-    PRAGMA user_version=15;
+    PRAGMA user_version=16;
     PRAGMA journal_mode=DELETE;
     PRAGMA synchronous=FULL;
     CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
@@ -98,7 +98,7 @@ enum Schema {
     CREATE TABLE intake_jobs(id TEXT PRIMARY KEY,source_id TEXT NOT NULL REFERENCES items(id),role TEXT CHECK(role IN ('reference','analysis','values','update')),state TEXT NOT NULL CHECK(state IN ('captured','running','awaiting_role','awaiting_update','ready','failed','cancelled')),attempt TEXT,report TEXT NOT NULL,dataset_ids TEXT NOT NULL,detail TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
     CREATE INDEX intake_jobs_source ON intake_jobs(source_id,created,id);
     CREATE INDEX intake_jobs_state ON intake_jobs(state,created,id);
-    CREATE TABLE app_definitions(id TEXT PRIMARY KEY,logical_id TEXT NOT NULL,version INTEGER NOT NULL CHECK(version>0),previous_id TEXT REFERENCES app_definitions(id),kind TEXT NOT NULL CHECK(kind IN ('function','query','action','form','workflow')),title TEXT NOT NULL,description TEXT NOT NULL,parameters TEXT NOT NULL,payload TEXT NOT NULL,parameter_text TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,UNIQUE(logical_id,version));
+    CREATE TABLE app_definitions(id TEXT PRIMARY KEY,logical_id TEXT NOT NULL,version INTEGER NOT NULL CHECK(version>0),previous_id TEXT REFERENCES app_definitions(id),kind TEXT NOT NULL CHECK(kind IN ('function','query','action','form','workflow','interpretation')),title TEXT NOT NULL,description TEXT NOT NULL,parameters TEXT NOT NULL,payload TEXT NOT NULL,parameter_text TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,UNIQUE(logical_id,version));
     CREATE TABLE app_definition_heads(logical_id TEXT PRIMARY KEY,definition_id TEXT NOT NULL UNIQUE REFERENCES app_definitions(id));
     CREATE INDEX app_definitions_logical ON app_definitions(logical_id,version);
     CREATE TABLE app_definition_dependencies(definition_id TEXT NOT NULL REFERENCES app_definitions(id),ordinal INTEGER NOT NULL CHECK(ordinal>=0),kind TEXT NOT NULL CHECK(kind IN ('definition','dataset')),mode TEXT NOT NULL CHECK(mode IN ('live','exact')),target_logical TEXT,target_version TEXT REFERENCES app_definitions(id),target_dataset TEXT REFERENCES datasets(id),target_dataset_definition TEXT REFERENCES column_versions(id),PRIMARY KEY(definition_id,ordinal),CHECK((kind='definition' AND target_logical IS NOT NULL AND target_version IS NOT NULL AND target_dataset IS NULL AND target_dataset_definition IS NULL) OR (kind='dataset' AND target_logical IS NULL AND target_version IS NULL AND target_dataset IS NOT NULL AND target_dataset_definition IS NOT NULL)));
@@ -107,7 +107,7 @@ enum Schema {
     CREATE TABLE workflow_runs(id TEXT PRIMARY KEY,definition_id TEXT NOT NULL REFERENCES app_definitions(id),source_id TEXT NOT NULL REFERENCES items(id),actor TEXT NOT NULL,arguments TEXT NOT NULL,policy TEXT NOT NULL CHECK(policy='manual-drafts-v1'),state TEXT NOT NULL CHECK(state IN ('queued','running','waiting_review','needs_attention','completed','cancelled')),detail TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
     CREATE INDEX workflow_runs_ready ON workflow_runs(state,updated,id);
     CREATE INDEX workflow_runs_order ON workflow_runs(updated,id);
-    CREATE TABLE workflow_steps(run_id TEXT NOT NULL REFERENCES workflow_runs(id),step_id TEXT NOT NULL,ordinal INTEGER NOT NULL CHECK(typeof(ordinal)='integer' AND ordinal>=0 AND ordinal<16),kind TEXT NOT NULL CHECK(kind IN ('evaluate','action','review')),state TEXT NOT NULL CHECK(state IN ('pending','claimed','waiting_review','completed','needs_attention','cancelled')),output TEXT NOT NULL,detail TEXT NOT NULL,updated TEXT NOT NULL,attempt_base INTEGER NOT NULL DEFAULT 0 CHECK(typeof(attempt_base)='integer' AND attempt_base>=0 AND attempt_base<=1000000000),PRIMARY KEY(run_id,step_id),UNIQUE(run_id,ordinal));
+    CREATE TABLE workflow_steps(run_id TEXT NOT NULL REFERENCES workflow_runs(id),step_id TEXT NOT NULL,ordinal INTEGER NOT NULL CHECK(typeof(ordinal)='integer' AND ordinal>=0 AND ordinal<16),kind TEXT NOT NULL CHECK(kind IN ('evaluate','action','review','interpret')),state TEXT NOT NULL CHECK(state IN ('pending','claimed','waiting_review','completed','needs_attention','cancelled')),output TEXT NOT NULL,detail TEXT NOT NULL,updated TEXT NOT NULL,attempt_base INTEGER NOT NULL DEFAULT 0 CHECK(typeof(attempt_base)='integer' AND attempt_base>=0 AND attempt_base<=1000000000),PRIMARY KEY(run_id,step_id),UNIQUE(run_id,ordinal));
     CREATE INDEX workflow_steps_ready ON workflow_steps(state,run_id,ordinal);
     CREATE TABLE workflow_attempts(id TEXT PRIMARY KEY,run_id TEXT NOT NULL,step_id TEXT NOT NULL,generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),owner TEXT NOT NULL,deadline REAL NOT NULL CHECK(typeof(deadline) IN ('real','integer') AND deadline>0 AND deadline<253402300800),state TEXT NOT NULL CHECK(state IN ('claimed','expired','completed','waiting_review','failed','cancelled')),created TEXT NOT NULL,updated TEXT NOT NULL,FOREIGN KEY(run_id,step_id) REFERENCES workflow_steps(run_id,step_id),UNIQUE(run_id,step_id,generation));
     CREATE INDEX workflow_attempts_lease ON workflow_attempts(state,deadline,run_id,step_id);

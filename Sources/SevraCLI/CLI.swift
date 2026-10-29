@@ -112,7 +112,7 @@ import SevraProduct
     {
       return result
     }
-    if let result = try runWorkflowCommand(
+    if let result = try await runWorkflowCommand(
       command, book: book, args: args, cancellation: cancellation)
     {
       return result
@@ -718,7 +718,7 @@ import SevraProduct
     form-draft-submit WORKBOOK STATE_JSON PREVIEW_JSON
     workflow-start WORKBOOK EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN
     workflow-activity WORKBOOK [STATE|- [CURSOR]] | workflow-inspect WORKBOOK RUN_ID
-    workflow-continue WORKBOOK RUN_ID
+    workflow-continue WORKBOOK RUN_ID [MODEL_DIRECTORY]
     workflow-read WORKBOOK RUN_ID
     workflow-list WORKBOOK [STATE]
     workflow-advance WORKBOOK RUN_ID

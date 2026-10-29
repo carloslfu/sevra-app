@@ -35,6 +35,10 @@ import SevraCore
       try require(args.count == 2, "usage", "Expected operation and disposable fixture directory.")
       let operation = args[0]
       let root = URL(fileURLWithPath: args[1])
+      if operation.hasPrefix("interpret-") {
+        try WorkflowInterpretationDurability.run(operation, root: root)
+        return
+      }
       let path = root.appendingPathComponent("Workflow.sevra")
       let plan = root.appendingPathComponent("run.json")
       if operation == "setup" || operation == "setup-form" {

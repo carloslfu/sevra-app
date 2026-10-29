@@ -27,7 +27,7 @@ public struct ApplicationDefinition: Codable, Identifiable, Sendable {
       row["previous_id"] == .null
         || row["previous_id"]?.string.flatMap(UUID.init(uuidString:)) != nil,
       let kind = row["kind"]?.string,
-      ["function", "query", "action", "form", "workflow"].contains(kind),
+      ["function", "query", "action", "form", "workflow", "interpretation"].contains(kind),
       let title = row["title"]?.string, let description = row["description"]?.string,
       let parameters = row["parameters"]?.string, let payload = row["payload"]?.string,
       let source = row["source_id"]?.string, UUID(uuidString: source) != nil,
@@ -236,7 +236,7 @@ struct DefinitionDescriptor {
     let o = try definitionObject(
       value, keys: ["kind", "title", "description", "parameters", "payload"])
     guard let kind = o["kind"]?.string,
-      ["function", "query", "action", "form", "workflow"].contains(kind),
+      ["function", "query", "action", "form", "workflow", "interpretation"].contains(kind),
       let title = o["title"]?.string,
       !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
       title.utf8.count <= 2048, let description = o["description"]?.string,
@@ -245,7 +245,7 @@ struct DefinitionDescriptor {
     else {
       throw SevraError(
         "definition",
-        "Declare a function, query, action, form or workflow, title, description, parameters and payload."
+        "Declare a function, query, action, form, workflow or interpretation, title, description, parameters and payload."
       )
     }
     self.value = value

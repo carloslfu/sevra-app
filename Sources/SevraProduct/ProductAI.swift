@@ -209,6 +209,30 @@ public actor ProductAI {
     active = false
   }
 
+  private func workflowModel(directory: URL) throws -> any WorkbookInference {
+    #if SEVRA_NATIVE_CANDIDATE
+      if model == nil {
+        model = NativeWorkbookModel(
+          configuration: try NativeProductResources.configuration(modelsRoot: directory))
+      }
+    #endif
+    guard let model else { throw SevraError("model", "The local model is unavailable.") }
+    return model
+  }
+
+  public func continueWorkflow(
+    workbook: Workbook, session: WorkflowExecutionSession, owner: String,
+    modelDirectory: URL = ProductAI.defaultDirectory, cancellation: Cancellation = .init(),
+    progress: @escaping @Sendable (String) -> Void = { _ in }
+  ) async throws -> Value {
+    try await perform(cancellation: cancellation) {
+      try await WorkflowCoordinator.run(
+        workbook: workbook, session: session, owner: owner, directory: modelDirectory,
+        cancellation: cancellation, progress: progress,
+        model: { try self.workflowModel(directory: modelDirectory) })
+    }
+  }
+
   public func run(
     _ prompt: String, workbook: Workbook, conversation: String = "main", context: String = "",
     modelDirectory: URL = ProductAI.defaultDirectory, cancellation: Cancellation = .init(),

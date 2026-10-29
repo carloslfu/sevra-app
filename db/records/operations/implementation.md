@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T01:26:56.374962+00:00
+updated: 2026-10-29T02:16:40.097759+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -5782,3 +5782,16 @@ The pinned native model completes authoring (11 calls,88.087 s), Home form creat
 Retained failures include invalid test API calls, compaction-floor overflow, two actual grammar prompt overflows and one Value array-index compile error. Redundant descriptions were shortened while retaining structural schema/host checks;60 actual grammars/511 masks pass at8179/8192. Hosted run40797267672 on798baac passes through native build, then repeats the baseline concurrency binary-path failure already fixed in140af04. Dispatch a new exact-commit run after pushing this checkpoint. No whole-CI success is claimed.
 
 The Mac is still locked. Latest Activity/form visual, VoiceOver/appearance/narrow checks remain pending. Next implement explicit AI interpretation with saved inputs/results and asynchronous fenced publication, then import/document steps and complete receiving recovery. E3 richer graphs/general outbox consumers, E4-E6, Excel continuity, broader voice/accessibility/hardware and native production adoption remain open. The full app and active goal remain unfinished.
+
+## Explicit native AI workflow interpretation, October 28
+Development schema16 now supports explicit reusable interpretation definitions and exact interpret steps through the shared native model coordinator. It captures exact bounded evidence/model/schema/budget before inference, releases workbook locks during AI work, renews a bounded lease and fences late/cancelled results. Raw rejected envelopes remain inspectable diagnostics. Validated typed/cited results become draft Records atomically with lineage, checkpoint, receipt and outbox. Intermediate calculations preserve interpretation ancestry; mapped estimates/plans cannot change actual stock. Opening/reconstruction never invokes a model.
+
+Final core256/0 and focused25/0 pass. The full V16 scripts/check.sh passes; final V17/V18 core/product lifecycle, nine actual SIGKILL boundaries, native release/package/refusal/signature, strict27-file format and skill checks cover subsequent raw-equality/normalization and display refinements. No final full broad rerun is claimed. All116 prior artifacts remain byte-identical; the [interpretation receipt](../../../integration/evidence/2026-10-28-workflow-interpretation.json.gz) retains source/binary identities, results, requests and failures.
+
+The actual pinned native Qwen/DFlash2 runner handles a clear count and returns needs_input for a blank count; injected evidence instructions do not accept inventory. One earlier actual output contained malformed decimal }5}; the host refused it and retained its raw diagnostic. An overly restrictive unresolved-citation rule was corrected. Improved bounded decimal/date descriptions then pass both cases. Functional observations under development load are not performance claims.
+
+The final native packaged CLI imports/extracts an actual synthetic text receipt, interprets count5 (8.802 s model request), prepares an exact stock draft and waits at stock20. Explicit synthetic human review changes stock to25. The next continuation completes with an intentionally absent model directory. Reconstruction is inert and preserves the completed run and balance; both integrity checks pass. The first qualification script used the wrong extraction JSON key and stopped before inference; corrected independent v2 passes with no app code change.
+
+The unlocked Mac permits focused visible checks: completed values/draft warning/model/quote, source navigation, Command-Shift-Y, a fresh queued run staying inert until native Continue and the actual native count5 result. Final build shows the missing quantity issue once. Earlier actual native Continue and final packaged CLI have separate captured runner identities. Full VoiceOver, narrow/light/dark and all media journeys are still unqualified.
+
+Hosted CI40800549659 is green for previous commit4020c6b. Current interpretation changes need a new exact-commit CI dispatch after push. Next expose interpretation definitions in conversation authoring/discovery without widening grammar/prompt gates, then implement qualified import/document steps and full receiving recovery. Richer graphs/general business outbox, E4-E6, contextual Excel continuity, broader voice/accessibility/hardware, performance/native adoption and notarized production release remain open. The whole app is not ready and the active goal remains unfinished.

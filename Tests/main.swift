@@ -44,6 +44,7 @@ defer { try? FileManager.default.removeItem(at: temp) }
 if CommandLine.arguments.dropFirst() == ["--workflows"] {
   checkWorkflows(at: temp)
   checkWorkflowTools(at: temp)
+  checkWorkflowInterpretations(at: temp)
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
@@ -918,6 +919,7 @@ checkApplicationDefinitions(at: temp)
 checkApplicationActions(at: temp)
 checkDefinitionTools(at: temp)
 checkWorkflowTools(at: temp)
+checkWorkflowInterpretations(at: temp)
 checkDefinitionResults(at: temp)
 checkWorkflows(at: temp)
 checkPersistence(at: temp)

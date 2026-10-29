@@ -937,3 +937,12 @@ Retained hosted40794958919 history/installation passes and later missing-preview
 ## [2026-10-29 01:26] verification | records/specs/manual-workflows.md
 Conversation workflow author/form/queued-start model jobs pass; core251/focused20/full shared suite/native package pass. Activity family clock survives agent journaling. Full E3 and visible UI remain open.
 
+## [2026-10-29 01:29] design | records/specs/manual-workflows.md
+Expanded next E3 explicit interpretation contract: exact bounded evidence, typed cited output, asynchronous lease-fenced publication, no execution/acceptance authority from model text. Implementation pending.
+
+## [2026-10-29 01:55] design | records/specs/manual-workflows.md
+Refined explicit interpretation contract after native probes: needs-input citations may explain unresolved fields without invented values; retain rejected envelopes; preserve transitive semantic provenance through calculations. Qualification in progress.
+
+## [2026-10-29 02:16] verification | records/specs/manual-workflows.md
+Schema16 explicit native interpretation qualified with core256/focused25, async lifecycle, nine SIGKILL boundaries, final packaged actual-model receiving/review/reconstruction and focused visible Activity checks. Full E3 and release remain open.
+

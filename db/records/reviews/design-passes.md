@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m5rbxzcb321z9rweagje7715
 created: 2026-10-25T01:48:47.371698+00:00
-updated: 2026-10-28T16:43:47.828089+00:00
+updated: 2026-10-29T02:16:40.082791+00:00
 summary: Three first-principles reviews resolve UX, data integrity, search coverage, installation and scope risks before implementation.
 title: Design review passes
 ---
@@ -464,3 +464,8 @@ Do not equate saved apply plans with complete workbook reconstruction or truthfu
 human/programmatic actor coverage. FJ gates and local-model/voice update tools stay
 open; mutation inventory and shared capture/apply are next before automation storage.
 Form draft persistence, broader usability and all Excel continuity gates remain.
+
+## Explicit interpretation adversarial review, October 28
+Before implementing, separated captured evidence, probabilistic interpretation and accepted business effects. A quotation proves where text came from, not that a derived value is true. Host validation checks shape, types, exact inputs/quotes, meaning/scenario and final worker authority. Missing facts pause with empty values and useful issues. Interpretation has no application tools or automatic approval.
+
+Implementation review found three important edges: retain rejected raw responses for diagnosis; preserve transitive interpretation lineage through scalar calculations so estimates cannot become actual stock; compare final publication to the exact raw response while allowing deterministic decimal normalization during reconstruction. Focused counterexamples and actual malformed-model evidence are retained. An unresolved result may cite the exact text explaining what is absent without inventing that absent value. No generic prompt or successful demonstration can establish broad semantic reliability. Full EJ06-EJ08 and release qualification remain open.

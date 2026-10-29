@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-28T20:54:34.581461+00:00
+updated: 2026-10-29T02:16:40.020540+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -524,3 +524,6 @@ Portable export retains them. They are not indexed business data or replayed act
 Validate exact local references, receipt/arguments identity, 64 KB input, 1 MB total,
 eight alternatives and 256 keys before save/open/verify. See [registered action and form receipt](../../../integration/evidence/2026-10-28-registered-actions-forms.json.gz)
 and [[records/operations/persistence-coverage]].
+
+## Current workflow interpretation storage, schema16
+The canonical development schema is16, with no legacy adapter. interpretation extends application_definitions; interpret extends workflow_steps. Exact prepared model requests and bounded raw response diagnostics use captured operations in the shared committed-change ledger. Validated typed output, a draft Record, exact evidence/definition/run lineage, step result, receipt and outbox publish atomically with the final worker lease check. Reconstruct normalized results against original raw envelopes without invoking a model. Assets remain outside SQLite inside the workbook. Preserve old development workbooks; only selected synthetic fixtures are recreated. See [[records/specs/manual-workflows]].

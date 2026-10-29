@@ -188,7 +188,9 @@ extension Workbook {
         try validateDefinitionItemReferences(parameter, value)
       }
     }
-    if descriptor.kind == "workflow" {
+    if descriptor.kind == "interpretation" {
+      _ = try DefinitionInterpretation(descriptor)
+    } else if descriptor.kind == "workflow" {
       try validateWorkflowDefinition(descriptor)
     } else if descriptor.kind == "query" {
       _ = try resolvedDefinitionQuery(descriptor, arguments: [:], samples: true)
