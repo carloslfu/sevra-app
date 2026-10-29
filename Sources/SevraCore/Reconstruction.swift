@@ -63,7 +63,7 @@ extension Workbook {
     )
     // User presentation is a current checkpoint, not a stream of keystrokes.
     for row in try source.execute(
-      "SELECT key,value FROM meta WHERE key='space-navigation' OR key LIKE 'conversation-view:%' OR key LIKE 'form-draft:%' ORDER BY key"
+      "SELECT key,value FROM meta WHERE key='space-navigation' OR key LIKE 'conversation-view:%' OR key LIKE 'form-draft:%' OR key LIKE 'workflow-clarification-draft:%' ORDER BY key"
     ) {
       try target.execute(
         "INSERT INTO meta VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",

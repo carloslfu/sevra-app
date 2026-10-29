@@ -94,6 +94,8 @@ struct WorkflowRunView: View {
   @ObservedObject var workspace: WorkspaceState
   @StateObject private var inspection = DefinitionResultSession()
   @State private var confirmingStop = false
+  @State private var clarification: WorkflowClarificationSession?
+  @State private var clarificationFailure: String?
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 18) {
@@ -137,6 +139,12 @@ struct WorkflowRunView: View {
             WorkflowInputsView(
               parameters: saved["definition"]["parameters"].array,
               arguments: run["arguments"], workspace: workspace)
+          }
+          if let clarification {
+            WorkflowClarificationView(session: clarification, workspace: workspace)
+          }
+          if let clarificationFailure {
+            Text(clarificationFailure).foregroundStyle(.red).textSelection(.enabled)
           }
           ForEach(saved["steps"].array, id: \.text) { step in
             Divider()
@@ -314,6 +322,24 @@ struct WorkflowRunView: View {
     ) { _, cancellation in
       try await Task.detached { try book.inspectWorkflow(id, cancellation: cancellation) }.value
     }
+    guard !Task.isCancelled, workspace.workbook === book else { return }
+    do {
+      let available = try await Task.detached {
+        let saved = try book.workflowClarificationDraft(id)
+        return saved != nil || (try? book.workflowClarification(id)) != nil
+      }.value
+      guard !Task.isCancelled, workspace.workbook === book else { return }
+      clarificationFailure = nil
+      if available, let session = workspace.clarificationDrafts.session(id) {
+        clarification = session
+        await session.open()
+        await session.refreshTarget()
+      }
+    } catch {
+      guard !Task.isCancelled, workspace.workbook === book else { return }
+      clarificationFailure =
+        "Saved answer inputs could not be opened. " + error.localizedDescription
+    }
   }
   private func resume(retry: Bool = false) {
     let id = runID
@@ -321,7 +347,7 @@ struct WorkflowRunView: View {
   }
 }
 
-private struct WorkflowInputsView: View {
+struct WorkflowInputsView: View {
   let parameters: [Value]
   let arguments: Value
   @ObservedObject var workspace: WorkspaceState

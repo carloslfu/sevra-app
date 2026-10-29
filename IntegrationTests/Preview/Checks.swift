@@ -60,6 +60,7 @@ private actor ReadGate {
       try await checkHistorySearch()
       try await checkFormDrafts()
       try await checkWorkflowFormDrafts()
+      try await checkWorkflowClarificationDrafts()
       try await checkDefinitionResultSession()
       print(
         "PASS preview ownership, stale success/error/progress, stop/retry, and task cancellation")

@@ -69,6 +69,7 @@ import SwiftUI
   let documentDrafts = DocumentDraftScope()
   let conversationSession = ConversationSession()
   let formDrafts = FormDraftScope()
+  let clarificationDrafts = WorkflowClarificationScope()
   @Published private(set) var changingConversation = false
   @Published var readingRequest = UUID()
   private var restoringConversation = false
@@ -139,6 +140,10 @@ import SwiftUI
     try require(
       formsSaved, "form_draft_save", "Save or preserve form drafts before opening another workbook."
     )
+    let clarificationsSaved = await clarificationDrafts.flush()
+    try require(
+      clarificationsSaved, "clarification_draft_save",
+      "Save or preserve clarification inputs before opening another workbook.")
     speech.stop()
     let restored = await conversationSession.open(
       opened,
@@ -148,6 +153,10 @@ import SwiftUI
       restored, "conversation_save",
       conversationSession.failure ?? "Could not restore the conversation draft.")
     _ = await formDrafts.open(opened)
+    let clarificationOpened = await clarificationDrafts.open(opened)
+    try require(
+      clarificationOpened, "clarification_draft_save",
+      "Save or preserve clarification inputs before opening another workbook.")
     await spaceNavigation.open(opened)
     endInteraction()
     workbook = opened
@@ -198,6 +207,7 @@ import SwiftUI
   }
   init() {
     formDrafts.changed = { [weak self] in self?.objectWillChange.send() }
+    clarificationDrafts.changed = { [weak self] in self?.objectWillChange.send() }
     spaceNavigation.changed = { [weak self] in self?.objectWillChange.send() }
     spaceNavigation.failed = { [weak self] in self?.error = $0 }
     conversationSession.changed = { [weak self] in self?.objectWillChange.send() }
@@ -1192,7 +1202,8 @@ import SwiftUI
     let saved = await conversationSession.flush()
     await spaceNavigation.flush()
     let formsSaved = await formDrafts.flush()
-    return saved && formsSaved && documentDrafts.flush()
+    let clarificationsSaved = await clarificationDrafts.flush()
+    return saved && formsSaved && clarificationsSaved && documentDrafts.flush()
   }
   func restoreSavedConversationDraft(_ id: String) {
     guard !changingConversation else { return }

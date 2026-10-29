@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T06:29:07.687059+00:00
+updated: 2026-10-29T07:08:10.441194+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -663,3 +663,7 @@ E3 now maps one exact complete catalog-query row into typed later steps, preserv
 ## Supplied workflow information
 
 E3 core/CLI now supports explicit typed clarification against an exact paused interpretation. Preserve original AI response; add a submission Source and draft clarification Record with honest actor; complete only that step. Native Activity displays provenance, while native persistent input and conversation submission remain next.63 focused groups,101 deterministic calls/two SIGKILL boundaries, packaged27/actual27 plus39-call known-count job and strengthened native state-dependent grammar have scoped proof. Full E3 and release gates stay open. See [[records/specs/manual-workflows]].
+
+## Persistent native workflow answers
+
+Native Activity now adds typed input, exact original-evidence choices, preview and explicit human submission for paused interpretations. Window-owned presentation checkpoints preserve incomplete/stale alternatives, refuse silent conflicts and failed-save abandonment, and recover exact submission receipts. This has scoped headless/core/package proof, not current visible or conversation/voice qualification. See [[records/specs/manual-workflows]] for exact acceptance evidence and limits.

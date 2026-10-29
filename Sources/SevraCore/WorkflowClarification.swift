@@ -20,7 +20,7 @@ extension Workbook {
     return try workflowClarificationTarget(runID: run["id"].text, step: step)
   }
 
-  private func workflowClarificationTarget(runID: String, step: Value) throws -> Value {
+  func workflowClarificationTarget(runID: String, step: Value) throws -> Value {
     let value = step["output"]["value"]
     let definition = try applicationDefinition(step["output"]["definitionID"].text)
     let interpretation = try DefinitionInterpretation(DefinitionDescriptor(definition.content))
@@ -35,7 +35,7 @@ extension Workbook {
     ])
   }
 
-  private func clarificationValues(
+  func clarificationValues(
     _ values: Value, interpretation: DefinitionInterpretation, evidenceIDs: [Value]
   ) throws -> Value {
     let raw = try definitionObject(values, keys: Set(interpretation.outputs.map(\.id)))

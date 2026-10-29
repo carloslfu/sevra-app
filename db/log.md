@@ -1006,3 +1006,9 @@ Three-pass human clarification contract: preserve original needs_input model res
 ## [2026-10-29 06:29] implementation | records/specs/manual-workflows.md
 Supplied clarification qualifies shared core/CLI:63 workflow groups,101 calls/two SIGKILL boundaries,27 packaged/27 actual missing-count and39 known-count calls. Native masks and terminal validation now constrain state/values together; original model output remains preserved. Persistent native/conversation input and full E3 remain open.
 
+## [2026-10-29 07:08] implementation | records/specs/manual-workflows.md
+Native clarification editor and portable drafts, human submission, historical target validation, cross-window conflict retention, small receipt recovery and submitted-only cache pruning. Conversation and release work remain open.
+
+## [2026-10-29 07:08] verification | records/specs/manual-workflows.md
+Frozen V9:302 core groups/0, headless preview, strict14-file Swift lint, native build/package/refusal/signature and27 deterministic calls. V8 overlapping build retained unqualified;129 prior evidence files unchanged. Receipt95f786f7c5397bd642ce1af32c2c28de58037101ac747e7624ccf6d9223314cd. Visible checks blocked by locked native UI; no ready claim.
+

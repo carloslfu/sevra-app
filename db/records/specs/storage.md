@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-29T03:46:06.756618+00:00
+updated: 2026-10-29T07:08:10.501129+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -530,3 +530,7 @@ The interpretation foundation introduced schema16; current development schema17 
 
 ## Current native document preparation storage, schema17
 The canonical development schema is17. application_definitions admits extraction and workflow_steps admits extract. Exact preparation requests and extraction-attempt ownership use the same captured operation/change ledger. The trusted transactional index body publishes chunks/FTS, extraction status, retained reference input/snapshot, workflow checkpoint/attempt/receipt/outbox together. It does not nest the public multi-transaction intake/extract operations. Exact retained extraction inputs survive later current-index changes and inert reconstruction. Uncommitted parsing can repeat; committed preparation does not. Assets remain outside SQLite inside the workbook. Preserve old workbooks and recreate only selected synthetic fixtures. See [[records/specs/manual-workflows]].
+
+## Workflow clarification presentation storage
+
+Current schema18 adds no canonical family for raw clarification inputs. meta keys prefixed workflow-clarification-draft: hold portable presentation state, bounded to1MB per run,128 cached runs,65,536 UTF-8 bytes of raw values,4096 bytes of explanation and eight alternatives. Saved targets are checked against their exact historical interpretation publication. A matching canonical operation supplies a six-field receipt projection; never duplicate the full run into this cache. Exact-baseline saves require explicit keep-both on conflict. At capacity evict only checkpoints for which every answer has an exact durable submission receipt, preserving all unsent alternatives and all canonical history. Presentation state does not advance business revision, enter authoritative change payloads or grant execution. Inert reconstruction copies it separately and validates it. See [[records/specs/manual-workflows]] and [[records/operations/persistence-coverage]].

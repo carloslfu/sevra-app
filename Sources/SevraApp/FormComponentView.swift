@@ -159,12 +159,13 @@ private struct NativeFormEditor: View {
   }
 }
 
-private struct FormParameterField: View {
+struct FormParameterField: View {
   let parameter: Value
   var label: String?
   var help: String?
   @Binding var value: Value
   let workbook: Workbook?
+  var evidenceIDs: [String]?
   @State private var choosingEvidence = false
   @State private var evidenceTitle: String?
   private var title: String { label ?? parameter["label"].text }
@@ -181,6 +182,7 @@ private struct FormParameterField: View {
               Spacer()
               Button("Remove line") {
                 var rows = value.array
+                guard rows.indices.contains(index) else { return }
                 rows.remove(at: index)
                 value = .array(rows)
               }
@@ -189,7 +191,8 @@ private struct FormParameterField: View {
             ForEach(parameter["fields"].array, id: \.text) { field in
               AnyView(
                 FormParameterField(
-                  parameter: field, value: entryBinding(index, field: field), workbook: workbook))
+                  parameter: field, value: entryBinding(index, field: field), workbook: workbook,
+                  evidenceIDs: evidenceIDs))
             }
           }.padding(12).background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 8))
         }
@@ -215,33 +218,38 @@ private struct FormParameterField: View {
           }
         }.labelsHidden().accessibilityLabel(title)
       case "item":
-        HStack {
-          Button(
-            value == .null || value.text.isEmpty
-              ? "Choose evidence…" : evidenceTitle ?? "Selected evidence"
-          ) { choosingEvidence = true }
-          .accessibilityLabel(title + ": " + (evidenceTitle ?? "Choose evidence"))
-          if value != .null {
-            Button("Open") {
-              NotificationCenter.default.post(name: .sevraOpenEvidence, object: value.text)
-            }.accessibilityLabel("Open " + title)
-          }
-        }
-        .sheet(isPresented: $choosingEvidence) {
-          if let workbook {
-            FormEvidencePicker(workbook: workbook) { item in
-              value = .string(item.0)
-              evidenceTitle = item.1
+        if let evidenceIDs {
+          ClarificationEvidenceField(
+            title: title, evidenceIDs: evidenceIDs, value: $value, workbook: workbook)
+        } else {
+          HStack {
+            Button(
+              value == .null || value.text.isEmpty
+                ? "Choose evidence…" : evidenceTitle ?? "Selected evidence"
+            ) { choosingEvidence = true }
+            .accessibilityLabel(title + ": " + (evidenceTitle ?? "Choose evidence"))
+            if value != .null {
+              Button("Open") {
+                NotificationCenter.default.post(name: .sevraOpenEvidence, object: value.text)
+              }.accessibilityLabel("Open " + title)
             }
           }
-        }
-        .task(id: value.text) {
-          guard let workbook, value != .null else {
-            evidenceTitle = nil
-            return
+          .sheet(isPresented: $choosingEvidence) {
+            if let workbook {
+              FormEvidencePicker(workbook: workbook) { item in
+                value = .string(item.0)
+                evidenceTitle = item.1
+              }
+            }
           }
-          let id = value.text
-          evidenceTitle = try? await Task.detached { try workbook.item(id).title }.value
+          .task(id: value.text) {
+            guard let workbook, value != .null else {
+              evidenceTitle = nil
+              return
+            }
+            let id = value.text
+            evidenceTitle = try? await Task.detached { try workbook.item(id).title }.value
+          }
         }
       default:
         TextField(

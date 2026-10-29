@@ -2,15 +2,13 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T06:29:07.731760+00:00
+updated: 2026-10-29T07:08:10.531545+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
 # Build and run
 
-The commands below describe the current Slotstream development baseline. The
-adopted Python-free Splash integration is being implemented under
-[[records/specs/splash-integration]]; do not claim these commands already use it.
+The baseline commands below describe the preserved Slotstream build. Explicit native candidate sections use the pinned Python-free Splash build under [[records/specs/splash-integration]]. Keep product output paths and model requirements distinct. Native candidate scoped proof does not establish production engine adoption.
 
 
 The development app targets Apple Silicon Macs. macOS 14 is the declared minimum;
@@ -1635,3 +1633,7 @@ Build sevra-checks and run .build/debug/sevra-checks --workflows for focused wor
 ## Workflow clarification qualification
 
 After building sevra-workflow-durability, run python3 scripts/check_workflow_clarification.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --output NEW_DIRECTORY for the deterministic submission/review/reconstruction job plus two SIGKILL boundaries. The default worker produces a clearly labeled synthetic missing-information response. Add --skip-crashes to reuse unchanged death proof. For actual local inference use --model-root MODELS_ROOT --skip-crashes and omit the worker. The script captures source/product/pin identities before inference. All values, acceptances and files are synthetic; CLI attribution remains programmatic. Native and baseline packaged CI and scripts/check.sh include the deterministic job. workflow-clarification reads the exact target; workflow-clarify supplies target JSON, values JSON, reason and retry token. Never substitute user data or replace output/native during a probe. See [[records/specs/manual-workflows]].
+
+## Native clarification verification
+
+Freeze all Swift sources before builds. Sequentially run swift build --product sevra-preview-checks, .build/debug/sevra-preview-checks, swift build --product sevra-checks, .build/debug/sevra-checks, scripts/build_native.sh, python3 scripts/check_native_package.py --paths-only and swift build --product sevra-workflow-durability. Then run python3 scripts/check_workflow_clarification.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --skip-crashes --output NEW_DIRECTORY. The new headless native checks cover incomplete/stale input, original-evidence scope, cross-window alternatives, exact receipt recovery, and failed-save switch/quit gates. Core checks cover bounded receipt/cache retention. V9 frozen proof passes302 core groups and27 deterministic calls; latest visible editor/keyboard/VoiceOver/appearance checks remain open. Reuse unchanged actual-model and process-death evidence only when its code boundary is unchanged. Full details: [[records/specs/manual-workflows]].

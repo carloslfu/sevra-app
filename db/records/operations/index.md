@@ -2,7 +2,7 @@
 type: index
 scope: type-folder
 folder: records/operations
-updated: 2026-10-29T06:29:07.731760Z
+updated: 2026-10-29T07:08:10.531545Z
 ---
 
 # records/operations

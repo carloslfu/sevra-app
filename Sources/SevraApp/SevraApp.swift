@@ -76,9 +76,11 @@ import SwiftUI
     Task {
       let saved = await ConversationSession.flushAll()
       let formsSaved = await FormDraftScope.flushAll()
+      let clarificationsSaved = await WorkflowClarificationScope.flushAll()
       await SpaceNavigationSession.flushAll()
       sender.reply(
-        toApplicationShouldTerminate: saved && formsSaved && DocumentDraftScope.flushAll())
+        toApplicationShouldTerminate: saved && formsSaved && clarificationsSaved
+          && DocumentDraftScope.flushAll())
     }
     return .terminateLater
   }

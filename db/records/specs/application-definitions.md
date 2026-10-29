@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T06:29:07.701859+00:00
+updated: 2026-10-29T07:08:10.456196+00:00
 summary: Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
@@ -631,3 +631,7 @@ Saved workflow evaluate-query steps now permit {step,field,unit?} mappings into 
 ## Interpretation clarification
 
 Interpretations returning needs_input preserve their original result and declared schema. An exact current target may receive complete typed supplied values and reason through shared core/CLI. This creates a separate Source/Record and downstream lineage, without changing meaning/scenario or accepting business effects. Model defaults remain prohibited. Native response grammar now constrains state and values together in one result parameter and shares terminal validation. Human provenance is reserved for actual native submission; CLI remains programmatic and AI submission is closed. Contract and scoped proof: [[records/specs/manual-workflows]].
+
+## Native clarification controls
+
+Shared declared output types drive the native clarification editor. Raw incomplete values remain presentation data until complete typed preview and deliberate human submission. The original model result, meaning/scenario and evidence scope stay fixed. Reuse the exact core clarification operation and canonical receipt; no new definition kind or execution authority. Persistent input/lifecycle proof is scoped in [[records/specs/manual-workflows]].

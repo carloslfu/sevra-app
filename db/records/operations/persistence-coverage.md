@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-29T06:29:07.717073+00:00
+updated: 2026-10-29T07:08:10.486024+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -178,7 +178,7 @@ inspection reads small saved metadata instead of loading complete payloads.
 | Spaces/documents | Versioned definitions, pinned snapshots and exact composition evidence. | `Spaces`, `ComponentData`, `Documents`, `DocumentComposition`. Current and historical versions captured. |
 | References | Immutable annotation sets/predecessors/targets/locators/inputs; heads/index/coverage materializations. | `ReferenceWrites/Index`, `FileReferenceWrites`, `Search.index`. Captured exactly, with existing deterministic rebuild/validation. Broader projection-elision optimization is unimplemented. |
 | Intake | Selected source/use, reports/outcomes/dataset IDs, failure/cancel details/times. Attempt tokens are worker claims. | `ContextualIntake`, `Intake`, `TableIntakePublication`; progress meta also captured. Attempt field becomes null in portable changes. |
-| Presentation | Current portable checkpoint of draft alternatives/reading positions, space pins/recents and incomplete form drafts/bindings/receipts. No business revision or semantic admission. | `ConversationViewState`, `SpaceNavigationState`, `FormDrafts` via `presentationMutation`. Values copied separately; no keystroke journal. |
+| Presentation | Current portable checkpoint of draft alternatives/reading positions, space pins/recents, incomplete form drafts/bindings/receipts and workflow clarification inputs/alternatives. No business revision or semantic admission. | `ConversationViewState`, `SpaceNavigationState`, `FormDrafts` via `presentationMutation`. Values copied separately; no keystroke journal. |
 | Search | Chunks are retained evidence. Four FTS indexes/shadows are disposable. | `Search.rebuildSearch`; reconstruction rebuilds all FTS from saved messages/chunks/definitions, without FTS shadows in changes. |
 | Device execution/access | Locks/staging, extraction attempt table, intake attempts, bookmarks/linked paths, model installs, recent-workbook/last-conversation UserDefaults. | `Workbook/Database`, `Extractor`, `Assets/URLCapture`, native/product setup. No copied grants or claims become portable authority. Pending outcome rows stay inert history. |
 | Export/copies | Coherent DB snapshot plus all included historical dependencies. | `Archive.export/openArchive`, `AssetCopies`, CSV export, reconstruction. Outward file/CSV exports are outputs, not new canonical mutations. |
@@ -374,3 +374,7 @@ No new durable family or schema. Lookup definitions reuse the captured catalog; 
 ## Workflow clarification, October 29
 
 No new canonical family or physical schema. The existing captured mutation atomically publishes submission Source, draft clarification Record, completed step/run state, exact receipt, event and outbox. The original request/model response stays unchanged. Exact token retries, forced rollback/cancellation, inert reconstruction, and two new actual process-death boundaries prove this publication path.101 deterministic calls qualify before/after death recovery; prior shared lease/disk proofs are reused. Typed downstream lineage retains supplied provenance and meaning. Native input drafts and presentation recovery remain unimplemented for this boundary. See [[records/specs/manual-workflows]].
+
+## Clarification presentation checkpoints
+
+WorkflowClarificationDraft stores bounded raw values, explanation, exact historical target/retry identity, a small receipt projection and up to eight alternatives under meta workflow-clarification-draft:RUN_ID. ChangeFormat excludes this prefix from authoritative payloads/digests; presentationMutation uses exact-baseline compare-and-save. Reconstruction copies the checkpoint separately and Assets verification validates targets against retained historical publication receipts. Exact canonical operations recover missing presentation acknowledgement. At128 cached runs only wholly submitted checkpoints may be pruned; every unsent alternative and canonical history is retained. Headless fault/switch/quit, cross-window conflict, stale/reconstructed draft and submission-recovery checks plus302 core groups pass. This is local presentation persistence, not sync or a new ledger. See [[records/specs/manual-workflows]].

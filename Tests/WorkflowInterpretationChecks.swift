@@ -199,6 +199,42 @@ func checkWorkflowInterpretations(at root: URL) {
     try expect(try book.verify()["ok"] == .bool(true) && copy.verify()["ok"] == .bool(true))
   }
   check(
+    "native clarification receipt stays bounded and cache cleanup never discards unsent alternatives"
+  ) {
+    let (book, session, _, _) = try paused("NativeDraftCache")
+    var draft = try book.newWorkflowClarificationDraft(session.runID)
+    draft.entry.values = .object(["quantity": .string("5")])
+    draft.entry.reason = "Deliberately supplied synthetic count"
+    var alternative = WorkflowClarificationEntry(target: draft.entry.target)
+    alternative.values = .object(["quantity": .string("unsent and incomplete")])
+    draft.alternatives = [alternative]
+    _ = try book.saveWorkflowClarificationDraft(session.runID, draft: draft, expected: nil)
+    let receipt = try book.submitWorkflowClarificationDraft(
+      draft, preview: book.previewWorkflowClarificationDraft(draft))
+    try expect(receipt["operationID"] == .string(draft.entry.token) && receipt["steps"] == .null)
+    try expect(try receipt.json().utf8.count < 2048)
+    let revision = try book.revision()
+    let history = try book.committedHistory()
+    try expect(
+      try book.presentationMutation { try book.pruneSubmittedClarificationDrafts(limit: 1) } == 0)
+    try expect(try book.workflowClarificationDraft(session.runID) == draft)
+    let prior = draft
+    draft.alternatives = []
+    // Deliberately retain no presentation receipt, as after process death.
+    _ = try book.saveWorkflowClarificationDraft(session.runID, draft: draft, expected: prior)
+    try expect(
+      try book.presentationMutation { try book.pruneSubmittedClarificationDrafts(limit: 1) } == 1)
+    try expect(try book.workflowClarificationDraft(session.runID) == nil)
+    try expect(try book.revision() == revision && book.committedHistory() == history)
+    let run = try book.workflowRun(session.runID)
+    try expect(
+      run["steps"].array[0]["output"]["value"]["clarification"]["values"]["quantity"]
+        == .string("5"))
+    try expect(try book.item(receipt["sourceID"].text).category == "source")
+    let copy = try book.reconstruct(to: root.appendingPathComponent("NativeDraftCacheCopy.sevra"))
+    try expect(try copy.workflowRun(session.runID) == run && copy.verify()["ok"] == .bool(true))
+  }
+  check(
     "clarification refuses invented fields, invalid values, foreign targets and AI or read-only submission"
   ) {
     let (book, session, original, _) = try paused("ClarificationRefusals")
