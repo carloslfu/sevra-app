@@ -1351,3 +1351,6 @@ MVP 0.1 focused native supplier journey passes: actual CSV/PDF intake, cited PDF
 ## [2026-10-29 19:21] verification | records/operations/implementation.md
 Published source MVP on public main through merged PR1 acc5307, final source checkpoint d142c2a. Fresh public HTTPS clone has that exact commit and passes links and complete db.md validation with zero errors/warnings. Installed focused workflow remains open. Main hosted CI40939063191 is running and not claimed as passed; production and expanded roadmap remain unqualified.
 
+## [2026-10-29 19:25] implementation | records/overview/start-here.md
+Replace contradictory accumulated checkpoint summaries in the entry document with the verified current MVP, honest AI limits, controlling delivery order and a complete specification map. Historical proof remains in implementation history and owning specs; no roadmap requirement is marked completed.
+
