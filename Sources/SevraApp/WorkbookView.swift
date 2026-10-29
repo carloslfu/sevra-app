@@ -170,6 +170,7 @@ struct WorkbookView: View {
     case .reviews: return "Drafts to review"
     case .activity: return "Activity"
     case .automations: return "Automations"
+    case .automation: return "Automation"
     case .workflow: return "Workflow"
     }
   }
@@ -367,6 +368,7 @@ struct WorkbookView: View {
       case .reviews: ReviewQueueView(state: state, results: state.reviewResults)
       case .activity: WorkflowActivityView(workspace: state)
       case .automations: AutomationSchedulesView(workspace: state)
+      case .automation(let id): AutomationFocusedView(definitionID: id, workspace: state)
       case .workflow(let id): WorkflowRunView(runID: id, workspace: state)
       }
     }

@@ -29,6 +29,7 @@ import SwiftUI
     case reviews
     case activity
     case automations
+    case automation(String)
     case workflow(String)
   }
   @Published var workbook: Workbook?
@@ -731,6 +732,7 @@ import SwiftUI
         if present, let focus = result.focus {
           switch focus.kind {
           case "space": navigate(.space(focus.id))
+          case "automation": navigate(.automation(focus.id))
           case "workflow":
             if let session = clarificationDrafts.session(focus.id) { await session.reloadSaved() }
             guard owns(ticket, in: book), conversation == chat,
@@ -805,6 +807,7 @@ import SwiftUI
     case .table(let id): return routeContext + "\nActive dataset ID: " + id
     case .tableUpdate(let source, _):
       return routeContext + "\nTable-update review for source ID: " + source
+    case .automation(let id): return routeContext + "\nActive exact automation version ID: " + id
     case .workflow(let id): return routeContext + "\nActive workflow run ID: " + id
     case .search, .reviews, .activity, .automations: return routeContext
     }
@@ -820,6 +823,9 @@ import SwiftUI
     case .reviews: return "Drafts to review"
     case .activity: return "Workflow activity"
     case .automations: return "Automations"
+    case .automation:
+      return
+        "Inspecting a saved automation. Saving/opening never grants device execution permission."
     case .workflow:
       return "Inspecting a saved workflow run; opening it does not authorize execution."
     }

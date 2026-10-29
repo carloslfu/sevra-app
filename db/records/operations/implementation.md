@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T17:21:32.133953+00:00
+updated: 2026-10-29T17:47:21.657308+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -40,7 +40,8 @@ every requirement or supported hardware profile has passed.
 - Schema28 now retains explicit original-input declarations and resolves shared business/automatic cause identities across consumers, corrections and effective clocks. Broad530 core checkpoint, final20 focused groups/39 installed calls, two new actual SIGKILL boundaries, nearby native checks and strict18-file lint pass. Fresh visible Activity review continuation completes with one preserved root/charge/effect. Dictation start/stop works; fresh spoken transcription is still unverified. See [[records/specs/business-provenance]].
 - Schema29 now retains shared business-root admissions, exact input relations and merged parent/root budgets through the existing captured writer. Full539 core/30 final focused groups,22 installed shared-admission calls, nine racing writers for seven slots and two actual SIGKILL boundaries pass. Current local speech reaches the unsent composer, Stop/clear/close leave no sent work. See [[records/specs/automation-causality]].
 - Schema30 now connects actual owned inventory-condition candidates, exact live physical-file grants and atomic workflow/admission binding. Broad555 core, final18 focused/21 owner groups and current installed race/death/native package checks pass. Fresh native editor/preview/save/Enable, stock20-to5 automatic deterministic completion, trigger evidence, Pause and inert reconstruction pass. See [[records/specs/condition-dispatch]].
-- Next: conversational condition authoring/preview/explicit Enable, a real local-model condition workflow through human review and restart, then dataset-query condition adapters. Final background/closed-window/resource lifecycle and full E3 receiving/failure/abuse/richer-graph journeys remain open. The timer is active-app/key-window only; E5-E6, visible checks and release remain unqualified.
+- Conversation now saves exact inventory rules and opens native review without enabling them. Seven scripted modes, full agent/65 grammars/555 masks at8161/8192, real local-model authoring and packaged native handoff/close/inert reconstruction pass; all152 prior artifacts remain unchanged. See [[records/specs/condition-dispatch]].
+- Next: text/voice explicit Enable confirmation, a real local-model condition workflow through human review and restart, then dataset-query condition adapters. Final background/closed-window/resource lifecycle and full E3 receiving/failure/abuse/richer-graph journeys remain open. The timer is active-app/key-window only; E5-E6, visible checks and release remain unqualified.
 - Release gaps also include contextual/Excel continuity and complete E0/E1/E2 journeys, voice/accessibility/appearance/media and supported physical hardware, native parity/performance adoption, production signing/notarization and distribution. Latest native Activity continuation and local speech-to-composer/stop/clear/close now have visible proof. Controlled-phrase accuracy and full accessibility/appearance/media remain unverified. Specifications are the acceptance contract; scoped checkpoints do not make the app ready.
 
 ## Agent definitions and saved actions, checkpoint, October 28
@@ -48,7 +49,7 @@ every requirement or supported hardware profile has passed.
 The current E2 slice adds focused `find_definitions`, `read_definition`,
 `definition_registry`, `receiving_template`, `form_template`, `evaluate_definition`,
 `save_definition`, `save_template`, `preview_action` and `prepare_action` tools.
-There are 46 native tools. Custom saves require content; exact template saves require
+That earlier checkpoint used46 native tools; the current authoring checkpoint uses52. Custom saves require content; exact template saves require
 this active run's successful receipt, optionally changing only the title. Creates
 receive a host-derived stable identity; edits need the exact inspected current base.
 AI saves retain actual actor/current-request lineage. Catalog/template metadata
@@ -6245,3 +6246,14 @@ The visible native journey creates a fresh synthetic workbook, selects the saved
 Correction to earlier calendar/shared-admission prepared-stage wording: the old probe ran inside the mutation body before ChangeCapture.publish. Its rollback proof is valid at that point; it did not prove death after the change envelope was published. Current calendar and condition probes run in the final commit guard after capture. The new candidate death worker asserts a saved operation and captured head commit before SIGKILL. Earlier immutable receipts remain unchanged. Retained iterations also include the initial throwing-boolean compile fix, a pure-output test corrected to use actual invocation provenance, and native owner fixtures corrected to drain bounded pages instead of assuming one-page catch-up. No integrity gate or backpressure was weakened.
 
 [Scoped condition dispatch evidence](../../../integration/evidence/2026-10-29-condition-dispatch.json.gz), 521,794 bytes, SHA-256 fdbf160e6a4c4304c8becf5afb77165e7e619dbc90675359adb0dac77bf3ccb3. Next complete conversational authoring/preview/explicit Enable, one real local-model condition workflow through business review and restart, and dataset-query adapters. Full E3 graphs/receiving/failure/abuse, E5-E6, contextual/Excel journeys, controlled dictation/VoiceOver/appearance/media, supported physical hardware, native parity/performance adoption and production signing/notarization/distribution remain open. Schema30 is canonical; unsupported development workbooks remain preserved/refused. This checkpoint does not complete the app or active goal.
+
+
+## Conversational inventory-rule checkpoint, October 29
+
+Conversation can now discover an exact saved workflow, request a validated read-only inventory starter and save the canonical automation through current-run template or custom authoring. The host confirms saving only and focuses that exact native review. It never grants execution, device permission or local-AI scope. Seven scripted modes cover exact saves, request lineage, read-only, forged authority, wrong threshold type, foreign receipts, stale workflows and inert reconstruction.
+
+The full synthetic agent suite and current 52-tool/65-case/555-mask grammar pass. The bare prompt stays under its unchanged 8,192-token gate at 8,161. The initial 8,341-token failure and 8,274/8,200 intermediate failures are retained; concise descriptions preserve old structures except the intentional automation discovery kind. The long-job fixture now isolates fixed policy text at a constant synthetic capacity while still counting continuation/latest results; real context/reserve/reasoning/output budgets are unchanged. Strict 14-file Swift lint, frozen 415-source native build, installed 1,888 Metal kernels/build-tree denial, ten missing/altered resource refusals, missing-model saved failure and ad-hoc signature pass.
+
+One real installed native-model 32K/bounded512 case saves the exact rule in four calls/34.798 seconds under development load despite untrusted autoenable/threshold metadata. A separate actual packaged native UI request saves it in three calls and opens exact right-pane review with correct workflow/parts < 10, disabled state and local-AI permission off. Done returns Home. Close/verify/inert reconstruction retain zero activations/consumers/runs/admissions. These are two scoped functional cases, not a throughput or broad accuracy claim. No new microphone/OS permission was used. All 152 prior evidence artifacts remain byte-identical.
+
+[Scoped authoring evidence](../../../integration/evidence/2026-10-29-condition-authoring.json.gz ), 280,383 bytes, SHA-256 fae90c12d650f94072e1373fa32b3c41f3cea2ab7844e6b3c0bb5224c03b8eeb. Earlier schema30 dispatch/race/death proof remains unchanged and reused. Next: text/voice explicit Enable confirmation, a real local-model condition workflow through human business review/restart, then dataset-query conditions. E5-E6, full E3/contextual/Excel journeys, controlled voice/accessibility/appearance/media, physical hardware/native parity/performance and production signing/notarization/distribution remain unfinished. This checkpoint does not complete the app or active goal.

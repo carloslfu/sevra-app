@@ -15,7 +15,7 @@ extension NativeTools {
             "enum": .array(
               [
                 "function", "query", "action", "form", "workflow", "interpretation", "extraction",
-                "intake",
+                "intake", "automation",
               ]
               .map(
                 Value.string)),
@@ -52,6 +52,20 @@ extension NativeTools {
           "id": schema("string", "Current behavior version ID."),
           "stepID": schema("string", "Step identifier; max64 characters."),
         ], required: ["id"])),
+    .init(
+      name: "inventory_automation_template",
+      description: "Inventory crossing starter; then save_template. Never enables execution.",
+      parameters: object(
+        [
+          "workflowID": schema("string", "Exact current saved workflow version."),
+          "arguments": .object(["type": .string("object")]),
+          "subject": schema("string", "Exact explicitly requested inventory subject."),
+          "operator": .object([
+            "type": .string("string"),
+            "enum": .array(["<", "<=", ">", ">=", "=", "<>"].map(Value.string)),
+          ]),
+          "threshold": schema("string", "Explicit decimal threshold, never invented."),
+        ], required: ["workflowID", "arguments", "subject", "operator", "threshold"])),
     .init(
       name: "evaluate_definition",
       description:

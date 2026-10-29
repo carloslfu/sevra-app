@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T17:21:32.458534+00:00
+updated: 2026-10-29T17:47:21.716739+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1799,3 +1799,12 @@ Focused check: `.build/debug/sevra-checks --automation-causality`. Installed syn
 Schema30 is canonical. The native Automations editor supports exact calendar and inventory-threshold workflows. Preview and Save stay inactive; Enable on this Mac authorizes that physical workbook/version. Ordinary Resume preserves saved and missed transitions, while Only from now records an explicit skip and new baseline. Run once remains a separate manual workflow. Automatic business changes require review.
 
 Focused core: `.build/debug/sevra-checks --condition-dispatch`. Actual synthetic candidate process/race/recovery check: `python3 scripts/check_condition_dispatch.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Native controller/registry: `.build/debug/sevra-automation-ui-checks`. check.sh and both installed CI paths include condition dispatch; artifact upload includes its JSON. No ordinary CLI/model dispatch override or arbitrary parent/root input is exposed. The public condition-causes inspector stays read-only and grants no authority. Full scope/evidence: [[records/specs/condition-dispatch]].
+
+
+## Conversational inventory-rule authoring
+
+Use conversation to save an explicit rule over an exact saved workflow, such as “Save Parts watch using Low-stock report, no arguments, when parts stock becomes less than 10. Save only.” The result opens exact native review; saving does not enable it. Inspect workflow, threshold and AI scope before explicit Enable on this Mac. Initial enabling establishes a baseline; already-true stock waits for a new crossing. Normal resume preserves transitions. Text/voice Enable confirmation remains a separate unfinished gate.
+
+Focused scripted check: `.build/debug/sevra-agent-checks --automation-authoring-checks`. `python3 scripts/check_splash_grammar.py` checks current 52-tool schemas/65 cases/555 exact masks under the unchanged 8,192-token bare-prompt gate. The full agent suite includes all seven authoring modes. The opt-in real native probe is `.build/debug/sevra-agent-checks --automation-authoring MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY`; it uses already installed selected-model files with evaluation 32K/bounded512, freely selected tools and a disposable synthetic workbook. No new model download or Python runtime inference is required. Keep inference serial and do not replace package resources or edit sources during builds.
+
+The current app/CLI packaged hashes, actual-model and visible native handoff, inactive/reconstruction assertions, failed iterations and retained resource checks are in [[records/specs/condition-dispatch]]. This is development qualification, not a production release or a supported hardware/performance claim.

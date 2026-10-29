@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T17:21:32.426436+00:00
+updated: 2026-10-29T17:47:21.697001+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -757,3 +757,8 @@ The reviewed [[records/specs/condition-dispatch]] contract governs owned consume
 ## Schema30 condition execution, October 29
 
 Actual owned inventory-condition candidates now dispatch through exact current physical-file grants and the same captured workflow/admission ledger, with complete original/automatic causes and persisted shared budgets. Native typed preview/save/Enable/Pause, ordered queue dismissal/resume/from-now and read-only idle polling are connected. Broad555 core checkpoint, final18 focused/21 owner groups,17 condition/21 calendar/22 shared/39 cause installed calls, nine candidate writers/two actual SIGKILL boundaries and fresh visible deterministic native crossing/Activity/pause/reconstruction pass. No final full-core rerun or fresh model inference is claimed. [[records/specs/condition-dispatch]] retains exact source/package hashes, failures, prepared-probe correction and limits. Conversational authoring/Enable, real-model condition review/restart, dataset adapters and E5-E6/release remain open.
+
+
+## Conversational inventory rules, October 29
+
+The current schema30 app now saves exact inventory-condition rules from conversation and focuses exact native review with a host saving-only receipt. Seven scripted modes, full agent suite, 52 tools/65 grammars/555 masks at 8161/8192, strict 14-file lint, native packaging and both real-model and actual visible packaged authoring pass. Saving/reconstruction remain inactive with zero grants/runs. All 152 prior artifacts remain unchanged. [[records/specs/condition-dispatch]] retains evidence, prompt/fixture failures, fixes and limits. Text/voice Enable, real-model condition business review/restart, dataset conditions and broader release remain next.

@@ -137,9 +137,10 @@ struct AutomationSchedulesView: View {
   }
 }
 
-private struct AutomationScheduleDetail: View {
+struct AutomationScheduleDetail: View {
   let definition: ApplicationDefinition
   @ObservedObject var workspace: WorkspaceState
+  var onClose: (() -> Void)? = nil
   @ObservedObject private var owner = NativeAutomationHost.shared.controller
   @Environment(\.dismiss) private var dismiss
   @State private var preview: Value?
@@ -257,7 +258,7 @@ private struct AutomationScheduleDetail: View {
           }
           if let runID = state["active_run_id"].string {
             Button("Open saved run") {
-              dismiss()
+              close()
               workspace.navigate(.workflow(runID))
             }
           }
@@ -267,7 +268,7 @@ private struct AutomationScheduleDetail: View {
       if let failure { Text(failure).foregroundStyle(.red).textSelection(.enabled) }
       HStack {
         Spacer()
-        Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
+        Button("Done") { close() }.keyboardShortcut(.cancelAction)
       }
     }.padding(24).frame(minWidth: 540, idealWidth: 620, minHeight: 440, idealHeight: 660)
       .disabled(working || workspace.busy).interactiveDismissDisabled(working)
@@ -320,6 +321,9 @@ private struct AutomationScheduleDetail: View {
         AutomationScheduleEditor(
           workspace: workspace, existing: shown, onSave: { updatedDefinition = $0 })
       }
+  }
+  private func close() {
+    if let onClose { onClose() } else { dismiss() }
   }
   private var grantIsCurrent: Bool {
     guard let grant else { return false }
@@ -386,7 +390,7 @@ private struct AutomationScheduleDetail: View {
         arguments: payload["arguments"], token: identifier(),
         actor: .human("Sevra.native-schedule-run-once"), cancellation: control)
     } completion: { run in
-      dismiss()
+      close()
       workspace.navigate(.workflow(run["id"].text))
       Task {
         guard workspace.interactionActive, workspace.workbook === book,

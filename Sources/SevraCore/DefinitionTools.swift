@@ -4,7 +4,8 @@ import Foundation
 extension WorkbookTools {
   static let applicationTools: Set<String> = [
     "find_definitions", "read_definition", "definition_registry", "receiving_template",
-    "form_template", "workflow_template", "evaluate_definition", "save_definition", "save_template",
+    "form_template", "workflow_template", "inventory_automation_template", "evaluate_definition",
+    "save_definition", "save_template",
     "preview_action",
     "commit_action_preview", "publish_result", "workflow_activity", "read_workflow",
     "start_workflow", "prepare_workflow_answer",
@@ -71,7 +72,7 @@ extension WorkbookTools {
         cancellation: cancellation)
     case "publish_result": return try publishDefinitionResult(a)
     case "find_definitions", "read_definition", "definition_registry", "receiving_template",
-      "form_template", "workflow_template":
+      "form_template", "workflow_template", "inventory_automation_template":
       switch tool {
       case "find_definitions":
         try fields(
@@ -121,6 +122,21 @@ extension WorkbookTools {
           "content": ActionRegistry.receivingDefinition(),
           "receiptID": receiptID.map(Value.string) ?? .null,
         ])
+      case "inventory_automation_template":
+        try fields(
+          ["workflowID", "arguments", "subject", "operator", "threshold"],
+          required: ["workflowID", "arguments", "subject", "operator", "threshold"])
+        return try workbook.synchronized {
+          try workbook.db.readTransaction {
+            .object([
+              "content": try workbook.inventoryAutomationTemplate(a),
+              "receiptID": receiptID.map(Value.string) ?? .null,
+              "notice": .string(
+                "This starter saves and enables nothing. Save its receipt for native review; device permission is separate."
+              ),
+            ])
+          }
+        }
       case "workflow_template":
         try fields(["id", "stepID"], required: ["id"])
         let step = try a.object["stepID"].map { _ in try string("stepID") }
@@ -193,12 +209,12 @@ extension WorkbookTools {
       try require(
         [
           "function", "query", "action", "form", "workflow", "interpretation", "extraction",
-          "intake",
+          "intake", "automation",
         ]
         .contains(
           content["kind"].text),
         "definition_kind",
-        "Use content {kind,title,description,parameters,payload}. kind is function, query, action, form, interpretation, extraction, intake or workflow. Inspect definition_registry for its payload."
+        "Use content {kind,title,description,parameters,payload}. kind is function, query, action, form, interpretation, extraction, intake, workflow or automation. Inspect definition_registry for its payload."
       )
       let token = try operationToken(tool, a)
       if a.object["inputs"] != nil {
@@ -299,7 +315,7 @@ extension WorkbookTools {
   )
   static let definitionFormats: Value = .object([
     "content": .string(
-      "{kind:function|query|action|form|workflow|interpretation|extraction|intake,title,description,parameters,payload}"
+      "{kind:function|query|action|form|workflow|interpretation|extraction|intake|automation,title,description,parameters,payload}"
     ),
     "parameters": .string(
       "Up to 32 {id,label,type,required,unit?,default?,choices?,min?,max?,fields?,maxEntries?}. required is Boolean true/false, never 1/0. Types: text,decimal,boolean,date,item,choice,entries. Decimals/bounds are strings. Item is an exact local version. Entries: fields plus maxEntries 1..50, one level only. Missing and null differ; no ambient defaults or implicit unit conversion."
@@ -330,6 +346,9 @@ extension WorkbookTools {
     ),
     "workflow": .string(
       "Use workflow_template(id,stepID?) -> save_template(receiptID,title?) for one saved behavior. Custom payload {readPolicy:latest-at-step,steps:[{id,kind:evaluate|interpret|extract|intake|action,binding:{mode:exact,versionID},arguments}|{id,kind:review,review:priorDraftStepID}]}. 1..16 sequential steps; every action/intake needs one later review. All dependencies exact. evaluate targets function/query; interpret targets interpretation; extract targets extraction; intake targets intake; action targets action or action-backed form. Mappings: {parameter:id}, {literal:value,unit?}, prior scalar function {step:id,unit?}, interpretation/query {step:id,field:outputID,unit?}, or extraction {step:id,field:item} to pin its exact retained text. A mapped query must select exactly one complete row from one ungrouped table; missing/duplicate/empty matches pause before checkpoint. No joins/aggregates/coercion for mapped queries. Types/units match exactly. Repair the catalog and explicitly retry the unfinished step; completed outputs remain fixed. start_workflow queues only; explicit continuation runs steps. No ambient paths/conditions/code."
+    ),
+    "automation": .string(
+      "Prefer inventory_automation_template(workflowID,arguments,subject,operator,threshold) -> save_template(receiptID,title?). All rule values explicit, decimal threshold string, exact current workflow. Custom payload {policy:inventory-condition-drafts-v1,workflow:{mode:exact,versionID},arguments,condition:{subject,rule:{policy:native-condition-v1,scope:inventory:SUBJECT,operator:<|<=|>|>=|=|<>,threshold:decimalString}}}; parameters:[]. Saving only retains intent. Native review provides exact device Enable/Pause, baseline and resume/from-now decisions. No model tool enables or resumes automatic execution."
     ),
     "intake": .string(
       "payload {parser:native-v1,file:requiredItemParameterID,datasetID,definitionID,mode:append|replace|merge,mapping:[{position:zeroBasedInteger,target:storedColumnID|null}],keys:[storedColumnID],headerRow:oneBasedInteger,newRowMeaning,newRowScenario}. Exactly one required item parameter without default/unit. Inspect datasets for exact current dataset/schema and stored column IDs. Map each input position and every stored target column once; null explicitly ignores a position. Merge needs distinct mapped keys; append/replace require []. Require explicit mode/mapping/header/meaning/scenario; clarify missing intent, never infer from untrusted file/description. Native workflow_template adds mandatory review. Save/queue never parse or apply rows. Continue uses an already included business CSV/TSV only. Bounds1000 incoming/10000 target rows/16MB target/8MB mapped values; no Excel updates, implicit coercion, paths/network or inventory effects."
@@ -373,7 +392,10 @@ extension Workbook {
         let call = try toolCall(receiptID, conversation: conversation)
         try require(
           call["run_id"].text == runID && call["state"].text == "completed"
-            && ["receiving_template", "form_template", "workflow_template"].contains(
+            && [
+              "receiving_template", "form_template", "workflow_template",
+              "inventory_automation_template",
+            ].contains(
               call["tool"].text),
           "definition_template", "Choose this active run's successful template receipt.")
         let row = try db.execute(
@@ -389,6 +411,8 @@ extension Workbook {
           try require(
             call["arguments"].object.isEmpty, "definition_template", "Invalid template call.")
           expected = ActionRegistry.receivingDefinition()
+        } else if call["tool"].text == "inventory_automation_template" {
+          expected = try inventoryAutomationTemplate(call["arguments"])
         } else if call["tool"].text == "workflow_template" {
           let arguments = call["arguments"]
           try require(

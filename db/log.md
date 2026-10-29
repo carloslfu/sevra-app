@@ -1318,3 +1318,12 @@ Qualify schema30 actual owned condition dispatch and native deterministic journe
 ## [2026-10-29 17:21] implementation | records/operations/build-and-run.md
 Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
 
+## [2026-10-29 17:24] design | records/specs/condition-dispatch.md
+Review scoped conversational inventory-rule authoring, current-run template and truthful native handoff; keep model/device authorization closed.
+
+## [2026-10-29 17:46] implementation | records/specs/condition-dispatch
+Qualified schema30 conversational inventory-rule saving and exact native review handoff: seven scripted modes, full agent/65 grammar cases/555 masks8161/8192, actual model and packaged UI, inactive reconstruction, native resources/refusals/signature; retained failures and all152 prior receipts. Text/voice Enable and full app/release remain open.
+
+## [2026-10-29 17:47] verification | records/specs/condition-dispatch
+Final conversational authoring checkpoint: actual model4 calls, packaged native3 calls, zero activations/consumers/runs/admissions and inert reconstruction; full agent/current65 grammars555 masks8161/8192, strict14 Swift files, frozen415 sources, native package/refusals/signature, dbmd all zero errors/warnings, links/diff; all152 prior evidence unchanged.
+

@@ -254,6 +254,10 @@ func expectValue<T>(_ value: T?) throws -> T {
   return value
 }
 do {
+  if CommandLine.arguments.dropFirst() == ["--automation-authoring-checks"] {
+    try await checkInventoryAutomationAuthoring()
+    exit(0)
+  }
   if CommandLine.arguments.dropFirst() == ["--export-tools"] {
     let checks = ToolPolicyChecks()
     try checks.testActualWorkbookSchemas()
@@ -273,6 +277,7 @@ do {
   try await checkRequestAdmission()
   try await checkMovementDirection()
   try await checkApplicationTools()
+  try await checkInventoryAutomationAuthoring()
   try await checkWorkflowAgentTools()
   try await checkWorkflowAnswerAgent()
   try await checkComputationTools()
@@ -322,6 +327,11 @@ do {
     && CommandLine.arguments[1] == "--workflow-interpretation"
   {
     try await runWorkflowInterpretationProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--automation-authoring"
+  {
+    try await runAutomationAuthoringProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--workflow-tools" {
