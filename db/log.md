@@ -1348,3 +1348,6 @@ Visible native intake, ready CSV/PDF indexes, working values and formula 130/135
 ## [2026-10-29 19:17] verification | records/operations/implementation.md
 MVP 0.1 focused native supplier journey passes: actual CSV/PDF intake, cited PDF summary, saved table/chart, keyboard edit/Undo/cancel, native close/reopen and UI export/reopen. Actual exported copy passes fresh installed CLI reopen with network and original-example access denied; hashes/history/formulas/spaces preserved and zero activations. Final native table, lint, package/refusal/signature and isolated installation checks pass. Retain broad-query missed evidence/step-limit failures as explicit preview limits; immutable receipt 86def378658bfcdd6acc870520359fc33d2f8cc36f9306dfa130e6cdec11ea03. Hosted CI still pending.
 
+## [2026-10-29 19:21] verification | records/operations/implementation.md
+Published source MVP on public main through merged PR1 acc5307, final source checkpoint d142c2a. Fresh public HTTPS clone has that exact commit and passes links and complete db.md validation with zero errors/warnings. Installed focused workflow remains open. Main hosted CI40939063191 is running and not claimed as passed; production and expanded roadmap remain unqualified.
+

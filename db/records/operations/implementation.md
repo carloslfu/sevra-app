@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T19:17:26.400200+00:00
+updated: 2026-10-29T19:21:55.897609+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -89,11 +89,22 @@ runs, UI observations, check tails and offline-copy results are in
 The build is based on 36cc49c with the recorded formatting/accessibility source delta;
 the final commit records that exact delta. Earlier immutable receipts stay unchanged.
 
-Active delivery work, at most three:
+### Source handoff
 
-1. Finish knowledge/link/diff checks, publish this coherent source preview and
-   record the hosted CI outcome. CI 40934376437 and 40936358619 were still running
-   at the receipt capture, so neither is claimed as passed. Prior 0906fe4 CI failed
+[PR 1](https://github.com/carloslfu/sevra-app/pull/1) is merged into public main as
+`acc5307b7822cc78f0753a8f9c84c5276128f692`, including final source checkpoint
+`d142c2a2f97fa96fbcdd1eddc3f762d9b2c5e9c0`. A fresh public HTTPS clone obtains
+that commit and passes repository links and full db.md validation with zero errors
+or warnings. The README now leads with native installation and the focused example.
+The installed app remains open with the restored portable comparison.
+
+Active follow-up, at most three:
+
+1. Hosted CI is still running. The [main candidate run](https://github.com/carloslfu/sevra-app/actions/runs/40939063191)
+   covers the final source. Earlier candidate runs 40934376437 and 40936358619
+   remain separate observations, not passed checks. Local required and focused
+   checks are complete. Record the actual hosted outcome when available; do not
+   imply production qualification from this source preview. Prior 0906fe4 CI failed
    the stale authoring assertion corrected in e73303a.
 2. Let an external user attempt the documented supplier workflow, then prioritize
    observed friction. Broad retrieval/reasoning reliability remains the main product
