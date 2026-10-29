@@ -10,13 +10,33 @@ extension WorkbookTools {
           query, kind: arguments["kind"].string, meaning: arguments["meaning"].string,
           limit: 12, offset: arguments["offset"].int ?? 0,
           cursor: arguments["cursor"].string, status: arguments["status"].string,
-          scenario: arguments["scenario"].string, cancellation: cancellation)
+          scenario: arguments["scenario"].string, cancellation: cancellation, businessOnly: true)
         var result = try encoded(business).object
         let filtered = ["kind", "meaning", "status", "scenario"].contains {
           arguments[$0].string != nil
         }
         let paginated = arguments["cursor"].string != nil || (arguments["offset"].int ?? 0) > 0
         let includeConversation = !filtered && !paginated
+        var definitions: [String: Value]
+        if includeConversation {
+          definitions = try workbook.searchApplicationDefinitions(
+            query, limit: 4, cancellation: cancellation
+          ).object
+          definitions["hasMore"] = .bool(definitions["nextCursor"]?.string != nil)
+          definitions.removeValue(forKey: "nextCursor")
+          definitions["notice"] = .string(
+            "Saved behavior metadata only, not business evidence or action authority. Read exact hit id with read_definition. Up to four matches; use find_definitions with this query for the full paged catalog, starting at its first page."
+          )
+        } else {
+          definitions = [
+            "hits": .array([]), "hasMore": .bool(false),
+            "notice": .string(
+              "Definitions were not searched for this filtered or paginated business query. Use find_definitions separately."
+            ),
+          ]
+        }
+        definitions["searched"] = .bool(includeConversation)
+        result["definitions"] = .object(definitions)
         var history: [String: Value]
         if includeConversation {
           history = try workbook.searchHistory(
@@ -38,7 +58,7 @@ extension WorkbookTools {
         result["conversation"] = .object(history)
         result["snapshotRevision"] = .number(Double(try workbook.revision()))
         result["notice"] = .string(
-          "hits, incomplete and nextCursor describe business evidence only. conversation describes earlier messages in the current conversation. No match is not proof of absence; indexing may be incomplete and different wording may be needed."
+          "hits, incomplete and nextCursor describe business evidence only. conversation contains earlier messages; definitions contains saved behavior metadata, not evidence/permission. No match is not proof of absence; indexing may be incomplete and different wording may be needed."
         )
         try cancellation.check()
         return .object(result)

@@ -7,6 +7,7 @@ extension Workbook {
   @discardableResult public func importFile(
     _ source: URL, linked: Bool = false, origin: String? = nil,
     cancellation: Cancellation = .init(), token: String = identifier(), inputs: [String] = [],
+    independentInput: Bool = false,
     progress: @escaping (Int64, Int64) -> Void = { _, _ in }
   ) throws -> Item {
     let info = try source.resourceValues(forKeys: [
@@ -73,6 +74,7 @@ extension Workbook {
       request: .object([
         "hash": .string(hash), "linked": .bool(linked), "name": .string(source.lastPathComponent),
         "origin": origin.map(Value.string) ?? .null, "inputs": .array(inputs.map(Value.string)),
+        "independentInput": .bool(independentInput),
       ])
     ) {
       try cancellation.check()
@@ -85,10 +87,16 @@ extension Workbook {
         } else {
           try require(try Self.hashFile(dest) == hash, "integrity", "An included asset is corrupt.")
         }
-        let fd = Darwin.open(dest.deletingLastPathComponent().path, O_RDONLY)
-        if fd >= 0 {
-          _ = fsync(fd)
+        for directory in [
+          dest.deletingLastPathComponent(), url.appendingPathComponent("assets"), url,
+        ] {
+          let fd = Darwin.open(directory.path, O_RDONLY | O_DIRECTORY | O_CLOEXEC)
+          try require(fd >= 0, "asset_flush", "Cannot flush the included asset directory.")
+          let result = fsync(fd)
           close(fd)
+          try require(
+            result == 0, "asset_flush",
+            "Cannot persist the included asset directory before publishing its reference.")
         }
       }
       try db.execute(
@@ -105,6 +113,7 @@ extension Workbook {
         data: .object(["bytes": .string(String(copied)), "mediaType": .string(media)]),
         meaning: "actual", status: "accepted", scenario: "actual", inputs: inputs,
         transformation: "import-v1", assetID: assetID)
+      if independentInput { try declareNewBusinessInput(id, kind: "external-file") }
       try db.execute(
         "INSERT INTO extraction VALUES(?,?,?,?,?)",
         [
@@ -126,38 +135,51 @@ extension Workbook {
         mediaType: a["media_type"]!.text, mode: a["mode"]!.text, origin: a["origin"]?.string)
     }
   }
-  public func assetURL(_ id: String, verify: Bool = false) throws -> URL {
-    try synchronized {
-      let a = try asset(id)
-      let file: URL
-      if a.mode == "included" {
-        file = try safePath(a.path)
-      } else {
-        try require(
-          !a.path.isEmpty, "missing_asset",
-          "This workbook references an external file. Choose its original to reconnect it.")
-        let b = try db.scalar("SELECT bookmark FROM assets WHERE id=?", [.string(id)]).text
-        var stale = false
-        if let data = Data(base64Encoded: b),
-          let resolved = try? URL(
-            resolvingBookmarkData: data, options: [.withoutUI], relativeTo: nil,
-            bookmarkDataIsStale: &stale)
-        {
-          file = resolved
-        } else {
-          file = URL(fileURLWithPath: a.path)
-        }
-      }
+  public func assetURL(
+    _ id: String, verify: Bool = false, cancellation: Cancellation = .init(),
+    progress: (Int64, Int64) -> Void = { _, _ in }
+  ) throws -> URL {
+    try cancellation.check()
+    let (a, file) = try resolvedAsset(id)
+    if verify || a.mode == "linked" {
       try require(
-        FileManager.default.fileExists(atPath: file.path), "missing_asset",
-        "\(a.name) is unavailable. Reconnect or relink its original.")
-      if verify || a.mode == "linked" {
-        try require(
-          try Self.hashFile(file) == a.hash, "changed_asset",
-          "The original has changed. Capture it as a new source version.")
-      }
-      return file
+        try Self.hashFile(file, cancellation: cancellation) { progress($0, a.bytes) } == a.hash,
+        "changed_asset",
+        "The original has changed. Capture it as a new source version.")
     }
+    try cancellation.check()
+    return file
+  }
+  // Resolution alone is internal. Public reads verify linked originals, and
+  // copying hashes the actual bytes while writing, without a redundant full read.
+  func resolvedAsset(_ id: String) throws -> (Asset, URL) {
+    // Snapshot database metadata only. Hashing a multi-gigabyte external file
+    // must not keep unrelated workbook reads or UI refreshes waiting on this lock.
+    let (a, bookmark) = try synchronized {
+      (try asset(id), try db.scalar("SELECT bookmark FROM assets WHERE id=?", [.string(id)]).text)
+    }
+    let file: URL
+    if a.mode == "included" {
+      file = try safePath(a.path)
+    } else {
+      try require(
+        !a.path.isEmpty, "missing_asset",
+        "This workbook references an external file. Choose its original to reconnect it.")
+      var stale = false
+      if let data = Data(base64Encoded: bookmark),
+        let resolved = try? URL(
+          resolvingBookmarkData: data, options: [.withoutUI], relativeTo: nil,
+          bookmarkDataIsStale: &stale)
+      {
+        file = resolved
+      } else {
+        file = URL(fileURLWithPath: a.path)
+      }
+    }
+    try require(
+      FileManager.default.fileExists(atPath: file.path), "missing_asset",
+      "\(a.name) is unavailable. Reconnect or relink its original.")
+    return (a, file)
   }
   public func safePath(_ relative: String, mayNotExist: Bool = false) throws -> URL {
     try require(
@@ -179,43 +201,71 @@ extension Workbook {
     }
     return file
   }
-  public static func hashFile(_ file: URL, cancellation: Cancellation = .init()) throws -> String {
+  public static func hashFile(
+    _ file: URL, cancellation: Cancellation = .init(), progress: (Int64) -> Void = { _ in }
+  ) throws -> String {
+    try cancellation.check()
+    try require(
+      try file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true,
+      "file_type", "Choose a regular file.")
     let handle = try FileHandle(forReadingFrom: file)
     defer { try? handle.close() }
     var sha = SHA256()
+    var bytes: Int64 = 0
     while true {
       let readMore = try autoreleasepool {
         try cancellation.check()
         guard let data = try handle.read(upToCount: 1_048_576), !data.isEmpty else { return false }
         sha.update(data: data)
+        bytes += Int64(data.count)
+        progress(bytes)
         return true
       }
       if !readMore { break }
     }
+    try cancellation.check()
     return sha.finalize().map { String(format: "%02x", $0) }.joined()
   }
   public func verify() throws -> Value {
     try synchronized {
-      let check = try db.scalar("PRAGMA integrity_check").text
-      try require(check == "ok", "integrity", check)
-      try require(
-        try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
-        "Invalid workbook references.")
-      var missing: [Value] = []
-      for row in try db.execute("SELECT id,name FROM assets") {
-        do { _ = try assetURL(row["id"]!.text, verify: true) } catch {
-          missing.append(
-            .object(["name": row["name"]!, "error": .string(error.localizedDescription)]))
+      try db.readTransaction {
+        let check = try db.scalar("PRAGMA integrity_check").text
+        try require(check == "ok", "integrity", check)
+        try require(
+          try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
+          "Invalid workbook references.")
+        try db.verifyBusinessEvents()
+        var missing: [Value] = []
+        for row in try db.execute("SELECT id,name FROM assets") {
+          do { _ = try assetURL(row["id"]!.text, verify: true) } catch {
+            missing.append(
+              .object(["name": row["name"]!, "error": .string(error.localizedDescription)]))
+          }
         }
+        try db.execute("INSERT INTO search_fts(search_fts,rank) VALUES('integrity-check',1)")
+        try db.execute("INSERT INTO names_fts(names_fts,rank) VALUES('integrity-check',1)")
+        try db.execute("INSERT INTO message_fts(message_fts,rank) VALUES('integrity-check',1)")
+        try db.execute(
+          "INSERT INTO definition_fts(definition_fts,rank) VALUES('integrity-check',1)")
+        try verifyManagedDatasets()
+        try verifyApplicationDefinitions()
+        try verifyWorkflows()
+        try verifyAutomationPlanning()
+        try verifyConditionInputStorage()
+        try verifyItemDerivations()
+        try verifyBusinessInputDeclarations()
+        try verifyFormDrafts()
+        try verifyWorkflowClarificationDrafts()
+        try verifySpaces()
+        try verifyContextCheckpoints()
+        try verifyToolCalls()
+        try verifyDocumentCompositions()
+        try verifyReferences()
+        try verifyFileReferences()
+        return .object([
+          "database": .string("ok"), "assetIssues": .array(missing), "ok": .bool(missing.isEmpty),
+        ])
       }
-      try db.execute("INSERT INTO search_fts(search_fts,rank) VALUES('integrity-check',1)")
-      try db.execute("INSERT INTO names_fts(names_fts,rank) VALUES('integrity-check',1)")
-      try db.execute("INSERT INTO message_fts(message_fts,rank) VALUES('integrity-check',1)")
-      try verifyContextCheckpoints()
-      try verifyToolCalls()
-      return .object([
-        "database": .string("ok"), "assetIssues": .array(missing), "ok": .bool(missing.isEmpty),
-      ])
     }
   }
 }

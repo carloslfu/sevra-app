@@ -1,0 +1,96 @@
+{
+  "sourceCommit": "48b1a30418e61b05983e0db5cb31f81f877735c8",
+  "scope": "Independent read-only inspection of both retained active-context-v1 workbooks. Failed qualification.",
+  "arms": {
+    "maintained32K": {
+      "originalItemsUnchanged": 14,
+      "originalHeadsUnchanged": true,
+      "inventoryEffectsAndBasesUnchanged": true,
+      "receivingSpaces": 2,
+      "documentDraftCount": 1,
+      "unloaded": true,
+      "integrity": {
+        "assetIssues": [],
+        "database": "ok",
+        "ok": true
+      },
+      "checkpointCount": 3,
+      "clearances": [
+        {
+          "label": "CEDAR",
+          "expected": "0.31",
+          "actual": "0.35",
+          "unit": "mm"
+        },
+        {
+          "label": "IRIS",
+          "expected": "0.32",
+          "actual": "0.34",
+          "unit": "mm"
+        },
+        {
+          "label": "MAPLE",
+          "expected": "0.33",
+          "actual": "0.33",
+          "unit": "mm"
+        },
+        {
+          "label": "WILLOW",
+          "expected": "0.34",
+          "actual": "0.32",
+          "unit": "mm"
+        },
+        {
+          "label": "BIRCH",
+          "expected": "0.35",
+          "actual": "0.31",
+          "unit": "mm"
+        },
+        {
+          "label": "ALDER",
+          "expected": "0.36",
+          "actual": "0.36",
+          "unit": "mm"
+        },
+        {
+          "label": "HAZEL",
+          "expected": "0.37",
+          "actual": "0.37",
+          "unit": "mm"
+        },
+        {
+          "label": "ELM",
+          "expected": "0.38",
+          "actual": "0.38",
+          "unit": "mm"
+        }
+      ],
+      "mismatchedLabels": [
+        "CEDAR",
+        "IRIS",
+        "WILLOW",
+        "BIRCH"
+      ],
+      "physicalDraftLines": 13,
+      "draftStatusAndMeaning": [
+        "draft",
+        "estimate"
+      ]
+    },
+    "uncompressed64K": {
+      "originalItemsUnchanged": 14,
+      "originalHeadsUnchanged": true,
+      "inventoryEffectsAndBasesUnchanged": true,
+      "receivingSpaces": 1,
+      "documentDraftCount": 0,
+      "unloaded": true,
+      "integrity": {
+        "assetIssues": [],
+        "database": "ok",
+        "ok": true
+      },
+      "checkpointCount": 0
+    }
+  },
+  "archiveSHA256": "c76f2e3bde683d1a6f5c01cae1a3f62a8d00ee7b3325f3acea817b3dbb6e4c17"
+}

@@ -175,7 +175,7 @@ func checkHistoryTools() async throws {
   try expectEqual(numericRecovered.citations, ["message:" + numericOriginal])
   try expectEqual(
     try numeric.messages().contains {
-      $0.role == "assistant" && $0.body.contains("120")
+      $0.role == "assistant" && $0.body.contains("The quantity was 120.")
     }, false)
   for (large, unified) in [(false, false), (false, true), (true, false)] {
     let book = try Workbook.create(

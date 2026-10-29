@@ -11,6 +11,16 @@ public struct ComponentSnapshot: Codable, Sendable, Equatable {
   public let captured: String
 
 }
+/// The visible first page and its coverage limits are frozen together. A pinned
+/// search never reruns its query or resolves an old hit to the current item head.
+public struct ComponentSearchSnapshot: Codable, Sendable, Equatable {
+  public let query: String
+  public let hits: [SearchHit]
+  public let incomplete: Int
+  public let hasMore: Bool
+  public let revision: Int
+  public let captured: String
+}
 extension Workbook {
   public func componentData(_ component: Component) throws -> ComponentSnapshot {
     if let snapshot = component.snapshot { return snapshot }
@@ -55,10 +65,12 @@ extension Workbook {
     }
     return Numbers.string(result)
   }
-  /// Pin both values and exact input versions, including the complete table used by A1 formulas.
+  /// Pin values, exact item versions and bounded search results in one transaction.
   @discardableResult public func pinSpace(
-    _ id: String, title: String? = nil, token: String = identifier()
+    _ id: String, title: String? = nil, token: String = identifier(),
+    cancellation: Cancellation = .init()
   ) throws -> String {
+    try cancellation.check()
     let result = try mutation(
       "pin_space", token: token,
       request: .object(["id": .string(id), "title": title.map(Value.string) ?? .null])
@@ -66,8 +78,27 @@ extension Workbook {
       guard let space = try spaces().first(where: { $0.id == id }) else {
         throw SevraError("view", "Space not found.")
       }
+      let captured = space.definition.pinnedAt ?? timestamp()
+      let revision = try revision()
       func pin(_ component: Component) throws -> Component {
+        try cancellation.check()
+        try require(
+          !SpaceDefinition.sectionTypes.contains(component.type) && component.type != "form",
+          "view_limit",
+          "Live workbook sections and forms cannot be frozen. Snapshot a space containing bound business views."
+        )
         var copy = component
+        if ["calculation", "query"].contains(component.type), component.evaluationSnapshot == nil {
+          let evaluation = try componentDefinitionResult(component, cancellation: cancellation)
+          copy.definitionBinding = .object([
+            "mode": .string("exact"), "versionID": evaluation["definitionID"],
+          ])
+          copy.evaluationSnapshot = .init(
+            evaluation: evaluation, captured: captured,
+            inputPopulation: component.type == "query"
+              ? try definitionQueryPopulation(evaluation, cancellation: cancellation) : nil)
+          try validateDefinitionComponent(copy, pinned: true)
+        }
         if component.datasetID != nil {
           let snapshot = try componentData(component)
           try require(
@@ -75,11 +106,24 @@ extension Workbook {
             "Pinning currently supports complete tables of up to 1,000 rows.")
           copy.snapshot = snapshot
         }
+        if ["document", "asset"].contains(component.type), let id = component.itemID {
+          copy.itemID = try item(id).id
+        }
+        if component.type == "search", component.searchSnapshot == nil {
+          let query = component.query ?? ""
+          let page = try search(query, limit: 8, cancellation: cancellation)
+          copy.searchSnapshot = ComponentSearchSnapshot(
+            query: query, hits: page.hits, incomplete: page.incomplete,
+            hasMore: page.nextCursor != nil, revision: revision, captured: captured)
+        }
         copy.children = try component.children?.map(pin)
+        try cancellation.check()
         return copy
       }
-      let definition = SpaceDefinition(components: try space.definition.components.map(pin))
+      let definition = SpaceDefinition(
+        components: try space.definition.components.map(pin), pinnedAt: captured)
       let data = try encoded(definition).json()
+      try cancellation.check()
       let saved = identifier()
       let date = timestamp()
       let name = title ?? space.title + " · " + timestamp()
@@ -95,24 +139,18 @@ extension Workbook {
     return result.text
   }
   public func columnHistory(_ id: String) throws -> [Value] {
-    try synchronized {
-      try db.execute(
-        "SELECT version,columns,created FROM column_versions WHERE dataset_id=? ORDER BY version DESC",
-        [.string(id)]
-      ).map(Value.object)
-    }
+    try datasetDefinitions(id).map { try encoded($0) }
   }
   public func restoreColumns(_ id: String, version: Int) throws {
-    let data = try synchronized {
+    let saved = try synchronized {
       try db.scalar(
-        "SELECT columns FROM column_versions WHERE dataset_id=? AND version=?",
+        "SELECT id FROM column_versions WHERE dataset_id=? AND version=?",
         [.string(id), .number(Double(version))]
       ).text
     }
-    try require(!data.isEmpty, "history", "Column version not found.")
-    var columns = try JSONDecoder().decode([Column].self, from: Data(data.utf8))
-    let existing = try dataset(id).columns
-    columns += existing.filter { old in !columns.contains { $0.id == old.id } }
-    try setColumns(id, columns: columns)
+    let base = try datasetDefinition(id)
+    _ = try restoreDatasetDefinition(
+      id, definitionID: saved, expectedVersion: base.version,
+      expectedDefinitionID: base.id)
   }
 }

@@ -36,7 +36,7 @@ actor PausedModel: WorkbookInference {
     if holdRelease {
       await withCheckedContinuation { continuation in
         releaseContinuation = continuation
-        releaseWaiting.forEach { $0.resume() }
+        for waiter in releaseWaiting { waiter.resume() }
         releaseWaiting = []
       }
     }
@@ -82,7 +82,7 @@ actor PausedModel: WorkbookInference {
     if pause {
       await withCheckedContinuation { continuation in
         self.continuation = continuation
-        waiting.forEach { $0.resume() }
+        for waiter in waiting { waiter.resume() }
         waiting = []
       }
     }
@@ -260,6 +260,13 @@ actor PausedModel: WorkbookInference {
       try setupBook.revision() == setupRevision, "Refused setup follow-up changed workbook")
     print(
       "PASS setup release failure prevents subsequent model reuse without writing workbook data")
+
+    try await checkWorkflowModelLifecycle()
+    try await checkWorkflowExtractionLifecycle()
+    try await checkWorkflowIntakeLifecycle()
+    print(
+      "PASS structured intake uses the native helper without a model, releases workbook locks, fences cancellation and requires exact review"
+    )
 
     let parent = Cancellation()
     let child = Cancellation(parent: parent)

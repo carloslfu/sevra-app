@@ -2,15 +2,111 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-27T11:31:09.789081+00:00
+updated: 2026-10-29T19:17:16.971247+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
 # Build and run
 
-The commands below describe the current Slotstream development baseline. The
-adopted Python-free Splash integration is being implemented under
-[[records/specs/splash-integration]]; do not claim these commands already use it.
+## Native MVP source installation
+
+Use this route for the Python-free native MVP 0.1 source preview. The preserved
+baseline instructions below are separate development history.
+
+Prerequisites: Apple M3 or newer, macOS 26.4+, Swift 6.3, Git, Python 3 for build
+tooling, and Rust 1.96.0 through rustup. The checked host is macOS 26.6.2 with 48 GB
+unified memory. Smaller-memory support and other hardware remain unqualified.
+The first build needs network access for pinned dependencies and native artifacts.
+Installed inference uses Swift plus the pinned Splash C++/Metal engine and native
+grammar, with no Python runtime.
+
+~~~sh
+git clone https://github.com/carloslfu/sevra-app.git
+cd sevra-app
+rustup toolchain install 1.96.0 --profile minimal
+bash scripts/install.sh --native
+open "$HOME/Applications/Sevra Native Preview.app"
+"$HOME/.local/bin/sevra" version
+~~~
+
+For an already built preview, use `bash scripts/install.sh --native --no-build`.
+The installer stages the matching native app, CLI, extraction helper and all engine/
+grammar resources, verifies them before replacement, and preserves upstream signed
+engine bytes. The CLI link is `~/.local/bin/sevra`; add that folder to PATH or use
+its full path. An unrelated existing CLI is preserved and the installation refuses.
+Explicit `--native` can retarget the CLI link from an identified Sevra baseline
+installation to the native preview, preserving that baseline app and all workbooks.
+It refuses a different tool or a mismatched application identity.
+
+Source builds are locally ad-hoc signed, not production Developer ID notarized.
+The documented source route is the current preview installation path. This preview
+uses Open inside Sevra; it does not register itself as the Finder default for workbooks.
+
+In Settings, use Download / verify model, or Reuse an existing Fast model and
+select a compatible Qwen3.6 35B A3B 4-bit folder containing `dflash/`. Reuse verifies
+weights in place; keep that folder available. Fresh weights total 21,481,698,956
+bytes, with additional build/runtime working space. Default model storage is
+`~/Library/Application Support/Sevra/Models`, separate from workbook documents.
+Progress and Cancel are visible; partial downloads can resume. No hidden hosted
+fallback is used. First generation may compile native components.
+Deterministic document operations remain usable without a model.
+
+Quit before updating the installed app. To uninstall only the native preview:
+
+~~~sh
+bash scripts/uninstall.sh --native
+~~~
+
+This moves its app to Trash and removes only its own CLI link. Workbooks,
+preferences and model files remain. The environment overrides documented below
+also support isolated native installations. `python3 scripts/check_install.py
+--native` checks that route using disposable targets.
+
+## Native MVP supplier comparison
+
+The repository includes two small synthetic files under `examples/`:
+`supplier-quotes.csv` and `Brio-quotation.pdf`. No real customer data is involved.
+The quotation is searchable PDF text, not a scanned-image extraction claim.
+
+1. Choose Start from files, select both files, and save a new workbook. For the
+   CSV, choose Create tables from values; for the PDF, Keep as reference. Wait for
+   indexing to report ready. Originals are included outside SQLite inside the workbook.
+2. Open Brio-quotation.pdf from Home and ask: “Summarize this quotation, including
+   quantity, prices, shipping, delivery and tax terms. Cite the original.” Open its
+   citation to inspect the included PDF. Brio explicitly excludes tax and provides
+   no rate; the CSV does not establish Atlas tax treatment. Missing tax is not an
+   all-in price. Focused requests are the supported preview route: a broad combined
+   supplier/tax question can still miss a file or exhaust its bounded tool steps.
+3. Open the CSV table, choose its table definition, add a column titled
+   Goods plus shipping, unit USD, with formula `quantity * unit_price + shipping`,
+   then Save. The deterministic totals are Atlas 130 and Brio 135. Column IDs are
+   shown beside their titles. Ask: “Save a Supplier comparison space with the
+   existing table and a bar chart showing goods plus shipping for each supplier.
+   Reuse the existing data.”
+   A saved space follows the working table; it does not duplicate the evidence.
+4. Edit Atlas shipping from 10 to 20 in the table. Its computed total becomes 140;
+   Brio stays 135. Undo restores Atlas shipping 10 and total 130. The original CSV
+   remains unchanged. This is a working-data correction, not a purchase or inventory event.
+5. Close and reopen. Inspect the conversation, files, table, formula and saved space.
+   Choose Workbook > Make Shareable Copy, save a new `.sevraz`, then Open it and
+   choose a new editable `.sevra` destination. Included evidence and saved work
+   must remain available offline. Copied workbooks gain no execution permissions.
+
+Text completes the journey. The microphone inserts unsent dictated text when
+on-device recognition is available and permissions are granted. Review before Send;
+Stop or unavailable dictation leaves normal typing available.
+
+Working tables use native formulas, not full Excel formula/layout fidelity.
+A saved space is editable and live; use an explicitly requested snapshot to freeze
+values. Portable copies include conversations and unsent drafts, so review before
+sharing. This walkthrough is the focused preview example, not proof of broad
+commercial accuracy or every format/hardware claim. Current proof and remaining
+blockers are in [[records/operations/implementation]].
+
+## Preserved baseline instructions
+
+
+The baseline commands below describe the preserved Slotstream build. Explicit native candidate sections use the pinned Python-free Splash build under [[records/specs/splash-integration]]. Keep product output paths and model requirements distinct. Native candidate scoped proof does not establish production engine adoption.
 
 
 The development app targets Apple Silicon Macs. macOS 14 is the declared minimum;
@@ -21,7 +117,7 @@ measurement on that hardware.
 
 ## Source installation
 
-Install Apple's command line developer tools if absent. Use a Swift 6.3 toolchain,
+Install Apple's command line developer tools if absent. Use a Swift 6.3 toolchain (6.2 minimum for the pinned Markdown parser),
 Git and Python 3. A full Xcode installation was not needed on the verified host.
 
 ~~~sh
@@ -96,8 +192,12 @@ swift build -c release --product sevra-benchmark
 The checks use a standalone executable so they work with command line tools alone.
 dbmd 0.14.7 or later is required for the final knowledge-store validation.
 See the official [db.md repository](https://github.com/carloslfu/db.md) for
-installation. The benchmark is synthetic and creates temporary workbooks.
-
+installation. The benchmark retains synthetic workbooks and JSON evidence in a
+new .build/search-scale-<id> directory printed at startup. It runs both row and
+multi-chunk document corpora at 10k and 100k by default. Use --rows-only or
+--documents-only for an explicitly narrower diagnostic, or --self-check for the
+small fixture/regression run included in CI. Neither a small run nor a single
+corpus qualifies the complete scale requirement. See [[records/specs/search]].
 ## Candidate Splash checks
 
 These are development checks for the candidate adapter, not the app's active
@@ -297,8 +397,9 @@ Only development checks read SEVRA_NATIVE_CONTEXT_TOKENS. Supported evaluation
 values are 8192 (the default), 32768 and 65536. This does not change the installed
 app or declare a qualified hardware default. Exact rendered prompt counts,
 output allowance and a proactive maintenance recommendation are recorded in each
-native request's metrics. The shared agent now performs automatic context maintenance. The 8K adaptive
-threshold and larger-profile qualification limits are described in
+native request's metrics. Dedicated evaluation probes enable the shared agent's
+automatic context maintenance; both packaged app/CLI paths still disable it. The
+8K adaptive threshold and larger-profile qualification limits are described in
 [[records/specs/conversation-context]].
 
 For an occupied 32K inventory probe, use:
@@ -792,3 +893,1016 @@ The six requests cover original quantity recall, forecast acceptance and withdra
 Build the release worker with `swift build -c release --product sevra-workflow-performance -j 4` and run its `--self-check`. Run `python3 scripts/check_request_cache_isolation.py` for fail-closed evidence checks. Then run `python3 scripts/probe_request_cache_isolation.py --models-root MODEL_ROOT --output NEW_DIRECTORY`, where MODEL_ROOT is the installed native model root and NEW_DIRECTORY does not exist.
 
 The command executes four sequential workers: shared native/reference, isolated reference/native. Each runs Ready plus the supplier warmup and measured job. Do not overlap builds, model jobs or downloads, or change measured sources while it runs. Raw frames, prompts, samples and partial results are preserved. Nonzero exit can mean a matched-output diagnostic failed despite valid business answers. Inspect both arm reports; no I2 outcome qualifies speed or production adoption. The option is unavailable in the installed app and CLI.
+
+## Voice lifecycle regression and native follow-up
+Build and run the production dictation coordinator with injected speech drivers
+and playback participants:
+
+~~~sh
+swift build --product sevra-voice-checks -j 4
+.build/debug/sevra-voice-checks
+~~~
+
+The runner exercises permission/capture cancellation, callback identities,
+duplicate taps, retry, startup failure, cross-window recording ownership, typed
+draft preservation, manual editing, playback pausing and owner release. It never
+requests speech/microphone access or captures real audio. These checks are part of
+scripts/check.sh and hosted CI; they do not establish hardware or recognition
+accuracy. During a qualifying model comparison, defer local builds/tests and
+use the isolated branch's hosted CI first.
+
+After the comparison ends, use a disposable workbook to test the native permission
+flow, start/stop while a permission sheet is pending, append dictation to a typed
+draft, manually correct it, send, change conversations and close the window. Check
+that no late text appears and recording does not resume after cancellation. Test
+unavailable/denied recognition without enabling any server fallback. With a
+synthetic playable media file, check explicit play, keep-playing navigation,
+pausing all workbook players for dictation and teardown of the owning window.
+Record actual hardware/language/permission results and any untested branches.
+
+## Checkpoint transaction crash checks
+Build the model-free worker and run the controller on new synthetic workbooks:
+
+~~~sh
+swift build --product sevra-context-durability -j 4
+python3 scripts/check_context_durability.py
+~~~
+
+By default it retains a new .build/context-durability-* directory, including every
+fixture and result.json. Supply --output with a new directory for a named run,
+or --binary for another built worker. The controller owns every child it kills.
+It never opens a user workbook, captures audio or loads a model. The committed
+visibility check uses a separate read-only SQLite connection; mutations and reopen
+use the production Workbook APIs. Source/binary hashes bind each retained result.
+
+The four cases are SIGKILL inside publication before commit, SIGKILL after commit,
+cancellation after checkpoint/input inserts and concurrent acceptance before
+publication. Verify exact retry identity, one accepted inventory effect, unchanged
+history, current estimate status, integrity and portable reopen. A passing storage
+run does not enable automatic compaction or qualify C12/C13 on its own. Defer local
+execution while a qualifying model comparison is active.
+
+## Document draft durability and editing
+The model-free runner exercises the shared editor, transaction and AppKit close
+boundaries. Run it with a GUI-capable macOS login; it creates only offscreen test
+windows and disposable synthetic workbooks.
+
+~~~sh
+swift build --product sevra-document-checks -j 4
+.build/debug/sevra-document-checks
+./scripts/build.sh
+python3 scripts/check_document_cli.py
+~~~
+
+For an authorized revision through a harness, use an exact document version and a
+UTF-8 file. The command returns the new draft; it does not accept it:
+
+~~~sh
+sevra edit-document Workbook.sevra VERSION_ID revised.txt --token UNIQUE_TOKEN
+~~~
+
+Reuse the token and exact arguments after an uncertain result. An optional
+--revision requires the current workbook revision. A stale version refuses;
+inspect it before choosing a fresh edit or an explicit --separate copy. The edit
+preserves meaning, scenario and metadata. File assets cannot be changed here.
+Text is bounded at 16,000,000 UTF-8 bytes. The command creates the submitted Source
+and derived Record in one transaction, with no claim of human authorship merely
+because the caller used a CLI.
+
+Native follow-up: edit a generated document, immediately accept it, follow its
+older citation, then open the newer version. Type and immediately navigate, close,
+quit and reopen; verify exact saved text. Use a second writer to force a conflict;
+Done, navigation, export, close and quit must retain the text. Keep a separate
+draft using both the visible action and the text/voice command, and verify both
+versions. Check real SwiftUI window lifecycle, narrow layout, keyboard focus and
+large-text responsiveness. Programmatic checks do not replace this visible replay.
+Defer local execution during a qualifying model performance comparison.
+
+## Replay the current-request evidence regression
+After rebuilding the release workflow worker, run the retained failed block's
+schedule against both frontends in a new output directory:
+
+~~~sh
+swift build -c release --product sevra-workflow-performance -j 4
+python3 scripts/probe_request_evidence.py --models-root /path/to/native-models \
+  --output .build/workflow-performance/request-evidence-replay
+~~~
+
+The original failing case is missing_evidence at seed 3005, after four warmups.
+The runner preserves that prefix and the first complete measured cycle, verifies
+all jobs and exact paired requests/tokens, and retains any failed attempt. It
+never marks performanceQualification or productionAdoption true. Keep source and
+binary identities unchanged during the replay. A fresh full W1 cohort remains
+required for latency qualification.
+
+The packaged document check accepts --cli for the isolated native product:
+
+~~~sh
+python3 scripts/check_document_cli.py --cli output/native/bin/sevra
+~~~
+
+## Native media packaging and focused UI checks
+The primary viewer and compact retained player embed AppKit AVPlayerView through
+NSViewRepresentable. This keeps AVKit directly linked in the packaged executable.
+A release build using only SwiftUI VideoPlayer aborted while initializing its
+AVPlayerView superclass; preserve that failed observation in the implementation
+record. The native package check requires AVKit and refuses the former overlay.
+Playback ownership remains in the workbook registry rather than view teardown.
+
+After building both variants, run:
+
+~~~sh
+python3 scripts/check_native_package.py
+python3 scripts/check_install.py
+~~~
+
+Use synthetic video/audio for actual UI checks: initial paused state, explicit
+play, retained compact playback after Back, explicit close, and workbook close
+followed by paused reopen. Resource/signature checks alone do not exercise player
+creation. At minimum window size also check stacked comparisons, visible composer,
+failed-save recovery controls and Light/Dark text contrast. Restore the previous
+appearance after testing. Dictation hardware testing requires separate explicit
+microphone/speech permission. See [[records/operations/implementation]] for the
+recorded candidate and its remaining limits.
+
+## Active-job context comparison
+C12 subset; compilation passes. Record each actual-model result separately. Run only
+when no other model or performance cohort owns the host:
+
+~~~sh
+swift build --product sevra-agent-checks -j 4
+.build/debug/sevra-agent-checks --active-context \
+  /path/to/native-models \
+  /path/to/libllguidance.dylib \
+  /path/to/engine/splash \
+  .build/new-active-context-run
+~~~
+
+The output directory must not exist; its parent must exist. Run from a prepared
+checkout containing integration/splash.json and .build/llguidance-receipt.json.
+The probe uses installed native weights, runs the maintained32K and uncompressed64K
+arms sequentially, and preserves both failures and successful workbooks. It does
+not download models. Inspect result.json and both arm files, exact draft text,
+original records, checkpoint boundaries and native helper cleanup. A passing
+functional result does not enable product compaction or qualify whole-app memory.
+See [[records/specs/conversation-context]] for the frozen job and acceptance scope.
+
+Pass the installation root containing the selected model-name symlink and
+.snapshots/.resolved directories. Do not pass the resolved assembly directory
+itself: installed-model lookup adds the selected pack name. An initial October 27
+probe used the wrong level and correctly stopped before loading either arm. The
+failed setup receipts are retained; correcting the command does not change the
+model, engine, fixture or context thresholds.
+## Large linked-file preview verification
+
+Build sevra-preview-checks, then run:
+
+~~~sh
+python3 scripts/check_large_preview.py --binary .build/debug/sevra-preview-checks
+~~~
+
+An optional --output NEW_DIRECTORY keeps the result at a chosen new path; existing
+directories are refused. The default makes a unique .build/large-preview-* folder.
+This creates a 2,148,532,224-byte synthetic sparse original, imports an explicit
+link, cancels verification after 8 MiB, retries a complete verification, then
+changes bytes without changing length and requires the saved evidence to be
+refused. Workbook revision and recorded hash must remain unchanged. It exercises
+AssetPreviewSession and the production hash reader, without a native renderer or
+model. It is included in scripts/check.sh and the hosted workflow.
+
+The parent measures Darwin process lifetime peak physical footprint while the
+worker is still alive after the checks. The fixed ceiling is 256 MiB for this
+headless verification process, including fixture setup and imported frameworks.
+The bound detects whole-file materialization; it does not qualify full-app memory,
+media decoding, filesystem cold performance, remote-volume interruption or UI
+responsiveness. Record complete reported bytes, cancellation offset, original
+refusal, OS/machine, commit, executable/source hashes, stdout, stderr and failures.
+The real native large-file interaction remains a separate check. The existing
+scripts/check_large_assets.py covers a different included-asset/ZIP64 round trip.
+
+## Scoped maintained-context repair replay
+Use --active-context-maintained with the same four arguments as --active-context
+to replay only the maintained32K arm of the unchanged v1 fixture. This is a repair
+diagnostic with its own result name. It reports referenceExecuted=false and
+completeComparisonPassed=false even if its requested scope passes. Preserve the
+original failed two-arm comparison. Use a clean committed source tree, record
+source/binary/helper/grammar identities before and after, and run without another
+local build or inference process. All existing exact-fact, uniqueness, lineage,
+checkpoint, state and portable-copy assertions still apply.
+
+## Window refresh regression
+sevra-preview-checks now exercises the window refresh session as well as file
+previews and operation ownership. A deliberately blocked background reader must
+leave the UI actor responsive; one hundred timer ticks cannot add readers, three
+replacements coalesce to the newest conversation, and close/reopen excludes a late
+success or failure. Real workspace snapshots check coherent revision, changed versus
+unchanged polling, chapter/bookmark contents, conversation anchors, cancellation,
+deadline refusal and the subsequent successful read. The native app uses this same
+session and core snapshot API. These checks supplement, rather than replace,
+visible app and whole-process responsiveness measurements.
+
+## Native large-media playback and teardown
+After packaging the candidate, create a new synthetic workbook with:
+
+```sh
+python3 scripts/prepare_large_media.py
+```
+
+Optional --cli and --output arguments select a packaged CLI and a new fixture
+folder. Existing output folders are refused. This writes a real 2,148,532,224-byte
+silent PCM WAV, imports it as a link and a separate included copy, and verifies the
+workbook. It needs about 4.3 GB of disk space. The extra original filename is a
+hard link within the disposable fixture; the workbook's included asset is an
+independent streamed copy. Fixture preparation is not UI qualification.
+
+Open Large media.sevra in the native preview. Check included and linked playback,
+seek near 03:03:20 of the 03:06:30 duration, Stop while linked verification shows
+progress, and retry. Keep playing while returning Home, then close the compact
+player. Also close the entire workbook during active playback with keep-playing
+enabled, and during linked verification. Observe fresh accessible UI state after
+each action. Use lsof -p PID -Fn to confirm the fixture WAV is no longer open after
+close; paused-but-retained media is a failure, even if the window vanished.
+
+For changed-original refusal, change one byte halfway through the synthetic linked
+WAV without changing its length. Retry must reject it and preserve the included
+asset. Restore only that synthetic byte, verify both hashes, and reopen. Never use
+customer media for this destructive test. Older fixtures must show corrected
+extraction wording without reindexing or changing asset mode.
+
+Sample the app's Darwin physical footprint using footprint(pid) from
+scripts/compare_splash_performance.py at 100 ms intervals. Record initial and
+lifetime peak as well as samples, phase, process identity and final exit. The
+reference audio-only test has a 512 MiB app-process ceiling and no simultaneous
+inference, dictation, build or download. Shared OS media services are excluded.
+Do not extrapolate a pass to all codecs, video/images, cold storage, whole-system
+memory or media with an active model. Preserve failed runs and exact app/source
+identities; the 2026-10-27 repair evidence retains both sides of this comparison.
+
+## Isolated document extraction
+
+Both build scripts now package the native sevra-extract executable beside the app
+and standalone CLI. Python is build/test tooling only; extraction uses Swift and
+Apple frameworks. A raw SwiftPM executable that imports files needs its adjacent
+helper built first:
+
+~~~sh
+swift build --product sevra-extract -j 4
+swift build --product sevra-extraction-checks -j 4
+.build/debug/sevra-extraction-checks
+python3 scripts/check_extraction_package.py --product output
+python3 scripts/check_extraction_package.py
+~~~
+
+The package checks need their respective baseline/native build output. They deny
+build-tree reads, extract synthetic text/PDF/DOCX through both packaged helper
+locations and exercise standalone CLI import/read/integrity. scripts/check.sh and
+hosted CI include the worker tests; native CI also runs the optimized release checks.
+
+The worker tests cover crashes, uncooperative hangs, cancellation, output floods,
+sampled memory refusal, malformed terminal results, stderr pressure, missing
+helpers, bounded concurrency, database descriptor exclusion and parent death while
+stdout is blocked. Failure preserves originals and prior search results. No helper
+is given a workbook mutation API. This process boundary is not a security sandbox.
+The precise limits and remaining parsing paths are in [[records/specs/search]].
+
+## Conversation and Threads controls
+
+Conversation is the continuing main history. Use Start a thread in its menu or
+submit Start a thread called What if we raise prices? through text or dictation.
+Let's explore this separately opens the naming sheet. Go back to our main
+conversation returns without merging the histories. Chapters remain optional.
+
+Share summary with conversation opens a review field seeded from a completed
+answer; edit it to the selected findings before sharing. A completed exchange's
+context menu can select a different original. Alternatively submit Share summary
+with conversation: followed by the exact summary; this explicitly shares those
+words from the latest completed thread answer. The result links to the original
+exchange and does not accept business data or invoke inference.
+
+The CLI advertises thread WORKBOOK TITLE MESSAGE_ID and share-summary WORKBOOK
+MESSAGE_ID TEXT. Quote the selected text as one argument. The older tangent spelling
+and persisted IDs remain supported. Existing workbooks need no data migration.
+
+## Conversation keyboard and assistive actions
+
+Command-L focuses Message Sevra in the active workbook. Each message has an actions
+menu containing its links and available exchange actions. The native Conversation
+menu offers the same actions for the twenty most recent visible exchanges, plus
+Back to Conversation. Its contents follow the active workbook and clear on close.
+
+Inspect messages with their speaker/status grouping, link roles and named assistive
+actions. Test exact evidence locators and original-message navigation, not merely
+menu presence. Run sevra-preview-checks for formatted/Unicode labels, deduplication,
+2,000 distinct links and unsupported-route refusal. The full local suite includes
+these checks. Real UI coverage and remaining VoiceOver/keyboard limits are recorded
+in [[records/operations/implementation]].
+
+## Structured CSV/XLSX helper checks
+
+File table parsing shares sevra-extract with text indexing. Keep the helper next
+to both the app and CLI executable. The existing extraction check executable now
+also covers CSV/TSV fidelity, exact EOF limits, failed structured publication,
+source changes during parsing, dense blank expansion and cancellation. Core checks
+exercise XLSX saved values, formulas, dates, overflow and shared-string expansion.
+Run scripts/check_extraction_package.py for each built product directory to verify
+both installed helper layouts and actual CLI table import with build-tree reads
+denied. The public CLI does not require Python; this script is development tooling.
+
+
+## Thread and history navigation, October 27
+
+Start a thread now opens directly from a message with a provisional title. Use its
+menu to rename it; Back to conversation restores the main draft and reading state.
+The thread identity and return control remain visible in workspace-focus mode.
+Command-Option-F searches the active conversation. Next/Previous matches browse
+20 snippets at a time; choose a result to open its original. The transcript's earlier
+and later controls move through bounded windows, and Return to latest resumes the
+newest exchanges. No model setup is required for these native actions.
+
+The app and both packaged CLIs share the core operations:
+
+```sh
+sevra start-thread Workbook.sevra MESSAGE_ID
+sevra start-thread Workbook.sevra MESSAGE_ID "Delivery dates"
+sevra rename-thread Workbook.sevra THREAD_ID "Supplier scenario"
+```
+
+The existing `thread WORKBOOK TITLE MESSAGE_ID` command and `tangent` alias remain
+compatible. `history-search WORKBOOK CONVERSATION_ID QUERY [CURSOR]` retains its
+agent-oriented history behavior, including tool receipts. The native search limits
+its own results to visible transcript roles. These controls do not establish the
+full ordinary-language or voice journey; see [[records/specs/product]].
+
+
+## Nearby source-copy model checks
+
+After the actual-tool grammar checks, run the synthetic nearby probe with a new
+output directory while no other inference/build owns the host:
+
+~~~sh
+.build/debug/sevra-agent-checks --document-composition \
+  /path/to/native-models /path/to/libllguidance.dylib /path/to/engine/splash \
+  .build/new-composition-probe
+~~~
+
+The three requests ask for literal English and Spanish quotation, then a permitted
+paraphrase. The model chooses every tool and argument. Literal cases require an
+actual saved copy reference and exact decomposed-Unicode/CRLF text; paraphrase
+requires no copied identifier or original passage. Embedded source instructions
+cannot accept an unrelated draft. Inputs, outputs, errors, saved drafts and
+portable reopen evidence are retained. This is a bounded nearby diagnostic, not
+general semantic, latency, memory or full-workflow qualification.
+
+
+## Inspect copied passages
+
+Open a composed document and expand Copied passages in the right pane. Each
+excerpt shows its saved locator and Open original passage. The link opens the
+exact version used, even after a new head or refreshed extraction. Earlier
+Source and Record viewers show Viewing an earlier version plus the explicit
+Open newer version control. Back returns through the normal preview history.
+No source IDs or copy tokens are required in the user's request.
+
+Free-text editing creates submitted evidence and a new draft. Original-copy
+spans remain on the earlier version through Evidence and history, so edited
+prose does not claim stale byte positions. Run sevra-document-checks for the
+programmatic consistency/history/edit checks. Visible source navigation, Back,
+keyboard, VoiceOver and narrow layout are separate qualification, currently
+pending manual Mac unlock in [[records/operations/implementation]].
+
+## Body links and backlinks (introduced in schema 6)
+
+New eligible item bodies parse wiki links and Markdown stable routes automatically.
+Existing migrated versions remain unindexed until explicit catch-up. File contents
+have separate extraction coverage; these commands do not claim complete asset
+link discovery. Keep app and CLI builds matched.
+
+~~~sh
+sevra reference-snapshot WORKBOOK VERSION_ID
+sevra references WORKBOOK VERSION_ID '{"limit":20}'
+sevra backlinks WORKBOOK VERSION_ID '{"targetScope":"logical","historicalOrigins":false,"limit":20}'
+sevra backlinks WORKBOOK VERSION_ID '{"targetScope":"exact","limit":20}'
+sevra reference-history WORKBOOK VERSION_ID '{"limit":20}'
+sevra reference-resolve WORKBOOK VERSION_ID REFERENCE_ID
+sevra index-reference-bodies WORKBOOK '{"limit":20}'
+sevra rebuild-references WORKBOOK
+python3 scripts/check_references.py --cli output/native/bin/sevra
+~~~
+
+Replace placeholder paths/IDs with exact returned values. `references` and
+`backlinks` options are `limit`, `cursor`, `kind`, `meaning`, `status`, `scenario`,
+`targetScope`, `historicalOrigins` and `contentScope` (described below). Incoming filters apply to origin metadata;
+outgoing filters apply to destination metadata. Incoming current-origin discovery
+is the default. Logical scope includes pins to earlier versions of the target;
+exact scope includes a live mention only when the anchor is current. Follow
+`nextCursor` with the same options. A changed query or evidence invalidates it.
+These are metadata-only discovery results. Read exact versions before citing.
+`index-reference-bodies` accepts `afterID`/`limit`; follow `nextAfterID`. It commits
+complete origins and skips saved coverage. `index-references WORKBOOK VERSION_ID`
+catches up one version. Rebuild never reparses or rebinds saved names.
+
+`annotate-references WORKBOOK SOURCE_VERSION_ID JSON` corrects Source choices
+without changing original bytes. JSON requires `selections` and
+`expectedSnapshotID` (null for no earlier annotation), with an optional `token`.
+A selection has `startScalar`, `scalarCount`, optional `lookup`/preserved `id`,
+and optional `target` (`mode`, stable `identity`, optional `workbookID`).
+Mode is `live` for a logical ID or `pinned` for an exact version. Source correction
+retries preserve the original outcome and stale snapshots refuse.
+
+For Record documents, use `edit-document ... --references JSON_FILE` with an
+array of those selections; text and bindings commit atomically as a new draft.
+`add` JSON also accepts `references`, `scenario` and `supersedes`. Omitting
+references uses automatic body parsing; an explicit empty array means a manual
+empty, partial annotation. Reference/selection JSON is bounded to 400,000 bytes.
+The repo-owned `skills/sevra/SKILL.md` documents these owner CLI capabilities;
+scoped local-model traversal and native link interaction remain separate work.
+See [[records/specs/references-and-relationships]] for syntax, coverage and limits.
+
+## Retained file references, schema 7
+
+Imports now capture supported links in bounded extracted text. For an older
+workbook or an explicit retry, run extraction for the exact returned file version.
+These commands inspect technical annotations without rewriting the asset.
+
+~~~sh
+sevra extract WORKBOOK VERSION_ID
+sevra file-reference-snapshot WORKBOOK VERSION_ID
+sevra file-reference-history WORKBOOK VERSION_ID '{"limit":20}'
+sevra file-reference-region WORKBOOK VERSION_ID '{"snapshotID":"SNAPSHOT_ID","region":0,"offset":0,"limit":4000}'
+sevra file-reference-resolve WORKBOOK VERSION_ID REFERENCE_ID SNAPSHOT_ID
+sevra backlinks WORKBOOK VERSION_ID '{"contentScope":"extracted","limit":20}'
+sevra references WORKBOOK VERSION_ID '{"contentScope":"all","limit":20}'
+python3 scripts/check_extracted_references.py --cli output/native/bin/sevra
+~~~
+
+Use actual returned IDs. Region indexes are zero-based and offsets/limits count
+Unicode scalars; follow `nextOffsetScalar`. Regions require a snapshot ID so later
+extraction cannot silently change the text being inspected. History takes
+`beforeVersion`/`limit` and returns `nextBeforeVersion`. Resolve returns navigation
+metadata only. Supported syntax and locators in captured text are not a full scan
+of embedded file hyperlinks; partial/unsupported/unindexed input can contain more.
+Discovery's separate `fileCoverage.latestExtraction` reports a running or failed
+retry even while the previous annotation snapshot remains available.
+
+`annotate-file-references WORKBOOK SOURCE_VERSION_ID JSON` requires a nonnull
+`expectedSnapshotID`, `selections` and optional retry `token`. Supply the complete
+chosen set. Each entry has integer `region` and nested `selection` with the body
+selection fields above. Selection coordinates are relative to retained region
+text; the original file and Source remain unchanged. Manual coverage is partial.
+An identical retry returns the original snapshot, stale choices refuse, and the
+same captured extraction preserves explicit choices. A changed extraction keeps
+prior snapshots/regions inspectable. `rebuild-references` rebuilds both body and
+file projections without parsing, fetching or binding unresolved labels.
+
+`contentScope` is now an additional references/backlinks option: all (default),
+body or extracted. Merge/deduplication and filtering precede pages. Keep schema-7
+app/CLI builds matched. The repo's check.sh includes both model-free CLI journeys;
+packaged product checks still require building the native layout explicitly.
+
+## Native saved links and Back
+
+Open an item in the right viewer. Supported saved body links display their labels;
+choose one to open its saved destination in the same viewer. Assistive technology
+gets native link controls over those same saved occurrences. An unresolved label
+opens Choose destination where supported. Links opens the optional sheet. Switch
+to Mentioned in for bounded incoming pages, with explicit earlier-version and
+exact-version filters. Choose destination can correct an existing body or retained
+file-text binding. Search and select the actual item; Keep this exact version pins
+it, otherwise it follows the item's latest version. Source files remain unchanged;
+a Record document change creates a draft. Other Record types need their domain
+workflow. Embedded file hyperlink objects are not covered.
+
+Type or dictate Show links, Where is this mentioned? or Go back in the normal
+composer. These whole-request shell commands work without inference. Spanish
+Mostrar enlaces, Dónde se menciona esto and Volver are also accepted. General
+phrasing, arbitrary link authoring and span selection remain future work. Back's
+keyboard shortcut is Command+[. Command+Shift+L opens saved links; use arrow keys
+and Return to open a selected link or incoming mention. Command+Option+E chooses a
+new destination for the selected editable link. Destination search takes initial
+focus; type, press Down to select a result, then Return to save. Empty Return makes
+no choice, and Escape cancels. Document text scrolling and PDF pages are retained
+within this workbook window. A new PDF page locator works even when that file is
+already open. Copied passages forward their saved locator when opening originals.
+
+Run swift run -j 4 sevra-document-checks and swift run -j 4 sevra-preview-checks for
+focused session, real offscreen AppKit/PDFKit, link choice, provenance, keyset,
+cancellation and shell-command checks. Build the native layout before packaged
+checks. A focused visible synthetic journey now checks native link activation,
+keyboard correction/navigation, exact-version incoming pages, copied-text original
+navigation and minimum-width layout. Spoken VoiceOver, new spoken shell commands,
+all formats/locators and full uncoached usability remain unqualified. Current
+evidence and retained initial failures: [[records/operations/implementation]].
+
+
+## Local-agent references and focused native probe
+
+The model references tool differs from the owner CLI references/backlinks commands:
+it has a fixed 12-result page and excludes request/annotation Sources. It accepts
+id, direction, targetScope, historicalOrigins, contentScope, kind, meaning, status,
+scenario and cursor. Retain options with nextCursor. Read also supplies its first
+canonical outgoing page. These are discovery results; read exact destinations
+before citing. Earlier conversation uses history_read. Original asset/body bytes
+are unchanged. General linking/span creation by the model remains pending.
+
+The optional development probe exercises a corrected extracted pin, its current
+edition, a real mention cycle and a private request pointer. It chooses all model
+actions freely and preserves exact responses, history, failures and portable
+workbooks in a new output directory. Run from the repository root after building
+sevra-agent-checks and the pinned engine/grammar resources:
+
+~~~sh
+.build/debug/sevra-agent-checks --reference-traversal "$SEVRA_TEST_MODEL_FOLDER" "$SEVRA_TEST_GRAMMAR_LIBRARY" "$SEVRA_TEST_ENGINE" "$SEVRA_TEST_NEW_OUTPUT"
+~~~
+
+Set those variables to explicit local paths. MODEL_FOLDER is the verified legacy
+selected target directory with its dflash subdirectory, not an installed models
+root. The probe creates a local-pack assembly under its output directory, uses
+32K context/bounded512 and 12 GiB configured engine memory, and unloads after the
+cases or an error. It does not download weights or qualify fresh native setup,
+model throughput, graph-scale memory, installation or release. Two initial wrong
+raw-route answers and the first private step-limit failure are preserved; the
+final two cases pass with limitations in [[records/operations/implementation]].
+Use scripts/check_splash_grammar.py for deterministic actual tool/mask checks.
+
+
+## Current importer limits and adopted contextual intake
+
+Current app/CLI file intake automatically converts CSV/TSV and XLSX into new tables
+after inclusion and extraction. XLSX formulas are retained as evidence with saved
+values; they do not recalculate. This is useful development behavior, not full
+Excel migration or the final contextual role UX. There is no qualified general
+CSV merge planner or start-directly-from-file Welcome action. Selected native
+table paste edits an existing bounded range only.
+
+The adopted expanded contract, implementation phases and acceptance cases are in
+[[records/specs/contextual-import]]. Until those gates pass, do not describe
+reference-only/analysis-only role routing, native Excel formulas/structure, general
+range intake or contextual update/merge as implemented. Original inclusion/link
+ownership and resumable bounded import checks remain valid in their narrower scope.
+
+## Edit Home and existing spaces
+
+These commands apply to matching current-format baseline/native CLI builds. The
+Python-free native preview is built separately below; it is not a qualified
+production replacement for the preserved baseline.
+
+~~~sh
+sevra spaces /path/to/Work.sevra
+sevra space-edit /path/to/Work.sevra home 1 '[{"operation":"move","componentID":"tables","at":"first"},{"operation":"remove","componentID":"recent"}]' home-layout-1
+sevra space-history /path/to/Work.sevra home
+sevra space-restore /path/to/Work.sevra home 1 2 restore-home-1
+python3 scripts/check_space_editing.py output/native/bin/sevra
+~~~
+
+Read the actual ID/version first; the example assumes untouched Home/version 1.
+A stale base refuses. Retry uncertain results with exactly the same token/arguments.
+Move/insert requires at:first, at:last or beforeID; omit unrelated fields. Native
+Edit layout provides labels, text, root ordering, addition/removal and bounded
+history. Existing grouped compositions remain; chat/CLI can edit nested components.
+Restore saves another version. Pending review access remains in the workspace
+header even if its Home section is removed. Layout removal keeps underlying data.
+The repo-owned [[records/specs/native-app-engine]] tracks forms/actions and remaining
+accessibility/engine work. The matching harness skill is skills/sevra/SKILL.md.
+
+## Managed native dataset inspection and repair
+
+Structured table operations use the same managed storage in app, CLI and local
+agent tools. Assets stay in assets/. `sevra table-schema WORKBOOK DATASET_ID`
+returns current logical columns/version. `sevra table-rebuild WORKBOOK DATASET_ID
+EXPECTED_REVISION TOKEN` explicitly rebuilds a projection from retained canonical
+versions. Reuse the exact token/base after an uncertain result; a changed base or
+dataset under that token refuses. Keep the original workbook during recovery.
+Missing canonical authority is not repaired through model inference or reimport.
+The repair does not add business effects. `verify` detects projection disagreement;
+`reconstruct` creates a new inert current-format workbook with exact saved history.
+
+Development check: `python3 scripts/check_managed_datasets.py --cli PATH_TO_SEVRA
+--rows 1000`; a 10,000-row run adds scoped scaling evidence. Supported dataset width
+is 1...500 logical columns. See [[records/specs/managed-datasets]] for typed query/index contracts
+and remaining qualification work. Older development schemas are preserved
+but unsupported; recreate selected synthetic fixtures, never delete user workbooks.
+
+## Versioned table definitions
+
+Current schema is 13, retaining the schema12 managed table lifecycle. `table-schema` returns the exact definition UUID, display
+version, title, columns and archive state. `table-schema-history WORKBOOK DATASET_ID
+[BEFORE_VERSION]` pages 20 complete definitions newest first.
+
+`table-edit-schema WORKBOOK DATASET_ID BASE_VERSION BASE_DEFINITION_ID OPTIONS_JSON
+TOKEN` accepts explicit title, columns or archived options. Columns retain stable
+IDs and optional stored-value required/unique constraints. Preserve unrelated fields
+and use exact tokens/arguments on retries. Stale bases or changed retries refuse.
+`table-restore-schema WORKBOOK DATASET_ID SAVED_DEFINITION_ID BASE_VERSION
+BASE_DEFINITION_ID TOKEN` restores an exact definition as a new version.
+`tables WORKBOOK --archived` discovers retained archived tables. No raw SQL is exposed.
+
+Native Table actions > Table definition provides title, columns/formulas, required/
+unique controls, removal, archive and paginated history. Its opened base is frozen.
+Writes run off the UI actor; stale/failing saves keep the draft in the sheet.
+A schema restoration preserves the latest retained values for the same column IDs;
+it is distinct from selecting an exact historical row version. Ordinary row edits
+refuse archived tables. Complete history remains available to reconstruction.
+
+Run `python3 scripts/check_dataset_definitions.py --cli PATH_TO_SEVRA` for synthetic
+CLI lifecycle, competing writers, replay/portable reopen and unique-merge Undo/redo
+coverage. It is part of scripts/check.sh. See [[records/operations/implementation]]
+for the lifecycle receipt, visible native observations and exact remaining scope.
+
+## Typed managed queries and optional indexes
+
+`table-query WORKBOOK QUERY_JSON [CURSOR]` runs the typed host compiler.
+`table-query-plan WORKBOOK QUERY_JSON` returns its actual plan. Read table-schema
+first and use exact dataset/definition UUIDs. See skills/sevra/SKILL.md for a complete
+request example. The query may select up to 50 stored fields across up to three
+sources, with AND filters, two equality inner/left joins, grouping, count/sum/average/
+min/max and output sorting. Source scope can filter meaning/status/scenario; no
+provided scope means all current members. Ungrouped inputs retain exact row/version
+references and business metadata. Grouped results identify their exact query/snapshot.
+
+Decimal values are strings. Sum refuses precision loss; average uses Decimal plain
+rounding. Text comparisons are case-sensitive. Null and empty remain distinct;
+original omitted/lexical cells remain inspectable through version IDs. Query pages
+return nextCursor; changing the request, workbook commit or schema refuses reuse.
+Calculated columns, arbitrary SQL and unknown request fields refuse.
+
+The core bounds contributing rows at 100,000, referenced inputs at 32 MiB, output
+at 8 MiB/1,000 rows, VM instructions at four million and the deadline at three seconds.
+A refusal returns no seemingly complete partial answer. SQLite working memory is
+not a process-wide hard heap cap. Narrow the request after a bounded refusal.
+
+An explicit maintenance request may use table-optimize with the same query JSON.
+The core chooses generated keys, checks actual plan use and dbstat sizes, and retains
+only indexes within count/key/storage budgets. table-clear-indexes WORKBOOK DATASET_ID
+removes optional performance indexes. Neither command publishes business history.
+Column shape rebuilds discard indexes; ordinary edits/repair maintain compatible
+ones and evict storage overages atomically. A device without optional size accounting
+drops those indexes during row edits. Inert reconstruction needs none of their choices.
+Explicit table-rebuild keeps its exact-revision/token contract and has a cancellable
+30-second maintenance deadline, with unchanged transaction-capture limits.
+
+Run `python3 scripts/check_dataset_queries.py --cli PATH_TO_SEVRA --rows 1000`.
+A 10k/50k run measures range/sort/group/join plans, end-to-end CLI latency, index
+bytes, indexed edits/repair, history, RSS, inert reconstruction and portable reopen.
+Paired native-column/shared-JSON SQL timings use the same Python SQLite/Decimal
+adapter and warm cache, separately from Swift CLI timings. They are not a historical
+release-binary speed comparison. Failed stress repair is retained with
+--measure-rebuild-limit and reports ok:false; it does not pass the repair gate.
+
+## Packaged query/index qualification
+
+Run `python3 scripts/check_dataset_queries.py --cli output/native/bin/sevra --rows 1000 --output .build/query-1000.json` after the native build.
+The same synthetic stored-column probe passed at 10,000 and 50,000 rows. It checks
+query plans/results, two optimizer processes, edit/repair, inert reconstruction
+and portable export. Use the receipt rather than claiming all indexes improve all
+queries: 50k grouping slowed from 0.239 to 0.273 s, while filtered/joined CLI queries
+fell from about 0.29 to 0.15 s. Initial 50k repair rolled back at the old three-second
+budget; final explicit 30-second maintenance repair took 14.794 s. See [managed query/index receipt](../../../integration/evidence/2026-10-28-managed-query-indexes.json.gz)
+and [[records/operations/implementation]] for full timings/resources and limits.
+No new native query editor or in-app model tool is implied by these CLI commands.
+
+## Saved application functions and queries
+
+Current schema14 workbooks carry the earlier pure-definition support: `definition-save`, `definition-read`,
+`definition-history`, `definition-restore`, `definition-dependencies`,
+`definition-search` and read-only `definition-evaluate`. Run `sevra help` and read
+skills/sevra/SKILL.md for typed examples, parameter/literal mappings and live/exact
+semantics. New definitions use a selected UUID logical ID and base `new`; updates
+require the exact opened version UUID. All writes use stable request tokens.
+Neither authoring nor evaluation accepts business data or schedules execution.
+
+~~~sh
+python3 scripts/check_application_definitions.py --cli output/native/bin/sevra --output .build/application-cli.json
+swift build --product sevra-benchmark -j 4
+.build/debug/sevra-benchmark --definitions --count 10000 --output .build/NEW-definition-corpus
+~~~
+
+Use a new corpus directory. The benchmark exercises actual public-core saves,
+FTS/head-filter paging, retained dependency lookup, exact evaluation, verification,
+inert reconstruction and portable reopen. Its JSON separates core timings from
+packaged CLI process/open observations. Current synthetic 10,001-definition corpus
+passes; see [application definition receipt](../../../integration/evidence/2026-10-28-application-definitions.json.gz). These commands do not expose a native
+form/definition editor or new in-app model tool. Old development workbooks are
+preserved unsupported; create selected fresh synthetic fixtures for schema14.
+
+
+## Registered draft actions and native receiving form
+
+Use current schema14 fixtures. `action-registry` exposes trusted native primitive
+versions, typed inputs/results, effect/capability, deadline and retry semantics.
+`receiving-template` and `form-template` return ordinary definitions for versioned
+saving. See skills/sevra/SKILL.md for exact receiving arguments, preview/invocation,
+function bindings and recoverable `form-draft-*` commands. A saved proposal remains
+a draft. No stock change until explicit separate review/acceptance.
+
+~~~sh
+python3 scripts/check_application_actions.py --cli output/native/bin/sevra --output .build/NEW-action-cli.json --keep .build/NEW-action-fixture
+~~~
+
+The keep directory must not exist. The script creates synthetic receiving evidence,
+action/form definitions, a native form-bound space, separate-process racing submits,
+exact retries, incomplete/conflicting presentation checkpoints, inert reconstruction
+and a portable round trip. Existing fixtures are never migrated or overwritten.
+
+In the native preview, open a fresh current-format workbook, choose Edit layout,
+Add section, Receive delivery form, then Save layout. The starter definitions are
+saved ordinary catalog objects; the chosen component is added only on layout save.
+Select evidence, enter the observed delivery/date/line counts, Preview, then Save
+draft proposals. Review drafts separately. Add/remove line and Back preserve inputs.
+Changed live definitions require explicit refresh; Keep both handles a competing
+window. Crash-after-commit recovery finds the exact saved receipt rather than
+resubmitting. The automated session proof passes, but the locked Mac prevented the
+visible keyboard/VoiceOver/new-form qualification. No such result is claimed.
+
+The broad schema14 check passed with core217 before a final registry result-schema
+metadata refinement. Focused final installed CLI/package checks cover that refinement.
+See [registered action and form receipt](../../../integration/evidence/2026-10-28-registered-actions-forms.json.gz) and [[records/operations/implementation]].
+
+
+## Saved application tools, October28
+
+The native agent can discover, inspect, evaluate and author versioned definitions
+and prepare registered action drafts with `prepare_action`. The host previews,
+independently reviews inventory direction and commits the exact current-run receipt.
+Success supplies exact draft links; accepted stock changes only after review.
+Read-only requests refuse saves/preparation. See
+[[records/specs/application-definitions]] and [agent application definition receipt](../../../integration/evidence/2026-10-28-agent-application-definitions.json.gz).
+
+Focused repeatable commands after a native build:
+
+```sh
+.build/debug/sevra-agent-checks
+.build/debug/sevra-agent-checks --application-tools \
+  .build/native-fresh-setup \
+  .build/upstream/llguidance-1.8.0/target/release/libllguidance.dylib \
+  .build/upstream/splash-native-1.4.1/engine/splash \
+  .build/application-tools-model-fresh
+python3 scripts/check_native_package.py --paths-only
+python3 scripts/check_application_actions.py --cli output/native/bin/sevra
+```
+
+The model output directory must be fresh. Use the native setup instructions above
+for the managed local weights and qualified engine artifacts; these are developer
+qualification paths, not runtime dependence on a checkout. The product is Python-free.
+The broad `bash scripts/check.sh` includes deterministic core/agent/Splash/native
+checks. Real-model timings under concurrent builds are functional observations, not
+a new engine-performance qualification. First startup permits360seconds for native
+component preparation; cancellation still reaps a stubborn helper within5seconds.
+
+Latest visible keyboard checks cover receiving-form evidence/unsent recovery and
+review/accept/undo/restore. Actual VoiceOver and full appearance/media/hardware/
+fresh-install/notarized release checks remain open.
+
+## Reusable computation checks
+The baseline and separate native candidate expose component-evaluate and definition-publish through the same core. See [[records/specs/application-definitions]] for exact binding/typed arguments, snapshots, current-run receipt publication and bounds. Save result is available for a complete first page and preserves explicit meaning separately from acceptance. Partial pinned pages remain frozen.
+
+After the native build, run python3 scripts/check_computation_views.py --cli output/native/bin/sevra for packaged calculation/query, stale/forged/partial refusals, exact retries, portable reopening and inert reconstruction. The native candidate remains separate from the installed Slotstream baseline until adoption gates pass. Current evidence/limits are linked in [[records/operations/implementation]].
+
+## Manual workflow checks
+Run the scoped synthetic checks without opening user data:
+
+```sh
+swift build --product sevra-checks -j 3
+.build/debug/sevra-checks --workflows
+swift build --product sevra-workflow-durability -j 3
+python3 scripts/check_workflow_durability.py
+swift build --product sevra -j 3
+python3 scripts/check_workflow_cli.py --cli .build/debug/sevra --worker .build/debug/sevra-workflow-durability
+```
+
+The shared check script and CI include the process-death and independent CLI probes. The native fixture worker is a test executable, not a shipped background helper. CLI help lists workflow-start/read/list/advance/claim/finish/heartbeat/retry/cancel/events. Every advance is one explicit bounded step; reaching review returns waiting_review without accepting proposals. Inspect and accept the exact proposals through the ordinary review path, then deliberately advance again.
+
+Definitions use kind workflow and the contract in [[records/specs/manual-workflows]]. Current development schema17 replaces earlier development schemas without a legacy adapter. Preserve old packages and use a matching earlier development build for recovery. Only recreate selected disposable fixtures. No installed user package is reset or upgraded automatically.
+
+## Manual workflow activity
+Use workflow-activity WORKBOOK [STATE|- [CURSOR]] for bounded newest-first pages, workflow-inspect WORKBOOK RUN_ID for exact inputs/steps/proposals/attempts, and workflow-continue WORKBOOK RUN_ID for a deliberate continuation to the next review or terminal state. Read/inspect never resumes a run. Native Activity is accessible beside Review drafts; Continue, Retry unfinished work and Stop workflow use the same trusted core commands. A changed workflow-run family clock requires refresh; agent journal and unrelated writes preserve continuation. Full workflow/automation and accessibility gates remain open.
+
+## Workflow form submission
+Use form-template WORKBOOK TARGET_ID for an exact inspected current action or workflow. The returned form follows that target live. Its payload has exactly one action/workflow binding, with identical typed parameters. Save it through definition-save and bind it as a normal native form component. Workflow action steps may use only action-backed forms, preventing hidden recursive workflow execution.
+
+form-draft-preview WORKBOOK STATE_JSON is pure. For a workflow form it checks exact opened definitions and parameters and lists steps; it does not execute queries/model/import/effects. form-draft-submit WORKBOOK STATE_JSON PREVIEW_JSON uses the saved draft's invocation token and creates a queued run plus receipt atomically. Repeating exact submission returns that receipt. Save lastReceipt through the compare-and-set form-draft-save command if using the low-level CLI; native sessions reconcile it after crashes automatically. Continue the returned workflowRunID explicitly. Native Start workflow also deliberately continues under its originating workbook/window; Open workflow remains available after submission. No scheduled/background execution is granted.
+
+## Conversation workflow tools and local-model probe
+The agent can find/read/save exact workflow definitions, create associated form templates and queue a requested run. start_workflow returns a saved run and ends with the host-owned no-execution receipt. Open Activity through Workbook > Workflow Activity (Command-Shift-Y), then inspect and explicitly Continue. Opening/reconstructing/queuing never starts a worker. Native form Start is a separate deliberate continuation.
+
+Run swift build --product sevra-agent-checks -j3, then .build/debug/sevra-agent-checks for scripted scope/receipt checks. Use --workflow-tools MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT for the three actual-model author/form/queue jobs. MODEL_ROOT is the native installed layout. The output must not exist. It retains results/messages and a synthetic workbook. This is functional32K/bounded512 proof, not throughput or full workflow execution. The final shared check script includes paging/recovery/grammar checks; historical and current evidence is in [[records/operations/implementation]].
+
+## Explicit local AI workflow continuation
+workflow-continue WORKBOOK RUN_ID [MODEL_DIRECTORY] uses the shared ProductAI owner and installed native Qwen/DFlash2 engine only for an unfinished interpret step. Native Activity Continue and workflow form Start use the same asynchronous coordinator. Deterministic steps and post-review completion do not require a model. The preserved Slotstream baseline intentionally refuses explicit interpretation; it remains separately usable for its existing features. Agent start_workflow still queues without executing.
+
+Save interpretation/workflow JSON with definition-save and the typed contract in [[records/specs/manual-workflows]]. Interpretation output becomes a draft Record and cannot accept inventory. Inspect workflow-inspect/Activity for exact retained evidence, model, issues and any rejected raw response; Retry is deliberate, not automatic model correction.
+
+Run .build/debug/sevra-checks --workflows for focused core checks and .build/debug/sevra-product-checks for async ownership/lifecycle. scripts/check_workflow_durability.py now includes13 real process-death boundaries, including four preparation boundaries. The agent check runner accepts --workflow-interpretation MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT for clear/incomplete actual-model fixtures; it runs normal scripted checks first. The output directory must not exist. This proves bounded task behavior, not throughput. The native packaged CLI imported-file/interpret/propose/review/reconstruct job and focused visible UI observations are retained in [[records/operations/implementation]].
+
+## Conversation interpretation authoring checks
+Build sevra-agent-checks, then run .build/debug/sevra-agent-checks for scripted authority, truthful outcomes and compaction checks. Its --interpretation-authoring MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT mode runs three actual native-model tasks: author interpretation, compose exact one-step workflow, queue without executing. The output must not exist and retains pre-inference source/runner identity, exact requests/messages/results and two inert synthetic packages. Use the installed model layout,32K and bounded512. This is functional evidence, not throughput. The pinned Python reference generator is test tooling only; the app runtime remains Python-free. See [[records/specs/manual-workflows]].
+
+## Explicit native document preparation workflow
+Save an extraction definition through definition-save: kind extraction, exactly one required item parameter, payload {parser: native-v1, file: PARAMETER_ID}. Bind an exact workflow extract step to that definition. The file must already be included as a workbook business item; explicitly include linked files first. workflow-continue and native Continue run the bundled bounded helper without loading a model. workflow-advance alone refuses this asynchronous step. Ready/untruncated preparation returns itemID and exact retained extraction identity. Map {step: PREPARE_ID, field: item} into an interpretation item parameter; the model reads that exact snapshot rather than a later current index. Partial/unsupported/truncated parsing pauses for attention. No original file is deleted or inventory accepted. The baseline preserves its interpretation refusal.
+
+Build sevra-checks/sevra-product-checks/sevra-workflow-durability and run their focused workflow/lifecycle/process-death checks. The shared check suite includes these automatically. Final packaged prepare/interpret/propose/review/reconstruct proof is retained in [[records/operations/implementation]]. Conversation extraction authoring and structured-data/report workflow steps remain separate work.
+
+## Conversation preparation authoring checks
+The agent can find/read/save extraction definitions, make exact workflow_template starters and queue their workflows. Explicit Continue owns execution. Authoring inputs, when supplied, are exact existing item-version UUIDs; parameter names belong in parameters/payload, and current request lineage is automatic. Native template starters are tools, not saved definitions to search for.
+
+The sevra-agent-checks --preparation-authoring MODEL_ROOT GRAMMAR_LIBRARY ENGINE NEW_OUTPUT mode runs actual native-model author/workflow/queue jobs. The directory must be new. It retains pre-inference source/runner identities, exact frames, messages, results and synthetic original/reconstructed workbooks. It independently checks metadata, queued pending state, no business Records and unchanged retained file text. Use the installed native model layout,32K and bounded512. The same runner keeps --interpretation-authoring. Functional times do not qualify performance. See [[records/specs/manual-workflows]] for retained failures and exact scope.
+
+## Registered document workflow checks
+
+Run swift build --product sevra-checks -j 3 and .build/debug/sevra-checks --document-actions for focused invariants. scripts/check.sh includes scripts/check_document_actions.py --cli .build/debug/sevra and 15 workflow process-death boundaries. Use python3 scripts/check_document_actions.py --cli output/native/bin/sevra --model-root MODELS_ROOT --output NEW_DIRECTORY for the explicit actual native six-step receiving/report job. The output directory must be new; retain prior results. It uses synthetic evidence and explicit synthetic human review, not user data. Without --model-root, the check exercises document form/workflow/review and keeps stock unchanged without inference. GitHub checks run the default job against the baseline and native packaged CLI products.
+
+The actual qualification output is .build/document-actions-native-model-v2, with 37 independent CLI calls; its immutable receipt is linked from [[records/specs/manual-workflows]]. The final frozen-source native build is document-action-v8; final whole shared checks are document-action-v11. Earlier diagnostics remain retained. Native resource tests are paths-only; latest UI/VoiceOver and full engine/performance release qualification remain open.
+
+## Reviewed workflow intake checks
+
+Build sevra-checks and run .build/debug/sevra-checks --workflow-intake for 21 focused direct-table/workflow groups. The shared scripts/check.sh runs the full 289 core groups and scripts/check_workflow_intake.py --cli .build/debug/sevra, plus 21 actual workflow SIGKILL boundaries. Product lifecycle checks exercise a delayed real child parser, independent writer and cancellation without model loading.
+
+After bash scripts/build_native.sh, run python3 scripts/check_workflow_intake.py --cli output/native/bin/sevra --model-root MODELS_ROOT --output NEW_DIRECTORY for the synthetic six-step preparation/interpretation/intake/review/report/review job. MODELS_ROOT is the installed native model layout. Output must not exist. Omit --model-root for the deterministic form/intake/review/reconstruction path with no inference. Explicit synthetic reviews occur only in the synthetic fixture. Do not point qualification scripts at user workbooks. The CLI script contains a full valid metadata example; intake-schema details are in [[records/specs/application-definitions]].
+
+The final actual qualification is .build/workflow-intake-native-model-v2, 38 independent CLI calls, with no expected-quantity example in its instruction. V1 remains preserved. Source and CLI identities are captured before inference. Final shared checks are intake-v8, frozen native release intake-v9 and package paths checks intake-v10. Evidence and remaining release limits are in [[records/specs/manual-workflows]]. Conversation intake authoring now has the separate scoped qualification below; its saving/queueing still cannot execute or accept rows. These are functional/ownership checks, not a speed or full Excel-support claim.
+
+## Conversation intake authoring check
+
+Build sevra-agent-checks and run .build/debug/sevra-agent-checks --intake-authoring MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY. Use installed native model layout. The four actual-model jobs save exact CSV/TSV mapping, compose its exact mandatory-review workflow, queue an included file without executing it, and clarify missing intent under an explicit ask-before-save restriction. The probe verifies unchanged business rows/stock/extraction, exact definition/mapping/inputs, one pending run and inert reconstruction. It retains before-inference identities, exact messages, metrics and failures. Never use user workbooks for qualification. Do not package output/native while this runner uses that runtime. Final evidence and scoped limits are in [[records/specs/manual-workflows]].
+
+## Workflow lookup qualification
+
+Build sevra-checks and run .build/debug/sevra-checks --workflows for focused workflow checks. Run python3 scripts/check_workflow_lookup.py --cli output/native/bin/sevra --output NEW_DIRECTORY for deterministic exact match/repair/review/reconstruction, after bash scripts/build_native.sh. Add --model-root MODELS_ROOT for the synthetic seven-step actual native preparation/interpretation/match/stock-review/report-review job. The output directory must not exist. It captures source/product/runtime identities before inference. It expects a zero-match refusal, repairs only its synthetic catalog, explicitly retries the same run and resumes with an absent model directory to prove completed AI outputs are reused. Synthetic human acceptance occurs only inside the synthetic fixture. Never use user workbooks. scripts/check.sh and both packaged CI products include the default deterministic job. Do not replace output/native while a probe uses its runtime. Current proof/limits: [[records/specs/manual-workflows]].
+
+## Workflow clarification qualification
+
+After building sevra-workflow-durability, run python3 scripts/check_workflow_clarification.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --output NEW_DIRECTORY for the deterministic submission/review/reconstruction job plus two SIGKILL boundaries. The default worker produces a clearly labeled synthetic missing-information response. Add --skip-crashes to reuse unchanged death proof. For actual local inference use --model-root MODELS_ROOT --skip-crashes and omit the worker. The script captures source/product/pin identities before inference. All values, acceptances and files are synthetic; CLI attribution remains programmatic. Native and baseline packaged CI and scripts/check.sh include the deterministic job. workflow-clarification reads the exact target; workflow-clarify supplies target JSON, values JSON, reason and retry token. Never substitute user data or replace output/native during a probe. See [[records/specs/manual-workflows]].
+
+## Native clarification verification
+
+Freeze all Swift sources before builds. Sequentially run swift build --product sevra-preview-checks, .build/debug/sevra-preview-checks, swift build --product sevra-checks, .build/debug/sevra-checks, scripts/build_native.sh, python3 scripts/check_native_package.py --paths-only and swift build --product sevra-workflow-durability. Then run python3 scripts/check_workflow_clarification.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --skip-crashes --output NEW_DIRECTORY. The new headless native checks cover incomplete/stale input, original-evidence scope, cross-window alternatives, exact receipt recovery, and failed-save switch/quit gates. Core checks cover bounded receipt/cache retention. V9 frozen proof passes302 core groups and27 deterministic calls; latest visible editor/keyboard/VoiceOver/appearance checks remain open. Reuse unchanged actual-model and process-death evidence only when its code boundary is unchanged. Full details: [[records/specs/manual-workflows]].
+
+## Conversation answer preparation verification
+
+Run the existing focused workflow, agent, native grammar and headless preview harnesses after freezing all changed Swift sources. Build/package sequentially, then run python3 scripts/check_conversation_workflow_answer.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --model-root .build/native-fresh-setup --output NEW_DIRECTORY. Model weights must already be installed; the script performs no hidden download. Do not rebuild/replace native products during inference or run simultaneous GPU jobs. It records source/product identities, uses disclosed synthetic paused interpretation fixtures, tests actual current-message preparation plus a read-only counterexample, and verifies unchanged runs/balances and inert copies. It does not confirm, continue or accept inputs. Final V6 passes30 CLI calls/two cases. Voice/text confirmation and latest visible checks remain open. See [[records/specs/manual-workflows]].
+
+## Previewing and confirming answers in conversation
+
+Open a paused workflow with complete saved input values and an explanation. Say or type Preview my answer in the main composer. Check the host-generated values, exact document links, explanation, meaning and scenario. Then send Save my answer or Confirm my answer as its own message. This uses no model. A bare yes does not submit. Edits, another message or leaving the context require a fresh preview. Only the supplied interpretation completes; Continue and business review remain separate. Native Preview answer / Save my answer controls remain optional equivalents.
+
+Final automated checks pass66 workflow groups plus native session/context invalidation, canonical fault/cancellation, exact receipt and inert reconstruction cases. The actual packaged-model preparation/read-only jobs pass30 calls with corrected paused-state wording in those cases; no actual native microphone/window interaction is claimed while UI access is locked. Use existing workflow, agent, preview and native-package commands, freezing sources before builds. The two V3 display/invalidation deltas have final core/preview/native/package proof and reuse V2 model/agent/deterministic evidence. Exact evidence and limits: [[records/specs/manual-workflows]].
+
+## Preview native calendar schedules
+
+Use `output/native/bin/sevra schedule-preview '{"policy":"native-calendar-v1","timeZone":"America/Bogota","hour":9,"minute":0,"recurrence":{"kind":"weekly","weekdays":[1,2,3,4,5]}}' 2026-10-29T12:00:00Z 5` for the next five weekday mornings. The command also accepts @PATH to an explicitly selected regular UTF-8 JSON file up to64 KiB. It does not take a workbook path or require a model. Count is1 through100 and optional horizon is1 through3660 local days. A horizon result can be empty without establishing there are no later occurrences. Local date slot keys still need an exact automation/trigger-version identity before durable dispatch.
+
+Focused checks: `swift build --product sevra-checks -j 4`, `.build/debug/sevra-checks --schedules`, then after a frozen native build `python3 scripts/check_schedule_preview.py --cli output/native/bin/sevra --output NEW_DIRECTORY`. Final13 groups and31 packaged calls pass. Existing package/refusal/signature checks pass; no UI activation or background execution is implemented here. See [[records/specs/automation-schedules]].
+
+## Saving inert automation definitions
+
+Use the existing definition-save command with kind automation, title/description, parameters [] and payload {policy:calendar-drafts-v1,workflow:{mode:exact,versionID},arguments,schedule}. Arguments must satisfy the exact workflow signature; use exact local item versions, not paths or logical item IDs. Schedule uses the native calendar contract. Save is metadata only. Search with definition-search WORKBOOK QUERY followed by options JSON containing kind automation; read, history and restore use existing definition commands.
+
+Use `output/native/bin/sevra automation-preview WORKBOOK EXACT_DEFINITION_ID 2026-10-29T12:00:00Z 5` to inspect pinned normalized inputs and next dates without execution. Enabled fields are rejected. The agent save tool intentionally cannot create this kind yet. Native configuration and activation are still pending.
+
+Focused checks: `.build/debug/sevra-checks --automations` and `python3 scripts/check_automation_definitions.py --cli output/native/bin/sevra --output NEW_DIRECTORY`. The schema19 checkpoint passes all326 core groups,8 focused automation groups,36 installed automation and31 calendar calls, strict10-file lint and native package checks. No existing user workbook is reset; old development formats require their matching build. See [[records/specs/automation-definitions]].
+
+## Inspecting saved calendar preparation
+
+Use `automation-list WORKBOOK [AFTER_ID_OR_-] [LIMIT]` to discover at most50 saved activations per page. Inspect an exact ID with `automation-activation WORKBOOK ACTIVATION_ID`. Armed state is preparation intent only; output explicitly requires a session and does not mean a timer or workflow is running. Use `automation-occurrences WORKBOOK ACTIVATION_ID [AFTER_ID_OR_-] [LIMIT]` for original/decision Sources and skipped reasons. `automation-events WORKBOOK [AFTER_SEQUENCE] [LIMIT]` pages the transactional outbox. All reads are bounded and mutation-free.
+
+`automation-pause WORKBOOK ACTIVATION_ID EXPECTED_GENERATION TOKEN` revokes prior planning permission and skips a pending request. It records the programmatic CLI caller and never guesses a human identity. Repeating an exact current token recovers its receipt; a superseded decision refuses. No Enable/Run CLI control is offered that would imply an operational scheduler. Authorize/prepare currently remain explicit shared-core APIs for the foreground integration that is still required.
+
+Focused checks: `.build/debug/sevra-checks --automation-planning` and `python3 scripts/check_automation_planning.py --cli output/native/bin/sevra --checks .build/debug/sevra-checks --output NEW_DIRECTORY`. Fixtures are synthetic and selected into a new directory. The schema20 slice has343 full core groups at V4,17 final focused groups and33 final installed CLI cases plus final native package proof. See [[records/specs/automation-planning]].
+
+## Explicit foreground automation execution
+
+Use `automation-preview` and inspect exact definitions/arguments first. `automation-run-once WORKBOOK EXACT_DEFINITION_ID EXPECTED_GENERATION START_AFTER OBSERVED_AT TOKEN [--allow-ai [MODEL_DIRECTORY]]` explicitly authorizes one bounded foreground operation. Generation is0 initially; later inspect automation-activation. Times need an explicit zone, observation at/after start, token1...240 UTF-8 bytes. The optional model path requires --allow-ai, and AI interpretations require that explicit allowance. Use actual observation times honestly; synthetic past observations do not prove a real-time scheduler.
+
+The operation prepares at most100 slots/3660 days, then dispatches/continues at most one eligible run, stopping for review/attention/completion. If catchUpRemaining=true it dispatches nothing: inspect progress before another explicit operation with refreshed generation/new token. Every new operation is a new authorization; a future native timer must retain its verified grant rather than using this command for routine polls. Recover with the original exact token/arguments. A superseded authorization refuses. One active waiting/failed run prevents overlap. No timer is installed and permission ends with the process. Business proposal acceptance remains separate.
+
+`workflow-inspect WORKBOOK RUN_ID` exposes original invocation policy/origin and each latest claim's authorization metadata. A business `read` intentionally refuses those technical Sources. Explicit manual Continue creates new manual-operation provenance for that run, preserving original scheduled policy and leaving future automation disabled/paused. Direct Stop creates no execution grant. Saved armed state alone is not proof of a running timer or permission. See [[records/specs/automation-execution]].
+
+Focused qualification: `swift build --product sevra-checks -j 4`, `.build/debug/sevra-checks --automation-execution`, `swift build --product sevra-automation-durability -j 4`, `python3 scripts/check_automation_durability.py --output NEW_DIRECTORY`; after a frozen native build run `python3 scripts/check_automation_execution.py --cli output/native/bin/sevra --checks .build/debug/sevra-checks --worker .build/debug/sevra-automation-durability --output ANOTHER_NEW_DIRECTORY`. The death script kills only its owned synthetic worker at dispatch publication barriers. Neither script uses user workbooks or real model inference. Final16 focused/all359 core,2 death boundaries/16 calls and44 installed execution calls pass. Native timer/device controls and whole release remain open.
+
+## Native Schedules preview
+
+In the native preview, open a workbook, choose Activity, then Schedules. Create a schedule using an existing saved workflow, typed inputs, named time zone and daily/weekly/monthly/yearly recurrence. Preview shows bounded upcoming local/UTC times and DST adjustments. Save retains inert intent. Enable on this Mac separately authorizes the exact saved version and inputs, with local AI off unless explicitly allowed. Edits create a new immutable version and need a new enable. A currently active older version must finish or be stopped before changing its scope.
+
+Registered on this Mac lists workbook and schedule names, status, Open workbook and Pause/removal. Device status is checked against exact current authority, not inferred from an armed row. Reopening the same physical workbook restores its grant without another authorization. Copied, reconstructed, symlinked, replaced or inaccessible packages cannot borrow it. Renames may work through passive bookmark resolution when both physical objects match; the app does not scan disks. Private registration lives under Application Support for the app bundle identifier, in DeviceSchedules, outside workbooks. It is intentionally not portable workbook content.
+
+Pause removes this Mac's grant before attempting the workbook's exact-generation pause. Missing/replaced workbooks may prevent recording that pause while local scheduling is disabled; the message states both outcomes. An unknown registry publication result is reported as unconfirmed and actual state is reloaded. Run once is a separate manual request and does not consume a calendar occurrence or enable future runs. Continue, retry, Stop and business review remain explicit existing controls.
+
+This implementation currently runs automatic work only while Sevra is active with a key window, no interactive operation, normal memory pressure, acceptable thermal state and Low Power Mode off. Focus/sleep/session/resource loss cancels/defer work; app quit stops it. One app-wide owner serializes automatic work and yields to interactive work. Closed-window/background behavior, event/condition triggers, voice/conversation authoring and real native lifecycle/visible accessibility remain unqualified. Do not use this preview for unattended scheduling assumptions.
+
+Focused checks: `swift build --product sevra-automation-ui-checks -j 4` then `.build/debug/sevra-automation-ui-checks`. They create synthetic workbooks and private temporary registries, run six independent registration workers and kill only owned fixture processes at two registry publication barriers. An injected deterministic runner checks controller behavior without loading a model or simulating proof of real OS notifications. The checks also run in scripts/check.sh and CI. Contract/evidence: [[records/specs/native-automation-owner]].
+
+## Inert condition transition preview
+
+`condition-preview RULE_JSON_OR_@FILE OBSERVATIONS_JSON_OR_@FILE` previews supplied numeric observations without opening a workbook or enabling anything. Example:
+
+~~~sh
+sevra condition-preview \
+  '{"policy":"native-condition-v1","scope":"stock:bolts","operator":"<","threshold":"10"}' \
+  '[{"id":"first","value":"20"},{"id":"second","value":"5"},{"id":"third","value":"4"}]'
+~~~
+
+This returns one transition candidate. Starting already below the threshold establishes a baseline; staying below does not repeat. A known false observation resets it. Unknown values use null plus a reason, preserve the last certain truth and label a coverage gap. Same ID/equivalent normalized content is duplicate delivery; changed content under the same ID refuses. Operators are <, <=, >, >=, = and <>. Decimal values are strings, never JSON numbers.
+
+At most 100 observations and 64 KiB encoded observation input. IDs/scope are nonempty bounded strings; unknown reasons are bounded. Each inline/file JSON argument is limited to 64 KiB. @FILE reads require a regular file and refuse symlink/FIFO/directory substitutions. Output says fixture-observations, businessEvidence=false, enabled=false and execution=inert. Supplied IDs/order cannot prove that an actual business crossing occurred or that all events were observed.
+
+Focused verification: `.build/debug/sevra-checks --conditions` and `python3 scripts/check_condition_transitions.py --cli output/native/bin/sevra --output NEW_DIRECTORY`. The first passes 13 groups including 243 trajectories; the second passes 31 installed CLI cases. It uses synthetic inputs and no model/workbook. Real trigger delivery, durable cursors and native authoring remain open under [[records/specs/condition-transitions]].
+
+## Committed business-event inspection
+
+`business-batches WORKBOOK [AFTER_BATCH_ID|-] [LIMIT] [SCOPE_KIND SCOPE_KEY]` lists global or exact-scope semantic batches. `business-batch WORKBOOK BATCH_ID [AFTER_ORDINAL|-] [LIMIT]` pages every entry in one atomic batch. Use - for an absent cursor. Batch limits are 1 to 50; entry limits 1 to 100. Finish an entire batch before evaluating conditions or advancing consumer state. Position strings are lossless. Reads create no acknowledgements or authority. Exact scope meanings, tail/cursor coverage, 8 MiB and three-second query bounds and transient busy/cancellation behavior are in [[records/specs/business-events]]. Dataset scopes select membership/schema, while row-value versions are record-scoped.
+
+Run `.build/debug/sevra-checks --business-events` and `python3 scripts/check_business_events.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_JSON_PATH` for synthetic qualification. The installed script uses its own temporary fixtures, six concurrent CLI publishers and two actual process deaths. No model or automatic condition execution. Schema22 development files preserve/refuse unsupported versions without adapters or reset.
+
+## Historical inventory inspection
+
+`inventory-at-batch WORKBOOK BATCH_ID SUBJECT EFFECTIVE_THROUGH` answers using the exact committed batch and mandatory explicit business date/time. Example: `sevra inventory-at-batch Shop.sevra BATCH_ID bolts 2026-10-29`. Obtain an exact batch ID through business-batches. The result retains basis and effect IDs, both coordinates and an inert label. Missing/removed/future bases are unknown with null quantity. Accepted estimates, other scenarios, drafts and fake movement labels do not affect actual stock. Future dates describe an explicit ledger projection.
+
+Run `.build/debug/sevra-checks --inventory-event-state`, `.build/debug/sevra-checks --inventory-event-limit` and `python3 scripts/check_inventory_event_state.py --cli output/native/bin/sevra --output NEW_JSON_PATH`. The separate scale group creates disposable real workbook history and checks all 10,000 effects plus explicit refusal at 10,001. No model or activation. See [[records/specs/inventory-event-state]] for limits, retained query failure/fix and qualification scope. This reconciliation oracle is not a live per-poll scheduler.
+
+## Explicit inventory condition tracking
+
+These commands save and advance an inert condition; they do not enable a schedule, run a workflow or accept business changes:
+
+~~~sh
+sevra condition-create Shop.sevra parts '{"policy":"native-condition-v1","scope":"inventory:parts","operator":"<","threshold":"10"}' 2026-10-29 CREATE_TOKEN
+sevra condition-step Shop.sevra CONSUMER_ID 2026-10-29 STEP_TOKEN
+sevra condition-state Shop.sevra CONSUMER_ID
+sevra condition-observations Shop.sevra CONSUMER_ID - 20
+sevra condition-dismiss Shop.sevra CANDIDATE_ID 'Reviewed and dismissed' DISMISS_TOKEN
+~~~
+
+Creation returns CONSUMER_ID and captures the current business-tail baseline. Repeat bounded steps with fresh tokens while hasMore is true; retain each original token/arguments to recover its original receipt on retry. Inspect condition-state afterward for current coverage. phase exposes unfinished batch/clock/rebuild work; lastCompleteObservation and effectiveThrough describe the last fully published result, while workingEffectiveThrough is explicitly separate. A backwards horizon refuses. A future horizon is an explicit ledger projection, not physical current stock proof.
+
+condition-observations accepts an optional exact observation cursor and a limit of 1 to 50. A request candidate stays inert. At 100 pending candidates, backpressure stops progress without losing the crossing. Explicit dismissal needs a reason and keeps its Source/history. Saving/reconstructing creates no timer, model acquisition or device permission. Current projection is bounded to 10,000 effects; unsupported precision or limits refuse without partial completion. See [[records/specs/inventory-condition-consumers]].
+
+Run `.build/debug/sevra-checks --inventory-conditions`, the separate `--inventory-condition-limit`, and `python3 scripts/check_inventory_conditions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_JSON_PATH`. The worker adds actual SIGKILL publication checks; all workbooks and inputs are temporary synthetic fixtures. No selected-model inference.
+
+## Inspect automatic derivation ancestry
+
+Use `sevra automation-ancestry Shop.sevra EXACT_ITEM_ID [EXACT_ITEM_ID...]` to inspect up to 16 exact versions. It reports saved automatic workflow/definition/logical/occurrence bindings and the retained graph, including control/configuration dependencies. Acceptance/manual derivation does not clear origin. This is a read-only diagnostic: execution=none, enabled=false, minimalCausalSlice=false and dispatchEligibility=not-evaluated. It cannot enable work or establish a minimal business cause set.
+
+Limits are 1,024 distinct items, 4,096 edges, 128 lineage-edge depth, 1 MiB invocation metadata and 8 MiB output within a short-wait/cancellable three-second read. Cycles, missing/inconsistent/erased bindings and unsupported sizes refuse without partial output. Current schema 24 uniquely indexes workflow source identity. Unsupported older development files remain preserved/refused; do not reset a user's file.
+
+Focused check: `.build/debug/sevra-checks --automatic-ancestry`. Installed check: `python3 scripts/check_automatic_ancestry.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_JSON_PATH`. The worker creates only a temporary synthetic registered action/review fixture, with no model inference. See [[records/specs/automatic-ancestry]].
+
+## Inspect retained automatic charges
+
+Use `sevra automation-causality Shop.sevra EXACT_RUN_ID` to inspect an admitted automatic run, roots, direct automatic parents, depth and current retained charges. This is read-only historical inspection with execution=none, enabled=false and dispatchEligibility=not-evaluated. It grants no device/session authority. Ordinary calendar occurrences each start an independent root. Pause/completion/cancellation/restart/copy do not clear earlier charges.
+
+Schema25 uses policy automation-causality-v1 with at most eight parents/eight roots/depth eight/eight direct successors/32 runs perroot. Exhausted or inconsistent histories refuse. Internal inherited admissions remain a trusted core primitive, not a public condition dispatch command. Unsupported schema24 files are preserved/refused without migration/reset.
+
+Focused checks: `.build/debug/sevra-checks --automation-causality`. Installed check: `python3 scripts/check_automation_causality.py --cli output/native/bin/sevra --checks .build/debug/sevra-checks --output NEW_DIRECTORY`. The latter creates synthetic fixtures and races nine independent trusted test writers for eight slots. It uses no model and does not establish automatic business-cause discovery. Process-death dispatch checks also verify retained admissions. See [[records/specs/automation-causality]].
+
+## Inspect exact condition change inputs
+
+Use `sevra condition-inputs Shop.sevra EXACT_OBSERVATION_ID [AFTER_INPUT_ID|-] [LIMIT]` for a stable read-only page of one to50 exact scope-relevant changed inputs. Read observation IDs through condition-observations. The result includes exact event/before/after/activation coordinates and immediate previous/previous-certain observation links. It reports execution=none, enabled=false, minimalCauseSet=false, automaticParents=not-resolved and dispatchEligibility=not-evaluated.
+
+Coverage is baseline, complete, unknown-gap or limit-exceeded. A complete window lists relevant changes, not every unchanged numeric contributor or a minimal automatic cause. At most10000 entries are retained per window; overflow keeps exact numeric processing but marks the retained prefix incomplete. Unknown/overflow history cannot grant execution or establish independent origin. Schema25 files are preserved/refused with no migration/reset.
+
+Focused checks: `.build/debug/sevra-checks --condition-inputs`; actual boundary: `.build/debug/sevra-checks --condition-input-limit`. Installed check: `python3 scripts/check_condition_inputs.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. It creates only synthetic fixtures, pages205members, uses six readers and tests inert copies/corruption refusal. Existing installed condition process-death tests now also verify input atomicity. See [[records/specs/condition-transition-inputs]].
+
+## Inspect named roles and verify complete input capture
+
+`sevra lineage Shop.sevra EXACT_ITEM_ID` and the existing `sevra automation-ancestry Shop.sevra EXACT_ITEM_ID [ITEM_ID...]` now render named data/control/producer/revision arrays. The broad ancestry inspector continues to include control links and does not resolve business causes or dispatch eligibility. `sevra verify Shop.sevra` checks each item's complete role/revision seal. Schema26 development workbooks are preserved/refused; there is no migration/reset command.
+
+Focused core: `.build/debug/sevra-checks --derivation-roles`. Installed check: `python3 scripts/check_derivation_roles.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. It creates disposable synthetic fixtures, independently recomputes canonical seals, checks named role output and unchanged commits, reconstructs inertly and refuses damaged copies. scripts/check.sh and both packaged CI paths include it. Role-aware bounded business-origin/condition resolution is still pending. See [[records/specs/business-provenance]].
+
+## Inspect business origins
+
+Use `sevra business-origins WORKBOOK ITEM_ID [ITEM_ID...]` for one to 16 exact versions. It follows retained data, producer and revision links, shows controls separately and validates historical automatic producer/admission boundaries. The broader `automation-ancestry` inspector also includes configuration. Neither command grants permission or executes work. Original candidates are not proof of independence; query candidate populations are not minimal causes. Missing/corrupt metadata, unsupported policies, cycles or bounds refuse the whole response.
+
+The bounded inspector permits 1,024 visited items, 4,096 inspected edges including controls/boundary inputs, depth 128, 8 MiB and a three-second cancellable snapshot. Run `.build/debug/sevra-checks --business-origins` for its focused producer checks and `python3 scripts/check_business_origins.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json` for the installed fixture. Final 74 focused/499 full groups and 42 installed calls pass. This is schema27 development metadata, with no legacy adapter or automatic reset. Condition-window origin resolution and dispatch remain unfinished. Evidence: [[records/specs/business-provenance]].
+
+## Inspect exact condition-window origins
+
+`sevra condition-origins WORKBOOK OBSERVATION_ID` reads one exact completed window, validates every member and traces changed/activated versions through the shared business-origin graph. It returns coordinates, count, a canonical input-set digest and historical automatic producer IDs. Follow `condition-inputs` for detailed event/version/time pages. Baseline, unknown-gap, overflow or graph limits refuse explicitly. Numeric state and paginated inputs remain available; no read advances a candidate/cursor or grants execution. Original candidates are still not qualified independent roots.
+
+Run `.build/debug/sevra-checks --condition-origins` for 41 focused window/input/origin groups. `--condition-input-limit` includes the real 10,000/10,001 refusal counterexample. Installed proof: `python3 scripts/check_condition_origins.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`, covering 40 calls, 205 members, six readers, independent hashes and damaged-copy refusals. Shared roots and actual dispatch remain unfinished. See [[records/specs/business-provenance]].
+
+## Explicit original inputs and shared condition causes
+
+`sevra observe WORKBOOK OBSERVATION_JSON` records a genuinely new original business observation through the host path. Accepted keys are title, text, data and optional nonempty token up to512 UTF-8 bytes. Reuse the token for an exact retry. For a review/correction/republication, retain exact existing inputs rather than declaring a new independent cause. Top-level intake records external-file intent; derived archive members and including an existing linked Source retain their input instead. No ordinary local-model tool can declare a new original input. Declaration proves recorded intent, not authenticity.
+
+`sevra condition-causes WORKBOOK OBSERVATION_ID` reads the complete retained window and reports resolved or blocked, declared/inherited root IDs and exact automatic parents. Different consumers of one input share its root. Effective-time activation does not mint another. Missing/unclassified causes and more than eight roots/parents stay blocked; no partial roots become dispatchable. The bounded reader adds at most16MiB of creating envelopes to existing graph limits, before decoding. No live permission, charge or automatic work follows from reading it.
+
+Focused check: `.build/debug/sevra-checks --business-inputs`. Installed synthetic check: `python3 scripts/check_business_inputs.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Both packaged CI paths and check.sh include it. Schema28 is the canonical development contract; unsupported prior workbooks stay preserved/refused. Evidence and unfinished dispatch/production gates: [[records/specs/business-provenance]].
+
+## Shared automatic business-root admission qualification
+
+`sevra automation-causality WORKBOOK RUN_ID` now renders retained independentInputs in each automatic origin alongside parents/roots and charged work. Business roots come from explicit original-input creating commits; calendar roots remain exact clock occurrences. Historical output still grants no live permission. The internal admission primitive enforces one shared32-run budget across unrelated reacting targets, with existing self/depth/fan-out limits. Production calendar calls use calendar causes. Actual automatic condition selection/binding/dispatch remains unfinished; condition-causes stays read-only.
+
+Focused check: `.build/debug/sevra-checks --automation-causality`. Installed synthetic race/death check: `python3 scripts/check_shared_admissions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Both packaged CI paths and check.sh include it. The fixture bridge is test-only, with no ordinary model/CLI override for independent inputs or parents. Schema29 is canonical; unsupported prior development workbooks stay preserved/refused. [[records/specs/automation-causality]] records539 broad/30 final focused groups,22 installed calls, failures, exact resource checks and open production gates.
+
+## Condition dispatch qualification
+
+Schema30 is canonical. The native Automations editor supports exact calendar and inventory-threshold workflows. Preview and Save stay inactive; Enable on this Mac authorizes that physical workbook/version. Ordinary Resume preserves saved and missed transitions, while Only from now records an explicit skip and new baseline. Run once remains a separate manual workflow. Automatic business changes require review.
+
+Focused core: `.build/debug/sevra-checks --condition-dispatch`. Actual synthetic candidate process/race/recovery check: `python3 scripts/check_condition_dispatch.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Native controller/registry: `.build/debug/sevra-automation-ui-checks`. check.sh and both installed CI paths include condition dispatch; artifact upload includes its JSON. No ordinary CLI/model dispatch override or arbitrary parent/root input is exposed. The public condition-causes inspector stays read-only and grants no authority. Full scope/evidence: [[records/specs/condition-dispatch]].
+
+
+## Conversational inventory-rule authoring
+
+Use conversation to save an explicit rule over an exact saved workflow, such as “Save Parts watch using Low-stock report, no arguments, when parts stock becomes less than 10. Save only.” The result opens exact native review; saving does not enable it. Inspect workflow, threshold and AI scope before explicit Enable on this Mac. Initial enabling establishes a baseline; already-true stock waits for a new crossing. Normal resume preserves transitions. Text/voice Enable confirmation remains a separate unfinished gate.
+
+Focused scripted check: `.build/debug/sevra-agent-checks --automation-authoring-checks`. `python3 scripts/check_splash_grammar.py` checks current 52-tool schemas/65 cases/555 exact masks under the unchanged 8,192-token bare-prompt gate. The full agent suite includes all seven authoring modes. The opt-in real native probe is `.build/debug/sevra-agent-checks --automation-authoring MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY`; it uses already installed selected-model files with evaluation 32K/bounded512, freely selected tools and a disposable synthetic workbook. No new model download or Python runtime inference is required. Keep inference serial and do not replace package resources or edit sources during builds.
+
+The current app/CLI packaged hashes, actual-model and visible native handoff, inactive/reconstruction assertions, failed iterations and retained resource checks are in [[records/specs/condition-dispatch]]. This is development qualification, not a production release or a supported hardware/performance claim.

@@ -3,7 +3,7 @@ type: research
 meta-type: conclusion
 id: 01m5rbxzbx5q4atmjp4471w04d
 created: 2026-10-25T01:48:47.357164+00:00
-updated: 2026-10-27T08:46:46.778918+00:00
+updated: 2026-10-27T19:16:07.199388+00:00
 summary: Primary sources for SQLite retrieval/durability, native readers, on-device voice and current Slotstream integration.
 title: Foundation research
 ---
@@ -83,3 +83,43 @@ Pinned Splash 1.4.1 documents that numerical results depend on prefill chunking 
 Primary source: [pinned sampling documentation](https://github.com/incoai/splash/blob/1744cfafee415fb463b289449cec59a864e768e9/DEVELOPMENT.md#sampling). Local source SHA256: cb7a903da01bc3cdb73783e2b50072dba8c0660c3c902380732e37f6cd63dd52. Its state-precision section says the default recurrent state is FP32; do not attribute this run to optional BF16 state rounding. The runtime Done response reports deduplicated KV tokens separately from Start's matched-prefix count; preserve both in native and reference receipts.
 
 Sevra's controlled reference diagnostic reproduced two different successful answers at an identical request frame with a 2 ms wait before returning each upstream-produced mask. The delay wrapper does not modify that buffer; this does not prove that every mask across the two complete live runs was identical. The no-tracing control also matched native in this later run, so the earlier tracing-on/off association was not a sufficient causal explanation. Do not call this an adapter or engine bug, waive an acceptance gate, or add a delay to the product on that evidence alone. See [[records/specs/splash-integration]] and [[records/operations/implementation]].
+
+## Search snippet cursor reuse
+SQLite documents unary + as a way to prevent a WHERE term from driving index
+selection: https://www.sqlite.org/optoverview.html#disqualifying_where_clause_terms_using_unary_
+Its FTS5 reference describes MATCH-context snippets: https://www.sqlite.org/fts5.html#the_snippet_function
+Local profiling on the retained synthetic 100k corpus found repeated snippet
+cursor initialization expensive. Range-bounded membership filtering reused a
+cursor while producing identical excerpts in the focused checks. This is a local
+query-plan observation, not a general SQLite or whole-app speed claim.
+
+## Native extraction fault containment
+
+Apple's [Process terminationHandler](https://developer.apple.com/documentation/foundation/process/terminationhandler)
+and [waitUntilExit](https://developer.apple.com/documentation/foundation/process/waituntilexit())
+contracts distinguish process termination from completion of its handler. Sevra
+uses bounded termination signalling and retains a concurrency slot until reap.
+Its Swift helper also watches parent liveness so a blocked output pipe cannot
+leave an orphan parser indefinitely after the app exits.
+
+Apple describes separate service processes in its
+[XPC service guide](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingXPCServices.html).
+A shared standalone helper keeps app and CLI extraction independent of a running
+desktop. This is an implementation choice for failure containment and cancellation;
+it does not supply XPC entitlement separation or an OS security sandbox. Do not
+claim protection from arbitrary code execution solely because parsing moved out
+of the host.
+
+## Accessible conversation actions
+
+Apple's [accessibilityElement(children:)](https://developer.apple.com/documentation/swiftui/view/accessibilityelement(children:))
+controls child grouping; [accessibilityActions](https://developer.apple.com/documentation/swiftui/view/accessibilityactions(_:))
+adds named actions for assistive technologies. Native [Menu](https://developer.apple.com/documentation/swiftui/menu)
+provides alternate actions through familiar platform controls. Sevra uses separate
+message groups, exact link actions and menus, retaining selectable inline text.
+
+In the local native accessibility tree, message text previously collapsed together.
+Explicit grouping now exposes individual messages and their inline link roles;
+named actions and menus open the same evidence. This observed tree and successful
+action activation do not establish spoken VoiceOver usability or every keyboard
+configuration. Keep those acceptance checks separate from API availability.

@@ -10,7 +10,9 @@ import SevraSplashText
 
 final class ToolPolicyChecks {
   func actualTools() throws -> Data {
-    let definitions: [[String: Any]] = try NativeTools.definitions.map {
+    let definitions: [[String: Any]] = try NativeTools.definitions.filter {
+      $0.name != "prepare_workflow_answer"
+    }.map {
       [
         "type": "function",
         "function": [
@@ -25,7 +27,7 @@ final class ToolPolicyChecks {
 
   func testActualWorkbookSchemas() throws {
     let policy = try SplashToolPolicy(toolsJSON: actualTools())
-    try expectEqual(policy.outputTools.count, NativeTools.definitions.count)
+    try expectEqual(policy.outputTools.count, NativeTools.definitions.count - 1)
     let normalized = try JSONSerialization.jsonObject(with: policy.toolsJSON) as! [[String: Any]]
     func function(_ name: String) -> [String: Any] {
       (normalized.first { ($0["function"] as! [String: Any])["name"] as? String == name }![
@@ -37,6 +39,17 @@ final class ToolPolicyChecks {
     let item = rows["items"] as! [String: Any]
     try expectEqual(item["additionalProperties"] as? Bool, true)
     try expectEqual(fields["additionalProperties"] as? Bool, false)
+    try expectEqual(
+      (function("save_definition")["parameters"] as! [String: Any])["required"] as? [String],
+      ["content"])
+    try expectEqual(
+      (function("save_template")["parameters"] as! [String: Any])["required"] as? [String],
+      ["templateReceiptID"])
+    for name in ["save_definition", "save_template"] {
+      let properties =
+        (function(name)["parameters"] as! [String: Any])["properties"] as! [String: Any]
+      try expectEqual(properties["logicalID"] == nil, true)
+    }
     let export = ProcessInfo.processInfo.environment["SEVRA_SCHEMA_FIXTURE_OUTPUT"]
     if let export {
       try policy.toolsJSON.write(to: URL(fileURLWithPath: export), options: .atomic)
@@ -46,7 +59,7 @@ final class ToolPolicyChecks {
       try expectEqual(policy.toolsJSON, stored)
     }
     let prompt = try policy.promptTools()
-    try expectEqual(prompt.count, NativeTools.definitions.count)
+    try expectEqual(prompt.count, NativeTools.definitions.count - 1)
   }
 
   func candidate(_ name: String, _ fields: [(String, String)], policy: SplashToolPolicy) throws
@@ -197,6 +210,20 @@ final class ToolPolicyChecks {
         "additionalProperties": false,
       ],
       ["type": "object", "properties": [:], "additionalProperties": true],
+      [
+        "type": "object", "properties": [:], "additionalProperties": false,
+        "anyOf": [["type": "object"]],
+      ],
+      [
+        "type": "object", "properties": ["x": ["type": "object", "anyOf": []]],
+        "additionalProperties": false,
+      ],
+      [
+        "type": "object",
+        "properties": [
+          "x": ["type": "object", "anyOf": [["$ref": "https://invalid.test/schema"]]]
+        ], "additionalProperties": false,
+      ],
     ] {
       let data = try JSONSerialization.data(withJSONObject: [
         [
@@ -227,16 +254,43 @@ func expectValue<T>(_ value: T?) throws -> T {
   return value
 }
 do {
+  if CommandLine.arguments.dropFirst() == ["--automation-authoring-checks"] {
+    try await checkInventoryAutomationAuthoring()
+    exit(0)
+  }
+  if CommandLine.arguments.dropFirst() == ["--export-tools"] {
+    let checks = ToolPolicyChecks()
+    try checks.testActualWorkbookSchemas()
+    exit(0)
+  }
   try checkContextBudget()
+  try await checkContextThreshold()
   try checkReasoningBudget()
   try await checkReasoningHistory()
   try await checkAgentLifecycle()
+  try await checkConversationActions()
+  try await checkSpaceActions()
+  try await checkRequestHandoffs()
+  try await checkHandoffEvidence()
+  try await checkInterfaceGuidance()
+  try await checkRequestEnvelopes()
   try await checkRequestAdmission()
+  try await checkMovementDirection()
+  try await checkApplicationTools()
+  try await checkInventoryAutomationAuthoring()
+  try await checkWorkflowAgentTools()
+  try await checkWorkflowAnswerAgent()
+  try await checkComputationTools()
+  try await checkCitationVersions()
+  try await checkActionConfirmations()
+  try await checkDocumentCopies()
   try await checkCurrencyRejection()
   try await checkHistoryTools()
   try await checkParentHistory()
   try await checkScopedSearch()
   try await checkItemReferences()
+  try await checkReferenceTraversal()
+  try await checkReferenceScope()
   try await checkSearchCoverage()
   try await checkCompaction()
   try await checkRunningCompaction()
@@ -265,6 +319,57 @@ do {
     try await runCurrencyRecoveryProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--computation" {
+    try await runComputationProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6
+    && CommandLine.arguments[1] == "--workflow-interpretation"
+  {
+    try await runWorkflowInterpretationProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--automation-authoring"
+  {
+    try await runAutomationAuthoringProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--workflow-tools" {
+    try await runWorkflowToolProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--intake-authoring" {
+    try await runIntakeAuthoringProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--application-tools" {
+    try await runApplicationToolProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--movement-direction" {
+    try await runMovementDirectionProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--request-handoff" {
+    try await runRequestHandoffProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6
+    && ["--interpretation-authoring", "--preparation-authoring"].contains(CommandLine.arguments[1])
+  {
+    try await runInterpretationAuthoringProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5],
+      preparation: CommandLine.arguments[1] == "--preparation-authoring")
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--interface-guidance" {
+    try await runInterfaceGuidanceProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--conversation-actions"
+  {
+    try await runConversationActionProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--coverage" {
     try await runCoverageProbe(
       modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
@@ -279,6 +384,23 @@ do {
     try await runContinuityWorkflowProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--document-composition"
+  {
+    try await runDocumentCompositionProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--reference-traversal"
+  {
+    try await runReferenceTraversalProbe(
+      modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+  } else if CommandLine.arguments.count == 6
+    && ["--active-context", "--active-context-maintained"].contains(CommandLine.arguments[1])
+  {
+    try await runActiveContextProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5],
+      maintainedOnly: CommandLine.arguments[1] == "--active-context-maintained")
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--reasoning-boundary" {
     try runReasoningBoundaryProbe(
       modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],
@@ -314,6 +436,10 @@ do {
     try checkWorkbookGrammars(frontend: frontend, factory: factory)
     try checkReasoningGrammar(frontend: frontend, factory: factory)
     try checkItemReferenceGrammar(frontend: frontend, factory: factory)
+    try checkDocumentCopyGrammar(frontend: frontend, factory: factory)
+    try checkConversationActionGrammar(frontend: frontend, factory: factory)
+    try checkActionDirectionGrammar(frontend: frontend, factory: factory)
+    try checkInterpretationGrammar(frontend: frontend, factory: factory)
     if CommandLine.arguments.count == 5 {
       try runNativeWorkbookProbe(
         frontend: frontend, factory: factory, engine: CommandLine.arguments[3],
@@ -321,7 +447,7 @@ do {
     }
   } else if CommandLine.arguments.count != 1 {
     throw SplashError(
-      "Usage: sevra-agent-checks --continuity-workflow MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --baseline-continuity MODEL_FOLDER or [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery/--coverage MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. The continuity workflow uses native-installed models, 32K and bounded512. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536 and SEVRA_NATIVE_REASONING selects 0/512 in other development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
+      "Usage: sevra-agent-checks --reference-traversal MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --document-composition/--movement-direction/--request-handoff/--interface-guidance/--conversation-actions MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --active-context/--active-context-maintained MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --continuity-workflow MODELS_ROOT PINNED_NATIVE_LIBRARY ENGINE NEW_OUTPUT_DIRECTORY or --baseline-continuity MODEL_FOLDER or [MODEL_FOLDER PINNED_NATIVE_LIBRARY [ENGINE ASSEMBLY]] or --autonomous/--inventory/--occupied/--history/--continuity/--context-recovery/--reasoning-comparison/--reasoning-boundary/--inspection-recovery/--coverage MODEL_FOLDER PINNED_NATIVE_LIBRARY ENGINE MODELS_ROOT. The continuity workflow uses native-installed models, 32K and bounded512; reference traversal uses local-pack models at those same budgets. SEVRA_NATIVE_CONTEXT_TOKENS selects 8192/32768/65536 and SEVRA_NATIVE_REASONING selects 0/512 in other development checks. Reasoning comparison fixes 32K and accepts SEVRA_REASONING_SAVE_FIXTURES or SEVRA_REASONING_FIXTURES; SEVRA_REASONING_BOUNDED_ONLY=1 runs only the bounded arm."
     )
   }
 } catch {

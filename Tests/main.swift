@@ -7,6 +7,23 @@ import ZIPFoundation
 
 setbuf(stdout, nil)
 
+if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--condition-death-worker" {
+  try inventoryConditionDeathWorker(
+    CommandLine.arguments[2], consumer: CommandLine.arguments[3], stage: CommandLine.arguments[4])
+  exit(0)
+}
+
+if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--business-death-worker" {
+  try businessEventDeathWorker(CommandLine.arguments[2], stage: CommandLine.arguments[3])
+  exit(0)
+}
+
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--history-fixture" {
+  print(
+    try createCLIHistoryFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+
 var passed = 0
 var failed = 0
 func check(_ name: String, _ body: () throws -> Void) {
@@ -35,6 +52,241 @@ let temp = FileManager.default.temporaryDirectory.appendingPathComponent(
   "sevra-checks-" + identifier())
 try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: temp) }
+if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--business-input-death-worker" {
+  try businessInputDeathWorker(
+    at: URL(fileURLWithPath: CommandLine.arguments[2]), stage: CommandLine.arguments[3])
+  exit(0)
+}
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--condition-cause-fixture" {
+  print(try createConditionCauseFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--condition-dispatch-fixture" {
+  print(
+    try createConditionDispatchFixture(
+      at: URL(fileURLWithPath: CommandLine.arguments[2]),
+      targets: Int(CommandLine.arguments[3])!, admitted: Int(CommandLine.arguments[4])!
+    ).json())
+  exit(0)
+}
+if (4...5).contains(CommandLine.arguments.count)
+  && CommandLine.arguments[1] == "--condition-dispatch-worker"
+{
+  do {
+    print(
+      try conditionDispatchWorker(
+        at: URL(fileURLWithPath: CommandLine.arguments[2]),
+        definition: CommandLine.arguments[3],
+        stage: CommandLine.arguments.count == 5 ? CommandLine.arguments[4] : nil
+      ).json())
+  } catch {
+    fputs(
+      (try! encoded(error as? SevraError ?? SevraError("fixture", error.localizedDescription))
+        .json()) + "\n", stderr)
+    exit(1)
+  }
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--condition-dispatch"] {
+  checkConditionDispatch(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--business-inputs"] {
+  checkBusinessInputs(at: temp)
+  checkConditionCauses(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--condition-origin-fixture" {
+  print(try createConditionOriginFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--condition-origins"] {
+  checkConditionOrigins(at: temp)
+  checkConditionInputs(at: temp)
+  checkBusinessOrigins(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--business-origins"] {
+  checkBusinessOrigins(at: temp)
+  checkAutomaticAncestry(at: temp)
+  checkDefinitionResults(at: temp)
+  checkWorkflowLookups(at: temp)
+  checkWorkflowInterpretations(at: temp)
+  checkWorkflowIntakes(at: temp)
+  checkAutomationCausalityCorruption(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--derivation-roles"] {
+  checkDerivationRoles(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--condition-inputs-fixture" {
+  print(try createConditionInputFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--condition-inputs"] {
+  checkConditionInputs(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--condition-input-limit"] {
+  checkConditionInputLimit(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--automation-causality-fixture"
+{
+  print(
+    try createAutomationCausalityFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--automation-causality-worker" {
+  do {
+    print(
+      try automationCausalityWorker(
+        path: CommandLine.arguments[2], definition: CommandLine.arguments[3],
+        parent: CommandLine.arguments[4]
+      ).json())
+  } catch {
+    fputs(
+      (try? encoded(error as? SevraError ?? SevraError("error", error.localizedDescription)).json())
+        ?? "{}", stderr)
+    exit(1)
+  }
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--automation-causality"] {
+  checkAutomationCausality(at: temp)
+  checkSharedBusinessAdmissions(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--shared-admission-fixture" {
+  print(try createSharedAdmissionFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.count == 5 && CommandLine.arguments[1] == "--shared-admission-worker" {
+  do {
+    print(
+      try sharedAdmissionWorker(
+        path: CommandLine.arguments[2], definition: CommandLine.arguments[3],
+        input: CommandLine.arguments[4]
+      ).json())
+  } catch {
+    fputs(
+      (try? encoded(error as? SevraError ?? SevraError("error", error.localizedDescription)).json())
+        ?? "{}", stderr)
+    exit(1)
+  }
+  exit(0)
+}
+if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--shared-admission-death-worker"
+{
+  try sharedAdmissionDeathWorker(
+    at: URL(fileURLWithPath: CommandLine.arguments[2]), stage: CommandLine.arguments[3])
+  exit(0)
+}
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--automatic-ancestry-fixture" {
+  print(
+    try createAutomaticAncestryFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--automatic-ancestry"] {
+  checkAutomaticAncestry(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.count == 3
+  && ["--automation-execution-fixture", "--automation-ai-fixture"].contains(
+    CommandLine.arguments[1])
+{
+  print(
+    try createAutomationExecutionFixture(
+      at: URL(fileURLWithPath: CommandLine.arguments[2]),
+      ai: CommandLine.arguments[1] == "--automation-ai-fixture"
+    ).json())
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--automation-execution"] {
+  checkAutomationExecution(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--automation-planning-fixture" {
+  print(
+    try createAutomationPlanningFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--automation-planning"] {
+  checkAutomationPlanning(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--schedules"] {
+  checkCalendarSchedules()
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--conditions"] {
+  checkConditionTransitions()
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--business-events"] {
+  checkBusinessEvents(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--inventory-condition-limit"] {
+  checkInventoryConditionLimit(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--inventory-conditions"] {
+  checkInventoryConditions(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--inventory-event-state"] {
+  checkInventoryEventState(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--inventory-event-limit"] {
+  checkInventoryEventLimit(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--automations"] {
+  checkAutomationDefinitions(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--document-actions"] {
+  checkDocumentActions(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--workflow-intake"] {
+  checkTableIntake(at: temp)
+  checkWorkflowIntakes(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
+if CommandLine.arguments.dropFirst() == ["--workflows"] {
+  checkWorkflows(at: temp)
+  checkWorkflowTools(at: temp)
+  checkWorkflowInterpretations(at: temp)
+  checkWorkflowExtractions(at: temp)
+  checkWorkflowIntakes(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 var book: Workbook!
 var source: Item!
 var movement: Item!
@@ -106,6 +358,72 @@ check("correction supersedes rather than adds") {
     subject: "bolts", quantity: "-1", occurrence: "sale-1", effective: "2026-01-02T00:00:00Z",
     input: correction.id, status: "accepted", supersedes: movement.id)
   try expect(try book.balance(subject: "bolts")["quantity"].text == "19")
+}
+check("withdrawing and undoing a correction preserve the prior accepted inventory effect") {
+  let b = try Workbook.create(
+    at: temp.appendingPathComponent("ReviewCorrection.sevra"), title: "Review")
+  let s = try b.addItem(category: "source", kind: "observation", title: "Count", status: "accepted")
+  try b.setOpeningBalance(subject: "stock", quantity: "20", effective: "2026-01-01", sourceID: s.id)
+  let first = try b.movement(
+    subject: "stock", quantity: "-2", occurrence: "delivery", effective: "2026-01-02", input: s.id,
+    status: "accepted")
+  let correction = try b.movement(
+    subject: "stock", quantity: "-1", occurrence: "delivery", effective: "2026-01-02", input: s.id,
+    supersedes: first.id)
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  let withdrawn = try b.withdrawDraft(correction.id, token: "decline-correction")
+  try expect(try b.withdrawDraft(correction.id, token: "decline-correction").id == withdrawn.id)
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  try expect(withdrawn.status == "accepted" && withdrawn.data["quantity"].text == "-2")
+  let restoredDraft = try b.undoItem(withdrawn.id)
+  try expect(restoredDraft.status == "draft" && restoredDraft.data["quantity"].text == "-1")
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  let accepted = try b.accept(restoredDraft.id)
+  try expect(try b.balance(subject: "stock")["quantity"].text == "19")
+  let undone = try b.undoItem(accepted.id)
+  try expect(undone.status == "accepted" && undone.data["quantity"].text == "-2")
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  try expect(try b.item(correction.id).status == "draft")
+  try expect(try Workbook(b.url).balance(subject: "stock")["quantity"].text == "18")
+  let args = Value.object([
+    "subject": .string("stock"), "quantity": .string("-1"), "occurrence": .string("delivery"),
+    "effective": .string("2026-01-02"), "input": .string(s.id), "supersedes": .string(undone.id),
+  ])
+  let revised = try WorkbookTools(b).execute("propose_movement", args)
+  try expect(revised["supersedes"].text == undone.id && revised["status"].text == "draft")
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  try refuses("stale_revision") { _ = try WorkbookTools(b).execute("propose_movement", args) }
+  try refuses("movement_revision") {
+    _ = try b.movement(
+      subject: "different stock", quantity: "-1", occurrence: "delivery", effective: "2026-01-02",
+      input: s.id, supersedes: revised["id"].text)
+  }
+  _ = try b.withdrawDraft(revised["id"].text)
+  try expect(try b.balance(subject: "stock")["quantity"].text == "18")
+  try expect(try b.verify()["ok"] == .bool(true))
+}
+check("citation snapshots preserve exact historical versions and current state without mutation") {
+  let b = try Workbook.create(
+    at: temp.appendingPathComponent("Citations.sevra"), title: "Citations")
+  let input = try b.addItem(category: "source", kind: "assumption", title: "Sales assumption")
+  let first = try b.addItem(
+    category: "record", kind: "forecast", title: "Projection", meaning: "estimate",
+    inputs: [input.id])
+  let current = try b.withdrawDraft(first.id)
+  let revision = try b.revision()
+  let snapshot = try b.citationVersions([first.id, first.id, current.id])
+  let historical = snapshot["versions"].array.first { $0["cited"]["id"].text == first.id }!
+  try expect(snapshot["versions"].array.count == 2)
+  try expect(historical["cited"]["status"].text == "draft")
+  try expect(historical["current"]["status"].text == "rejected")
+  try expect(historical["current"]["meaning"].text == "estimate")
+  try expect(historical["isCurrentVersion"] == .bool(false))
+  try expect(try b.item(first.id) == first)
+  try expect(try b.revision() == revision)
+  try refuses("citation_version") { _ = try b.citationVersions([first.logicalID]) }
+  let cancelled = Cancellation()
+  cancelled.cancel()
+  try refuses("cancelled") { _ = try b.citationVersions([first.id], cancellation: cancelled) }
 }
 check("unknown basis does not become zero") {
   try refuses("unknown_basis") { _ = try book.balance(subject: "unknown") }
@@ -216,6 +534,60 @@ check("main conversation, chapter, tangent and bookmark") {
   _ = try book.addMessage("Hypothetical discussion", role: "user", conversation: tangent)
   try expect(try book.messages().count == 1)
   try expect(try book.messages(conversation: tangent).count == 1)
+}
+
+check("thread commands preserve titles and do not interpret quoted or negated instructions") {
+  try expect(
+    ConversationCommand.parse("Let’s explore this separately.") == .startThread(title: nil))
+  try expect(ConversationCommand.parse("Go back to our main conversation!") == .backToConversation)
+  try expect(
+    ConversationCommand.parse("Start a thread called What if we raise prices?")
+      == .startThread(title: "What if we raise prices?"))
+  try expect(ConversationCommand.parse("tangent Hiring") == .startThread(title: "Hiring"))
+  try expect(
+    ConversationCommand.parse("Share summary with conversation: Keep prices at $12.")
+      == .shareSummary(text: "Keep prices at $12."))
+  for text in [
+    "Don't go back to our main conversation", "Can a thread share workbook data?",
+    "What does ‘Let's explore this separately’ mean?", "\"start a thread\"",
+  ] {
+    try expect(ConversationCommand.parse(text) == nil)
+  }
+}
+
+check(
+  "selected thread summary preserves origin and does not change business state or history scope"
+) {
+  let b = try Workbook.create(at: temp.appendingPathComponent("Summary.sevra"), title: "Summary")
+  let original = try b.addMessage("Review next month's prices", role: "user")
+  let thread = try b.tangent(title: "What if we raise prices?", parentMessage: original)
+  let answer = try b.addMessage(
+    "Estimate A: 12. Estimate B: 14. Neither is accepted.",
+    role: "assistant", conversation: thread)
+  let source = try b.addItem(
+    category: "source", kind: "observation", title: "Count", status: "accepted")
+  try b.setOpeningBalance(
+    subject: "stock", quantity: "20", effective: "2026-01-01", sourceID: source.id)
+  let before = try b.items().map(\.id).sorted()
+  let balance = try b.balance(subject: "stock")
+  let returned = try b.shareSummary(message: answer, text: "Use 12 as an estimate, pending review.")
+  let shared = try b.messages().last!
+  try expect(shared.id == returned && shared.body.contains("Use 12 as an estimate"))
+  try expect(!shared.body.contains("Estimate B"))
+  try expect(shared.body.contains("sevra://conversation/\(thread)?message=\(answer)"))
+  try expect(try b.messages(conversation: thread).count == 1)
+  try expect(try b.items().map(\.id).sorted() == before)
+  try expect(try b.balance(subject: "stock") == balance)
+  try expect(try b.agentRuns().isEmpty)
+  try refuses("history_scope") { _ = try b.historyMessage(answer, conversation: "main") }
+  let payload = try b.messagePayload(returned)
+  try expect(payload["referenceOnly"] == .bool(true))
+  let incomplete = try b.addMessage(
+    "Not finished", role: "assistant", conversation: thread, state: "interrupted")
+  try refuses("summary") { _ = try b.shareSummary(message: incomplete, text: "Pretend done") }
+  try refuses("conversation") { _ = try b.shareSummary(message: original, text: "Already here") }
+  try refuses("summary") { _ = try b.shareSummary(message: answer, text: "   ") }
+  try expect(try Workbook(b.url).messages().last?.id == returned)
 }
 
 check("undo acceptance withdraws effect; later draft does not erase accepted state") {
@@ -427,6 +799,46 @@ check("XLSX shared strings, inline text, sparse cells, dates and cached formulas
   let tables = try book.importXLSX(item.id)
   try expect(tables.count == 1 && tables[0].rowCount == 2)
   try expect(try book.search("cafe").hits.contains { $0.itemID == item.id })
+}
+check("XLSX refuses overflowing coordinates and expanded shared-string output") {
+  func fixture(_ name: String, rows: String, shared: String = "") throws -> URL {
+    let path = temp.appendingPathComponent(name + ".xlsx")
+    let archive = try Archive(url: path, accessMode: .create)
+    let parts = [
+      "xl/workbook.xml":
+        #"<workbook xmlns:r="r"><sheets><sheet name="Input" r:id="r1"/></sheets></workbook>"#,
+      "xl/_rels/workbook.xml.rels":
+        #"<Relationships><Relationship Id="r1" Type="x/worksheet" Target="worksheets/sheet1.xml"/></Relationships>"#,
+      "xl/worksheets/sheet1.xml": "<worksheet><sheetData>" + rows + "</sheetData></worksheet>",
+      "xl/sharedStrings.xml": "<sst><si><t>" + shared + "</t></si></sst>",
+    ]
+    for (name, text) in parts {
+      let bytes = Data(text.utf8)
+      try archive.addEntry(
+        with: name, type: .file, uncompressedSize: Int64(bytes.count),
+        provider: { position, count in bytes.subdata(in: Int(position)..<Int(position) + count) })
+    }
+    return path
+  }
+  let column = try fixture(
+    "overflow-column",
+    rows: "<row r=\"1\"><c r=\"" + String(repeating: "Z", count: 100) + "1\"><v>2</v></c></row>")
+  try refuses("xlsx_limit") { _ = try XLSX.read(column) }
+  let row = try fixture(
+    "overflow-row",
+    rows:
+      "<row r=\"9223372036854775807\"><c r=\"A1\"><v>2</v></c></row><row><c r=\"A2\"><v>3</v></c></row>"
+  )
+  try refuses("xlsx_limit") { _ = try XLSX.read(row) }
+  let invalidRow = try fixture(
+    "noninteger-row",
+    rows: "<row r=\"99999999999999999999999999999\"><c r=\"A1\"><v>2</v></c></row>")
+  try refuses("xlsx_limit") { _ = try XLSX.read(invalidRow) }
+  let rows = (1...1000).map { "<row r=\"\($0)\"><c r=\"A\($0)\" t=\"s\"><v>0</v></c></row>" }
+    .joined()
+  let expanded = try fixture(
+    "expanded-text", rows: rows, shared: String(repeating: "x", count: 33_000))
+  try refuses("structured_output") { _ = try XLSX.read(expanded) }
 }
 check("package metadata symlinks are refused before opening SQLite") {
   let folder = temp.appendingPathComponent("Symlink.sevra")
@@ -715,13 +1127,62 @@ check("pinning retries return the original snapshot") {
   let first = try book.pinSpace(id, title: "Saved", token: "pin-once")
   _ = try book.saveSpace(
     id: id, title: "Changed",
-    definition: .init(components: [.init(type: "text", title: "Memo", text: "Changed")]))
+    definition: .init(components: [.init(type: "text", title: "Memo", text: "Changed")]),
+    expectedVersion: 1)
   let retried = try book.pinSpace(id, title: "Saved", token: "pin-once")
   try expect(first == retried)
   try expect(
     try book.spaces().first { $0.id == first }?.definition.components[0].text == "Original")
 }
+checkSpaceSnapshots(at: temp)
+checkAssetPreview(at: temp)
+checkAssetCopies(at: temp)
+checkRecentItems(at: temp)
+checkSearchSnippets(at: temp)
 checkConversationContext(at: temp)
+checkConversationNavigation(at: temp)
+checkContinuationEvidence(at: temp)
 checkToolReceipts(at: temp)
+checkDocumentComposition(at: temp)
+checkDocumentCopyChoices(at: temp)
+checkReferences(at: temp)
+checkInlineReferences(at: temp)
+checkFileReferences(at: temp)
+checkAgentReferences(at: temp)
+checkContextualIntake(at: temp)
+checkTableIntake(at: temp)
+checkManagedDatasets(at: temp)
+checkDatasetDefinitions(at: temp)
+checkDatasetQueries(at: temp)
+checkApplicationDefinitions(at: temp)
+checkApplicationActions(at: temp)
+checkDocumentActions(at: temp)
+checkDefinitionTools(at: temp)
+checkWorkflowTools(at: temp)
+checkWorkflowInterpretations(at: temp)
+checkWorkflowExtractions(at: temp)
+checkWorkflowIntakes(at: temp)
+checkDefinitionResults(at: temp)
+checkWorkflows(at: temp)
+checkPersistence(at: temp)
+checkBusinessEvents(at: temp)
+checkInventoryEventState(at: temp)
+checkInventoryConditions(at: temp)
+checkAutomaticAncestry(at: temp)
+checkSpaceEditing(at: temp)
+checkCalendarSchedules()
+checkConditionTransitions()
+checkAutomationDefinitions(at: temp)
+checkAutomationPlanning(at: temp)
+checkAutomationExecution(at: temp)
+checkAutomationCausality(at: temp)
+checkSharedBusinessAdmissions(at: temp)
+checkConditionInputs(at: temp)
+checkDerivationRoles(at: temp)
+checkBusinessOrigins(at: temp)
+checkConditionOrigins(at: temp)
+checkBusinessInputs(at: temp)
+checkConditionCauses(at: temp)
+checkConditionDispatch(at: temp)
 print("\(passed) passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)

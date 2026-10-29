@@ -4,22 +4,51 @@ import PDFKit
 import Vision
 import ZIPFoundation
 
-public struct ExtractionResult {
+public struct ExtractionResult: Codable, Sendable {
   public let chunks: [Chunk]
   public let state: String
   public let detail: String
 }
 public enum Extractor {
+  private static let unsupportedDetail =
+    "Content search is unavailable for this format; filename search and native preview remain available."
+  private static let pdfLimitDetail =
+    "Automatic PDF text extraction is limited to 512 MB. Use a smaller excerpt for content search."
+
+  /// Extraction describes searchable content, never asset ownership. Normalize
+  /// the two older native messages on read without rewriting stored history.
+  static func displayStatus(_ row: [String: Value]) -> Value {
+    guard row["parser"]?.text == "native-v1", let original = row["detail"]?.string else {
+      return .object(row)
+    }
+    let prefix = "Previous index retained. Retry failed: "
+    let retained = original.hasPrefix(prefix)
+    let detail = retained ? String(original.dropFirst(prefix.count)) : original
+    let corrected: String
+    switch detail {
+    case "File included. " + unsupportedDetail: corrected = unsupportedDetail
+    case "The PDF is included, but automatic extraction is limited to 512 MB. Use a smaller excerpt for content search.":
+      corrected = pdfLimitDetail
+    default: return .object(row)
+    }
+    var result = row
+    result["detail"] = .string((retained ? prefix : "") + corrected)
+    return .object(result)
+  }
+
   public static func extract(_ url: URL, cancellation: Cancellation = .init()) throws
     -> ExtractionResult
   {
+    try ExtractionWorker().extract(url, cancellation: cancellation)
+  }
+  static func extractInProcess(_ url: URL, cancellation: Cancellation) throws -> ExtractionResult {
     try cancellation.check()
     let ext = url.pathExtension.lowercased()
     let bytes = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
     if ext == "pdf" {
       try require(
         bytes <= 512_000_000, "pdf_limit",
-        "The PDF is included, but automatic extraction is limited to 512 MB. Use a smaller excerpt for content search."
+        pdfLimitDetail
       )
       guard let pdf = PDFDocument(url: url) else { throw SevraError("pdf", "Cannot read PDF.") }
       try require(
@@ -76,7 +105,7 @@ public enum Extractor {
         state: "ready", detail: "On-device OCR; check the original for accuracy.")
     }
     if ext == "xlsx" {
-      let sheets = try XLSX.read(url, cancellation: cancellation)
+      let sheets = try XLSX.readInProcess(url, cancellation: cancellation)
       let chunks = sheets.flatMap { sheet in
         zip(sheet.rows, sheet.rowNumbers).map { row, n in
           Chunk(
@@ -118,8 +147,7 @@ public enum Extractor {
     }
     return .init(
       chunks: [], state: "unsupported",
-      detail:
-        "File included. Content search is unavailable for this format; filename search and native preview remain available."
+      detail: unsupportedDetail
     )
   }
   static func recognize(_ image: CGImage, cancellation: Cancellation) throws -> String {
@@ -206,12 +234,18 @@ final class XMLTextCollector: NSObject, XMLParserDelegate {
   ) { text += " " }
 }
 extension Workbook {
-  public func extract(_ id: String, cancellation: Cancellation = .init()) throws {
+  public func extract(
+    _ id: String, cancellation: Cancellation = .init(), worker: ExtractionWorker = .init()
+  ) throws {
     let record = try item(id)
     guard let assetID = record.assetID else { return }
     let bounded = Cancellation(parent: cancellation, deadlineAfterSeconds: 60)
     let previous = try extractionStatus(id)
+    let attempt = identifier()
     _ = try mutation("extraction_start", request: .string(id)) {
+      try db.execute(
+        "INSERT INTO extraction_attempts VALUES(?,?) ON CONFLICT(item_id) DO UPDATE SET attempt_id=excluded.attempt_id",
+        [.string(id), .string(attempt)])
       try db.execute(
         "INSERT INTO extraction VALUES(?,?,?,?,?) ON CONFLICT(item_id) DO UPDATE SET state=excluded.state,detail=excluded.detail,updated=excluded.updated",
         [
@@ -222,12 +256,21 @@ extension Workbook {
       return .string(id)
     }
     do {
-      let result = try Extractor.extract(assetURL(assetID), cancellation: bounded)
+      let result = try worker.extract(
+        assetURL(assetID, cancellation: bounded), cancellation: bounded)
       try bounded.check()
-      if try asset(assetID).mode == "linked" { _ = try assetURL(assetID, verify: true) }
-      try index(id, chunks: result.chunks, state: result.state, detail: result.detail)
+      if try asset(assetID).mode == "linked" {
+        _ = try assetURL(assetID, verify: true, cancellation: bounded)
+      }
+      try index(
+        id, chunks: result.chunks, state: result.state, detail: result.detail,
+        cancellation: bounded, expectedAttemptID: attempt)
     } catch {
       _ = try mutation("extraction_failure", request: .string(id)) {
+        guard
+          try db.scalar("SELECT attempt_id FROM extraction_attempts WHERE item_id=?", [.string(id)])
+            .text == attempt
+        else { return .bool(false) }
         let hadIndex = ["ready", "partial"].contains(previous["state"].text)
         let state = hadIndex ? "partial" : (cancellation.isCancelled ? "cancelled" : "failed")
         let detail =

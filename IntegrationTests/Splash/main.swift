@@ -41,6 +41,13 @@ func readExactly(_ count: Int) throws -> Data? {
 func emit(_ data: Data) throws { try FileHandle.standardOutput.write(contentsOf: data) }
 func peer(_ mode: String) throws {
   if mode == "ignore-terminate" { signal(SIGTERM, SIG_IGN) }
+  if mode == "startup-cancel" {
+    signal(SIGTERM, SIG_IGN)
+    try Data(String(getpid()).utf8).write(
+      to: URL(fileURLWithPath: CommandLine.arguments[3]), options: .atomic)
+    sleep(10)
+    return
+  }
   if mode == "startup-stall" {
     sleep(10)
     return
@@ -109,7 +116,9 @@ func peer(_ mode: String) throws {
     try emit(bytes)
   }
 }
-if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--peer" {
+if CommandLine.arguments.count >= 3 && CommandLine.arguments[1] == "--peer" {
+  guard CommandLine.arguments.count == (CommandLine.arguments[2] == "startup-cancel" ? 4 : 3)
+  else { exit(2) }
   do {
     try peer(CommandLine.arguments[2])
     exit(0)
@@ -363,6 +372,23 @@ test("startup failure, partial frame and timeout clean up") {
     _ = try SplashNativeProcess(
       executable: URL(fileURLWithPath: "/missing-sevra-test-helper"), arguments: [])
   }
+}
+test("cancelling a long cold start promptly reaps its unresponsive helper") {
+  let pidFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+  defer { try? FileManager.default.removeItem(at: pidFile) }
+  let before = ProcessInfo.processInfo.systemUptime
+  do {
+    _ = try SplashNativeProcess(
+      executable: URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL,
+      arguments: ["--peer", "startup-cancel", pidFile.path], timeout: 360,
+      cancelled: { FileManager.default.fileExists(atPath: pidFile.path) })
+    throw SplashError("Expected startup cancellation")
+  } catch let error as SplashError {
+    try expect(error.localizedDescription.contains("cancelled"))
+  }
+  try expect(ProcessInfo.processInfo.systemUptime - before < 5)
+  let pid = try String(contentsOf: pidFile, encoding: .utf8)
+  try expect(kill(Int32(pid)!, 0) == -1 && errno == ESRCH)
 }
 test("stderr is continuously drained with a bounded diagnostic tail") {
   let p = try process("stderr")

@@ -2,22 +2,22 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 3
-  static let version1SQL = """
+  static let version = 30
+  static let sql = """
     PRAGMA application_id=1398166081;
-    PRAGMA user_version=1;
+    PRAGMA user_version=\(version);
     PRAGMA journal_mode=DELETE;
     PRAGMA synchronous=FULL;
     CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
     INSERT INTO meta VALUES('revision','0');
     CREATE TABLE assets(id TEXT PRIMARY KEY,name TEXT NOT NULL,path TEXT NOT NULL,hash TEXT NOT NULL,bytes INTEGER NOT NULL,media_type TEXT NOT NULL,mode TEXT NOT NULL CHECK(mode IN ('included','linked')),origin TEXT,bookmark TEXT,created TEXT NOT NULL);
     CREATE INDEX assets_hash ON assets(hash);
-    CREATE TABLE items(id TEXT PRIMARY KEY,logical_id TEXT NOT NULL,version INTEGER NOT NULL,category TEXT NOT NULL CHECK(category IN ('source','record')),kind TEXT NOT NULL,title TEXT NOT NULL,meaning TEXT NOT NULL CHECK(meaning IN ('actual','estimate','plan','commitment','assumption','rule')),status TEXT NOT NULL CHECK(status IN ('draft','accepted','rejected')),scenario TEXT NOT NULL DEFAULT 'actual',body TEXT NOT NULL,data TEXT NOT NULL,asset_id TEXT REFERENCES assets(id),supersedes TEXT REFERENCES items(id),created TEXT NOT NULL,UNIQUE(logical_id,version));
+    CREATE TABLE items(id TEXT PRIMARY KEY,logical_id TEXT NOT NULL,version INTEGER NOT NULL,category TEXT NOT NULL CHECK(category IN ('source','record')),kind TEXT NOT NULL,title TEXT NOT NULL,meaning TEXT NOT NULL CHECK(meaning IN ('actual','estimate','plan','commitment','assumption','rule')),status TEXT NOT NULL CHECK(status IN ('draft','accepted','rejected')),scenario TEXT NOT NULL DEFAULT 'actual',body TEXT NOT NULL,data TEXT NOT NULL,asset_id TEXT REFERENCES assets(id),supersedes TEXT REFERENCES items(id),created TEXT NOT NULL,derivation TEXT NOT NULL,UNIQUE(logical_id,version));
     CREATE TABLE heads(logical_id TEXT PRIMARY KEY,item_id TEXT NOT NULL UNIQUE REFERENCES items(id));
     CREATE INDEX items_filter ON items(kind,meaning,status,scenario,created);
     CREATE INDEX items_asset ON items(asset_id);
     CREATE INDEX items_logical ON items(logical_id,version);
-    CREATE TABLE lineage(child TEXT NOT NULL REFERENCES items(id),parent TEXT NOT NULL REFERENCES items(id),relation TEXT NOT NULL,transformation TEXT NOT NULL,PRIMARY KEY(child,parent,relation));
+    CREATE TABLE lineage(child TEXT NOT NULL REFERENCES items(id),parent TEXT NOT NULL REFERENCES items(id),relation TEXT NOT NULL,transformation TEXT NOT NULL,roles INTEGER NOT NULL CHECK(roles BETWEEN 1 AND 15),PRIMARY KEY(child,parent,relation));
     CREATE INDEX lineage_parent ON lineage(parent);
     CREATE TABLE chunks(id INTEGER PRIMARY KEY,item_id TEXT NOT NULL REFERENCES items(id),title TEXT NOT NULL,body TEXT NOT NULL,locator TEXT NOT NULL,is_current INTEGER NOT NULL,kind TEXT NOT NULL,meaning TEXT NOT NULL,status TEXT NOT NULL,scenario TEXT NOT NULL);
     CREATE INDEX chunks_item ON chunks(item_id);
@@ -34,13 +34,14 @@ enum Schema {
     CREATE TABLE extraction(item_id TEXT PRIMARY KEY REFERENCES items(id),state TEXT NOT NULL,detail TEXT NOT NULL,parser TEXT NOT NULL,updated TEXT NOT NULL);
     CREATE TABLE effects(occurrence TEXT NOT NULL,subject TEXT NOT NULL,kind TEXT NOT NULL,item_id TEXT NOT NULL REFERENCES items(id),quantity TEXT NOT NULL,effective TEXT NOT NULL,PRIMARY KEY(occurrence,subject,kind,item_id));
     CREATE INDEX effects_subject ON effects(subject,effective);
+    CREATE INDEX effects_item ON effects(item_id);
     CREATE TABLE bases(subject TEXT PRIMARY KEY,quantity TEXT NOT NULL,effective TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id));
-    CREATE TABLE datasets(id TEXT PRIMARY KEY,title TEXT NOT NULL,columns TEXT NOT NULL,source_id TEXT REFERENCES items(id));
+    CREATE TABLE datasets(id TEXT PRIMARY KEY,title TEXT NOT NULL,columns TEXT NOT NULL,source_id TEXT REFERENCES items(id),storage_table TEXT NOT NULL UNIQUE,storage_version INTEGER NOT NULL CHECK(storage_version>0),archived INTEGER NOT NULL CHECK(archived IN (0,1)),definition_id TEXT NOT NULL REFERENCES column_versions(id) DEFERRABLE INITIALLY DEFERRED);
     CREATE TABLE dataset_rows(dataset_id TEXT NOT NULL REFERENCES datasets(id),row_id TEXT NOT NULL,ordinal INTEGER NOT NULL,logical_id TEXT NOT NULL REFERENCES heads(logical_id),PRIMARY KEY(dataset_id,row_id));
     CREATE INDEX dataset_order ON dataset_rows(dataset_id,ordinal);
     CREATE INDEX dataset_logical ON dataset_rows(logical_id);
     CREATE TABLE table_changes(id TEXT PRIMARY KEY,dataset_id TEXT NOT NULL REFERENCES datasets(id),before_ids TEXT NOT NULL,after_ids TEXT NOT NULL,created TEXT NOT NULL);
-    CREATE TABLE column_versions(dataset_id TEXT NOT NULL REFERENCES datasets(id),version INTEGER NOT NULL,columns TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(dataset_id,version));
+    CREATE TABLE column_versions(id TEXT PRIMARY KEY,dataset_id TEXT NOT NULL REFERENCES datasets(id),version INTEGER NOT NULL CHECK(version>0),previous_id TEXT REFERENCES column_versions(id),title TEXT NOT NULL,columns TEXT NOT NULL,archived INTEGER NOT NULL CHECK(archived IN (0,1)),source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,UNIQUE(dataset_id,version));
     CREATE TABLE operations(id TEXT PRIMARY KEY,kind TEXT NOT NULL,request TEXT NOT NULL,result TEXT NOT NULL,created TEXT NOT NULL,revision INTEGER NOT NULL);
     CREATE TABLE agent_runs(id TEXT PRIMARY KEY,conversation_id TEXT NOT NULL,status TEXT NOT NULL,model TEXT NOT NULL,steps INTEGER NOT NULL,metrics TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
     CREATE TABLE conversations(id TEXT PRIMARY KEY,title TEXT NOT NULL,parent_message TEXT);
@@ -52,9 +53,6 @@ enum Schema {
     CREATE TABLE spaces(id TEXT PRIMARY KEY,title TEXT NOT NULL,definition TEXT NOT NULL,version INTEGER NOT NULL,updated TEXT NOT NULL);
     CREATE TABLE space_versions(id TEXT NOT NULL,version INTEGER NOT NULL,title TEXT NOT NULL,definition TEXT NOT NULL,updated TEXT NOT NULL,PRIMARY KEY(id,version));
     INSERT INTO spaces VALUES('home','Home','{"version":1,"components":[]}',1,'');
-    """
-
-  static let migration2 = """
     CREATE INDEX messages_sequence ON messages(conversation_id);
     CREATE VIRTUAL TABLE message_fts USING fts5(body,content='messages',content_rowid='rowid',tokenize='unicode61 remove_diacritics 2',prefix='2 3 4');
     CREATE TRIGGER messages_ai AFTER INSERT ON messages BEGIN
@@ -66,13 +64,100 @@ enum Schema {
     CREATE TABLE run_requests(run_id TEXT PRIMARY KEY REFERENCES agent_runs(id),message_id TEXT NOT NULL UNIQUE REFERENCES messages(id));
     CREATE TABLE message_payloads(message_id TEXT PRIMARY KEY REFERENCES messages(id),payload TEXT NOT NULL);
     INSERT INTO message_fts(message_fts) VALUES('rebuild');
-    PRAGMA user_version=2;
-    """
-  static let version2SQL = version1SQL + "\n" + migration2
-  static let migration3 = """
     CREATE TABLE tool_calls(id TEXT PRIMARY KEY,run_id TEXT NOT NULL REFERENCES agent_runs(id),call_id TEXT NOT NULL,tool TEXT NOT NULL,arguments TEXT NOT NULL,operation_token TEXT NOT NULL,assistant_text TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('prepared','completed','failed')),result TEXT,result_hash TEXT,message_id TEXT UNIQUE REFERENCES messages(id),created TEXT NOT NULL,UNIQUE(run_id,call_id),CHECK((state='prepared' AND result IS NULL AND result_hash IS NULL AND message_id IS NULL) OR (state!='prepared' AND result IS NOT NULL AND result_hash IS NOT NULL AND message_id IS NOT NULL)));
     CREATE INDEX tool_calls_run ON tool_calls(run_id);
-    PRAGMA user_version=3;
+    CREATE INDEX items_review_order ON items(created,id) WHERE status='draft' AND kind NOT IN ('row','request');
+    INSERT INTO meta VALUES('review-revision','0');
+    CREATE TRIGGER heads_review_insert AFTER INSERT ON heads WHEN EXISTS(SELECT 1 FROM items WHERE id=NEW.item_id AND status='draft' AND kind NOT IN ('row','request')) BEGIN
+      UPDATE meta SET value=CAST(value AS INTEGER)+1 WHERE key='review-revision';
+    END;
+    CREATE TRIGGER heads_review_update AFTER UPDATE OF item_id ON heads WHEN EXISTS(SELECT 1 FROM items WHERE id IN (OLD.item_id,NEW.item_id) AND status='draft' AND kind NOT IN ('row','request')) BEGIN
+      UPDATE meta SET value=CAST(value AS INTEGER)+1 WHERE key='review-revision';
+    END;
+    CREATE TABLE reference_sets(id TEXT PRIMARY KEY,origin_id TEXT NOT NULL REFERENCES items(id),version INTEGER NOT NULL CHECK(version>0),previous_id TEXT REFERENCES reference_sets(id),inherited_from TEXT REFERENCES reference_sets(id),body_hash TEXT NOT NULL,parser TEXT NOT NULL,coverage TEXT NOT NULL CHECK(coverage IN ('queued','partial','failed','ready','unsupported')),detail TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,UNIQUE(origin_id,version));
+    CREATE TABLE reference_heads(origin_id TEXT PRIMARY KEY REFERENCES items(id),set_id TEXT NOT NULL UNIQUE REFERENCES reference_sets(id));
+    CREATE TABLE reference_bindings(set_id TEXT NOT NULL REFERENCES reference_sets(id),reference_id TEXT NOT NULL,ordinal INTEGER NOT NULL CHECK(ordinal>=0),start_scalar INTEGER NOT NULL CHECK(start_scalar>=0),scalar_count INTEGER NOT NULL CHECK(scalar_count>0),label TEXT NOT NULL,lookup_text TEXT NOT NULL,target_workbook TEXT,target_mode TEXT CHECK(target_mode IN ('live','pinned')),target_logical TEXT,target_version TEXT,resolution TEXT NOT NULL CHECK(resolution IN ('unresolved','bound','external')),PRIMARY KEY(set_id,reference_id),UNIQUE(set_id,ordinal),CHECK((resolution='unresolved' AND target_workbook IS NULL AND target_mode IS NULL AND target_logical IS NULL AND target_version IS NULL) OR (resolution IN ('bound','external') AND target_workbook IS NOT NULL AND target_mode IS NOT NULL AND ((target_mode='live' AND target_logical IS NOT NULL AND target_version IS NULL) OR (target_mode='pinned' AND target_version IS NOT NULL)))));
+    CREATE INDEX reference_sets_origin ON reference_sets(origin_id,version);
+    CREATE INDEX reference_bindings_logical ON reference_bindings(target_workbook,target_logical,set_id);
+    CREATE INDEX reference_bindings_version ON reference_bindings(target_workbook,target_version,set_id);
+    CREATE INDEX reference_bindings_identity ON reference_bindings(reference_id,set_id);
+    CREATE TABLE reference_coverage(origin_id TEXT PRIMARY KEY REFERENCES items(id),set_id TEXT REFERENCES reference_sets(id),parser TEXT NOT NULL,body_hash TEXT,state TEXT NOT NULL CHECK(state IN ('queued','partial','failed','ready','unsupported')),detail TEXT NOT NULL,updated TEXT NOT NULL);
+    CREATE INDEX reference_coverage_state ON reference_coverage(state,origin_id);
+    CREATE TABLE reference_index(origin_id TEXT NOT NULL REFERENCES items(id),reference_id TEXT NOT NULL,set_id TEXT NOT NULL,ordinal INTEGER NOT NULL,current_origin INTEGER NOT NULL CHECK(current_origin IN (0,1)),target_workbook TEXT,target_mode TEXT,target_logical TEXT,target_version TEXT,resolution TEXT NOT NULL,PRIMARY KEY(origin_id,reference_id),FOREIGN KEY(set_id,reference_id) REFERENCES reference_bindings(set_id,reference_id));
+    CREATE INDEX reference_incoming_current ON reference_index(target_workbook,target_logical,current_origin,origin_id,ordinal);
+    CREATE INDEX reference_incoming_history ON reference_index(target_workbook,target_logical,origin_id,ordinal);
+    INSERT INTO reference_coverage SELECT h.origin_id,s.id,s.parser,s.body_hash,s.coverage,s.detail,s.created FROM reference_heads h JOIN reference_sets s ON s.id=h.set_id;
+    INSERT INTO reference_index SELECT s.origin_id,r.reference_id,r.set_id,r.ordinal,EXISTS(SELECT 1 FROM heads h WHERE h.item_id=s.origin_id),r.target_workbook,r.target_mode,r.target_logical,r.target_version,r.resolution FROM reference_bindings r JOIN reference_sets s ON s.id=r.set_id JOIN reference_heads h ON h.set_id=s.id;
+    CREATE TABLE file_reference_inputs(id TEXT PRIMARY KEY,origin_id TEXT NOT NULL REFERENCES items(id),asset_id TEXT NOT NULL REFERENCES assets(id),asset_hash TEXT NOT NULL,extraction_parser TEXT NOT NULL,extraction_state TEXT NOT NULL,extraction_detail TEXT NOT NULL,content_hash TEXT NOT NULL,regions TEXT NOT NULL,truncated INTEGER NOT NULL CHECK(truncated IN (0,1)),created TEXT NOT NULL);
+    CREATE INDEX file_reference_inputs_origin ON file_reference_inputs(origin_id,content_hash);
+    CREATE TABLE file_reference_sets(id TEXT PRIMARY KEY,origin_id TEXT NOT NULL REFERENCES items(id),input_id TEXT NOT NULL REFERENCES file_reference_inputs(id),version INTEGER NOT NULL CHECK(version>0),previous_id TEXT REFERENCES file_reference_sets(id),parser TEXT NOT NULL,coverage TEXT NOT NULL CHECK(coverage IN ('partial','ready','unsupported')),detail TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),bindings TEXT NOT NULL,created TEXT NOT NULL,UNIQUE(origin_id,version));
+    CREATE TABLE file_reference_heads(origin_id TEXT PRIMARY KEY REFERENCES items(id),set_id TEXT NOT NULL UNIQUE REFERENCES file_reference_sets(id));
+    CREATE TABLE file_reference_index(origin_id TEXT NOT NULL REFERENCES items(id),reference_id TEXT NOT NULL,set_id TEXT NOT NULL REFERENCES file_reference_sets(id),ordinal INTEGER NOT NULL,current_origin INTEGER NOT NULL CHECK(current_origin IN (0,1)),target_workbook TEXT,target_mode TEXT,target_logical TEXT,target_version TEXT,resolution TEXT NOT NULL,PRIMARY KEY(origin_id,reference_id));
+    CREATE INDEX file_reference_incoming_current ON file_reference_index(target_workbook,target_logical,current_origin,origin_id,ordinal);
+    CREATE INDEX file_reference_incoming_history ON file_reference_index(target_workbook,target_logical,origin_id,ordinal);
+    CREATE TABLE extraction_attempts(item_id TEXT PRIMARY KEY REFERENCES items(id),attempt_id TEXT NOT NULL);
+    CREATE TABLE intake_jobs(id TEXT PRIMARY KEY,source_id TEXT NOT NULL REFERENCES items(id),role TEXT CHECK(role IN ('reference','analysis','values','update')),state TEXT NOT NULL CHECK(state IN ('captured','running','awaiting_role','awaiting_update','ready','failed','cancelled')),attempt TEXT,report TEXT NOT NULL,dataset_ids TEXT NOT NULL,detail TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
+    CREATE INDEX intake_jobs_source ON intake_jobs(source_id,created,id);
+    CREATE INDEX intake_jobs_state ON intake_jobs(state,created,id);
+    CREATE TABLE app_definitions(id TEXT PRIMARY KEY,logical_id TEXT NOT NULL,version INTEGER NOT NULL CHECK(version>0),previous_id TEXT REFERENCES app_definitions(id),kind TEXT NOT NULL CHECK(kind IN ('function','query','action','form','workflow','interpretation','extraction','intake','automation')),title TEXT NOT NULL,description TEXT NOT NULL,parameters TEXT NOT NULL,payload TEXT NOT NULL,parameter_text TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,UNIQUE(logical_id,version));
+    CREATE TABLE app_definition_heads(logical_id TEXT PRIMARY KEY,definition_id TEXT NOT NULL UNIQUE REFERENCES app_definitions(id));
+    CREATE INDEX app_definitions_logical ON app_definitions(logical_id,version);
+    CREATE TABLE app_definition_dependencies(definition_id TEXT NOT NULL REFERENCES app_definitions(id),ordinal INTEGER NOT NULL CHECK(ordinal>=0),kind TEXT NOT NULL CHECK(kind IN ('definition','dataset')),mode TEXT NOT NULL CHECK(mode IN ('live','exact')),target_logical TEXT,target_version TEXT REFERENCES app_definitions(id),target_dataset TEXT REFERENCES datasets(id),target_dataset_definition TEXT REFERENCES column_versions(id),PRIMARY KEY(definition_id,ordinal),CHECK((kind='definition' AND target_logical IS NOT NULL AND target_version IS NOT NULL AND target_dataset IS NULL AND target_dataset_definition IS NULL) OR (kind='dataset' AND target_logical IS NULL AND target_version IS NULL AND target_dataset IS NOT NULL AND target_dataset_definition IS NOT NULL)));
+    CREATE INDEX app_dependencies_definition ON app_definition_dependencies(target_logical,definition_id);
+    CREATE INDEX app_dependencies_dataset ON app_definition_dependencies(target_dataset,definition_id);
+    CREATE TABLE workflow_runs(id TEXT PRIMARY KEY,definition_id TEXT NOT NULL REFERENCES app_definitions(id),source_id TEXT NOT NULL UNIQUE REFERENCES items(id),actor TEXT NOT NULL,arguments TEXT NOT NULL,policy TEXT NOT NULL CHECK(policy IN ('manual-drafts-v1','automation-drafts-v1')),state TEXT NOT NULL CHECK(state IN ('queued','running','waiting_review','needs_attention','completed','cancelled')),detail TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
+    CREATE INDEX workflow_runs_ready ON workflow_runs(state,updated,id);
+    CREATE INDEX workflow_runs_order ON workflow_runs(updated,id);
+    CREATE TABLE workflow_steps(run_id TEXT NOT NULL REFERENCES workflow_runs(id),step_id TEXT NOT NULL,ordinal INTEGER NOT NULL CHECK(typeof(ordinal)='integer' AND ordinal>=0 AND ordinal<16),kind TEXT NOT NULL CHECK(kind IN ('evaluate','action','review','interpret','extract','intake')),state TEXT NOT NULL CHECK(state IN ('pending','claimed','waiting_review','completed','needs_attention','cancelled')),output TEXT NOT NULL,detail TEXT NOT NULL,updated TEXT NOT NULL,attempt_base INTEGER NOT NULL DEFAULT 0 CHECK(typeof(attempt_base)='integer' AND attempt_base>=0 AND attempt_base<=1000000000),PRIMARY KEY(run_id,step_id),UNIQUE(run_id,ordinal));
+    CREATE INDEX workflow_steps_ready ON workflow_steps(state,run_id,ordinal);
+    CREATE TABLE workflow_attempts(id TEXT PRIMARY KEY,run_id TEXT NOT NULL,step_id TEXT NOT NULL,generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),owner TEXT NOT NULL,deadline REAL NOT NULL CHECK(typeof(deadline) IN ('real','integer') AND deadline>0 AND deadline<253402300800),state TEXT NOT NULL CHECK(state IN ('claimed','expired','completed','waiting_review','failed','cancelled')),created TEXT NOT NULL,updated TEXT NOT NULL,authorization_source TEXT NOT NULL REFERENCES items(id),FOREIGN KEY(run_id,step_id) REFERENCES workflow_steps(run_id,step_id),UNIQUE(run_id,step_id,generation));
+    CREATE INDEX workflow_attempts_order ON workflow_attempts(run_id,id);
+    CREATE INDEX workflow_attempts_authority ON workflow_attempts(run_id,state,authorization_source);
+    CREATE INDEX workflow_attempts_lease ON workflow_attempts(state,deadline,run_id,step_id);
+    CREATE TABLE workflow_approvals(run_id TEXT NOT NULL,step_id TEXT NOT NULL,proposal_id TEXT NOT NULL REFERENCES items(id),accepted_id TEXT REFERENCES items(id),PRIMARY KEY(run_id,step_id,proposal_id),FOREIGN KEY(run_id,step_id) REFERENCES workflow_steps(run_id,step_id));
+    CREATE TABLE workflow_outbox(sequence INTEGER PRIMARY KEY,event_id TEXT NOT NULL UNIQUE,run_id TEXT NOT NULL REFERENCES workflow_runs(id),step_id TEXT,kind TEXT NOT NULL,payload TEXT NOT NULL,created TEXT NOT NULL,FOREIGN KEY(run_id,step_id) REFERENCES workflow_steps(run_id,step_id));
+    CREATE INDEX workflow_outbox_run ON workflow_outbox(run_id,sequence);
+    CREATE TABLE automation_activations(id TEXT PRIMARY KEY,logical_id TEXT NOT NULL UNIQUE,definition_id TEXT NOT NULL REFERENCES app_definitions(id),source_id TEXT NOT NULL REFERENCES items(id),actor TEXT NOT NULL,generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),state TEXT NOT NULL CHECK(state IN ('armed','paused')),policy TEXT NOT NULL CHECK(policy IN ('calendar-prepare-v1','foreground-drafts-v1','condition-drafts-v1')),cursor TEXT NOT NULL,observed_through TEXT NOT NULL,catch_up_remaining INTEGER NOT NULL CHECK(catch_up_remaining IN (0,1)),coverage_source TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,updated TEXT NOT NULL,active_run_id TEXT REFERENCES workflow_runs(id),consumer_id TEXT REFERENCES condition_consumers(id));
+    CREATE INDEX automation_activations_ready ON automation_activations(state,cursor,id);
+    CREATE TABLE automation_occurrences(id TEXT PRIMARY KEY,activation_id TEXT NOT NULL REFERENCES automation_activations(id),definition_id TEXT NOT NULL REFERENCES app_definitions(id),generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),slot_key TEXT NOT NULL,due TEXT NOT NULL,slot TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('pending','skipped','dispatched')),detail TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),decision_source TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,updated TEXT NOT NULL,UNIQUE(activation_id,definition_id,slot_key));
+    CREATE UNIQUE INDEX automation_occurrences_pending ON automation_occurrences(activation_id) WHERE state='pending';
+    CREATE INDEX automation_occurrences_page ON automation_occurrences(activation_id,due,id);
+    CREATE TABLE automation_outbox(sequence INTEGER PRIMARY KEY,event_id TEXT NOT NULL UNIQUE,activation_id TEXT NOT NULL REFERENCES automation_activations(id),generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),kind TEXT NOT NULL CHECK(kind IN ('authorized','paused','planned','dispatched','dispatch_skipped')),source_id TEXT NOT NULL REFERENCES items(id),payload TEXT NOT NULL,created TEXT NOT NULL);
+    CREATE INDEX automation_outbox_activation ON automation_outbox(activation_id,sequence);
+    CREATE TABLE automation_runs(occurrence_id TEXT UNIQUE REFERENCES automation_occurrences(id),activation_id TEXT NOT NULL REFERENCES automation_activations(id),run_id TEXT NOT NULL PRIMARY KEY REFERENCES workflow_runs(id),definition_id TEXT NOT NULL REFERENCES app_definitions(id),authorization_source TEXT NOT NULL REFERENCES items(id),dispatch_source TEXT NOT NULL REFERENCES items(id),generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),created TEXT NOT NULL,candidate_id TEXT UNIQUE REFERENCES condition_candidates(id),CHECK((occurrence_id IS NOT NULL AND candidate_id IS NULL) OR (occurrence_id IS NULL AND candidate_id IS NOT NULL)));
+    CREATE INDEX automation_runs_activation ON automation_runs(activation_id,run_id);
+    CREATE TABLE automatic_roots(id TEXT PRIMARY KEY,kind TEXT NOT NULL CHECK(kind IN ('calendar','business')),occurrence_id TEXT UNIQUE REFERENCES automation_occurrences(id),commit_id TEXT UNIQUE REFERENCES committed_changes(id),policy TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,CHECK((kind='calendar' AND occurrence_id IS NOT NULL AND commit_id IS NULL AND policy='automation-causality-v1') OR (kind='business' AND occurrence_id IS NULL AND commit_id IS NOT NULL AND policy='business-input-v1')));
+    CREATE TABLE automatic_admissions(run_id TEXT PRIMARY KEY REFERENCES automation_runs(run_id),definition_id TEXT NOT NULL REFERENCES app_definitions(id),logical_id TEXT NOT NULL,depth INTEGER NOT NULL CHECK(typeof(depth)='integer' AND depth BETWEEN 1 AND 8),policy TEXT NOT NULL CHECK(policy='automation-causality-v1'),source_id TEXT NOT NULL REFERENCES items(id));
+    CREATE TABLE automatic_root_members(run_id TEXT NOT NULL REFERENCES automatic_admissions(run_id),root_id TEXT NOT NULL REFERENCES automatic_roots(id),PRIMARY KEY(run_id,root_id));
+    CREATE INDEX automatic_members_root ON automatic_root_members(root_id,run_id);
+    CREATE TABLE automatic_parents(run_id TEXT NOT NULL REFERENCES automatic_admissions(run_id),parent_run_id TEXT NOT NULL REFERENCES automatic_admissions(run_id),PRIMARY KEY(run_id,parent_run_id),CHECK(run_id<>parent_run_id));
+    CREATE INDEX automatic_parent_successors ON automatic_parents(parent_run_id,run_id);
+    CREATE TABLE automatic_independent_inputs(run_id TEXT NOT NULL REFERENCES automatic_admissions(run_id),source_id TEXT NOT NULL REFERENCES business_inputs(source_id),PRIMARY KEY(run_id,source_id));
+    CREATE VIRTUAL TABLE definition_fts USING fts5(title,description,parameter_text,content='app_definitions',content_rowid='rowid',tokenize='unicode61 remove_diacritics 2',prefix='2 3 4');
+    CREATE TRIGGER app_definitions_ai AFTER INSERT ON app_definitions BEGIN
+      INSERT INTO definition_fts(rowid,title,description,parameter_text) VALUES(new.rowid,new.title,new.description,new.parameter_text);
+    END;
+    CREATE TRIGGER app_definitions_ad AFTER DELETE ON app_definitions BEGIN
+      INSERT INTO definition_fts(definition_fts,rowid,title,description,parameter_text) VALUES('delete',old.rowid,old.title,old.description,old.parameter_text);
+    END;
+    CREATE TABLE business_inputs(source_id TEXT PRIMARY KEY REFERENCES items(id),commit_id TEXT NOT NULL REFERENCES committed_changes(id) DEFERRABLE INITIALLY DEFERRED,item_index INTEGER NOT NULL CHECK(typeof(item_index)='integer' AND item_index BETWEEN 0 AND 249999),kind TEXT NOT NULL CHECK(kind IN ('observation','external-file')),policy TEXT NOT NULL CHECK(policy='business-input-v1'));
+    CREATE INDEX business_inputs_commit ON business_inputs(commit_id,source_id);
+    CREATE TABLE business_batches(id TEXT PRIMARY KEY REFERENCES committed_changes(id) DEFERRABLE INITIALLY DEFERRED,position INTEGER NOT NULL UNIQUE CHECK(typeof(position)='integer' AND position>0),recorded TEXT NOT NULL,actor TEXT NOT NULL,policy TEXT NOT NULL CHECK(policy='business-versions-v1'),UNIQUE(id,position));
+    CREATE TABLE business_events(id TEXT PRIMARY KEY,batch_id TEXT NOT NULL,batch_position INTEGER NOT NULL,ordinal INTEGER NOT NULL CHECK(typeof(ordinal)='integer' AND ordinal>=0),family TEXT NOT NULL CHECK(family IN ('record-settled','inventory-basis','dataset-membership','dataset-schema')),scope_kind TEXT NOT NULL CHECK(scope_kind IN ('record','inventory','dataset')),scope_key TEXT NOT NULL,record_kind TEXT NOT NULL,logical_id TEXT,before_id TEXT REFERENCES items(id),after_id TEXT REFERENCES items(id),payload TEXT NOT NULL,UNIQUE(batch_id,ordinal),FOREIGN KEY(batch_id,batch_position) REFERENCES business_batches(id,position));
+    CREATE INDEX business_events_scope ON business_events(scope_kind,scope_key,batch_position,ordinal);
+    CREATE INDEX business_events_position ON business_events(batch_position,ordinal);
+    CREATE INDEX business_events_kind ON business_events(record_kind,batch_position,ordinal);
+    CREATE INDEX business_events_logical ON business_events(logical_id,batch_position,ordinal);
+    CREATE TABLE condition_consumers(id TEXT PRIMARY KEY,source_id TEXT NOT NULL REFERENCES items(id),subject TEXT NOT NULL,rule TEXT NOT NULL,anchor_id TEXT REFERENCES business_batches(id),state TEXT NOT NULL,created TEXT NOT NULL,owner_logical TEXT,definition_id TEXT REFERENCES app_definitions(id),CHECK((owner_logical IS NULL)=(definition_id IS NULL)));
+    CREATE INDEX condition_consumers_owner ON condition_consumers(owner_logical,id);
+    CREATE TABLE condition_effects(consumer_id TEXT NOT NULL REFERENCES condition_consumers(id),logical_id TEXT NOT NULL,item_id TEXT NOT NULL REFERENCES items(id),event_id TEXT NOT NULL REFERENCES business_events(id),batch_id TEXT NOT NULL REFERENCES business_batches(id),occurrence TEXT NOT NULL,quantity TEXT NOT NULL,effective TEXT NOT NULL,PRIMARY KEY(consumer_id,logical_id),UNIQUE(consumer_id,occurrence));
+    CREATE INDEX condition_effects_time ON condition_effects(consumer_id,effective,logical_id);
+    CREATE TABLE condition_observations(id TEXT PRIMARY KEY,consumer_id TEXT NOT NULL REFERENCES condition_consumers(id),batch_id TEXT REFERENCES business_batches(id),effective TEXT NOT NULL,disposition TEXT NOT NULL CHECK(disposition IN ('baseline','unknown','transition','reset','unchanged')),payload TEXT NOT NULL,created TEXT NOT NULL);
+    CREATE INDEX condition_observations_consumer ON condition_observations(consumer_id);
+    CREATE TABLE condition_candidates(id TEXT PRIMARY KEY,consumer_id TEXT NOT NULL REFERENCES condition_consumers(id),observation_id TEXT NOT NULL UNIQUE REFERENCES condition_observations(id),state TEXT NOT NULL CHECK(state IN ('pending','dismissed','dispatched')),detail TEXT NOT NULL,decision_source TEXT REFERENCES items(id));
+    CREATE TABLE condition_pending_inputs(consumer_id TEXT NOT NULL REFERENCES condition_consumers(id),id TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(consumer_id,id));
+    CREATE TABLE condition_observation_inputs(observation_id TEXT NOT NULL REFERENCES condition_observations(id),id TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(observation_id,id));
+    CREATE INDEX condition_candidates_pending ON condition_candidates(consumer_id,state,id);
+    CREATE TABLE committed_changes(id TEXT PRIMARY KEY,previous_id TEXT UNIQUE REFERENCES committed_changes(id),payload TEXT NOT NULL,hash TEXT NOT NULL,recorded TEXT NOT NULL,writer_id TEXT NOT NULL,actor TEXT NOT NULL,row_changes INTEGER NOT NULL CHECK(row_changes>0));
     """
-  static let sql = version2SQL + "\n" + migration3
 }

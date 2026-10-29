@@ -22,6 +22,34 @@ public final class SplashToolPolicy {
   ]
   private static let whitespace = #"[ \t\n\r]{0,64}"#
 
+  /// Keep the entire response in one JSON parameter so its state-dependent
+  /// alternatives remain constrained together by the native grammar.
+  public static func interpretationResult(schemaJSON: Data, thinking: Bool = false) throws
+    -> SplashToolPolicy
+  {
+    guard schemaJSON.count <= 256 * 1024,
+      var schema = try JSONSerialization.jsonObject(with: schemaJSON) as? [String: Any]
+    else { throw SplashError("Invalid interpretation response schema") }
+    guard schema["type"] == nil || schema["type"] as? String == "object" else {
+      throw SplashError("Interpretation responses must be objects")
+    }
+    schema["type"] = "object"
+    let declaration: [[String: Any]] = [
+      [
+        "type": "function",
+        "function": [
+          "name": "interpretation_result",
+          "description": "Return only the requested interpretation. No execution or acceptance.",
+          "parameters": [
+            "type": "object", "properties": ["result": schema],
+            "required": ["result"], "additionalProperties": false,
+          ],
+        ],
+      ]
+    ]
+    return try SplashToolPolicy(toolsJSON: json(declaration), thinking: thinking)
+  }
+
   public init(toolsJSON: Data, choice: Choice = .required, thinking: Bool = false) throws {
     guard toolsJSON.count <= 2 * 1024 * 1024,
       let input = try JSONSerialization.jsonObject(with: toolsJSON) as? [[String: Any]],
@@ -38,6 +66,7 @@ public final class SplashToolPolicy {
         let schema = try Self.normalize(function["parameters"] as Any, depth: 0, nodes: &nodes)
           as? [String: Any],
         schema["type"] as? String == "object",
+        schema["anyOf"] == nil,
         let properties = schema["properties"] as? [String: Any],
         properties.count <= 128, properties.keys.allSatisfy(Self.validName),
         (schema["additionalProperties"] as? NSNumber).map({
@@ -163,7 +192,14 @@ public final class SplashToolPolicy {
         let body: String
         if key == "properties", let properties = object[key] as? [String: Any] {
           let required = (object["required"] as? [String] ?? []).filter { properties[$0] != nil }
-          let names = required + properties.keys.filter { !required.contains($0) }.sorted()
+          // Select the component/bound behavior before its optional arguments.
+          // Fixed property order must not hide placement after componentID, or
+          // typed arguments after choosing a definitionBinding.
+          let selectors = ["componentID", "definitionBinding"].filter {
+            properties[$0] != nil && !required.contains($0)
+          }
+          let first = required + selectors
+          let names = first + properties.keys.filter { !first.contains($0) }.sorted()
           body =
             "{"
             + (try names.map { try quote($0) + ":" + nestedSchemaJSON(properties[$0]!) }).joined(
@@ -199,10 +235,17 @@ public final class SplashToolPolicy {
     let keywords: Set<String> = [
       "type", "description", "title", "properties", "required", "additionalProperties", "items",
       "minItems", "maxItems", "minLength", "maxLength", "minimum", "maximum", "exclusiveMinimum",
-      "exclusiveMaximum", "enum", "const",
+      "exclusiveMaximum", "enum", "const", "anyOf",
     ]
     guard Set(node.keys).isSubset(of: keywords) else {
       throw SplashError("Unsupported workbook schema keyword")
+    }
+    if let alternatives = node["anyOf"] {
+      guard let alternatives = alternatives as? [Any], (1...16).contains(alternatives.count)
+      else { throw SplashError("Malformed workbook schema alternatives") }
+      node["anyOf"] = try alternatives.map {
+        try normalize($0, depth: depth + 1, nodes: &nodes)
+      }
     }
     if let names = typeNames(node) {
       guard !names.isEmpty, names.isSubset(of: types) else {
@@ -341,6 +384,19 @@ public final class SplashToolPolicy {
       return
     }
     let schema = schema as! [String: Any]
+    if let alternatives = schema["anyOf"] as? [Any] {
+      var matched = false
+      for alternative in alternatives {
+        do {
+          try validate(value, schema: alternative, depth: depth + 1, nodes: &nodes)
+          matched = true
+          break
+        } catch {
+          // Try the next branch within the same cumulative node budget.
+        }
+      }
+      guard matched else { throw SplashError("Tool argument matches no schema alternative") }
+    }
     let kind: String
     if value is String {
       kind = "string"

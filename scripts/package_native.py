@@ -101,6 +101,8 @@ def main():
     cli = out / "bin"
     copy(binary / "SevraDesktop", app / "Contents/MacOS/Sevra")
     copy(binary / "sevra", cli / "sevra")
+    copy(binary / "sevra-extract", app / "Contents/MacOS/sevra-extract")
+    copy(binary / "sevra-extract", cli / "sevra-extract")
     info = plistlib.loads((ROOT / "Resources/Info.plist").read_bytes())
     info.update(CFBundleIdentifier="com.sevra.workbooks.native-preview",
                 CFBundleName="Sevra Native Preview", CFBundleDisplayName="Sevra Native Preview",

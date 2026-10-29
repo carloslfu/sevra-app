@@ -1,9 +1,16 @@
 name: Checks
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
   native:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
@@ -11,22 +18,117 @@ jobs:
         run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
       - name: Check documentation links
         run: python3 scripts/check_links.py
+      - name: Check dictation ownership and delayed callbacks
+        run: |
+          swift build --product sevra-voice-checks -j 3
+          .build/debug/sevra-voice-checks
+      - name: Check device-local scheduling and physical workbook identity
+        run: |
+          swift build --product sevra-automation-ui-checks -j 3
+          .build/debug/sevra-automation-ui-checks
       - name: Build core checks
-        run: swift build --product sevra-checks -j 3
+        run: |
+          swift build --product sevra-extract -j 3
+          swift build --product sevra-checks -j 3
+      - name: Check isolated extraction and parser failure recovery
+        run: |
+          swift build --product sevra-extraction-checks -j 3
+          .build/debug/sevra-extraction-checks
       - name: Run invariant and integration checks
         run: .build/debug/sevra-checks
+      - name: Check exact historical inventory bounds
+        run: .build/debug/sevra-checks --inventory-event-limit
+      - name: Check incremental inventory projection bounds
+        run: .build/debug/sevra-checks --inventory-condition-limit
+      - name: Check real condition change-input bounds
+        run: .build/debug/sevra-checks --condition-input-limit
+      - name: Check search-scale fixture recall, paging and reports
+        run: |
+          swift build --product sevra-benchmark -j 3
+          .build/debug/sevra-benchmark --self-check
+      - name: Retain search-scale fixture evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: search-scale-self-check
+          path: |
+            .build/search-scale-*/identity.json
+            .build/search-scale-*/result.json
+            .build/search-scale-*/rows-200.json
+            .build/search-scale-*/documents-200.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+      - name: Check document draft durability and native close guards
+        run: |
+          swift build --product sevra-document-checks -j 3
+          .build/debug/sevra-document-checks
+      - name: Check file-preview cancellation and stale reads
+        run: |
+          swift build --product sevra-preview-checks -j 3
+          .build/debug/sevra-preview-checks
+      - name: Check large linked-file verification and memory bound
+        run: python3 scripts/check_large_preview.py --binary .build/debug/sevra-preview-checks --output .build/large-preview
+      - name: Retain large-file verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: large-file-preview
+          path: |
+            .build/large-preview/result.json
+            .build/large-preview/stdout.jsonl
+            .build/large-preview/stderr.log
+          include-hidden-files: true
+          if-no-files-found: ignore
+      - name: Check checkpoint publication across process death
+        run: |
+          swift build --product sevra-context-durability -j 3
+          python3 scripts/check_context_durability.py
+      - name: Retain checkpoint process-death evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkpoint-process-death
+          path: .build/context-durability-*/
+          include-hidden-files: true
+          if-no-files-found: ignore
       - name: Check native table identity and refresh races
         run: |
           swift build --product sevra-table-ui-checks -j 3
           .build/debug/sevra-table-ui-checks
-      - name: Check active model memory-pressure lifecycle
+      - name: Check foreground automation dispatch across process death
         run: |
-          swift build --product sevra-product-checks -j 3
-          .build/debug/sevra-product-checks
+          swift build --product sevra-automation-durability -j 3
+          python3 scripts/check_automation_durability.py --output .build/automation-durability-ci
+      - name: Retain automation process-death evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automation-process-death
+          path: .build/automation-durability-ci/
+          include-hidden-files: true
+          if-no-files-found: ignore
+      - name: Check manual workflow recovery across process death
+        run: |
+          swift build --product sevra-workflow-durability -j 3
+          python3 scripts/check_workflow_durability.py --output .build/workflow-durability-ci
+          swift build --product sevra -j 3
+          python3 scripts/check_workflow_cli.py --cli .build/debug/sevra --worker .build/debug/sevra-workflow-durability --output .build/workflow-durability-ci/cli.json
+      - name: Retain manual workflow recovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-process-death
+          path: .build/workflow-durability-ci/
+          include-hidden-files: true
+          if-no-files-found: ignore
       - name: Check native search navigation and stale reads
         run: |
           swift build --product sevra-search-ui-checks -j 3
           .build/debug/sevra-search-ui-checks
+      - name: Check active model memory-pressure lifecycle
+        run: |
+          swift build --product sevra-product-checks -j 3
+          .build/debug/sevra-product-checks
       - name: Check the native Splash adapter
         run: |
           swift build --product sevra-splash-checks -j 3
@@ -44,6 +146,7 @@ jobs:
           swift build --product sevra-workflow-performance -j 3
           .build/debug/sevra-workflow-performance --self-check
           python3 scripts/check_workflow_diagnostics.py
+          python3 scripts/check_workflow_prefix.py
           python3 scripts/check_workflow_isolation.py
           python3 scripts/check_request_cache_isolation.py
           python3 scripts/check_item_reference_probe.py
@@ -75,14 +178,88 @@ jobs:
         run: ./scripts/build.sh
       - name: Exercise packaged CLI and installation
         run: |
+          python3 scripts/check_schedule_preview.py --cli output/bin/sevra --output .build/calendar-preview-installed
+          python3 scripts/check_condition_transitions.py --cli output/bin/sevra --output .build/condition-preview-installed
+          python3 scripts/check_business_events.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/business-events-installed.json
+          python3 scripts/check_inventory_event_state.py --cli output/bin/sevra --output .build/inventory-event-state-installed.json
+          python3 scripts/check_inventory_conditions.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/inventory-conditions-installed.json
+          python3 scripts/check_condition_inputs.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-inputs-installed.json
+          python3 scripts/check_automatic_ancestry.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/automatic-ancestry-installed.json
+          python3 scripts/check_derivation_roles.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/derivation-roles-installed.json
+          python3 scripts/check_business_origins.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/business-origins-installed.json
+          python3 scripts/check_condition_origins.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-origins-installed.json
+          python3 scripts/check_business_inputs.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/business-inputs-installed.json
+          python3 scripts/check_automation_definitions.py --cli output/bin/sevra --output .build/automation-definitions-installed
+          python3 scripts/check_automation_planning.py --cli output/bin/sevra --output .build/automation-planning-installed
+          python3 scripts/check_automation_execution.py --cli output/bin/sevra --output .build/automation-execution-installed
+          python3 scripts/check_automation_causality.py --cli output/bin/sevra --output .build/automation-causality-installed
+          python3 scripts/check_shared_admissions.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/shared-admissions-installed.json
+          python3 scripts/check_condition_dispatch.py --cli output/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-dispatch-installed.json
           python3 scripts/check_install.py
+          python3 scripts/check_document_cli.py
           python3 scripts/check_history.py
           python3 scripts/check_receipts.py
-          python3 scripts/check_concurrency.py
+          python3 scripts/check_concurrency.py --cli output/bin/sevra
           python3 scripts/check_urls.py
+          python3 scripts/check_extraction_package.py --product output
+          python3 scripts/check_computation_views.py --cli output/bin/sevra
+          python3 scripts/check_document_actions.py --cli output/bin/sevra
+          python3 scripts/check_workflow_intake.py --cli output/bin/sevra
+          python3 scripts/check_workflow_lookup.py --cli output/bin/sevra
+          python3 scripts/check_workflow_clarification.py --cli output/bin/sevra --worker .build/debug/sevra-workflow-durability
       - name: Build and check the isolated Splash preview
         env:
           SEVRA_BUILD_JOBS: 3
         run: |
           bash scripts/build_native.sh
           python3 scripts/check_native_package.py --paths-only
+          python3 scripts/check_install.py --native
+          python3 scripts/check_schedule_preview.py --cli output/native/bin/sevra --output .build/calendar-preview-native
+          python3 scripts/check_condition_transitions.py --cli output/native/bin/sevra --output .build/condition-preview-native
+          python3 scripts/check_business_events.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/business-events-native.json
+          python3 scripts/check_inventory_event_state.py --cli output/native/bin/sevra --output .build/inventory-event-state-native.json
+          python3 scripts/check_inventory_conditions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/inventory-conditions-native.json
+          python3 scripts/check_condition_inputs.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-inputs-native.json
+          python3 scripts/check_automatic_ancestry.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/automatic-ancestry-native.json
+          python3 scripts/check_derivation_roles.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/derivation-roles-native.json
+          python3 scripts/check_business_origins.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/business-origins-native.json
+          python3 scripts/check_condition_origins.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-origins-native.json
+          python3 scripts/check_business_inputs.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/business-inputs-native.json
+          python3 scripts/check_automation_definitions.py --cli output/native/bin/sevra --output .build/automation-definitions-native
+          python3 scripts/check_automation_planning.py --cli output/native/bin/sevra --output .build/automation-planning-native
+          python3 scripts/check_automation_execution.py --cli output/native/bin/sevra --output .build/automation-execution-native
+          python3 scripts/check_automation_causality.py --cli output/native/bin/sevra --output .build/automation-causality-native
+          python3 scripts/check_shared_admissions.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/shared-admissions-native.json
+          python3 scripts/check_condition_dispatch.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output .build/condition-dispatch-native.json
+          python3 scripts/check_extraction_package.py
+          python3 scripts/check_computation_views.py --cli output/native/bin/sevra
+          python3 scripts/check_document_actions.py --cli output/native/bin/sevra
+          python3 scripts/check_workflow_intake.py --cli output/native/bin/sevra
+          python3 scripts/check_workflow_lookup.py --cli output/native/bin/sevra
+          python3 scripts/check_workflow_clarification.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --skip-crashes
+          SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra-extraction-checks -j 3
+          .build/native-product/release/sevra-extraction-checks
+      - name: Retain automatic admission race evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automatic-admission-races
+          path: |
+            .build/automation-causality-installed/result.json
+            .build/automation-causality-native/result.json
+            .build/shared-admissions-installed.json
+            .build/shared-admissions-native.json
+            .build/condition-dispatch-installed.json
+            .build/condition-dispatch-native.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+      - name: Retain condition change-input evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: condition-change-inputs
+          path: |
+            .build/condition-inputs-installed.json
+            .build/condition-inputs-native.json
+          include-hidden-files: true
+          if-no-files-found: ignore

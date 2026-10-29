@@ -36,6 +36,31 @@ func checkItemReferences() async throws {
   try expectEqual(annotated[0].toolName, input.toolName)
   try expectEqual(try book.item(old.logicalID).id, current.id)
   try expectEqual(try book.item(old.id).id, old.id)
+  // Original read routes can be stale after an explicit saved correction.
+  // They do not add target lookup authority. Structural destinations, explicit
+  // current-user links and earlier conversation keep their own semantics.
+  let raw: Value = .object([
+    "text": .string("[label](sevra://item/\(old.id))"),
+    "foreign": .string("sevra://workbook/\(identifier())/item/\(old.id)"),
+    "references": .object(["destination": .string(current.id)]),
+  ])
+  for tool in ["read", "tool_result"] {
+    for content in [try raw.json(), try Value.object(["text": .string(raw.json())]).json()] {
+      let message = InferenceMessage(role: "tool", content: content, toolName: tool)
+      let choices = try ItemReferenceCandidates.annotate([message], workbook: book)
+      try expectEqual(try ItemReferenceCandidates.ids(in: choices), [current.id])
+      try expectEqual(choices[0].content, content)
+    }
+  }
+  for message in [
+    InferenceMessage(role: "user", content: "Inspect sevra://item/\(old.id)"),
+    InferenceMessage(role: "tool", content: "Read exact item \(old.id)", toolName: "read"),
+    InferenceMessage(
+      role: "tool", content: "Earlier sevra://item/\(old.id)", toolName: "history_read"),
+  ] {
+    let choices = try ItemReferenceCandidates.annotate([message], workbook: book)
+    try expectEqual(try ItemReferenceCandidates.ids(in: choices), [old.id])
+  }
   // Rebuilt context must not inherit stale metadata, even if it was host-created.
   let rebuilt = try ItemReferenceCandidates.annotate(
     [
@@ -48,7 +73,8 @@ func checkItemReferences() async throws {
     [
       InferenceMessage(role: "user", content: old.id.uppercased())
     ], workbook: book)
-  try expectEqual(try ItemReferenceCandidates.ids(in: upper), [])  // Exact SQLite lookup, no case repair.
+  // Exact SQLite lookup, no case repair.
+  try expectEqual(try ItemReferenceCandidates.ids(in: upper), [])
   try expectEqual(try ItemReferenceCandidates.normalized([old.id, old.id]), [old.id])
   try expectThrows(try ItemReferenceCandidates.normalized(["not-an-id"]))
   let ids = (0..<257).map { String(format: "00000000-0000-4000-8000-%012x", $0) }
@@ -62,7 +88,7 @@ func checkItemReferences() async throws {
             String(format: "00000000-0000-4000-8000-%012x", $0)
           }.joined(separator: " "))
       ], workbook: book))
-  for tool in ["read", "lineage"] {
+  for tool in ["read", "lineage", "references"] {
     try ItemReferenceCandidates.validate(
       tool: tool, arguments: .object(["id": .string(correctReference)]), choices: [correctReference]
     )
@@ -81,7 +107,7 @@ func checkItemReferences() async throws {
   for scope in [InferenceToolScope.all, .inspection] {
     let policy = try NativeCitationPolicy.make(
       [], toolScope: scope, itemReferenceIDs: [correctReference])
-    for tool in ["read", "lineage"] {
+    for tool in ["read", "lineage", "references"] {
       try policy.validate(checks.candidate(tool, [("id", correctReference)], policy: policy))
       try expectThrows(
         try policy.validate(checks.candidate(tool, [("id", failedReference)], policy: policy)))
@@ -99,7 +125,7 @@ func checkItemReferences() async throws {
   let baseline = try LocalModel.baselineDefinitions(itemReferenceIDs: [correctReference])
   let native = try NativeTools.referenceDefinitions(itemReferenceIDs: [correctReference])
   try expectEqual(baseline.count, native.count)
-  for name in ["read", "lineage"] {
+  for name in ["read", "lineage", "references"] {
     let parameters = try Value.parse(baseline.first { $0.name == name }!.parameters.jsonText)
     try expectEqual(parameters, native.first { $0.name == name }!.parameters)
   }
@@ -176,12 +202,13 @@ func checkItemReferenceGrammar(frontend: SplashTextFrontend, factory: SplashGram
       [], thinking: thinking, itemReferenceIDs: [correctReference])
     let base = try frontend.prepare(
       messages: [["role": "user", "content": "Inspect the item."]],
-      tools: NativeCitationPolicy.make([], thinking: thinking).promptTools(), thinking: thinking)
+      tools: NativeCitationPolicy.make([], thinking: thinking).promptTools(), thinking: thinking,
+      contextLimit: 65536)
     let bounded = try frontend.prepare(
       messages: [["role": "user", "content": "Inspect the item."]],
-      tools: policy.promptTools(), thinking: thinking)
+      tools: policy.promptTools(), thinking: thinking, contextLimit: 65536)
     try expectEqual(bounded.tokens.count > base.tokens.count, true)
-    for tool in ["read", "lineage"] {
+    for tool in ["read", "lineage", "references"] {
       func output(_ id: String) -> String {
         (thinking ? "Inspect the known reference.</think>\n" : "")
           + "<tool_call>\n<function=\(tool)>\n<parameter=id>\n\(id)\n</parameter>\n</function>\n</tool_call>"

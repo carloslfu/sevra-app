@@ -44,32 +44,21 @@ private func legacyBook(_ root: URL, name: String, version: Int = 1) throws -> U
 }
 
 func checkConversationContext(at root: URL) {
-  check("canonical v1 migration preserves history and builds its index once") {
-    let path = try legacyBook(root, name: "Legacy")
-    let book = try Workbook(path)
-    try expect(try book.revision() == 6)
-    try expect(
-      try sql(path.appendingPathComponent("workbook.sqlite"), "PRAGMA user_version;") == "3")
-    try expect(try book.historyMessage("old-user").body.contains("P-27"))
-    try expect(try book.searchHistory("purchase")["hits"].array.first?["id"].text == "old-user")
-    try expect(try book.chapters().count == 1)
-    try expect(try book.messagePayload("old-user") == .null)
-    try expect(try Workbook(path).revision() == 6)
-    try expect(try book.verify()["ok"] == .bool(true))
+  check("unsupported development formats are refused without changing their bytes") {
+    for version in 1...6 {
+      let path = try legacyBook(root, name: "UnsupportedV\(version)", version: version)
+      let database = path.appendingPathComponent("workbook.sqlite")
+      let before = try Data(contentsOf: database)
+      try refuses("schema") { _ = try Workbook(path) }
+      try expect(
+        try Data(contentsOf: database) == before, "Refusal changed an unsupported workbook")
+    }
   }
-  check("canonical v2 migration retains existing conversation data and FTS") {
-    let path = try legacyBook(root, name: "LegacyV2", version: 2)
-    let book = try Workbook(path)
-    try expect(try book.revision() == 6)
-    try expect(try book.historyMessage("old-user").body.contains("P-27"))
-    try expect(try book.searchHistory("purchase")["hits"].array.count == 1)
-    try expect(try Workbook(path).revision() == 6)
-    try expect(try book.verify()["ok"] == .bool(true))
-  }
-  check("future or untrusted schemas are refused; failed migration rolls back") {
+  check("future and untrusted current schemas are refused without changing data") {
     for mode in ["future", "trigger", "references"] {
-      let path = try legacyBook(root, name: "Refuse-" + mode)
-      let db = path.appendingPathComponent("workbook.sqlite")
+      let path = root.appendingPathComponent("Refuse-" + mode + ".sevra")
+      _ = try Workbook.create(at: path, title: "Refusal")
+      let database = path.appendingPathComponent("workbook.sqlite")
       let alteration: String
       switch mode {
       case "future": alteration = "PRAGMA user_version=99;"
@@ -78,14 +67,12 @@ func checkConversationContext(at root: URL) {
           "CREATE TRIGGER unexpected AFTER INSERT ON messages BEGIN DELETE FROM items; END;"
       default:
         alteration =
-          "INSERT INTO lineage VALUES('missing-child','missing-parent','derives-from','fixture');"
+          "INSERT INTO lineage VALUES('missing-child','missing-parent','derives-from','fixture',1);"
       }
-      _ = try sql(db, alteration)
-      let before = try Data(contentsOf: db)
+      _ = try sql(database, alteration)
+      let before = try Data(contentsOf: database)
       try refuses(mode == "references" ? "integrity" : "schema") { _ = try Workbook(path) }
-      try expect(try Data(contentsOf: db) == before, "Refused migration changed original bytes")
-      try expect(
-        try sql(db, "SELECT count(*) FROM sqlite_master WHERE name='context_checkpoints';") == "0")
+      try expect(try Data(contentsOf: database) == before, "Refusal changed original bytes")
     }
   }
   check("history paging preserves Unicode, NUL, payloads and conversation scope") {

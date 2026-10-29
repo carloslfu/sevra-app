@@ -226,3 +226,1125 @@ Final native/baseline packaging and installation pass; retain I2/W1 pilot eviden
 ## [2026-10-27 11:54] verification | records/operations/implementation.md
 Full W1 cohort is running on frozen ed6ffd0. Correct duplicate progress heading after section-edit ambiguity; measured sources remain unchanged.
 
+## [2026-10-27 12:08] implementation | records/operations/implementation.md
+Prepare isolated session-bound dictation, draft preservation and weak all-player lifecycle repair; regression runner and hardware checks still pending while W1 runs.
+
+## [2026-10-27 12:12] implementation | records/operations/implementation.md
+Separate current acceptance status and next actions from earlier checkpoint summaries; retain all historical failures and pending qualification limits.
+
+## [2026-10-27 12:21] implementation | records/operations/implementation.md
+Prepare isolated checkpoint transaction/process-death, cancellation, concurrent acceptance and exact-retry checks; no local execution during frozen W1.
+
+## [2026-10-27 12:24] verification | records/operations/implementation.md
+Record green frozen-main CI, passed hosted voice step, superseded-run cancellation and pending checkpoint CI; first two W1 pairs match with sources frozen.
+
+## [2026-10-27 12:28] verification | records/specs/conversation-context.md
+Hosted c0ac40f checkpoint worker/controller pass all four crash/cancel/concurrent acceptance cases, exact retries and portable preservation; artifact 12734101119 retained. Full CI, local replay and model compaction still pending.
+
+## [2026-10-27 12:52] implementation | records/operations/implementation.md
+Prepare atomic document revisions and close guards on isolated codex/document-drafts while W1 remains frozen; new runtime checks pending. Record full voice/checkpoint hosted workflow passes.
+
+## [2026-10-27 13:03] verification | records/operations/implementation.md
+Retain failed incomplete W1 cohort after both frontends bypassed exact search-gap presentation by citing the current request. Stop owned controller, verify frozen hashes and cleanup. Initial 14 document checks and prior full workflows pass; add an unrun storage-fault retry check.
+
+## [2026-10-27 13:09] implementation | records/operations/implementation.md
+Reproduce current-request citation escape, repair host missing-evidence presentation, pass six new and existing shared-agent checks, prepare exact block-3 real-model replay. All 15 document checks pass locally.
+
+## [2026-10-27 13:19] verification | records/operations/implementation.md
+Local full suite and both document CLI checks pass; native draft failure/conflict/close/reopen verified. Hosted checkpoint artifact downloaded/hash-checked; fixed model replay running, adoption still gated.
+
+## [2026-10-27 13:25] design | records/specs/product.md
+Clarify exact/logical document bindings and atomic pinned search pages with coverage limits; separate implementation prepared, runtime verification pending.
+
+## [2026-10-27 13:26] implementation | records/operations/implementation.md
+Pinned document/search correction and five tests prepared on isolated 3b5eda2; no local compile/runtime claim while primary model replay remains frozen.
+
+## [2026-10-27 13:28] verification | records/operations/implementation.md
+Frozen current-request regression passed 16 jobs plus 2 primes and 37 exact request/token pairs; processes closed and hashes unchanged. Functional repair only, fresh full W1 still required.
+
+## [2026-10-27 13:37] verification | records/operations/implementation.md
+64 core/full suite and visible pinned/live behavior pass. Synthetic video revealed packaged SwiftUI VideoPlayer crash; exact crash/link evidence retained and direct native AVPlayerView repair building.
+
+## [2026-10-27 13:48] verification | records/operations/implementation.md
+Record passed native media replay, minimum-window draft recovery, pinned-space invariants and isolated installation; retain crash and remaining release gates.
+
+## [2026-10-27 13:48] verification | records/operations/build-and-run.md
+Document AVPlayerView package dependency check and focused native lifecycle reproduction.
+
+## [2026-10-27 13:50] verification | records/operations/implementation.md
+Register clean frozen 0e45190 full W1 cohort launch; performance outcome remains pending.
+
+## [2026-10-27 13:58] implementation | records/specs/intelligence.md
+Prepare active-job continuity comparison and correct packaged-compaction status; local build and execution remain pending W1 completion.
+
+## [2026-10-27 13:58] implementation | records/specs/storage.md
+Prepare active-job continuity comparison and correct packaged-compaction status; local build and execution remain pending W1 completion.
+
+## [2026-10-27 13:58] implementation | records/specs/conversation-context.md
+Prepare active-job continuity comparison and correct packaged-compaction status; local build and execution remain pending W1 completion.
+
+## [2026-10-27 13:58] implementation | records/operations/build-and-run.md
+Prepare active-job continuity comparison and correct packaged-compaction status; local build and execution remain pending W1 completion.
+
+## [2026-10-27 13:58] implementation | records/operations/implementation.md
+Prepare active-job continuity comparison and correct packaged-compaction status; local build and execution remain pending W1 completion.
+
+## [2026-10-27 14:09] implementation | records/specs/product.md
+Prepare cancellable linked-asset preview verification outside the workbook lock; qualification pending.
+
+## [2026-10-27 14:09] implementation | records/specs/storage.md
+Prepare cancellable linked-asset preview verification outside the workbook lock; qualification pending.
+
+## [2026-10-27 14:09] implementation | records/operations/implementation.md
+Prepare cancellable linked-asset preview verification outside the workbook lock; qualification pending.
+
+## [2026-10-27 14:16] verification | records/operations/implementation.md
+Record full 0e45190 hosted CI success, running frozen W1 and prepared linked-file preview checks.
+
+## [2026-10-27 14:17] verification | records/operations/implementation.md
+57e9fd1 hosted core and preview regressions passed; full workflow pending. First two frozen W1 pairs match and pass, cohort incomplete.
+
+## [2026-10-27 14:20] implementation | records/operations/implementation.md
+Merge prepared context probe with preview correction; preserve both branch logs and record full 6886540 CI success. Actual-model qualification pending.
+
+## [2026-10-27 14:20] implementation | records/specs/storage.md
+Merge prepared context probe with preview correction; preserve both branch logs and record full 6886540 CI success. Actual-model qualification pending.
+
+## [2026-10-27 14:24] implementation | records/operations/build-and-run.md
+Prepare >2 GiB linked-file verification/cancellation and 256 MiB headless footprint gate; runtime qualification pending.
+
+## [2026-10-27 14:24] implementation | records/operations/implementation.md
+Prepare >2 GiB linked-file verification/cancellation and 256 MiB headless footprint gate; runtime qualification pending.
+
+## [2026-10-27 14:30] implementation | records/specs/product.md
+Prepare composer Stop/Retry/Find original controls and immediate preview retry ownership; record remaining workspace callback lifecycle review.
+
+## [2026-10-27 14:30] implementation | records/operations/implementation.md
+Prepare composer Stop/Retry/Find original controls and immediate preview retry ownership; record remaining workspace callback lifecycle review.
+
+## [2026-10-27 14:32] verification | records/operations/implementation.md
+Inspect hash-verified CI artifact: >2 GiB preview verification passed at 6,489,600-byte lifetime physical footprint; preserve precise scope and raw report.
+
+## [2026-10-27 14:42] implementation | records/operations/implementation.md
+Prepare workspace operation ownership and delayed completion/permission/search regressions; runtime and native lifecycle checks pending.
+
+## [2026-10-27 14:45] implementation | records/operations/implementation.md
+Propagate native search cancellation to SQLite reader tokens and prepare supersession/reset/task/Back regressions; runtime pending.
+
+## [2026-10-27 14:48] implementation | records/operations/implementation.md
+Extend workspace ownership to table completions and delayed native file drops; retain focused passing 9044e5e checks and pending app verification.
+
+## [2026-10-27 14:50] implementation | records/operations/implementation.md
+Prepare metadata-only Home catalog and large-payload/current-version regression; runtime and app memory qualification pending.
+
+## [2026-10-27 14:56] verification | records/operations/implementation.md
+Retain search-fixture compile failure 40524238057 and correct missing return; record af702ee catalog/core checks and full 96b8528 workflow pass.
+
+## [2026-10-27 15:01] verification | records/operations/implementation.md
+Record full composer checkpoint pass, retained search-fixture failures/correction and five valid frozen W1 pairs; remaining checks still open.
+
+## [2026-10-27 15:03] verification | records/operations/implementation.md
+Corrected 426dd2d search runtime passed with earlier core/catalog/lifecycle checks; full app and native interaction checks remain pending.
+
+## [2026-10-27 15:23] implementation | records/operations/implementation.md
+Prepare versioned 10k/100k search-scale evidence, exact recall/paging and call-level cancellation qualification; small CI and full hardware runs pending.
+
+## [2026-10-27 15:36] verification | records/operations/implementation.md
+Preserve hash-verified 9043fff search self-check artifact and full 426dd2d app workflow pass; physical scale/UI/voice/performance gates remain open.
+
+## [2026-10-27 15:40] verification | records/operations/implementation.md
+Verify frozen W1 blocks 5 and 6; first seven pairs/182 jobs valid with exact matching tokens and unchanged sources. Full cohort still live.
+
+## [2026-10-27 16:01] implementation | records/operations/implementation.md
+Prepare verified external file copies, preserving immutable workbook evidence; record full 9043fff CI pass and explicit hardware dictation authorization.
+
+## [2026-10-27 16:08] implementation | records/operations/implementation.md
+Core asset-copy regressions pass; repair preview test compile failure from CI 40536758642 and tighten visible-item and destination identity.
+
+## [2026-10-27 16:15] verification | records/operations/implementation.md
+Archive full W1: all 260 jobs valid and all timing limits met, but one exact-request inventory warmup diverges; parity gate fails. All 20 workers closed, 93 frozen identities and raw frame/prompt hashes verified.
+
+## [2026-10-27 16:18] verification | records/operations/implementation.md
+Complete local suite passes after W1. Native voice permission UI needs the owner’s OS clicks because computer use cannot operate UserNotificationCenter; add distinct waiting/start/listening status.
+
+## [2026-10-27 16:21] implementation | records/operations/implementation.md
+Native release compilation passes; snapshot file action IDs before background work and retain editor binding isolation after compiler review.
+
+## [2026-10-27 16:24] verification | records/operations/implementation.md
+75cb253 native release rebuild and 14 voice lifecycle checks pass; stop pending UI dictation while owner completes macOS permission step. Hardware recognition and latest CI remain unqualified.
+
+## [2026-10-27 16:33] verification | records/operations/implementation.md
+Preserve complete 10k/100k search-scale run: recall and cancellation pass but 100k latency fails. Preregister and test D9 fixed-prefix repeatability diagnosis without changing the W1 gate.
+
+## [2026-10-27 16:37] verification | records/operations/implementation.md
+D9 first reference replay changes tokens under identical inputs; native archive copy refuses missing resources. Preserve the failed attempt, validate all adjacent resources and retain full 6bac991 CI pass.
+
+## [2026-10-27 16:48] verification | records/operations/implementation.md
+Completed D9: 12 correct jobs, 4 closed workers, reference output varies under identical requests; native repeats match one reference. No speed/adoption qualification. Archived raw evidence and independent audit.
+
+## [2026-10-27 16:50] implementation | records/operations/implementation.md
+Batch snippets within bounded FTS row ranges, preserving exact passages and ranking. 70 core checks pass; full 100k and regression run pending. Refresh current status after D9.
+
+## [2026-10-27 16:53] verification | records/specs/search.md
+Full committed search-scale-v2 passes on M5 Pro: warm 100k p95 136.47 ms rows / 172.31 ms document chunks, complete paging and active cancellation. Both before/after runs preserved; no whole-app or wider-hardware claim.
+
+## [2026-10-27 16:56] verification | records/operations/implementation.md
+Full 48b1a30 regression and native release build pass; retained complete logs. Old packaged app remains open for the authorized but manual OS permission step.
+
+## [2026-10-27 16:58] verification | records/operations/implementation.md
+Preserve the active-context wrong-root setup refusal; corrected frozen 32K/64K functional probe running. No context or adoption pass claimed.
+
+## [2026-10-27 17:10] verification | records/operations/implementation.md
+Actual active-job v1 fails: 32K misassociates four values and duplicates its space after three checkpoints; 64K exceeds context. Both unload, originals/inventory intact. Preserve receipts/audit and specify bounded exact-evidence/artifact repair.
+
+## [2026-10-27 17:26] implementation | records/specs/conversation-context.md
+Retain bounded exact read evidence and saved-space IDs; preregister unchanged maintained32K repair-only replay. Core 73/73 and synthetic agent checks pass.
+
+## [2026-10-27 17:40] verification | records/specs/conversation-context.md
+Both real maintained32K repair replays pass exact v1 assertions; preserve first dictation overlap and controlled second run. Human dictation exact phrase and Stop pass. Window background snapshot regression passes; native build underway.
+
+## [2026-10-27 17:46] verification | records/operations/implementation.md
+Full regression/native app+CLI packaging passed. Visible text-command copy into TextEdit preserves original hashes; Home polling, tangent/main scope and close/reopen pass. Basic live dictation completed.
+
+## [2026-10-27 18:12] verification | records/operations/implementation.md
+Qualified native >2 GiB audio playback, seeking, linked verification Stop/Retry, changed-original refusal and media release on close. Preserved failed retained-player/ownership-copy findings; fixed explicit AVPlayerItem teardown and legacy extraction-status projection. Complete local suite, native app/CLI builds, package checks, native handle audits and 99.56 MiB app-process peak pass. Broad media/context/hardware/native-adoption gates remain open; evidence and reproducible fixture recipe recorded.
+
+## [2026-10-27 18:42] verification | records/operations/implementation
+Isolated native extraction: 12 debug/release failure checks, packaged intake and UI recovery pass; preserve Q11 limits and pending hosted CI.
+
+## [2026-10-27 18:47] design | records/specs/product
+Record approved Conversation/Threads refinement and explicit summary provenance; preserve existing workbook and authority semantics.
+
+## [2026-10-27 18:55] implementation | records/operations/implementation
+Implement Conversation/Threads, text navigation and reviewed provenance-preserving summary sharing; fix duplicate command placement, pass native UI/full regression/CLI checks, preserve open gates.
+
+## [2026-10-27 19:20] verification | records/operations/implementation
+Expose per-message evidence and origin actions, focused Conversation menu and Command-L; pass regression, package, install and native UI checks while preserving keyboard/VoiceOver limits.
+
+## [2026-10-27 19:40] implementation | records/operations/implementation
+Isolate CSV/TSV/XLSX parsing, enforce expanded result/coordinate limits and persist structured intake recovery; pass 77 core and 19 isolation checks, both packages/install and native UI, retaining failures and open gates.
+
+## [2026-10-27 19:42] design | records/specs/product
+Reconcile relayed UX consistency review against current code; specify scoped drafts, immediate threads, bounded history browsing, space/context navigation and coherent J11 acceptance while preserving completed sharing work.
+
+## [2026-10-27 20:08] implementation | records/operations/implementation.md
+Persist per-conversation drafts and reading positions with background flush, conflict preservation, native close/quit recovery and truthful portable-copy disclosure. Full regression and both package checks pass; retain failed compilation/tool-click observations and remaining UX/engine gates.
+
+## [2026-10-27 20:08] design | records/specs/product.md
+Specify P06b/S16a presentation-state ownership, bounds, conflict recovery, saved-draft export semantics and hard-kill limits.
+
+## [2026-10-27 20:28] verification | records/operations/implementation.md
+Immediate thread creation, rename, bounded history paging/search and exact original navigation pass core/async/native/CLI checks; 79 core, 19 extraction and 16 document checks pass, both packages/install pass. Engine adoption, language equivalents and release gates remain open.
+
+## [2026-10-27 21:02] implementation | records/specs/intelligence.md
+A12 scoped conversation actions, host capabilities, review-before-share, exact parent selection and navigation-generation boundaries; three fixed cohort runs retained.
+
+## [2026-10-27 21:02] verification | records/operations/implementation.md
+Conversation actions: v3 fixed 8-case pass; complete suite and both packages/install checks pass; native review/branch/rename/return UI verified. Preserve earlier failures and remaining efficiency/adoption gates.
+
+## [2026-10-27 21:28] implementation | records/specs/intelligence.md
+Fix conceptual comparison false positives, add verified product guidance and explicit no-change clauses, and split model conversation actions into four scoped functions.
+
+## [2026-10-27 21:28] verification | records/operations/implementation.md
+Final 5-case guidance and 8-case conversation cohorts pass; retain prior structural and semantic failures. Full suite, both packages/install checks and real packaged native CLI pass.
+
+## [2026-10-27 21:45] design | records/specs/references-and-relationships
+Adopt owner-approved inline references/backlinks and bounded traversal; integrate storage/search/UI/distribution and pending LJ01-LJ10 acceptance.
+
+## [2026-10-27 22:18] implementation | records/operations/implementation.md
+Implemented scoped compound thread handoff, exact request provenance and movement request lineage. Eighteen native model cases, packaged CLI, full local suite and package/install checks pass. Visual navigation remains pending because the Mac is locked; retained all failed cohorts.
+
+## [2026-10-27 22:49] implementation | records/operations/implementation.md
+Carry exact bounded same-request evidence into compound threads. Preserved a packaged dropped-answer counterexample and fixed reporting-after-calculation routing. Nineteen final native cases, full local checks, baseline/native builds, installation and packaged replay pass; native UI and broader language/release gates remain open.
+
+## [2026-10-27 23:44] verification | records/operations/implementation.md
+Focused conversation checkpoint: native navigation and accept/undo proof; intact request metadata and completed handoff receipt; acceptance/accuracy correction and original context budget pass. Preserve failures, cancel broad repeats, adopt owner-approved focused verification; continue native status/context UX.
+
+## [2026-10-27 23:59] implementation | records/operations/implementation.md
+Current proposal badges and captured request context pass focused checks and native interaction. Preserve original history, stock and lineage. Apply owner-approved milestone CI triggers with all 26 existing steps retained; no broad rerun or release claim.
+
+## [2026-10-28 00:12] implementation | records/operations/implementation.md
+Native Home/Spaces now groups persisted pinned shortcuts and recent visits, distinguishes live views from snapshots and preserves composer drafts. Focused deterministic/native checks and independent unchanged-business audit pass. Interpreted navigation actions and full J11 remain open.
+
+## [2026-10-28 00:31] implementation | records/operations/implementation.md
+Add scoped space opening and pin/unpin shortcuts; focused native/agent/grammar checks pass, preserve context regression and wording limitation.
+
+## [2026-10-28 01:03] implementation | records/operations/implementation.md
+Implemented and verified current draft review, scoped native opening and explicit withdrawal; schema 4, focused checks and immutable evidence recorded. J11 and engine/release gates remain open.
+
+## [2026-10-28 01:32] implementation | records/operations/implementation.md
+Exercised integrated supplier journey; fixed accepted movement correction withdrawal/Undo with 81 passing core checks. Retained failed ambiguous-direction replay and resubmit occurrence; J11 and semantic event identity remain open.
+
+## [2026-10-28 01:59] implementation | records/operations/implementation
+Added isolated inventory direction review and terminal duplicate refusal; retained initial classifier and stale-status UI failures, verified fresh native clarification to -2 draft, and recorded latency and remaining identity work.
+
+## [2026-10-28 02:32] implementation | records/operations/implementation.md
+Verified exact historical citation/current-head repair with 82 core checks, agent checks and scoped native replay; recorded owner-selected 75% context trigger pending alignment.
+
+## [2026-10-28 02:49] verification | records/operations/implementation.md
+Aligned 75% compaction threshold with explicit floor refusal; deterministic checks pass. Preserved failed native exact-label job and intact exported/reopened state; automatic compaction remains disabled.
+
+## [2026-10-28 03:28] verification | records/operations/implementation.md
+Confirmed saved-action receipt boundaries with agent checks and native app/CLI rebuild. Retained unchanged native exact-copy failure and rejected literal-review experiment; original workbook state preserved. Final native visual check awaits manual unlock.
+
+## [2026-10-28 03:51] implementation | records/operations/implementation.md
+Implemented and reviewed source-bound composition core; exact receipt copies, atomic drafts and retained provenance. Agent and native integration remain pending.
+
+## [2026-10-28 03:51] verification | records/specs/document-composition.md
+Core build and 89 invariant groups passed; portable five-version audit, strict format and diff checks passed. Retained intermediate test failures and explicit UI/model limits.
+
+## [2026-10-28 03:57] verification | records/operations/implementation.md
+Reproduced business-field metadata collision, scoped it to document Records, and passed 90 core checks. Retained before/after regression evidence; agent and UI gates unchanged.
+
+## [2026-10-28 04:17] implementation | records/operations/implementation.md
+Integrate bounded original copy choices, typed draft parts, host-only context vocabulary and deduplicated continuation; 94 core and native grammar checks pass; actual-model replay pending.
+
+## [2026-10-28 04:22] verification | records/operations/implementation.md
+Retain native copy replay context refusal at 24922/24576 tokens; compact duplicate optional passages; 95 core and agent checks pass, unchanged replay pending.
+
+## [2026-10-28 04:28] implementation | records/operations/implementation.md
+Retain second native refusal; use explicit two-chunk ordinary read pages with larger requests available; 96 core and agent checks pass.
+
+## [2026-10-28 04:36] verification | records/operations/implementation.md
+Unchanged native eight-report fidelity task passes; zero copied IDs used, so add nearby actual-copy cases; reproduce and fix stale composition metadata after manual editing.
+
+## [2026-10-28 04:42] verification | records/operations/implementation.md
+Native English/Spanish literal copy paths pass; unchanged paraphrase skips requested draft and includes identifier; retain failure and clarify draft-delivery policy.
+
+## [2026-10-28 04:47] implementation | records/operations/implementation.md
+Three unchanged nearby native copy/paraphrase cases pass; add exact-version provenance disclosure and historical-source warning; 18 document lifecycle checks pass, visible check pending.
+
+## [2026-10-28 04:50] verification | records/operations/implementation.md
+Native provenance build, 18 document checks, installed resource/refusal/signature, packaged CLI edit and extraction checks pass; visible interaction still blocked by Mac lock.
+
+## [2026-10-28 05:11] implementation | records/operations/implementation.md
+Schema-5 explicit reference binding foundation: 108 core and 18 document checks, native build/package/CLI pass; parser/backlinks/product and visual gates remain open.
+
+## [2026-10-28 05:45] implementation | records/operations/implementation.md
+Implemented schema-6 bounded shared body-link parsing, stable unresolved retention, rebuildable backlink indexes, deduplicated filtered keyset discovery and owner CLI/skill. Final checks: 121 core, 18 document, 24 packaged CLI journeys/51 calls, native package resources/refusals/signature. Preserved parser/expectation/stale-package failures in immutable evidence. Extracted links, native/voice interaction, scoped agent traversal and full release gates remain open.
+
+## [2026-10-28 06:11] implementation | records/operations/implementation.md
+Schema 7: retained extracted-text annotations, guarded extraction publication, deduplicated body/file discovery and owner CLI; 129 core, 18 document, 24 body CLI and 26 extracted CLI checks pass. Native/agent/release gates remain open.
+
+## [2026-10-28 06:41] implementation | records/operations/implementation.md
+Implemented bounded native saved-link reading, destination correction, incoming mention pages, model-free navigation commands, body/PDF reading state and byte-identical binding-only copy provenance. Core 129, documents 27, preview and packaged 50 reference checks pass; visible UI remains locked and full application gates stay open.
+
+## [2026-10-28 07:31] implementation | records/operations/implementation.md
+Added bounded business-only reference traversal and canonical read destinations; preserved two native wrong-route failures, repaired lookup choices, verified corrected historical/current and private-request journeys, and kept full app/release gates open.
+
+## [2026-10-28 07:34] verification | records/operations/implementation.md
+Scoped reference checkpoint: 132 core and 27 document checks, 10 preview groups, 33 tools/39 grammars/329 masks, two final native jobs, 50 packaged CLI checks and resource/signature gates pass. Preserve 300566-byte receipt 312f7ae5b00cfe411294f526906a150529491517a284b42d50ecfbaa2ba0ca96; visual and whole-app gates remain open.
+
+## [2026-10-28 13:36] implementation | records/operations/implementation.md
+Verified unlocked native saved-link and copied-passage journeys; repaired keyboard selection, accessible activation and destination focus; retained Source/asset and portable invariants, focused checks and remaining qualification gates.
+
+## [2026-10-28 13:45] design | records/specs/contextual-import.md
+Adopted owner-confirmed contextual startup/ongoing import and Excel continuity; inspected current suffix-based saved-value intake, reconciled specifications and queued explicit implementation/acceptance gaps.
+
+## [2026-10-28 13:47] verification | records/operations/implementation.md
+Attached immutable native reference usability receipt; final keyboard/accessible-link and copied-source navigation pass with synthetic invariants, unchanged engine evidence and explicit open gates.
+
+## [2026-10-28 13:54] implementation | records/operations/implementation.md
+Filtered technical Sources before Home/search limits with failing-then-passing regressions; observed and repaired stale focused-document menu state; final native replay pending.
+
+## [2026-10-28 13:58] verification | records/operations/implementation.md
+Final native Home-document-Home menu and destination scope replay passes; all 133 core checks pass after two retained regressions, all 51 synthetic database tables and assets unchanged; strict build/format/signature pass.
+
+## [2026-10-28 13:58] design | sources/notes/2026/10/native-app-engine-direction.md
+Preserved owner direction and side-conversation authorization for research and documentation of the customizable Home and native application engine.
+
+## [2026-10-28 13:59] design | records/specs/native-app-engine.md
+Researched baseline 1aa8372 and primary Excel/Apple/Temporal/SQLite/recurrence references; specified editable Home, forms/actions, reusable calculations, durable workflows, local automations, lifecycle, authority, portability and E0-E6/EJ01-EJ14. Linked product P21-P24 and reading order. Four adversarial design passes; all new engine stages remain open.
+
+## [2026-10-28 14:00] verification | records/operations/implementation.md
+Attached immutable catalog/menu evidence with final source/product hashes, 98 preserved prior receipts, failing-then-passing checks and actual native navigation limits.
+
+## [2026-10-28 14:01] verification | records/specs/native-app-engine.md
+Documentation-only verification: dbmd 0.14.7 validate --all --dir db --json passed with 0 errors/0 warnings; python3 scripts/check_links.py passed; static requirement review confirmed E01-E26 and EJ01-EJ14 unique and complete. No runtime implementation or qualification performed; concurrent main-thread code/spec changes preserved.
+
+## [2026-10-28 14:02] design | records/specs/native-app-engine.md
+Final code accuracy pass: credited the existing native per-user flock inference exclusion and idle release; scoped future E23 work to scheduling, fair handoff and background recovery rather than implying the current app lacks cross-process protection.
+
+## [2026-10-28 14:02] design | records/operations/implementation.md
+Integrated the owner-authorized native application-engine design handoff and registered E0-E6 as open, retaining contextual intake as the next active slice and all qualification limits.
+
+## [2026-10-28 15:53] design | sources/notes/2026/10/pre-1-production-compatibility-policy
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/overview/start-here
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/specs/distribution
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/specs/storage
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/specs/native-app-engine
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/specs/contextual-import
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/specs/references-and-relationships
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/specs/conversation-context
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:53] design | records/operations/implementation
+Aligned pre-1.0 compatibility policy: first notarized real production 1.0 is the baseline; selected development fixtures can reset without legacy migration obligations.
+
+## [2026-10-28 15:54] verification | records/operations/implementation
+Pre-1.0 policy documentation: full dbmd validation zero errors/warnings; repository links and scoped whitespace checks pass. Code and workbook data unchanged.
+
+## [2026-10-28 16:03] implementation | records/operations/implementation.md
+Implement durable role-aware intake, native startup and ongoing entries, current development format and truthful CLI/skill results; leave broader import/app gates open.
+
+## [2026-10-28 16:04] verification | records/operations/implementation.md
+Final current-format check.sh, native package/signature, 134 core groups, nine CLI intake checks, 30-writer concurrency and isolated packaged extraction pass; actual native role/reuse/failure/reopen journeys observed. Receipt 46f24010a54cad6afed1f7966e732998fd40a4a46ed19fe9d92754991acc91a0; broader app gates open.
+
+## [2026-10-28 16:33] design | sources/notes/2026/10/persistence-readiness-requirement.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/persistence-readiness.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/storage.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/product.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/intelligence.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/native-app-engine.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/contextual-import.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/search.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/conversation-context.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/specs/distribution.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/overview/start-here.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | records/operations/implementation.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:33] design | DB.md
+Adopt and align storage-only persistence readiness for future syncing; complete saved changes, causal identity and replay without AI/effects. No cloud, transport, replica coordination or new resolver; implementation gates remain open.
+
+## [2026-10-28 16:35] verification | records/specs/persistence-readiness.md
+Documentation alignment reviewed against the owner scope and 63cd642 assessment. Full dbmd validation has zero errors/warnings; repository Markdown links and scoped whitespace checks pass. No application code, workbook data or runtime tests changed by this design turn.
+
+## [2026-10-28 16:44] implementation | records/specs/contextual-import.md
+Implement bounded CSV/TSV append, replacement and keyed merge through shared core, CLI/skill and native review. Draft-only proposal, exact-target acceptance, checked Undo/redo, durable update-use receipt; schema 9 with no legacy migration. Model/voice and FJ persistence gates remain open.
+
+## [2026-10-28 16:44] design | records/reviews/design-passes.md
+Three passes review interpretation, atomic publication/reversal and callback ownership/scope. Preserve the newly adopted persistence-readiness requirement; mutation audit and shared replayable capture/apply follow this slice.
+
+## [2026-10-28 16:44] verification | records/operations/implementation.md
+Stable check.sh passes 144 core groups and 30 new CLI update checks; final native package/signature, focused table lifecycle, 30 process writers, denied-build-tree helpers, strict Swift lint and skill validation pass. Actual native mapping/draft/accept/Undo/relaunch/Redo/stale-refusal verified with synthetic CLI state. Receipt 10d371e5e5491f05a426e18708f8d70bcc1428e8f56bee334460a1886d2e261e preserves all 100 prior evidence files; stated bounds and unfinished app/FJ gates retained.
+
+## [2026-10-28 17:06] implementation | records/operations/persistence-coverage.md
+Inventoried existing durable families and implemented schema-10 atomic typed change capture, distinct decision attribution, and inert local reconstruction. Core synthetic checks pass; final package/concurrency/interruption/scaling qualification remains in progress.
+
+## [2026-10-28 17:09] design | records/specs/persistence-readiness.md
+Linked the current schema-10 implementation and complete write-path inventory; preserved FJ and whole-release qualification limits and excluded sync scope.
+
+## [2026-10-28 17:25] verification | records/operations/persistence-coverage.md
+Schema-10 complete local history and inert reconstruction pass scoped FJ01-FJ06; 150 core groups, packaged 10k rows/cancellation, 30 writers, four interruption reconstructions and native review/reopen. Whole-app release remains open.
+
+## [2026-10-28 17:25] verification | records/operations/implementation.md
+Schema-10 complete local history and inert reconstruction pass scoped FJ01-FJ06; 150 core groups, packaged 10k rows/cancellation, 30 writers, four interruption reconstructions and native review/reopen. Whole-app release remains open.
+
+## [2026-10-28 17:25] verification | records/specs/persistence-readiness.md
+Schema-10 complete local history and inert reconstruction pass scoped FJ01-FJ06; 150 core groups, packaged 10k rows/cancellation, 30 writers, four interruption reconstructions and native review/reopen. Whole-app release remains open.
+
+## [2026-10-28 17:58] implementation | records/specs/native-app-engine.md
+Editable Home/space checkpoint: exact bases, stable semantic edits, retained history, native conflict handling; qualification limits and retained model/grammar failures.
+
+## [2026-10-28 17:58] implementation | records/specs/storage.md
+Editable Home/space checkpoint: exact bases, stable semantic edits, retained history, native conflict handling; qualification limits and retained model/grammar failures.
+
+## [2026-10-28 17:58] implementation | records/operations/build-and-run.md
+Editable Home/space checkpoint: exact bases, stable semantic edits, retained history, native conflict handling; qualification limits and retained model/grammar failures.
+
+## [2026-10-28 17:58] implementation | records/overview/start-here.md
+Editable Home/space checkpoint: exact bases, stable semantic edits, retained history, native conflict handling; qualification limits and retained model/grammar failures.
+
+## [2026-10-28 17:58] implementation | records/operations/implementation.md
+Editable Home/space checkpoint: exact bases, stable semantic edits, retained history, native conflict handling; qualification limits and retained model/grammar failures.
+
+## [2026-10-28 18:04] verification | records/operations/implementation.md
+E1 scoped qualification: core156,42 actual grammars/359 masks, packaged concurrency/reconstruction, native stale refusal/history, two successful real-model ordering jobs; initial failures retained.
+
+## [2026-10-28 18:04] verification | records/specs/native-app-engine.md
+E1 scoped qualification: core156,42 actual grammars/359 masks, packaged concurrency/reconstruction, native stale refusal/history, two successful real-model ordering jobs; initial failures retained.
+
+## [2026-10-28 18:04] verification | records/specs/storage.md
+E1 scoped qualification: core156,42 actual grammars/359 masks, packaged concurrency/reconstruction, native stale refusal/history, two successful real-model ordering jobs; initial failures retained.
+
+## [2026-10-28 18:04] verification | records/operations/persistence-coverage.md
+E1 scoped qualification: core156,42 actual grammars/359 masks, packaged concurrency/reconstruction, native stale refusal/history, two successful real-model ordering jobs; initial failures retained.
+
+## [2026-10-28 18:16] design | records/specs/managed-datasets.md
+Owner adopted managed native dataset projections over reserved core and shared replayable authority. Aligned product/storage/import/search/persistence/engine/release docs and E0-D sequencing. Preserved and aligned the main thread E2 definition spec. Runtime implementation and MJ gates remain pending.
+
+## [2026-10-28 18:16] verification | records/specs/managed-datasets.md
+Documentation-only pass: full dbmd validation reports zero errors/warnings; repository Markdown links and documentation diff check pass. Reviewed product fit, atomic schema/data replay, stable identity, width/index/resource bounds and future replication limits. No runtime or model tests claimed.
+
+## [2026-10-28 18:44] implementation | records/specs/managed-datasets.md
+Implemented schema11 registered native dataset projections over shared immutable versions with dynamic capture, trusted schema reconstruction and typed projection repair. Core168, final packaged1k/10k and native edit/Undo/reopen proof are scoped in the foundation receipt; remaining E0-D schema/query/index work stays open.
+
+## [2026-10-28 19:14] implementation | records/operations/implementation.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/operations/persistence-coverage.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/specs/storage.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/specs/managed-datasets.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/specs/native-app-engine.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/specs/contextual-import.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/overview/start-here.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:14] implementation | records/operations/build-and-run.md
+Document schema-12 causal table definitions, removal/constraints/archive/restore, exact-base native and CLI evidence; typed managed queries/index policy and full release gates remain open.
+
+## [2026-10-28 19:21] verification | records/operations/implementation.md
+Final schema12: core177, packaged CLI lifecycle/unique merge Undo/redo,10k repair/reconstruction,resource/signature,strict22Swift files and skill checks pass. Immutable receipt records scoped limits; full E0-D and release remain open.
+
+## [2026-10-28 19:21] verification | records/operations/persistence-coverage.md
+Final schema12: core177, packaged CLI lifecycle/unique merge Undo/redo,10k repair/reconstruction,resource/signature,strict22Swift files and skill checks pass. Immutable receipt records scoped limits; full E0-D and release remain open.
+
+## [2026-10-28 19:21] verification | records/specs/managed-datasets.md
+Final schema12: core177, packaged CLI lifecycle/unique merge Undo/redo,10k repair/reconstruction,resource/signature,strict22Swift files and skill checks pass. Immutable receipt records scoped limits; full E0-D and release remain open.
+
+## [2026-10-28 19:26] design | records/specs/managed-datasets.md
+Reviewed typed bounded query and disposable index contract in three passes before implementation; exact snapshots, Decimal aggregates, join multiplicity, work/result and measured index policy bounds.
+
+## [2026-10-28 19:54] implementation | records/specs/managed-datasets.md
+Implemented typed source scopes, bounded flat query plans, exact Decimal aggregates and disposable index policy; explicit repair budget changed after retained50k deadline failure. Qualification in progress.
+
+## [2026-10-28 19:54] implementation | records/operations/build-and-run.md
+Document delivered typed-query/index CLI contracts, source scopes and explicit30s repair budget; distinguish measurements, failed stress probes and full release qualification.
+
+## [2026-10-28 20:02] verification | records/operations/implementation.md
+Record schema12 bounded query/index implementation, final191 regression, 1k/10k/50k packaged evidence, safe failed repair and scoped remaining gates.
+
+## [2026-10-28 20:02] verification | records/specs/managed-datasets.md
+Qualify stored-column typed query/index subset; retain actual 50k timeout and measured grouping slowdown, complete MJ open.
+
+## [2026-10-28 20:02] verification | records/operations/persistence-coverage.md
+Classify query results/indexes, atomic eviction and exact replay, without adding canonical index history.
+
+## [2026-10-28 20:02] implementation | records/specs/storage.md
+Update schema12 storage/query authority and optional-index classification.
+
+## [2026-10-28 20:02] implementation | records/specs/native-app-engine.md
+Record qualified managed query foundation before E2 catalog, keeping full journeys open.
+
+## [2026-10-28 20:02] implementation | records/overview/start-here.md
+Update current reading map to delivered managed query/index subset.
+
+## [2026-10-28 20:02] verification | records/operations/build-and-run.md
+Record final packaged query/index commands and actual performance limitations.
+
+## [2026-10-28 20:05] design | records/specs/application-definitions.md
+Refine E2 schema13 catalog/function/query contracts, explicit live/exact and current-row semantics, bounded type/unit/graph/FTS persistence before implementation.
+
+## [2026-10-28 20:31] verification | records/operations/implementation.md
+Record schema13 catalog/functions/query templates, core208, full207 before review metadata fix, final packaged/10k evidence and locked visual limit; full E2/release remain open.
+
+## [2026-10-28 20:31] implementation | records/specs/application-definitions.md
+Mark catalog/function/query subset implemented with exact version/type/unit/FTS/replay proof; retain action/form/native/model/EJ gaps.
+
+## [2026-10-28 20:31] verification | records/operations/persistence-coverage.md
+Extend complete-capture inventory and disposable FTS classification for all schema13 application-definition families.
+
+## [2026-10-28 20:31] implementation | records/specs/storage.md
+Document schema13 application metadata/capture and fourth disposable FTS index.
+
+## [2026-10-28 20:31] implementation | records/specs/native-app-engine.md
+Update E2 sequence to delivered pure catalog slice and remaining action/form/native journey gates.
+
+## [2026-10-28 20:31] implementation | records/specs/managed-datasets.md
+Clarify schema13 carries unchanged managed dataset foundation into pure E2 catalog work.
+
+## [2026-10-28 20:31] implementation | records/overview/start-here.md
+Add current schema13 catalog entry and explicit E2 next work to project reading map.
+
+## [2026-10-28 20:31] verification | records/operations/build-and-run.md
+Publish delivered schema13 CLI and synthetic catalog qualification commands with actual limits.
+
+## [2026-10-28 20:36] design | records/specs/application-definitions.md
+Specify bounded receiving registry, atomic draft movement path, exact preview guards and form signature semantics before implementation.
+
+## [2026-10-28 20:54] implementation | records/operations/implementation.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:54] implementation | records/specs/application-definitions.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:54] implementation | records/specs/storage.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:54] implementation | records/operations/persistence-coverage.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:54] implementation | records/specs/native-app-engine.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:54] implementation | records/overview/start-here.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:54] implementation | records/operations/build-and-run.md
+Record schema14 registered inventory actions, versioned form bindings and portable unsent form checkpoints; distinguish automated proof from blocked visible UI and open agent/workflow/release gates.
+
+## [2026-10-28 20:58] verification | records/operations/implementation.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 20:58] verification | records/specs/application-definitions.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 20:58] verification | records/specs/storage.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 20:58] verification | records/specs/native-app-engine.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 20:58] verification | records/operations/build-and-run.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 20:58] verification | records/operations/persistence-coverage.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 20:58] verification | records/overview/start-here.md
+Register 31,349-byte action/form receipt dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38: broad core217/shared regressions, final packaged CLI/native resources/signature and draft/replay proof; 107 older artifacts unchanged; visible Mac checks blocked by lock, no agent or release completion claimed.
+
+## [2026-10-28 21:04] verification | records/operations/implementation.md
+Qualify structured native form draft identity and workbook ownership with focused lifecycle, packaged CLI, native resources/signature and strict lint checks; preserve 108 preceding receipts; visible/agent/full release gates remain open.
+
+## [2026-10-28 21:04] verification | records/specs/application-definitions.md
+Qualify structured native form draft identity and workbook ownership with focused lifecycle, packaged CLI, native resources/signature and strict lint checks; preserve 108 preceding receipts; visible/agent/full release gates remain open.
+
+## [2026-10-28 21:04] verification | records/operations/persistence-coverage.md
+Qualify structured native form draft identity and workbook ownership with focused lifecycle, packaged CLI, native resources/signature and strict lint checks; preserve 108 preceding receipts; visible/agent/full release gates remain open.
+
+## [2026-10-28 21:04] verification | records/specs/native-app-engine.md
+Qualify structured native form draft identity and workbook ownership with focused lifecycle, packaged CLI, native resources/signature and strict lint checks; preserve 108 preceding receipts; visible/agent/full release gates remain open.
+
+## [2026-10-28 21:06] design | records/specs/application-definitions.md
+Specify bounded agent definition tools, current-run exact preview receipt submission and isolated complete batch direction review before implementation.
+
+## [2026-10-28 21:30] implementation | records/operations/implementation.md
+Record in-progress agent tools, captured family read clocks, bounded complete direction review and retained first grammar/model failures; final qualification remains pending.
+
+## [2026-10-28 21:45] implementation | records/operations/implementation.md
+Record focused definition-tool contract, core222, captured family cursor clocks and retained grammar/model failures before fourth native qualification.
+
+## [2026-10-28 21:53] design | records/specs/managed-datasets.md
+Bind query pages to captured data-family state rather than operational journal commits, preserving coherent results and inert replay.
+
+## [2026-10-28 21:53] design | records/specs/application-definitions.md
+Record focused native definition tools, captured family snapshots, bounded batch review and exact UTF-8 evidence requirements; retain open E2 journeys.
+
+## [2026-10-28 21:59] implementation | records/operations/implementation.md
+Record exact template-receipt authoring, core223, native review-scope failure/fix and unchanged prompt/budget gates before fresh qualification.
+
+## [2026-10-28 22:08] design | records/specs/application-definitions.md
+Split required custom content and exact current-run template saving after retained model failures; 46-tool grammar passes without raising prompt gate.
+
+## [2026-10-28 22:30] design | records/specs/application-definitions.md
+Specify host-owned preview completion, typed meaning copy, bounded cold-start cancellation and native evidence keyboard selection.
+
+## [2026-10-28 22:30] implementation | records/operations/persistence-coverage.md
+Extend persistence inventory with current-run agent guards and captured family snapshot clocks without a new schema or ledger.
+
+## [2026-10-28 22:32] implementation | records/operations/implementation.md
+Record focused agent contracts, retained V1-V7 failures, startup helper repair, actual native form review/undo and current V8/broad qualification in progress.
+
+## [2026-10-28 22:37] design | records/specs/application-definitions.md
+Retain V8 preview-only functional failure and adopt one native prepare_action request with host-owned preview/review/receipt commit.
+
+## [2026-10-28 22:37] design | records/operations/implementation.md
+Retain V8 preview-only functional failure and adopt one native prepare_action request with host-owned preview/review/receipt commit.
+
+## [2026-10-28 22:57] verification | records/operations/implementation.md
+Record final five-case real-model pass, broad/grammar/package proof, visible native form lifecycle and retained failures without closing full E2 or release.
+
+## [2026-10-28 22:57] verification | records/specs/application-definitions.md
+Reconcile the canonical prepare_action contract and record scoped real-model/native qualification plus shared technical-evidence scope.
+
+## [2026-10-28 22:57] verification | records/specs/native-app-engine.md
+Update current E2 entry point with real-model and visible form proof while preserving dated historical checkpoints.
+
+## [2026-10-28 22:57] verification | records/overview/start-here.md
+Project entry point now reflects scoped agent/native qualification and remaining result-publication/EJ/release work.
+
+## [2026-10-28 22:57] verification | records/operations/build-and-run.md
+Document focused saved-definition model qualification commands and actual native form proof/limits.
+
+## [2026-10-28 22:57] verification | records/operations/build-and-run.md
+Correct deterministic agent qualification command to the actual no-argument harness.
+
+## [2026-10-28 23:01] design | records/specs/application-definitions.md
+Specify native live/pinned computation views and separate atomic result publication with bounded exact scoped-population lineage.
+
+## [2026-10-28 23:35] design | records/specs/application-definitions.md
+Refine bounded query snapshot closure, deterministic searchable results, host-provenance rendering and separate unified metadata discovery. Qualification remains in progress.
+
+## [2026-10-28 23:52] implementation | records/specs/application-definitions
+Qualify scoped native computation and exact result publication; retain failed model/UI attempts, preserve 110 prior receipts, keep full E2-E6 and release gates open.
+
+## [2026-10-29 00:03] verification | records/operations/implementation.md
+Retain hosted document-check premature-exit failure and two passing final local runs; repair AppKit test lifecycle and timing waits. Hosted requalification remains required.
+
+## [2026-10-29 00:26] implementation | records/specs/manual-workflows.md
+Implement schema 15 scoped manual workflows with canonical action effects, fenced checkpoint/outbox commits, exact review, retry-budget renewal and inert reconstruction; broad/focused verification underway, full E3 open.
+
+## [2026-10-29 00:33] verification | records/specs/manual-workflows.md
+Qualified schema15 manual workflow core/CLI, review/retry fencing, actual process death, inert copies and packaged installation; full E3 remains open. Corrected obsolete history migration test after retained hosted failure.
+
+## [2026-10-29 00:44] implementation | records/specs/manual-workflows.md
+Added native manual workflow Activity, bounded coherent paging and explicit continuation. Core244/focused13 and packaged checks pass; visible UI blocked by locked Mac. Workflow forms specified next.
+
+## [2026-10-29 00:54] verification | records/specs/manual-workflows.md
+Qualified atomic workflow forms, exact receipt recovery and five actual process-death boundaries; native build/core247/focused16 pass. Visible UI and full E3 remain open.
+
+## [2026-10-29 01:09] verification | records/operations/implementation.md
+Retained hosted40794958919 history/installation passes and later missing-preview CLI failure;140af04 selects the built baseline explicitly. Local concurrency command passes.
+
+## [2026-10-29 01:26] verification | records/specs/manual-workflows.md
+Conversation workflow author/form/queued-start model jobs pass; core251/focused20/full shared suite/native package pass. Activity family clock survives agent journaling. Full E3 and visible UI remain open.
+
+## [2026-10-29 01:29] design | records/specs/manual-workflows.md
+Expanded next E3 explicit interpretation contract: exact bounded evidence, typed cited output, asynchronous lease-fenced publication, no execution/acceptance authority from model text. Implementation pending.
+
+## [2026-10-29 01:55] design | records/specs/manual-workflows.md
+Refined explicit interpretation contract after native probes: needs-input citations may explain unresolved fields without invented values; retain rejected envelopes; preserve transitive semantic provenance through calculations. Qualification in progress.
+
+## [2026-10-29 02:16] verification | records/specs/manual-workflows.md
+Schema16 explicit native interpretation qualified with core256/focused25, async lifecycle, nine SIGKILL boundaries, final packaged actual-model receiving/review/reconstruction and focused visible Activity checks. Full E3 and release remain open.
+
+## [2026-10-29 02:18] design | records/specs/manual-workflows.md
+Next bounded slice exposes interpretation through existing conversation definition tools, preserving no-execution semantics, exact request attribution and unchanged grammar/prompt gates.
+
+## [2026-10-29 02:30] verification | records/operations/implementation.md
+Retained hosted710bdbe document-scroll failure; revised native observation test passes27 local groups and awaits exact-commit hosted qualification. No app behavior change.
+
+## [2026-10-29 02:49] verification | records/specs/references-and-relationships.md
+Retained hosted55b1595 scroll failure; reproduced reflow defect locally and corrected observed position/layout/navigation ownership. Final local document27/0; exact-commit hosted qualification pending.
+
+## [2026-10-29 03:19] implementation | records/specs/manual-workflows.md
+Qualified schema16 conversation interpretation authoring, exact workflow templates, host-owned identities and truthful failed-action outcomes; retained four native-model attempts and scoped checks. Full app remains unfinished.
+
+## [2026-10-29 03:25] design | records/specs/manual-workflows.md
+Reviewed document preparation workflow boundary for usefulness, atomic recovery and adversarial coverage. Implementation/qualification next; whole E3 remains open.
+
+## [2026-10-29 03:46] implementation | records/specs/manual-workflows.md
+Schema17 included-document preparation qualified:268 broad core groups,37 final focused workflows,13 process-death boundaries, native packaged prepare/interpret/propose/review/reconstruct; conversation preparation authoring and whole release remain open.
+
+## [2026-10-29 03:47] design | records/specs/manual-workflows.md
+Define conversation preparation authoring/template qualification: metadata-only saves, queued starts, exact current-run templates, unchanged grammar/prompt caps and independent actual-model saved-state assertions.
+
+## [2026-10-29 04:03] design | records/specs/manual-workflows.md
+Plan shared registered draft-document action for E3: required typed prose/evidence/meaning/scenario, generic native preview/review, atomic shared publication, preserved semantic provenance and explicit capability/intent checks. Not implemented.
+
+## [2026-10-29 04:06] implementation | records/specs/manual-workflows.md
+Conversation preparation qualified with preserved actual-model failures: final author/workflow/queue5/4/4 calls;271 core,63 grammars/534 masks, final native/package and actual SQLite full/busy retry pass. Registered document drafting remains next; whole app unfinished.
+
+## [2026-10-29 04:28] implementation | records/specs/manual-workflows.md
+Registered report drafts share native forms/CLI/workflows and exact review.278 core,15 SIGKILL boundaries, final whole shared/native/grammar checks and a37-call actual receiving/report/reconstruction job pass. Full E3 and release remain open.
+
+## [2026-10-29 04:33] design | records/specs/manual-workflows.md
+Reviewed next CSV/TSV workflow intake from usefulness, correctness and adversarial angles. Identified parsing/write-lock, workflow revision and table acceptance data-enrichment constraints; no intake execution implementation claim. Added document capture coverage.
+
+## [2026-10-29 05:03] implementation | records/specs/manual-workflows.md
+Schema18 reviewed CSV/TSV workflow intake shares captured plans and exact table review.289 core,21 SIGKILL boundaries/189 calls, final shared/native checks and38-call actual-model six-step reconstruction pass. Full E3/release remain open.
+
+## [2026-10-29 05:04] verification | records/specs/manual-workflows.md
+Final intake model V2 passes38 independent CLI calls without expected-quantity prompt hint. Full shared V8, frozen native V9, package V10,21-file strict Swift lint and skill validation pass. Final store/link/diff gates recorded; visible UI and full release remain open.
+
+## [2026-10-29 05:06] design | records/specs/manual-workflows.md
+Reviewed next conversation intake slice: existing metadata tools, exact mapping/schema/meaning, mandatory review templates and inert queue; no new executor/tool or widened model budgets. Execution remains unqualified until scoped tests pass.
+
+## [2026-10-29 05:32] implementation | records/specs/manual-workflows.md
+Conversation intake exact mapping, mandatory-review template and inert queue qualify in 53 focused groups, 64 grammars/542 masks and four actual-model jobs. Read-only sampling/clarification failures repaired and retained. Full E3 and release remain open.
+
+## [2026-10-29 05:33] verification | records/specs/manual-workflows.md
+Conversation intake V3 completes author/template/inert queue/explicit clarification in 7/4/4/4 calls. Focused workflows 53/0, scripted agent and 64 grammars/542 masks at 8171/8192, final frozen native build, packaged 31-call deterministic intake, resource/signature checks, strict 11-file lint, skill, links and all-store zero errors/warnings pass. Prior 125 evidence files unchanged; full E3/release remain open.
+
+## [2026-10-29 05:37] design | records/specs/manual-workflows.md
+Adopt bounded single-row query-field workflow mappings for deterministic receiving lookup. Three passes cover ambiguity, retry, selected-row lineage, semantics and inert reconstruction; execution unqualified until focused proof.
+
+## [2026-10-29 05:53] implementation | records/specs/manual-workflows.md
+Exact scalar catalog lookup qualifies:59 focused workflow groups/0,64 grammars/542 masks8171/8192, frozen native/package and32/39-call deterministic/actual-model jobs. Missing-match catalog repair preserves completed AI prefix; stock20->25 only after review.126 prior artifacts unchanged. Full E3/release remain open.
+
+## [2026-10-29 05:58] design | records/specs/manual-workflows.md
+Three-pass human clarification contract: preserve original needs_input model result; add exact-bound human Source and typed clarification Record through shared atomic checkpoint. Core/CLI first; native persistent input and conversation attribution need separate qualification.
+
+## [2026-10-29 06:29] implementation | records/specs/manual-workflows.md
+Supplied clarification qualifies shared core/CLI:63 workflow groups,101 calls/two SIGKILL boundaries,27 packaged/27 actual missing-count and39 known-count calls. Native masks and terminal validation now constrain state/values together; original model output remains preserved. Persistent native/conversation input and full E3 remain open.
+
+## [2026-10-29 07:08] implementation | records/specs/manual-workflows.md
+Native clarification editor and portable drafts, human submission, historical target validation, cross-window conflict retention, small receipt recovery and submitted-only cache pruning. Conversation and release work remain open.
+
+## [2026-10-29 07:08] verification | records/specs/manual-workflows.md
+Frozen V9:302 core groups/0, headless preview, strict14-file Swift lint, native build/package/refusal/signature and27 deterministic calls. V8 overlapping build retained unqualified;129 prior evidence files unchanged. Receipt95f786f7c5397bd642ce1af32c2c28de58037101ac747e7624ccf6d9223314cd. Visible checks blocked by locked native UI; no ready claim.
+
+## [2026-10-29 07:13] design | records/specs/manual-workflows.md
+Three-pass conversation-answer preparation contract: exact current request/read receipt, unsent provenance and no silent replacement; contextual tools preserve full-prompt budget. Native confirmation remains separate.
+
+## [2026-10-29 07:37] implementation | records/specs/manual-workflows.md
+Contextual conversation preparation of unsent workflow answers, exact current-message/read-receipt provenance, typed normalization, original-versus-human-edited values, native reload and captured confirmation lineage. Voice/text confirmation remains open.
+
+## [2026-10-29 07:37] verification | records/specs/manual-workflows.md
+Frozen V6:65 focused workflow groups/0, scripted agent, headless preview, strict15 Swift files, native build/package/refusals/signature and30 actual packaged CLI calls/two cases. V5 grammar reused at matching hashes; budgets unchanged.130 preceding evidence artifacts unchanged. Receipt95a67530ff30a80da135c1fb55b7984e17f8dda88ca2bb8f0f5fc60d1bc1f506. Paused-versus-failed wording, post-reload cancellation guard, visible and release gates remain open.
+
+## [2026-10-29 07:42] design | records/specs/manual-workflows.md
+Three-pass conversation confirmation contract: standalone explicit local commands, exact host preview/live instance/conversation capability, current message adjacency, canonical confirmation provenance, cancellation and inert recovery boundaries.
+
+## [2026-10-29 08:00] implementation | records/specs/manual-workflows.md
+Standalone native composer answer preview/confirmation with exact live instance/session/conversation authority, retained human confirmation bytes, separate continuation/review, post-flush entry and post-reload ownership guards. No model submission tool.
+
+## [2026-10-29 08:00] verification | records/specs/manual-workflows.md
+Final frozen V3:66 workflow groups/0, headless preview, strict10 Swift files, native build/package/refusals/signature. V2 scripted agent/27 deterministic/30 actual CLI calls reused with hash-reconstructed display/keep-both deltas. Paused wording correct in both synthetic model cases.131 prior artifacts unchanged. Receipt300010004b9e78646e09623b937887b9614fcab93b1cf24ba369034a294b85c5. Exact5fe51e1 hosted CI green; latest visible/dictation/release gates open.
+
+## [2026-10-29 08:06] verification | records/specs/manual-workflows.md
+Test-only cross-run receiving: accepted26 survives cancel and duplicate evidence/run; independent reviewed delivery reaches32, inert copy retains all outcomes.67 focused groups/0, one-file strict lint. Production code unchanged; receipt8c57759fe9bb5fab23d6060238ebef322f79c5c1c2530acf333df7129842b901.
+
+## [2026-10-29 08:14] design | records/specs/automation-schedules.md
+Three passes: calendar/DST semantics, bounded adversarial dates and integration/authority. Pure preview first; no activation, new schema, model tools or background execution.
+
+## [2026-10-29 08:28] implementation | records/specs/automation-schedules.md
+Pure bounded native calendar preview/core/CLI with exact zones and local-day/UTC outcomes. Fixed measured half-hour-gap skip through chronological day-local resolution; no activation, persistence, model tool or engine change.
+
+## [2026-10-29 08:28] verification | records/specs/automation-schedules.md
+Final13 calendar groups/0 and strict5 Swift files. Frozen V2 native build,31 installed CLI cases, resource/missing10/altered refusals and signature; V3 test-only whole-date boundary group reuses identical production proof.133 prior evidence files unchanged. Receipt e608825e2adedb6d11795bdd26e77997411e2e012b89bd5f47bf7768248b7eb2. Full E4 runtime/UI and app/release gates remain open.
+
+## [2026-10-29 08:33] design | records/specs/automation-definitions.md
+Three passes: shared schema19 definition capture; portable intent versus device execution authority; exact bindings, typed/nested item lineage, stale/retry/fault and inert reconstruction. No activation or agent authoring.
+
+## [2026-10-29 08:44] implementation | records/specs/automation-definitions.md
+Schema19 inert automation kind over shared immutable definitions, exact workflow/nested typed evidence lineage, FTS and capture. New exact read-only preview; no activation, runtime or ordinary agent authoring.
+
+## [2026-10-29 08:44] verification | records/specs/automation-definitions.md
+Final frozen V2 passes326 full core groups/0,8 automation groups, strict10 Swift files, native app/CLI build,36 automation+31 calendar installed calls, resource/missing10/altered refusals and signature.134 prior evidence artifacts byte-identical. Receipt b837e7b50ef0cae81fc0e246f5f963889e4fc61d37e49d7b0a11539f74e37ed7. Exact9d0f15c prior CI green; full E4/release remain open.
+
+## [2026-10-29 08:52] design | records/specs/automation-planning.md
+Reviewed authority, time/delivery and persistence/recovery passes before implementing bounded occurrence preparation; execution and persistent device grants remain open.
+
+## [2026-10-29 09:16] implementation | records/specs/automation-planning.md
+Schema20 durable activation/occurrence/outbox family, revocable exact-generation current-process planning, source-bound monotonic catch-up, bounded/late/coalesced slots, inert reconstruction and CLI list/inspect/pause. No dispatch or persistent device grant.
+
+## [2026-10-29 09:16] verification | records/specs/automation-planning.md
+Frozen V4 full343/0; final focused17/0; final installed33 CLI and native build/resources/missing10/altered refusals/signature pass. Reuse unchanged36 definition/31 calendar CLI cases.135 earlier receipts byte-identical. Artifact62555 bytes SHA5f070252ec18a980acb93b7f872cf0e698b821da74a3f0e3dca9db22dba4d0d9. Actual execution/E4/release remain open.
+
+## [2026-10-29 09:27] design | records/specs/automation-execution.md
+Three passes cover execution versus planning authority, exact run/occurrence identity, manual controls, pause fencing, crash publication and inert reconstruction; full native scheduling remains required.
+
+## [2026-10-29 09:58] implementation | records/specs/automation-execution.md
+Schema21 explicit foreground execution/AI grant, atomic exact scheduled run binding and overlap reservation, source-specific pause/release, separately attributed manual operations/Stop and technical metadata isolation; native scheduled wording and repository skill updated. Timer/device registration remains open.
+
+## [2026-10-29 09:58] verification | records/specs/automation-execution.md
+Final359 full core/16 focused groups, synthetic lifecycle,2 actual dispatch SIGKILL boundaries/16 calls,44 execution/33 preparation/36 definition/31 calendar installed native CLI calls, strict25 Swift files, isolated skill validation and native resource/missing10/altered refusal/signature checks pass. Artifact162582 bytes SHA2cd644b06181c17fa43590ea792983c40d4fb6827bb82de60b4802e36cbab44b.136 prior artifacts unchanged. Native UI locked; full E4/release/goal unfinished.
+
+## [2026-10-29 10:08] design | records/specs/native-automation-owner.md
+Three-pass native scheduling/device registry contract: exact physical and authorization binding, atomic local registry, native controls and conservative active-app lifecycle; full background/privacy gates remain open.
+
+## [2026-10-29 10:46] implementation | records/specs/native-automation-owner.md
+Native Activity/Schedules typed create/edit/preview, exact enable/pause/manual Run once; private durable physical-workbook device registry, exact-generation restoration and live publication fences; one active-app owner yields to interactive work. Schema21 unchanged, full background/event/condition/release open.
+
+## [2026-10-29 10:46] verification | records/specs/native-automation-owner.md
+Final17 registry/controller groups,6 independent writers,2 actual registry SIGKILL barriers,16 execution groups, synthetic ProductAI lifecycle,44 installed CLI calls, strict16 Swift files and native package/resource10 missing/altered refusal/signature pass. Full359 core V4 reused after guard naming; no actual-model/visible OS proof. 109853bytes SHAa8dbedf09a52fa7357d3d18a3ddba61e6eb8f16b62686b41f785b74adf0e21f0;137 prior artifacts unchanged. CI f759f47 green, new exact CI required; Mac locked, goal unfinished.
+
+## [2026-10-29 10:49] verification | records/specs/native-automation-owner.md
+Final V11 two-file shutdown admission race corrected; fresh native build, strict lint, installed resource/missing10/altered refusal/signature pass. CLI SHA unchanged, V10 focused/controller/ProductAI/44 CLI proof reused. Receipt 13530bytes SHA574879fdd274cd055ac2ce1a6043203b7c80377379f7c6c5291fb1e214044c37;137 prior artifacts plus owner receipt unchanged. Visible OS/goal/release unfinished.
+
+## [2026-10-29 11:06] design | records/specs/condition-transitions.md
+Condition E4 reviewed in three passes: known/unknown/baseline/reset semantics, normalized duplicate identity, bounded inert previews and remaining atomic business-event/cursor/event-time/causality integration. A current read cannot prove intermediate historical crossings.
+
+## [2026-10-29 11:06] implementation | records/specs/condition-transitions.md
+Pure NativeConditionRule and no-workbook condition-preview CLI implement six Decimal comparisons, no-repeat transitions/reset/unknown gaps, duplicate/changed-content behavior and bounded no-follow regular-file inputs. CI-found registry race repaired with atomic mkdir0700; unsafe existing directories refuse unchanged. Schema21 unchanged, real triggers remain closed.
+
+## [2026-10-29 11:06] verification | records/specs/condition-transitions.md
+13 condition groups/243 trajectories,31 installed CLI calls,13 calendar/16 execution groups,18 registry/controller groups plus5 fresh starts/30 workers, strict7 Swift files and native resource/missing10/altered refusal/signature pass. fab2a83 CI failed16/17 and is retained; corrective head needs CI. Receipt61244bytes SHA1559bf286dec9681b20ac23d78c4c7e5902fbb1d884eb6933fa74f78634b05f6,139 prior artifacts unchanged. Mac locked; no model/real event/release proof, goal unfinished.
+
+## [2026-10-29 11:46] design | records/specs/business-events.md
+Reviewed schema22 feed in semantics, recovery and scale passes: one atomic committed batch, final settled versions, exact meaning, immutable history/captured maps, sparse scope keysets and no execution authority. Dataset row-value scope and inventory effect/time eligibility remain explicit.
+
+## [2026-10-29 11:46] implementation | records/specs/business-events.md
+Schema22 business_batches/business_events join complete capture/apply. Atomic publisher binds exact commit actor/time; semantic integrity checks stream retained input versions; core/CLI bound global/scope/batch pages with lossless positions, output limits, short busy waits and cancellation. Conditions remain inert.
+
+## [2026-10-29 11:46] verification | records/specs/business-events.md
+Final386 full core/0,14 focused,76 installed native CLI calls including6 concurrent publishers/2 SIGKILL boundaries, owner18/ProductAI lifecycle/44 automation calls, strict12 Swift and native resource/missing10/altered refusal/signature pass. V8 only test-label delta; failed iterations retained. Artifact102021bytes SHAace21c59cf049e5770858e2f1742793f33dd48688ad2343abe6dba9701bfe61d;140 prior artifacts unchanged. Mac locked; own CI/condition consumers/full release open.
+
+## [2026-10-29 12:04] design | records/specs/inventory-event-state.md
+Reviewed exact historical inventory in meaning, history and scale passes: explicit knowledge/effective cutoffs, unknown basis, actual-only settled effects, immutable lineage, bounded reconciliation and no per-poll history scan or execution authority.
+
+## [2026-10-29 12:04] implementation | records/specs/inventory-event-state.md
+Schema22 read-only inventoryAtBusinessBatch and installed inventory-at-batch CLI resolve retained bases/settled effects with exact contribution IDs, strict Decimal addition and bounded output/time. Fixed subject-first exact joins avoid the observed scale timeout. No model/schema/authority change.
+
+## [2026-10-29 12:04] verification | records/specs/inventory-event-state.md
+Final11 focused groups, real10000 success/10001 refusal,14 feed regressions,37 installed native CLI calls, strict5 Swift files and native resource/missing10/altered refusal/signature pass. V2 deadline/V3 profile retained. Artifact38331bytes SHAc4f9cc2540c91ed557fa1e4027cae9f3a6ebd6572c07a64eaab223ad36de92aa;141 prior artifacts unchanged. Prior386 full core retains scope. CI8634c6c still running; adapter needsCI. Goal/release unfinished.
+
+## [2026-10-29 12:16] design | records/specs/inventory-condition-consumers.md
+Reviewed incremental inventory condition consumer in three passes: exact baseline/time, atomic paged recovery and bounded pending candidates. No dispatch or authority inferred.
+
+## [2026-10-29 12:42] implementation | records/specs/inventory-condition-consumers.md
+Schema23 captures incremental inventory intent/current effects/working pages, exact observations and inert candidates. Baseline, explicit monotonic clock, atomic batch/basis rebuild and100-candidate backpressure are implemented without workflow authority. Integer feed/tail ordering is fixed after capacity diagnostics.
+
+## [2026-10-29 12:42] verification | records/specs/inventory-condition-consumers.md
+Final416 full core/18 focused/real10000 success10001 refusal,94 native condition calls with2 SIGKILL boundaries/6 writers,76 feed/37 historical calls,registry18/ProductAI,strict13 Swift files and native resources1888each/missing10/altered refusal/signature pass. Prior142 unchanged. Receipt102821bytes SHA112266cb15e0e415adab344dcddf90bee6ae5378901f1b7c5267718e3e088e3c. Failed iterations retained; no new model/visible/hardware/release proof.
+
+## [2026-10-29 12:45] verification | records/specs/inventory-condition-consumers.md
+Final repo-owned documentation passes dbmd validate --all with zero errors/warnings, repository links and git diff --check. All 386 frozen Swift files and 142 earlier evidence files remain byte-identical. Final native consumer, feed and historical probes use the same binary hash. Exact CI will be dispatched after committing this checkpoint.
+
+## [2026-10-29 13:11] implementation | records/specs/automatic-ancestry.md
+Schema24 authoritative indexed workflow invocation identity and bounded read-only ancestry; acceptance/manual derivation preserves origin. Final434 full core/18 focused,22 ancestry/94 condition/76 feed installed calls,4 SIGKILL boundaries total,owner18/ProductAI,strict6 Swift files/native package pass. All143 earlier artifacts unchanged; exact trigger causes/persisted admission and product/release remain open.
+
+## [2026-10-29 13:13] verification | records/specs/automatic-ancestry.md
+Final checkpoint gates: dbmd validate --all db has zero errors/warnings; repository links and diff pass. Frozen388 Swift hashes and all143 prior artifacts unchanged. Native CLI 14b7693e292a458f8561b0d7f7fbff22bfbdb2cee2f03f8a2f3bf803fd02fae4 binds22 ancestry/94 condition/76 feed calls.434 full core groups pass. No actual-model or visible-OS/release claim.
+
+## [2026-10-29 13:51] implementation | records/specs/automation-causality.md
+Schema25 atomic automatic roots/admissions, bounded trusted inherited budgets, inert inspection and final dispatch cancellation; full456/0, installed21/47/22/94/76 calls, nine competing writers, real dispatch/condition/feed deaths, native checks. Failed iterations retained. Actual condition causes/dispatch and release remain open.
+
+## [2026-10-29 13:55] verification | records/operations/implementation.md
+Local af1b627 checkpoint passes zero-warning db.md, links and diff. GitHub API unreachable; bounded push retry fails github.com DNS. Publication, PR refresh and exact CI remain pending; continue condition-cause work.
+
+## [2026-10-29 14:25] implementation | records/specs/condition-transition-inputs.md
+Schema26 exact condition input windows and inert inspection: full470/0, focused14/0, actual10000/10001, installed30/97/76/22/21 calls, real condition/feed deaths, owner18/ProductAI/native package and strict14 Swift files. Earlier failures retained; actual parent discovery/dispatch and app release remain open.
+
+## [2026-10-29 14:25] verification | records/specs/condition-transition-inputs.md
+Schema26 exact condition input windows and inert inspection: full470/0, focused14/0, actual10000/10001, installed30/97/76/22/21 calls, real condition/feed deaths, owner18/ProductAI/native package and strict14 Swift files. Earlier failures retained; actual parent discovery/dispatch and app release remain open.
+
+## [2026-10-29 14:37] design | records/specs/business-provenance.md
+Reviewed next E4 data/control/producer/revision role/seal representation, producer inventory, bounded inspection and independent-root/dispatch boundaries. Schema27 is planned only; app remains qualified scoped schema26 at cddcdc5 with exact CI running.
+
+## [2026-10-29 15:02] implementation | records/specs/business-provenance.md
+Schema27 role/seal capture and audited producers: full484/0, focused13/0, real10000/10001 input/projection bounds, installed19/30/97/76/22/21 calls, owner18/ProductAI/native package, strict41 Swift files; all146 receipts unchanged. Business-origin resolution and actual condition dispatch remain next.
+
+## [2026-10-29 15:02] verification | records/specs/business-provenance.md
+Schema27 role/seal capture and audited producers: full484/0, focused13/0, real10000/10001 input/projection bounds, installed19/30/97/76/22/21 calls, owner18/ProductAI/native package, strict41 Swift files; all146 receipts unchanged. Business-origin resolution and actual condition dispatch remain next.
+
+## [2026-10-29 15:07] design | records/specs/business-provenance.md
+Review the next read-only business-origins API: complete sealed data graph, explicit manual producer markers, authoritative automatic/admission boundaries, bounded output and no independent-root/dispatch grant. Capture checkpoint35d7bf8 is pushed; exact CI40897726707 running.
+
+## [2026-10-29 15:27] implementation | records/specs/business-provenance.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/operations/implementation.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/overview/start-here.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/operations/persistence-coverage.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/specs/storage.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/specs/automation-causality.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/specs/native-app-engine.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/specs/automatic-ancestry.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:27] implementation | records/operations/build-and-run.md
+Qualify bounded business origins: 499 core, 74 focused groups, installed 42 origin/22 ancestry/21 admission calls; retain limits and next condition/root work.
+
+## [2026-10-29 15:31] design | records/specs/business-provenance.md
+Specify exact read-only condition-window origin resolution with bounded member validation, shared graph budgets and explicit coverage refusal.
+
+## [2026-10-29 15:42] implementation | records/specs/business-provenance.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/operations/implementation.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/overview/start-here.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/specs/condition-transition-inputs.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/operations/persistence-coverage.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/specs/storage.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/specs/automation-causality.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/specs/native-app-engine.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:42] implementation | records/operations/build-and-run.md
+Qualify exact condition-window origins: 41 focused groups, real bounds, installed 40 window/30 input/42 origin calls; roots and dispatch remain open.
+
+## [2026-10-29 15:52] design | records/specs/business-provenance.md
+Review schema28 explicit input capture and shared creating-commit root identities; bounded read-only condition cause resolution precedes atomic dispatch.
+
+## [2026-10-29 16:06] design | records/specs/business-provenance.md
+Refine automatic production frontier after real mixed-origin tests: producer-role chains account for output inputs; explicit new correction inputs remain independent.
+
+## [2026-10-29 16:21] implementation | records/specs/business-provenance.md
+Qualify schema28 explicit input capture/shared causes, final20 focused/39 installed,530 broad checkpoint, actual publication deaths and visible native review; keep dispatch/release open.
+
+## [2026-10-29 16:21] implementation | records/operations/implementation.md
+Qualify schema28 explicit input capture/shared causes, final20 focused/39 installed,530 broad checkpoint, actual publication deaths and visible native review; keep dispatch/release open.
+
+## [2026-10-29 16:21] implementation | records/overview/start-here.md
+Qualify schema28 explicit input capture/shared causes, final20 focused/39 installed,530 broad checkpoint, actual publication deaths and visible native review; keep dispatch/release open.
+
+## [2026-10-29 16:21] implementation | records/operations/persistence-coverage.md
+Qualify schema28 explicit input capture/shared causes, final20 focused/39 installed,530 broad checkpoint, actual publication deaths and visible native review; keep dispatch/release open.
+
+## [2026-10-29 16:21] implementation | records/specs/storage.md
+Qualify schema28 explicit input capture/shared causes, final20 focused/39 installed,530 broad checkpoint, actual publication deaths and visible native review; keep dispatch/release open.
+
+## [2026-10-29 16:21] implementation | records/specs/automation-causality.md
+Qualify schema28 explicit input capture/shared causes, final20 focused/39 installed,530 broad checkpoint, actual publication deaths and visible native review; keep dispatch/release open.
+
+## [2026-10-29 16:21] implementation | records/specs/native-app-engine.md
+Qualify schema28 explicit input capture/shared causes, final20 focused/39 installed,530 broad checkpoint, actual publication deaths and visible native review; keep dispatch/release open.
+
+## [2026-10-29 16:21] implementation | records/specs/condition-transition-inputs.md
+Qualify schema28 explicit input capture/shared causes, final20 focused/39 installed,530 broad checkpoint, actual publication deaths and visible native review; keep dispatch/release open.
+
+## [2026-10-29 16:21] implementation | records/operations/build-and-run.md
+Qualify schema28 explicit input capture/shared causes, final20 focused/39 installed,530 broad checkpoint, actual publication deaths and visible native review; keep dispatch/release open.
+
+## [2026-10-29 16:21] verification | records/specs/business-provenance.md
+Final schema28 checkpoint: zero-error/zero-warning full knowledge validation, repository links and git diff check pass; final strict18 Swift files,20 focused/39 installed and retained broad530 results qualified in immutable receipt. Publish source next.
+
+## [2026-10-29 16:24] design | records/specs/automation-causality.md
+Adopt shared business-root admission on existing captured ledger: exact declaration relation, calendar/business root coordinates, mixed root limits and writer rechecks; actual condition dispatch remains separate.
+
+## [2026-10-29 16:39] implementation | records/specs/automation-causality.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/specs/business-provenance.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/operations/implementation.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/overview/start-here.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/operations/persistence-coverage.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/specs/storage.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/specs/native-app-engine.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/specs/condition-transition-inputs.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:39] implementation | records/operations/build-and-run.md
+Qualify schema29 shared business-root admission:539 broad/30 final focused,22 installed, nine writers for seven slots, actual SIGKILL and local speech composer; keep actual condition dispatch/release open.
+
+## [2026-10-29 16:40] verification | records/specs/automation-causality.md
+Final schema29 knowledge validation has zero errors/warnings; repository Markdown links, git diff check and strict nine changed Swift files pass. Immutable receipt binds539 broad/30 final focused,22 shared installed calls, race/death and native package/local speech proof. Publish source next.
+
+## [2026-10-29 16:44] design | records/specs/condition-dispatch.md
+Review actual condition dispatch from meaning/UX, atomic authority/recovery and adversity/scale: consumer ownership, baseline/resume/from-now, true trigger binding, no calendar placeholders, live grants and shared limits. Implementation remains next.
+
+## [2026-10-29 16:48] design | records/specs/condition-dispatch.md
+Review owned condition dispatch from UX, authority/recovery and adversarial scale; link next E4 implementation contract. No implementation claim.
+
+## [2026-10-29 17:21] implementation | records/specs/condition-dispatch.md
+Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
+
+## [2026-10-29 17:21] implementation | records/operations/implementation.md
+Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
+
+## [2026-10-29 17:21] implementation | records/overview/start-here.md
+Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
+
+## [2026-10-29 17:21] implementation | records/specs/storage.md
+Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
+
+## [2026-10-29 17:21] implementation | records/operations/persistence-coverage.md
+Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
+
+## [2026-10-29 17:21] implementation | records/specs/native-automation-owner.md
+Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
+
+## [2026-10-29 17:21] implementation | records/specs/inventory-condition-consumers.md
+Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
+
+## [2026-10-29 17:21] implementation | records/specs/condition-transition-inputs.md
+Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
+
+## [2026-10-29 17:21] implementation | records/specs/business-provenance.md
+Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
+
+## [2026-10-29 17:21] implementation | records/specs/automation-causality.md
+Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
+
+## [2026-10-29 17:21] implementation | records/specs/native-app-engine.md
+Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
+
+## [2026-10-29 17:21] implementation | records/operations/build-and-run.md
+Qualify schema30 actual owned condition dispatch and native deterministic journey:555 broad/18 final focused/21 owner groups, installed candidate races/deaths; preserve open conversation/model/release gates.
+
+## [2026-10-29 17:24] design | records/specs/condition-dispatch.md
+Review scoped conversational inventory-rule authoring, current-run template and truthful native handoff; keep model/device authorization closed.
+
+## [2026-10-29 17:46] implementation | records/specs/condition-dispatch
+Qualified schema30 conversational inventory-rule saving and exact native review handoff: seven scripted modes, full agent/65 grammar cases/555 masks8161/8192, actual model and packaged UI, inactive reconstruction, native resources/refusals/signature; retained failures and all152 prior receipts. Text/voice Enable and full app/release remain open.
+
+## [2026-10-29 17:47] verification | records/specs/condition-dispatch
+Final conversational authoring checkpoint: actual model4 calls, packaged native3 calls, zero activations/consumers/runs/admissions and inert reconstruction; full agent/current65 grammars555 masks8161/8192, strict14 Swift files, frozen415 sources, native package/refusals/signature, dbmd all zero errors/warnings, links/diff; all152 prior evidence unchanged.
+
+## [2026-10-29 17:51] design | records/specs/condition-dispatch
+Reviewed native text/voice preview-confirm-enable and pause interaction before implementation: strict current commands, exact target, live physical/generation/registry preview ticket, final publication fence and no model authority.
+
+## [2026-10-29 17:59] design | records/specs/mvp-delivery.md
+Owner course correction: prioritize one complete native MVP journey, focused verification and coherent setup; defer further infrastructure and full-roadmap completion.
+
+## [2026-10-29 18:01] implementation | records/operations/implementation.md
+Bounded checkpoint: corrected stale automation refusal test; eight focused groups pass. Deferred uncompiled Enable sketch preserved. Owner fast-MVP supplier journey now controls delivery; native installer and final candidate remain open.
+
+## [2026-10-29 18:24] implementation | records/operations/implementation.md
+MVP journey found and repaired source-specific tax wording and chart-axis guidance; actual-model short save and missing-rate counterexample pass. Native install handles the owned baseline CLI. CLI edit/Undo and offline portable reopen pass; visible app journey and final candidate checks remain open.
+
+## [2026-10-29 18:48] verification | records/operations/implementation.md
+MVP candidate: full check.sh passed, 557 core groups; source-specific tax and chart-column fixes have real-model retries, deterministic edit/Undo and sandboxed portable reopening pass; native install/setup pass; focused visible startup and final journey ongoing.
+
+## [2026-10-29 19:02] verification | records/operations/implementation.md
+Visible native intake, ready CSV/PDF indexes, working values and formula 130/135 pass. Retained missed-PDF and literal-query/step-limit failures. Current focused PDF summary and original citation navigation pass; broad automated comparison remains unqualified. Updated literal search guidance passes agent and grammar checks.
+
+## [2026-10-29 19:17] verification | records/operations/implementation.md
+MVP 0.1 focused native supplier journey passes: actual CSV/PDF intake, cited PDF summary, saved table/chart, keyboard edit/Undo/cancel, native close/reopen and UI export/reopen. Actual exported copy passes fresh installed CLI reopen with network and original-example access denied; hashes/history/formulas/spaces preserved and zero activations. Final native table, lint, package/refusal/signature and isolated installation checks pass. Retain broad-query missed evidence/step-limit failures as explicit preview limits; immutable receipt 86def378658bfcdd6acc870520359fc33d2f8cc36f9306dfa130e6cdec11ea03. Hosted CI still pending.
+

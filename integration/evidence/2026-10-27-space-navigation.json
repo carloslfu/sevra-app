@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-28T00:11:50.957461+00:00",
+  "baseCommit": "9d1042ba95e70b7cbd5e0504cbdcfe0a721d1cf8",
+  "scope": "Native space shortcuts, recency, live/snapshot identity and populated Home. Synthetic fixtures only. Focused verification, not full release qualification.",
+  "sourceSHA256": {
+    "Sources/SevraCore/SpaceNavigationState.swift": "bfbcb0ed552b0762059e648503d4649af499126864d84f3da4227069f58d42ce",
+    "Sources/SevraCore/WorkspaceSnapshot.swift": "2d4aa53e2ca0e73e413bd7bb54f08e82addac56a53228a058114b39c1cc54dac",
+    "Sources/SevraPreviewUI/SpaceNavigationSession.swift": "2bc3d0e4f084f8ef940ab1d01847d15227982af591d80d2f02b2c8fd0f81a171",
+    "Sources/SevraPreviewUI/SpacePickerSections.swift": "02eabe8d6ae85dfafff1672a966751fd778908fa16c897de0ac9e570777ae19b",
+    "Sources/SevraApp/SpacePickerView.swift": "b70afecb9c4e6ef867e803bb6e78c7def67250cea9abea813b404569843fe123",
+    "Sources/SevraApp/WorkspaceState.swift": "25d0e61ba949f90316814c833edc3dac9c7544c45137b9a273259216d8d06054",
+    "Sources/SevraApp/WorkbookView.swift": "9733b805674ec9299c94639358a75565c6e433b930a1ba208d144dd2e36e0c90",
+    "Sources/SevraApp/ContentViews.swift": "bf9079b705ab5d45ba3b7d5f9579b50f4f088dac6ef9c128da910b44ec68478f",
+    "Sources/SevraApp/SevraApp.swift": "5e70d2e2cc9a262d2cfa72f0e9da8b8c60dfbdf46b2c2548356ff2953a2e4416",
+    "IntegrationTests/Preview/SpaceNavigationChecks.swift": "1bfbb6d705b296bb3ee0e979404eaf3d22b4773686e4ad207d67a096ec32c6ef",
+    "IntegrationTests/Preview/Checks.swift": "e5fec40d8f74399de8e6dcf6d820fc7a959ab7c518af2dffedb510bf64d18c05"
+  },
+  "checks": "PASS workspace close/reopen, late completion/progress, stop ownership and delayed permission\nPASS background workspace snapshot, revision polling, scope, cancellation, coalescing and stale-window refusal\nPASS space pins/recents merge across windows, bound visits, refuse stale/invalid changes, preserve business state and survive portable reopen\nPASS proposal status follows acceptance, Undo, newer drafts and reopen without rewriting history or guessing foreign/unknown associations\nPASS readable request context preserves original bytes, selected ID-like text and unfamiliar formats\nPASS conversation links preserve formatted labels, exact version/locator/origin and safe native routes\nPASS scoped drafts, fractional reading state, concurrent flush, reopen, conflict/keep-both/restore, bounded busy retry and rollback\nPASS scoped history search, stale results, bounded next/previous pages, retry and close\nPASS preview ownership, stale success/error/progress, stop/retry, and task cancellation\n",
+  "build": {
+    "result": "Native app/CLI release builds and preview packaging exited 0.",
+    "appSHA256": "f8ffc5969fc6d98652a5cd9d65e70c770b6337c8824be04e9da061f7842fa91b",
+    "cliSHA256": "4a08ee5fd3c791cfee612519a02286c4962c733bb6cfdd7b53fc373d27382e0b"
+  },
+  "nativeUI": [
+    "Home with an existing Source shows Add files, Search workbook and Recent work without empty-workbook instructions.",
+    "Spaces opens with focused search, Home, other spaces and distinct Live view versus Snapshot labels.",
+    "Pin Purchasing updates the picker and Home immediately after saving, without navigating or creating a snapshot.",
+    "Opening Purchasing and then Receipts records recency; the pinned space is not duplicated in Recent spaces.",
+    "Searching purchasing saved filters to the named snapshot. Return opens it; its saved capture time is visible.",
+    "Create a space through conversation preserves Keep this unsent question. in the composer and focuses it without sending.",
+    "Home shows Pinned spaces, Recent spaces and Recent work. Unpin preserves the space in Recent; repin restores the shortcut.",
+    "Closing and reopening restores pinned Purchasing, recent Purchasing saved and Receipts, and the same unsent draft.",
+    "The preview quit normally."
+  ],
+  "audit": {
+    "unchangedBusinessAndSpaceRows": true,
+    "businessRevision": "5",
+    "navigation": {
+      "recent": [
+        "4beb2e09-082d-4606-9d80-2daea62e3b27",
+        "f1566041-b85e-49dd-a216-022d3b493801",
+        "a6c5bcc2-2127-48bd-b310-33a6a6a0d473"
+      ],
+      "version": 1,
+      "pinned": [
+        "a6c5bcc2-2127-48bd-b310-33a6a6a0d473"
+      ]
+    },
+    "draft": "Keep this unsent question.",
+    "messages": 0,
+    "spaces": 5
+  },
+  "verify": {
+    "ok": true,
+    "result": {
+      "assetIssues": [],
+      "database": "ok",
+      "ok": true
+    },
+    "schemaVersion": 1
+  },
+  "limits": [
+    "No real model inference was required or run for this native navigation change.",
+    "Interpreted pin/unpin/navigation host actions remain pending; pin_space still means immutable snapshot in the existing API.",
+    "Full keyboard/VoiceOver, narrow-window J11 and wider-device qualification remain open.",
+    "Home still has bounded recent work/intake lists; a complete pending-review queue is not claimed.",
+    "Splash adoption, automatic context compaction and release qualification remain gated."
+  ]
+}

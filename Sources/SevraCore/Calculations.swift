@@ -3,7 +3,7 @@ import Foundation
 public enum Numbers {
   public static func decimal(_ text: String) throws -> Decimal {
     try require(
-      text.range(of: "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)$", options: .regularExpression)
+      text.range(of: "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)\\z", options: .regularExpression)
         != nil,
       "number",
       "Expected an unambiguous decimal number, received ‘\(text)’. Use a period for decimals.")

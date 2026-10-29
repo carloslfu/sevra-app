@@ -154,10 +154,11 @@ extension Workbook {
   public func searchHistory(
     _ query: String, conversation: String = "main", cursor: String? = nil, limit: Int = 30,
     beforeMessage: String? = nil,
-    cancellation: Cancellation = .init()
+    cancellation: Cancellation = .init(), visibleOnly: Bool = false
   ) throws -> Value {
-    try synchronized {
-      try db.budget(cancellation: cancellation, seconds: 3) {
+    let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
+    return try synchronized(cancellation: control) {
+      try db.budget(cancellation: control, seconds: 3) {
         try db.readTransaction {
           try requireConversation(conversation)
           let terms = try Self.searchTerms(query)
@@ -173,6 +174,7 @@ extension Workbook {
             try require(
               saved["version"].int == 1 && saved["query"].text == query
                 && saved["conversation"].text == conversation
+                && (saved["visibleOnly"] == .bool(true)) == visibleOnly
                 && saved["beforeMessage"] == (beforeMessage.map(Value.string) ?? .null),
               "stale_cursor",
               "The history cursor or query changed. Start a fresh search.")
@@ -182,9 +184,10 @@ extension Workbook {
             terms.isEmpty
             ? []
             : try db.execute(
-              "SELECT m.rowid,m.id,m.role,m.state,m.created,snippet(message_fts,0,'','', ' … ',40) AS excerpt FROM message_fts JOIN messages m ON m.rowid=message_fts.rowid WHERE message_fts MATCH ? AND m.conversation_id=? AND (? IS NULL OR m.rowid<?) AND (? IS NULL OR m.rowid<?) ORDER BY m.rowid DESC LIMIT ?",
+              "SELECT m.rowid,m.id,m.role,m.state,m.created,snippet(message_fts,0,'','', ' … ',40) AS excerpt FROM message_fts JOIN messages m ON m.rowid=message_fts.rowid WHERE message_fts MATCH ? AND m.conversation_id=? AND (? IS NULL OR m.rowid<?) AND (? IS NULL OR m.rowid<?) AND (?=0 OR m.role!='tool') ORDER BY m.rowid DESC LIMIT ?",
               [
                 .string(terms), .string(conversation), before, before, ceiling, ceiling,
+                .bool(visibleOnly),
                 .number(Double(count + 1)),
               ])
           let page = Array(rows.prefix(count))
@@ -194,6 +197,7 @@ extension Workbook {
               "version": .number(1), "query": .string(query),
               "conversation": .string(conversation), "before": last["id"]!,
               "beforeMessage": beforeMessage.map(Value.string) ?? .null,
+              "visibleOnly": .bool(visibleOnly),
             ])
             next = .string(Data(try saved.json().utf8).base64EncodedString())
           } else {
@@ -239,7 +243,7 @@ extension Workbook {
       "inputs": .array(references.map(Value.string)), "parent": parentID.map(Value.string) ?? .null,
       "run": runID.map(Value.string) ?? .null,
     ])
-    return try mutation(
+    let saved = try mutation(
       "context_checkpoint", token: token, request: request, expected: history.revision
     ) {
       try cancellation.check()
@@ -286,9 +290,12 @@ extension Workbook {
       for input in references {
         try db.execute("INSERT INTO checkpoint_inputs VALUES(?,?)", [.string(id), .string(input)])
       }
+      CheckpointPublicationProbe.observer?(.prepared, id)
       try cancellation.check()
       return .string(id)
     }.text
+    CheckpointPublicationProbe.observer?(.published, saved)
+    return saved
   }
 
   public func contextCheckpoints(conversation: String = "main", limit: Int = 20) throws -> [Value] {

@@ -80,12 +80,12 @@ def assert_available():
         os.close(fd)
 
 
-def worker(backend, block, order, repetitions, config_path, output):
+def worker(backend, block, order, repetitions, config_path, output, binary=None):
     assert_available()
     before = environment()
     if not before['acPower']:
         raise RuntimeError('AC power required before starting a worker')
-    command = [str(ROOT / '.build/release/sevra-workflow-performance'), str(config_path), backend]
+    command = [str(binary or ROOT / '.build/release/sevra-workflow-performance'), str(config_path), backend]
     rows, ready, processes, roles = [], None, [], []
     failure, closed = None, None
     raw = output / f'{block}-{backend}.json'

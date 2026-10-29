@@ -5,7 +5,7 @@ package struct ContextMeasurement: Sendable {
   package let promptTokens: Int
   package let capacity: Int
   package let templateIdentity: String
-  package var threshold: Int { capacity - 1800 - 2048 - 256 }
+  package var threshold: Int { ContextBudget.maintenanceThreshold(capacity: capacity) }
   package var maximumPrompt: Int { capacity - 256 }
   package init(promptTokens: Int, capacity: Int, templateIdentity: String) {
     self.promptTokens = promptTokens

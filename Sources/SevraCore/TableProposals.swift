@@ -8,6 +8,8 @@ extension Workbook {
       !edits.isEmpty && edits.count <= 100 && Set(edits.map(\.id)).count == edits.count,
       "proposal_limit", "Propose between 1 and 100 rows per review.")
     let table = try dataset(datasetID)
+    try require(
+      !table.archived, "archived_dataset", "Restore this table before proposing row edits.")
     var descriptions: [String] = []
     var full: [RowEdit] = []
     for edit in edits {
@@ -21,7 +23,7 @@ extension Workbook {
         ).int == 1
       }
       try require(belongs, "row", "The row does not belong to the selected table.")
-      var values = old.data.object
+      var values = Self.activeValues(old.data.object, columns: table.columns)
       for (key, value) in edit.values {
         guard let column = table.columns.first(where: { $0.id == key }) else {
           throw SevraError("column", "Unknown column.")

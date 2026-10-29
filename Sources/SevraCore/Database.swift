@@ -3,6 +3,9 @@ import Foundation
 
 final class Database {
   var handle: OpaquePointer?
+  var changes: ChangeCapture?
+  var changeColumns: [String: [String]] = [:]
+  var queryControl: DatasetQueryControl?
   init(_ url: URL, create: Bool = false) throws {
     let flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX | (create ? SQLITE_OPEN_CREATE : 0)
     guard
@@ -29,8 +32,11 @@ final class Database {
         return a < b ? -1 : a > b ? 1 : 0
       }, nil)
     // Apple system SQLite omits loadable extensions.
+    try installDatasetQueryFunctions()
   }
-  deinit { sqlite3_close(handle) }
+  deinit {
+    sqlite3_close(handle)
+  }
   func script(_ sql: String) throws {
     var error: UnsafeMutablePointer<CChar>?
     guard sqlite3_exec(handle, sql, nil, nil, &error) == SQLITE_OK else {
@@ -39,8 +45,9 @@ final class Database {
       throw SevraError("database", message)
     }
   }
-  @discardableResult func execute(_ sql: String, _ values: [Value] = []) throws -> [[String: Value]]
-  {
+  @discardableResult func execute(
+    _ sql: String, _ values: [Value] = [], maxRows: Int = Int.max, maxBytes: Int = Int.max
+  ) throws -> [[String: Value]] {
     var stmt: OpaquePointer?
     guard sqlite3_prepare_v2(handle, sql, -1, &stmt, nil) == SQLITE_OK, let stmt else {
       throw failure()
@@ -64,14 +71,21 @@ final class Database {
       }
     }
     var result: [[String: Value]] = []
+    var bytes = 0
     while true {
       let rc = sqlite3_step(stmt)
       if rc == SQLITE_DONE { break }
-      guard rc == SQLITE_ROW else { throw failure() }
+      guard rc == SQLITE_ROW else { throw queryControl?.failure ?? changes?.failure ?? failure() }
+      try require(
+        result.count < maxRows, "query_result_limit", "Query result exceeds its row budget.")
       var row: [String: Value] = [:]
       for i in 0..<sqlite3_column_count(stmt) {
+        let type = sqlite3_column_type(stmt, i)
+        bytes += Int(sqlite3_column_bytes(stmt, i)) + 16
+        try require(
+          bytes <= maxBytes, "query_result_limit", "Query result exceeds its byte budget.")
         let key = String(cString: sqlite3_column_name(stmt, i))
-        switch sqlite3_column_type(stmt, i) {
+        switch type {
         case SQLITE_NULL: row[key] = .null
         case SQLITE_INTEGER: row[key] = .number(Double(sqlite3_column_int64(stmt, i)))
         case SQLITE_FLOAT: row[key] = .number(sqlite3_column_double(stmt, i))
@@ -116,14 +130,27 @@ final class Database {
     }
   }
   func failure() -> SevraError { .init("database", String(cString: sqlite3_errmsg(handle))) }
-  func transaction<T>(_ body: () throws -> T) throws -> T {
+  func shortWait<T>(_ body: () throws -> T) rethrows -> T {
+    sqlite3_busy_timeout(handle, 100)
+    defer { sqlite3_busy_timeout(handle, 5000) }
+    return try body()
+  }
+  func transaction<T>(beforeCommit: (() throws -> Void)? = nil, _ body: () throws -> T) throws -> T
+  {
     try execute("BEGIN IMMEDIATE")
     do {
+      try changes?.begin(self)
       let value = try body()
+      try changes?.publish(self)
+      try beforeCommit?()
       try execute("COMMIT")
+      changes?.reset()
       return value
     } catch {
       _ = try? execute("ROLLBACK")
+      changes?.reset()
+      changes?.schemaCookie = nil
+      changeColumns.removeAll()
       throw error
     }
   }

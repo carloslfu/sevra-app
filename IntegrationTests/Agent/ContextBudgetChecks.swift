@@ -10,8 +10,11 @@ func checkContextBudget() throws {
     try expectEqual(maintenance.maintenanceRecommended, true)
     try expectEqual(maintenance.outputTokens, 1800)
     try expectEqual(
-      budget.contextTokens - budget.maintenanceThreshold,
-      maintenance.outputTokens + budget.nextToolResultReserve + budget.recoveryReserve)
+      budget.contextTokens - budget.maintenanceThreshold
+        >= maintenance.outputTokens + budget.nextToolResultReserve + budget.recoveryReserve, true)
+    try expectEqual(
+      ContextMeasurement(promptTokens: 1, capacity: budget.contextTokens, templateIdentity: "test")
+        .threshold, budget.maintenanceThreshold)
     let boundary = try budget.allowance(promptTokens: budget.contextTokens - 256)
     try expectEqual(boundary.outputTokens, 256)
     try expectEqual(boundary.maintenanceRecommended, true)
@@ -19,6 +22,13 @@ func checkContextBudget() throws {
       try expectThrows(try budget.allowance(promptTokens: invalid))
     }
   }
+  try expectEqual(ContextBudget(profile: .development8K).maintenanceThreshold, 4088)
+  try expectEqual(ContextBudget(profile: .evaluation32K).maintenanceThreshold, 24576)
+  try expectEqual(ContextBudget(profile: .evaluation64K).maintenanceThreshold, 49152)
+  try expectEqual(ContextBudget.maintenanceThreshold(capacity: 32771), 24578)
+  try expectEqual(ContextBudget.maintenanceThreshold(capacity: 0), 0)
+  try expectEqual(ContextBudget.maintenanceThreshold(capacity: -1), 0)
+  try expectEqual(ContextBudget.maintenanceThreshold(capacity: Int.max) > 0, true)
   try expectEqual(ContextBudget.Profile(rawValue: 16384), nil)
   try ContextBudget.validateEnvelope([
     InferenceMessage(role: "user", content: String(repeating: "a", count: 96_001))

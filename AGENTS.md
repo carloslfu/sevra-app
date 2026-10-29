@@ -15,6 +15,28 @@ retrieval, and truthful completion. No hidden hosted model or telemetry.
 
 Keep specifications and work records in this repo's db.md store. No private
 paths, private repository requirements, credentials, or real business fixtures.
-Use meaningful invariant/integration tests. Run scripts/check.sh before release.
+Use meaningful invariant/integration tests. Follow the owner-approved
+[focused verification policy](db/records/specs/distribution.md#focused-verification-policy):
+verify the actual fix plus a nearby counterexample, reuse unchanged evidence, and
+reserve broad reruns for concrete boundary changes or integration/release milestones.
+Run scripts/check.sh before release.
+
+Before the first notarized, production-ready 1.0 release actually distributed for
+production use, do not maintain backward compatibility for development schemas,
+formats or CLI/agent contracts. Update canonical schemas/interfaces and recreate
+selected disposable fixtures instead of adding legacy migrations/adapters. Test
+deployments/previews/tags do not activate support. Preserve current-format integrity
+and user data. The controlling policy is
+[pre-1.0 compatibility](db/records/specs/distribution.md#pre-10-compatibility-policy).
+The [persistence-readiness requirement](db/records/specs/persistence-readiness.md)
+adds complete saved changes, causal identities, deterministic local reconstruction
+and accurate decision provenance. The next deliverable is the owner-directed [fast MVP](db/records/specs/mvp-delivery.md):
+run the native supplier CSV/PDF to cited comparison, saved result, edit/recalculate/Undo,
+reopen and portable-copy journey first, fix observed blockers, then ship MVP 0.1 test
+preview. Finish only a coherent in-flight checkpoint. Further E2-E6, condition/dataset/
+background infrastructure and full engine/hardware/release research are deferred.
+Existing safeguards, history and current-format integrity remain required. Keep at
+most three active blockers in the progress record and reuse unchanged proof.
+Cloud sync, transport, replica coordination and a new resolver are out of scope.
 Preserve unrelated changes. Do not change the website business or Slotstream
 repository as a side effect. Keep public claims tied to measured acceptance.

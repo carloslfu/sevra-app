@@ -166,6 +166,42 @@ package actor NativeWorkbookModel: WorkbookInference {
     }
   }
 
+  package func interpret(
+    request: Value, directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void
+  ) async throws -> Value {
+    try require(leased && !active, "busy", "The native model needs an exclusive workflow step.")
+    try require(
+      request["model"] == .string(identity), "workflow_model",
+      "The saved request names a different model.")
+    active = true
+    lastMetrics = .null
+    defer { active = false }
+    return try await withTaskCancellationHandler {
+      if Task.isCancelled { cancellation.cancel() }
+      try cancellation.check()
+      let messages = request["messages"].array.map {
+        InferenceMessage(role: $0["role"].text, content: $0["content"].text)
+      }
+      let result = try await worker.respond(
+        messages: messages, directory: directory, cancellation: cancellation,
+        progress: progress, toolScope: .inspection, citationIDs: [], interpretation: request)
+      try cancellation.check()
+      guard result.0.calls.count == 1, let call = result.0.calls.first,
+        call.name == "interpretation_result"
+      else {
+        throw SevraError("interpretation_output", "Expected one structured interpretation result.")
+      }
+      lastMetrics = result.1
+      return .object([
+        "request": request, "response": try Value.parse(call.inputJSON)["result"],
+        "metrics": result.1,
+      ])
+    } onCancel: {
+      cancellation.cancel()
+    }
+  }
+
   package func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
@@ -252,7 +288,9 @@ private final class NativeWorker: @unchecked Sendable {
         frontend: frontend, library: configuration.grammarLibrary,
         librarySHA256: configuration.grammarSHA256)
       try cancellation.check()
-      progress("Loading local AI")
+      // A cold device/OS shader cache can compile for several minutes. Keep
+      // startup cancellable and bounded, separately from generation deadlines.
+      progress("Preparing local AI. First start may compile native components…")
       helper = try SplashNativeProcess(
         executable: configuration.engine,
         arguments: [
@@ -260,7 +298,7 @@ private final class NativeWorker: @unchecked Sendable {
           String(configuration.memoryBytes),
           "--persistent-cache", "off", "--idle-sleep", "allow", "--verify-rows", "all",
         ],
-        timeout: 180, cancelled: { cancellation.isCancelled || cancellation.isExpired })
+        timeout: 360, cancelled: { cancellation.isCancelled || cancellation.isExpired })
     }
     deinit { helper.close() }
     private static func verify(_ url: URL, _ digest: String, _ cancellation: Cancellation) throws {
@@ -309,11 +347,12 @@ private final class NativeWorker: @unchecked Sendable {
   func respond(
     messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
     progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
-    citationIDs: [String]
+    citationIDs: [String], interpretation: Value? = nil
   ) async throws -> (NativeReply, Value) {
     try await perform(directory: directory, cancellation: cancellation, progress: progress) {
       session in
-      try self.generate(messages, session, cancellation, progress, toolScope, citationIDs)
+      try self.generate(
+        messages, session, cancellation, progress, toolScope, citationIDs, interpretation)
     }
   }
   private func perform<T>(
@@ -356,7 +395,9 @@ private final class NativeWorker: @unchecked Sendable {
         ? nil
         : try NativeCitationPolicy.make(
           citationIDs, thinking: thinking,
-          itemReferenceIDs: ItemReferenceCandidates.ids(in: messages)
+          itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
+          conversationActions: messages.first?.conversationActions,
+          documentCopyIDs: DocumentCopyCandidates.ids(in: messages)
         ).promptTools()
       let prompt = try session.frontend.prepare(
         messages: messages.map(nativeTemplateMessage),
@@ -431,18 +472,27 @@ private final class NativeWorker: @unchecked Sendable {
   private func generate(
     _ messages: [InferenceMessage], _ session: Session,
     _ cancellation: Cancellation, _ progress: @escaping @Sendable (String) -> Void,
-    _ toolScope: InferenceToolScope, _ citationIDs: [String]
+    _ toolScope: InferenceToolScope, _ citationIDs: [String], _ interpretation: Value? = nil
   ) throws -> (NativeReply, Value) {
     let reasoning = configuration.reasoning
-    let policy = try NativeCitationPolicy.make(
-      citationIDs, toolScope: toolScope, thinking: reasoning.enabled,
-      itemReferenceIDs: ItemReferenceCandidates.ids(in: messages))
+    let policy: SplashToolPolicy
+    if let interpretation {
+      policy = try SplashToolPolicy.interpretationResult(
+        schemaJSON: Data(interpretation["schema"].json().utf8), thinking: reasoning.enabled)
+    } else {
+      policy = try NativeCitationPolicy.make(
+        citationIDs, toolScope: toolScope, thinking: reasoning.enabled,
+        itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
+        conversationActions: messages.first?.conversationActions,
+        documentCopyIDs: DocumentCopyCandidates.ids(in: messages))
+    }
     let budget = configuration.contextBudget
     let prompt = try session.frontend.prepare(
       messages: messages.map(nativeTemplateMessage), tools: policy.promptTools(),
       thinking: reasoning.enabled, contextLimit: budget.contextTokens)
     let allowance = try budget.allowance(promptTokens: prompt.tokens.count)
-    let outputBudget = allowance.outputTokens
+    let outputBudget = min(
+      allowance.outputTokens, interpretation?["maxOutputTokens"].int ?? allowance.outputTokens)
     let constraint = try session.factory.create(grammar: policy.grammar)
     let output = try SplashOutputStream(
       frontend: session.frontend, tools: policy.outputTools, thinking: reasoning.enabled)
@@ -493,7 +543,7 @@ private final class NativeWorker: @unchecked Sendable {
     try cancellation.check()
     let metrics: Value = .object([
       "backend": .string("splash-native-candidate"),
-      "toolScope": .string(toolScope.rawValue),
+      "toolScope": .string(interpretation == nil ? toolScope.rawValue : "workflow_interpretation"),
       "requestSeconds": .number(generated.requestSeconds),
       "firstTokenSeconds": generated.firstTokenSeconds.map(Value.number) ?? .null,
       "promptTokens": .number(Double(prompt.tokens.count)),

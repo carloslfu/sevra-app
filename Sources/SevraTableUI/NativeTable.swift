@@ -107,7 +107,7 @@ public struct NativeTable: NSViewRepresentable {
       for c in columns {
         let column = NSTableColumn(identifier: .init(c.id))
         column.title = c.title
-        column.isEditable = c.formula == nil
+        column.isEditable = c.formula == nil && !page.dataset.archived
         column.width = 160
         column.minWidth = 80
         if c.formula == nil {
@@ -153,7 +153,7 @@ public struct NativeTable: NSViewRepresentable {
       cell.isBordered = false
       cell.backgroundColor = .clear
       cell.font = .systemFont(ofSize: 13)
-      cell.isEditable = c.formula == nil
+      cell.isEditable = c.formula == nil && !parent.page.dataset.archived
       cell.isSelectable = true
       cell.delegate = self
       cell.identifier = .init(c.id)
@@ -166,6 +166,8 @@ public struct NativeTable: NSViewRepresentable {
         cell.setAccessibilityRole(.staticText)
         cell.setAccessibilityValue(cell.stringValue)
         cell.setAccessibilityHelp("Calculated from " + (c.formula ?? ""))
+      } else {
+        cell.setAccessibilityRole(.textField)
       }
       return cell
     }

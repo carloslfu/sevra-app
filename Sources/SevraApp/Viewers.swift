@@ -3,37 +3,78 @@ import AppKit
 import PDFKit
 import QuickLookUI
 import SevraCore
+import SevraDocumentUI
+import SevraPreviewUI
+import SevraVoice
 import SwiftUI
 
-struct ItemView: View {
-  let item: Item
+@MainActor struct ItemView: View {
+  @StateObject private var document: DocumentDraft
+  @StateObject private var preview = AssetPreviewSession()
+  @StateObject private var references = ReferenceDocumentSession()
+  @State private var linkNavigation: Cancellation?
+  private let workbook: Workbook
+  var item: Item { document.current }
+  init(item: Item, workbook: Workbook, state: WorkspaceState) {
+    _document = StateObject(wrappedValue: DocumentDraft(workbook: workbook, item: item))
+    self.state = state
+    self.workbook = workbook
+  }
   @ObservedObject var state: WorkspaceState
-  @State private var file: URL?
-  @State private var failure: String?
+  private var file: URL? { preview.file }
   @State private var player: AVPlayer?
-  @State private var editing = false
-  @State private var draft = ""
-  @State private var savedDraft = ""
-  @State private var draftVersion: String?
   @State private var keepPlaying = false
   @State private var asset: Asset?
   @State private var choosingArchiveMembers = false
+  private var classification: String {
+    let status = item.status == "rejected" ? "Withdrawn" : item.status.capitalized
+    return [item.category.capitalized, item.meaning.capitalized, status].joined(separator: " · ")
+  }
+  private var movementDirection: String? {
+    guard item.kind == "movement", let quantity = try? Numbers.decimal(item.data["quantity"].text)
+    else { return nil }
+    if quantity == 0 { return "No stock quantity change" }
+    let amount = Numbers.string(quantity < 0 ? -quantity : quantity)
+    return (quantity < 0 ? "Decrease: " : "Increase: ") + amount + " " + item.data["subject"].text
+  }
+  private func scalarDetail(_ key: String) -> String? {
+    switch item.data[key] {
+    case .string, .number, .bool: return item.data[key].text
+    case .null, .array, .object: return nil
+    }
+  }
   var body: some View {
     VStack(spacing: 0) {
       HStack {
-        Text(
-          item.category.capitalized + " · " + item.meaning.capitalized + " · "
-            + item.status.capitalized
-        ).font(.caption).foregroundStyle(.secondary)
+        Text(classification).font(.caption).foregroundStyle(.secondary)
         Spacer()
+        Button("Links", systemImage: "link") { state.referencePanel = .outgoing }
+          .help("Links in this document and documents that mention it")
         if item.status == "draft" {
-          Button("Accept") { state.review(item.id, accepting: true) }.disabled(state.busy)
+          Button("Accept") {
+            if document.end() { state.review(document.current.id, accepting: true) }
+          }.disabled(state.busy)
+        }
+        if item.status == "draft" {
+          Button("Withdraw") {
+            if document.end() { state.review(document.current.id, action: .withdraw) }
+          }.disabled(state.busy).help(
+            "Keep this draft in history without applying it. Undo can restore it.")
         }
         if item.supersedes != nil {
-          Button("Undo") { state.review(item.id, accepting: false) }.disabled(state.busy)
+          Button(isTableUpdateRedo ? "Redo" : "Undo") {
+            if document.end() {
+              state.review(document.current.id, action: isTableUpdateRedo ? .redo : .undo)
+            }
+          }.disabled(state.busy)
         }
         if item.assetID != nil {
           Menu("File actions") {
+            Button("Use saved file…") { state.useSavedFile(item.id) }.disabled(state.busy)
+            if let ext = file?.pathExtension.lowercased(), ["csv", "tsv"].contains(ext) {
+              Button("Update a working table…") { state.navigate(.tableUpdate(item.id, nil)) }
+                .disabled(state.busy)
+            }
             if let ext = file?.pathExtension.lowercased(),
               ["mp4", "mov", "m4v", "mp3", "wav", "m4a", "aiff"].contains(ext)
             {
@@ -43,8 +84,9 @@ struct ItemView: View {
               Button("Choose files from ZIP…") { choosingArchiveMembers = true }
             }
             Button("Resume or retry intake") {
+              let id = item.id
               state.run("Resuming intake") { book, cancel in
-                try book.resumeIntake(item.id, cancellation: cancel)
+                try book.resumeIntake(id, cancellation: cancel)
               }
             }
           }
@@ -52,35 +94,85 @@ struct ItemView: View {
         if asset?.mode == "linked" {
           Menu("External file") {
             Button("Include in workbook") {
+              let id = item.id
               state.run("Including original") { book, cancel in
-                _ = try book.includeLinked(item.id, cancellation: cancel)
+                _ = try book.includeLinked(id, cancellation: cancel)
               }
             }
-            Button("Find original…") { relink() }
+            Button("Find original…") { state.findOriginal() }
           }
         }
-        if let file {
-          Button("Open in another app") { NSWorkspace.shared.open(file) }
-        } else if item.kind == "document" {
-          Button(editing ? "Done" : "Edit draft") {
-            if editing { saveDraft() } else { draft = draftVersion == nil ? item.text : savedDraft }
-            editing.toggle()
+        if file != nil {
+          Button("Open a copy…") { state.openAssetCopy() }
+            .disabled(state.busy)
+            .help("Save a copy for another app. The workbook original stays unchanged.")
+        } else if document.editable {
+          Button(document.editing ? "Done" : "Edit draft") {
+            if document.editing { document.end() } else { document.begin() }
           }
         }
       }.padding(12)
       Divider()
-      if let failure {
-        ContentUnavailableView(
-          "File unavailable", systemImage: "doc.badge.ellipsis", description: Text(failure))
+      if let error = document.failure {
+        VStack(alignment: .leading, spacing: 8) {
+          Text(error).textSelection(.enabled)
+          if document.dirty {
+            ViewThatFits(in: .horizontal) {
+              HStack { recoveryActions }
+              VStack(alignment: .leading, spacing: 8) { recoveryActions }
+            }
+          }
+        }.font(.callout).padding(12).frame(maxWidth: .infinity, alignment: .leading)
+        Divider()
+      }
+      if let newer = document.newerVersionID, !document.dirty {
+        HStack {
+          Text("Viewing an earlier version.").foregroundStyle(.secondary)
+          Button("Open newer version") { state.navigate(.item(newer)) }
+        }.font(.callout).padding(10)
+        Divider()
+      }
+      if preview.loading {
+        VStack(spacing: 12) {
+          if preview.totalBytes > 0 {
+            ProgressView(
+              value: Double(min(preview.checkedBytes, preview.totalBytes)),
+              total: Double(preview.totalBytes)
+            )
+            .frame(maxWidth: 260)
+            Text("Checking original file")
+            Text(
+              ByteCountFormatter.string(fromByteCount: preview.checkedBytes, countStyle: .file)
+                + " checked"
+            )
+            .font(.caption).foregroundStyle(.secondary)
+          } else {
+            ProgressView("Opening file")
+          }
+          Button("Stop") { preview.stop() }
+        }.frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else if let failure = preview.failure {
+        ContentUnavailableView {
+          Label("File unavailable", systemImage: "doc.badge.ellipsis")
+        } description: {
+          Text(failure)
+        } actions: {
+          Button("Retry preview") { preview.retry() }
+        }
       } else if let file {
         let ext = file.pathExtension.lowercased()
         if ext == "pdf" {
           PDFWorkspace(
             url: file, locator: state.itemLocators[item.id],
+            onPage: { page in
+              guard state.workbook === workbook, state.viewedItemVersion == item.id else { return }
+              state.itemLocators[item.id] = "page=\(page)"
+            },
             onSelection: { state.selectedContext = $0 })
         } else if ["mp4", "mov", "m4v", "mp3", "wav", "m4a", "aiff"].contains(ext) {
           VStack {
-            VideoPlayer(player: player).onAppear {
+            NativeMediaPlayer(player: player).onAppear {
+              guard state.interactionActive, state.workbook === workbook else { return }
               if player == nil {
                 player = AVPlayer(url: file)
                 if let locator = state.itemLocators[item.id],
@@ -92,13 +184,15 @@ struct ItemView: View {
                     toleranceAfter: .zero)
                 }
               }
-              MediaPlayback.shared.player = player
+              if let player { PlaybackRegistry.shared.register(player, owner: state.mediaOwner) }
             }
             Toggle("Keep playing while I explore", isOn: $keepPlaying).padding(10)
           }.onDisappear {
-            if !keepPlaying {
-              player?.pause()
+            if !keepPlaying || !state.interactionActive {
+              player?.releasePlayback()
+              player = nil
             } else {
+              if state.backgroundPlayer !== player { state.backgroundPlayer?.releasePlayback() }
               state.backgroundPlayer = player
               state.backgroundMediaTitle = item.title
             }
@@ -114,13 +208,35 @@ struct ItemView: View {
         } else {
           QuickLookViewer(url: file)
         }
-      } else if editing {
-        TextEditor(text: $draft).font(.body).padding(16)
+      } else if document.editing {
+        TextEditor(text: Binding(get: { document.text }, set: { document.update($0) })).font(.body)
+          .padding(
+            16
+          )
+          .accessibilityLabel("Document draft")
       } else {
         ScrollView {
           VStack(alignment: .leading, spacing: 18) {
             Text(item.title).font(.title2)
-            Text(draftVersion == nil ? item.text : savedDraft).textSelection(.enabled)
+            if let movementDirection {
+              Text(movementDirection).font(.headline)
+              if item.status == "draft" {
+                Text("Check whether these units entered or left your stock before accepting.")
+                  .foregroundStyle(.secondary)
+              }
+            }
+            if let saved = references.document, saved.body.originVersionID == item.id {
+              ReferenceReadingText(presentation: saved.presentation, open: openReference)
+            } else {
+              Text(item.text).textSelection(.enabled)
+            }
+            if item.kind == "calculation", item.data["evaluation"] != .null {
+              SavedDefinitionResultView(item: item, workbook: workbook, workspace: state)
+            }
+            if let failure = references.failure {
+              Text("Saved links are unavailable: " + failure).font(.caption).foregroundStyle(
+                .secondary)
+            }
             if item.kind == "link", let target = URL(string: item.data["url"].text) {
               Link("Open source website", destination: target)
             }
@@ -129,24 +245,59 @@ struct ItemView: View {
             {
               Button("Open table") { state.navigate(.table(id)) }
             }
-            if !["table-change", "table-creation"].contains(item.kind) {
+            if item.kind == "table-intake-update" {
+              Text(
+                item.status == "draft"
+                  ? "Preview only. Working rows have not changed."
+                  : item.status == "accepted"
+                    ? "This update was applied. The preview below describes its original changes."
+                    : isTableUpdateRedo
+                      ? "This update was undone. The preview below describes its original changes."
+                      : "This draft was withdrawn without applying it."
+              )
+              .font(.callout).foregroundStyle(.secondary)
+              if let preview = try? JSONDecoder().decode(
+                TableUpdatePreview.self, from: Data(item.data["preview"].json().utf8))
+              {
+                TableUpdateSummary(preview: preview)
+              }
+              Button("Open table") { state.navigate(.table(item.data["datasetID"].text)) }
+            }
+            if item.category == "source", item.kind == "request",
+              let context = item.data["context"].string, !context.isEmpty
+            {
+              CapturedRequestContextView(context: context, state: state)
+            }
+            if !["table-change", "table-creation", "table-intake-update"].contains(item.kind) {
               Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 8) {
                 ForEach(item.data.object.keys.sorted(), id: \.self) { key in
                   if !["input", "inputs", "supersedes", "datasetID", "url"].contains(key),
-                    let value = item.data.object[key], value != .null, value.array.isEmpty,
-                    value.object.isEmpty
+                    !(item.kind == "calculation" && item.data["evaluation"] != .null
+                      && ["populationScope", "captured", "submittedInputs"].contains(key)),
+                    !(item.kind == "movement"
+                      && ["requestSourceID", "status", "meaning"].contains(key)),
+                    !(item.category == "source" && item.kind == "request"
+                      && (["conversationID", "messageID"].contains(key)
+                        || (key == "context" && item.data["context"].string != nil))),
+                    let value = scalarDetail(key)
                   {
                     GridRow {
                       Text(key.replacingOccurrences(of: "_", with: " ").capitalized)
                         .foregroundStyle(.secondary)
-                      Text(value.text).textSelection(.enabled)
+                      Text(value).textSelection(.enabled)
                     }
                   }
                 }
               }.font(.callout)
             }
+            copiedPassages
             lineage
           }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .contain)
+            .background(
+              DocumentScrollObserver(position: state.itemReading[item.id] ?? .init()) {
+                state.itemReading[item.id] = $0
+              })
         }
       }
       if let status = try? state.workbook?.extractionStatus(item.id), !status["detail"].text.isEmpty
@@ -158,40 +309,102 @@ struct ItemView: View {
     }.sheet(isPresented: $choosingArchiveMembers) {
       ArchiveMemberPicker(source: item, state: state)
     }
-    .task(id: draft) {
-      guard editing, draft != savedDraft else { return }
-      do {
-        try await Task.sleep(nanoseconds: 600_000_000)
-        try Task.checkCancellation()
-        saveDraft()
-      } catch {}
-    }.onDisappear { if editing { saveDraft() } }
-    .task(id: item.id) {
-      guard let asset = item.assetID, let book = state.workbook else { return }
-      do {
-        self.asset = try book.asset(asset)
-        file = try await Task.detached { try book.assetURL(asset) }.value
-        failure = nil
-      } catch {
-        failure = error.localizedDescription
+    .sheet(item: $state.referenceModal) { modal in
+      switch modal {
+      case .browser:
+        ReferencesPanel(
+          item: item, workbook: workbook, session: references, state: state, open: openReference)
+      case .choice(let occurrence):
+        ReferenceTargetPicker(
+          item: item, occurrence: occurrence, workbook: workbook,
+          revision: state.revision
+        ) { target, token in
+          guard let saved = references.document, saved.body.originVersionID == item.id,
+            state.workbook === workbook,
+            state.interactionActive, !state.busy, document.current.id == occurrence.origin,
+            !document.dirty
+          else {
+            throw SevraError("workspace_changed", "Refresh this document before changing a link.")
+          }
+          let original = item
+          let updated = try await Task.detached(priority: .userInitiated) {
+            try saved.choose(
+              occurrence, target: target, item: original, workbook: workbook,
+              token: token, cancellation: Cancellation(deadlineAfterSeconds: 3))
+          }.value
+          guard state.workbook === workbook, state.interactionActive else { return }
+          state.refresh()
+          if document.current.id == original.id && state.viewedItemVersion == original.id {
+            if updated.id != original.id {
+              state.navigate(.item(updated.id))
+            } else {
+              await references.load(original, workbook: workbook)
+            }
+          }
+        }
+      }
+    }
+    .task(id: "\(item.id):\(state.revision)") {
+      await references.load(item, workbook: workbook)
+    }
+    .onAppear {
+      if item.assetID != nil { state.activePreview = preview }
+      state.documentDrafts.register(document)
+      state.activeDocument = document
+      state.viewedItemVersion = item.id
+      document.changed = { [weak state, weak document] in
+        guard let state, let document else { return }
+        state.viewedItemVersion = document.current.id
+        state.refresh()
+      }
+      document.refreshHead()
+    }
+    .onChange(of: state.revision) { _, _ in document.refreshHead() }
+    .onDisappear {
+      references.cancel()
+      linkNavigation?.cancel()
+      preview.cancel()
+      if state.activePreview === preview { state.activePreview = nil }
+      document.flush()
+      document.changed = nil
+      if state.activeDocument === document { state.activeDocument = nil }
+      if state.viewedItemVersion == item.id { state.viewedItemVersion = nil }
+    }
+    .task(id: "\(item.id):\(preview.reloadID)") {
+      guard !Task.isCancelled, let assetID = item.assetID,
+        state.workbook === workbook, state.interactionActive
+      else { return }
+      // Retry/relink must not retain or continue playing the previously verified
+      // file while a new verification is pending or has failed.
+      player?.releasePlayback()
+      player = nil
+      keepPlaying = false
+      // Keep external-file recovery available even when the original is missing.
+      asset = try? workbook.asset(assetID)
+      preview.isExternal = asset?.mode == "linked"
+      let chosen = preview.originalURL
+      let identity = preview.reloadID
+      let book = workbook
+      let resolved = await preview.load { cancel, progress in
+        try await Task.detached {
+          if let chosen {
+            return try book.relinkAsset(
+              assetID, to: chosen, cancellation: cancel, progress: progress)
+          }
+          return try book.assetURL(assetID, cancellation: cancel, progress: progress)
+        }.value
+      }
+      if resolved, preview.reloadID == identity, chosen != nil,
+        state.workbook === workbook, state.interactionActive
+      {
+        preview.didResolve(identity)
+        state.refresh()
       }
     }
   }
-  func relink() {
-    guard let asset = item.assetID, let book = state.workbook else { return }
-    let panel = NSOpenPanel()
-    panel.title = "Find the original file"
-    guard panel.runModal() == .OK, let url = panel.url else { return }
-    Task {
-      do {
-        file = try await Task.detached {
-          try book.relinkAsset(asset, to: url)
-          return try book.assetURL(asset)
-        }.value
-        failure = nil
-        state.refresh()
-      } catch { failure = error.localizedDescription }
-    }
+  private var isTableUpdateRedo: Bool {
+    item.kind == "table-intake-update" && item.status == "rejected"
+      && item.data["afterFingerprint"].string != nil
   }
   @ViewBuilder var lineage: some View {
     if let links = try? state.workbook?.lineage(item.id), !links.isEmpty {
@@ -204,21 +417,82 @@ struct ItemView: View {
       }
     }
   }
-  func saveDraft() {
-    guard draft != savedDraft, draft != item.text || draftVersion != nil, let book = state.workbook
+  @ViewBuilder private var copiedPassages: some View {
+    let provenance = DocumentProvenance.make(item)
+    if provenance.unavailable {
+      Text("Copy information is unavailable. Earlier versions remain in Evidence and history.")
+        .font(.callout).foregroundStyle(.secondary)
+    } else if !provenance.passages.isEmpty {
+      Divider()
+      DisclosureGroup("Copied passages (\(provenance.passages.count))") {
+        VStack(alignment: .leading, spacing: 16) {
+          Text(
+            "Each link opens the exact version used in this document. It may be an earlier version."
+          )
+          .font(.caption).foregroundStyle(.secondary)
+          ForEach(provenance.passages) { passage in
+            VStack(alignment: .leading, spacing: 6) {
+              Text(verbatim: passage.text).lineLimit(3).textSelection(.enabled)
+              if !passage.locator.isEmpty {
+                Text(passage.locator).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+              }
+              Button("Open original passage") {
+                state.openEvidence(passage.sourceVersionID, locator: passage.locator)
+              }
+              .buttonStyle(.link)
+              .accessibilityLabel("Open original passage \(passage.id + 1)")
+            }
+          }
+        }.padding(.top, 8).frame(maxWidth: .infinity, alignment: .leading)
+      }
+    }
+  }
+  @ViewBuilder private var recoveryActions: some View {
+    Button("Retry save") { document.flush() }
+    Button("Keep my changes as a separate draft") { document.keepSeparate() }
+    Button("Copy text") {
+      NSPasteboard.general.clearContents()
+      NSPasteboard.general.setString(document.text, forType: .string)
+    }
+  }
+  private func openReference(_ occurrence: ReferenceOccurrence) {
+    guard let saved = references.document, saved.body.originVersionID == item.id,
+      state.workbook === workbook,
+      state.interactionActive, document.end()
     else { return }
-    do {
-      let evidence = try book.addItem(
-        category: "source", kind: "submission", title: "Edit " + item.title, text: draft,
-        status: "accepted")
-      let updated = try book.addItem(
-        category: "record", kind: "document", title: item.title, text: draft, meaning: item.meaning,
-        status: "draft", inputs: [draftVersion ?? item.id, evidence.id],
-        transformation: "human-draft-edit-v1", supersedes: draftVersion ?? item.id)
-      draftVersion = updated.id
-      savedDraft = draft
-      state.refresh()
-    } catch { state.error = error.localizedDescription }
+    if occurrence.reference.resolution == .unresolved {
+      if item.category == "source" || (item.kind == "document" && item.assetID == nil) {
+        state.referenceChoice = occurrence
+      } else {
+        state.referenceModal = nil
+        state.error =
+          "This link has no chosen destination. Change this record through a new record version."
+      }
+      return
+    }
+    state.referenceModal = nil
+    let navigation = state.itemPreviewIdentity
+    linkNavigation?.cancel()
+    let control = Cancellation(deadlineAfterSeconds: 3)
+    linkNavigation = control
+    Task {
+      do {
+        let result = try await Task.detached(priority: .userInitiated) {
+          try saved.resolve(occurrence, workbook: workbook, cancellation: control)
+        }.value
+        guard !control.isCancelled, state.workbook === workbook, state.interactionActive,
+          state.itemPreviewIdentity == navigation
+        else { return }
+        if let target = result["destination"]["id"].string {
+          state.openEvidence(target)
+        } else {
+          state.error = result["detail"].string ?? "This saved link is unavailable."
+        }
+      } catch {
+        guard !control.isCancelled, state.itemPreviewIdentity == navigation else { return }
+        state.error = error.localizedDescription
+      }
+    }
   }
 }
 @MainActor final class PDFControls: ObservableObject {
@@ -270,6 +544,7 @@ struct ItemView: View {
 struct PDFWorkspace: View {
   let url: URL
   let locator: String?
+  let onPage: (Int) -> Void
   let onSelection: (String) -> Void
   @StateObject private var controls = PDFControls()
   var body: some View {
@@ -298,9 +573,10 @@ struct PDFWorkspace: View {
       Divider()
       PDFViewer(url: url, locator: locator, onSelection: onSelection, controls: controls)
     }
+    .onChange(of: controls.page) { _, page in onPage(page) }
   }
 }
-struct PDFViewer: NSViewRepresentable {
+@MainActor struct PDFViewer: NSViewRepresentable {
   let url: URL
   let locator: String?
   let onSelection: (String) -> Void
@@ -310,30 +586,21 @@ struct PDFViewer: NSViewRepresentable {
     let view = PDFView()
     view.autoScales = true
     view.displayMode = .singlePageContinuous
-    view.document = PDFDocument(url: url)
+    context.coordinator.navigation.apply(view, url: url, locator: locator)
     controls.view = view
     context.coordinator.observe(view)
     DispatchQueue.main.async { controls.refresh() }
-    navigate(view)
     return view
   }
   func updateNSView(_ view: PDFView, context: Context) {
-    if view.document?.documentURL != url {
-      view.document = PDFDocument(url: url)
-      navigate(view)
-    }
+    context.coordinator.navigation.apply(view, url: url, locator: locator)
   }
-  func navigate(_ view: PDFView) {
-    guard let locator, let match = locator.range(of: "page=[0-9]+", options: .regularExpression),
-      let n = Int(locator[match].dropFirst(5)), let page = view.document?.page(at: n - 1)
-    else { return }
-    view.go(to: page)
-  }
-  final class Coordinator: NSObject {
+  @MainActor final class Coordinator: NSObject {
     let callback: (String) -> Void
     var token: NSObjectProtocol?
     var pageToken: NSObjectProtocol?
     let controls: PDFControls
+    let navigation = PDFReadingNavigation()
     init(_ callback: @escaping (String) -> Void, controls: PDFControls) {
       self.callback = callback
       self.controls = controls
@@ -345,20 +612,22 @@ struct PDFViewer: NSViewRepresentable {
       token = NotificationCenter.default.addObserver(
         forName: .PDFViewSelectionChanged, object: view, queue: .main
       ) { [weak self, weak view] _ in
-        guard let view, let selection = view.currentSelection, let text = selection.string,
-          let document = view.document
-        else { return }
-        // Selection notifications can precede scrolling to a search match.
-        // Use the selected pages, never the previously visible page.
-        let pages = selection.pages.map { document.index(for: $0) }.filter { $0 != NSNotFound }
-          .sorted()
-        let location: String
-        if let first = pages.first, let last = pages.last {
-          location = first == last ? "Page \(first + 1)" : "Pages \(first + 1)–\(last + 1)"
-        } else {
-          location = "PDF selection"
+        MainActor.assumeIsolated {
+          guard let view, let selection = view.currentSelection, let text = selection.string,
+            let document = view.document
+          else { return }
+          // Selection notifications can precede scrolling to a search match.
+          // Use the selected pages, never the previously visible page.
+          let pages = selection.pages.map { document.index(for: $0) }.filter { $0 != NSNotFound }
+            .sorted()
+          let location: String
+          if let first = pages.first, let last = pages.last {
+            location = first == last ? "Page \(first + 1)" : "Pages \(first + 1)–\(last + 1)"
+          } else {
+            location = "PDF selection"
+          }
+          self?.callback(location + ": " + String(text.prefix(4000)))
         }
-        self?.callback(location + ": " + String(text.prefix(4000)))
       }
     }
     deinit {
@@ -397,11 +666,6 @@ struct ImageViewer: View {
     }
   }
 }
-@MainActor final class MediaPlayback {
-  static let shared = MediaPlayback()
-  var player: AVPlayer?
-}
-
 struct SafeTextViewer: View {
   let file: URL
   @State private var text = ""
@@ -413,6 +677,9 @@ struct SafeTextViewer: View {
       ).padding(20)
       if !detail.isEmpty { Text(detail).font(.caption).foregroundStyle(.secondary).padding(10) }
     }.task(id: file) {
+      guard !Task.isCancelled else { return }
+      text = ""
+      detail = ""
       do {
         let result = try await Task.detached { () -> (String, String) in
           let handle = try FileHandle(forReadingFrom: file)
@@ -424,9 +691,13 @@ struct SafeTextViewer: View {
               ? "Previewing the first 1 MB. The original file remains intact." : ""
           )
         }.value
+        try Task.checkCancellation()
         text = result.0
         detail = result.1
-      } catch { detail = error.localizedDescription }
+      } catch {
+        guard !Task.isCancelled else { return }
+        detail = error.localizedDescription
+      }
     }
   }
 }

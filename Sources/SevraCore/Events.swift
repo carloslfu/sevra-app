@@ -2,6 +2,28 @@ import Foundation
 
 public enum BusinessTime {
   public static func normalized(_ value: String) throws -> String {
+    try require(
+      value.utf8.count <= 40
+        && value.range(
+          of:
+            "^[0-9]{4}-[0-9]{2}-[0-9]{2}(?:T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,9})?(?:Z|[+-][0-9]{2}:[0-9]{2}))?\\z",
+          options: .regularExpression) != nil,
+      "date", "Use YYYY-MM-DD or an ISO timestamp with seconds and an explicit time zone.")
+    let parts = value.prefix(10).split(separator: "-").compactMap { Int($0) }
+    let calendar = Calendar(identifier: .gregorian)
+    let components = DateComponents(year: parts[0], month: parts[1], day: parts[2])
+    try require(
+      parts[0] > 0 && components.isValidDate(in: calendar), "date",
+      "This calendar date does not exist.")
+    if value.count > 10 {
+      let time = value.dropFirst(11).prefix(8).split(separator: ":").compactMap { Int($0) }
+      try require(
+        time[0] < 24 && time[1] < 60 && time[2] < 60, "date", "This clock time does not exist.")
+      if !value.hasSuffix("Z") {
+        let zone = value.suffix(5).split(separator: ":").compactMap { Int($0) }
+        try require(zone[0] < 24 && zone[1] < 60, "date", "Invalid time-zone offset.")
+      }
+    }
     let input = value.count == 10 ? value + "T00:00:00Z" : value
     let parser = ISO8601DateFormatter()
     parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -20,6 +42,14 @@ public enum BusinessTime {
 }
 
 extension Workbook {
+  /// Drafts do not replace the last accepted/withdrawn inventory decision.
+  /// Call within the workbook transaction when restoring a review decision.
+  func settledMovement(_ logicalID: String, before version: Int) throws -> Item? {
+    try db.execute(
+      "SELECT * FROM items WHERE logical_id=? AND version<? AND kind='movement' AND status IN ('accepted','rejected') ORDER BY version DESC LIMIT 1",
+      [.string(logicalID), .number(Double(version))]
+    ).first.map(decodeItem)
+  }
   public func setOpeningBalance(
     subject: String, quantity: String, effective: String, sourceID: String
   ) throws {
@@ -44,47 +74,114 @@ extension Workbook {
   @discardableResult public func movement(
     subject: String, quantity: String, occurrence: String, effective: String, input: String,
     meaning: String = "actual", status: String = "draft", supersedes: String? = nil,
-    token: String = identifier()
+    token: String = identifier(), requestSourceID: String? = nil,
+    cancellation: Cancellation = .init(), actor: ChangeActor? = nil
   ) throws -> Item {
+    let request = try movementRequest(
+      subject: subject, quantity: quantity, occurrence: occurrence, effective: effective,
+      input: input, meaning: meaning, status: status, supersedes: supersedes,
+      requestSourceID: requestSourceID)
+    let result = try mutation(
+      "movement", token: token, request: request, cancellation: cancellation, actor: actor
+    ) { .string(try self.insertMovement(request)) }
+    return try item(result.text)
+  }
+
+  func movementRequest(
+    subject: String, quantity: String, occurrence: String, effective: String, input: String,
+    meaning: String = "actual", status: String = "draft", supersedes: String? = nil,
+    requestSourceID: String? = nil
+  ) throws -> Value {
     let effective = try BusinessTime.normalized(effective)
     try require(
       !subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !occurrence.isEmpty,
       "movement", "Subject and occurrence must not be empty.")
     _ = try Numbers.decimal(quantity)
-    let request: Value = .object([
+    var fields: [String: Value] = [
       "subject": .string(subject), "quantity": .string(quantity), "occurrence": .string(occurrence),
       "effective": .string(effective), "input": .string(input), "meaning": .string(meaning),
       "status": .string(status), "supersedes": supersedes.map(Value.string) ?? .null,
-    ])
-    let result = try mutation("movement", token: token, request: request) {
-      let logical = try supersedes.map { try item($0).logicalID }
-      let existing = try db.execute(
-        "SELECT DISTINCT i.logical_id FROM effects e JOIN items i ON i.id=e.item_id WHERE e.occurrence=? AND e.subject=? AND e.kind='inventory'",
-        [.string(occurrence), .string(subject)])
-      try require(
-        existing.isEmpty
-          || (logical != nil && existing.allSatisfy { $0["logical_id"]?.text == logical }),
-        "duplicate_effect",
-        "This business occurrence already has an inventory effect. Add supporting evidence or correct its existing record."
-      )
-      let id = try insertItem(
-        category: "record", kind: "movement", title: "\(subject): \(quantity)",
-        text: "\(quantity) inventory movement for \(subject)", data: request, meaning: meaning,
-        status: status, scenario: meaning == "actual" ? "actual" : "planning",
-        inputs: [input] + (supersedes.map { [$0] } ?? []), transformation: "inventory-movement-v1",
-        supersedes: supersedes)
-      try db.execute(
-        "INSERT INTO effects VALUES(?,?,?,?,?,?)",
-        [
-          .string(occurrence), .string(subject), .string("inventory"), .string(id),
-          .string(quantity), .string(effective),
-        ])
-      return .string(id)
-    }
-    return try item(result.text)
+    ]
+    if let requestSourceID { fields["requestSourceID"] = .string(requestSourceID) }
+    return .object(fields)
   }
-  @discardableResult public func accept(_ id: String, token: String = identifier()) throws -> Item {
-    let result = try mutation("accept", token: token, request: .string(id)) {
+
+  /// The same read-only domain preconditions serve preview and transactional publication.
+  func validateMovement(_ request: Value) throws {
+    let subject = request["subject"].text
+    let occurrence = request["occurrence"].text
+    let input = try item(request["input"].text)
+    try require(input.id == request["input"].text, "movement_input", "Use exact local evidence.")
+    if let requestID = request["requestSourceID"].string {
+      let source = try item(requestID)
+      try require(
+        source.id == requestID && source.category == "source" && source.kind == "request",
+        "movement_request", "The movement request must reference its captured user submission.")
+    }
+    let previous = try request["supersedes"].string.map(item)
+    if let previous {
+      try require(
+        previous.id == request["supersedes"].text, "movement_revision",
+        "A correction needs the exact movement version.")
+      try require(
+        previous.kind == "movement" && previous.data["subject"].text == subject
+          && previous.data["occurrence"].text == occurrence,
+        "movement_revision", "A correction must keep the same inventory subject and occurrence.")
+      try require(
+        try item(previous.logicalID).id == previous.id, "stale_revision",
+        "This record has a newer version.")
+    }
+    let existing = try db.execute(
+      "SELECT DISTINCT i.logical_id FROM effects e JOIN items i ON i.id=e.item_id WHERE e.occurrence=? AND e.subject=? AND e.kind='inventory'",
+      [.string(occurrence), .string(subject)])
+    try require(
+      existing.isEmpty
+        || (previous != nil
+          && existing.allSatisfy {
+            $0["logical_id"]?.text == previous?.logicalID
+          }),
+      "duplicate_effect",
+      "This business occurrence already has an inventory effect. Add supporting evidence or correct its existing record."
+    )
+  }
+
+  /// Trusted callers already hold the canonical mutation transaction. Never nest mutations.
+  func insertMovement(
+    _ request: Value, additionalInputs: [String] = [], producerInputs: [String] = []
+  ) throws -> String {
+    try validateMovement(request)
+    let subject = request["subject"].text
+    let quantity = request["quantity"].text
+    let meaning = request["meaning"].text
+    let supersedes = request["supersedes"].string
+    let id = try insertItem(
+      category: "record", kind: "movement", title: "\(subject): \(quantity)",
+      text: "\(quantity) inventory movement for \(subject)", data: request, meaning: meaning,
+      status: request["status"].text, scenario: meaning == "actual" ? "actual" : "planning",
+      inputs: Array(
+        Set(
+          [request["input"].text] + additionalInputs
+            + (supersedes.map { [$0] } ?? [])
+            + (request["requestSourceID"].string.map { [$0] } ?? []))
+      ).sorted(),
+      transformation: "inventory-movement-v1", supersedes: supersedes,
+      producerInputs: producerInputs)
+    try db.execute(
+      "INSERT INTO effects VALUES(?,?,?,?,?,?)",
+      [
+        request["occurrence"], .string(subject), .string("inventory"), .string(id),
+        .string(quantity), request["effective"],
+      ])
+    return id
+  }
+  @discardableResult public func accept(
+    _ id: String, token: String = identifier(), cancellation: Cancellation = .init(),
+    actor: ChangeActor = .programmatic("SevraCore.accept")
+  ) throws -> Item {
+    let result = try mutation(
+      "accept", token: token, request: .string(id), cancellation: cancellation, actor: actor
+    ) {
+      try validateDecisionActor(actor)
       let old = try item(id)
       try require(
         try db.scalar("SELECT item_id FROM heads WHERE logical_id=?", [.string(old.logicalID)]).text
@@ -97,10 +194,19 @@ extension Workbook {
       if old.status == "accepted" { return .string(old.id) }
       let evidence = try insertItem(
         category: "source", kind: "decision", title: "Accept \(old.title)",
-        text: "The user accepted this interpretation.", data: .object(["record": .string(id)]),
-        meaning: "actual", status: "accepted", scenario: "actual", inputs: [],
-        transformation: "human-accept-v1")
+        text: actor.label + " accepted this interpretation.", data: try decisionData(id),
+        meaning: "actual", status: "accepted", scenario: "actual", inputs: [old.id],
+        transformation: "decision-accept-v2", controlInputs: decisionInputs())
       var acceptedData = old.data
+      if old.kind == "table-intake-update" {
+        acceptedData = try applyTableIntake(old, decision: evidence, cancellation: cancellation)
+        if old.data["workflow"] != .null {
+          var applied = acceptedData.object
+          applied["acceptanceOperationID"] = .string(token)
+          applied["decisionID"] = .string(evidence)
+          acceptedData = .object(applied)
+        }
+      }
       if old.kind == "table-creation" {
         let columns = try JSONDecoder().decode(
           [Column].self, from: Data(old.data["columns"].json().utf8))
@@ -131,9 +237,17 @@ extension Workbook {
       try db.execute(
         "INSERT INTO effects SELECT occurrence,subject,kind,?,quantity,effective FROM effects WHERE item_id=?",
         [.string(newID), .string(old.id)])
+      if old.kind == "table-intake-update", let runID = old.data["workflow"]["runID"].string {
+        WorkflowPublicationProbe.observer?(.prepared, runID)
+      }
       return .string(newID)
     }
-    return try item(result.text)
+    let accepted = try item(result.text)
+    if accepted.kind == "table-intake-update", let runID = accepted.data["workflow"]["runID"].string
+    {
+      WorkflowPublicationProbe.observer?(.committed, runID)
+    }
+    return accepted
   }
   public func balance(subject: String, asOf: String = "9999-12-31T23:59:59Z") throws -> Value {
     let asOf = try BusinessTime.normalized(asOf)

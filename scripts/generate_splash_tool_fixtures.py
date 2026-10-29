@@ -32,6 +32,7 @@ def required_first(value):
     if 'properties' in result:
         props = result['properties']
         names = [k for k in result.get('required', []) if k in props]
+        names += [k for k in ['componentID', 'definitionBinding'] if k in props and k not in names]
         names += sorted(k for k in props if k not in names)
         result['properties'] = {k: props[k] for k in names}
     return result
@@ -75,9 +76,34 @@ for tool in tools:
         values.update(datasetID='table-1', edits=[{'id':'row-1','values':{'price':'12.50','note':None}}])
     elif name == 'calculate': values.update(expression='cost * 2', values={'cost':'12.40'})
     elif name == 'propose_record': values.update(data={'units':12,'note':None}, meaning='estimate')
+    elif name == 'draft': values.update(text='A new prose summary.')
     elif name == 'save_space':
         values.update(title='Overview', definition={'version':1,'components':[{'id':'table','type':'table','title':'Suppliers','datasetID':'table-1'}]})
+    elif name == 'edit_space':
+        values.update(id='home', expectedVersion=1, edits=[{'operation':'move','componentID':'tables','at':'first'}, {'operation':'remove','componentID':'recent'}])
     outputs.append((name, xml(name, values), values))
+    if name == 'find_definitions':
+        interpretations = {'query': '', 'kind': 'interpretation'}
+        outputs.append(('find_definitions_interpretation', xml(name, interpretations), interpretations))
+        extractions = {'query': '', 'kind': 'extraction'}
+        outputs.append(('find_definitions_extraction', xml(name, extractions), extractions))
+        intakes = {'query': '', 'kind': 'intake'}
+        outputs.append(('find_definitions_intake', xml(name, intakes), intakes))
+    if name in ('save_space', 'edit_space'):
+        for kind in ('calculation', 'query'):
+            component = {'id': 'result', 'type': kind, 'title': 'Reusable result',
+                         'definitionBinding': {'mode': 'live', 'logicalID': 'definition-1'},
+                         'arguments': {'amount': '3'}}
+            composed = ({'title': 'Results', 'definition': {'version': 1, 'components': [component]}}
+                        if name == 'save_space' else
+                        {'id': 'home', 'expectedVersion': 1,
+                         'edits': [{'operation': 'insert', 'at': 'first', 'component': component}]})
+            outputs.append((name + '_' + kind, xml(name, composed), composed))
+    if name == 'draft':
+        composed = dict(values)
+        composed.pop('text')
+        composed['parts'] = [{'text':'Review\n'}, {'copy':'copy:123e4567-e89b-12d3-a456-426614174000:0:0:12'}]
+        outputs.append(('draft_parts', xml(name, composed), composed))
     if name == 'propose_table':
         formulas = dict(values, columns=[{'id':'quantity','title':'Quantity','type':'decimal'},
                          {'id':'unit_cost','title':'Unit cost','type':'decimal'},
@@ -88,7 +114,7 @@ for tool in tools:
 cases = []
 choices = [('required', 'required', False, outputs),
            ('auto', 'auto', False, [('plain', 'The workbook is ready.', None), ('tool', 'Looking.\n' + outputs[0][1], outputs[0][2])]),
-           ('named_finish', {'type':'function','function':{'name':'finish'}}, False, [outputs[-1]]),
+           ('named_finish', {'type':'function','function':{'name':'finish'}}, False, [next(v for v in outputs if v[0]=='finish')]),
            ('thinking', 'required', True, [('reasoned', 'Read the evidence.</think>\n' + outputs[0][1], outputs[0][2])])]
 for choice_name, choice, thinking, examples in choices:
     _, policy = normalize_tools(tools, choice, False)
@@ -109,7 +135,7 @@ for choice_name, choice, thinking, examples in choices:
         assert constraint.matcher.is_accepting()
         cases.append(dict(name=choice_name+'_'+name, choice=choice_name, thinking=thinking,
                           output=output, arguments=arguments, tokens=tokens, steps=steps))
-result = dict(schemaVersion=1, nestedPropertyOrder='required-first', splashCommit='1744cfafee415fb463b289449cec59a864e768e9',
+result = dict(schemaVersion=1, nestedPropertyOrder='required-then-component-and-definition-selectors', splashCommit='1744cfafee415fb463b289449cec59a864e768e9',
               toolsSHA256=hashlib.sha256((ROOT/'IntegrationTests/Agent/workbook-tools.json').read_bytes()).hexdigest(),
               cases=cases)
 path = ROOT/'IntegrationTests/Agent/tool-grammar-fixtures.json'

@@ -130,9 +130,20 @@ package final class ContextMaintenance {
       return true
     }
     let references = ContextDigest.references(digestValue(checkpoint))
-    let state = try workbook.continuationState(
+    let originalState = try workbook.continuationState(
       conversation: conversation, runID: runID,
       messageIDs: Array(Set(original.map(\.id)).union(references)))
+    // The final tool group already presents these originals verbatim. Avoid
+    // duplicating them in the compact host state and its generation vocabulary.
+    var stateFields = originalState.object
+    var copyFields = originalState["documentCopies"].object
+    let retainedCopies = Set(retained.flatMap(\.documentCopyIDs))
+    let copies = DocumentCopyChoices.entries(originalState).filter {
+      !retainedCopies.contains($0["id"].text)
+    }
+    copyFields["entries"] = .array(copies)
+    stateFields["documentCopies"] = .object(copyFields)
+    let state = Value.object(stateFields)
     try require(
       state["run"]["status"].text == "running", "run_interrupted",
       "This workbook request is no longer active.")
@@ -163,7 +174,8 @@ package final class ContextMaintenance {
     }
     result.append(
       InferenceMessage(
-        role: "assistant", content: "Current host continuation state:\n" + (try state.json())))
+        role: "assistant", content: "Current host continuation state:\n" + (try state.json()),
+        documentCopyIDs: DocumentCopyCandidates.ids(in: state)))
     result.append(request)
     result += retained
     return result
@@ -215,9 +227,13 @@ package final class ContextMaintenance {
         floor.promptTokens + 1800 <= floor.capacity, "context_limit",
         "The current request and required workbook state exceed this model's working context. Original input and completed work are saved."
       )
-      // The development 8K policy alone can exceed the provisional reserve.
-      // Require reclaimable context above that floor, rather than a compaction loop.
-      let threshold = max(floor.threshold, min(floor.promptTokens + 1024, floor.capacity - 1800))
+      // Do not silently raise the selected trigger to accommodate an irreducible
+      // policy/request/state floor. The original request remains durable.
+      let threshold = floor.threshold
+      try require(
+        floor.promptTokens < threshold, "context_limit",
+        "Required instructions, current request and workbook state use \(floor.promptTokens) tokens, reaching the \(threshold)-token maintenance threshold of the configured \(floor.capacity)-token context. They cannot be compacted safely. Original input and completed work are saved."
+      )
       if !page.hasMore && full.promptTokens < threshold {
         return Result(messages: working, compacted: compacted, metrics: metrics)
       }
@@ -225,8 +241,9 @@ package final class ContextMaintenance {
       while let last = batch.last, last.id == requestID || !boundary(last) { batch.removeLast() }
       if batch.isEmpty {
         try require(
-          full.promptTokens + 1800 <= floor.capacity, "context_limit",
-          "This request has no completed history that can be compacted. Completed work is saved.")
+          full.promptTokens < threshold, "context_limit",
+          "The working prompt uses \(full.promptTokens) tokens against the \(threshold)-token maintenance threshold, with no completed history that can be compacted. Completed work is saved."
+        )
         return Result(messages: working, compacted: compacted, metrics: metrics)
       }
       let previous = digestValue(checkpoint)
@@ -305,12 +322,14 @@ package final class ContextMaintenance {
       let candidate = try messages(
         checkpoint: tentative, history: next.messages,
         retained: retained)
+      var candidateTokens: Int?
       if !page.hasMore && !next.hasMore {
         let measured = try await measure(candidate, citations: retainedCitationIDs)
+        candidateTokens = measured.promptTokens
         if measured.promptTokens + 128 >= full.promptTokens {
           try require(
-            full.promptTokens + 1800 <= floor.capacity, "context_limit",
-            "Context maintenance could not reclaim enough space. Original history and completed changes are saved."
+            full.promptTokens < threshold, "context_limit",
+            "Context maintenance could not reduce the \(full.promptTokens)-token prompt below its \(threshold)-token threshold. Original history and completed changes are saved."
           )
           return Result(messages: working, compacted: compacted, metrics: metrics)
         }
@@ -347,6 +366,19 @@ package final class ContextMaintenance {
         continue
       }
       metrics.append(summaryMetric)
+      metrics.append(
+        .object([
+          "phase": .string("context_maintenance"),
+          "policy": .string("capacity-75-percent-with-reserves"),
+          "contextTokens": .number(Double(floor.capacity)),
+          "maintenanceThreshold": .number(Double(threshold)),
+          "irreducibleTokens": .number(Double(floor.promptTokens)),
+          "beforeTokens": full.capacity == 0 ? .null : .number(Double(full.promptTokens)),
+          "candidateTokens": candidateTokens.map { .number(Double($0)) } ?? .null,
+          "checkpointSaved": .bool(true),
+          "notice": .string(
+            "Checkpoint published; the remaining prompt is checked before dispatch."),
+        ]))
       compacted = true
       originalMessages = nil
       try refreshCheckpoint()
@@ -354,8 +386,8 @@ package final class ContextMaintenance {
         let result = try messages(checkpoint: checkpoint, history: [], retained: retained)
         let measured = try await measure(result, citations: retainedCitationIDs)
         try require(
-          measured.promptTokens + 1800 <= measured.capacity, "context_limit",
-          "The remaining request and latest result exceed the working context. The checkpoint and original results are saved."
+          measured.promptTokens < measured.threshold, "context_limit",
+          "The remaining request and latest result use \(measured.promptTokens) tokens, reaching the \(measured.threshold)-token maintenance threshold. The checkpoint and original results are saved."
         )
         return Result(messages: result, compacted: true, metrics: metrics)
       }

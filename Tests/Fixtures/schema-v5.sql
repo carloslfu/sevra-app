@@ -1,0 +1,82 @@
+PRAGMA application_id=1398166081;
+PRAGMA user_version=1;
+PRAGMA journal_mode=DELETE;
+PRAGMA synchronous=FULL;
+CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
+INSERT INTO meta VALUES('revision','0');
+CREATE TABLE assets(id TEXT PRIMARY KEY,name TEXT NOT NULL,path TEXT NOT NULL,hash TEXT NOT NULL,bytes INTEGER NOT NULL,media_type TEXT NOT NULL,mode TEXT NOT NULL CHECK(mode IN ('included','linked')),origin TEXT,bookmark TEXT,created TEXT NOT NULL);
+CREATE INDEX assets_hash ON assets(hash);
+CREATE TABLE items(id TEXT PRIMARY KEY,logical_id TEXT NOT NULL,version INTEGER NOT NULL,category TEXT NOT NULL CHECK(category IN ('source','record')),kind TEXT NOT NULL,title TEXT NOT NULL,meaning TEXT NOT NULL CHECK(meaning IN ('actual','estimate','plan','commitment','assumption','rule')),status TEXT NOT NULL CHECK(status IN ('draft','accepted','rejected')),scenario TEXT NOT NULL DEFAULT 'actual',body TEXT NOT NULL,data TEXT NOT NULL,asset_id TEXT REFERENCES assets(id),supersedes TEXT REFERENCES items(id),created TEXT NOT NULL,UNIQUE(logical_id,version));
+CREATE TABLE heads(logical_id TEXT PRIMARY KEY,item_id TEXT NOT NULL UNIQUE REFERENCES items(id));
+CREATE INDEX items_filter ON items(kind,meaning,status,scenario,created);
+CREATE INDEX items_asset ON items(asset_id);
+CREATE INDEX items_logical ON items(logical_id,version);
+CREATE TABLE lineage(child TEXT NOT NULL REFERENCES items(id),parent TEXT NOT NULL REFERENCES items(id),relation TEXT NOT NULL,transformation TEXT NOT NULL,PRIMARY KEY(child,parent,relation));
+CREATE INDEX lineage_parent ON lineage(parent);
+CREATE TABLE chunks(id INTEGER PRIMARY KEY,item_id TEXT NOT NULL REFERENCES items(id),title TEXT NOT NULL,body TEXT NOT NULL,locator TEXT NOT NULL,is_current INTEGER NOT NULL,kind TEXT NOT NULL,meaning TEXT NOT NULL,status TEXT NOT NULL,scenario TEXT NOT NULL);
+CREATE INDEX chunks_item ON chunks(item_id);
+CREATE VIRTUAL TABLE search_fts USING fts5(title,body,content='chunks',content_rowid='id',tokenize='unicode61 remove_diacritics 2',prefix='2 3 4');
+CREATE VIRTUAL TABLE names_fts USING fts5(title,content='chunks',content_rowid='id',tokenize='trigram');
+CREATE TRIGGER chunks_ai AFTER INSERT ON chunks BEGIN
+  INSERT INTO search_fts(rowid,title,body) VALUES(new.id,new.title,new.body);
+  INSERT INTO names_fts(rowid,title) VALUES(new.id,new.title);
+END;
+CREATE TRIGGER chunks_ad AFTER DELETE ON chunks BEGIN
+  INSERT INTO search_fts(search_fts,rowid,title,body) VALUES('delete',old.id,old.title,old.body);
+  INSERT INTO names_fts(names_fts,rowid,title) VALUES('delete',old.id,old.title);
+END;
+CREATE TABLE extraction(item_id TEXT PRIMARY KEY REFERENCES items(id),state TEXT NOT NULL,detail TEXT NOT NULL,parser TEXT NOT NULL,updated TEXT NOT NULL);
+CREATE TABLE effects(occurrence TEXT NOT NULL,subject TEXT NOT NULL,kind TEXT NOT NULL,item_id TEXT NOT NULL REFERENCES items(id),quantity TEXT NOT NULL,effective TEXT NOT NULL,PRIMARY KEY(occurrence,subject,kind,item_id));
+CREATE INDEX effects_subject ON effects(subject,effective);
+CREATE TABLE bases(subject TEXT PRIMARY KEY,quantity TEXT NOT NULL,effective TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id));
+CREATE TABLE datasets(id TEXT PRIMARY KEY,title TEXT NOT NULL,columns TEXT NOT NULL,source_id TEXT REFERENCES items(id));
+CREATE TABLE dataset_rows(dataset_id TEXT NOT NULL REFERENCES datasets(id),row_id TEXT NOT NULL,ordinal INTEGER NOT NULL,logical_id TEXT NOT NULL REFERENCES heads(logical_id),PRIMARY KEY(dataset_id,row_id));
+CREATE INDEX dataset_order ON dataset_rows(dataset_id,ordinal);
+CREATE INDEX dataset_logical ON dataset_rows(logical_id);
+CREATE TABLE table_changes(id TEXT PRIMARY KEY,dataset_id TEXT NOT NULL REFERENCES datasets(id),before_ids TEXT NOT NULL,after_ids TEXT NOT NULL,created TEXT NOT NULL);
+CREATE TABLE column_versions(dataset_id TEXT NOT NULL REFERENCES datasets(id),version INTEGER NOT NULL,columns TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(dataset_id,version));
+CREATE TABLE operations(id TEXT PRIMARY KEY,kind TEXT NOT NULL,request TEXT NOT NULL,result TEXT NOT NULL,created TEXT NOT NULL,revision INTEGER NOT NULL);
+CREATE TABLE agent_runs(id TEXT PRIMARY KEY,conversation_id TEXT NOT NULL,status TEXT NOT NULL,model TEXT NOT NULL,steps INTEGER NOT NULL,metrics TEXT NOT NULL,created TEXT NOT NULL,updated TEXT NOT NULL);
+CREATE TABLE conversations(id TEXT PRIMARY KEY,title TEXT NOT NULL,parent_message TEXT);
+INSERT INTO conversations VALUES('main','Main conversation',NULL);
+CREATE TABLE messages(id TEXT PRIMARY KEY,conversation_id TEXT NOT NULL REFERENCES conversations(id),role TEXT NOT NULL,body TEXT NOT NULL,state TEXT NOT NULL,created TEXT NOT NULL);
+CREATE INDEX messages_order ON messages(conversation_id,created,id);
+CREATE TABLE chapters(id TEXT PRIMARY KEY,title TEXT NOT NULL,message_id TEXT NOT NULL REFERENCES messages(id));
+CREATE TABLE bookmarks(id TEXT PRIMARY KEY,title TEXT NOT NULL,message_id TEXT NOT NULL REFERENCES messages(id));
+CREATE TABLE spaces(id TEXT PRIMARY KEY,title TEXT NOT NULL,definition TEXT NOT NULL,version INTEGER NOT NULL,updated TEXT NOT NULL);
+CREATE TABLE space_versions(id TEXT NOT NULL,version INTEGER NOT NULL,title TEXT NOT NULL,definition TEXT NOT NULL,updated TEXT NOT NULL,PRIMARY KEY(id,version));
+INSERT INTO spaces VALUES('home','Home','{"version":1,"components":[]}',1,'');
+CREATE INDEX messages_sequence ON messages(conversation_id);
+CREATE VIRTUAL TABLE message_fts USING fts5(body,content='messages',content_rowid='rowid',tokenize='unicode61 remove_diacritics 2',prefix='2 3 4');
+CREATE TRIGGER messages_ai AFTER INSERT ON messages BEGIN
+  INSERT INTO message_fts(rowid,body) VALUES(new.rowid,new.body);
+END;
+CREATE TABLE context_checkpoints(id TEXT PRIMARY KEY,conversation_id TEXT NOT NULL REFERENCES conversations(id),schema_version INTEGER NOT NULL CHECK(schema_version=1),first_message TEXT NOT NULL REFERENCES messages(id),last_message TEXT NOT NULL REFERENCES messages(id),message_count INTEGER NOT NULL,history_hash TEXT NOT NULL,source_revision INTEGER NOT NULL,summary TEXT NOT NULL,model TEXT NOT NULL,template TEXT NOT NULL,transformation TEXT NOT NULL,parent_id TEXT REFERENCES context_checkpoints(id),run_id TEXT REFERENCES agent_runs(id),created TEXT NOT NULL);
+CREATE INDEX checkpoints_conversation ON context_checkpoints(conversation_id);
+CREATE TABLE checkpoint_inputs(checkpoint_id TEXT NOT NULL REFERENCES context_checkpoints(id),item_id TEXT NOT NULL REFERENCES items(id),PRIMARY KEY(checkpoint_id,item_id));
+CREATE TABLE run_requests(run_id TEXT PRIMARY KEY REFERENCES agent_runs(id),message_id TEXT NOT NULL UNIQUE REFERENCES messages(id));
+CREATE TABLE message_payloads(message_id TEXT PRIMARY KEY REFERENCES messages(id),payload TEXT NOT NULL);
+INSERT INTO message_fts(message_fts) VALUES('rebuild');
+PRAGMA user_version=2;
+CREATE TABLE tool_calls(id TEXT PRIMARY KEY,run_id TEXT NOT NULL REFERENCES agent_runs(id),call_id TEXT NOT NULL,tool TEXT NOT NULL,arguments TEXT NOT NULL,operation_token TEXT NOT NULL,assistant_text TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('prepared','completed','failed')),result TEXT,result_hash TEXT,message_id TEXT UNIQUE REFERENCES messages(id),created TEXT NOT NULL,UNIQUE(run_id,call_id),CHECK((state='prepared' AND result IS NULL AND result_hash IS NULL AND message_id IS NULL) OR (state!='prepared' AND result IS NOT NULL AND result_hash IS NOT NULL AND message_id IS NOT NULL)));
+CREATE INDEX tool_calls_run ON tool_calls(run_id);
+PRAGMA user_version=3;
+
+CREATE INDEX items_review_order ON items(created,id) WHERE status='draft' AND kind NOT IN ('row','request');
+INSERT INTO meta VALUES('review-revision','0');
+CREATE TRIGGER heads_review_insert AFTER INSERT ON heads WHEN EXISTS(SELECT 1 FROM items WHERE id=NEW.item_id AND status='draft' AND kind NOT IN ('row','request')) BEGIN
+  UPDATE meta SET value=CAST(value AS INTEGER)+1 WHERE key='review-revision';
+END;
+CREATE TRIGGER heads_review_update AFTER UPDATE OF item_id ON heads WHEN EXISTS(SELECT 1 FROM items WHERE id IN (OLD.item_id,NEW.item_id) AND status='draft' AND kind NOT IN ('row','request')) BEGIN
+  UPDATE meta SET value=CAST(value AS INTEGER)+1 WHERE key='review-revision';
+END;
+PRAGMA user_version=4;
+
+CREATE TABLE reference_sets(id TEXT PRIMARY KEY,origin_id TEXT NOT NULL REFERENCES items(id),version INTEGER NOT NULL CHECK(version>0),previous_id TEXT REFERENCES reference_sets(id),inherited_from TEXT REFERENCES reference_sets(id),body_hash TEXT NOT NULL,parser TEXT NOT NULL,coverage TEXT NOT NULL CHECK(coverage IN ('queued','partial','failed','ready','unsupported')),detail TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,UNIQUE(origin_id,version));
+CREATE TABLE reference_heads(origin_id TEXT PRIMARY KEY REFERENCES items(id),set_id TEXT NOT NULL UNIQUE REFERENCES reference_sets(id));
+CREATE TABLE reference_bindings(set_id TEXT NOT NULL REFERENCES reference_sets(id),reference_id TEXT NOT NULL,ordinal INTEGER NOT NULL CHECK(ordinal>=0),start_scalar INTEGER NOT NULL CHECK(start_scalar>=0),scalar_count INTEGER NOT NULL CHECK(scalar_count>0),label TEXT NOT NULL,lookup_text TEXT NOT NULL,target_workbook TEXT,target_mode TEXT CHECK(target_mode IN ('live','pinned')),target_logical TEXT,target_version TEXT,resolution TEXT NOT NULL CHECK(resolution IN ('unresolved','bound','external')),PRIMARY KEY(set_id,reference_id),UNIQUE(set_id,ordinal),CHECK((resolution='unresolved' AND target_workbook IS NULL AND target_mode IS NULL AND target_logical IS NULL AND target_version IS NULL) OR (resolution IN ('bound','external') AND target_workbook IS NOT NULL AND target_mode IS NOT NULL AND ((target_mode='live' AND target_logical IS NOT NULL AND target_version IS NULL) OR (target_mode='pinned' AND target_version IS NOT NULL)))));
+CREATE INDEX reference_sets_origin ON reference_sets(origin_id,version);
+CREATE INDEX reference_bindings_logical ON reference_bindings(target_workbook,target_logical,set_id);
+CREATE INDEX reference_bindings_version ON reference_bindings(target_workbook,target_version,set_id);
+CREATE INDEX reference_bindings_identity ON reference_bindings(reference_id,set_id);
+PRAGMA user_version=5;

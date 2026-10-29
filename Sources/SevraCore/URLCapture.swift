@@ -160,7 +160,8 @@ extension Workbook {
     }
     defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
     let origin = Self.safeOrigin(response.url ?? url)
-    let captured = try importFile(file, origin: origin, cancellation: cancellation)
+    let captured = try importFile(
+      file, origin: origin, cancellation: cancellation, independentInput: true)
     do { try extract(captured.id, cancellation: cancellation) } catch { try cancellation.check() }
     return captured
   }
@@ -193,8 +194,8 @@ extension Workbook {
   {
     let old = try item(id)
     guard let asset = old.assetID else { throw SevraError("asset", "This record has no asset.") }
-    let source = try assetURL(asset, verify: true)
-    let imported = try importFile(source, cancellation: cancellation)
+    let source = try assetURL(asset, verify: true, cancellation: cancellation)
+    let imported = try importFile(source, cancellation: cancellation, inputs: [old.id])
     try extract(imported.id, cancellation: cancellation)
     let included = try addItem(
       category: old.category, kind: old.kind, title: old.title, text: old.text, data: old.data,
@@ -204,20 +205,27 @@ extension Workbook {
     try extract(included.id, cancellation: cancellation)
     return included
   }
-  public func relinkAsset(_ id: String, to file: URL) throws {
+  @discardableResult public func relinkAsset(
+    _ id: String, to file: URL, cancellation: Cancellation = .init(),
+    progress: (Int64, Int64) -> Void = { _, _ in }
+  ) throws -> URL {
+    try cancellation.check()
     let a = try asset(id)
     try require(a.mode == "linked", "asset", "Only external references can be relinked.")
     try require(
-      try Self.hashFile(file) == a.hash, "changed_asset",
+      try Self.hashFile(file, cancellation: cancellation) { progress($0, a.bytes) } == a.hash,
+      "changed_asset",
       "These bytes differ from the recorded original. Import it as a new version instead.")
     let bookmark = try file.bookmarkData(
       options: [], includingResourceValuesForKeys: nil, relativeTo: nil
     ).base64EncodedString()
     _ = try mutation("relink", request: .object(["asset": .string(id), "hash": .string(a.hash)])) {
+      try cancellation.check()
       try db.execute(
         "UPDATE assets SET path=?,bookmark=? WHERE id=?",
         [.string(file.path), .string(bookmark), .string(id)])
       return .string(id)
     }
+    return file
   }
 }

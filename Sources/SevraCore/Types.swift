@@ -119,7 +119,7 @@ public final class Cancellation: @unchecked Sendable {
     cancelled = true
     let active = Array(progresses.values)
     lock.unlock()
-    active.forEach { $0.cancel() }
+    for progress in active { progress.cancel() }
   }
   public func track(_ progress: Progress) {
     lock.lock()
@@ -147,7 +147,28 @@ public final class Cancellation: @unchecked Sendable {
     if stopped { throw SevraError("cancelled", reason ?? "The operation was cancelled.") }
   }
 }
+/// A catalog entry identifies an exact version without loading its body or data.
+/// Open that version explicitly when its evidence is needed.
+public struct ItemSummary: Codable, Identifiable, Equatable, Sendable {
+  public let id: String
+  public let category: String
+  public let kind: String
+  public let title: String
+  public let meaning: String
+  public let status: String
+  public let assetID: String?
+}
+
 public struct Item: Codable, Identifiable, Equatable, Sendable {
+  public static let technicalKinds: Set<String> = [
+    "request", "annotation", "application_definition", "application_invocation",
+    "automation_authorization", "automation_planning", "automation_dispatch",
+    "workflow_authorization", "condition_intent", "condition_dismissal",
+  ]
+  static let technicalKindSQL = technicalKinds.sorted().map { "'" + $0 + "'" }.joined(
+    separator: ",")
+  public var isBusinessEvidence: Bool { !Self.technicalKinds.contains(kind) }
+
   public let id: String
   public let logicalID: String
   public let version: Int
@@ -163,7 +184,7 @@ public struct Item: Codable, Identifiable, Equatable, Sendable {
   public let supersedes: String?
   public let created: String
 }
-public struct SearchHit: Codable, Identifiable, Sendable {
+public struct SearchHit: Codable, Identifiable, Equatable, Sendable {
   public let id: Int
   public let itemID: String
   public let title: String

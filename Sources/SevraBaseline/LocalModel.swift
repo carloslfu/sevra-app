@@ -159,7 +159,9 @@ public actor LocalModel: WorkbookInference {
       tools: summary
         ? []
         : try Self.baselineDefinitions(
-          itemReferenceIDs: ItemReferenceCandidates.ids(in: messages)), thinking: false, effort: nil
+          itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
+          conversationActions: messages.first?.conversationActions,
+          documentCopyIDs: DocumentCopyCandidates.ids(in: messages)), thinking: false, effort: nil
     )
     try cancellation.check()
     guard let capacity = engine.contextPolicyJSON["configured_window"] as? Int else {
@@ -221,13 +223,25 @@ public actor LocalModel: WorkbookInference {
     defer { active = false }
     let engine = try await load(directory, cancellation: cancellation, progress: progress)
     let available =
-      try Self.baselineDefinitions(itemReferenceIDs: ItemReferenceCandidates.ids(in: messages))
+      try Self.baselineDefinitions(
+        itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
+        conversationActions: messages.first?.conversationActions, toolScope: toolScope,
+        documentCopyIDs: DocumentCopyCandidates.ids(in: messages)
+      )
       .filter { toolScope.allows($0.name) }
     let tokens = try engine.encodeChat(
       try Self.baselineMessages(messages), tools: available, thinking: false, effort: nil)
-    if let problem = engine.contextError(promptTokens: tokens.count) {
+    // The engine window includes the reply. Keep this hard bound independent
+    // of conversation maintenance, including when maintenance is disabled.
+    if let problem = engine.contextError(promptTokens: tokens.count + 1800) {
       throw SevraError("context_limit", problem)
     }
+    guard let capacity = engine.contextPolicyJSON["configured_window"] as? Int else {
+      throw SevraError("context_limit", "The configured context capacity is unavailable.")
+    }
+    let measurement = ContextMeasurement(
+      promptTokens: tokens.count, capacity: capacity,
+      templateIdentity: "slotstream-" + Self.revision + ";encodeChat;thinking=false;effort=nil")
     var params = SampleParams()
     params.temperature = 0
     params.maxTokens = 1800
@@ -244,6 +258,10 @@ public actor LocalModel: WorkbookInference {
       "The model reached its response limit. Narrow the request and try again.")
     lastMetrics = .object([
       "toolScope": .string(toolScope.rawValue),
+      "promptTokens": .number(Double(tokens.count)),
+      "contextTokens": .number(Double(capacity)),
+      "maintenanceThreshold": .number(Double(measurement.threshold)),
+      "maintenanceRecommended": .bool(tokens.count >= measurement.threshold),
       "requestSeconds": .number(result.stats.requestSeconds),
       "firstTextSeconds": result.stats.firstTextSeconds.map(Value.number) ?? .null,
       "generatedTokens": .number(Double(result.ids.count)),

@@ -3,6 +3,8 @@ import Foundation
 
 public final class Workbook: @unchecked Sendable {
   public let url: URL
+  /// Package identity survives copying/export. Links never use the filesystem path.
+  public let id: String
   let db: Database
   private let lock = NSRecursiveLock()
   private var lockFD: Int32 = -1
@@ -24,6 +26,7 @@ public final class Workbook: @unchecked Sendable {
         to: url.appendingPathComponent("manifest.json"), options: .atomic)
       let database = try Database(url.appendingPathComponent("workbook.sqlite"), create: true)
       try database.script(Schema.sql)
+      try database.execute("INSERT INTO meta VALUES('workbook-id',?)", [manifest["id"]])
       return try Workbook(url)
     } catch {
       try? FileManager.default.removeItem(at: url)
@@ -49,14 +52,19 @@ public final class Workbook: @unchecked Sendable {
     try require(
       m["format"].text == "sevra" && m["version"].int == 1, "format", "Unsupported workbook format."
     )
+    try require(
+      m["id"].string != nil, "workbook_identity", "The workbook identity must be a string.")
+    try Self.validateReferenceIdentity(m["id"].text)
+    id = m["id"].text
     db = try Database(url.appendingPathComponent("workbook.sqlite"))
     try require(
       try db.scalar("PRAGMA application_id").int == Schema.applicationID, "format",
       "This is not a Sevra workbook.")
     let incomingVersion = try db.scalar("PRAGMA user_version").int
     try require(
-      [1, 2, Schema.version].contains(incomingVersion ?? 0), "schema",
-      "This workbook needs another version of Sevra.")
+      incomingVersion == Schema.version, "schema",
+      "This development workbook uses an unsupported format. Its files were not changed. Use a matching development build to recover or export it."
+    )
     let descriptor = Darwin.open(
       url.appendingPathComponent(".write-lock").path,
       O_CREAT | O_RDWR | O_NOFOLLOW | O_CLOEXEC, 0o600)
@@ -67,43 +75,26 @@ public final class Workbook: @unchecked Sendable {
       if !opened { Darwin.close(descriptor) }
     }
     try require(flock(descriptor, LOCK_EX) == 0, "lock", "Cannot lock the workbook for opening.")
-    try validateAndMigrate()
+    try validateSchema()
+    try db.enableChangeCapture(workbookID: id)
     lockFD = descriptor
     opened = true
   }
-  private func validateAndMigrate() throws {
-    // Validate the old schema before enabling its triggers or changing data.
-    // The transaction also protects against writers that do not use our lock.
+  private func validateSchema() throws {
+    // Pre-1.0 development formats have no compatibility commitment. Never
+    // reset an unsupported document, execute its triggers or guess a migration.
     try db.transaction {
-      let version = try db.scalar("PRAGMA user_version").int
       try require(
-        [1, 2, Schema.version].contains(version ?? 0), "schema",
-        "This workbook needs another version of Sevra.")
-      let reference = try Database(URL(fileURLWithPath: "/:memory:"), create: true)
-      try reference.script(
-        version == 1 ? Schema.version1SQL : version == 2 ? Schema.version2SQL : Schema.sql)
-      let query =
-        "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY name"
+        try db.scalar("PRAGMA user_version").int == Schema.version, "schema",
+        "This development workbook needs a matching build. Its data was not changed.")
+      try db.validateCanonicalSchema()
       try require(
-        try db.execute(query) == reference.execute(query), "schema",
-        "Unrecognized workbook schema. Open only a canonical Sevra package.")
+        try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
+        "Invalid workbook references.")
+      try require(
+        try db.scalar("SELECT value FROM meta WHERE key='workbook-id'").text == id,
+        "workbook_identity", "The workbook manifest and database identities do not match.")
       try db.execute("PRAGMA trusted_schema=ON")
-      if version != Schema.version {
-        if version == 1 { try db.script(Schema.migration2) }
-        try db.script(Schema.migration3)
-        let revision = (try db.scalar("SELECT value FROM meta WHERE key='revision'").int ?? 0) + 1
-        try db.execute("UPDATE meta SET value=? WHERE key='revision'", [.string(String(revision))])
-        try db.execute(
-          "INSERT INTO operations VALUES(?,?,?,?,?,?)",
-          [
-            .string(identifier()), .string("schema_migration"),
-            .string("{\"from\":\(version!),\"to\":\(Schema.version)}"),
-            .string("true"), .string(timestamp()), .number(Double(revision)),
-          ])
-        try require(
-          try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
-          "Invalid workbook references.")
-      }
     }
   }
   deinit { if lockFD >= 0 { Darwin.close(lockFD) } }
@@ -120,19 +111,36 @@ public final class Workbook: @unchecked Sendable {
     defer { lock.unlock() }
     return try body()
   }
+  func synchronized<T>(cancellation: Cancellation, _ body: () throws -> T) throws -> T {
+    while !lock.try() {
+      try cancellation.check()
+      Thread.sleep(forTimeInterval: 0.005)
+    }
+    defer { lock.unlock() }
+    try cancellation.check()
+    return try body()
+  }
   @discardableResult func mutation(
     _ kind: String, token: String = identifier(), request: Value = .null, expected: Int? = nil,
+    cancellation: Cancellation? = nil, actor: ChangeActor? = nil,
+    deadlineSeconds: TimeInterval = 3, commitGuard: (() throws -> Void)? = nil,
     _ body: () throws -> Value
   ) throws -> Value {
-    try synchronized {
-      guard flock(lockFD, LOCK_EX) == 0 else { throw SevraError("lock", "Cannot lock workbook.") }
-      defer { flock(lockFD, LOCK_UN) }
-      return try db.transaction {
+    let receiptRequest: Value =
+      try actor.map {
+        .object(["arguments": request, "actor": try encoded($0)])
+      } ?? request
+    func transaction() throws -> Value {
+      let previousActor = db.changes?.actor
+      if let actualActor = actor ?? ChangeAttribution.actor { db.changes?.actor = actualActor }
+      defer { if let previousActor { db.changes?.actor = previousActor } }
+      return try db.transaction(beforeCommit: commitGuard) {
         if let prior = try db.execute(
           "SELECT kind,request,result FROM operations WHERE id=?", [.string(token)]
         ).first {
           try require(
-            prior["request"]?.text == request.json() && prior["kind"]?.text == kind, "idempotency",
+            prior["request"]?.text == receiptRequest.json() && prior["kind"]?.text == kind,
+            "idempotency",
             "The operation identifier was reused with different arguments.")
           return try Value.parse(prior["result"]!.text)
         }
@@ -146,10 +154,62 @@ public final class Workbook: @unchecked Sendable {
         try db.execute(
           "INSERT INTO operations VALUES(?,?,?,?,?,?)",
           [
-            .string(token), .string(kind), .string(try request.json()), .string(try result.json()),
+            .string(token), .string(kind), .string(try receiptRequest.json()),
+            .string(try result.json()),
             .string(timestamp()), .number(Double(rev + 1)),
           ])
         return result
+      }
+    }
+    if let cancellation {
+      return try synchronized(cancellation: cancellation) {
+        while flock(lockFD, LOCK_EX | LOCK_NB) != 0 {
+          try require(errno == EWOULDBLOCK || errno == EAGAIN, "lock", "Cannot lock workbook.")
+          try cancellation.check()
+          Thread.sleep(forTimeInterval: 0.01)
+        }
+        defer { flock(lockFD, LOCK_UN) }
+        return try db.shortWait {
+          try db.budget(cancellation: cancellation, seconds: deadlineSeconds) { try transaction() }
+        }
+      }
+    }
+    return try synchronized {
+      guard flock(lockFD, LOCK_EX) == 0 else { throw SevraError("lock", "Cannot lock workbook.") }
+      defer { flock(lockFD, LOCK_UN) }
+      return try transaction()
+    }
+  }
+  /// Small UI-state writes share the package lock, but do not journal keystrokes
+  /// or advance business revisions. Call off the main actor. Lock acquisition is
+  /// bounded, including writers in other processes.
+  func presentationMutation<T>(_ body: () throws -> T) throws -> T {
+    let control = Cancellation(deadlineAfterSeconds: 3)
+    return try synchronized(cancellation: control) {
+      while flock(lockFD, LOCK_EX | LOCK_NB) != 0 {
+        try require(errno == EWOULDBLOCK || errno == EAGAIN, "lock", "Cannot lock workbook.")
+        try control.check()
+        Thread.sleep(forTimeInterval: 0.01)
+      }
+      defer { flock(lockFD, LOCK_UN) }
+      return try db.shortWait {
+        try db.budget(cancellation: control, seconds: 3) { try db.transaction(body) }
+      }
+    }
+  }
+  /// Disposable projections share the package transaction/lock, but publish no
+  /// receipt or business revision when only trusted index DDL changes.
+  func localProjectionMutation<T>(cancellation: Cancellation, _ body: () throws -> T) throws -> T {
+    let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
+    return try synchronized(cancellation: control) {
+      while flock(lockFD, LOCK_EX | LOCK_NB) != 0 {
+        try require(errno == EWOULDBLOCK || errno == EAGAIN, "lock", "Cannot lock workbook.")
+        try control.check()
+        Thread.sleep(forTimeInterval: 0.01)
+      }
+      defer { flock(lockFD, LOCK_UN) }
+      return try db.shortWait {
+        try db.budget(cancellation: control, seconds: 3) { try db.transaction(body) }
       }
     }
   }
@@ -189,40 +249,81 @@ public final class Workbook: @unchecked Sendable {
       ).map(decodeItem)
     }
   }
+  /// Home excludes rows, captured requests and technical annotations before its
+  /// limit. Bodies and structured payloads are never selected or decoded.
+  public func recentItemSummaries(limit: Int = 20) throws -> [ItemSummary] {
+    try synchronized {
+      try db.execute(
+        "SELECT i.id,i.category,i.kind,i.title,i.meaning,i.status,i.asset_id FROM items i JOIN heads h ON h.item_id=i.id WHERE i.kind NOT IN ('row',\(Item.technicalKindSQL)) ORDER BY i.created DESC,i.id LIMIT ?",
+        [.number(Double(min(max(limit, 1), 100)))]
+      ).map { row in
+        ItemSummary(
+          id: row["id"]!.text, category: row["category"]!.text, kind: row["kind"]!.text,
+          title: row["title"]!.text, meaning: row["meaning"]!.text, status: row["status"]!.text,
+          assetID: row["asset_id"]?.string)
+      }
+    }
+  }
   @discardableResult public func addItem(
     category: String, kind: String, title: String, text: String = "", data: Value = .object([:]),
     meaning: String = "actual", status: String = "draft", scenario: String = "actual",
     inputs: [String] = [], transformation: String = "human", assetID: String? = nil,
-    supersedes: String? = nil, token: String = identifier(), expectedRevision: Int? = nil
+    supersedes: String? = nil, token: String = identifier(), expectedRevision: Int? = nil,
+    references: [ReferenceSelection]? = nil
   ) throws -> Item {
-    let req: Value = .object([
+    try require(
+      kind != "table-intake-update", "proposal_tool",
+      "Use the reviewed table-update pipeline to create or revise this proposal.")
+    var fields: [String: Value] = [
       "category": .string(category), "kind": .string(kind), "title": .string(title),
       "text": .string(text), "data": data, "meaning": .string(meaning), "status": .string(status),
       "scenario": .string(scenario), "inputs": .array(inputs.map(Value.string)),
       "transformation": .string(transformation), "asset": assetID.map(Value.string) ?? .null,
       "supersedes": supersedes.map(Value.string) ?? .null,
-    ])
-    let result = try mutation("item", token: token, request: req, expected: expectedRevision) {
-      .string(
-        try insertItem(
-          category: category, kind: kind, title: title, text: text, data: data, meaning: meaning,
-          status: status, scenario: scenario, inputs: inputs, transformation: transformation,
-          assetID: assetID, supersedes: supersedes))
+    ]
+    if let references { fields["references"] = try Self.referenceSelectionsValue(references) }
+    let result = try mutation(
+      "item", token: token, request: .object(fields), expected: expectedRevision
+    ) {
+      let saved = try insertItem(
+        category: category, kind: kind, title: title, text: text, data: data, meaning: meaning,
+        status: status, scenario: scenario, inputs: inputs, transformation: transformation,
+        assetID: assetID, supersedes: supersedes, inheritReferenceBindings: references == nil)
+      if let references {
+        try publishInitialReferences(saved, selections: references, inheritedOrigin: supersedes)
+      }
+      return .string(saved)
     }
     return try item(result.text)
   }
   func insertItem(
     category: String, kind: String, title: String, text: String, data: Value, meaning: String,
     status: String, scenario: String, inputs: [String], transformation: String,
-    assetID: String? = nil, supersedes: String? = nil
+    assetID: String? = nil, supersedes: String? = nil, referenceOrigin: String? = nil,
+    inheritReferenceBindings: Bool = true, controlInputs: [String] = [],
+    producerInputs: [String] = []
   ) throws -> String {
     try require(
       !title.isEmpty && title.utf8.count <= 4096 && text.utf8.count <= 16_000_000, "limit",
       "Record title or text exceeds the supported bounds.")
     try require(
-      category != "record" || !inputs.isEmpty, "lineage",
+      category != "record" || !inputs.isEmpty || !producerInputs.isEmpty || !controlInputs.isEmpty,
+      "lineage",
       "Derived records require at least one exact input version.")
     let old = try supersedes.map { try item($0) }
+    var savedData = data
+    var schemaInputs: [String] = []
+    if let old, kind == "row",
+      let datasetID = try db.scalar(
+        "SELECT dataset_id FROM dataset_rows WHERE logical_id=?", [.string(old.logicalID)]
+      ).string
+    {
+      let active = Set(try db.managedSchema(datasetID).columns.map(\.id))
+      var values = old.data.object.filter { !active.contains($0.key) }
+      values.merge(data.object) { _, new in new }
+      savedData = .object(values)
+      schemaInputs = [try datasetDefinition(datasetID).sourceID]
+    }
     if let old {
       try require(
         old.category == category && old.kind == kind, "version",
@@ -233,39 +334,54 @@ public final class Workbook: @unchecked Sendable {
     }
     if let old {
       try db.execute("UPDATE chunks SET is_current=0 WHERE item_id=?", [.string(old.id)])
+      try db.execute(
+        "UPDATE reference_index SET current_origin=0 WHERE origin_id=?", [.string(old.id)])
+      try db.execute(
+        "UPDATE file_reference_index SET current_origin=0 WHERE origin_id=?", [.string(old.id)])
     }
     let id = identifier()
     let logical = old?.logicalID ?? identifier()
+    let edges = try prepareDerivationEdges(
+      inputs: inputs, controls: schemaInputs + controlInputs,
+      producers: producerInputs, supersedes: supersedes, transformation: transformation)
+    let derivation = try ItemDerivation.seal(id, edges: edges)
     try db.execute(
-      "INSERT INTO items VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+      "INSERT INTO items VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [
         .string(id), .string(logical), .number(Double((old?.version ?? 0) + 1)), .string(category),
         .string(kind), .string(title), .string(meaning), .string(status), .string(scenario),
-        .string(text), .string(try data.json()), assetID.map(Value.string) ?? .null,
-        supersedes.map(Value.string) ?? .null, .string(timestamp()),
+        .string(text), .string(try savedData.json()), assetID.map(Value.string) ?? .null,
+        supersedes.map(Value.string) ?? .null, .string(timestamp()), .string(try derivation.json()),
       ])
     try db.execute(
       "INSERT INTO heads VALUES(?,?) ON CONFLICT(logical_id) DO UPDATE SET item_id=excluded.item_id",
       [.string(logical), .string(id)])
-    for parent in Set(inputs) {
-      _ = try item(parent)
+    if kind == "row" { try refreshManagedRow(logical) }
+    for edge in edges {
       try db.execute(
-        "INSERT INTO lineage VALUES(?,?,?,?)",
-        [.string(id), .string(parent), .string("derives-from"), .string(transformation)])
-    }
-    if let supersedes {
-      try db.execute(
-        "INSERT OR IGNORE INTO lineage VALUES(?,?,?,?)",
-        [.string(id), .string(supersedes), .string("supersedes"), .string(transformation)])
+        "INSERT INTO lineage VALUES(?,?,?,?,?)",
+        [
+          .string(id), edge["parent"]!,
+          edge["relation"]!, edge["transformation"]!, edge["roles"]!,
+        ])
     }
     try insertChunks(id, title: title, chunks: [Chunk(text.isEmpty ? data.text : text)])
+    if inheritReferenceBindings, let origin = referenceOrigin ?? old?.id {
+      try inheritReferences(from: origin, to: id, text: text)
+    }
+    if inheritReferenceBindings && !["row", "request", "annotation"].contains(kind) {
+      try indexReferenceBody(id, text: text)
+    }
+    if let origin = referenceOrigin ?? old?.id {
+      try inheritFileReferences(from: origin, to: id, assetID: assetID)
+    }
     return id
   }
   public func lineage(_ id: String) throws -> [Value] {
     try synchronized {
       try db.execute(
         "SELECT * FROM lineage WHERE child=? OR parent=? LIMIT 200", [.string(id), .string(id)]
-      ).map(Value.object)
+      ).map(ItemDerivation.publicEdge)
     }
   }
   public func counts() throws -> Value {

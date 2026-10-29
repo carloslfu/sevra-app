@@ -284,9 +284,15 @@ private actor RunningJobFixture: WorkbookInference {
     summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
   ) throws -> ContextMeasurement {
     try cancellation.check()
+    // Isolate the fixed policy from growing history in this scripted controller
+    // test. Count continuation state and retained tool results; keep capacity
+    // constant before and after compaction. Native probes use the real tokenizer.
+    let policyTokens =
+      messages.first?.role == "system"
+      ? (messages.first?.content.utf8.count ?? 0) / 4 : 0
     return ContextMeasurement(
-      promptTokens: 1000 + messages.reduce(0) { $0 + $1.content.utf8.count / 4 },
-      capacity: 8192, templateIdentity: "fixture-token-accounting-v1")
+      promptTokens: 1000 + messages.reduce(0) { $0 + $1.content.utf8.count / 4 } - policyTokens,
+      capacity: 10240, templateIdentity: "fixture-history-accounting-v2")
   }
   func summarize(
     messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
@@ -318,6 +324,17 @@ private actor RunningJobFixture: WorkbookInference {
         }, true)
       try expectEqual(messages.last?.role, "tool")
       try expectEqual(messages[messages.count - 2].toolCalls.first?.id, messages.last?.toolCallId)
+      if summaries > 1 {
+        let prefix = "Current host continuation state:\n"
+        let state = try expectValue(messages.last { $0.content.hasPrefix(prefix) })
+        let value = try Value.parse(String(state.content.dropFirst(prefix.count)))
+        let retained = value["readEvidence"]["entries"].array
+        try expectEqual(retained.count, 1)
+        try expectEqual(retained[0]["versionID"].text, sourceID)
+        try expectEqual(
+          retained[0]["textPrefix"].text.hasPrefix(
+            "Material specification, exact recorded source text."), true)
+      }
     }
     let name: String
     let input: Value

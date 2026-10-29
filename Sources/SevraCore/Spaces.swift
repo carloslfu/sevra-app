@@ -15,11 +15,17 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
   public var unit: String?
   public var children: [Component]?
   public var snapshot: ComponentSnapshot?
+  public var searchSnapshot: ComponentSearchSnapshot?
+  public var definitionBinding: Value?
+  public var arguments: Value?
+  public var evaluationSnapshot: DefinitionResultSnapshot?
   public init(
     id: String = identifier(), type: String, title: String, datasetID: String? = nil,
     itemID: String? = nil, query: String? = nil, x: String? = nil, y: String? = nil,
     text: String? = nil, chartStyle: String? = nil, aggregation: String? = nil,
-    unit: String? = nil, children: [Component]? = nil, snapshot: ComponentSnapshot? = nil
+    unit: String? = nil, children: [Component]? = nil, snapshot: ComponentSnapshot? = nil,
+    searchSnapshot: ComponentSearchSnapshot? = nil, definitionBinding: Value? = nil,
+    arguments: Value? = nil, evaluationSnapshot: DefinitionResultSnapshot? = nil
   ) {
     self.id = id
     self.type = type
@@ -35,12 +41,20 @@ public struct Component: Codable, Identifiable, Equatable, Sendable {
     self.unit = unit
     self.children = children
     self.snapshot = snapshot
+    self.searchSnapshot = searchSnapshot
+    self.definitionBinding = definitionBinding
+    self.arguments = arguments
+    self.evaluationSnapshot = evaluationSnapshot
   }
 }
 public struct SpaceDefinition: Codable, Equatable, Sendable {
   public var version: Int = 1
   public var components: [Component]
-  public init(components: [Component]) { self.components = components }
+  public var pinnedAt: String?
+  public init(components: [Component], pinnedAt: String? = nil) {
+    self.components = components
+    self.pinnedAt = pinnedAt
+  }
 }
 public struct Space: Codable, Identifiable, Sendable {
   public let id: String
@@ -65,22 +79,43 @@ extension Workbook {
           }
           return Space(
             id: row["id"]!.text, title: row["title"]!.text,
-            definition: try JSONDecoder().decode(
-              SpaceDefinition.self, from: Data(row["definition"]!.text.utf8)),
+            definition: try decodedSpaceDefinition(row),
             version: version)
         }
     }
   }
   @discardableResult public func saveSpace(
     id: String = identifier(), title: String, definition: SpaceDefinition,
-    token: String = identifier()
+    expectedVersion: Int? = nil, token: String = identifier(), actor: ChangeActor? = nil
   ) throws -> String {
+    let data = try encoded(definition).json()
+    _ = try mutation(
+      "space", token: token,
+      request: .object([
+        "id": .string(id), "title": .string(title), "definition": .string(data),
+        "expectedVersion": expectedVersion.map { .number(Double($0)) } ?? .null,
+      ]), actor: actor
+    ) {
+      let current = try spaceIfPresent(id)
+      try checkSpaceBase(current, expectedVersion: expectedVersion)
+      if let current { try preservePinnedBindings(current.definition, next: definition) }
+      try refuseAuthoredEvaluationSnapshots(definition, current: current)
+      try publishSpace(id: id, title: title, definition: definition, current: current)
+      return .string(id)
+    }
+    return id
+  }
+  func validateSpaceDefinition(_ definition: SpaceDefinition) throws {
     try require(
       definition.version == 1 && definition.components.count <= 16, "view",
       "Unsupported view version or too many components.")
     try require(
       Set(definition.components.map(\.id)).count == definition.components.count, "view",
       "Component identifiers must be unique.")
+    if let captured = definition.pinnedAt {
+      try require(
+        ISO8601DateFormatter().date(from: captured) != nil, "view", "Invalid pinned time.")
+    }
     var componentCount = 0
     var ids = Set<String>()
     func validate(_ c: Component, depth: Int) throws {
@@ -89,8 +124,39 @@ extension Workbook {
         componentCount <= 16 && depth <= 3 && ids.insert(c.id).inserted, "view",
         "Use at most 16 uniquely named components and three levels.")
       try require(
-        ["table", "chart", "metric", "comparison", "document", "asset", "search", "text"].contains(
-          c.type), "view", "Unknown native component: \(c.type)")
+        Set([
+          "table", "chart", "metric", "comparison", "document", "asset", "search", "text", "form",
+          "calculation", "query",
+        ])
+        .union(SpaceDefinition.sectionTypes).contains(c.type), "view",
+        "Unknown native component: \(c.type)")
+      try require(
+        !c.id.isEmpty && c.id.utf8.count <= 256 && c.title.utf8.count <= 500, "view",
+        "Use bounded component IDs and labels.")
+      if ["calculation", "query"].contains(c.type) {
+        try validateDefinitionComponent(c, pinned: definition.pinnedAt != nil)
+      } else if c.type == "form" {
+        try require(
+          definition.pinnedAt == nil && c.datasetID == nil && c.itemID == nil
+            && c.snapshot == nil && c.searchSnapshot == nil && c.arguments == nil
+            && c.evaluationSnapshot == nil, "view",
+          "Forms are explicit live actions and cannot be frozen as results.")
+        guard let binding = c.definitionBinding else {
+          throw SevraError("view", "Choose a form definition.")
+        }
+        let target = try resolveDefinition(DefinitionBinding(binding))
+        try require(target.kind == "form", "view", "Bind a form component to a form definition.")
+      } else {
+        try require(
+          c.definitionBinding == nil && c.arguments == nil && c.evaluationSnapshot == nil, "view",
+          "Only qualified forms and computation views take definition bindings.")
+      }
+      if SpaceDefinition.sectionTypes.contains(c.type) {
+        try require(
+          definition.pinnedAt == nil && c.datasetID == nil && c.itemID == nil
+            && c.snapshot == nil && c.searchSnapshot == nil, "view",
+          "Workbook sections are live host views and cannot carry snapshot or data bindings.")
+      }
       if ["table", "chart", "metric"].contains(c.type) {
         guard let id = c.datasetID else {
           throw SevraError("view", "Component \(c.id) (\(c.type)) requires its own datasetID.")
@@ -98,13 +164,15 @@ extension Workbook {
         let table = try dataset(id)
         if ["chart", "metric"].contains(c.type) {
           try require(
-            table.columns.contains { $0.id == c.y }, "view", "Choose an existing value column.")
+            table.columns.contains { $0.id == c.y }, "view",
+            "Set y to an existing dataset column ID, not a layout position. Inspect datasets for column IDs."
+          )
         }
         if c.type == "chart" {
           try require(
             table.columns.contains { $0.id == c.x }
               && ["bar", "line"].contains(c.chartStyle ?? "bar"), "view",
-            "Choose valid chart columns and bar or line style.")
+            "Set x to an existing dataset column ID, not a layout position; use bar or line style.")
         }
         if c.type == "metric" {
           try require(
@@ -115,6 +183,34 @@ extension Workbook {
       if ["document", "asset"].contains(c.type) {
         guard let id = c.itemID else { throw SevraError("view", "Item binding is required.") }
         _ = try item(id)
+      }
+      if c.type == "search" {
+        _ = try Self.searchTerms(c.query ?? "")
+      }
+      if definition.pinnedAt != nil {
+        if ["table", "chart", "metric"].contains(c.type) {
+          try require(c.snapshot != nil, "view", "A pinned table needs saved values.")
+        }
+        if ["document", "asset"].contains(c.type), let id = c.itemID {
+          try require(try item(id).id == id, "view", "A pinned item needs an exact version.")
+        }
+        if c.type == "search" {
+          try require(c.searchSnapshot != nil, "view", "A pinned search needs saved results.")
+        }
+      }
+      if let snapshot = c.searchSnapshot {
+        try require(
+          c.type == "search" && snapshot.query == (c.query ?? "")
+            && snapshot.hits.count <= 8 && snapshot.incomplete >= 0 && snapshot.revision >= 0
+            && Set(snapshot.hits.map(\.id)).count == snapshot.hits.count
+            && Set(snapshot.hits.map(\.itemID)).count == snapshot.hits.count
+            && ISO8601DateFormatter().date(from: snapshot.captured) != nil,
+          "view", "Invalid pinned search result.")
+        for hit in snapshot.hits {
+          try require(
+            try item(hit.itemID).id == hit.itemID, "view",
+            "A pinned search result needs exact item versions.")
+        }
       }
       if c.type == "comparison" {
         try require(
@@ -135,28 +231,6 @@ extension Workbook {
       for child in c.children ?? [] { try validate(child, depth: depth + 1) }
     }
     for component in definition.components { try validate(component, depth: 1) }
-    let data = try encoded(definition).json()
-    _ = try mutation(
-      "space", token: token,
-      request: .object(["id": .string(id), "title": .string(title), "definition": .string(data)])
-    ) {
-      let version =
-        (try db.scalar("SELECT version FROM spaces WHERE id=?", [.string(id)]).int ?? 0) + 1
-      try db.execute(
-        "INSERT INTO spaces VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET title=excluded.title,definition=excluded.definition,version=excluded.version,updated=excluded.updated",
-        [
-          .string(id), .string(title), .string(data), .number(Double(version)),
-          .string(timestamp()),
-        ])
-      try db.execute(
-        "INSERT INTO space_versions VALUES(?,?,?,?,?)",
-        [
-          .string(id), .number(Double(version)), .string(title), .string(data),
-          .string(timestamp()),
-        ])
-      return .string(id)
-    }
-    return id
   }
   @discardableResult public func addMessage(
     _ body: String, role: String, conversation: String = "main", state: String = "complete",
@@ -211,7 +285,7 @@ extension Workbook {
     _ = try mutation("tangent", request: .string(title)) {
       try require(
         try db.scalar("SELECT count(*) FROM messages WHERE id=?", [.string(parentMessage)]).int
-          == 1, "not_found", "The tangent needs an existing conversation message.")
+          == 1, "not_found", "The thread needs an existing conversation message.")
       try db.execute(
         "INSERT INTO conversations VALUES(?,?,?)",
         [.string(id), .string(title), .string(parentMessage)])
@@ -288,8 +362,35 @@ extension Workbook {
       "This exchange is already in the main conversation.")
     let source = message["conversation_id"]!.text
     return try addMessage(
-      "From a tangent:\n\n" + message["body"]!.text
+      "From a thread:\n\n" + message["body"]!.text
         + "\n\n[Open original exchange](sevra://conversation/\(source)?message=\(id))",
       role: "user", conversation: "main")
+  }
+
+  /// Share only the user's selected text, retaining an exact origin. This does
+  /// not accept business records, expand retrieval scope, or enqueue an AI turn.
+  @discardableResult public func shareSummary(message id: String, text: String) throws -> String {
+    let summary = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    try require(
+      !summary.isEmpty && summary.utf8.count <= 64_000, "summary",
+      "Enter a summary of at most 64,000 bytes.")
+    return try synchronized {
+      guard let message = try db.execute("SELECT * FROM messages WHERE id=?", [.string(id)]).first
+      else { throw SevraError("message", "The original exchange is missing.") }
+      let source = message["conversation_id"]!.text
+      try require(source != "main", "conversation", "This exchange is already in the conversation.")
+      try require(
+        message["state"]?.text == "complete"
+          && ["user", "assistant"].contains(message["role"]?.text ?? ""),
+        "summary", "Choose a completed exchange to share.")
+      return try addMessage(
+        "Shared summary from a thread:\n\n" + summary
+          + "\n\n[Open original exchange](sevra://conversation/\(source)?message=\(id))",
+        role: "user", conversation: "main",
+        payload: .object([
+          "kind": .string("shared_summary"), "conversationID": .string(source),
+          "messageID": .string(id), "referenceOnly": .bool(true),
+        ]))
+    }
   }
 }

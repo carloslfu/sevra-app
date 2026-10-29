@@ -8,6 +8,7 @@ JOBS=${SEVRA_BUILD_JOBS:-4}
 [ "$(uname -m)" = arm64 ] || { echo 'Sevra currently requires Apple Silicon.' >&2; exit 1; }
 swift build -c "$CONFIG" --product SevraDesktop -j "$JOBS"
 swift build -c "$CONFIG" --product sevra -j "$JOBS"
+swift build -c "$CONFIG" --product sevra-extract -j "$JOBS"
 BIN=$(swift build -c "$CONFIG" --show-bin-path)
 METAL="$ROOT/.build/metal/mlx.metallib"
 OUT="$METAL" /bin/bash "$ROOT/.build/checkouts/slotstream/Tools/fetch_metallib.sh"
@@ -17,6 +18,8 @@ if [ -d "$APP" ]; then rm -rf "$APP"; fi
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$ROOT/output/bin"
 cp "$BIN/SevraDesktop" "$APP/Contents/MacOS/Sevra"
 cp "$BIN/sevra" "$ROOT/output/bin/sevra"
+cp "$BIN/sevra-extract" "$APP/Contents/MacOS/sevra-extract"
+cp "$BIN/sevra-extract" "$ROOT/output/bin/sevra-extract"
 cp "$METAL" "$APP/Contents/MacOS/mlx.metallib"
 cp "$METAL" "$ROOT/output/bin/mlx.metallib"
 cp Resources/Info.plist "$APP/Contents/Info.plist"

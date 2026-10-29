@@ -13,5 +13,6 @@ python3 scripts/fetch_splash.py
 python3 scripts/build_guidance.py
 swift build --scratch-path "$SCRATCH" -c "$CONFIG" --product SevraDesktop -j "$JOBS"
 swift build --scratch-path "$SCRATCH" -c "$CONFIG" --product sevra -j "$JOBS"
+swift build --scratch-path "$SCRATCH" -c "$CONFIG" --product sevra-extract -j "$JOBS"
 BIN=$(swift build --scratch-path "$SCRATCH" -c "$CONFIG" --show-bin-path)
 python3 scripts/package_native.py "$BIN" "$SCRATCH"

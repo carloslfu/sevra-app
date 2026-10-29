@@ -88,13 +88,20 @@ public actor ProductAI {
   }
 
   public static func checkResources(validateMetal: Bool = true) async throws -> Value {
+    try require(
+      FileManager.default.isExecutableFile(atPath: ExtractionWorker.bundledExecutable.path),
+      "resources", "The installed document extractor is missing.")
+    let result: Value
     #if SEVRA_NATIVE_CANDIDATE
-      return try await Task.detached {
+      result = try await Task.detached {
         try NativeProductResources.check(validateMetal: validateMetal)
       }.value
     #else
-      return try await PackageResources.check(validateMetal: validateMetal)
+      result = try await PackageResources.check(validateMetal: validateMetal)
     #endif
+    var fields = result.object
+    fields["extractionWorker"] = .bool(true)
+    return .object(fields)
   }
 
   /// Presence is a quick UI hint. Setup and every new native session perform
@@ -202,10 +209,35 @@ public actor ProductAI {
     active = false
   }
 
+  private func workflowModel(directory: URL) throws -> any WorkbookInference {
+    #if SEVRA_NATIVE_CANDIDATE
+      if model == nil {
+        model = NativeWorkbookModel(
+          configuration: try NativeProductResources.configuration(modelsRoot: directory))
+      }
+    #endif
+    guard let model else { throw SevraError("model", "The local model is unavailable.") }
+    return model
+  }
+
+  public func continueWorkflow(
+    workbook: Workbook, session: WorkflowExecutionSession, owner: String,
+    modelDirectory: URL = ProductAI.defaultDirectory, cancellation: Cancellation = .init(),
+    progress: @escaping @Sendable (String) -> Void = { _ in }
+  ) async throws -> Value {
+    try await perform(cancellation: cancellation) {
+      try await WorkflowCoordinator.run(
+        workbook: workbook, session: session, owner: owner, directory: modelDirectory,
+        cancellation: cancellation, progress: progress,
+        model: { try self.workflowModel(directory: modelDirectory) })
+    }
+  }
+
   public func run(
     _ prompt: String, workbook: Workbook, conversation: String = "main", context: String = "",
     modelDirectory: URL = ProductAI.defaultDirectory, cancellation: Cancellation = .init(),
-    progress: @escaping @Sendable (String) -> Void = { _ in }
+    progress: @escaping @Sendable (String) -> Void = { _ in }, openSpace: SpaceOpener? = nil,
+    openReviews: ReviewQueueOpener? = nil
   ) async throws -> AgentResult {
     try await perform(cancellation: cancellation) {
       #if SEVRA_NATIVE_CANDIDATE
@@ -218,7 +250,9 @@ public actor ProductAI {
       guard let model else { throw SevraError("model", "The local model is unavailable.") }
       return try await WorkbookAgent.run(
         prompt, workbook: workbook, conversation: conversation, context: context,
-        modelDirectory: modelDirectory, cancellation: cancellation, progress: progress, model: model
+        modelDirectory: modelDirectory, cancellation: cancellation, progress: progress,
+        model: model,
+        openSpace: openSpace, openReviews: openReviews
       )
     }
   }

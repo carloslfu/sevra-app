@@ -1,6 +1,7 @@
 import AppKit
 import Charts
 import SevraCore
+import SevraPreviewUI
 import SevraSearchUI
 import SevraTableUI
 import SwiftUI
@@ -45,7 +46,10 @@ struct SearchView: View {
         .callout)
       if incomplete > 0 {
         Text(
-          "\(incomplete) sources have incomplete content indexes. Filename search is still available."
+          (incomplete == 1
+            ? "1 source has an incomplete content index."
+            : "\(incomplete) sources have incomplete content indexes.")
+            + " Filename search is still available."
         ).font(.caption).foregroundStyle(.secondary)
       }
       ScrollViewReader { proxy in
@@ -97,6 +101,7 @@ struct SearchView: View {
         }
       }
       .task(id: query) { await search(more: false) }
+      .onDisappear { results.cancelRead() }
   }
   @ViewBuilder var filters: some View {
     facet("Kind", key: "kind", selection: $state.searchKind)
@@ -113,12 +118,12 @@ struct SearchView: View {
   func search(more: Bool) async {
     guard let book = state.workbook else { return }
     let request = query
-    await results.load(request, more: more, debounce: !more) { cursor in
+    await results.load(request, more: more, debounce: !more) { cursor, cancellation in
       try await Task.detached {
         try book.search(
           request.text, kind: request.kind, meaning: request.meaning,
           historical: request.historical, cursor: cursor, status: request.status,
-          scenario: request.scenario)
+          scenario: request.scenario, cancellation: cancellation)
       }.value
     }
   }
@@ -126,115 +131,203 @@ struct SearchView: View {
 struct SpaceView: View {
   let space: Space
   @ObservedObject var state: WorkspaceState
+  @State private var editing: Space?
   var body: some View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 28) {
-        if !space.definition.components.isEmpty {
-          HStack {
-            Spacer()
-            Button("Save a pinned copy") {
-              do {
-                let title =
-                  space.title + " · " + Date().formatted(date: .abbreviated, time: .shortened)
-                if let id = try state.workbook?.pinSpace(space.id, title: title) {
-                  state.refresh()
-                  state.navigate(.space(id))
-                }
-              } catch { state.error = error.localizedDescription }
-            }.help("Keep exact values and input versions as of now.")
+        HStack {
+          if let captured = space.definition.pinnedAt {
+            Text("Snapshot from " + DisplayText.date(captured)).font(.caption).foregroundStyle(
+              .secondary)
+          } else {
+            Text("Live view").font(.caption).foregroundStyle(.secondary)
+          }
+          Spacer()
+          Button("Edit layout") { editing = space }.disabled(state.busy)
+          if !space.definition.components.isEmpty && !containsSections(space.definition.components)
+          {
+            Button("Save a snapshot") {
+              state.pinSpace(
+                space.id,
+                title: space.title + " · " + Date().formatted(date: .abbreviated, time: .shortened))
+            }.help("Keep exact values and input versions as of now.").disabled(state.busy)
           }
         }
         if space.definition.components.isEmpty {
           Text("Make room for your work").font(.system(size: 28, weight: .medium))
           Text(
-            "Drop files here, or describe what you want to organize. Useful tables, documents and views can live together in this space."
-          ).foregroundStyle(.secondary).frame(maxWidth: 520, alignment: .leading)
-          HStack {
-            Button("Add files…") { state.importPanel() }
-            Button("Search workbook") { state.navigate(.search) }
-          }
+            "Describe what you want here, or edit the layout. Removing sections keeps your information in the workbook."
+          )
+          .foregroundStyle(.secondary).frame(maxWidth: 520, alignment: .leading)
         }
-        ForEach(space.definition.components) { component in
+        ForEach(visibleComponents) { component in
           NativeComponent(component: component, state: state).id(component.id)
-        }
-        if space.id == "home" {
-          if !state.datasets.isEmpty {
-            sectionTitle("Tables")
-            ForEach(state.datasets) { table in
-              Button {
-                state.navigate(.table(table.id))
-              } label: {
-                HStack {
-                  Image(systemName: "tablecells")
-                  Text(table.title)
-                  Spacer()
-                  Text("\(table.rowCount) rows").foregroundStyle(.secondary)
-                }.padding(.vertical, 7)
-              }.buttonStyle(.plain)
-            }
-          }
-          if let jobs = try? state.workbook?.pendingExtractions(), !jobs.isEmpty {
-            sectionTitle("Intake needs attention")
-            ForEach(jobs, id: \.text) { job in
-              HStack {
-                VStack(alignment: .leading) {
-                  Text(job["title"].text)
-                  Text(job["detail"].text).font(.caption).foregroundStyle(.secondary)
-                }
-                Spacer()
-                if job["asset_id"].string != nil {
-                  Button("Resume") {
-                    state.run("Resuming intake") { book, cancel in
-                      try book.resumeIntake(job["item_id"].text, cancellation: cancel)
-                    }
-                  }
-                } else {
-                  Button("Review reference") { state.navigate(.item(job["item_id"].text)) }
-                }
-              }
-            }
-          }
-          if let imports = try? state.workbook?.intakeStatus() {
-            ForEach(imports.filter { $0["state"].text != "ready" }, id: \.text) { job in
-              let title = job["title"].text
-              let completed = job["completed"].text
-              let total = job["total"].text
-              Text(
-                "\(title): \(completed) of \(total) rows imported. Resume from the original source."
-              )
-              .font(.callout).foregroundStyle(.secondary)
-            }
-          }
-          sectionTitle("Recent sources and drafts")
-          let recent = state.items.filter { $0.kind != "row" && $0.kind != "request" }.prefix(20)
-          if recent.isEmpty {
-            Text("Included files and saved work will appear here.").foregroundStyle(.secondary)
-          }
-          ForEach(Array(recent)) { item in
-            Button {
-              state.navigate(.item(item.id))
-            } label: {
-              HStack(alignment: .top, spacing: 12) {
-                Image(systemName: item.assetID == nil ? "text.alignleft" : "doc").foregroundStyle(
-                  .secondary)
-                VStack(alignment: .leading, spacing: 3) {
-                  Text(item.title)
-                  Text(item.status == "draft" ? "Draft · \(item.meaning)" : item.kind.capitalized)
-                    .font(.caption).foregroundStyle(.secondary)
-                }
-                Spacer()
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
-              }.padding(.vertical, 6)
-            }.buttonStyle(.plain)
-          }
         }
       }.scrollTargetLayout().padding(26).frame(maxWidth: .infinity, alignment: .leading)
     }.scrollPosition(
       id: Binding(get: { state.spaceScroll[space.id] }, set: { state.spaceScroll[space.id] = $0 }),
-      anchor: .top)
+      anchor: .top
+    )
+    .sheet(item: $editing) { selected in SpaceLayoutEditor(space: selected, state: state) }
+  }
+  private var visibleComponents: [Component] {
+    space.definition.components.filter { component in
+      switch component.type {
+      case "reviews": return state.pendingReview?.items.isEmpty == false
+      case "tables": return !state.datasets.isEmpty || !state.archivedDatasets.isEmpty
+      case "recent": return !state.items.isEmpty
+      case "intake":
+        return !state.pendingExtractions.isEmpty
+          || state.intakeStatus.contains { $0["state"].text != "ready" }
+      case "shortcuts":
+        let shortcuts = SpacePickerSections(
+          spaces: state.spaces, navigation: state.spaceNavigation.state, query: "")
+        return !shortcuts.pinned.isEmpty || !shortcuts.recent.isEmpty
+      default: return true
+      }
+    }
+  }
+  private func containsSections(_ components: [Component]) -> Bool {
+    components.contains {
+      SpaceDefinition.sectionTypes.contains($0.type) || containsSections($0.children ?? [])
+    }
+  }
+}
+struct WorkbookSection: View {
+  let type: String
+  @ObservedObject var state: WorkspaceState
+  @ViewBuilder var body: some View {
+    switch type {
+    case "input":
+      HStack {
+        Button("Add files…") { state.importPanel() }
+        Button("Search workbook") { state.navigate(.search) }
+      }
+    case "reviews":
+      if let pending = state.pendingReview, !pending.items.isEmpty {
+        HStack {
+          Text("\(pending.items.count) pending").font(.caption).foregroundStyle(.secondary)
+          Spacer()
+          Button("Show all drafts") { state.navigate(.reviews) }
+        }
+        ForEach(pending.items) { item in
+          DraftReviewRow(item: item) { state.navigate(.item(item.id)) }
+        }
+      }
+
+      else {
+        Text("No drafts waiting for review.").foregroundStyle(.secondary)
+      }
+    case "shortcuts":
+      let shortcuts = SpacePickerSections(
+        spaces: state.spaces, navigation: state.spaceNavigation.state, query: "")
+      if !shortcuts.pinned.isEmpty {
+        sectionTitle("Pinned spaces")
+        ForEach(shortcuts.pinned) { saved in
+          SpaceShortcutRow(space: saved, state: state) { state.navigate(.space(saved.id)) }
+        }
+      }
+      if !shortcuts.recent.isEmpty {
+        sectionTitle("Recent spaces")
+        ForEach(Array(shortcuts.recent.prefix(4))) { saved in
+          SpaceShortcutRow(space: saved, state: state) { state.navigate(.space(saved.id)) }
+        }
+      }
+
+    case "tables":
+      if !state.datasets.isEmpty {
+        ForEach(state.datasets) { table in
+          Button {
+            state.navigate(.table(table.id))
+          } label: {
+            HStack {
+              Image(systemName: "tablecells")
+              Text(table.title)
+              Spacer()
+              Text("\(table.rowCount) rows").foregroundStyle(.secondary)
+            }.padding(.vertical, 7)
+          }.buttonStyle(.plain)
+        }
+      }
+
+      else {
+        Text("No tables yet.").foregroundStyle(.secondary)
+      }
+      if !state.archivedDatasets.isEmpty {
+        DisclosureGroup("Archived tables (\(state.archivedDatasets.count))") {
+          ForEach(state.archivedDatasets) { table in
+            Button(table.title) { state.navigate(.table(table.id)) }
+              .buttonStyle(.plain).padding(.vertical, 7)
+          }
+        }
+      }
+    case "intake":
+      if !state.pendingExtractions.isEmpty {
+        ForEach(state.pendingExtractions, id: \.text) { job in
+          HStack {
+            VStack(alignment: .leading) {
+              Text(job["title"].text)
+              Text(job["detail"].text).font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            if let id = job["job_id"].string {
+              Button(job["state"].text == "awaiting_role" ? "Choose use" : "Continue") {
+                state.presentIntake(id)
+              }.disabled(state.busy)
+            } else if job["asset_id"].string != nil {
+              Button("Resume") {
+                state.run("Resuming intake") { book, cancel in
+                  try book.resumeIntake(job["item_id"].text, cancellation: cancel)
+                }
+              }
+            } else {
+              Button("Review reference") { state.navigate(.item(job["item_id"].text)) }
+            }
+          }
+        }
+      }
+      ForEach(state.intakeStatus.filter { $0["state"].text != "ready" }, id: \.text) { job in
+        let title = job["title"].text
+        let completed = job["completed"].text
+        let total = job["total"].text
+        Text(
+          "\(title): \(completed) of \(total) rows imported. Resume from the original source."
+        )
+        .font(.callout).foregroundStyle(.secondary)
+      }
+
+    case "recent":
+      let recent = state.items
+      if recent.isEmpty {
+        Text("Included files and saved work will appear here.").foregroundStyle(.secondary)
+      }
+      ForEach(Array(recent)) { item in
+        Button {
+          state.navigate(.item(item.id))
+        } label: {
+          HStack(alignment: .top, spacing: 12) {
+            Image(systemName: item.assetID == nil ? "text.alignleft" : "doc").foregroundStyle(
+              .secondary)
+            VStack(alignment: .leading, spacing: 3) {
+              Text(item.title)
+              Text(
+                item.status == "draft"
+                  ? "Draft · \(item.meaning)"
+                  : item.kind == "table-intake-update" ? "Table update" : item.kind.capitalized
+              )
+              .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+          }.padding(.vertical, 6)
+        }.buttonStyle(.plain)
+      }
+
+    default: EmptyView()
+    }
   }
   func sectionTitle(_ title: String) -> some View {
-    Text(title).font(.title3.weight(.medium)).padding(.top, 10)
+    Text(title).font(.headline).padding(.top, 6)
   }
 }
 struct NativeComponent: View {
@@ -251,6 +344,13 @@ struct NativeComponent: View {
           .secondary)
       }
       switch component.type {
+      case "input", "reviews", "shortcuts", "tables", "intake", "recent":
+        WorkbookSection(type: component.type, state: state)
+      case "calculation", "query":
+        DefinitionComponentView(component: component, workspace: state).id(
+          state.interactionIdentity)
+      case "form":
+        FormComponentView(component: component, workspace: state).id(state.interactionIdentity)
       case "text": Text(component.text ?? "").textSelection(.enabled).foregroundStyle(.secondary)
       case "comparison":
         ViewThatFits(in: .horizontal) {
@@ -271,7 +371,7 @@ struct NativeComponent: View {
         }
       case "table":
         if component.snapshot == nil, let id = component.datasetID,
-          let table = state.datasets.first(where: { $0.id == id })
+          let table = state.dataset(id)
         {
           DatasetView(table: table, state: state, compact: true)
             .frame(height: min(280, CGFloat(max(1, table.rowCount)) * 32 + 108))
@@ -320,14 +420,13 @@ struct NativeComponent: View {
           if !unitSuffix.isEmpty { Text(unitSuffix).font(.caption).foregroundStyle(.secondary) }
         }
       case "document", "asset":
-        if let id = component.itemID { Button("Open document") { state.navigate(.item(id)) } }
-      case "search":
-        if let hits = try? state.workbook?.search(component.query ?? "", limit: 8).hits {
-          ForEach(hits) { hit in
-            Button(hit.title) { state.openEvidence(hit.itemID, locator: hit.locator) }.buttonStyle(
-              .link)
+        if let id = component.itemID {
+          Button(component.type == "asset" ? "Open file" : "Open document") {
+            state.navigate(.item(id))
           }
         }
+      case "search":
+        SearchComponentView(component: component, state: state)
       default: Text("This component is unavailable.").foregroundStyle(.secondary)
       }
       if let failure { Text(failure).font(.callout).foregroundStyle(.red) }
@@ -354,6 +453,61 @@ struct NativeComponent: View {
     return unit.map { " " + $0 } ?? ""
   }
 }
+/// Live search runs away from view rendering; the shared session refuses stale
+/// completions. Pinned results remain usable even if current indexing changes.
+struct SearchComponentView: View {
+  let component: Component
+  @ObservedObject var state: WorkspaceState
+  @StateObject private var results = SearchSession()
+  private var query: SearchQuery {
+    SearchQuery(
+      workbook: state.workbook?.url, revision: state.revision,
+      text: component.query ?? "")
+  }
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      if let snapshot = component.searchSnapshot {
+        Text("Search results from " + DisplayText.date(snapshot.captured))
+          .font(.caption).foregroundStyle(.secondary)
+        content(snapshot.hits, incomplete: snapshot.incomplete, hasMore: snapshot.hasMore)
+      } else if results.loadedQuery == query {
+        content(results.hits, incomplete: results.incomplete, hasMore: results.nextCursor != nil)
+      } else if results.query == query, let failure = results.failure {
+        Text(failure).foregroundStyle(.red)
+      } else {
+        ProgressView().controlSize(.small).accessibilityLabel("Searching workbook")
+      }
+    }.task(id: query) {
+      guard component.searchSnapshot == nil, let book = state.workbook else { return }
+      let request = query
+      await results.load(request) { _, cancellation in
+        try await Task.detached {
+          try book.search(request.text, limit: 8, cancellation: cancellation)
+        }.value
+      }
+    }
+  }
+  @ViewBuilder private func content(_ hits: [SearchHit], incomplete: Int, hasMore: Bool)
+    -> some View
+  {
+    ForEach(hits) { hit in
+      Button(hit.title) { state.openEvidence(hit.itemID, locator: hit.locator) }
+        .buttonStyle(.link)
+    }
+    if hits.isEmpty { Text("No matches for this search.").foregroundStyle(.secondary) }
+    if hasMore {
+      Text("Showing the first \(hits.count) results.").font(.caption).foregroundStyle(.secondary)
+    }
+    if incomplete > 0 {
+      Text(
+        incomplete == 1
+          ? "1 source had an incomplete content index when searched."
+          : "\(incomplete) sources had incomplete content indexes when searched."
+      )
+      .font(.caption).foregroundStyle(.secondary)
+    }
+  }
+}
 struct PlotPoint: Identifiable {
   let id: String
   let label: String
@@ -375,7 +529,7 @@ struct DatasetView: View {
       descending: state.tableDescending[table.id] ?? false)
   }
   @State private var column = 0
-  @State private var showColumns = false
+  @State private var schemaEditing: Dataset?
   private var offset: Int { state.tableOffsets[table.id] ?? 0 }
   private var filter: String { state.tableFilters[table.id] ?? "" }
   var body: some View {
@@ -398,12 +552,18 @@ struct DatasetView: View {
           Button("Undo") { undo(false) }.disabled(state.tableUndo[table.id] == nil)
           Button("Redo") { undo(true) }.disabled(state.tableRedo[table.id] == nil)
           Divider()
-          Button("Columns and formulas…") { showColumns = true }
+          Button("Table definition…") { schemaEditing = table }
           Button("Export CSV…", action: export)
         } label: {
           Image(systemName: "ellipsis.circle")
         }.menuStyle(.borderlessButton).frame(width: 22).help("Table actions")
       }.padding(compact ? 8 : 14)
+      if table.archived {
+        Text(
+          "Archived table. Its data and history are preserved. Restore it in Table definition to edit."
+        )
+        .font(.callout).foregroundStyle(.secondary).padding(8)
+      }
       if let page = loader.page {
         NativeTable(
           page: page,
@@ -463,40 +623,41 @@ struct DatasetView: View {
       if let failure = loader.failure { state.error = failure }
       if let page = loader.page, page.revision != state.revision { state.refresh() }
     }
-    .sheet(isPresented: $showColumns) { ColumnEditor(table: table, state: state) }
+    .sheet(item: $schemaEditing) { frozen in ColumnEditor(table: frozen, state: state) }
   }
   func apply(_ edits: [RowEdit], expectedRevision: Int? = nil) {
-    guard let book = state.workbook, !state.busy,
-      let revision = expectedRevision ?? loader.page?.revision
-    else { return }
-    Task {
-      do {
-        let change = try await Task.detached {
-          try book.editRows(table.id, edits: edits, expectedRevision: revision)
-        }.value
-        state.tableUndo[table.id] = change.id
-        state.tableRedo[table.id] = nil
-        state.refresh()
-      } catch { state.error = error.localizedDescription }
-    }
+    guard let revision = expectedRevision ?? loader.page?.revision else { return }
+    let tableID = table.id
+    state.run(
+      "Saving table changes",
+      operation: { book, _ in
+        try book.editRows(
+          tableID, edits: edits, expectedRevision: revision,
+          actor: .human("Sevra native table editor"))
+      },
+      completion: { change in
+        state.tableUndo[tableID] = change.id
+        state.tableRedo[tableID] = nil
+      })
   }
   func undo(_ redo: Bool) {
-    guard let id = redo ? state.tableRedo[table.id] : state.tableUndo[table.id],
-      let book = state.workbook
+    guard let id = redo ? state.tableRedo[table.id] : state.tableUndo[table.id]
     else { return }
-    Task {
-      do {
-        let inverse = try await Task.detached { try book.undoTableChange(id) }.value
+    let tableID = table.id
+    state.run(
+      redo ? "Redoing table changes" : "Undoing table changes",
+      operation: { book, _ in
+        try book.undoTableChange(id, actor: .human("Sevra native table history"))
+      },
+      completion: { inverse in
         if redo {
-          state.tableUndo[table.id] = inverse.id
-          state.tableRedo[table.id] = nil
+          state.tableUndo[tableID] = inverse.id
+          state.tableRedo[tableID] = nil
         } else {
-          state.tableRedo[table.id] = inverse.id
-          state.tableUndo[table.id] = nil
+          state.tableRedo[tableID] = inverse.id
+          state.tableUndo[tableID] = nil
         }
-        state.refresh()
-      } catch { state.error = error.localizedDescription }
-    }
+      })
   }
   func copyRows() {
     guard let page = loader.page else { return }
@@ -555,42 +716,95 @@ struct ColumnEditor: View {
   @ObservedObject var state: WorkspaceState
   @Environment(\.dismiss) private var dismiss
   @State private var columns: [Column] = []
+  @State private var title = ""
+  @State private var archived = false
+  @State private var history: [DatasetDefinition] = []
+  @State private var saving = false
   @State private var failure: String?
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Text("Columns and formulas").font(.title2)
+      Text("Table definition").font(.title2)
+      TextField("Table title", text: $title).accessibilityLabel("Table title")
       Text("Formulas use column IDs, such as quantity * unit_cost. Empty cells remain unknown.")
         .foregroundStyle(.secondary)
+      Text(
+        "Removing a column preserves its saved values. Restore a definition from History to recover it."
+      )
+      .font(.caption).foregroundStyle(.secondary)
       ScrollView {
-        VStack {
+        VStack(spacing: 12) {
           ForEach($columns) { $c in
-            HStack {
-              TextField("Title", text: $c.title).frame(width: 130)
-              Text(c.id).font(.caption.monospaced()).frame(width: 90, alignment: .leading)
-              TextField(
-                "Unit",
-                text: Binding(get: { c.unit ?? "" }, set: { c.unit = $0.isEmpty ? nil : $0 })
-              ).frame(width: 65)
-              Picker("Type", selection: $c.type) {
-                ForEach(["text", "decimal", "boolean", "date"], id: \.self) { Text($0).tag($0) }
-              }.labelsHidden().frame(width: 90)
-              TextField(
-                "Formula (optional)",
-                text: Binding(get: { c.formula ?? "" }, set: { c.formula = $0.isEmpty ? nil : $0 }))
+            VStack(alignment: .leading) {
+              HStack {
+                TextField("Column title", text: $c.title).frame(width: 130)
+                  .accessibilityLabel("Column title, " + c.id)
+                Text(c.id).font(.caption.monospaced()).frame(width: 90, alignment: .leading)
+                TextField(
+                  "Unit",
+                  text: Binding(get: { c.unit ?? "" }, set: { c.unit = $0.isEmpty ? nil : $0 })
+                ).frame(width: 65)
+                Picker("Type", selection: $c.type) {
+                  ForEach(["text", "decimal", "boolean", "date"], id: \.self) { Text($0).tag($0) }
+                }.labelsHidden().frame(width: 90)
+                TextField(
+                  "Formula (optional)",
+                  text: Binding(
+                    get: { c.formula ?? "" }, set: { c.formula = $0.isEmpty ? nil : $0 })
+                )
+                .accessibilityLabel("Formula, " + c.id)
+                Button(role: .destructive) {
+                  columns.removeAll { $0.id == c.id }
+                } label: {
+                  Image(systemName: "minus.circle")
+                }.help("Remove column " + c.title).accessibilityLabel("Remove column " + c.title)
+                  .disabled(columns.count == 1)
+              }
+              HStack {
+                Toggle(
+                  "Required",
+                  isOn: Binding(get: { c.required == true }, set: { c.required = $0 ? true : nil })
+                )
+                .accessibilityLabel("Required, " + c.id)
+                Toggle(
+                  "Unique",
+                  isOn: Binding(get: { c.unique == true }, set: { c.unique = $0 ? true : nil })
+                )
+                .accessibilityLabel("Unique, " + c.id)
+              }.disabled(c.formula != nil)
             }
           }
         }
       }
       if let failure { Text(failure).foregroundStyle(.red) }
+      Toggle("Archive table", isOn: $archived)
+      Text(
+        "Archive hides this table from the working list and prevents row edits. Saved views and history remain available."
+      )
+      .font(.caption).foregroundStyle(.secondary)
       HStack {
         Menu("History") {
-          ForEach((try? state.workbook?.columnHistory(table.id)) ?? [], id: \.text) { record in
-            Button("Restore version " + record["version"].text) {
+          ForEach(history) { record in
+            Button(
+              "Restore version \(record.version): \(record.title)"
+                + (record.archived ? " (archived)" : "")
+            ) {
+              restore(record.id)
+            }
+          }
+          if let oldest = history.last, oldest.version > 1 {
+            Button("Show older definitions") {
               do {
-                try state.workbook?.restoreColumns(table.id, version: record["version"].int ?? 0)
-                state.refresh()
-                dismiss()
+                history =
+                  try state.workbook?.datasetDefinitions(table.id, beforeVersion: oldest.version)
+                  ?? []
               } catch { failure = error.localizedDescription }
+            }
+          }
+          if let newest = history.first, newest.version < table.version {
+            Button("Show newest definitions") {
+              do { history = try state.workbook?.datasetDefinitions(table.id) ?? [] } catch {
+                failure = error.localizedDescription
+              }
             }
           }
         }
@@ -600,13 +814,55 @@ struct ColumnEditor: View {
         Spacer()
         Button("Cancel") { dismiss() }
         Button("Save") {
-          do {
-            try state.workbook?.setColumns(table.id, columns: columns)
-            state.refresh()
-            dismiss()
-          } catch { failure = error.localizedDescription }
+          save()
         }.buttonStyle(.borderedProminent)
       }
-    }.padding(24).frame(width: 680, height: 420).onAppear { columns = table.columns }
+    }.padding(24).frame(width: 780, height: 540).disabled(saving)
+      .interactiveDismissDisabled(saving).onAppear {
+        columns = table.columns
+        title = table.title
+        archived = table.archived
+        do { history = try state.workbook?.datasetDefinitions(table.id) ?? [] } catch {
+          failure = error.localizedDescription
+        }
+      }
+  }
+  private func save() {
+    guard let book = state.workbook else { return }
+    let title = title
+    let columns = columns
+    let archived = archived
+    saving = true
+    Task {
+      do {
+        _ = try await Task.detached {
+          try book.updateDatasetDefinition(
+            table.id, expectedVersion: table.version,
+            expectedDefinitionID: table.definitionID, title: title, columns: columns,
+            archived: archived,
+            actor: .human("Sevra native table definition editor"))
+        }.value
+        state.refresh()
+        dismiss()
+      } catch { failure = error.localizedDescription }
+      saving = false
+    }
+  }
+  private func restore(_ id: String) {
+    guard let book = state.workbook else { return }
+    saving = true
+    Task {
+      do {
+        _ = try await Task.detached {
+          try book.restoreDatasetDefinition(
+            table.id, definitionID: id,
+            expectedVersion: table.version, expectedDefinitionID: table.definitionID,
+            actor: .human("Sevra native table definition history"))
+        }.value
+        state.refresh()
+        dismiss()
+      } catch { failure = error.localizedDescription }
+      saving = false
+    }
   }
 }

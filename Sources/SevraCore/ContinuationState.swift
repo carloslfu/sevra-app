@@ -26,18 +26,26 @@ extension Workbook {
               .object(["messageID": .string(message.id), "state": .string(message.state)]))
           }
           guard message.role == "tool", let receipt = try? Value.parse(message.body) else { return }
-          if let id = (receipt["resultIdentity"]["id"].string ?? receipt["result"]["id"].string),
+          let result =
+            receipt["result"]["receiptID"] == .null
+            ? receipt["result"] : ToolResultProjection.visibleValue(receipt["result"])
+          if let id =
+            (receipt["resultIdentity"]["id"].string ?? result["id"].string
+              ?? result["item"]["id"].string),
             try db.scalar("SELECT count(*) FROM items WHERE id=?", [.string(id)]).int == 1
           {
             ids.insert(id)
           }
         }
         for id in references { try inspect(historyMessage(id, conversation: conversation)) }
-        let calls = try db.execute(
-          "SELECT id,tool,state,operation_token,message_id FROM tool_calls WHERE run_id=? ORDER BY rowid LIMIT 100",
+        let callRows = try db.execute(
+          "SELECT id,call_id,tool,state,operation_token,message_id,result_hash FROM tool_calls WHERE run_id=? ORDER BY rowid DESC LIMIT 100",
           [.string(runID)]
-        ).map { row -> Value in
-          var info = row
+        ).reversed()
+        let details = try continuationDetails(
+          calls: Array(callRows), runID: runID, conversation: conversation)
+        let calls = try callRows.map { row -> Value in
+          var info = row.filter { !["call_id", "result_hash"].contains($0.key) }
           if let message = row["message_id"]?.string {
             try inspect(historyMessage(message, conversation: conversation))
           }
@@ -51,15 +59,13 @@ extension Workbook {
           return .object(info)
         }
         let current = try ids.sorted().map { id -> Value in
-          let original = try item(id)
-          let head = try item(original.logicalID)
-          return .object([
-            "originalVersion": .string(id), "currentVersion": .string(head.id),
-            "title": .string(head.title),
-            "status": .string(head.status), "meaning": .string(head.meaning),
-            "kind": .string(head.kind),
-            "datasetID": head.data["datasetID"],
-          ])
+          guard
+            let row = try db.execute(
+              "SELECT old.id AS originalVersion,current.id AS currentVersion,current.title,current.status,current.meaning,current.kind,json_extract(current.data,'$.datasetID') AS datasetID FROM items old JOIN heads h ON h.logical_id=old.logical_id JOIN items current ON current.id=h.item_id WHERE old.id=?",
+              [.string(id)]
+            ).first
+          else { throw SevraError("integrity", "A continuation item has no current head.") }
+          return .object(row)
         }
         let unresolved = try unresolvedToolCalls(conversation: conversation).map { call in
           Value.object(
@@ -75,6 +81,12 @@ extension Workbook {
           [.string(conversation)])
         return .object([
           "run": .object(run), "calls": .array(calls), "recordStates": .array(current),
+          "readEvidence": details["reads"], "savedSpaces": details["spaces"],
+          "documentCopies": details["documentCopies"],
+          "callsOmitted": .bool(
+            (try db.scalar("SELECT count(*) FROM tool_calls WHERE run_id=?", [.string(runID)]).int
+              ?? 0)
+              > calls.count),
           "unresolvedCalls": .array(unresolved), "unresolvedCount": unresolvedCount,
           "referencedOutcomes": .array(outcomes), "revision": .number(Double(try revision())),
           "authority": .string(

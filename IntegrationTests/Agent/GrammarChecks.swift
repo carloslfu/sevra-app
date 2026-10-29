@@ -34,6 +34,7 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
     throw SplashError("Workbook tool fixtures do not match their declaration bytes")
   }
   var masks = 0
+  var largestPrompt = 0
   for item in fixture.cases {
     let choice: SplashToolPolicy.Choice =
       item.choice == "named_finish" ? .named("finish") : item.choice == "auto" ? .auto : .required
@@ -61,10 +62,15 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
     for call in output.calls { try policy.validate(call) }
     let prompt = try frontend.prepare(
       messages: [["role": "user", "content": "Read the workbook."]], tools: policy.promptTools(),
-      thinking: item.thinking)
+      thinking: item.thinking, contextLimit: 65536)
+    largestPrompt = max(largestPrompt, prompt.tokens.count)
+    guard prompt.tokens.count <= 8192 else {
+      throw SplashError(
+        "Workbook tool prompt uses \(prompt.tokens.count) tokens, over its 8192-token check")
+    }
     guard !prompt.tokens.isEmpty else { throw SplashError("Workbook tool prompt is empty") }
   }
   print(
-    "PASS \(fixture.cases.count) actual-tool grammars, \(masks) exact reference masks, completed argument validation and prompts"
+    "PASS \(fixture.cases.count) actual-tool grammars, \(masks) exact reference masks, completed argument validation; largest tool prompt \(largestPrompt)/8192 tokens"
   )
 }

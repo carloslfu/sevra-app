@@ -51,7 +51,7 @@ public enum Demo {
             "A small example workbook. Compare suppliers, inspect a delivery, or ask why stock is 18. All data is synthetic."
         ), .init(type: "table", title: "Supplier comparison", datasetID: table.id),
         .init(type: "chart", title: "Quoted cost", datasetID: table.id, x: "supplier", y: "total"),
-      ]))
+      ]), expectedVersion: 1)
     _ = try book.addMessage(
       "This example has supplier quotes and a delivery. Try ‘Why do we have 18 brass bolts?’ or ‘Compare the supplier costs and show the evidence.’",
       role: "assistant")

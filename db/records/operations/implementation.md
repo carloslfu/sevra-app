@@ -3,17 +3,896 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-27T11:54:20.666953+00:00
+updated: 2026-10-29T19:17:26.400200+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
 
-This is a working development build, not a qualified release. Requirements in the
-specifications remain the acceptance contract. A source commit does not imply that
-every requirement or supported hardware profile has passed.
+This is MVP 0.1, a native source test preview for the focused file-to-result
+workflow below. The expanded specification is unfinished. The owner-directed
+[[records/specs/mvp-delivery]] controls delivery order; preview evidence does not
+qualify broad model reliability, supported hardware or a production release.
 
-## Current direction, October 27
+## MVP 0.1 native preview, October 29
+
+The installed Python-free native app completes the focused supplier workflow.
+This is a bounded preview route, with manual native formula authoring and short
+model requests. Broad autonomous supplier comparison remains unqualified.
+
+- Start from files includes the synthetic supplier CSV and searchable PDF in a new
+  workbook. CSV intake creates the working table; the PDF remains an indexed
+  reference. Both originals stay outside SQLite inside the workbook.
+- With the PDF open, the actual selected model correctly summarizes 100 bolts,
+  SKU 0014, unit price 1.15, goods 115, shipping 20, goods plus shipping 135 USD,
+  excluded tax without a rate, delivery 5 business days and validity 14 days.
+  Its citation opens the original included PDF, including from the portable copy.
+- A native formula column `quantity * unit_price + shipping`, unit USD, gives Atlas
+  130 and Brio 135. The visible fixture's column declaration is text; this verifies
+  numeric formula results, not a decimal-column selection interaction. A short
+  actual-model request saves the existing table and correct supplier/cost bar chart
+  as Supplier comparison. No evidence duplication or business acceptance occurs.
+- Native keyboard editing changes Atlas shipping 10 to 20 and the live total 130
+  to 140. Undo restores 10/130. Escape cancels a later edit. Original CSV bytes stay
+  unchanged. Editable table cells now expose the text-field accessibility role;
+  computed cells stay static. Existing identity/stale-read/cancel checks pass.
+- Native quit/reopen retains conversation, files, formula and saved space. Native
+  Make Shareable Copy exports `.sevraz`; opening it creates a separate editable
+  workbook whose saved chart and cited PDF are visibly usable. A separate installed
+  CLI reopens that actual exported archive with network and original-example reads
+  denied. Both original hashes, rows, formulas, spaces and history match; copied
+  automation activations remain zero. The portable file is 254,589 bytes.
+- Model setup verifies compatible Qwen3.6 35B A3B 4-bit plus DFlash 2 weights in place
+  through normal Application Support settings. The native Splash 1.4.1 C++/Metal
+  engine uses Swift frontend orchestration without Python at runtime. The actual
+  app/CLI are installed in normal user locations. Existing on-device speech reaches
+  the unsent composer; controlled-phrase accuracy is not newly qualified here.
+- Native install/update/uninstall and baseline-to-native CLI transition pass isolated
+  checks. Other apps/CLIs are protected and workbooks/models remain. The final
+  native app builds, installs and passes resource/refusal/signature checks. Full
+  1,888-kernel proof is reused for unchanged engine bytes. The install re-signs the
+  outer app after including its CLI; executable payload outside its code signature
+  and installed CLI match the frozen build.
+
+### Failures and actual limits
+
+The first broad selected-model answer transferred Brio tax exclusion to Atlas;
+source-specific guidance corrected the headless retry and its missing-rate
+counterexample. A later visible broad request read only CSV and missed the PDF.
+Requiring original inspection then produced overly specific literal AND searches,
+and the clarified short-query guidance still exhausted twelve steps while hunting
+another Atlas quotation. Those failures remain retained. They are not passed
+comparison tests. Focused PDF summary and short saved-view requests succeed.
+A user must inspect original evidence; this preview is not qualified for unattended
+business decisions or arbitrary compound questions.
+
+The first compound save also used numeric chart axes. Validation refused without
+publishing a partial space. Tool/policy guidance and core feedback now explain
+column IDs; the focused retry succeeds. The initial startup dialog isKey guard could
+interrupt handoff after modal focus changes. Owner identity/visibility checks replace
+it, and the final visible two-file startup succeeds; Cancel returns to welcome.
+The unsuccessful attached-sheet experiment is not retained.
+
+The corrected complete `scripts/check.sh` milestone passes 557 core groups and the
+existing integration/agent/grammar/links/knowledge checks. An earlier attempt failed
+on a stale save_space description snapshot, which was corrected without changing
+52 parameter structures, 65 grammar cases or 555 masks. Later final AI guidance,
+table accessibility and app-dialog changes have focused agent/native-grammar,
+table, build, visible journey and package/install checks. The largest tool prompt
+remains 8,174/8,192 tokens. Unchanged broad core proof is reused per policy.
+
+Exact source/binary hashes, real tool calls, retained failed and successful native
+runs, UI observations, check tails and offline-copy results are in
+[the immutable native MVP receipt](../../../integration/evidence/2026-10-29-mvp-native-journey.json.gz)
+(89,303 bytes, SHA256
+`86def378658bfcdd6acc870520359fc33d2f8cc36f9306dfa130e6cdec11ea03`).
+The build is based on 36cc49c with the recorded formatting/accessibility source delta;
+the final commit records that exact delta. Earlier immutable receipts stay unchanged.
+
+Active delivery work, at most three:
+
+1. Finish knowledge/link/diff checks, publish this coherent source preview and
+   record the hosted CI outcome. CI 40934376437 and 40936358619 were still running
+   at the receipt capture, so neither is claimed as passed. Prior 0906fe4 CI failed
+   the stale authoring assertion corrected in e73303a.
+2. Let an external user attempt the documented supplier workflow, then prioritize
+   observed friction. Broad retrieval/reasoning reliability remains the main product
+   limit. Do not restart E2-E6/background work before that attempt.
+
+Production signing/notarization, other physical hardware, speed/parity, complete
+Excel continuity and full accessibility/appearance/media qualification remain
+outside this source preview. No 100-150 token/second or any-device claim is made.
+
+## Earlier implementation checkpoints, October 29
+
+- Working development build, schema30. Native Swift/SwiftUI app and CLI use the pinned Python-free Splash C++/Metal candidate; Slotstream remains the separate preserved baseline. Production engine/performance adoption remains unqualified.
+- Native Home/spaces, search/extraction, managed data, reusable computation, inventory/document actions/forms and foreground durable workflows now include reviewed CSV/TSV intake and exact single-table scalar catalog matching with explicit missing-match repair/retry. Conversation can author preparation/interpretation/intake/workflows and queue runs. Intake now has scoped exact-mapping/template/inert-queue/missing-intent proof. Registered document-action direct chat submission remains closed pending separate intent qualification. Continue executes; reviews apply business changes.
+- Prior schema18 full shared checks pass 289 core groups / 0 failures and 21 real process-death boundaries/189 worker calls. The latest supplied-clarification slice passes63 focused workflow groups, scripted agent checks,64 grammars/542 masks at8171/8192 and state-dependent interpretation grammar/validation with reasoning on/off.101 deterministic calls include two new SIGKILL boundaries; packaged deterministic/actual-model jobs pass27/27 calls and a39-call known-count counterexample. Final frozen native build, installed-resource/refusal/signature paths checks, strict14-file Swift lint and isolated skill validation pass. Historical failures and fixes remain retained.
+- A final actual packaged-model job passes 38 CLI calls: exact file preparation, cited quantity 2 for code 0014, reviewed merge 1 added/1 changed/1 unchanged, rows 7/5/2 with the new row still an estimate, separate estimate report/review, six completed steps and inert reconstruction. Stock 20 stays unchanged. Prior receiving/report job independently proves stock 25 only after inventory review. Single synthetic jobs do not establish broad accuracy or performance.
+- Exact catalog lookup now passes a 39-call actual-model receiving/report/repair/retry job with seven completed steps and inert reconstruction. Code `0007` and received count `5` are retained; completed AI work is reused without an installed model after repair. Stock 20 becomes 25 only after review. This is scoped synthetic behavior.
+- Shared clarification now includes native typed input/preview/human submission, portable incomplete/stale alternatives, cross-window compare-and-save, receipt recovery and save-failure lifecycle gates. Final frozen checks pass302 core groups/0, headless preview, strict14-file lint, native package and27 deterministic calls. Original model output and separate continuation/review stay intact; latest visible checks remain unverified.
+- Conversation answers now include unsent AI preparation plus explicit local Preview my answer and Save/Confirm my answer commands. A live exact host-preview/current-conversation gate, retained confirmation provenance, post-flush entry and post-reload cancellation guards have scoped core/session/native-package proof. Final66 focused groups/0 and strict10-file lint pass; unchanged V2 scripted-agent/27 deterministic/30 actual packaged calls are reused after the two qualified V3 display/invalidation deltas. Paused-state wording is correct in the two synthetic model cases. Actual visible/voice interaction remains unverified.
+- Receiving occurrence qualification now passes67 focused workflow groups: additional evidence of the same explicit fulfillment cannot count twice across new runs; a genuinely independent fulfillment can. The E4 calendar planner now passes13 focused groups and31 installed CLI calls, with native package/refusal/signature proof; it previews only and activates nothing. Details: [[records/specs/automation-schedules]].
+- Inert automation definitions now reuse immutable behavior versions, exact workflow/typed nested evidence lineage, FTS and complete capture/reconstruction. Final schema19 checks pass326 full core groups/0,8 focused automation groups,36 automation and31 calendar installed CLI calls, strict10 Swift files and native package/refusal/signature checks. Saving/previewing cannot activate or start work; ordinary agent authoring remains refused.
+- Durable calendar preparation now has explicit exact-generation process-local planning permission, revocable authorization/pause, bounded/coalesced/late occurrence rows, source-bound monotonic catch-up coverage and transactional outbox in the same captured ledger. Schema20 passes343 full core groups in frozen V4; final17 focused groups and33 installed CLI cases pass, with unchanged36 definition/31 calendar regressions reused and final native package/refusal/signature proof. Copies/reconstruction stay inert; no workflow dispatch. See [[records/specs/automation-planning]].
+- Foreground execution now has a distinct live execution/AI grant, atomic occurrence-to-run binding, one active run, scheduled provenance, technical-metadata isolation and pause-safe automation claims. Manual continuation remains separately attributed; Stop grants no execution. Schema21 final checks pass359 full core groups,16 focused groups, synthetic model lifecycle,2 actual SIGKILL boundaries/16 worker calls,44 execution/33 preparation/36 definition/31 calendar installed native CLI cases, strict25 Swift files, skill validation and final native resource/refusal/signature proof. No timer installed. See [[records/specs/automation-execution]].
+- Native Activity/Schedules now has typed create/edit/preview, exact-version Enable on this Mac, pause/removal and separately attributed Run once. A private durable physical-workbook registry restores authority without repeat authorization; copies stay inactive. The app-wide owner serializes active-app work, defers resource/focus loss and gives interactive work priority. Final 17 registry/controller groups, 16 execution groups, synthetic ProductAI lifecycle, 44 installed native CLI cases, strict 16-file Swift lint and native build/resource/refusal/signature checks pass. A full 359-group core run passed V4; subsequent guard-closure naming is covered by final focused regressions. See [[records/specs/native-automation-owner]].
+- The first condition slice is an inert supplied-observation preview, with 13 focused groups including all 243 short truth trajectories, 31 installed native CLI cases, and nearby 13 calendar/16 execution groups. It cannot prove real event coverage or execute workflows. Hosted fab2a83 CI exposed a registry directory-creation race; atomic private mkdir fixes it without weakening refusal. Final 18 registry/controller groups and five extra starts/30 workers, strict seven-file Swift lint and native package/resource/refusal/signature checks pass. Failed CI and prior proof remain retained. See [[records/specs/condition-transitions]].
+- The schema22 semantic business-event feed now publishes exact committed settled versions, inventory bases and dataset membership/schema through shared capture/reconstruction. Final 386 full core groups with zero failures, 14 focused groups, 76 installed native CLI calls with six concurrent publishers and two actual SIGKILL boundaries, nearby native owner 18 groups, ProductAI lifecycle and 44 automation calls, strict 12-file Swift lint and native resource/refusal/signature checks pass. Scope/cursor/atomic-batch limits are explicit. See [[records/specs/business-events]].
+- Historical inventory now resolves exact committed batches and explicit effective dates without today's-head shortcuts. Eleven focused groups, real 10,000/10,001-effect boundary, 14 feed regressions, 37 installed CLI calls, strict five-file Swift lint and fresh native packaging checks pass. The original scale deadline failure and SQL profile/fix remain retained. This is a read-only reconciliation oracle; see [[records/specs/inventory-event-state]].
+- Persistent inventory consumers now retain exact baselines, incremental effects, atomic batch/clock/rebuild pages, observations and inert candidates. Final 416 full core groups, 18 focused groups, the real 10,000/10,001 boundary, 94 condition, 76 feed and 37 historical installed calls, 18 registry/controller groups, synthetic ProductAI, strict Swift lint on 13 files and final native packaging pass. The capacity fixture exposed and fixed numeric positions sorted through a text alias; pagination with 23 batches and 101 distinct crossings now pass. See [[records/specs/inventory-condition-consumers]].
+- Automatic derivation inspection now preserves exact historical workflow origin through synthetic human-attributed acceptance/manual work. Schema 24 uniquely indexes the authoritative workflow invocation Source, so erased metadata cannot hide a saved run. Final 434 full core/18 focused groups, 22 ancestry/94 condition/76 feed installed calls, native owner 18, synthetic ProductAI, strict six-file Swift lint and native packaging pass. The graph includes control provenance and is not a minimal causal slice or dispatch decision. See [[records/specs/automatic-ancestry]].
+- Schema 25 now retains exact calendar roots and trusted inherited automatic admissions through the existing ledger, with persisted logical self/cross-loop, depth, parent fan-out and root-total budgets. V3 full core 456/0 includes 22 admission groups; final V4 changes only synthetic worker request keys. Installed 21 admission/47 execution/22 ancestry/94 condition/76 feed calls bind one native CLI, with nine competing successor writers and two new dispatch SIGKILL boundaries. Native owner/ProductAI/package and strict 15-file Swift lint pass. See [[records/specs/automation-causality]] for exact source scope and retained failures. This is not automatic condition cause discovery or dispatch.
+- Schema 26 now retains exact scope-relevant condition change inputs through atomic pages, clocks, rebuilds and linked unknown windows. Pending inputs survive backpressure/restart; completed summaries/members/candidate/cursor publish together. Final470 full core groups/14 focused groups/real10000-10001 boundary, installed30 input/97 condition/76 feed/22 ancestry/21 admission calls, owner18, synthetic ProductAI, strict14 Swift files and native packaging pass. The input lists are explicitly not minimal causes or automatic-parent discovery. See [[records/specs/condition-transition-inputs]].
+- Schema27 now retains sealed data/control/producer/revision role sets across audited native producer paths, public named lineage and inert reconstruction. Final484 full core groups/13 focused groups, real10,000/10,001 input/projection boundaries,19 installed role calls plus nearby condition/feed/ancestry/admission and native package checks pass. See [[records/specs/business-provenance]]. This is capture/classification, not resolved business origins.
+- Bounded business-origin inspection now validates complete seals, exact direct/manual/automatic producers and historical admissions while excluding control-only ancestry. Final 499 core/74 focused groups, real item/edge/depth limits, installed 42 origin/22 ancestry/21 admission calls, strict 15 Swift files, isolated skill validation and native resource/refusal/signature checks pass. All 147 prior artifacts remain unchanged. See [[records/specs/business-provenance]]. No independent-root or dispatch claim.
+- Exact complete condition windows now resolve all retained changed/clock versions through the bounded sealed graph. Final 41 focused groups, real input/graph limits, installed 40 window/30 input/42 origin calls, strict seven-file lint, skill and native package checks pass. All 148 prior artifacts remain unchanged. Baseline/unknown-gap/overflow and oversized graphs refuse honestly. See [[records/specs/business-provenance]].
+- Schema28 now retains explicit original-input declarations and resolves shared business/automatic cause identities across consumers, corrections and effective clocks. Broad530 core checkpoint, final20 focused groups/39 installed calls, two new actual SIGKILL boundaries, nearby native checks and strict18-file lint pass. Fresh visible Activity review continuation completes with one preserved root/charge/effect. Dictation start/stop works; fresh spoken transcription is still unverified. See [[records/specs/business-provenance]].
+- Schema29 now retains shared business-root admissions, exact input relations and merged parent/root budgets through the existing captured writer. Full539 core/30 final focused groups,22 installed shared-admission calls, nine racing writers for seven slots and two actual SIGKILL boundaries pass. Current local speech reaches the unsent composer, Stop/clear/close leave no sent work. See [[records/specs/automation-causality]].
+- Schema30 now connects actual owned inventory-condition candidates, exact live physical-file grants and atomic workflow/admission binding. Broad555 core, final18 focused/21 owner groups and current installed race/death/native package checks pass. Fresh native editor/preview/save/Enable, stock20-to5 automatic deterministic completion, trigger evidence, Pause and inert reconstruction pass. See [[records/specs/condition-dispatch]].
+- Conversation now saves exact inventory rules and opens native review without enabling them. Seven scripted modes, full agent/65 grammars/555 masks at8161/8192, real local-model authoring and packaged native handoff/close/inert reconstruction pass; all152 prior artifacts remain unchanged. See [[records/specs/condition-dispatch]].
+- The focused native MVP supplier journey is now complete as scoped above. Further automation confirmation/conditions/background infrastructure is deferred; its unfinished sketch is preserved separately in [[records/specs/condition-dispatch]].
+- Current MVP evidence, limits and active delivery work are maintained in the MVP 0.1 native preview section above.
+- Release gaps also include contextual/Excel continuity and complete E0/E1/E2 journeys, voice/accessibility/appearance/media and supported physical hardware, native parity/performance adoption, production signing/notarization and distribution. Latest native Activity continuation and local speech-to-composer/stop/clear/close now have visible proof. Controlled-phrase accuracy and full accessibility/appearance/media remain unverified. Specifications are the acceptance contract; scoped checkpoints do not make the app ready.
+
+## Agent definitions and saved actions, checkpoint, October 28
+
+The current E2 slice adds focused `find_definitions`, `read_definition`,
+`definition_registry`, `receiving_template`, `form_template`, `evaluate_definition`,
+`save_definition`, `save_template`, `preview_action` and `prepare_action` tools.
+That earlier checkpoint used46 native tools; the current authoring checkpoint uses52. Custom saves require content; exact template saves require
+this active run's successful receipt, optionally changing only the title. Creates
+receive a host-derived stable identity; edits need the exact inspected current base.
+AI saves retain actual actor/current-request lineage. Catalog/template metadata
+never becomes business evidence or action authority. Native form components bind
+the form identity, independently of action identity. Read-only requests refuse saves
+and submission. Inventory handoffs can submit through the same review; other scoped
+write handoffs do not gain saved-action authority.
+
+Preparation journals its own fresh read-only preview, loads that exact successful
+current-run receipt, checks
+identity/hash/arguments and independently reviews every inventory direction from
+the current request and bounded original Source text. The reviewer never sees action
+titles, proposed signs or earlier model interpretations. Groups of ten cover at most
+fifty lines within unchanged 1,800-output/512-reasoning-token bounds. Exact UTF-8
+quotes, full index coverage, correct signs and every group must pass before the
+canonical transaction rechecks the run and publishes any draft. Wrong/unclear signs,
+forged quotes, malformed/foreign/prepared/failed receipts, read-only mode and late
+cancellation refuse. Successful submission terminates with host-owned exact proposal
+links and needs-review state. It changes no accepted balance.
+
+Preview completion is also host-owned. `finish basis=preview` displays the exact
+current-run plan and states no proposals were saved; other finish bases after a
+preview refuse and direct the model to submit requested drafts or show the preview.
+Invented model preview prose is discarded. A missing preview/count-receipt mixture
+refuses. An estimate preview is labeled estimate. This does not qualify arbitrary
+compound preview-plus-analysis responses. Template/custom saves use the same exact
+version/retry/provenance rules, without a legacy overloaded-save adapter.
+
+Captured definition/dataset family clocks fix continuations invalidated by their own
+agent receipts. Relevant writes set ordinary captured meta to that same transaction's
+commit ID. Journal/context/presentation-only writes leave it stable; real relevant
+edits still stale the cursor. Reconstruction restores clocks and executes nothing.
+No physical schema change, second ledger or sync implementation. Focused core223
+passes, including real prepared/completed journal calls, exact retries, template-copy
+checks, stale/late-run refusal and inert reconstruction. Synthetic agent checks cover
+all fifty lines, ambiguity in a late group, false preview completion recovery and
+forged/missing preview refusal. Actual native grammar checks pass 52 cases/425 masks;
+the largest bare tool prompt is 8,121/8,192 tokens. The gate was not raised.
+
+Retained failures drove these changes. Initial schema prompts exceeded the existing
+8,192-token gate (9,743, then 9,110/8,737 and later intermediate attempts). Repeated
+label descriptions were removed while structural bounds and strict core validation
+remain. Model runs V1-V4 encountered form step limits, Boolean rewrites, missing
+insertion position, multiplexed registry misuse and a missing batch-review native
+citation-policy branch. V5 exposed title-only calls through optional overloaded save
+fields. Focused tools and two required save contracts replace those experiments.
+V6 timed out at 180 seconds before any tool while Apple Metal compiled native
+components; a retained process sample records that observation, not an inference
+speed result. Startup now allows 360 seconds and reports first-start compilation;
+generation/reasoning/output budgets are unchanged. A dedicated cancellation test
+still reaps a stubborn startup helper within five seconds.
+
+The first startup-cancel test helper was mistakenly dispatched as a whole test suite
+because its fourth argument did not match the old peer dispatch. The resulting 88
+owned test processes were verified by ancestry and stopped; unrelated processes
+were untouched. The corrected exact peer-argument dispatch passes all 31 Splash
+checks. The failure/cleanup evidence remains. A broad extraction test also exposed
+a PID-file publication race; its bounded test registration wait was repaired without
+changing the production worker. The item-reference grammar fixture now explicitly
+uses its existing 64K inspection context; actual budget refusal and the independent
+8K bare-tool gate remain intact.
+
+V7 passed function creation/evaluation and Home form authoring, then falsely described
+a preview as prepared drafts while no movement existed. It remains a failed run.
+The host preview/submission guard above addresses that failure. V8 passed the calculation tasks and saved the Home form at step twelve, but then
+stopped at an explicitly labeled unsaved preview rather than preparing the requested
+drafts. It is a functional failure, with no false saved-state claim or business write.
+The native contract is now `prepare_action(id, arguments)`: one requested preparation
+whose host journals a fresh preview, reviews every direction and commits that exact
+receipt through `commit_action_preview`. The earlier model-facing submit interface
+has no adapter. V9 refused a stale exported declaration fixture before any model
+request; no V9 model output is claimed. V10 passes all five fresh selected-model
+tasks: create a function, evaluate it, save a receiving action/form on existing Home,
+prepare two requested drafts with unchanged accepted stock, and ask clarification
+for handed-over goods without a specified direction. The runs took 31.22, 29.80,
+62.39, 101.41 and 123.04 seconds respectively. These are functional observations
+under concurrent builds, not a controlled throughput comparison. Ordinary multi-step
+latency remains a UX concern. All failed runs remain in the receipt.
+
+The broad shared-boundary rerun passes core223, extraction19, document27, voice15
+and Splash31 plus shared CLI, context, grammar and native-session harnesses. Final
+strict Swift lint passes40 files. Skill validation, installed-resource/missing/altered
+refusals, ad-hoc signature and independent packaged CLI competing-writer/retry/
+portable/inert-reconstruction checks pass. A final UI-only empty-search label was
+qualified after the broad pass by rebuilding, strict lint, installed-package checks
+and visible search. No new broad rerun is claimed after that copy/display change.
+
+The Mac is now accessible. In a fresh synthetic workbook the native form retained
+incomplete inputs across quit/reopen, opened exact evidence and returned with inputs,
+previewed five bolts, saved one draft, and opened its review. Accept changed stock
+from 20 to 25 with one effect. Undo withdrew it and returned 20; undoing that withdrawal
+restored 25 with one effect. Core verify passes. The initial plain-button evidence
+picker required a coordinate click; a native selectable list now supports query,
+Tab/arrow selection and Return to Choose. Changed queries clear stale selection.
+These are focused keyboard/AX observations, not actual VoiceOver qualification.
+Full light/dark/narrow/media form journeys remain open. A shared technical-kind
+boundary now excludes request/annotation/application-definition/application-invocation
+metadata from default business search, Recent, reference discovery and original
+direction-review evidence. Exact owner inspection with an explicit kind still works;
+history remains preserved. Focused tests cover both single and batch reviewers, and
+the latest native picker visibly contains the original receipt while a technical
+definition query shows “No matching documents or records.” Cancel retains the input.
+Final quit/reopen and package checks pass; the fixture still has25bolts and1effect.
+
+Evidence: [agent application definition receipt](../../../integration/evidence/2026-10-28-agent-application-definitions.json.gz),233,480bytes,
+SHA-256 a91174ddc066f4a351f5c1d68504137ad92012db50ff96713aa20b4775645149.
+All109 prior evidence files remain byte-identical. The receipt preserves source/
+product hashes, logs, model outputs, native observations and failed attempts.
+
+Full E2 result publication/native query and function composition, complete EJ04/EJ05,
+E3-E6, Excel sparse/formula continuity, full MJ/FJ, supported hardware/fresh install,
+notarized distribution and release/main-integration gates remain open. This is a
+working development checkpoint, not release readiness.
+
+## Registered action and native form checkpoint, October 28
+
+Current development schema14 extends the immutable definition catalog to action and
+form kinds. The same three canonical definition families remain in the complete
+capture inventory. No old-schema adapter. `inventory.receiveDelivery` v1 accepts
+an explicit delivery identity/date/evidence and one to fifty distinct lines with
+positive whole item counts. `inventory.proposeMovement` v1 accepts a signed nonzero
+whole item count, meaning and an optional exact correction. This first registry
+counts discrete items; it does not infer/convert units. Registry metadata exposes
+typed parameters, a machine-readable result schema, capability/effect category,
+three-second cancellation budget, retry policy and readable effect.
+
+Actions map declared parameters, literals or qualified pure Decimal function results
+with matching units. Forms bind an action live or exact, preserve its full parameter
+signature and customize field presentation. Dependencies retain exact resolved
+versions; historical verification never follows a newer live head. Core read-only
+authority refuses invocation through either action or form. No new model tools,
+arbitrary code, external effects, workflow scheduler or automatic acceptance.
+
+Preview is a bounded read transaction. Submit re-resolves the plan under the
+canonical write lock, checks the exact preview, validates exact evidence and uses
+the shared movement validator/executor. Existing movement CLI/tools use that same
+path. One invocation Source records actual actor, submitted inputs, normalized plan
+and exact definition lineage. All draft movements, Source and retry receipt publish
+atomically. Exact retries return the original after later changes; a new request
+cannot duplicate the same delivery line, including a changed inventory subject.
+A successful receipt proves saved proposals, not their semantic accuracy or accepted
+stock. Balances change only after separate acceptance.
+
+Native Home/space layout editing can add a Receive delivery starter. The component
+binds a saved form and renders native scalar/choice/evidence/repeating-line controls,
+field diagnostics, preview, draft submission and review access. Evidence search is
+bounded, and selected originals can be opened. Back/removing a view retains its
+window-owned draft session. Close/quit/open-workbook flushes pending inputs; failed
+saves retain the session and block dropping it. An open form keeps exact definitions;
+a changed live action/function needs explicit refresh, retaining prior inputs as an
+alternative. Submitted forms require explicit New entry before another submission.
+
+Unsent state uses classified `meta` keys `form-draft:` via presentationMutation,
+not business evidence or a keystroke journal. It retains exact form/bindings, raw
+incomplete values, retry token, actual last receipt and up to eight alternatives.
+Concurrent windows refuse overwrites; Keep both retains both exact inputs. Recovery
+reconciles a committed invocation after a crash before its presentation confirmation,
+without resubmission. Limits: 64 KB current input, 1 MB checkpoint including alternatives,
+256 draft keys per workbook and 128 bound definitions. Current checkpoints copy
+separately during inert reconstruction and portable export. The original remains.
+
+Evidence: [registered action and form receipt](../../../integration/evidence/2026-10-28-registered-actions-forms.json.gz), 31,349 bytes, SHA-256 dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38. All 107 prior evidence files remain byte-identical. Broad scripts/check.sh passes with core217,
+extraction19, document27, voice15 and Splash30 groups plus the existing shared
+harnesses. New draft lifecycle checks pass. The final small registry-metadata pass
+adds its machine-readable result schema/category/deadline and preserves custom action titles in form templates; focused final CLI/package
+checks qualify that metadata after the broad run. Independent CLI writers produce
+one two-proposal batch and one duplicate refusal. Maximum fifty-line publication,
+late failure rollback, cancellation, stale live/pinned definitions, computed argument
+lineage, nested field paths, exact retries, keep-both and inert/portable reopening
+have scoped proof. Strict Swift lint, skill and repository knowledge/link gates pass.
+
+The final native bundle is built and its installed resources/refusals/signature are
+checked. CUA still reports the Mac locked, so visible new-form creation/filling,
+keyboard/VoiceOver and light/dark/narrow behavior are unqualified. Automated native
+session checks do not replace those journeys. No new model/hardware throughput
+cohort is claimed. E2 still needs in-app agent authoring/invocation, reusable result
+publication/query/function composition and full EJ04/EJ05. E3-E6 workflows,
+automations/helper/templates, Excel sparse/formula continuity, full MJ/FJ and the
+remaining installation/accessibility/hardware/notarized-release/main-integration
+gates remain open. This checkpoint is not a ready release.
+
+## Application definition catalog checkpoint, October 28
+
+Schema 13 adds immutable app_definitions, selected heads and retained dependency
+bindings to the existing complete capture/apply inventory. Definition metadata is
+backed by an exact authoring Source with submitted content and actual caller.
+That Source records the observed save as actual/accepted; it does not accept a
+business rule or its results. An initial draft/rule authoring Source polluted the
+business review queue. The corrected path leaves an existing unreviewed estimate,
+its meaning and review revision unchanged, including when an AI authors the definition.
+
+Core and CLI now create, inspect, search, version, restore and evaluate reusable
+functions/query templates. Exact base UUIDs prevent overwrites; tokens/arguments/
+actors make retries return their original version. Live function calls resolve
+current exact versions and recheck signatures/units; pinned calls retain their exact
+version. Lazy evaluation, explicit parameter/literal mappings, cycle/depth/work
+bounds and strict Decimal/Boolean/date/choice/local-version types prevent ambient
+reads and arbitrary behavior. Missing, null, default and zero remain distinct.
+Function output declares unit/rounding but does not infer dimensions or rates.
+
+Reusable queries compile the same managed stored-scalar path. Parameters bind
+filter values, with matching column type/unit. Live schema mode tolerates rename
+but refuses changed referenced-column meaning. Exact schema mode refuses a changed
+schema. Both read current rows at an explicit snapshot; neither invents a historical
+projection. Continuation binds exact root/query/snapshot. Evaluation is read-only;
+published result Records, native composition bindings and actions/forms remain open.
+
+A disposable external-content definition_fts indexes retained titles/descriptions/
+parameter labels. Current heads are default; history is explicit. Stable ID paging,
+three-second deadline, 50-hit/2 MiB pages and stale-continuation refusal bound discovery.
+All three canonical families, Sources, heads, FTS consistency and receipts roll back
+on late publication failure. Inert reconstruction restores exact versions/bindings/
+actors and rebuilds FTS without executing definitions. Portable reopen passes.
+
+Evidence: [application definition receipt](../../../integration/evidence/2026-10-28-application-definitions.json.gz), 42,911 bytes,
+SHA-256 4c90977fb56a47c1b51ddadfbe40747f100732bfaf65ff9c46581b049f094b58.
+All 106 prior evidence files remain byte-identical. Core 208 groups pass. The full
+scripts/check.sh pass had 207 groups before the final authoring Source/review-queue
+metadata correction; final focused208 and native/CLI probes qualify that correction.
+No full-script rerun after it is claimed. Final native packaging, installed resource
+refusals/signature, strict lint (19 Swift files) and skill validation pass. Two
+independent CLI editors yield one saved version and one stale-definition refusal.
+
+A final public-core corpus created 10,000 functions plus a shared base, retaining
+5,000 explicit dependencies. Creation took 22.685 s; median 50-hit pages were
+0.644 ms for 1,000 matching names, 1.990 ms for all 10,001 parameter-label matches,
+and 0.217 ms for a full catalog listing. All pages were complete/unique. Verification
+took 4.415 s, inert reconstruction 20.074 s; maximum benchmark-process lifetime RSS
+135,053,312 bytes. Database 105,459,712 bytes; retained history 54,665,015 bytes.
+Actual FTS plan uses the virtual index, rowid/covering head lookups and a temporary
+B-tree for stable ordering. The final packaged CLI opened this corpus, searched in
+0.045 s, evaluated in 0.043 s and verified in 3.691 s, including process/open time.
+These are one-Mac observations under ordinary development load, with some core
+checks/native packaging overlapping the benchmark, not isolated performance or
+hardware qualification. The earlier prototype corpus is retained separately.
+
+The first input cohort caught ISO8601DateFormatter rolling an impossible February
+30 into another date. Shared BusinessTime now validates date syntax/calendar/clock/
+zone before parsing. Leap-date/offset, impossible business-event, newline/CRLF and
+nearby valid inputs pass. Strict end-of-input anchors also protect shared decimal
+strings and definition identifiers. Initial build/test failures are retained.
+
+The final visual launch attempt was blocked by the locked Mac. No schema13 native
+workbook/UI or VoiceOver proof is claimed. Native UI code and the local model/tool
+contract are unchanged. E2 still requires shared action registry, forms/drafts,
+result publication, native definition/query bindings, agent authoring/invocation and
+EJ04/EJ05. E3-E6, Excel sparse/formula continuity, complete MJ/FJ and remaining whole
+installation/accessibility/hardware/notarized release/main integration remain open.
+Older development packages are preserved unsupported, without a migration adapter.
+
+## Managed query and index checkpoint, October 28
+
+Schema 12 now provides bounded typed stored-column filters, sorting, grouped
+Decimal aggregates and up to two equality joins through core/CLI. Raw SQL,
+calculated predicates and undeclared fields refuse. Each request binds exact
+dataset definitions; row output retains exact input versions and meaning/status/
+scenario. Explicit scopes preserve unmatched left-join rows. Accepted estimates
+remain estimates. Revision/query-bound continuation refuses stale state. Queries
+create no business history, and oversized work refuses rather than publishing a
+partial total. Limits include 100,000 contributing rows, 32 MiB referenced input,
+8 MiB output, four million VM instructions and a three-second query deadline.
+
+Disposable native indexes have host-generated descriptors and exact schema
+validation. Keep candidates only when an actual plan uses them, within four per
+dataset, 64 per workbook, 8 MiB each and 32 MiB total. Index-only operations create
+no business revision. Concurrent optimizer processes retain one index. Business
+writes atomically evict over-budget indexes; publication faults roll back both
+rows and eviction. Missing size accounting drops optional indexes during writes.
+Automatic temporary query indexes are disabled; flat source SQL avoids unbounded
+metadata materialization before input accounting. Reconstruction recreates canonical
+data and results without retaining performance choices.
+
+Evidence: [managed query/index receipt](../../../integration/evidence/2026-10-28-managed-query-indexes.json.gz), 32,754 bytes,
+SHA-256 93bd84ffcecc2914448385282ce037d5a8eb1fc3053d53eebddbf5b37fd5d5e2.
+All 105 prior evidence files remain byte-identical. Final scripts/check.sh passes
+with core 191 groups, extraction 19, document lifecycle 27, voice lifecycle 15,
+Splash boundary 30 and unchanged grammar/agent/UI harnesses. Strict lint (13 Swift
+files), skill validation, final native resource refusals and signature pass.
+Final packaged 1k/10k/50k probes preserve query results, exact history, indexed
+edits/repair, inert reconstruction and portable reopen. Two optimizer processes
+produce one created/one existing result without business history.
+
+| Rows | Intake s | Indexed edit s | Repair s | Reconstruction s | Maximum child RSS bytes |
+| --- | --- | --- | --- | --- | --- |
+| 1,000 | 0.693 | 0.029 | 0.242 | 0.676 | 101,449,728 |
+| 10,000 | 5.106 | 0.057 | 2.692 | 6.153 | 145,096,704 |
+| 50,000 | 28.221 | 0.210 | 14.794 | 38.278 | 635,092,992 |
+
+On this Apple M5 Pro, 48 GiB Mac, final 50k CLI medians before/after indexes were
+range 0.296/0.148 s, sort 0.223/0.148 s, join 0.294/0.149 s and group 0.239/0.273 s.
+Grouping became slower. Final database 283,254,784 bytes; initial retained history
+133,157,157 bytes; four optional indexes 2,269,184 bytes. CLI includes process/open
+overhead. Separate paired native/shared-JSON SQL uses one Python SQLite/Decimal
+driver/cache, not a historic Swift compiler/binary comparison. RSS is maximum
+individual child lifetime, not aggregate concurrent memory or a hard heap cap.
+
+The initial 50k repair safely rolled back at the old three-second write budget.
+Explicit maintenance now uses a cancelable 30-second budget, including lock wait,
+while retaining transaction capture limits. The old failure is retained; its
+reported rebuild time includes post-rollback verification and is not timeout
+latency. No blanket performance or release claim follows from these measurements.
+
+This is a new core/CLI surface, with unchanged visible UI and model tools. Stored
+scalar query/index qualification now supports the E2 catalog slice; complete MJ
+acceptance, Excel sparse/formula continuity, saved query interfaces/actions/forms,
+E3-E6, VoiceOver/hardware/fresh-install and notarized production release remain open.
+
+## Dataset definition lifecycle checkpoint, October 28
+
+Schema 12 extends the registered native dataset foundation with complete definition
+UUIDs, exact predecessors, titles, columns/constraints, archive state, authoring
+Sources and timestamps. The registry points to an exact definition; the same
+committed-change journal captures the entire lifecycle. Evidence: [dataset definition lifecycle receipt](../../../integration/evidence/2026-10-28-dataset-definition-lifecycle.json.gz).
+29,885 bytes, SHA-256 34ad34846df29de9c14c829dd37ad6a6b3afdd6ee0db6139e948645b643567ea.
+All 104 prior evidence files remain byte-identical to the preceding checkpoint.
+The final packaged 10,000-row probe measured intake 4.843 s, competing rebuild
+1.446 s and reconstruction 5.806 s; database 58,834,944 bytes, initial saved history
+25,632,899 bytes, maximum individual-child lifetime RSS 134,692,864 bytes.
+These are one synthetic fixture on one Mac, with no range/join/group speed claim.
+
+- App and CLI edits compare both opened definition version and UUID. Matching
+  retries return the original saved definition; changed arguments or actor refuse.
+  Restoring history creates a new definition, preserving previous versions and data.
+- Column removal hides fields from the active native projection. Later row edits
+  retain inactive values in immutable payloads; restoration recovers their latest
+  retained values. Calculations filter the declared active schema, including when
+  given a canonical payload with inactive fields. Row writes retain the exact
+  definition's decision Source in lineage. Existing immutable versions stay intact.
+- Stored-column required/unique constraints use exact logical scalar semantics,
+  including Decimal collation and multiple nulls. Duplicate errors name the column.
+  Multi-row unique-value swaps, reviewed imported merges and Undo/redo remain atomic.
+  Unchanged named/A1/range formulas cannot silently bind to a removed/reordered
+  column. Explicitly changed formulas can still display calculation errors.
+- Archive hides normal discovery and blocks ordinary row edits. Explicit archived
+  discovery and retained views remain available. Restoring an earlier definition
+  can unarchive the table. Table-creation Undo now versions this state. Partial
+  imports refuse uncommitted batches after any schema change, retaining their
+  committed prefix and original input instead of resuming into a different schema.
+- The native editor freezes its opened base, performs writes off the UI actor,
+  keeps a failed/stale draft in the sheet, and pages exact history. A visible test
+  retained “Retained native draft” after another writer changed the title; a fresh
+  editor then saved required/unique fields, archived the table with its view/data/
+  chart intact, and restored version 1 as version 5. Three native commits retained
+  human actors. Exact definitions and commits survived inert reconstruction.
+- Core 177 groups pass. A full scripts/check.sh pass with 176 groups precedes the
+  final calculation-scope, coherent-read and malformed-definition guards; final
+  focused core 177 qualifies those changes and nearby counterexamples.
+  Final native packaging, CLI schema lifecycle/competing writers/unique merge and
+  Undo/redo, 10k managed repair/reconstruction, strict Swift lint and skill validation
+  provide scoped evidence. Unchanged model/hardware evidence is reused. Native
+  observations do not constitute full VoiceOver or hardware qualification.
+
+At that lifecycle checkpoint typed queries, disposable index policy and comparative
+qualification remained open. The later query/index checkpoint above supplies the
+stored-scalar subset; complete MJ acceptance remains open. Schema tools are available to an explicitly
+authorized external harness through the CLI; the in-app model has no schema tool.
+Excel sparse/formula continuity, durable mapping drafts, E2-E6 and remaining whole-app
+installation/accessibility/hardware/production release qualification remain open.
+Older development formats are preserved unsupported, without a migration/backfill.
+
+## Managed dataset foundation checkpoint, October 28
+
+Evidence: [managed dataset foundation receipt](../../../integration/evidence/2026-10-28-managed-dataset-foundation.json.gz),
+37,883 bytes, SHA-256 d2c540865db50707e24bd750acc73795cf990b4152a80f985f3eb922ffa8969b.
+All 103 prior evidence files remain byte-identical to the preceding checkpoint.
+
+Schema 11 now registers one native current-state table per structured dataset.
+Shared immutable row versions, heads, column_versions and dataset membership/order
+remain authoritative. The same committed_changes journal captures reserved and
+registered tables. Trusted code materializes physical schemas from validated
+logical descriptors before dependent saved rows; raw SQL is never replay authority.
+Table creation, edits, review, structured import, merge/replace, Undo, grid reads,
+sorting and CSV export now use these projections. File assets remain outside SQLite.
+
+- Stable hashed physical identifiers come from dataset/column IDs; labels stay
+  metadata. Logical text, decimal, boolean and date values retain exact scalar
+  semantics. Decimal TEXT uses the existing exact Decimal collation. A small cell
+  sidecar retains original lexical forms, omitted cells and formula seeds, without
+  claiming that cached/formula values are live stored results.
+- A native shape change captures old projection removal, versions the definition,
+  creates the trusted new shape and captures the new projection in the same
+  transaction. Independent rebuilding uses retained row versions and definitions.
+  An explicit projection-reset marker in the same journal lets damaged projections
+  be repaired and subsequently reconstructed without adopting damaged before-values.
+  Missing schema history or canonical foreign-key dependencies refuse before repair.
+- Schema validation admits only the exact reserved schema and registered generated
+  native structures. Main-schema changes trigger revalidation on already open
+  writers; TEMP capture triggers refresh across another writer's DDL. Callback
+  fragments use at most 106 arguments and become one complete row image. This
+  Mac's SQLite 3.51.0 reports a 127-argument limit; the 500-column fixture passes.
+- Final core 168 groups pass. Coverage includes exact values/IDs, current/history
+  distinction, add/rename/type/formula/restore physical changes, independent repair,
+  reconstruction, two open writers across DDL, exact retry/base payload, schema/
+  publication/projection failures and capture-budget rollback. Unknown/reserved
+  structures and over-width definitions refuse atomically.
+- Final packaged CLI checks pass at 1,000 and 10,000 rows: one of two competing
+  rebuild writers wins, exact retries work, corruption is detected, canonical
+  repair reconstructs, exact history survives, and portable export reopens.
+  At 10,000 rows intake took 4.167s, competing rebuilds 1.500s and reconstruction 5.975s;
+  the final database was 53,248,000 bytes. Maximum individual child lifetime RSS
+  was 134,660,096 bytes, not aggregate concurrent memory. These are one-Mac scoped
+  measurements, not a comparative speed or hardware-range claim. Only the ordinal
+  index query plan is qualified here.
+- Final native preview edit 2.40 to 3.10 updated total 31 and the chart; Undo restored
+  2.40/24. This uncovered missing explicit native table attribution. Editor and
+  Undo now save human actors; core/CLI defaults remain programmatic, and inherited
+  model attribution cannot bypass accepted-rule validation. Exact actors survive
+  reconstruction, and the final reconstructed workbook reopened visibly.
+- The broad script passed with core 164 before the final actor/history/retry guards.
+  Final core 168, final native build, packaged 1k/10k, strict 24-file Swift lint, skill,
+  resource-path/corruption and signature checks pass. Unchanged broad engine,
+  grammar, extraction and other UI harness evidence is reused; no final full-script
+  rerun is claimed. Existing late-fault tests now use TEMP triggers so the stricter
+  persisted-schema guard does not reject the injected fault before its intended step.
+
+At that foundation checkpoint, schema removal/archive/constraints and exact-base
+authoring remained open. The later lifecycle checkpoint above supplies that slice;
+the lifecycle and query/index checkpoints above now supply those scoped slices.
+Native tables do not prove Excel formula/sparse-region continuity, a new model cohort, complete MJ
+acceptance, sync or release readiness. Finish these storage contracts before dependent
+E2/E3 state, then continue actions/forms, workflows, triggers, helper/templates and
+the remaining installation/accessibility/hardware/release plan.
+
+## Managed dataset decision and next storage prerequisite, October 28
+
+Carlos adopted [[records/specs/managed-datasets]] after review of the current
+replayable persistence work and main-thread interaction. Authority:
+[[sources/notes/2026/10/managed-datasets-replayable-storage]]. This is required
+implementation scope, not a completed runtime change or benchmark result.
+
+Use reserved system tables plus managed native current-state tables per structured
+dataset. Shared immutable row versions, versioned definitions, lineage and the
+existing committed_changes foundation remain authoritative. One core transaction
+publishes canonical changes, projections and receipts. Register managed tables and
+index policies, record logical schema changes, and reconstruct trusted physical
+schemas before dependent data. Independent projection rebuilding must also pass.
+Do not add raw-model DDL, a parallel ledger or a second long-term editable backend.
+Sparse/mixed worksheets and reference/analysis roles retain their own representations.
+
+Checkpoint cd5f854 retains successful fixed-schema persistence and E1 layout
+qualification. The newer foundation checkpoint above implements dynamic schema/capture and
+current-row reads with scoped evidence. Later checkpoints supply versioned schema
+lifecycle and stored-scalar query/index paths; complete MJ01-MJ08 remain pending. Finish any coherent in-flight checkpoint, then implement
+E0-D before dependent E2/E3 dataset/action/workflow persistence. Independent UI work
+may continue. Follow the four-step order in the new spec and extend the persistence
+coverage register with actual paths/results. Existing review/import/Undo and AI
+scope contracts remain acceptance requirements across the storage change.
+
+Stable logical entity/version/schema identities are the future-replication boundary.
+Current physical-rowid and single-predecessor replay remains local evidence. No
+cloud, transport, concurrent replica ingestion or resolver work is added. Preserve
+historical evidence and user files; no legacy pre-1.0 migration is required.
+
+Documentation was reviewed for product fit, atomicity/schema replay and replication/
+resource limits. This side-conversation pass changes documentation only; main-thread
+implementation owns runtime changes and their tests.
+
+## Editable Home and spaces checkpoint, October 28
+
+Evidence: [editable Home/spaces receipt](../../../integration/evidence/2026-10-28-editable-home-spaces.json.gz),
+29,344 bytes, SHA-256 f31450dc331e1c7db2201a2962948e207693b09ec35e9dbb8ccbf2acf3a62320.
+All 102 earlier evidence files remain byte-identical to the preceding checkpoint.
+
+- Home sections and existing spaces now share exact-version semantic editing,
+  retained history and restore-as-new-version. Root native controls, CLI and agent
+  tools use the same core. Pending reviews remain accessible from the stable shell.
+- Core156 passes with no failures. Explicit positions, atomic invalid-edit refusal,
+  pinned bindings, concurrent bases, exact retry, fault rollback, export and inert
+  reconstruction are covered. Competing packaged CLI writers produce one success
+  and one stale refusal; history/restore/reconstruction pass.
+- Native testing caught and repaired a real polling race: an open edit sheet had
+  silently adopted a newer base. It now freezes its opened Space. The repeated
+  stale save refused and kept the draft. Native restore retained all six historical
+  versions; the reconstructed workbook reopened with the pending draft. Final
+  positioning controls saved version7 with Tables first and a human actor.
+- The initial real-model task put Tables last instead of first. Position validation
+  then refused incomplete edits safely, exposing a constrained JSON field-order
+  issue. Required fields now precede component selection, then edit arguments;
+  selecting componentID no longer makes at/beforeID unavailable. The pinned
+  reference agrees: 42 actual-tool cases and 359 exact masks pass, with the existing
+  8192-token prompt check unchanged. The final model request put Tables first and
+  removed only Recent; a second request moved Tables last while preserving the rest.
+  Each used spaces and one successful edit; both finished in three steps. Initial
+  failures and the native race remain in the receipt, not discarded as successes.
+- The shared-boundary full script passed pre-grammar checks but initially stopped
+  at prompt size. Final core, scripted agent, repaired grammar and remaining harness
+  checks pass separately; no final full-script pass is claimed. Strict format,
+  repo skill and final native signature/resource-path checks pass. Later final
+  rebuild changes only an unused help string/comments, retaining model-path proof.
+
+This qualifies the implemented E1 layout slice, including scoped EJ02, not complete
+EJ01-EJ03 or the app release. The subsequent managed-dataset decision above adds
+E0-D before dependent E2/E3 storage. Then continue E2 shared typed definitions/action
+registry, forms, reusable calculations/queries and bounded definition/dependency search.
+E3 durable workflows, E4 triggers, E5 helper/folders and E6 reusable templates follow.
+Excel formula continuity, broader inventory semantics, actual VoiceOver, hardware,
+fresh installation and notarization remain tracked release work.
+
+## Current direction, October 28
+
+The managed dataset target in [[records/specs/managed-datasets]] is adopted and
+in progress. The foundation checkpoint above has scoped evidence; remaining E0-D extends existing replayable persistence before dependent E2/E3
+storage; the opening decision section controls sequencing over historical Next notes.
+
+The pre-1.0 compatibility policy in [[records/specs/distribution]] is active:
+backward support starts with the first notarized production-ready 1.0 release
+actually distributed for production use. Test deployments do not qualify. Use
+current-schema changes and selected disposable fixture resets instead of new
+legacy-schema migrations or compatibility adapters. Historical migration receipts
+remain evidence; current-format integrity, recovery and portability remain gates.
+
+The October 28 owner requirement in [[records/specs/persistence-readiness]] is
+active implementation scope. The focused CSV/TSV table-update slice is now verified
+within the scope below. Schema 10 now implements shared complete committed changes,
+accurate decision actors and inert local reconstruction. The path inventory and
+current qualification are in [[records/operations/persistence-coverage]]. Core
+synthetic reconstruction/failure checks, packaged/native checks, concurrent writers,
+interruption, cancellation and bounded scaling pass for current families. FJ01-FJ06
+are locally qualified within that inventory, not whole-app or sync completion.
+The shared foundation now captures the implemented E1 Home/space editing slice;
+the checkpoint below records scoped proof and remaining gates.
+E19 must reuse this commit foundation rather than create a second ledger.
+Cloud, transport/protocol, replica coordination and a new conflict resolver remain
+out of scope. Retain future semantic-resolution evidence without widening today's
+acceptance authority. This scope supersedes any broader sync implementation
+inferred from the preceding design discussion.
+
+This remains a development build. The preserved Slotstream app is the baseline;
+the separate native preview uses the Python-free Swift adapter and pinned Splash
+C++/Metal. Native adoption and automatic compaction remain gated.
+
+- The owner-authorized Home/application-engine design is now tracked in
+  [[records/specs/native-app-engine]]: customizable native spaces, typed reusable
+  actions/forms/functions, durable workflows and local automations. Product
+  direction is adopted; detailed runtime choices remain proposed and E0-E6/EJ01-EJ14
+  remain open as complete journeys. E1 layout editing now has scoped proof; it is
+  not delivery of the full behavior/workflow engine.
+
+- Owner-confirmed contextual import is now a first-class startup and ongoing
+  capability in the specification. CSV/Excel roles depend on request/context;
+  supported Excel work must continue with reported structure/formula translation.
+  Checkpoint 63cd642 saves originals and roles, supports reference/analysis and
+  explicit saved-values conversion, and removes suffix-driven table creation.
+  Bounded CSV/TSV target/mapping updates now have core, CLI and native review paths;
+  local-model/voice updates and Excel formula continuity remain open. IJ01-IJ10 are in
+  [[records/specs/contextual-import]]; inspection and next actions are logged below.
+
+- The app/ask loop now checks a proposed inventory direction in a separate local
+  model response using current-request and original-source text. A missing quote,
+  uncertain direction or opposite sign asks for clarification without saving the
+  movement. Exact duplicate refusal ends that run instead of permitting an ID
+  rename/retry. Five revised native cases and the fresh native clarification then
+  -2 draft flow passed. The initial reviewer prompt failed and remains recorded.
+- The withdrawn-v1 failure remains preserved. Exact historical citations now
+  require inspection of their current head before finalization and display a
+  host version note. The native historical/current answer correctly reports the
+  withdrawal; deterministic tests cover the stale-answer and citation-drop paths.
+  Semantic event identity across different IDs/runs remains unresolved. Direction
+  review still adds 8.58–16.09 seconds per measured call and sees an initial bounded
+  Source excerpt. Neither the full inventory flow nor J11 is qualified.
+- The 75% context trigger remains tied to actual rendered tokens and configured
+  capacity. Source-bound composition and bounded two-chunk reads repair the
+  unchanged eight-report task at 32K. The passing run is tied to 0d62807 and used
+  new prose with zero actual copy references. A separate nearby English/Spanish
+  exact-copy and paraphrase probe passes at 770ba05: both literal requests used
+  actual copy references with exact Unicode/CRLF; the paraphrase saved new prose
+  without identifiers. Earlier context refusals and the paraphrase failure remain
+  preserved. Production compaction, broader semantic fidelity and C12/C13 remain
+  unqualified. Factual completion receipts confirm saved artifacts only.
+- Manual edits now remove stale copy-span metadata from the new version while
+  retaining the original immutable provenance and edit lineage. Native documents
+  expose Copied passages and exact original-version navigation. A focused visible
+  text-source navigation/Back and 820-point minimum-width check now passes after
+  owner unlock. Native accessibility link activation and keyboard correction also
+  pass. Spoken VoiceOver, broader formats/locators and uncoached usability remain
+  unqualified. The current document suite has 27 passing groups.
+- Schema 6 now adds bounded shared wiki/Markdown body parsing, incremental coverage,
+  deduplicated incoming/outgoing discovery and a rebuildable backlink projection.
+  Saved choices remain authoritative; names do not rebind after creation or rebuild.
+  Migration, failed-write rollback, corruption/repair, 260-origin paging, scope
+  filters, current/historical identity and portable reopening pass focused checks.
+  The owner-facing CLI and repo-owned harness skill expose these capabilities.
+  Schema 7 adds retained extracted-text locators/annotations, shared body/file
+  discovery and guarded extraction publication. The focused checkpoint below passes
+  132 core, 27 document, 24 body-CLI and 26 extracted-CLI checks. The native reader
+  and bounded scoped agent slice have focused evidence below. Embedded hyperlinks,
+  general text/voice span authoring, full accessibility and complete
+  L01-L14/LJ01-LJ10 remain unfinished. Partial coverage and metadata discovery
+  do not establish absence, citation eligibility, business facts or acceptance.
+
+- The integrated typed/native supplier journey now has direct evidence for intake,
+  correct comparison, native table/chart composition, exact quote navigation,
+  what-if thread, edited summary sharing, scoped drafts, explicit movement revision,
+  acceptance/Undo and close/reopen. J11 remains unqualified: an ambiguous handover
+  was interpreted as +2, including after guidance repair; the replay invented a
+  resubmit occurrence after refusal. Both unsupported drafts were withdrawn.
+- Fixed a reproduced accounting regression: withdrawing a draft inventory correction
+  preserves its prior accepted effect, and Undo of an accepted correction restores
+  that effect. The regression first failed (80 passed, 1 failed), then all 81 core
+  checks passed. Preview, agent/context-budget and native grammar checks pass.
+  An optional supersedes tool field enables explicit revision with the same subject
+  and occurrence. Review now says Increase or Decrease. Explicit outgoing native
+  clarification produced -2 correctly, with stock 20 -> 18 -> 20.
+- Chat pipe tables still render literally, despite correct right-pane native tables.
+  That presentation repair is pending after the material inventory reliability issue.
+
+
+- Compound requests preserve exact same-request evidence and show the completed
+  thread-creation result before continuing. Current user text stays intact;
+  host storage/progress metadata is separate. Ordinary help uses voice/text
+  language. The acceptance-versus-accuracy explanation and its direct contrast
+  now pass focused manual review, with the original context budget unchanged.
+  Earlier model/context failures remain preserved. Non-blocking example wording
+  is logged instead of triggering another broad qualification loop.
+- Native proposal badges now follow the current version through acceptance,
+  Undo and newer drafts, preserving original messages and links. Exact typed
+  receipt associations and conservative legacy fallback keep conversations
+  isolated. Unknown associations do not invent current status. Deterministic
+  checks and a rebuilt native interaction pass; stock remains 20 -> 18 -> 20.
+  Captured request context shows named location/selection, with original bytes
+  retained under a disclosure and unknown formats shown verbatim.
+- Owner-approved focused verification now governs development. Reuse unchanged
+  evidence, check the actual fix and one nearby counterexample, and reserve broad
+  reruns for a concrete boundary change or meaningful integration/release point.
+  The queued action cohort and package/install/rebuild/full-suite reruns were
+  cancelled. One already-running handoff cohort finished safely before its
+  orchestration shell was terminated. Remote CI now follows the same policy:
+  full checks on main/release and review-ready PR milestones or explicit dispatch,
+  not each development push. All 26 steps remain. No skipped check counts as a
+  pass. See [[records/specs/distribution]].
+
+- Home and the native space picker now show pinned shortcuts and recent visits.
+  Live views and saved snapshots are distinct, and Create a space preserves an
+  existing composer draft. Preferences merge in SQLite without business changes;
+  focused persistence/rollback/stale-read checks and native close/reopen pass.
+  Ordinary pin/unpin/navigation now use separate scoped actions. Three native
+  requests pass compound unpin/open, host-context pin-this-space and a no-change
+  explanation. Core and agent checks preserve snapshot semantics, refuse ambiguous
+  targets/unavailable windows, and keep compound focus ordering. The explanation
+  leaks internal tool names; log this wording issue without another broad cohort.
+  Current pending-review discovery now passes the focused checks below; broader
+  P09a/J11 remain open.
+- Home now exposes current drafts independently of recent activity, with a bounded
+  review list and scoped local opening action. Explicit withdrawal preserves history
+  without applying proposed effects; Undo restores a draft. Native paging, review,
+  acceptance/Undo, Back and reopen pass. Schema 4 adds the draft index/generation;
+  eighty core checks and focused preview/agent/grammar checks pass. Only synthetic
+  workbooks were migrated. App and CLI versions must stay matched.
+
+- Search-grounding repairs pass deterministic regressions and the actual paired
+  block-3 replay. Empty searches cannot establish exhaustive absence, and the
+  current request cannot substitute for independent evidence being sought.
+- Native setup passed fresh download, cancellation/resume, verification and
+  explicit reuse on the reference M5 Pro. Focused document, space, intake, media
+  and packaged-resource checks pass; complete release journeys remain open.
+- W1 completed 260 correct jobs and met timing targets but failed exact token
+  parity once. D9 finds variation within the reference on an identical request;
+  the native repeats agree with one reference. Native adoption stays unqualified.
+- The unchanged full 100k search protocol now passes at warm p95 136.47 ms for
+  rows and 172.31 ms for document chunks, with correct paging and cancellation.
+  Retain the earlier failed run. Whole-app and wider-device performance are open.
+- Under the preceding threshold, the maintained32K context repair passed the
+  unchanged eight-report v1 fixture twice: exact associations, four checkpoints, one space/draft, all-source lineage,
+  unchanged originals/inventory and portable reopen. The first overlaps dictation;
+  the controlled second run does not. The earlier uncompressed64K failure and
+  remaining C12/C13 cases remain unresolved; compaction stays disabled.
+- Real microphone dictation captured the requested English phrase exactly, then
+  stopped without sending. Permissions were approved and manually granted. This
+  closes the basic single-phrase path, not every language/device/session case.
+- Window refresh, chapter menus and Home intake metadata now load off the UI actor
+  in a coherent snapshot. Tests pass for bounded pending reads, cancellation,
+  conversation scope and stale results. The rebuilt app shows CLI changes, keeps
+  thread/main histories separate, and restores the workbook after close/reopen.
+- The text-driven Open a copy flow passed through Save and Open into TextEdit.
+  Editing the copy leaves the included asset byte-identical and workbook verified.
+  Native 2.15 GB included/linked audio playback, seeking, Stop/Retry, changed-byte
+  refusal and close now pass. Media teardown releases retained players, and
+  extraction status no longer mislabels linked files as included. App-process peak
+  was 99.56 MiB for this audio-only fixture; broader media/inference/memory,
+  keyboard/VoiceOver and release journeys remain.
+- Native document text/OCR and CSV/TSV/XLSX parsing now run in bounded helper
+  processes. Nineteen isolation/fidelity/recovery checks pass in debug and optimized
+  release. Both packaged app/CLI layouts read documents and tables with build-tree
+  reads denied. Table failures persist independently from a successful text index,
+  survive reopen and offer Resume. Source changes, coordinate overflow and expanded
+  cell budgets refuse before publishing rows. Archives, file transcription, viewers
+  and whole-app memory retain separate qualification requirements.
+
+- Conversation and optional named Threads replace visible tangent terminology.
+  Text/menu creation and return, summary review/cancellation, exact provenance and
+  scoped history pass. Only selected findings return; commands stay in their
+  originating history. Existing package IDs and the CLI tangent alias still work.
+
+- Conversation messages now expose separate accessible groups, exact inline links,
+  named assistive actions and native message menus. The Conversation menu follows
+  the focused workbook, and Command-L focuses its composer. Exact evidence/origin
+  navigation and closed-window isolation pass in the native app. Spoken VoiceOver
+  and the complete keyboard-only journey remain unqualified.
+
+- Each Conversation/Thread now owns its unsent draft and reading position.
+  Background autosave, normal close/quit, reopen, original-message navigation and
+  a burst of 120 new messages preserve the right text and place. Competing edits
+  refuse silent overwrite and support Keep both/restore. The final package passed
+  those visible paths; drafts never entered messages, evidence search or business
+  revisions. Native actions are implemented; ordinary language equivalents remain.
+
+- Immediate thread creation, editable provisional titles and visible return now pass
+  native checks, including workspace-focus identity and reopen. Older history has
+  bounded earlier/later windows and conversation-scoped search, with exact original
+  navigation and preserved drafts. Search paging/retry and stale-scope refusal pass.
+
+At the preceding integration checkpoint, the full local suite passed with 79 core,
+19 extraction and 16 document checks,
+plus the expanded conversation/preview checks. Both package builds, native
+resource/signature checks, packaged extraction and isolated baseline
+install/update/uninstall pass. Hosted workflows 40562440542 on e27ae39,
+40564561986 on 75511b8, 40568212108 on 03163ed and 40571572539 on 3dcc924 pass.
+The following checkpoints also passed hosted CI: 00662f6 (40589578202) and
+92b08c3 (40593888059) and e1c9b49 (40597871434). The latter includes successful
+installation and the isolated native preview build. The current focused checkpoint
+passes preview/agent checks, native app/CLI rebuild, a focused native interaction,
+CLI integrity/arithmetic/history audit, and workflow parsing with unchanged steps.
+No broad model, both-backend, installation or full-suite rerun was required.
+The prior 30af388 hosted result is not claimed here; this development push does
+not trigger a full remote run under the new policy.
+The owner adopted [[records/specs/references-and-relationships]] on October 27.
+The explicit-binding core foundation is implemented. Parsing, backlinks, product
+integration and bounded agent traversal remain pending. L01-L14 and LJ01-LJ10
+define delivery and verification. Keep the active checkpoint
+and engine qualification in place; inferred associations follow measured value.
+
+Next deliver the shared wiki/Markdown parser and incremental reference coverage,
+backlink queries and recovery before native/text/voice/CLI linking and bounded
+agent traversal. Complete the pending visible copied-passage/original-version
+journey when UI access works. Keep the existing native engine and context
+qualification work active. Durable event identity across different IDs/runs,
+later-page inventory evidence and lower direction-review latency still need work.
+Continue J11 and native chat-table presentation while retaining the passed
+comparison/thread/draft and clarification evidence. Thread creation/rename still
+need bounded competing-writer interruption checks. Wider accessibility, archive/
+transcription, whole-app memory, fresh installation and complete release journeys
+remain open. The new core checkpoint does not qualify native adoption, production
+automatic compaction or the complete reference feature.
+Do not restart the architecture or weaken adoption gates.
+[[records/specs/splash-integration]], [[records/specs/conversation-context]] and
+[[records/operations/build-and-run]] retain the contracts and failed evidence.
+## Earlier checkpoint summaries, October 27
+
+The following passages retain earlier development states. Statements about tests
+not yet run apply to those checkpoints; the Current direction above is the current
+status. Detailed retained failures and later results remain in the sections below.
+
 Latest checkpoint: I2 passes both cache arms, and the corrected normal-cache W1 pilot passes all sixteen jobs plus two Ready primes with 32 exact paired requests. Full regression and both packaged builds/resources/install checks pass. The preregistered ten-block W1 performance cohort is now running on frozen ed6ffd0; no speed or adoption claim follows from the pilot. See Corrected complete-workflow pilot below.
 
 Workbook is Sevra's primary product/homepage, with Websites secondary. The installed app remains the preserved Slotstream baseline. A separate Python-free native Splash preview now uses the shared workbook agent through SevraProduct, with the unchanged pinned C++/Metal helper, native grammar library and Swift setup. It is not yet the production default.
@@ -39,6 +918,7 @@ W1 retains a verified cache-comparison mismatch. I1's fresh workers per workload
 Native import/search acceptance now covers a synthetic CSV, two-page PDF, OCR receipt and 35 paginated notes. Back preserves the second page; stale reads cannot replace the current query. PDF text-selection context uses the selected pages rather than the previously visible page. Native setup reverification, final app/CLI packaging, resource refusal and isolated installation pass. See Native search navigation below.
 
 The latest native 32K/bounded512 continuity sequence passes six requests across three checkpoints, current acceptance/withdrawal, corrected original quantities, portable stock recovery, inherited tangent citations and a return to main. A reproduced parent-excerpt retrieval refusal is fixed without expanding branch access. Two opaque-ID finish corrections remain in the passing trace. The native UI now preserves paged search navigation, opens long conversations at the latest message, follows inherited citations to the correct original and shows new messages at the fixed history-window limit. Full regression, packaged search/count checks on both runtimes, final packaging/resources/install and focused visual checks pass. See Native multi-stage continuity plan and Inherited history and conversation navigation below. Automatic compaction and native production adoption remain gated; this is a functional checkpoint, not complete C12/C13 or release qualification. Checkpoint 95a1629 CI passed (40491316063); the new checkpoint requires its own CI.
+
 ## Implemented
 
 - Native SwiftUI/AppKit document windows with conversation and workspace panes,
@@ -121,6 +1001,8 @@ measurements. Runs overlapping inference are not performance qualification.
 
 ## Remaining work
 
+Historical early-development list, retained with its original checkpoint claims. The Current status, October 29 section and latest dated qualifications control current readiness; the latest native UI checks remain unverified while the tool reports locked.
+
 1. Native end-to-end interaction: cell editing/paste/undo, Finder opening, search
    paging/Back/facets, chapters/tangents, draft autosave, pinned/comparison views,
    locators, media, dictation, narrow windows, appearance and keyboard/VoiceOver.
@@ -128,9 +1010,10 @@ measurements. Runs overlapping inference are not performance qualification.
 2. Model regression for the latest review receipts and proposal tools, automatic compaction and larger-context qualification under
    [[records/specs/conversation-context]], context overflow recovery, and measured whole-task latency across repeated runs.
 3. Search scale/recall with many chunks per document; further broad-query optimization and cancellation during actual long-running searches.
-4. Remaining extraction crash/isolation tests and hardware qualification of file
-   transcription and archive selection. These implementations now exist, but actual
-   speech hardware/permissions remain unqualified. Parser deadlines are cooperative.
+4. Extend fault containment/qualification to structured XLSX/CSV ingestion, archive
+   selection and file transcription as appropriate. Native document text/OCR worker
+   isolation now passes; this does not qualify every ingestion or viewer path.
+   Live single-phrase dictation passes; file transcription hardware remains open.
 5. Complete text/voice workflow coverage, review agent tools against user authority,
    and qualify formula/units behavior. Units are labels, not automatic conversion.
 6. Updated fresh public clone/build, real user installation, green CI and a properly
@@ -1165,3 +2048,4303 @@ Both final local app/CLI builds pass. Native installed-resource checks, nine mis
 
 ## W1 qualifying cohort in progress
 The full preregistered W1 cohort started on frozen clean commit ed6ffd0, using the tested release worker, ordinary cache identities and corrected reference/controller. Its local evidence directory is .build/workflow-performance/current-cohort1. It runs ten alternating paired blocks, one warmup and two measured jobs per workload/backend/block, plus Ready primes. No result or speed/adoption claim is available yet. Do not overlap local inference, builds or downloads or edit measured sources while it runs. Preserve every attempted result and finalize the report before assessing the gate. Documentation-only progress updates do not change its frozen measured inputs.
+
+## Voice and media lifecycle repair
+Source review found that pending permission callbacks could start microphone
+capture after Stop/window close; old recognition callbacks could overwrite a
+later draft or stop a new capture. Dictation also replaced existing typed text,
+and the single retained player reference could miss background playback.
+These are source-reviewed defects, not a claim of hardware reproduction.
+
+The codex/voice-lifecycle branch isolates a new shared SevraVoice module and
+injected-driver regression runner from the frozen W1 checkout. Capture now has
+explicit permission/start/recording phases and session identities. The app
+preserves the typed prefix, stops on manual edits/send/conversation changes and
+closes capture/playback with the window. A weak registry covers all live players;
+window teardown cannot retain a newly continued player after the parent closes.
+Specifications A09/P15 record these contracts.
+
+Local builds and hardware/UI checks remain deferred while W1 measures the frozen
+ed6ffd0 sources. The new tests cover permission cancellation/denial/retry,
+duplicate callbacks, stale recognition, synchronous completion/error, capture
+failure, cross-window ownership, draft edits, all-player pausing and release.
+They are prepared and untested at this checkpoint. Hosted CI will provide the
+first compile/regression result without loading the local benchmark machine.
+No voice or media qualification is claimed yet. See
+[[records/specs/intelligence]] and [[records/operations/build-and-run]].
+
+## Checkpoint publication process-death checks
+An isolated codex/context-durability branch now prepares a model-free process-death
+runner over the actual checkpoint publication API. Its package-only observer has
+no production caller, public API, environment switch or workbook-controlled entry.
+One barrier is after the checkpoint/input inserts but before the real SQLite
+transaction commits; the other is after the mutation has committed its revision
+and idempotency receipt. This does not modify the pinned inference engine.
+
+The parent process uses a separate read-only SQLite connection to check committed
+visibility, sends SIGKILL only to its owned fixture child, then reopens through
+Workbook. Assertions preserve original history, prior checkpoints, accepted stock
+18 from exactly one effect, input versions and current forecast meaning. Exact
+retries must publish only one successor, and portable export/reopen must preserve
+the final state. Additional cases cancel after inserts and accept a forecast in
+another process before publication, requiring rollback/stale refusal and fresh
+accepted-estimate projection. Every attempt, fixture and binary/source identity
+is retained by the controller.
+
+All four checks compiled and passed on c0ac40f in hosted CI 40503178418. Its
+checkpoint-process-death artifact is retained as 12734101119, 152,915 bytes, archive
+SHA256 1dc8f4bb13bc2299e1313eb134832bf367dffc224d48360efca3073613b3ebf5.
+That digest is GitHub artifact metadata; local artifact inspection and replay are
+still deferred while W1 runs. The complete hosted workflow subsequently passed.
+These checks cover storage and process-death boundaries only, not actual-model
+summary quality, repeated mid-job compaction, occupied 32K/64K contexts or the
+complete C12/C13/J10 gates.
+Automatic compaction remains disabled. See [[records/specs/conversation-context]]
+and [[records/operations/build-and-run]].
+
+## Hosted verification while W1 runs
+The previously frozen primary checkpoints all passed their full hosted workflow,
+including packaged baseline installation and native preview resources:
+ed6ffd0 / 40499506612, f14eb26 / 40499594284 and e66bca6 / 40499641407.
+
+The 14-check injected voice lifecycle step passed for 7f93617 in run 40502209056.
+Its remaining job is still running; no whole-branch pass is claimed. The earlier
+04ce5c2 run 40501522585 was cancelled after a replacement source revision started,
+not reported as a pass. The descendant checkpoint-durability commit c0ac40f is
+running as 40503178418. Its four checkpoint process-death/cancellation/concurrency
+checks and inherited voice checks passed; the whole workflow remains pending.
+Both branches remain separate from the frozen primary checkout. No local build, inference or test run overlapped
+W1; only lightweight source/docs work and hosted CI were added.
+
+W1 blocks 0 and 1 have complete native/reference workers, successful Ready primes,
+48 successful workload jobs and exact paired request/generated-token equality.
+The remaining eight pairs are required before the full gate can be assessed.
+Frozen source/binary identities still match. This is progress, not a speed or
+adoption claim. Preserve live local evidence until the complete report is final.
+
+## Document draft durability
+Source review found that document editing saved its input Source and new Record
+in two transactions, allowing an orphan input if the second write failed. After
+autosave, Accept and the active conversation context still named the original
+version. A failed Done could exit editing and lose the unsaved text on reentry;
+window/application close did not reliably flush or refuse that failure.
+
+The isolated codex/document-drafts branch prepares one shared atomic edit API,
+exact operation retries, a draft coordinator and native close/quit guards. A
+conflict retains the text and offers an explicit separate draft. Earlier citations
+stay pinned; the displayed current version feeds acceptance, undo, navigation and
+agent context. Text or voice can request Save this document or Keep my changes as
+a separate draft. The CLI exposes edit-document with an exact version, bounded
+UTF-8 file, token, optional expected revision and explicit --separate option.
+Original file assets cannot be edited through this path. The harness skill
+records those semantics without claiming CLI-supplied text is human-authored.
+
+Fourteen new checks cover atomic lineage, unchanged failure state, idempotency,
+concurrent writers, Unicode/bounds, acceptance of the displayed edit, debounce,
+retained conflicting text, per-window/application flush and actual AppKit delegate
+forwarding/close refusal. A packaged CLI runner checks the same mutation boundary
+and file/option refusals. These are prepared, uncompiled and untested at this
+checkpoint; hosted CI is next. Formatting, Python syntax, skill validation and
+db.md/link checks are lightweight prerequisites, not runtime evidence. Visible
+editor/quit/voice journeys and large-text responsiveness remain pending. Local
+builds and UI replay stay deferred until the frozen W1 cohort finishes.
+
+## Hosted verification update during document repair
+Full hosted workflows passed on 7f93617 / 40502209056 and c0ac40f / 40503178418,
+including baseline app/CLI installation and the isolated native preview package.
+Run 40503805532 on doc-only 2619062 was cancelled after replacement 210b0ba started;
+it is not a pass. Run 40504115794 on 210b0ba remains in progress at this checkpoint.
+The earlier targeted-only status above records what was known at those times.
+
+W1 has completed both workers in blocks 0 through 3 with successful closure and
+no worker failure. Block 4 is running; frozen source hashes still match. This is
+an interim observation, not a completed performance or parity qualification.
+
+## W1 current-request evidence failure
+The frozen cohort completed five native/reference pairs, 120 workload jobs and
+all ten Ready primes, then one Ready prime and one warmup in the next reference
+worker before explicit termination. Block 3, sequence 4 failed the preregistered
+missing-evidence assertion identically on both frontends. Both searches returned
+zero business/history hits and incomplete=1. The model then read the Source
+holding its own current request. The first absence claim was correctly refused;
+the revised answer cited that request, said indexing may be incomplete and did
+not produce the required host-rendered exact search-gap report. Current-request
+text does not independently substantiate the requested contract or renewal price.
+
+The finish path renders the authoritative gap only with an empty citation list.
+A citation to the current request bypassed that presentation. Ordinary search
+already excludes request-kind Sources by default; this is not a missing FTS
+exclusion. The next repair should preserve legitimate request inputs and lineage
+while preventing that citation from substituting for missing external evidence.
+Do not weaken the frozen test to relabel this cohort as passed.
+
+The owned controller received SIGINT after the failure was confirmed. It exited
+130 and reaped its current worker; all recorded descendants were absent afterward.
+The measured sources and binaries matched their frozen identities before and
+after termination. No local build/test overlapped this attempt. Raw results,
+requests/tokens, memory samples and interruption notes remain locally retained.
+The incomplete report has workflowGatePassed=false and productionAdoption=false;
+partial favorable timings and token agreement do not qualify performance.
+
+Public evidence is integration/evidence/2026-10-27-workflow-current-request-failure.json.gz.
+Its 3,146,959 uncompressed bytes have SHA256
+ aab3c1eafd9756f318b16c5b3c8f6bd82fed45e1842c3e318c9682d98877e585.
+It contains all completed/partial worker records, original failure assertions,
+identity, summary, stop/cleanup records and a 641-file raw hash manifest. Public
+rows omit generated-token arrays and replace local paths; original local bytes
+remain the differential evidence. A corrected candidate needs a new complete run.
+
+## Document verification follow-up
+The initial 14 document checks passed on 9bc7ab4 in hosted CI 40507262611, including
+the real AppKit close guard and previous-delegate forwarding. Core, voice,
+checkpoint, table and search lifecycle steps also passed there; full packaging
+is still running. The preceding doc-only 210b0ba passed its full workflow
+40504115794. The skill validator initially lacked PyYAML in the system interpreter;
+it passed using the existing development reference environment, with no install.
+
+A fifteenth check now injects an SQLite failure on the second document insert in
+a disposable fixture, verifying rollback of the already inserted Source, retained
+editor text and a single successful retry. Conflict actions also adapt to a narrow
+pane. These additions are prepared and have not yet run. Local compilation,
+packaged CLI editing and visible draft/close/quit journeys follow now that W1 is
+stopped. Generated-document responsiveness for very large text remains unmeasured.
+A source review also confirms that item components currently open their stored
+exact or logical binding and pinSpace freezes table values only. Complete live
+versus pinned document/search component behavior remains part of P11/P16 review;
+do not call all saved-space semantics qualified from table checks alone.
+
+## Current-request evidence repair
+A deterministic regression reproduced the W1 escape before the repair: an empty
+search followed by reading/citing the current-request Source did not show the
+known incomplete-source count. The host now refuses evidence-basis answers based
+only on that Source, directing supplied inputs to current_request and unavailable
+external facts to unresolved. Unresolved finishes after empty searches render the
+actual query and indexing-gap receipt even when the model cites its own request.
+Those citations are omitted from the displayed answer while exact original finish
+arguments remain in its payload. Independent or unknown citations retain normal
+validation; they are not silently erased. No model/tool schema, index or engine
+pin changed.
+
+All shared-agent deterministic checks pass, including six new cases for the gap,
+a self-cited unsupported claim, supplied facts, independent evidence, mixed
+citations and unknown-reference recovery. The first revised test fixture tried
+to read an independent ID without first discovering it; the existing exact-ID
+boundary correctly refused it. The fixture now searches that evidence before
+reading it, then performs its empty query. Both that test-fixture failure and the
+original failing regression logs remain locally retained. This is not yet a
+real-model repair claim.
+
+The fixed block-3 replay is scripts/probe_request_evidence.py. It uses the original
+W1 order and seeds 3001 through 3008, Ready primes and the same pinned settings on
+both frontends. It retains all outputs, corrections, requests, generated tokens,
+source identities and cleanup, and requires exact paired request/token agreement.
+It is a functional regression, not a replacement for a fresh ten-block W1 cohort.
+The corrected release worker builds and passes its deterministic suite; actual
+replay and rebuilt package/UI checks are next.
+
+All 15 document checks now pass locally, including the new forced second-insert
+failure, rollback and retry case. Local logs are .build/document-verification/.
+The narrow layout change still needs visible replay. The previous freeze is over;
+local builds and UI checks may resume, with no performance claim from overlap.
+
+## Local lifecycle and visible document verification
+The full scripts/check.sh suite passes locally on 8d0bb6e, including all 15
+document checks, 14 injected voice checks and the four checkpoint publication
+process-death/cancellation/concurrency checks. Both app/CLI variants rebuilt;
+the native package paths check and both packaged document CLI runners pass.
+The complete hosted workflow for 9bc7ab4 also passed as 40507262611; the newer
+0ad35e3 and 8d0bb6e runs are still in progress at this checkpoint.
+
+On the unlocked Mac, a synthetic native workbook accepted the just-edited 0.25 kg
+text while preserving estimate meaning. A saved exact reference still opened its
+original 0.10 kg version with an earlier-version notice; only the explicit newer
+version action navigated forward. A fixture SQLite trigger rejected the second
+insert after the Source insert: Done retained text, window close refused and the
+actual native Quit menu refused. After removing the fixture trigger and writing
+0.45 kg through the CLI, Retry reported the competing head without losing the
+editor's 0.35 kg text. The conversation command Keep my changes as a separate draft
+preserved both. Typing 0.55 kg and immediately closing the window persisted it;
+reopening displayed that text and SQLite integrity passed. Native Quit succeeded
+once saves were complete. Cmd-Q first returned to the welcome window, so shortcut
+termination is not claimed from that observation.
+
+Hosted checkpoint artifact 12734101119 was downloaded and independently matched
+its recorded SHA256 1dc8f4bb13bc2299e1313eb134832bf367dffc224d48360efca3073613b3ebf5.
+Its result.json confirms all four checks. This supersedes the earlier pending
+artifact-inspection/local-replay status without erasing that historical checkpoint.
+The public archive integration/evidence/2026-10-27-document-lifecycle-qualification.json.gz
+contains 17 retained logs, source/binary identities, synthetic item versions,
+visible observations and inspected hosted evidence. Its 173,905 uncompressed
+bytes have SHA256 06a857bbe3c01a004778f5b6f29c68127e1ab065c78dac689e69e66b0d74fb00.
+These are focused checks, not complete keyboard/VoiceOver, narrow layout, hardware
+voice/media, large-text responsiveness, all spaces or release qualification.
+The fixed actual-model missing-evidence replay is running separately with frozen
+sources and has no final result yet.
+
+## Complete pinned-space bindings prepared
+Source review confirmed that pinSpace only captured table-derived values. A logical
+document/asset binding could advance after pinning, and search components reran
+against current indexes while the space implied a saved result. The separate
+codex/space-snapshots branch (3b5eda2) prepares one atomic copy with resolved exact
+item versions, nested comparison bindings and the bounded first search page.
+Saved query/time/versions/locators, index-gap count and a more-results flag preserve
+its scope. Re-pinning keeps original results/time. Live searches move off view
+rendering through the existing stale-result-safe session, with explicit errors,
+empty results and coverage limits. External file references remain references.
+
+Five new core checks cover changes after capture, exact old references, reopened
+and portable workbooks, original empty-search gaps, idempotent re-pinning, bounded
+search pages, invalid pinned/live declarations and atomic refusal of an oversized
+child. Formatting passes. This branch is prepared but has not compiled or run
+locally; no runtime pass is claimed. The fixed current-request replay continues
+against untouched primary-checkout sources. Merge and execute this work only after
+that replay is terminal, retaining both source identities and failed attempts.
+
+## Current-request real-model replay passed
+The fixed original block-3 schedule completed on both frontends using frozen
+8d0bb6e sources and the unchanged engine/model/grammar pins. All sixteen workflow
+jobs and both Ready primes passed. All 37 paired actual requests and generated
+outputs match exactly. Both workers confirmed clean closure, all recorded processes
+were absent afterward and every frozen source/binary hash still matched.
+
+The original seed-3005 missing-evidence case still needed one host correction on
+each frontend. Its final answer now reports the actual two empty queries, exactly
+one incomplete source and that those searches do not establish the requested facts,
+with no displayed citation to the current request. Seed 3006 also retains its
+currency correction on both frontends. Corrections and their latency are retained;
+this is not a claim that every raw model answer was correct or that unrelated
+semantic grounding is solved.
+
+Public evidence is integration/evidence/2026-10-27-current-request-replay.json.gz,
+including original request/prompt/generated-token data, sampling, exact source
+snapshots, summary and post-run verification. Its 5,090,684 uncompressed bytes have
+SHA256 cea200bd696e4fd22c8f11f9d046ec7aac9561fb6129f81ca4ce00b1cb915047.
+The earlier failed cohort remains unchanged. This focused regression is not the
+complete ten-block W1 performance cohort, an occupied-context qualification or
+production adoption. Measured-source editing and local builds may resume now.
+
+## Pinned-space runtime verification and media crash
+After integration as cbe48ce, all 64 core checks pass, including the five new
+pinned-space cases. The pin operation now runs off the UI thread with shared
+cancellation through its search/capture steps and atomic refusal. The complete
+local suite passes again; both packages build, native installed resources/Metal,
+missing and altered-resource refusals, signatures and both document CLI runners
+pass on that candidate. An initial command used ./scripts/build_native.sh despite
+that script not being executable; its permission-denied log is retained, and the
+actual build passed using the documented bash invocation.
+
+Visible native checks confirmed a pinned copy's time, original eight hits and two
+incomplete indexes. After ten documents were edited through the CLI and one new
+matching Source was added, the live view showed the new match/current document;
+the pinned copy retained the old eight hits and original document with an earlier
+version notice. The fixture is .build/space-media-ui-20261027/Spaces.sevra.
+
+Opening its synthetic MP4 then crashed the packaged app before playback. The
+retained report Sevra-2026-10-27-083408.ips shows SIGABRT during VideoPlayerView
+superclass metadata initialization in _AVKit_SwiftUI. The system log reports a
+failure to demangle AVPlayerView, and otool lists the SwiftUI overlay but omits
+AVKit.framework. This is a real failed native media journey. A direct
+NSViewRepresentable/AVPlayerView adapter is now being built for both the primary
+viewer and compact retained player, with a packaged-framework regression check.
+Playback ownership remains in the existing workbook registry. Actual video/audio
+replay is still pending; do not claim media qualification from a successful build.
+Apple's AVPlayerView and NSViewRepresentable documentation support this native
+bridge; upstream wrapper causation beyond the observed missing dependency is not
+claimed. See https://developer.apple.com/documentation/avkit/avplayerview and
+https://developer.apple.com/documentation/swiftui/nsviewrepresentable.
+
+The earlier welcome-window observation after Quit was investigated: the prior
+process exited and the subsequent CUA observation relaunched a new process.
+Quitting without asking the observer to reopen the target left no native app
+process. Do not report that tooling observation as a Sevra quit defect.
+
+## Native media repair and minimum-window verification
+The direct AVPlayerView bridge passed both packaged builds and actual native
+video/audio replay. It explicitly links AVKit without the SwiftUI video overlay;
+the native package checker now verifies that dependency. Media opens paused,
+explicit Play advances its timeline, Keep playing survives Back in a compact
+player, and Close player removes it. Closing a workbook during retained playback
+and reopening resets the viewer to paused at 00:00 with Keep playing off. Synthetic
+silent fixtures establish lifecycle behavior, not audible-output quality.
+
+Minimum-size native checks showed stacked comparison columns, a visible composer
+and all three failed-save recovery actions. A synthetic second-insert failure kept
+the draft; removing the trigger and Retry persisted the exact text. System/light
+and explicit Dark were readable, then System was restored. Command-Shift-F focused
+search. The exact synthetic term returned the newly added evidence and retained
+the two incomplete media indexes. A spaced variant correctly returned no lexical
+match. Filename search still opened the unsupported-for-extraction MP4.
+
+Final SQLite integrity, exact draft text, original pinned definition and removed
+fault trigger were independently verified. Both packaged document CLI checks,
+baseline resource checks, isolated baseline install/update/uninstall and native
+resource/Metal/missing/altered/signature checks pass after the media repair.
+The complete shared suite passed after async pinning; the later media wrapper was
+verified through both builds, packaging and actual UI. No native preview or Splash
+helper remained after actual Quit. Microphone/speech approval is pending, so no
+hardware recognition result is claimed.
+
+Public evidence: integration/evidence/2026-10-27-space-media-qualification.json.gz.
+Its 853,218 uncompressed bytes have SHA256
+846170630e32a89132eff529111230815e6b9178b1ab6f569d84818861a4d61e.
+It includes 18 retained logs, candidate source/binary hashes, source snapshots,
+synthetic fixture state and precise UI observations. The initial failed build
+invocation and media crash remain findings; only a sanitized relevant crash
+excerpt/hash is public. Raw device/session metadata and vendor documentation are
+not republished. These focused checks do not complete VoiceOver, all keyboard
+paths, full W1, occupied contexts, whole-app memory or release qualification.
+
+## Corrected full W1 cohort started
+A fresh complete W1 cohort started from clean commit 0e45190d886ba84889261614820b58ed03035ff1 with
+a rebuilt release workflow worker and the unchanged model/engine/protocol pins.
+It uses ten paired blocks, alternating frontend order and rotating workflows,
+with one warmup and two measured repetitions per workload in each worker.
+The native preview was quit, AC power was confirmed and local builds, downloads
+and other inference stopped before launch. The first native warmups passed.
+
+Command:
+
+~~~sh
+python3 scripts/compare_workflow_performance.py \
+  --models-root .build/native-fresh-setup \
+  --output .build/workflow-performance/current-cohort2
+~~~
+
+The console is .build/workflow-performance/current-cohort2.console.log. Its
+identity.json freezes all measured source/binary hashes. Preserve every worker,
+request, generated output, memory trace, failure and exclusion. Do not edit the
+measured sources or rebuild while it runs. Documentation-only updates do not
+change those inputs. This is running evidence, not a passed performance gate.
+Inspect the terminal result, all paired conditions and cleanup before adoption.
+
+## Linked-asset preview responsiveness prepared
+
+Code inspection found that assetURL held the workbook recursive lock throughout
+external-file hashing. A detached preview task could therefore still block UI
+refreshes waiting for database state. Its task cancellation also did not reach
+the file reader, and late completion lacked request ownership checks.
+
+The prepared correction snapshots catalog metadata before filesystem work,
+streams hash progress with cancellation, keeps changed-byte rejection, and checks
+cancellation before committing relinks. Existing intake, extraction, archive,
+transcription and CLI cancellation tokens now reach the same asset verification.
+The native preview owns a cancellable session, shows opening/checking progress,
+keeps external-file recovery available and offers Stop/Retry. Switching or closing
+a preview invalidates late success, failure and progress. Successful relink reuses
+its verified URL rather than immediately hashing the whole file a second time.
+
+A core regression holds hashing at a chunk callback while an independent workbook
+read must finish; it also covers chunk cancellation, relink rollback, successful
+reconnection, changed original rejection and regular-file validation. Dedicated
+preview checks cover stale results/progress, Stop/Retry, view/task cancellation,
+cancellation before entry and changed-file failures. They are included in the
+shared check script and CI. Formatting and diff checks pass. Compilation, runtime
+checks and native large-file UI qualification remain pending; local builds stay
+paused during the frozen full W1 cohort. No multi-gigabyte memory or rendering
+performance result is claimed from source inspection.
+
+On 57e9fd1, hosted run 40518997102 passed the core invariant/integration suite,
+document lifecycle checks and the new preview cancellation/stale-read executable.
+This executes the workbook-read-during-hash regression and cancellation/relink
+checks rather than relying on source inspection. A follow-up fixture ensures a
+first late progress callback cannot be hidden by the producer's throttle. Voice
+lifecycle and checkpoint process-death checks also passed in that run. The full
+workflow and app build are still running, so this is focused runtime evidence,
+not final packaging or a large-file native interaction result.
+
+The independently frozen W1 cohort has completed its first two native/reference
+pairs. All 52 jobs including four Ready primes passed, with exact paired requests
+and generated outputs and successful worker closure. This is partial progress
+through the fixed ten-block protocol, not a passed performance/adoption gate.
+
+## Active-job continuity comparison prepared
+The separate codex/continuity-release checkout prepares --active-context to test
+repeated maintenance inside one mutating job, against the same fixture without
+maintenance at 64K. It preserves real model choice, original source versions,
+normal tool/output/step bounds and actual token measurements. Both functional arms
+must succeed, with at least two active checkpoints in the 32K arm; missing coverage
+and all failures remain explicit. This is a C12 subset, not a C13 performance claim.
+
+Source formatting passes. Compilation and execution are deliberately deferred
+while the frozen full W1 cohort runs in the primary checkout. No product code,
+model pin, threshold or frozen source/binary was changed. Documentation now states
+explicitly that both packaged product paths disable automatic maintenance; only
+dedicated native probes opt in. The previous wording could be mistaken for an
+enabled native-preview feature. See [[records/specs/conversation-context]] and
+[[records/operations/build-and-run]] for the protocol and command.
+
+The probe compiled and the complete hosted workflow for 6886540 passed in run
+40516968758, including baseline and native package builds. Its actual-model arms
+remain unexecuted while the frozen W1 cohort runs. The prepared probe, corrected
+compaction documentation and linked-asset preview changes are now combined in one
+development branch. Both branches' source changes and log entries are preserved;
+only generated catalogs were rebuilt after the merge. This does not change the
+primary checkout's frozen measured code, production defaults or upstream pins.
+
+## Large linked-file verification check prepared
+
+The combined development branch adds a real 2 GiB-plus linked-file verification
+probe to the shared check script and hosted CI. It exercises the production
+preview session and streaming hash path, including cancellation after 8 MiB,
+complete retry, same-size changed-original refusal and unchanged workbook evidence.
+A parent process measures lifetime peak physical footprint before allowing exit,
+with a fixed 256 MiB headless-process ceiling. The report records executable and
+source identities and retains failures. The sparse input is synthetic data, not
+playable media; no rendering or whole-app performance claim follows.
+
+Swift formatting, Python syntax, command help, link and dbmd checks pass.
+Compilation and execution of this new large-input probe remain pending hosted
+CI; local builds and file-intensive tests remain deferred during the frozen W1
+measurement. Earlier passing small core/session regressions do not qualify this
+new fixture. Reproduction is in [[records/operations/build-and-run]].
+
+
+The new probe passed on hosted arm64 macOS 26.6.2 at commit 96b8528, run
+40520881612. It verified all 2,148,532,224 original bytes, cancelled at exactly
+8,388,608 bytes, then rejected a same-size changed original without changing the
+workbook revision or saved asset hash. Darwin lifetime peak physical footprint
+was 6,489,600 bytes (about 6.2 MiB), below the preregistered 268,435,456-byte ceiling.
+The complete fixture/verification process took 7.74 seconds; that is not a cold
+storage or UI latency qualification. Sparse source bytes explain why actual disk
+reads are much smaller than the hashed length.
+
+Artifact 12740609605 is 1,324 bytes with SHA256
+bbf2cf53282867459c258131201532ea9c4d6290eee5f69eb61467896abb270a.
+Its digest was checked before extracting the three expected bounded log files;
+all five reported source hashes match the recorded commit. Full result, stdout,
+empty stderr, executable identity and explicit limits are preserved in
+integration/evidence/2026-10-27-large-linked-preview.json. This is a passing headless
+verification result, not native media rendering, complete UI responsiveness,
+full-app memory or broad hardware qualification. Later composer-control edits
+still require their own checks. The full 96b8528 hosted workflow is still running.
+## Conversation controls for file previews prepared
+
+Review found that the composer disabled every submission while work was active,
+including Stop. Native preview Stop/Retry/Find original also lacked composer
+routes. The prepared correction routes complete shell-control submissions before
+model dispatch and keeps those submissions available while busy. Stop/cancel
+cancels the active operation and an opening preview; stop preview only cancels an
+opening file, leaving an already loaded viewer alone. Retry and Find original
+share the viewer's session, preserve hash verification and do not invoke a model.
+Find original refuses a stale window/preview selection after its picker returns.
+The same input path serves submitted dictation, but hardware voice remains pending.
+
+Preview retry/reconnection now invalidates old work immediately rather than
+waiting for SwiftUI's replacement task. A generation identity prevents a previous
+success from clearing a newly selected original. Focused checks cover that race,
+complete-control admission while busy and refusal to interpret negated or unrelated
+submissions as shell controls. Swift formatting/diff and documentation checks pass;
+new runtime/compilation and actual native interaction checks remain pending.
+
+Separate inspection finding: several older asynchronous workspace operations lack
+uniform late-completion ownership checks, and closing a workbook currently stops
+media/dictation/preview without consistently cancelling its general operation.
+Review and qualify that lifecycle next, preserving completed mutations and avoiding
+old callbacks appearing after a workbook switch. This finding is not a tested fix.
+
+## Workspace operation lifecycle prepared
+
+Code inspection confirmed that imports, export, URL capture, review, transcription
+and model callbacks did not share a reliable window ownership boundary. The
+prepared change gives each operation a cancellation token and unique owner.
+Closing/switching invalidates that owner; late progress, errors and completion
+cannot clear a newer operation. Completed mutations and event messages remain in
+the original workbook/conversation. Result navigation also checks the original
+conversation and navigation identity, preserving a user's intervening exploration.
+
+Stop keeps ordinary operations busy until they finish. Waiting for an OS speech
+permission response is different: Stop releases the UI immediately, and a late
+response cannot start transcription or stop a newer operation. No microphone or
+speech permission was requested during these checks. Import/export pickers reject
+a changed workbook on return. Opening another workbook resets its conversation,
+route, search and table state; closing invalidates outstanding search callbacks.
+
+The added asynchronous regression uses two real temporary workbooks and a delayed
+completion to check durable save isolation, stale progress/focus/completion, Stop
+ownership, duplicate completion and a delayed permission callback. The search
+suite adds reset-during-read coverage. These are prepared regressions, not proof
+of native app lifecycle behavior. Swift formatting and diff checks pass; hosted
+compilation/runtime and focused native close/switch checks remain pending. Local
+builds and inference remain deferred during the frozen full W1 cohort.
+
+## Native search cancellation propagation prepared
+
+Review found that the main search view created a detached SQLite read without
+passing cancellation. It discarded stale results but could leave obsolete work
+running until the core query deadline. SearchSession now owns the reader token,
+cancels it on replacement/reset/task cancellation and passes it into both native
+search views. The existing SQLite progress budget observes this token. Leaving
+search stops active work while retaining completed pages, cursor and Back anchor.
+Cancellation does not publish an error or imply an empty result.
+
+Delayed-read regressions now check that replacement, clearing, task cancellation
+and workbook reset actually signal the reader, not just discard its return value.
+An additional next-page cancellation preserves earlier results and retries through
+a real workbook search with a fresh token. Existing core checks cover cancelled
+and expired search budgets followed by a usable query. These prepared checks do
+not establish cancellation latency under a large live SQLite workload; that native
+measurement remains pending. Formatting and diff checks pass; hosted compilation
+and runtime checks for this change are pending.
+
+Hosted run 40519770358 completed successfully for 9a2f58a, covering the earlier
+small linked-asset/session changes and both app packages. The larger-file evidence
+remains tied to 96b8528 and its specific passing step; newer composer and workspace
+changes require their own completed runs. The frozen W1 cohort is now on block 4;
+no complete-cohort performance conclusion has been made.
+
+## Remaining workspace callback paths prepared
+
+Table edits and undo/redo now use the same operation owner as imports and model
+work, with cancellation checked before their atomic mutation. Late completion
+cannot change the undo stack or error in a different workbook. Delayed native
+drag/drop providers retain the original interaction, workbook and conversation;
+close/switch invalidates the drop instead of importing into a new destination.
+File pickers also compare the interaction generation, covering close/reopen with
+the same workbook object. The bounded text-file viewer clears old content on a
+new file and refuses a cancelled result or error. These app wiring changes pass
+formatting/diff review; native compilation and interaction verification are pending.
+
+The new workspace ownership regression in 9044e5e passed in hosted run
+40523815521, alongside core and document checks. That workflow is still running;
+this does not qualify the newer search cancellation or callback wiring changes.
+The complete combined continuity/asset-preview checkpoint c9251aa passed run
+40520155806. The redundant documentation-only run 40522177262 was cancelled to
+allow current source checks to start; cancellation is not recorded as a pass.
+
+## Bounded Home catalog prepared
+
+Inspection found that every WorkspaceState refresh loaded up to 100 complete
+non-row Items, including their document body and structured data, just to display
+up to 20 recent titles. Large generated documents could therefore inflate Home
+refresh memory even when none was open. Home now uses a distinct ItemSummary type
+and a metadata-only SQLite projection capped at 20 entries by default. Row and
+request exclusions occur before the limit. Exact version IDs, Source/Record
+category, meaning, acceptance and asset identity are retained. Existing full-item
+read APIs and original evidence remain unchanged.
+
+The prepared core regression includes a 2.1 MB document body and 1 MB payload,
+accepted-estimate metadata, a corrected version, an included asset and newer
+internal requests/rows. It checks a bounded serialized catalog, exact current IDs,
+original readability and unchanged workbook revision/integrity. Formatting and
+diff checks pass; the new runtime check and app compilation await hosted CI. This
+is not a full-app memory result. Synchronous metadata refresh can still contend
+with database work; native responsiveness under active large queries remains an
+explicit measurement/follow-up, not a completed claim.
+
+## Search test compilation correction
+Hosted run 40524238057 compiled the changed SearchSession but failed compiling its
+delayed-read fixture: adding a token assignment made its continuation expression
+require an explicit return. The fixture is corrected without changing product
+behavior or assertions. The search check now runs before the slower product-model
+module build so this inexpensive boundary reports earlier. Preserve that failed
+run; no passing search runtime result is claimed until the corrected check runs.
+
+The new recent-item catalog regression and the core/preview suites passed on
+af702ee in run 40525067058. Its full workflow remains unqualified and inherits the
+same search-fixture compilation error until this correction. Separately, the
+complete 96b8528 workflow finished successfully (40520881612), including baseline
+and native package builds and installation. That is the older large-file
+checkpoint, not proof of the newer workspace/search/catalog app wiring.
+
+## Current focused verification follow-up
+The complete composer-control checkpoint 202d513 passed hosted run 40521849734,
+including baseline/native package builds and install checks. Later workspace,
+search and metadata changes remain tied to their own runs. Run 40524689438 on
+e4f7225 failed at the same missing-return search fixture as 40524238057; the exact
+compiler finding was inspected and remains retained. The correction is 426dd2d,
+with run 40526063413 in progress. Newer runs must not inherit an older full pass.
+
+The first five frozen W1 pairs have now been independently inspected: 130 jobs
+including ten Ready primes pass validity checks, request hashes and generated
+tokens match in each pair, all ten workers report closed, and no worker failure
+is recorded. Block 5 is running. The full ten-block performance/condition gate
+remains incomplete. Frozen sources were checked unchanged during this work.
+
+This follow-up changes only documentation. Repository links and full dbmd
+validation pass locally; the ongoing 426dd2d code workflow remains the relevant
+compilation/runtime check rather than launching another identical app build.
+
+## Corrected search runtime passed
+On 426dd2d, hosted run 40526063413 passed the corrected search executable, including
+reader-token cancellation for replacement/clear/task/reset, rejection of late
+results, preserved earlier pages/anchor and a real next-page retry with a fresh
+token. The core catalog regression, document/preview ownership checks, large-file
+probe, checkpoint process-death checks and table checks also completed before it.
+The full workflow and app package builds are still running. These focused results
+do not establish native large-query interruption latency or final visible UI.
+
+The prior af702ee full run 40525067058 failed after its passing core/catalog and
+preview steps, before the test-helper correction. Retain that failed checkpoint;
+the passing corrected search result belongs to 426dd2d, not to the earlier source.
+
+## Search-scale qualification strengthened, prepared
+The old benchmark reported aggregate times and limited recall booleans without
+refusing a failed recall result, retained no complete warm sample set and ran the
+document corpus only under an environment flag. The prepared v2 default covers
+both 10k/100k corpora, preserves every sample and fixture, checks exact IDs and
+complete multi-chunk paging, and fails its protocol result on semantic errors or
+missed 100k latency/interruption targets. Hardware, actual source/binary hashes and
+initial/final identity are recorded. Numeric sorting remains measured.
+
+The cancellation probe reports a fast already-finished call as uncovered, retains
+that observation and verifies that subsequent reads still work. It does not claim
+to trace SQLite instructions or solve native MainActor responsiveness. The small
+200-entry self-check now runs in CI/shared checks and uploads bounded JSON reports,
+not large fixture databases. It cannot qualify 100k performance. The nearest-rank
+percentile and changed query matrix are versioned rather than silently treated as
+the earlier roughly 220 ms observation.
+
+Formatting, shell syntax and diff checks pass. New compilation and small-fixture
+runtime remain pending hosted CI; full reference-Mac measurement stays deferred
+until the independently frozen W1 cohort ends. No local build, scale corpus or
+model workload was started alongside W1. The complete workspace-ownership build
+9044e5e has meanwhile passed hosted run 40523815521. The current 426dd2d workflow
+has passed its baseline app/install checks and is building the isolated native
+preview; its final result remains pending.
+
+## Search-scale self-check artifact inspected
+The prepared v2 benchmark compiled and passed its 200-row/200-chunk self-check on
+9043fff in hosted run 40530670227. All 42 sampled reads passed their fixture
+assertions. The multi-chunk case traversed three pages containing exactly its 20
+document versions, without duplicates. Both cancellation calls had already
+finished when Stop was requested, so interruptionObserved=false, required=false
+and cancellationTargetMet=null are retained. This is explicitly no large-query
+interruption evidence.
+
+The 10,066-byte artifact 12745618078 was downloaded and its SHA256 verified as
+06eb0384261ce2348deb4ceabc767c7ce4fb39317154e259fc62d81988c517fd.
+Only the four expected bounded JSON members were read. All 35 source hashes match
+9043fff; initial/final source and binary identities match, and the runner reported
+a clean checkout. The runner is VirtualMac2,1 with Apple M1 (Virtual), macOS
+26.6.2 and 7 GiB memory. It is not the physical reference Mac. The byte-preserved
+result and receipt are in integration/evidence/2026-10-27-search-scale-self-check/.
+The full workflow remains running; only this focused step is qualified.
+
+Separately, the complete current application checkpoint 426dd2d passed hosted
+run 40526063413, including core/catalog, document/preview/search, process-death,
+grammar/model-lifecycle, both packaged apps/CLIs and installation checks. This
+closes its automated build/regression gate, not the remaining native interaction,
+whole-app memory, W1, occupied-context or scale gates.
+
+## Frozen W1 seven-pair checkpoint
+Worker files for blocks 5 and 6 were independently checked after the earlier
+five-pair review. Both pairs contain all 26 valid jobs including their Ready
+primes, exact request hashes/generated tokens, closed workers and no worker
+failure. Cumulatively the first seven paired blocks contain 182 valid jobs.
+The measured source hashes still match identity.json. The coordinator was
+confirmed live with native block 7 in progress. No full-cohort latency or adoption
+conclusion follows before the final three pairs and terminal conditions complete.
+
+## External file copy integrity, October 27
+The previous Open in another app action supplied the canonical included file
+URL to NSWorkspace, allowing an external editor to overwrite saved evidence.
+The replacement uses a persistent user-chosen copy, checks its streamed SHA-256
+and byte count, and atomically publishes without overwriting. Native Save and
+Open and exact composer commands share the operation. Copy completion is guarded
+by workspace identity and cancellation before launching another app. Tests cover
+included/linked copies, editing isolation, empty files, interruption and staging
+cleanup, same-size corruption, package aliases, existing or competing files and
+changed linked originals. These are prepared changes; compilation, execution and
+visible native save/open behavior are not yet claimed.
+
+Hosted run 40536758642 on 6c9da08 passed the core copy invariants and the search
+self-check, then failed to compile the added preview assertions because their
+helper requires an explanatory message. The repair supplies those messages.
+The copy action also checks the displayed version before opening its save panel,
+and destination ownership compares normalized filesystem paths. The failed CI
+run is retained; a new full run is required.
+
+
+After preserving W1, the primary development checkout fast-forwarded to 21a8cd2.
+The complete local scripts/check.sh suite passes, including copy invariants,
+preview commands, large-file checks and all existing search/agent/grammar gates;
+links and full db.md validation also pass with zero errors and warnings. Native
+visual copy/save/open checks remain pending.
+## Complete W1 cohort and parity failure, October 27
+Frozen 0e45190 completed all ten paired blocks (20 workers, 260 jobs including
+20 Ready primes). Independent audit validates all 984 request observations,
+485 unique serialized frames and prompt arrays, 93 unchanged source/binary
+identities, successful worker shutdown and no surviving recorded processes.
+The retained summary recomputes exactly. No paired block was excluded.
+
+One warmup diverges: block 9, inventory_evidence, seed 9002, second request.
+Its actual request frame and 7,059-token prompt match exactly. Both report
+1,568 deduplicated KV tokens and zero matched prompt tokens. Generated tokens
+first differ at zero-based offset 19, producing 230 native versus 234 reference
+tokens. Both request the same evidence item; downstream prompt histories then
+differ. Both final answers correctly cite 20 minus 2 equals 18. The trace locates
+the discrepancy but does not establish its engine/scheduler/numerical cause.
+
+Every workflow's native/reference median and p95 ratios stayed inside the frozen
+5%/10% thresholds. Supplier: 1.0151/1.0168; formula: 1.0247/1.0093; inventory:
+0.9833/0.9798; missing evidence: 0.9654/1.0043. These are retained observations,
+not a passed performance gate: the protocol explicitly requires exact parity
+for warmups too. Production adoption remains false. Do not erase this failure,
+selectively exclude the warmup, silently relax the gate, or run another full
+cohort before a focused diagnosis.
+
+Full public evidence: integration/evidence/2026-10-27-workflow-cohort2-parity-failure.json.gz.
+It preserves every JSON/stderr file and original-file SHA, with ordinary local
+paths sanitized. Decoded request frames were checked for literal home/temporary
+paths; model inputs come from the committed synthetic fixtures. The original
+local run and frozen worker binary remain preserved. Compressed SHA-256:
+99e7b90d29acbc1cd44f1a5395130c736a384a0985900828254cee5095174052. Uncompressed SHA-256:
+f82a88441fbf409c5c0db5ec19698704996df05a73cd023cf1da3bc6b67cfb23.
+
+## Hardware dictation permission checkpoint, October 27
+The owner explicitly approved both speech and microphone permission. The native
+preview opened the synthetic Spaces workbook and started dictation, but the
+computer-use tool refuses access to macOS UserNotificationCenter. The owner was
+asked to perform the macOS Allow clicks directly, not to reapprove the request.
+No permission bypass or alternate access to the restricted system app was used.
+Hardware capture/transcription is not yet established. The previous UI showed
+only Stop for every active phase; a follow-up adds visible waiting/starting/
+listening state and the same accessible value. The source change still needs
+compilation and native visual verification.
+
+The native release target compiles successfully with the phase indicator. Its
+compiler also identified two file-action closures reading a main-actor item
+property from background work; capture the immutable item ID at the button
+action instead. The editor binding uses an explicit closure to retain inferred
+isolation. This is a source correction; a rebuilt package and visual pass are
+still pending the permission handoff.
+
+On 75cb253, the native release target rebuilt successfully without warnings in
+that rebuild, and all 14 synthetic voice lifecycle checks pass. Commands used:
+SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product
+--configuration release --product SevraDesktop -j 4; swift build --product
+sevra-voice-checks -j 4; .build/debug/sevra-voice-checks. Native packaging and
+visible status verification remain pending.
+
+The pending dictation session was explicitly stopped in the native UI; the
+button returned to Start dictation and no transcript was entered. A late
+permission grant must not automatically begin capture. Leave the existing app
+available for the owner to complete the macOS permission step, then start a
+fresh session for one spoken phrase. Do not treat approval or a Stop icon as
+proof of microphone capture.
+
+Hosted 6bac991 run 40538012306 and latest 75cb253 run 40540174787 remain pending
+at this checkpoint. The intervening a58903b run 40539699089 was superseded and
+cancelled, not passed.
+
+## D9 prefix diagnosis prepared, October 27
+Prepare scripts/probe_workflow_prefix.py and its frozen protocol for the exact
+W1 block-9 failing prefix, using the preserved worker and independent controller
+identity. The helper now optionally accepts an explicit worker executable;
+ordinary W1 callers retain the same default. Meaningful report checks pass for
+incomplete/reordered schedules, bad jobs, power/thermal/roles, missing cache
+counters, source drift, unexpected interventions and cleanup. Token divergence
+remains visible without mislabeling a valid diagnostic as a passing W1 gate.
+Actual D9 execution has not occurred at this checkpoint.
+
+
+The first D9 attempt completed the reference prefix with valid jobs and clean
+shutdown. At the same inventory request, its output differs from its own W1
+reference baseline after token 19 (and from the W1 native baseline after token
+22). This is observed within-reference variation, not evidence of a Swift-only
+parsing difference or a proven numerical cause. The native Ready prime then
+refused because copying the executable alone omitted its adjacent selected-model
+resource. Preserve that incomplete attempt in
+integration/evidence/2026-10-27-prefix-d9-missing-resource.json.gz.
+
+The original release worker still has the exact frozen binary hash and complete
+resource bundles. Add preflight checks for all three native JSON resources and
+verify their bytes against the original Git tree before running any frontend.
+The corrected D9 command will use that unchanged original executable and a new
+output folder. Resource-missing regression checks pass. No product resource
+fallback is added and no failed run is discarded. Full 6bac991 CI (40538012306)
+has also passed, including both packages and installation checks.
+## Full search-scale-v2 baseline, October 27
+Run the release sevra-benchmark from clean 4ac137d on the M5 Pro 48 GiB Mac,
+with no overlapping local build or inference. The native app was idle with
+dictation stopped. Capture power/thermal/process memory before, during and after;
+maximum observed thermal state is nominal. All 36 recorded source/binary inputs
+remain unchanged. The new 10k and 100k row and document-chunk fixtures retain
+correct recall, exact unique evidence across all 34 document pages, and observed
+cancellation with a following successful read and unchanged revision.
+
+The 100k row warm p95 is 203.990 ms; 100k document chunks are 275.292 ms. Both
+miss the 200 ms target. Their observed Stop-to-return times are 0.101 ms and
+0.061 ms. The 10k row/document warm p95 values are 15.738/24.314 ms. Broad
+queries dominate; exact identifiers stay sub-millisecond in these synthetic
+fixtures. No UI, cold-cache or general-device qualification follows. Preserve
+the failing results before optimizing the query.
+
+Public raw reports and conditions: integration/evidence/2026-10-27-search-scale-v2-first-full.json.gz.
+Compressed SHA-256: 06c2ca06553d79930b87cca2a52a0f8018ef10303df5c107223b0883f1048472.
+
+## Complete D9 repeatability result, October 27
+The corrected diagnostic on controller 22cca90 used the preserved 0e45190 worker
+and original adjacent resources. All twelve jobs in four fresh workers completed
+correctly, with no sampling/condition/cleanup failures. Independent audit rehashed
+all thirteen frozen inputs, twenty-two observed requests, six unique wire frames
+and six unique prompt arrays, recomputed the summary exactly and confirmed every
+recorded worker/helper/reference PID closed.
+
+Both native repeats matched each other and the last reference repeat completely.
+The first reference repeat diverged from the last reference at inventory request
+two, output token 19, despite identical request bytes and preceding history. The
+first reference finished in two requests while the others used four; all gave the
+correct cited stock balance. This demonstrates reference repeatability failure,
+not a proven Swift bug or a root cause in any particular kernel/cache operation.
+Timing/adoption qualification stays false. No full W1 rerun or gate weakening
+followed this result.
+
+Archive: integration/evidence/2026-10-27-prefix-d9-repeatability.json.gz, 406932
+bytes; uncompressed SHA-256
+5296c2925f62e95b7975d673122238d21c2900ecda521b1a1e728b2e398a5523.
+It contains the full four worker arms, root summary, identities, request/prompt
+artifacts, sampling and independent audit, with local paths sanitized. The first
+missing-resource attempt is retained separately. Search profiling began only
+after all D9 workers had exited.
+
+## Bounded snippet retrieval, October 27
+Search keeps the existing lexical/filename ranking, filters, best passage and
+revision-bound pagination. It fetches snippets for only the displayed IDs using
+one FTS cursor per nearby group. Each group spans fewer than 4096 row IDs; sparse
+hits split into separate groups. Unary + on rowid membership prevents SQLite from
+restarting the full-text query per hit, while ordinary lower/upper bounds still
+seek the index. Membership remains explicit so neighboring evidence never leaks
+into the page. Filename-only matches retain their stored excerpt. The existing
+read transaction and cancellation/deadline budget cover all groups.
+
+Seventy core checks pass, including a new sparse/dense/filename-only/diacritic
+fixture comparing exact snippets, locators and ranks across page sizes. The
+full 100k measurement remains pending at this checkpoint. The earlier failed
+latency result is preserved.
+
+## Full search-scale repair verification, October 27
+The complete unchanged search-scale-v2 protocol passed on clean committed
+48b1a30418e61b05983e0db5cb31f81f877735c8. Warm p95 fell from 203.99 to 136.47 ms for
+100k rows and from 275.29 to 172.31 ms for 100k document chunks. The 10k results
+were 8.38 and 11.75 ms. All sampled recall assertions passed, and document paging
+visited exactly 1000 unique documents in 34 pages at both scales.
+
+Stop interrupted the active 100k calls in 0.081 ms (rows) and 0.205 ms (documents),
+followed by successful reads at the same workbook revision. These are call-level
+measurements, not UI response measurements. The 193 process samples had no errors,
+nominal thermal state and an observed peak physical footprint of 144147176 bytes.
+The host remained on AC with no overlapping local builds/inference; its idle preview
+app and unrelated OS activity were uncontrolled. All 36 source hashes match the
+recorded commit and end-of-run identity; the release executable is unchanged.
+
+This completes the synthetic reference-Mac warm latency/recall/cancellation target,
+not OS-cold, whole-app, all-corpus or wider-device qualification. Full regression
+is running separately after the benchmark. Archive:
+integration/evidence/2026-10-27-search-scale-v2-batched-snippets.json.gz (30141 bytes),
+SHA-256 dd7ae1f33b09e622859ab07d01a979ff49816ec9102db73093dc3cc1264151c2;
+uncompressed SHA-256 8d74730632d3d625eedcbdd84f315e51011ead4582cbc9ab0de1acbb868ef2cb.
+The earlier failed full run remains preserved. No repeated benchmark or broader
+speed claim follows without a new change or unresolved concern.
+
+## Search repair full regression and native build, October 27
+On 48b1a30, scripts/check.sh completed with exit 0, including 70 core checks,
+15 document lifecycle checks, 14 voice lifecycle checks, 30 native adapter/setup
+checks, the exact tokenizer/stream/grammar fixtures, search/preview/product
+lifecycle checks, performance-report refusals, link gate and full dbmd validation.
+The native release SevraDesktop build also completed with no warnings. Logs and
+commands are retained in integration/evidence/2026-10-27-search-snippets-regression.json.gz.
+
+This compiled build is newer than the packaged preview currently open for the
+human macOS-permission handoff. It has not replaced that running bundle and does
+not establish hardware dictation or the new visible external-copy journey. Hosted
+workflow 40540174787 on 75cb253 passed; the latest 48b1a30 workflow is still running.
+The search performance run ended before regression/build work resumed.
+
+## Actual active-job context probe started, October 27
+The first invocation on frozen 48b1a30 supplied the resolved assembly instead of
+the installation root. Both arms stopped before inference with a model-assembly
+lookup refusal and unloaded. Source, binary, engine and grammar identities stayed
+unchanged. This is invalid setup, not a context outcome. Full receipts:
+integration/evidence/2026-10-27-active-context-wrong-root.json.gz.
+
+The corrected invocation uses the installation root with its selected-pack
+symlink, unchanged installed weights, the same debug worker and frozen fixture.
+It runs the specified 32K maintenance and 64K reference arms sequentially, with
+no overlapping local builds/inference. The 32K job has reached two real active
+checkpoints; final correctness and the reference arm are still pending. Original
+failures remain retained. This does not enable compaction or satisfy C12/C13 in
+full. Final results must replace this in-progress status before assessing success.
+
+## Active-job v1 fails exact facts and uncompressed capacity, October 27
+The corrected actual-model run on frozen 48b1a30 is complete. Maintained32K used
+twelve responses and three active checkpoints, then reported completion and saved
+one draft. Independent inspection finds four swapped label/value associations:
+CEDAR 0.35 vs expected 0.31 mm, IRIS 0.34 vs 0.32, WILLOW 0.32 vs 0.34, and BIRCH
+0.31 vs 0.35. It also created two Receiving review spaces. The saved draft has
+thirteen real lines; this is not a newline-parsing false failure. Its status and
+meaning remain draft/estimate. The first assertion failure prevented later
+in-probe assertions; the independent audit supplies the additional duplicate and
+state findings without claiming the skipped assertions passed.
+
+Uncompressed64K completed eight responses and reached 60455 observed prompt
+tokens, then failed with Prompt exceeds the native context limit. It created one
+working space and no memo. The two arms took 226.19 and 254.64 seconds including
+verification; these are functional observations, not latency qualification.
+Both models unloaded and no native helper remained. Sources, debug binary, engine
+and grammar stayed unchanged. Both workbook integrity checks pass. Independent
+SQLite inspection confirms all fourteen original items and their heads, plus
+inventory effects and starting balances, are unchanged in each arm.
+
+Archive: integration/evidence/2026-10-27-active-context-first-full.json.gz,
+161649 bytes, SHA-256 c76f2e3bde683d1a6f5c01cae1a3f62a8d00ee7b3325f3acea817b3dbb6e4c17;
+independent findings: integration/evidence/2026-10-27-active-context-first-full-audit.json.
+The wrong-root setup attempt is separately retained. No C12/C13 or automatic
+compaction pass follows. Next repair is the bounded original-evidence and
+completed-artifact projection described in [[records/specs/conversation-context]],
+then an explicitly scoped actual-model recheck. The failed 64K reference remains
+visible and must not be silently enlarged, dropped or relabeled as a pass.
+
+## Continuation evidence repair prepared, October 27
+Implemented bounded exact read evidence and completed-space identities in host
+continuation state, with no citation or mutation authority added. The model policy
+requires values to stay attached to their versions and titles, reuse of saved
+spaces, and explicit retrieval for omitted details. Current core checks pass 73/73;
+synthetic agent checks pass, including inspection of retained evidence after
+repeated maintenance. Unicode with an embedded NUL and forged-text refusal are
+covered. The actual-model repair replay is not yet run. Its preregistered scope
+and bounds are in [[records/specs/conversation-context]].
+
+Hosted workflow 40544819323 on 48b1a30 completed successfully. This supersedes its
+in-progress status above. No new hardware dictation or visible external-copy
+result is claimed; the running native preview bundle is preserved while the
+manual macOS permission handoff remains pending.
+
+## Maintained context repair and live dictation, October 27
+Two real-model maintained32K repair replays on b1e6e5e pass every unchanged v1
+functional assertion: twelve responses, four checkpoints, exact eight-report
+associations, one space/draft, original and corrected packing values, all-source
+lineage, unchanged original history/inventory, integrity, portable reopen and
+successful unload. The first overlapped the approved human dictation test; an
+explicit conditions addendum preserves that departure. The second ran after
+recording stopped with no concurrent local build/inference. Both retain original
+identities and full traces. Independent audit confirms all fourteen fixture items
+match failed v1 and remain unchanged with their heads and earlier messages.
+Archive: integration/evidence/2026-10-27-active-context-maintained-repair.json.gz,
+191120 bytes; uncompressed SHA-256
+0516b45e4a9f92171f1ed2af438b9284092db2b4e0585417dd4d5f4155d57165.
+The earlier 64K failure and remaining C12/C13 cases remain unresolved.
+
+The owner completed macOS microphone/speech permission prompts. In the packaged
+0e45190 preview, real speech produced the exact requested phrase Create a receiving
+report in the composer. Explicit Stop restored the Start dictation control. The
+message was not sent. The driver requires on-device recognition; no audio artifact
+was retained. This passes the single-phrase hardware path, not multilingual,
+long-session or noisy-room qualification. Evidence with executable identity:
+integration/evidence/2026-10-27-live-dictation.json. No further permission approval
+is needed for this already authorized test scope.
+
+## Background refresh and copy UI verification, October 27
+The new window snapshot/session passes focused preview checks and the complete
+scripts/check.sh suite on runtime sources at 7de4843. The suite retains 73 core
+checks, 15 document lifecycle checks, 14 voice lifecycle checks and the native
+adapter/tokenizer/grammar/agent/search/performance refusal checks. Removed unused
+Bool-result warnings in the preview test harness, then rebuilt and reran that
+focused suite. Native release app and CLI builds pass without warnings.
+
+Repackaged only after confirming the prior preview process had closed. Installed
+resource checks with build-tree access denied, nine missing resources, altered
+Metal refusal, missing-model guidance and strict signature checks pass. Both
+products load 1888 Metal functions; no baseline/Python inference symbols are
+linked. The preserved baseline app is unchanged.
+
+In the rebuilt preview, a new synthetic workbook loaded Home; the text command
+open a copy displayed the native Save and Open panel and opened the chosen copy
+in TextEdit. Editing/saving that copy changed its hash, while source and included
+asset hashes stayed unchanged and integrity passed. A CLI-created source appeared
+on Home through polling. A text-created tangent showed its own messages, returning
+to main restored the original history, and close/reopen retained the saved data.
+The new microphone control exposes its Local AI idle state; dictation stayed off.
+
+Logs, exact commands, binary hashes and focused UI/audit observations are retained
+in integration/evidence/2026-10-27-context-refresh-ui-verification.json.gz. These
+checks do not qualify large-file rendering/memory, every synchronous editor action,
+VoiceOver, all keyboard journeys or release installation.
+
+## Native large-media qualification and release repair, October 27
+The visible app was exercised with a fully written 2,148,532,224-byte, 48 kHz stereo
+PCM WAV containing silence, as both an included asset and an external reference.
+It is not a sparse file or a padded video. Playback and seeking to 03:03:20 within
+03:06:30 passed; linked verification showed progress, Stop/Retry worked, and a
+same-size one-byte external change was rejected. The included copy retained its
+original hash. This initial pass exposed two failures: the linked source's generic
+extraction text said File included, and a paused AVPlayer still held the WAV open
+after its workbook closed. The initial result remains failed in the evidence.
+
+PlaybackRegistry now separates pause from release. Closing an owner detaches the
+AVPlayerItem even while SwiftUI retains the player. Normal viewer exit, explicit
+compact-player close and replacement release media; keep-playing navigation
+preserves the intended compact player. Retry/relink releases the prior preview,
+and an inactive workbook cannot register a late player. Dictation only pauses,
+retaining the item for explicit resumption. A real AVPlayer regression failed
+before the fix and passes afterward, including isolation from another owner.
+
+Extraction messages no longer assert inclusion. A narrow compatibility projection
+also fixes the two older native unsupported/PDF-limit messages for existing books,
+including retained-index failures, without changing their stored history. Other
+parser messages remain unchanged. The same projection serves viewer/tool status
+and pending intake. The new core check verifies both ownership modes, reopen,
+unchanged revision and custom-parser preservation.
+
+The rebuilt preview passed both large-file playback/seek paths, compact playback
+while navigating, compact-player close, Stop/Retry, same-size changed-original
+refusal, workbook close with keep-playing enabled, and close during active hash
+verification. Native lsof checks found no fixture WAV descriptors after those
+close actions. The final app process exited, and packaged CLI integrity checks
+passed with both original hashes. UI status was corrected without reindexing the
+old fixture. No model, build, download or dictation ran during either UI sampling.
+
+The repaired app had 1,247 process-footprint observations and a lifetime peak of
+104,399,952 bytes, about 99.56 MiB, below the declared 512 MiB ceiling. This measures
+the app process, excluding shared macOS media services. It does not establish
+all-codec/video/image behavior, simultaneous inference, cold-storage latency,
+remote-volume hard deadlines, every retained window object's release, or wider
+hardware. Keep broader J01–J10, context and production-adoption gates open.
+
+The complete scripts/check.sh suite passes, including 74 core and 15 voice/media
+checks, document/preview/search/agent/native frontend/grammar/performance evidence
+checks. Native release app and CLI builds plus installed resources, missing/altered
+resource refusals and signature checks pass. The preparer script also completed a
+fresh independent fixture and integrity check. Reproduction is in
+[[records/operations/build-and-run]]. Source hashes, both app identities, original
+failures, native observations, per-sample memory, byte/handle audits and build/test
+logs are preserved in integration/evidence/2026-10-27-large-media-ui-repair.json.gz.
+Its uncompressed SHA256 is
+9b4a8464281b6f85aaa50599780154d93303e000e6e60ddaf344b61ed9a1d126.
+The repaired app executable SHA256 is
+cd43caa3a6275ead7e38d3f934ed438c1ab4ae57754b6440a6d9ddec43275312.
+
+## Isolated native extraction checkpoint, October 27
+
+Document text/PDF/OCR/XML extraction now runs in a dedicated Swift helper shared
+by desktop and CLI. The parent controls index publication and source validation;
+no database or workbook lock descriptors are inherited. Two per-host parser slots,
+a parent deadline, a sampled memory guard, bounded streams and an orphan watchdog
+contain parser faults and allow cancellation of uncooperative synchronous work.
+The helper remains alive through stdout writing so its watchdog also covers a
+blocked result pipe. Missing helpers and incomplete/invalid terminal results fail
+explicitly. Original bytes and any prior index survive failure and support retry.
+
+Twelve focused checks pass in debug and optimized native release, including a
+real helper whose parent dies with stdout blocked. The complete scripts/check.sh
+suite passed with the first eleven checks; the twelfth descriptor-inheritance check
+was added afterward and then passed in both configurations. No production code
+changed after that full regression. Baseline build/install/update/uninstall and
+skill/conflict checks pass. Both packaged helper layouts extract text/PDF/DOCX
+with build-tree reads denied. Native resource/signature checks pass, including ten
+missing-resource cases and altered-resource refusal. No Python/model runtime is
+linked into the extractor.
+
+The rebuilt native app included a text file, found MARIGOLD-427 and opened its
+original with Text indexed. An intentionally invalid PDF produced Cannot read PDF;
+Home retained the original with Intake needs attention, and the previous source
+remained usable/searchable. Workbook verification and byte hashes pass; app quit
+left no parser process. This UI check does not establish every supported format.
+
+Q11 remains partly open: this is process fault isolation, not a security sandbox;
+structured table ingestion, archives, file transcription and native viewers are
+separate paths. The memory limit is sampled; source filesystem IO outside parsing
+is cooperative. Concurrent maximum extraction plus inference and wider hardware
+are not qualified. Native adoption and automatic compaction remain gated.
+
+Evidence: integration/evidence/2026-10-27-isolated-extraction.json.gz, uncompressed
+SHA256 e1667c89b8efa36ec8836e37d5609d86d0cba6a7045d14223a2f82ddb75f3b6d.
+It retains source/binary identities, sanitized logs, package checks and UI audits.
+The previous media commit's hosted CI 40557861669 passed. This extraction checkpoint
+has not yet received a hosted CI result.
+
+## Conversation and Threads refinement, October 27
+
+Applied the owner-approved UX refinement recorded in
+[[sources/notes/2026/10/conversation-threads-refinement]]. The main pane displays
+Conversation. The picker groups optional discussions as Threads with descriptive
+titles. Start a thread and Back to conversation have explicit text equivalents;
+Let's explore this separately opens naming, while Start a thread called followed
+by a title creates it directly. Chapters remain optional menu/message headings.
+Persisted conversation IDs and the legacy tangent API/CLI spelling remain compatible.
+
+Share summary with conversation opens an editable selection seeded from a completed
+answer. Cancel publishes nothing. A message context menu can choose an exact earlier
+exchange; an explicit text summary can also be shared without inference. The host
+saves selected text and its original conversation/message reference. Sharing does
+not accept records, duplicate workbook business data, expand history retrieval or
+enqueue an AI turn. The shared contribution remains historical information under
+the existing authority rules. CLI thread and share-summary use the same core.
+
+Two new core checks pass for phrase/negation/title handling and summary provenance,
+unchanged accepted inventory, no model run, scoped history, incomplete-message
+refusal and reopen. All 76 core checks and the complete regression suite pass.
+Native release builds/resources/signatures pass. A separate final packaged CLI
+check verifies thread, legacy tangent, selected summary, exact provenance, no
+business/model mutation and integrity. An initial test used an internal DB property
+and a later app build caught catch-variable shadowing; both were corrected and the
+failed build logs are retained with successful reruns.
+
+Visible native testing verified Conversation default, text-driven named thread
+creation/return, the Threads picker, summary editing/cancellation, sharing and
+clicking the original exchange link. The first pass exposed duplicate command text
+in main. The repaired app records those commands in their originating thread and
+copies only selected findings to Conversation. A fresh fixture verifies the repair,
+direct naming, return, zero inference/business mutations and workbook integrity.
+The app was quit and dictation remained off throughout this UI pass. These are
+synthetic seeded answers, not fresh model-quality or microphone measurements.
+
+The screenshot review passed for the summary sheet. The accessibility tree grouped
+message text and did not expose a separate provenance-link node. Link clicking
+works; keyboard/VoiceOver exposure still needs explicit qualification. This does
+not close all J01–J10, C12/C13, native engine parity or release gates.
+
+Evidence: integration/evidence/2026-10-27-conversation-threads.json.gz, uncompressed
+SHA256 8be5592c3c6dfdd763bf97d55563b5c2d95c54efef5ed59298894852651de16b.
+It preserves before/after UI audits, exact source/app/CLI identities, failed and
+passing build logs, full regression and package checks. The final CLI addition was
+built and smoke-tested after the full suite; it changes no core or UI behavior.
+Hosted CI for extraction e27ae39 was still running; no new hosted success is claimed.
+
+## Conversation accessibility checkpoint, October 27
+
+Conversation messages now remain separate accessible groups with speaker/status,
+selectable rich text, exact link nodes and named assistive actions. Shared actions
+also appear in each message menu and the active workbook's native Conversation
+menu. Command-L focuses the composer. Recent exchanges are bounded to the twenty
+most recent visible messages. Closing a workbook removes its menu actions; switching
+workbooks changes the owning state. Save failures now surface instead of being
+silently discarded.
+
+One parser supplies inline and menu links. It preserves formatted Unicode labels,
+item versions, locators and original-message identities, merging adjacent styling
+runs and deduplicating menu destinations with a set. Unsupported application/file
+schemes and malformed or ambiguous workbook routes retain their visible text but
+cannot be activated. The navigation layer does not change retrieval authority or
+accept business records.
+
+Focused checks cover those invariants and 2,000 unique links. The full regression
+suite passed after the message/menu changes, including 76 core, 12 extraction and
+15 voice/media checks. The final set-based deduplication refinement was made after
+that run, then passed focused checks, native package/resource/signature checks,
+baseline build/install/update/uninstall/skill-conflict checks and another visible
+native UI pass. Swift formatting checks on the three new files pass.
+
+Synthetic native UI checks opened the exact Receiving.txt evidence and original
+exchange through named accessibility and menu actions. Row-menu arrow keys plus
+Return activated the original exchange; Command-L focused the composer. Native
+Conversation actions followed a second workbook and became unavailable after
+close. Original source hashes, messages and provenance payloads remained unchanged;
+workbook integrity passed and no model turn or business mutation ran. The app was
+quit, and no new microphone recording or external URL activation occurred.
+
+Keyboard-only navigation through the application menu bar remains unqualified:
+Control-F2 did not establish focus through the UI tool, which also rejects the fn
+modifier. Shift-Tab remained in the text field with the current Mac preferences;
+Option-Shift-Tab inserted a tab, cleared without sending. Menu activation through
+accessibility worked, but that is not a spoken VoiceOver session. No system setting
+was changed. Dark-mode requalification and broader J01-J10 coverage remain open.
+
+Evidence: integration/evidence/2026-10-27-conversation-accessibility.json.gz,
+12,049 compressed bytes; uncompressed SHA256
+22008086456cc68188f631424c1d017ec69c6d2fd6ad010de2a286c4770ed91c.
+It preserves source/binary hashes, sanitized build/check logs and explicit UI
+observations and limits, not raw AX transcripts or a screenshot collection. All
+recorded source and binary hashes were reverified before the documentation
+checkpoint. Hosted extraction CI 40562440542 passed, superseding earlier pending
+entries. Threads CI 40564561986 is still running; this checkpoint is not yet pushed.
+
+## Structured intake isolation and persistent recovery, October 27
+
+CSV/TSV and XLSX file parsing now use the same bounded native helper and shared
+per-host worker slots as text/PDF/OCR extraction. The generic typed reply keeps
+old text extraction compatible. XLSX text indexing calls its parser within the
+existing helper, without recursive worker spawning. The host validates complete
+structured results, rechecks original hashes and alone publishes datasets, lineage
+and resumable batches. Failure keeps originals and existing searchable content.
+This is fault isolation, not a security sandbox.
+
+Bounds include 32 MB CSV input, one MB fields, 500 columns, 100,000 rows per sheet,
+one million dense cell positions across all sheets and 32 MB of expanded values,
+formulas and notes. Repeated shared strings and inserted blanks count. CSV parsing
+checks cancellation without constructing a character array; EOF row/column limits
+and quoted empty records are corrected. XLSX column arithmetic and supplied row
+numbers refuse overflow or invalid ranges instead of trapping or inventing a row.
+Existing shared strings, sparse rows, dates and cached formula evidence still pass.
+
+A retained failure demonstrated that successful text indexing followed by refused
+table parsing disappeared from pending intake. Structured attempts now persist
+running/failed/cancelled/ready state separately. Home and CLI retain the error and
+Resume action after reopen. Ready attempt identities prevent a late cancelled
+parser from overwriting a newer successful import. Operational status updates are
+recorded; a failed parse does not publish table rows or inferred business events.
+
+Nineteen focused checks pass in debug and optimized native release, including
+structured crashes, deadline/cancellation, invalid replies, source changes during
+parsing, exact CSV boundaries, malformed encoding, dense expansion, reopen/retry
+and concurrent status ownership. Shared text-worker checks retain memory, output,
+descriptor, two-slot and real orphan termination coverage. The full scripts/check.sh
+suite passes with 77 core checks, including XLSX coordinate/shared-string limits.
+Both packaged app and CLI helper layouts pass text/PDF/DOCX and CSV/XLSX reads with
+the build tree denied, preserving cached formulas. Baseline installation/update,
+standalone CLI, skill conflicts and uninstall/workbook preservation pass. Native
+resources, ten missing-resource refusals, altered resource refusal and signatures
+pass. New production/parser sources pass strict Swift formatting checks.
+
+The first visible package imported the synthetic CSV and XLSX through native
+file-list selection. Tables displayed Copper washers, quantity 12, the multiline
+note, Brass bolt A442 and saved value 12. An invalid-coordinate XLSX remained as
+an original with an explicit error; both good tables stayed usable. Initial Go to
+Folder automation repeatedly reset to a slash. Quit/reopen and file-list selection
+completed the imports; no root cause is claimed for the path-entry failure.
+
+The final package opens the retained wide-CSV fixture with a persisted table error
+and Resume. Retry preserves that error and creates no dataset. Its original opens
+with Text indexed. Close/reopen retains the pending issue, and the light-mode
+layout was visually checked. Workbook integrity and original hashes pass. No model
+or microphone turn ran; the app was quit and no parser process remained.
+
+Earlier build failures are preserved: a -j4 command typo, optional dictionary
+access during the status implementation, and a concurrency fixture that still had
+its text extraction queued. The corrected fixture indexes its source before racing
+two table attempts; the unchanged no-pending-status assertion then passes. The
+initial package's missing persistent table-error result remains in the evidence.
+
+Evidence: integration/evidence/2026-10-27-structured-intake-isolation.json.gz,
+29,324 compressed bytes; uncompressed SHA256
+da480fca877d81b268ab1af8cc806e44c232914f32b502451dd9351366a6f62a.
+It retains 50 build/test logs, exact final source and binary identities, initial
+failure receipts and native UI/audit observations. Some builds overlapped functional
+checks; no speed or whole-app memory qualification is inferred. Host column inference
+and row-dictionary materialization remain outside parser isolation. The new running
+status marker has no dedicated host-kill test yet. Archives, file transcription,
+viewers, full keyboard/VoiceOver, C12/C13 and engine adoption/release gates remain
+open. No production native-engine switch or automatic compaction was enabled.
+
+## Coherent UX consistency pass, October 27
+
+A further owner-requested review was relayed from the design discussion and is
+preserved in [[sources/notes/2026/10/ux-consistency-review]]. The ephemeral chat's
+history API was unavailable; the relay is not a new human usability study. Its
+requirements refine the existing plan, with no engine, storage or authority reset.
+
+Rechecked latest code: WorkspaceState still has one shared prompt and clears the
+message anchor on conversation change, so per-thread drafts/reading positions are
+open. Thread creation still opens naming; Back to conversation is in menus. The
+normal message window is bounded to 100 without an older-history browsing control.
+The space picker remains a flat searchable list, and thread orchestration is not
+exposed in the current model tool definitions. These remain implementation gaps.
+
+The sharing observation is partly superseded: 75511b8 already added editable
+selected-summary review/cancellation with exact origin payload/link, no automatic
+acceptance and no model turn. 03163ed exposes its links/actions accessibly. Historical
+shared messages retain their original representation and authority envelope; verify
+clear original attribution in the complete journey rather than rewriting evidence.
+
+Execute as one flow, in this order:
+1. Persist scoped composer drafts and reading positions; cover switching, provenance
+   jumps, delayed dictation, interruptions and reopen without draft migration.
+2. Immediate provisional-title thread creation, visible identity/return, and shared
+   scoped host actions for natural voice/text and native controls. Basic controls
+   bypass inference; ambiguous/consequential actions retain review and honest failure.
+3. Bounded older-history browsing/search and reliable return-to-latest, then complete
+   Home/recent/pinned space navigation and context in focus/narrow layouts.
+4. Verify scenario/proposal labeling, selected-summary attribution, explicit acceptance,
+   correction and undo across the full J11 invoice/supplier journey in
+   [[records/specs/product]]. Reuse passed lower-level checks and add meaningful
+   ownership/navigation regressions, not a duplicate implementation-only test suite.
+
+Keep actual observations separate from targets. J11, equivalent voice/text paths,
+keyboard and narrow-window context remain open. Uncoached everyday-user usability
+remains unvalidated until observed. Continue reliability, extraction, native-engine,
+context and packaging work without treating the Threads label change as completion.
+
+
+## Scoped composer and reading-state checkpoint, October 27
+
+Implemented P06b/S16a in the shared core, the native conversation coordinator and
+the existing SwiftUI workspace. Each conversation has versioned presentation
+metadata, a 128 KB draft, at most eight saved alternatives, and an exact message
+plus intra-message fraction or follow-latest state. The envelope is bounded to
+1.2 MB before loading and before publication. Normal typing debounces for 600 ms;
+switching, provenance navigation, close, quit and portable-copy export await the
+pending writes. Neither keystrokes nor scrolling advance business revisions,
+append messages or create searchable evidence. Portable snapshots preserve saved
+drafts and the native copy dialog states that explicitly.
+
+Small persistence transactions run off the UI actor with bounded process-lock
+acquisition and short SQLite busy waits. Writes serialize later keystrokes before
+acknowledging a flush. Compare the originally read draft before changing text.
+Conflict or storage failure leaves the composer visible and blocks losing it;
+Keep both preserves the other text. Restoring an alternative preserves the current
+one. A full alternative list refuses another save without losing text; removing
+an explicit old alternative permits the pending save. A reading-only update
+preserves and exposes a newer external draft. Dictation callbacks also check
+window ownership and changing-conversation state.
+
+Native scrolling observes the clip view without replacing its keyboard/scroll
+behavior. Thread changes and reopen restore the same message and fraction. Polling
+loads around the reader when new messages arrive, and rejects a pending window
+that no longer contains the reader's current anchor. Return to latest is explicit.
+The last active conversation is a local preference for that workbook, while drafts
+and positions remain in the package. Existing preview/document state is separate.
+
+Verification:
+
+- Final scripts/check.sh passes: 77 core, 19 extraction, 16 document checks and the
+  expanded preview suite, plus the existing deterministic voice, grammar, workflow,
+  search, context and integrity checks. Focused coverage includes concurrent flush
+  callers and a later edit, exact Unicode, independent main/thread drafts, reopen,
+  external conflict, keep-both/restore, reading-only merge, three-second busy refusal
+  and retry, invalid scope/size/fraction rollback, FTS exclusion, portable roundtrip
+  and recovery when eight alternatives are already retained.
+- Both optimized app/CLI/helper builds and packages pass. Isolated baseline install,
+  update, unrelated-file refusal, skill install and uninstall preserve the workbook.
+  Native installed resource/signature and document/table extraction checks pass
+  with build-tree reads denied. The final export-dialog-only change was rebuilt,
+  repackaged, checked for resources and observed in the native app after the full
+  suite; it did not change the core or extraction helper.
+- The visible native fixture returned to the exact unsent main draft and scrollbar
+  0.7472084724300679 after a thread roundtrip. It restored exchange 21 through a
+  message action and a real pointer click on the inline link. Return to latest
+  reached scrollbar 1 without clearing text. Immediate Command-W and Command-Q
+  after edits retained the exact drafts; reopen restored the last thread or main
+  and saved reading position. The final build remained on exchange 21 after 120
+  new synthetic messages, rather than switching to the latest 100.
+- An external synthetic writer and local editor produced different drafts. The
+  native close was refused with the local text visible; Keep both retained the
+  external text, and Restore to composer preserved the preceding local text as an
+  alternative. Final SQLite audit found both drafts, 167 fixture messages exactly
+  as inserted by the fixture, and integrity ok. None of the composer text was sent.
+  The portable-copy disclosure was visible; Cancel retained the draft, and the app
+  quit cleanly. No microphone or model request ran during this checkpoint.
+
+Retained failures and limits: the first new async assertions used the synchronous
+require autoclosure and failed compilation; corrected explicit Boolean assertions
+pass. An initially malformed synthetic link was ignored, then a separate correctly
+formed link was added. An accessibility-tool link click produced no navigation;
+native menu and screenshot-based pointer clicks worked. This is not evidence of
+spoken VoiceOver or uncoached usability. A hard kill can lose the last debounce
+interval; no new forced-kill or physical disk-full test was run. OS writes/fsync
+can outlast the lock deadline. Older-history paging/search controls, immediate
+thread creation, ordinary-language recovery, complete keyboard/VoiceOver and J11
+remain open. Engine parity, compaction, broader memory/hardware and release gates
+are unchanged.
+
+Evidence: [conversation-state verification](../../../integration/evidence/2026-10-27-conversation-state.json.gz),
+30 retained logs, source/binary identities and synthetic UI/SQLite observations.
+Uncompressed SHA-256:
+`e55a79c6337995908c2ce0bf76a7866a36f620e11b2f9fefa83354fc6df05eb3`.
+
+
+## Immediate thread and bounded history checkpoint, October 27
+
+Implemented P07b/P06c in core, native UI and CLI. Starting a thread flushes the
+current draft, creates a provisional plain-text title and selects the empty thread
+without a naming sheet. The exact parent supplies context. Explicit rename uses a
+compare against the title originally shown, refusing a concurrent rename. Start and
+rename use mutation tokens for safe retries. Main cannot be renamed. The thread
+picker, title and visible Back to conversation remain beside the composer in focus
+mode. Legacy CLI aliases retain compatibility; start-thread and rename-thread are
+available in both packaged CLIs.
+
+Workspace snapshots now use conversation-local keysets, not a global row-id window.
+Each contiguous visible window contains at most 100 messages and 2 MiB of bodies,
+including its exact anchor. Sibling messages/tool receipts cannot displace it.
+Earlier/later windows overlap so the reading observer preserves the user's place.
+Search uses existing FTS, 20 snippets per page, scoped visible roles, a bounded
+previous-cursor trail, background reads and a three-second lock/SQL budget. Query,
+conversation and close identities reject stale publication. A failed page keeps the
+previous results and retry cursor. Opening a match saves the draft and navigates to
+the original; it does not send text or grant action authority.
+
+Verification:
+
+- scripts/check.sh passes: 79 core, 19 extraction, 16 document checks, the expanded
+  preview suite and the existing voice, search, context, grammar, agent and workflow
+  checks. Focused tests cover interleaved sibling/tool messages, complete earlier
+  and later traversal, a large-body contiguous window, cancellation, scoped cursor
+  refusal, duplicate-title disambiguation, idempotency, stale rename and reopen.
+  Async search tests cover late results after query/scope/close, bounded replacement,
+  previous-page restoration and failed next-page retry.
+- Both optimized app/CLI/helper packages build. Baseline isolated install, update,
+  skill installation, unrelated-file refusal and uninstall pass. Native resource,
+  signature and installed extraction checks pass with build-tree reads denied.
+  The final app-only timestamp display change was rebuilt, packaged and visually
+  inspected after the suite; core and helper binaries were unchanged.
+- Native UI opened a copied 167-message fixture. Start from exchange 21 opened an
+  empty thread immediately, then rename to Delivery dates preserved its unsent
+  draft. Focus mode retained title, return and composer. Back restored the exact
+  main draft. Command-Option-F supplier search paged from exchange 45 to 25 and
+  back. Search for Exchange 03 opened that exact original at the top of the view.
+- Later/earlier controls made the adjoining messages available while retaining the
+  visible boundary position. Return to latest reached scrollbar 1. Thread search
+  excluded all main supplier matches. Quit/reopen restored Delivery dates and its
+  draft, then main's saved draft/reading anchor. Final search showed a localized
+  date. App quit with dictation off and no text sent.
+- Independent SQLite and packaged-CLI audit confirms the original 167 messages
+  and item rows are byte-for-byte equivalent at the value level, the new thread's
+  parent is exactly exchange 21, both drafts are intact, and integrity passes.
+  Both packaged CLI variants create/rename a thread without changing messages.
+
+Retained failure: the first preview test compile inherited MainActor isolation in
+an inline fixture helper; moving the stateless helper to file scope fixed it. UI
+observations are agent-operated synthetic checks, not spoken VoiceOver or uncoached
+usability. Generic mutation locking is still unbounded for thread writes; draft
+flush and reads have deadlines. No new model, microphone, engine parity or context
+qualification ran. Builds overlapped functional checks, so no speed or whole-app
+memory claim follows. Ordinary-language actions, Home/recent/pinned organization,
+J11 and the engine/context/distribution gates remain open.
+
+Evidence: [conversation-navigation verification](../../../integration/evidence/2026-10-27-conversation-navigation.json.gz),
+19 retained logs, source/binary identities and synthetic UI/SQLite/CLI observations.
+Uncompressed SHA-256: `b8e15f5e301b189268d345a179a593870544f69298bee5a2775c2a3c95632e85`.
+
+## Scoped natural-language conversation actions checkpoint, October 27
+
+Implemented A12 across the shared agent, both inference adapters, native window
+and CLI result. Ordinary submitted text or dictation can request a new discussion,
+rename the current thread, return to main, or prepare findings for review. The
+host supplies the live request/conversation and available actions. Dynamic schemas
+preserve these capabilities through reference annotation/context reconstruction.
+Unavailable targets require clarification; creating a new discussion must not
+substitute for renaming another one. This is capability enforcement, not complete
+semantic intent verification.
+
+Core source selection keeps an exact completed exchange from the current thread;
+siblings, inherited parent messages and later messages are refused. Default branch
+selection includes the latest answer. Start/rename use the existing idempotent
+operations with three-second lock/SQL budgets and cancellation. Rename checks the
+original title and refuses a redundant rename. Successful actions end the turn
+with a host-owned result; model-authored success claims are not published. The CLI
+returns a typed result without claiming a native window switched.
+
+Native result delivery checks the originating workbook, window, operation,
+conversation and navigation generation. Leaving and returning cannot reauthorize
+late navigation. Summary lookup has the same generation guard. All summary paths,
+including the literal command with supplied text, now open review before sharing.
+Default summary selection skips control acknowledgments. Editing or cancelling
+review does not publish; explicit share preserves the exact original exchange.
+
+Verification:
+
+- The complete scripts/check.sh passes: 79 core checks, 19 extraction checks,
+  16 document lifecycle checks, 15 synthetic voice lifecycle checks, existing
+  preview/search/context/workflow checks, and 29 actual-tool grammars with 257
+  exact reference masks. Added checks cover terminal action results, scope,
+  cancellation, read-only refusal, exact parents, review without publication,
+  bounded thread-write locks, and native capability masks with reasoning on/off.
+- The unchanged eight-case native 32K/bounded512 cohort passes on replay v3:
+  branch, Spanish rename, return, review, hypothetical explanation, negation,
+  ambiguous other-thread rename, and an instruction embedded in a document.
+  Branch/rename/return/review each use one model step. Negation and ambiguity
+  each finish in one; imported-instruction handling takes three. The explanation
+  case takes six and includes unrelated datasets and calculate(0) calls, so
+  stopping efficiency remains unresolved despite its functional pass.
+- Both optimized app/CLI/helper packages build. Preserved-baseline installation,
+  update, standalone CLI, skill/conflict handling and uninstall pass. Native
+  resources, signature, setup refusals and installed extraction pass with
+  build-tree access denied. Engine and grammar pins are unchanged.
+- The final native package opens a copied synthetic cohort workbook. A literal
+  supplied summary opens editable review; Cancel leaves main unchanged. An ordinary
+  review request opens the same sheet with the Friday estimate and no-order
+  uncertainty intact. An explicit edited share adds exactly that text to main
+  with a link to its original exchange.
+- Ordinary language creates/selects Delivery options, Spanish renames it Entregas,
+  and a separate unsent draft survives rename and navigation away/back. A natural
+  return request selects main without adding a main message. The preview quits
+  with dictation off. These are agent-operated synthetic UI checks, not uncoached
+  use or new speech-recognition evidence.
+- Independent SQLite audit checks all 24 cohort workbooks, identical protocol
+  hashes, unchanged original source and exchanges, integrity and foreign keys.
+  The UI copy preserves all original messages. Its main has four visible
+  messages plus one tool receipt and exactly one explicitly shared summary.
+
+Retained failures: v1 chose an earlier branch parent, attempted a redundant rename
+for a stay-put request, and attempted invalid renames for an ambiguous target.
+v2 incorrectly created threads for review and ambiguous rename requests. Clearer
+action semantics and unavailable-target guidance pass the same v3 cases; no test
+assertions were weakened. The first read-only synthetic phrase failure, first
+misplaced UI result handler, stale fixture/export command result, and an audit
+that initially counted a tool receipt as a visible message are retained as limits
+or corrected findings. Final suite and package checks pass after corrections.
+
+Evidence: [conversation-action verification](../../../integration/evidence/2026-10-27-conversation-actions.json.gz),
+73,422 compressed bytes, 34 logs, three complete cohort exports, final source/binary
+identities and native UI observations. Uncompressed SHA-256:
+`ed00fb48d8cdc77d887417d8754632a990b25212cec13110a583b9332449946f`.
+Probe executable hashes were not captured before each cohort; final agent-check
+binary identity includes added capability-mask tests. Do not use these functional
+runs to claim native/reference parity or speed.
+
+Remaining: remove irrelevant calls in explanation-only requests; qualify compound
+branch-plus-work behavior and delayed live results after navigation; complete
+Home/recent/pinned organization, keyboard/VoiceOver and uncoached J11 journeys.
+Native engine parity/adoption, automatic-compaction C12/C13, whole-app memory,
+wider hardware and public release gates remain open. The approved human dictation
+phrase was already verified unsent in the earlier live-dictation checkpoint; it
+was not recorded again during this work.
+
+## Conceptual guidance and distinct conversation tools, October 27
+
+The six-step explanation in the prior checkpoint was caused by a host false
+positive, not initially by unnecessary model exploration. The first answer was
+already an interface explanation. The broad word match for difference rejected
+it three times and demanded a calculation. The model then called datasets and
+calculate(0), which satisfied that guard without helping answer the question.
+
+The comparison backstop now distinguishes explicit numeric-difference statements
+from the ordinary conceptual word. It retains cost/percentage checks and existing
+numeric, citation, input and currency validation. It cannot consume a numbered
+Markdown item after a conceptual heading as the difference value. This remains a
+narrow language backstop, not complete arithmetic or semantic verification.
+
+The model now receives verified product definitions: separate thread histories
+with an explicit parent excerpt, one shared workbook, original Sources and derived
+Records, and category independent of meaning/status. Accepted changes through a
+thread affect the shared workbook. Tool receipts are not automatically business
+Sources; calculations can feed Record transformations with original inputs without
+an extra Source for each receipt. Explain-only/leave-unchanged clauses join the
+additional denial rules, including semicolon-separated instructions. Read tools
+are permitted when needed, not mandatory for conceptual guidance.
+
+A later replay still created a thread for an ambiguous rename through the combined
+action enum. Replaced that model-visible interface with four specific functions:
+start_thread, rename_current_thread, return_to_main and review_thread_summary.
+Each has only its own arguments, is filtered by the host capability set, and uses
+the existing scoped core/result path. Named tools cannot override their action.
+The old conversation_action host alias and historical receipts remain compatible.
+Negative-case assertions now recognize all four names and the alias; no original
+request, step bound or behavioral assertion was weakened.
+
+Verification:
+
+- Final guidance cohort v4 passes all five unchanged requests: thread differences,
+  Source/Record definitions and shared-data safety each finish in one step with
+  no tool receipts or mutations. Supplied-price subtraction takes two steps;
+  stored Birch/Cedar quotes take six, reading both originals, calculating 2.40,
+  identifying Cedar and citing both versions. Semantic review checks the actual
+  answers separately from structural assertions.
+- Final conversation replay v5 passes all eight original requests. Branch,
+  Spanish rename, return, review, hypothetical explanation, negation and ambiguous
+  other-thread rename each take one step. Imported-document instructions remain
+  ignored; the correct source label is cited in four steps. The ambiguous case
+  has no conversation action attempt and creates no thread.
+- Added synthetic checks prove conceptual/list wording finishes without a dummy
+  calculation while an uncomputed numeric price difference is refused through
+  all four finish candidates. A proposal made through thread tools leaves actual
+  stock at 20 until explicit acceptance; then main and thread both read 18.
+  A calculated Record uses original input lineage without an extra Source.
+- Full scripts/check.sh passes: 79 core, 19 extraction, 16 document and 15
+  synthetic voice lifecycle checks, plus agent/context/search/preview/workflow
+  checks. The 27-tool schema passes 32 actual grammar cases and 268 exact pinned
+  reference masks. Dynamic main/thread/read-only capabilities remain tested.
+- Both optimized packages build. Baseline install/update/standalone CLI/skill
+  conflict/uninstall checks pass. Native signature, resource-damage/setup refusals
+  and extraction checks pass with build-tree access denied. The final test-driver
+  usage change was rebuilt and its synthetic checks rerun after the full suite.
+- The final packaged native CLI answers the shared-inventory question in one
+  step, correctly explaining the common data. Independent SQLite audit finds
+  no tool receipts, extra conversation or business item, and integrity passes.
+  No new GUI or microphone test ran; native window behavior was checked in the
+  previous checkpoint and the result shape remains unchanged.
+- Independent audit covers 20 guidance and 16 conversation fixture workbooks:
+  original quote/note inputs remain unchanged, integrity/foreign keys pass, and
+  each cohort keeps its unchanged preregistered protocol. The separate packaged
+  CLI workbook also verifies cleanly.
+
+Retain all failed evidence: guidance v1's structural pass did not qualify its
+unsupported sender/tool-output claims. v2 misread a numbered list and created a
+thread during an explain-without-changes request. v3's structurally passing
+Source/Record answer invented an extra capture step. Conversation replay v4 still
+created a thread for an ambiguous rename. Final v4 guidance/v5 conversation pass
+without discarding those traces. Some explanations remain longer than requested;
+these samples do not prove universal intent accuracy or complete prose validation.
+
+Reproduce the live cohorts after native setup/build with the agent-check executable:
+use --interface-guidance or --conversation-actions, followed by MODELS_ROOT,
+PINNED_NATIVE_LIBRARY, ENGINE and a new output directory. The driver refuses to
+overwrite an existing cohort. Guidance saves binary/engine/grammar identities before
+running. The conversation v5 run followed guidance v4 in the same command without
+an intervening rebuild. Python is used only to regenerate pinned reference grammar
+fixtures; product inference remains native.
+
+Evidence: [interface-guidance verification](../../../integration/evidence/2026-10-27-interface-guidance.json.gz),
+92,483 compressed bytes, 25 logs, all six cohort exports, semantic audits and final
+package identities. Uncompressed SHA-256:
+`193fbc447a82cac13c88575bb07e2056de03680228cb17293ca5aea9a5d10e19`.
+
+Next remains compound branch-plus-work execution and delayed-result navigation
+qualification, followed by the remaining workbook Home/spaces and uncoached
+journeys. Native/reference parity and production adoption, automatic-compaction
+C12/C13, whole-app memory, wider hardware and public release gates remain open.
+This checkpoint changes neither the engine pins nor the adoption decision.
+
+## Inline-reference design adoption, October 27
+
+Preserved Carlos's adoption instruction in
+[[sources/notes/2026/10/inline-references-adoption]] and added
+[[records/specs/references-and-relationships]]. Storage S18, search Q17, product
+P17, distribution D11, reading map and design review now reference that contract.
+Pending: canonical bindings/resolution, deterministic parsing, indexes/backlinks,
+native/voice/text/CLI operations, bounded agent traversal and LJ01-LJ10 checks.
+Optional inferred associations require separate evaluation. This checkpoint changes
+no runtime code or active engine work. The main agent owns delivery and the pointer
+from its concurrently edited intelligence specification.
+
+
+## Compound thread requests, October 27: qualification in progress
+
+Implemented a single live handoff from a compound branch-and-work request into
+its new thread. The host preserves the exact submission and original request
+Source, records a carried-message payload and linked child run, marks the parent
+continued, and retains one lease, cancellation control and twelve-response budget.
+The requested additional task must be quoted from the current submission. The
+compound action inherits the latest exchange; standalone branching retains its
+explicit earlier-message selection. Child capabilities admit read/calculation tools
+plus finish and, when selected for requested work, exactly one named write tool.
+Attempted earlier changes prevent a handoff. Earlier read-only calls are allowed;
+repeating them remains within the total budget. Restart never resumes unfinished
+work, and original inputs are not rewritten.
+
+Synthetic checks pass cancellation before/after handoff, exact request and one
+Source, idempotent replay without execution, original/child history separation,
+invalid task correction, prior-change refusal, repeated-handoff refusal, shared
+step limits, unfinished reopen and independent movement-request lineage. Native
+fixtures now cover 28 tools, 33 grammars and 283 exact masks. A malformed new XML
+fixture omitted required parameter newlines; the corrected fixture passes. One
+early history-isolation fixture put its sentinel inside the intentionally inherited
+excerpt; it was corrected to put it outside. Neither is product qualification.
+
+Keep every failed actual-model cohort:
+
+- v1: supplied-price continuation repeatedly searched prior history; quote
+  comparison proposed an unrequested table; inventory work ended at creation.
+- v2: improved continuation prompting fixed stored quote comparison, but supplied
+  arithmetic still tried a view/table; inventory branching happened after reads
+  and was refused by the initial first-call-only rule; branch-only inferred work.
+- v3: exact task quotation and capability limits fixed branch-only and arithmetic.
+  The abstract proposal category was still misclassified as answer, and the model
+  selected an unintended earlier message. The inventory fixture now explicitly
+  says the units left stock for a sale; the earlier handover wording was ambiguous.
+- v4: exact named write-tool selection and latest-exchange inheritance completed
+  all requested model operations, but the inventory acceptance check caught a real
+  core omission: movement lineage kept its observation but omitted the captured
+  user request. The movement API now preserves that host request alongside the
+  observation, without changing legacy idempotency arguments when no request is
+  supplied. It remains draft; no accepted inventory effect occurs.
+
+v5 is running against that lineage fix, followed by the unchanged conversation
+and interface-guidance cohorts. Builds, package installation and visible UI checks
+will be recorded below before this checkpoint is accepted. Quote cases can consume
+the full twelve responses because evidence is read on both sides of the handoff;
+this is functional qualification work, not a latency or production-adoption claim.
+
+The adopted reference/backlink requirements from 00662f6 are linked from intelligence
+A14 to [[records/specs/references-and-relationships]]. Their implementation remains
+pending and does not replace the open Splash, context, accessibility or release gates.
+
+
+### Compound request checkpoint results
+
+Final v5 passes all five fixed cases: supplied arithmetic 3 responses, stored
+quote comparison 12, proposed inventory movement 6, branch-only 1 and hypothetical
+question 1. The movement is draft with quantity -2, exact observation and original
+request lineage, and accepted stock still 20. Its changed observation wording
+was frozen in protocol v2 before v3; the final v4/v5 prompts and fixture are the
+same. v4 remains a failed lineage check, not a reported pass. All eight unchanged
+conversation cases pass (the first seven in one response; imported instruction
+in four). All five unchanged guidance cases pass in 1, 1, 1, 2 and 6 responses.
+Answers were reviewed for the Source/Record distinction, shared workbook effects,
+price difference, exact citations and no invented currency. Explanations remain
+more verbose than desired; structural checks alone do not prove semantic quality.
+
+Independent SQLite audit confirms exact carried request/source bytes, preserved
+original heads, no unresolved prepared calls, foreign keys and integrity across
+all eighteen successful fixtures. The final debug executable matches the recorded
+v5 and guidance executable identities. No engine revision or model changed.
+
+Commands completed successfully:
+
+- ./scripts/check.sh, including 79 core checks, extraction, documents, preview,
+  voice lifecycle, history/context, agent and grammar suites, db.md and link gates.
+- ./scripts/build.sh and python3 scripts/check_install.py: optimized baseline,
+  isolated install/update, standalone CLI, skill conflict and recoverable uninstall.
+- Native release builds of SevraDesktop, sevra and sevra-extract with
+  SEVRA_NATIVE_CANDIDATE=1, then scripts/package_native.py,
+  scripts/check_native_package.py and scripts/check_extraction_package.py.
+  Resource/signature, ten missing-resource refusals, altered-resource refusal and
+  extraction with build-tree reads denied pass; no Python runtime is introduced.
+- Packaged output/native/bin/sevra created a fresh workbook and fulfilled a request
+  to start CLI calculation and compute 20 minus 8. It answered 12 in three responses,
+  returned its typed created-thread result, stored one request Source and zero
+  business Records, and passed verify. The parent is continued; its child complete.
+
+The Mac was locked when the UI tool tried opening the rebuilt preview. The tool
+refused before app launch; no preview process was running afterward. An unlock
+request is pending. Do not report automatic navigation or away-and-back late-result
+behavior as visually qualified by this checkpoint. Dictation was not restarted;
+the earlier approved human phrase remains the existing hardware evidence.
+
+Evidence: integration/evidence/2026-10-27-request-handoff.json.gz, 275207 bytes,
+uncompressed SHA-256
+0da6a352328048cb471464366174d2b5ff5128788a7ad58b63f1e45a2ea68f9a.
+It preserves seven cohorts, 38 synthetic workbook exports, the packaged CLI audit,
+47 logs and source/executable identities. Diagnostic model reasoning is retained
+only for these synthetic tests; product workbooks do not save it. a0ced3a hosted
+CI completed successfully; this new checkpoint's hosted CI is not yet qualified.
+
+Next: finish the two native navigation checks after unlock, reduce duplicate
+read-only work across the handoff, then continue the outstanding plan. No native
+adoption, automatic compaction, 100-150 tokens/s all-device claim, full accessibility
+qualification or public-release completion is established here. The new explicit
+reference/backlink specification remains adopted work to implement, not a completed
+feature.
+
+
+## Same-request evidence handoff, October 27
+
+The previous fixed stored-quote run used all twelve responses: search both quotes,
+read both originals, calculate, create the thread, then repeat all five evidence
+steps before finishing. A13 now specifies exact same-request read/calculation
+carry with receipt verification, changed-head refusal, eight-entry/32,000-byte
+bounds, and no additional history access. Development implementation is under
+qualification. The five-case native cohort is running; do not treat this entry
+as a passing result. No model, engine, tool schema or production default changed.
+
+
+### Retained packaged counterexample and targeted correction
+
+The first packaged check used a fresh workbook and explicitly asked to read and
+calculate before creating a thread and reporting the answer there. It completed
+the reads/calculation, then selected terminal start_thread and discarded the
+requested answer. Preserve `.build/handoff-evidence-packaged.sevra` and its trace;
+this check failed. The fixed five-case cohort did not cover that ordering.
+
+The next revision clarifies that delivering the requested answer is remaining
+work even when calculation is already complete, adds the exact failed prompt to
+the fixed cohort, and clarifies that shared workbook data still permits a separate
+thread discussion/analysis. Protocol v4 has six cases. The exact packaged prompt
+will be checked again on a fresh workbook after the targeted change; no passing
+result is claimed here yet.
+
+
+### Same-request evidence checkpoint results
+
+The final protocol-v4 cohort passes all six cases: supplied arithmetic (3 responses),
+stored quotes (7), review-only inventory proposal (4), explicit read/calculate-first
+then branch/report (8), branch-only (1), and hypothetical explanation (1). Original
+quotes remain unchanged; the movement stays draft with observation/request lineage;
+accepted stock remains 20; all workbooks verify. The quote result includes both
+originals and the deterministic 2.40 difference. The reporting case requires both
+reads and calculation before branching, then requires child proof or exact carried
+receipts. The child finishes directly from that proof. The seven-versus-twelve
+comparison uses the same prompt/fixture with fresh IDs, not a controlled latency
+measurement or universal reliability claim.
+
+All eight unchanged conversation-action and five unchanged interface-guidance
+cases pass on the final code. Branch/rename/return/review, negation, hypothetical
+intent, ambiguity and imported instructions keep their boundaries. Manual review
+confirms that the revised explanation distinguishes separate conversation/analysis
+from shared business data. Explanations can still be verbose and expose internal
+tool names; language polish remains open. The ambiguity case takes two responses;
+most other direct actions take one.
+
+The exact failed packaged request was rerun after the targeted prompt/tool
+clarification and added regression. The rebuilt native CLI completes in eight
+responses, retains three reads and a calculation, reports Cedar's lower cost with
+both original citations, creates no business Record, preserves one request Source
+and passes workbook integrity. The failed predecessor and its binary hash remain
+in the evidence archive. No success is attributed to that predecessor.
+
+Final verification:
+
+- `./scripts/check.sh`: full local suite passes. New checks cover exact proof reuse,
+  history/prose/reasoning exclusion, changed heads, projected/failed reads,
+  byte/count limits, replay, reopen and later-history bounds.
+- `./scripts/build.sh` and `python3 scripts/check_install.py`: baseline release,
+  isolated install/update, standalone CLI, skill conflict and safe uninstall pass.
+- Native release app/CLI rebuild, `scripts/package_native.py`,
+  `scripts/check_native_package.py`, and `scripts/check_extraction_package.py` pass.
+  Signatures/resources, ten missing-resource refusals, altered resources, absence
+  of baseline/Python/MLX runtime symbols, and packaged extraction remain checked.
+- Handoff/guidance execution hashes match the final debug binary. Conversation
+  regression ran between them with the same executable; its existing harness does
+  not emit a separate execution-hash file.
+- No new GUI or microphone check was performed while the Mac remained locked.
+  Keep the existing verified dictation evidence and pending navigation checks.
+
+Evidence: `integration/evidence/2026-10-27-handoff-evidence.json.gz`, 153775 bytes;
+uncompressed SHA-256 `be2d2e1b4be2b26f1c6d980d3d867d6e277a0733c3578994a3be3fcf23d0565f`.
+It preserves four cohorts, 24 synthetic workbook exports, failed/corrected packaged
+cases, 23 logs and source/binary hashes. Earlier archives are unchanged. Product
+workbooks do not persist reasoning; only synthetic qualification traces do.
+
+Next: finish normal/away-and-back native navigation checks after the pending unlock;
+polish concise user-facing language and unnecessary request-Source reads; continue
+references/backlinks and the remaining product, accessibility, context, engine and
+release gates. Baseline/native selection, model revision, engine pin and disabled
+automatic-compaction default are unchanged.
+
+## Conversation language and unlocked native checks, October 27
+The owner unlocked the Mac, resolving the pending navigation check. On the built
+e1c9b49 native preview, a request to create UI automatic and calculate 9 minus 2
+opened the new thread and answered 7. During a second compound request, switching
+to UI automatic and back to Conversation kept Conversation and Home visible after
+the late result. UI receiving contained the requested draft movement, with the
+original request and Handover note linked; accepted inventory was still 20.
+Normal navigation and the away-and-back generation boundary now have native UI
+proof. No microphone recording was started in this check.
+
+The next build separates host request metadata from submitted text, clarifies
+ordinary voice/text explanations, and removes internal routing fields and
+redundant movement meaning/status from the default detail view. The original
+request remains exact and is automatically retained in proposal lineage. New
+synthetic checks cover ordinary requests and typed child continuations without
+rereading the already visible Source. Existing missing-external-evidence checks
+still refuse treating that Source as proof of a document being sought.
+
+The first expanded prompt failed the existing synthetic running-compaction check
+with context_limit. The fix condensed repeated conversation policy by 977
+characters. It did not increase the context budget or relax refusal tests. The
+corrected synthetic suite passes, including repeated active compaction.
+
+All ten actual native interface-guidance v2 cases pass: seven explanation cases
+in one response each, a draft estimate forecast in one, supplied arithmetic in two,
+and cited stored quotes in six. Fixed simple answers are 57-92 words, with no
+internal function names, headings or lists. Spanish stays Spanish; the technical
+answer distinguishes the two branch tools. The detailed answer keeps an accepted
+forecast an estimate. Its phrase "validated estimate" is not an independent
+accuracy claim or proof that acceptance validates a forecast. Broader language
+and semantic reliability remain open. No case rereads its current request Source.
+
+On the rebuilt app, the same thread-help question answered in three plain sentences
+(56 words), one response and zero tool calls, without creating a thread. A normal
+pointer click and the named accessible Open action both opened the proposal.
+Details showed one authoritative Record/Actual/Draft header, business fields and
+named lineage, with no raw request ID. The original User request opened intact
+without internal conversation/message IDs. Accept changed stock to 18 and showed
+Accepted; Undo restored 20 and showed Rejected. Both exact versions/history and
+workbook integrity were preserved, as confirmed independently through the CLI.
+
+Two remaining UI findings are explicit in [[records/specs/product]]: the original
+chat proposal retains its historical Needs your review badge, and request context
+shows a technical Active space ID line. Do not mark these presentation fixes done.
+The complete ordinary-language/keyboard/VoiceOver journeys also remain open.
+
+The six-case compound-request and eight-case conversation-action regressions are
+running against the revised prompt. Their final outcome, package/full-suite
+checks and immutable evidence archive will be recorded before committing this
+checkpoint. Engine pin, model revisions, preserved baseline and disabled automatic
+compaction defaults are unchanged.
+
+### Retained continuation-progress failure and correction
+The first revised six-case handoff cohort passed five cases but failed the exact
+read/calculate-first then branch/report case. The child could see the completed
+quote reads and calculation, but saw no completed creation call after them. It
+repeated history searches while reasoning that thread creation was still pending,
+and exhausted the shared twelve-response budget. Only one thread was created;
+the host correctly refused repeated branching. The answer was not delivered.
+Preserve the failed workbook, trace, protocol and binary hash. No budget was raised.
+
+The correction carries the exact completed creation call/result as an in-memory
+progress pair after the qualified business evidence, with empty assistant prose
+and reasoning. It does not execute that action again or give its result business
+citation authority. New synthetic assertions verify the real created conversation,
+paired call identity, unchanged user request, no additional durable tool receipt,
+unchanged scope and later-history exclusion. The full synthetic suite passes.
+The exact report-prices case now passes in seven responses: two searches, both
+original reads, deterministic calculation, the completed creation, and a cited
+finish in its child. The earlier failed run remains retained. The remaining fixed
+handoff/conversation/guidance cases and package checks are still running; their
+results will be recorded separately.
+
+The second fixed cohort passes the corrected report case, supplied arithmetic,
+stored quotes, proposed movement and hypothetical explanation. Branch-only still
+fails its one-response UX gate: it attempted a compound call using the whole
+branching instruction as its task. The host rejected that before creation, and
+the model corrected to one ordinary new thread on response two. No follow-up work
+or duplicate thread occurred. The original failure wording overstated this as
+continued work; the check now reports an unnecessary extra response separately
+without weakening the same conditions. The next prompt restores the explicit
+rule that taking a discussion into a named thread supplies no additional task.
+The third fixed cohort and unchanged regressions are running. Preserve both
+failed cohorts; do not infer whole-model reliability from the corrected examples.
+
+### Manual meaning review caught an overstatement
+The third handoff cohort passes all six cases (3, 7, 4, 7, 1 and 1 responses),
+and all eight conversation-action cases pass. The ten interface-guidance cases
+also pass their automated checks, but manual semantic review refuses overall
+qualification of the detailed-meaning answer: it describes acceptance as proving
+reliability and rejection as meaning incorrect/invalid. A draft Source was also
+portrayed as unavailable for calculations. Those claims exceed the actual model.
+The earlier answer's "validated estimate" wording also deserved stronger correction.
+
+The full package/check sequence was deliberately stopped during the local suite
+before rebuilding release packages, so it is not a passing final check. Its log
+is retained as conversation-language-full-check-interrupted-for-meaning.log.
+The prompt now states the workflow/accuracy distinction, draft exploration,
+withdrawal/nonselection and independent Record review explicitly. Protocol v3
+adds an eleventh direct acceptance-boundaries question, retaining every earlier
+prompt and limit. The eleven guidance, six handoff and eight action cases are
+running on that revision. Automated output and manual semantic approval remain
+separate; no test bounds or model budgets were relaxed.
+
+The first acceptance-policy addition again exceeded the original synthetic
+running-compaction budget. No actual-model v4 run had started. Keep the failed
+v5 synthetic log. The revised text removes 521 duplicated characters from the
+interface-facts and conceptual-help paragraphs, preserving the product facts and
+new acceptance distinctions. It does not alter context size, compaction thresholds
+or refusal tests. The next synthetic suite and model cohorts use that revision.
+
+## Verification course correction, October 27
+Carlos explicitly approved "Okay course correct" after reviewing a proposal to
+reduce verification to the minimum checks that demonstrate the changed behavior.
+The approved direction was delivered to this active implementation conversation;
+this repo owns the durable update. [[records/specs/distribution]] now defines the
+focused verification policy, and AGENTS.md points future work to it.
+
+Applied immediately: the shell orchestrating the broad command chain was stopped
+without signaling its already-running handoff check. Let that bounded in-flight
+check finish its workbook transactions, then terminate only the stopped shell so
+it cannot start the queued conversation-action cohort. No new package, install,
+baseline/native rebuild, extraction or full-suite run is justified by the final
+acceptance wording change. The earlier interrupted full-suite log is preserved.
+
+Focused evidence already obtained: the exact detailed-meaning question now
+separates approval from truth, keeps an accepted forecast an estimate, and does
+not make it actual inventory. The direct acceptance-boundaries contrast also
+allows draft exploration and says rejection need not mean false. Both used one
+response with no action. The existing running-compaction/context checks pass at
+the original budget. This fixes the observed acceptance-versus-accuracy issue;
+it does not establish general model truthfulness.
+
+The detailed answer's illustrative Source/plan versus derived-forecast example
+can still be clearer. This non-blocking wording limitation is retained, not a
+reason for another prompt/requalification loop. Automated passes and manual
+semantic review remain separate. No business data, lineage, acceptance or Undo
+assertion was relaxed. Close this focused checkpoint, then implement the concrete
+native chat proposal-status and request-context presentation issues, followed by
+the remaining product plan. The app goal remains active.
+
+### Focused conversation checkpoint results
+The final focused acceptance check uses the exact detailed-meaning prompt that
+previously overstated reliability and one direct acceptance-boundaries contrast.
+Both finish in one response without actions. Manual review confirms that approval
+is not proof of truth, estimates stay estimates, draft exploration remains
+available, and rejection need not mean false. The detailed Source/plan example
+could be clearer; this is a retained non-blocking wording limit, not a claim of
+universal semantic reliability.
+
+The existing deterministic agent suite passes on the final code, including the
+original context-budget/running-compaction regression, unchanged current-request
+and missing-external-evidence boundaries, exact handoff, lineage and arithmetic
+checks. The final guided model cohort had already completed eleven automated
+cases before the course correction. Earlier corrected handoff/action cohorts are
+retained as reusable evidence; they are not prerequisites to repeat after every
+wording adjustment.
+
+At the course correction, the next handoff cohort was already running. Its six
+cases finished with 3, 7, 4, 9, 1 and 1 responses, all passing existing checks.
+The report case made extra searches, so do not generalize the earlier seven-step
+result. The orchestration shell alone was stopped while its child completed,
+then terminated after the child exited. No workbook transaction was interrupted.
+The intentional shell exit 137 is not an app/model crash. The queued final action
+cohort never started. Final package/install, both-backend rebuild, extraction and
+full-suite reruns were skipped; the earlier full-suite interruption is retained.
+No unperformed gate is marked passed. Release and native-adoption gates remain.
+
+Native observations apply to their recorded executables: e1c9b49 for normal and
+away-and-back navigation, and the interim language/viewer build for help, proposal
+navigation, acceptance and Undo. No new microphone session occurred. Those GUI
+mechanisms were not changed by the final acceptance wording fix. The final source
+is committed; release binaries are not claimed to contain that last wording yet.
+
+Evidence: integration/evidence/2026-10-27-conversation-language.json.gz,
+320792 bytes; uncompressed SHA-256
+7ef9402dba09a2418e046908456e4fe87183276aa4991919173b6bfc9a79930c.
+It retains eight cohorts, 63 synthetic workbook exports, two failed handoff runs,
+failed/interrupted checks, separate manual review, native UI observations, 27 logs
+and source/binary identities. Earlier archives remain unchanged. Product history
+does not save model reasoning; these synthetic qualification traces may contain it.
+
+Final small checks: Swift formatting, repository links, full db.md validation and
+Git whitespace review. Commit/push this focused checkpoint, then resume the native
+proposal-status/context-label slice under the focused policy. The overall app
+objective stays active.
+
+## Current proposal status and readable request context, October 27
+Closed the two concrete native presentation findings under the focused
+verification policy. Current proposal status comes from the coherent background
+snapshot, with exact typed receipt metadata for new messages and a conservative
+same-conversation legacy fallback. Current badges navigate to current versions;
+original receipt text, state and links remain immutable. Captured request context
+now names the location and preserves selected text, with an original-context
+disclosure and verbatim fallback for unfamiliar formats.
+
+Verification: `swift build --product sevra-preview-checks -j 4` and its runner,
+then `swift build --product sevra-agent-checks -j 4` and its runner passed. New
+checks exercise acceptance, Undo, newer draft/reopen, actual shared-agent metadata,
+foreign/unknown associations and ID-like selected text. Rebuilt native release app
+and CLI and packaged the preview for one interaction pass. A copy of the previous
+synthetic receiving fixture showed withdrawn version 3 -> accepted version 4 ->
+withdrawn version 5. CLI independently confirmed stock 18 then 20 and workbook
+integrity. All 26 original messages and 12 original items remained identical;
+only the two expected activity messages and four new history/decision items were
+added. Home context, original disclosure and Home navigation passed. The app quit
+normally. No model inference, baseline rebuild, install rerun or full-suite cycle.
+
+The owner also explicitly forwarded the remaining remote-CI course correction.
+Changed only workflow triggers and the draft guard, preserving all 26 existing
+steps byte-for-value under parsed YAML. Main/v-tag integration and non-draft PR
+opened/reopened/ready events run the full job; manual dispatch handles later
+milestones once available on main. Ordinary branch pushes and PR synchronize do
+not. No assertion, branch protection or release requirement was weakened, and
+no new testing framework was added. The policy records initial dispatch limits,
+exact-current-head pre-merge verification and skipped-versus-passed semantics.
+
+Evidence: [proposal status receipt](../../../integration/evidence/2026-10-27-proposal-status.json),
+9,109 bytes, SHA256 `cec7e791bbeebdfd812a1a239330ab29e078c9fbf5b1c4e6f61e519d9bf4445c`.
+The receipt includes source/executable hashes, focused check output, native UI
+observations, independent arithmetic/integrity receipts and CI trigger parsing.
+Broader native adoption, compaction, accessibility and release gates stay open.
+
+## Pinned shortcuts and recent spaces, October 27
+Implemented the missing P03 native navigation structure. The picker groups Home,
+pinned shortcuts, recent visits and remaining spaces, with stable-ID deduplication
+and accent-insensitive search. Home shows these useful entry points and removes
+empty-workbook onboarding once content exists. Live view versus Snapshot labels
+and Save a snapshot distinguish navigation pinning from frozen results. The
+existing snapshot CLI/tool behavior is unchanged. The create-through-conversation
+entry no longer overwrites an existing unsent draft.
+
+SpaceNavigationState is portable SQLite presentation metadata. Bounded background
+writes merge edit intentions under the existing package lock, preserve business
+revisions, and do not create Sources/Records or history. Serialized UI writes and
+generation checks preserve recency during bursts and reject stale reads. Closing,
+quitting, switching workbooks and exporting await queued saves. Failed saves never
+show an uncommitted pin as persisted. No schema migration or inference change.
+
+Focused verification passed: build/run sevra-preview-checks, native app/CLI release
+builds and preview packaging, one native interaction pass, and independent CLI/SQL
+audit. Synthetic checks cover two-connection merging, invalid-batch rollback,
+eight-visit bounding, stale callbacks, unpin, failed persistence, duplicate-title
+and accent-insensitive matching, unchanged business/composition state and portable
+reopen. The native UI passed pin/unpin, visit grouping, filtered Return navigation,
+snapshot labels, populated Home, unsent-draft preservation and close/reopen. All
+business/composition rows and revision 5 remained unchanged, with zero messages;
+only expected presentation preferences and the synthetic unsent draft were saved.
+Workbook verification passed, and the app quit normally.
+
+Evidence: [space navigation receipt](../../../integration/evidence/2026-10-27-space-navigation.json),
+5,046 bytes, SHA256 `db2d2c8765a6e8f2dff06811268d2af3c42bdfb631ac1e1c2e9af6954432cc3d`.
+No broad model cohort, install suite, both-backend rerun or remote CI cycle was
+required. Interpreted navigation/pin actions, complete pending-review Home,
+keyboard/VoiceOver/narrow-window J11, engine/context and release gates remain open.
+
+## Interpreted space actions, October 27
+The native window now confirms an existing-space opening during the shared agent
+run. Pin/unpin modifies the same presentation preferences as Home/the picker.
+Missing or duplicate names and changed/unavailable windows produce a saved,
+truthful explanation. Successful navigation can continue a compound request.
+A later explicit opening clears deferred focus from an earlier created view.
+Exact local open-name shortcuts also refuse duplicate names. Existing snapshot
+APIs and business-state semantics are unchanged.
+
+Verification was focused under the owner-approved policy:
+
+- Rebuilt and ran sevra-agent-checks. Compound pin/open/calculation, create then
+  open, unpin, read-only denial, duplicate/partial name, exact ID, direct CLI
+  resolution, and absent/changed host callback pass. Existing grounding, request
+  history, lineage, correction and context-budget regressions pass.
+- The initial policy expansion failed the existing active-compaction test with
+  context_limit. Preserve the failure. Redundant prose was shortened without
+  enlarging the model/test budget or weakening the fixture. The original-budget
+  test passes; product compaction remains disabled.
+- Exported actual workbook schemas, regenerated pinned Splash reference grammar
+  fixtures, rebuilt the checks and passed 30 tools, 35 grammar cases and 297 exact
+  reference masks. Reference Python is development-only, outside the app runtime.
+- Native app and CLI release builds and preview packaging pass. Three typed native
+  requests on an isolated synthetic copy completed in 3, 2 and 1 model steps:
+  unpin Purchasing then open Receipts; pin this live space without a snapshot;
+  explain the distinction without changes. The picker showed Receipts pinned and
+  current, Purchasing unpinned, and the existing snapshot unchanged.
+- The explanation used internal tool names and called navigation a sidebar.
+  This is recorded ordinary-language debt, not a clean wording pass. Functional
+  no-change behavior passes. No broad model cohort was launched for this wording.
+- CLI integrity passes. All original items, operations and space definitions are
+  unchanged, with five spaces before and after. Only three request Sources were
+  added. History revision advanced for requests/receipts, not business changes.
+  Native preview quit normally. Changed-file Swift lint and diff checks pass.
+
+Evidence: [space action receipt](../../../integration/evidence/2026-10-27-space-actions.json),
+14,888 bytes, SHA-256
+`f7d6c6191b77aac54dee5beeeb98dffce3ecb34c39fff436c033c0a53341ed58`.
+
+Commands include `swift build --product sevra-agent-checks -j 4`,
+`.build/debug/sevra-agent-checks`, `python3 scripts/check_splash_grammar.py`,
+the existing native release app/CLI builds, `scripts/package_native.py`, and
+packaged CLI `verify`/`tool open_space` on synthetic workbooks. The initial schema
+export used SEVRA_SCHEMA_FIXTURE_OUTPUT and the existing reference fixture generator.
+No install, both-backend, full-suite or remote CI rerun was required for this
+checkpoint. Main/release integration and the full acceptance gates remain open.
+Next: Home pending-review discovery, then the coherent J11 journey and remaining
+engine/context, accessibility and release work. Do not treat this slice as whole-app
+completion.
+
+Final review clarified the baseline tool-instruction sentence: only the branch-and-continue
+conversation action continues that conversation action with further work. Space
+opening retains its separate continuation contract. Native schemas and model policy
+are unchanged, so the native interaction evidence is reused. The receipt preserves
+the exact tested source/binary hashes; final app/CLI packaging is rebuilt afterward.
+
+## Current draft review and withdrawal, October 27
+Implemented P03b: Home previews five oldest current drafts above custom components,
+with a twenty-entry paged right-pane list independent of recent work or history
+windows. A metadata-only SQLite partial index and dedicated draft generation keep
+chat/receipt writes from invalidating pagination. Schema 4 migrates canonical
+versions 1, 2 and 3 after exact schema verification. Original history is unchanged;
+manifest version stays 1. Only synthetic fixtures were migrated. Matching app/CLI
+binaries are required for migrated workbooks.
+
+Added review_queue discovery and open_reviews host-confirmed navigation. The native
+callback shares operation/workbook/conversation/navigation/cancellation checks with
+open_space. CLI-only resolution never claims a visible opening. Read-only requests
+permit discovery and refuse opening; neither action accepts or withdraws proposals.
+The repo-owned Sevra skill documents paging, original inspection and CLI withdrawal.
+
+Added explicit withdrawal because an unwanted first draft otherwise had no direct
+way to leave pending review. It appends a decision and rejected version without
+applying inventory or table changes. Idempotent retries return the same version;
+obsolete/accepted targets refuse. Undo restores the draft. Native controls, exact
+current-item text commands and withdraw WORKBOOK ID [TOKEN] share this core action.
+General model withdrawal language remains unqualified.
+
+Focused checks passed:
+- Core suite: 80 passed, zero failed, including literal schema-3 migration, retained
+  history/FTS and one migration receipt. Run before adding withdrawal; the preview
+  suite separately verifies that addition, so no claim of a later full-core rerun.
+- Preview checks: twenty plus five drafts beyond thirty newer accepted notes;
+  current-head membership, request/row exclusions, unrelated chat, stale/foreign
+  cursors, cancellation/deadline, failed/late reads, reopen, withdrawal/idempotency,
+  stale/accepted refusal, Undo and no proposed-table effects. Integrity passes.
+- Agent checks: host opening, unavailable-window refusal, read-only boundaries and
+  original context budgets. Native grammar: 32 tools, 37 cases, 307 reference masks.
+- Native app/CLI release builds, packaging, strict changed-file Swift lint and diff
+  checks pass. Packaged CLI withdrawal retry returned the same ID; Undo restored a
+  draft. Both synthetic packages pass verify with no asset issues.
+
+Focused check entry points are swift build --product sevra-checks followed by
+.build/debug/sevra-checks; the corresponding sevra-preview-checks and
+sevra-agent-checks targets/binaries; and python3 scripts/check_splash_grammar.py.
+Native builds use SEVRA_NATIVE_CANDIDATE=1, .build/native-product, release
+configuration and the SevraDesktop/sevra products, then scripts/package_native.py.
+The existing pinned development reference generated masks; shipped runtime remains
+Python-free. No broad model cohort, both-backend run, fresh installation suite or
+hosted CI rerun was required by this focused change.
+
+Native evidence: a synthetic schema-3 workbook held twenty-five drafts and thirty
+newer accepted notes. Home exposed pending work. Show me the drafts waiting for my
+review invoked open_reviews and finished in two steps on native Qwen3.6-35B-A3B
+4-bit plus DFlash2, reasoning budget 512. Previous/Next traversed twenty plus five.
+The inventory proposal followed draft -> withdrawn -> draft -> accepted -> withdrawn,
+with balances 20 -> 20 -> 20 -> 18 -> 20. Original rows remain unchanged.
+
+The first UI check found Back traversing intermediate status versions. Preserve
+that finding and its build hash. Corrected review actions replace the current route.
+After rebuilding/reopening, withdrawing Planning note 05 displayed Withdrawn and one
+Back returned directly to the list. Both withdrawn items were absent; twenty-three
+current drafts remained. The final layout was visually inspected and app quit.
+
+The exact-query plan uses items_review_order plus the head lookup without temporary
+sorting. Thirty warm in-memory query samples over 100,000 historical drafts,
+100,000 accepted heads and fifty current drafts gave p95 8.91 ms. This deliberately
+narrow query check omits body/chunk ingestion and does not qualify whole-app/disk,
+import, FTS or broader-device scaling.
+
+Immutable evidence:
+[review queue receipt](../../../integration/evidence/2026-10-27-review-queue.json),
+23,957 bytes, SHA-256
+`e2d662ee0dcf8232cc42535bcab78be2578f4a0bb6177f6b8dc7f578d251b784`.
+It binds changed source hashes, check outputs, first/final build evidence, native
+observations, CLI checks, original-row audit and query-only limits. Existing engine
+parity, automatic-compaction, references/backlinks, full J11, accessibility and
+release gates remain open. Next is the coherent J11 journey, with its failures and
+limits recorded rather than treating this slice as whole-app completion.
+
+## Integrated supplier journey and correction repair, October 27
+Ran a fresh synthetic workbook through native creation and intake of the existing
+make_ui_fixture CSV, PDF and PNG. The ordinary supplier request produced the correct
+2.50/2.75 comparison, 0.25 difference and 9.09 percent relative to Vega, with exact
+citations and a Purchasing table/chart space. An exact quote row opened through
+its message action and Back returned to Purchasing. A direct AX link click did
+not activate in this run; do not claim full keyboard/pointer equivalence.
+
+A compound request created Pricing options and answered the hypothetical Vega 2.40
+price correctly: 48 versus 50 for twenty, saving two. No quote/inventory mutation
+occurred. An ordinary share request opened review; only the manually selected
+what-if summary entered main, linked to its original exchange. The unsent main
+draft was restored when returning.
+
+The delivery request was ambiguous: the image says two bolts handed over but does
+not identify sender/recipient. The model proposed +2. It remained a draft and was
+withdrawn. This is a failed interpretation, not an actual inventory mutation.
+A tool-description correction clarified sign/direction and asking when ambiguous.
+The unchanged request in retained history still proposed +2; after duplicate
+refusal it invented a resubmit occurrence. Preserve both failed runs. Neither was
+accepted. Prompt-only clarification and semantic event identity are unqualified.
+
+Code review of the exposed correction path found a separate concrete accounting
+regression. Rejecting a draft correction also cancelled the earlier accepted
+effect. Added a meaningful invariant check, observed 80 passed/1 failed, then
+repaired withdrawal and Undo to restore the prior settled inventory effect. New
+accepted heads preserve the earlier accepted content and exact lineage; Undo of
+withdrawal restores the declined draft without accepting it. Movement corrections
+now enforce unchanged subject/occurrence. No schema migration or history rewrite.
+The agent tool exposes optional supersedes for an explicitly requested revision.
+The native review makes Increase/Decrease explicit and explains retained acceptance
+when a correction is withdrawn. The repo-owned skill documents these semantics.
+
+After rebuilding, opened the original withdrawn movement and clarified that the
+two units left our stock for the customer. Two model steps read that current version
+and proposed -2 with its exact supersedes and original occurrence. Native review
+showed Decrease: 2 brass bolts. Stock was 20 before acceptance, 18 after explicit
+acceptance and 20 after Undo. The unrelated resubmit draft stayed withdrawn.
+
+Separate main/thread drafts survived switching and close/reopen. The main scrollbar
+returned to 0.1207576953433307, with the exact saved message/fraction retained.
+All original items/assets/messages/operations/spaces from the initial snapshot,
+and every pre-repair item/message/operation, remain byte-for-byte equal at the row
+level. Included asset hashes match. Workbook verify passes with no asset issues.
+The app quit normally after the interaction.
+
+Verification commands and scope:
+- swift build --product sevra-checks, then .build/debug/sevra-checks: 81 pass, zero
+  fail after repair. Retain the earlier 80/1 failure. Checks cover prior effect,
+  withdrawal retry, Undo/draft restoration, correction acceptance/Undo, stale
+  targeting, subject identity, preserved originals, integrity and reopen.
+- Built and ran sevra-preview-checks and sevra-agent-checks. Existing context
+  budgets and first-draft withdrawal counterexamples pass.
+- Updated actual-tool fixtures using the existing pinned development reference;
+  python3 scripts/check_splash_grammar.py passes 32 tools, 37 cases, 307 exact masks.
+- Native SEVRA_NATIVE_CANDIDATE=1 release SevraDesktop/sevra builds under
+  .build/native-product and scripts/package_native.py pass. Strict changed-file
+  swift format lint and git diff --check pass. No full installation or broad
+  model/both-backend cohort or hosted CI rerun was performed.
+
+The native screenshot also exposes raw pipe-table Markdown in chat; the generated
+right-pane table/chart is correct. Native chat-table formatting is pending.
+J11 is not passed: ambiguous direction and semantic duplicate prevention failed,
+and full voice, interruption, narrow-window, keyboard/VoiceOver and uncoached-user
+coverage remain. Engine adoption, automatic compaction, references/backlinks and
+release gates remain open. Next work is the material inventory reliability boundary,
+then the remaining coherent journey and presentation gaps.
+
+Immutable evidence:
+[supplier journey receipt](../../../integration/evidence/2026-10-27-supplier-journey.json),
+95,707 bytes, SHA-256
+`715552c7277d73fc9d62893482f4c93466dc4f78b186b5cdaf4da14fa8c9da4c`.
+It binds source/build hashes, both failures, check outputs, explicit correction,
+source/asset/history audit, original model messages and scoped presentation state.
+
+## Inventory direction boundary and retained-history failure, October 27
+Added a host-only direction-review scope shared by the native and baseline schema
+adapters. The main agent cannot invoke its tool; the reviewer has no workbook
+write tools and receives no earlier assistant guesses or proposed numeric sign.
+The host checks exact quote origin and direction versus sign, persists review
+inputs/results with the prepared tool receipt, and keeps human acceptance separate.
+A missing/unclear/conflicting direction ends in a question, with no movement saved.
+An exact duplicate_effect refusal now terminates that attempt, preventing the
+observed within-run resubmit-ID retry. No database schema or engine change.
+
+Evidence development was not uniformly green. The first probe invocation selected
+a nonexistent default model folder and refused before inference. Correcting the
+test invocation to the configured existing installation required no download.
+The first isolated prompt then FAILED the original handover: it returned incoming
+and quoted only Prepare the stock adjustment for that delivery. The revised
+explicit-versus-inferred ownership policy passed five native samples: ambiguous,
+outgoing, incoming, wrong sign, and Spanish. Recorded review times were 16.09,
+10.04, 12.61, 8.66 and 8.58 seconds respectively. These are single samples.
+
+The conversation probe with misleading earlier assistant history asked for direction
+and saved no movement. The native app replay using the original retained J11 package
+FAILED differently: it called withdrawn v1 ready for review. It invoked read twice
+and no movement proposal, so this path bypasses the new review. All original items,
+assets, messages and operation rows remained byte-for-byte equal as SQL values.
+
+A separate fresh workbook imported the original synthetic receipt image through
+the packaged CLI. In the native UI, the exact ambiguous request asked whether
+units entered or left stock and created no movement. The explicit outgoing
+follow-up then produced a single Actual/Draft movement of -2 with Decrease: 2 brass
+bolts and receipt/User request links. It was not accepted. Both fixture workbooks
+passed verification. The app quit after the visible checks.
+
+Validation:
+- swift build --product sevra-agent-checks -j 4 and the executable: passed,
+  including isolated inputs, fabricated quote, wrong sign, draft-only success,
+  terminal duplicate refusal, original history, receipts and integrity.
+- python3 scripts/check_splash_grammar.py: passed existing 37 actual-tool grammars
+  and 307 reference masks plus reasoning/citation/conversation boundaries. The new
+  isolated grammar also executed in the native model probes; the normal 32-tool
+  fixture did not change.
+- Native release app and CLI builds and scripts/package_native.py: passed.
+- Changed-file strict Swift format lint, skill validation and diff check: passed.
+  The tool-scope enum explicitly preserves protocol tool names for the naming rule.
+- Reused the preceding 81 core checks because no core/storage code changed.
+  No broad both-backend cohort, fresh install, hosted CI or release qualification.
+
+The review is probabilistic, has a measurable latency cost, and currently reads an
+initial bounded excerpt. Direct CLI calls retain harness evidence responsibility.
+General semantic event identity and the stale current-status claim remain open;
+this checkpoint does not qualify the whole journey. Earlier probe binaries were
+overwritten without exact digests; their observations are retained but not claimed
+as byte-bound performance evidence. Final native app/CLI and current source hashes
+are recorded in [direction review receipt](../../../integration/evidence/2026-10-27-inventory-direction-review.json) (83,311 bytes; SHA-256
+28223e17e4a37dc0461b5b303fb2d640c4484911a34ca9a84a310eb4c8ae3299).
+Other engine, context, relationship, accessibility and release gates remain unchanged.
+
+## Historical citations and current-version answer, October 27
+The observed withdrawn-v1 answer now has a deterministic current-head inspection
+boundary and a host version note. Historical citations remain usable. A retry
+cannot escape the refresh by dropping its citation or changing to general basis.
+The core lookup reads only exact-version metadata in one transaction. Original
+creation data remains unchanged and its read notice explains the status distinction.
+
+82 core checks and all agent checks pass after final changes. Early fixture failures
+were missing Source lineage and missing selected-ID context, both correctly refused.
+A new footer initially formatted numeric versions as 2.0/1.0; it now uses integers.
+Native release app/CLI builds and packaging pass, as do strict changed-file Swift
+format lint and git diff --check. No tool schemas or grammar masks changed.
+
+Two scoped native observations are retained. The original ambiguous handover asked
+for direction without creating a movement, taking the direction-review path. The
+historical/current question then read the review queue, lineage, both movement
+versions and original receipt, and correctly reported withdrawn status. Original
+and current links and the host note were visible. The final app quit normally.
+Original 13 items, 3 assets, 33 messages, 77 operations and 2 spaces match exactly;
+only the two new request Sources and conversation/run receipts were added. Included
+asset hashes match, workbook verification passes, and stock remains 20.
+
+The native run did not need forced citation refresh; deterministic tests exercise
+that refusal and the citation-drop counterexample. This does not qualify all
+freeform status claims, general event identity, J11, engine adoption, automatic
+compaction or release. No installation, full-suite, broad model or CI rerun.
+Immutable [citation version receipt](../../../integration/evidence/2026-10-27-citation-current-version.json): 91,919 bytes; SHA-256
+4bc29db55e50b5b691aef77d03705ebb3431312695af51b30d61bb050a68b736.
+
+## 75% compaction policy alignment and retained native failure, October 27
+One threshold function now serves native ContextBudget and both adapters through
+ContextMeasurement: 75% of actual configured capacity, or earlier for output,
+next-result and recovery reserves. Removed the adaptive floor increase. Oversized
+required state, no reclaimable history, ineffective summaries and still-full
+checkpoints refuse explicitly with measured tokens; they preserve original work.
+The agent also measures before every generation to catch added recovery/handoff
+context. Baseline hard admission now includes its full reply allowance. Native
+normal-response metrics and new checkpoint metrics expose the selected threshold.
+Product compaction flags, model/context choices, reasoning and KV handling stay
+unchanged. Automatic compaction remains disabled in both products.
+
+Agent build and all deterministic checks pass, including new boundary/no-gain/floor
+and retry checks plus existing repeated compaction, cancellation, state, retrieval,
+portable continuation and no-duplicate-write coverage. An old 8K synthetic fixture
+was correctly refused at a 4,120-token irreducible floor versus threshold 4,088;
+the successful repeated-job fixture now uses an explicitly synthetic 12,288
+capacity. Preserve that refusal, not a claimed regression in production inference.
+Strict changed-file Swift formatting, repository links and dbmd validation pass.
+Core code is unchanged since the preceding 82-pass check. No new tool schemas,
+grammar mask changes, installation, full product rebuild or hosted CI rerun.
+
+The actual native eight-report replay FAILED at exact requested identifiers.
+Twelve responses stayed below the 24,576 threshold; eight checkpoints completed.
+Quantities, units, currency constraint, all eight numeric report results and lineage
+survived, but the draft renamed X-CHECK labels to Inspection X. Its final answer
+wrongly claimed to preserve those labels. Two identical save_space calls resolved
+to one idempotent space. No duplicate artifact or inventory change occurred, but
+that is not evidence of no redundant action attempts. Original rows are unchanged;
+failed draft/checkpoints survive portable export/reopen, and verification passes.
+The model unloaded and recorded measured sources/binary/engine/grammar stayed fixed.
+This single sample is not a matched performance comparison or production gate.
+
+Next: inspect the exact drafting context and fix identifier copying plus unsupported
+completion assertions. Do not weaken the exact-label check, raise the selected
+threshold, assume missing source context, or rerun broad cohorts until this failure
+is addressed. Keep the whole failure in [75% policy receipt](../../../integration/evidence/2026-10-27-context-75-policy.json.gz) (95,680 bytes;
+SHA-256 67ac05d72b3a51facba84b8075284c696d63203ef771a2adc626e9c4c68d5f87).
+Engine numerical-repeatability review, full native journeys, references/backlinks,
+accessibility, latency/memory and release gates remain open.
+
+## Saved-artifact truthfulness and rejected reviewer, October 27
+Supported completed_action results now render from actual document/space/opening
+receipts. A save confirms storage and names its target; it cannot establish that
+all requested content was preserved. Original model finish arguments and all
+attempt receipts stay inspectable. Identical repeated saves display once; a later
+successful retry of the same title resolves its earlier failure in the final presentation. A failed
+write without a later success remains explicit. Evidence answers keep their
+existing checks. No schemas, core storage or native engine changed in final code.
+
+The unchanged native eight-report replay completed twelve normal responses and
+eight checkpoints in 223.190 seconds including verification, but still renamed
+every X-CHECK label. The actual pre-render drafting input contained all eight
+original labels. Its final visible body correctly confirmed only the saved space
+and draft. The draft remains a failed content result. One space/draft exists and
+all original items, heads, messages, operations, spaces, bases, effects and assets
+are preserved; workbook integrity passes and the model unloaded.
+
+A bounded isolated local-review experiment was developed to catch missing literal
+text before writing. The relocated debug executable first refused missing bundled
+resources before inference; the same executable in its normal resource layout
+ran. Its initial unsupported finding lacked a retained raw response. Added full
+review trace capture; the next trace showed a correct missing code attributed to
+the wrong input. Host resolution of exact origins addressed that narrow failure.
+The missing-code, permitted paraphrase, already-present code and Spanish cases
+then passed, including a source instruction. Measured single-call times were
+16.766, 5.756, 10.575 and 8.295 seconds, not performance qualification.
+
+The full reviewer job FAILED after 290.280 seconds and nine checkpoints. It
+required lineage identifiers in prose, reported only the shared CHECK suffix,
+then rejected already corrected labels and clearances. Two draft attempts failed;
+no draft was written. Two identical space attempts produced one stored space.
+The existing response budget was exhausted; do not hide that as a passed refusal
+or successful completion. Both workbooks pass integrity and independent original
+state audits. Candidate3/candidate4 measured source/binary/engine/grammar identities
+match before and after their runs. Run1 lacks an end-of-run source/binary snapshot
+before subsequent edits/rebuild; its before identities and trace remain preserved.
+The experiment was removed from the app and adds no shipped model call or latency.
+
+Final focused verification: agent build and checks pass, including saved outcomes,
+failed writes, idempotent display, successful retry, opaque/invented discarded
+model claims and intact cited evidence answers. Native release app/CLI rebuild
+and packaging pass. Strict changed-file Swift format lint and git diff --check
+pass. Core is unchanged; reuse the preceding 82 core checks. No broad inference,
+installation, full product suite, hosted CI or release run was performed.
+The final native visual confirmation-link check awaits the Mac being unlocked.
+
+Next: specify source-bound original spans/blocks for document composition, with
+exact version/locator identity, normal prose and paraphrase support, omitted tails
+and earlier-conversation values. A second generative reviewer did not solve the
+observed problem. Keep the original failed job and nearby counterexamples as the
+acceptance target. Automatic compaction, engine numerical-repeatability review,
+full J11, references/backlinks, accessibility and release gates remain open.
+
+Evidence: [saved-artifact and rejected-review receipt](../../../integration/evidence/2026-10-27-artifact-fidelity.json.gz), 377,349 bytes compressed; SHA-256 `83f309ea041dd4b939f6c37b16266d03a59c44e399260043440487a7770666fe`. Final native visual verification is pending manual unlock.
+
+## Source-bound composition core, October 27
+
+Specified [[records/specs/document-composition]] with three review passes and
+implemented its Swift foundation. DocumentCopyReference anchors scalar spans and
+expected UTF-8 hashes to completed read receipts from the same run/conversation.
+The host resolves original text, not disposable reindexed chunk rows or a newer
+source head. New prose and original copies compose one atomic draft. Saved
+metadata retains exact source version, locator, receipt hash and output position.
+Copied versions join lineage. Draft/estimate status and inventory state are
+preserved. Idempotent retries survive a terminal run, while new writes require an
+active request-linked run. Invalid parts, hashes, scopes, bounds, cancellation or
+stale revisions leave no partial draft or revision.
+
+Workbook verification checks declared copied passages. Tests preserve decomposed
+Unicode, CRLF, NUL and emoji bytes; retain copies through changed extraction, a
+new source head, acceptance, withdrawal, Undo and portable export/reopen; and
+reject corrupted passage text/position. An independent SQLite/archive audit
+confirms five review versions with the same copied text and estimate meaning,
+one composition operation and zero inventory effects after the originating run
+completed. This tests immutable observation, not extraction truth or requirement
+completeness.
+
+Final verification: swift build --product sevra-checks -j 4 passed. The full core
+executable passed 89 groups, zero failed, including seven new composition groups.
+Strict changed-file swift-format lint and git diff --check passed. The first test
+compile exposed use of an internal helper and a missing required tangent parent;
+those test calls were corrected. An intermediate run passed 87 groups and failed
+one because the test tried to withdraw an already rejected Undo result. Corrected
+the journey to follow existing review behavior; no review semantics changed.
+Subsequent relevant code-boundary refinements were included in the final 89-pass
+run. Intermediate full stdout was overwritten locally; its exact failure and
+correction are retained in the evidence receipt.
+
+No agent definition, CLI command, native UI, inference engine or grammar mask
+changed in this checkpoint. No actual-model, installer, full product, hosted CI
+or release cohort was rerun. The eight-report native content failure is still
+unresolved. This foundation does not establish agent fidelity. Next: expose
+bounded original-copy choices through reads and continuation, add compatible
+typed draft parts, qualify changed grammar, then rerun the unchanged native job
+and nearby permitted-paraphrase cases. Conversation-origin copies, references/
+backlinks, compaction qualification, engine repeatability review, full J11,
+accessibility, latency/memory and release gates remain open.
+
+The owner replied that the Mac was unlocked, but the next CUA getApp observation
+still reported it locked with automatic unlock paused by physical input. A new
+manual-unlock request remains pending. The previous packaged preview's factual
+save confirmation and exact draft-link UI check remain unverified.
+
+Evidence: [composition core receipt](../../../integration/evidence/2026-10-27-document-composition-core.json.gz),
+23,255 compressed bytes; SHA-256
+`d742062251cf429da2c05dd6c46ba73c6a321a42b4c7c7dd0164739b3ca2e088`.
+Includes final test output, code identities, the portable synthetic workbook,
+independent audit, intermediate failures and explicit qualification limits.
+
+## Composition metadata field isolation, October 27
+
+Further compatibility review found that the new verifier scanned every item
+with a documentComposition data key. That could reject an imported business
+field on a Source, analysis Record or table row. Narrowed reserved metadata
+verification to document Records. The added regression genuinely failed before
+the fix (89 passed, one failed); after the fix all 90 core groups pass, including
+the malformed-document-metadata counterexample and original portable/review
+checks. The core build, final strict changed-file formatting and diff checks
+pass. The formatter wrapped the SQL line after the 90-pass run; no semantic edit
+or further test run followed. The receipt retains the tested source and final
+hashes. Reuse the independent five-version portable audit from the first core
+receipt; it was not separately repeated. Agent/CLI integration, the actual-model
+content failure and the pending unlock/UI check remain unchanged.
+
+Evidence: [field-scope regression receipt](../../../integration/evidence/2026-10-27-document-composition-field-scope.json.gz),
+7,000 bytes; SHA-256
+`d0d96846609d666b0d689c44b2c1b126fd2576c48939677acecc31c2dd4ef7d5`.
+The core foundation was committed and pushed as 44540d9; this compatibility
+correction follows separately. Next work remains bounded copy selection through
+reads/continuation, typed draft integration and the unchanged failed native job.
+
+
+## Agent source-copy choices and grammar checkpoint, October 27
+
+Connected the exact-copy core to read and draft tools, both inference adapters
+and continuation. Read publishes bounded original line/fragment choices; the host
+resolves selected IDs, inserts original UTF-8 and retains exact version lineage.
+Only complete currently presented passages supply dynamic grammar choices. Native
+grammar refuses unknown/unpresented IDs with reasoning on/off. Raw-text drafts and
+paraphrases remain compatible; embedded input instructions do not authorize writes.
+Continuation shares bounded original passages across read groups and deduplicates
+repeated spans. Original request, context threshold and response/step budgets are
+unchanged. No extra model reviewer or engine change was added.
+
+Verification: core and agent builds pass; all 94 core groups pass, zero fail. Agent
+checks pass, including exact source-copy drafting and permitted paraphrase. Actual
+tool schema export and pinned upstream reference regeneration pass (32 tools,
+38 cases, 323 masks). Native grammar comparisons and dynamic copy choice grammar
+pass. An intermediate synthetic context failure reached 8,199 tokens at the fixed
+8,184 threshold because repeated reads restored duplicate passages; deduplicating
+original version/locator/range/hash fixed it without changing the test or limits.
+A new grammar test initially ordered parameters incorrectly; corrected that test
+to the existing sorted format. Its failed log is retained. Initial test compile
+API/throwing-expression mistakes were corrected; initial full output was not retained.
+
+This checkpoint is provisional for actual inference. Commit before replaying the
+unchanged eight-report maintained32K job. No actual-model, native UI, installer,
+performance, full-suite, hosted CI or release pass is claimed. Earlier-conversation
+copies, provenance UI, references/backlinks and all separate compaction/engine/J11
+gates remain open. The UI tool still reports the Mac locked after the owner said
+unlocked; the existing unlock question and factual saved-draft link check remain
+pending.
+
+Evidence: [agent-copy deterministic checks](../../../integration/evidence/2026-10-27-document-copy-agent-checks.json.gz).
+Includes final core/agent/grammar stdout, failed grammar stdout, source/binary
+identities and exact intermediate failure descriptions.
+
+
+## Actual copy-integration context refusal and repair candidate
+
+The first unchanged native maintained32K replay at c554640 failed after three
+responses, two report reads and one checkpoint: 24,922 tokens exceeded the fixed
+24,576 maintenance threshold. It took 43.824589 seconds, made no draft and unloaded
+successfully. Independent SQLite and file-hash auditing confirms original rows,
+heads, bases, effects and included assets unchanged. Source, executable, engine,
+Metal and grammar identities match before/after; both trees were clean. This is
+a retained failed attempt, not native qualification.
+
+The compact projection had repeated passages from the latest read and several
+passages per earlier source. Limit it to one original from each retained version
+and exclude IDs already visible in the final tool group. Additional originals
+require explicit reads. The new repeated-read regression, all 95 core groups and
+the agent checks pass. Changed grammar definitions are untouched, so reuse the
+previous 38-case/323-mask pass. Replay the unchanged native fixture next from this
+committed candidate. No context/response/step budget or acceptance change.
+
+Evidence: [first native copy-context refusal](../../../integration/evidence/2026-10-27-document-copy-context-refusal.json.gz).
+Contains full native input/output/metrics/history, before/after identities,
+independent original-state audit and candidate deterministic stdout.
+
+
+## Second native refusal and smaller ordinary source pages
+
+At clean commit 3725712 the unchanged maintained32K eight-report replay reached
+five report reads and four checkpoints, then stopped at 24,854 tokens against
+the unchanged 24,576 threshold. Elapsed job/verification time was 113.204021
+seconds. No draft was made; model unload and independent original-state/asset
+audits pass. Before/after source, executable, engine, Metal and grammar identities
+match. Reducing optional continuation was useful but insufficient to fit a wide
+latest read. Preserve this failed replay; it does not qualify content fidelity.
+
+Ordinary tool read now returns two chunks by default, with explicit page metadata
+and nextOffset; callers may still request one to eight chunks. Original assets,
+full indexing and completed receipts remain. The source-page/copy-page cursors are
+separate. Added a meaningful regression that traverses all five chunks and verifies
+a wide request, invalid bounds and explicit terminal page. All 96 core groups
+and agent checks pass. Agent checks exposed an older flaky assertion matching
+120 inside arbitrary assistant text including random citation UUIDs. It now
+matches the actual rejected sentence The quantity was 120.; the bad-claim
+assertion remains. Its failed and corrected logs are retained.
+
+The native fixture, required labels/values, context threshold and response/step
+limits are unchanged. Regenerate the actual declaration/reference fixture for
+the revised tool description, qualify it and replay the native task next.
+
+Evidence: [second copy-context refusal](../../../integration/evidence/2026-10-27-document-copy-context-second-refusal.json.gz),
+96,148 bytes; SHA-256 dfe29565efaf1062f0dba44aec7af515ee2041e377bbd560d1eb450b3490fab6.
+This includes complete observations, identity checks, state audit and candidate
+deterministic logs. No UI, native adoption, full comparison or release pass.
+
+
+## Eight-report fidelity passes; direct copy qualification next
+
+The third unchanged maintained32K repair replay at clean 0d62807 passes. All eight
+original CHECK label/clearance/unit/HOLD pairs survive. Original purchase/sample
+and corrected packing values, unspecified currency, all eight report lineage,
+one draft, one space, no original data/head/base/effect change, exact included
+assets, portable export/reopen/integrity and model unload pass. Independent
+SQLite/file auditing confirms the same. Twelve responses and eight checkpoints
+took 234.204528 seconds. Identical repeated save_space arguments return the same
+space through idempotency. Before/after source/executable/engine/Metal/grammar
+hashes match, and both source trees were clean.
+
+The draft used parts.text with zero original-copy references despite fifteen
+presented choices. This proves this task's content, not actual-model copy choice.
+Added an opt-in nearby English quotation, Spanish quotation and permitted
+paraphrase probe; it requires actual copy metadata in literal cases and preserves
+original/unrelated draft state. It observes the model freely, with no scripted
+next action/reply, extra reviewer or changed original eight-report assertions.
+The shared observer visibility changes only to let this diagnostic reuse it.
+
+A separate review found manual editing inherited stale exact-copy metadata. The
+new regression reproduces integrity failure A copied passage no longer matches
+its original source read. (96 pass, one fail). New edit versions now clear only
+reserved copy-span metadata, preserve business data/meaning/scenario, and retain
+the prior original document as lineage. The regression covers changed text,
+acceptance, an unchanged separate draft, and portable export/reopen. Final core
+and agent verification follow before the nearby model run. No UI, production
+compaction, full 64K comparison, adoption or release gate is cleared.
+
+Evidence: [eight-report native pass](../../../integration/evidence/2026-10-27-document-copy-native-eight-report.json.gz),
+160,942 bytes; SHA-256 91c0d85b89154c28bde21e033538967a34055b0fa0efb1a7dec485d2ae8ba083.
+Includes actual contexts, outputs, history, metrics, before/after identities,
+independent audit and explicit zero-copy-reference limitation. The two native
+context failures and deterministic failures remain in their own receipts.
+
+
+Manual-edit final verification: both builds pass, 97 core groups pass with zero
+failures, and agent checks pass. Changed-file strict formatting, diff whitespace,
+dbmd all-store validation (zero errors/warnings) and repository links pass.
+[Manual-edit provenance regression](../../../integration/evidence/2026-10-27-document-copy-edit-provenance.json.gz)
+retains both failing tests, final stdout and tested code/binary hashes. Native
+grammar declarations are unchanged; reuse the prior actual grammar pass.
+
+
+The first nearby probe attempt stopped during fixture setup before inference:
+the unrelated pending Record lacked a required input version. Its source and
+stdout/stderr/identities are retained locally. Add the synthetic report as its
+explicit input; no product lineage rule, model task or assertion changed. Rebuild
+and rerun in a new output directory. This setup failure is not a model result.
+
+
+## Native literal copies work; permitted paraphrase exposes skipped draft
+
+The corrected nearby setup ran all three original requests at clean 8cc0fb4.
+English literal quotation and Spanish literal quotation each saved one real
+copy reference, exact decomposed-Unicode/CRLF bytes, draft/estimate classification
+and original-version lineage. Unrelated draft and original source heads stayed
+unchanged; portable export/reopen/integrity passed. The permitted paraphrase
+returned a cited chat answer with the excluded identifier and zero drafts. The
+probe therefore fails as a whole. All source/executable/runtime hashes match
+before/after and the model unloaded. Exact timings remain in the raw receipt.
+
+The existing policy distinguishes answers from unsolicited proposals but did not
+explicitly require delivery of a requested draft summary. Add that requirement,
+plus independent respect for excluded identifiers in paraphrase. Keep all three
+requests/assertions unchanged, with no new intent classifier, generative reviewer,
+response/context/step budget or authority. Agent checks pass after this policy
+clarification. Rebuild and rerun the nearby cases from the committed candidate.
+
+Evidence: [first nearby copy/paraphrase results](../../../integration/evidence/2026-10-27-document-copy-nearby-first.json.gz).
+Contains setup failure, actual full inputs/outputs/history/metrics, before/after
+identities, both passing copy cases, and the failed paraphrase. This is no UI,
+whole-product, performance, engine-adoption or release pass.
+
+
+## Nearby copy and paraphrase replay passes
+
+At clean 770ba05 all three unchanged nearby requests pass. English and Spanish
+quotations each use one actual source-copy reference and preserve decomposed
+Unicode/CRLF bytes; permitted paraphrase saves a draft in new words, with zero
+copy references and no excluded identifier. Original/unrelated draft heads,
+draft/estimate status, lineage, portable export/reopen/integrity and native unload
+pass. Before/after code/executable/runtime identities match. Full trace and exact
+timings are retained. No generative reviewer or change to budgets/requests/checks.
+
+The earlier unchanged eight-report pass remains tied to 0d62807. It was not rerun
+after the small draft-delivery policy clarification; no claim of a new full
+comparison or performance qualification. These equality/state checks do not prove
+the correctness of all generated interpretation or define the business meaning
+of HOLD. Original failures remain retained.
+
+Evidence: [nearby copy/paraphrase pass](../../../integration/evidence/2026-10-27-document-copy-nearby-pass.json.gz),
+29,642 bytes; SHA-256 59a1fb7cc2d9a880d6380fd3c0c8e449564d61732387ff37c1f5d29c65a4d89c.
+
+Implemented a bounded copied-passage disclosure in the native document viewer,
+with original excerpts/locators and exact-version navigation. Free-text edits
+show their earlier lineage instead of stale copy spans. Historical Source viewers
+now expose the existing newer-version control; refresh reads bounded citation
+metadata rather than full newer bodies. Presentation refuses changed copied body
+bytes and preserves exact original identity. All 18 document UI/lifecycle checks
+pass, including the two new provenance/historical-source groups. An initial new
+test compile omitted the required conversation argument; corrected to main. The
+compiler retains an existing weak-variable diagnostic elsewhere in that suite.
+Native build and visible provenance navigation remain next. No full J11,
+VoiceOver, engine adoption, production compaction or release pass.
+
+
+## Native provenance packaging checkpoint
+
+The native preview and standalone CLI build successfully with the provenance
+viewer and historical-source notice. All 18 document UI/lifecycle groups pass.
+Packaged native resources, build-tree isolation, all ten missing-resource
+refusals, altered-resource refusal, missing-model guidance, failed-request
+preservation and deep signature verification pass. Packaged document CLI editing
+checks pass (atomic edit, retry, stale refusal, separate copy, bounded input and
+acceptance). Packaged extraction checks pass through both app/CLI helper layouts
+for text/PDF/DOCX and structured CSV/XLSX with build-tree reads denied. Neither
+installed native executable links Python, MLX or Slotstream; extraction requires
+no Python/model runtime. The unchanged Splash engine/grammar remain hash checked.
+
+The initial build command used ./scripts/build_native.sh and correctly failed
+with permission denied; documentation specifies bash scripts/build_native.sh.
+The documented command passes and no script/mode change was needed. Keep the
+failed invocation in the receipt. Strict changed Swift formatting and diff
+checks pass. Final dbmd/link checks and commit follow. No full installer,
+baseline/native performance cohort, hosted CI or release suite was rerun.
+
+CUA again reports the Mac locked with automatic unlock paused after physical
+input. No new permission is required; the existing manual-unlock request remains
+pending. Native visual checks remain unverified: factual saved-draft receipt
+link, Copied passages expansion, exact original navigation, newer-version notice,
+Back, keyboard/narrow layout and assistive actions. Conversation-origin copy
+support, references/backlinks, full J11/VoiceOver, production compaction, engine
+repeatability/adoption review, fresh-clone/release and other recorded gates
+remain open. The whole app is not claimed complete.
+
+Evidence: [native provenance/package checkpoint](../../../integration/evidence/2026-10-27-document-copy-native-provenance.json.gz).
+Retains tested source/product identities, actual build and package/CLI/extraction
+stdout, failed command and explicit visual/qualification limits.
+
+## Explicit reference storage foundation, October 28
+
+Implemented the first core portion of L14 in
+[[records/specs/references-and-relationships]]. Schema 5 stores immutable
+reference snapshots, heads and occurrence bindings separately from lineage.
+The manifest/database workbook identity is checked on open; canonical schemas
+1 through 4 migrate atomically once. Existing items, messages and assets are
+retained without a title scan or fabricated bindings. The new schema-4 fixture
+checks exact retained rows and one migration revision; existing schema-1/2/3,
+future/untrusted-schema and failed-migration checks still pass.
+
+Swift callers can publish selected scalar spans with a new item/document, annotate
+Sources with independent choice history, inspect snapshots/history and resolve
+live logical or pinned exact targets. Record choices cannot be changed in place.
+Explicit selection establishes identity; unresolved names remain unresolved even
+after matching or duplicate titles appear. Foreign-workbook links retain their
+identity and remain external. Resolving returns navigation metadata, not original
+body inspection or citation eligibility. No mention adds a derivation edge,
+accepts a domain claim or creates an inventory effect.
+
+Document/body/reference publication uses one transaction and one receipt. A Source
+annotation records its choices in a new Source without changing the original text,
+head or asset. Expected annotation snapshots refuse competing writers; retrying
+with identical arguments returns the original snapshot after later corrections.
+An injected failure on the second binding rolls back the new choice Source,
+partial bindings, annotation head, operation receipt and revision. Immutable prior
+snapshots remain available. Exact body bytes inherit bindings through acceptance,
+withdrawal, Undo and separate copies. Changed prose without supplied selections
+is not silently aligned and has missing new-version coverage.
+
+The first lifecycle fixture failed because it attempted to withdraw the rejected
+version produced by Undo of acceptance. The corrected test preserves that existing
+behavior, asserts rejected status and explicitly creates a separate draft before
+withdrawal. The original 107-pass/1-fail result is retained. The next run passes
+108 core checks. A subsequent storage review adds malformed-target, ordinal and
+annotation-provenance-cycle checks; the reviewed run also passes all 108. It tests
+a malformed target shape with SQLite CHECK enforcement deliberately disabled in
+the synthetic fixture and verifies a refusal rather than a crash.
+
+Final focused verification:
+
+- `swift build --product sevra-checks -j 4` and `.build/debug/sevra-checks`: 108
+  passed, zero failures. New groups cover rename/duplicate/reopen and live versus
+  pinned navigation; Unicode scalar labels with NUL/emoji/decomposed accents and
+  CRLF; unresolved/corrected/history pages; competing writers and exact retries;
+  foreign/invalid target modes; atomic body edits and injected publication failure;
+  review/Undo/copy; bounds and unchanged plain-text saves; portable assets/history;
+  stored-data corruption and manifest identity. Existing copying, arithmetic,
+  event effects, lineage, search and context checks remain green.
+- `swift build --product sevra-document-checks -j 4` and the resulting runner:
+  18 programmatic document/lifecycle checks pass.
+- `bash scripts/build_native.sh`: native app, CLI and extraction helper build
+  and package. Engine/Metal/grammar remain unchanged.
+- `python3 scripts/check_native_package.py`: both installed layouts validate
+  resources with build-tree reads denied, load 1,888 Metal functions, contain no
+  baseline inference symbols, refuse ten missing resources and altered resources,
+  and pass native signature checks.
+- `python3 scripts/check_document_cli.py --cli output/native/bin/sevra`: atomic
+  editing, exact retry, stale refusal, separate copy, UTF-8/size refusal and
+  acceptance/integrity pass on the newly packaged schema-5 CLI.
+- Strict changed-Swift formatting, whitespace, repository links and full db.md
+  validation pass. No full model cohort, both-backend rebuild, installer, hosted
+  CI or release suite is claimed.
+
+Immutable [foundation receipt](../../../integration/evidence/2026-10-28-reference-foundation.json.gz)
+is 8,902 bytes, SHA-256
+`3735c7d5a9eef85b8b5575971479ab0674af3d8c115d7b664b73c3649858fd38`.
+It retains the failed fixture result, successful runs, source/product hashes,
+native build/package/CLI logs and scope limits.
+
+This is a core checkpoint, not complete reference delivery. Manual selections
+report partial coverage; absent annotations report not_indexed. The first limit
+is 128 occurrences, a 1,000,000-byte body, 1024-scalar/byte labels and 1024-byte
+lookup hints. No parser, extracted-document locator, backlink UI/query, agent
+traversal tool, new installed CLI/skill command or inferred association is claimed.
+LJ01-LJ10 remain the complete feature contract. Next implement incremental shared
+wiki/Markdown parsing and coverage, then backlinks/recovery and product integration.
+
+After the owner's unlocked reply, both initial and rebuilt native-preview UI
+attempts still returned Mac locked and automatic unlock paused by physical input.
+Copied-passage navigation, Back, historical-version notice, narrow layout, keyboard
+and spoken VoiceOver remain visibly unverified. Continue other implementation
+without duplicating the pending unlock request. Engine adoption, automatic
+compaction, semantic event identity, later-page direction review and whole-app
+release qualification retain their existing open gates.
+
+## Reference parser, backlink index and CLI checkpoint, October 28
+
+Continues the schema-5 explicit-binding foundation at cf24000. Schema 6 adds
+`reference_coverage` and a rebuildable `reference_index`, retaining canonical
+annotation snapshots as the authority. A pinned official Swift Markdown/cmark
+0.9.0 parser handles bounded wiki and stable-route Markdown body mentions.
+Swift 6.2 is the minimum build toolchain; this host remains 6.3.3. Native package
+license notices include both dependencies. No inference dependency or engine
+artifact changed.
+
+Eligible new/edited body text and its parse/coverage/bindings publish atomically.
+Manual selections stay partial. Migrated untouched bodies stay unindexed until
+bounded catch-up. Empty completed body parses are ready for supported syntax;
+oversized text is retained with unsupported coverage. Internal request captures,
+table rows and annotation events are excluded from automatic parsing. Names stay
+unresolved, including after target creation or projection rebuild.
+
+Incoming/outgoing discovery deduplicates exact versions and reports first mention
+locators/counts without loading destination bodies. Current/historical origins,
+logical/exact target scope and metadata filters are explicit. Covering incoming
+indexes and revision-bound keysets support pages of at most 50 results, with
+cancellation and a maximum three-second deadline. Outgoing grouping inspects at
+most 128 occurrences. These owner APIs do not grant model conversation access,
+read/citation proof, business relationships, acceptance or action authority.
+
+CLI commands now inspect snapshots/history, resolve navigation targets, query
+references/backlinks, catch up unindexed bodies, rebuild projection rows and
+explicitly annotate a Source with a stale-snapshot check. `add` accepts selections,
+scenario and supersedes; `edit-document --references JSON_FILE` commits selected
+bindings with a new Record document version. The repo-owned harness skill and
+build/run instructions describe commands, bounds and authority limits.
+
+Verification from final source:
+
+- `swift build --product sevra-checks -j 4` and `.build/debug/sevra-checks`: 121
+  passed, zero failed. This includes canonical schema 1-5 migration; an independent
+  v5 fixture and saved-binding projection migration; rollback after injected
+  multi-link failure; NUL/emoji/combining marks/CRLF locators; ignored code/images/
+  HTML; unsafe routes/malformed tokens; occurrence/body/AST bounds; route integrity;
+  unresolved retention; rebuild/corruption repair; current/history semantics;
+  260-origin deduplicated filtered pagination, cancellation/deadline/stale cursors;
+  outgoing deduplication and portable reopening.
+- Rebuilt `swift run -j 4 sevra-document-checks`: 18 passed, zero failed. These
+  remain programmatic document/lifecycle checks, not visible editor journeys.
+- `bash scripts/build_native.sh`: app, CLI and extraction helper build and package
+  successfully. `python3 scripts/check_references.py` against the final packaged
+  CLI passes 24 checks across 51 calls, including live/pinned navigation metadata,
+  explicit correction/history/retry, original-body preservation, continuation and
+  stale refusal, atomic Record edit/selected references, invalid options, failed
+  binding rollback, asset bytes and offline export/reopen/integrity. The maximum
+  subprocess duration was 0.3355 seconds on this host; that includes process
+  startup and is not a model, core-query or broad workload performance claim.
+- Packaged `check-resources` and `python3 scripts/check_native_package.py` pass
+  for app and CLI with build-tree reads denied: 1,888 Metal kernels, no baseline
+  symbols or Python linkage, invalid setup options refused, missing-model guidance
+  and failed-run preservation, ten missing resources and an altered resource
+  refused, valid strict signature. Swift Markdown/cmark notices are present.
+- Strict Swift formatting and the repo-owned skill validator pass. The validator
+  initially lacked PyYAML in system Python; isolated `uv --with pyyaml` ran it
+  successfully without adding an application runtime dependency.
+
+Failures and limits retained:
+
+- The first unchanged core expectations reported 105 pass/3 fail because they
+  still expected schema 5 or missing coverage for new/oversized text. Expectations
+  now assert the intended schema-6 behavior. The later parser fixture reported
+  114 pass/1 fail twice. It exposed NUL expansion in byte columns and upstream
+  cmark locations when content directly follows a reference definition. Mapping
+  now preserves original scalars; ambiguous leading-definition paragraphs fail
+  closed with partial coverage and a blank-line suggestion. Supported separated
+  definitions, and ignored code in the ambiguous case, are tested. The final
+  115/120/121-pass logs are preserved alongside those failures.
+- An initial native CLI journey used the package from before the `supersedes`
+  CLI change, so its live-target assertion failed. Rebuilding the final source
+  and rerunning the same packaged journey passes. That failed-artifact log is
+  preserved; the passing debug journey was not substituted for packaged evidence.
+- The body is bounded before AST allocation, but the 50,000-node traversal check
+  runs after AST construction. No whole-app memory or in-cmark cancellation
+  guarantee is claimed. The 260-origin case is focused correctness evidence;
+  large-graph performance and LJ10 comparisons remain open.
+- The native UI tool again reported locked/automatic unlock paused after the
+  owner's unlocked reply. No visible copied-passage navigation, Back, narrow
+  layout, native link interaction or spoken VoiceOver pass is claimed.
+- Extracted file-link locators and coverage, native/text/voice link workflows,
+  scoped local-agent traversal/read enforcement and real retrieval comparisons
+  remain next implementation work. Existing conversation-copy, semantic inventory
+  identity, context/compaction, J11/voice/accessibility, broad memory/hardware and
+  release/installation gates remain open. The complete application goal is active.
+  No model cohort, full installer/release or hosted CI run was repeated here.
+
+Immutable receipt: `integration/evidence/2026-10-28-reference-parser-index-cli.json.gz`, 10,390 bytes, SHA-256
+`da7ed91d1ff5bf9f82b28fed78ce8b7651d36e387d4c8d5a37a429036834d960`. It binds final source/product hashes, successful
+checks, failed attempts and scope limits. Earlier receipts remain unchanged.
+
+See [[records/specs/references-and-relationships]], [[records/specs/storage]],
+[[records/specs/search]] and [[records/operations/build-and-run]].
+
+## Retained extracted-text reference checkpoint, October 28
+
+Continues 5f46a3c. Schema 7 now retains bounded extraction regions/locators and
+original asset hashes independently of replaceable overlapping FTS rows. Versioned
+file annotation sets, choice Sources and heads remain canonical; the indexed
+incoming projection is rebuildable without parsing or resolving names. Original
+asset bytes stay outside SQLite inside the workbook. There is no new business
+Record per mention. Schemas 1-6 migrate without parsing old files or rebinding
+saved choices; old file origins require explicit extraction catch-up.
+
+The shared parser handles supported syntax in retained text, including PDF page
+text. It does not extract embedded PDF/Office hyperlink objects or unextracted
+content. The initial bounds are 512 regions, 1,000,000 UTF-8 text bytes, 64,000
+locator bytes total, 1024 per locator and 128 occurrences per exact origin. Excess
+reports partial coverage. Ready describes the captured syntax only. Latest
+extraction state remains separate from a retained earlier annotation snapshot.
+A failed or running retry cannot be mistaken for fresh complete coverage.
+
+Extraction now has an attempt identity. A stale worker's completion/failure cannot
+replace a newer index, binding set or status. Publication of chunks/status,
+retained input, annotation Source, bindings, head, projection and receipt is one
+transaction. Injected failure preserves the old search result, counts, revision
+and annotation snapshot. Same captured input preserves explicit choices; changed
+input retains old regions/history. Source version changes and Undo inherit file
+bindings only when the asset identity matches.
+
+Owner APIs and CLI inspect snapshots/history, page retained regions, resolve
+metadata and explicitly correct Source choices with a current snapshot and retry
+token. `extract` catches up or retries one exact file origin. Incoming/outgoing
+queries merge body/file mentions before pages, deduplicate exact versions and sum
+mention counts. The contentScope filter is all/body/extracted and binds the cursor.
+No traversal opens another workbook or creates a local-model read/citation receipt.
+The maintained specs, knowledge map, build/run instructions and repo-owned Sevra
+skill now describe the schema-7 behavior. check.sh includes both model-free CLI
+journeys. Native UI/linking and scoped local-agent tools remain later work.
+
+Focused verification from the final source:
+
+- `swift build --product sevra-checks -j 4` and `.build/debug/sevra-checks`:
+  129 passed, zero failed. New cases cover exact Unicode/NUL/CRLF retained text,
+  page locators and asset hashes; manual choices/history/retry; changed/revisited
+  extraction; live versus pinned targets; same-asset versions and Undo; bounded
+  partial/unsupported input and cancellation; atomic injected failure; detected
+  corruption and derived-index repair; stale concurrent workers; native two-page
+  PDF extraction; portable export/reopen. The mixed 70-origin fixture checks
+  deduplication, metadata filters and no repeated/missing keyset pages across both
+  scopes. An independent canonical schema-6 fixture migrates without parsing files.
+- Rebuilt `swift run -j 4 sevra-document-checks`: 18 passed, zero failed. These
+  are programmatic lifecycle/document checks, not visible native journeys.
+- `bash scripts/build_native.sh`: app, CLI and extraction helper build/package
+  successfully. Packaged `check_references.py` passes 24 checks across 51 calls,
+  max process time 0.3396 seconds. New `check_extracted_references.py` passes 26
+  checks across 83 calls, max 0.4242 seconds. It covers actual file import/extract,
+  lossless retained-text pages, correction/history/retry, scope filtering,
+  live/pinned history, strict invalid options without writes, metadata-only mixed
+  continuation, unsupported coverage and offline export/reopen with exact assets.
+  These subprocess timings include startup; they are not model/core-query or
+  large-graph performance claims.
+- `check_native_package.py` and packaged check-resources pass: app and CLI run
+  with build-tree reads denied, 1888 Metal kernels, unchanged engine/grammar,
+  no baseline inference symbols or Python linkage, missing-model guidance and
+  failed-run preservation, ten missing resources and one altered resource refused,
+  strict valid signature. Strict changed-Swift formatting, the repo-owned skill
+  validator, repository links and full db.md validation pass.
+
+Failed diagnostics are preserved. The first new race fixture failed compilation
+because the core result has no public memberwise initializer; the fixture now
+uses the actual worker JSON protocol. The first core run reported 127 pass/2 fail:
+its race fixture omitted the version-1 protocol envelope, and its rollback search
+count also matched technical annotation text. The second run was 128 pass/1 fail;
+a diagnostic identified that overbroad search cardinality expectation. The final
+assertion checks the exact original file's hit; counts/revision/snapshot rollback
+assertions remain unchanged. The final 129-pass run includes both corrected cases.
+
+The native UI tool still returned Mac locked/automatic unlock paused after the
+existing unlocked reply. No new unlock question was sent and no visible navigation,
+Back, narrow layout, native link interaction or spoken VoiceOver pass is claimed.
+There was no model cohort, full installer/release or hosted CI rerun. Whole-app
+memory, embedded hyperlinks, native/voice/text link authoring/resolution, scoped
+agent traversal/read enforcement, real retrieval comparisons and LJ07/LJ09/LJ10
+remain unqualified. Conversation-origin exact copies, semantic inventory identity,
+context/compaction, J11, broader voice/accessibility/hardware and release/install
+gates remain open. The full application goal is active.
+
+Immutable receipt: [extracted-reference inputs](../../../integration/evidence/2026-10-28-extracted-reference-inputs.json.gz),
+11,387 bytes, SHA-256
+`deb5551179ba4f0d6db26bf99c6dca0db295426b3cff26b4bff7cdaf2b3dbd8e`.
+It binds final code/product hashes, failed and successful logs, package/CLI
+checks and explicit limits. Earlier receipts remain unchanged. See
+[[records/specs/references-and-relationships]], [[records/specs/storage]],
+[[records/specs/search]] and [[records/operations/build-and-run]].
+
+## Native saved-link reader and navigation checkpoint, October 28
+
+Continues f3fc02f. Schema 7 is unchanged. The native right viewer renders supported
+saved body links as readable labels, with captured binding identities rather than
+raw source URLs. Optional Links/Mentioned in uses bounded 20-result keyset pages,
+explicit current/earlier-origin and logical/exact-target scope, and truthful
+coverage copy. A failed next page retains the current page; stale/cancelled and
+wrong-origin document reads cannot publish into another preview.
+
+Choose destination explicitly searches/selects a workbook item, follows its
+logical identity by default or pins its exact version, and preserves every other
+saved occurrence. Body and retained file-text Source corrections leave evidence
+and assets unchanged. Record text-document corrections create ordinary drafts;
+other Record kinds require their domain version workflow. Existing spans may be
+corrected here; arbitrary new-span authoring and general voice linking remain open.
+A missing body index can be explicitly checked from the sheet. No external file or
+workbook is opened by a discovered link and no model read/citation proof is created.
+
+Show links, Where is this mentioned? and Go back, plus their documented Spanish
+forms, are exact whole-request shell commands. They work through text/dictation
+without waiting for model inference, including while a model turn is busy. Negated
+and longer requests do not accidentally become shell commands. These are not
+complete natural-language authoring or voice-equivalence qualification.
+
+Back retains the normal prior space/item, flushes drafts and has Command+[. Native
+body clip-view positions are window-owned and restore exactly or proportionally
+following reflow. PDF pages are retained; the same open PDF now responds to a new
+page locator without reloading it or resetting manual navigation on unrelated
+updates. Copied passages forward their saved exact source locator. A refused draft
+flush cannot replace the old viewer locator. Other media reading-state and across-
+relaunch item position qualification remain open.
+
+A binding-only Record document revision preserves exact-copy metadata only when
+explicit references accompany byte-identical text and separate is false. Its new
+submission and draft still use normal lineage/receipts. Free-text changes and
+separate copies retain the existing span-removal behavior. Workbook.verify and
+nearby edit/retry/stale checks pass with this exception.
+
+Focused verification from final source:
+
+- Rebuilt core suite: 129 passed, zero failed. Parser additions expose only display
+  token boundaries; canonical selection/binding behavior remains under regression.
+- Rebuilt document suite: 27 passed, zero failed. Nine added groups cover exact
+  Unicode/NUL/CRLF labels and safe native routing; Source/file correction with
+  original bytes, other occurrences, retries and stale refusal; binding-only exact
+  copy proof followed by prose-edit invalidation; reading geometry; actual PDFKit
+  same-file page changes and invalid locators; a real offscreen SwiftUI/AppKit clip
+  view restore/manual-scroll observation; stale/cancelled/wrong-origin reads; and
+  real 25-origin bounded incoming pages with failed-next preservation and scope races.
+  The executable now refuses process exit before its final result. These checks
+  exercise native objects but are not a visible user journey or VoiceOver pass.
+- Rebuilt sevra-preview-checks passes. It checks the new English/Spanish exact shell
+  commands, busy submission, and nearby negated/long-request counterexamples within
+  existing preview, workspace, conversation and history ownership checks.
+- Native app, CLI and extraction helper build/package successfully. Packaged body
+  reference journey: 24 checks, 51 calls, max process time 0.3048 seconds. Packaged
+  extracted-reference journey: 26 checks, 83 calls, max 0.3884 seconds. These include
+  startup and are not model throughput or large-graph latency claims.
+- Native package/resource checks pass with app/CLI build-tree reads denied, 1888
+  kernels, unchanged engine and grammar hashes, no baseline/Python linkage, missing
+  model guidance and failed-run preservation, ten missing and one altered resource
+  refused, and strict valid signature. Strict formatting of all 15 changed Swift
+  files passes; repository Markdown links and full db.md validation pass.
+
+Preserved failures: initial document compile attempts had argument-order and
+actor-await fixture errors. Two document runs exited zero after 23 groups without
+reaching the final asynchronous checks. A subsequent exit sentinel correctly
+refused that incomplete run. Reference checks now run before fixture-window close
+lifecycle tests and the full 27-group final result is required. A PDF fixture used
+an NSImage without pixel data and raised an Objective-C exception; the fixture now
+writes a real three-page PDF. The first full native package build required explicit
+main-actor isolation for PDF navigation; its next build had a selection callback
+isolation warning. Both are fixed and the final app build has no warnings. Failed
+logs remain in the immutable receipt; earlier receipts remain unchanged.
+
+The Mac UI tool again reports locked/automatic unlock paused after the owner's
+unlocked reply. No duplicate unlock question was sent. Saved-copy navigation,
+inline keyboard activation, actual VoiceOver, narrow layout, new spoken commands
+and full LJ01-LJ10 remain unqualified. Scoped local-agent reference traversal/read
+enforcement, general linking/span authoring, embedded file hyperlinks and measured
+retrieval-value/large-graph comparisons are next. Conversation-origin exact copies,
+semantic inventory identity, context/compaction, J11, wider voice/accessibility,
+memory/hardware, fresh-install and release gates remain open. The full application
+goal is active. No model cohort, full installer/release or hosted CI was rerun.
+
+See [[records/specs/references-and-relationships]],
+[[records/specs/document-composition]], [[records/reviews/design-passes]] and
+[[records/operations/build-and-run]].
+
+Immutable receipt: [native reference reader](../../../integration/evidence/2026-10-28-native-reference-reader.json.gz), 15,661 bytes, SHA-256
+`87a6ef1a2769f36f1fa0c9b7206c829f8f5f325032a8bb0ee55ad82f98d11b29`. It binds final source/product hashes, failed and passing diagnostics,
+package/CLI evidence and explicit limits. Earlier receipts remain byte-identical.
+
+
+## Scoped local-agent reference checkpoint, October 28
+
+Continues 5319ca7. Schema 7 and the pinned native engine are unchanged. The shared
+read-only references tool performs one bounded 12-result incoming/outgoing hop,
+with body/extracted scope, current/history and exact/logical identity, classification
+filters, keyset continuation, cancellation and a three-second query deadline.
+Requests and technical annotations are excluded before pages. Agent FTS and
+lineage use that business-evidence boundary; direct item reads permit only business
+items and this run's immutable request Source. Earlier messages use scoped history.
+Owner search/reference APIs retain their existing inspection capabilities.
+
+Business reads also expose their first saved outgoing page in read.references
+from the same read snapshot. This is canonical destination metadata, separate
+from the unchanged original text/chunks and exact-copy passages. Raw internal
+routes in read/tool_result text do not independently add target lookup choices;
+structural destinations and independent discovery do. Explicit current-user
+routes and earlier conversation keep their own semantics. Neither discovery path
+admits destination citations. Exact originals still require reading, and historical
+business citations require inspection of the current head. A concurrent private
+request head cannot disclose metadata or widen the live submission ceiling.
+No new model binding mutation, automatic recursive fanout or external IO was added.
+
+Focused verification:
+
+- Rebuilt core suite: 132 passed, zero failed, including filtered pages/cursors,
+  strict arguments, cancellation, owner search compatibility, direct request and
+  annotation refusal, lineage filtering and a private superseding request head.
+- Actual shared agent checks pass, including a real mention cycle, corrected
+  extracted pin, nested metadata citation refusal, historical/current inspection,
+  25-origin 12/12/1 incoming pages across new receipts, private branch read/history
+  refusal and the concurrent immutable-request case. Lookup tests cover direct and
+  JSON-escaped raw/foreign routes, intact evidence bytes, current-user links and
+  independent plain-ID/history lookup.
+- Python tokenizer-only fixture generation records 33 tools, 39 cases and 329
+  reference masks. Native checks match them exactly, alongside the unchanged 105
+  lower-level upstream mask requests and reasoning on/off dynamic choices. Final
+  grammar runner logs 45 passing groups. Python is not part of app inference.
+- Final real Qwen3.6-35B-A3B/DFlash2 native local-pack probe, 32K/bounded512 and
+  configured 12 GiB: corrected pin/current edition succeeds in six steps and
+  66.3689 seconds, with one opaque-ID finish correction. It reads both editions,
+  answers weekdays versus weekends, leaves the unrelated pending draft unchanged
+  and preserves the corrected pin after portable reopening. The private-request
+  case succeeds in eight steps and 67.6520 seconds, discloses no hidden title or
+  content, explains unavailable access and preserves business items. Both workbooks
+  verify/export/reopen and the model unloads. The observer supplies no next action,
+  argument, answer or hidden fixture identity to inference. Positive traversal uses
+  read.references; paged explicit references has deterministic/grammar evidence,
+  not a passing varied real-model pagination cohort.
+- Rebuilt document checks: 27 passed, zero failed. Rebuilt preview checks: ten
+  passing groups. Native app/CLI/helper package builds and resource checks pass;
+  installed reads work with the build tree denied, 1888 kernels verify, ten missing
+  and one altered resource refuse, missing-model guidance preserves a failed run,
+  and the app signature verifies strictly. Engine/grammar hashes remain pinned.
+- Packaged owner CLI journeys: 24 body checks/51 calls and 26 extracted checks/83
+  calls. Maximum observed process times are 0.4959 and 0.4958 seconds, including
+  startup. These are not large-graph or model performance claims. All 16 changed
+  Swift files pass strict formatting. Store and link checks close this checkpoint.
+
+Preserved failures: the first native run followed the raw stale URI and answered
+holidays for both editions; its private case hit the twelve-step limit. Adding
+canonical metadata alone still answered from the wrong raw target. The final
+lookup-choice fix addresses that observed path without rewriting the original.
+The first scripted traversal omitted the pre-existing current-head refresh; the
+fixture now reads it instead of weakening that rule. Scope fixtures first expected
+error codes absent from localized tool replies; one later fixture expected direct
+read refusal after route-choice validation had already blocked the lookup. Its
+explicit plain UUID now exercises the later scope gate separately. One core
+fixture attempted an invalid kind change across a version; it now uses request
+versions. An initial build used a nonexistent product name; the actual sevra-checks
+product was then built and run. A strict-format end-of-line comment was corrected.
+These diagnostics and both material native failures remain in the receipt. Initial
+failed native executable/source hashes were not captured before replacement;
+final native-run identity and final source/product hashes are retained separately.
+
+The final two native jobs are small synthetic observations. The negative answer
+still makes unnecessary inspections and both jobs take about a minute. They do not
+qualify general reliability, latency, throughput, graph-scale memory or engine
+adoption. No performance cohort, fresh installer, release or hosted CI was rerun.
+The UI tool still reported the Mac locked after the owner's latest unlocked reply;
+no duplicate unlock question or visible-pass claim was made.
+
+Next: finish general text/voice linking and arbitrary span authoring; visible saved
+link/copied-passage navigation, Back, keyboard, VoiceOver and narrow layout; embedded
+file hyperlinks; then the preregistered lexical-only/reference-assisted useful and
+misleading link comparison under LJ10. LJ06/LJ09 remain partially evidenced, not
+closed. Conversation-origin exact copies, semantic inventory occurrence identity,
+production context/compaction, J11, broader dictation/transcription/media, whole-app
+memory/hardware, fresh installation, main integration and release gates remain
+open. The overall application goal stays active.
+
+See [[records/specs/references-and-relationships]], [[records/specs/search]],
+[[records/specs/intelligence]], [[records/reviews/design-passes]] and
+[[records/operations/build-and-run]].
+
+
+Immutable receipt: [scoped agent references](../../../integration/evidence/2026-10-28-agent-reference-traversal.json.gz), 300,566 bytes, SHA-256
+`312f7ae5b00cfe411294f526906a150529491517a284b42d50ecfbaa2ba0ca96`.
+It retains 48 diagnostic logs, both material native failures and final complete
+responses, the final native-run identity, final source/product hashes and all
+96 unchanged prior evidence hashes. Receipt validation precedes this link; the
+final store/link gates are rerun after attaching it.
+
+
+## Visible reference usability and keyboard repair, October 28
+
+Continues 518e92f after the owner reported ready. The native UI tool can now access
+the unlocked preview. This checkpoint changes only the native UI; schema 7,
+shared tools/core, model protocol, engine and grammar remain unchanged. Earlier
+Mac-lock observations remain historical evidence, not the current blocker.
+
+Actual UI checks exposed missing keyboard selection in the link list and unreliable
+activation of synthesized attributed-text accessibility links. The final reader
+keeps selectable visual text and supplies ordinary accessibility link controls over
+the same saved occurrences. A scoped selectable list opens the selected outgoing
+link or incoming mention with Return. Workbook menu actions and Command+Shift+L
+open links for the focused workbook/current item. Command+Option+E and named
+controls open correction for the selected editable occurrence. Stale absent
+selections cannot activate. These additions do not create model evidence or change
+business acceptance.
+
+Destination search hides results/cursors from other queries, clears selection on
+query changes and refuses selection of an invisible result. Down selects an exact
+visible result, Return saves only the explicit selection, and empty Return makes
+no choice. Initial focus is provided by a small AppKit field attached to its own
+sheet window. Its delegate is detached on teardown and a delayed focus request
+checks that the field still belongs to that window. No global input/settings change
+or extra permission was needed.
+
+Agent-operated native observations use only copied synthetic workbooks:
+
+- Readable body links open through their actual native accessibility control. The
+  corrected extracted Conditions pin opens the weekdays original rather than the
+  stale raw holidays URI. Open newer version opens weekends; Command+[ returns
+  through the earlier edition and file. Final source repeats that route.
+- Typed Show links and Where is this mentioned? open the correct shell views without
+  inference. A 25-origin fixture plus one historical file pin produces 20/6 incoming
+  pages; Previous restores page 1. Exact-current scope produces 20/5, excluding the
+  historical pin. Keyboard selection/Return opens the selected incoming origin.
+  These counts precede the later two intentional link corrections.
+- The final keyboard correction path starts with Command+Shift+L, Down,
+  Command+Option+E, automatic search focus, typing, Down and Return. The final field
+  also tolerates empty Return before typing. Source corrections retain original
+  labels/body bytes, publish the chosen live Intake overview destination and open
+  that saved target. CLI checks verify both corrected Sources, unchanged asset
+  hashes and pending Record, exact portable binding snapshots and three intact
+  workbooks (reference, restored and copy). A prior correction passed with a pointer
+  click to focus search; it did not qualify initial focus.
+- Copied passages expands in the draft, Open original passage 1 opens the exact
+  Unicode/CRLF text original, and Command+[ returns to the same draft. Final source
+  repeats the interaction. Business items compare exactly as decoded records
+  with the untouched fixture. The composed draft and disclosure fit the 820-point
+  minimum-width window with ordinary vertical scrolling. No horizontal clipping of
+  the inspected controls/prose was observed. Reading-offset restoration for long
+  text and PDF pages retains earlier offscreen evidence, not a new visible pass.
+
+Focused verification and retained failures are attached in the immutable receipt
+below. Document suite: 27 pass/0 fail. Preview suite: ten passing groups. Search UI
+suite: its stale/clear/cancel/page/Back/retry group passes. Native app/CLI/helper
+build and strict changed-Swift formatting pass. Package/resource checks pass with
+build-tree access denied, 1888 kernels, no baseline symbols, missing-model guidance
+and failed-run preservation, ten missing and one altered resource refused, and
+strict signature. There are no shared model/schema changes, so unchanged core and
+native grammar/model evidence is reused from the preceding checkpoint rather than
+claiming a new inference cohort. Full store and repository links close this change.
+
+Preserved failed UI attempts: initial list Down/Return did not select/open;
+accessibility actions/grouping alone left merged text or an ineffective synthesized
+link press; a selected-text secondary action worked but was insufficient. An
+explicit accessibility representation fixes the final control. SwiftUI task focus
+and later defaultFocus still left the new destination sheet unfocused; the AppKit
+field's final attach focus passes with no pointer click. All development builds
+succeeded; their logs are retained. Earlier intermediate source/binary bytes were
+not captured before replacement, so final hashes bind final qualification only.
+
+The pass also reveals technical annotation Sources cluttering Recent work and
+owner destination search. Correct that normal business-view query boundary next
+without deleting evidence or removing explicit owner inspection. General text/voice
+linking and arbitrary span selection remain planned in the reference spec. Spoken
+VoiceOver, new spoken shell commands, wider formats/embedded hyperlinks, LJ10
+retrieval comparisons, conversation-origin copies, semantic event identity,
+production context/compaction, J11, whole-app memory/hardware, fresh installation,
+main integration and release remain open. No whole-app completion, performance,
+engine-adoption, hosted CI or release claim is made. The application goal is not
+complete.
+
+See [[records/specs/references-and-relationships]],
+[[records/specs/document-composition]], [[records/operations/build-and-run]] and
+[[records/reviews/design-passes]].
+
+
+
+Immutable receipt: [native reference usability](../../../integration/evidence/2026-10-28-native-reference-usability.json.gz),
+14,828 bytes, SHA-256 `24afa76d25133eb9dcd2fe8cb447fac897c420e4cf0707efe971a3f4834449df`. It binds final native source/products,
+21 diagnostics and all 97 unchanged prior evidence files. It retains summarized
+agent-operated native observations, synthetic final invariants, failed UI attempts
+and explicit limits. No new raw AX/screenshot archive is claimed. Store/link checks
+are rerun after attaching this receipt.
+
+
+## Contextual import and Excel continuity adopted, October 28
+
+Received owner-confirmed requirements through the authorized side-conversation
+relay. Preserved them in
+[[sources/notes/2026/10/contextual-import-and-excel-continuity]] and reconciled
+product, search, storage, intelligence and reading order with
+[[records/specs/contextual-import]]. No imported file determines its own role.
+One capability must serve both start-from-existing-information and ongoing intake;
+voice/text remain central, with discoverable native entries, drag/drop and supported
+range paste. Illustrative labels are not final owner-selected copy.
+
+Inspected current app/core/CLI before assessing delivery: SpaceView has Home Add
+files, WorkbookView has a persistent plus menu/file drop, Workbook menu and exact
+composer commands reach importPanel/importFiles. Welcome has create/open/example
+only. WorkspaceState.importFiles and CLI import choose automatic new-table conversion
+by CSV/TSV/XLSX suffix. CSV assumes a header; XLSX preserves cached rows, original
+row numbers and formula text as worksheet evidence, not functioning formulas,
+cross-sheet dependencies, native table definitions, named ranges or useful styles.
+Current table paste is bounded cell editing; it is not general range intake.
+The local calculator's column formulas and single-dataset A1 reads do not repair
+these continuity gaps. No new importer capability was implemented in this pass.
+
+The new I01-I12 contract and IJ01-IJ10 acceptance cover startup and ongoing inputs,
+all contextual roles, ambiguous target/mode/mapping, preserved coordinates/formulas,
+cached versus recalculated values, advanced/legacy limits, safe retries and honest
+model completion. Microsoft primary format documentation confirms formula and
+cached-value separation; engineering choices and support scope are our decisions.
+Original file assets remain outside SQLite inside the workbook unless explicitly
+linked. This does not change existing Source/Record or business-effect acceptance.
+
+Next implementation sequence: finish the saved-reference technical-noise/menu
+follow-up below, then separate shared capture/inspection from conversion and add
+persisted role/result state. Then connect startup/ongoing native
+entries and CSV roles, reviewed updates and range paste, bounded Excel structure/
+dependency translation, and finally agent/CLI/skill equivalence and visible native
+qualification. Do not add a cosmetic Start from file control over the unconditional
+converter and call that complete. Reuse unchanged checks; qualify each concrete
+boundary and a nearby counterexample. All expanded intake phases remain pending;
+existing preserved import evidence proves only its original narrower checks.
+
+The unchanged engine and broad release/whole-app gates remain open. The app goal
+is not complete. This checkpoint changes specifications and work ordering only for
+intake; the concurrent native link usability repair is described separately above.
+
+
+## Technical discovery and link-menu follow-up, October 28
+
+Continues 1aa8372. Ordinary search and Home now filter annotation Sources before
+limits, alongside their existing request/row exclusions as appropriate. Default
+lexical and filename queries cannot fill destination results with parser events;
+explicit owner kind filtering/items remain available. Agent businessOnly already
+excluded annotations/requests and retains that restriction even with explicit kind.
+No Source, binding, row, acceptance, lineage, asset or schema is rewritten.
+
+Two meaningful core regressions failed against the prior implementation: newer
+technical Sources crowded Home's four-entry catalog, and technical matches occupied
+ordinary search. After the query changes, all 133 core checks pass. The focused
+search case checks twelve business documents against forty annotations and a
+request, full five/five/two keyset pages, filename-only matches, explicit owner
+annotation/request inspection, agent restriction and unchanged revision/integrity.
+
+A rebuilt actual native Home shows business documents instead of Reference choices
+or parse events. Ordinary Reference choices search returns no result, while choosing
+Annotation in Kind returns the preserved entries. The same visible replay exposed
+a separate menu failure: after Home -> Mention 21, Workbook link actions stayed
+disabled and Command+Shift+L did nothing. The focused value names a workspace but
+does not observe its changing viewedItemVersion. ReferenceCommandContent now uses
+ObservedObject over the focused workspace, like ConversationCommandContent. This
+follow-up preserves the earlier receipt and the newly failed navigation path.
+
+Final native replay passes on a new workbook window: Home commands disabled ->
+open Mention 21 -> menu commands enabled -> Command+Shift+L opens the scoped list ->
+Down and Command+Option+E open the focused picker. Reference choices returns no
+technical destination; changing the query to Intake overview returns the valid
+business item. Cancel changes nothing; Command+[ returns Home and the menu disables
+again. This final native field/menu interaction required no model or permissions.
+The pre-menu-fix build already demonstrated ordinary Reference choices search has
+no result, while Kind=Annotation shows the four matching preserved entries; the
+shared query implementation is unchanged between those two native builds.
+
+Packaged CLI checks confirm zero default technical hits, a valid business hit and
+all 31 annotations retained. All 51 SQLite tables compare exactly against the copied
+original after the UI checks, along with every asset hash and all 62 current CLI
+items. Integrity remains ok. No table, Source, binding, effect, operation or message
+was changed by this read-only/cancelled UI journey. Strict six-file Swift lint,
+final app/CLI/helper build and strict native signature pass. The original focused
+package/Document/Preview/SearchUI evidence is reused because those implementations
+and resource boundaries did not change. New model/grammar cohorts or search-scale
+benchmarks were not run or claimed for this query/menu correction.
+
+Expanded contextual intake phases are still pending and remain next after this
+focused follow-up. Broader accessibility, model/engine adoption, whole-app and
+release gates stay open. The immutable follow-up receipt is attached below.
+
+
+Immutable receipt: [reference catalog and menu](../../../integration/evidence/2026-10-28-reference-catalog-and-menu.json.gz),
+14,149 bytes, SHA-256 `60b42f6cb4a5df816f35dda43997639a4de2bae38dfee13ef370925765c3c0e9`. It binds the final six Swift
+source/test files, app/CLI products, nine diagnostic logs, synthetic invariants and
+all 98 unchanged prior evidence files. Retained failures include the two core
+regressions and the actual disabled-menu navigation. No intermediate binary hash
+or raw AX/screenshot archive is invented. Store/link gates run again after this link.
+
+
+## Customizable Home/application-engine roadmap registered, October 28
+
+Integrated the completed owner-authorized documentation pass from the parallel
+conversation without replacing the in-flight native discovery work. Authority is
+[[sources/notes/2026/10/native-app-engine-direction]]. Product P21-P24 and reading
+order now link [[records/specs/native-app-engine]], which retains code inspection,
+primary research, four adversarial passes, 26 requirements and 14 acceptance
+journeys. These are documentation/design findings, not new runtime test evidence.
+
+The adopted direction makes each workbook the user's editable native application:
+Home/spaces, forms, reusable typed calculations/actions, saved workflows and local
+schedule/event/condition/folder automations. Preserve the two-pane conversation,
+Sources/Records, evidence, reversible versioned edits and asset ownership. The
+signed core, permission checks and database invariants do not silently self-modify.
+A saved definition cannot authorize its own effects. Imported/restored applications
+remain inert until authorized, and app-closed/sleep behavior must be truthful.
+
+Central stage registry, all open:
+
+| Stage | Scheduled scope | Status |
+| --- | --- | --- |
+| E0 | Versioned definitions, parameters/bindings/action contracts, reusable command inventory and current-format schema/fixture foundations under [[records/specs/distribution]]. No old-development compatibility gate. | Open; proposed engineering design. |
+| E1 | Version-safe Home/existing-space edits, composition of default sections, history/restore/Undo across native/AI/CLI paths. | Open, EJ01-EJ03. |
+| E2 | Shared typed action registry, forms/parameters, reusable queries/functions/rules and discoverable dependencies. | Open, EJ04-EJ05. |
+| E3 | Manual durable workflows with pinned inputs, AI steps, approval, cancellation, recovery and guarded effects. | Open, EJ06-EJ08. |
+| E4 | In-app schedules, committed-event/condition triggers, occurrence/catch-up semantics and activity. | Open, EJ09-EJ10. |
+| E5 | Folder reconciliation, explicitly enabled per-user helper, cross-process resource coordination and real OS lifecycle qualification. | Open, EJ11-EJ12. |
+| E6 | Portable applications/templates and optional qualified adapters; broader components justified by completed jobs. | Open, EJ13-EJ14. Executable extensions require their separate isolation gate. |
+
+Next scheduled implementation remains [[records/specs/contextual-import]] phase 1:
+separate capture/inspection from conversion and persist the intended role/result,
+then deliver both native entry points and contextual CSV roles before claiming
+continuity. Align reusable action/definition contracts with E0/E2 as concrete needs
+arise; do not require a completed scheduler or background helper to fix intake or
+ship the first useful manual job. E1 can build on existing spaces, while ordinary
+working-table/formula correctness and inventory identity remain prerequisite
+boundaries for reliable composed business workflows. Existing engine-adoption,
+context, hardware, accessibility and release gates are not closed or silently
+removed by this roadmap. Whole-app completion remains unqualified.
+
+## Development compatibility decision, October 28
+The owner removed backward-compatibility support and its development work before
+the first actual production-ready, signed/notarized 1.0 release. Tests, previews,
+prereleases, tags and notarized test artifacts do not activate support. Production
+1.0 is the first baseline; earlier development schemas/interfaces need not migrate
+into it. Record that baseline at release and qualify subsequent supported upgrades.
+
+The distribution spec owns the full policy. Storage, generated-application E0,
+contextual import, references, conversation context, the central stage registry,
+knowledge map, README and agent bootstrap apply it. Fresh fixtures and same-format
+history/reopen/export remain required. Historical migration receipts are preserved.
+No executable/migration path or prior workbook was changed in this documentation
+pass. The main implementation session owns any subsequent fixture reset or removal
+of obsolete code. Excel/CSV interoperability and Slotstream remain separate.
+
+Source: [[sources/notes/2026/10/pre-1-production-compatibility-policy]].
+
+Documentation verification: dbmd validate --all db --json passed with zero errors
+and warnings; python3 scripts/check_links.py and scoped git diff --check passed.
+This pass changed policy/projections only and did not run model inference, delete
+workbooks, modify executable code or qualify a production release.
+
+
+## Durable contextual intake and native entries, October 28
+
+Continues the prior intake plan and applies the production-1.0 compatibility
+policy recorded in b86e49f. Shared capture, role/result persistence and a focused
+native entry/role slice are now implemented; the expanded app goal is not complete.
+
+The same saved original can be reference material, analysis input or explicitly
+converted saved values. A bare file is captured/indexed and awaits intent rather
+than creating tables by suffix. Durable request/role receipts distinguish source
+capture, indexing coverage, bounded structured inspection and actual dataset IDs.
+A retry returns the original capture after the input disappears; changed request
+arguments refuse the reused token. Capture/registration interruption is recovered
+before guessing any role. Reference and analysis keep permanent tables unchanged;
+analysis input readiness is not an analysis result. Explicit CSV/TSV conversion
+still uses first-row headings; XLSX conversion is saved values, retained formula
+evidence and declared uninspected advanced features, with no live calculation.
+Failure/cancellation retains originals and any committed table identities/batches.
+Ready jobs do not repeat conversion. Late native callbacks remain workbook/window
+owned. Saved-file reuse creates another use without copying its bytes again.
+
+Welcome now offers Start from files alongside Create blank; choosing a file then
+a new workbook destination enters the shared pipeline. A named Add files control
+is always in the open-workbook header. Native role choices include Decide later;
+Home keeps unresolved/failed uses visible. Saved files expose Use saved file.
+Picker/drop reuse the pipeline. A bounded explicit values-only TSV clipboard
+entry exists, but its actual visible clipboard lifecycle and richer formats remain
+unqualified. A failed conversion refreshes the sheet from the durable role before
+retry, preventing an already-committed choice from causing a false role error.
+The native app still has central text/voice, but general natural-language role and
+update handling is not claimed by this implementation.
+
+Schema 8 is one canonical initial development schema. Removed automatic legacy
+migration paths and the new v7-to-v8 migration, in accordance with owner policy.
+Old/future formats are refused without changing their database bytes, never reset
+on open. Current-format canonical-schema/FK/identity validation, history, lineage,
+Undo and portable reopening remain. Existing old fixture files and receipts stay
+preserved as historical evidence. The CLI now emits {source,intake} for import;
+intake-use, intake-from-source, intake-resume and intake-status expose scoped
+roles/results. resume-intake preserves a prior explicit table-conversion intent
+or registers an unresolved use, including ZIP members. It never silently turns a
+reference into a table. The repo skill and affected integration scripts consume
+the current contract; no development-result compatibility aliases were added.
+
+Verification on the final current-format source:
+
+- bash scripts/check.sh passes, including 19 extraction groups, 134 core groups,
+  reference CLI journeys, nine new contextual CLI checks, document/preview/table/
+  search/voice/product/Splash/text/grammar/fixture/diagnostic checks, link gate and
+  zero-warning store validation. Core total changed because unsupported-format
+  byte-preserving refusal checks replace obsolete migration-success gates. Current
+  history, integrity, transaction and portability checks remain.
+- bash scripts/build_native.sh builds/packages app, CLI and isolated helper with
+  the unchanged native engine. codesign --verify --deep --strict passes.
+- python3 scripts/check_contextual_intake.py --cli output/native/bin/sevra: nine
+  checks pass, including absent-input retry, exact intent, lexical identifiers,
+  idempotent conversion, explicit XLSX saved-value limits and portable roles.
+- python3 scripts/check_concurrency.py --cli output/native/bin/sevra: 30 real
+  writers, coherent export, duplicate/retry/stale-write and inventory checks pass.
+- python3 scripts/check_extraction_package.py --product output/native: both app
+  and CLI helper layouts parse synthetic inputs with build-tree reads denied;
+  packaged role-aware CSV/XLSX intake and original verification pass.
+- Actual cua native preview: Start from CSV creates a workbook then asks for use;
+  Decide later shows Home attention; Choose use/reference creates no table; reuse
+  for analysis still creates no table; reuse for values opens two-row native grid
+  with SKU 0012 and 0013 intact. Header Add files works from that grid; cancelling
+  its picker preserves the grid; adding TSV as analysis leaves it unchanged.
+  Clean quit/relaunch/recent-open retains sources, roles, messages and the table.
+  Malformed CSV is retained, conversion fails honestly, Continue selected use
+  retries the selected operation, and Decide later leaves a visible Home error
+  without another table. Final CLI inspection confirms one working table and
+  verifies the workbook. Screenshot inspected for the role sheet; no archived raw
+  AX/screenshot evidence is claimed, and no new spoken/VoiceOver test was run.
+
+Retained failures: the first broad pass found an old extraction script expecting
+an unwrapped import result; updated it to explicit reference/values roles. Another
+run was interrupted by changing its executing check.sh; the final stable script
+was rerun fully. The new CLI XLSX fixture initially lacked a worksheet relationship
+Type; corrected the fixture and retained its failing log. These intermediate runs
+are not counted as final passes. Scope and hashes are retained in
+[integration receipt](../../../integration/evidence/2026-10-28-contextual-intake.json.gz).
+
+Next: reviewed table-update proposals with exact target/revision, explicit append/
+replace/keyed merge, mappings/conflicts and idempotent undoable publication. Then
+Excel feature inventory/coordinate mappings and a bounded native dependency subset,
+full clipboard/startup/late-callback journeys, and current-request model/voice
+intake tools with authority and truthful-completion checks. Fresh disposable
+current-format fixtures must be frozen before new actual-model/performance cohorts;
+old development archives are not compatibility prerequisites. E0/E2 action and
+versioned-definition work proceeds as these concrete operations require it.
+Customizable Home/forms/workflows/automations, broad AI/context/hardware/fresh-install/
+accessibility/adoption/main-integration/release gates remain open. No throughput,
+engine adoption, full Excel replacement or whole-app completion is asserted.
+Receipt: 48,385 bytes, SHA-256 46f24010a54cad6afed1f7966e732998fd40a4a46ed19fe9d92754991acc91a0; binds all 99 prior evidence files byte-for-byte and retains 17 diagnostic logs, final source/product hashes, current-format automated checks and scoped native observations.
+
+## Persistence readiness adopted, October 28, 2026
+
+Owner authority: [[sources/notes/2026/10/persistence-readiness-requirement]].
+The design conversation explicitly narrowed the work to persistence readiness;
+cloud syncing and a new semantic resolver are not being implemented. The canonical
+contract is [[records/specs/persistence-readiness]], linked into product, storage,
+intelligence, contextual intake, search, conversation history, engine sequencing
+and distribution. Bootstrap/readme pointers expose the scope on fresh sessions.
+
+Assessment baseline: 63cd642, with the active table-update slice still in progress.
+The source/version/asset model, shared transactions and retry receipts are reusable.
+Operation-only reconstruction is incomplete, causal bases need explicit retention,
+and automated decisions must not be attributed to a human. The mutation inventory
+and FJ01-FJ06 evidence are implementation work, not documentation completion.
+This design update changes no workbook data, application code or runtime behavior.
+
+## Reviewed CSV/TSV table updates, October 28
+
+Completed the next coherent intake slice on top of 63cd642 and the owner design
+handoff in 21cf28f. The new persistence-readiness contract is retained, with FJ
+reconstruction/attribution gates still open. No workflow/sync scope is added.
+
+Core and native review support explicit append, full replacement and keyed merge.
+The same bounded verified CSV/TSV parser provides header records, exact headings
+and sample values before mapping. Target/method are initially unset. Every input
+position is mapped once or explicitly ignored; every stored target column must
+be mapped exactly once. Keys are explicit and lexical. Empty or duplicate keys
+in either input or target refuse merge. Append retains duplicates and reports
+them. New rows require a meaning and scenario; matched rows preserve their prior
+meaning/scenario. Calculated columns are retained. Original bytes are unchanged.
+Bounds are 1,000 incoming rows, 10,000 target rows, 8 MB mapped input and 16 MB target
+content. Partial-column and XLSX update support remain open.
+
+The typed preview binds exact table columns, stable membership/current row heads,
+fingerprint and workbook revision, plus actual counts, duplicate disclosures and
+at most 20 before/after examples with 1-based parsed source-record locators.
+Creating a draft requires that preview. A selected update intake is completed in
+the same transaction with the draft ID, retaining its indexing report. This is
+proposal readiness, not application. Generic add/propose_record cannot forge a
+table-intake-update. Acceptance applies the saved plan after a fresh target check,
+without reading or parsing the original. Changed rows retain logical identity;
+replacement keeps removed rows as rejected history. New and changed row lineage
+includes the exact source, proposal, acceptance decision and source record.
+
+Checked Undo/redo uses compensating versions and before/after stable membership,
+preserving values, identities, order, meaning and scenario. It refuses changes to
+any affected row, including removed rows, or the post-state fingerprint. Atomic
+rollback and cancellation retain the prior working state. Acceptance/Undo tokens
+are cancellation-aware and return their original receipt on exact retry. Proposal
+retry precedes target/parser access, including after a linked original disappears.
+No inventory or financial effect is posted by a working-table value update.
+
+The CLI now exposes table-update-inspect, table-update-preview and
+table-update-propose. Its options reject unknown fields and incorrectly typed
+publication fields. Existing accept and undo provide stable retry tokens. The
+repo-owned Sevra skill documents these commands, bounds and user authority, and
+validates successfully. PyYAML used by the skill validator is isolated in an ignored
+build venv; it adds no product dependency. Native intake and saved File actions
+open the workspace review. A draft has visible diff/review controls. Applied,
+undone and withdrawn states explain that the preview describes original changes;
+Undo becomes Redo after a checked reversal. Home uses a readable Table update label.
+Request fencing rejects obsolete source/preview/publication callbacks and reuses
+an exact publication token after a lost result. Mapping-form drafts themselves are
+not persisted across navigation/relaunch; this remains an intake UX gap.
+
+Canonical development schema is 9, adding update/awaiting_update constraints.
+No development migration was added. Old/future workbooks remain preserved and
+refused by the matching-version gate; the native journey used a fresh synthetic
+schema-9 workbook. Historical evidence is unchanged.
+
+Verification:
+
+- Stable bash scripts/check.sh passes: 19 extraction groups, 144 core groups,
+  nine existing contextual CLI checks, 30 new table-update CLI checks and the
+  reference/document/preview/table/search/voice/product/Splash/text/grammar and
+  diagnostic fixtures, plus link and zero-warning store gates. The ten new core
+  groups cover preview/nonpublication, duplicates/missing keys/mapping, all three
+  apply/Undo/redo modes, stale states, injected write rollback, pre-cancellation,
+  missing linked-original retry, durable update jobs, calculated columns, exact
+  source locators and two-handle concurrent acceptance.
+- Final focused native table checks pass after equivalent for-loop lint repairs,
+  including obsolete success/error rejection, changed-mapping preview invalidation,
+  closed-review callback refusal and exact-token retry after a committed lost reply.
+- Final polished native app, CLI and helper package; strict deep codesign passes.
+  Packaged CLI passes the same 30 update checks. Thirty real writer processes,
+  coherent export, retry/stale and inventory invariants pass. Both packaged helper
+  layouts pass with build-tree reads denied, including current-format CSV/XLSX
+  role intake and original verification. Changed Swift strict lint and skill
+  validation pass. No inference implementation or engine pin changed.
+- Actual cua native synthetic journey: Home Choose use -> Update a working table;
+  initially unset target/method -> explicit Parts table, key/mapping and estimate /
+  forecast choices -> diff of one added/changed/unchanged. CLI confirms preview
+  leaves the two original rows untouched. Native draft -> Accept gives quantities
+  7/5/2 and lexical SKUs; new row is estimate/forecast while matching rows stay
+  actual. Undo restores exact original logical identities/order/values 4/5, shown
+  in the native grid and inspected screenshot. Clean relaunch retains roles,
+  history/proposal and visible Redo. Redo reapplies the values with correct receipt.
+  A separate synthetic CLI edit to 11 then causes native Undo to display the stale
+  refusal; CLI confirms 11/5/2 remains intact and workbook verification passes.
+  The last UI-only polish changes Home's label to Table update; final build and
+  visible relaunch check pass. Raw AX/screenshots are not archived.
+
+Retained failures: the first update-job check found the old schema role constraint;
+advanced canonical schema to 9 and reran with fresh fixtures. The first CLI journey
+compared immutable versions across redo; corrected the test to compare the exact
+post-redo state while retaining semantic identity/value checks. The skill validator
+initially lacked PyYAML; isolated dependency installation resolves it. Strict lint
+found two forEach gates; equivalent loops pass lint and focused tests. Earlier
+failures are diagnostic evidence, not final passes.
+
+Immutable receipt: [reviewed table updates](../../../integration/evidence/2026-10-28-reviewed-table-updates.json.gz),
+26,596 bytes, SHA-256 10d371e5e5491f05a426e18708f8d70bcc1428e8f56bee334460a1886d2e261e.
+It binds final source/products, 14 diagnostic logs, synthetic native state and all
+100 prior evidence files unchanged. The full stable check precedes the final
+Home-only copy polish and equivalent test-loop lint repairs; the final native and
+focused table checks qualify those small follow-ups. No new actual model/voice
+update cohort, broad accessibility, hardware/install, throughput or release proof.
+
+Next: audit every durable mutation family and implement the shared complete change
+capture, causal/actor metadata and inert deterministic reconstruction required by
+[[records/specs/persistence-readiness]]. This precedes new workflow/automation
+persistence. Then continue Excel feature/coordinate/live-formula work, broader
+clipboard/startup/late callbacks and current-request model/voice intake tools.
+Customizable Home/actions/forms/workflows/automations, context/AI reliability,
+native adoption, hardware, fresh installation, spoken accessibility, main-branch
+integration and production release remain open. Whole-app completion is not claimed.
+
+## October 28: complete local persistence foundation
+
+Schema 10 adds complete typed committed changes atomically with existing state
+and receipts. Public SQLite TEMP triggers capture all 37 classified ordinary
+tables. Item/operation/workbook/writer/effect identities remain distinct; exact
+predecessors, values, timestamps, inputs and actor/model/policy metadata survive.
+Explicit native review is human; CLI/core defaults programmatic; model tools are
+AI under their registered model/draft policy. AI decision attribution needs an
+exact accepted current rule Source, which becomes decision lineage. No new
+acceptance authority is added.
+
+`commits` inspects small metadata while the existing `history` remains conversation
+history. `reconstruct` creates a new current-format package, applies saved rows on
+an inert connection, checks final authority/dependencies and rebuilds disposable
+FTS. It never runs models, parsers, tools or effects. Linked access grants/paths
+and worker claims are excluded. Pending and ambiguous outcomes remain inert.
+Presentation uses a portable current checkpoint. Included historical bytes are
+mandatory, hash checked and prepared/flushed before references publish.
+`verify` now checks history hashes/causality/receipts from a coherent snapshot.
+
+Final 150 core groups pass, including actor/rule, corruption, wrong base, rollback,
+exact typed data, idempotent apply and closure tests. Final native app/CLI packaging
+and strict signature pass. Packaged 10,000 rows: 34 changes, 12 writers, import
+2.920 s, reconstruction 3.454 s, database 35,045,376 bytes; exact retry/export/reopen
+and cancellation after a committed prefix pass. Separate 30-writer checks and
+reconstruction of four preserved interruption fixtures pass. A real native
+Accept/Undo and unsent-draft reconstruction/reopen journey passes. Worker package
+isolation evidence is reused for unchanged extraction paths. Earlier broad suite
+passes; final core/package checks cover the last exact-rule and verification edits.
+
+The [immutable receipt](../../../integration/evidence/2026-10-28-persistence-foundation.json.gz)
+is 30,925 bytes, SHA-256 `c82f6169bffdc2b60c62ea70918e7fe2edf9740da2b7534c4e89c9cffeb9e4da`;
+all 101 earlier evidence files remain unchanged. Preliminary SDK hook, fixture and
+CLI command collisions are retained as diagnostics; the final capture uses only
+public SQLite APIs. Metadata limits: 64 MiB/250,000 changed rows per transaction,
+full history retained without compaction. No universal scaling claim.
+
+FJ01-FJ06 pass for current inventoried families. New workflow/action state extends
+this foundation. Next implementation: E1 version-checked Home/space editing, then
+E2 shared actions/forms/functions and E3 manual durable execution. Excel formulas,
+local-model/voice intake, broad context/inventory qualification, VoiceOver/hardware,
+engine adoption, install/notarization and final release gates remain open.
+
+## Final form identity review, October 28
+
+A draft key now hashes the structured space/component ID pair. Delimiter-containing
+IDs cannot alias two components, and maximum-length legal IDs remain within the key
+budget. Native view ownership also resets with the workbook interaction identity;
+the window-owned scope retains the proper draft across Back and refuses to carry
+one workbook's session into another. Focused native-session counterexamples pass,
+along with the rebuilt native package paths/resources/signature checks, packaged CLI
+action/race/portable/reconstruction probe and strict lint of 27 Swift files.
+
+[form identity correction receipt](../../../integration/evidence/2026-10-28-form-draft-identity.json.gz): 11,074 bytes, SHA-256
+`bdda49a349db48f6371cc83d077ddfbeee6d5715b71d2f63ffcf0a3c34ad7b3f`.
+All 108 preceding receipt files remain byte-identical, including the earlier action/
+form foundation receipt. That earlier receipt retains its original source/binary
+hashes. Its broad core217/shared checks are reused; the small identity correction
+has focused proof rather than a claimed broad rerun. A first lint invocation lacked
+swift-format on PATH; the documented xcrun invocation passes. Visible native UI,
+agent invocation, complete E2-E6 and release gates remain open.
+
+## Native computation and publication qualification, October 28
+Scoped E2 reusable calculation/query views, trusted snapshots, exact result publication, deterministic result search text and separated definition discovery are implemented and qualified in the [native computation receipt](../../../integration/evidence/2026-10-28-native-computation.json.gz). Existing110 evidence artifacts remain byte-identical to HEAD. New receipt:145,982bytes, SHA256 7f94d52b74a1f7db7ff9d132a4c86ee567cd781f5f2c09df0ba0373e260d0db0.
+
+Commands/evidence: V32 bash scripts/check.sh passes. V34 core231/0 and V36 final agent checks pass, including a model-visible receipt consumer. V30 grammar57cases/492masks passes at8,176/8,192tokens. V5 computation cohort passes all four selected-model tasks with unchanged512reasoning/1,800output bounds. V37 release native build, packaged computation CLI, full native package Metal/resource/refusal/signature and strict29-file lint pass. V28 preview ownership/page/error/cancellation checks remain unchanged and pass. V29 isolated baseline install/update/CLI/skill/uninstall passes after rebuilding and correcting import-envelope assertions. V32 skill validation passes. Run final dbmd/link/diff gates before commit.
+
+Retained failures: V1/V2 grammar optional ordering prevented arguments after definitionBinding; V3 missed named-definition discovery; V4 omitted response receiptID, leading to a guessed snapshot ID and false capability explanation. Shared selector ordering, separate catalog metadata and explicit verified receipt identity repair these boundaries. V5 reuses one calculation in two spaces, publishes an estimate draft, derives a report and distinguishes changed live from saved values. No throughput claim follows.
+
+Native inspection caught an empty initial saved-result container, first-open empty sheet, stale feedback behind that sheet and internal empty arrays leaking through a scalar test. Stable loading, item-bound exact evaluation, owned inline failures and actual scalar cases fix them. V36 shows atomic stale refusal with entries retained, refreshed42 draft, live42/pinned36 and bounded query pages. V37 reopens clean42; acceptance preserves estimate meaning and all typed data. These are focused AX/keyboard/screenshot checks, not actual VoiceOver or full appearance/media qualification.
+
+Integration PR CI at d0ef272 failed at its old import-response assertion after earlier checks passed. The script is fixed and locally qualified. Push this coherent checkpoint, refresh CI on its new head and inspect it. Continue remaining EJ04/EJ05 scale/voice/native reuse qualification, E3 manual durable workflows, E4-E6, contextual/Excel continuity and whole-release gates. The app and active goal remain incomplete.
+
+## Hosted document-check lifecycle repair, October 28
+CI run 40790418624 at abee6e0 passed core, extraction and search checks, then the document-check executable exited during the asynchronous native close check before reporting its final result. The atexit guard correctly failed the run. Subsequent jobs were skipped; this run does not qualify installation or release readiness.
+
+The test executable now enters NSApplication.run from synchronous main and starts its async checks inside that owned AppKit lifecycle. The close test waits for explicit continuation and flush completion with bounded deadlines. Task.yield did not guarantee that either callback had completed. The product close guard and persisted document behavior are unchanged.
+
+Two independent local processes passed all 27 document checks after the final change. Preserve the failed hosted output and local outputs in the [lifecycle receipt](../../../integration/evidence/2026-10-28-document-check-lifecycle.json.gz). A new exact-commit hosted run must qualify the runner fix. Manual workflows remain the next E3 implementation task; the whole app is unfinished.
+
+## Manual workflow core, recovery and packaging, October 28
+Development schema15 now includes exact workflow definitions and captured run, step, claim/attempt, approval and workflow-outbox state. Manual core/CLI execution supports deterministic function/query evaluation, registered receiving draft actions and exact review checkpoints, with typed mappings, persisted outputs, explicit process-local resume authority and final transaction lease fencing. No model, background worker or historical reconstruction can silently execute a step. Every action requires a review step.
+
+Final core242/0 and focused11/0 checks pass. Independent debug, native and baseline packaged CLI cohorts pass. Actual child-process SIGKILL before action execution, inside prepared publication and after committed publication preserves atomic state and resumes without repeating completed effects. Reconstruction/portable copies retain exact history without session authority. Query outputs retain actual read revision and a bounded candidate population; partial queries refuse completion. Review polling consumes no repeated attempt. A 32-claim budget pauses for attention; explicit retry preserves all attempts and monotonic fencing generation.
+
+The broad V9 shared suite passes before the final retry-budget/schema refinement; V10 final core, focused persistence/CLI/process-death, native package/resource/refusal/signature checks and isolated baseline install/update/uninstall pass after it. Strict Swift lint passes. Scope and exact source/build identities are retained in the [manual workflow receipt](../../../integration/evidence/2026-10-28-manual-workflows.json.gz). All112 earlier immutable artifacts remain unchanged.
+
+Retained failures include the initial review test expecting only one lineage relation, fixed by verifying the canonical supersedes/accept-v1 edge plus attributed decision evidence. Hosted CI40791589647 on5de9a4a passes the document lifecycle correction and all stages through release build, then fails the obsolete history test that expected automatic version1 migration. The corrected CLI history probe creates700 messages through current trusted core APIs, tests eight concurrent openers, bounded history/search and offline export/reopen, and separately verifies unsupported old-format refusal without any file change. It passes locally. This changes test expectations to the adopted pre-1.0 contract; it adds no legacy migration. Preserve hosted failure diagnostics and qualify the next exact pushed commit in CI.
+
+Full E3 is still open: native workflow activity/forms, agent authoring/invocation, explicit AI/import/document steps, broader typed graphs, general business outbox consumers and receiving journeys. E4-E6, E2 voice/scale journeys, contextual/Excel continuity, full accessibility/hardware and production engine/distribution gates remain open. Continue these after this coherent checkpoint; the application and active goal are unfinished.
+
+## Native manual workflow Activity checkpoint, October 28
+Native Activity now exposes bounded newest-first/filterable run pages and exact definition/start-request evidence, actor, typed inputs, saved step outputs, proposal/current-version links, attempts and lease deadlines. Continue explicitly executes at most16 steps and stops for review, attention or completion. Retry/Stop use the same captured core operations and preserve completed work. Inspection never authorizes execution. Cursor scope includes workbook/filter/page size/revision and refuses changed observations.
+
+Core244/0, focused13/0, independent debug/native packaged CLI, stable-source release native build, resource/refusal/signature paths checks, strict7-file Swift lint and repo-owned skill validation pass. The new [Activity receipt](../../../integration/evidence/2026-10-28-native-workflow-activity.json.gz) preserves exact identities and all113 prior artifacts unchanged. The initial exhaustive-switch compiler findings and source-edited-during-build failure are retained; corrected stable-source build passes. Existing process-death and full native Metal/model-unavailable evidence apply to unchanged paths. The Mac is locked, so visible Activity, keyboard/VoiceOver, appearance/narrow layout and full receiving journey remain unqualified.
+
+The workflow forms contract is now recorded before implementation: reuse saved native form input/identity, preview a typed plan without executing, create the run and receipt atomically, recover without a second run and keep imported copies inert. Continue form integration, agent workflow tools and explicit interpretation/import/document steps; full E3, E4-E6 and release gates remain unfinished. Hosted CI40794958919 on25930cf is still running at this checkpoint.
+
+## Recoverable native workflow forms, October 28
+Forms now bind either an action or a workflow with identical parameter signatures. Workflow preview is pure definition/input validation. Submission creates one queued run, exact form/workflow invocation lineage, typed inputs, steps, outbox and receipt atomically. The existing native draft/session recovers the stable receipt after interruption before its presentation checkpoint; copies and reconstruction remain inert. Native Start workflow deliberately continues the saved run under the same workbook/window owner. Open workflow remains available. Action-step forms cannot hide another workflow start.
+
+Core247/0 and focused workflow16/0 checks pass. The complete native-preview ownership/session suite and existing scripted agent suite pass. Actual child-process SIGKILL passes five boundaries, including before and after form commit. Debug and packaged native CLI pass six cohorts, including cross-process exact retry, separate review and reconstruction. Release native app/CLI, paths-only resource/refusal/signature checks and strict formatting of18 changed Swift files pass. Full engine checks are reused from unchanged prior engine evidence. All114 prior artifacts remain byte-identical. See [workflow-form receipt](../../../integration/evidence/2026-10-28-workflow-forms.json.gz).
+
+The V3 process-death probe stopped on an assertion that required an optional omitted lastReceipt field; the corrected V4 probe passes. The first lint command used unavailable swiftlint; the repository's xcrun swift-format check passes. Neither failure is hidden. No visible native/VoiceOver/appearance pass while the Mac is locked. E3 agent workflow authoring/invocation, explicit AI/import/document steps, richer graphs and general effect consumers remain next; E4-E6 and wider release gates remain open. The app and active goal are unfinished.
+
+## Hosted baseline CLI path correction, October 28
+Hosted run40794958919 qualifies the corrected history test: unsupported formats are refused byte-identically, eight concurrent openers pass,700 messages are paged, and offline export/reopen passes. It also passes isolated installation/update/uninstall and packaged document/receipt tests. Its next concurrency command fails before launch because that script defaults to output/native/bin/sevra, but this earlier stage has only built output/bin/sevra.
+
+Commit140af04 explicitly selects the baseline CLI in that CI stage. The same exact command passes locally:30 concurrent writers, coherent exported snapshot, cross-process intake retry, idempotent write retry, stale-write refusal and preserved inventory. This is a CI wiring correction, not a product concurrency fix. Retain the hosted failure and inspect the next pushed revision; no whole-CI success is claimed from local scope.
+
+## Conversation workflow authoring and queued starts, October 28
+The local agent now discovers/authors exact manual workflows, makes their native form templates, inspects Activity and queues a requested run with typed inputs. Its active request/Source is revalidated inside the atomic write and retained as invocation lineage. A successful start terminates with host-owned saved-status text, explicitly saying no steps or drafts ran, and opens that run. Native Workflow Activity is also in the Workbook menu at Command-Shift-Y. Read-only and unrelated task handoffs refuse queued work.
+
+Activity paging now uses a captured workflow-run clock instead of the whole workbook revision, fixing agent journal writes invalidating their own continuation. Thirteen-run tests use actual journal prepare/complete calls, unrelated writes, reconstructed continuations and a changed-run refusal. The response still reports the actual read revision.
+
+Final core251/0, focused20/0 and the complete scripts/check.sh pass. Native release build, packaged CLI six cohorts, five actual process-death boundaries, installed-resource/refusal/signature paths checks, strict16-file formatting and repo skill validation pass. All115 prior artifacts remain byte-identical. The [agent workflow receipt](../../../integration/evidence/2026-10-28-agent-workflows.json.gz) retains source/final-binary identities, model results/history and all failed diagnostics.
+
+The pinned native model completes authoring (11 calls,88.087 s), Home form creation (12 calls,87.871 s) and queueing (2 calls,18.913 s), with no execution/business Records. Independent saved-Home inspection confirms six unchanged original sections plus one form. The model run precedes the final family-clock correction; final automated/native checks cover that correction. The model-run binary digest was not captured before rebuilding, so final digests cannot identify its old runner. These are functional task times under development load, not throughput/performance claims.
+
+Retained failures include invalid test API calls, compaction-floor overflow, two actual grammar prompt overflows and one Value array-index compile error. Redundant descriptions were shortened while retaining structural schema/host checks;60 actual grammars/511 masks pass at8179/8192. Hosted run40797267672 on798baac passes through native build, then repeats the baseline concurrency binary-path failure already fixed in140af04. Dispatch a new exact-commit run after pushing this checkpoint. No whole-CI success is claimed.
+
+The Mac is still locked. Latest Activity/form visual, VoiceOver/appearance/narrow checks remain pending. Next implement explicit AI interpretation with saved inputs/results and asynchronous fenced publication, then import/document steps and complete receiving recovery. E3 richer graphs/general outbox consumers, E4-E6, Excel continuity, broader voice/accessibility/hardware and native production adoption remain open. The full app and active goal remain unfinished.
+
+## Explicit native AI workflow interpretation, October 28
+Development schema16 now supports explicit reusable interpretation definitions and exact interpret steps through the shared native model coordinator. It captures exact bounded evidence/model/schema/budget before inference, releases workbook locks during AI work, renews a bounded lease and fences late/cancelled results. Raw rejected envelopes remain inspectable diagnostics. Validated typed/cited results become draft Records atomically with lineage, checkpoint, receipt and outbox. Intermediate calculations preserve interpretation ancestry; mapped estimates/plans cannot change actual stock. Opening/reconstruction never invokes a model.
+
+Final core256/0 and focused25/0 pass. The full V16 scripts/check.sh passes; final V17/V18 core/product lifecycle, nine actual SIGKILL boundaries, native release/package/refusal/signature, strict27-file format and skill checks cover subsequent raw-equality/normalization and display refinements. No final full broad rerun is claimed. All116 prior artifacts remain byte-identical; the [interpretation receipt](../../../integration/evidence/2026-10-28-workflow-interpretation.json.gz) retains source/binary identities, results, requests and failures.
+
+The actual pinned native Qwen/DFlash2 runner handles a clear count and returns needs_input for a blank count; injected evidence instructions do not accept inventory. One earlier actual output contained malformed decimal }5}; the host refused it and retained its raw diagnostic. An overly restrictive unresolved-citation rule was corrected. Improved bounded decimal/date descriptions then pass both cases. Functional observations under development load are not performance claims.
+
+The final native packaged CLI imports/extracts an actual synthetic text receipt, interprets count `5` (8.802 s model request), prepares an exact stock draft and waits at stock 20. Explicit synthetic human review changes stock to25. The next continuation completes with an intentionally absent model directory. Reconstruction is inert and preserves the completed run and balance; both integrity checks pass. The first qualification script used the wrong extraction JSON key and stopped before inference; corrected independent v2 passes with no app code change.
+
+The unlocked Mac permits focused visible checks: completed values/draft warning/model/quote, source navigation, Command-Shift-Y, a fresh queued run staying inert until native Continue and the actual native count `5` result. Final build shows the missing quantity issue once. Earlier actual native Continue and final packaged CLI have separate captured runner identities. Full VoiceOver, narrow/light/dark and all media journeys are still unqualified.
+
+Hosted CI40800549659 is green for previous commit4020c6b. Current interpretation changes need a new exact-commit CI dispatch after push. Next expose interpretation definitions in conversation authoring/discovery without widening grammar/prompt gates, then implement qualified import/document steps and full receiving recovery. Richer graphs/general business outbox, E4-E6, contextual Excel continuity, broader voice/accessibility/hardware, performance/native adoption and notarized production release remain open. The whole app is not ready and the active goal remains unfinished.
+
+## Hosted native scroll check follow-up, October 28
+Hosted run40805445098 on710bdbe passes earlier stages, then fails the existing native document scroll observation (26/27). It expected a retained clip offset within10ms. Local runs previously passed. The [retained CI receipt](../../../integration/evidence/2026-10-28-native-scroll-ci.json.gz) preserves the failure and limits; it is not a whole-CI pass.
+
+The revised test waits for stable initial native geometry and then the actual observed value under a bounded deadline, compares restoration against the immutable initial position, and checks two successive scroll offsets. It never substitutes a synthetic notification or relaxes the value assertion. Timeout diagnostics retain requested/clip/saved positions and layout count. Local document checks pass27/0. An exact-commit hosted rerun is required before claiming this resolves the hosted failure. App behavior is unchanged. Explicit-interpretation710bdbe remains locally qualified; conversation authoring is a separate in-progress slice.
+
+## Native scroll reflow correction, October 28
+Hosted40806771272 for55b1595 still fails: requested scroll700 returns to400, so the initial timing-only test revision did not establish a fix. A local added reflow counterexample reproduces the observer defect. It retained the original caller position and did not always schedule restoration after native layout changed. The corrected observer retains the latest observed position, schedules from layout, and honors explicit new positions even when geometry is unchanged. Local document checks pass27/0, including two manual offsets, resize/reflow and deliberate navigation. The [reflow receipt](../../../integration/evidence/2026-10-28-native-scroll-reflow.json.gz) preserves the hosted failure, red/intermediate/green local results and all118 earlier artifacts byte-identically. A new exact-commit hosted run and final package remain to qualify. Conversation interpretation authoring is a separate active slice; whole-app readiness is not established.
+
+## Conversation interpretation authoring and truthful failure checkpoint, October 28
+Schema16 conversation discovery/save now includes interpretation, with one trusted workflow_template metadata tool. New in-app saves omit the edit base; edits provide its exact inspected version. No model-generated logical identity is accepted. Saving templates/interpretations creates no business Record, run or model execution. Final core260/0, scripted agent,62 actual grammars/526 exact reference masks,14-file strict formatting, skill validation, native release and installed resource/refusal/signature checks pass. The largest bare tool prompt is8178/8192; no context/reasoning/output ceiling increased. The [conversation interpretation receipt](../../../integration/evidence/2026-10-28-conversation-interpretations.json.gz) preserves identities, exact requests/messages and119 prior artifacts byte-identically.
+
+The final pinned native model authors Read received count, authors exactly bound Read delivery, and queues it in4/8/3 calls (59.506/79.938/35.055s). Independent saved-state checks confirm one pending run, no business Records, exact actual/actual interpretation metadata and inert reconstruction with integrity passing. The workflow job needed two corrected malformed saves. These are synthetic functional observations under development load, not throughput or general reliability qualification.
+
+V1-V3 failures remain retained, including a V3 false success after a refused save. Host outcomes now come from receipts even when the model relabels finish basis. Failed queueing cannot become a success claim. Cited facts and checked arithmetic remain independently validated with explicit action outcomes appended. Grammar/compaction failures during development led to smaller descriptions and a narrower presentation fix, not widened budgets. The final actual-model source/runner identity was captured before inference. No new visible/VoiceOver/appearance proof is claimed. Agent starts remain queue-only; explicit native/CLI Continue executes. Import/document steps and full E3/EJ06-EJ08 remain next.
+
+Final fullcore260 predates the last AI-only presentation refinement; final scripted agent/grammar/native release and actual-model checks cover that refinement. Unchanged explicit-interpretation process-death/full Metal/packaged CLI evidence is reused. A final extra malformed-edit-base test changes tests only. Hosted3d60b36 document reflow stage now passes; the complete run is still in progress. Current authoring changes require a new exact-commit CI after push.
+
+Next qualify document preparation/import workflow boundaries without nesting existing multi-transaction intake under a checkpoint. Preserve file bytes, exact extraction identity/coverage, asynchronous lock release and final lease-fenced publication. Full receiving recovery, richer graphs, general outbox, E4-E6, contextual Excel continuity, broad voice/accessibility/hardware and production adoption/distribution remain open. The active goal and whole app remain unfinished.
+
+## Included-document workflow preparation checkpoint, October 28
+Development schema17 adds a reusable extraction definition and exact extract workflow step for an already included business file. The bounded bundled native helper runs outside workbook locks, with before/after asset and helper identity checks. It captures exact input/parser/worker/budget/read revision first. Search index, immutable reference input/snapshot, step output, attempt, receipt and outbox publish in one captured transaction under the final lease/cancellation/index-owner fences. Partial, unsupported or truncated text pauses for attention. The original file remains outside SQLite inside the workbook. No model is loaded for preparation.
+
+The broad shared suite passes268 core groups and all integration stages. Final focused workflows37/0, native release build, installed-resource/refusal/signature checks, strict20-file formatting and skill validation pass. Product lifecycle checks demonstrate another writer proceeds while a real child parser waits; cancellation keeps the previous index. All13 actual SIGKILL boundaries pass, including preparation request, parsed output, inside index/checkpoint publication and after commit. Original and reconstructed copies verify, and reconstructed runs stay inert. The [document workflow receipt](../../../integration/evidence/2026-10-28-workflow-documents.json.gz) preserves exact identities, failures and all120 earlier immutable artifacts byte-identically.
+
+The final packaged native CLI includes a synthetic file, prepares it, interprets its exact retained extraction as count `5` and drafts an inventory movement, stopping at review with stock 20. Explicit synthetic human review changes stock to25. Post-review continuation completes with an intentionally absent model directory. Reconstruction preserves the completed run and25 balance; both packages verify. The first continuation takes18.543s under development load, not a performance/throughput claim. Source and binary identities were captured before inference.
+
+Preserved failures include optional-chain compilation, schema constant17/SQL16 mismatch, an incorrect expected authority error and strict closure formatting. SQL now derives user_version from the canonical version constant. No compatibility adapter or user-workbook reset is added. Broad V7 precedes a message-only wording change and style-only guard hoist; final V9 focused/native/package/model checks cover those. No latest visible, VoiceOver/appearance or new full Metal qualification is claimed. Preparation authoring is core/CLI only. Conversation authoring, structured row/Excel import, new report-creation workflow steps, richer graphs, full EJ06-EJ08, E4-E6 and production release gates remain open.
+
+Previous3d60b36 hosted CI40808719447 is fully green, including native document reflow. Authoring4de0dfe CI40811548594 is still building native products at this checkpoint; no current whole-CI pass is claimed. Dispatch a new exact-commit run after this push.
+
+Next qualify conversation preparation discovery/authoring and exact workflow templates within unchanged grammar/prompt budgets, then complete receiving recovery and report-creation/structured import boundaries. General business outbox effects, richer graphs, E4-E6, contextual Excel continuity, broad voice/accessibility/hardware, measured engine adoption and notarized release remain open. The active goal and whole app remain unfinished.
+
+## Conversation preparation checkpoint, October 28
+Conversation discovery/save now supports extraction. workflow_template makes an exact one-step extract workflow from the current saved behavior, and save_template revalidates this active request's successful receipt. Host-owned identities, stale edit checks and queued-only start semantics remain. Authoring/opening/reconstruction never parses a file or loads a model for preparation. Exact retained file text remains unchanged until explicit Continue.
+
+Fullcore271/0, focused workflows40/0, final scripted agent/compaction checks,63 actual grammars/534 pinned reference masks, strict7-file formatting, native release and installed-resource/refusal/signature checks pass. The maximum bare tool prompt is8183/8192 with no budget increase. A real SQLite full error during index publication preserves prior index/reference/revision; a competing SQLite writer does the same. Both accept exact retained-result retry afterward, with integrity passing. SQLite page-allocation exhaustion is scoped proof, not a whole-volume disk-full claim. The [conversation preparation receipt](../../../integration/evidence/2026-10-28-conversation-preparation.json.gz) preserves exact identities, failed probes and all121 prior immutable artifacts byte-identically.
+
+Final actual native-model V3 authors preparation, composes its exact workflow and queues it in5/4/4 calls (40.678/37.191/39.111s under development load). Independent metadata checks confirm native-v1, one required item parameter, exact extract binding, one pending queued run, no business Records and inert reconstruction with integrity passing. Its first job corrects two refused malformed saves. These are synthetic functional observations, not throughput or broad reliability qualification.
+
+V1 completed but required three refused saves, including parameter names supplied as lineage inputs. Authoring inputs now validate exact item-version UUIDs with actionable guidance; current request lineage is automatic. V2 authored the behavior but hit its step limit searching for built-in workflow starters as saved definitions. Nothing executed or created a business Record. Clarified tool descriptions and structured registry template guidance address that distinction. All failures remain retained. Fullcore271 precedes the final metadata-only guidance; final agent/grammar/reference/native/package/model checks cover it. The Mac remains locked, so no latest visible/VoiceOver/appearance proof is claimed. Unchanged13-boundary preparation recovery and packaged receiving/model evidence are reused. The whole app and full E3 remain unfinished.
+
+Hosted CI40811548594 for4de0dfe is fully green. Included-document3a2b25b CI40814006168 is still in progress at this checkpoint. Dispatch new exact-commit CI after this push. Next implement the registered document drafting contract in [[records/specs/manual-workflows]], sharing native action/form/workflow publication and generic review. Full receiving recovery, richer graphs/general effects, E4-E6, contextual Excel continuity, broad voice/accessibility/hardware and production engine/distribution gates remain open. The active goal is unfinished.
+
+## Registered document workflow checkpoint, October 28
+
+Schema 17 now supports registered records.draftDocument v1 through the same action plan, invocation Source, atomic proposal/checkpoint/receipt/outbox and exact review machinery as inventory. No schema migration or second document executor. Required title/body/evidence/meaning/scenario remain explicit; body is bounded new prose, not an original-copy fidelity claim. Actual drafts cannot promote mapped estimates/plans or a different scenario. Acceptance preserves meaning and report acceptance has no inventory effect. Native text form fields retain multiline prose; their preview exposes the proposed title/body and effect.
+
+Full shared scripts/check.sh V11 passes, including 278 core groups / 0 failures, native form ownership/recovery, 15 real process-death boundaries/116 worker calls and the remaining integration/lifecycle checks. Final scripted-agent and 63 actual grammars/534 reference masks pass within 8183/8192 tokens. Strict 13-file formatting, skill validation, frozen-source native release and packaged-resource/signature/refusal checks pass. Package checks are paths-only and do not claim new Metal or appearance qualification. The [registered document receipt](../../../integration/evidence/2026-10-28-registered-documents.json.gz) preserves all122 prior immutable evidence hashes, exact code/binary identities, diagnostics and the earlier refused fixture.
+
+The actual packaged Python-free Qwen/DFlash2 flow passes 37 independent CLI calls: include receipt, prepare exact retained text, interpret quantity 5 and cited summary, save actual stock draft plus separate estimate report, stop for report review, accept report while stock remains 20, stop for stock review, accept stock to 25, and finish without an installed model. Inert reconstruction preserves all six completed steps, exact proposal identities/lineage, meanings and accepted stock 25. The earlier form memo remains a separate draft. First Continue was 18.198s under concurrent checks, functional proof only.
+
+Direct registered document-action chat submission is deliberately closed pending independent draft-intent qualification. Conversation can author/queue the workflow and preview its action; native forms, CLI and explicit Continue execute it. The existing draft tool remains a separate prose surface. Inventory direction checks are unchanged. Quotes establish attribution and typed values, not truth of arbitrary report prose. Exact original passages use source-bound composition.
+
+Preserved failures and fixes include missing explicit test owner/nonexistent current-head property, an internal fixture helper, claim-revision comparison, an invalid hyphenated step ID refused before inference, a wrong test receipt-envelope path and a build invalidated by editing during compilation. Validation was not weakened. The final whole shared suite passes. The Mac still reports locked, so no latest visible/VoiceOver/appearance proof. Structured row/Excel workflow import, richer graphs, full receiving/abuse/recovery journeys, E4-E6 and production release gates remain open.
+
+## Structured intake workflow checkpoint, October 29
+
+Schema18 adds exact intake definitions and foreground intake workflow steps over the existing reviewed CSV/TSV planner. One required included-file item, exact dataset/schema, complete input mapping, explicit append/replace/merge, merge keys, header row and incoming-row meaning/scenario are retained. Saving definitions/forms or queueing a run changes no working rows. Continue parses using the isolated native helper outside all workbook locks, then publishes one table-intake-update proposal with its step checkpoint, approval, operation receipt, lineage and outbox in one captured transaction. No model is loaded for deterministic intake.
+
+The host-only opaque preparation prevents caller-supplied row plans. Request provenance retains original/hash, exact definition/mapping, parser/helper identity, bounds and actual read revision. The proposal retains all mapped rows, including unchanged matches, and source coordinates; the small step output references its exact proposal/digest plus counts. Target fingerprint/schema, original identity and final claim/cancellation fence are checked before publication. Unrelated journal/heartbeat writes remain valid. Exact committed retry needs neither re-parsing nor the original file to be available.
+
+Review requires the exact direct accepted successor, unchanged original plan, authentic decision actor and canonical acceptance-operation receipt. Table application adds only its validated row-result metadata. Document/movement equality remains strict. Changed, rejected, copied-looking or undone acceptance cannot satisfy the old review. Existing row meanings remain unchanged and new rows preserve the declared meaning/scenario. Row import creates no inventory or financial effects. All new state uses existing captured definitions/operations/Records/workflow families; schema reconstruction and imported copies remain inert.
+
+Full shared scripts/check.sh V8 passes 289 core groups / 0 failures, all native lifecycle/integration checks and 21 real process-death boundaries/189 worker calls. The 21 focused table/intake groups include actual SQLite BUSY/FULL, cancellation, stale target/schema/original, forged requests, full-input limits, append/replace/merge, exact retry, form recovery and unchanged stock. Async tests execute the real child helper behind a barrier while an independent workbook writer proceeds; cancellation refuses late publication. Strict formatting of 21 Swift files, skill validation, frozen-source V9 native release and V10 installed-resource/refusal/signature paths checks pass. No new Metal/performance qualification is claimed. Grammar remains 63 cases/534 masks at 8183/8192 tokens.
+
+The final actual packaged Python-free Qwen/DFlash2 job passes38 independent CLI calls: include TSV, prepare exact retained text, interpret the amount for code 0014 as 2 with an exact source quote, prepare merge counts 1 added/1 changed/1 unchanged, wait for table review, apply rows 7/5/2 with the new row still an estimate, draft a separate estimate report from the saved interpretation, review it and finish without a model installed for later steps. Stock remains 20 throughout. All six completed steps, exact proposal identities, row values/meanings and report survive inert reconstruction; original/copy integrity pass. The final prompt supplies no example of the expected amount. The earlier passing prompt-with-example run remains preserved, not reused as the final interpretation qualification. This single synthetic job does not establish broad semantic accuracy or throughput.
+
+The [final intake receipt](../../../integration/evidence/2026-10-29-workflow-intake-final.json.gz) preserves source/binary identities, the complete final model job, earlier evidence and the [initial intake receipt](../../../integration/evidence/2026-10-29-workflow-intake.json.gz). All123 preceding committed artifacts remain byte-identical. Diagnostics preserve the throwing-expression compiler error, incorrect test API, build invalidated by in-flight edits and low-level completed-review retry fixture; the corrected fixture uses the app/CLI Continue path without weakening business-state checks.
+
+Conversation intake authoring stays closed pending its own exact-target/mapping/intent and prompt-budget qualification. The Mac still reports locked; latest visible Activity/review, VoiceOver, narrow and appearance checks remain unverified. CSV/TSV bounds remain 1000 incoming rows, 10000 target rows, 16 MB target content and 8 MB mapped values, refusing whole inputs at a limit. Full XLSX continuity, product matching/unresolved-input journeys, richer graphs, external effects, full EJ06-EJ08, E4-E6 and production release gates remain open. The app and active goal remain unfinished.
+
+## Conversation intake checkpoint, October 29
+
+The existing conversation tools now discover/save exact intake definitions and compose their reviewed workflow template. No new tool or schema family. The authoring request supplies the exact existing dataset/schema, complete position mapping, explicit header/mode/keys and incoming-row meaning/scenario. workflow_template copies exact typed parameters and adds mandatory review. Current-request lineage, exact edit bases, operation tokens and inert queue semantics remain shared with other definitions. No file is parsed, rows applied or business Record accepted while saving behavior or queueing.
+
+Focused core checks pass 53 groups / 0 failures, including two new authoring/template/lineage/atomic-refusal groups. Final scripted agent/compaction checks and 64 actual-tool grammars/542 pinned reference masks pass, with maximum bare prompt 8171/8192. Final strict 11-file Swift lint, skill validation, frozen-source V11 native build and V12 installed resource/signature/refusal checks pass. The packaged deterministic CSV/TSV continuation/review/reconstruction check also passes. The previous full 289-core/21-process-death-boundary/189-worker-call proof is reused for unchanged schema18 execution, not presented as rerun for this metadata/tool-policy slice. No reasoning/output/context budget is widened and no new Metal/performance qualification is claimed.
+
+The final actual native-model V3 authors the mapping, composes its exact reviewed workflow, queues the included CSV and asks for missing choices in 7/4/4/4 calls (64.843/37.906/33.361/24.589 seconds under development load). Independent state checks confirm exact column mapping/merge keys, estimate/actual semantics for new rows, one pending queued run, unchanged existing rows/stock/extraction, no new business Records and inert reconstructed integrity. Explicit clarification uses read-only tools only. Refused/corrected authoring or queue attempts remain in the saved trace; this is scoped functional proof, not broad semantic accuracy or throughput.
+
+V1 tried unrequested writes during clarification; the core refused and preserved data. Recognized complete current-request no-save/ask-before-save sentences now select read-only native sampling while the independent core denial still protects custom inference adapters. V2 offered no writes but looped on unrelated read tools and stopped with repeated_action. V3 delivers questions through finish/general after three reads, including one refused irrelevant template lookup. The read-tool loop is resolved in this case; unnecessary lookup/correction remains visible and is not a claim of optimal interaction. The failing-workbook snapshot was corrected; the V2 saved-state audit preserves the real failure. An intermediate scope-fixture mismatch and a deliberately stopped overlapping native build are retained. The final native build ran serially after inference.
+
+The [conversation intake receipt](../../../integration/evidence/2026-10-29-conversation-intake.json.gz) preserves final source/binary identities, exact model requests/messages/results and earlier failures, with all 125 preceding artifacts byte-identical. Explicit read-only recognition remains a narrow additional denial rule, not a comprehensive intent classifier. Missing mapping/mode/semantics still require clarification; filenames and imported instructions cannot supply authority. The user explicitly withheld saving in the tested missing-intent case.
+
+Full XLSX continuity, receiving product matching/unresolved-input recovery, richer workflow graphs, full EJ06-EJ08, E4-E6 and production release gates remain open. The UI tool still reports the Mac locked, so latest visible Activity/review, VoiceOver, narrow layouts and appearance remain unverified. The whole app and active goal remain unfinished.
+
+## Exact catalog lookup checkpoint, October 29
+
+Workflow evaluate steps now expose selected scalar query fields to later typed steps through {step,field,unit?}. Exact single-table, ungrouped, complete one-row matches qualify. Save-time validation checks output field/type/unit; runtime validation checks row count, nonempty values and every consumer constraint before completing the query. Zero/multiple/paged/empty matches cannot silently choose a product. Generic queries without scalar consumers retain multirow behavior. No schema change, new model tool, independent ledger or second inventory-effect implementation.
+
+A failed lookup leaves the run needing attention and no query checkpoint or downstream draft. Repairing the catalog and explicitly retrying that same unfinished step rereads current catalog data while completed preparation/model steps stay fixed. Completed lookups retain their exact selected row versions, query definition, snapshot and bounded input population even after catalog edits. Transitive scalar calculations retain those inputs in action lineage; mapped estimates/plans/other scenarios cannot become actual stock.
+
+Final focused workflows pass 59 groups / 0 failures, including six new lookup groups: exact match/review/reconstruction after a later catalog edit; publication fault/cancellation/unchanged history/exact retry; missing/duplicate/paged matches with catalog repair; semantic laundering through a function; null/empty refusal and false/zero preservation; invalid fields/types and join/aggregate identities. Existing shared lease, disk-busy/full and process-death proof remains unchanged and is reused, not claimed as a full rerun. Scripted agent/compaction checks and 64 actual-tool grammars/542 exact masks pass within 8171/8192 prompt tokens. Strict seven-file Swift lint, isolated skill validation, frozen native V7 build and installed-resource/missing/altered/signature checks pass. Packaging checks were paths-only, without new Metal/performance adoption evidence.
+
+The independent packaged deterministic job passes 32 calls. The actual packaged local-model job passes 39 calls and all seven preparation/interpretation/match/stock/review/report/review steps. It reads supplier code `0007` and quantity `5` from the exact included delivery, with no expected code/count in its interpretation instruction. The missing catalog match first pauses after 19.754 seconds including preparation/inference. Explicit catalog repair resumes with an absent model directory and byte-identical completed preparation/interpretation outputs. Stock stays 20 before review, becomes 25 after exactly retried acceptance, and stays 25 through separately accepted estimate reporting. Completed retry is stable; original and inert reconstructed copy pass integrity. This is one synthetic functional job, not broad accuracy or controlled throughput evidence.
+
+Evidence: [workflow lookup receipt](../../../integration/evidence/2026-10-29-workflow-lookup.json.gz),98,959 bytes, SHA-256 ac5595caba2397be5d6692dfa7c41c4a6f94e09c76a8634794cdf5e732bf9fce. It retains before-inference source/product/runtime identities, pins, exact CLI replies, saved interpretation/queries/lineage/results, test logs and failures. All 126 prior artifacts remain byte-identical. V1 synthetic catalog edits mistakenly replaced full row data with partial values, causing two test failures; fixtures now merge original full values, preserving core validation. Global Python lacked PyYAML for skill validation; isolated uv/PyYAML passes without global changes. The first evidence count used only direct files; recursive verification proves all 126 prior files unchanged.
+
+This qualifies exact catalog lookup and catalog-repair recovery only. Fuzzy matching, inline human-answer steps, richer graph conditions/iteration/subworkflows, full EJ06-EJ08 failure/abuse journeys, E4-E6 and full Excel continuity remain open. Latest Activity/review, VoiceOver, narrow/appearance checks remain unverified because the native UI tool still reports locked, despite the owner's ready replies. No repeated unlock request was sent. Supported physical hardware, production engine/performance adoption and production signing/notarization/distribution remain unqualified. The whole app and active goal remain unfinished.
+
+## Supplied clarification checkpoint, October 29
+
+An explicit paused needs_input interpretation can now receive its declared output values and explanation against an exact read-only clarification target. Shared core/CLI preserve the original model request/response/Record, append a distinct submission Source and draft clarification Record, and atomically complete only that step with its receipt/event/outbox. Later continuation and business acceptance remain separate. Required typed fields, original item-evidence scope, meaning and scenario remain fixed. Source attribution establishes who supplied a claim, not its truth. CLI attribution is programmatic; AI submission remains closed. Native Activity displays the saved source, actor and values, but persistent native input/conversation submission are not yet qualified.
+
+Four added focused groups cover supplied values/calculation/review/inert reconstruction/exact retry; missing/wrong/extra/forged/stale/read-only/AI/foreign submissions; fault and cancellation rollback; and estimate laundering refusal. Final focused workflow suite passes63 groups/0. The independent deterministic CLI job passes101 calls including two SIGKILL boundaries before and after clarification publication. Prepared death leaves no partial submission; committed death reopens one exact submission/receipt without any inventory acceptance. Inert copies and same-token retries remain stable. Earlier unchanged shared recovery evidence is reused, not claimed as a fresh full matrix.
+
+Actual native model V1 returned needs_input with quantity0 for missing evidence. Core refused it without a completed interpretation or business effect. State-dependent ready/needs_input schemas now require no unresolved values and a nonempty issue list, while ready results retain required typed fields. V2 exposed a native tool-policy mismatch before inference: direct JSON grammar checks had not covered the tool adapter. The shared native adapter now wraps one typed result object so native masks and terminal validation enforce the same bounded nested alternatives. Root tool unions, malformed alternatives, unsupported references and incompatible response types refuse. Three valid and four invalid shapes pass with reasoning both off/on, including valid zero/false and refusal of missing-count-plus-zero. No prompt/output/reasoning budget was increased. Scripted agent checks,64 tool grammars and542 exact reference masks pass at8171/8192 for the existing full tool prompt.
+
+The final packaged deterministic job passes27 calls. Actual native V3 passes27 calls: the original response is needs_input with empty values and the exact missing-count quotation, pausing after13.803 seconds including inference. Explicit synthetic programmatic clarification supplies5; absent-model continuation reuses the saved original, stock stays20 until review, then becomes25 exactly once. The nearby known-count receiving/catalog-repair/report job passes39 calls and all seven steps after15.656 seconds for preparation/inference. These are synthetic functional checks, not broad accuracy or controlled throughput evidence.
+
+Strict14-file Swift lint, isolated skill validation, final frozen native build and installed-resource/refusal/altered-resource/ad-hoc-signature paths checks pass. A final lint-only block comment correction is qualified separately and preserves the actual-model functional source. Evidence retains the failed model/schema attempts, a test compile error corrected to use the public parser, and a fixture property-order correction matching native required-first JSON order. No core validation was relaxed.
+
+Evidence: [clarification functional receipt](../../../integration/evidence/2026-10-29-workflow-clarification.json.gz),165149bytes, SHA-256 e9ef4d2dabd211c17e45e5993d66135e85f007fee8fa7fdbe98a95d6f5f5ac9a; [final lint/package qualification](../../../integration/evidence/2026-10-29-workflow-clarification-qualification.json.gz). All127 prior evidence artifacts remain byte-identical; the functional receipt also retains the initial lint failure, and the final qualification records its comment-only repair and exact product identities.
+
+Next implement persistent native inputs with original-versus-supplied provenance, stale-target retention, conflict handling and explicit human submission. Conversation clarification, full EJ06-EJ08, richer conditions/iteration/subworkflows, E4-E6 and contextual Excel continuity remain open. Latest visible Activity/review, VoiceOver, narrow/light/dark, supported physical hardware, production engine/performance and signing/notarization/distribution remain unqualified. The UI tool still reports locked despite owner-ready replies; no repeated unlock question was sent. Whole app and goal remain unfinished.
+
+## Native clarification checkpoint, October 29
+
+Native Activity now renders exact missing-information fields, original issues, meaning/scenario, scoped evidence choices, explanation and a normalized preview. Deliberate submission uses the native human actor and completes only the paused interpretation. Continuing the run and reviewing business effects remain separate. Original model output is retained. Conversation/voice submission is still closed.
+
+Portable presentation drafts retain incomplete text and invalid numbers, exact historical target/retry identity and eight alternatives. Compare-and-save refuses silent cross-window replacement. Keep-both separates older unsent values from newer submitted values even when they once shared a retry identity. Historical publication identity keeps stale targets readable; using a current request explicitly retains the prior alternative. A failed persistent SQLite write retains memory and blocks workbook switch/close/quit abandonment. Reopening after business commit but before presentation acknowledgement recovers the exact durable receipt without another submission. This gap is simulated headlessly, not a new process-death claim.
+
+Receipts in presentation metadata contain six bounded identity fields rather than copying an entire workflow run. At the 128-run cache bound, only a checkpoint whose every answer has an exact canonical submission receipt may be pruned. Unsent alternatives are never pruned; canonical Sources, Records, receipts and history remain retained. Reconstruction copies and validates presentation state separately from authoritative business state.
+
+Final frozen V9 qualification passes302 core groups/0 failures, all headless native preview checks, strict14-file Swift lint, native app/CLI build, installed-resource/refusal/alteration/ad-hoc-signature checks and27 packaged deterministic calls. Earlier64 focused workflow groups pass. The V8 build overlapped edits and is explicitly unqualified; V9 recompiled all changed targets sequentially from hashed frozen sources. Earlier compile failures, the cross-window counterexample and repairs remain in evidence. All129 prior evidence artifacts remain byte-identical. Prior unchanged actual27/39-call jobs and two SIGKILL publication boundaries are reused, not rerun.
+
+Evidence: [native clarification receipt](../../../integration/evidence/2026-10-29-native-workflow-clarification.json.gz),57700bytes, SHA-256 95f786f7c5397bd642ce1af32c2c28de58037101ac747e7624ccf6d9223314cd. Latest visible Activity/editor/review, keyboard, VoiceOver and narrow/light/dark checks remain unverified because the native UI tool reports locked. No repeated unlock question. Supported physical hardware, controlled performance, production signing/notarization and release gates remain open. Next connect explicit supplied information to the main conversation with exact current-request intent/provenance, then complete richer E3 journeys and E4-E6. The whole app is unfinished.
+
+## Conversation answer preparation checkpoint, October 29
+
+The main conversation can now prepare unsent typed answers after reading an exact paused workflow in the same request. A small contextual tool scope keeps preparation out of the ordinary full prompt. The core validates active request ownership, exact read receipt/hash/target, complete declared values and byte-exact quotations from the current submitted message. Decimal5.00 normalizes to5 before persistence. Read-only/cancelled/stale/foreign/forged requests and fabricated quotations refuse. Existing nonempty native values or alternatives cannot be silently replaced.
+
+Preparation remains presentation state. It preserves original prepared values/quotations separately when a human edits them. Native preview and human submission retain both original model evidence and the exact current request in lineage; continuation and business acceptance remain separate. Canonical rollback, exact retry and inert reconstruction reuse existing persistence. Native session reload sees the prepared answer after flushing local edits.
+
+Final frozen V6 passes65 focused workflow groups/0, scripted agent and headless native preview checks, strict15-file Swift lint, native app/CLI build, installed-resource/refusal/alteration and ad-hoc signature checks. V5 native grammar proof is reused with matching grammar/descriptor/scope hashes: contextual prompt3487/8192; existing64 grammars/542 masks and8171/8192 bare full prompt remain unchanged. Prior302-group full core and two SIGKILL clarification boundaries are reused, not new full303-group or process-death proof. Earlier compile, compaction-fixture and grammar-fixture failures and their fixes remain retained.
+
+The actual packaged local model passes30 CLI calls across two synthetic cases: prepare count5 from an exact current-message quotation while leaving the original workflow paused and stock20; read-only missing-information inquiry saves no answer. Both inert copies verify. The paused interpretation itself is a disclosed synthetic fixture, not a fresh model-interpretation qualification. The model's reason and read-only prose called the waiting step failed; saved state is correct, but this wording needs repair. This is functional evidence, not broad accuracy or throughput proof.
+
+Evidence: [conversation answer receipt](../../../integration/evidence/2026-10-29-conversation-workflow-answer.json.gz),43125bytes, SHA-256 95a67530ff30a80da135c1fb55b7984e17f8dda88ca2bb8f0f5fc60d1bc1f506. All130 preceding evidence artifacts remain byte-identical. Native post-reload focus still needs an after-suspension cancellation/conversation guard. Voice/text confirmation remains open: this slice prepares inputs only. Latest visible/keyboard/VoiceOver/appearance checks remain unverified because the native UI tool reports locked. Richer E3/full journeys, E4-E6, Excel continuity, supported hardware, production engine/performance and signing/notarization/distribution remain open. The app and active goal are unfinished.
+
+## Conversation confirmation checkpoint, October 29
+
+The native composer now recognizes standalone Preview my answer and Save my answer / Confirm my answer without loading the model. Typed and dictated text use the same parser. A host preview shows all declared typed values, exact document links, explanation, meaning/scenario and the separate continuation/review consequence. Bare yes, quoted/negated/hypothetical/compound phrases cannot submit. Inputs remain unsent until this explicit confirmation or the optional native button.
+
+A nonserializable live capability belongs to the workbook instance and current window/session/conversation/answer. Edits, navigation, another message, thread change, keep-both and cancellation invalidate or independently refuse it. The exact user confirmation must immediately follow the exact host preview in that conversation. Current saved typed inputs, target/hash, message adjacency and cancellation are rechecked in the canonical transaction. Confirmation bytes/message/conversation/preview identities are retained in the supplied Source, separately from earlier AI preparation. No AI submission tool, new canonical family or physical schema. Receipt recovery reads existing operations; reopening and inert copies never restore confirmation authority. Native submit now takes the post-flush entry, and focus rechecks cancellation/conversation changes after awaiting reload.
+
+Final frozen V3 passes66 focused workflow groups/0, all headless native preview checks including exact item-link rendering and live-authority invalidation, strict10-file Swift lint, native app/CLI build, installed-resource/refusal/alteration and ad-hoc signature checks. V2 passes scripted agent checks,27 packaged deterministic calls and30 actual packaged-model calls across preparation/read-only cases. After V2 inference finished, V3 changed only exact item-link display and explicit keep-both invalidation, plus the display assertion; reconstructed V2 production bytes match retained hashes. Final V3 core/preview/native/package checks cover those deltas. Actual model/tool/preparation code stayed unchanged, so the V2 actual proof is reused. Existing grammar/prompt budgets, full302-group core and two SIGKILL clarification boundaries are reused; this is not a fresh full304-group or crash matrix.
+
+The model's preparation reason now says paused, and the read-only answer describes needs_input/pending steps without saying failed. Both original runs remain unchanged at stock20. This fixes the observed wording in these two synthetic cases, not broad model accuracy. Core counterexamples cover wrong conversation/instance/inert copy, quoted/negated/yes, intervening messages, changed inputs, cancellation at publication, SQLite outbox rollback, exact receipt recovery and inert integrity. V1's nonexistent test Database.exec call was corrected to execute; retained diagnostics remain visible.
+
+Evidence: [conversation confirmation receipt](../../../integration/evidence/2026-10-29-conversation-answer-confirmation.json.gz),62533bytes, SHA-256 300010004b9e78646e09623b937887b9614fcab93b1cf24ba369034a294b85c5. All131 previous evidence artifacts remain byte-identical. Exact5fe51e1 hosted CI completed successfully; later exact commits are dispatched separately. Actual native text/dictation/VoiceOver and light/dark/narrow checks remain unverified because the native UI tool still reports locked. Full E3 receiving/failure/abuse journeys and richer graphs, E4-E6, Excel continuity, supported hardware, production engine/performance, signing/notarization and distribution remain open. The app and active goal are unfinished.
+
+## Cross-run receiving qualification, October 29
+
+A focused cross-run receiving journey now proves the explicit EJ06/E20 occurrence boundary: stock20 becomes26 after review, stays26 when a new Source/run repeats the same fulfillment, and becomes32 only after a separate Source and genuine independent occurrence is reviewed. Cancelling the first run after acceptance preserves its completed prefix and accepted effect. Inert reconstruction retains cancelled, needs_attention and completed run outcomes and stock32. The duplicate refusal does not erase the new supporting Source. This does not infer business occurrence identity from file similarity; explicit domain identity remains required.
+
+Final test-only V2 passes67 focused workflow groups/0 and strict one-file Swift lint. V1 incorrectly counted historical effect rows as live effects; V2 checks the accepted balance projection. Production source/validation is unchanged; final native/session/model/package proof from the conversation-confirmation checkpoint is reused. No new model, native build or process-death matrix. Evidence: [receiving occurrence receipt](../../../integration/evidence/2026-10-29-receiving-occurrences.json.gz), SHA-256 8c57759fe9bb5fab23d6060238ebef322f79c5c1c2530acf333df7129842b901. All132 prior evidence artifacts remain byte-identical. Full E3/richer graphs, E4-E6, Excel continuity and visible/release gates remain open.
+
+## Native calendar preview checkpoint, October 29
+
+The pure Swift native-calendar-v1 planner and schedule-preview CLI now validate exact daily/weekly/monthly/yearly rules, named zones, ISO weekdays, explicit last-day and leap-day behavior. They return strict-after UTC instants, local date slot keys, requested/actual wall time, shifted flags, count-versus-horizon status and the exclusive scanned-day boundary. Limits are100 occurrences,3660 local days,48 hours per resolved day and64 KiB explicitly selected JSON input. Cancellation/deadline checks apply during day and within-day work. No workbook opens, saved activation, schema, model tool, workflow or business effect.
+
+The first implementation passed10 groups and failed the Lord Howe half-hour gap: a retained direct Foundation probe skips the date instead of shifting02:15 to02:30. Bounded chronological resolution now uses local components/day boundaries, with second refinement across the target or offset changes. This also handles first-only folds, midnight gaps and historic subminute offsets. Whole-date47-hour repeats choose the first slot. A zero-length Foundation day interval refuses with schedule_date rather than looping or inventing coverage; historical preview support remains subject to valid native boundaries.
+
+Final V3 passes13 focused calendar groups/0 and strict5-file Swift lint. Frozen V2 production builds the native app/CLI, passes31 installed CLI calls including invalid inputs, oversized UTF-8/file/pipe refusals and a100-occurrence request, plus installed-resource checks with build reads denied,10 missing-resource refusals, altered-resource refusal and ad-hoc signature. V3 adds only two related historical boundary counterexamples in one test group; production bytes match V2, so its package/CLI proof is reused. New checks join the ordinary shared suite and both installed CLI CI paths. Exact457576c prior CI is green; this checkpoint needs its own hosted run. No new inference, full shared-suite or crash matrix for this nonpersistent boundary.
+
+Evidence: [calendar preview receipt](../../../integration/evidence/2026-10-29-calendar-previews.json.gz),27229bytes, SHA-256 e608825e2adedb6d11795bdd26e77997411e2e012b89bd5f47bf7768248b7eb2. All133 previous evidence artifacts remain byte-identical. No inference throughput/accuracy or release claim. The latest native inventory again has no apps and reports locked; visible confirmation/Activity/VoiceOver/dictation/appearance remain unverified. Durable activation and version/occurrence identities, catch-up/overlap, dispatch, event/condition triggers and E5 background/resource work remain open. This is the first E4 planning slice, not an operational scheduler. Full E3/richer graphs, Excel continuity, hardware/performance and production distribution remain open. The whole app and active goal remain unfinished.
+
+## Inert automation definition checkpoint, October 29
+
+Schema19 adds automation to the existing app_definitions kind constraint, using the same immutable versions/heads, exact workflow dependency, authoring Source/actor, FTS and committed-change capture/apply. No new canonical family or parallel history. Payload policy calendar-drafts-v1 accepts exactly an exact workflow binding, fixed typed arguments and native calendar schedule, with empty definition parameters. Typed values normalize for preview while original submitted content remains unchanged. Exact item arguments, including nested entries, become Source lineage; at most256 distinct argument versions. Invalid or enabled/ambient payloads refuse atomically. No compatibility adapter or reset of existing/user files; recreate selected synthetic fixtures under the adopted pre-1.0 policy.
+
+The shared definition save/read/search/history/restore CLI and new automation-preview expose inert intent. Preview pins exact automation/workflow versions and returns normalized arguments, inert/disabled status and bounded calendar outcomes without changing revisions, Sources/Records, operations, runs or events. Later workflow heads cannot silently retarget it. The ordinary agent can inspect metadata but save_definition explicitly still refuses automation and start_workflow refuses it as a target. It is also invalid as a function, form target or workflow step. No new model tool or prompt/grammar expansion.
+
+Final frozen V2 passes all326 core groups/0, including8 focused automation groups and13 calendar groups, and strict10-file Swift lint. The schema boundary justified a fresh full core run. Core cases cover exact nested evidence/dependency lineage, stale edit and retry-content refusal, original versus normalized values, pinned history/restore, invalid targets, live bindings, typed-input/activation-field refusals, publication rollback, cancellation, agent boundary, corrupted dependency/lineage and inert reconstruction. Initial V1 seven groups pass; V2 adds the agent boundary. No hidden failing variant.
+
+Final native app/CLI build passes36 independent-process automation CLI calls plus31 installed calendar calls, including version edits, no-mutation previews, exact lineage, FTS search, refused execution and inert copied history. Installed-resource checks with build reads denied,10 missing-resource and altered-resource refusals, and ad-hoc signature pass. Both installed CI products and scripts/check.sh include the new job. Exact9d0f15c previous CI is fully green; latest commits are dispatched separately. Existing inference/grammar/engine proof remains scoped to its unchanged paths and prior schema; this slice does not claim a new inference, whole crash matrix, UI or engine/performance qualification.
+
+Evidence: [inert automation definition receipt](../../../integration/evidence/2026-10-29-automation-definitions.json.gz),52306bytes, SHA-256 b837e7b50ef0cae81fc0e246f5f963889e4fc61d37e49d7b0a11539f74e37ed7. All134 preceding evidence artifacts remain byte-identical. The latest native inventory still reports locked, so Activity/conversation/dictation/VoiceOver/narrow/appearance remain unverified. Explicit enable/edit/pause/resume and device-local authority, durable triggers/occurrences/cursors, catch-up/overlap, foreground dispatch, event/condition triggers and E5 helper/resource work remain open. Full E3/richer graphs, Excel continuity, supported hardware/performance and production distribution remain open. The app and active goal are unfinished.
+
+## Durable calendar preparation checkpoint, October 29
+
+Schema20 adds automation_activations, automation_occurrences and automation_outbox to the same complete captured-change family. One activation per logical automation pins an exact definition and monotonically increasing authorization generation. Each authorization/pause and each original occurrence/latest decision has Source/actor evidence. Cursor and observed catch-up high-water values equal their exact retained coverage Source; partial catch-up cannot be cleared by moving the clock backward. New tables have foreign keys, unique slot and single-pending constraints, bounded indexed queries and transactional outbox publication. No separate history ledger, development migration or user-file reset.
+
+A nonserializable AutomationPlanningSession is bound to this Workbook object and authorization generation. Explicit authorization issues it; opening, copying, reconstructing or reading an armed row does not. Pause and reauthorization revoke earlier capabilities. Old authorization/pause receipts cannot revive or misreport superseded intent. Initial/resumed/edited authorization starts strictly after the requested instant and preserves prior high-water coverage. This is process-local planning permission only. Persistent device-local registration and useful automatic foreground execution remain required later work; this is not a final UX that repeatedly prompts for routine runs.
+
+Preparation computes calendar pages outside the write transaction, then fences publication against the exact generation, authorization Source, coverage Source, cursor and observed target. Pages are at most100 slots/3660 civil days, with one pending draft request. Older slots retain coalesced, late, paused or authorization_changed reasons; lateness is greater than24 hours, so the24-hour boundary remains eligible. No business action/effect is accepted and no workflow run is created. Future business-event triggers must preserve distinct business occurrences. Slot identity and domain fulfillment/effect identity remain separate. A full count page advances only through its last returned slot; a horizon page stops one millisecond before its exclusive next-day boundary. Backwards clocks preserve the unfinished observed target.
+
+Final focused checks pass17 groups/0, including exact authority, due/strict-after times, bounded backlog/horizon/midnight, folds, coalescing/late reasons, stale/idempotent decisions, reopen/copy authority, high-water rollback, source integrity, publication fault/cancellation, concurrent planning, pagination and inert reconstruction. Frozen V4 passes all343 core groups/0 for the new durable schema. V5 adds only read-only activation listing and related tests over that core, then passes all17 focused groups; the broader V4 proof is reused. V6 changes only CLI pause attribution and its installed assertion, recording the actual programmatic caller rather than inferring a human. Core/tests are byte-identical to V5.
+
+The final native app/CLI build passes33 independent-process preparation CLI cases for discovery, bounded state/occurrence/outbox reads, pause/retry/stale refusal, original caller attribution, no mutation during reads and inert reconstruction. The unchanged36 inert-definition and31 calendar installed CLI regression cases are reused from frozen V4. Final installed-resource checks with build reads denied,10 missing-resource and altered-resource refusals, and ad-hoc signature pass. Strict10-file Swift lint passes. The new checks join scripts/check.sh and both installed CI product paths. No engine, model prompt/grammar or workflow UI change, new inference, full SIGKILL matrix, native visible/accessibility/voice, physical hardware/performance or release claim.
+
+The first focused version passes13 and fails one midnight integrity check: its one-day bounded lookback inspects the previous civil day and incorrectly rejects an already retained midnight slot. Two-day bounded verification fixes it. Later passes add observed high-water and exact coverage evidence. Failed and passing outputs remain preserved. Current prior hosted CI for7bb076b is green;42870ed was still running when evidence was recorded. This checkpoint needs its own exact hosted run.
+
+Evidence: [automation preparation receipt](../../../integration/evidence/2026-10-29-automation-planning.json.gz),62555bytes, SHA-256 5f070252ec18a980acb93b7f872cf0e698b821da74a3f0e3dca9db22dba4d0d9. All135 previous evidence artifacts remain byte-identical. The latest native inventory still has no apps and reports locked. Actual workflow dispatch, persistent device grants, native scheduling controls, event/condition triggers, E5/background/resources and full E4 remain open. Full E3/richer graphs/EJ recovery and abuse, Excel continuity, supported hardware and production distribution also remain open. The app and active goal remain unfinished.
+
+## Foreground automation execution checkpoint, October 29
+
+Schema21 adds automation_runs to the existing complete capture/apply family, plus activation active-run reservation, dispatched occurrence state, scheduled workflow policy and each worker attempt's authorization Source. Dispatch Source, invocation/steps/outbox, exact occurrence binding, decision and overlap reservation commit atomically. No second ledger, compatibility adapter, user-file reset, timer or persistent device grant.
+
+AutomationExecutionSession is a distinct current-process grant over the exact automation/workflow/arguments. Planning permission cannot be relabeled. AI defaults false and an interpretation workflow requires explicit allowance before grant creation. The coordinator rechecks before model acquisition, before beginRun and at request/publication. Same-version reauthorization explicitly resumes an active run; changed versions require finishing or Stop. One nonterminal run, including review/attention, prevents overlap. Completed/cancelled permits the next slot. Dispatch waits for complete catch-up, defers a future slot after clock rollback and rechecks lateness over24 hours. Exactly24 hours remains eligible.
+
+Pause/reauthorization releases only claims under the superseded automation Source and returns their unfinished work to queued state. Old workers cannot publish; a new explicit grant can immediately resume the same run. Independent manual continuation records a separate workflow_authorization Source and retains its lease across automation pause. Different explicit manual CLI operations can operate the same manual claim; they cannot steal an automation claim. Stop needs no execution grant. Original scheduled invocation policy/origin never becomes manual. Native run copy distinguishes scheduled work and native Continue/Stop retain human attribution; visible interaction is unverified.
+
+All automation authorization/planning/dispatch and manual-operation Sources are technical metadata, excluded from business evidence/search. Bounded workflow inspection exposes original invocation and latest claim authorization metadata. This corrects the previously incomplete technical-kind set without promoting execution history into business facts. Inventory proposals remain drafts until separate exact review; calendar/run identity never replaces domain fulfillment identity. Reconstructed/exported copies preserve state and provenance without acquiring permission.
+
+Final frozen V5 passes359 full core groups/0 and16 focused execution groups/0, product lifecycle checks including revocation before acquisition/before lease/during inference, and two actual SIGKILL dispatch boundaries/16 worker calls. Independent installed native CLI checks pass44 execution,33 preparation,36 inert-definition and31 calendar calls. Final native app/CLI build, resource reads with build-tree access denied,10 missing-resource refusals, altered-resource refusal and ad-hoc signature pass. Strict25-file Swift lint and repository skill validation pass. The new checks join scripts/check.sh and both packaged CI paths.
+
+Retained iterations: V1 has12 focused passes/two incorrect test expectations (calculation result field and revision-inclusive Stop counts). V2 passes15 focused/all358 core; its product fixture reuses an earlier reconstruction destination, corrected to mode-specific paths. The first crash probe wrongly changes expected generation while reusing a token; product correctly refuses idempotency. V4 uses the original receipt arguments and passes two death boundaries. Its installed probe attempts a business read of an invocation and is correctly refused. V5 adds bounded execution-provenance inspection, complete technical Source isolation and scheduled native wording, then passes the final checks. System Python lacks PyYAML for skill validation; the existing isolated development validator environment passes without changing installed runtime dependencies. No failed evidence is erased.
+
+Evidence: [foreground execution receipt](../../../integration/evidence/2026-10-29-automation-execution.json.gz),162582bytes, SHA-256 2cd644b06181c17fa43590ea792983c40d4fb6827bb82de60b4802e36cbab44b. All136 earlier artifacts remain byte-identical. No actual-model inference, prompt/grammar/tool-budget change, new engine speed/accuracy/hardware proof, full manual-workflow crash-matrix rerun or release claim. Prior actual-model proof keeps its original scope. Exact42870ed hosted CI is green;817a937 remains running in this receipt. This checkpoint needs its own exact hosted run.
+
+The native UI inventory again reports no apps and a locked Mac, so final native answer/Activity/voice/appearance/accessibility checks remain open. Native timer/configuration, persistent device-local physical-copy registration, wake/privacy/resource lifecycle, event/condition triggers and E5/E6 remain required. Full E3/richer graphs/EJ recovery and abuse, contextual/Excel continuity, supported physical hardware/performance and production signing/notarization/distribution remain open. The app and active goal remain unfinished.
+
+## Native automation owner checkpoint, October 29
+
+Schema21 is unchanged. Activity now links Schedules, searchable saved definitions, native typed workflow inputs, calendar preview, inert create/edit, exact-version Enable on this Mac, pause/removal, separately attributed manual Run once and saved-run inspection. Editing returns to the new immutable version. Device badges require the current definition, generation, authorization Source, AI policy, armed state and both physical identities to match. Manual Run once rechecks original workbook and interaction ownership before continuation. Voice/conversation authoring and actual visible interaction remain unqualified.
+
+SevraAutomationUI owns a private bounded registry and the shared native controller. The registry binds at most 32 explicit grants to workbook UUID, package/database device/inode/birth identifiers encoded losslessly, passive bookmark and exact saved authority. It uses private modes, no-follow reads, bounded JSON, a dedicated cross-process lock, exact-entry compare-and-remove and durable atomic replacement. Corrupt bytes stay preserved. Copies, reconstructed packages, same-path package/database replacement, symlink aliases and superseded generations cannot borrow permission. A rename works only when bookmark resolution returns the original physical objects; refusing a replacement is preferable to searching disks. No registry data enters the workbook, schema or business ledger.
+
+Restoration creates a new process capability without a new authorization Source or generation. Its live fence checks private entry, physical identity and cancellation at authority use and publication. Claim, heartbeat, failure/retry/cancel, interpretation request/response and workflow completion check this fence inside their commit guard. Removing a grant during the actual prepared checkpoint rolls publication back. Pause removes this Mac's exact entry before quiescing and attempting workbook pause; stale removal cannot erase or pause a newer independent grant. A failure after registry rename may have an unknown durable outcome: native copy says it cannot confirm the requested state and reloads actual state. A pre-publication registry failure starts no controller work and retains the separately saved authorization decision. Cross-file atomicity is not claimed.
+
+One app-wide owner starts with the app, serializes automatic operations, traverses grants fairly in bounded rounds and runs file/core work off the main actor. Ineligible or idle polling and unchanged review waits create no Sources. Due work uses the existing bounded planner/dispatcher and ProductAI coordinator; prepared pending occurrences recover without duplicate runs or repeat authorization. Future occurrences after clock rollback defer. Interactive work cancels automatic work and awaits its release before model acquisition. Admission requires the active app and a key window, no interactive busy owner, normal memory pressure, acceptable thermal state and Low Power Mode off. Documented focus, screen/system sleep, user-session, memory and thermal notifications defer/cancel, with launch ineligible until activation. No complete lock-detection claim, app-quit helper or background/closed-window support follows from this implementation. Termination quiesces the owner before save flushing.
+
+Final frozen V10 passes 17 native registry/controller groups with zero failures, including six independent concurrent registry workers, two actual SIGKILL registry publication barriers, exact restoration/replacement/revocation, inert reconstruction, idle/review no-write, pending recovery and injected focus-loss late-publication refusal. The full core suite passed 359 groups on V4; later core edits only name the same guard closures for strict lint. Final V10 reruns pass 16 execution groups, the synthetic ProductAI lifecycle, 44 independent installed native CLI cases, strict lint for 16 changed Swift files, the native app/CLI build, build-tree-denied resource reads, 10 missing-resource refusals, altered-resource refusal and ad-hoc signature verification. The new headless executable joins scripts/check.sh and hosted CI.
+
+Retained failures: V1 compile errors in throwing expressions; V2 two incorrect fixture expectations for replacement/bookmark and corruption diagnostics, plus a large native Text expression the compiler could not type-check; V4 a concurrent child failure without stderr whose cause is not established. Directory creation now tolerates and revalidates another creator, and workers retain bounded diagnostics/watchdogs. V6 has an unmutated-var warning; V7 strict lint finds multiple trailing closures. All are retained with fixes and subsequent passes, rather than relabeled as original successes. V10 also fixes stale enabled display and workbook-switch continuation ownership.
+
+Evidence: [native automation owner receipt](../../../integration/evidence/2026-10-29-native-automation-owner.json.gz), 109853 bytes, SHA-256 a8dbedf09a52fa7357d3d18a3ddba61e6eb8f16b62686b41f785b74adf0e21f0. All 137 prior artifacts remain byte-identical.
+
+No actual-model inference or engine/model/prompt/grammar/budget change, new throughput/hardware/accuracy proof or whole previous crash-matrix rerun. Existing actual-model evidence keeps its original scope. Hosted CI for f759f47 passed run40854082557; this source checkpoint needs its own exact run. The Mac still reports locked with no apps, so native schedule/Activity/answer controls, keyboard, VoiceOver, dictation, media and light/dark/narrow checks remain open. Full E3 receiving/failure/abuse/richer graphs, E4 event/condition/conversation authoring and final background lifecycle, E5 resource/folder ownership, contextual/Excel continuity, complete E0/E1/E2 journeys, supported hardware/performance and production signing/notarization/distribution remain open. App, release and goal remain unfinished.
+
+## Shutdown admission review, October 29
+
+Final shutdown review found an admission race while quit-time saves awaited completion. V11 adds a host termination gate before quiescence; every timer tick remains deferred through save flushing. Success stops the owner. A failed save cancels termination and restores ordinary eligibility. Only NativeAutomationHost.swift and SevraApp.swift change after V10. Fresh native app/CLI build, strict two-file lint and installed resource/refusal/signature gates pass. The installed CLI hash is unchanged, so the V10 44-call installed CLI, 17 registry/controller groups, 16 execution groups and synthetic ProductAI lifecycle are reused at their original scope. No claim that an automated headless runner tested the actual macOS quit dialog or native lifecycle.
+
+Evidence: [shutdown admission receipt](../../../integration/evidence/2026-10-29-native-automation-shutdown.json.gz), 13530 bytes, SHA-256 574879fdd274cd055ac2ce1a6043203b7c80377379f7c6c5291fb1e214044c37. It binds the prior owner receipt and both frozen source manifests. All 137 preceding artifacts and the owner receipt remain unchanged. Visible and full release gates above remain open.
+
+## Condition transition and CI repair checkpoint, October 29
+
+The pure NativeConditionRule and standalone condition-preview CLI now implement the supplied-observation slice. Six exact decimal comparisons, normalized rule/observation identity, baseline, no repeat while true, known-false reset, unknown gaps, duplicate delivery and changed-content refusal are implemented. Unknown never resets; a crossing across a gap is explicitly labeled. The preview creates no workbook data or permission and labels fixture-observations, businessEvidence=false, enabled=false and execution=inert. CLI file inputs are bounded, no-follow, nonblocking and regular-file-only.
+
+The new 13 focused groups pass, including all 243 five-observation truth trajectories, large exact decimals beyond binary floating-point precision, all six equality boundaries, independent recrossings, identity normalization, malformed/oversized input and already-cancelled calls. The implementation checks cancellation before and within validation/evaluation; no separate real-time mid-loop cancellation experiment is claimed. Nearby 13 calendar groups and 16 execution groups pass. The installed native CLI passes 31 independent cases covering inline/file inputs, stable repeated output, malformed arguments, symlink/FIFO/directory/missing/non-UTF-8/size refusals and explicit inert labels. Its hash matches the final native CLI, so those calls are not repeated after an app-only registry repair. New tests join the ordinary core suite, scripts/check.sh and both packaged hosted CI paths.
+
+Hosted CI for fab2a83 failed 16/17 native owner groups: one independent writer reported an unsafe registry directory. The prior local run had passed. Foundation directory attributes may be applied after creation, leaving a creation window; the repair creates the parent separately, then uses POSIX mkdir(0700) for atomic private leaf creation. Existing unsafe directories still refuse without permission repair. The older V4 child failure had no diagnostics, so this does not retroactively establish its cause. Final 18 owner groups pass, including a new unsafe-directory preservation counterexample. Five additional fresh concurrent starts pass 30 independent registration workers. The existing two real registry SIGKILL boundaries remain in the 18-group run.
+
+Final V2 native app/CLI build, installed build-tree-denied resource reads, 10 missing-resource refusals, altered-resource refusal, ad-hoc signature and strict seven-file Swift lint pass. All frozen Swift hashes remain unchanged. This is focused proof under the adopted verification policy; the previous full 359-group core/model/crash evidence retains its original scope. No schema bump, canonical table, second ledger, model/prompt/grammar/budget change or actual-model inference. Failed CI and both source snapshots remain retained. The corrective source still needs its own hosted run.
+
+Evidence: [condition and registry repair receipt](../../../integration/evidence/2026-10-29-condition-transitions-registry-repair.json.gz), 61244 bytes, SHA-256 1559bf286dec9681b20ac23d78c4c7e5902fbb1d884eb6933fa74f78634b05f6. All 139 preceding artifacts remain byte-identical.
+
+A fresh native inventory still reports no apps and a locked Mac. Visible controls, keyboard/VoiceOver/dictation/light/dark/narrow/media and actual OS lifecycle remain unverified. Committed business-event outbox/cursor, exact event-time state, real condition delivery, loop/backpressure controls and native/conversational trigger authoring remain next; the pure preview is not a condition scheduler. Full E3/E4/E5/E6, contextual/Excel continuity, complete E0/E1/E2 journeys, hardware/performance, production engine adoption and signing/notarization/distribution remain open. App, release and goal are unfinished.
+
+## Committed semantic delivery checkpoint, October 29
+
+Schema22 now publishes business_batches and business_events as a semantic projection inside the existing committed transaction and row capture. The deferred batch reference binds the exact global commit, actor and recorded time; positions are contiguous and lossless strings at the public boundary. Stable per-batch ordinals preserve independent settled records while collapsing uncommitted revisions of one logical identity. Drafts, unaccepted rejections, Sources alone and technical activity do not create business batches. Meaning and scenario remain explicit. Exact inventory basis and dataset membership/schema images remain available after later changes.
+
+Core/CLI expose bounded inert global/exact-scope batch pages and per-batch entry pages. Global and sparse scope queries use indexed keyset lookup. Dataset scope means membership/schema, with row-value versions separately record-scoped. Movement scope is a hint requiring exact effects, not an asserted inventory change. There is no consumer acknowledgement or activation. Reads use a cancellation-aware three-second query budget, a 100 ms SQLite busy interval, explicit row/output bounds and no hidden partial completion. Ordinary integrity checks stream/decode committed envelopes once and compare semantic metadata/payloads against retained inputs. Reconstruction applies captured rows without publication or authority restoration.
+
+Final V7 full core passes 386 groups with zero failures, including14 new business-event groups. The final V8 build/14 focused groups and 76 independent installed native CLI calls pass; V8 only corrects one test label from covering index to scope index, with production sources unchanged. The installed probe includes six actual concurrent CLI writers, two actual SIGKILL boundaries before/after commit, receipt/version/feed atomicity, read-only pagination over a 103-row imported dataset, exact integer positions beyond 2^53, semantic corruption refusal, retry/reconstruction and byte-preserved unsupported-format refusal. The large-integer seed deliberately alters a disposable sequence; integrity correctly rejects that gap, so it is not presented as valid historical continuity.
+
+Nearby V4 native owner 18 groups, synthetic ProductAI lifecycle and 44 installed automation calls pass. Those use the same canonical publication code; the later V7 delta only bounds business-feed read waits and adds its lock-cancellation test. Final native app/CLI build, build-tree-denied resource reads with 1,888 Metal kernels for each executable, 10 missing-resource refusals, altered-resource refusal, missing-model guidance/workbook preservation, ad-hoc signature and strict 12-file Swift lint pass. No actual model inference or new performance/hardware qualification. New delivery tests join scripts/check.sh and both packaged hosted CI paths. The new source requires its own dispatched CI.
+
+Retained iterations include the V1 throwing-expression compile error, V3 worker trailing-closure lint finding, and V5 test's incorrect manifest storageVersion assumption. The corrected format check reads SQLite user_version. Earlier successful runs and source snapshots remain retained. All public assets and existing workbook files remain untouched; unsupported development versions refuse without migration/reset.
+
+Evidence: [business-event delivery receipt](../../../integration/evidence/2026-10-29-business-event-delivery.json.gz), 102021 bytes, SHA-256 ace21c59cf049e5770858e2f1742793f33dd48688ad2343abe6dba9701bfe61d. All 140 prior artifacts remain byte-identical.
+
+This completes the semantic feed slice, not E4 or the app. Persistent condition baselines/cursors/working state, exact event-time evaluation, atomic occurrences/outbox, causal ancestry and restart-safe self-loop/cascade/fan-out/backpressure bounds remain next. Native/conversation trigger authoring, complete background/closed-window/resource lifecycle, E5/E6, full E3 recovery/abuse/richer-graph journeys, contextual/Excel continuity, complete E0/E1/E2 journeys and release gates remain open. A fresh native app inventory still reports the Mac locked; latest visible controls/voice/accessibility/appearance/media remain unverified. Goal and release are unfinished.
+
+## Historical inventory checkpoint, October 29
+
+The read-only `Workbook.inventoryAtBusinessBatch(_:subject:effectiveThrough:cancellation:)` and `inventory-at-batch WORKBOOK BATCH_ID SUBJECT EFFECTIVE_THROUGH` now implement the bounded historical adapter. The exact retained batch determines committed knowledge; the mandatory explicit date determines effective eligibility. Later corrections, withdrawals or current heads cannot rewrite an earlier cutoff. Retained basis images survive later edits/removal. Missing/removed/not-yet-effective bases produce unknown with null quantity, never zero. Only the cutoff's settled accepted actual inventory effects contribute, strictly after the basis and through the date. A movement label, estimate, other scenario or unrelated subject cannot establish an effect. Exact event/batch/item/logical/occurrence IDs remain inspectable.
+
+Addition requires a no-error Decimal sum; precision loss refuses without a rounded balance. Reads share the cancellation-aware feed snapshot, short busy wait, three-second query and 8 MiB output budget. At most 10,000 contributing effects. Subject events lead fixed exact-item/item-indexed-effect joins; later settled detection uses the logical/version-position index across scopes. This is an establishment/reconciliation oracle, not an O(history) poll loop. Persistent incremental consumers remain required.
+
+Final V4 passes 11 focused groups, a real 10,000-effect success/10,001-effect explicit refusal, 14 nearby feed groups and 37 installed native CLI calls. The installed checks cover past cutoffs after later changes, explicit future dates/unknown basis, read-only history and inert reconstruction with identical inputs. Fresh native app/CLI build, installed resource reads with build-tree access denied, 10 missing-resource and altered-resource refusals, missing-model guidance/workbook preservation, ad-hoc signature and strict five-file Swift lint pass. The new ordinary groups, separate scale group and installed script join local/hosted checks. The prior 386-group full-core proof retains its original source scope under focused verification; no new full-suite or model/hardware/visible OS proof is claimed for this additive read adapter.
+
+Retained failures: V2's real 10,000-effect case reached the query deadline. V3 profiling measured the historical SELECT consuming that budget. V4 forces indexed subject events before exact item/effect joins and passes both boundary cases within the same budget. The fixture's debug SQL profiles are evidence for this query correction, not general application, hardware or inference speed. No schema/canonical family, engine/model/prompt or authority change. Hosted 60d4ee6 CI passed; feed 8634c6c is still running at this receipt. The adapter source needs its own exact CI.
+
+Evidence: [historical inventory receipt](../../../integration/evidence/2026-10-29-inventory-event-state.json.gz), 38331 bytes, SHA-256 c4f9cc2540c91ed557fa1e4027cae9f3a6ebd6572c07a64eaab223ad36de92aa. All 141 preceding artifacts remain byte-identical.
+
+Next remains persistent condition baselines/cursors and incremental working state, exact atomic occurrence decisions/outbox, durable causal ancestry and restart-safe self-loop/cascade/fan-out/backpressure controls, then native/conversational trigger authoring with current physical-file grants. A live effective-time clock policy is not implied by this explicit-date oracle. Dataset-query historical adapters, complete background/resource lifecycle, E5/E6, full E3 and E0/E1/E2/Excel journeys, visible voice/accessibility/appearance/media, physical performance/engine adoption and production notarized distribution remain open. The UI tool's last fresh inventory reports a locked Mac; no bypass or additional unlock request was made. App, goal and release are unfinished.
+
+## Durable inventory condition checkpoint, October 29
+
+Schema 23's persistent consumer is qualified as an explicitly stepped inert derivation, with saved baseline/working pages, exact complete observations and candidate backpressure. Final 416 full groups and 18 focused groups pass, including atomic new-basis arithmetic. 94 installed condition calls include two SIGKILL boundaries and six writers; 76 feed and 37 historical calls, real 10,000/10,001 bound, 18 registry/controller groups and synthetic ProductAI, strict checks on 13 Swift files and final native packaging pass. The numeric-ordering defect, Python compatibility failure and lint repair remain retained. See [[records/specs/inventory-condition-consumers]] for exact source scope and limits. Evidence: [durable inventory consumer receipt](../../../integration/evidence/2026-10-29-inventory-condition-consumers.json.gz), 102821 bytes, SHA-256 112266cb15e0e415adab344dcddf90bee6ae5378901f1b7c5267718e3e088e3c. All 142 preceding artifacts remain byte-identical.
+
+Causality-aware dispatch, native/conversation authoring, background and full product/release journeys remain open. Saving intent does not enable execution. Latest native inventory remains locked; no new visible or real-model proof.
+
+## Automatic ancestry checkpoint, October 29
+
+The schema-24 source-identity/ancestry slice passes 434 full core/18 focused groups and final 22 installed ancestry calls. Synthetic acceptance/manual derivation preserve saved automatic origin; erased metadata cannot clear the authoritative indexed binding. The new precommit cancellation case proves condition-state rollback/retry. Native condition 94/feed 76 calls include four actual SIGKILL boundaries in total and six writers per script. Native owner 18, synthetic ProductAI, strict six-file Swift lint and final native package/resource/refusal/signature checks pass. All 143 prior artifacts remain unchanged; retained V1 failures and V2/source-review limits are in [[records/specs/automatic-ancestry]]. Evidence: [automatic ancestry receipt](../../../integration/evidence/2026-10-29-automatic-ancestry.json.gz), 90327 bytes, SHA-256 16b57e1a29edc7f032ba999b57739fb4d3c63f74180b93da99b175fa215e6bd0.
+
+This is read-only derivation inspection, including control dependencies, with no new dispatch/root budgets or execution authority. Exact condition causes and persisted causal admission remain next. Native UI inventory remains locked; full E3/E4/E5/E6, Excel/contextual/E0-E2, actual physical hardware/performance, production engine adoption and signing/notarization/distribution remain open. App and goal remain unfinished.
+
+## Automatic admission checkpoint, October 29
+
+The calendar/admission/inspector slice is qualified, with exact root membership as the persisted charge and no reset from retry, completion, cancellation, pause, restart or inert reconstruction. Schema 25 captures all four control families in the existing ledger. V3 full core456/0, final V4 trusted nine-process race, 21 admission/47 execution/22 ancestry/94 condition/76 feed installed calls, two dispatch SIGKILL boundaries/16 calls, owner18, synthetic ProductAI, strict15 Swift files and native package/resource/refusal/signature checks pass. Final V4 only fixes a synthetic worker operation-key collision; production source and ordinary test bodies remain identical to the full-pass V3. All144 earlier artifacts remain unchanged. Retained failures, limits and exact receipt: [[records/specs/automation-causality]], [automatic admission receipt](../../../integration/evidence/2026-10-29-automation-causality.json.gz), 135806 bytes, SHA-256 dd26b95f8d980d7cc74a2e91028c1c9b89dab52b5d57ac35bb92d144cac2090b.
+
+Next remains exact condition cause selection across pages/clocks/unknown gaps, contribution/control separation and independent business roots, then candidate dispatch/admission binding with exact physical grants, native/conversation authoring and dataset adapters. Background/resource lifecycle, E5/E6, full E3, contextual/Excel/E0-E2 and whole-app hardware/visible/distribution qualification remain open. CUA still reports locked. The goal remains active.
+
+
+## Publication pending, October 29 at 13:55 UTC
+
+Code, immutable evidence and maintained specifications are committed locally as af1b627. Final local db.md validation has zero errors/warnings; repository links and diff checks pass. GitHub API requests failed to connect. The initial owned push stalled and was stopped before a bounded retry; the retry failed with `Could not resolve hostname github.com`. Remote publication is not confirmed. Do not report this checkpoint pushed, its PR description updated or exact-head CI dispatched. The preceding09e6ca2 CI was last observed in progress.
+
+When GitHub connectivity returns, push the current branch including this status record, update PR1 around the final schema25 implementation and dispatch check.yml for the exact resulting remote head. Keep the existing immutable receipt unchanged. Continue local condition-cause/dispatch work while publication is unavailable; this transient network failure does not make the overall goal complete or require a new product/design decision.
+
+## Exact condition input checkpoint, October 29
+
+Schema 26 captures exact changed event/version/time windows with pending pages, backpressure, unknown intervals and explicit overflow coverage. Final 470 full core groups / 14 focused groups, real 10,000/10,001 bounds, installed 30 input / 97 condition / 76 feed / 22 ancestry / 21 admission calls, owner 18, synthetic ProductAI, strict 14-file Swift lint and native resources/refusals/signature pass. All 145 previous evidence files remain unchanged. The retained V1/V2 fixture failures, exact source hashes and receipt are in [[records/specs/condition-transition-inputs]].
+
+Next: discover actual contribution/control parents and independent business roots, then bind condition candidates to runs with persisted admission and current physical grants. Input history alone is not a minimal cause or execution authority. Native/conversation/dataset adapters, E5/E6, full E3, contextual/Excel/E0-E2 and hardware/visible/distribution qualification remain open. CUA still reports locked; the goal remains active.
+
+The preceding head 2baf12ae successfully pushed this turn, PR1 was refreshed and manual CI40887294554 dispatched. It was in progress at evidence capture. This checkpoint requires its own exact CI.
+
+## Next provenance implementation contract, October 29
+
+[[records/specs/business-provenance]] now specifies explicit data/control/producer/revision roles, complete per-item edge seals, the audited producer families and bounded origin inspection. The chosen future schema27 representation keeps roles/seals in existing captured item/lineage families, retains dual roles, avoids a second full-body write for every item and prevents arbitrary resealing of historical data. This is reviewed design, not implemented or qualified schema27. Actual application code remains schema26 at cddcdc5.
+
+The schema26 code checkpoint cddcdc5 is pushed; PR1 is updated and [CI40891531962](https://github.com/carloslfu/sevra-app/actions/runs/40891531962) is running for that exact commit. Previous head2baf12ae run40887294554 is also still in progress at this update. Documentation-only planning changes reuse unchanged local source evidence; no latest-head CI pass is claimed. Keep useful implementation moving under the focused verification policy.
+
+## Sealed producer provenance checkpoint, October 29
+
+Development schema27 now captures explicit data/control/producer/revision role sets and item-derivation-v1 seals in the existing items/lineage families. Every exact parent can retain several roles. Generic public inputs stay conservative data; audited native producers supply control/producer classifications. Initial seals are calculated before insertion, so large bodies are captured once. Definition dependencies may reseal only within the exact item's creating transaction. Historical resealing refuses; capture rollback/retry and inert reconstruction preserve the complete metadata. Public lineage and the existing broad automatic ancestry inspector render named roles. That broad inspector still includes control ancestry and is not the pending business-origin resolver.
+
+The producer audit now distinguishes original evidence, row/schema/edit/intake inputs, definition authoring/dependencies, function/query publication, exact selected catalog values through scalar chains, action/document invocation, workflow nested item arguments/forms/model interpretation/clarification/intake, inherited automatic producers and technical authorization/planning/dispatch/reference annotations. Human review, correction, Undo and document revisions retain original business versions and revision history. Published query provenance remains explicitly a scoped candidate population, not per-group or minimal causality. A control-only technical Source remains unclassified; no seal claims human independence.
+
+Final V3 freezes 399 Swift files, passes 484 full core groups and all13 focused role groups with zero failures, and passes strict lint on41 changed Swift files. Both real10,000/10,001 condition input and projection boundaries still pass with the added capture metadata. A750KB body is captured in one item insert; canonical hashing crosses206 edges and escaped Unicode/transformation text. Actual workflow/publication tests assert roles, meaning, review and reconstruction together.
+
+Final packaged CLI checks pass19 role,30 input,97 condition,76 feed,22 broad ancestry and21 admission calls against one native CLI, SHA-256 63a5d749f1b34a1fe5cd9e3113f199b421cd19e36ecbac26f0fa1969858283fb. The role check independently recomputes all13 fixture item seals in Python, checks named public roles and unchanged commits, reconstructs inertly, and refuses six damaged copies. Nearby condition/feed checks retain concurrent writers and actual SIGKILL boundaries. Native owner18 groups, synthetic ProductAI and fresh native app/CLI resource checks, denied build-tree reads,10 missing/altered resource refusals, missing-model guidance/workbook preservation and ad-hoc signature pass. All146 prior evidence files remain byte-identical.
+
+Retained iterations: V1 passes10 focused groups. V2 adds streaming seal verification and explicit producer classifications; focused10 pass, full478 pass/two fail because the earlier reference tests expected annotation provenance to be absent. V3 asserts the exact annotation-to-original control edge, unchanged original seal and no business record changes. It adds actual nested-input/table/technical cases, a catalog-through-function case and named public role assertions, then passes all final checks. No integrity gate is weakened to remove a failure.
+
+Evidence: [role capture receipt](../../../integration/evidence/2026-10-29-business-provenance-capture.json.gz), 182081 bytes, SHA-256 6a29e4562b8d914f6f6e633f9289fa09221e0175e955ab99acfd2df5c747556e. This qualifies capture, producer classifications and named broad lineage only. The role-aware bounded business-origin resolver, control-only traversal exclusion, registered producer/admission boundary validation, condition-window resolution, independent business roots/shared budgets and actual current-grant candidate dispatch remain next. No model, prompt, grammar, engine or provider changes, actual inference or new hardware/performance/adoption proof. CUA again reports the Mac locked; fresh visible UI/voice/accessibility/appearance/media remains unverified. E4-E6, full E3, contextual/Excel/E0-E2 and production distribution remain unfinished. Unsupported schema26 files are preserved/refused without migration/reset; selected disposable synthetic fixtures only are recreated. The app and goal remain active.
+
+Previous exact-source CI40891531962 for cddcdc5 remains in progress at receipt capture and does not validate schema27. Final knowledge/link/diff checks and this source's publication/CI follow the immutable receipt.
+
+## Qualified bounded business origins, October 29
+
+The read-only core API and `sevra business-origins WORKBOOK ITEM_ID [ITEM_ID...]` now implement the bounded inspection contract above. They validate each visited version's complete seal and exact revision, follow data/producer/revision roles, show controls separately and preserve dual roles. Every inspected edge counts, including controls and automatic-boundary inputs. Registered automatic invocations validate their exact workflow/run/automation/admission context, then remain producer boundaries. Manual workflow arguments, normalized values, typed nested item links, actors and definition controls must agree. Direct action/result invocations require explicit supported producer policies, exact declared definition/evidence/typed input roles and actors; actions retain their exact plan fingerprint. Published-result metadata now includes resolved definition coordinates. No table, ledger, schema migration, model tool or live permission is added.
+
+Output distinguishes retained business dependencies, automatic producers, original-input candidates and unclassified origins. Configuration authored by an automatic run does not contaminate independent manual business data. Human review, corrections, manual follow-up and new human Sources retain actual automatic business inputs. Selected catalog values survive scalar function chains; query publication keeps its explicit conservative candidate-population coverage. No original-looking Source is promoted to a qualified independent root. Safety labels remain minimalCauseSet=false, independentBusinessRoots=not-established, dispatchEligibility=not-evaluated, execution=none and enabled=false.
+
+Final V2 freezes 402 Swift files and passes 499 full core groups, 74 focused origin/producer groups including 15 new origin groups, and strict lint on 15 changed Swift files. Real 1,024/1,025-item, 4,096/4,097-inspected-edge and 128/129-depth boundaries pass. Checks cover shared DAG/cycles, dual roles, original/technical/data-free leaves, actual function/query/catalog/model/clarification/intake producer paths, missing/extra/changed/foreign seals, erased kinds/metadata, unsupported policies and damaged admission bindings. Original bodies are not loaded; oversized seals/invocations/edge pages refuse before decoding, retained output is charged during construction, and cancellation interrupts a real SQLite lock without changing authority.
+
+The final packaged native CLI passes 42 origin, 22 nearby broad ancestry and 21 admission calls against SHA-256 99d1260d1f07cdca9b72683a1640ce2bab7f141722327ce2e3c43058f8f8aa2d. These prove unchanged commits, exact inert reconstruction, distinct control/data origins, truthful labels and eight damaged-copy refusals. The admission corruption check now also rejects an inherited parent that loses its producer role. Fresh native app/CLI resource isolation, denied build-tree reads, 1,888 kernels each, 10 missing/altered-resource refusals, missing-model guidance, preserved workbook and ad-hoc signature pass. The repository Sevra skill documents the command and passes isolated validation. check.sh and both packaged CI paths include the new installed check. All 147 earlier evidence files remain byte-identical.
+
+Retained iterations: V1 compiles the initial reader. V2 adds exact direct/workflow argument and actor validation, actual-family assertions and bounded tests; all core groups pass. The first installed harness uses a nonexistent workflow-template command, then assumes a computed content property is Codable, then attempts an input-free generic Record that correctly refuses. The corrected harness reads the actual saved definition fields and uses technical Source metadata for its unclassified leaf. The direct native-script invocation initially exits 126; its documented bash invocation succeeds. Skill validation initially lacks PyYAML in system Python; the existing isolated validator passes. No product integrity check is weakened.
+
+Evidence: [bounded origin receipt](../../../integration/evidence/2026-10-29-business-origins.json.gz), 89084 bytes, SHA-256 3fffcc3ec95145db4ee594b6d3df5b3537e1b5d4850d225ca10d92079fdb7f2d. Unchanged schema27 role-capture, condition-input/condition/feed, owner and synthetic ProductAI evidence is reused under the focused verification policy. No model/prompt/grammar/engine/provider changes, fresh actual inference, hardware/performance/adoption or visible UI/voice/accessibility/appearance/media proof. The latest UI inventory still reports the Mac locked. Unsupported development producer metadata refuses inspection without resetting user files.
+
+Next: resolve exact condition windows against these validated business producers, then qualify shared independent business roots and atomic candidate-to-run/current physical-file grants. Native/conversational/dataset condition authoring, E4-E6, remaining E3 and contextual/Excel/release gates stay open. The whole app and goal remain unfinished. Prior exact-source 35d7bf8 CI40897726707 remains in progress at receipt capture; final knowledge/link/diff checks and this source's publication/CI follow the receipt.
+
+## Qualified exact condition-window origins, October 29
+
+The read-only inventoryConditionOrigins API and `sevra condition-origins WORKBOOK OBSERVATION_ID` now implement the exact-window contract above. They validate the retained observation's count/coordinates/previous links and every canonical member against immutable business events and scope. Only complete coverage resolves. Baseline, unknown-gap and overflow refuse explicitly; an empty complete window stays empty without establishing independence. Both exact changed versions and captured clock-introducing versions remain inputs. No candidate, cursor, admission, grant, schema or captured writer changes.
+
+Input members stream in sorted pages of 100, with a 16 KiB per-member cap before parsing and a canonical SHA-256 over exact [memberID, member] pairs. Output retains observation/consumer/batch/effective/previous coordinates, count and digest, with condition-inputs navigation for detailed event/version/time pages. It does not inline a large member list. The existing graph walk is shared inside one cancellable snapshot: public business-origins keeps its 16-start limit; exact windows can deduplicate up to 1,024 starts within the same 1,024 visited items, 4,096 inspected edges, depth 128, three-second and 8 MiB budgets. Controls stay separate and all complete seals/producers/admissions retain their prior validation.
+
+Final V4 freezes 404 Swift files and passes 41 focused window/input/origin groups, including 12 new window groups, plus strict lint on seven changed Swift files. Real 205-member paging, 1,024 visited-item and 1,025-start boundaries pass. The real 10,000-entry complete window refuses its oversized origin graph while numeric state remains 10020. The real 10,001-change window retains its 10,000-entry prefix, labels incomplete coverage, keeps numeric 10030 and refuses resolution. Nearby 18 graph groups retain real 4,096-edge/depth-128 checks. These bounds pass on V2 production source, byte-identical to final V4; V4 changes only a fixture file. The previous 499-group full core checkpoint and unchanged writer/condition/feed/process-death/owner/ProductAI evidence are reused under focused verification policy.
+
+One final packaged native CLI, SHA-256 1516d9a60d6356a028254b0c58790320a5eaa1f7f31df644265df35c6c212d09, passes 40 window, 30 input and 42 business-origin calls. Python independently recomputes the input-set digest; all 205 members resolve, six concurrent readers agree, exact automatic correction origin survives reconstruction, commits/condition state stay unchanged and seven damaged copies refuse. Native build/resource isolation, denied build-tree reads, missing/altered-resource refusals, missing-model guidance/workbook preservation, ad-hoc signature and isolated skill validation pass. The repository skill, check.sh and both packaged CI paths include the command. All 148 earlier evidence files remain byte-identical.
+
+Retained iterations: V1 test compilation incorrectly uses Set<Value>; V2 compares exact string identities. V2 then exposes two fixture assumptions: human acceptance adds a decision Source, and a future consumer time must first be requested by stepInventoryCondition. A force-unwrapped missing clock observation aborts the fixture process. The corrected test preserves the decision, asserts automatic configuration is still excluded, explicitly advances time and reports missing observations as test failures. V3 has a guard/trailing-closure syntax error; V4 separates the mapped list from the guard and passes all focused checks. Production behavior and refusal invariants are unchanged by these fixture repairs.
+
+Evidence: [condition-window origin receipt](../../../integration/evidence/2026-10-29-condition-business-origins.json.gz), 227891 bytes, SHA-256 c5dfd320ea174c75642e25e2ba88b093a5d34a9885802f1f4a2adee60b07a7ff. Every result states complete-retained-window-to-automatic-producers, minimalCauseSet=false, independentBusinessRoots=not-established, dispatchEligibility=not-evaluated, execution=none and enabled=false. The saved original change-input summary remains explicitly retained history. There is no minimal-cause, independent-root or execution claim.
+
+Next: qualify shared independent business roots, merged automatic/independent origins and atomic candidate-to-run/current physical-file grants. Native/conversational/dataset condition authoring and full E4-E6/E3/contextual/Excel/release gates remain open. No new model/prompt/grammar/engine/provider behavior, fresh actual inference, hardware/performance/adoption or visible UI/voice/accessibility/appearance/media qualification. Latest UI inventory still reports locked. Prior exact-source c2854d3 CI40901822734 remains in progress at capture; final knowledge/link/diff checks and this source's publication/CI follow the immutable receipt. The app and goal remain unfinished.
+
+## Qualified shared original-input causes, October 29
+
+Schema28 implements explicit host `recordBusinessObservation` / `sevra observe` and top-level file-intake declarations through the existing captured transaction. The new business_inputs registry retains exact Source, creating committed change, item insertion index, kind and policy. The registry is immutable, fully captured/reconstructed and verified against the exact hashed creating envelope. Generic Sources, actor labels, copied origin JSON, derived imports and missing lineage cannot declare independence. Ordinary model tools have no declaration capability. This records host input intent, never input authenticity, truth or human identity.
+
+All original inputs introduced in one transaction share the business-input-v1 root derived from workbook and creating commit. Different consumers, target automations, republication, review, corrections and future effective-time activation retain that identity. Human acceptance/withdrawal Sources now reference their exact proposals. `sevra condition-causes WORKBOOK OBSERVATION_ID` resolves a complete retained window, merges inherited automatic roots with declared independent inputs and identifies exact immediate automatic parents. A nearest admitted automatic producer accounts for its output's already-consumed data, following audited intermediate producer chains. Later corrections with genuinely new independent inputs retain both origins. Automatically authored controls alone do not contaminate new manual business data.
+
+The read-only resolver keeps existing complete-window graph/output/deadline limits and adds a cumulative16MiB creating-envelope budget before decoding. Missing or unclassified origins, zero qualified roots and more than eight roots/parents report blocked. No partial root set becomes dispatchable. It records no automatic root/admission/charge, evaluates no live grant and executes nothing. Actual condition admission and current-physical-file dispatch remain next.
+
+Broad schema28 V7 passes530 full core groups/0. Final V10 passes20 focused groups/0 and strict18-file Swift lint. After V7, the only production change is a nonempty/512-UTF8-byte public observation-token guard, covered by final focused counterexamples. V10 changes only test-worker closure argument spelling after strict lint catches it. No final full531-group rerun is claimed. Final packaged native CLI SHA-256 279b2f2d20794e507dc3fcc1022e353e84f0e1c687b458134d379a5db99fb4a9 passes39 input/cause calls including Python-independent hashing, six concurrent readers, five damaged copies, inert reconstruction and actual SIGKILL at prepared-after-publication and committed boundaries. Nearby42 origin,40 window,19 role,30 input,76 feed and21 admission calls bind the same packaged CLI. Native owner18, synthetic ProductAI and native resource isolation/refusal/ad-hoc signature checks pass. The unchanged skill reuses V6 isolated validation. All149 earlier evidence files remain byte-identical.
+
+Retained iterations expose and fix fixture syntax/coordinate assumptions, then a real automatic-production frontier bug: direct producers can be separated from an admitted workflow by an intermediate action invocation. The final resolver follows producer chains to that exact boundary without reminting preexisting inputs. Tests retain mixed automatic/new-independent correction, automatic controls/new-manual input, real16MiB cumulative creating history, rollback before and after declaration publication, exact retries and fresh roots only from explicit new input. Corrupt history injection uses an independent raw fixture connection after captured mutation correctly refuses change_integrity. No product integrity check is weakened.
+
+The Mac is unlocked for a fresh current-build visible Activity check. An owned synthetic automatic receiving run changes from Waiting for review to Completed after explicit Check review and continue. Saved root/admission/charge remain one and the accepted inventory effect remains5 once. Screenshots, accessibility state and retained CLI state are saved in the receipt. Local dictation visibly reaches Listening on this Mac; explicit Stop restores Start dictation with empty unsent composer. No fresh spoken-utterance transcription is claimed. Full voice/VoiceOver/dark/narrow/media and inactive/closed-window lifecycle remain unqualified.
+
+[shared input/cause receipt](../../../integration/evidence/2026-10-29-business-input-roots.json.gz), 817336 bytes, SHA-256 39b1b61cbda04420be22f491f7da7d9c02d17524b9a803750cd3b0d82407101e. This qualifies shared historical cause identity and declaration persistence, not shared business-root admission enforcement or condition execution. Next: connect resolved shared roots to persisted run budgets and atomic candidate-to-workflow binding under current physical-file execution/AI grants, then native/conversational and dataset trigger authoring. E4-E6, remaining E3/contextual/Excel journeys and physical hardware/performance/production signing/distribution remain unfinished. No model/prompt/grammar/engine/provider change or fresh inference. Unsupported schema27 workbooks are preserved/refused without migration/reset; only selected synthetic fixtures are recreated. Prior-head0453cbd CI40904513952 remains in progress at capture; this source's publication/CI follows. The app and goal remain unfinished.
+
+## Qualified shared business-root admission, October 29
+
+Schema29 extends the existing captured admission primitive. automatic_roots distinguishes exact calendar occurrences from business-input-v1 creating commits; automatic_independent_inputs retains each admission's exact selected original Sources. Invocation context and data lineage retain the same inputs. Several original Sources from one atomic creation share one root, regardless of which representative Source the first admission retains. Later unrelated consumers/targets reuse its32-run charge budget. Independent and inherited automatic roots merge once; adding a new input cannot clear logical self/cross-loop, depth, parent fan-out or total-work limits. Completion, cancellation, pause, retry, reopen and inert reconstruction never refund charges.
+
+Original declarations, retained root coordinates and all budgets recheck under the owning captured writer before publication. Graph inspection validates every root type and exact input lineage. At most1,024 distinct selected original Sources across the retained ancestry, plus up to eight representative Sources, are inspected in one cached16MiB creating-envelope budget. Existing eight roots/parents/depth/successors,32 runs-per-root and256-ancestor bounds remain. No second ledger or development migration is added. Ordinary model/CLI tools cannot supply arbitrary admission inputs or parents.
+
+Final V4 passes539 full core groups/0 and30 focused admission groups/0, including eight new shared-business groups. Final V5 changes only death-worker closure argument spelling to satisfy strict lint on nine changed Swift files;30 focused groups and22 installed shared-admission calls requalify that worker. No final full rerun is claimed. Native CLI SHA-25609b979f77f60e339f6ce0b1a53d6e5613cdf3f85f1e098b9b70dc09a93d8a810 also passes21 calendar/inherited,39 cause and42 origin calls. Native owner18, synthetic ProductAI, fresh native resource isolation/refusal/ad-hoc signature pass. All150 prior artifacts remain unchanged.
+
+The independent installed race starts with25 unrelated targets sharing one root. Nine separate writers contend for seven remaining slots: exactly seven admit and two refuse causal_work_limit. One root and32 complete admissions/charges/input rows remain. Python independently recomputes the root hash. Actual SIGKILL at prepared-after-publication leaves zero of the five run/root/admission/charge/input families; committed leaves one of each. Reopen, verification and inert reconstruction pass both. Five damaged copies refuse. Retained failures: the initial new fixture calls nonexistent Workbook.add, then a damaged-copy delete correctly fails its enabled foreign key; the fixture uses actual addItem and explicitly disables FKs only on its independent raw corruption connection. Strict lint later catches two closure arguments in the death worker. No product integrity gate is weakened.
+
+The current native preview opens an owned schema29 workbook. Authorized on-device speech reaches the composer. Stop restores Start dictation; the text is cleared without sending, and close leaves zero items/messages/agent runs. Public evidence omits actual speech text and keeps redacted accessibility state plus empty-composer screenshots. This proves the local speech-to-composer path, not controlled-phrase accuracy or broad dictation quality. Prior visible Activity review continuation remains qualified by the previous receipt.
+
+[shared admission receipt](../../../integration/evidence/2026-10-29-shared-business-admission.json.gz), 310029 bytes, SHA-256 1921065227e9a1f7da8e7b27667d3888e8f8e0882b98793ba675e93c1c804202. This qualifies the trusted shared admission primitive. Its internal synthetic bridge uses the real captured calendar-run binding to test independent causes; production public calendar calls retain clock roots. Actual condition-candidate selection/binding/current-physical-file dispatch is still required. The condition-causes inspector remains read-only with budgetEnforcement=not-enabled, and reading saved origins never grants execution. Next: bind exact pending candidates and their complete cause resolution atomically to one authorized workflow, recheck current device/execution/AI authority and preserve candidate/run recovery. Then finish native/conversational/dataset triggers, E4-E6 and the remaining E3/contextual/Excel/accessibility/hardware/distribution gates. This conservative initial limit policy has scoped synthetic proof, not broad usability evidence. No model/prompt/grammar/engine/provider change or fresh Splash inference. Unsupported schema28 files are preserved/refused; selected disposable fixtures alone are recreated. Prior-head f9ff00c CI40910824349 remains in progress at capture. Whole app and goal remain unfinished.
+
+## Reviewed condition execution contract, October 29
+
+[[records/specs/condition-dispatch]] now specifies three review passes and the next implementation order. Initial enable establishes a baseline; pause/resume retains distinct queued transitions, while only an explicit from-now decision can dismiss old candidates. Runtime consumers are owned by an automation logical identity. The captured dispatcher derives complete causes internally and publishes a true condition binding, candidate decision, workflow and shared admission together under a final live fence. It records trigger state separately from later workflow reads. Native Enable stays closed until its own interaction gates pass. This contract is reviewed, not implemented. Hosted f9ff00c has progressed past manual workflow recovery to speculative grammar checks; no stalled workflow failure was established. Current a1d6f4b CI remains in progress.
+
+## Schema30 actual condition dispatch checkpoint, October 29
+
+Owned inventory-condition-drafts-v1 definitions now bind exact normalized subject/rule, workflow and typed arguments. Explicit native Enable creates or resumes the owned consumer under the exact authorization generation and physical-file device grant. Initial enabling establishes a baseline; already-true does not invent a crossing. Resume preserves ordered candidates and catches up. Only from now records explicit skipped saved candidates and creates a fresh baseline. Manual Run once stays independent. Saved metadata, preview, copies and reconstruction grant no execution.
+
+The captured dispatcher internally selects the oldest pending observation, validates its exact false-to-true identity, resolves complete original/automatic causes inside the writer and enforces the shared root budgets. It atomically publishes candidate decision, distinct candidate/run binding, invocation/run/steps/outbox, parents/input/root charges and active reservation. There are no calendar placeholder occurrences. Current device/execution/AI/cancellation authority rechecks after change-envelope capture and immediately before COMMIT. Incomplete/unclassified causes, future eligibility and a blocked head cannot silently create work or bypass the queue. One nonterminal automatic run occupies each activation. Trigger value/time and the workflow's later actual read inputs remain distinct.
+
+Native Automations provides typed calendar/inventory editing, an inert preview, explicit Enable/Pause, saved queue review with reasoned dismissal, resume and an explicit from-now confirmation. A bounded read-only probe avoids idle checkpoint writes and detects unread pages or newly effective inputs; the existing active-app/key-window resource owner advances one bounded page and yields for interactive inspection/editing/review. Full background/closed-window lifecycle remains E5.
+
+Broad V4 passes555 core groups/0. V5 adds polling/draft preview/queue and native integration; final18 focused core and21 native owner/registry groups pass. Strict lint passes26 changed Swift files. Final packaged CLI SHA-2564a29ae4d6c12e6af43f005cbc5e0bfda9f245fd1fb0be23236fef444e3c81646 passes17 actual-condition,21 calendar,22 shared-admission and39 original-cause calls. Nine actual candidate writers contend for seven remaining shared-root slots: seven admit, two refuse,32 complete bindings remain and no calendar occurrence is created. Five damaged copies refuse; real SIGKILL after captured prepared publication and after COMMIT recover zero or one complete run/root/admission/charge/input respectively, with candidate state intact and no duplicate charge. Native ProductAI lifecycle, installed resources/build-tree isolation/ten missing and altered resource refusals and ad-hoc signature pass. These focused checks cover production additions after the broad checkpoint; no final full-core rerun or new model inference is claimed. All151 prior evidence artifacts stay byte-identical.
+
+The visible native journey creates a fresh synthetic workbook, selects the saved workflow, previews parts below10 and saves with zero activations/consumers/runs. Explicit Enable establishes stock20. A newly declared synthetic sale of15 creates stock5 and one completed automatic deterministic result3. Activity visibly shows stock at trigger/time, a separate step result and trigger-evidence navigation. From-now confirmation is inspected and cancelled. Pause removes the synthetic device grant; close, integrity verification and inert reconstruction preserve one root/admission/charge/input and zero calendar occurrences. This is deterministic native interaction proof, not model-generated reporting or VoiceOver/appearance qualification.
+
+Correction to earlier calendar/shared-admission prepared-stage wording: the old probe ran inside the mutation body before ChangeCapture.publish. Its rollback proof is valid at that point; it did not prove death after the change envelope was published. Current calendar and condition probes run in the final commit guard after capture. The new candidate death worker asserts a saved operation and captured head commit before SIGKILL. Earlier immutable receipts remain unchanged. Retained iterations also include the initial throwing-boolean compile fix, a pure-output test corrected to use actual invocation provenance, and native owner fixtures corrected to drain bounded pages instead of assuming one-page catch-up. No integrity gate or backpressure was weakened.
+
+[Scoped condition dispatch evidence](../../../integration/evidence/2026-10-29-condition-dispatch.json.gz), 521,794 bytes, SHA-256 fdbf160e6a4c4304c8becf5afb77165e7e619dbc90675359adb0dac77bf3ccb3. Next complete conversational authoring/preview/explicit Enable, one real local-model condition workflow through business review and restart, and dataset-query adapters. Full E3 graphs/receiving/failure/abuse, E5-E6, contextual/Excel journeys, controlled dictation/VoiceOver/appearance/media, supported physical hardware, native parity/performance adoption and production signing/notarization/distribution remain open. Schema30 is canonical; unsupported development workbooks remain preserved/refused. This checkpoint does not complete the app or active goal.
+
+
+## Conversational inventory-rule checkpoint, October 29
+
+Conversation can now discover an exact saved workflow, request a validated read-only inventory starter and save the canonical automation through current-run template or custom authoring. The host confirms saving only and focuses that exact native review. It never grants execution, device permission or local-AI scope. Seven scripted modes cover exact saves, request lineage, read-only, forged authority, wrong threshold type, foreign receipts, stale workflows and inert reconstruction.
+
+The full synthetic agent suite and current 52-tool/65-case/555-mask grammar pass. The bare prompt stays under its unchanged 8,192-token gate at 8,161. The initial 8,341-token failure and 8,274/8,200 intermediate failures are retained; concise descriptions preserve old structures except the intentional automation discovery kind. The long-job fixture now isolates fixed policy text at a constant synthetic capacity while still counting continuation/latest results; real context/reserve/reasoning/output budgets are unchanged. Strict 14-file Swift lint, frozen 415-source native build, installed 1,888 Metal kernels/build-tree denial, ten missing/altered resource refusals, missing-model saved failure and ad-hoc signature pass.
+
+One real installed native-model 32K/bounded512 case saves the exact rule in four calls/34.798 seconds under development load despite untrusted autoenable/threshold metadata. A separate actual packaged native UI request saves it in three calls and opens exact right-pane review with correct workflow/parts < 10, disabled state and local-AI permission off. Done returns Home. Close/verify/inert reconstruction retain zero activations/consumers/runs/admissions. These are two scoped functional cases, not a throughput or broad accuracy claim. No new microphone/OS permission was used. All 152 prior evidence artifacts remain byte-identical.
+
+[Scoped authoring evidence](../../../integration/evidence/2026-10-29-condition-authoring.json.gz ), 280,383 bytes, SHA-256 fae90c12d650f94072e1373fa32b3c41f3cea2ab7844e6b3c0bb5224c03b8eeb. Earlier schema30 dispatch/race/death proof remains unchanged and reused. Next: text/voice explicit Enable confirmation, a real local-model condition workflow through human business review/restart, then dataset-query conditions. E5-E6, full E3/contextual/Excel journeys, controlled voice/accessibility/appearance/media, physical hardware/native parity/performance and production signing/notarization/distribution remain unfinished. This checkpoint does not complete the app or active goal.

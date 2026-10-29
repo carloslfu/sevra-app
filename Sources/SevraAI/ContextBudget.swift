@@ -22,8 +22,15 @@ package struct ContextBudget: Sendable {
   // these before dispatch; this budget alone does not compact any history.
   package let nextToolResultReserve = 2048
   package let recoveryReserve = 256
+  /// Owner-selected policy, not a qualification of any context capacity.
+  /// Integer arithmetic preserves floor(0.75 * capacity) without overflow.
+  package static func maintenanceThreshold(capacity: Int) -> Int {
+    guard capacity > 0 else { return 0 }
+    let selected = (capacity / 4) * 3 + (capacity % 4) * 3 / 4
+    return max(0, min(selected, capacity - 1800 - 2048 - 256))
+  }
   package var maintenanceThreshold: Int {
-    contextTokens - maximumOutputTokens - nextToolResultReserve - recoveryReserve
+    Self.maintenanceThreshold(capacity: contextTokens)
   }
   package init(profile: Profile = .development8K) { self.profile = profile }
 
@@ -47,6 +54,7 @@ package struct ContextBudget: Sendable {
       try account(message.reasoning)
       try account(message.toolCallId ?? "")
       try account(message.toolName ?? "")
+      for id in message.documentCopyIDs { try account(id) }
       for call in message.toolCalls {
         try account(call.id)
         try account(call.name)

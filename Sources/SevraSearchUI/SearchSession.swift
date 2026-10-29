@@ -40,11 +40,32 @@ public struct SearchQuery: Hashable, Sendable {
   @Published public private(set) var loadedQuery: SearchQuery?
   @Published public var anchor: String?
   private var request = UUID()
+  private var cancellation: Cancellation?
   public init() {}
+
+  /// Leaving the view keeps completed pages for Back, but releases its reader.
+  public func cancelRead() {
+    cancellation?.cancel()
+    cancellation = nil
+    request = UUID()
+    loading = false
+  }
+
+  public func reset() {
+    cancelRead()
+    query = nil
+    loadedQuery = nil
+    hits = []
+    nextCursor = nil
+    incomplete = 0
+    anchor = nil
+    failure = nil
+    loading = false
+  }
 
   public func load(
     _ query: SearchQuery, more: Bool = false, debounce: Bool = false,
-    read: @escaping @Sendable (String?) async throws -> SearchPage
+    read: @escaping @Sendable (String?, Cancellation) async throws -> SearchPage
   ) async {
     // SwiftUI may cancel a superseded task before its actor entry runs.
     // That task must not claim ownership or clear a newer result set.
@@ -59,6 +80,9 @@ public struct SearchQuery: Hashable, Sendable {
       guard loadedQuery != query else { return }
       cursor = nil
     }
+    cancellation?.cancel()
+    let control = Cancellation()
+    cancellation = control
     let identity = UUID()
     request = identity
     self.query = query
@@ -70,18 +94,30 @@ public struct SearchQuery: Hashable, Sendable {
       anchor = nil
       loadedQuery = nil
     }
+    defer {
+      if request == identity {
+        cancellation = nil
+        loading = false
+      }
+    }
     guard !query.isEmpty else {
       loading = false
       loadedQuery = query
       return
     }
     loading = true
-    defer { if request == identity { loading = false } }
     do {
-      if debounce { try await Task.sleep(nanoseconds: 180_000_000) }
-      try Task.checkCancellation()
-      let page = try await read(cursor)
-      try Task.checkCancellation()
+      let page = try await withTaskCancellationHandler {
+        if debounce { try await Task.sleep(nanoseconds: 180_000_000) }
+        try Task.checkCancellation()
+        try control.check()
+        let result = try await read(cursor, control)
+        try Task.checkCancellation()
+        try control.check()
+        return result
+      } onCancel: {
+        control.cancel()
+      }
       guard request == identity else { return }
       hits = more ? hits + page.hits : page.hits
       nextCursor = page.nextCursor
@@ -89,7 +125,7 @@ public struct SearchQuery: Hashable, Sendable {
       loadedQuery = query
     } catch is CancellationError {
     } catch {
-      guard request == identity, !Task.isCancelled else { return }
+      guard request == identity, !Task.isCancelled, !control.isCancelled else { return }
       failure = error.localizedDescription
     }
   }
