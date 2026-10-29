@@ -2,16 +2,17 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-29T08:44:38.017022Z
+updated: 2026-10-29T09:16:26.481587Z
 ---
 
 # records/specs
 
 - [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
-- [[records/specs/application-definitions]] — Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
-- [[records/specs/automation-definitions]] — Inert exact-bound calendar automation definitions over shared immutable versions, typed evidence lineage and capture. Activation and dispatch remain separate.
+- [[records/specs/automation-planning]] — Reviewed schema20 activation and bounded calendar occurrence preparation: explicit process-local permission, revocation, skipped reasons and inert reconstruction; dispatch remains open.
 - [[records/specs/automation-schedules]] — Reviewed native calendar preview contract: explicit zones, recurrence, DST, bounded coverage and no execution authority. First E4 slice; runtime open.
+- [[records/specs/application-definitions]] — Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
+- [[records/specs/automation-definitions]] — Inert exact-bound calendar automation definitions over shared immutable versions, typed evidence lineage and capture. Activation and dispatch remain separate.
 - [[records/specs/manual-workflows]] — Manual durable workflow contract and scoped implementation sequence; full E3 remains open.
 - [[records/specs/intelligence]] — Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 - [[records/specs/references-and-relationships]] — Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.

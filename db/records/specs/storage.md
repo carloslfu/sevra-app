@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-29T08:44:38.017022+00:00
+updated: 2026-10-29T09:16:26.481587+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -546,3 +546,7 @@ The existing captured workflow_clarification operation may additionally retain c
 ## Current schema19 automation metadata
 
 The canonical initial schema is now19, extending only the app_definitions kind CHECK constraint with automation. It adds no physical table or parallel ledger. Shared immutable versions/heads/dependencies, Source lineage, FTS and capture/reconstruction retain exact workflow and argument evidence. Original submitted content and actor remain separate from normalized preview values. No enabled/device grant or trigger dispatch state exists in this slice. Existing development files remain preserved and unsupported formats refuse; no legacy adapter/reset. Final326 full core groups and native-package/36 automation/31 calendar CLI evidence pass. Details: [[records/specs/automation-definitions]].
+
+## Current schema20 calendar preparation
+
+The canonical initial schema is20. automation_activations stores exact definition/generation, authorization Source/actor, armed/paused intent, monotonic cursor/observed catch-up target and exact coverage Source. automation_occurrences retains distinct pinned calendar slots, original planning and latest decision Sources, pending/skipped state and reasons. One pending row per activation and unique activation/definition/local-date identity are enforced. automation_outbox captures bounded notification/delivery metadata in the same transaction. All three tables join shared capture/apply and inert reconstruction, not a second ledger. Explicit process-local planning capabilities are never serialized. No automatic workflow execution or device grant. Older development files refuse without reset. Scoped full-core/focused/installed/package qualification and exact evidence: [[records/specs/automation-planning]].

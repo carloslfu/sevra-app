@@ -2,7 +2,7 @@
 type: spec
 id: 01m63bka3cbj5a9x85kjh25ffn
 created: 2026-10-29T08:14:36.652680+00:00
-updated: 2026-10-29T08:28:19.361501+00:00
+updated: 2026-10-29T09:06:00.829840+00:00
 summary: 'Reviewed native calendar preview contract: explicit zones, recurrence, DST, bounded coverage and no execution authority. First E4 slice; runtime open.'
 title: Native calendar schedule previews
 status: implemented
@@ -49,4 +49,4 @@ Evidence: [calendar preview receipt](../../../integration/evidence/2026-10-29-ca
 
 ## Half-hour correction during implementation
 
-The first frozen check passed 10 groups and failed the Lord Howe half-hour gap. A retained direct Foundation probe reproduces Calendar.nextDate nextTime skipping October 4, 2026 for 02:15, rather than returning that date at 02:30. The first implementation safely discarded the out-of-day result but incorrectly omitted the occurrence. Replace the lookup with bounded within-day resolution and retain the half-hour, first-fold, midnight, skipped-date and historical subminute cases. This is a measured behavior on the qualification Mac, not a claim about every Foundation version. The simpler chronological resolution also avoids selecting the second repeated instance. Final qualification remains pending.
+The first frozen check passed 10 groups and failed the Lord Howe half-hour gap. A retained direct Foundation probe reproduces Calendar.nextDate nextTime skipping October 4, 2026 for 02:15, rather than returning that date at 02:30. The first implementation safely discarded the out-of-day result but incorrectly omitted the occurrence. Replace the lookup with bounded within-day resolution and retain the half-hour, first-fold, midnight, skipped-date and historical subminute cases. This is a measured behavior on the qualification Mac, not a claim about every Foundation version. The simpler chronological resolution also avoids selecting the second repeated instance. Final qualification is recorded above; the failed first implementation and its direct probe remain preserved.

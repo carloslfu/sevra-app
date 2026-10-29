@@ -1051,3 +1051,12 @@ Schema19 inert automation kind over shared immutable definitions, exact workflow
 ## [2026-10-29 08:44] verification | records/specs/automation-definitions.md
 Final frozen V2 passes326 full core groups/0,8 automation groups, strict10 Swift files, native app/CLI build,36 automation+31 calendar installed calls, resource/missing10/altered refusals and signature.134 prior evidence artifacts byte-identical. Receipt b837e7b50ef0cae81fc0e246f5f963889e4fc61d37e49d7b0a11539f74e37ed7. Exact9d0f15c prior CI green; full E4/release remain open.
 
+## [2026-10-29 08:52] design | records/specs/automation-planning.md
+Reviewed authority, time/delivery and persistence/recovery passes before implementing bounded occurrence preparation; execution and persistent device grants remain open.
+
+## [2026-10-29 09:16] implementation | records/specs/automation-planning.md
+Schema20 durable activation/occurrence/outbox family, revocable exact-generation current-process planning, source-bound monotonic catch-up, bounded/late/coalesced slots, inert reconstruction and CLI list/inspect/pause. No dispatch or persistent device grant.
+
+## [2026-10-29 09:16] verification | records/specs/automation-planning.md
+Frozen V4 full343/0; final focused17/0; final installed33 CLI and native build/resources/missing10/altered refusals/signature pass. Reuse unchanged36 definition/31 calendar CLI cases.135 earlier receipts byte-identical. Artifact62555 bytes SHA5f070252ec18a980acb93b7f872cf0e698b821da74a3f0e3dca9db22dba4d0d9. Actual execution/E4/release remain open.
+

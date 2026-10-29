@@ -96,6 +96,11 @@ import SevraProduct
     if command == "automation-preview" {
       return try runAutomationPreview(args, book: book, cancellation: cancellation)
     }
+    if command.hasPrefix("automation-"),
+      let result = try runAutomationInspection(args, book: book, cancellation: cancellation)
+    {
+      return result
+    }
     if command == "commits" {
       try require(args.count == 2 || args.count == 3, "usage", "commits WORKBOOK [LIMIT]")
       return .array(try book.committedHistory(limit: args.count == 3 ? Int(args[2]) ?? 0 : 100))
@@ -682,6 +687,11 @@ import SevraProduct
     balance WORKBOOK SUBJECT | calculate EXPRESSION [VALUES_JSON]
     schedule-preview SCHEDULE_JSON_OR_@FILE AFTER_ISO [COUNT] [HORIZON_DAYS]
     automation-preview WORKBOOK EXACT_DEFINITION_ID AFTER_ISO [COUNT] [HORIZON_DAYS]
+    automation-activation WORKBOOK ACTIVATION_ID
+    automation-list WORKBOOK [AFTER_ID_OR_-] [LIMIT]
+    automation-occurrences WORKBOOK ACTIVATION_ID [AFTER_ID_OR_-] [LIMIT]
+    automation-events WORKBOOK [AFTER_SEQUENCE] [LIMIT]
+    automation-pause WORKBOOK ACTIVATION_ID EXPECTED_GENERATION TOKEN
     spaces WORKBOOK | space WORKBOOK TITLE DEFINITION_JSON | pin-space WORKBOOK SPACE_ID [TITLE]
     space-edit WORKBOOK SPACE_ID BASE_VERSION EDITS_JSON [TOKEN]
     space-history WORKBOOK SPACE_ID [BEFORE_VERSION]

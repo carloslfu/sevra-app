@@ -247,6 +247,7 @@ extension Workbook {
         try verifyManagedDatasets()
         try verifyApplicationDefinitions()
         try verifyWorkflows()
+        try verifyAutomationPlanning()
         try verifyFormDrafts()
         try verifyWorkflowClarificationDrafts()
         try verifySpaces()

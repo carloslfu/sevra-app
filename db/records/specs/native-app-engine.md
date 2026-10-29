@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T08:44:37.975708+00:00
+updated: 2026-10-29T09:16:26.463289+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -687,3 +687,7 @@ The shared pure Swift planner and standalone CLI have13 focused groups/0,31 inst
 ## Inert automation definition qualification, October 29
 
 Schema19 now stores exact workflow/calendar intentions in the existing immutable application-definition family, with typed/nested item lineage, FTS, stale-base/idempotent saves and inert reconstruction. All326 core groups pass, plus36 installed automation/31 calendar CLI calls and native package/refusal/signature checks. Saving, importing, restoring and previewing grant no execution authority. Ordinary agent authoring stays closed. Explicit activation/device-local grants, durable occurrences/catch-up/overlap, foreground dispatch and E5 remain open. Contract and evidence: [[records/specs/automation-definitions]].
+
+## Durable calendar preparation qualification, October 29
+
+[[records/specs/automation-planning]] now implements schema20 authorization/occurrence/outbox storage, exact source-bound cursor/high-water state and revocable current-process planning capabilities. It passes343 full core groups at frozen V4,17 final focused groups,33 final installed CLI cases and final native package/refusal/signature checks; unchanged36 definition/31 calendar cases are reused. State is portable but authority is not reconstructed. Saved scheduling intent, process-local preparation permission and execution remain distinct. No workflow is dispatched. Persistent device grants, useful foreground execution/overlap, native configuration and E4/E5 event/condition/background/resource work remain required. This is not a new decision to make routine users repeatedly reauthorize work. Full app/release gates remain open.

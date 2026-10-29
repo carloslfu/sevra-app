@@ -2,7 +2,7 @@ import Foundation
 
 enum Schema {
   static let applicationID = 0x5356_5241
-  static let version = 19
+  static let version = 20
   static let sql = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=\(version);
@@ -114,6 +114,13 @@ enum Schema {
     CREATE TABLE workflow_approvals(run_id TEXT NOT NULL,step_id TEXT NOT NULL,proposal_id TEXT NOT NULL REFERENCES items(id),accepted_id TEXT REFERENCES items(id),PRIMARY KEY(run_id,step_id,proposal_id),FOREIGN KEY(run_id,step_id) REFERENCES workflow_steps(run_id,step_id));
     CREATE TABLE workflow_outbox(sequence INTEGER PRIMARY KEY,event_id TEXT NOT NULL UNIQUE,run_id TEXT NOT NULL REFERENCES workflow_runs(id),step_id TEXT,kind TEXT NOT NULL,payload TEXT NOT NULL,created TEXT NOT NULL,FOREIGN KEY(run_id,step_id) REFERENCES workflow_steps(run_id,step_id));
     CREATE INDEX workflow_outbox_run ON workflow_outbox(run_id,sequence);
+    CREATE TABLE automation_activations(id TEXT PRIMARY KEY,logical_id TEXT NOT NULL UNIQUE,definition_id TEXT NOT NULL REFERENCES app_definitions(id),source_id TEXT NOT NULL REFERENCES items(id),actor TEXT NOT NULL,generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),state TEXT NOT NULL CHECK(state IN ('armed','paused')),policy TEXT NOT NULL CHECK(policy='calendar-prepare-v1'),cursor TEXT NOT NULL,observed_through TEXT NOT NULL,catch_up_remaining INTEGER NOT NULL CHECK(catch_up_remaining IN (0,1)),coverage_source TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,updated TEXT NOT NULL);
+    CREATE INDEX automation_activations_ready ON automation_activations(state,cursor,id);
+    CREATE TABLE automation_occurrences(id TEXT PRIMARY KEY,activation_id TEXT NOT NULL REFERENCES automation_activations(id),definition_id TEXT NOT NULL REFERENCES app_definitions(id),generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),slot_key TEXT NOT NULL,due TEXT NOT NULL,slot TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('pending','skipped')),detail TEXT NOT NULL,source_id TEXT NOT NULL REFERENCES items(id),decision_source TEXT NOT NULL REFERENCES items(id),created TEXT NOT NULL,updated TEXT NOT NULL,UNIQUE(activation_id,definition_id,slot_key));
+    CREATE UNIQUE INDEX automation_occurrences_pending ON automation_occurrences(activation_id) WHERE state='pending';
+    CREATE INDEX automation_occurrences_page ON automation_occurrences(activation_id,due,id);
+    CREATE TABLE automation_outbox(sequence INTEGER PRIMARY KEY,event_id TEXT NOT NULL UNIQUE,activation_id TEXT NOT NULL REFERENCES automation_activations(id),generation INTEGER NOT NULL CHECK(typeof(generation)='integer' AND generation>0 AND generation<=1000000000),kind TEXT NOT NULL CHECK(kind IN ('authorized','paused','planned')),source_id TEXT NOT NULL REFERENCES items(id),payload TEXT NOT NULL,created TEXT NOT NULL);
+    CREATE INDEX automation_outbox_activation ON automation_outbox(activation_id,sequence);
     CREATE VIRTUAL TABLE definition_fts USING fts5(title,description,parameter_text,content='app_definitions',content_rowid='rowid',tokenize='unicode61 remove_diacritics 2',prefix='2 3 4');
     CREATE TRIGGER app_definitions_ai AFTER INSERT ON app_definitions BEGIN
       INSERT INTO definition_fts(rowid,title,description,parameter_text) VALUES(new.rowid,new.title,new.description,new.parameter_text);

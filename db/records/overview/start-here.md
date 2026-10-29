@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T08:44:38.076109+00:00
+updated: 2026-10-29T09:16:26.536277+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -68,3 +68,7 @@ The first E4 slice previews exact native daily/weekly/monthly/yearly schedules w
 ## Inert automation definition foundation
 
 [[records/specs/automation-definitions]] adds exact workflow/calendar intentions to the existing immutable definition/lineage/FTS/capture family. Schema19 has326 full core groups/0,36 automation and31 calendar installed CLI cases plus final native-package proof. Saved and reconstructed definitions are inert; ordinary agent authoring remains closed. Explicit versioned activation/device authority, durable occurrences/catch-up/overlap and dispatch remain next. This does not complete E4 or the application.
+
+## Durable calendar preparation foundation
+
+Current schema20 adds explicit exact-generation process-local planning permission, pause/revocation, bounded/coalesced/late occurrence decisions, source-bound monotonic catch-up and transactional outbox through the same captured ledger.343 full core groups at frozen V4,17 final focused groups and33 final installed CLI cases pass; unchanged36 definition/31 calendar cases are reused. Final native package proof passes. Copies/reconstruction do not acquire authority. No timer or workflow dispatch yet. Persistent device authorization, useful foreground execution/native controls and full E4/E5 remain required. Contract and evidence: [[records/specs/automation-planning]].

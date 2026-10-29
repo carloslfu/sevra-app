@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T08:44:38.057524+00:00
+updated: 2026-10-29T09:16:26.518421+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1661,3 +1661,11 @@ Use the existing definition-save command with kind automation, title/description
 Use `output/native/bin/sevra automation-preview WORKBOOK EXACT_DEFINITION_ID 2026-10-29T12:00:00Z 5` to inspect pinned normalized inputs and next dates without execution. Enabled fields are rejected. The agent save tool intentionally cannot create this kind yet. Native configuration and activation are still pending.
 
 Focused checks: `.build/debug/sevra-checks --automations` and `python3 scripts/check_automation_definitions.py --cli output/native/bin/sevra --output NEW_DIRECTORY`. The schema19 checkpoint passes all326 core groups,8 focused automation groups,36 installed automation and31 calendar calls, strict10-file lint and native package checks. No existing user workbook is reset; old development formats require their matching build. See [[records/specs/automation-definitions]].
+
+## Inspecting saved calendar preparation
+
+Use `automation-list WORKBOOK [AFTER_ID_OR_-] [LIMIT]` to discover at most50 saved activations per page. Inspect an exact ID with `automation-activation WORKBOOK ACTIVATION_ID`. Armed state is preparation intent only; output explicitly requires a session and does not mean a timer or workflow is running. Use `automation-occurrences WORKBOOK ACTIVATION_ID [AFTER_ID_OR_-] [LIMIT]` for original/decision Sources and skipped reasons. `automation-events WORKBOOK [AFTER_SEQUENCE] [LIMIT]` pages the transactional outbox. All reads are bounded and mutation-free.
+
+`automation-pause WORKBOOK ACTIVATION_ID EXPECTED_GENERATION TOKEN` revokes prior planning permission and skips a pending request. It records the programmatic CLI caller and never guesses a human identity. Repeating an exact current token recovers its receipt; a superseded decision refuses. No Enable/Run CLI control is offered that would imply an operational scheduler. Authorize/prepare currently remain explicit shared-core APIs for the foreground integration that is still required.
+
+Focused checks: `.build/debug/sevra-checks --automation-planning` and `python3 scripts/check_automation_planning.py --cli output/native/bin/sevra --checks .build/debug/sevra-checks --output NEW_DIRECTORY`. Fixtures are synthetic and selected into a new directory. The schema20 slice has343 full core groups at V4,17 final focused groups and33 final installed CLI cases plus final native package proof. See [[records/specs/automation-planning]].

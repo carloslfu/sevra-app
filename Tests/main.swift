@@ -41,6 +41,16 @@ let temp = FileManager.default.temporaryDirectory.appendingPathComponent(
   "sevra-checks-" + identifier())
 try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: temp) }
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--automation-planning-fixture" {
+  print(
+    try createAutomationPlanningFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+if CommandLine.arguments.dropFirst() == ["--automation-planning"] {
+  checkAutomationPlanning(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.dropFirst() == ["--schedules"] {
   checkCalendarSchedules()
   print("\(passed) passed; \(failed) failed")
@@ -952,5 +962,6 @@ checkPersistence(at: temp)
 checkSpaceEditing(at: temp)
 checkCalendarSchedules()
 checkAutomationDefinitions(at: temp)
+checkAutomationPlanning(at: temp)
 print("\(passed) passed; \(failed) failed")
 exit(failed == 0 ? 0 : 1)
