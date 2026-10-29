@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-28T23:52:27.431425+00:00
+updated: 2026-10-29T00:26:47.168602+00:00
 summary: '"Schema14 definitions, native forms and computations have scoped local-model and visible native proof; full journeys, workflows and release gates remain open."'
 title: Shared application definitions and actions
 status: reviewed
@@ -11,7 +11,7 @@ status: reviewed
 
 This elaborates E2 in [[records/specs/native-app-engine]]. It is an implementation
 contract, not a statement of whole-feature completion. E1 is captured at cd5f854.
-The schema14 catalog now includes scoped core/CLI registered inventory actions and
+The current schema 15 catalog retains scoped core/CLI registered inventory actions and
 recoverable native form implementation in addition to the earlier pure computation.
 Agent tools, focused native forms, reusable native computation and exact result
 publication have scoped qualification below. Full EJ04/EJ05 remain open. E3 owns durable multi-step execution; do not hide
@@ -49,7 +49,7 @@ Retry tokens and exact arguments return the original version after later edits.
 Removing a component never removes a definition or its history.
 
 Definition kinds start with function and query, followed by action and form.
-Future workflow/automation kinds remain refused until their executors qualify.
+Workflow now has the scoped manual core/CLI executor in [[records/specs/manual-workflows]]. Agent workflow authoring, native workflow surfaces and automation kinds remain refused until their paths qualify.
 Use UUID logical/exact IDs independently from names. Exact bindings keep their
 version; live bindings follow the head. Current and historical scope is explicit.
 Saving executable intent never grants authority to run it or accept business data.

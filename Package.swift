@@ -20,6 +20,7 @@ let package = Package(
     .executable(name: "sevra-product-checks", targets: ["SevraProductChecks"]),
     .executable(name: "sevra-voice-checks", targets: ["SevraVoiceChecks"]),
     .executable(name: "sevra-context-durability", targets: ["SevraContextDurability"]),
+    .executable(name: "sevra-workflow-durability", targets: ["SevraWorkflowDurability"]),
     .executable(name: "sevra-document-checks", targets: ["SevraDocumentChecks"]),
     .executable(name: "sevra-preview-checks", targets: ["SevraPreviewChecks"]),
     .executable(name: "sevra-benchmark", targets: ["SevraBenchmark"]),
@@ -54,6 +55,9 @@ let package = Package(
     .executableTarget(
       name: "SevraContextDurability", dependencies: ["SevraCore"],
       path: "IntegrationTests/ContextDurability", swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(
+      name: "SevraWorkflowDurability", dependencies: ["SevraCore"],
+      path: "IntegrationTests/WorkflowDurability", swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(name: "SevraVoice", swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraVoiceChecks", dependencies: ["SevraVoice"],

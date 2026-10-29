@@ -112,6 +112,11 @@ import SevraProduct
     {
       return result
     }
+    if let result = try runWorkflowCommand(
+      command, book: book, args: args, cancellation: cancellation)
+    {
+      return result
+    }
     switch command {
     case "inspect": return try book.counts()
     case "intake-status":
@@ -702,6 +707,16 @@ import SevraProduct
     component-evaluate WORKBOOK COMPONENT_JSON [CURSOR]
     definition-publish WORKBOOK REQUEST_JSON_OR_@FILE TOKEN
     definition-search WORKBOOK QUERY [OPTIONS_JSON]
+    workflow-start WORKBOOK EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN
+    workflow-read WORKBOOK RUN_ID
+    workflow-list WORKBOOK [STATE]
+    workflow-advance WORKBOOK RUN_ID
+    workflow-claim WORKBOOK RUN_ID OWNER LEASE_SECONDS TOKEN
+    workflow-finish WORKBOOK RUN_ID CLAIM_JSON
+    workflow-heartbeat WORKBOOK RUN_ID CLAIM_JSON LEASE_SECONDS TOKEN
+    workflow-retry WORKBOOK RUN_ID TOKEN
+    workflow-cancel WORKBOOK RUN_ID TOKEN
+    workflow-events WORKBOOK [AFTER_SEQUENCE]
     table-query-plan WORKBOOK QUERY_JSON
     table-optimize WORKBOOK QUERY_JSON | table-clear-indexes WORKBOOK DATASET_ID
     export-csv WORKBOOK TABLE_ID PATH.csv | tool WORKBOOK TOOL [ARGS_JSON]

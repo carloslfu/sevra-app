@@ -8,8 +8,9 @@ extension Workbook {
   ) throws -> Value {
     try require(
       (1...50).contains(limit)
-        && (kind == nil || ["function", "query", "action", "form"].contains(kind!)),
-      "definition_limit", "Use function/query/action/form scope and a page limit from 1 to 50.")
+        && (kind == nil || ["function", "query", "action", "form", "workflow"].contains(kind!)),
+      "definition_limit",
+      "Use function/query/action/form/workflow scope and a page limit from 1 to 50.")
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
     return try synchronized(cancellation: control) {
       try db.budget(cancellation: control, seconds: 3) {
@@ -152,6 +153,21 @@ extension Workbook {
             _ = try mapDefinitionCall(
               call, caller: descriptor, target: DefinitionDescriptor(target.content),
               arguments: nil, validateOnly: true)
+          }
+        } else if saved.kind == "workflow" {
+          try validateWorkflowDefinition(descriptor, historical: true)
+          let bindings = try definitionBindings(descriptor)
+          try require(
+            dependencies.count == bindings.count, "workflow_integrity",
+            "Missing workflow dependencies.")
+          for (index, binding) in bindings.enumerated() {
+            let target = try resolveDefinition(binding)
+            let row = dependencies[index]
+            try require(
+              row["ordinal"].int == index && row["kind"].text == "definition"
+                && row["mode"].text == "exact" && row["target_version"].text == target.id
+                && row["target_logical"].text == target.logicalID,
+              "workflow_integrity", "The retained workflow dependency is inconsistent.")
           }
         } else if saved.kind == "action" || saved.kind == "form" {
           let bindings = try definitionBindings(descriptor)

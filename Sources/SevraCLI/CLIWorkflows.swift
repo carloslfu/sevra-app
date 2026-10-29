@@ -1,0 +1,59 @@
+import Foundation
+import SevraCore
+
+extension CLI {
+  static func runWorkflowCommand(
+    _ command: String, book: Workbook, args: [String],
+    cancellation: Cancellation
+  ) throws -> Value? {
+    guard command.hasPrefix("workflow-") else { return nil }
+    let actor = ChangeActor.programmatic("SevraCLI.manualWorkflow")
+    switch command {
+    case "workflow-start":
+      try require(
+        args.count == 5, "usage", "workflow-start WORKBOOK EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN"
+      )
+      return try book.startWorkflow(
+        args[2], arguments: Value.parse(args[3]), token: args[4],
+        actor: actor, cancellation: cancellation)
+    case "workflow-read":
+      try require(args.count == 3, "usage", "workflow-read WORKBOOK RUN_ID")
+      return try book.workflowRun(args[2])
+    case "workflow-list":
+      try require((2...3).contains(args.count), "usage", "workflow-list WORKBOOK [STATE]")
+      return .array(try book.workflowRuns(state: args.count == 3 ? args[2] : nil))
+    case "workflow-events":
+      try require(
+        (2...3).contains(args.count), "usage", "workflow-events WORKBOOK [AFTER_SEQUENCE]")
+      return try book.workflowEvents(after: args.count == 3 ? Int(args[2]) ?? -1 : 0)
+    case "workflow-advance", "workflow-finish", "workflow-claim", "workflow-heartbeat",
+      "workflow-retry", "workflow-cancel":
+      let counts = [
+        "workflow-advance": 3, "workflow-finish": 4, "workflow-claim": 6,
+        "workflow-heartbeat": 6, "workflow-retry": 4, "workflow-cancel": 4,
+      ]
+      try require(
+        args.count == counts[command], "usage", "Use the workflow command fields shown in help.")
+      let session = try book.authorizeWorkflowExecution(args[2])
+      switch command {
+      case "workflow-advance":
+        return try book.advanceWorkflow(
+          session, owner: "cli:" + identifier(), cancellation: cancellation)
+      case "workflow-finish":
+        return try book.completeWorkflowStep(
+          session, claim: Value.parse(args[3]), cancellation: cancellation)
+      case "workflow-claim":
+        return try book.claimWorkflowStep(
+          session, owner: args[3], leaseSeconds: Double(args[4]) ?? -1,
+          token: args[5], cancellation: cancellation)
+      case "workflow-heartbeat":
+        return try book.heartbeatWorkflowStep(
+          session, claim: Value.parse(args[3]),
+          leaseSeconds: Double(args[4]) ?? -1, token: args[5])
+      case "workflow-retry": return try book.retryWorkflow(session, token: args[3])
+      default: return try book.cancelWorkflow(session, token: args[3])
+      }
+    default: throw SevraError("usage", "Unknown workflow command. See help.")
+    }
+  }
+}

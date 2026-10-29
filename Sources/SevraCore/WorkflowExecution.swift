@@ -1,0 +1,201 @@
+import Foundation
+
+extension Workbook {
+  public func completeWorkflowStep(
+    _ session: WorkflowExecutionSession, claim: Value,
+    cancellation: Cancellation = .init()
+  ) throws -> Value {
+    try workflowSession(session)
+    guard let attemptID = claim["id"].string, UUID(uuidString: attemptID) != nil else {
+      throw SevraError("workflow_claim", "Use a saved worker claim.")
+    }
+    var deadline: Double?
+    let guardLease: () throws -> Void = {
+      if let deadline {
+        try require(
+          Date().timeIntervalSince1970 < deadline, "workflow_fenced",
+          "The worker lease expired before its checkpoint could commit.")
+      }
+    }
+    let result = try mutation(
+      "workflow_step", token: "workflow-step:" + attemptID,
+      request: claim, cancellation: cancellation,
+      actor: .programmatic("SevraCore.workflowWorker"), commitGuard: guardLease
+    ) {
+      let saved = try self.validateWorkflowClaim(session, claim: claim)
+      deadline = Double(saved["deadline"].text)
+      let run = try self.workflowRun(session.runID)
+      let definition = try self.applicationDefinition(run["definition_id"].text)
+      let descriptor = try DefinitionDescriptor(definition.content)
+      let workflow = try DefinitionWorkflow(descriptor)
+      guard let step = workflow.steps.first(where: { $0.id == saved["step_id"].text }) else {
+        throw SevraError(
+          "workflow_integrity", "The claimed step is missing from its pinned definition.")
+      }
+      let outputs = Dictionary(
+        uniqueKeysWithValues: run["steps"].array.filter {
+          $0["state"] == .string("completed")
+        }.map { ($0["step_id"].text, $0["output"]["value"]) })
+      let args = try self.workflowArguments(
+        step, descriptor: descriptor,
+        supplied: run["arguments"], outputs: outputs)
+      let revision = try self.revision()
+      var output: Value
+      var state = "completed"
+      if step.kind == "evaluate" {
+        output = try self.evaluateApplicationDefinition(
+          step.binding!.target,
+          arguments: args, cancellation: cancellation)
+        try require(
+          output["nextCursor"] == .null, "workflow_partial",
+          "This query has more pages. A partial result cannot complete this workflow step.")
+        if output["kind"] == .string("query") {
+          var retained = output.object
+          retained["inputPopulation"] = .array(
+            try self.definitionQueryPopulation(output, cancellation: cancellation))
+          output = .object(retained)
+        }
+      } else if step.kind == "action" {
+        let plan = try self.applicationActionPlan(
+          step.binding!.target, arguments: args,
+          cancellation: cancellation)
+        output = try self.insertApplicationAction(
+          plan: plan,
+          request: .object([
+            "workflowRunID": .string(session.runID), "stepID": .string(step.id),
+            "operationID": .string("workflow-effect:" + session.runID + ":" + step.id),
+            "arguments": args,
+          ]), actor: .programmatic("SevraCore.workflowWorker"),
+          additionalInputs: [run["source_id"].text], cancellation: cancellation)
+        let review = workflow.steps.first { $0.review == step.id }!
+        for proposal in output["proposals"].array {
+          try self.db.execute(
+            "INSERT INTO workflow_approvals VALUES(?,?,?,NULL)",
+            [.string(session.runID), .string(review.id), proposal])
+        }
+      } else {
+        output = try self.workflowReview(session.runID, stepID: step.id)
+        if output["ready"] != .bool(true) { state = "waiting_review" }
+      }
+      output = .object([
+        "value": output, "readRevision": .number(Double(revision)),
+        "arguments": args, "definitionID": step.binding.map { .string($0.target) } ?? .null,
+      ])
+      try require(
+        try output.json().utf8.count <= 524_288, "workflow_limit",
+        "A step output and its provenance exceed 512 KiB.")
+      try cancellation.check()
+      // The final guard also runs after saved-change capture, immediately before
+      // COMMIT. Expiry rolls back effects, receipts and outbox together.
+      _ = try self.validateWorkflowClaim(session, claim: claim)
+      try self.db.execute(
+        "UPDATE workflow_attempts SET state=?,updated=? WHERE id=?",
+        [.string(state), .string(timestamp()), saved["id"]])
+      try self.db.execute(
+        "UPDATE workflow_steps SET state=?,output=?,detail='',updated=? WHERE run_id=? AND step_id=?",
+        [
+          .string(state), .string(try output.json()), .string(timestamp()), .string(session.runID),
+          .string(step.id),
+        ])
+      let remaining =
+        try self.db.scalar(
+          "SELECT count(*) FROM workflow_steps WHERE run_id=? AND state!='completed'",
+          [.string(session.runID)]
+        ).int ?? 0
+      let runState = state == "waiting_review" ? state : (remaining == 0 ? "completed" : "queued")
+      try self.db.execute(
+        "UPDATE workflow_runs SET state=?,detail='',updated=? WHERE id=?",
+        [.string(runState), .string(timestamp()), .string(session.runID)])
+      try self.workflowEvent(session.runID, stepID: step.id, kind: state, payload: output)
+      WorkflowPublicationProbe.observer?(.prepared, session.runID)
+      return try self.workflowRun(session.runID)
+    }
+    WorkflowPublicationProbe.observer?(.committed, session.runID)
+    return result
+  }
+
+  /// One explicit bounded step. No timer, hidden retry, model or background loop.
+  public func advanceWorkflow(
+    _ session: WorkflowExecutionSession, owner: String,
+    cancellation: Cancellation = .init()
+  ) throws -> Value {
+    let claim = try claimWorkflowStep(session, owner: owner, cancellation: cancellation)
+    if claim == .null { return try workflowRun(session.runID) }
+    do { return try completeWorkflowStep(session, claim: claim, cancellation: cancellation) } catch
+    {
+      let detail = String(String(describing: error).prefix(1000))
+      _ = try? failWorkflowStep(session, claim: claim, detail: detail)
+      throw error
+    }
+  }
+
+  func workflowReview(_ runID: String, stepID: String, recordApprovals: Bool = true) throws -> Value
+  {
+    let rows = try db.execute(
+      "SELECT * FROM workflow_approvals WHERE run_id=? AND step_id=? ORDER BY proposal_id LIMIT 51",
+      [.string(runID), .string(stepID)])
+    try require(
+      !rows.isEmpty && rows.count <= 50, "workflow_integrity",
+      "Review needs 1 to 50 exact proposals.")
+    var accepted: [Value] = []
+    var pending: [Value] = []
+    for row in rows {
+      let proposal = try item(row["proposal_id"]!.text)
+      let current = try item(proposal.logicalID)
+      if current.id == proposal.id && current.status == "draft" {
+        pending.append(.string(proposal.id))
+        continue
+      }
+      try require(
+        try workflowAcceptedVersion(proposal, current),
+        "workflow_stale_review",
+        "A proposal changed or was withdrawn. Its old review request cannot approve the replacement."
+      )
+      accepted.append(.string(current.id))
+    }
+    if pending.isEmpty && recordApprovals {
+      for row in rows {
+        let proposal = try item(row["proposal_id"]!.text)
+        let current = try item(proposal.logicalID)
+        try db.execute(
+          "UPDATE workflow_approvals SET accepted_id=? WHERE run_id=? AND step_id=? AND proposal_id=?",
+          [.string(current.id), .string(runID), .string(stepID), .string(proposal.id)])
+      }
+    }
+    return .object([
+      "ready": .bool(pending.isEmpty), "accepted": .array(accepted), "pending": .array(pending),
+      "meaning": .string("Acceptance preserves each proposal's meaning and scenario."),
+    ])
+  }
+
+  func workflowAcceptedVersion(_ proposal: Item, _ accepted: Item) throws -> Bool {
+    guard
+      proposal.kind == "movement" && proposal.status == "draft"
+        && accepted.supersedes == proposal.id && accepted.status == "accepted"
+        && accepted.logicalID == proposal.logicalID && accepted.data == proposal.data
+        && accepted.meaning == proposal.meaning && accepted.scenario == proposal.scenario
+        && accepted.title == proposal.title && accepted.text == proposal.text
+        && accepted.assetID == proposal.assetID
+    else { return false }
+    let lineage = try db.scalar(
+      "SELECT count(*) FROM lineage WHERE child=? AND parent=? AND relation='supersedes' AND transformation='accept-v1'",
+      [.string(accepted.id), .string(proposal.id)]
+    ).int
+    guard lineage == 1 else { return false }
+    let decisions = try db.execute(
+      "SELECT i.* FROM lineage l JOIN items i ON i.id=l.parent WHERE l.child=? AND l.relation='derives-from' AND l.transformation='accept-v1' AND i.category='source' AND i.kind='decision' AND i.status='accepted' LIMIT 3",
+      [.string(accepted.id)])
+    for row in decisions {
+      let source = try decodeItem(row)
+      if source.data["record"] == .string(proposal.id)
+        && source.data["transformation"] == .string("decision-evidence-v2")
+      {
+        try JSONDecoder().decode(
+          ChangeActor.self, from: Data(source.data["attribution"].json().utf8)
+        ).validate()
+        return true
+      }
+    }
+    return false
+  }
+}

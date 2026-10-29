@@ -44,40 +44,51 @@ extension Workbook {
       try require(
         plan == preview, "stale_action_preview",
         "The action or its inputs changed. Keep your draft and preview it again.")
-      if let requestSourceID {
-        let source = try self.item(requestSourceID)
-        try require(
-          source.id == requestSourceID && source.category == "source" && source.kind == "request",
-          "movement_request", "Use the captured current request Source.")
-      }
-      let definitionInputs = plan["resolvedDefinitions"].array.map { $0["sourceID"].text }
-      let invocation = try self.insertItem(
-        category: "source", kind: "application_invocation",
-        title: "Submitted " + plan["title"].text,
-        text: actual.label + " submitted draft inventory proposals. Acceptance remains separate.",
-        data: .object(["submitted": request, "plan": plan, "actor": try encoded(actual)]),
-        meaning: "actual", status: "accepted", scenario: "actual",
-        inputs: Array(
-          Set(
-            definitionInputs + [plan["primitiveArguments"]["evidence"].text]
-              + (requestSourceID.map { [$0] } ?? []))
-        ).sorted(),
-        transformation: "application-action-invocation-v1")
-      var proposals: [Value] = []
-      for raw in plan["movements"].array {
-        try control.check()
-        var movement = raw.object
-        if let requestSourceID { movement["requestSourceID"] = .string(requestSourceID) }
-        let proposal = try self.insertMovement(.object(movement), additionalInputs: [invocation])
-        proposals.append(.string(proposal))
-      }
-      return .object([
-        "workbookID": .string(self.id), "definitionID": plan["definitionID"],
-        "sourceID": .string(invocation), "proposals": .array(proposals),
-        "state": .string("draft"), "acceptedBalanceChanged": .bool(false),
-        "resolvedDefinitions": plan["resolvedDefinitions"], "fingerprint": plan["fingerprint"],
-      ])
+      return try self.insertApplicationAction(
+        plan: plan, request: request, actor: actual, requestSourceID: requestSourceID,
+        cancellation: control)
     }
+  }
+
+  /// Called only inside the owning core mutation. A workflow commits this same
+  /// registered effect body and its step checkpoint in one captured transaction.
+  func insertApplicationAction(
+    plan: Value, request: Value, actor actual: ChangeActor, requestSourceID: String? = nil,
+    additionalInputs: [String] = [], cancellation: Cancellation
+  ) throws -> Value {
+    if let requestSourceID {
+      let source = try self.item(requestSourceID)
+      try require(
+        source.id == requestSourceID && source.category == "source" && source.kind == "request",
+        "movement_request", "Use the captured current request Source.")
+    }
+    let definitionInputs = plan["resolvedDefinitions"].array.map { $0["sourceID"].text }
+    let invocation = try self.insertItem(
+      category: "source", kind: "application_invocation",
+      title: "Submitted " + plan["title"].text,
+      text: actual.label + " submitted draft inventory proposals. Acceptance remains separate.",
+      data: .object(["submitted": request, "plan": plan, "actor": try encoded(actual)]),
+      meaning: "actual", status: "accepted", scenario: "actual",
+      inputs: Array(
+        Set(
+          definitionInputs + additionalInputs + [plan["primitiveArguments"]["evidence"].text]
+            + (requestSourceID.map { [$0] } ?? []))
+      ).sorted(),
+      transformation: "application-action-invocation-v1")
+    var proposals: [Value] = []
+    for raw in plan["movements"].array {
+      try cancellation.check()
+      var movement = raw.object
+      if let requestSourceID { movement["requestSourceID"] = .string(requestSourceID) }
+      let proposal = try self.insertMovement(.object(movement), additionalInputs: [invocation])
+      proposals.append(.string(proposal))
+    }
+    return .object([
+      "workbookID": .string(self.id), "definitionID": plan["definitionID"],
+      "sourceID": .string(invocation), "proposals": .array(proposals),
+      "state": .string("draft"), "acceptedBalanceChanged": .bool(false),
+      "resolvedDefinitions": plan["resolvedDefinitions"], "fingerprint": plan["fingerprint"],
+    ])
   }
 
   func applicationActionPlan(_ id: String, arguments: Value, cancellation: Cancellation) throws

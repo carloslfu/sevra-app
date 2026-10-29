@@ -919,3 +919,9 @@ Qualify scoped native computation and exact result publication; retain failed mo
 ## [2026-10-29 00:03] verification | records/operations/implementation.md
 Retain hosted document-check premature-exit failure and two passing final local runs; repair AppKit test lifecycle and timing waits. Hosted requalification remains required.
 
+## [2026-10-29 00:26] implementation | records/specs/manual-workflows.md
+Implement schema 15 scoped manual workflows with canonical action effects, fenced checkpoint/outbox commits, exact review, retry-budget renewal and inert reconstruction; broad/focused verification underway, full E3 open.
+
+## [2026-10-29 00:33] verification | records/specs/manual-workflows.md
+Qualified schema15 manual workflow core/CLI, review/retry fencing, actual process death, inert copies and packaged installation; full E3 remains open. Corrected obsolete history migration test after retained hosted failure.
+

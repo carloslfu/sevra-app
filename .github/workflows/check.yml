@@ -85,6 +85,20 @@ jobs:
         run: |
           swift build --product sevra-table-ui-checks -j 3
           .build/debug/sevra-table-ui-checks
+      - name: Check manual workflow recovery across process death
+        run: |
+          swift build --product sevra-workflow-durability -j 3
+          python3 scripts/check_workflow_durability.py --output .build/workflow-durability-ci
+          swift build --product sevra -j 3
+          python3 scripts/check_workflow_cli.py --cli .build/debug/sevra --worker .build/debug/sevra-workflow-durability --output .build/workflow-durability-ci/cli.json
+      - name: Retain manual workflow recovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-process-death
+          path: .build/workflow-durability-ci/
+          include-hidden-files: true
+          if-no-files-found: ignore
       - name: Check native search navigation and stale reads
         run: |
           swift build --product sevra-search-ui-checks -j 3

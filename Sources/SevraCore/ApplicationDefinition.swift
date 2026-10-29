@@ -26,7 +26,8 @@ public struct ApplicationDefinition: Codable, Identifiable, Sendable {
       row["version"] == .number(Double(version)),
       row["previous_id"] == .null
         || row["previous_id"]?.string.flatMap(UUID.init(uuidString:)) != nil,
-      let kind = row["kind"]?.string, ["function", "query", "action", "form"].contains(kind),
+      let kind = row["kind"]?.string,
+      ["function", "query", "action", "form", "workflow"].contains(kind),
       let title = row["title"]?.string, let description = row["description"]?.string,
       let parameters = row["parameters"]?.string, let payload = row["payload"]?.string,
       let source = row["source_id"]?.string, UUID(uuidString: source) != nil,
@@ -234,7 +235,8 @@ struct DefinitionDescriptor {
       try value.json().utf8.count <= 64_000, "definition_limit", "Definition exceeds 64,000 bytes.")
     let o = try definitionObject(
       value, keys: ["kind", "title", "description", "parameters", "payload"])
-    guard let kind = o["kind"]?.string, ["function", "query", "action", "form"].contains(kind),
+    guard let kind = o["kind"]?.string,
+      ["function", "query", "action", "form", "workflow"].contains(kind),
       let title = o["title"]?.string,
       !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
       title.utf8.count <= 2048, let description = o["description"]?.string,
@@ -243,7 +245,8 @@ struct DefinitionDescriptor {
     else {
       throw SevraError(
         "definition",
-        "Declare a function, query, action or form, title, description, parameters and payload.")
+        "Declare a function, query, action, form or workflow, title, description, parameters and payload."
+      )
     }
     self.value = value
     self.kind = kind

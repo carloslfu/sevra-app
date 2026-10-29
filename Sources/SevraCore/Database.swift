@@ -135,12 +135,14 @@ final class Database {
     defer { sqlite3_busy_timeout(handle, 5000) }
     return try body()
   }
-  func transaction<T>(_ body: () throws -> T) throws -> T {
+  func transaction<T>(beforeCommit: (() throws -> Void)? = nil, _ body: () throws -> T) throws -> T
+  {
     try execute("BEGIN IMMEDIATE")
     do {
       try changes?.begin(self)
       let value = try body()
       try changes?.publish(self)
+      try beforeCommit?()
       try execute("COMMIT")
       changes?.reset()
       return value

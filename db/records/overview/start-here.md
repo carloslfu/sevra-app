@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-28T23:52:27.494023+00:00
+updated: 2026-10-29T00:33:30.373587+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -28,8 +28,8 @@ is retained as a separate baseline until native adoption gates pass. See [[recor
 
 - [[records/specs/identity]]: approved Sevra logo, app icon and native appearance.
 - [[records/specs/product]]: requirements and user experience.
-- [[records/specs/application-definitions]]: schema14 versioned functions/queries plus registered inventory actions and recoverable native receiving forms have scoped automated proof. Agent authoring/invocation, focused native forms, reusable native computation and exact result publication have scoped proof; full EJ, workflows and release qualification remain open.
-- [[records/specs/native-app-engine]]: adopted customizable Home/application-engine direction, shared definitions/actions/forms foundation, proposed durable workflows and automations, code gaps and phased acceptance. E1 Home/editing foundation is implemented with scoped evidence; full journeys and E2-E6 remain open.
+- [[records/specs/application-definitions]]: schema 15 versioned functions/queries plus registered inventory actions and recoverable native receiving forms have scoped automated proof. Agent authoring/invocation, focused native forms, reusable native computation and exact result publication have scoped proof; full EJ, workflows and release qualification remain open.
+- [[records/specs/native-app-engine]]: adopted customizable Home/application-engine direction, shared definitions/actions/forms and manual workflow core/CLI foundations, plus planned native workflow controls and automations, code gaps and phased acceptance. E1 Home/editing foundation is implemented with scoped evidence; full journeys and E2-E6 remain open.
 - [[records/specs/storage]]: package, data, transactions, history and calculations.
 - [[records/specs/managed-datasets]]: adopted reserved core and managed native dataset tables over shared immutable authority/replayable history. Schema12 native storage, exact-base definitions and typed stored-scalar query/index paths have scoped proof, supporting E2 catalog work; full E0-D/MJ and Excel continuity remain open.
 - [[records/specs/persistence-readiness]]: required audit and complete/replayable local persistence for future syncing; no cloud, sync protocol, replica coordination or new resolver. Schema-10 foundation, schema 12 registered projections/definitions and scoped FJ qualification are tracked in [[records/operations/persistence-coverage]]; whole-release gates remain open.
@@ -57,3 +57,6 @@ interface changes may recreate selected disposable development fixtures instead
 of adding legacy migrations/adapters. Test deployments do not activate support.
 Current-format integrity and history remain required. The controlling decision is
 [[records/specs/distribution]] under Pre-1.0 compatibility policy.
+
+## Manual workflow foundation
+[[records/specs/manual-workflows]] defines the schema 15 manual execution boundary: exact typed sequential steps, saved evaluation outputs, inventory drafts and exact review waits, transactional checkpoints/outbox, worker fencing, explicit retry/cancel and inert reconstruction. Native activity/forms, agent workflow tools, explicit AI/import steps, schedulers and background execution remain open. This does not change the repository's working-development-build status.

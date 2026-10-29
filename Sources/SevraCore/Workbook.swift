@@ -123,7 +123,8 @@ public final class Workbook: @unchecked Sendable {
   @discardableResult func mutation(
     _ kind: String, token: String = identifier(), request: Value = .null, expected: Int? = nil,
     cancellation: Cancellation? = nil, actor: ChangeActor? = nil,
-    deadlineSeconds: TimeInterval = 3, _ body: () throws -> Value
+    deadlineSeconds: TimeInterval = 3, commitGuard: (() throws -> Void)? = nil,
+    _ body: () throws -> Value
   ) throws -> Value {
     let receiptRequest: Value =
       try actor.map {
@@ -133,7 +134,7 @@ public final class Workbook: @unchecked Sendable {
       let previousActor = db.changes?.actor
       if let actualActor = actor ?? ChangeAttribution.actor { db.changes?.actor = actualActor }
       defer { if let previousActor { db.changes?.actor = previousActor } }
-      return try db.transaction {
+      return try db.transaction(beforeCommit: commitGuard) {
         if let prior = try db.execute(
           "SELECT kind,request,result FROM operations WHERE id=?", [.string(token)]
         ).first {

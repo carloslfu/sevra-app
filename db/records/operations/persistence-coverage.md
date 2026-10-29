@@ -2,7 +2,7 @@
 type: operational
 id: 01m61qjtn2a03gwyv3sz9cgm0x
 created: 2026-10-28T17:05:34.882631+00:00
-updated: 2026-10-28T23:52:27.462536+00:00
+updated: 2026-10-29T00:26:47.210680+00:00
 summary: Authority and write-path inventory, complete commit capture, inert reconstruction and remaining qualification.
 title: Local persistence coverage
 ---
@@ -322,3 +322,8 @@ agent invocation, complete E2-E6 and release gates remain open.
 Schema14 adds no canonical family for this slice. Component arguments/snapshots use captured space history. Published values, exact definitions, scoped candidate row versions and invocation attribution use ordinary immutable Source/Record lineage and the same operations transaction. Publication re-evaluates under the write lock and refuses changed/partial/oversized output; invocation/result publish atomically. Exact retries retain the original result. Acceptance creates a review version without changing meaning/data.
 
 The [native computation receipt](../../../integration/evidence/2026-10-28-native-computation.json.gz) covers fault/cancellation/refusal rollback, current/historical values, complete query candidate population, portable reopen and inert reconstruction. Candidate population is not per-group membership. Saved results cap5,000 input-version entries and512KiB retained result/provenance. No replay executes AI/actions, second ledger, cloud/sync or replica completion. Full persistence/engine journey qualification remains open.
+
+## Manual workflows, schema 15
+The shared capture inventory now includes workflow runs, ordered steps, worker attempts, exact proposal approvals and a workflow outbox. Step effects, result/provenance, run state and outbox commit with one ordinary operation receipt. A final lease guard executes after capture and immediately before COMMIT; expiry rolls the entire transaction back. Worker generations remain monotonic across explicit retry-budget renewal.
+
+Process-local execution sessions are deliberately outside the workbook. Replay and portable copies preserve claim history and exact outputs without acquiring execution authority or invoking a calculation/action/LLM. SIGKILL fixtures cover claim, prepared transaction and committed checkpoint boundaries. Broader import/AI/native/background and full portability journeys remain open in [[records/specs/manual-workflows]].

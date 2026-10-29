@@ -136,6 +136,10 @@ extension WorkbookTools {
           "Supply content or a current templateReceiptID with optional title.")
         content = a["content"]
       }
+      try require(
+        ["function", "query", "action", "form"].contains(content["kind"].text),
+        "definition_kind",
+        "Agent authoring currently supports functions, queries, actions and forms.")
       let token = try operationToken(tool, a)
       let existing = a["logicalID"].string
       try require(

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T00:03:16.724953+00:00
+updated: 2026-10-29T00:33:30.390859+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -5739,3 +5739,14 @@ CI run 40790418624 at abee6e0 passed core, extraction and search checks, then th
 The test executable now enters NSApplication.run from synchronous main and starts its async checks inside that owned AppKit lifecycle. The close test waits for explicit continuation and flush completion with bounded deadlines. Task.yield did not guarantee that either callback had completed. The product close guard and persisted document behavior are unchanged.
 
 Two independent local processes passed all 27 document checks after the final change. Preserve the failed hosted output and local outputs in the [lifecycle receipt](../../../integration/evidence/2026-10-28-document-check-lifecycle.json.gz). A new exact-commit hosted run must qualify the runner fix. Manual workflows remain the next E3 implementation task; the whole app is unfinished.
+
+## Manual workflow core, recovery and packaging, October 28
+Development schema15 now includes exact workflow definitions and captured run, step, claim/attempt, approval and workflow-outbox state. Manual core/CLI execution supports deterministic function/query evaluation, registered receiving draft actions and exact review checkpoints, with typed mappings, persisted outputs, explicit process-local resume authority and final transaction lease fencing. No model, background worker or historical reconstruction can silently execute a step. Every action requires a review step.
+
+Final core242/0 and focused11/0 checks pass. Independent debug, native and baseline packaged CLI cohorts pass. Actual child-process SIGKILL before action execution, inside prepared publication and after committed publication preserves atomic state and resumes without repeating completed effects. Reconstruction/portable copies retain exact history without session authority. Query outputs retain actual read revision and a bounded candidate population; partial queries refuse completion. Review polling consumes no repeated attempt. A 32-claim budget pauses for attention; explicit retry preserves all attempts and monotonic fencing generation.
+
+The broad V9 shared suite passes before the final retry-budget/schema refinement; V10 final core, focused persistence/CLI/process-death, native package/resource/refusal/signature checks and isolated baseline install/update/uninstall pass after it. Strict Swift lint passes. Scope and exact source/build identities are retained in the [manual workflow receipt](../../../integration/evidence/2026-10-28-manual-workflows.json.gz). All112 earlier immutable artifacts remain unchanged.
+
+Retained failures include the initial review test expecting only one lineage relation, fixed by verifying the canonical supersedes/accept-v1 edge plus attributed decision evidence. Hosted CI40791589647 on5de9a4a passes the document lifecycle correction and all stages through release build, then fails the obsolete history test that expected automatic version1 migration. The corrected CLI history probe creates700 messages through current trusted core APIs, tests eight concurrent openers, bounded history/search and offline export/reopen, and separately verifies unsupported old-format refusal without any file change. It passes locally. This changes test expectations to the adopted pre-1.0 contract; it adds no legacy migration. Preserve hosted failure diagnostics and qualify the next exact pushed commit in CI.
+
+Full E3 is still open: native workflow activity/forms, agent authoring/invocation, explicit AI/import/document steps, broader typed graphs, general business outbox consumers and receiving journeys. E4-E6, E2 voice/scale journeys, contextual/Excel continuity, full accessibility/hardware and production engine/distribution gates remain open. Continue these after this coherent checkpoint; the application and active goal are unfinished.

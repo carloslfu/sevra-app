@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-28T23:52:27.511408+00:00
+updated: 2026-10-29T00:26:47.224862+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1560,3 +1560,19 @@ fresh-install/notarized release checks remain open.
 The baseline and separate native candidate expose component-evaluate and definition-publish through the same core. See [[records/specs/application-definitions]] for exact binding/typed arguments, snapshots, current-run receipt publication and bounds. Save result is available for a complete first page and preserves explicit meaning separately from acceptance. Partial pinned pages remain frozen.
 
 After the native build, run python3 scripts/check_computation_views.py --cli output/native/bin/sevra for packaged calculation/query, stale/forged/partial refusals, exact retries, portable reopening and inert reconstruction. The native candidate remains separate from the installed Slotstream baseline until adoption gates pass. Current evidence/limits are linked in [[records/operations/implementation]].
+
+## Manual workflow checks
+Run the scoped synthetic checks without opening user data:
+
+```sh
+swift build --product sevra-checks -j 3
+.build/debug/sevra-checks --workflows
+swift build --product sevra-workflow-durability -j 3
+python3 scripts/check_workflow_durability.py
+swift build --product sevra -j 3
+python3 scripts/check_workflow_cli.py --cli .build/debug/sevra --worker .build/debug/sevra-workflow-durability
+```
+
+The shared check script and CI include the process-death and independent CLI probes. The native fixture worker is a test executable, not a shipped background helper. CLI help lists workflow-start/read/list/advance/claim/finish/heartbeat/retry/cancel/events. Every advance is one explicit bounded step; reaching review returns waiting_review without accepting proposals. Inspect and accept the exact proposals through the ordinary review path, then deliberately advance again.
+
+Definitions use kind workflow and the contract in [[records/specs/manual-workflows]]. Current development schema 15 replaces schema 14 without a legacy adapter. Preserve old packages and use a matching earlier development build for recovery. Only recreate selected disposable fixtures. No installed user package is reset or upgraded automatically.

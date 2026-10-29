@@ -7,6 +7,12 @@ import ZIPFoundation
 
 setbuf(stdout, nil)
 
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--history-fixture" {
+  print(
+    try createCLIHistoryFixture(at: URL(fileURLWithPath: CommandLine.arguments[2])).json())
+  exit(0)
+}
+
 var passed = 0
 var failed = 0
 func check(_ name: String, _ body: () throws -> Void) {
@@ -35,6 +41,11 @@ let temp = FileManager.default.temporaryDirectory.appendingPathComponent(
   "sevra-checks-" + identifier())
 try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: temp) }
+if CommandLine.arguments.dropFirst() == ["--workflows"] {
+  checkWorkflows(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 var book: Workbook!
 var source: Item!
 var movement: Item!
@@ -906,6 +917,7 @@ checkApplicationDefinitions(at: temp)
 checkApplicationActions(at: temp)
 checkDefinitionTools(at: temp)
 checkDefinitionResults(at: temp)
+checkWorkflows(at: temp)
 checkPersistence(at: temp)
 checkSpaceEditing(at: temp)
 print("\(passed) passed; \(failed) failed")
