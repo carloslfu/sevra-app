@@ -1033,3 +1033,12 @@ Final frozen V3:66 workflow groups/0, headless preview, strict10 Swift files, na
 ## [2026-10-29 08:06] verification | records/specs/manual-workflows.md
 Test-only cross-run receiving: accepted26 survives cancel and duplicate evidence/run; independent reviewed delivery reaches32, inert copy retains all outcomes.67 focused groups/0, one-file strict lint. Production code unchanged; receipt8c57759fe9bb5fab23d6060238ebef322f79c5c1c2530acf333df7129842b901.
 
+## [2026-10-29 08:14] design | records/specs/automation-schedules.md
+Three passes: calendar/DST semantics, bounded adversarial dates and integration/authority. Pure preview first; no activation, new schema, model tools or background execution.
+
+## [2026-10-29 08:28] implementation | records/specs/automation-schedules.md
+Pure bounded native calendar preview/core/CLI with exact zones and local-day/UTC outcomes. Fixed measured half-hour-gap skip through chronological day-local resolution; no activation, persistence, model tool or engine change.
+
+## [2026-10-29 08:28] verification | records/specs/automation-schedules.md
+Final13 calendar groups/0 and strict5 Swift files. Frozen V2 native build,31 installed CLI cases, resource/missing10/altered refusals and signature; V3 test-only whole-date boundary group reuses identical production proof.133 prior evidence files unchanged. Receipt e608825e2adedb6d11795bdd26e77997411e2e012b89bd5f47bf7768248b7eb2. Full E4 runtime/UI and app/release gates remain open.
+

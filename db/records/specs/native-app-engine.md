@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m61cxp8qh580q1vhqdktxhw2
 created: 2026-10-28T13:59:16.503029+00:00
-updated: 2026-10-29T08:00:09.194081+00:00
+updated: 2026-10-29T08:28:19.430285+00:00
 summary: 'Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.'
 title: Customizable native workbook application engine
 status: proposed
@@ -675,3 +675,11 @@ After an exact same-request workflow read, a contextual tool can prepare unsent 
 ## Local conversation answer confirmation
 
 Preview my answer and Save/Confirm my answer now bypass model loading in the native composer. Host-rendered exact values/document links and a live instance/session/conversation preview gate protect deliberate human submission. Input/context changes and intervening messages invalidate it; reopening never restores authority. Original AI preparation, final values and exact human confirmation provenance stay separate. Post-flush submission and post-reload focus ownership are corrected. Scoped automated/package/model evidence and remaining visible/voice/full-E3 gates are in [[records/specs/manual-workflows]].
+
+## Calendar preview implementation contract
+
+[[records/specs/automation-schedules]] adopts the reviewed first E4 slice: pure bounded native calendar previews, explicit zones and DST behavior, without activation, new persistence or workflow execution. Full trigger/runtime and UI gates remain open.
+
+## Calendar preview qualification, October 29
+
+The shared pure Swift planner and standalone CLI have13 focused groups/0,31 installed CLI cases and final native package/resource/refusal/signature proof. It exposes bounded coverage and exact local/UTC outcomes, and fixes the observed half-hour gap skip through bounded day-local resolution. No activation, new schema, model tool or execution. Full E4 durable state/runtime and native UI remain open. Exact evidence and three-pass contract: [[records/specs/automation-schedules]].

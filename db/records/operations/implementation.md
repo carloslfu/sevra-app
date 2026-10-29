@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T08:06:44.209283+00:00
+updated: 2026-10-29T08:28:19.409802+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -22,7 +22,8 @@ every requirement or supported hardware profile has passed.
 - Exact catalog lookup now passes a 39-call actual-model receiving/report/repair/retry job with seven completed steps and inert reconstruction. Code `0007` and received count `5` are retained; completed AI work is reused without an installed model after repair. Stock 20 becomes 25 only after review. This is scoped synthetic behavior.
 - Shared clarification now includes native typed input/preview/human submission, portable incomplete/stale alternatives, cross-window compare-and-save, receipt recovery and save-failure lifecycle gates. Final frozen checks pass302 core groups/0, headless preview, strict14-file lint, native package and27 deterministic calls. Original model output and separate continuation/review stay intact; latest visible checks remain unverified.
 - Conversation answers now include unsent AI preparation plus explicit local Preview my answer and Save/Confirm my answer commands. A live exact host-preview/current-conversation gate, retained confirmation provenance, post-flush entry and post-reload cancellation guards have scoped core/session/native-package proof. Final66 focused groups/0 and strict10-file lint pass; unchanged V2 scripted-agent/27 deterministic/30 actual packaged calls are reused after the two qualified V3 display/invalidation deltas. Paused-state wording is correct in the two synthetic model cases. Actual visible/voice interaction remains unverified.
-- Next: full receiving/failure/abuse journeys and richer graphs, then E4-E6; qualify actual visible conversation/dictation confirmation when native UI access works. Keep foreground execution explicit until activation/background contracts qualify.
+- Receiving occurrence qualification now passes67 focused workflow groups: additional evidence of the same explicit fulfillment cannot count twice across new runs; a genuinely independent fulfillment can. The E4 calendar planner now passes13 focused groups and31 installed CLI calls, with native package/refusal/signature proof; it previews only and activates nothing. Details: [[records/specs/automation-schedules]].
+- Next: durable automation definitions/activation/occurrences and foreground dispatch, alongside full E3 receiving/failure/abuse journeys and richer graphs. E4-E6, native scheduling configuration and actual visible conversation/dictation confirmation remain open. Keep foreground execution explicit until activation/background contracts qualify.
 - Release gaps also include contextual/Excel continuity and complete E0/E1/E2 journeys, voice/accessibility/appearance/media and supported physical hardware, native parity/performance adoption, production signing/notarization and distribution. Latest visible checks remain unverified while macOS reports locked. Specifications are the acceptance contract; scoped checkpoints do not make the app ready.
 
 ## Agent definitions and saved actions, checkpoint, October 28
@@ -890,6 +891,8 @@ Exact identifier lookups were below 1 ms. New-connection numbers are not OS-cold
 measurements. Runs overlapping inference are not performance qualification.
 
 ## Remaining work
+
+Historical early-development list, retained with its original checkpoint claims. The Current status, October 29 section and latest dated qualifications control current readiness; the latest native UI checks remain unverified while the tool reports locked.
 
 1. Native end-to-end interaction: cell editing/paste/undo, Finder opening, search
    paging/Back/facets, chapters/tangents, draft autosave, pinned/comparison views,
@@ -5964,3 +5967,13 @@ Evidence: [conversation confirmation receipt](../../../integration/evidence/2026
 A focused cross-run receiving journey now proves the explicit EJ06/E20 occurrence boundary: stock20 becomes26 after review, stays26 when a new Source/run repeats the same fulfillment, and becomes32 only after a separate Source and genuine independent occurrence is reviewed. Cancelling the first run after acceptance preserves its completed prefix and accepted effect. Inert reconstruction retains cancelled, needs_attention and completed run outcomes and stock32. The duplicate refusal does not erase the new supporting Source. This does not infer business occurrence identity from file similarity; explicit domain identity remains required.
 
 Final test-only V2 passes67 focused workflow groups/0 and strict one-file Swift lint. V1 incorrectly counted historical effect rows as live effects; V2 checks the accepted balance projection. Production source/validation is unchanged; final native/session/model/package proof from the conversation-confirmation checkpoint is reused. No new model, native build or process-death matrix. Evidence: [receiving occurrence receipt](../../../integration/evidence/2026-10-29-receiving-occurrences.json.gz), SHA-256 8c57759fe9bb5fab23d6060238ebef322f79c5c1c2530acf333df7129842b901. All132 prior evidence artifacts remain byte-identical. Full E3/richer graphs, E4-E6, Excel continuity and visible/release gates remain open.
+
+## Native calendar preview checkpoint, October 29
+
+The pure Swift native-calendar-v1 planner and schedule-preview CLI now validate exact daily/weekly/monthly/yearly rules, named zones, ISO weekdays, explicit last-day and leap-day behavior. They return strict-after UTC instants, local date slot keys, requested/actual wall time, shifted flags, count-versus-horizon status and the exclusive scanned-day boundary. Limits are100 occurrences,3660 local days,48 hours per resolved day and64 KiB explicitly selected JSON input. Cancellation/deadline checks apply during day and within-day work. No workbook opens, saved activation, schema, model tool, workflow or business effect.
+
+The first implementation passed10 groups and failed the Lord Howe half-hour gap: a retained direct Foundation probe skips the date instead of shifting02:15 to02:30. Bounded chronological resolution now uses local components/day boundaries, with second refinement across the target or offset changes. This also handles first-only folds, midnight gaps and historic subminute offsets. Whole-date47-hour repeats choose the first slot. A zero-length Foundation day interval refuses with schedule_date rather than looping or inventing coverage; historical preview support remains subject to valid native boundaries.
+
+Final V3 passes13 focused calendar groups/0 and strict5-file Swift lint. Frozen V2 production builds the native app/CLI, passes31 installed CLI calls including invalid inputs, oversized UTF-8/file/pipe refusals and a100-occurrence request, plus installed-resource checks with build reads denied,10 missing-resource refusals, altered-resource refusal and ad-hoc signature. V3 adds only two related historical boundary counterexamples in one test group; production bytes match V2, so its package/CLI proof is reused. New checks join the ordinary shared suite and both installed CLI CI paths. Exact457576c prior CI is green; this checkpoint needs its own hosted run. No new inference, full shared-suite or crash matrix for this nonpersistent boundary.
+
+Evidence: [calendar preview receipt](../../../integration/evidence/2026-10-29-calendar-previews.json.gz),27229bytes, SHA-256 e608825e2adedb6d11795bdd26e77997411e2e012b89bd5f47bf7768248b7eb2. All133 previous evidence artifacts remain byte-identical. No inference throughput/accuracy or release claim. The latest native inventory again has no apps and reports locked; visible confirmation/Activity/VoiceOver/dictation/appearance remain unverified. Durable activation and version/occurrence identities, catch-up/overlap, dispatch, event/condition triggers and E5 background/resource work remain open. This is the first E4 planning slice, not an operational scheduler. Full E3/richer graphs, Excel continuity, hardware/performance and production distribution remain open. The whole app and active goal remain unfinished.

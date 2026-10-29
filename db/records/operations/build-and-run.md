@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T08:00:09.261319+00:00
+updated: 2026-10-29T08:28:19.450439+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -1647,3 +1647,9 @@ Run the existing focused workflow, agent, native grammar and headless preview ha
 Open a paused workflow with complete saved input values and an explanation. Say or type Preview my answer in the main composer. Check the host-generated values, exact document links, explanation, meaning and scenario. Then send Save my answer or Confirm my answer as its own message. This uses no model. A bare yes does not submit. Edits, another message or leaving the context require a fresh preview. Only the supplied interpretation completes; Continue and business review remain separate. Native Preview answer / Save my answer controls remain optional equivalents.
 
 Final automated checks pass66 workflow groups plus native session/context invalidation, canonical fault/cancellation, exact receipt and inert reconstruction cases. The actual packaged-model preparation/read-only jobs pass30 calls with corrected paused-state wording in those cases; no actual native microphone/window interaction is claimed while UI access is locked. Use existing workflow, agent, preview and native-package commands, freezing sources before builds. The two V3 display/invalidation deltas have final core/preview/native/package proof and reuse V2 model/agent/deterministic evidence. Exact evidence and limits: [[records/specs/manual-workflows]].
+
+## Preview native calendar schedules
+
+Use `output/native/bin/sevra schedule-preview '{"policy":"native-calendar-v1","timeZone":"America/Bogota","hour":9,"minute":0,"recurrence":{"kind":"weekly","weekdays":[1,2,3,4,5]}}' 2026-10-29T12:00:00Z 5` for the next five weekday mornings. The command also accepts @PATH to an explicitly selected regular UTF-8 JSON file up to64 KiB. It does not take a workbook path or require a model. Count is1 through100 and optional horizon is1 through3660 local days. A horizon result can be empty without establishing there are no later occurrences. Local date slot keys still need an exact automation/trigger-version identity before durable dispatch.
+
+Focused checks: `swift build --product sevra-checks -j 4`, `.build/debug/sevra-checks --schedules`, then after a frozen native build `python3 scripts/check_schedule_preview.py --cli output/native/bin/sevra --output NEW_DIRECTORY`. Final13 groups and31 packaged calls pass. Existing package/refusal/signature checks pass; no UI activation or background execution is implemented here. See [[records/specs/automation-schedules]].

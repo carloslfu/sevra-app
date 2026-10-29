@@ -37,6 +37,9 @@ import SevraProduct
     if command == "version" || command == "--version" {
       return .object(["version": .string("0.1.0-dev"), "engine": .string(ProductAI.revision)])
     }
+    if command == "schedule-preview" {
+      return try runSchedulePreview(args, cancellation: cancellation)
+    }
     func arg(_ i: Int) throws -> String {
       guard args.count > i else { throw SevraError("usage", help) }
       return args[i]
@@ -674,6 +677,7 @@ import SevraProduct
     accept WORKBOOK ID [TOKEN] | withdraw WORKBOOK ID [TOKEN] | undo WORKBOOK ID [TOKEN] | lineage WORKBOOK ID
     opening WORKBOOK SUBJECT QUANTITY ISO_DATE SOURCE_ID | movement WORKBOOK JSON
     balance WORKBOOK SUBJECT | calculate EXPRESSION [VALUES_JSON]
+    schedule-preview SCHEDULE_JSON_OR_@FILE AFTER_ISO [COUNT] [HORIZON_DAYS]
     spaces WORKBOOK | space WORKBOOK TITLE DEFINITION_JSON | pin-space WORKBOOK SPACE_ID [TITLE]
     space-edit WORKBOOK SPACE_ID BASE_VERSION EDITS_JSON [TOKEN]
     space-history WORKBOOK SPACE_ID [BEFORE_VERSION]
