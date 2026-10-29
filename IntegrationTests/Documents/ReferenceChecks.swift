@@ -245,13 +245,15 @@ private actor ReferenceReadGate<T: Sendable> {
   await checkAsync("Native scroll observation restores and retains a real clip-view position") {
     let initial = DocumentReadingPosition(offset: 400, scrollable: 1600, width: 400)
     var saved = initial
-    let host = NSHostingView(
-      rootView: ScrollView {
+    @MainActor func document(_ position: DocumentReadingPosition) -> some View {
+      ScrollView {
         VStack {
           Text("Long synthetic document").frame(height: 2000)
         }.frame(maxWidth: .infinity)
-          .background(DocumentScrollObserver(position: saved) { saved = $0 })
-      })
+          .background(DocumentScrollObserver(position: position) { saved = $0 })
+      }
+    }
+    let host = NSHostingView(rootView: document(initial))
     host.frame = NSRect(x: 0, y: 0, width: 400, height: 400)
     let window = NSWindow(
       contentRect: host.frame, styleMask: [.titled], backing: .buffered, defer: false)
@@ -302,6 +304,47 @@ private actor ReferenceReadGate<T: Sendable> {
         "Manual scrolling was not retained: requested \(offset), clip \(scroll.contentView.bounds.minY), saved \(saved.offset), stable layouts \(stableLayouts)"
       )
     }
+    // The parent may not have rendered its latest callback yet. A reflow must
+    // use the observed position, not the stale original configuration.
+    let beforeReflow = saved
+    window.setContentSize(NSSize(width: 500, height: 450))
+    let reflowDeadline = ProcessInfo.processInfo.systemUptime + 2
+    while ProcessInfo.processInfo.systemUptime < reflowDeadline {
+      host.layoutSubtreeIfNeeded()
+      let expectedOffset = beforeReflow.restoredOffset(
+        width: scroll.contentView.bounds.width,
+        scrollable: content.bounds.height - scroll.contentView.bounds.height)
+      if abs(scroll.contentView.bounds.width - beforeReflow.width) > 1
+        && abs(scroll.contentView.bounds.minY - expectedOffset) < 1
+      {
+        break
+      }
+      try await Task.sleep(nanoseconds: 5_000_000)
+    }
+    let reflowed = beforeReflow.restoredOffset(
+      width: scroll.contentView.bounds.width,
+      scrollable: content.bounds.height - scroll.contentView.bounds.height)
+    try expect(
+      abs(scroll.contentView.bounds.width - beforeReflow.width) > 1
+        && abs(scroll.contentView.bounds.minY - reflowed) < 1,
+      "Reflow lost position: before \(beforeReflow), clip \(scroll.contentView.bounds), content \(content.bounds), expected \(reflowed), saved \(saved)"
+    )
+    // A deliberate new position must also apply at unchanged geometry.
+    let external = DocumentReadingPosition(
+      offset: 180,
+      scrollable: content.bounds.height - scroll.contentView.bounds.height,
+      width: scroll.contentView.bounds.width)
+    host.rootView = document(external)
+    let externalDeadline = ProcessInfo.processInfo.systemUptime + 2
+    while abs(scroll.contentView.bounds.minY - external.offset) >= 1
+      && ProcessInfo.processInfo.systemUptime < externalDeadline
+    {
+      host.layoutSubtreeIfNeeded()
+      try await Task.sleep(nanoseconds: 5_000_000)
+    }
+    try expect(
+      abs(scroll.contentView.bounds.minY - external.offset) < 1,
+      "A new saved reading position was ignored at unchanged geometry")
     withExtendedLifetime(window) {}
   }
   await checkAsync("Cancelled and superseded link reads cannot replace the current preview") {

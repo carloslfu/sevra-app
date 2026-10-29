@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5zn6ks2pyv72pjs65f90rxj
 created: 2026-10-27T21:45:28.610289+00:00
-updated: 2026-10-28T15:53:21.405879+00:00
+updated: 2026-10-29T02:49:33.074593+00:00
 summary: Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.
 title: Inline references and relationships
 status: reviewed
@@ -632,3 +632,6 @@ ObservedObject over that workspace, following the existing conversation-command
 pattern. Actual final navigation and limits are recorded in
 [[records/operations/implementation]]. Earlier narrower passes and the failed
 follow-up remain preserved; general text/voice authoring is still planned.
+
+## Native reading position correction
+The native scroll observer owns its latest observed position while parent rendering catches up. Reflow restores that observation proportionally; an explicitly changed saved position applies even at unchanged geometry. Native layout changes schedule restoration; unchanged configuration cannot reset a newer observation. Local document27/0 includes a reproducible old-observer reflow failure and final manual/reflow/navigation counterexamples. Earlier timing-only changes still failed hosted55b1595; a new exact-commit hosted run is required. See [[records/operations/implementation]] and the [receipt](../../../integration/evidence/2026-10-28-native-scroll-reflow.json.gz).

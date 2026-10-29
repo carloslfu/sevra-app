@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T02:30:27.991342+00:00
+updated: 2026-10-29T02:49:33.059687+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -5800,3 +5800,6 @@ Hosted CI40800549659 is green for previous commit4020c6b. Current interpretation
 Hosted run40805445098 on710bdbe passes earlier stages, then fails the existing native document scroll observation (26/27). It expected a retained clip offset within10ms. Local runs previously passed. The [retained CI receipt](../../../integration/evidence/2026-10-28-native-scroll-ci.json.gz) preserves the failure and limits; it is not a whole-CI pass.
 
 The revised test waits for stable initial native geometry and then the actual observed value under a bounded deadline, compares restoration against the immutable initial position, and checks two successive scroll offsets. It never substitutes a synthetic notification or relaxes the value assertion. Timeout diagnostics retain requested/clip/saved positions and layout count. Local document checks pass27/0. An exact-commit hosted rerun is required before claiming this resolves the hosted failure. App behavior is unchanged. Explicit-interpretation710bdbe remains locally qualified; conversation authoring is a separate in-progress slice.
+
+## Native scroll reflow correction, October 28
+Hosted40806771272 for55b1595 still fails: requested scroll700 returns to400, so the initial timing-only test revision did not establish a fix. A local added reflow counterexample reproduces the observer defect. It retained the original caller position and did not always schedule restoration after native layout changed. The corrected observer retains the latest observed position, schedules from layout, and honors explicit new positions even when geometry is unchanged. Local document checks pass27/0, including two manual offsets, resize/reflow and deliberate navigation. The [reflow receipt](../../../integration/evidence/2026-10-28-native-scroll-reflow.json.gz) preserves the hosted failure, red/intermediate/green local results and all118 earlier artifacts byte-identically. A new exact-commit hosted run and final package remain to qualify. Conversation interpretation authoring is a separate active slice; whole-app readiness is not established.

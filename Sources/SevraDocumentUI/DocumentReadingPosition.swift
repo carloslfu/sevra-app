@@ -37,7 +37,17 @@ public struct DocumentScrollObserver: NSViewRepresentable {
   }
   public static func dismantleNSView(_ view: Observer, coordinator: ()) { view.detach() }
   public final class Observer: NSView {
-    fileprivate var configuration: DocumentScrollObserver?
+    fileprivate var configuration: DocumentScrollObserver? {
+      didSet {
+        // A new caller position is deliberate navigation. Ordinary layout
+        // updates may still carry the old value while its callback is pending.
+        if oldValue?.position != configuration?.position {
+          retainedPosition = configuration?.position
+          applied = false
+        }
+      }
+    }
+    private var retainedPosition: DocumentReadingPosition?
     private weak var scroll: NSScrollView?
     private var token: NSObjectProtocol?
     private var scheduled = false
@@ -46,6 +56,10 @@ public struct DocumentScrollObserver: NSViewRepresentable {
     private var restoring = false
     public override func viewDidMoveToWindow() {
       super.viewDidMoveToWindow()
+      schedule()
+    }
+    public override func layout() {
+      super.layout()
       schedule()
     }
     fileprivate func schedule() {
@@ -83,14 +97,16 @@ public struct DocumentScrollObserver: NSViewRepresentable {
       let height = max(0, document.bounds.height - clip.bounds.height)
       let currentGeometry = CGSize(width: clip.bounds.width, height: height)
       guard !applied || geometry != currentGeometry else { return }
-      guard height > 0 || configuration.position.offset == 0 else { return }
+      let position = retainedPosition ?? configuration.position
+      guard height > 0 || position.offset == 0 else { return }
       restoring = true
-      let y = configuration.position.restoredOffset(width: clip.bounds.width, scrollable: height)
+      let y = position.restoredOffset(width: clip.bounds.width, scrollable: height)
       clip.scroll(to: NSPoint(x: clip.bounds.minX, y: y))
       enclosing.reflectScrolledClipView(clip)
       restoring = false
       applied = true
       geometry = currentGeometry
+      retainedPosition = .init(offset: y, scrollable: height, width: clip.bounds.width)
     }
     private func report() {
       guard !restoring, applied, let configuration, let scroll, let document = scroll.documentView
@@ -102,11 +118,11 @@ public struct DocumentScrollObserver: NSViewRepresentable {
         schedule()
         return
       }
-      configuration.changed(
-        .init(
-          offset: scroll.contentView.bounds.minY,
-          scrollable: max(0, document.bounds.height - scroll.contentView.bounds.height),
-          width: scroll.contentView.bounds.width))
+      let position = DocumentReadingPosition(
+        offset: scroll.contentView.bounds.minY,
+        scrollable: currentGeometry.height, width: currentGeometry.width)
+      retainedPosition = position
+      configuration.changed(position)
     }
     deinit { if let token { NotificationCenter.default.removeObserver(token) } }
   }

@@ -952,3 +952,6 @@ Next bounded slice exposes interpretation through existing conversation definiti
 ## [2026-10-29 02:30] verification | records/operations/implementation.md
 Retained hosted710bdbe document-scroll failure; revised native observation test passes27 local groups and awaits exact-commit hosted qualification. No app behavior change.
 
+## [2026-10-29 02:49] verification | records/specs/references-and-relationships.md
+Retained hosted55b1595 scroll failure; reproduced reflow defect locally and corrected observed position/layout/navigation ownership. Final local document27/0; exact-commit hosted qualification pending.
+
