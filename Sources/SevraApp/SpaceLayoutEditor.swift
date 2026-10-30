@@ -22,10 +22,10 @@ struct SpaceLayoutEditor: View {
       )
       .foregroundStyle(.secondary)
       TextField("Space title", text: $title)
-      Picker("Mode", selection: $showingHistory) {
+      Picker("Layout section", selection: $showingHistory) {
         Text("Layout").tag(false)
         Text("History").tag(true)
-      }.pickerStyle(.segmented)
+      }.pickerStyle(.segmented).labelsHidden()
       if showingHistory {
         historyView
       } else {
@@ -36,7 +36,8 @@ struct SpaceLayoutEditor: View {
                 HStack {
                   TextField("Component label", text: $component.title)
                     .accessibilityLabel("Label for " + component.type)
-                  Text(component.type).font(.caption).foregroundStyle(.secondary)
+                  Text(component.type.capitalized).font(.caption).foregroundStyle(.secondary)
+                    .frame(width: 76, alignment: .leading)
                   Button {
                     move(component.id, direction: -1)
                   } label: {

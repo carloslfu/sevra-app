@@ -30,13 +30,13 @@ struct WorkflowActivityView: View {
         Button("Automations", systemImage: "clock.arrow.circlepath") {
           workspace.navigate(.automations)
         }
-        Picker("Show", selection: $filter) {
+        Picker("Workflow state", selection: $filter) {
           Text("All runs").tag("")
           ForEach(
             ["waiting_review", "needs_attention", "queued", "running", "completed", "cancelled"],
             id: \.self
           ) { Text(workflowStateTitle($0)).tag($0) }
-        }.frame(maxWidth: 260)
+        }.labelsHidden().fixedSize()
         Spacer()
         Button("Refresh") { Task { await load(force: true) } }.disabled(pages.loading)
       }
@@ -59,7 +59,9 @@ struct WorkflowActivityView: View {
                 if !run["detail"].text.isEmpty {
                   Text(run["detail"].text).font(.callout).foregroundStyle(.secondary)
                 }
-              }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
+              }.multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
+                .contentShape(Rectangle())
             }.buttonStyle(.plain)
               .accessibilityLabel(run["title"].text + ", " + workflowStateTitle(run["state"].text))
             Divider()
@@ -137,24 +139,9 @@ struct WorkflowRunView: View {
           {
             Text(run["detail"].text).foregroundStyle(.red).textSelection(.enabled)
           }
-          HStack {
-            if !["completed", "cancelled"].contains(run["state"].text) {
-              if run["state"] == .string("needs_attention") {
-                Button("Retry unfinished work") { resume(retry: true) }
-              } else {
-                Button(
-                  run["state"] == .string("waiting_review")
-                    ? "Check review and continue" : "Continue"
-                ) {
-                  resume()
-                }
-              }
-              Button("Stop workflow", role: .destructive) { confirmingStop = true }
-            }
-            Button("Definition and evidence") {
-              workspace.navigate(.item(saved["definition"]["sourceID"].text))
-            }
-            Button("Start request") { workspace.navigate(.item(run["source_id"].text)) }
+          ViewThatFits(in: .horizontal) {
+            HStack { runActions(saved) }.fixedSize(horizontal: true, vertical: false)
+            VStack(alignment: .leading, spacing: 8) { runActions(saved) }
           }.disabled(workspace.busy)
           DisclosureGroup("Inputs") {
             WorkflowInputsView(
@@ -327,6 +314,24 @@ struct WorkflowRunView: View {
         "Completed steps, proposals and accepted changes stay in the workbook. Unfinished steps will stop."
       )
     }
+  }
+  @ViewBuilder private func runActions(_ saved: Value) -> some View {
+    let run = saved["run"]
+    if !["completed", "cancelled"].contains(run["state"].text) {
+      if run["state"] == .string("needs_attention") {
+        Button("Retry unfinished work") { resume(retry: true) }
+      } else {
+        Button(run["state"] == .string("waiting_review") ? "Check review and continue" : "Continue")
+        {
+          resume()
+        }
+      }
+      Button("Stop workflow", role: .destructive) { confirmingStop = true }
+    }
+    Button("Definition and evidence") {
+      workspace.navigate(.item(saved["definition"]["sourceID"].text))
+    }
+    Button("Start request") { workspace.navigate(.item(run["source_id"].text)) }
   }
   private func load(force: Bool = false) async {
     guard let book = workspace.workbook else { return }

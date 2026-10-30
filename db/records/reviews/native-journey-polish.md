@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m64w7mfc74gf1h0cqhykr0p4
 created: 2026-10-29T22:24:34.284218+00:00
-updated: 2026-10-30T00:08:25.875167+00:00
+updated: 2026-10-30T00:29:10.905467+00:00
 summary: Full native journey/control review, simpler intake and shell, polished search/history, verification coverage and retained limits.
 title: Native journey simplification and polish
 ---
@@ -324,3 +324,58 @@ Exact commands, hashes and evidence belong to [[records/operations/implementatio
 and the [immutable journey receipt](../../../integration/evidence/2026-10-29-native-journey.json.gz).
 
 The follow-up has its own [immutable control receipt](../../../integration/evidence/2026-10-29-native-controls.json.gz), preserving the prior journey receipt.
+
+## Further surface polish, October 29
+
+Owner request: [[sources/notes/2026/10/native-surface-polish]]. The source inventory
+was revisited across welcome/shell, conversation/activity/history, search, spaces,
+components/forms, native tables, review, document/media/ZIP viewers, references,
+workflow and automation screens, settings and saved-file use. This is source
+inspection plus the native observations below, not execution of every control.
+The prior ten-pass clipboard, selection, persistence and engine evidence remains
+applicable because those boundaries were not changed.
+
+- Review guidance and Refresh share a baseline row; wrapping and optional page
+  navigation remain. This removes the blank control row before the draft list.
+- Workflow filtering drops the redundant visible Show label and unused fixed-width
+  gap. The picker retains one accessible Workflow state name. Secondary workflow,
+  automation, incoming/outgoing reference and destination-result labels wrap left
+  with complete row hit regions.
+- Native automation fields share one label column. Daily and weekly calendar
+  states were inspected, as was the inventory alternative. Inspection caught the
+  prefilled quantity displaying only 10; Subject and Quantity now remain visible.
+  Workflow choices keep a native bordered button and leading multi-line text.
+  Time zone, accessible clock value and preview/save/enable separation are retained.
+- Workflow actions use one row when they fit and stack at a narrower split position.
+  The same policy covers long automation actions. Inspection of a queued synthetic
+  run did not continue it. It remains queued with a pending calculation and no output.
+- Layout/History segments no longer repeat a visible Mode label. Layout name inputs,
+  component types and move/remove controls align across Text, Table and Chart.
+  Both layout and history were inspected and cancelled without saving/restoring.
+- ZIP sheets separate the action heading from the archive name. Long paths wrap
+  left while sizes retain their width; complete names remain in help and accessible
+  labels. Empty ZIP, populated ZIP, checked-member count/enabled Include, and a
+  separate long archive/member name were observed. Selections were cancelled.
+- Document-link segments omit their redundant visible label and retain one accessible
+  name. Long document headings keep Done accessible, truncate in the middle and
+  expose the full title. Empty outgoing and incoming scopes, coverage notices,
+  toggles and the clearer Refresh label were inspected. Binding, version scope,
+  exact passage authority and pagination behavior are unchanged.
+
+Five native builds succeeded. Later iterations corrected native form alignment,
+permanent quantity labeling, native workflow-choice affordance, layout type-column
+width and duplicated accessible picker names. The final installed source revision
+retains those corrections. Representative native screenshots/AX captures include
+1200 by 800 and 824 by 632 point windows plus a narrower workspace split. Not every
+capture is compact; the receipt identifies stages and dimensions. A source-original
+link was opened using its exposed accessibility action after a link-child click
+returned no navigation; no product failure is inferred from that tool limitation.
+
+Verification and immutable source/binary/UI hashes are recorded in the current
+surface-polish checkpoint in [[records/operations/implementation]]. Existing release
+preview and search ownership runners pass. No new padding-mirroring tests were
+added. Reference target binding and long condition-action variants were source
+reviewed rather than newly executed. Native field focus and Escape cancellation
+were checked; this does not qualify every hover/focus state, VoiceOver speech,
+keyboard preference, locale, text scaling, contrast/motion or all-surface appearance.
+No new model throughput/reliability or production distribution claim is made.

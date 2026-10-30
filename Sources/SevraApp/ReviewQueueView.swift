@@ -26,21 +26,21 @@ struct ReviewQueueView: View {
   @ObservedObject var results: ReviewQueueSession
   var body: some View {
     VStack(alignment: .leading, spacing: 18) {
-      Text(
-        "Open a draft to check its evidence before accepting. Drafts appear oldest first."
-      )
-      .foregroundStyle(.secondary)
-      HStack {
-        if results.hasPrevious || results.nextCursor != nil {
+      HStack(alignment: .firstTextBaseline, spacing: 16) {
+        Text("Open a draft to check its evidence before accepting. Drafts appear oldest first.")
+          .foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+        if results.loading { ProgressView().controlSize(.small) }
+        Button("Refresh") { Task { await load(force: true) } }
+          .fixedSize().disabled(results.loading)
+      }
+      if results.hasPrevious || results.nextCursor != nil {
+        HStack {
           Button("Previous") { Task { await load(direction: -1) } }
             .disabled(!results.hasPrevious || results.loading)
           Text("Page \(results.pageNumber)").font(.callout).foregroundStyle(.secondary)
           Button("Next") { Task { await load(direction: 1) } }
             .disabled(results.nextCursor == nil || results.loading)
         }
-        Spacer()
-        if results.loading { ProgressView().controlSize(.small) }
-        Button("Refresh") { Task { await load(force: true) } }.disabled(results.loading)
       }
       if let failure = results.failure { Text(failure).foregroundStyle(.red) }
       ScrollView {

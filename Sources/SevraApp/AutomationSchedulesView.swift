@@ -38,7 +38,9 @@ struct AutomationSchedulesView: View {
                 Text(row["title"].text).font(.headline)
                 Text("Version \(row["version"].int ?? 0) · " + row["description"].text)
                   .foregroundStyle(.secondary)
-              }.frame(maxWidth: .infinity, alignment: .leading)
+              }.multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
+                .contentShape(Rectangle())
             }.buttonStyle(.plain)
             Divider()
           }
@@ -244,25 +246,9 @@ struct AutomationScheduleDetail: View {
             "Automatic work creates drafts and stops for review. Runs while Sevra is active; quit or inactive periods catch up when eligible. No background helper is installed."
           )
           .font(.caption).foregroundStyle(.secondary)
-          HStack {
-            Button(
-              isCondition && waitingCount > 0
-                ? "Resume waiting transitions on this Mac" : "Enable on this Mac"
-            ) {
-              guard let book = workspace.workbook else { return }
-              perform {
-                try await owner.enable(
-                  book, exactID: shown.id,
-                  expectedGeneration: state["generation"].int ?? 0, allowAI: allowAI)
-              }
-            }.disabled(
-              preview == nil
-                || (grantIsCurrent && grant?.definitionID == shown.id && grant?.allowAI == allowAI))
-            Button("Run once") { runOnce() }.disabled(preview == nil)
-            Button("Edit…") { editing = true }
-            if isCondition && state["consumer_id"].string != nil {
-              Button("Only from now…") { confirmingFromNow = true }
-            }
+          ViewThatFits(in: .horizontal) {
+            HStack { automationActions }.fixedSize(horizontal: true, vertical: false)
+            VStack(alignment: .leading, spacing: 8) { automationActions }
           }
           if let runID = state["active_run_id"].string {
             Button("Open saved run") {
@@ -329,6 +315,26 @@ struct AutomationScheduleDetail: View {
         AutomationScheduleEditor(
           workspace: workspace, existing: shown, onSave: { updatedDefinition = $0 })
       }
+  }
+  @ViewBuilder private var automationActions: some View {
+    Button(
+      isCondition && waitingCount > 0
+        ? "Resume waiting transitions on this Mac" : "Enable on this Mac"
+    ) {
+      guard let book = workspace.workbook else { return }
+      perform {
+        try await owner.enable(
+          book, exactID: shown.id,
+          expectedGeneration: state["generation"].int ?? 0, allowAI: allowAI)
+      }
+    }.disabled(
+      preview == nil
+        || (grantIsCurrent && grant?.definitionID == shown.id && grant?.allowAI == allowAI))
+    Button("Run once") { runOnce() }.disabled(preview == nil)
+    Button("Edit…") { editing = true }
+    if isCondition && state["consumer_id"].string != nil {
+      Button("Only from now…") { confirmingFromNow = true }
+    }
   }
   private func close() {
     if let onClose { onClose() } else { dismiss() }

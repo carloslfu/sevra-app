@@ -1381,3 +1381,6 @@ Ten additional native usability lenses implemented and installed: full selected-
 ## [2026-10-30 00:08] verification | records/reviews/native-journey-polish.md
 Screenshot alignment follow-up: centered scrollable welcome, shared headers, thread return, field focus, responsive filters and leading labels. Native build/install, 18 preview groups, search ownership, package refusals/signatures, seven-file format lint and installed integrity pass. Large/compact and representative appearance observations retained by hash in native-alignment receipt cbbb9379e66ccbb5af9b3a56f9844b36d858f37bac209482ab488e8d5aa786de; full state/accessibility qualification remains open.
 
+## [2026-10-30 00:29] verification | records/reviews/native-journey-polish.md
+Further native surface polish: aligned forms/layout, compact action fallback, persistent quantity labels, long ZIP/link names, 18 preview groups, search/package/integrity checks and immutable source-bound receipt. Explicit remaining accessibility and AI limits retained.
+

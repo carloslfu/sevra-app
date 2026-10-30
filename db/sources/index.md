@@ -2,9 +2,9 @@
 type: index
 scope: layer
 folder: sources
-updated: 2026-10-29T23:51:15.991652Z
+updated: 2026-10-30T00:18:00.306084Z
 ---
 
 # sources
 
-- [[sources/notes/index|Notes]] (15)
+- [[sources/notes/index|Notes]] (16)

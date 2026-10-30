@@ -48,9 +48,14 @@ struct AutomationScheduleEditor: View {
           ) {
             TextField("Search workflows", text: $query)
             ForEach(choices.evaluation?["hits"].array ?? [], id: \.text) { row in
-              Button(row["title"].text + " · version \(row["version"].int ?? 0)") {
+              Button {
                 select(row["id"].text)
-              }
+              } label: {
+                Text(row["title"].text + " · version \(row["version"].int ?? 0)")
+                  .multilineTextAlignment(.leading)
+                  .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
+                  .contentShape(Rectangle())
+              }.buttonStyle(.bordered)
             }
             if choices.evaluation?["hits"].array.isEmpty == true && !choices.loading {
               Text(
@@ -75,36 +80,49 @@ struct AutomationScheduleEditor: View {
             }
           }
           Divider()
-          Picker("When", selection: $trigger) {
-            Text("At a scheduled time").tag("calendar")
-            Text("When inventory crosses a threshold").tag("inventory")
+          LabeledContent("When") {
+            Picker("When", selection: $trigger) {
+              Text("At a scheduled time").tag("calendar")
+              Text("When inventory crosses a threshold").tag("inventory")
+            }.labelsHidden()
           }
           if trigger == "inventory" {
-            TextField("Inventory subject", text: $subject)
-            Picker("Stock becomes", selection: $comparison) {
-              Text("Less than").tag("<")
-              Text("At most").tag("<=")
-              Text("Greater than").tag(">")
-              Text("At least").tag(">=")
-              Text("Equal to").tag("=")
-              Text("Different from").tag("<>")
+            LabeledContent("Subject") {
+              TextField("Inventory subject", text: $subject)
+                .accessibilityLabel("Inventory subject")
             }
-            TextField("Quantity", text: $threshold)
+            LabeledContent("Stock becomes") {
+              Picker("Stock becomes", selection: $comparison) {
+                Text("Less than").tag("<")
+                Text("At most").tag("<=")
+                Text("Greater than").tag(">")
+                Text("At least").tag(">=")
+                Text("Equal to").tag("=")
+                Text("Different from").tag("<>")
+              }.labelsHidden()
+            }
+            LabeledContent("Quantity") {
+              TextField("Quantity", text: $threshold).accessibilityLabel("Quantity")
+            }
             Text(
               "Enabling starts from the current stock. An already-true rule does not run until it becomes false and crosses again. Unknown stock waits for evidence."
             )
             .font(.caption).foregroundStyle(.secondary)
           } else {
-            Picker("Repeat", selection: $recurrence) {
-              Text("Daily").tag("daily")
-              Text("Weekly").tag("weekly")
-              Text("Monthly").tag("monthly")
-              Text("Yearly").tag("yearly")
+            LabeledContent("Repeat") {
+              Picker("Repeat", selection: $recurrence) {
+                Text("Daily").tag("daily")
+                Text("Weekly").tag("weekly")
+                Text("Monthly").tag("monthly")
+                Text("Yearly").tag("yearly")
+              }.labelsHidden()
             }
-            DatePicker("Time", selection: clockTime, displayedComponents: .hourAndMinute)
-              .environment(\.timeZone, clockCalendar.timeZone)
-              .accessibilityValue(String(format: "%02d:%02d", hour, minute) + " " + zone)
-              .help("Uses the time zone below, even when this Mac’s time zone changes")
+            LabeledContent("Time") {
+              DatePicker("Time", selection: clockTime, displayedComponents: .hourAndMinute)
+                .labelsHidden().environment(\.timeZone, clockCalendar.timeZone)
+                .accessibilityValue(String(format: "%02d:%02d", hour, minute) + " " + zone)
+                .help("Uses the time zone below, even when this Mac’s time zone changes")
+            }
             LabeledContent("Time zone") {
               TextField("America/Bogota or UTC", text: $zone)
                 .accessibilityLabel("Time zone")
@@ -161,7 +179,7 @@ struct AutomationScheduleEditor: View {
             "Save keeps this automation in the workbook. Enable on this Mac is a separate step. Business changes still require review."
           )
           .font(.callout).foregroundStyle(.secondary)
-        }
+        }.labeledContentStyle(ScheduleFieldStyle())
       }
       if working { ProgressView("Checking automation") }
       if let failure { Text(failure).foregroundStyle(.red).textSelection(.enabled) }
@@ -366,6 +384,15 @@ struct AutomationScheduleEditor: View {
         onSave?(saved)
         dismiss()
       } catch { failure = error.localizedDescription }
+    }
+  }
+}
+
+private struct ScheduleFieldStyle: LabeledContentStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    HStack(alignment: .firstTextBaseline, spacing: 12) {
+      configuration.label.frame(width: 96, alignment: .leading)
+      configuration.content.frame(maxWidth: .infinity, alignment: .leading)
     }
   }
 }

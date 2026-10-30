@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-30T00:08:25.722026+00:00
+updated: 2026-10-30T00:29:10.886981+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
@@ -99,6 +99,20 @@ popup leading edges remain consistent, and selected filter count/reset stay clea
 Wrapped result, review and space labels align to their leading edge. Composer and
 search show an accent outline while focused, with a quiet outline otherwise.
 Native controls retain platform pressed, disabled, menu and keyboard behavior.
+Secondary lists keep wrapped titles, excerpts and hit regions aligned leading.
+Review guidance and Refresh share a row without reserving an otherwise empty
+control row; pagination appears only when needed. Native picker labels may be
+visually hidden when the selected value/segments explain the choice; retain one
+specific accessible name. Automation fields share a stable label column, including
+persistent subject and quantity labels after values are entered. Workflow choices
+retain a native button affordance and leading text. Layout editing uses a stable
+type column so label inputs and move/remove actions align across component kinds.
+Workflow and automation action groups use a horizontal row when it fits and a
+leading vertical fallback when it does not. Preserve explicit execution/review
+boundaries, native disabled states and scroll access. Long ZIP/document names have
+bounded wrapping/truncation and full-name help; file sizes never compress to make
+room for a path. The archive identity is separate from the action heading. Empty
+archives retain an appropriately sized Done state.
 Appearance and accessibility qualification still follow P05 and the release gates.
 
 P03. Searchable space picker: Home, pinned/recent, all spaces. No unbounded tab strip.

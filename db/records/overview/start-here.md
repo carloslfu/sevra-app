@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-30T00:08:26.258738+00:00
+updated: 2026-10-30T00:29:10.937104+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -82,6 +82,12 @@ with aligned controls, field focus is visible, and wrapped labels align leading.
 Representative large/compact and light/dark native observations are recorded in
 the review. They supplement the earlier passes without claiming every hover,
 keyboard, locale or accessibility state has been qualified.
+
+The further surface-polish pass removes spare control rows, aligns native automation
+fields and layout columns, keeps quantity labels visible after entry, and makes
+workflow actions adapt to a narrow workspace. ZIP names/sizes, link-sheet headings,
+secondary list wrapping and accessible picker names follow the same contract.
+The existing review records installed observations and exact verification limits.
 
 ## Architecture
 

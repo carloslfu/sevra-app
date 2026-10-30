@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-30T00:08:26.056078+00:00
+updated: 2026-10-30T00:29:10.921004+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -13,6 +13,45 @@ This is MVP 0.1, a native source test preview for the focused file-to-result
 workflow below. The expanded specification is unfinished. The owner-directed
 [[records/specs/mvp-delivery]] controls delivery order; preview evidence does not
 qualify broad model reliability, supported hardware or a production release.
+
+## Further native surface polish, October 29
+
+The owner requested another complete detail pass:
+[[sources/notes/2026/10/native-surface-polish]]. Implemented source MVP refinements
+cover review-row density, leading secondary lists, native automation label columns
+and persistent quantity meaning, workflow choice affordance, adaptive workflow/
+automation actions, aligned layout columns, clearer native pickers and bounded
+ZIP/document headings and sizes. P29 in [[records/specs/product]] owns the contract.
+[[records/reviews/native-journey-polish]] records source inventory, native observations,
+iterations, unchanged boundaries and verification limits.
+
+Five `bash scripts/build_native.sh` builds succeed; final installation uses
+`bash scripts/install.sh --native --no-build`. Final package paths-only verification
+passes isolated resource reads, ten missing-resource refusals, altered-resource
+refusal and signatures. Existing native-candidate release preview runner passes
+18 groups; search runner passes ownership, paging, cancellation and retry. Their
+controller/test/dependency sources are unchanged. Strict Swift formatting passes
+all seven changed view sources; `git diff --check` is clean.
+
+Installed CLI bytes match the build. The installed app passes deep strict
+signature verification; signature-free disposable payloads match. CLI workbook
+verification has no asset issues, supplier quantities remain 10/10, and the
+synthetic queued workflow has no executed step/output. Native checks inspect
+1200 by 800 and 824 by 632 point windows and a narrower workspace split. Final
+Home is open with an empty composer. No new model/engine test was needed.
+
+The [immutable surface-polish receipt](../../../integration/evidence/2026-10-29-native-surface-polish.json.gz),
+SHA-256 `9ddc5ba01b4ef433015d7ccbc2c64444122a267cf63b066286e2d4bee2260d51`, binds 297 source files, exact built/installed payloads,
+unchanged engine/grammar, 70 private native UI artifact hashes and 23 private
+check/diagnostic hashes. Prior published receipts remain unchanged. Capture stages,
+iterations, two corrected tool/verification-path diagnostics, actual interactions
+and source-reviewed-only variants are explicit. Full accessibility, all-state and
+appearance qualification remain open.
+
+The same three priorities remain: broad AI evidence selection, explicit table
+mapping/reference-CSV readability, and full accessibility/hardware/distribution.
+No real workbook, model download, privacy permission, business acceptance or
+registered-device automation changed. Only selected synthetic fixtures were used.
 
 ## Native alignment and state follow-up, October 29
 

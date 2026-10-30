@@ -96,12 +96,12 @@ struct ReferencesPanel: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       HStack {
-        Text(item.title).font(.headline).lineLimit(2)
+        Text(item.title).font(.headline).lineLimit(2).truncationMode(.middle).help(item.title)
         Spacer()
-        Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
+        Button("Done") { dismiss() }.keyboardShortcut(.cancelAction).fixedSize()
       }
       Picker(
-        "Connections",
+        "Document connections",
         selection: Binding(
           get: { showingIncoming },
           set: {
@@ -110,7 +110,7 @@ struct ReferencesPanel: View {
       ) {
         Text("Links in this document").tag(false)
         Text("Mentioned in").tag(true)
-      }.pickerStyle(.segmented)
+      }.pickerStyle(.segmented).labelsHidden()
       if showingIncoming {
         Toggle("Include earlier document versions", isOn: $historical)
         Toggle("Only mentions of this exact version", isOn: $exact)
@@ -130,7 +130,8 @@ struct ReferencesPanel: View {
                     + " · " + hit["evidence"]["status"].text
                 ).font(.caption).foregroundStyle(.secondary)
                 Text(hit["label"].text).lineLimit(2).foregroundStyle(.secondary)
-              }
+              }.multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
             }.buttonStyle(.plain)
               .accessibilityLabel("Open mentioning document: " + hit["evidence"]["title"].text)
               .tag(hit["evidence"]["id"].text)
@@ -158,8 +159,8 @@ struct ReferencesPanel: View {
               .disabled(incoming.nextCursor == nil || incoming.loading)
           }
           Spacer()
-          Button("Start over") { Task { await incoming.load(query, workbook: workbook) } }
-            .disabled(incoming.loading)
+          Button("Refresh") { Task { await incoming.load(query, workbook: workbook) } }
+            .disabled(incoming.loading).help("Reload saved mentions from the first page")
         }
       } else {
         if session.loading { ProgressView("Reading saved links") }
@@ -187,14 +188,15 @@ struct ReferencesPanel: View {
                     )
                     .font(.caption).foregroundStyle(.secondary)
                   }
-                }
+                }.multilineTextAlignment(.leading)
+                  .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
               }.buttonStyle(.plain)
                 .accessibilityLabel("Open link: " + occurrence.reference.label)
               Spacer()
               if canChoose(occurrence) {
                 Button("Choose destination…") {
                   state.referenceChoice = occurrence
-                }.buttonStyle(.link).disabled(state.busy)
+                }.buttonStyle(.link).fixedSize().disabled(state.busy)
                   .accessibilityLabel("Choose destination for " + occurrence.reference.label)
               }
             }.tag(occurrence.id)
@@ -333,7 +335,8 @@ struct ReferenceTargetPicker: View {
               Text(hit.title).foregroundStyle(.primary)
               Text(StructuredPresentation.searchExcerpt(hit.snippet, title: hit.title))
                 .font(.caption).foregroundStyle(.secondary).lineLimit(2)
-            }
+            }.multilineTextAlignment(.leading)
+              .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
           }.buttonStyle(.plain).disabled(working)
             .accessibilityLabel("Link to " + hit.title)
             .tag(hit.itemID)

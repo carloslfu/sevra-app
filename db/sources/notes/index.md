@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-10-29T23:51:15.991652Z
+updated: 2026-10-30T00:18:00.306084Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/10/native-surface-polish]] — Further owner-directed native UI audit and polish across controls, spacing, alignment and states.
 - [[sources/notes/2026/10/native-alignment-state-review]] — Owner requests centered welcome, aligned pane controls and further alignment, hover, focus and state review.
 - [[sources/notes/2026/10/native-ten-pass-review]] — Owner requests ten full native UI review passes including selection, copying and small interaction details.
 - [[sources/notes/2026/10/native-control-follow-up]] — Owner requests a second full native UI pass after observing redundant ellipsis and disclosure indicators.

@@ -17,7 +17,9 @@ struct ArchiveMemberPicker: View {
   }
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
-      Text("Choose files from " + source.title).font(.title2)
+      Text("Choose files from ZIP").font(.title2)
+      Text(source.title).lineLimit(2).truncationMode(.middle).help(source.title)
+        .textSelection(.enabled)
       Text("The ZIP stays in your workbook. Include up to 50 files and 1 GB per selection.")
         .foregroundStyle(.secondary)
       if loading { ProgressView("Reading file list") }
@@ -34,13 +36,14 @@ struct ArchiveMemberPicker: View {
                 if value { selected.insert(member.path) } else { selected.remove(member.path) }
               })
           ) {
-            HStack {
-              Text(member.path).lineLimit(2)
+            HStack(alignment: .firstTextBaseline) {
+              Text(member.path).lineLimit(2).truncationMode(.middle).help(member.path)
+                .multilineTextAlignment(.leading)
               Spacer()
               Text(
                 ByteCountFormatter.string(
                   fromByteCount: Int64(clamping: member.bytes), countStyle: .file)
-              ).foregroundStyle(.secondary)
+              ).foregroundStyle(.secondary).fixedSize()
             }
           }
         }
@@ -68,7 +71,7 @@ struct ArchiveMemberPicker: View {
             selected.isEmpty || selected.count > 50 || total > 1_000_000_000 || state.busy)
         }
       }
-    }.padding(22).frame(width: 620, height: !loading && members.isEmpty ? 220 : 460).task {
+    }.padding(22).frame(width: 620, height: !loading && members.isEmpty ? 260 : 460).task {
       do {
         if let book = state.workbook {
           members = try await Task.detached { try book.archiveMembers(source.id) }.value
