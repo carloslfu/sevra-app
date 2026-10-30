@@ -14,12 +14,23 @@ actor ActiveContextModel: WorkbookInference {
   var lastMetrics: Value = .null
   var responses: [Value] = []
   var summaries: [Value] = []
+  /// Interrupts a real job at one point, so recovery is measured on real prior work.
+  var stopAfterResponses: (count: Int, cancellation: Cancellation)?
+  var failSummary: Int?
 
   init(_ native: NativeWorkbookModel, workbook: Workbook, compact: Bool) async {
     self.native = native
     self.workbook = workbook
     identity = await native.identity
     supportsCompaction = compact
+  }
+  func interrupt(afterResponses count: Int, _ cancellation: Cancellation) {
+    stopAfterResponses = (count, cancellation)
+  }
+  func interrupt(summary number: Int) { failSummary = number }
+  func clearInterruption() {
+    stopAfterResponses = nil
+    failSummary = nil
   }
   func beginRun() async throws { try await native.beginRun() }
   func endRun() async { await native.endRun() }
@@ -43,6 +54,9 @@ actor ActiveContextModel: WorkbookInference {
       "checkpoints": .number(Double(try workbook.contextCheckpoints(limit: 100).count)),
     ])
     do {
+      if failSummary == summaries.count + 1 {
+        throw SevraError("probe_interruption", "Injected summary failure.")
+      }
       let result = try await native.summarize(
         messages: messages, allowedMessageIDs: allowedMessageIDs, directory: directory,
         cancellation: cancellation, progress: progress)
@@ -103,6 +117,7 @@ actor ActiveContextModel: WorkbookInference {
             .object(["name": .string($0.name), "arguments": .string($0.inputJSON)])
           }),
       ]))
+    if let stop = stopAfterResponses, responses.count >= stop.count { stop.cancellation.cancel() }
     return reply
   }
 }
@@ -324,4 +339,131 @@ func runActiveContextProbe(
     to: root.appendingPathComponent("result.json"), options: .atomic)
   try require(
     passed, "active_context", failures.joined(separator: "\n"))
+}
+
+/// Stops one real job partway, once by the person and once by a failed summary, then asks in
+/// ordinary words for the rest. The saved work must carry over, and nothing may be duplicated.
+func runActiveContextRecoveryProbe(
+  modelsRoot: String, library: String, engine: String, output: String
+) async throws {
+  let root = URL(fileURLWithPath: output).standardizedFileURL
+  try require(
+    !FileManager.default.fileExists(atPath: root.path), "fixture", "Output already exists.")
+  try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+  let fixturePath = root.appendingPathComponent("Fixture.sevra")
+  let fixture = try FixtureContext.$current.withValue(FixtureContext(seed: 9127)) {
+    _ = try Demo.create(at: fixturePath)
+    return try prepareActiveContextFixture(Workbook(fixturePath))
+  }
+  let original = try Workbook(fixturePath)
+  let archive = root.appendingPathComponent("Fixture.sevraz")
+  try original.export(to: archive)
+  var reports: [Value] = []
+  var failures: [String] = []
+  for name in ["stopped", "failed-summary"] {
+    let book = try Workbook.openArchive(archive, at: root.appendingPathComponent(name + ".sevra"))
+    let base = try nativeProbeConfiguration(
+      library: library, engine: engine, modelsRoot: modelsRoot,
+      budget: .init(profile: .evaluation32K), reasoning: .bounded512, modelLayout: .installed)
+    let native = NativeWorkbookModel(
+      configuration: .init(
+        engine: base.engine, engineFiles: base.engineFiles,
+        grammarLibrary: base.grammarLibrary, grammarSHA256: base.grammarSHA256,
+        modelsRoot: base.modelsRoot, memoryBytes: base.memoryBytes,
+        contextBudget: base.contextBudget, reasoning: base.reasoning,
+        modelLayout: .installed, contextMaintenanceEnabled: true))
+    let model = await ActiveContextModel(native, workbook: book, compact: true)
+    let cancellation = Cancellation()
+    if name == "stopped" {
+      await model.interrupt(afterResponses: 6, cancellation)
+    } else {
+      await model.interrupt(summary: 3)
+    }
+    var report: [String: Value] = ["case": .string(name)]
+    let started = Date()
+    do {
+      do {
+        _ = try await WorkbookAgent.run(
+          fixture.prompt, workbook: book, modelDirectory: URL(fileURLWithPath: modelsRoot),
+          cancellation: cancellation, progress: { fputs("Recovery \(name): \($0)\n", stderr) },
+          model: model)
+        throw SevraError("active_context", "The interruption did not stop the job.")
+      } catch let error as SevraError where error.code == "active_context" {
+        throw error
+      } catch {
+        report["interruption"] = .string(error.localizedDescription)
+      }
+      await model.clearInterruption()
+      report["interruptedRuns"] = .array(try book.agentRuns())
+      report["checkpointsAtInterruption"] = .number(
+        Double(try book.contextCheckpoints(limit: 100).count))
+      try expectEqual(try book.verify()["ok"], .bool(true))
+      try expectEqual(try book.unresolvedToolCalls().isEmpty, true)
+      try expectEqual(try book.spaces().filter { $0.title == "Receiving review" }.count, 1)
+      try expectEqual(try book.items(kind: "document").filter { $0.category == "record" }.count, 0)
+      for item in try original.items() {
+        try expectEqual(try encoded(book.item(item.id)), encoded(item))
+      }
+      let result = try await WorkbookAgent.run(
+        "Please continue and finish the request you were working on.", workbook: book,
+        modelDirectory: URL(fileURLWithPath: modelsRoot),
+        progress: { fputs("Recovery \(name): \($0)\n", stderr) }, model: model)
+      report["answer"] = .string(result.answer)
+      report["state"] = .string(result.state)
+      report["steps"] = .number(Double(result.steps))
+      try expectEqual(result.state, "complete")
+      let drafts = try book.items(kind: "document").filter { $0.category == "record" }
+      try expectEqual(drafts.count, 1)
+      let draft = try expectValue(drafts.first)
+      report["draft"] = try encoded(draft)
+      try expectEqual(draft.title, "Receiving memo")
+      let plain = draft.text.replacingOccurrences(of: "*", with: "")
+      for text in ["MAPLE-27", "0.10 kg", "0.25 kg"] {
+        try expectEqual(plain.contains(text), true)
+      }
+      for (index, word) in fixture.words.enumerated() {
+        let line = try expectValue(
+          plain.components(separatedBy: "\n").first { $0.contains(word + "-CHECK") })
+        try expectEqual(line.contains("0.\(index + 31) mm"), true)
+        try expectEqual(line.uppercased().contains("HOLD"), true)
+      }
+      try expectEqual(try book.spaces().filter { $0.title == "Receiving review" }.count, 1)
+      try expectEqual(try book.spaces().count, try original.spaces().count + 1)
+      try expectEqual(try book.balance(subject: "brass bolts"), fixture.balance)
+      try expectEqual(try book.unresolvedToolCalls().isEmpty, true)
+      try expectEqual(try book.verify()["ok"], .bool(true))
+      let parents = Set(try book.lineage(draft.id).compactMap { $0["parent"].string })
+      report["missingLineage"] = .array(
+        fixture.sources.map(\.id).filter { !parents.contains($0) }.map(Value.string))
+      report["passed"] = .bool(true)
+    } catch {
+      report["passed"] = .bool(false)
+      report["error"] = .string(error.localizedDescription)
+      failures.append(name + ": " + error.localizedDescription)
+    }
+    report["seconds"] = .number(Date().timeIntervalSince(started))
+    let unloaded = await model.releaseResources()
+    report["unloaded"] = .bool(unloaded)
+    if !unloaded { failures.append(name + ": native model did not unload") }
+    report["responses"] = .array(await model.responses)
+    report["summaries"] = .array(await model.summaries)
+    report["runs"] = .array(try book.agentRuns())
+    report["checkpoints"] = .array(try book.contextCheckpoints(limit: 100))
+    report["history"] = try encoded(book.historySlice(limit: 500).messages)
+    report["integrity"] = try book.verify()
+    reports.append(.object(report))
+    print(
+      try Value.object([
+        "case": .string(name), "passed": report["passed"]!, "unloaded": .bool(unloaded),
+      ]).json())
+    fflush(stdout)
+    if !unloaded { break }
+  }
+  let summary: Value = .object([
+    "probe": .string("active-job-recovery-v1"), "passed": .bool(failures.isEmpty),
+    "failures": .array(failures.map(Value.string)), "cases": .array(reports),
+  ])
+  try Data(summary.json().utf8).write(
+    to: root.appendingPathComponent("result.json"), options: .atomic)
+  try require(failures.isEmpty, "active_context", failures.joined(separator: "\n"))
 }

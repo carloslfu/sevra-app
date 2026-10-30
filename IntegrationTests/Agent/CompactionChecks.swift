@@ -398,6 +398,93 @@ func checkRunningCompaction() async throws {
     try expectEqual(try book.unresolvedToolCalls().isEmpty, true)
     try expectEqual(try book.verify()["ok"], .bool(true))
   }
+  let source = "PACKED-LABEL: first line.\nThe rest of the original."
+  let read = try ToolResultProjection.presentedRead(
+    .object([
+      "item": .object(["id": .string("a"), "text": .string("PACKED-LABEL: first")]),
+      "chunks": .array([.object(["body": .string(source)])]),
+      "references": .object([
+        "hits": .array([]), "nextCursor": .null, "notice": .string("Long guidance."),
+        "fileCoverage": .object(["snapshot": .null, "latestExtraction": .object([:])]),
+      ]),
+    ])
+  ).json()
+  try expectEqual(read.contains("PACKED-LABEL: first\""), false)
+  try expectEqual(read.contains("Long guidance"), false)
+  try expectEqual(read.contains("The rest of the original"), true)
+  // Coverage that says something, or a page that has hits, stays exactly as the receipt has it.
+  let linked: Value = .object([
+    "references": .object(["hits": .array([.object(["id": .string("b")])]), "nextCursor": .null])
+  ])
+  try expectEqual(ToolResultProjection.presentedRead(linked), linked)
+
+  let version = identifier()
+  let state: Value = .object([
+    "calls": .array([
+      .object([
+        "id": .string("save"), "tool": .string("save_space"), "state": .string("completed"),
+        "operation_token": .string("token"), "message_id": .string("message"),
+        "committedOperation": .object(["kind": .string("space")]),
+      ]),
+      .object([
+        "id": .string("read"), "tool": .string("read"), "state": .string("completed"),
+        "operation_token": .string("token"), "message_id": .string("message"),
+      ]),
+      .object([
+        "id": .string("write"), "tool": .string("draft"), "state": .string("prepared"),
+        "operation_token": .string("token"), "message_id": .null,
+      ]),
+    ]),
+    "documentCopies": .object([
+      "entries": .array([.object(["sourceVersionID": .string(version), "text": .string("Copy")])])
+    ]),
+    "readEvidence": .object([
+      "entries": .array([
+        .object([
+          "versionID": .string(version), "textPrefix": .string("Copy and more"),
+          "resultHash": .string("hash"), "receiptID": .string("read"),
+          "originalStatus": .string("draft"), "originalMeaning": .string("actual"),
+          "currentVersionID": .string(version), "currentStatus": .string("draft"),
+          "currentMeaning": .string("actual"), "isCurrentVersion": .bool(true),
+        ]),
+        .object([
+          "versionID": .string("older"), "textPrefix": .string("Kept excerpt"),
+          "resultHash": .string("hash"), "receiptID": .string("older-read"),
+          "originalStatus": .string("draft"), "originalMeaning": .string("actual"),
+          "currentVersionID": .string("newer"), "currentStatus": .string("accepted"),
+          "currentMeaning": .string("actual"), "isCurrentVersion": .bool(false),
+        ]),
+      ])
+    ]),
+    "recordStates": .array([
+      .object([
+        "originalVersion": .string(version), "currentVersion": .string(version),
+        "datasetID": .null, "status": .string("draft"),
+      ]),
+      .object([
+        "originalVersion": .string("older"), "currentVersion": .string("newer"),
+        "datasetID": .string("table"), "status": .string("accepted"),
+      ]),
+    ]),
+  ])
+  let presented = ContextMaintenance.presented(state)
+  try expectEqual(presented["calls"].array[0], state["calls"].array[0])
+  try expectEqual(
+    presented["calls"].array[1],
+    .object(["id": .string("read"), "tool": .string("read"), "state": .string("completed")]))
+  try expectEqual(presented["calls"].array[2], state["calls"].array[2])
+  let current = presented["readEvidence"]["entries"].array[0]
+  try expectEqual(Set(current.object.keys), [
+    "versionID", "receiptID", "originalStatus", "originalMeaning", "isCurrentVersion",
+  ])
+  // An entry that moved on keeps its excerpt and everything that says so.
+  let moved = presented["readEvidence"]["entries"].array[1]
+  try expectEqual(moved["textPrefix"].text, "Kept excerpt")
+  try expectEqual(moved["currentVersionID"].text, "newer")
+  try expectEqual(moved["resultHash"], .null)
+  try expectEqual(presented["recordStates"].array[0]["isCurrentVersion"], .bool(true))
+  try expectEqual(presented["recordStates"].array[0]["currentVersion"], .null)
+  try expectEqual(presented["recordStates"].array[1], state["recordStates"].array[1])
   print(
     "PASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations"
   )

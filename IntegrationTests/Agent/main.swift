@@ -406,6 +406,11 @@ do {
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5],
       maintainedOnly: CommandLine.arguments[1] == "--active-context-maintained")
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--active-context-recovery"
+  {
+    try await runActiveContextRecoveryProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--reasoning-boundary" {
     try runReasoningBoundaryProbe(
       modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],

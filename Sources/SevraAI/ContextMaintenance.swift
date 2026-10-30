@@ -143,7 +143,7 @@ package final class ContextMaintenance {
     }
     copyFields["entries"] = .array(copies)
     stateFields["documentCopies"] = .object(copyFields)
-    let state = Value.object(stateFields)
+    let state = Self.presented(Value.object(stateFields))
     try require(
       state["run"]["status"].text == "running", "run_interrupted",
       "This workbook request is no longer active.")
@@ -179,6 +179,47 @@ package final class ContextMaintenance {
     result.append(request)
     result += retained
     return result
+  }
+  /// The state the model reads, without host bookkeeping it never uses. A read adds one entry
+  /// to every section, so an identifier repeated across them costs real room in a long job.
+  /// A completed call with no committed operation changed nothing, so only its outcome matters.
+  /// Nothing here is dropped from the workbook: `continuationState` still returns all of it.
+  package static func presented(_ state: Value) -> Value {
+    var fields = state.object
+    fields["calls"] = .array(
+      state["calls"].array.map { call in
+        guard call["state"].text == "completed", call["committedOperation"] == .null else {
+          return call
+        }
+        return .object(call.object.filter { ["id", "tool", "state"].contains($0.key) })
+      })
+    let copied = Set(DocumentCopyChoices.entries(state).compactMap { $0["sourceVersionID"].string })
+    var evidence = state["readEvidence"].object
+    evidence["entries"] = .array(
+      state["readEvidence"]["entries"].array.map { entry in
+        var read = entry.object
+        read["resultHash"] = nil
+        if copied.contains(entry["versionID"].text) { read["textPrefix"] = nil }
+        if entry["isCurrentVersion"] == .bool(true),
+          entry["currentStatus"] == entry["originalStatus"],
+          entry["currentMeaning"] == entry["originalMeaning"]
+        {
+          for field in ["currentVersionID", "currentStatus", "currentMeaning"] { read[field] = nil }
+        }
+        return .object(read)
+      })
+    if !evidence.isEmpty { fields["readEvidence"] = .object(evidence) }
+    fields["recordStates"] = .array(
+      state["recordStates"].array.map { record in
+        var row = record.object
+        if row["datasetID"] == .null { row["datasetID"] = nil }
+        if record["currentVersion"] == record["originalVersion"] {
+          row["currentVersion"] = nil
+          row["isCurrentVersion"] = .bool(true)
+        }
+        return .object(row)
+      })
+    return .object(fields)
   }
   private func measure(
     _ messages: [InferenceMessage], summary: Bool = false, citations: [String] = []

@@ -46,6 +46,25 @@ public enum ToolResultProjection {
       ])
     }
   }
+  /// What the model sees of a read. The saved receipt keeps every field. `item.text` opens the
+  /// first chunk, and an empty reference page with no coverage note has nothing to navigate.
+  public static func presentedRead(_ value: Value) -> Value {
+    var fields = value.object
+    if var item = fields["item"]?.object, let text = item["text"]?.string, !text.isEmpty,
+      value["chunks"].array.first?["body"].string?.hasPrefix(text) == true
+    {
+      item["text"] = nil
+      fields["item"] = .object(item)
+    }
+    let references = value["references"]
+    if references["hits"].array.isEmpty, references["nextCursor"] == .null,
+      references["fileCoverage"]["snapshot"] == .null,
+      references["fileCoverage"]["latestExtraction"].object.isEmpty, references != .null
+    {
+      fields["references"] = .object(["hits": .array([])])
+    }
+    return .object(fields)
+  }
   /// Only whole fields/elements actually shown in a generated page count as
   /// observed evidence. Omission descriptors never stand in for source values.
   public static func visibleValue(_ page: Value) -> Value {

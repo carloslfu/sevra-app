@@ -1165,8 +1165,10 @@ public enum WorkbookAgent {
         }
         messages.append(
           InferenceMessage(
-            role: "tool", content: try projected.json(), toolCallId: call.id,
-            toolName: call.name,
+            role: "tool",
+            content: try (tool == "read" ? ToolResultProjection.presentedRead(projected) : projected)
+              .json(),
+            toolCallId: call.id, toolName: call.name,
             documentCopyIDs: tool == "read" && !callFailed
               ? DocumentCopyCandidates.ids(
                 in: projected == result ? result : ToolResultProjection.visibleValue(projected))

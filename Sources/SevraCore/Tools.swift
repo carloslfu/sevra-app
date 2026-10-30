@@ -346,10 +346,22 @@ public struct WorkbookTools {
     case "save_space":
       let definition = try JSONDecoder().decode(
         SpaceDefinition.self, from: Data(a["definition"].json().utf8))
+      let title = try string("title")
+      // A long request can lose sight of its opening step, and a retry rarely repeats the same
+      // component IDs, so its operation token alone would leave a second copy of the view.
+      for earlier in try workbook.db.execute(
+        "SELECT arguments FROM tool_calls WHERE run_id=? AND tool='save_space' AND state='completed' AND operation_token<>?",
+        [.string(runID), .string(token)])
+      {
+        try require(
+          try Value.parse(earlier["arguments"]!.text)["title"].text.lowercased()
+            != title.lowercased(), "space_duplicate",
+          "This request already saved a space titled \(title). Do not save it again. Continue with the remaining work."
+        )
+      }
       return .object([
         "spaceID": .string(
-          try workbook.saveSpace(
-            id: token, title: string("title"), definition: definition, token: token))
+          try workbook.saveSpace(id: token, title: title, definition: definition, token: token))
       ])
     case "draft", "propose_record":
       if tool == "draft", a["parts"] != .null {

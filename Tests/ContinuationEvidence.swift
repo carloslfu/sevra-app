@@ -2,6 +2,30 @@ import Foundation
 import SevraCore
 
 func checkContinuationEvidence(at root: URL) {
+  check("one request saves one space per title, however its components are named") {
+    let book = try Workbook.create(at: root.appendingPathComponent("Spaces.sevra"), title: "Spaces")
+    let request = try book.addMessage("Save one review", role: "user")
+    let run = try book.startAgentRun(
+      conversation: "main", model: "fixture", requestMessageID: request)
+    func save(_ title: String, component: String) throws -> Value {
+      let definition = SpaceDefinition(components: [
+        .init(id: component, type: "text", title: title, text: "In progress")
+      ])
+      let args: Value = .object(["title": .string(title), "definition": try encoded(definition)])
+      let id = try book.prepareToolCall(
+        runID: run, callID: identifier(), tool: "save_space", arguments: args)
+      let result = try WorkbookTools(book, runID: run).execute("save_space", args)
+      _ = try book.completeToolCall(id, result: result)
+      return result
+    }
+    let first = try save("Receiving review", component: "one")
+    try expect(try save("Receiving review", component: "one") == first)
+    try refuses("space_duplicate") { _ = try save("Receiving review", component: "two") }
+    try refuses("space_duplicate") { _ = try save("RECEIVING REVIEW", component: "three") }
+    _ = try save("Another view", component: "two")
+    try expect(try book.spaces().filter { $0.title == "Receiving review" }.count == 1)
+    try expect(try book.spaces().count == 3)
+  }
   check("continuation preserves exact source bindings and saved spaces, with live version status") {
     let book = try Workbook.create(
       at: root.appendingPathComponent("Continuing.sevra"), title: "Continue")
