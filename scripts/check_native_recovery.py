@@ -96,7 +96,7 @@ def main():
                         continue
                     chunk = os.read(process.stderr.fileno(), 65536)
                     progress.extend(chunk)
-                    if b"Thinking locally" in progress:
+                    if b"Processing context" in progress or b"Thinking locally" in progress:
                         ready = True
                         break
             require(ready, "Native inference did not start before crash injection: " + progress.decode(errors="replace"))
