@@ -673,10 +673,17 @@ accessible row/column/value labels remain distinct from working-table editing.
 Message actions also provide Copy message. No raw JSON presentation is introduced.
 
 Size columns from their contents. A conversation table hugs its natural width when
-that fits; otherwise columns wrap toward whole-word minimums before the table
-scrolls horizontally. An original-file grid fills its viewer when the values fit and
-otherwise keeps natural column widths up to a readable limit and scrolls, rather
-than wrapping every column. Row heights follow the measured wrapped text with equal
-vertical padding. A cell longer than six lines ends in an ellipsis; its tooltip and
-copy actions keep the exact value. Truncated headings keep the full heading as help.
-A column width the person drags stays until the displayed content changes.
+that fits; otherwise a long heading gives up width before values wrap, and columns
+wrap toward whole-word minimums before the table scrolls horizontally. An original-file
+grid fills its viewer when the values fit and otherwise keeps natural column widths up
+to a readable limit and scrolls, rather than wrapping every column. Row heights follow
+the measured wrapped text with equal vertical padding. A cell longer than six lines
+ends in an ellipsis; its tooltip and copy actions keep the exact value. Truncated
+headings keep the full heading as help. A column width the person drags stays until
+the displayed content changes.
+
+A conversation table that fits shows no scroller and does not scroll. It keeps a wheel
+gesture only for its own overflow, so the conversation still scrolls with the pointer
+over a table that fits or has reached its end. A supported link in a table cell uses
+the link color and opens on click when it is the cell's only link; several links stay
+in the context menu, and Shift or Command clicks only change the selection.

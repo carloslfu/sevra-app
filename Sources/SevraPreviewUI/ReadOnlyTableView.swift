@@ -64,8 +64,10 @@ private final class PreviewGrid: NSTableView {
 }
 
 /// Equal vertical padding; text that exceeds the row limit ends in an ellipsis.
+/// The leading inset lines values up with their column headings.
 private final class PreviewCell: NSTableCellView {
   let field = NSTextField(wrappingLabelWithString: "")
+  private var links: [NSRange] = []
   init() {
     super.init(frame: .zero)
     field.isEditable = false
@@ -78,7 +80,7 @@ private final class PreviewCell: NSTableCellView {
     addSubview(field)
     textField = field
     NSLayoutConstraint.activate([
-      field.leadingAnchor.constraint(equalTo: leadingAnchor),
+      field.leadingAnchor.constraint(equalTo: leadingAnchor, constant: PreviewCell.leading),
       field.trailingAnchor.constraint(equalTo: trailingAnchor),
       field.topAnchor.constraint(equalTo: topAnchor, constant: PreviewCell.padding),
       field.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -PreviewCell.padding),
@@ -86,14 +88,64 @@ private final class PreviewCell: NSTableCellView {
   }
   required init?(coder: NSCoder) { nil }
   static let padding: CGFloat = 6
+  static let leading: CGFloat = 2
+  func show(_ text: String, links: [NSRange]) {
+    self.links = links
+    field.stringValue = text
+    paint()
+    window?.invalidateCursorRects(for: self)
+  }
+  override var backgroundStyle: NSView.BackgroundStyle { didSet { paint() } }
+  override func resetCursorRects() {
+    if !links.isEmpty { addCursorRect(field.frame, cursor: .pointingHand) }
+  }
+  /// Blue on the accent-colored selection would be unreadable, so a selected
+  /// link uses the selected text color.
+  private func paint() {
+    guard !links.isEmpty else { return }
+    let selected = backgroundStyle == .emphasized
+    let text = NSMutableAttributedString(attributedString: field.attributedStringValue)
+    text.addAttribute(
+      .foregroundColor, value: selected ? NSColor.alternateSelectedControlTextColor : .labelColor,
+      range: NSRange(location: 0, length: text.length))
+    if !selected {
+      for link in links { text.addAttribute(.foregroundColor, value: NSColor.linkColor, range: link) }
+    }
+    field.attributedStringValue = text
+  }
 }
 
-/// Refits content-aware columns when the visible width changes.
+/// Refits content-aware columns when the visible width changes. A table inside
+/// a conversation keeps only the wheel gestures it can use, so the conversation
+/// still scrolls with the pointer over a table that fits or has reached its end.
 private final class PreviewScroll: NSScrollView {
   var refit: ((CGFloat) -> Void)?
+  var sharesWheel = false
+  private var forwarding = false
   override func layout() {
     super.layout()
     refit?(contentView.bounds.width)
+  }
+  override func scrollWheel(with event: NSEvent) {
+    guard sharesWheel else { return super.scrollWheel(with: event) }
+    // One owner per gesture, including its momentum.
+    if event.phase == .began || (event.phase.isEmpty && event.momentumPhase.isEmpty) {
+      forwarding = !canScroll(event)
+    }
+    if forwarding {
+      nextResponder?.scrollWheel(with: event)
+    } else {
+      super.scrollWheel(with: event)
+    }
+  }
+  private func canScroll(_ event: NSEvent) -> Bool {
+    let visible = documentVisibleRect
+    let size = documentView?.frame.size ?? .zero
+    let (x, y) = (event.scrollingDeltaX, event.scrollingDeltaY)
+    if abs(x) > abs(y) { return x > 0 ? visible.minX > 0.5 : visible.maxX < size.width - 0.5 }
+    // The visible rectangle starts above the document, behind the heading row.
+    let top = -contentView.contentInsets.top
+    return y > 0 ? visible.minY > top + 0.5 : visible.maxY < size.height - 0.5
   }
 }
 
@@ -109,6 +161,8 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     let grid = PreviewGrid()
     grid.delegate = context.coordinator
     grid.dataSource = context.coordinator
+    grid.target = context.coordinator
+    grid.action = #selector(Coordinator.openClickedLink)
     grid.allowsMultipleSelection = true
     // The coordinator sizes columns from their contents and the visible width.
     grid.columnAutoresizingStyle = .noColumnAutoresizing
@@ -121,6 +175,8 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     scroll.borderType = .noBorder
     scroll.hasHorizontalScroller = true
     scroll.hasVerticalScroller = true
+    scroll.autohidesScrollers = true
+    scroll.sharesWheel = inline
     scroll.documentView = grid
     scroll.refit = { [weak coordinator = context.coordinator] width in coordinator?.fit(width) }
     context.coordinator.grid = grid
@@ -135,7 +191,7 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     coordinator.parent = self
     grid.setAccessibilityLabel(label)
     grid.setAccessibilityHelp(
-      "Read only. Select rows with Shift or Command. Command-C copies selected rows as cells. Right-click for headings, CSV or source links. With no selection, Copy includes the whole displayed table."
+      "Read only. Select rows with Shift or Command. Command-C copies selected rows as cells. Click a link in a cell to open it, or right-click for headings, CSV or source links. With no selection, Copy includes the whole displayed table."
     )
     grid.copyRows = { [weak coordinator] headings, csv in
       coordinator?.copy(headings: headings, csv: csv)
@@ -172,13 +228,20 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     let widths = coordinator.widths(available: proposed ?? .greatestFiniteMagnitude)
     let needed = coordinator.contentWidth(widths)
     let width = min(proposed ?? needed, needed)
-    var height: CGFloat = grid.headerView?.frame.height ?? 24
+    // The inset style pads above the first row and below the last. Without both
+    // a table that fits would still scroll a few points.
+    let padding =
+      content.rows.isEmpty
+      ? 0
+      : max(0, grid.rect(ofRow: 0).minY)
+        + max(0, grid.intrinsicContentSize.height - grid.rect(ofRow: content.rows.count - 1).maxY)
+    var height = (grid.headerView?.frame.height ?? 24) + padding
     for row in content.rows.indices {
       height += coordinator.rowHeight(row, widths: widths) + grid.intercellSpacing.height
       if height >= 300 { break }
     }
     let horizontal = needed > width + 1 ? 17.0 : 0
-    return .init(width: width, height: min(320, max(70, height + horizontal + 4)))
+    return .init(width: width, height: min(320, max(70, height + horizontal)))
   }
   @MainActor final class Coordinator: NSObject, NSTableViewDataSource, NSTableViewDelegate {
     var parent: ReadOnlyGrid
@@ -186,6 +249,7 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     var headings: [String] = []
     var actions: [Int: () -> Void] = [:]
     private var ideal: [CGFloat] = []
+    private var unwrapped: [CGFloat] = []
     private var minimum: [CGFloat] = []
     private var fittedWidth: CGFloat = -1
     private var applyingWidths = false
@@ -197,6 +261,7 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     init(_ parent: ReadOnlyGrid) { self.parent = parent }
     /// Natural widths avoid wrapping short values; minimum widths keep whole
     /// words and most of each heading visible before horizontal scrolling.
+    /// Unwrapped widths give values priority over a long heading's full text.
     func measure() {
       let headingFont = grid?.tableColumns.first?.headerCell.font ?? .systemFont(ofSize: 11)
       func width(_ text: Substring, _ font: NSFont) -> CGFloat {
@@ -204,6 +269,7 @@ private struct ReadOnlyGrid: NSViewRepresentable {
       }
       let content = parent.content
       ideal = []
+      unwrapped = []
       minimum = []
       for (index, heading) in content.headings.enumerated() {
         var natural: CGFloat = 0
@@ -219,8 +285,10 @@ private struct ReadOnlyGrid: NSViewRepresentable {
         }
         let title = width(Substring(content.plain(heading)), headingFont) + 18
         let best = min(320, max(48, natural + 10, title))
+        let floor = min(best, max(48, min(word + 10, 150), min(title, 96)))
         ideal.append(best)
-        minimum.append(min(best, max(48, min(word + 10, 150), min(title, 96))))
+        unwrapped.append(min(best, max(floor, natural + 10)))
+        minimum.append(floor)
       }
       fittedWidth = -1
       userResized = false
@@ -236,10 +304,13 @@ private struct ReadOnlyGrid: NSViewRepresentable {
         guard !parent.inline, total > 0 else { return ideal }
         return ideal.map { $0 + ($0 / total) * (space - total) }
       }
-      let floor = minimum.reduce(0, +)
-      guard parent.inline, floor < space else { return parent.inline ? minimum : ideal }
-      let flexible = zip(ideal, minimum).reduce(0) { $0 + $1.0 - $1.1 }
-      return zip(ideal, minimum).map { $0.1 + ($0.0 - $0.1) / flexible * (space - floor) }
+      guard parent.inline else { return ideal }
+      let values = unwrapped.reduce(0, +)
+      let (upper, lower) = values <= space ? (ideal, unwrapped) : (unwrapped, minimum)
+      let floor = lower.reduce(0, +)
+      guard floor < space else { return lower }
+      let flexible = zip(upper, lower).reduce(0) { $0 + $1.0 - $1.1 }
+      return zip(upper, lower).map { $0.1 + ($0.0 - $0.1) / flexible * (space - floor) }
     }
     /// Inset rows add leading/trailing margins and spacing between columns.
     func overhead() -> CGFloat {
@@ -283,7 +354,8 @@ private struct ReadOnlyGrid: NSViewRepresentable {
       for (index, value) in parent.content.rows[row].enumerated() where index < widths.count {
         measuring.stringValue = String(parent.content.plain(value).prefix(1024))
         let size = measuring.cell!.cellSize(
-          forBounds: NSRect(x: 0, y: 0, width: floor(widths[index]), height: 10_000))
+          forBounds: NSRect(
+            x: 0, y: 0, width: floor(widths[index]) - PreviewCell.leading, height: 10_000))
         height = max(height, size.height)
       }
       let line = ceil(Self.font.ascender - Self.font.descender + Self.font.leading)
@@ -305,10 +377,12 @@ private struct ReadOnlyGrid: NSViewRepresentable {
       let field = cell.field
       field.font = Self.font
       let value = parent.content.rows[row][column]
-      field.stringValue = parent.content.plain(value)
+      let links = parent.content.linkRanges(value)
+      cell.show(parent.content.plain(value), links: links)
       field.toolTip = String(parent.content.plain(value).prefix(4000))
       field.setAccessibilityLabel(
-        (tableColumn?.title.isEmpty == false ? tableColumn!.title : "Value") + ", row \(row + 1)")
+        (tableColumn?.title.isEmpty == false ? tableColumn!.title : "Value") + ", row \(row + 1)"
+          + (links.isEmpty ? "" : ", source link"))
       field.setAccessibilityValue(parent.content.plain(value))
       return cell
     }
@@ -344,6 +418,18 @@ private struct ReadOnlyGrid: NSViewRepresentable {
           try copied.write(to: parent.pasteboard)
         }
       } catch { parent.failure(error.localizedDescription) }
+    }
+    /// A cell's one link opens on click. Several stay in the context menu, and
+    /// Shift or Command clicks only change the selection.
+    @objc func openClickedLink() {
+      guard let grid, parent.content.rows.indices.contains(grid.clickedRow),
+        parent.content.rows[grid.clickedRow].indices.contains(grid.clickedColumn),
+        NSApp.currentEvent?.modifierFlags.intersection([.shift, .command]).isEmpty ?? true,
+        parent.content.markdown
+      else { return }
+      let links = ConversationPresentation(parent.content.rows[grid.clickedRow][grid.clickedColumn])
+        .links
+      if links.count == 1 { parent.open(links[0].url) }
     }
     @objc func performMenu(_ item: NSMenuItem) { actions[item.tag]?() }
     func menu() -> NSMenu {

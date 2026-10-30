@@ -33,17 +33,44 @@ and a spare header strip. Conversation tables now hug their natural width, wider
 tables wrap to whole-word minimums before scrolling, original files fill or scroll
 at natural widths, rows are measured with equal padding, cells over six lines end in
 an ellipsis and a dragged column width persists. Component checks cover these cases
-with selection, TSV/rich/CSV copy, source actions and accessible values. Native
-build 7 is installed. **Installed-window inspection is still pending:** macOS Screen
-Recording permission was not granted to the controlling app, so its window was not
-captured. The renders use the same components at 340, 560 and 900 points in light
-and dark; they are not the installed window. Increment 3 has not started.
+with selection, TSV/rich/CSV copy, source actions and accessible values.
+
+**Installed-window pass, October 30.** With Screen Recording granted, the installed
+app was driven on synthetic workbooks through background window control. That pass
+found four defects the offscreen renders could not show, all fixed in build 9. A table
+that fit still showed a scroller and moved about 5 points, because the inset style
+pads 5 points above the rows and 10 below, and it captured the wheel from the
+conversation. Cell text sat 2 points left of its heading. Source links in cells looked
+like plain text and opened only from the context menu. A long heading took width from
+short values and wrapped every row in the narrow pane. Build 9 measures the real
+padding, autohides scrollers and gives the conversation each wheel gesture the table
+cannot use, including at its top and bottom edges. Cell text lines up with headings,
+one source link in a cell is link-colored and opens on click, Shift and Command clicks
+only change the selection, and values get width before a long heading.
+
+Seen in installed build 9, light and dark: 280 and 420 point conversation panes, which
+are that pane's limits; wrapped and unwrapped values; a six-column table with hidden
+columns; a 30-row table with its own vertical scrolling; a 48-row wide CSV filling and
+scrolling in the viewer; multi-row selection, inactive-window highlight, source
+navigation from prose and cell links, and accessible cell labels. **Not checked in the
+installed window:** the context menu, a clipboard write and a real wheel gesture. Those
+need full-screen control, and its approval prompt timed out. Component checks cover
+them: copy formats, menu actions, and a synthesized wheel event that reaches and moves
+a real SwiftUI `ScrollView`, which fails when the sharing is disabled. Clicking a link
+in one row of a multi-row selection did nothing in a background window; that was not
+rechecked in a key window. Tables in a key window with an accent-colored selection were
+also not seen; the selected link color is covered by a component check.
 
 Focused related-original checks, the full scripted agent regression (42 passes),
 preview checks, native build 7, its isolated package paths-only check and
-`bash scripts/check.sh` all exit 0. The full suite took 6 minutes 49 seconds with
-zero warnings, including core 557/0, native document lifecycle 27/0 and 31 Splash
-checks. The [continuation receipt](../../../integration/evidence/2026-10-30-minimum-increments-1-2.json.gz),
+`bash scripts/check.sh` all exit 0 at the first checkpoint. That full suite took 6
+minutes 49 seconds with zero warnings, including core 557/0, native document lifecycle
+27/0 and 31 Splash checks. After build 9, `bash scripts/check.sh`
+exits 0 again in about 6 minutes 48 seconds with zero warnings, including core 557/0,
+native document lifecycle 27/0 and 31 Splash checks. The
+[installed-window receipt](../../../integration/evidence/2026-10-30-native-table-window-pass.json.gz),
+SHA-256 `905f55df8c630e20d74ed8ae815c43c5e2722fc11912d1e26dc67a42cbfd7f66`, binds the
+sources, defects, coverage and limits above. The [continuation receipt](../../../integration/evidence/2026-10-30-minimum-increments-1-2.json.gz),
 SHA-256 `91f2b9101b50a31b6a93cac7eba3a2c5bbd4ed7c4dda6f6a4e7f4e89600b64df`, binds
 sources, check output, actual answers, snapshot measurements and limits.
 

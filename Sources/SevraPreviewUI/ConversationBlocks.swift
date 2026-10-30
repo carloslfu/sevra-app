@@ -14,6 +14,12 @@ public struct PreviewTableContent: Equatable {
   public func plain(_ cell: String) -> String {
     markdown ? String(ConversationPresentation(cell).text.characters) : cell
   }
+  /// Supported links as UTF-16 ranges of `plain(cell)`.
+  public func linkRanges(_ cell: String) -> [NSRange] {
+    guard markdown else { return [] }
+    let text = ConversationPresentation(cell).text
+    return text.runs.compactMap { run in run.link == nil ? nil : NSRange(run.range, in: text) }
+  }
   public func cells(selected: IndexSet, headings includeHeadings: Bool) -> [[String]] {
     let indexes = selected.isEmpty ? IndexSet(rows.indices) : selected
     var cells = indexes.filter { rows.indices.contains($0) }.map { rows[$0].map(plain) }

@@ -1396,3 +1396,6 @@ Resumed increments 1 and 2: narrow missing-cost wording check, content-aware rea
 ## [2026-10-30 03:04] verification | records/operations/implementation.md
 Focused related-original, full agent regression (42), preview checks, native build 7, package paths-only and bash scripts/check.sh exit 0; two fresh actual-model supplier probes complete with qualified wording. Receipt 91f2b910.
 
+## [2026-10-30 13:55] verification | records/operations/implementation
+Installed-window pass on native build 9 found and fixed four table defects; context menu, clipboard write and real wheel gesture stay component-checked only.
+

@@ -4,7 +4,7 @@ meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
 updated: 2026-10-30T03:04:42.307148+00:00
-summary: 'Resumed minimum features: increment 1 accepted, increment 2 table sizing verified offscreen and installed, installed-window check and increment 3 next.'
+summary: 'Resumed minimum features: increments 1 and 2 accepted after the installed-window pass; increment 3 reviewed updates current.'
 title: Paused minimum-feature agent handoff
 ---
 # Paused feature implementation: agent handoff
@@ -12,12 +12,11 @@ title: Paused minimum-feature agent handoff
 ## State and first action
 
 **Resumed by the owner on October 29:** [[sources/notes/2026/10/minimum-features-resume]].
-Increment 1 is accepted for its bounded scope. Increment 2 is implemented, component
-checked and installed as native build 7, but its installed-window visual check has
-not run because macOS Screen Recording permission was not granted to the controlling
-app. **Do that check before starting increment 3.** Full suite: exit 0 in 6 minutes
-49 seconds with zero warnings, including core 557/0, native document lifecycle 27/0
-and 31 Splash checks. Exact evidence is in [[records/operations/implementation]] and the
+Increments 1 and 2 are accepted for their bounded scope. Build 9 passed the
+installed-window pass except the context menu, a clipboard write and a real wheel
+gesture, which need full-screen control and stay covered by component checks only.
+Increment 3 is the current work. Exact evidence is in
+[[records/operations/implementation]] and the
 [continuation receipt](../../../integration/evidence/2026-10-30-minimum-increments-1-2.json.gz).
 
 The earlier pause source is [[sources/notes/2026/10/minimum-features-pause]]. The
@@ -211,16 +210,13 @@ with `.build/debug/sevra-preview-checks --render-tables DIRECTORY`, where DIRECT
 holds `.md` answers and `.csv`/`.tsv` originals; local fixtures and PNGs are under
 `.build/minimum-features/visual/snapshots/`.
 
-Remaining installed-window checks for build 7, using scoped synthetic workbooks such
-as `.build/minimum-features/visual/Comparison.sevra` or the qualified probe packages:
-narrow and wide panes, wrapped values, horizontal and vertical overflow, row
-selection, context CSV/cell copy, source navigation, accessible values and light/dark.
-Do not modify the real Supplier workbook.
+The installed-window pass then ran on build 9 with synthetic workbooks under
+`.build/minimum-features/gui/`; results and remaining limits are in
+[[records/operations/implementation]]. Do not modify the real Supplier workbook.
 
 ## Resume in this order
 
-The original order follows; steps 2 and 4 are complete, step 3 still needs the
-installed-window pass above, and step 6 waits for it.
+The original order follows; steps 1 through 5 are complete and step 6 is current.
 
 1. Check the branch/diff and read the contracts above. Preserve this work.
 2. Fix the missing-terms pricing counterexample and rerun its focused actual-model

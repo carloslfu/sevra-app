@@ -5,8 +5,9 @@ import SevraPreviewUI
 import SwiftUI
 
 @MainActor func checkReadableTables() throws {
-  func expect(_ condition: Bool) throws {
-    try require(condition, "readable_tables", "Read-only table presentation or copy changed.")
+  func expect(_ condition: Bool, line: Int = #line) throws {
+    try require(
+      condition, "readable_tables", "Read-only table presentation or copy changed at line \(line).")
   }
   let source = """
     Café **before**.
@@ -31,6 +32,9 @@ import SwiftUI
   try expect(table.rows[1].map(table.plain) == ["Notes", "a|b", "tax excluded"])
   try expect(table.rows[2].map(table.plain) == ["Source", "CSV", "PDF"])
   try expect(ConversationPresentation(source).links.count == 3)
+  try expect(table.linkRanges(table.rows[2][1]) == [NSRange(location: 0, length: 3)])
+  try expect(table.linkRanges("[script](file:///tmp/x)").isEmpty)
+  try expect(PreviewTableContent(headings: [], rows: []).linkRanges("[CSV](sevra://item/a)").isEmpty)
   try expect(table.cells(selected: IndexSet([0, 2]), headings: false).count == 2)
   try expect(table.cells(selected: [], headings: true).count == 4)
   for literal in ["a | b\nnot a table", "```text\n| a | b |\n|---|---|\n|1|2|\n```"] {
@@ -120,26 +124,41 @@ import SwiftUI
   try expect(clipboard.string(forType: .string)?.hasPrefix("Detail\tAtlas\tBrio\n") == true)
   try expect(menu.items.contains { $0.title == "Open CSV" })
   try expect(menu.items.contains { $0.title == "Open PDF" })
-  try checkTableSizing(expect)
+  try checkTableSizing()
   print(
-    "PASS native Markdown/CSV/TSV tables, exact text and links, multiline/large preview bounds, read-only multi-row cell copy and rich clipboard, content-aware sizing"
+    "PASS native Markdown/CSV/TSV tables, exact text and links, multiline/large preview bounds, read-only multi-row cell copy and rich clipboard, content-aware sizing, shared wheel scrolling, cell links"
   )
 }
 
-/// Compact comparisons fit narrow panes without wrapping or spare rows; wider
-/// data keeps whole words and scrolls; original files fill the viewer; and a
-/// person's column width survives a later pane resize.
-@MainActor private func checkTableSizing(_ expect: (Bool) throws -> Void) throws {
-  func host(_ content: PreviewTableContent, inline: Bool, width: CGFloat) -> (
-    NSWindow, NSHostingView<AnyView>, NSTableView
-  ) {
-    let view = ReadOnlyTableView(content: content, label: "Sizing", inline: inline)
+private final class WheelSpy: NSView {
+  var received = 0
+  override func scrollWheel(with event: NSEvent) { received += 1 }
+}
+
+/// Compact comparisons fit narrow panes without wrapping, spare rows or their own
+/// scrolling; wider data keeps whole words and scrolls; original files fill the
+/// viewer; and a person's column width survives a later pane resize.
+@MainActor private func checkTableSizing() throws {
+  func expect(_ condition: Bool, line: Int = #line) throws {
+    try require(condition, "readable_tables", "Table sizing or scrolling changed at line \(line).")
+  }
+  var retained: [NSWindow] = []
+  defer { withExtendedLifetime(retained) {} }
+  func host(
+    _ content: PreviewTableContent, inline: Bool, width: CGFloat, open: @escaping (URL) -> Void = { _ in }
+  ) -> (NSWindow, NSHostingView<AnyView>, NSTableView) {
+    let view = ReadOnlyTableView(content: content, label: "Sizing", inline: inline, open: open)
     let host = NSHostingView(
       rootView: AnyView(view.frame(width: width, height: inline ? nil : 300, alignment: .leading)))
     let window = NSWindow(
       contentRect: NSRect(x: 0, y: 0, width: width, height: 400), styleMask: [.borderless],
       backing: .buffered, defer: false)
-    window.contentView = host
+    retained.append(window)
+    let spy = WheelSpy(frame: NSRect(x: 0, y: 0, width: width, height: 400))
+    host.frame = spy.bounds
+    host.autoresizingMask = [.width, .height]
+    spy.addSubview(host)
+    window.contentView = spy
     for _ in 0..<3 {
       host.layoutSubtreeIfNeeded()
       RunLoop.main.run(until: Date().addingTimeInterval(0.02))
@@ -164,7 +183,50 @@ import SwiftUI
   try expect(extent(compact) <= compactScroll.contentView.bounds.width + 0.5)
   try expect((0..<compact.numberOfRows).allSatisfy { compact.rect(ofRow: $0).height == 30 })
   let rows = (0..<compact.numberOfRows).reduce(0) { $0 + compact.rect(ofRow: $1).height }
-  try expect(compactScroll.frame.height == rows + (compact.headerView?.frame.height ?? 0) + 4)
+  try expect(rows == 120)
+  try expect(
+    compactScroll.frame.height
+      == compact.intrinsicContentSize.height + (compact.headerView?.frame.height ?? 0))
+  try expect(compact.frame.height <= compactScroll.documentVisibleRect.maxY + 0.5)
+  try expect(compactScroll.autohidesScrollers)
+  // Only a table's own overflow keeps the wheel from the surrounding conversation.
+  func wheel(x: Int32 = 0, y: Int32 = 0) -> NSEvent {
+    NSEvent(
+      cgEvent: CGEvent(
+        scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 2, wheel1: y, wheel2: x,
+        wheel3: 0)!)!
+  }
+  func spy(_ grid: NSTableView) -> WheelSpy { grid.window!.contentView as! WheelSpy }
+  compactScroll.scrollWheel(with: wheel(y: -40))
+  compactScroll.scrollWheel(with: wheel(x: -40))
+  try expect(spy(compact).received == 2)
+  // The same gesture reaches a real conversation scroll view and moves it.
+  let conversation = NSHostingView(
+    rootView: ScrollView {
+      VStack(spacing: 0) {
+        Color.clear.frame(height: 300)
+        ReadOnlyTableView(content: comparison, label: "Scrolling", inline: true)
+        Color.clear.frame(height: 900)
+      }
+    }.frame(width: 340, height: 400))
+  let conversationWindow = NSWindow(
+    contentRect: NSRect(x: 0, y: 0, width: 340, height: 400), styleMask: [.borderless],
+    backing: .buffered, defer: false)
+  retained.append(conversationWindow)
+  conversationWindow.contentView = conversation
+  for _ in 0..<3 {
+    conversation.layoutSubtreeIfNeeded()
+    RunLoop.main.run(until: Date().addingTimeInterval(0.02))
+  }
+  func table(_ view: NSView) -> NSTableView? {
+    (view as? NSTableView) ?? view.subviews.lazy.compactMap(table).first
+  }
+  let inner = table(conversation)!.enclosingScrollView!
+  let outer = inner.superview!.enclosingScrollView!
+  let before = outer.contentView.bounds.origin.y
+  inner.scrollWheel(with: wheel(y: -40))
+  RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+  try expect(outer.contentView.bounds.origin.y > before)
   let wide = PreviewTableContent(
     headings: ["Supplier", "Product", "Known goods-plus-shipping", "Delivery", "Tax", "Notes"],
     rows: [
@@ -175,6 +237,32 @@ import SwiftUI
     ], markdown: true)
   let (_, _, scrolling) = host(wide, inline: true, width: 340)
   try expect(extent(scrolling) > scrolling.enclosingScrollView!.contentView.bounds.width)
+  scrolling.enclosingScrollView!.scrollWheel(with: wheel(x: -40))
+  try expect(spy(scrolling).received == 0)
+  scrolling.enclosingScrollView!.scrollWheel(with: wheel(y: -40))
+  try expect(spy(scrolling).received == 1)
+  let long = PreviewTableContent(
+    headings: ["Supplier", "Cost"],
+    rows: [["[Quote](sevra://item/a)", "1.00"]] + (1..<200).map { ["Supplier \($0)", "\($0).00"] },
+    markdown: true)
+  let (_, _, tall) = host(long, inline: true, width: 340)
+  let tallScroll = tall.enclosingScrollView!
+  try expect(tallScroll.frame.height > 280 && tallScroll.frame.height <= 320)
+  tallScroll.scrollWheel(with: wheel(y: -40))
+  try expect(spy(tall).received == 0)
+  tall.scrollRowToVisible(199)
+  tall.layoutSubtreeIfNeeded()
+  tallScroll.scrollWheel(with: wheel(y: -40))
+  try expect(spy(tall).received == 1)
+  tallScroll.scrollWheel(with: wheel(y: 40))
+  try expect(spy(tall).received == 1)
+  func color(_ grid: NSTableView, row: Int) -> NSColor? {
+    let field = (grid.view(atColumn: 0, row: row, makeIfNecessary: true) as? NSTableCellView)?.textField
+    return field?.attributedStringValue.attribute(.foregroundColor, at: 0, effectiveRange: nil)
+      as? NSColor
+  }
+  // Scrolling reuses cells; a former link cell must not stay blue.
+  try expect(color(tall, row: 199) != .linkColor)
   let font = NSFont.systemFont(ofSize: 13)
   for (column, value) in zip(scrolling.tableColumns, wide.rows[0]) {
     let longest = value.split(separator: " ").map {
@@ -182,6 +270,13 @@ import SwiftUI
     }.max()!
     try expect(column.width >= ceil(longest))
   }
+  // Short values stay on one line before a long heading gets its full width.
+  let headed = PreviewTableContent(
+    headings: ["Supplier", "Known goods-plus-shipping before tax"],
+    rows: (1...3).map { ["Supplier \($0)", "\($0)00.00"] }, markdown: true)
+  let (_, _, heading) = host(headed, inline: true, width: 240)
+  try expect((0..<heading.numberOfRows).allSatisfy { heading.rect(ofRow: $0).height == 30 })
+  try expect(extent(heading) <= heading.enclosingScrollView!.contentView.bounds.width + 0.5)
   let original = PreviewTableContent(headings: ["SKU", "Name"], rows: [["0014", "Brass bolts"]])
   let (window, viewer, filled) = host(original, inline: false, width: 600)
   let visible = filled.enclosingScrollView!.contentView.bounds.width
@@ -196,4 +291,44 @@ import SwiftUI
     RunLoop.main.run(until: Date().addingTimeInterval(0.02))
   }
   try expect(filled.tableColumns[0].width == chosen)
+  var opened: [URL] = []
+  let linked = PreviewTableContent(
+    headings: ["Source", "Note"],
+    rows: [
+      ["[Quote](sevra://item/a)", "Plain"],
+      ["[One](sevra://item/a) and [two](sevra://item/b)", "Several"],
+    ], markdown: true)
+  let (_, _, links) = host(linked, inline: true, width: 340) { opened.append($0) }
+  func click(_ grid: NSTableView, row: Int, column: Int, flags: NSEvent.ModifierFlags = []) {
+    let cell = grid.frameOfCell(atColumn: column, row: row)
+    let point = grid.convert(NSPoint(x: cell.midX, y: cell.midY), to: nil)
+    func event(_ type: NSEvent.EventType) -> NSEvent {
+      NSEvent.mouseEvent(
+        with: type, location: point, modifierFlags: flags,
+        timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: grid.window!.windowNumber,
+        context: nil, eventNumber: 1, clickCount: 1, pressure: 1)!
+    }
+    grid.window!.postEvent(event(.leftMouseUp), atStart: false)
+    grid.mouseDown(with: event(.leftMouseDown))
+  }
+  try expect(color(links, row: 0) == .linkColor)
+  if let cell = links.view(atColumn: 0, row: 0, makeIfNecessary: true) as? NSTableCellView {
+    cell.backgroundStyle = .emphasized
+    try expect(color(links, row: 0) == .alternateSelectedControlTextColor)
+    cell.backgroundStyle = .normal
+    try expect(color(links, row: 0) == .linkColor)
+  } else {
+    try expect(false)
+  }
+  click(links, row: 0, column: 0)
+  try expect(opened == [URL(string: "sevra://item/a")!] && links.selectedRow == 0)
+  opened = []
+  click(links, row: 1, column: 1)
+  try expect(opened.isEmpty && links.selectedRow == 1)
+  click(links, row: 0, column: 1)
+  try expect(opened.isEmpty && links.selectedRow == 0)
+  click(links, row: 1, column: 0)
+  try expect(opened.isEmpty && links.selectedRow == 1)
+  click(links, row: 0, column: 0, flags: .shift)
+  try expect(opened.isEmpty && links.selectedRowIndexes == [0, 1])
 }

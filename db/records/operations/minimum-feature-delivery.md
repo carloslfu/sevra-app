@@ -48,8 +48,8 @@ Resumed by the owner after the handoff pause:
 Increment 1 is accepted for its bounded scope. Both actual supplier cases qualify
 known goods-plus-shipping costs and leave the all-in ordering open, and a narrow
 finish check rejects the earlier "Total" and "Cheapest quote" wording when the same
-answer says costs are unknown. Increment 2 is implemented with content-aware sizing,
-component checks and offscreen renders; build 7 is installed. Its installed-window
-visual check waits for macOS Screen Recording permission, so increment 3 has not
-started. The full suite exits 0 with zero warnings, including core 557/0, native
-document lifecycle 27/0 and 31 Splash checks. Increments 3 through 10 remain queued.
+answer says costs are unknown. Increment 2 is accepted after its installed-window
+pass on build 9, which found and fixed four defects. The context menu, a clipboard
+write and a real wheel gesture stay covered by component checks only, because they
+need full-screen control. Increment 3 is the current work; increments 4 through 10
+remain queued.
