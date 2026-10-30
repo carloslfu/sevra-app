@@ -1,4 +1,5 @@
 import Foundation
+import Markdown
 
 /// The same parsed text supplies inline links and discoverable message actions.
 /// Preserve exact destinations and merge adjacent formatting runs within a link.
@@ -13,8 +14,11 @@ public struct ConversationPresentation {
   }
   public let text: AttributedString
   public let links: [Link]
+  public var blocks: [ConversationBlock] { ConversationBlock.parse(markdown) }
+  private let markdown: String
 
   public init(_ markdown: String) {
+    self.markdown = markdown
     var text =
       (try? AttributedString(
         markdown: markdown, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))

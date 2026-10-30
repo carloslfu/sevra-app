@@ -222,6 +222,8 @@ public struct WorkbookTools {
               "nextOffset": hasMore ? .number(Double(offset + chunks.count)) : .null,
             ]),
             "extraction": try workbook.extractionStatus(item.id),
+            "requestEvidence": offset == 0 && item.assetID != nil && item.id == current?.id
+              ? try relatedOriginals(excluding: item.id) : .null,
           ])
           return try receiptID.map {
             try DocumentCopyChoices.adding(

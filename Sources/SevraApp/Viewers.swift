@@ -209,7 +209,11 @@ import SwiftUI
         } else if [
           "html", "htm", "svg", "xml", "js", "swift", "py", "json", "txt", "md", "csv", "tsv",
         ].contains(ext) {
-          SafeTextViewer(file: file)
+          if ["csv", "tsv"].contains(file.pathExtension.lowercased()) {
+            DelimitedFileViewer(file: file)
+          } else {
+            SafeTextViewer(file: file)
+          }
         } else {
           QuickLookViewer(url: file)
         }
@@ -695,6 +699,47 @@ struct ImageViewer: View {
         Image(nsImage: image).resizable().scaledToFit().frame(
           width: min(1000, image.size.width) * scale
         ).padding(20)
+      }
+    }
+  }
+}
+struct DelimitedFileViewer: View {
+  let file: URL
+  @State private var preview: DelimitedPreview?
+  @State private var failure: String?
+  var body: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      if let preview {
+        Text(preview.detail).font(.caption).foregroundStyle(.secondary)
+        if preview.table.headings.isEmpty {
+          ContentUnavailableView(
+            "Empty table", systemImage: "tablecells",
+            description: Text("The original file has no values."))
+        } else {
+          ReadOnlyTableView(content: preview.table, label: "Original table values")
+        }
+      } else if let failure {
+        ContentUnavailableView(
+          "Table preview unavailable", systemImage: "tablecells",
+          description: Text(failure + " The original remains available through File actions."))
+      } else {
+        ProgressView("Reading table values…").frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
+    }.padding(20).task(id: file) {
+      preview = nil
+      failure = nil
+      let token = Cancellation()
+      do {
+        let result = try await withTaskCancellationHandler {
+          try await Task.detached { try DelimitedPreview.load(file, cancellation: token) }.value
+        } onCancel: {
+          token.cancel()
+        }
+        try Task.checkCancellation()
+        preview = result
+      } catch {
+        guard !Task.isCancelled else { return }
+        failure = error.localizedDescription
       }
     }
   }

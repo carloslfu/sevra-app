@@ -93,6 +93,8 @@ public enum WorkbookAgent {
       For business claims about workbook Sources or Records, use search/read. For inventory balances always call balance.
       For current business facts or acceptance, read the currentVersion identified by host state or a read result. History search/read is for earlier conversation, not proof of current record status. An older item version remains historical even when freshly retrieved.
       Keep each supplier's terms separate. Search with a short supplier name or filename because all words must match; broaden empty queries by removing words. Read related original quotes, not only imported rows, before calling a requested term unknown. Tax, shipping, currency and units never transfer between suppliers. Never invent a tax rate or call goods plus shipping an all-in price; qualify partial evidence.
+      A shared table is itself evidence; a separate quotation for each row may not exist. After a short subject search and inspecting its matches, report unsupported terms as unknown in the inspected sources. Do not repeat searches for synonyms of the same missing quotation. Finish the useful comparison with its known costs and explicit gaps.
+      When taxes or other required costs are unknown, name the lowest known goods-plus-shipping cost, not a definitive cheapest all-in quote. State that the final all-in ordering cannot be determined until those missing costs are known.
       For arithmetic always use calculate or computed table rows. Use compare_rows for supplier comparisons. Do not invent a currency symbol when no currency is specified in the evidence. Never print opaque record IDs
       in prose: put exact IDs in citations and the app will render named source links. Never invent citations,
       successful actions, transcripts or complete coverage. Accepted forecasts stay estimates.
@@ -180,6 +182,8 @@ public enum WorkbookAgent {
     var nextToolScope: InferenceToolScope = .all
     var retrievalObserved = false
     var countReceipts: [String: Value] = [:]
+    var discoveryBudget = DiscoveryBudget()
+    var discoveryLimited = false
     var pendingVersionCitations = Set<String>()
     do {
       let conversationIdentity = try workbook.conversationIdentity(
@@ -296,11 +300,26 @@ public enum WorkbookAgent {
       }
       for step in 1...stepBudget {
         try cancellation.check()
+        if readOnly, discoveryBudget.stalled,
+          inspected.contains(where: { $0 != requestSource.id }), !discoveryLimited
+        {
+          discoveryLimited = true
+          messages[0] = InferenceMessage(
+            role: "system",
+            content: messages[0].content
+              + "\nHost exploration limit: three searches produced no new candidates. Further lexical search is paused for this answer so you can finish from the inspected evidence. Read known originals and perform needed calculations. Clearly identify unsupported requested terms. This is not complete coverage or proof that another document does not exist.",
+            conversationActions: messages[0].conversationActions)
+          metrics.append(
+            .object(["host": .string("discovery_budget"), "unchangedSearches": .number(3)]))
+        }
         try ContextBudget.validateEnvelope(messages)
         messages = try ItemReferenceCandidates.annotate(messages, workbook: workbook)
         let itemChoices = try ItemReferenceCandidates.ids(in: messages)
         let copyChoices = try DocumentCopyCandidates.ids(in: messages)
-        let toolScope = nextToolScope == .all ? phaseScope : nextToolScope
+        let selectedScope = nextToolScope == .all ? phaseScope : nextToolScope
+        let toolScope: InferenceToolScope =
+          discoveryLimited && selectedScope == .all
+          ? .boundedAnswer : selectedScope
         if maintenance != nil {
           // Handoff proof and malformed-response recovery can add context after
           // the last completed-group maintenance. Never dispatch that overflow
@@ -831,6 +850,7 @@ public enum WorkbookAgent {
         }
         let projected = try workbook.completeToolCall(
           receiptID, result: recordedResult, failed: callFailed)
+        discoveryBudget.observe(tool: tool, result: result, inspected: inspected)
         progress(callFailed ? "Reviewing a tool failure" : "Reviewing the saved result")
         if let navigationFailure {
           _ = try workbook.addMessage(
@@ -1294,9 +1314,31 @@ public enum WorkbookAgent {
     }
     if tool == "read" {
       let item = path.isEmpty ? result["item"] : path == ["item"] ? result : .null
+      var evidence: [(String, String?)] = []
       if let id = item["id"].string, item["text"].string != nil, item["title"].string != nil {
-        return [(id, nil)]
+        evidence.append((id, nil))
       }
+      let originals: [Value]
+      if path.isEmpty {
+        originals = result["requestEvidence"]["originals"].array
+      } else if path == ["requestEvidence"] {
+        originals = result["originals"].array
+      } else if path == ["requestEvidence", "originals"] {
+        originals = result.array
+      } else if path.count == 3 && path.prefix(2) == ["requestEvidence", "originals"] {
+        originals = [result]
+      } else {
+        originals = []
+      }
+      for original in originals.prefix(2) {
+        if let id = original["item"]["id"].string,
+          original["item"]["title"].string != nil,
+          let chunk = original["chunks"].array.first, chunk["body"].string != nil
+        {
+          evidence.append((id, chunk["locator"].string))
+        }
+      }
+      return evidence
     }
     if ["search", "rows"].contains(tool) {
       let key = tool == "search" ? "hits" : "rows"

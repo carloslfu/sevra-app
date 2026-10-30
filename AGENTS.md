@@ -37,6 +37,14 @@ preview. Finish only a coherent in-flight checkpoint. Further E2-E6, condition/d
 background infrastructure and full engine/hardware/release research are deferred.
 Existing safeguards, history and current-format integrity remain required. Keep at
 most three active blockers in the progress record and reuse unchanged proof.
+The owner's October 29 follow-up now authorizes the ordered
+[minimum feature increments](db/records/operations/minimum-feature-delivery.md).
+This supersedes the blanket follow-up deferral above. Complete a bounded usable
+increment, test and polish it, then advance; later rows remain queued. Preserve
+the existing integrity and authority boundaries and report qualification limits.
+The current owner-paused checkpoint is documented in the
+[agent handoff](db/records/operations/agent-handoff.md). Read it before an authorized
+continuation; the first two increments and their final checks remain unfinished.
 Cloud sync, transport, replica coordination and a new resolver are out of scope.
 Preserve unrelated changes. Do not change the website business or Slotstream
 repository as a side effect. Keep public claims tied to measured acceptance.

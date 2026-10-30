@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-29T05:32:59.577346+00:00
+updated: 2026-10-30T02:17:03.843026+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -203,6 +203,29 @@ When an uncited unresolved response follows empty searches, the host renders the
 
 Before comparing, displaying or proposing tabular data, inspect existing datasets even when the user has not supplied a table name. Reuse existing rows for analysis and space components. A request to show a table does not itself call for a duplicate data-entry proposal. Calculations still use deterministic tools.
 
+
+A first read of a current file original may include up to two exact indexed passages
+from other current file originals matching the live request. Query length and time
+are bounded; historical and unprocessed originals are excluded. Preserve exact
+versions, locators and partial extraction state. Only whole excerpts visible in
+the current run join its citation vocabulary. Metadata and projected omissions do
+not. A discovery deadline preserves the requested original and explains the limit;
+parent cancellation still cancels. Retrieved text never authorizes actions.
+
+For an explicitly read-only answer with inspected evidence, three consecutive
+search/history searches without a new candidate pause further lexical search.
+The model can still read known evidence, calculate and finish. New candidates reset
+the counter before it fires. This reserves work for the answer rather than repeating
+synonyms until the step limit. It does not establish complete coverage or absence.
+The restriction is host-selected and recorded in run metrics; untrusted content
+cannot select its tool scope. Existing evidence-recovery scopes retain precedence.
+The exact combined instruction “do not change or save anything” is also recognized
+as a denial, alongside the existing explicit read-only sentences.
+
+Compare known goods-plus-shipping costs separately from an unknown final all-in
+cost. Missing tax or other required charges prevent a definitive all-in ordering.
+A shared CSV is itself evidence; a separate quotation for every row need not exist.
+The host does not claim universal semantic validation of the resulting prose.
 ## Request admission and restart
 Acquire the exclusive inference lease before recovering abandoned runs. Persist the original user message, its run and their exact linkage in one workbook transaction. If admission fails, roll back the complete write and release any lease actually acquired. Do not call endRun for a lease that was refused.
 

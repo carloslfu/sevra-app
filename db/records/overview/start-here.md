@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-30T00:57:36.686686+00:00
+updated: 2026-10-30T02:23:30.555810+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -23,6 +23,20 @@ for the secondary service. Website pricing/support does not apply to this app.
 Slotstream remains independent.
 
 ## Current preview and delivery order
+
+Current feature work is paused for owner-directed handoff:
+[[records/operations/agent-handoff]]. Read that checkpoint first when the owner
+resumes. Increments 1 and 2 are unfinished; the broad suite was interrupted and
+the latest native visual refinements are not yet qualified. Main retains the
+prior audit while the handoff branch preserves the work.
+
+The October 29 follow-up authorizes sequential minimum usable features, testing
+and polish: [[records/operations/minimum-feature-delivery]]. That queue supersedes
+the previous blanket follow-up deferral below. Start with bounded multi-original
+evidence coverage, then native comparison/CSV presentation; preserve the focused
+supplier journey and existing safety/integrity contracts. Later increments and
+external qualification remain unfinished. [[records/operations/implementation]]
+records current acceptance and retained failures.
 
 MVP 0.1 is a native source test preview. The focused supplier journey has actual
 native proof: include CSV/PDF, inspect a cited quotation summary, calculate a cost

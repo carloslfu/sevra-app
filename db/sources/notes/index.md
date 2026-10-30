@@ -2,11 +2,13 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-10-30T00:55:52.795199Z
+updated: 2026-10-30T02:22:56.916704Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/10/minimum-features-pause]] — Owner pauses the sequential minimum-feature work and requests a resumable agent handoff.
+- [[sources/notes/2026/10/minimum-feature-delivery]] — Owner authorizes sequential minimum usable implementations and interaction polish for the audited design gaps.
 - [[sources/notes/2026/10/design-feature-audit]] — Owner requests a deep design-to-code feature audit with research and tests.
 - [[sources/notes/2026/10/native-surface-polish]] — Further owner-directed native UI audit and polish across controls, spacing, alignment and states.
 - [[sources/notes/2026/10/native-alignment-state-review]] — Owner requests centered welcome, aligned pane controls and further alignment, hover, focus and state review.

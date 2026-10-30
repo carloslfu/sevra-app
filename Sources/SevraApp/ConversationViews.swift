@@ -42,12 +42,26 @@ struct ConversationMessageRow: View {
           ConversationMessageActions(state: state, message: message, content: content)
         }
       }
-      Text(content.text).textSelection(.enabled).lineSpacing(4)
-        .accessibilityActions {
-          ForEach(content.links) { link in
-            Button(link.actionTitle) { state.openConversationLink(link.url) }
+      VStack(alignment: .leading, spacing: 10) {
+        ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
+          switch block {
+          case .text(let text):
+            if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+              Text(ConversationPresentation(text.trimmingCharacters(in: .newlines)).text)
+                .textSelection(.enabled).lineSpacing(4)
+            }
+          case .table(let table):
+            ReadOnlyTableView(
+              content: table, label: "Comparison table", inline: true,
+              open: state.openConversationLink)
           }
         }
+      }
+      .accessibilityActions {
+        ForEach(content.links) { link in
+          Button(link.actionTitle) { state.openConversationLink(link.url) }
+        }
+      }
     }.accessibilityElement(children: .contain)
       .accessibilityLabel(speaker + " message" + (message.state == "complete" ? "" : ", " + status))
       .accessibilityIdentifier("message-" + message.id)
@@ -60,6 +74,10 @@ struct ConversationMessageActions: View {
   let message: Message
   let content: ConversationPresentation
   var body: some View {
+    Button("Copy message") {
+      NSPasteboard.general.clearContents()
+      NSPasteboard.general.setString(String(content.text.characters), forType: .string)
+    }
     if !content.links.isEmpty {
       Section("Links") {
         ForEach(content.links) { link in

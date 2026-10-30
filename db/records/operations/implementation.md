@@ -3,11 +3,59 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-30T00:57:36.669658+00:00
+updated: 2026-10-30T02:23:30.536559+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Owner pause and agent handoff, October 29
+
+Implementation is paused at the owner's request:
+[[sources/notes/2026/10/minimum-features-pause]]. Start any authorized continuation
+from [[records/operations/agent-handoff]], not the older active-work notes below.
+The unfinished code, tests, specs and failure evidence are preserved on
+`codex/sevra-minimum-features-handoff`, based on audit commit `170efa0`.
+
+Increment 1 now surfaces bounded related original passages and limits stalled
+lexical search for recognized read-only requests. The actual CSV/PDF comparison
+completes in 11 steps with both citations, delivery/tax and explicit unknown all-in
+costs. The missing-PDF case completes in 9 steps without invented terms but retains
+overly broad cheapest/total wording. Increment 1 is not fully accepted.
+Increment 2 implements native Markdown/CSV/TSV grids, exact textual values,
+read-only multi-row selection and TSV/rich/explicit CSV copy. Native component
+checks pass; final build-5 sizing/accessibility changes still need installed visual
+verification. Installed preview remains build 4. No later increment was implemented.
+
+Full scripted agent regression, focused related-original checks, final native
+preview checks and native build 5 exit 0. `bash scripts/check.sh` was stopped by the
+pause and exits 143, incomplete rather than passed. All task-owned background
+processes have stopped. The latest completed full suite remains the pre-change
+audit run. The [paused checkpoint receipt](../../../integration/evidence/2026-10-30-paused-minimum-features.json.gz),
+SHA-256 `7a285eaabaeb2ef82e7f6512a441bdedfa1a7334aaae1ec7f583144bdfc0d3b0`,
+binds source/tests, actual outcomes, failed iterations and verification limits.
+The handoff contains the exact remaining checks and ordered continuation.
+
+## Sequential minimum features, October 29
+
+The owner now authorizes one usable increment at a time, followed by focused tests
+and interaction polish: [[sources/notes/2026/10/minimum-feature-delivery]].
+[[records/operations/minimum-feature-delivery]] controls the ordered queue and
+supersedes the earlier instruction to defer every follow-up after the supplier
+preview. The expanded product remains incomplete; later rows are queued.
+
+Increment 1 is in verification: a first current-original read supplements its
+result with at most two indexed passages from other current originals matching
+the live request. Exact visible excerpts can be cited; missing/omitted content,
+partial extraction and bounded retrieval do not establish complete coverage.
+Focused scripted checks pass the missed-supplier path, exact citation boundary,
+unrelated/historical exclusion, partial and failed extraction, cancellation and
+unchanged business state. Actual-model acceptance and native polish are pending.
+
+Active blockers remain (1) complete ordinary multi-document answers; (2) readable
+native comparisons/intake and bounded larger tables; (3) accessibility, supported
+hardware and production distribution. Completing a bounded increment does not
+qualify those wider gates.
 
 This is MVP 0.1, a native source test preview for the focused file-to-result
 workflow below. The expanded specification is unfinished. The owner-directed

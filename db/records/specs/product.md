@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-30T00:29:10.886981+00:00
+updated: 2026-10-30T02:17:03.871791+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
@@ -646,3 +646,28 @@ links. The user still accepts separately. The original retained-history replay
 failed through a different route: an answer called an already withdrawn proposal
 ready for review. Current-status claim handling remains required, alongside
 event identity, reviewer latency and the other J11 gates. See [direction review receipt](../../../integration/evidence/2026-10-27-inventory-direction-review.json).
+
+## Readable comparisons and original tables
+
+The bounded native presentation renders top-level Markdown tables in conversation
+as read-only grids using the existing CommonMark parser. Prose and original links
+remain available; fenced examples are not converted into tables. These displayed
+rows are presentation only, not new saved Records, editable working tables or
+accepted business facts. Source links remain reachable through message and row
+context actions. Keep compact tables sized to their contents; fit ordinary narrow
+comparisons and scroll wider/longer data.
+
+Original CSV/TSV files use a native read-only grid. Preserve exact text values,
+leading zeros, escaped quotes, multiline cells and formula-looking strings without
+executing formulas. Show the first row as headings and identify that interpretation.
+Read at most 1 MB and display at most 1,000 complete data rows, with an explicit
+limit notice. Finish a truncated preview at an unquoted record boundary. Malformed
+or unsupported encoding leaves an explanatory view and the original File actions.
+This preview never imports or changes a working table automatically.
+
+Support Shift/Command multi-row selection, native Command-C tab-separated cells
+and rich-table paste. Context actions provide Copy with headings and explicit
+Copy as CSV. Preserve the display order and exact cell text; validate the entire
+selection before replacing the clipboard. Read-only cells, native scrolling and
+accessible row/column/value labels remain distinct from working-table editing.
+Message actions also provide Copy message. No raw JSON presentation is introduced.

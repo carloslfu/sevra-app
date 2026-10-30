@@ -131,6 +131,23 @@ struct ActivityResultView: View {
         if value["chunkPage"]["hasMore"] == .bool(true) {
           Text("This saved read contains part of the document.").foregroundStyle(.secondary)
         }
+        if !value["requestEvidence"]["originals"].array.isEmpty {
+          DisclosureGroup("Related originals read") {
+            ForEach(Array(value["requestEvidence"]["originals"].array.enumerated()), id: \.offset) {
+              _, original in
+              VStack(alignment: .leading, spacing: 6) {
+                Button(original["item"]["title"].text) {
+                  openOriginal(original["item"]["id"].text)
+                }.buttonStyle(.link)
+                Text("Matching excerpt").foregroundStyle(.secondary)
+                ForEach(Array(original["chunks"].array.enumerated()), id: \.offset) { _, chunk in
+                  StructuredValueView(value: chunk["body"])
+                }
+              }.padding(.top, 6)
+            }
+            Text("Selected excerpts, not complete document coverage.").foregroundStyle(.secondary)
+          }
+        }
         details
       } else if case .array(let rows) = value["rows"], !rows.isEmpty {
         let columns = value["dataset"]["columns"].array
