@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-30T00:29:10.921004+00:00
+updated: 2026-10-30T00:57:36.669658+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -13,6 +13,46 @@ This is MVP 0.1, a native source test preview for the focused file-to-result
 workflow below. The expanded specification is unfinished. The owner-directed
 [[records/specs/mvp-delivery]] controls delivery order; preview evidence does not
 qualify broad model reliability, supported hardware or a production release.
+
+## Design-to-code feature audit, October 29
+
+The owner requested a deep comparison of the full design with the delivered app:
+[[sources/notes/2026/10/design-feature-audit]]. The current coverage matrix is
+[[records/reviews/design-feature-audit]]. It separates working bounded foundations,
+partial features, deferred requirements and incomplete qualification. This audit
+changes no product code or fast-MVP delivery scope.
+
+Fresh `bash scripts/check.sh` passes, including core 557/0 and native document
+lifecycle 27/0. Native isolated installation, contextual intake, packaged extraction,
+portable integrity and installed signature checks pass. Four actual local-model
+requests produce three scoped correct Brio answers and one incomplete multi-supplier
+comparison: arithmetic is correct, but available PDF delivery/tax evidence is
+omitted. Installed native inspection confirms raw Markdown comparison tables and
+raw reference-CSV text remain visible.
+
+Fresh full release search benchmark exits 1: 10,000 rows and 10,000/100,000 indexed
+document chunks pass their protocol cohorts, but the 100,000-row fixture exceeds
+the 64 MB saved-change transaction limit before search. Verification confirms safe
+atomic refusal without a partial table/index. The largest document cohort is 1,000
+documents containing 100,000 chunks, not 100,000 files. No general performance gate
+passes. Reviewed updates separately refuse 1,001 incoming rows and XLSX mappings.
+An imported XLSX cached total stays 6 when its input changes 3 to 4, confirming the
+saved-value limit. Automatic native context maintenance remains disabled.
+
+[Immutable audit receipt](../../../integration/evidence/2026-10-29-design-feature-audit.json.gz),
+SHA-256 `3ce6603823f17172c57641df554842f22d7ab4fde756030a70b72e5f72999bce`,
+binds 297 unchanged source files, installed CLI/runtime identity, raw synthetic
+outcomes, failed harness expectations and corrections, scale protocol failure,
+actual native observations and captured hosted CI state. No real workbook, privacy
+permission, device grant, automation execution, model download or engine upgrade.
+
+Keep the same three active priorities: (1) broad AI evidence selection and complete
+requested outcomes; (2) intake/mapping/native result readability, including bounded
+bulk batching; (3) accessibility, supported hardware and production distribution.
+Compaction, Excel continuity, richer workflows, E5/E6 and full engine adoption
+remain deferred or unqualified as detailed in the matrix. The audit is complete;
+the full product specification is not. At receipt capture exact-head hosted CI
+remained in progress, with the preceding 58d9d37 and 63bfcd9 runs green.
 
 ## Further native surface polish, October 29
 

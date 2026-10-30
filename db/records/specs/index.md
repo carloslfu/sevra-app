@@ -2,13 +2,13 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-30T00:29:10.886981Z
+updated: 2026-10-30T00:57:36.701824Z
 ---
 
 # records/specs
 
-- [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 - [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
+- [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 - [[records/specs/agent-activity]] — Native live agent activity with shimmer, exact tool receipts, cancellation, bounded inspection and durable history.
 - [[records/specs/search]] — FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 - [[records/specs/mvp-delivery]] — Owner-directed fast MVP: one complete native file-to-result journey, focused verification, coherent setup and deferred infrastructure.

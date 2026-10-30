@@ -1384,3 +1384,6 @@ Screenshot alignment follow-up: centered scrollable welcome, shared headers, thr
 ## [2026-10-30 00:29] verification | records/reviews/native-journey-polish.md
 Further native surface polish: aligned forms/layout, compact action fallback, persistent quantity labels, long ZIP/link names, 18 preview groups, search/package/integrity checks and immutable source-bound receipt. Explicit remaining accessibility and AI limits retained.
 
+## [2026-10-30 00:56] verification | records/reviews/design-feature-audit.md
+Completed design-to-code audit on 5f55035: broad suite passes; retained native-model coverage failure and 100000-row fixture transaction failure; documented feature matrix and three priorities without product changes.
+

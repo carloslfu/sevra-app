@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-30T00:29:10.937104+00:00
+updated: 2026-10-30T00:57:36.686686+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -46,6 +46,13 @@ coherent preview and let an external user attempt the job before choosing furthe
 work. The expanded E2-E6, condition/dataset/background infrastructure and full
 engine/hardware/release research remain deferred. The long-term design remains
 intact; deferred requirements are not completed requirements.
+
+The October 29 [[records/reviews/design-feature-audit]] is the current design-to-code
+coverage matrix. Fresh tests confirm incomplete cross-document answers, raw
+comparison/CSV presentation, bounded table updates, saved-value Excel import and
+disabled automatic context maintenance. A current 100,000-row fixture also exceeds
+the saved-change transaction budget before search; safe refusal is verified.
+These findings do not reopen all deferred work or establish production readiness.
 
 ## First user feedback
 

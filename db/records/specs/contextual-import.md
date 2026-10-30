@@ -2,7 +2,7 @@
 type: spec
 id: 01m61c4z13j3paexnc7xvyyqhs
 created: 2026-10-28T13:45:46.275195+00:00
-updated: 2026-10-29T22:17:11.466704+00:00
+updated: 2026-10-30T00:57:36.701824+00:00
 summary: One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 title: Contextual import and Excel continuity
 status: reviewed
@@ -212,9 +212,10 @@ analysis-only and update to an existing table. Assert which native entities chan
 and which stay unchanged. Repeat each at startup where applicable and during work.
 Use XLSX as reference/analysis too, without forced whole-workbook migration.
 
-IJ04. A bare CSV drop onto an ambiguous table asks briefly; append/replace/merge
-are not guessed. Explicit clear requests avoid redundant questions. Duplicate
-headers/keys, unmatched columns, leading zeros, locale-ambiguous dates/numbers and
+IJ04. A bare CSV drop includes/indexes a reference under I04 without interrupting
+capture. If an explicitly requested update has an ambiguous target or method, ask
+briefly before changing working data; append/replace/merge are not guessed. Clear
+requests avoid redundant questions. Duplicate headers/keys, unmatched columns, leading zeros, locale-ambiguous dates/numbers and
 multiple plausible destinations preserve source bytes and refuse unsafe changes.
 
 IJ05. Edit an input in a converted workbook with two sheets, a table/header, blanks,
