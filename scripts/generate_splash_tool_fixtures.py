@@ -100,8 +100,7 @@ for tool in tools:
                          'edits': [{'operation': 'insert', 'at': 'first', 'component': component}]})
             outputs.append((name + '_' + kind, xml(name, composed), composed))
     if name == 'draft':
-        composed = dict(values)
-        composed.pop('text')
+        composed = dict(values, text='')
         composed['parts'] = [{'text':'Review\n'}, {'copy':'copy:123e4567-e89b-12d3-a456-426614174000:0:0:12'}]
         outputs.append(('draft_parts', xml(name, composed), composed))
     if name == 'propose_table':
