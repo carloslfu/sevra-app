@@ -41,13 +41,15 @@ public struct DocumentPart: Codable, Equatable, Sendable {
 
   /// New prose and copies sent together. A copy takes the place of its own words in the prose,
   /// so a line retyped beside its copy is saved once, where the prose put it. Every other part
-  /// follows the prose in the order sent.
+  /// follows the prose in the order sent, unless the prose already says it.
   static func placed(_ parts: [(part: DocumentPart, words: String?)], in prose: String)
     -> [DocumentPart]
   {
+    guard !prose.isEmpty else { return parts.map(\.part) }
     var anchors: [(range: Range<String.Index>, part: DocumentPart, words: String)] = []
     var following: [DocumentPart] = []
     for (part, words) in parts {
+      if let text = part.text, !trimmed(text).isEmpty, prose.contains(trimmed(text)) { continue }
       if let words,
         let range = free(words, in: prose, avoiding: anchors.map(\.range))
           ?? free(trimmed(words), in: prose, avoiding: anchors.map(\.range))

@@ -511,6 +511,40 @@ func checkRunningCompaction() async throws {
   try expectEqual(marked("Sample is 0.10 kilogram."), false)
   try expectEqual(marked(""), false)
 
+  // The reply that only says a request stopped is not left to be mistaken for that request.
+  func conversation(_ state: String, _ role: String = "assistant") throws -> [Message] {
+    try JSONDecoder().decode(
+      [Message].self,
+      from: Data(
+        try Value.array(
+          [("a", "user", "complete"), ("b", role, state), ("c", "user", "complete")].map {
+            .object([
+              "id": .string($0.0), "role": .string($0.1), "state": .string($0.2),
+              "body": .string("Words"), "created": .string("2026-10-30T00:00:00Z"),
+            ])
+          }
+        ).json().utf8))
+  }
+  for state in ["cancelled", "failed", "interrupted"] {
+    try expectEqual(
+      ContextMaintenance.replyToStopped(try conversation(state), requestID: "c"), "b")
+  }
+  try expectEqual(
+    ContextMaintenance.replyToStopped(try conversation("complete"), requestID: "c"), nil)
+  try expectEqual(
+    ContextMaintenance.replyToStopped(try conversation("failed", "user"), requestID: "c"), nil)
+  try expectEqual(
+    ContextMaintenance.replyToStopped(try conversation("failed"), requestID: "a"), nil)
+  // An outcome names a reply, so a cancelled one cannot be read as the request it answered.
+  try expectEqual(
+    ContextMaintenance.presented(
+      .object([
+        "referencedOutcomes": .array([
+          .object(["messageID": .string("reply"), "state": .string("cancelled")])
+        ])
+      ]))["referencedOutcomes"].array,
+    [.object(["replyID": .string("reply"), "state": .string("cancelled")])])
+
   let presented = ContextMaintenance.presented(state)
   try expectEqual(presented["calls"].array[0], state["calls"].array[0])
   try expectEqual(

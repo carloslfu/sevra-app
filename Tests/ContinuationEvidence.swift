@@ -109,9 +109,37 @@ func checkContinuationEvidence(at root: URL) {
     state = try stopped(third.run)
     try expect(state["messageID"].text == first.message && state["status"].text == "failed")
     try expect(state["saved"].array.map { $0["title"].text } == ["Review", "Second view"])
-    try expect(state["text"] == .null)
+    try expect(state["text"] == .null && state["earlier"] == .null)
+    // Reading that request says what is done, right beside its words.
+    let history = try WorkbookTools(book, runID: third.run).execute(
+      "history_read", .object(["id": .string(first.message)]))
+    try expect(history["message"]["body"].text.contains("Save a review"))
+    try expect(history["stoppedRequest"]["saved"].array.count == 2)
+    try expect(history["stoppedRequest"]["notice"].text.contains("do not repeat"))
+    let plain = try WorkbookTools(book, runID: third.run).execute(
+      "history_read", .object(["id": .string(unrelated)]))
+    try expect(plain["stoppedRequest"] == .null)
     try book.finishAgentRun(third.run, status: "complete", steps: 0, metrics: .array([]))
-    try expect(try stopped(try start("New work").run) == .null)
+    let newWork = try start("New work")
+    try expect(try stopped(newWork.run) == .null)
+    try book.finishAgentRun(newWork.run, status: "complete", steps: 0, metrics: .array([]))
+
+    // A follow-up that stopped without reading its request leaves that request findable.
+    let job = try start("Save a second review.")
+    try call(job.run, "save_space", try space("Third view"))
+    try book.finishAgentRun(job.run, status: "cancelled", steps: 1, metrics: .array([]))
+    let lost = try start("Please continue")
+    try book.finishAgentRun(lost.run, status: "cancelled", steps: 0, metrics: .array([]))
+    let again = try start("Continue")
+    state = try stopped(again.run)
+    try expect(state["messageID"].text == lost.message)
+    try expect(state["earlier"].array == [.string(job.message)])
+    try expect(state["saved"].array.map { $0["title"].text } == ["Third view"])
+    try expect(state["notice"].text.contains("earlier lists older stopped requests"))
+    try call(again.run, "history_read", .object(["id": .string(job.message)]))
+    state = try stopped(again.run)
+    try expect(state["text"].text == "Save a second review.")
+    try book.finishAgentRun(again.run, status: "complete", steps: 0, metrics: .array([]))
 
     // A very long request stays behind history_read instead of filling the context.
     let long = try start(String(repeating: "long ", count: 2000))

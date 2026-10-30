@@ -132,8 +132,9 @@ package final class ContextMaintenance {
     -> [InferenceMessage]
   {
     let retainedCall = retained.last?.toolCallId
+    let reply = Self.replyToStopped(history, requestID: requestID)
     let original = history.filter { message in
-      if message.id == requestID { return false }
+      if message.id == requestID || message.id == reply { return false }
       if let retainedCall, message.role == "tool", let receipt = try? Value.parse(message.body),
         receipt["callID"].text == retainedCall
       {
@@ -191,6 +192,15 @@ package final class ContextMaintenance {
     result.append(request)
     result += checkpoint == .null ? retained : try Self.withProgress(retained, state: state)
     return result
+  }
+  /// The reply to a stopped request only says that it stopped, which stoppedRequest also says.
+  /// Left in view, it reads like the request to continue.
+  package static func replyToStopped(_ history: [Message], requestID: String) -> String? {
+    guard let index = history.firstIndex(where: { $0.id == requestID }), index > 0,
+      history[index - 1].role == "assistant",
+      ["cancelled", "failed", "interrupted"].contains(history[index - 1].state)
+    else { return nil }
+    return history[index - 1].id
   }
   /// A long job rereads its opening instructions once their results are summarized away, and
   /// the state above is easy to pass over. The latest result says what is already finished.
@@ -255,6 +265,13 @@ package final class ContextMaintenance {
         return .object(read)
       })
     if !evidence.isEmpty { fields["readEvidence"] = .object(evidence) }
+    // These are replies, and a cancelled one is easy to take for the request it answered.
+    if !state["referencedOutcomes"].array.isEmpty {
+      fields["referencedOutcomes"] = .array(
+        state["referencedOutcomes"].array.map {
+          .object(["replyID": $0["messageID"], "state": $0["state"]])
+        })
+    }
     fields["recordStates"] = .array(
       state["recordStates"].array.map { record in
         var row = record.object

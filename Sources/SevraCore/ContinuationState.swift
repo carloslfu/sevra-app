@@ -23,17 +23,25 @@ extension Workbook {
     guard let previous = try runBefore(runID, conversation: conversation),
       stopped.contains(previous["status"]!.text)
     else { return .null }
-    // A follow-up that stopped too still points at the request it was continuing.
+    // A follow-up that stopped too still points at the request it was continuing. One that
+    // never read that request leaves it in earlier, since its own words may be only "continue".
     var runs = [previous]
-    while runs.count < 8, let earlier = try runBefore(runs[0]["id"]!.text, conversation: conversation),
-      stopped.contains(earlier["status"]!.text),
-      try read(message: earlier["message_id"]!, during: runs[0]["id"]!)
+    while runs.count < 8, let older = try runBefore(runs[0]["id"]!.text, conversation: conversation),
+      stopped.contains(older["status"]!.text),
+      try read(message: older["message_id"]!, during: runs[0]["id"]!)
     {
-      runs.insert(earlier, at: 0)
+      runs.insert(older, at: 0)
+    }
+    var older = [[String: Value]]()
+    while older.count < 3,
+      let run = try runBefore((older.last ?? runs[0])["id"]!.text, conversation: conversation),
+      stopped.contains(run["status"]!.text)
+    {
+      older.append(run)
     }
     var saved: [Value] = []
     var seen = Set<String>()
-    for run in runs {
+    for run in older.reversed() + runs {
       for call in try db.execute(
         "SELECT tool,arguments FROM tool_calls WHERE run_id=? AND state='completed' ORDER BY rowid LIMIT 64",
         [run["id"]!]
@@ -50,26 +58,48 @@ extension Workbook {
         saved.append(.object(["tool": call["tool"]!, "title": title.map(Value.string) ?? .null]))
       }
     }
+    let earlier = older.map { $0["message_id"]! }
     let request = runs[0]["message_id"]!
-    let body =
-      try read(message: request, during: .string(runID))
-      ? db.scalar("SELECT body FROM messages WHERE id=?", [request]).string : nil
+    var kept: [String] = []
+    for message in earlier.reversed() + [request]
+    where try read(message: message, during: .string(runID)) {
+      kept.append(try db.scalar("SELECT body FROM messages WHERE id=?", [message]).text)
+    }
+    let text = kept.joined(separator: "\n\n")
     var fields: [String: Value] = [
       "messageID": request, "status": previous["status"]!, "saved": .array(saved),
     ]
+    if !earlier.isEmpty { fields["earlier"] = .array(earlier) }
     let carried =
       " Saved work stays saved: do not repeat it. Earlier reads do not carry over: read what the remaining work needs."
-    if let body, body.utf8.count <= 8192 {
-      fields["text"] = .string(body)
+    if !text.isEmpty, text.utf8.count <= 8192 {
+      fields["text"] = .string(text)
       fields["notice"] = .string(
         "You read this stopped request during the current one, so its text stays here. It applies only if the current request asks to continue it."
           + carried)
     } else {
       fields["notice"] = .string(
         "The previous request stopped before finishing and is not pending. Only if the current request asks to continue it, read its exact text with history_read using this messageID, then do what remains."
+          + (earlier.isEmpty ? "" : " Its words may only ask to continue: earlier lists older stopped requests.")
           + carried)
     }
     return .object(fields)
+  }
+  /// Said beside a stopped request's own words, which read as if nothing had happened yet.
+  func stoppedRequestProgress(message: String, conversation: String, runID: String) throws -> Value?
+  {
+    try synchronized {
+      let stopped = try stoppedRequest(conversation: conversation, runID: runID)
+      guard stopped != .null,
+        ([stopped["messageID"]] + stopped["earlier"].array).contains(.string(message))
+      else { return nil }
+      return .object([
+        "saved": stopped["saved"],
+        "notice": .string(
+          "This request stopped before finishing. What saved lists is done: do not repeat it. Earlier reads do not carry over: read what the remaining work needs."
+        ),
+      ])
+    }
   }
   /// Reconstruct operation outcomes and current proposal state from records,
   /// never from a model-written digest. Does not resume or mutate any call.

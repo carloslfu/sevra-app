@@ -513,7 +513,7 @@ package enum NativeTools {
       .init(
         name: "draft",
         description:
-          "Save draft. Exact labels/quantities/wording: parts with documentCopies IDs, never retype. text=new prose: summary, paraphrase, anything the request asks that no copy holds. Send both when a draft needs both. Saving proves no completeness.",
+          "Save draft. Exact labels/quantities/wording: parts with documentCopies IDs, never retype. text=all new prose: summary, paraphrase, anything the request asks that no copy holds. Leave it empty only when copies alone satisfy the request. Saving proves no completeness.",
         parameters: object(
           [
             "title": schema("string", "Draft title."), "text": schema("string", "Draft text."),
@@ -535,7 +535,7 @@ package enum NativeTools {
                   ),
                 ], required: []),
             ]),
-          ], required: ["title", "inputs"])),
+          ], required: ["title", "inputs", "text"])),
       .init(
         name: "propose_record",
         description: "Propose a draft interpretation. It does not accept a business event.",

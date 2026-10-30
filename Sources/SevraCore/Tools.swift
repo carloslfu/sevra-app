@@ -116,8 +116,15 @@ public struct WorkbookTools {
       }
       return v
     }
+    // A copy belongs to one exact source version, so as an input it means that version.
     let inputs = Array(
-      Set(a["inputs"].array.compactMap(\.string) + (requestSourceID.map { [$0] } ?? []))
+      Set(
+        try a["inputs"].array.compactMap(\.string).map { id in
+          guard id.hasPrefix("copy:") else { return id }
+          return try workbook.documentCopyChoice(
+            id, runID: runID, conversation: conversation, cancellation: cancellation
+          ).sourceVersionID
+        } + (requestSourceID.map { [$0] } ?? []))
     ).sorted()
     let token = try operationToken(tool, a)
     if Self.applicationTools.contains(tool) {
@@ -155,8 +162,15 @@ public struct WorkbookTools {
         cursor: a["cursor"].string, limit: 8, beforeMessage: workbook.runRequestMessage(runID),
         cancellation: cancellation)
     case "history_read":
-      return try workbook.readHistoryEvidence(
+      let evidence = try workbook.readHistoryEvidence(
         string("id"), conversation: conversation, beforeMessage: workbook.runRequestMessage(runID))
+      guard
+        let progress = try workbook.stoppedRequestProgress(
+          message: string("id"), conversation: conversation, runID: runID)
+      else { return evidence }
+      var fields = evidence.object
+      fields["stoppedRequest"] = progress
+      return .object(fields)
     case "tool_result":
       if a["path"] != .null {
         guard case .array(let path) = a["path"], path.allSatisfy({ $0.string != nil }) else {

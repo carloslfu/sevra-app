@@ -67,7 +67,7 @@ func checkDocumentCopyGrammar(frontend: SplashTextFrontend, factory: SplashGramm
     let policy = try NativeCitationPolicy.make([], thinking: thinking, documentCopyIDs: [id])
     func output(_ choice: String) -> String {
       (thinking ? "Select the original passage.</think>\n" : "")
-        + "<tool_call>\n<function=draft>\n<parameter=inputs>\n[]\n</parameter>\n<parameter=parts>\n[{\"copy\":\"\(choice)\"}]\n</parameter>\n<parameter=title>\nMemo\n</parameter>\n</function>\n</tool_call>"
+        + "<tool_call>\n<function=draft>\n<parameter=inputs>\n[]\n</parameter>\n<parameter=parts>\n[{\"copy\":\"\(choice)\"}]\n</parameter>\n<parameter=text>\n\n</parameter>\n<parameter=title>\nMemo\n</parameter>\n</function>\n</tool_call>"
     }
     let valid = try factory.create(grammar: policy.grammar)
     try valid.finish(committed: frontend.encode(output(id)), requireComplete: true)

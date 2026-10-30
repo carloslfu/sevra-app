@@ -89,6 +89,31 @@ func checkDocumentCopyChoices(at root: URL) {
     // A retyped line that differs is new prose, not the original.
     let differs = try draft("Alpha line!\n", [copy(0)])
     try expect(differs.text == "Alpha line!\nAlpha line.\n" && copied(differs) == [12])
+    // A text part the prose already says is not said twice.
+    try expect(
+      try draft("Code K-14.\n", [.object(["text": .string("Code K-14.\n\n")]), copy(0)]).text
+        == "Code K-14.\nAlpha line.\n")
+    // Without prose, parts keep their exact bytes, separators included.
+    try expect(
+      try draft("", [copy(0), .object(["text": .string("\n\n")]), copy(1)]).text
+        == "Alpha line.\n\n\nBeta line.\n")
+    // A copy sent as an input means its source version, and only that.
+    let cited = try WorkbookTools(book, runID: run).execute(
+      "draft",
+      .object([
+        "title": .string("Cited"), "text": .string("My own summary."),
+        "inputs": .array([.string(ids[0])]),
+      ]))
+    try expect(try book.item(cited["id"].text).text == "My own summary.")
+    try expect(try book.lineage(cited["id"].text).contains { $0["parent"].text == source.id })
+    try refuses("document_copy_scope") {
+      _ = try WorkbookTools(book, runID: run).execute(
+        "draft",
+        .object([
+          "title": .string("Forged"), "text": .string("Text"),
+          "inputs": .array([.string("copy:not-a-receipt:0:0:1")]),
+        ]))
+    }
     try expect(try book.verify()["ok"] == .bool(true))
   }
   check("copy choices reject unpublished spans, changed shape and foreign request scope") {
