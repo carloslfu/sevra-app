@@ -1,6 +1,6 @@
 import Foundation
 import SevraAI
-import SevraCore
+@testable import SevraCore
 
 private actor SpaceActionModel: WorkbookInference {
   let identity = "synthetic space actions"
@@ -117,6 +117,91 @@ private actor SpaceActionModel: WorkbookInference {
   try expectEqual(await unavailableReviews.calls, 1)
   try expectEqual(refusedReviews.answer.contains("No view was opened"), true)
   try expectThrows(try WorkbookTools(book, readOnly: true).execute("open_reviews", .object([:])))
+
+  // Asking for an automation reaches its native review. It enables nothing, and only an exact
+  // name gets there.
+  func automation(_ title: String) throws -> ApplicationDefinition {
+    let function = try book.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: .object([
+        "kind": .string("function"), "title": .string(title + " rule"),
+        "description": .string("Synthetic"), "parameters": .array([]),
+        "payload": .object(["expression": .string("2*2"), "unit": .string("items")]),
+      ]))
+    let workflow = try book.saveApplicationDefinition(
+      logicalID: identifier(), content: book.workflowTemplate(function.id))
+    return try book.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: .object([
+        "kind": .string("automation"), "title": .string(title),
+        "description": .string("Synthetic"), "parameters": .array([]),
+        "payload": .object([
+          "policy": .string("calendar-drafts-v1"),
+          "workflow": .object(["mode": .string("exact"), "versionID": .string(workflow.id)]),
+          "arguments": .object([:]),
+          "schedule": .object([
+            "policy": .string("native-calendar-v1"), "timeZone": .string("America/Bogota"),
+            "hour": .number(9), "minute": .number(0),
+            "recurrence": .object(["kind": .string("weekly"), "weekdays": .array([.number(1)])]),
+          ]),
+        ]),
+      ]))
+  }
+  let weekly = try automation("Weekly stock check")
+  func opening(_ target: String, window: Bool = true) async throws -> AgentResult {
+    try await WorkbookAgent.run(
+      "Enable " + target, workbook: book,
+      model: SpaceActionModel([("open_automation", .object(["target": .string(target)]))]),
+      openSpace: window ? { _ in } : nil)
+  }
+  let reviewed = try await opening("weekly STOCK check")
+  try expectEqual(reviewed.focus?.kind, "automation")
+  try expectEqual(reviewed.focus?.id, weekly.id)
+  try expectEqual(reviewed.steps, 1)
+  try expectEqual(reviewed.answer.contains("Nothing was enabled"), true)
+  let noWindow = try await opening("Weekly stock check", window: false)
+  try expectEqual(noWindow.answer.contains("No view was opened"), true)
+  try expectEqual(noWindow.focus == nil, true)
+  let unknown = try await opening("Weekly stock")
+  try expectEqual(unknown.answer.contains("No saved automation has that exact name"), true)
+  try expectEqual(unknown.focus == nil, true)
+  _ = try automation("Weekly stock check")
+  let twoNamed = try await opening("Weekly stock check")
+  try expectEqual(twoNamed.answer.contains("More than one automation"), true)
+  try expectEqual(twoNamed.focus == nil, true)
+
+  // A plain request for a draft gets one correction if the model only answers in chat.
+  try expectEqual(DraftRequest.asks("Draft a brief summary of the report."), true)
+  try expectEqual(DraftRequest.asks("Please write me a short draft of it."), true)
+  try expectEqual(DraftRequest.asks("Redacta un borrador breve en español."), true)
+  try expectEqual(DraftRequest.asks("What does the draft say?"), false)
+  try expectEqual(DraftRequest.asks("Show my pending drafts."), false)
+  let chatAnswer: Value = .object([
+    "answer": .string("Here it is in chat."), "basis": .string("general"),
+    "citations": .array([]),
+  ])
+  let corrected = SpaceActionModel([
+    ("finish", chatAnswer),
+    (
+      "draft",
+      .object(["title": .string("Note"), "text": .string("New words."), "inputs": .array([])])
+    ),
+  ])
+  let drafting = try Workbook.create(
+    at: FileManager.default.temporaryDirectory.appendingPathComponent(identifier() + ".sevra"),
+    title: "Drafts")
+  defer { try? FileManager.default.removeItem(at: drafting.url) }
+  let saved = try await WorkbookAgent.run(
+    "Draft a short note about delivery.", workbook: drafting, model: corrected)
+  try expectEqual(saved.state, "complete")
+  try expectEqual(await corrected.calls, 3)
+  try expectEqual(try drafting.items(kind: "document").contains { $0.title == "Note" }, true)
+  // A second answer ends the run, so a false alarm can never trap it.
+  let answeredTwice = SpaceActionModel([("finish", chatAnswer), ("finish", chatAnswer)])
+  let notDraft = try await WorkbookAgent.run(
+    "Draft dates are in the report, right?", workbook: drafting, model: answeredTwice)
+  try expectEqual(notDraft.state, "complete")
+  try expectEqual(await answeredTwice.calls, 2)
   let readQueue = try WorkbookTools(book, readOnly: true).execute("review_queue", .object([:]))
   try expectEqual(readQueue["items"].array.isEmpty, true)
   _ = try book.saveSpace(title: "Purchasing", definition: .init(components: []))

@@ -19,6 +19,11 @@ import SwiftUI
   }
 }
 
+struct FolderReview {
+  let root: URL
+  let plan: FolderPlan
+}
+
 @MainActor final class WorkspaceState: ObservableObject {
   enum Route: Equatable {
     case space(String)
@@ -33,6 +38,7 @@ import SwiftUI
     case workflow(String)
   }
   @Published var workbook: Workbook?
+  @Published var folderReview: FolderReview?
   @Published var spaces: [Space] = []
   let spaceNavigation = SpaceNavigationSession()
   @Published var pendingReview: ReviewQueuePage?
@@ -456,7 +462,29 @@ import SwiftUI
     else { return }
     importFiles(panel.urls, linked: linked)
   }
-  func importFiles(_ urls: [URL], linked: Bool = false) {
+  /// One explicit comparison of a folder, shown before anything is added.
+  func folderPanel() {
+    guard interactionActive, !busy, workbook != nil else { return }
+    let panel = NSOpenPanel()
+    panel.canChooseFiles = false
+    panel.canChooseDirectories = true
+    panel.message = "Sevra compares this folder once, now. It does not watch it."
+    guard panel.runModal() == .OK, let folder = panel.url else { return }
+    run(
+      "Comparing folder",
+      operation: { book, cancel in try book.folderPlan(folder, cancellation: cancel) },
+      completion: { self.folderReview = FolderReview(root: folder, plan: $0) })
+  }
+  func addFolder(_ review: FolderReview) {
+    let plan = review.plan
+    let urls = plan.files.map { review.root.appendingPathComponent($0.relative) }
+    importFiles(
+      urls, tokens: Dictionary(uniqueKeysWithValues: zip(urls, plan.files.map(plan.token))),
+      finished: "Compared folder " + plan.folder + ": " + plan.summary + ". Nothing was deleted.")
+  }
+  func importFiles(
+    _ urls: [URL], linked: Bool = false, tokens: [URL: String] = [:], finished: String? = nil
+  ) {
     let chat = conversation
     run(
       linked ? "Linking files" : "Including files",
@@ -468,7 +496,8 @@ import SwiftUI
             // Capturing a file is enough to make it evidence. Table conversion
             // remains an explicit later request, never an import prerequisite.
             let job = try book.captureIntake(
-              url, linked: linked, role: .reference, cancellation: cancel)
+              url, linked: linked, role: .reference, token: tokens[url] ?? UUID().uuidString,
+              cancellation: cancel)
             let item = try book.item(job.sourceID)
             _ = try book.addMessage(
               (linked ? "Linked " : "Included ") + item.referenceMarkdown, role: "event",
@@ -482,6 +511,7 @@ import SwiftUI
         if !failures.isEmpty {
           throw SevraError("import_partial", failures.joined(separator: "\n"))
         }
+        if let finished { _ = try book.addMessage(finished, role: "event", conversation: chat) }
         return urls.count
       },
       completion: { _ in
@@ -934,6 +964,10 @@ import SwiftUI
         importPanel(linked: true)
         return true
       }
+      if lower == "add folder" || lower == "add a folder" {
+        folderPanel()
+        return true
+      }
       if lower == "make a shareable copy" || lower == "export workbook" {
         exportPanel()
         return true
@@ -1081,7 +1115,11 @@ import SwiftUI
             authorization == .authorized, "speech_permission",
             "Speech recognition permission was not granted. The original remains available.")
           self.status = "Transcribing on this Mac"
-          try await book.transcribe(id, cancellation: ticket.cancellation)
+          try await book.transcribe(id, cancellation: ticket.cancellation) { value in
+            Task { @MainActor in
+              if self.owns(ticket, in: book) { self.status = value }
+            }
+          }
         } catch { self.report(error, for: ticket, in: book) }
       }
     }

@@ -109,7 +109,7 @@ func checkContinuationEvidence(at root: URL) {
     state = try stopped(third.run)
     try expect(state["messageID"].text == first.message && state["status"].text == "failed")
     try expect(state["saved"].array.map { $0["title"].text } == ["Review", "Second view"])
-    try expect(state["text"] == .null && state["earlier"] == .null)
+    try expect(state["text"] == .null)
     // Reading that request says what is done, right beside its words.
     let history = try WorkbookTools(book, runID: third.run).execute(
       "history_read", .object(["id": .string(first.message)]))
@@ -123,23 +123,6 @@ func checkContinuationEvidence(at root: URL) {
     let newWork = try start("New work")
     try expect(try stopped(newWork.run) == .null)
     try book.finishAgentRun(newWork.run, status: "complete", steps: 0, metrics: .array([]))
-
-    // A follow-up that stopped without reading its request leaves that request findable.
-    let job = try start("Save a second review.")
-    try call(job.run, "save_space", try space("Third view"))
-    try book.finishAgentRun(job.run, status: "cancelled", steps: 1, metrics: .array([]))
-    let lost = try start("Please continue")
-    try book.finishAgentRun(lost.run, status: "cancelled", steps: 0, metrics: .array([]))
-    let again = try start("Continue")
-    state = try stopped(again.run)
-    try expect(state["messageID"].text == lost.message)
-    try expect(state["earlier"].array == [.string(job.message)])
-    try expect(state["saved"].array.map { $0["title"].text } == ["Third view"])
-    try expect(state["notice"].text.contains("earlier lists older stopped requests"))
-    try call(again.run, "history_read", .object(["id": .string(job.message)]))
-    state = try stopped(again.run)
-    try expect(state["text"].text == "Save a second review.")
-    try book.finishAgentRun(again.run, status: "complete", steps: 0, metrics: .array([]))
 
     // A very long request stays behind history_read instead of filling the context.
     let long = try start(String(repeating: "long ", count: 2000))

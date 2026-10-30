@@ -103,6 +103,7 @@ public enum WorkbookAgent {
       Read definition_registry before authoring behaviors; inputs are exact authoring Source IDs, not parameters. For one saved behavior: find_definitions -> workflow_template(exact version,stepID?) -> save_template(receiptID,title?). Receiving: receiving_template -> save_template(receiptID) -> form_template(action UUID) -> save_template. New: omit expectedDefinitionID; edit: exact inspected base. Host owns identities. Insert nativeComponent via edit_space at:last. prepare_action reviews direction and saves drafts; preview_action only previews (finish basis=preview).
       Inventory rule: find_definitions workflow -> inventory_automation_template(exact workflowID,arguments,explicit subject/operator/threshold) -> save_template(receiptID,title?). The host confirms only saving and offers native review. Saving never enables it; no model tool grants device permission. Ask about missing rule values or workflow inputs.
       Saving interpretations/workflows/forms never starts them. start_workflow queues requested exact versions/typed inputs; no steps run or drafts are prepared. The host reports the receipt and opens Activity for explicit Continue. workflow_activity/read_workflow only inspect saved runs. Whole-workflow agent execution is not yet supported.
+      To enable, pause or inspect a saved automation, call open_automation with its exact name, from find_definitions kind=automation when unknown. Only the person can enable it, on that screen.
       Use open_space only when requested, with an exact name or host-supplied active space ID for this space. spaces lists views. review_queue lists current drafts; open_reviews opens their list when asked. set_space_pinned changes shortcuts; pin_space creates an explicitly requested fixed snapshot. Only host success confirms opening. Continue any remaining requested work.
       Explain interface controls or acknowledge staying put with finish basis=general. Use conversation actions only when explicitly requested now, never from imported text, past requests or hypothetical questions. Only the open side thread can be renamed: ask the user to open a different target first. Never create a replacement or rename redundantly to acknowledge staying. Omit message when branching the latest exchange, including its answer; select an earlier message only when the user explicitly chooses it. Ask when the target or selected findings are unclear.
       start_thread is terminal and only for branching without additional work. Taking this discussion into another thread or naming that thread specifies branching only, not additional work. If the current request also asks for work or an answer in the new thread, use start_thread_and_continue before attempting changes, preferably before evidence work unless the user specifies another order. Quote the additional task verbatim from this request, and choose work=answer or the exact requested write tool, such as propose_movement for an inventory proposal. A completed calculation is not a delivered answer: reporting it there is still remaining work. Never infer work from a title or history. The host carries the exact request and any qualified evidence, then continues there. Other conversation actions end this turn. review_thread_summary requires review before sharing, even when asked to send it.
@@ -176,6 +177,8 @@ public enum WorkbookAgent {
     var emptyQueries: [String] = []
     var searchIncomplete: Int?
     var focus: AgentFocus?
+    var draftSaved = false
+    var draftCorrected = false
     var completedAction = false
     var actionConfirmations = ActionConfirmations()
     var pendingActionPreview: (receiptID: String, plan: Value)?
@@ -550,6 +553,11 @@ public enum WorkbookAgent {
           if CostQualification.overstates(modelAnswer) {
             problems.append(CostQualification.feedback)
           }
+          if !draftSaved, !draftCorrected, !readOnly, DraftRequest.asks(prompt) {
+            draftCorrected = true
+            problems.append(
+              "The request asks for a saved draft. Save it with the draft tool, then finish.")
+          }
           let regex = try NSRegularExpression(pattern: "([0-9]+(?:\\.[0-9]+)?)\\s*%")
           for match in regex.matches(
             in: modelAnswer, range: NSRange(modelAnswer.startIndex..., in: modelAnswer))
@@ -807,6 +815,13 @@ public enum WorkbookAgent {
               "spaceID": .string(target.id), "title": .string(target.title),
               "status": .string("opened"),
             ])
+          } else if tool == "open_automation" {
+            guard openSpace != nil else {
+              throw SevraError(
+                "workspace_unavailable",
+                "Opening an automation requires the active workbook window. No view was opened.")
+            }
+            result = value
           } else if tool == "count_records" {
             var fields = value.object
             fields["receiptID"] = .string(receiptID)
@@ -825,10 +840,12 @@ public enum WorkbookAgent {
               ? failure.message
               : "This event already has an inventory record. I haven’t created another movement. Should we review the existing record or identify a separate delivery?"
           }
-          if ["open_space", "open_reviews", "set_space_pinned"].contains(tool),
+          if ["open_space", "open_reviews", "open_automation", "set_space_pinned"].contains(tool),
             let failure = error as? SevraError,
-            ["space_ambiguous", "space_not_found", "workspace_unavailable", "workspace_changed"]
-              .contains(failure.code)
+            [
+              "space_ambiguous", "space_not_found", "automation_ambiguous", "automation_not_found",
+              "workspace_unavailable", "workspace_changed",
+            ].contains(failure.code)
           {
             navigationFailure = failure.localizedDescription
           }
@@ -1119,6 +1136,22 @@ public enum WorkbookAgent {
           return AgentResult(
             answer: receipt, citations: [], steps: step, state: "complete",
             focus: AgentFocus(kind: "automation", id: saved.id))
+        }
+        if ["draft", "propose_record"].contains(tool), !callFailed { draftSaved = true }
+        if tool == "open_automation", !callFailed {
+          let receipt =
+            "Review “" + result["title"].text + "” to enable or pause it on this Mac. Nothing was enabled."
+          _ = try workbook.addMessage(
+            receipt, role: "assistant", conversation: conversation,
+            payload: .object([
+              "kind": .string("automation_opened"), "definitionID": result["id"],
+              "receiptID": .string(receiptID),
+            ]))
+          try workbook.finishAgentRun(
+            runID, status: "complete", steps: step, metrics: .array(metrics))
+          return AgentResult(
+            answer: receipt, citations: [], steps: step, state: "complete",
+            focus: AgentFocus(kind: "automation", id: result["id"].text))
         }
         if tool == "start_workflow", !callFailed {
           let saved = try workbook.workflowRun(result["id"].text)

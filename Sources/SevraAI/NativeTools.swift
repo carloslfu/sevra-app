@@ -377,6 +377,12 @@ package enum NativeTools {
           "Open requested draft review. Host confirms navigation; no acceptance/withdrawal. Not explanations.",
         parameters: object([:], required: [])),
       .init(
+        name: "open_automation",
+        description:
+          "Open requested saved automation by exact name/ID to review, enable or pause. The person decides there; this enables nothing. Clarify ambiguity.",
+        parameters: object(
+          ["target": schema("string", "Exact automation name or ID.")], required: ["target"])),
+      .init(
         name: "open_space",
         description:
           "Open requested exact space name/ID; this space uses visible active ID. Clarify ambiguity. Host confirms; never create/explain.",

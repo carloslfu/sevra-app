@@ -30,7 +30,7 @@ package struct ActionConfirmations {
     case "start_workflow": task = "queueing the workflow"
     case "save_space", "edit_space", "restore_space", "pin_space": task = "saving the space"
     case "set_space_pinned": task = "changing the shortcut"
-    case "open_space", "open_reviews": task = "opening the view"
+    case "open_space", "open_reviews", "open_automation": task = "opening the view"
     default: return
     }
     let attemptedTitle =

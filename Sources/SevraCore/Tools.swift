@@ -68,6 +68,7 @@ public struct WorkbookTools {
     space_history: id space ID, optional beforeVersion. Read up to 20 saved versions. A restore creates a new version.
     edit_space: id exact space ID, expectedVersion inspected current version, edits array. Operations: rename {title}; insert {component,at:first|last OR beforeID} at top level; remove {componentID}; move {componentID,at:first|last OR beforeID}; title {componentID,title}; text {componentID,text}; replace {componentID,component}. Omit unrelated fields. Move stays in its group. Replacement keeps the selected ID. Preserve unrelated components and snapshot bindings. Refuse stale bases and ask on ambiguous intent.
     restore_space: id exact space ID, version explicitly selected historical version, expectedVersion current version. Restore as a new version only when requested.
+    open_automation: target exact saved automation name or ID. Open its review, where the person can enable or pause it; unavailable without the live workbook window. Never enables anything.
     open_space: target exact space name or ID. Ask the live workbook window to open it; unavailable without that window. Use only when requested, not for interface explanations.
     set_space_pinned: target exact space name or ID, pinned boolean. Pin/unpin a navigation shortcut without copying or freezing data. Use pin_space only to create an explicitly requested fixed snapshot.
     save_space: title string, definition object {version:1,components:[{id:string,type:table|chart|document|asset|search|text,title:string,datasetID?:string,itemID?:string,x?:columnID,y?:columnID,query?:string,text?:string}]}.
@@ -308,6 +309,12 @@ public struct WorkbookTools {
         "notice": .string("Only the owning live window can confirm that the review list opened."),
       ])
     case "spaces": return try encoded(workbook.spaces())
+    case "open_automation":
+      let automation = try workbook.automationTarget(string("target"))
+      return .object([
+        "id": .string(automation.id), "title": .string(automation.title),
+        "status": .string("resolved"),
+      ])
     case "open_space":
       return .object([
         "target": try encoded(workbook.spaceTarget(string("target"), cancellation: cancellation)),

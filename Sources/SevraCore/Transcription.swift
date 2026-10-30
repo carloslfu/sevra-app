@@ -2,9 +2,49 @@ import AVFoundation
 import Foundation
 import Speech
 
+public struct SpokenWord: Equatable, Sendable {
+  public let text: String
+  public let start: Double
+  public let end: Double
+  public init(text: String, start: Double, end: Double) {
+    self.text = text
+    self.start = start
+    self.end = end
+  }
+}
+
 @MainActor public enum FileTranscriber {
+  /// The recognizer takes about a minute at a time. Parts overlap so that a word cut at one
+  /// boundary is heard whole in the next.
+  nonisolated static let partSeconds = 58.0
+  nonisolated static let overlapSeconds = 2.0
+  nonisolated static let durationLimit = 7200.0
+
+  nonisolated static func partStarts(duration: Double) -> [Double] {
+    guard duration > 60 else { return [0] }
+    return Array(stride(from: 0, to: duration - overlapSeconds, by: partSeconds - overlapSeconds))
+  }
+  /// Later parts repeat what the overlap already heard, so only words past it join.
+  nonisolated static func joined(_ words: [SpokenWord], _ next: [SpokenWord], offset: Double)
+    -> [SpokenWord]
+  {
+    let heard = words.last?.end ?? 0
+    return words
+      + next.map { SpokenWord(text: $0.text, start: $0.start + offset, end: $0.end + offset) }
+      .filter { $0.start >= heard - 0.05 }
+  }
+  nonisolated static func chunks(_ words: [SpokenWord]) -> [Chunk] {
+    stride(from: 0, to: words.count, by: 24).map { index in
+      let group = words[index..<min(index + 24, words.count)]
+      return Chunk(
+        group.map(\.text).joined(separator: " "),
+        locator: "time=\(group.first!.start); end=\(group.last!.end)")
+    }
+  }
   /// Never requests permission or enables a remote recognizer. The app owns that explicit interaction.
-  public static func transcribe(_ file: URL, cancellation: Cancellation) async throws -> [Chunk] {
+  public static func transcribe(
+    _ file: URL, cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void = { _ in }
+  ) async throws -> [Chunk] {
     try cancellation.check()
     try require(
       SFSpeechRecognizer.authorizationStatus() == .authorized, "speech_permission",
@@ -21,25 +61,55 @@ import Speech
     let asset = AVURLAsset(url: file)
     let duration = try await asset.load(.duration).seconds
     try require(
-      duration.isFinite && duration > 0 && duration <= 60, "transcription_limit",
-      "This version transcribes clips up to 60 seconds. Include a shorter excerpt to search its speech; the complete original stays in your workbook."
+      duration.isFinite && duration > 0 && duration <= durationLimit, "transcription_limit",
+      "This version transcribes recordings up to two hours. Include a shorter excerpt to search its speech; the complete original stays in your workbook."
     )
     let tracks = try await asset.loadTracks(withMediaType: .audio)
     try require(
       !tracks.isEmpty, "audio",
       "This file has no readable audio track.")
-    try cancellation.check()
-    let job = SpeechFileJob()
-    return try await job.run(file, recognizer: recognizer, cancellation: cancellation)
+    let folder = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sevra-transcription-" + identifier())
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: folder) }
+    let starts = partStarts(duration: duration)
+    var words: [SpokenWord] = []
+    for (index, start) in starts.enumerated() {
+      try cancellation.check()
+      if starts.count > 1 {
+        progress("Transcribing part \(index + 1) of \(starts.count) on this Mac")
+      }
+      var part = file
+      if starts.count > 1 {
+        part = folder.appendingPathComponent("\(index).m4a")
+        try await export(asset, from: start, to: part)
+      }
+      // A silent part is not a failed recording.
+      let heard = try await SpeechFileJob().run(part, recognizer: recognizer, cancellation: cancellation)
+      words = joined(words, heard, offset: start)
+      if part != file { try? FileManager.default.removeItem(at: part) }
+    }
+    try require(
+      !words.isEmpty, "no_speech", "No speech was recognized. The original remains available.")
+    return chunks(words)
+  }
+  static func export(_ asset: AVURLAsset, from start: Double, to file: URL) async throws {
+    guard
+      let session = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A)
+    else { throw SevraError("audio", "This recording cannot be divided into parts.") }
+    session.timeRange = CMTimeRange(
+      start: CMTime(seconds: start, preferredTimescale: 600),
+      duration: CMTime(seconds: partSeconds, preferredTimescale: 600))
+    try await session.export(to: file, as: .m4a)
   }
 }
 
 @MainActor private final class SpeechFileJob {
-  private var continuation: CheckedContinuation<[Chunk], Error>?
+  private var continuation: CheckedContinuation<[SpokenWord], Error>?
   private var task: SFSpeechRecognitionTask?
   private var monitor: Task<Void, Never>?
   func run(_ file: URL, recognizer: SFSpeechRecognizer, cancellation: Cancellation) async throws
-    -> [Chunk]
+    -> [SpokenWord]
   {
     let bounded = Cancellation(parent: cancellation, deadlineAfterSeconds: 90)
     return try await withCheckedThrowingContinuation { continuation in
@@ -51,35 +121,16 @@ import Speech
         Task { @MainActor in
           guard let self else { return }
           if let result, result.isFinal {
-            let segments = result.bestTranscription.segments
-            var chunks: [Chunk] = []
-            var words: [String] = []
-            var start: Double = 0
-            var end: Double = 0
-            for segment in segments {
-              if words.isEmpty { start = segment.timestamp }
-              words.append(segment.substring)
-              end = segment.timestamp + segment.duration
-              if words.count >= 24 {
-                chunks.append(
-                  Chunk(words.joined(separator: " "), locator: "time=\(start); end=\(end)"))
-                words = []
-              }
-            }
-            if !words.isEmpty {
-              chunks.append(
-                Chunk(words.joined(separator: " "), locator: "time=\(start); end=\(end)"))
-            }
-            if chunks.isEmpty {
-              self.finish(
-                .failure(
-                  SevraError(
-                    "no_speech", "No speech was recognized. The original remains available.")))
-            } else {
-              self.finish(.success(chunks))
-            }
+            self.finish(
+              .success(
+                result.bestTranscription.segments.map {
+                  SpokenWord(
+                    text: $0.substring, start: $0.timestamp, end: $0.timestamp + $0.duration)
+                }))
           } else if let error {
-            self.finish(.failure(error))
+            // The recognizer reports a part with nothing to hear as an error.
+            let silent = (error as NSError).code == 1110
+            self.finish(silent ? .success([]) : .failure(error))
           }
         }
       }
@@ -96,7 +147,7 @@ import Speech
       }
     }
   }
-  private func finish(_ result: Result<[Chunk], Error>) {
+  private func finish(_ result: Result<[SpokenWord], Error>) {
     guard let continuation else { return }
     self.continuation = nil
     monitor?.cancel()
@@ -108,7 +159,10 @@ import Speech
 }
 
 extension Workbook {
-  public func transcribe(_ sourceID: String, cancellation: Cancellation = .init()) async throws {
+  public func transcribe(
+    _ sourceID: String, cancellation: Cancellation = .init(),
+    progress: @escaping @Sendable (String) -> Void = { _ in }
+  ) async throws {
     let source = try item(sourceID)
     guard let assetID = source.assetID else {
       throw SevraError("audio", "Choose an audio or video file.")
@@ -116,7 +170,8 @@ extension Workbook {
     let file = try await Task.detached {
       try self.assetURL(assetID, verify: true, cancellation: cancellation)
     }.value
-    let chunks = try await FileTranscriber.transcribe(file, cancellation: cancellation)
+    let chunks = try await FileTranscriber.transcribe(
+      file, cancellation: cancellation, progress: progress)
     try cancellation.check()
     try await Task.detached {
       _ = try self.assetURL(assetID, verify: true, cancellation: cancellation)
