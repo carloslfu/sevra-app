@@ -1399,3 +1399,9 @@ Focused related-original, full agent regression (42), preview checks, native bui
 ## [2026-10-30 13:55] verification | records/operations/implementation
 Installed-window pass on native build 9 found and fixed four table defects; context menu, clipboard write and real wheel gesture stay component-checked only.
 
+## [2026-10-30 14:36] implementation | records/specs/contextual-import
+Increment 3: exact heading suggestions, saved in-progress reviews and bounded XLSX saved-value updates with ambiguity refusals.
+
+## [2026-10-30 14:36] verification | records/operations/implementation
+Reviewed updates ran in installed build 13 through acceptance and Undo; 73 CLI journeys and the full suite pass with zero warnings.
+

@@ -43,8 +43,8 @@ This supersedes the blanket follow-up deferral above. Complete a bounded usable
 increment, test and polish it, then advance; later rows remain queued. Preserve
 the existing integrity and authority boundaries and report qualification limits.
 The current checkpoint is documented in the
-[agent handoff](db/records/operations/agent-handoff.md). Increments 1 and 2 are
-accepted; increment 3 is current.
+[agent handoff](db/records/operations/agent-handoff.md). Increments 1 through 3 are
+accepted; increment 4 is next.
 Cloud sync, transport, replica coordination and a new resolver are out of scope.
 Preserve unrelated changes. Do not change the website business or Slotstream
 repository as a side effect. Keep public claims tied to measured acceptance.

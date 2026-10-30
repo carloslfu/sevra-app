@@ -8,6 +8,8 @@ import SwiftUI
   @Published public private(set) var preview: TableUpdatePreview?
   @Published public private(set) var busy = false
   @Published public private(set) var failure: String?
+  @Published public private(set) var draftFailure: String?
+  private var saving: Task<Void, Never>?
   private var identity = UUID()
   private var control: Cancellation?
   private var publicationToken = UUID().uuidString
@@ -22,6 +24,27 @@ import SwiftUI
     if clearSource { source = nil }
     failure = nil
     publicationToken = UUID().uuidString
+  }
+
+  /// Meaning and scenario change the proposal, not the reviewed preview.
+  public func renewPublication() { publicationToken = UUID().uuidString }
+
+  /// Keeps the newest choices. Writes run in order, so an older one cannot finish
+  /// last. A failed save is shown but never interrupts the review.
+  public func keep(immediately: Bool = false, save: @escaping @Sendable () throws -> Void) {
+    let previous = saving
+    previous?.cancel()
+    saving = Task { [weak self] in
+      await previous?.value
+      if !immediately { try? await Task.sleep(nanoseconds: 300_000_000) }
+      guard !Task.isCancelled else { return }
+      let outcome = await Task.detached { Result { try save() } }.value
+      if case .failure(let error) = outcome {
+        self?.draftFailure = "Your latest choices were not saved. " + error.localizedDescription
+      } else {
+        self?.draftFailure = nil
+      }
+    }
   }
 
   public func stop() {
@@ -63,6 +86,10 @@ import SwiftUI
     guard !busy, preview != nil else { return nil }
     let token = publicationToken
     let (request, cancel) = begin()
+    // A proposal ends its draft, so no earlier save may land after it.
+    let pending = saving
+    pending?.cancel()
+    await pending?.value
     do {
       let value = try await write(token, cancel)
       guard finish(request) else { return nil }

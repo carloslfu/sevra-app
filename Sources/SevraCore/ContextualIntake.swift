@@ -209,7 +209,7 @@ extension Workbook {
         return try intakeJob(id)
       }
       if role == .update {
-        _ = try inspectTableUpdateSource(initial.sourceID, cancellation: cancellation)
+        try validateTableUpdateOriginal(initial.sourceID, cancellation: cancellation)
         try publish(
           "awaiting_update",
           "Original saved. Choose the target table, mapping and update method; review before applying."

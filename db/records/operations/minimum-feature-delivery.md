@@ -49,7 +49,7 @@ Increment 1 is accepted for its bounded scope. Both actual supplier cases qualif
 known goods-plus-shipping costs and leave the all-in ordering open, and a narrow
 finish check rejects the earlier "Total" and "Cheapest quote" wording when the same
 answer says costs are unknown. Increment 2 is accepted after its installed-window
-pass on build 9, which found and fixed four defects. The context menu, a clipboard
-write and a real wheel gesture stay covered by component checks only, because they
-need full-screen control. Increment 3 is the current work; increments 4 through 10
-remain queued.
+pass, which found and fixed four defects. Increment 3 is accepted: exact heading
+suggestions, a saved in-progress review and saved values from one XLSX worksheet all
+ran in the installed app through explicit acceptance and Undo. Every stored column must
+still be mapped. Increment 4 is next; increments 5 through 10 remain queued.

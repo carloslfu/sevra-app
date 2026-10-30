@@ -27,9 +27,9 @@ Slotstream remains independent.
 The owner resumed the minimum-feature work after a handoff pause:
 [[records/operations/agent-handoff]]. Increment 1, bounded multi-original evidence
 with qualified partial costs, is accepted for its scope. Increment 2, native
-comparison and original-table grids, is accepted after its installed-window pass.
-Increment 3, less manual reviewed updates, is current. Main retains the prior audit
-while the handoff branch carries this work.
+comparison and original-table grids, and increment 3, less manual reviewed updates,
+are accepted for their scope. Increment 4, bounded bulk intake, is next. Main retains
+the prior audit while the handoff branch carries this work.
 
 The October 29 follow-up authorizes sequential minimum usable features, testing
 and polish: [[records/operations/minimum-feature-delivery]]. That queue supersedes

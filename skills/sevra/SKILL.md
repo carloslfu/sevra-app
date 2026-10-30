@@ -488,16 +488,28 @@ waits for an explicit existing-table update review, without changing rows.
 Inspect the job's indexing coverage, report, dataset IDs and detail,
 and ask for intent when the requested use is materially ambiguous.
 
-For CSV/TSV updates, use `table-update-inspect PATH SOURCE_ID [HEADER_RECORD]`
-to inspect exact headings and sample values. Header records are counted from 1,
-including quoted multiline records. `table-update-preview PATH SOURCE_ID TABLE_ID
-OPTIONS_JSON` accepts `mode` (`append`, `replace` or `merge`), `mapping` entries
+For CSV, TSV and XLSX updates, use `table-update-inspect PATH SOURCE_ID
+[HEADER_RECORD [SHEET]]` to inspect exact headings and sample values. Header records
+are counted from 1, including quoted multiline records; in XLSX they are worksheet
+row numbers. An XLSX file with several worksheets returns `sheets` and no headings
+until you name one. `table-update-suggest PATH SOURCE_ID TABLE_ID [HEADER_RECORD
+[SHEET]]` returns mapping entries for exact heading matches only, a declared unique
+key, and notes on ambiguous headings; confirm them, then send the full mapping.
+`table-update-preview PATH SOURCE_ID TABLE_ID OPTIONS_JSON` accepts `mode`
+(`append`, `replace` or `merge`), `mapping` entries
 `{position:0,target:"stored_column_id"}` (zero-based input position; null target
-explicitly ignores that input), optional `headerRow` and `keys` (stored column
-IDs, required only for merge). Map every stored target column exactly once;
+explicitly ignores that input), optional `headerRow`, `sheet` and `keys` (stored
+column IDs, required only for merge). Map every stored target column exactly once;
 calculated columns cannot be imported. Do not infer keys, locale conversions or
 duplicate removal. Preview up to 1,000 incoming rows against up to 10,000 target
-rows; review the returned counts, examples, duplicates and limitations.
+rows; review the returned counts, examples, duplicates and limitations. XLSX uses
+saved cell values and recalculates nothing. Error cells, formulas with no saved value,
+numbers Excel shows differently in key or text columns and near-match keys refuse;
+report the named cell or key rather than working around it.
+
+`table-update-draft PATH SOURCE_ID`, `table-update-draft-save PATH DRAFT_JSON` and
+`table-update-draft-discard PATH SOURCE_ID` read and write the same saved review the
+app restores. A draft changes no table, and creating the proposal ends it.
 
 `table-update-propose PATH SOURCE_ID TABLE_ID OPTIONS_JSON` takes the same options
 plus explicit `newRowMeaning`, `newRowScenario`, the preview's `expectedRevision`

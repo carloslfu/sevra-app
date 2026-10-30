@@ -55,6 +55,11 @@ public struct StructuredResult: Codable, Sendable {
       for row in sheet.rows {
         for value in row { bytes += value.utf8.count }
       }
+      try require(
+        sheet.unsettled.count <= 1_000_000
+          && sheet.unsettled.allSatisfy {
+            $0.key.utf8.count <= 128 && ["error", "uncached", "format"].contains($0.value)
+          }, "structured_output", "Invalid worksheet cell report.")
       for (reference, formula) in sheet.formulas {
         try require(reference.utf8.count <= 128, "structured_output", "Invalid formula reference.")
         bytes += formula.utf8.count

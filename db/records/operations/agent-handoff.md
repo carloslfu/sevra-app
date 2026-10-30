@@ -4,7 +4,7 @@ meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
 updated: 2026-10-30T03:04:42.307148+00:00
-summary: 'Resumed minimum features: increments 1 and 2 accepted after the installed-window pass; increment 3 reviewed updates current.'
+summary: 'Resumed minimum features: increments 1 through 3 accepted and verified in the installed app; increment 4 bounded bulk intake is next.'
 title: Paused minimum-feature agent handoff
 ---
 # Paused feature implementation: agent handoff
@@ -12,12 +12,10 @@ title: Paused minimum-feature agent handoff
 ## State and first action
 
 **Resumed by the owner on October 29:** [[sources/notes/2026/10/minimum-features-resume]].
-Increments 1 and 2 are accepted for their bounded scope. Build 9 passed the
-installed-window pass except the context menu, a clipboard write and a real wheel
-gesture, which need full-screen control and stay covered by component checks only.
-Increment 3 is the current work. Exact evidence is in
-[[records/operations/implementation]] and the
-[continuation receipt](../../../integration/evidence/2026-10-30-minimum-increments-1-2.json.gz).
+Increments 1, 2 and 3 are accepted for their bounded scope, with native build 13
+installed and verified in the real window. Increment 4, bounded bulk intake, is next.
+Exact evidence and limits are in [[records/operations/implementation]] and the
+[reviewed-update receipt](../../../integration/evidence/2026-10-30-reviewed-updates.json.gz).
 
 The earlier pause source is [[sources/notes/2026/10/minimum-features-pause]]. The
 sections below keep the paused checkpoint detail; where they conflict, this section
@@ -216,7 +214,8 @@ The installed-window pass then ran on build 9 with synthetic workbooks under
 
 ## Resume in this order
 
-The original order follows; steps 1 through 5 are complete and step 6 is current.
+The original order follows; all six steps are complete. Continue with increment 4 in
+[[records/operations/minimum-feature-delivery]].
 
 1. Check the branch/diff and read the contracts above. Preserve this work.
 2. Fix the missing-terms pricing counterexample and rerun its focused actual-model

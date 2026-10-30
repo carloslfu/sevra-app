@@ -302,7 +302,7 @@ all current rows, and merge rejects empty/duplicate input or target keys. Keys a
 lexical; there is no case, whitespace or locale normalization. Current bounds are
 1,000 incoming rows, 10,000 target rows, 8 MB mapped input and 16 MB target content.
 Every stored target column must be mapped once. Calculated columns stay intact;
-partial-column and XLSX updates are not implemented. The incoming original stays
+partial-column updates are not implemented. The incoming original stays
 unchanged. A typed preview retains columns, exact target fingerprint/revision,
 counts, duplicate disclosure, at most 20 examples and parsed source-record locators.
 
@@ -322,11 +322,48 @@ The CLI supplies table-update-inspect, table-update-preview and
 table-update-propose, using the same host core.
 The repo skill documents exact options and review authority. The native path starts
 from a CSV/TSV role choice or File actions, retains a pending update use across
-reopen and shows a reviewable draft before acceptance. Mapping-form edits are not
-yet persisted across navigation/relaunch. Source/preview/publication callbacks are
-fenced, and exact failed publication retries reuse their token. This focused slice
-does not qualify general local-model/voice update tools or the FJ persistence gates
-in [[records/specs/persistence-readiness]]. Those remain next in the ordered plan.
+reopen and shows a reviewable draft before acceptance. Source/preview/publication
+callbacks are fenced, and exact failed publication retries reuse their token. This
+focused slice does not qualify general local-model/voice update tools or the FJ
+persistence gates in [[records/specs/persistence-readiness]]. Those remain next in
+the ordered plan.
+
+Less manual reviewed updates, October 30:
+
+Suggestions. An incoming heading suggests a stored column when it equals that
+column's title or ID, ignoring case, character width, spaces, hyphens and
+underscores. Accents and words still count. A heading or column with two candidates
+stays for a person. A suggestion fills only undecided inputs, so a chosen column or
+an explicit Ignore stands. One matched column declared unique is suggested as the
+key. Values are never inspected to infer a mapping or key, and a preview still needs
+the complete explicit mapping. Offer one action to ignore remaining inputs once every
+stored column is mapped, and name what still blocks a preview.
+
+Saved drafts. An in-progress review is saved per original as a presentation draft in
+the workbook. It survives leaving the page, relaunch and portable export, changes no
+table and grants nothing. Saves run in order, keep the newest choices, and a failed
+save is shown without interrupting the review. Reopening restores the choices and
+says so, and clears any choice a changed table no longer supports. Creating the
+proposal ends the draft in the same transaction. Start over discards it.
+
+Excel saved values. An XLSX original can update a table from one named worksheet. A
+multi-sheet file names its worksheets before anything is read. Header and source rows
+use real worksheet row numbers, empty rows and empty styled cells are skipped, and a
+value outside the headings refuses. The 1,000-row, 10,000-row, 8 MB and 16 MB bounds
+are unchanged. Text cells keep leading zeros. A number Excel shows differently, such
+as 14 under the format 0000, refuses in a key, a non-decimal column or a column holding
+leading zeros, because only the unpadded value is saved. Error cells and formulas with
+no saved value refuse and name the cell. Other formula cells use saved values, the
+preview counts them, and nothing recalculates. Fractions keep the 15 significant digits
+Excel shows, so a cell showing 1.15 is not read as 1.1499999999999999; this also applies
+to saved-value import. A cell without a reference follows the previous cell in its row.
+Workflow intake stays CSV/TSV.
+
+Ambiguous input. Keys stay exact, so a key that differs from an existing or another
+incoming key only by case, surrounding spaces or leading zeros stops the review
+instead of becoming a new row. Decimal columns compare amounts, so 1.2 does not change
+a saved 1.20 and the earlier spelling stays. A value a column refuses names its source
+record.
 
 Implementation phases:
 

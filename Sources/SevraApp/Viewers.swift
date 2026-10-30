@@ -76,7 +76,7 @@ import SwiftUI
               Divider()
             }
             Button("Use saved file…") { state.useSavedFile(item.id) }.disabled(state.busy)
-            if let ext = file?.pathExtension.lowercased(), ["csv", "tsv"].contains(ext) {
+            if let ext = file?.pathExtension.lowercased(), ["csv", "tsv", "xlsx"].contains(ext) {
               Button("Update a working table…") { state.navigate(.tableUpdate(item.id, nil)) }
                 .disabled(state.busy)
             }

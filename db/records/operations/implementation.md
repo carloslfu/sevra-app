@@ -9,6 +9,49 @@ title: Implementation and acceptance
 ---
 # Implementation and acceptance
 
+## Increment 3, reviewed updates, October 30
+
+Increment 3 is accepted for its bounded scope. Reviewed updates now suggest exact
+heading matches, keep an in-progress review and accept saved values from one XLSX
+worksheet. Behavior and bounds are in [[records/specs/contextual-import]].
+
+The installed app, build 13, ran the whole path on synthetic workbooks. Home Continue
+opens a pending update directly. The real dropdowns chose a worksheet, target, method,
+mapping and meaning, and a missing header row named the first row with values while
+the worksheet choice stayed. Choosing the target filled exact headings, one action
+ignored the remaining input, and a line beside Preview changes named what was still
+missing. The choices survived leaving the page and quitting the app. Accept then kept
+1.20, changed 2.50 to 2.75 and added 0014 as an estimate, with no change to rows before
+that. Undo restored the exact rows, and every workbook used verifies.
+
+That pass and the review itself changed the design in these ways. A hidden trap: the
+table imported from `0012` has a decimal `sku` column, so a padded number could not be
+judged by column type alone; keys and columns holding leading zeros now count as exact
+text. Excel saves 1.15 as 1.1499999999999999, so fractions keep the 15 significant digits
+Excel shows, which also corrects saved-value import. Lexical comparison marked 1.20 and
+1.2 as changed, so decimal columns compare amounts. An XLSX whose headings are not in
+row 1 failed before the review could open, so a pending update now needs only a readable
+original. Cells without a reference collapsed into column A, and now follow the previous
+cell. Each Continue added a repeated Activity message, and the header field had no
+visible label; both are fixed.
+
+Checks: 73 synthetic CLI journeys in `scripts/check_table_updates.py`, covering all three
+methods on XLSX, multi-sheet choice, row locators, drafts through export and reopen,
+refusals that name the cell or key, and Undo. New table UI checks run the form rules and
+draft ordering without a window. `bash scripts/check.sh` exits 0 in about 7 minutes with
+zero warnings, including core 557/0, native document lifecycle 27/0 and 31 Splash checks.
+A clean recompile of the core also surfaced two unused-result warnings in an existing
+check, now fixed. The [reviewed-update receipt](../../../integration/evidence/2026-10-30-reviewed-updates.json.gz),
+SHA-256 `abd5c3b74aabfde66aed9450272269fefefc79c741390060697dabb3a89beda3`, binds the
+sources, journeys, window results and limits.
+
+Limits: every stored column must still be mapped. Suggestions cover exact headings only.
+Number formats are inspected only for zero padding, so percent, currency and other
+display formats use saved values. Date cells keep the timestamp form used by saved-value
+import. Excel tables, merged cells and hidden state are not interpreted. Workflow intake
+stays CSV/TSV, and actual-model and voice update tools are not qualified. No actual model
+ran in this increment.
+
 ## Resumed increments 1 and 2, October 29
 
 The owner resumed the paused work: [[sources/notes/2026/10/minimum-features-resume]].
@@ -52,14 +95,17 @@ Seen in installed build 9, light and dark: 280 and 420 point conversation panes,
 are that pane's limits; wrapped and unwrapped values; a six-column table with hidden
 columns; a 30-row table with its own vertical scrolling; a 48-row wide CSV filling and
 scrolling in the viewer; multi-row selection, inactive-window highlight, source
-navigation from prose and cell links, and accessible cell labels. **Not checked in the
-installed window:** the context menu, a clipboard write and a real wheel gesture. Those
-need full-screen control, and its approval prompt timed out. Component checks cover
-them: copy formats, menu actions, and a synthesized wheel event that reaches and moves
-a real SwiftUI `ScrollView`, which fails when the sharing is disabled. Clicking a link
-in one row of a multi-row selection did nothing in a background window; that was not
-rechecked in a key window. Tables in a key window with an accent-colored selection were
-also not seen; the selected link color is covered by a component check.
+navigation from prose and cell links, and accessible cell labels. A first approval
+prompt for full-screen control timed out while the Mac was locked, so the first receipt
+lists the context menu, clipboard and wheel as unchecked. A later full-screen pass on
+build 13 covered them. A real wheel gesture over a fitting table scrolls the conversation,
+and over the 30-row table scrolls the table to its end and then the conversation.
+Command-C writes tab-separated rows, the context menu offers its three copy actions, and
+Copy as CSV writes quoted CSV. A focused window shows the accent selection with white
+text, including a selected link. A click inside a multi-row selection collapses it, and
+the next click opens the link. Component checks also cover copy formats, menu actions and
+a synthesized wheel event that moves a real SwiftUI `ScrollView`, which fails when the
+sharing is disabled.
 
 Focused related-original checks, the full scripted agent regression (42 passes),
 preview checks, native build 7, its isolated package paths-only check and

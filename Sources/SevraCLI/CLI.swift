@@ -714,8 +714,11 @@ import SevraProduct
     intake-use WORKBOOK JOB_ID ROLE [TOKEN] | intake-from-source WORKBOOK SOURCE_ID ROLE [TOKEN]
     intake-resume WORKBOOK JOB_ID | search WORKBOOK QUERY [OFFSET] | read WORKBOOK ID
     table-update-preview WORKBOOK SOURCE_ID TABLE_ID OPTIONS_JSON
-    table-update-inspect WORKBOOK SOURCE_ID [HEADER_RECORD]
+    table-update-inspect WORKBOOK SOURCE_ID [HEADER_RECORD [SHEET]]
+    table-update-suggest WORKBOOK SOURCE_ID TABLE_ID [HEADER_RECORD [SHEET]]
     table-update-propose WORKBOOK SOURCE_ID TABLE_ID OPTIONS_JSON
+    table-update-draft WORKBOOK SOURCE_ID | table-update-draft-save WORKBOOK DRAFT_JSON
+    table-update-draft-discard WORKBOOK SOURCE_ID
     records WORKBOOK [KIND] | tables WORKBOOK [--archived] | rows WORKBOOK TABLE_ID [OFFSET]
     observe WORKBOOK OBSERVATION_JSON
     add WORKBOOK JSON | edit-row WORKBOOK ITEM_ID VALUES_JSON [EXPECTED_REVISION]

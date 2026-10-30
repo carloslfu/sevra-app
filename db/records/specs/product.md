@@ -686,4 +686,5 @@ A conversation table that fits shows no scroller and does not scroll. It keeps a
 gesture only for its own overflow, so the conversation still scrolls with the pointer
 over a table that fits or has reached its end. A supported link in a table cell uses
 the link color and opens on click when it is the cell's only link; several links stay
-in the context menu, and Shift or Command clicks only change the selection.
+in the context menu, and Shift or Command clicks only change the selection. A click
+inside a multi-row selection first collapses it, as in other Mac lists.

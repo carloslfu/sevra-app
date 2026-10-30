@@ -496,9 +496,17 @@ import SwiftUI
           job: job, title: source.title,
           supportsTable: ["csv", "tsv", "xlsx"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()),
-          supportsUpdate: ["csv", "tsv"].contains(
+          supportsUpdate: ["csv", "tsv", "xlsx"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()))
-      }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
+      },
+      completion: { choice in
+        // A chosen update has nothing left to ask; go straight back to its review.
+        if choice.job.state == "awaiting_update" {
+          self.navigate(.tableUpdate(choice.job.sourceID, choice.id))
+        } else {
+          self.intakePrompt = .init(choices: [choice])
+        }
+      })
   }
   func useSavedFile(_ sourceID: String) {
     run(
@@ -511,7 +519,7 @@ import SwiftUI
           job: job, title: source.title,
           supportsTable: ["csv", "tsv", "xlsx"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()),
-          supportsUpdate: ["csv", "tsv"].contains(
+          supportsUpdate: ["csv", "tsv", "xlsx"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()))
       }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
   }
@@ -531,7 +539,9 @@ import SwiftUI
             )
           }
           let result = try book.runIntake(choice.id, cancellation: cancel)
-          _ = try book.addMessage(result.detail, role: "event", conversation: chat)
+          if result.state != current.state {
+            _ = try book.addMessage(result.detail, role: "event", conversation: chat)
+          }
           return IntakeAttempt(job: result, failure: nil)
         } catch {
           return try IntakeAttempt(
