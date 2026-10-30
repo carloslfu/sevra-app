@@ -481,10 +481,35 @@ func checkRunningCompaction() async throws {
   try expectEqual(progress[1].toolCallId, "call")
   try expectEqual(
     try Value.parse(progress[1].content)["hostProgress"].text,
-    "Already finished in this request, do not repeat: saved space Receiving review, 1 read. Continue with what remains."
+    "Already finished, do not repeat: saved space Receiving review, 1 read. Continue with what remains."
   )
   try expectEqual(
     try ContextMaintenance.withProgress(retained, state: .object([:]))[1].content, #"{"chunks":[]}"#)
+  // What a stopped request saved is finished too, even though this run did none of it.
+  try expectEqual(
+    try Value.parse(
+      ContextMaintenance.withProgress(
+        retained,
+        state: .object([
+          "stoppedRequest": .object([
+            "saved": .array([
+              .object(["tool": .string("save_space"), "title": .string("Receiving review")]),
+              .object(["tool": .string("restore_space"), "title": .null]),
+            ])
+          ])
+        ]))[1].content)["hostProgress"].text,
+    "Already finished, do not repeat: saved Receiving review, completed restore_space. Continue with what remains."
+  )
+  // Only the host's own comparison marks a note as the person's exact words.
+  func marked(_ text: String) -> Bool {
+    ContextMaintenance.withVerbatim(
+      .object(["text": .string(text)]),
+      userWords: ["Purchase code MAPLE-27. Sample is exactly 0.10 kg."]
+    )["verbatim"] == .bool(true)
+  }
+  try expectEqual(marked("Sample is exactly 0.10 kg."), true)
+  try expectEqual(marked("Sample is 0.10 kilogram."), false)
+  try expectEqual(marked(""), false)
 
   let presented = ContextMaintenance.presented(state)
   try expectEqual(presented["calls"].array[0], state["calls"].array[0])

@@ -33,7 +33,8 @@ func checkContinuationEvidence(at root: URL) {
     let stopped = try book.continuationState(conversation: "main", runID: next, messageIDs: [])[
       "stoppedRequest"]
     try expect(stopped["messageID"].text == request && stopped["status"].text == "cancelled")
-    try expect(stopped["finished"].array.map { $0["title"].text } == ["Receiving review", "Another view"])
+    try expect(stopped["saved"].array.map { $0["title"].text } == ["Receiving review", "Another view"])
+    try expect(stopped["text"] == .null)
     try refuses("space_duplicate") {
       _ = try WorkbookTools(book, runID: next).execute(
         "save_space",
@@ -50,6 +51,75 @@ func checkContinuationEvidence(at root: URL) {
     try expect(
       try book.continuationState(conversation: "main", runID: after, messageIDs: [])[
         "stoppedRequest"] == .null)
+  }
+  check("a stopped request's text stays once read, across another stop, and only then") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("Stopped.sevra"), title: "Stopped")
+    func start(_ words: String) throws -> (run: String, message: String) {
+      let message = try book.addMessage(words, role: "user")
+      return (
+        try book.startAgentRun(conversation: "main", model: "fixture", requestMessageID: message),
+        message
+      )
+    }
+    func call(_ run: String, _ name: String, _ args: Value) throws {
+      let id = try book.prepareToolCall(
+        runID: run, callID: identifier(), tool: name, arguments: args)
+      let result = try WorkbookTools(book, runID: run).execute(name, args)
+      _ = try book.completeToolCall(id, result: result)
+    }
+    func stopped(_ run: String) throws -> Value {
+      try book.continuationState(conversation: "main", runID: run, messageIDs: [])["stoppedRequest"]
+    }
+    func space(_ title: String) throws -> Value {
+      .object([
+        "title": .string(title),
+        "definition": try encoded(
+          SpaceDefinition(components: [.init(type: "text", title: title, text: "Open")])),
+      ])
+    }
+    let source = try book.addItem(
+      category: "source", kind: "document", title: "Report", text: "Line one.\n", meaning: "estimate")
+    let first = try start("Save a review, read the report, then save a memo.")
+    try call(first.run, "save_space", try space("Review"))
+    try call(first.run, "read", .object(["id": .string(source.id)]))
+    try book.finishAgentRun(first.run, status: "cancelled", steps: 2, metrics: .array([]))
+
+    // Reads do not carry over, so they are not listed as finished work.
+    let second = try start("Please continue")
+    var state = try stopped(second.run)
+    try expect(state["messageID"].text == first.message && state["text"] == .null)
+    try expect(state["saved"].array.map { $0["tool"].text } == ["save_space"])
+    try expect(state["notice"].text.contains("history_read"))
+    try expect(state["notice"].text.contains("Earlier reads do not carry over"))
+
+    // Reading another message keeps nothing. Reading this one keeps its words.
+    let unrelated = try book.addMessage("Something unrelated", role: "user")
+    try call(second.run, "history_read", .object(["id": .string(unrelated)]))
+    try expect(try stopped(second.run)["text"] == .null)
+    try call(second.run, "history_read", .object(["id": .string(first.message)]))
+    state = try stopped(second.run)
+    try expect(state["text"].text == "Save a review, read the report, then save a memo.")
+    try expect(state["notice"].text.contains("applies only if the current request asks"))
+    try call(second.run, "save_space", try space("Second view"))
+    try book.finishAgentRun(second.run, status: "failed", steps: 2, metrics: .array([]))
+
+    // The next follow-up points at the first request, not at "Please continue".
+    let third = try start("Continue again")
+    state = try stopped(third.run)
+    try expect(state["messageID"].text == first.message && state["status"].text == "failed")
+    try expect(state["saved"].array.map { $0["title"].text } == ["Review", "Second view"])
+    try expect(state["text"] == .null)
+    try book.finishAgentRun(third.run, status: "complete", steps: 0, metrics: .array([]))
+    try expect(try stopped(try start("New work").run) == .null)
+
+    // A very long request stays behind history_read instead of filling the context.
+    let long = try start(String(repeating: "long ", count: 2000))
+    try book.finishAgentRun(long.run, status: "interrupted", steps: 0, metrics: .array([]))
+    let afterLong = try start("Continue")
+    try call(afterLong.run, "history_read", .object(["id": .string(long.message)]))
+    state = try stopped(afterLong.run)
+    try expect(state["text"] == .null && state["notice"].text.contains("history_read"))
   }
   check("continuation preserves exact source bindings and saved spaces, with live version status") {
     let book = try Workbook.create(

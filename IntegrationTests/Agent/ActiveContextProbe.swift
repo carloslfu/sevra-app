@@ -251,6 +251,8 @@ func runActiveContextProbe(
         ).replacingOccurrences(of: "*", with: "")
         try expectEqual(line.contains("0.\(index + 31) mm"), true)
         try expectEqual(line.uppercased().contains("HOLD"), true)
+        try expectEqual(
+          draft.text.components(separatedBy: "\n").filter { $0.contains(word + "-CHECK") }.count, 1)
       }
       let plainDraft = draft.text.replacingOccurrences(of: "*", with: "")
       for amount in ["0.10", "0.25"] {
@@ -341,8 +343,8 @@ func runActiveContextProbe(
     passed, "active_context", failures.joined(separator: "\n"))
 }
 
-/// Stops one real job partway, once by the person and once by a failed summary, then asks in
-/// ordinary words for the rest. The saved work must carry over, and nothing may be duplicated.
+/// Stops one real job partway, by the person, by a failed summary and by the person twice, then
+/// asks in ordinary words for the rest. Saved work must carry over, and nothing may be duplicated.
 func runActiveContextRecoveryProbe(
   modelsRoot: String, library: String, engine: String, output: String
 ) async throws {
@@ -360,7 +362,8 @@ func runActiveContextRecoveryProbe(
   try original.export(to: archive)
   var reports: [Value] = []
   var failures: [String] = []
-  for name in ["stopped", "failed-summary"] {
+  let followUp = "Please continue and finish the request you were working on."
+  for name in ["stopped", "failed-summary", "stopped-twice"] {
     let book = try Workbook.openArchive(archive, at: root.appendingPathComponent(name + ".sevra"))
     let base = try nativeProbeConfiguration(
       library: library, engine: engine, modelsRoot: modelsRoot,
@@ -374,10 +377,10 @@ func runActiveContextRecoveryProbe(
         modelLayout: .installed, contextMaintenanceEnabled: true))
     let model = await ActiveContextModel(native, workbook: book, compact: true)
     let cancellation = Cancellation()
-    if name == "stopped" {
-      await model.interrupt(afterResponses: 6, cancellation)
-    } else {
+    if name == "failed-summary" {
       await model.interrupt(summary: 3)
+    } else {
+      await model.interrupt(afterResponses: 6, cancellation)
     }
     var report: [String: Value] = ["case": .string(name)]
     let started = Date()
@@ -404,9 +407,26 @@ func runActiveContextRecoveryProbe(
       for item in try original.items() {
         try expectEqual(try encoded(book.item(item.id)), encoded(item))
       }
+      if name == "stopped-twice" {
+        let second = Cancellation()
+        await model.interrupt(afterResponses: 10, second)
+        do {
+          _ = try await WorkbookAgent.run(
+            followUp, workbook: book, modelDirectory: URL(fileURLWithPath: modelsRoot),
+            cancellation: second, progress: { fputs("Recovery \(name): \($0)\n", stderr) },
+            model: model)
+          throw SevraError("active_context", "The second stop did not stop the job.")
+        } catch let error as SevraError where error.code == "active_context" {
+          throw error
+        } catch {
+          report["secondInterruption"] = .string(error.localizedDescription)
+        }
+        await model.clearInterruption()
+        try expectEqual(try book.spaces().filter { $0.title == "Receiving review" }.count, 1)
+        try expectEqual(try book.verify()["ok"], .bool(true))
+      }
       let result = try await WorkbookAgent.run(
-        "Please continue and finish the request you were working on.", workbook: book,
-        modelDirectory: URL(fileURLWithPath: modelsRoot),
+        followUp, workbook: book, modelDirectory: URL(fileURLWithPath: modelsRoot),
         progress: { fputs("Recovery \(name): \($0)\n", stderr) }, model: model)
       report["answer"] = .string(result.answer)
       report["state"] = .string(result.state)
@@ -426,6 +446,8 @@ func runActiveContextRecoveryProbe(
           plain.components(separatedBy: "\n").first { $0.contains(word + "-CHECK") })
         try expectEqual(line.contains("0.\(index + 31) mm"), true)
         try expectEqual(line.uppercased().contains("HOLD"), true)
+        try expectEqual(
+          plain.components(separatedBy: "\n").filter { $0.contains(word + "-CHECK") }.count, 1)
       }
       try expectEqual(try book.spaces().filter { $0.title == "Receiving review" }.count, 1)
       try expectEqual(try book.spaces().count, try original.spaces().count + 1)

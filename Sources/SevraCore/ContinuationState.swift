@@ -1,39 +1,75 @@
 import Foundation
 
 extension Workbook {
+  private func runBefore(_ runID: String, conversation: String) throws -> [String: Value]? {
+    try db.execute(
+      "SELECT a.id,a.status,r.message_id FROM agent_runs a JOIN run_requests r ON r.run_id=a.id WHERE a.conversation_id=? AND a.rowid<(SELECT rowid FROM agent_runs WHERE id=?) ORDER BY a.rowid DESC LIMIT 1",
+      [.string(conversation), .string(runID)]
+    ).first
+  }
+  private func read(message: Value, during run: Value) throws -> Bool {
+    try db.scalar(
+      "SELECT count(*) FROM tool_calls WHERE run_id=? AND tool='history_read' AND state='completed' AND json_extract(arguments,'$.id')=?",
+      [run, message]
+    ).int ?? 0 > 0
+  }
   /// The request just before this one, when it stopped. A checkpoint can cover its message, and
   /// then a person asking to continue would be referring to something the model cannot see.
-  /// This names it and what it finished. Its text stays behind history_read, never a new task.
+  /// This names it and what it saved. Its text stays behind history_read, never a new task, until
+  /// the current request reads it. It then stays here, because maintenance would otherwise
+  /// summarize away the instructions the person asked to continue.
   func stoppedRequest(conversation: String, runID: String) throws -> Value {
-    guard
-      let previous = try db.execute(
-        "SELECT a.id,a.status,r.message_id FROM agent_runs a JOIN run_requests r ON r.run_id=a.id WHERE a.conversation_id=? AND a.rowid<(SELECT rowid FROM agent_runs WHERE id=?) ORDER BY a.rowid DESC LIMIT 1",
-        [.string(conversation), .string(runID)]
-      ).first, ["cancelled", "failed", "interrupted"].contains(previous["status"]!.text)
+    let stopped = ["cancelled", "failed", "interrupted"]
+    guard let previous = try runBefore(runID, conversation: conversation),
+      stopped.contains(previous["status"]!.text)
     else { return .null }
-    var finished: [Value] = []
-    var seen = Set<String>()
-    for call in try db.execute(
-      "SELECT tool,arguments FROM tool_calls WHERE run_id=? AND state='completed' ORDER BY rowid LIMIT 64",
-      [previous["id"]!]
-    ) {
-      let arguments = try Value.parse(call["arguments"]!.text)
-      var title = arguments["title"].string
-      if title == nil, let id = arguments["id"].string {
-        title = try db.scalar("SELECT title FROM items WHERE id=?", [.string(id)]).string
-      }
-      guard finished.count < 16, seen.insert(call["tool"]!.text + (title ?? "")).inserted else {
-        continue
-      }
-      finished.append(.object(["tool": call["tool"]!, "title": title.map(Value.string) ?? .null]))
+    // A follow-up that stopped too still points at the request it was continuing.
+    var runs = [previous]
+    while runs.count < 8, let earlier = try runBefore(runs[0]["id"]!.text, conversation: conversation),
+      stopped.contains(earlier["status"]!.text),
+      try read(message: earlier["message_id"]!, during: runs[0]["id"]!)
+    {
+      runs.insert(earlier, at: 0)
     }
-    return .object([
-      "messageID": previous["message_id"]!, "status": previous["status"]!,
-      "finished": .array(finished),
-      "notice": .string(
-        "The previous request stopped before finishing and is not pending. Only if the current request asks to continue it, read its exact text with history_read using this messageID, then do what remains. Finished work is saved. Do not repeat it."
-      ),
-    ])
+    var saved: [Value] = []
+    var seen = Set<String>()
+    for run in runs {
+      for call in try db.execute(
+        "SELECT tool,arguments FROM tool_calls WHERE run_id=? AND state='completed' ORDER BY rowid LIMIT 64",
+        [run["id"]!]
+      ) where !WorkbookTools.readOnlyTools.contains(call["tool"]!.text) {
+        guard call["tool"]!.text != "finish" else { continue }
+        let arguments = try Value.parse(call["arguments"]!.text)
+        var title = arguments["title"].string
+        if title == nil, let id = arguments["id"].string {
+          title = try db.scalar("SELECT title FROM items WHERE id=?", [.string(id)]).string
+        }
+        guard saved.count < 16, seen.insert(call["tool"]!.text + (title ?? "")).inserted else {
+          continue
+        }
+        saved.append(.object(["tool": call["tool"]!, "title": title.map(Value.string) ?? .null]))
+      }
+    }
+    let request = runs[0]["message_id"]!
+    let body =
+      try read(message: request, during: .string(runID))
+      ? db.scalar("SELECT body FROM messages WHERE id=?", [request]).string : nil
+    var fields: [String: Value] = [
+      "messageID": request, "status": previous["status"]!, "saved": .array(saved),
+    ]
+    let carried =
+      " Saved work stays saved: do not repeat it. Earlier reads do not carry over: read what the remaining work needs."
+    if let body, body.utf8.count <= 8192 {
+      fields["text"] = .string(body)
+      fields["notice"] = .string(
+        "You read this stopped request during the current one, so its text stays here. It applies only if the current request asks to continue it."
+          + carried)
+    } else {
+      fields["notice"] = .string(
+        "The previous request stopped before finishing and is not pending. Only if the current request asks to continue it, read its exact text with history_read using this messageID, then do what remains."
+          + carried)
+    }
+    return .object(fields)
   }
   /// Reconstruct operation outcomes and current proposal state from records,
   /// never from a model-written digest. Does not resume or mutate any call.

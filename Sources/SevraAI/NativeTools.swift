@@ -513,7 +513,7 @@ package enum NativeTools {
       .init(
         name: "draft",
         description:
-          "Save draft. Exact labels/quantities/wording: parts with documentCopies IDs, never retype. Combine new prose. text=new summary/paraphrase. Saving proves no completeness.",
+          "Save draft. Exact labels/quantities/wording: parts with documentCopies IDs, never retype. text=new prose: summary, paraphrase, anything the request asks that no copy holds. Send both when a draft needs both. Saving proves no completeness.",
         parameters: object(
           [
             "title": schema("string", "Draft title."), "text": schema("string", "Draft text."),
@@ -521,7 +521,7 @@ package enum NativeTools {
             "parts": .object([
               "type": .string("array"), "minItems": .number(1), "maxItems": .number(64),
               "description": .string(
-                "parts OR text. Each part: new text OR exact copy ID; host inserts originals."
+                "Each part: new text OR exact copy ID; host inserts originals."
               ),
               "items": object(
                 [

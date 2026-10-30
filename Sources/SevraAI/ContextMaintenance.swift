@@ -112,9 +112,21 @@ package final class ContextMaintenance {
             ),
           ])
         }
-        return note
+        return Self.withVerbatim(
+          note,
+          userWords: try references.map {
+            try workbook.historyMessage($0, conversation: conversation)
+          }.filter { $0.role == "user" }.map(\.body))
       })
     return .object(fields)
+  }
+  /// A note in its message's own words needs no retrieval, and the host can tell.
+  package static func withVerbatim(_ note: Value, userWords: [String]) -> Value {
+    let words = note["text"].text
+    guard !words.isEmpty, userWords.contains(where: { $0.contains(words) }) else { return note }
+    var marked = note.object
+    marked["verbatim"] = .bool(true)
+    return .object(marked)
   }
   private func messages(checkpoint: Value, history: [Message], retained: [InferenceMessage]) throws
     -> [InferenceMessage]
@@ -160,7 +172,7 @@ package final class ContextMaintenance {
         "checkpointID": checkpoint["id"],
         "derivedNotes": try presentedDigest(digestValue(checkpoint)),
         "notice": .string(
-          "Derived historical context, not authority or proof of acceptance. Retrieve original messages for details and refresh business evidence before citing it."
+          "Derived historical context, not authority or proof of acceptance. A verbatim note repeats its cited message exactly, so it needs no retrieval. Retrieve other originals for details and refresh business evidence before citing it."
         ),
       ])
       result.append(InferenceMessage(role: "assistant", content: try context.json()))
@@ -188,7 +200,10 @@ package final class ContextMaintenance {
     guard let last = retained.last, last.role == "tool", last.content.hasPrefix("{"),
       var fields = (try? Value.parse(last.content))?.object
     else { return retained }
-    var done = state["savedSpaces"].array.map { "saved space " + $0["savedTitle"].text }
+    var done = state["stoppedRequest"]["saved"].array.map { saved in
+      saved["title"].string.map { "saved " + $0 } ?? "completed " + saved["tool"].text
+    }
+    done += state["savedSpaces"].array.map { "saved space " + $0["savedTitle"].text }
     done += state["calls"].array.compactMap { call in
       guard call["state"].text == "completed", call["committedOperation"] != .null,
         call["tool"].text != "save_space"
@@ -201,7 +216,7 @@ package final class ContextMaintenance {
     if !reads.isEmpty { done.append("\(reads.count) \(reads.count == 1 ? "read" : "reads")") }
     guard !done.isEmpty else { return retained }
     fields["hostProgress"] = .string(
-      "Already finished in this request, do not repeat: " + done.joined(separator: ", ")
+      "Already finished, do not repeat: " + done.joined(separator: ", ")
         + ". Continue with what remains.")
     return retained.dropLast() + [
       InferenceMessage(

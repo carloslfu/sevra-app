@@ -361,27 +361,28 @@ public struct WorkbookTools {
       ])
     case "draft", "propose_record":
       if tool == "draft", a["parts"] != .null {
-        try require(a["text"] == .null, "document_parts", "Choose parts or plain text, not both.")
         guard case .array(let parts) = a["parts"], !parts.isEmpty, parts.count <= 64 else {
           throw SevraError("document_parts", "Use one to 64 document parts.")
         }
-        let resolved = try parts.map { part -> DocumentPart in
+        let resolved = try parts.map { part -> (part: DocumentPart, words: String?) in
           try require(
             Set(part.object.keys).isSubset(of: ["text", "copy"]), "document_parts",
             "Unknown document part field.")
-          if let text = part["text"].string, part.object["copy"] == nil { return .init(text: text) }
+          if let text = part["text"].string, part.object["copy"] == nil {
+            return (.init(text: text), nil)
+          }
           if let id = part["copy"].string, part.object["text"] == nil {
-            return .init(
-              copy: try workbook.documentCopyChoice(
-                id, runID: runID, conversation: conversation, cancellation: cancellation
-              ).reference)
+            let copy = try workbook.documentCopyChoice(
+              id, runID: runID, conversation: conversation, cancellation: cancellation)
+            return (.init(copy: copy.reference), copy.text)
           }
           throw SevraError("document_parts", "Each part is new prose or one original passage.")
         }
         return try encoded(
           workbook.saveComposedDraft(
-            title: string("title"), parts: resolved, inputs: inputs, runID: runID,
-            conversation: conversation, token: token, cancellation: cancellation))
+            title: string("title"), parts: DocumentPart.placed(resolved, in: a["text"].text),
+            inputs: inputs, runID: runID, conversation: conversation, token: token,
+            cancellation: cancellation))
       }
       let item = try workbook.addItem(
         category: "record", kind: tool == "draft" ? "document" : string("kind"),
