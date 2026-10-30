@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-29T23:40:46.702966+00:00
+updated: 2026-10-30T00:08:26.056078+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -13,6 +13,49 @@ This is MVP 0.1, a native source test preview for the focused file-to-result
 workflow below. The expanded specification is unfinished. The owner-directed
 [[records/specs/mvp-delivery]] controls delivery order; preview evidence does not
 qualify broad model reliability, supported hardware or a production release.
+
+## Native alignment and state follow-up, October 29
+
+Owner screenshots exposed welcome centering and unequal pane headers:
+[[sources/notes/2026/10/native-alignment-state-review]]. This follow-up is implemented,
+installed and verified within the source MVP. P29 in [[records/specs/product]]
+records the contract; [[records/reviews/native-journey-polish]] distinguishes each
+review pass, actual observations, iteration and remaining test limits.
+
+- Centered welcome composition with one scroll surface, five initial recent files,
+  Show all/fewer, readable native recent rows, full-path help and unchanged native
+  open/create/error handling. Long content remains reachable from its start.
+- Shared 56-point pane headers and 20-point side insets; inline thread return;
+  named compact Review/Spaces controls. Both pane dividers align without an extra
+  thread row. Focus workspace retains input and conversation controls.
+- Focus outlines, leading wrapped labels, aligned responsive search facets and
+  readable native filter choices. Visual iterations caught inherited gray enabled
+  labels and ragged popup placement. Final light/dark welcome checks pass; System
+  preference restored. Compact inspection now succeeds at 824 by 632 points.
+
+Final `bash scripts/build_native.sh` and `bash scripts/install.sh --native --no-build`
+succeed. Existing native-candidate release preview runner passes 18 groups and
+search runner passes ownership/paging/cancel/retry; their sources/dependencies are
+unchanged. Final `python3 scripts/check_native_package.py --paths-only` passes
+isolated resources, ten missing-resource refusals, altered-resource refusal and
+signatures. `xcrun swift-format lint --strict` passes seven changed Swift files.
+Installed CLI `verify` reports no asset issues and `rows` retains quantities 10/10.
+CLI bytes match; unsigned disposable desktop payloads match and real installed
+signature passes deep strict verification. No new model or engine test needed.
+
+The [immutable alignment receipt](../../../integration/evidence/2026-10-29-native-alignment.json.gz) has SHA-256
+`cbbb9379e66ccbb5af9b3a56f9844b36d858f37bac209482ab488e8d5aa786de`: 297 source files, 66 private UI artifact hashes,
+17 check/diagnostic hashes and exact built/installed payloads. Prior receipts are
+unchanged. All five builds succeed; final installed label change preserves the
+fourth revision's checked layout. Earlier resize failures are superseded only by
+new successful observations, not edited historical evidence.
+
+This does not establish every hover/focus/state combination. Empty-recents is
+source-reviewed; full keyboard preferences, VoiceOver, locale/text scaling,
+contrast/motion and all-surface appearance remain open. No real workbook, download,
+privacy permission, live dictation, business acceptance or device enablement changed.
+Remaining priorities stay at three: broad AI evidence selection; explicit table
+mapping/reference-CSV readability; full accessibility, hardware and distribution.
 
 ## Ten-pass native usability follow-up, October 29
 

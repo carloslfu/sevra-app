@@ -46,16 +46,20 @@ struct SearchView: View {
           .buttonStyle(.plain).foregroundStyle(.secondary).accessibilityLabel("Clear search")
         }
       }.padding(12).background(
-        Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+        Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8)
+      ).overlay(
+        RoundedRectangle(cornerRadius: 8)
+          .stroke(focused ? Color.accentColor : Color.primary.opacity(0.10), lineWidth: 1)
+      )
       DisclosureGroup(
         activeFilters == 0 ? "Filters" : "Filters (\(activeFilters) active)",
         isExpanded: $showingFilters
       ) {
         VStack(alignment: .leading, spacing: 12) {
-          ViewThatFits(in: .horizontal) {
-            HStack { filters }
-            VStack(alignment: .leading) { filters }
-          }
+          LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: 190, maximum: 240), alignment: .leading)],
+            alignment: .leading, spacing: 10
+          ) { filters }
           Toggle("Include earlier versions", isOn: $state.searchHistorical)
             .toggleStyle(.checkbox).font(.callout)
           if activeFilters > 0 {
@@ -67,7 +71,7 @@ struct SearchView: View {
               state.searchHistorical = false
             }
           }
-        }.padding(.top, 8)
+        }.padding(.top, 8).fixedSize(horizontal: false, vertical: true)
       }
       if incomplete > 0 {
         Text(
@@ -92,7 +96,8 @@ struct SearchView: View {
                   if let location = DisplayText.location(hit.locator) {
                     Text(location).font(.caption).foregroundStyle(.tertiary)
                   }
-                }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 14)
+                }.multilineTextAlignment(.leading)
+                  .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 14)
               }.buttonStyle(.plain).id(hit.itemID)
               Divider()
             }
@@ -150,10 +155,15 @@ struct SearchView: View {
       .filter { !$0.isEmpty }.count + (state.searchHistorical ? 1 : 0)
   }
   func facet(_ title: String, key: String, selection: Binding<String>) -> some View {
-    Picker(title, selection: selection) {
-      Text("All").tag("")
-      ForEach(facets[key].array.compactMap(\.string), id: \.self) { Text($0.capitalized).tag($0) }
-    }.font(.caption).frame(maxWidth: 190)
+    HStack(spacing: 10) {
+      Text(title).frame(width: 60, alignment: .trailing).accessibilityHidden(true)
+      Picker(title, selection: selection) {
+        Text("All").tag("")
+        ForEach(facets[key].array.compactMap(\.string), id: \.self) {
+          Text(StructuredPresentation.label($0)).tag($0)
+        }
+      }.labelsHidden().accessibilityLabel(title).frame(width: 120, alignment: .leading)
+    }.font(.caption).frame(width: 190)
   }
   func search(more: Bool) async {
     guard let book = state.workbook else { return }

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-29T23:40:46.721716+00:00
+updated: 2026-10-30T00:08:26.258738+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -74,6 +74,14 @@ states, bounded zoom and compact feedback. Final installed TextEdit rich/plain
 paste and adjacent refusal cases have scoped proof. The review distinguishes
 source inspection, actual interactions and reused evidence; it does not claim
 every possible UI state or all external paste recipients are qualified.
+
+The screenshot-led alignment follow-up centers welcome content with scroll fallback
+and a five-item expandable recent list. Shared pane headers stay aligned in main
+conversation and threads; compact actions retain names/help. Search filters wrap
+with aligned controls, field focus is visible, and wrapped labels align leading.
+Representative large/compact and light/dark native observations are recorded in
+the review. They supplement the earlier passes without claiming every hover,
+keyboard, locale or accessibility state has been qualified.
 
 ## Architecture
 

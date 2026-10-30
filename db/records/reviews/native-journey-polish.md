@@ -3,7 +3,7 @@ type: review
 meta-type: conclusion
 id: 01m64w7mfc74gf1h0cqhykr0p4
 created: 2026-10-29T22:24:34.284218+00:00
-updated: 2026-10-29T23:41:31.171430+00:00
+updated: 2026-10-30T00:08:25.875167+00:00
 summary: Full native journey/control review, simpler intake and shell, polished search/history, verification coverage and retained limits.
 title: Native journey simplification and polish
 ---
@@ -61,9 +61,9 @@ panels. Failures were retained locally and fixed before the final build.
 | Local AI settings | Setup status, Download or Verify model files | Model storage/reuse/unload behind disclosure. Model files found means presence, not loaded/qualified. Download size, cancel, failure and local-only behavior remain. |
 | Portable copy | Named export, native destination, explicit editable reopen | Existing include/link semantics and no-overwrite behavior preserved. Instructions updated for the current intake/settings labels. |
 
-The native shell uses 20-point outer horizontal and 14-point workspace-header
-padding, with most full-page content using 22 to 24 points and secondary sheets
-22 to 24 points. Hierarchy uses native typography and semantic colors. Small-window
+The native shell now uses shared 56-point pane headers with 20-point horizontal
+insets, following the alignment review below. Most full-page content uses 22 to
+24 points and secondary sheets 22 to 24 points. Hierarchy uses native typography and semantic colors. Small-window
 inspection retained both panes and document actions; long route titles truncate
 with full-title help. Focus workspace provides more room while retaining input.
 This is visual inspection on one host, not pixel-perfect qualification of all
@@ -201,6 +201,79 @@ live dictation, real customer data, business acceptance or automation activation
 was part of this follow-up. Full keyboard/VoiceOver, appearance and release gates
 remain open.
 
+
+## Alignment and interaction-state follow-up, October 29
+
+Owner screenshots: [[sources/notes/2026/10/native-alignment-state-review]]. The
+welcome column was horizontally bounded but vertically top-anchored and its long
+recent list competed with the primary actions. Conversation and workspace headers
+used different padding and total heights; threads added a separate return row.
+The earlier control reviews did not catch all of this rendered geometry.
+
+The welcome now centers its identity, explanation, actions and footer when they
+fit. One outer scroll view handles taller content. Five recent files appear by
+default; Show all 10 and Show fewer retain the existing bounded recent list. The
+list stays left-aligned for scanning inside a centered 360-point region. Native
+borderless rows have document icons, explicit semantic primary text, truncation
+and full-path help. A first style inherited gray from the button; the final
+Color.primary fixes the enabled-label contrast in light and dark appearance.
+
+One shared PaneHeader aligns both dividers and controls at 56 points, with
+20-point side insets. Thread return moves into this row and its duplicate overflow
+action disappears. Review/Spaces keep text at normal widths and use accessible
+named icons when compact. Long route titles retain one line and full-title help.
+Focus workspace retains conversation controls and the composer below its content.
+
+Search/composer outlines reflect actual field focus. Wrapped result, draft-review
+and space shortcut labels align leading. Expanded search facets now use a wrapping
+grid, consistent title columns and popup leading edges. The first revision still
+centered native popups of different intrinsic widths; compact inspection caught
+this. A disclosure-transition capture also showed the last checkbox clipped; the
+settled final grid exposes it. Filter choices reuse readable field labels, so
+Application definition no longer exposes an internal underscore. Data tags and
+query semantics are unchanged.
+
+Five focused passes extend the existing full control inventory:
+
+| Pass | Review and actual observations |
+| --- | --- |
+| Geometry and purpose | Compare screenshot defects to source. Replace unequal header padding and the duplicate thread return row. Keep separate Back and Home jobs. |
+| Overflow and resize | Welcome at 1200 by 800 and 824 by 632 points; recent expansion, scrolling to final actions, collapse and recent open. Compact headers, search and empty workflow-run controls fit. |
+| Focus and interaction | Accent outlines on composer/search, empty Send disabled, empty-thread actions disabled, thread switching/return, native menus, open-dialog Cancel, selected filter/count/reset and pane focus/restore. |
+| Reading and alignment | Wrapped search results, review queue and space shortcut rows; consistent filter label/popup starts, human-readable kind choice and truthful index coverage. |
+| Appearance and regression | Light/dark welcome and pre-grid dark search inspected; original System setting restored. Final app rebuilt/installed, adjacent controller/search checks and package integrity checked. |
+
+This follows Apple's [layout guidance](https://developer.apple.com/design/human-interface-guidelines/layout)
+on adaptable aligned layouts and progressive disclosure. It is not a claim of
+full HIG or accessibility qualification. Standard native controls provide their
+platform interaction states; no custom hover-only action system was added.
+
+All five native builds succeeded; revisions one, two, four and five were installed.
+The final source build and install pass. The unchanged native preview controller
+runner passes 18 groups and search runner passes paging/ownership/cancel/retry.
+Paths-only packaging passes with build-tree denial, ten missing-resource refusals,
+altered-resource refusal and signatures. Installed CLI matches the built bytes;
+signature-free disposable desktop copies match, and the real installed signature
+passes deep strict verification. Synthetic workbook integrity passes with no asset
+issues; quantities remain 10 and 10. Strict format lint passes all seven changed
+Swift files. No core, engine, grammar, model, schema or authority change.
+
+The [immutable alignment receipt](../../../integration/evidence/2026-10-29-native-alignment.json.gz) binds 297 source files, 66 private UI artifact hashes,
+17 check/diagnostic hashes and the installed payload. SHA-256:
+`cbbb9379e66ccbb5af9b3a56f9844b36d858f37bac209482ab488e8d5aa786de`. Captures identify their iteration; the final
+readable-filter-label build reuses the unchanged fourth-revision layout proof.
+The previous clipboard/Undo/Redo and engine receipt remains immutable and reused.
+Earlier resize-tool errors remain historical; full screenshot-pixel coordinates
+successfully exercise compact resizing in this follow-up.
+
+Limits: no fresh empty-recents launch; that conditional branch was source-reviewed.
+Native field focus and menu states were observed, but complete hover and keyboard
+preference matrices were not. The host's Tab setting did not focus welcome buttons;
+it was not changed. Arrow-menu automation remains inconclusive. Representative
+light/dark screenshots do not qualify all surfaces, locales, text scaling,
+contrast, motion or VoiceOver. No new model call, dictation, media transport,
+privacy grant, accepted business change or device automation activation was tested.
+The three existing remaining priorities below are unchanged.
 
 ## Verification coverage and honest limits
 

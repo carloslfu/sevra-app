@@ -75,7 +75,7 @@ struct SpaceShortcutRow: View {
             } else if space.id != "home" {
               Text("Live view").font(.caption).foregroundStyle(.secondary)
             }
-          }
+          }.multilineTextAlignment(.leading)
           Spacer(minLength: 0)
           if state.route == .space(space.id) {
             Image(systemName: "checkmark").font(.caption).accessibilityLabel("Current space")

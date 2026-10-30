@@ -203,48 +203,9 @@ struct WorkspaceWindow: View {
   }
   var isKey: Bool { ownWindow != nil && NSApp.keyWindow === ownWindow }
   var welcome: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 24) {
-        HStack(spacing: 13) {
-          ObserverMark().fill(.primary).frame(width: 70, height: 70)
-          SevraWordmark().fill(.primary).frame(width: 189, height: 40)
-        }.accessibilityElement(children: .ignore).accessibilityLabel("Sevra")
-        Text("A workbook for the work in front of you.").font(.title2)
-        Text(
-          "Bring your files together. Ask questions, compare options, and build tables with the evidence at hand."
-        )
-        .font(.body).foregroundStyle(.secondary).frame(maxWidth: 470, alignment: .leading)
-        VStack(alignment: .leading, spacing: 12) {
-          HStack(spacing: 12) {
-            Button("Start from files…", action: startFromFiles).buttonStyle(.borderedProminent)
-              .controlSize(.large)
-            Button("Open workbook…", action: open).controlSize(.large)
-          }
-          HStack(spacing: 16) {
-            Button("Create blank…", action: create).buttonStyle(.link)
-            Button("Try an example…", action: demo).buttonStyle(.link)
-          }
-        }
-        let recent = UserDefaults.standard.stringArray(forKey: "recentWorkbooks") ?? []
-        if !recent.isEmpty {
-          VStack(alignment: .leading, spacing: 8) {
-            Text("Recent workbooks").font(.headline)
-            ForEach(recent, id: \.self) { path in
-              Button(URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent) {
-                openWindow(value: path)
-              }
-              .buttonStyle(.link)
-            }
-          }
-        }
-        if let error = welcomeError { Text(error).foregroundStyle(.red).textSelection(.enabled) }
-        Text("Your work stays on this Mac.").font(.callout)
-          .foregroundStyle(.secondary)
-        SettingsLink { Text("Local AI settings…") }
-      }.frame(maxWidth: 520, alignment: .leading).padding(40)
-        .frame(maxWidth: .infinity, alignment: .center)
-    }.frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(Color(nsColor: .windowBackgroundColor))
+    WelcomeView(
+      startFromFiles: startFromFiles, open: open, create: create, demo: demo,
+      openRecent: { openWindow(value: $0) })
   }
   func create() {
     let panel = NSSavePanel()

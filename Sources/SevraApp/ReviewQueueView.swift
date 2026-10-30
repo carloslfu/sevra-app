@@ -14,7 +14,8 @@ struct DraftReviewRow: View {
             + " · " + item.meaning.capitalized
         )
         .font(.caption).foregroundStyle(.secondary)
-      }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 8)
+      }.multilineTextAlignment(.leading)
+        .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 8)
     }.buttonStyle(.plain)
       .accessibilityLabel("Review " + item.title + ", " + item.meaning)
   }

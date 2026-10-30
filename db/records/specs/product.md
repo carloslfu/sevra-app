@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-29T23:40:46.754849+00:00
+updated: 2026-10-30T00:08:25.722026+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
@@ -84,6 +84,22 @@ and human upcoming dates. Preserve exact UTC in help and existing review/device
 authority gates. See [[records/reviews/native-journey-polish]] for the audited
 surface inventory and verification limits. These changes do not qualify broad AI
 reliability.
+
+P29. Center the welcome identity, explanation, primary actions and footer in the
+available window when they fit. Use one scroll surface when content is taller;
+never vertically center overflowing content beyond its reachable start. Keep the
+recent-workbook list left-aligned within that centered composition, initially five
+entries with an explicit all/fewer choice. Retain native buttons, readable enabled
+labels, full-path help and existing open/create/error behavior.
+Conversation and workspace headers share a 56-point row and 20-point horizontal
+insets. Thread return belongs in that row, not a second header. At compact widths,
+secondary workspace actions may use named icons with help; preserve the title,
+Back, Home and overflow menu. Search facets wrap in an aligned grid; labels and
+popup leading edges remain consistent, and selected filter count/reset stay clear.
+Wrapped result, review and space labels align to their leading edge. Composer and
+search show an accent outline while focused, with a quiet outline otherwise.
+Native controls retain platform pressed, disabled, menu and keyboard behavior.
+Appearance and accessibility qualification still follow P05 and the release gates.
 
 P03. Searchable space picker: Home, pinned/recent, all spaces. No unbounded tab strip.
 Home shows useful recent sources, tables and pending work without dashboard setup.

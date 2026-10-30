@@ -49,7 +49,7 @@ struct WorkbookView: View {
       HSplitView {
         if !state.focus { conversation.frame(minWidth: 270, idealWidth: 360, maxWidth: 420) }
         VStack(spacing: 0) {
-          HStack {
+          PaneHeader {
             if !state.navigation.isEmpty {
               Button(action: state.back) { Image(systemName: "chevron.left") }.help("Back")
                 .accessibilityLabel("Back to previous view")
@@ -63,15 +63,12 @@ struct WorkbookView: View {
               }.help("Home").accessibilityLabel("Home")
             }
             Text(routeTitle).font(.title3.weight(.medium)).lineLimit(1).help(routeTitle)
+              .layoutPriority(1)
             Spacer()
-            if state.pendingReview?.items.isEmpty == false, state.route != .reviews {
-              Button("Review drafts", systemImage: "checklist") { state.navigate(.reviews) }
-                .help("Open drafts that need your review")
+            ViewThatFits(in: .horizontal) {
+              workspaceActions
+              workspaceActions.labelStyle(.iconOnly)
             }
-            Button("Spaces", systemImage: "square.grid.2x2") { showSpaces.toggle() }
-              .popover(isPresented: $showSpaces) {
-                SpacePickerView(state: state) { showSpaces = false }
-              }
             MoreActionsMenu("Workbook actions") {
               if case .space(let id) = state.route,
                 let space = state.spaces.first(where: { $0.id == id })
@@ -93,7 +90,7 @@ struct WorkbookView: View {
               Divider()
               Button("Make a shareable copy…", action: state.exportPanel).disabled(state.busy)
             }
-          }.padding(.horizontal, 20).padding(.vertical, 14)
+          }
           Divider()
           workspace.frame(maxWidth: .infinity, maxHeight: .infinity)
           if let player = state.backgroundPlayer {
@@ -206,69 +203,78 @@ struct WorkbookView: View {
     case .workflow: return "Workflow"
     }
   }
+  private var workspaceActions: some View {
+    HStack(spacing: 8) {
+      if state.pendingReview?.items.isEmpty == false, state.route != .reviews {
+        Button("Review drafts", systemImage: "checklist") { state.navigate(.reviews) }
+          .help("Open drafts that need your review").accessibilityLabel("Review drafts")
+      }
+      Button("Spaces", systemImage: "square.grid.2x2") { showSpaces.toggle() }
+        .help("Find or create a space").accessibilityLabel("Spaces")
+        .popover(isPresented: $showSpaces) {
+          SpacePickerView(state: state) { showSpaces = false }
+        }
+    }
+  }
   var conversationHeader: some View {
-    VStack(spacing: 0) {
-      HStack {
-        let threads = state.conversations.filter { $0["id"].text != "main" }
-        if threads.isEmpty {
-          Text(state.conversationTitle).font(.subheadline.weight(.medium)).lineLimit(1)
-        } else {
-          Menu {
-            Button("Conversation") { state.changeConversation("main") }
-            Section("Threads") {
-              ForEach(threads, id: \.text) { chat in
-                Button(chat["title"].text) { state.changeConversation(chat["id"].text) }
-              }
-            }
-          } label: {
-            Text(state.conversationTitle).font(.subheadline.weight(.medium)).lineLimit(1)
-          }
-          .help("Switch between the main conversation and its threads")
-          .accessibilityLabel("Switch conversation: " + state.conversationTitle)
-        }
-        Spacer()
-        MoreActionsMenu("Conversation actions") {
-          Button("Start a chapter…") {
-            if let message = state.messages.last {
-              state.conversationDraft = .init(message: message.id)
-            }
-          }.disabled(state.messages.isEmpty)
-          Button("Start a thread") {
-            if let message = state.messages.last {
-              state.startThread(from: message.id)
-            }
-          }.disabled(state.messages.isEmpty)
-          if state.conversation != "main" {
-            Button("Rename thread…", action: state.requestRenameThread)
-            Button("Back to conversation") { state.changeConversation("main") }
-            Button("Share summary with conversation…") { state.requestSummary() }
-              .disabled(
-                !state.messages.contains { $0.role == "assistant" && $0.state == "complete" })
-          }
-          Button("Search this conversation…") { state.showingHistorySearch = true }
-          if !state.bookmarks.isEmpty {
-            Menu("Saved exchanges") {
-              ForEach(state.bookmarks, id: \.text) { bookmark in
-                Button(bookmark["title"].text) { state.jumpToMessage(bookmark["message_id"].text) }
-              }
-            }
-          }
-          if !state.chapters.isEmpty {
-            Menu("Chapters") {
-              ForEach(state.chapters, id: \.text) { chapter in
-                Button(chapter["title"].text) { state.jumpToMessage(chapter["message_id"].text) }
-              }
-            }
-          }
-        }
-      }.padding(16)
+    PaneHeader {
       if state.conversation != "main" {
-        HStack {
-          Button("Back to conversation", systemImage: "arrow.uturn.backward") {
-            state.changeConversation("main")
+        Button {
+          state.changeConversation("main")
+        } label: {
+          Image(systemName: "arrow.uturn.backward")
+        }.help("Back to conversation").accessibilityLabel("Back to conversation")
+      }
+      let threads = state.conversations.filter { $0["id"].text != "main" }
+      if threads.isEmpty {
+        Text(state.conversationTitle).font(.subheadline.weight(.medium)).lineLimit(1)
+      } else {
+        Menu {
+          Button("Conversation") { state.changeConversation("main") }
+          Section("Threads") {
+            ForEach(threads, id: \.text) { chat in
+              Button(chat["title"].text) { state.changeConversation(chat["id"].text) }
+            }
           }
-          Spacer()
-        }.padding(.horizontal, 16).padding(.bottom, 10)
+        } label: {
+          Text(state.conversationTitle).font(.subheadline.weight(.medium)).lineLimit(1)
+        }
+        .help("Switch between the main conversation and its threads")
+        .accessibilityLabel("Switch conversation: " + state.conversationTitle)
+      }
+      Spacer()
+      MoreActionsMenu("Conversation actions") {
+        Button("Start a chapter…") {
+          if let message = state.messages.last {
+            state.conversationDraft = .init(message: message.id)
+          }
+        }.disabled(state.messages.isEmpty)
+        Button("Start a thread") {
+          if let message = state.messages.last {
+            state.startThread(from: message.id)
+          }
+        }.disabled(state.messages.isEmpty)
+        if state.conversation != "main" {
+          Button("Rename thread…", action: state.requestRenameThread)
+          Button("Share summary with conversation…") { state.requestSummary() }
+            .disabled(
+              !state.messages.contains { $0.role == "assistant" && $0.state == "complete" })
+        }
+        Button("Search this conversation…") { state.showingHistorySearch = true }
+        if !state.bookmarks.isEmpty {
+          Menu("Saved exchanges") {
+            ForEach(state.bookmarks, id: \.text) { bookmark in
+              Button(bookmark["title"].text) { state.jumpToMessage(bookmark["message_id"].text) }
+            }
+          }
+        }
+        if !state.chapters.isEmpty {
+          Menu("Chapters") {
+            ForEach(state.chapters, id: \.text) { chapter in
+              Button(chapter["title"].text) { state.jumpToMessage(chapter["message_id"].text) }
+            }
+          }
+        }
       }
     }.disabled(state.changingConversation)
   }
@@ -408,7 +414,10 @@ struct WorkbookView: View {
       }
     }.padding(12).background(
       Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 12)
-    ).overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.12)))
+    ).overlay(
+      RoundedRectangle(cornerRadius: 12)
+        .stroke(composerFocused ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: 1)
+    )
   }
   @ViewBuilder var workspace: some View {
     if let book = state.workbook {

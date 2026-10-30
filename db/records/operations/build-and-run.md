@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-29T23:40:46.737998+00:00
+updated: 2026-10-30T00:08:26.397839+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -61,6 +61,21 @@ This moves its app to Trash and removes only its own CLI link. Workbooks,
 preferences and model files remain. The environment overrides documented below
 also support isolated native installations. `python3 scripts/check_install.py
 --native` checks that route using disposable targets.
+
+## Welcome and compact navigation
+
+The welcome screen centers its primary actions and shows five recent workbooks.
+Show all expands the existing recent list; scroll to reach later entries and
+settings if needed, or use Show fewer. Open workbook uses the native file picker;
+Cancel returns to welcome. Recent rows retain full-path help.
+
+Both panes share aligned headers. In a thread, the return icon beside its title
+goes to the main conversation. At compact widths Review and Spaces may show icons;
+their names and help remain available. Focus workspace keeps conversation controls
+and input below the work area. Search filters wrap into aligned columns and Clear
+filters resets every active facet. No acceptance or device execution occurs merely
+by navigating or filtering. See [[records/reviews/native-journey-polish]] for actual
+native observations, source-bound evidence and qualification limits.
 
 ## Native MVP supplier comparison
 
