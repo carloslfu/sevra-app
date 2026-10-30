@@ -416,3 +416,13 @@ Final test-only V2 passes67 focused workflow groups/0 and strict one-file Swift 
 [[records/specs/automation-execution]] adds original automation-drafts-v1 runs through the same workflow core. They retain exact automation/occurrence/authorization/dispatch origin and continue only under a current live automation grant or a separately requested manual-operation Source. Manual Continue never changes original scheduled provenance or enables future schedules. Stop requires no execution grant. Every worker claim records its authorization Source, so Pause fences automation claims and immediately releases them for explicit same-run resume, while an independent manual claim retains its own lease. Separate explicit CLI processes can operate the same manual claim, but cannot take over an automation claim. Native manual gestures preserve human attribution; CLI is programmatic.
 
 Workflow inspection now exposes bounded invocation and latest claim-authorization metadata. Technical automation/manual-operation Sources remain excluded from business evidence. Native run wording distinguishes scheduled drafts, with visible validation still open. Final359 full core groups,16 focused execution groups, synthetic lifecycle,2 actual dispatch SIGKILL boundaries and44 installed execution calls pass. This reuses existing interpretation/extraction/intake/review machinery; it does not complete richer graphs, full E3/E4, native timer/device UX or release qualification. Full evidence/limits are in the execution spec.
+
+## Job templates, October 30
+
+Export template writes one saved job and the definitions it depends on to a JSON file, with
+nothing else from the workbook. Import template saves copies under new identities with their
+internal references moved to those copies. It runs nothing, and an imported automation still
+needs its own Enable on each Mac. The same file imports once. A job that reads a table in its
+workbook cannot be exported, and a definition naming something from its original workbook is
+refused by the ordinary save check. Export is reached from an automation's review, so a job
+needs an automation to travel for now.

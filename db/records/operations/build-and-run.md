@@ -515,6 +515,23 @@ automatic compaction or restart/resume qualification.
 
 ## Automatic context maintenance checks
 
+Stop a real job partway, by Stop, a failed summary and Stop twice, then ask for the rest in plain
+words, with the same four arguments as --active-context-maintained:
+
+~~~sh
+.build/debug/sevra-agent-checks --active-context-recovery \
+  /path/to/native-models /path/to/libllguidance.dylib /path/to/engine/splash \
+  .build/new-recovery-probe
+~~~
+
+To kill the packaged CLI during maintenance and then continue, use the output folder of one
+--active-context-maintained run, which supplies the synthetic fixture and request:
+
+~~~sh
+python3 scripts/check_context_recovery.py --models /path/to/native-models \
+  --fixture .build/maintained-run --output .build/new-context-recovery
+~~~
+
 Replace --autonomous with --continuity in the native probe command. It creates
 synthetic histories, requires multiple automatic checkpoints and exact identifiers,
 decimal spelling and units, exports/reopens the workbook, and checks misleading
@@ -606,7 +623,7 @@ Run `output/native/bin/sevra model-setup MODELS_ROOT` to download the pinned tar
 
 For actual-model checks without changing any user settings, use `SEVRA_CLI=output/native/bin/sevra SEVRA_MODEL_DIRECTORY=MODELS_ROOT python3 scripts/check_model.py`. Those environment variables select qualification inputs for the test script, not a runtime backend preference. Run only one real model workload at a time. Capture failures and tool receipts. Background downloads/builds make these behavior checks unsuitable for controlled performance claims.
 
-The preview uses a provisional 32K context, bounded512 reasoning and 12 GiB engine budget. Automatic compaction remains disabled. It is a qualification artifact until matched performance, memory, setup, application and hardware gates pass.
+The preview uses a provisional 32K context, bounded512 reasoning and 12 GiB engine budget, with automatic context maintenance on. It is a qualification artifact until matched performance, memory, setup, application and hardware gates pass.
 
 ## Matched request performance
 R1 is retained for historical reproduction only. Its reference used normal priority while Swift used foreground. The current coordinator refuses a non-pilot R1 cohort. The qualifying command below describes the historical procedure and must not be treated as a current release gate. Preregister a replacement request protocol with actual wire-byte verification before rerunning qualification. See [[records/specs/splash-integration]] Request-priority comparison correction.

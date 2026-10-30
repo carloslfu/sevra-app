@@ -76,6 +76,19 @@ func checkFoldersAndTemplates(at root: URL) {
     try expect(chunks.count == 2 && chunks[1].text == "w24")
     try expect(chunks[1].locator == "time=24.0; end=24.4")
   }
+  check("naming a category as a search kind still finds the evidence") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("Kinds.sevra"), title: "Kinds")
+    _ = try book.addItem(
+      category: "source", kind: "note", title: "Supplier quotes", text: "Atlas sells bolts.")
+    func hits(_ kind: String) throws -> Int {
+      try WorkbookTools(book).execute(
+        "search", .object(["query": .string("Atlas"), "kind": .string(kind)])
+      )["hits"].array.count
+    }
+    try expect(try hits("source") == 1 && hits("Record") == 1 && hits("note") == 1)
+    try expect(try hits("movement") == 0)
+  }
   check("a job template carries an inert copy to another workbook, once") {
     let original = try Workbook.create(
       at: root.appendingPathComponent("Template.sevra"), title: "Original")

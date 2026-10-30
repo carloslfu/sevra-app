@@ -466,3 +466,14 @@ structure, motivating an inventory beyond cell extraction:
 [Structure of a SpreadsheetML document](https://learn.microsoft.com/en-us/office/open-xml/spreadsheet/structure-of-a-spreadsheetml-document).
 Both checked October 28, 2026. The architecture and qualification choices above
 are Sevra design decisions, not requirements asserted by those documents.
+
+## Folder comparison, October 30
+
+Add a folder compares one chosen folder with what earlier passes saved from it, by relative path
+and content, and shows the counts before anything is added. Nothing watches the folder. Hidden
+files, symbolic links and package contents are skipped. A changed file becomes a new Source
+beside the earlier one, content already in the workbook is not added again, and a file gone from
+the folder stays in the workbook and is reported. Replaying a stopped pass saves nothing twice.
+
+One pass handles at most 200 files and 2 GB; past that it refuses and adds nothing. Two folders
+with the same name count as one. Each added file goes through normal intake.

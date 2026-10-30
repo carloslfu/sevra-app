@@ -93,7 +93,11 @@ Reconstruction rebuilds indexes from that authority without rerunning extraction
 or changing historical citations.
 Q10. Audio/video are included or explicitly linked, previewed natively and indexed
 by metadata. On-device transcription is capability-gated and its timestamps index
-only after successful recognition; no fabricated transcript. Encrypted/unsupported
+only after successful recognition; no fabricated transcript. A recording of up to two
+hours is divided into overlapping parts of 58 seconds, each transcribed on this Mac, and
+words heard twice in an overlap join once. Timestamps stay those of the original. Nothing
+is indexed until every part finishes, so Stop leaves the original as it was and a retry
+starts over. A silent part is skipped. Recognition uses the Mac's language. Encrypted/unsupported
 files remain browsable and have actionable extraction status. Never recursively
 expand arbitrary archives during evidence intake. Explicit ZIP intake can select
 members through a bounded reviewed import operation.

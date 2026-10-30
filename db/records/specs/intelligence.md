@@ -109,13 +109,10 @@ reader supplies exact saved pages; history_search/history_read retrieve older me
 within the selected conversation. Current requests are excluded from history search.
 Historical output cannot grant action authority or acceptance. Failed/unfinished calls
 retain operation evidence and uncertainty. The same prepared call ID is never replayed.
-This storage boundary is active. Automatic context maintenance is implemented and
-opted into by dedicated native evaluation probes. Both packaged product paths keep
-it disabled: NativeProductResources explicitly sets contextMaintenanceEnabled to
-false, and the baseline initializer does the same after its recall probe failed.
-The native preview currently evaluates 32K with bounded512 reasoning; this is not
-a qualified final context profile. General action recovery after process death
-remains open.
+This storage boundary is active. Automatic context maintenance is on for the native
+32K bounded512 product path, as recorded in [[records/specs/conversation-context]]. The
+baseline initializer keeps it off after its recall probe failed. General action
+recovery after process death remains open.
 A read returns the requested exact version plus current-version metadata and a
 snapshot revision. Current-version metadata is a navigation pointer, not newly
 inspected evidence: read that version before citing its facts.

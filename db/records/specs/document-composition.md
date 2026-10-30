@@ -355,3 +355,23 @@ opening forwards the exact copied locator. Programmatic checks cover this
 exception, stale refusal, exact retries and subsequent prose edits; visible
 interaction remains pending. See [[records/specs/references-and-relationships]]
 and [[records/operations/implementation]].
+
+## One draft with new prose and copies, October 30
+
+`draft` now always takes `text`, which may be empty, and may also take `parts`. A schema field
+prompts for new words better than a description does: with `text` removed the model sent only
+copies and lost the purchase code and amounts in three of three runs, and with it required that
+stopped.
+
+`DocumentPart` stays a strict union at the mutation boundary. The tool layer composes the two:
+a copy takes the place of its own exact words in `text`, so a line retyped beside its copy is
+saved once, where the prose put it, with its provenance. Other copies follow the prose on their
+own line. A text part the prose already says is dropped. Without prose, parts keep their exact
+bytes. A retyped line that differs at all stays new prose, so a loose paraphrase beside its copy
+appears as two lines, which happened in one real run.
+
+A copy ID sent in `inputs` means its one source version.
+
+A plain request to draft something, in English or Spanish, gets one correction if the model
+tries to finish without saving a draft, because the policy sentence alone failed twice. It is
+one correction, so a false alarm costs one step.

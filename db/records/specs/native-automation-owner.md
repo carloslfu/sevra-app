@@ -83,3 +83,11 @@ Evidence: [condition and registry repair receipt](../../../integration/evidence/
 ## Schema30 condition execution, October 29
 
 Actual owned inventory-condition candidates now dispatch through exact current physical-file grants and the same captured workflow/admission ledger, with complete original/automatic causes and persisted shared budgets. Native typed preview/save/Enable/Pause, ordered queue dismissal/resume/from-now and read-only idle polling are connected. Broad555 core checkpoint, final18 focused/21 owner groups,17 condition/21 calendar/22 shared/39 cause installed calls, nine candidate writers/two actual SIGKILL boundaries and fresh visible deterministic native crossing/Activity/pause/reconstruction pass. No final full-core rerun or fresh model inference is claimed. [[records/specs/condition-dispatch]] retains exact source/package hashes, failures, prepared-probe correction and limits. Conversational authoring/Enable, real-model condition review/restart, dataset adapters and E5-E6/release remain open.
+
+## Reaching review by text or voice, October 30
+
+`open_automation` takes an exact saved automation name or ID and opens that automation's native
+review, where its preview and Enable are. Text and dictation reach the same screen. Neither
+enables anything: Enable stays a press on that screen, on this Mac, with the same grant rules.
+A name that matches none, or more than one, asks which one and opens nothing. A run with no
+window, such as the CLI, says no view was opened.
