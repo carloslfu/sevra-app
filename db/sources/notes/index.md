@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-10-30T02:22:56.916704Z
+updated: 2026-10-30T02:55:09.020998Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/10/minimum-features-resume]] — Owner resumes the paused minimum-feature work: finish increments 1 and 2, then advance one tested feature at a time.
 - [[sources/notes/2026/10/minimum-features-pause]] — Owner pauses the sequential minimum-feature work and requests a resumable agent handoff.
 - [[sources/notes/2026/10/minimum-feature-delivery]] — Owner authorizes sequential minimum usable implementations and interaction polish for the audited design gaps.
 - [[sources/notes/2026/10/design-feature-audit]] — Owner requests a deep design-to-code feature audit with research and tests.

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-30T02:23:30.555810+00:00
+updated: 2026-10-30T03:04:42.170055+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -24,11 +24,12 @@ Slotstream remains independent.
 
 ## Current preview and delivery order
 
-Current feature work is paused for owner-directed handoff:
-[[records/operations/agent-handoff]]. Read that checkpoint first when the owner
-resumes. Increments 1 and 2 are unfinished; the broad suite was interrupted and
-the latest native visual refinements are not yet qualified. Main retains the
-prior audit while the handoff branch preserves the work.
+The owner resumed the minimum-feature work after a handoff pause:
+[[records/operations/agent-handoff]]. Increment 1, bounded multi-original evidence
+with qualified partial costs, is accepted for its scope. Increment 2, native
+comparison and original-table grids, is implemented and component checked; its
+installed-window visual check is still pending. Main retains the prior audit while
+the handoff branch carries this work.
 
 The October 29 follow-up authorizes sequential minimum usable features, testing
 and polish: [[records/operations/minimum-feature-delivery]]. That queue supersedes

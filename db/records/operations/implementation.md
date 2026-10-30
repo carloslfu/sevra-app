@@ -3,17 +3,55 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-30T02:23:30.536559+00:00
+updated: 2026-10-30T03:04:42.170055+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
 
+## Resumed increments 1 and 2, October 29
+
+The owner resumed the paused work: [[sources/notes/2026/10/minimum-features-resume]].
+[[records/operations/agent-handoff]] records the current checkpoint and next steps.
+
+Increment 1 is accepted for its bounded scope. A narrow English finish check rejects
+an answer that says a cost is unknown while labeling a partial sum as a total or
+naming the cheapest quote without its basis, and requires any ranking to leave the
+final all-in ordering open. Scripted replay of the exact earlier missing-terms
+answer and the October 29 audit answer is rejected with that guidance; the qualified
+correction completes with unchanged business state. Fresh synthetic actual-model
+probes with the build-6 CLI both complete. CSV only: 8 steps, goods-plus-shipping
+labels, no invented delivery or tax, and an undetermined all-in ordering. CSV plus
+PDF: 11 steps, both citations, Brio's 5-business-day delivery, excluded tax with no
+rate, the lowest goods-plus-shipping cost and the same open all-in ordering. Neither
+run needed the new check; one corrected an invented currency symbol. These are two
+functional probes, not an accuracy rate.
+
+Increment 2 gained content-aware sizing after offscreen renders of the shipped
+components showed equal-width columns, mid-word breaks, overestimated row heights
+and a spare header strip. Conversation tables now hug their natural width, wider
+tables wrap to whole-word minimums before scrolling, original files fill or scroll
+at natural widths, rows are measured with equal padding, cells over six lines end in
+an ellipsis and a dragged column width persists. Component checks cover these cases
+with selection, TSV/rich/CSV copy, source actions and accessible values. Native
+build 7 is installed. **Installed-window inspection is still pending:** macOS Screen
+Recording permission was not granted to the controlling app, so its window was not
+captured. The renders use the same components at 340, 560 and 900 points in light
+and dark; they are not the installed window. Increment 3 has not started.
+
+Focused related-original checks, the full scripted agent regression (42 passes),
+preview checks, native build 7, its isolated package paths-only check and
+`bash scripts/check.sh` all exit 0. The full suite took 6 minutes 49 seconds with
+zero warnings, including core 557/0, native document lifecycle 27/0 and 31 Splash
+checks. The [continuation receipt](../../../integration/evidence/2026-10-30-minimum-increments-1-2.json.gz),
+SHA-256 `91f2b9101b50a31b6a93cac7eba3a2c5bbd4ed7c4dda6f6a4e7f4e89600b64df`, binds
+sources, check output, actual answers, snapshot measurements and limits.
+
 ## Owner pause and agent handoff, October 29
 
-Implementation is paused at the owner's request:
-[[sources/notes/2026/10/minimum-features-pause]]. Start any authorized continuation
-from [[records/operations/agent-handoff]], not the older active-work notes below.
+Implementation was paused at the owner's request:
+[[sources/notes/2026/10/minimum-features-pause]] and later resumed as recorded
+above. The paragraphs below are the paused checkpoint, kept as history.
 The unfinished code, tests, specs and failure evidence are preserved on
 `codex/sevra-minimum-features-handoff`, based on audit commit `170efa0`.
 

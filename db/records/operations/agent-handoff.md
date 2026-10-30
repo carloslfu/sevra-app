@@ -3,18 +3,26 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-10-30T02:23:30.477380+00:00
-summary: 'Owner-paused unfinished increments1 and2: exact implementation, retained failures, verification state and ordered resume instructions.'
+updated: 2026-10-30T03:04:42.307148+00:00
+summary: 'Resumed minimum features: increment 1 accepted, increment 2 table sizing verified offscreen and installed, installed-window check and increment 3 next.'
 title: Paused minimum-feature agent handoff
 ---
 # Paused feature implementation: agent handoff
 
 ## State and first action
 
-**Paused by the owner on October 29 local time, October 30 UTC. Do not continue
-implementation or background tests until the owner resumes this work.** Source:
-[[sources/notes/2026/10/minimum-features-pause]]. This document is the copy for the
-next agent. No other agent has been spawned or messaged.
+**Resumed by the owner on October 29:** [[sources/notes/2026/10/minimum-features-resume]].
+Increment 1 is accepted for its bounded scope. Increment 2 is implemented, component
+checked and installed as native build 7, but its installed-window visual check has
+not run because macOS Screen Recording permission was not granted to the controlling
+app. **Do that check before starting increment 3.** Full suite: exit 0 in 6 minutes
+49 seconds with zero warnings, including core 557/0, native document lifecycle 27/0
+and 31 Splash checks. Exact evidence is in [[records/operations/implementation]] and the
+[continuation receipt](../../../integration/evidence/2026-10-30-minimum-increments-1-2.json.gz).
+
+The earlier pause source is [[sources/notes/2026/10/minimum-features-pause]]. The
+sections below keep the paused checkpoint detail; where they conflict, this section
+and the resume order at the end are current.
 
 The public repository is `carloslfu/sevra-app`. All in-flight code, tests and docs
 are preserved on branch `codex/sevra-minimum-features-handoff`, based on `170efa0`.
@@ -184,7 +192,35 @@ Do not modify the real Documents/Supplier test workbook. The current app window
 shows the synthetic `.build/design-audit/Comparison.sevra` original CSV. No original
 business data, microphone permission or model download was changed in this checkpoint.
 
+## Continuation result, October 29
+
+The missing-terms counterexample is fixed by `Sources/SevraAI/CostQualification.swift`,
+called from the finish validation in `WorkbookAgent.swift`. It applies only when the
+answer itself says a cost is unknown or missing. `RelatedOriginalChecks.swift` replays
+the exact failing answer and the audit answer, checks qualified counterexamples and
+runs a scripted correction with unchanged business state. Fresh actual-model probes
+under `.build/minimum-features/qualified/` complete both supplier cases with qualified
+wording; earlier probe folders stay untouched as failure history.
+
+Offscreen renders exposed table sizing problems, now fixed in `ReadOnlyTableView.swift`:
+content-aware widths (hug, whole-word minimum, then scroll for conversation tables;
+fill, then natural widths and scroll for original files), measured row heights with
+a padded container cell, six-line ellipsis, heading help text and persistent manual
+column widths. `ReadableTableChecks.swift` covers these cases. Reproduce the renders
+with `.build/debug/sevra-preview-checks --render-tables DIRECTORY`, where DIRECTORY
+holds `.md` answers and `.csv`/`.tsv` originals; local fixtures and PNGs are under
+`.build/minimum-features/visual/snapshots/`.
+
+Remaining installed-window checks for build 7, using scoped synthetic workbooks such
+as `.build/minimum-features/visual/Comparison.sevra` or the qualified probe packages:
+narrow and wide panes, wrapped values, horizontal and vertical overflow, row
+selection, context CSV/cell copy, source navigation, accessible values and light/dark.
+Do not modify the real Supplier workbook.
+
 ## Resume in this order
+
+The original order follows; steps 2 and 4 are complete, step 3 still needs the
+installed-window pass above, and step 6 waits for it.
 
 1. Check the branch/diff and read the contracts above. Preserve this work.
 2. Fix the missing-terms pricing counterexample and rerun its focused actual-model

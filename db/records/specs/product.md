@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-30T02:17:03.871791+00:00
+updated: 2026-10-30T03:04:42.170055+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
@@ -671,3 +671,12 @@ Copy as CSV. Preserve the display order and exact cell text; validate the entire
 selection before replacing the clipboard. Read-only cells, native scrolling and
 accessible row/column/value labels remain distinct from working-table editing.
 Message actions also provide Copy message. No raw JSON presentation is introduced.
+
+Size columns from their contents. A conversation table hugs its natural width when
+that fits; otherwise columns wrap toward whole-word minimums before the table
+scrolls horizontally. An original-file grid fills its viewer when the values fit and
+otherwise keeps natural column widths up to a readable limit and scrolls, rather
+than wrapping every column. Row heights follow the measured wrapped text with equal
+vertical padding. A cell longer than six lines ends in an ellipsis; its tooltip and
+copy actions keep the exact value. Truncated headings keep the full heading as help.
+A column width the person drags stays until the displayed content changes.

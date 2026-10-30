@@ -2,7 +2,7 @@
 type: operational
 id: 01m6578ccnp83zedvmr7gpp45q
 created: 2026-10-30T01:37:13.109871+00:00
-updated: 2026-10-30T02:23:30.519796+00:00
+updated: 2026-10-30T03:04:42.170055+00:00
 summary: Ordered bounded implementation, test and polish increments for the audited Sevra feature gaps.
 title: Minimum usable feature sequence
 ---
@@ -40,17 +40,16 @@ for data integrity, meaning, review, current-format reconstruction and authority
 
 ## Current work
 
-Paused by the owner for handoff, not completed:
-[[sources/notes/2026/10/minimum-features-pause]]. The exact source/checkpoint,
-retained failures and resume steps are in [[records/operations/agent-handoff]].
+Resumed by the owner after the handoff pause:
+[[sources/notes/2026/10/minimum-features-resume]]. Exact checks and limits are in
+[[records/operations/implementation]]; next steps are in
+[[records/operations/agent-handoff]].
 
-Increment 1 has bounded related-original discovery and stalled-search handling.
-The full CSV/PDF actual-model case now includes delivery/tax and qualifies unknown
-all-in costs. The missing-PDF counterexample still uses overly broad cheapest/total
-wording; finish this before acceptance. Increment 2 has native comparison and CSV/
-TSV grids with passing component/copy checks; its last visual refinements are built
-but not installed or visually checked. Both increments remain unfinished.
-
-The broad suite was stopped on the owner's pause, exit 143, and is not green.
-No test/build/inference process from this task remains active. Increments 3 through
-10 are queued; no implementation for them was started in this checkpoint.
+Increment 1 is accepted for its bounded scope. Both actual supplier cases qualify
+known goods-plus-shipping costs and leave the all-in ordering open, and a narrow
+finish check rejects the earlier "Total" and "Cheapest quote" wording when the same
+answer says costs are unknown. Increment 2 is implemented with content-aware sizing,
+component checks and offscreen renders; build 7 is installed. Its installed-window
+visual check waits for macOS Screen Recording permission, so increment 3 has not
+started. The full suite exits 0 with zero warnings, including core 557/0, native
+document lifecycle 27/0 and 31 Splash checks. Increments 3 through 10 remain queued.

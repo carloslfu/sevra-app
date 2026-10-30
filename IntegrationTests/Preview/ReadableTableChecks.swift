@@ -97,9 +97,11 @@ import SwiftUI
   try expect(clipboard.string(forType: .string) == "SKU\t0014\t0014\nSource\tCSV\tPDF")
   try expect(clipboard.string(forType: .html)?.contains("<table") == true)
   try expect(clipboard.string(forType: .tabularText) == clipboard.string(forType: .string))
-  if let field = grid.view(atColumn: 0, row: 0, makeIfNecessary: true) as? NSTextField {
+  if let field = (grid.view(atColumn: 0, row: 0, makeIfNecessary: true) as? NSTableCellView)?
+    .textField
+  {
     try expect(field.isAccessibilityElement())
-    try expect(field.accessibilityValue() as? String == "SKU")
+    try expect(field.accessibilityValue() == "SKU")
   } else {
     try expect(false)
   }
@@ -118,7 +120,80 @@ import SwiftUI
   try expect(clipboard.string(forType: .string)?.hasPrefix("Detail\tAtlas\tBrio\n") == true)
   try expect(menu.items.contains { $0.title == "Open CSV" })
   try expect(menu.items.contains { $0.title == "Open PDF" })
+  try checkTableSizing(expect)
   print(
-    "PASS native Markdown/CSV/TSV tables, exact text and links, multiline/large preview bounds, read-only multi-row cell copy and rich clipboard"
+    "PASS native Markdown/CSV/TSV tables, exact text and links, multiline/large preview bounds, read-only multi-row cell copy and rich clipboard, content-aware sizing"
   )
+}
+
+/// Compact comparisons fit narrow panes without wrapping or spare rows; wider
+/// data keeps whole words and scrolls; original files fill the viewer; and a
+/// person's column width survives a later pane resize.
+@MainActor private func checkTableSizing(_ expect: (Bool) throws -> Void) throws {
+  func host(_ content: PreviewTableContent, inline: Bool, width: CGFloat) -> (
+    NSWindow, NSHostingView<AnyView>, NSTableView
+  ) {
+    let view = ReadOnlyTableView(content: content, label: "Sizing", inline: inline)
+    let host = NSHostingView(
+      rootView: AnyView(view.frame(width: width, height: inline ? nil : 300, alignment: .leading)))
+    let window = NSWindow(
+      contentRect: NSRect(x: 0, y: 0, width: width, height: 400), styleMask: [.borderless],
+      backing: .buffered, defer: false)
+    window.contentView = host
+    for _ in 0..<3 {
+      host.layoutSubtreeIfNeeded()
+      RunLoop.main.run(until: Date().addingTimeInterval(0.02))
+    }
+    func grid(_ view: NSView) -> NSTableView? {
+      (view as? NSTableView) ?? view.subviews.lazy.compactMap(grid).first
+    }
+    return (window, host, grid(host)!)
+  }
+  func extent(_ grid: NSTableView) -> CGFloat {
+    grid.rect(ofColumn: grid.numberOfColumns - 1).maxX + grid.rect(ofColumn: 0).minX
+  }
+  let comparison = PreviewTableContent(
+    headings: ["", "Atlas", "Brio"],
+    rows: [
+      ["Unit price", "1.20", "1.15"], ["Goods (100 × unit)", "120.00", "115.00"],
+      ["Shipping", "10.00", "20.00"], ["**Goods + Shipping**", "**130.00**", "**135.00**"],
+    ], markdown: true)
+  let (_, _, compact) = host(comparison, inline: true, width: 340)
+  let compactScroll = compact.enclosingScrollView!
+  try expect(compactScroll.frame.width < 340)
+  try expect(extent(compact) <= compactScroll.contentView.bounds.width + 0.5)
+  try expect((0..<compact.numberOfRows).allSatisfy { compact.rect(ofRow: $0).height == 30 })
+  let rows = (0..<compact.numberOfRows).reduce(0) { $0 + compact.rect(ofRow: $1).height }
+  try expect(compactScroll.frame.height == rows + (compact.headerView?.frame.height ?? 0) + 4)
+  let wide = PreviewTableContent(
+    headings: ["Supplier", "Product", "Known goods-plus-shipping", "Delivery", "Tax", "Notes"],
+    rows: [
+      [
+        "Cobalt Supply Cooperative", "Stainless M6 bolts with nylon insert lock nuts", "142.50",
+        "2 to 3 weeks after deposit", "8% sales tax", "Leading zeros: 0014",
+      ]
+    ], markdown: true)
+  let (_, _, scrolling) = host(wide, inline: true, width: 340)
+  try expect(extent(scrolling) > scrolling.enclosingScrollView!.contentView.bounds.width)
+  let font = NSFont.systemFont(ofSize: 13)
+  for (column, value) in zip(scrolling.tableColumns, wide.rows[0]) {
+    let longest = value.split(separator: " ").map {
+      (String($0) as NSString).size(withAttributes: [.font: font]).width
+    }.max()!
+    try expect(column.width >= ceil(longest))
+  }
+  let original = PreviewTableContent(headings: ["SKU", "Name"], rows: [["0014", "Brass bolts"]])
+  let (window, viewer, filled) = host(original, inline: false, width: 600)
+  let visible = filled.enclosingScrollView!.contentView.bounds.width
+  try expect(abs(extent(filled) - visible) <= 1)
+  filled.tableColumns[0].width += 40
+  let chosen = filled.tableColumns[0].width
+  window.setContentSize(NSSize(width: 700, height: 400))
+  viewer.rootView = AnyView(
+    ReadOnlyTableView(content: original, label: "Sizing").frame(width: 700, height: 300))
+  for _ in 0..<3 {
+    viewer.layoutSubtreeIfNeeded()
+    RunLoop.main.run(until: Date().addingTimeInterval(0.02))
+  }
+  try expect(filled.tableColumns[0].width == chosen)
 }

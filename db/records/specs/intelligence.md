@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-30T02:17:03.843026+00:00
+updated: 2026-10-30T03:04:42.170055+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -225,7 +225,17 @@ as a denial, alongside the existing explicit read-only sentences.
 Compare known goods-plus-shipping costs separately from an unknown final all-in
 cost. Missing tax or other required charges prevent a definitive all-in ordering.
 A shared CSV is itself evidence; a separate quotation for every row need not exist.
-The host does not claim universal semantic validation of the resulting prose.
+
+A narrow finish check enforces the answer's own consistency. When an English answer
+says a cost such as tax, a fee or a charge is unknown, missing or not provided, it
+cannot label an amount as a total or name the cheapest or lowest quote unless that
+same sentence or table cell states its basis, such as known goods-plus-shipping
+cost or before tax, or says the result is undetermined. Any such ranking also needs
+a statement that the final all-in ordering or cost cannot be determined yet. The
+rejected answer gets the ordinary bounded correction turn. Quantity and count totals,
+answers whose costs are all known and missing non-cost terms such as delivery time
+do not trigger it. This is wording consistency, not universal semantic validation,
+coverage of other languages or proof that every partial-cost phrasing is caught.
 ## Request admission and restart
 Acquire the exclusive inference lease before recovering abandoned runs. Persist the original user message, its run and their exact linkage in one workbook transaction. If admission fails, roll back the complete write and release any lease actually acquired. Do not call endRun for a lease that was refused.
 

@@ -45,9 +45,13 @@ private actor ReadGate {
         try await checkLargePreview(at: URL(fileURLWithPath: CommandLine.arguments[2]))
         return
       }
+      if CommandLine.arguments.count == 3, CommandLine.arguments[1] == "--render-tables" {
+        try renderTableSnapshots(in: URL(fileURLWithPath: CommandLine.arguments[2]))
+        return
+      }
       try require(
         CommandLine.arguments.count == 1, "arguments",
-        "Use --large-asset NEW_DIRECTORY or no arguments.")
+        "Use --large-asset NEW_DIRECTORY, --render-tables DIRECTORY or no arguments.")
       try await run()
       try await checkWorkspaceOperations()
       try await checkWorkspaceRefresh()

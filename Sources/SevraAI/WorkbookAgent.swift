@@ -547,6 +547,9 @@ public enum WorkbookAgent {
             problems.append(
               "Call compare_rows or calculate for comparisons and arithmetic before answering.")
           }
+          if CostQualification.overstates(modelAnswer) {
+            problems.append(CostQualification.feedback)
+          }
           let regex = try NSRegularExpression(pattern: "([0-9]+(?:\\.[0-9]+)?)\\s*%")
           for match in regex.matches(
             in: modelAnswer, range: NSRange(modelAnswer.startIndex..., in: modelAnswer))

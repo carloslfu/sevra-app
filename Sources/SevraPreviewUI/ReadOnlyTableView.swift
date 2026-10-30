@@ -63,6 +63,40 @@ private final class PreviewGrid: NSTableView {
   }
 }
 
+/// Equal vertical padding; text that exceeds the row limit ends in an ellipsis.
+private final class PreviewCell: NSTableCellView {
+  let field = NSTextField(wrappingLabelWithString: "")
+  init() {
+    super.init(frame: .zero)
+    field.isEditable = false
+    field.isSelectable = false
+    field.textColor = .labelColor
+    field.cell?.truncatesLastVisibleLine = true
+    field.setAccessibilityElement(true)
+    field.setAccessibilityRole(.staticText)
+    field.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(field)
+    textField = field
+    NSLayoutConstraint.activate([
+      field.leadingAnchor.constraint(equalTo: leadingAnchor),
+      field.trailingAnchor.constraint(equalTo: trailingAnchor),
+      field.topAnchor.constraint(equalTo: topAnchor, constant: PreviewCell.padding),
+      field.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -PreviewCell.padding),
+    ])
+  }
+  required init?(coder: NSCoder) { nil }
+  static let padding: CGFloat = 6
+}
+
+/// Refits content-aware columns when the visible width changes.
+private final class PreviewScroll: NSScrollView {
+  var refit: ((CGFloat) -> Void)?
+  override func layout() {
+    super.layout()
+    refit?(contentView.bounds.width)
+  }
+}
+
 private struct ReadOnlyGrid: NSViewRepresentable {
   let content: PreviewTableContent
   let label: String
@@ -76,15 +110,19 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     grid.delegate = context.coordinator
     grid.dataSource = context.coordinator
     grid.allowsMultipleSelection = true
-    grid.columnAutoresizingStyle = .uniformColumnAutoresizingStyle
+    // The coordinator sizes columns from their contents and the visible width.
+    grid.columnAutoresizingStyle = .noColumnAutoresizing
+    grid.style = .inset
     grid.gridStyleMask = [.solidHorizontalGridLineMask]
     grid.headerView = NSTableHeaderView()
-    grid.rowHeight = 34
+    grid.rowHeight = 30
     grid.usesAlternatingRowBackgroundColors = false
-    let scroll = NSScrollView()
+    let scroll = PreviewScroll()
+    scroll.borderType = .noBorder
     scroll.hasHorizontalScroller = true
     scroll.hasVerticalScroller = true
     scroll.documentView = grid
+    scroll.refit = { [weak coordinator = context.coordinator] width in coordinator?.fit(width) }
     context.coordinator.grid = grid
     updateNSView(scroll, context: context)
     return scroll
@@ -111,13 +149,15 @@ private struct ReadOnlyGrid: NSViewRepresentable {
       for (index, heading) in content.headings.enumerated() {
         let column = NSTableColumn(identifier: .init(String(index)))
         column.title = content.plain(heading)
+        column.headerToolTip = column.title
         column.isEditable = false
-        column.width = index == 0 ? 180 : 150
-        column.minWidth = 70
+        column.minWidth = 40
         grid.addTableColumn(column)
       }
       coordinator.headings = content.headings
     }
+    coordinator.measure()
+    if scroll.window != nil { coordinator.fit(scroll.contentView.bounds.width) }
     grid.reloadData()
     grid.selectRowIndexes(
       oldSelection.intersection(IndexSet(content.rows.indices)), byExtendingSelection: false)
@@ -126,17 +166,18 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     -> CGSize?
   {
     guard inline, let grid = scroll.documentView as? PreviewGrid else { return nil }
-    let width = proposal.width ?? 380
-    if abs(grid.frame.width - width) > 1 {
-      grid.setFrameSize(NSSize(width: width, height: grid.frame.height))
-      grid.sizeToFit()
-    }
+    let coordinator = context.coordinator
+    let proposed = proposal.width.flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
+    // Compact tables hug their contents; wider data keeps the pane width and scrolls.
+    let widths = coordinator.widths(available: proposed ?? .greatestFiniteMagnitude)
+    let needed = coordinator.contentWidth(widths)
+    let width = min(proposed ?? needed, needed)
     var height: CGFloat = grid.headerView?.frame.height ?? 24
     for row in content.rows.indices {
-      height += context.coordinator.tableView(grid, heightOfRow: row) + grid.intercellSpacing.height
+      height += coordinator.rowHeight(row, widths: widths) + grid.intercellSpacing.height
       if height >= 300 { break }
     }
-    let horizontal = grid.tableColumns.reduce(0) { $0 + $1.width } > width ? 17.0 : 0
+    let horizontal = needed > width + 1 ? 17.0 : 0
     return .init(width: width, height: min(320, max(70, height + horizontal + 4)))
   }
   @MainActor final class Coordinator: NSObject, NSTableViewDataSource, NSTableViewDelegate {
@@ -144,7 +185,111 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     weak var grid: PreviewGrid?
     var headings: [String] = []
     var actions: [Int: () -> Void] = [:]
+    private var ideal: [CGFloat] = []
+    private var minimum: [CGFloat] = []
+    private var fittedWidth: CGFloat = -1
+    private var applyingWidths = false
+    private var userResized = false
+    private var heights: [Int: CGFloat] = [:]
+    private let measuring = NSTextField(wrappingLabelWithString: "")
+    static let font = NSFont.systemFont(ofSize: 13)
+    static let maximumLines = 6
     init(_ parent: ReadOnlyGrid) { self.parent = parent }
+    /// Natural widths avoid wrapping short values; minimum widths keep whole
+    /// words and most of each heading visible before horizontal scrolling.
+    func measure() {
+      let headingFont = grid?.tableColumns.first?.headerCell.font ?? .systemFont(ofSize: 11)
+      func width(_ text: Substring, _ font: NSFont) -> CGFloat {
+        ceil((String(text) as NSString).size(withAttributes: [.font: font]).width)
+      }
+      let content = parent.content
+      ideal = []
+      minimum = []
+      for (index, heading) in content.headings.enumerated() {
+        var natural: CGFloat = 0
+        var word: CGFloat = 0
+        for row in content.rows.prefix(300) where row.indices.contains(index) {
+          let text = content.plain(row[index]).prefix(1000)
+          for line in text.split(whereSeparator: \.isNewline) {
+            natural = max(natural, width(line, Self.font))
+          }
+          for token in text.split(whereSeparator: \.isWhitespace) {
+            word = max(word, width(token, Self.font))
+          }
+        }
+        let title = width(Substring(content.plain(heading)), headingFont) + 18
+        let best = min(320, max(48, natural + 10, title))
+        ideal.append(best)
+        minimum.append(min(best, max(48, min(word + 10, 150), min(title, 96))))
+      }
+      fittedWidth = -1
+      userResized = false
+      heights = [:]
+    }
+    /// Message tables hug their contents, then wrap toward whole-word minimums
+    /// before scrolling. Original files fill the viewer, then keep natural widths
+    /// and scroll like a spreadsheet instead of wrapping every column.
+    func widths(available: CGFloat) -> [CGFloat] {
+      let space = available - overhead()
+      let total = ideal.reduce(0, +)
+      if total <= space {
+        guard !parent.inline, total > 0 else { return ideal }
+        return ideal.map { $0 + ($0 / total) * (space - total) }
+      }
+      let floor = minimum.reduce(0, +)
+      guard parent.inline, floor < space else { return parent.inline ? minimum : ideal }
+      let flexible = zip(ideal, minimum).reduce(0) { $0 + $1.0 - $1.1 }
+      return zip(ideal, minimum).map { $0.1 + ($0.0 - $0.1) / flexible * (space - floor) }
+    }
+    /// Inset rows add leading/trailing margins and spacing between columns.
+    func overhead() -> CGFloat {
+      guard let grid, grid.numberOfColumns > 0 else { return 0 }
+      let columns = grid.tableColumns.reduce(0) { $0 + $1.width }
+      return grid.rect(ofColumn: grid.numberOfColumns - 1).maxX - columns
+        + grid.rect(ofColumn: 0).minX
+    }
+    func contentWidth(_ widths: [CGFloat]) -> CGFloat { ceil(widths.reduce(0, +) + overhead()) }
+    func fit(_ available: CGFloat) {
+      guard let grid, !userResized, abs(available - fittedWidth) > 0.5,
+        grid.tableColumns.count == ideal.count
+      else { return }
+      fittedWidth = available
+      var widths = widths(available: available).map { floor($0) }
+      // Whole points can leave a remainder; give it to the widest column.
+      let space = floor(available - overhead())
+      if let widest = widths.indices.max(by: { widths[$0] < widths[$1] }),
+        widths.reduce(0, +) < space, widths.reduce(0, +) > space - CGFloat(widths.count)
+      {
+        widths[widest] += space - widths.reduce(0, +)
+      }
+      applyingWidths = true
+      for (column, width) in zip(grid.tableColumns, widths) { column.width = width }
+      applyingWidths = false
+      updateHeights()
+    }
+    /// Refitting must not animate rows through intermediate, truncated heights.
+    func updateHeights() {
+      guard let grid else { return }
+      heights = [:]
+      NSAnimationContext.runAnimationGroup { context in
+        context.duration = 0
+        grid.noteHeightOfRows(withIndexesChanged: IndexSet(parent.content.rows.indices))
+      }
+    }
+    func rowHeight(_ row: Int, widths: [CGFloat]) -> CGFloat {
+      guard parent.content.rows.indices.contains(row) else { return 30 }
+      var height: CGFloat = 0
+      measuring.font = Self.font
+      for (index, value) in parent.content.rows[row].enumerated() where index < widths.count {
+        measuring.stringValue = String(parent.content.plain(value).prefix(1024))
+        let size = measuring.cell!.cellSize(
+          forBounds: NSRect(x: 0, y: 0, width: floor(widths[index]), height: 10_000))
+        height = max(height, size.height)
+      }
+      let line = ceil(Self.font.ascender - Self.font.descender + Self.font.leading)
+      let text = ceil(min(height, line * CGFloat(Self.maximumLines) + 4))
+      return max(30, text + 2 * PreviewCell.padding)
+    }
     func numberOfRows(in tableView: NSTableView) -> Int { parent.content.rows.count }
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int)
       -> NSView?
@@ -153,40 +298,31 @@ private struct ReadOnlyGrid: NSViewRepresentable {
         parent.content.rows.indices.contains(row), parent.content.rows[row].indices.contains(column)
       else { return nil }
       let identifier = NSUserInterfaceItemIdentifier("preview-cell")
-      let field =
-        tableView.makeView(withIdentifier: identifier, owner: self) as? NSTextField
-        ?? NSTextField(wrappingLabelWithString: "")
-      field.identifier = identifier
-      field.isEditable = false
-      field.isSelectable = false
-      field.font = .systemFont(ofSize: 13)
-      field.textColor = .labelColor
+      let cell =
+        tableView.makeView(withIdentifier: identifier, owner: self) as? PreviewCell
+        ?? PreviewCell()
+      cell.identifier = identifier
+      let field = cell.field
+      field.font = Self.font
       let value = parent.content.rows[row][column]
       field.stringValue = parent.content.plain(value)
       field.toolTip = String(parent.content.plain(value).prefix(4000))
-      field.setAccessibilityElement(true)
-      field.setAccessibilityRole(.staticText)
       field.setAccessibilityLabel(
         (tableColumn?.title.isEmpty == false ? tableColumn!.title : "Value") + ", row \(row + 1)")
       field.setAccessibilityValue(parent.content.plain(value))
-      return field
+      return cell
     }
     func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
-      guard parent.content.rows.indices.contains(row) else { return 34 }
-      var height: CGFloat = 34
-      for (index, value) in parent.content.rows[row].enumerated()
-      where index < tableView.tableColumns.count {
-        let size = (String(parent.content.plain(value).prefix(1024)) as NSString).boundingRect(
-          with: NSSize(width: max(40, tableView.tableColumns[index].width - 14), height: 110),
-          options: [.usesLineFragmentOrigin, .usesFontLeading],
-          attributes: [.font: NSFont.systemFont(ofSize: 13)])
-        height = max(height, min(120, ceil(size.height) + 14))
-      }
+      if let height = heights[row] { return height }
+      let height = rowHeight(row, widths: tableView.tableColumns.map(\.width))
+      heights[row] = height
       return height
     }
     func tableViewColumnDidResize(_ notification: Notification) {
-      guard let grid else { return }
-      grid.noteHeightOfRows(withIndexesChanged: IndexSet(parent.content.rows.indices))
+      guard !applyingWidths else { return }
+      // A person's column width stays until the displayed content changes.
+      userResized = true
+      updateHeights()
     }
     func copy(headings: Bool, csv: Bool) {
       guard let grid else { return }

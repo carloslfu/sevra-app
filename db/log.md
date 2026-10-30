@@ -1390,3 +1390,9 @@ Completed design-to-code audit on 5f55035: broad suite passes; retained native-m
 ## [2026-10-30 02:23] implementation | records/operations/agent-handoff.md
 Owner-paused unfinished increments1 and2; stopped full suite143, preserved source-bound failure evidence and detailed ordered handoff. Focused agent/preview checks pass; final pricing wording and installed visual checks remain.
 
+## [2026-10-30 03:04] implementation | records/operations/agent-handoff.md
+Resumed increments 1 and 2: narrow missing-cost wording check, content-aware read-only table sizing, offscreen snapshot mode; native build 7 installed. Installed-window check pending Screen Recording permission.
+
+## [2026-10-30 03:04] verification | records/operations/implementation.md
+Focused related-original, full agent regression (42), preview checks, native build 7, package paths-only and bash scripts/check.sh exit 0; two fresh actual-model supplier probes complete with qualified wording. Receipt 91f2b910.
+

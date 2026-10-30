@@ -105,6 +105,98 @@ private actor StalledOriginalInference: WorkbookInference {
   }
 }
 
+/// Replays the actual missing-terms answer that labeled partial sums as totals
+/// and the cheapest quote, then supplies the qualified correction.
+private actor MissingCostInference: WorkbookInference {
+  let identity = "scripted missing cost qualification"
+  let lastMetrics: Value = .null
+  let quotes: String
+  var step = 0
+  init(quotes: String) { self.quotes = quotes }
+  func beginRun() {}
+  func endRun() {}
+  func respond(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
+  ) throws -> NativeReply {
+    step += 1
+    let tool: String
+    let args: Value
+    switch step {
+    case 1:
+      tool = "search"
+      args = .object(["query": .string("Atlas")])
+    case 2:
+      tool = "read"
+      args = .object(["id": .string(quotes)])
+    case 3:
+      let result = try Value.parse(messages.last!.content)
+      try expectEqual(result["item"]["id"].text, quotes)
+      try expectEqual(result["requestEvidence"]["originals"].array.isEmpty, true)
+      tool = "calculate"
+      args = .object(["expression": .string("SUM(100*1.20, 10)")])
+    case 4:
+      tool = "finish"
+      args = .object([
+        "answer": .string(
+          "**Atlas:**\n- Unit price: 1.20 × 100 = 120.00\n- Shipping: 10.00\n- **Total: 130.00**\n\n**Brio:**\n- Unit price: 1.15 × 100 = 115.00\n- Shipping: 20.00\n- **Total: 135.00**\n\n**Cheapest quote: Atlas at 130.00** (Brio is 5.00 more at 135.00).\n\n**Missing terms:** The quoted file does not include delivery terms or tax information for either supplier. Those costs cannot be determined from the available evidence."
+        ),
+        "basis": .string("evidence"), "citations": .array([.string(quotes)]),
+      ])
+    default:
+      try expectEqual(step, 5)
+      let feedback = try Value.parse(messages.last!.content)["error"].text
+      try expectEqual(feedback, CostQualification.feedback)
+      tool = "finish"
+      args = .object([
+        "answer": .string(
+          "**Atlas:** known goods-plus-shipping cost 130.00\n**Brio:** known goods-plus-shipping cost 135.00\n\n**Lowest known cost:** Atlas at 130.00, 5.00 less than Brio.\n\nThe quoted file does not include delivery terms or tax information. The final all-in ordering cannot be determined until the missing costs are known."
+        ),
+        "basis": .string("evidence"), "citations": .array([.string(quotes)]),
+      ])
+    }
+    return .init(text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try args.json())])
+  }
+}
+
+func checkCostQualification(root: URL) async throws {
+  for text in [
+    "Atlas: goods plus shipping 130.00. Tax is unknown for both. Atlas is the cheapest quote.",
+    "Atlas has the lowest known goods-plus-shipping cost at 130.00. Tax rates were not provided.",
+    "| Supplier | Goods | Shipping | Total |\n|---|---|---|---|\n| Atlas | 120 | 10 | 130 |\n\nTax is not specified.",
+    "Atlas: goods 120.00, shipping 10.00, total 130.00. The CSV does not include tax.",
+    // The October 29 audit answer before this check.
+    "| | Atlas | Brio |\n|---|---|---|\n| Shipping | 10.00 | 20.00 |\n| **Total** | **130.00** | **135.00** |\n\n**Winner: Atlas is cheapest at 130.00, saving 5.00 (3.7%) compared to Brio's 135.00.**\n\nThe source file (supplier-quotes.csv) does not include tax rates or delivery terms.",
+  ] { try expectEqual(CostQualification.overstates(text), true) }
+  for text in [
+    "Atlas is cheaper by USD 5.00 on goods plus shipping (USD 130.00 vs. USD 135.00). Tax: excluded; no tax rate was provided. The final all-in ordering cost cannot be determined.",
+    "Atlas total including 8% tax: 140.40. Brio total including 8% tax: 145.80. Atlas is the cheapest quote.",
+    "Delivery terms are not documented. Atlas total (goods, shipping and 8% tax): 140.40; Atlas is cheapest.",
+    "Shipping method not specified. Grand total including tax: 140.40.",
+    "Total before tax: 130.00 for Atlas. Tax rates are unknown, so the final all-in ordering cannot be determined. Atlas is cheaper before tax.",
+    "Atlas total excl. VAT: 130.00. VAT rate not provided; the final all-in comparison cannot be determined.",
+    "Total quantity: 100 bolts. The CSV does not include tax.",
+  ] { try expectEqual(CostQualification.overstates(text), false) }
+  let book = try Workbook.create(
+    at: root.appendingPathComponent("Missing terms.sevra"), title: "Missing terms")
+  let file = root.appendingPathComponent("supplier-quotes.csv")
+  let text = "supplier,quantity,unit_price,shipping,currency\nAtlas,100,1.20,10,USD\nBrio,100,1.15,20,USD"
+  try Data(text.utf8).write(to: file)
+  let quotes = try book.importFile(file)
+  try book.index(quotes.id, chunks: [Chunk(text, locator: "text")])
+  let before = try book.items().filter { $0.kind != "request" }
+  let reply = try await WorkbookAgent.run(
+    "Compare Atlas and Brio for 100 brass M6 bolts. Include goods, shipping, delivery and tax terms, and say which quote is cheapest. Cite the included files. Do not change or save anything.",
+    workbook: book, model: MissingCostInference(quotes: quotes.id))
+  try expectEqual(reply.state, "complete")
+  try expectEqual(reply.steps, 5)
+  try expectEqual(reply.answer.contains("Lowest known cost"), true)
+  try expectEqual(reply.answer.contains("Cheapest quote"), false)
+  try expectEqual(try book.items().filter { $0.kind != "request" }, before)
+  try expectEqual(try book.verify()["ok"], .bool(true))
+}
+
 func checkRelatedOriginals() async throws {
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-originals-" + identifier())
@@ -227,7 +319,8 @@ func checkRelatedOriginals() async throws {
     try WorkbookTools(book, cancellation: cancel, requestSourceID: request.id).execute("read", args)
   )
   try expectEqual(try book.verify()["ok"], .bool(true))
+  try await checkCostQualification(root: root)
   print(
-    "PASS request-wide original excerpts, exact citations, historical/unrelated/partial exclusion, cancellation and unchanged business state"
+    "PASS request-wide original excerpts, exact citations, historical/unrelated/partial exclusion, cancellation, missing-cost qualification and unchanged business state"
   )
 }
