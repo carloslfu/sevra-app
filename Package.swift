@@ -56,7 +56,7 @@ let package = Package(
         .product(name: "Markdown", package: "swift-markdown"),
       ], swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
-      name: "SevraPreviewChecks", dependencies: ["SevraCore", "SevraPreviewUI"],
+      name: "SevraPreviewChecks", dependencies: ["SevraCore", "SevraPreviewUI", "SevraTableUI"],
       path: "IntegrationTests/Preview", swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraDocumentUI", dependencies: ["SevraCore"], swiftSettings: [.swiftLanguageMode(.v5)]

@@ -260,6 +260,9 @@ extension Workbook {
     let input = parsed.rows
     let headerRow = parsed.headerRow
     try require(
+      !(try hasRecalculatingFormulas(datasetID)), "update_formulas",
+      "This table has Excel formulas that recalculate, so a reviewed update cannot change it yet.")
+    try require(
       mapping.count == header.count && Set(mapping.map(\.position)) == Set(header.indices),
       "update_mapping", "Map or explicitly ignore each incoming column once.")
     let targets = mapping.compactMap(\.target)

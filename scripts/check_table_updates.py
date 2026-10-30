@@ -12,7 +12,8 @@ import zipfile
 
 def write_xlsx(path, sheets, formats=None):
     """Writes the smallest Office package the importer reads. A cell is a value, or a
-    (value, attributes) pair. Strings are inline; tuples set type, style and formula."""
+    (value, attributes) pair. Strings are inline; tuples set type, style and formula.
+    The attribute f is a raw formula element, for shared and array formulas."""
     names = list(sheets)
     numbers = ''.join(f'<numFmt numFmtId="{164 + i}" formatCode="{escape(code)}"/>'
                       for i, code in enumerate(formats or []))
@@ -33,7 +34,7 @@ def write_xlsx(path, sheets, formats=None):
                     value, extra = cell if isinstance(cell, tuple) else (cell, {})
                     reference = '' if extra.get('bare') else f' r="{chr(65 + column)}{number}"'
                     style = f' s="{extra["style"]}"' if 'style' in extra else ''
-                    formula = f'<f>{escape(extra["formula"])}</f>' if 'formula' in extra else ''
+                    formula = extra.get('f') or (f'<f>{escape(extra["formula"])}</f>' if 'formula' in extra else '')
                     if value is None:
                         cells += f'<c{reference}{style}>{formula}</c>'
                     elif extra.get('error'):

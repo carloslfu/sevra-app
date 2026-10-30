@@ -70,7 +70,7 @@ struct IntakeView: View {
                 if choice.supportsTable {
                   Text(
                     choice.title.lowercased().hasSuffix(".xlsx")
-                      ? "Imports saved Excel values. Original formulas are kept as evidence and will not recalculate."
+                      ? "Imports saved Excel values. Simple formulas recalculate after edits. Others keep their saved value and say so."
                       : "The first row becomes column headings. Check the resulting table before using it."
                   )
                   .font(.caption).foregroundStyle(.secondary)

@@ -11,9 +11,13 @@ public struct ImportedSheet: Codable, Sendable {
   /// "uncached" (a formula with no saved result) or "format" (a number Excel shows
   /// differently, such as 14 under the format 0000).
   public let unsettled: [String: String]
+  /// Cells only Excel can recalculate: "array", "dataTable" or "shared" for a shared
+  /// formula whose first cell is missing. "*" stands for an area too large to list.
+  public let formulaKinds: [String: String]
   public init(
     name: String, rows: [[String]], rowNumbers: [Int], notes: [String],
-    formulas: [String: String], unsettled: [String: String] = [:]
+    formulas: [String: String], unsettled: [String: String] = [:],
+    formulaKinds: [String: String] = [:]
   ) {
     self.name = name
     self.rows = rows
@@ -21,6 +25,7 @@ public struct ImportedSheet: Codable, Sendable {
     self.notes = notes
     self.formulas = formulas
     self.unsettled = unsettled
+    self.formulaKinds = formulaKinds
   }
 }
 public enum XLSX {
@@ -114,7 +119,7 @@ public enum XLSX {
         .init(
           name: name, rows: sheet.rows, rowNumbers: sheet.rowNumbers,
           notes: Array(sheet.notes).sorted(), formulas: sheet.formulas,
-          unsettled: sheet.unsettled))
+          unsettled: sheet.unsettled, formulaKinds: sheet.formulaKinds))
     }
     try StructuredResult(sheets: result).validate()
     return result
@@ -199,9 +204,14 @@ private final class StylesXML: NSObject, XMLParserDelegate {
 private final class SheetXML: NSObject, XMLParserDelegate {
   let shared: [String], styles: StylesXML, epoch1904: Bool, cancellation: Cancellation
   var rows: [[String]] = [], rowNumbers: [Int] = [], notes = Set<String>(),
-    formulas: [String: String] = [:], unsettled: [String: String] = [:], failure: Error?
+    formulas: [String: String] = [:], unsettled: [String: String] = [:],
+    formulaKinds: [String: String] = [:], failure: Error?
   var current: [Int: String] = [:], number = 0, column = 0, reference = "", type = "", style = 0,
     value = "", formula = "", reading = "", count = 0
+  var formulaType = "", formulaGroup = "", formulaRange = ""
+  var sharedFormulas: [String: (text: String, column: Int, row: Int)] = [:]
+  /// A short file can expand into far more text than it holds, so count what it expands to.
+  var expandedFormulaBytes = 0, filledCells = 0
   init(shared: [String], styles: StylesXML, epoch1904: Bool, cancellation: Cancellation) {
     self.shared = shared
     self.styles = styles
@@ -251,6 +261,9 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       style = Int(a["s"] ?? "") ?? 0
       value = ""
       formula = ""
+      formulaType = ""
+      formulaGroup = ""
+      formulaRange = ""
       count += 1
       if column > 500 || rows.count >= 100_000 || count > 1_000_000 {
         failure = SevraError(
@@ -259,6 +272,11 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       }
     }
     if ["v", "t", "f"].contains(name) { reading = name }
+    if name == "f" {
+      formulaType = a["t"] ?? ""
+      formulaGroup = a["si"] ?? ""
+      formulaRange = a["ref"] ?? ""
+    }
   }
   func parser(_ parser: XMLParser, foundCharacters text: String) {
     if reading == "f" { formula += text } else if reading == "v" || reading == "t" { value += text }
@@ -307,11 +325,28 @@ private final class SheetXML: NSObject, XMLParserDelegate {
           notes.insert("Numbers use the 15 significant digits Excel shows.")
         }
       }
+      if formulaType == "shared" {
+        // Excel writes a filled formula once, on its first cell.
+        if !formula.isEmpty {
+          sharedFormulas[formulaGroup] = (formula, column - 1, number)
+        } else if let first = sharedFormulas[formulaGroup] {
+          expandedFormulaBytes += first.text.utf8.count
+          if expandedFormulaBytes > 32_000_000 {
+            failure = SevraError("xlsx_limit", "Shared formulas expand past the 32 MB import limit.")
+            parser.abortParsing()
+            return
+          }
+          formula = SheetFormula.shifted(
+            first.text, columns: column - 1 - first.column, rows: number - first.row)
+        } else {
+          formulaKinds[reference] = "shared"
+        }
+      } else if formulaType == "array" || formulaType == "dataTable" {
+        recordFilledCells()
+      }
       if !formula.isEmpty {
         formulas[reference] = formula
-        notes.insert(
-          "Formula cells use saved values; formulas are preserved as evidence and are not recalculated."
-        )
+        notes.insert("Formula cells start from the values Excel saved.")
         if value.isEmpty {
           text = "#NO_CACHED_VALUE"
           unsettled[reference] = "uncached"
@@ -322,6 +357,26 @@ private final class SheetXML: NSObject, XMLParserDelegate {
     if name == "row", let last = current.keys.max() {
       rows.append((0...last).map { current[$0] ?? "" })
       rowNumbers.append(number)
+    }
+  }
+  private func recordFilledCells() {
+    let ends = formulaRange.split(separator: ":").compactMap { SheetFormulaToken.address(String($0)) }
+    guard let first = ends.first, let last = ends.last, first.row <= last.row,
+      first.column <= last.column
+    else {
+      formulaKinds[reference] = formulaType
+      return
+    }
+    let size = (last.row - first.row + 1) * (last.column - first.column + 1)
+    filledCells += size
+    guard size <= SheetFormula.rangeLimit, filledCells <= 1_000_000 else {
+      formulaKinds["*"] = formulaType
+      return
+    }
+    for row in first.row...last.row {
+      for column in first.column...last.column {
+        formulaKinds[XLSX.cellName(column: column, row: row)] = formulaType
+      }
     }
   }
   /// Excel writes binary doubles with up to 17 digits, so a cell showing 1.15 can
@@ -359,6 +414,7 @@ extension Workbook {
     // Recheck linked/included original bytes after parsing and before publication.
     _ = try assetURL(asset, verify: true, cancellation: cancellation)
     var tables: [Dataset] = []
+    var imported: [ImportedSheet] = []
     let total = sheets.reduce(0) { $0 + $1.rows.count }
     var finished = 0
     for sheet in sheets where !sheet.rows.isEmpty {
@@ -384,8 +440,10 @@ extension Workbook {
           title: source.title + " · " + sheet.name, columns: columns, rows: rows,
           sourceID: evidence.id, cancellation: cancellation,
           progress: { done, _ in progress(finished + done, total) }))
+      imported.append(sheet)
       finished += sheet.rows.count
     }
+    try recordSheetFormulas(sourceID: sourceID, sheets: imported, tables: tables)
     return tables
   }
   public static func spreadsheetColumn(_ zero: Int) -> String {

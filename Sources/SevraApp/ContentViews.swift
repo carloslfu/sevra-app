@@ -562,6 +562,7 @@ struct DatasetView: View {
   }
   @State private var column = 0
   @State private var clipboardStatus = ""
+  @State private var showingFormulas = false
   private var pageIsCurrent: Bool { loader.loadedQuery == query && !loader.loading }
   private var canPaste: Bool {
     pageIsCurrent && !selection.isEmpty && !table.archived && !state.busy
@@ -692,6 +693,13 @@ struct DatasetView: View {
       }
       if let saved = state.savedRows(table) {
         Text("Import unfinished: " + saved).font(.caption).foregroundStyle(.secondary)
+      }
+      if let report = loader.page?.formulaReport {
+        Button(report.summary) { showingFormulas = true }
+          .buttonStyle(.link).font(.caption)
+          .popover(isPresented: $showingFormulas, arrowEdge: .top) {
+            ExcelFormulaReportView(report: report)
+          }
       }
       if !selection.isEmpty {
         Text("\(selection.count) selected on this page").font(.caption).foregroundStyle(.secondary)

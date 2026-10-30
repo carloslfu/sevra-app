@@ -55,5 +55,8 @@ ran in the installed app through explicit acceptance and Undo. Every stored colu
 still be mapped. Increment 4 is accepted: a 30 MB file that failed on its first batch and
 a 99,999-row file now save in batches inside the saved-change limit, and Stop, a killed
 process and retry repeat no rows, with progress counting committed rows only. A short row
-still costs about 10 KB of workbook storage. Increment 5 is next; increments 6 through 10
-remain queued.
+still costs about 10 KB of workbook storage. Increment 5 is accepted: a declared Excel
+subset recalculates after edits, Undo, export and reopen, 3,600 formulas calculated by
+LibreOffice match it on import and after edits, and every other formula keeps its saved
+value with a stated reason. It is not Excel, and no file written by Excel itself has been
+tested. Increment 6 is next; increments 7 through 10 remain queued.

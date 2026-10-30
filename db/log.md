@@ -1411,3 +1411,9 @@ Increment 4: table imports commit in row and byte bounded batches, resume after 
 ## [2026-10-30 15:47] verification | records/operations/implementation
 Bulk intake ran in installed build 17 through Stop, SIGKILL and Continue; 26 CLI journeys, the 100,000-row benchmark and the full suite pass.
 
+## [2026-10-30 19:05] implementation | records/specs/contextual-import
+Excel formula subset: recalculation after edits, Undo, export and reopen, with every other formula keeping its saved value and a stated reason. Fixed XLSX import that grew with the square of the rows and a search index limit that stopped the largest files.
+
+## [2026-10-30 19:05] verification | records/operations/implementation
+3,600 formulas calculated by LibreOffice match on import and after 20 edits; installed window pass on a synthetic workbook, typing, Undo, saved values, popover and dark mode. No file written by Excel itself was tested.
+

@@ -237,16 +237,21 @@ public struct WorkbookTools {
     case "rows":
       let table = try workbook.dataset(a["datasetID"].string ?? string("id"))
       let rows = try workbook.rows(table.id, offset: a["offset"].int ?? 0, limit: 100)
-      return .object([
+      let formulas = try workbook.sheetFormulaPage(table.id, rows: rows)
+      var page: [String: Value] = [
         "dataset": try encoded(table),
         "rows": .array(
-          rows.map {
-            .object([
+          try rows.map {
+            var row: [String: Value] = [
               "id": .string($0.id),
               "values": .object(workbook.calculatedValues($0, columns: table.columns)),
-            ])
+            ]
+            if let cells = formulas?.cells[$0.logicalID] { row["excelFormulas"] = try encoded(cells) }
+            return .object(row)
           }),
-      ])
+      ]
+      if let report = formulas?.report { page["excelFormulas"] = try encoded(report) }
+      return .object(page)
     case "propose_table":
       let columns = try JSONDecoder().decode([Column].self, from: Data(a["columns"].json().utf8))
       return try encoded(

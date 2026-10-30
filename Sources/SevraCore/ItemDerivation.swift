@@ -68,8 +68,9 @@ extension Workbook {
       for parent in values { roles[parent, default: 0] |= role }
     }
     for parent in Set(roles.keys).union(supersedes.map { [$0] } ?? []) {
+      // Runs once per imported row, and a spreadsheet's source record holds the whole file.
       try require(
-        try item(parent).id == parent, "derivation_input", "Use exact retained input versions.")
+        try itemVersionID(parent) == parent, "derivation_input", "Use exact retained input versions.")
     }
     var edges = roles.map { parent, value in
       [

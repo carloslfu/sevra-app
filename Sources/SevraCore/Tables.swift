@@ -52,6 +52,9 @@ public struct TablePage: Sendable {
   public let total: Int
   public let revision: Int
   public let offset: Int
+  /// Excel formula cells on this page, by logical row and column.
+  public let formulas: [String: [String: SheetFormulaCell]]
+  public let formulaReport: SheetFormulaReport?
 }
 public enum CSV {
   public static func parse(
@@ -355,11 +358,12 @@ extension Workbook {
         let rows = try rows(
           datasetID, offset: offset, limit: limit, query: query, sort: sort,
           descending: descending)
+        let formulas = try sheetFormulaPage(datasetID, rows: rows)
         return TablePage(
           dataset: table, rows: rows,
           values: rows.map { calculatedValues($0, columns: table.columns) },
           total: try filteredRowCount(datasetID, query: query), revision: try revision(),
-          offset: max(0, offset))
+          offset: max(0, offset), formulas: formulas?.cells ?? [:], formulaReport: formulas?.report)
       }
     }
   }
@@ -469,6 +473,10 @@ extension Workbook {
       transformation: "decision-table-edit-v2")
     var ids: [String] = []
     try prepareManagedRowEdits(datasetID, exactIDs: edits.map(\.id))
+    let recalculating = try recalculatingColumns(datasetID)
+    var edited: [String: [String: Value]] = [:]
+    for edit in edits { edited[try item(edit.id).logicalID] = edit.values }
+    var formulas = try sheetFormulaChanges(after: datasetID, pending: edited)
     for edit in edits {
       let old = try item(edit.id)
       try require(
@@ -482,15 +490,26 @@ extension Workbook {
           edit.values[c.id] == old.data.object[c.id], "calculated_cell",
           "Edit the formula or its inputs, not its calculated value.")
       }
+      for column in recalculating[old.logicalID] ?? [] {
+        try require(
+          edit.values[column] == old.data.object[column], "calculated_cell",
+          "This cell comes from an Excel formula. Edit the cells it reads instead.")
+      }
+      var values = edit.values
+      for (column, text) in formulas?.cells.removeValue(forKey: old.logicalID) ?? [:] {
+        values[column] = .string(text)
+      }
       let new = try insertItem(
         category: "record", kind: old.kind, title: old.title,
-        text: edit.values.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.text)" }.joined(
-          separator: "\n"), data: .object(edit.values), meaning: old.meaning, status: old.status,
+        text: values.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.text)" }.joined(
+          separator: "\n"), data: .object(values), meaning: old.meaning, status: old.status,
         scenario: old.scenario, inputs: [old.id, evidence] + (proposalID.map { [$0] } ?? []),
         transformation: "table-edit-v1",
         supersedes: old.id)
       ids.append(new)
     }
+    try applySheetFormulaChanges(formulas)
+    tablesWithChangedRows = []
     let change = identifier()
     try db.execute(
       "INSERT INTO table_changes VALUES(?,?,?,?,?)",
@@ -525,9 +544,15 @@ extension Workbook {
     let before = try Value.parse(change["before_ids"]!.text).array
     let after = try Value.parse(change["after_ids"]!.text).array
     let columns = try dataset(change["dataset_id"]!.text).columns
-    let edits = try zip(before, after).map {
-      RowEdit(
-        id: $1.text, values: Self.activeValues(try item($0.text).data.object, columns: columns))
+    let recalculating = try recalculatingColumns(change["dataset_id"]!.text)
+    let edits = try zip(before, after).map { old, new -> RowEdit in
+      // Recalculation restores formula cells from the inputs Undo puts back.
+      let current = try item(new.text)
+      var values = Self.activeValues(try item(old.text).data.object, columns: columns)
+      for column in recalculating[current.logicalID] ?? [] {
+        values[column] = current.data.object[column]
+      }
+      return RowEdit(id: new.text, values: values)
     }
     return try editRows(change["dataset_id"]!.text, edits: edits, actor: actor)
   }

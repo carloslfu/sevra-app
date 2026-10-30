@@ -276,6 +276,18 @@ def main():
                 and exact(book, tables['Second']['datasetID'], 1200, 'c1')
                 and sha256(sheets) == digest and run('verify', book)['ok'] is True)
 
+        # A spreadsheet's source record holds the whole file, so per-row work on it turns quadratic.
+        def seconds(rows):
+            long = root / f'Long {rows}.xlsx'
+            write_xlsx(long, {'Sheet1': {row: [f'SKU {row}', row] for row in range(1, rows + 1)}})
+            target = root / f'Long {rows}.sevra'
+            run('create', target, 'Synthetic long sheet')
+            started = time.monotonic()
+            run('import', target, long, '--role', 'values')
+            return time.monotonic() - started
+        small, large = seconds(1500), seconds(6000)
+        checked('four times the spreadsheet rows take about four times as long', large < small * 9)
+
     print(json.dumps({'checks': checks, 'count': len(checks)}, indent=2))
 
 

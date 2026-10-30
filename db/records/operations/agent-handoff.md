@@ -4,7 +4,7 @@ meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
 updated: 2026-10-30T03:04:42.307148+00:00
-summary: 'Resumed minimum features: increments 1 through 4 accepted and verified in the installed app; increment 5 Excel formula subset is next.'
+summary: 'Resumed minimum features: increments 1 through 5 accepted; increment 6 qualified conversation continuation is next.'
 title: Paused minimum-feature agent handoff
 ---
 # Paused feature implementation: agent handoff
@@ -12,11 +12,12 @@ title: Paused minimum-feature agent handoff
 ## State and first action
 
 **Resumed by the owner on October 29:** [[sources/notes/2026/10/minimum-features-resume]].
-Increments 1 through 4 are accepted for their bounded scope, with native build 17
-installed and verified in the real window. Increment 5, an explicit Excel formula subset,
-is next. Exact evidence and limits are in [[records/operations/implementation]], the
-[reviewed-update receipt](../../../integration/evidence/2026-10-30-reviewed-updates.json.gz)
-and the [bulk intake receipt](../../../integration/evidence/2026-10-30-bulk-intake.json.gz).
+Increments 1 through 5 are accepted for their bounded scope, with native build 23
+installed. Increment 6, qualified bounded conversation continuation, is next. Exact
+evidence and limits are in [[records/operations/implementation]], the
+[reviewed-update receipt](../../../integration/evidence/2026-10-30-reviewed-updates.json.gz),
+the [bulk intake receipt](../../../integration/evidence/2026-10-30-bulk-intake.json.gz) and
+the [Excel formula receipt](../../../integration/evidence/2026-10-30-excel-formula-subset.json.gz).
 
 The earlier pause source is [[sources/notes/2026/10/minimum-features-pause]]. The
 sections below keep the paused checkpoint detail; where they conflict, this section
@@ -206,7 +207,8 @@ fill, then natural widths and scroll for original files), measured row heights w
 a padded container cell, six-line ellipsis, heading help text and persistent manual
 column widths. `ReadableTableChecks.swift` covers these cases. Reproduce the renders
 with `.build/debug/sevra-preview-checks --render-tables DIRECTORY`, where DIRECTORY
-holds `.md` answers and `.csv`/`.tsv` originals; local fixtures and PNGs are under
+holds `.md` answers, `.csv`/`.tsv` originals or `.json` Excel formula reports; local
+fixtures and PNGs are under
 `.build/minimum-features/visual/snapshots/`.
 
 The installed-window pass then ran on build 9 with synthetic workbooks under
@@ -215,7 +217,7 @@ The installed-window pass then ran on build 9 with synthetic workbooks under
 
 ## Resume in this order
 
-The original order follows; all six steps are complete. Continue with increment 5 in
+The original order follows; all six steps are complete. Continue with increment 6 in
 [[records/operations/minimum-feature-delivery]].
 
 1. Check the branch/diff and read the contracts above. Preserve this work.

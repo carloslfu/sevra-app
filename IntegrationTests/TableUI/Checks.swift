@@ -257,5 +257,6 @@ actor ReadGate {
     try expect(try book.verify()["ok"] == .bool(true), "Workbook integrity failed")
     try await checkTableUpdateSession()
     try checkTableClipboard()
+    try checkExcelFormulaCells()
   }
 }

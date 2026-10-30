@@ -159,6 +159,7 @@ extension Workbook {
     for member in try db.execute(
       "SELECT * FROM dataset_rows WHERE logical_id=?", [.string(logicalID)])
     {
+      tablesWithChangedRows.insert(member["dataset_id"]!.text)
       let schema = try db.managedSchema(member["dataset_id"]!.text)
       let current = try item(logicalID)
       try require(

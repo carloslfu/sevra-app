@@ -490,8 +490,16 @@ with `import_changed`. A row over the 16 MB record bound refuses by row position
 the earlier rows stay.
 `reference` keeps searchable evidence. `analysis` prepares input without creating
 an analysis result or a permanent table. `values` explicitly creates CSV/TSV
-tables using first-row headings, or XLSX saved-value tables. Excel formulas do
-not recalculate; the inspection is not a full compatibility report. `update`
+tables using first-row headings, or XLSX saved-value tables. A declared Excel subset
+recalculates after edits: arithmetic, percent, cell and range references across the
+file's sheets, and SUM, AVERAGE, MIN, MAX, COUNT, ROUND and IF. A formula joins only if
+it reproduces the value Excel saved. Everything else keeps that saved value, and
+`table-formulas PATH TABLE_ID` names each such cell and why. Say so when an answer
+relies on one, and treat `valuesChanged` as a warning that those saved values may be
+behind. Typing over a recalculating cell refuses with `calculated_cell`. An edit that
+would rewrite more than 2,000 rows refuses with `formula_limit`, and a result a typed
+column cannot hold refuses with `formula_type`. This is not Excel
+compatibility, and the inspection is not a full compatibility report. `update`
 waits for an explicit existing-table update review, without changing rows.
 Inspect the job's indexing coverage, report, dataset IDs and detail,
 and ask for intent when the requested use is materially ambiguous.

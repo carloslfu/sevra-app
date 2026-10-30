@@ -114,7 +114,8 @@ Text completes the journey. The microphone inserts unsent dictated text when
 on-device recognition is available and permissions are granted. Review before Send;
 Stop or unavailable dictation leaves normal typing available.
 
-Working tables use native formulas, not full Excel formula/layout fidelity.
+Working tables use native formulas. An imported Excel file also recalculates a declared
+subset of its own formulas, which is not full Excel formula or layout fidelity.
 A saved space is editable and live; use an explicitly requested snapshot to freeze
 values. Portable copies include conversations and unsent drafts, so review before
 sharing. This walkthrough is the focused preview example, not proof of broad
@@ -1477,8 +1478,8 @@ table paste edits an existing bounded range only.
 
 The adopted expanded contract, implementation phases and acceptance cases are in
 [[records/specs/contextual-import]]. Until those gates pass, do not describe
-reference-only/analysis-only role routing, native Excel formulas/structure, general
-range intake or contextual update/merge as implemented. Original inclusion/link
+reference-only/analysis-only role routing, Excel formulas beyond the declared subset,
+Excel structure, general range intake or contextual update/merge as implemented. Original inclusion/link
 ownership and resumable bounded import checks remain valid in their narrower scope.
 
 ## Edit Home and existing spaces

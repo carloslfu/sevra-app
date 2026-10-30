@@ -152,6 +152,24 @@ extension Workbook {
 
   /// No workbook lock is held during file extraction/inspection. Attempt fencing prevents a
   /// cancelled or superseded worker from replacing a newer result. Table batches are resumable.
+  private static func savedValueDetail(_ formulas: (recalculating: Int, saved: Int)?) -> String {
+    let created = "Saved-value tables created."
+    guard let formulas else { return created }
+    let (live, saved) = (formulas.recalculating, formulas.saved)
+    func count(_ number: Int, _ one: String, _ many: String) -> String {
+      number == 1 ? "1 " + one : "\(number) " + many
+    }
+    if live == 0 {
+      return created + " "
+        + count(
+          saved, "Excel formula keeps its saved value and does not recalculate.",
+          "Excel formulas keep their saved values and do not recalculate.")
+    }
+    return created + " "
+      + count(live, "Excel formula recalculates after edits.", "Excel formulas recalculate after edits.")
+      + (saved == 0
+        ? "" : " " + count(saved, "keeps its saved value.", "keep their saved values."))
+  }
   public func runIntake(
     _ id: String, cancellation: Cancellation = .init(), progress: (Int, Int) -> Void = { _, _ in }
   ) throws -> IntakeJob {
@@ -267,13 +285,23 @@ extension Workbook {
         }
         var fields = report.object
         fields["conversion"] = .string("saved_values")
+        let formulas = try sheetFormulaSummary(tables)
+        if let formulas {
+          fields["formulas"] = .object([
+            "recalculating": .number(Double(formulas.recalculating)),
+            "saved": .number(Double(formulas.saved)),
+          ])
+          var inspection = report["inspection"].object
+          inspection["liveExcelFormulas"] = .bool(formulas.recalculating > 0)
+          fields["inspection"] = .object(inspection)
+        }
         report = .object(fields)
         try publish(
           "ready",
           tables.isEmpty
             ? "Original saved. No nonempty tables were found. Excel continuity is not implemented."
             : format == .xlsx
-              ? "Saved-value tables created. Excel formulas are retained as evidence and do not recalculate."
+              ? Self.savedValueDetail(formulas)
               : "Working tables created from delimited values. The first row supplies the headings."
         )
       }

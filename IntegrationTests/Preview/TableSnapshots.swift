@@ -2,17 +2,21 @@ import AppKit
 import Foundation
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 /// Offscreen component snapshots for visual review when screen capture of the
 /// installed app is unavailable. Each Markdown answer is composed like a
 /// conversation message; each CSV/TSV uses the original-file grid. This renders
-/// the shipped components, not the installed application window.
+/// the shipped components, not the installed application window. A JSON Excel formula report
+/// renders the view its popover shows, which has no window of its own to capture off-Space.
 @MainActor func renderTableSnapshots(in directory: URL) throws {
   let files = try FileManager.default.contentsOfDirectory(
     at: directory, includingPropertiesForKeys: nil
   ).sorted { $0.lastPathComponent < $1.lastPathComponent }
-  try require(!files.isEmpty, "arguments", "Add .md answers or .csv/.tsv originals to render.")
+  try require(
+    !files.isEmpty, "arguments",
+    "Add .md answers, .csv/.tsv originals or .json Excel formula reports to render.")
   func grids(_ view: NSView) -> [NSTableView] {
     (view as? NSTableView).map { [$0] } ?? view.subviews.flatMap(grids)
   }
@@ -87,6 +91,12 @@ import SwiftUI
       }
       for (suffix, width, dark) in [("window", 900.0, false), ("compact-dark", 520.0, true)] {
         try render(viewer, width: width, dark: dark, name: stem + "-" + suffix)
+      }
+    case "json":
+      let report = try JSONDecoder().decode(
+        SheetFormulaReport.self, from: Data(contentsOf: file))
+      for (suffix, dark) in [("report", false), ("report-dark", true)] {
+        try render(ExcelFormulaReportView(report: report), width: 380, dark: dark, name: stem + "-" + suffix)
       }
     default: continue
     }

@@ -387,6 +387,53 @@ without asking again. Until the last row commits, Home and the table footer say 
 of the source rows are saved, and table results carry unfinishedImportTotal so a person
 or agent reading them can say the table is incomplete. Saved rows stay usable meanwhile.
 
+Excel formula subset, October 30:
+
+Declared subset. Sevra recalculates numbers, percent, + - * /, cell and range references
+(absolute, relative and mixed, on the same sheet or a named sheet of the same file), and
+SUM, AVERAGE, MIN, MAX, COUNT, ROUND and IF with both results. A comparison is read only as
+IF's condition. A shared formula expands to each cell it fills. This is a small declared
+calculator, not an Excel engine, and it does not claim to match one.
+
+Acceptance at import. A formula joins only if the subset reads it and its result matches the
+value Excel saved, to 15 significant digits. Everything else keeps its saved value and records
+why: an unsupported function by name, text operators, whole-column references, defined names,
+references to another file, powers, array formulas and data tables, a formula with no saved
+value, a circular reference, a sheet that was not imported, and any result that differs from
+Excel's. A formula reading one of
+these keeps its saved value too, so a chain is never part current and part stale. Comparing with
+the saved value also catches what the importer cannot see, such as a date stored as text or text
+that looks numeric.
+
+Calculation rules. Blank counts as zero in arithmetic. Aggregates skip text and blanks in cell
+references. Comparisons sort numbers before text and ignore case in text, and a blank equals
+zero and empty text alike. Text in arithmetic gives #VALUE!, division by zero #DIV/0! and an
+out-of-range result #NUM!. The first error carries forward, though COUNT ignores errors and IF reads only its chosen
+branch. Arithmetic is exact decimal, and a stored result keeps 15 significant digits. A saved
+number may carry an exponent, as spreadsheets write very large and very small values.
+
+Recalculation. Formula cells hold stored values, so filters, sorting, exports, queries and tools
+see the same numbers. Any change to a table's rows recalculates the whole file's formulas in that
+same transaction, across sheets. A person's edit and the cells it moves on that row form one row
+version, so Undo restores both, and other rows get their own versions with lineage to the formula
+record. Typing over a recalculating cell refuses. A saved-value cell stays editable and nothing
+recalculates from it. An error clears when its input is fixed, and a removed column gives #REF!.
+An archived table stays current with its file, because recalculation is not a person's edit.
+An edit that would rewrite more than 2,000 rows saves nothing, and so does one whose result a
+typed column cannot hold, such as #DIV/0! in a Number column.
+
+Showing it. A recalculating cell reads normally, takes no typing and offers its formula as help.
+A saved-value cell reads quieter and says why. The table footer counts both and opens the list of
+saved cells with their reasons, and warns once values have changed since import, because saved
+cells may then be behind. The intake detail, `table-formulas` and the rows tool report the same.
+
+Bounds. A file recalculates up to 10,000 formulas, 20,000 rows and 200,000 read cells, and one
+formula reads up to 10,000 cells. Past a bound every formula in the file keeps its saved value
+and says so, so a file is never half recalculated. An array or data table too large to list
+does the same, because any formula could be reading a cell it fills. A reviewed update refuses a table whose file
+still has recalculating formulas, because it could replace rows those formulas read. Only an
+import writes the formula record, and later changes cannot revise it.
+
 Implementation phases:
 
 1. Shared capture/inspection, durable roles/results and truthful current CLI
@@ -400,7 +447,9 @@ Implementation phases:
    shared core, CLI and native review paths within the bounds below. General local
    model/voice update tools and broader mapping usability remain unqualified.
 4. Add Excel feature inventory, source-coordinate mapping and bounded native
-   per-cell/dependency support, then qualify the declared continuity subset.
+   per-cell/dependency support, then qualify the declared continuity subset. The
+   formula subset above is implemented and matches LibreOffice on the committed
+   fixtures. A file written by Excel itself, sparse regions and layout remain open.
 5. Connect natural-language/voice and CLI/skill contracts, actual native usability,
    portable recovery and truthful completion. Expand the feature matrix by evidence.
 

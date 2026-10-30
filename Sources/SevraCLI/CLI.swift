@@ -197,6 +197,11 @@ import SevraProduct
           arg(2), title: args.count > 3 ? args[3] : nil,
           cancellation: cancellation))
     case "column-history": return .array(try book.columnHistory(arg(2)))
+    case "table-formulas":
+      guard let report = try book.sheetFormulaReport(arg(2)) else {
+        throw SevraError("not_found", "This table has no Excel formulas.")
+      }
+      return try encoded(report)
     case "verify": return try book.verify()
     case "extract":
       try require(args.count == 3, "usage", "extract WORKBOOK VERSION_ID")
@@ -746,7 +751,8 @@ import SevraProduct
     space-edit WORKBOOK SPACE_ID BASE_VERSION EDITS_JSON [TOKEN]
     space-history WORKBOOK SPACE_ID [BEFORE_VERSION]
     space-restore WORKBOOK SPACE_ID SAVED_VERSION BASE_VERSION [TOKEN]
-    column-history WORKBOOK TABLE_ID | intake-status WORKBOOK | resume-intake WORKBOOK SOURCE_ID
+    column-history WORKBOOK TABLE_ID | table-formulas WORKBOOK TABLE_ID
+    intake-status WORKBOOK | resume-intake WORKBOOK SOURCE_ID
     runs WORKBOOK
     conversation WORKBOOK [CONVERSATION_ID] | chapter WORKBOOK TITLE MESSAGE_ID
     history WORKBOOK [CONVERSATION_ID [AFTER_MESSAGE_ID]]

@@ -9,6 +9,79 @@ title: Implementation and acceptance
 ---
 # Implementation and acceptance
 
+## Increment 5, an explicit Excel formula subset, October 30
+
+Increment 5 is accepted for its bounded scope. An imported XLSX now recalculates a small
+declared subset of its own formulas after edits, Undo, export and reopen. Every other formula
+keeps its saved value with a stated reason. This is a small calculator, not Excel, and the app
+says so. Rules are in [[records/specs/contextual-import]].
+
+A formula joins only if Sevra reads it and reproduces the saved value, so import itself turns
+away what Sevra would get wrong. The synthetic budget has 18 formulas: 11 recalculate and 7 keep
+saved values, for VLOOKUP by name, a cell reading that one, a result that differs from the saved
+value, two circular cells, a formula with no saved value and text operators.
+
+Comparison with another engine. LibreOffice 25.8 calculated and saved two synthetic files
+holding the same 3,600 formulas of 24 shapes over 150 rows, with different inputs. All 3,600
+match on import, and after the same 20 edits every value matches what LibreOffice calculated.
+Microsoft Excel is not on this Mac, so no file written by Excel itself has been tested. The
+comparison found two defects the hand-written journeys had missed, both fixed: a number saved
+with an exponent read as text, and a comparison with text gave #VALUE! where spreadsheets sort
+numbers before text. Both failed safely, by keeping saved values.
+
+Measuring near the bounds exposed two older XLSX defects that increment 4 had missed, because it
+measured bulk speed on CSV only. Each imported row decoded a record listing every row of its
+worksheet to check its lineage parent, so import time grew with the square of the rows. A plain
+10,001-row XLSX took 74.5 s and now takes 7.1 s. The check now reads the version ID alone, and a
+journey fails if four times the rows take more than nine times as long. Separately, a 99,999-row
+XLSX failed before saving a row, because its search index has one chunk per row and ran in one
+transaction with a 3 s limit. It now has the 30 s limit row imports use.
+
+Native build 23, release CLI on synthetic files, one process at a time on the M5 Pro 48 GiB Mac:
+
+| Work | Result | Time | Peak memory |
+|---|---|---:|---:|
+| Import 20,000 rows, 10,000 formulas, 199,981 read cells | All recalculate | 16.8 s | 356 MB |
+| One edit in that file, 20 rows move | Saved | 0.60 s | 85 MB |
+| Import 2,001 rows, 2,000 reading one rate | All recalculate | 1.6 s | 151 MB |
+| Edit that rate, the largest rewrite allowed | 2,000 rows saved | 1.5 s | 320 MB |
+| Import 10,001 formulas, one over the bound | All keep saved values and say why | 7.2 s | 208 MB |
+| Import the largest XLSX, 99,999 rows, no formulas | All saved | 97.1 s | 1533 MB |
+
+The largest file verifies and became a 996 MB workbook.
+
+Installed window, builds 22 and 23, on a synthetic workbook. The footer read "19 rows" and "11
+Excel formulas recalculate, 7 keep saved values", and saved values read quieter than current
+ones. Typing 25 over a quantity updated its line total, the total, average, rounded value, taxed
+total, percent and branch at once, and Undo put all of them back. A recalculating cell took no
+typing. A saved value took a correction, stayed quieter, and nothing recalculated from it.
+Sorting kept each saved value with its row. The popover listed all seven cells with their
+reasons and warned that values had changed since import. An edit saved from the CLI while the
+table was open also reached the window live.
+
+The pass found one defect, fixed: a click on a read-only cell's text in an already selected row
+kept the previous column, so the conversation would have been told about the wrong cell.
+Observed and left alone: imported columns are text, so sorting numbers is lexical until a
+column's type changes, and opening a workbook by its file while the app is closed leaves the
+Welcome window open behind it. Hover help on a cell was not seen, because hovering needs the
+screen. Native checks cover its text.
+
+Automated: `scripts/check_sheet_formulas.py` runs 31 CLI journeys through edits, refusals, Undo,
+export, reopen, a removed column, a stopped import, every bound and the LibreOffice files. Nine
+core checks cover the formula rules, and a native check covers cell editing, help and
+accessibility text.
+
+Limits: a file recalculates up to 10,000 formulas, 20,000 rows and 200,000 read cells, and an
+edit rewrites at most 2,000 rows. Past those, formulas keep saved values or the edit saves
+nothing. Dates, TRUE and FALSE values, text results, defined names, powers and text operators
+keep saved values. Text ordering ignores case but does not follow a locale's collation. A
+reviewed update refuses a table whose file has recalculating formulas. No file written by Excel
+itself has been tested. Files were synthetic.
+
+[Excel formula receipt](../../../integration/evidence/2026-10-30-excel-formula-subset.json.gz),
+SHA-256 `e500929c29dbac6bc126a28b8d47f64821e23d5b8d00ad1ef32b25418cb7f35c`, binds the sources, fixtures, measurements, window observations, 31 journeys
+and the full suite: exit 0, 795 pass lines and zero warnings.
+
 ## Increment 4, bounded bulk intake, October 30
 
 Increment 4 is accepted for its bounded scope. Table imports commit in batches of at most
