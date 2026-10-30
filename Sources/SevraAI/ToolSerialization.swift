@@ -36,6 +36,15 @@ extension NativeTools {
         }
         item["properties"] = .object(fields)
         parts["items"] = .object(item)
+        // With copies on offer, parts carry everything. A draft cannot also send text, which the
+        // host refuses, so one form costs no retry.
+        if !copies.isEmpty {
+          properties["text"] = nil
+          parts["description"] = .string(
+            "Each part: new text OR exact copy ID; host inserts originals.")
+          parameters["required"] = .array(
+            (parameters["required"]?.array ?? []) + [.string("parts")])
+        }
         properties["parts"] = .object(parts)
         parameters["properties"] = .object(properties)
         return .init(

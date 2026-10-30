@@ -1,6 +1,40 @@
 import Foundation
 
 extension Workbook {
+  /// The request just before this one, when it stopped. A checkpoint can cover its message, and
+  /// then a person asking to continue would be referring to something the model cannot see.
+  /// This names it and what it finished. Its text stays behind history_read, never a new task.
+  func stoppedRequest(conversation: String, runID: String) throws -> Value {
+    guard
+      let previous = try db.execute(
+        "SELECT a.id,a.status,r.message_id FROM agent_runs a JOIN run_requests r ON r.run_id=a.id WHERE a.conversation_id=? AND a.rowid<(SELECT rowid FROM agent_runs WHERE id=?) ORDER BY a.rowid DESC LIMIT 1",
+        [.string(conversation), .string(runID)]
+      ).first, ["cancelled", "failed", "interrupted"].contains(previous["status"]!.text)
+    else { return .null }
+    var finished: [Value] = []
+    var seen = Set<String>()
+    for call in try db.execute(
+      "SELECT tool,arguments FROM tool_calls WHERE run_id=? AND state='completed' ORDER BY rowid LIMIT 64",
+      [previous["id"]!]
+    ) {
+      let arguments = try Value.parse(call["arguments"]!.text)
+      var title = arguments["title"].string
+      if title == nil, let id = arguments["id"].string {
+        title = try db.scalar("SELECT title FROM items WHERE id=?", [.string(id)]).string
+      }
+      guard finished.count < 16, seen.insert(call["tool"]!.text + (title ?? "")).inserted else {
+        continue
+      }
+      finished.append(.object(["tool": call["tool"]!, "title": title.map(Value.string) ?? .null]))
+    }
+    return .object([
+      "messageID": previous["message_id"]!, "status": previous["status"]!,
+      "finished": .array(finished),
+      "notice": .string(
+        "The previous request stopped before finishing and is not pending. Only if the current request asks to continue it, read its exact text with history_read using this messageID, then do what remains. Finished work is saved. Do not repeat it."
+      ),
+    ])
+  }
   /// Reconstruct operation outcomes and current proposal state from records,
   /// never from a model-written digest. Does not resume or mutate any call.
   public func continuationState(conversation: String, runID: String, messageIDs: [String]) throws
@@ -88,6 +122,7 @@ extension Workbook {
               ?? 0)
               > calls.count),
           "unresolvedCalls": .array(unresolved), "unresolvedCount": unresolvedCount,
+          "stoppedRequest": try stoppedRequest(conversation: conversation, runID: runID),
           "referencedOutcomes": .array(outcomes), "revision": .number(Double(try revision())),
           "authority": .string(
             "Host state, not new permission. Do not repeat completed calls. Failed/cancelled/interrupted earlier requests are closed. Accepted estimates remain estimates. Prepared calls have uncertain outcomes and must not be automatically replayed."

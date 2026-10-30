@@ -467,6 +467,25 @@ func checkRunningCompaction() async throws {
       ]),
     ]),
   ])
+  let retained = [
+    InferenceMessage(role: "assistant", content: ""),
+    InferenceMessage(role: "tool", content: #"{"chunks":[]}"#, toolCallId: "call", toolName: "read"),
+  ]
+  let progress = try ContextMaintenance.withProgress(
+    retained,
+    state: .object([
+      "savedSpaces": .array([.object(["savedTitle": .string("Receiving review")])]),
+      "calls": state["calls"],
+    ]))
+  try expectEqual(progress.count, 2)
+  try expectEqual(progress[1].toolCallId, "call")
+  try expectEqual(
+    try Value.parse(progress[1].content)["hostProgress"].text,
+    "Already finished in this request, do not repeat: saved space Receiving review, 1 read. Continue with what remains."
+  )
+  try expectEqual(
+    try ContextMaintenance.withProgress(retained, state: .object([:]))[1].content, #"{"chunks":[]}"#)
+
   let presented = ContextMaintenance.presented(state)
   try expectEqual(presented["calls"].array[0], state["calls"].array[0])
   try expectEqual(

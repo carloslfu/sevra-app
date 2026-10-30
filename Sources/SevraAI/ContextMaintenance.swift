@@ -177,8 +177,39 @@ package final class ContextMaintenance {
         role: "assistant", content: "Current host continuation state:\n" + (try state.json()),
         documentCopyIDs: DocumentCopyCandidates.ids(in: state)))
     result.append(request)
-    result += retained
+    result += checkpoint == .null ? retained : try Self.withProgress(retained, state: state)
     return result
+  }
+  /// A long job rereads its opening instructions once their results are summarized away, and
+  /// the state above is easy to pass over. The latest result says what is already finished.
+  package static func withProgress(_ retained: [InferenceMessage], state: Value) throws
+    -> [InferenceMessage]
+  {
+    guard let last = retained.last, last.role == "tool", last.content.hasPrefix("{"),
+      var fields = (try? Value.parse(last.content))?.object
+    else { return retained }
+    var done = state["savedSpaces"].array.map { "saved space " + $0["savedTitle"].text }
+    done += state["calls"].array.compactMap { call in
+      guard call["state"].text == "completed", call["committedOperation"] != .null,
+        call["tool"].text != "save_space"
+      else { return nil }
+      return "completed " + call["tool"].text
+    }
+    let reads = state["calls"].array.filter {
+      $0["tool"].text == "read" && $0["state"].text == "completed"
+    }
+    if !reads.isEmpty { done.append("\(reads.count) \(reads.count == 1 ? "read" : "reads")") }
+    guard !done.isEmpty else { return retained }
+    fields["hostProgress"] = .string(
+      "Already finished in this request, do not repeat: " + done.joined(separator: ", ")
+        + ". Continue with what remains.")
+    return retained.dropLast() + [
+      InferenceMessage(
+        role: last.role, content: try Value.object(fields).json(), toolCalls: last.toolCalls,
+        toolCallId: last.toolCallId, toolName: last.toolName, reasoning: last.reasoning,
+        itemReferences: last.itemReferences, conversationActions: last.conversationActions,
+        documentCopyIDs: last.documentCopyIDs)
+    ]
   }
   /// The state the model reads, without host bookkeeping it never uses. A read adds one entry
   /// to every section, so an identifier repeated across them costs real room in a long job.

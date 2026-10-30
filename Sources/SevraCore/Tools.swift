@@ -349,16 +349,12 @@ public struct WorkbookTools {
       let title = try string("title")
       // A long request can lose sight of its opening step, and a retry rarely repeats the same
       // component IDs, so its operation token alone would leave a second copy of the view.
-      for earlier in try workbook.db.execute(
-        "SELECT arguments FROM tool_calls WHERE run_id=? AND tool='save_space' AND state='completed' AND operation_token<>?",
-        [.string(runID), .string(token)])
-      {
-        try require(
-          try Value.parse(earlier["arguments"]!.text)["title"].text.lowercased()
-            != title.lowercased(), "space_duplicate",
-          "This request already saved a space titled \(title). Do not save it again. Continue with the remaining work."
-        )
-      }
+      try require(
+        !(try workbook.spaces().contains {
+          $0.id != token && $0.title.lowercased() == title.lowercased()
+        }), "space_duplicate",
+        "A space titled \(title) already exists. Do not save it again. Use edit_space to change it, or continue with the remaining work."
+      )
       return .object([
         "spaceID": .string(
           try workbook.saveSpace(id: token, title: title, definition: definition, token: token))

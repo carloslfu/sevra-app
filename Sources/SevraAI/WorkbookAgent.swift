@@ -1206,6 +1206,12 @@ public enum WorkbookAgent {
       if cancellation.isCancelled {
         do { try cancellation.check() } catch { failure = error }
       }
+      // The run keeps the measured limit. The person gets what happened and what to do next.
+      if let limit = failure as? SevraError, limit.code == "context_limit" {
+        metrics.append(
+          .object(["phase": .string("context_limit"), "detail": .string(limit.message)]))
+        failure = SevraError(limit.code, contextLimitNotice)
+      }
       try? workbook.finishAgentRun(
         runID, status: terminal, steps: completedSteps, metrics: .array(metrics))
       _ = try? workbook.addMessage(
@@ -1214,6 +1220,8 @@ public enum WorkbookAgent {
       throw failure
     }
   }
+  static let contextLimitNotice =
+    "This request needs more working room than Sevra has at once, so it stopped here. Your request and the work so far are saved. Ask for the next part to continue."
   package static func opaqueReferences(_ answer: String, inspected: Set<String>) -> [String] {
     let prefixes = Set(
       inspected.compactMap { reference -> String? in

@@ -25,6 +25,31 @@ func checkContinuationEvidence(at root: URL) {
     _ = try save("Another view", component: "two")
     try expect(try book.spaces().filter { $0.title == "Receiving review" }.count == 1)
     try expect(try book.spaces().count == 3)
+    // A later request cannot save it again either, and it hears what the stopped one finished.
+    try book.finishAgentRun(run, status: "cancelled", steps: 3, metrics: .array([]))
+    let next = try book.startAgentRun(
+      conversation: "main", model: "fixture",
+      requestMessageID: try book.addMessage("Please continue", role: "user"))
+    let stopped = try book.continuationState(conversation: "main", runID: next, messageIDs: [])[
+      "stoppedRequest"]
+    try expect(stopped["messageID"].text == request && stopped["status"].text == "cancelled")
+    try expect(stopped["finished"].array.map { $0["title"].text } == ["Receiving review", "Another view"])
+    try refuses("space_duplicate") {
+      _ = try WorkbookTools(book, runID: next).execute(
+        "save_space",
+        .object([
+          "title": .string("Receiving review"),
+          "definition": try encoded(
+            SpaceDefinition(components: [.init(type: "text", title: "Later", text: "Again")])),
+        ]))
+    }
+    try book.finishAgentRun(next, status: "complete", steps: 1, metrics: .array([]))
+    let after = try book.startAgentRun(
+      conversation: "main", model: "fixture",
+      requestMessageID: try book.addMessage("Something else", role: "user"))
+    try expect(
+      try book.continuationState(conversation: "main", runID: after, messageIDs: [])[
+        "stoppedRequest"] == .null)
   }
   check("continuation preserves exact source bindings and saved spaces, with live version status") {
     let book = try Workbook.create(
