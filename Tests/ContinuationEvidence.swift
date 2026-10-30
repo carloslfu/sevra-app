@@ -52,6 +52,34 @@ func checkContinuationEvidence(at root: URL) {
       try book.continuationState(conversation: "main", runID: after, messageIDs: [])[
         "stoppedRequest"] == .null)
   }
+  check("one request saves one draft per title, and a later request may reuse the title") {
+    let book = try Workbook.create(at: root.appendingPathComponent("Drafts.sevra"), title: "Drafts")
+    let source = try book.addItem(category: "source", kind: "note", title: "Report", text: "Held")
+    func start(_ words: String) throws -> String {
+      try book.startAgentRun(
+        conversation: "main", model: "fixture",
+        requestMessageID: try book.addMessage(words, role: "user"))
+    }
+    func save(_ run: String, _ title: String, _ text: String) throws -> Value {
+      let args: Value = .object([
+        "title": .string(title), "text": .string(text), "inputs": .array([.string(source.id)]),
+      ])
+      let id = try book.prepareToolCall(
+        runID: run, callID: identifier(), tool: "draft", arguments: args)
+      let result = try WorkbookTools(book, runID: run).execute("draft", args)
+      _ = try book.completeToolCall(id, result: result)
+      return result
+    }
+    let run = try start("Draft the memo")
+    let saved = try save(run, "Receiving memo", "One line")
+    try expect(try save(run, "Receiving memo", "One line") == saved)
+    try refuses("draft_duplicate") { _ = try save(run, "Receiving memo", "Corrected line") }
+    try refuses("draft_duplicate") { _ = try save(run, "RECEIVING MEMO", "Corrected line") }
+    _ = try save(run, "Supplier memo", "Another line")
+    try book.finishAgentRun(run, status: "complete", steps: 5, metrics: .array([]))
+    _ = try save(try start("Draft it for next month"), "Receiving memo", "Next month")
+    try expect(try book.items(kind: "document").filter { $0.category == "record" }.count == 3)
+  }
   check("a stopped request's text stays once read, across another stop, and only then") {
     let book = try Workbook.create(
       at: root.appendingPathComponent("Stopped.sevra"), title: "Stopped")

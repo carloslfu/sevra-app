@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "nestedPropertyOrder": "required-then-component-and-definition-selectors",
   "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
-  "toolsSHA256": "f77c9f07bb6937e325c39fa6af7b4245e399eaa2de3fbc5fa4667dcdf9b8c960",
+  "toolsSHA256": "9532ec716dae02c6fec311acd1691eb39c27df2b886605bc86c9718186c33b4c",
   "cases": [
     {
       "name": "required_start_thread_and_continue",

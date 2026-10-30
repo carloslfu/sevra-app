@@ -221,7 +221,7 @@ package enum NativeTools {
                   "title": schema("string", "Column label."),
                   "type": schema("string", "text, decimal, boolean or date."),
                   "formula": schema(
-                    "string", "Optional deterministic formula referring to column IDs."),
+                    "string", "Optional formula over column IDs."),
                   "unit": schema("string", "Optional explicit unit label."),
                 ], required: ["id", "title", "type"]),
             ]),
@@ -248,7 +248,7 @@ package enum NativeTools {
             "id": schema("string", "ZIP source item ID."),
             "paths": .object([
               "type": .string("array"), "maxItems": .number(50),
-              "items": schema("string", "Exact member path returned by archive_members."),
+              "items": schema("string", "Exact path from archive_members."),
             ]),
           ], required: ["id", "paths"])),
       .init(
@@ -281,21 +281,21 @@ package enum NativeTools {
               "type": .string("string"),
               "enum": .array([.string("incoming"), .string("outgoing")]),
               "description": .string(
-                "Default outgoing. Use incoming for where an item is mentioned."),
+                "Default outgoing; incoming finds mentions."),
             ]),
             "targetScope": .object([
               "type": .string("string"), "enum": .array([.string("logical"), .string("exact")]),
               "description": .string(
-                "Incoming scope: logical default; exact restricts versions."),
+                "Logical default; exact restricts versions."),
             ]),
             "historicalOrigins": schema(
               "boolean",
-              "Incoming: include earlier origin versions."),
+              "Include earlier origin versions."),
             "contentScope": .object([
               "type": .string("string"),
               "enum": .array([.string("all"), .string("body"), .string("extracted")]),
               "description": .string(
-                "Default all: saved body plus retained extracted-text mentions."),
+                "Default all: body plus extracted text."),
             ]),
             "kind": schema(
               "string", "Optional exact domain kind; excludes requests and technical annotations."),
@@ -410,7 +410,7 @@ package enum NativeTools {
       .init(
         name: "propose_table_edit",
         description:
-          "Draft cell changes for human review: read exact rows first; supply their version IDs and changed fields only. Accepted values stay unchanged.",
+          "Draft cell changes: read exact rows first; supply their version IDs and changed fields only. Accepted values stay unchanged.",
         parameters: object(
           [
             "datasetID": schema("string", "Existing table ID."),
@@ -454,12 +454,12 @@ package enum NativeTools {
           [
             "id": schema("string", "Exact space ID."),
             "beforeVersion": schema(
-              "integer", "Exclusive earlier version for paging; omit initially."),
+              "integer", "Earlier version for paging; omit first."),
           ], required: ["id"])),
       .init(
         name: "edit_space",
         description:
-          "Edit requested space/Home layout only. Read spaces for exact IDs/version; preserve unrelated components. Stale bases refuse. Move/insert: at:first/last OR beforeID; omit unrelated fields.",
+          "Edit requested space/Home layout only. Read spaces for exact IDs/version; preserve unrelated components. Stale bases refuse. Omit unrelated fields.",
         parameters: object(
           [
             "id": schema("string", "Exact inspected space ID."),
@@ -519,7 +519,7 @@ package enum NativeTools {
       .init(
         name: "draft",
         description:
-          "Save draft. Exact labels/quantities/wording: parts with documentCopies IDs, never retype. text=all new prose, including what no copy holds; empty only if copies suffice.",
+          "Save draft. Exact labels/quantities/wording: parts with documentCopies IDs, never retype. text=all new prose: summary, paraphrase, anything the request asks that no copy holds. Leave it empty only when copies alone satisfy the request. Saving proves no completeness.",
         parameters: object(
           [
             "title": schema("string", "Draft title."), "text": schema("string", "Draft text."),
@@ -527,17 +527,17 @@ package enum NativeTools {
             "parts": .object([
               "type": .string("array"), "minItems": .number(1), "maxItems": .number(64),
               "description": .string(
-                "Each part: text OR copy."
+                "Each part: new text OR exact copy ID; host inserts originals."
               ),
               "items": object(
                 [
                   "text": schema(
                     "string",
-                    "New prose between copies."
+                    "New prose, headings or separators. Do not retype a passage requested verbatim."
                   ),
                   "copy": schema(
                     "string",
-                    "documentCopies ID; host inserts it."
+                    "documentCopies.entries ID; host supplies original/lineage."
                   ),
                 ], required: []),
             ]),
@@ -602,7 +602,7 @@ package enum NativeTools {
               "type": .string("array"),
               "items": schema(
                 "string",
-                "Inspected item version or history_read message:ID."
+                "Inspected item version or history_read message:ID for earlier conversation."
               ),
             ]),
           ], required: ["answer", "basis", "citations"])),

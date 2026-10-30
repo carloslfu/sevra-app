@@ -381,6 +381,15 @@ public struct WorkbookTools {
           try workbook.saveSpace(id: token, title: title, definition: definition, token: token))
       ])
     case "draft", "propose_record":
+      // A late correction or retry would otherwise leave two drafts for one request to review.
+      if tool == "draft" {
+        let title = try string("title")
+        try require(
+          !(try workbook.savedAnotherDraft(titled: title, arguments: a, runID: runID)),
+          "draft_duplicate",
+          "A draft titled \(title) was already saved in this request. Do not save it again. Finish, and say plainly what it still needs."
+        )
+      }
       if tool == "draft", a["parts"] != .null {
         guard case .array(let parts) = a["parts"], !parts.isEmpty, parts.count <= 64 else {
           throw SevraError("document_parts", "Use one to 64 document parts.")

@@ -13,6 +13,19 @@ extension Workbook {
       [run, message]
     ).int ?? 0 > 0
   }
+  /// Whether this request saved a different draft under this title. The same arguments again are
+  /// a replay, which returns the saved draft.
+  func savedAnotherDraft(titled title: String, arguments: Value, runID: String) throws -> Bool {
+    try synchronized {
+      try db.execute(
+        "SELECT arguments FROM tool_calls WHERE run_id=? AND tool='draft' AND state='completed'",
+        [.string(runID)]
+      ).contains {
+        let earlier = try Value.parse($0["arguments"]!.text)
+        return earlier != arguments && earlier["title"].text.lowercased() == title.lowercased()
+      }
+    }
+  }
   /// The request just before this one, when it stopped. A checkpoint can cover its message, and
   /// then a person asking to continue would be referring to something the model cannot see.
   /// This names it and what it saved. Its text stays behind history_read, never a new task, until
