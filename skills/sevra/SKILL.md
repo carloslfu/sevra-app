@@ -480,6 +480,14 @@ Use `intake-use PATH JOB_ID ROLE [TOKEN]` for the current explicit choice,
 SOURCE_ID ROLE [TOKEN]` to reuse a saved original for another purpose. Reuse a
 capture token and exact arguments after an uncertain result, even if the original
 input has since disappeared. `intake-status PATH` includes bounded durable jobs.
+Table imports commit in batches. `intake-resume` continues after the saved rows and
+never repeats them, and it can be retried after a cancelled, failed or killed import.
+`intake-status` reports `completed` of `total` for each table, counting committed rows
+only. While rows are missing, `unfinishedImportTotal` appears on the table in `tables`,
+`datasets` and `rows`: say the table is incomplete and do not present totals over it as
+final. Changing a partial table's definition or row count makes `intake-resume` refuse
+with `import_changed`. A row over the 16 MB record bound refuses by row position, and
+the earlier rows stay.
 `reference` keeps searchable evidence. `analysis` prepares input without creating
 an analysis result or a permanent table. `values` explicitly creates CSV/TSV
 tables using first-row headings, or XLSX saved-value tables. Excel formulas do

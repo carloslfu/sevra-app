@@ -1405,3 +1405,9 @@ Increment 3: exact heading suggestions, saved in-progress reviews and bounded XL
 ## [2026-10-30 14:36] verification | records/operations/implementation
 Reviewed updates ran in installed build 13 through acceptance and Undo; 73 CLI journeys and the full suite pass with zero warnings.
 
+## [2026-10-30 15:47] implementation | records/specs/contextual-import
+Increment 4: table imports commit in row and byte bounded batches, resume after saved rows and report committed rows only.
+
+## [2026-10-30 15:47] verification | records/operations/implementation
+Bulk intake ran in installed build 17 through Stop, SIGKILL and Continue; 26 CLI journeys, the 100,000-row benchmark and the full suite pass.
+

@@ -59,7 +59,8 @@ import SwiftUI
   @Published var chapters: [Value] = []
   @Published var bookmarks: [Value] = []
   @Published var pendingExtractions: [Value] = []
-  @Published var intakeStatus: [Value] = []
+  @Published var importProgress: (saved: Int, total: Int)?
+  @Published var activeIntake: String?
   @Published var intakePrompt: IntakePrompt?
   @Published var conversation = "main" {
     didSet {
@@ -186,7 +187,8 @@ import SwiftUI
     chapters = []
     bookmarks = []
     pendingExtractions = []
-    intakeStatus = []
+    importProgress = nil
+    activeIntake = nil
     intakePrompt = nil
     revision = 0
     conversation = conversationSession.conversation
@@ -304,7 +306,7 @@ import SwiftUI
         self.chapters = snapshot.chapters
         self.bookmarks = snapshot.bookmarks
         self.pendingExtractions = snapshot.pendingExtractions
-        self.intakeStatus = snapshot.intakeStatus
+        if !self.busy { self.importProgress = nil }
       case .failure(let failure):
         // A busy workbook can be retried by the next timer tick. An explicit
         // refresh reports its failure while preserving the last complete view.
@@ -417,6 +419,7 @@ import SwiftUI
     busy = false
     status = ""
     liveActivity = nil
+    activeIntake = nil
     refresh()
   }
   private func report(_ failure: Error, for ticket: WorkspaceOperation, in book: Workbook) {
@@ -503,6 +506,9 @@ import SwiftUI
         // A chosen update has nothing left to ask; go straight back to its review.
         if choice.job.state == "awaiting_update" {
           self.navigate(.tableUpdate(choice.job.sourceID, choice.id))
+        } else if choice.job.role == .values {
+          // Saving the rest of a stopped table import is the only next step.
+          Task { self.continueIntake(choice, role: .values) }
         } else {
           self.intakePrompt = .init(choices: [choice])
         }
@@ -524,7 +530,10 @@ import SwiftUI
       }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
   }
   func continueIntake(_ choice: IntakeChoice, role: IntakeRole) {
+    guard !busy else { return }
     let chat = conversation
+    let progress = rowProgress()
+    activeIntake = choice.id
     run(
       "Preparing " + choice.title,
       operation: { book, cancel in
@@ -538,14 +547,17 @@ import SwiftUI
               "This intake already has another use. Reopen the saved file to start a different use."
             )
           }
-          let result = try book.runIntake(choice.id, cancellation: cancel)
+          let result = try book.runIntake(
+            choice.id, cancellation: cancel, progress: progress)
           if result.state != current.state {
             _ = try book.addMessage(result.detail, role: "event", conversation: chat)
           }
           return IntakeAttempt(job: result, failure: nil)
         } catch {
+          // Stop is the person's own choice, and Home shows what it left saved.
           return try IntakeAttempt(
-            job: book.intakeJob(choice.id), failure: error.localizedDescription)
+            job: book.intakeJob(choice.id),
+            failure: cancel.isCancelled ? nil : error.localizedDescription)
         }
       },
       completion: { attempt in
@@ -561,12 +573,36 @@ import SwiftUI
         }
         self.intakePrompt?.choices.removeAll { $0.id == result.id }
         if self.intakePrompt?.choices.isEmpty == true { self.intakePrompt = nil }
+        if result.state == "cancelled" { return }
         if role == .update {
           self.navigate(.tableUpdate(result.sourceID, result.id))
         } else if let id = result.datasetIDs.first {
           self.navigate(.table(id))
         }
       })
+  }
+  /// Status follows committed rows, reported from the import's own thread.
+  func rowProgress() -> @Sendable (Int, Int) -> Void {
+    { [weak self] done, total in
+      Task { @MainActor in
+        guard let self, self.busy else { return }
+        self.status = "Saved \(done.formatted()) of \(total.formatted()) rows"
+        self.importProgress = (done, total)
+      }
+    }
+  }
+  /// Home's line for an intake: live while it runs, and plain once nothing is running.
+  func intakeDetail(_ job: Value) -> String {
+    if let activeIntake, job["job_id"].string == activeIntake { return status }
+    return job["state"].text == "running" && !busy
+      ? "Interrupted. Continue to pick up where it stopped." : job["detail"].text
+  }
+  /// How much of an unfinished import is saved. The table list only catches up
+  /// after the import, because a running import keeps the workbook busy between batches.
+  func savedRows(_ table: Dataset) -> String? {
+    guard let source = table.unfinishedImportTotal else { return nil }
+    let saved = importProgress?.saved ?? table.rowCount
+    return "\(saved.formatted()) of \((importProgress?.total ?? source).formatted()) rows saved"
   }
   func pasteTableData() {
     guard interactionActive, !busy else { return }

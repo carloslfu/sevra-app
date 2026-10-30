@@ -94,8 +94,9 @@ import SwiftUI
             }) {
               Button("Resume file processing") {
                 let id = item.id
+                let progress = state.rowProgress()
                 state.run("Resuming intake") { book, cancel in
-                  try book.resumeIntake(id, cancellation: cancel)
+                  try book.resumeIntake(id, cancellation: cancel, progress: progress)
                 }
               }.disabled(state.busy)
             }

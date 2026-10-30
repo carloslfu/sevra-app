@@ -29,6 +29,8 @@ public struct Dataset: Codable, Identifiable, Sendable {
   public let version: Int
   public let definitionID: String
   public let archived: Bool
+  /// Rows in the source while an import is unfinished, so a partial table never reads as whole.
+  public let unfinishedImportTotal: Int?
 }
 public struct RowEdit: Codable, Sendable {
   public let id: String
@@ -129,14 +131,16 @@ public enum CSV {
 }
 extension Workbook {
   @discardableResult public func importCSV(
-    _ sourceID: String, cancellation: Cancellation = .init(), worker: ExtractionWorker = .init()
+    _ sourceID: String, cancellation: Cancellation = .init(), worker: ExtractionWorker = .init(),
+    progress: (Int, Int) -> Void = { _, _ in }
   ) throws -> Dataset {
     try trackStructuredIntake(sourceID, cancellation: cancellation) {
-      try importCSVRows(sourceID, cancellation: cancellation, worker: worker)
+      try importCSVRows(sourceID, cancellation: cancellation, worker: worker, progress: progress)
     }
   }
   private func importCSVRows(
-    _ sourceID: String, cancellation: Cancellation, worker: ExtractionWorker
+    _ sourceID: String, cancellation: Cancellation, worker: ExtractionWorker,
+    progress: (Int, Int) -> Void
   ) throws -> Dataset {
     try cancellation.check()
     let source = try item(sourceID)
@@ -175,7 +179,7 @@ extension Workbook {
           uniqueKeysWithValues: columns.enumerated().map { i, c in
             (c.id, i < values.count && !values[i].isEmpty ? .string(values[i]) : Value.null)
           })
-      }, sourceID: sourceID, cancellation: cancellation)
+      }, sourceID: sourceID, cancellation: cancellation, progress: progress)
   }
   public func createDataset(
     title: String, columns: [Column], rows: [[String: Value]], sourceID: String,
@@ -261,11 +265,15 @@ extension Workbook {
         let schema = try ManagedDatasetSchema.decode(d)
         let count =
           try db.scalar("SELECT count(*) FROM " + ChangeFormat.quote(schema.table)).int ?? 0
+        let intake = try db.execute(
+          "SELECT value FROM meta WHERE key=?", [.string("intake:" + id)]
+        ).first.map { try Value.parse($0["value"]!.text) }
         return Dataset(
           id: id, title: d["title"]!.text,
           columns: try JSONDecoder().decode([Column].self, from: Data(d["columns"]!.text.utf8)),
           rowCount: count, version: schema.version, definitionID: d["definition_id"]!.text,
-          archived: d["archived"]?.int == 1)
+          archived: d["archived"]?.int == 1,
+          unfinishedImportTotal: intake?["state"].text == "partial" ? intake?["total"].int : nil)
       }
     }
   }

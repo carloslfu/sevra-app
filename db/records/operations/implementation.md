@@ -9,6 +9,74 @@ title: Implementation and acceptance
 ---
 # Implementation and acceptance
 
+## Increment 4, bounded bulk intake, October 30
+
+Increment 4 is accepted for its bounded scope. Table imports commit in batches of at most
+1,000 rows or about 6 MB of cell values, retry a batch the saved-change limit refuses at
+half its size, and continue after the saved rows following Stop, a failure or a killed
+process. Progress counts committed rows only. Rules are in
+[[records/specs/contextual-import]].
+
+The gap was real. A 30 MB CSV of 1,900 long rows failed on its first batch, and a retry
+could not help because batches were always 1,000 rows. The audited 100,000-row benchmark
+failed on the same limit because it built its table in one transaction.
+
+Native build 17, release CLI on synthetic files, one import at a time on the M5 Pro 48 GiB
+Mac:
+
+| File | Result | Time | Peak memory | Batches | Largest change | Workbook |
+|---|---|---:|---:|---:|---:|---:|
+| 30 MB CSV, 1,900 rows of about 16 KB | All saved | 6.8 s | 488 MB | 6 | 35.8 MB | 413 MB |
+| 7.3 MB CSV, 99,999 rows | All saved | 93.9 s | 351 MB | 100 | 5.2 MB | 999 MB |
+
+A workbook build 13 had left at 0 of 1,900 rows resumed on this code and finished in 7.2 s
+at 512 MB. Both final workbooks verify. The release row benchmark now completes: warm p95
+14.9 ms at 10,000 rows and 156.7 ms at 100,000, against the 200 ms target, so the audit's
+failure is closed. Its document cohorts were not rerun here.
+
+Installed window, synthetic 30,000-row CSV: progress moved live in the toolbar, the
+conversation, the intake sheet and the Home row. Done left the import running. Stop ended
+at a committed batch with no error, and Home showed one row, "Stopped with 25,000 rows
+saved. Continue to save the rest. Nothing is repeated." Killing the app with SIGKILL at
+19,000 rows left a verifying workbook. Reopening showed "Interrupted. Continue to pick up
+where it stopped." and the table footer read "Import unfinished: 19,000 of 30,000 rows
+saved". Continue finished without another prompt. The exported table then equaled the source
+row for row with 30,000 distinct SKUs, the original stayed byte-identical and the workbook
+verified.
+
+The window pass found five defects, all fixed: a deliberate Stop showed a red error; one
+import appeared up to three times under Intake needs attention; a killed job kept saying
+"Continuing"; Home kept a stale count, and a stale "How would you like to use it?", during a
+run; and long tables showed ungrouped row numbers, with "1 rows" for one row.
+
+Automated: `scripts/check_bulk_intake.py` runs 26 CLI journeys for long values, long
+headings, cancellation, repeated SIGKILL, exact resume, an edit made while stopped, a changed
+definition, a 15 MB row, a row over the record bound, export and reopen, and a two-sheet
+XLSX stopped midway. Two core checks cover batch sizes, resumed progress and progress across
+worksheets. Agent tools see `unfinishedImportTotal`, so a table stays visibly incomplete there.
+
+A suite run with the screen asleep also exposed an earlier check: the conversation wheel test
+needs the display link to move a view, so it failed once the display turned off. The check now
+always proves the gesture reaches the conversation's scroll view, and checks the movement
+whenever the display is awake. The real wheel pass remains the evidence for movement.
+
+Storage is the main finding, recorded and not changed here: each short row costs about 10 KB
+because it keeps its version, search text and history. The 7.3 MB file became a 999 MB
+workbook, of which 529 MB is saved-change history, 97 MB business events, 68 MB items and
+49 MB search data. An import saves roughly 1,000 short rows a second.
+
+Limits: the file limits stay 32 MB, 99,999 data rows, one million cells and 500 columns. A
+retry parses the whole original again before continuing. The table list cannot refresh during
+a run because batches keep the workbook busy, so a new table appears on Home when the import
+stops or finishes. Saved rows stay usable meanwhile, and nothing blocks an answer over them;
+actual-model wording over a partial table is not qualified. The two-sheet stop ran through the
+CLI, not the window. Files were synthetic.
+
+[Bulk intake receipt](../../../integration/evidence/2026-10-30-bulk-intake.json.gz),
+SHA-256 `3a6a4f3875d3e80efba6d0db90673a5e4f47c6426f1db981516c9e102ecd889c`, binds the source
+hashes, measurements, window observations, 26 journeys and the full suite: exit 0, 786 pass
+lines and zero warnings.
+
 ## Increment 3, reviewed updates, October 30
 
 Increment 3 is accepted for its bounded scope. Reviewed updates now suggest exact

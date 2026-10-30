@@ -365,6 +365,28 @@ instead of becoming a new row. Decimal columns compare amounts, so 1.2 does not 
 a saved 1.20 and the earlier spelling stays. A value a column refuses names its source
 record.
 
+Bulk table intake, October 30:
+
+Batches. A table import commits at most 1,000 rows or about 6 MB of cell values at a
+time, and always at least one row. Rows also carry their headings, so a batch can pass
+that estimate and still exceed the 64 MiB saved-change limit. The refused batch saves
+nothing and a batch half its size starts at the same row. The limit itself stays. A row
+over the 16 MB record bound stops the import, is named by its position among the data
+rows, and earlier rows stay.
+
+Resuming. Saved rows are a committed prefix in source order. After Stop, a failure or a
+killed process, a retry parses the same verified original and continues after the saved
+rows, repeating none. An edit made to a saved row in the meantime stays. A table whose
+definition or row count changed refuses with import_changed and keeps its rows. A
+multi-sheet XLSX import finishes its current sheet and then the sheets not yet started.
+
+Progress. Rows count only once committed. The app status line reads "Saved 12,000 of
+99,999 rows", across every sheet of an XLSX import, and a resumed import shows its saved
+count first. Stopping reports the saved count, and Continue on Home saves the rest
+without asking again. Until the last row commits, Home and the table footer say how many
+of the source rows are saved, and table results carry unfinishedImportTotal so a person
+or agent reading them can say the table is incomplete. Saved rows stay usable meanwhile.
+
 Implementation phases:
 
 1. Shared capture/inspection, durable roles/results and truthful current CLI

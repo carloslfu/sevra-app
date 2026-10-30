@@ -152,7 +152,9 @@ extension Workbook {
 
   /// No workbook lock is held during file extraction/inspection. Attempt fencing prevents a
   /// cancelled or superseded worker from replacing a newer result. Table batches are resumable.
-  public func runIntake(_ id: String, cancellation: Cancellation = .init()) throws -> IntakeJob {
+  public func runIntake(
+    _ id: String, cancellation: Cancellation = .init(), progress: (Int, Int) -> Void = { _, _ in }
+  ) throws -> IntakeJob {
     try cancellation.check()
     let initial = try intakeJob(id)
     if initial.state == "ready" { return initial }
@@ -255,9 +257,13 @@ extension Workbook {
           "Saved-value tables currently support CSV, TSV and XLSX. The original remains available as a reference."
         )
         if format == .xlsx {
-          tables = try importXLSX(initial.sourceID, cancellation: cancellation).map(\.id)
+          tables =
+            try importXLSX(initial.sourceID, cancellation: cancellation, progress: progress)
+            .map(\.id)
         } else {
-          tables = [try importCSV(initial.sourceID, cancellation: cancellation).id]
+          tables = [
+            try importCSV(initial.sourceID, cancellation: cancellation, progress: progress).id
+          ]
         }
         var fields = report.object
         fields["conversion"] = .string("saved_values")
@@ -285,10 +291,16 @@ extension Workbook {
           tables = partial
         }
       }
+      let saved =
+        (try? intakeStatus())?.filter { tables.contains($0["datasetID"].text) }
+        .reduce(0) { $0 + ($1["completed"].int ?? 0) } ?? 0
       // A cancelled or superseded worker must never mark a newer attempt failed.
+      let count = saved.formatted(.number.locale(Locale(identifier: "en_US")))
       try? publish(
         cancellation.isCancelled ? "cancelled" : "failed",
-        "Original retained. " + String(error.localizedDescription.prefix(4096)))
+        cancellation.isCancelled && saved > 0
+          ? "Stopped with \(count) rows saved. Continue to save the rest. Nothing is repeated."
+          : "Original retained. " + String(error.localizedDescription.prefix(4096)))
       throw error
     }
   }

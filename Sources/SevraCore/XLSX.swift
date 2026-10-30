@@ -336,14 +336,17 @@ private final class SheetXML: NSObject, XMLParserDelegate {
 }
 extension Workbook {
   @discardableResult public func importXLSX(
-    _ sourceID: String, cancellation: Cancellation = .init(), worker: ExtractionWorker = .init()
+    _ sourceID: String, cancellation: Cancellation = .init(), worker: ExtractionWorker = .init(),
+    progress: (Int, Int) -> Void = { _, _ in }
   ) throws -> [Dataset] {
     try trackStructuredIntake(sourceID, cancellation: cancellation) {
-      try importXLSXSheets(sourceID, cancellation: cancellation, worker: worker)
+      try importXLSXSheets(
+        sourceID, cancellation: cancellation, worker: worker, progress: progress)
     }
   }
   private func importXLSXSheets(
-    _ sourceID: String, cancellation: Cancellation, worker: ExtractionWorker
+    _ sourceID: String, cancellation: Cancellation, worker: ExtractionWorker,
+    progress: (Int, Int) -> Void
   ) throws -> [Dataset] {
     let source = try item(sourceID)
     guard let asset = source.assetID else {
@@ -356,6 +359,8 @@ extension Workbook {
     // Recheck linked/included original bytes after parsing and before publication.
     _ = try assetURL(asset, verify: true, cancellation: cancellation)
     var tables: [Dataset] = []
+    let total = sheets.reduce(0) { $0 + $1.rows.count }
+    var finished = 0
     for sheet in sheets where !sheet.rows.isEmpty {
       try cancellation.check()
       let width = sheet.rows.map(\.count).max() ?? 0
@@ -377,7 +382,9 @@ extension Workbook {
       tables.append(
         try importDataset(
           title: source.title + " · " + sheet.name, columns: columns, rows: rows,
-          sourceID: evidence.id, cancellation: cancellation))
+          sourceID: evidence.id, cancellation: cancellation,
+          progress: { done, _ in progress(finished + done, total) }))
+      finished += sheet.rows.count
     }
     return tables
   }

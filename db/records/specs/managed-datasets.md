@@ -71,6 +71,8 @@ and native rows, and publishes the receipt and captured changes in one transacti
 A failure rolls back the whole logical operation. A repeated token with the same
 payload returns the original result; changed payload or stale base refuses.
 Multi-batch imports preserve explicit committed prefixes and resumable identity.
+A retry continues after the committed prefix. Batches are bounded by rows and value
+bytes, and a batch the saved-change limit refuses is retried smaller from the same row.
 No direct projection edit can become unrecorded authoritative state.
 
 M04. Extend the existing capture/apply/verify contract and schema classification.

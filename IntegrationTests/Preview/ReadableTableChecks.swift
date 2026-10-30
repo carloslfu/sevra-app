@@ -130,6 +130,14 @@ import SwiftUI
   )
 }
 
+/// Counts wheel events on their way to the next responder.
+private final class WheelRelay: NSResponder {
+  var received = 0
+  override func scrollWheel(with event: NSEvent) {
+    received += 1
+    nextResponder?.scrollWheel(with: event)
+  }
+}
 private final class WheelSpy: NSView {
   var received = 0
   override func scrollWheel(with event: NSEvent) { received += 1 }
@@ -224,9 +232,22 @@ private final class WheelSpy: NSView {
   let inner = table(conversation)!.enclosingScrollView!
   let outer = inner.superview!.enclosingScrollView!
   let before = outer.contentView.bounds.origin.y
-  inner.scrollWheel(with: wheel(y: -40))
-  RunLoop.main.run(until: Date().addingTimeInterval(0.1))
-  try expect(outer.contentView.bounds.origin.y > before)
+  // Moving the view runs on the display link, so a sleeping screen only proves the gesture
+  // arrives. The movement itself is checked whenever the display is awake.
+  let relay = WheelRelay()
+  var below: NSResponder = inner
+  while let next = below.nextResponder, next !== outer { below = next }
+  try expect(below.nextResponder === outer)
+  relay.nextResponder = outer
+  below.nextResponder = relay
+  let awake = CGDisplayIsAsleep(CGMainDisplayID()) == 0
+  let deadline = Date().addingTimeInterval(3)
+  repeat {
+    inner.scrollWheel(with: wheel(y: -40))
+    RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+  } while awake && outer.contentView.bounds.origin.y <= before && Date() < deadline
+  try expect(relay.received > 0)
+  try expect(!awake || outer.contentView.bounds.origin.y > before)
   let wide = PreviewTableContent(
     headings: ["Supplier", "Product", "Known goods-plus-shipping", "Delivery", "Tax", "Notes"],
     rows: [

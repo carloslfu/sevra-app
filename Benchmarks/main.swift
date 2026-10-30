@@ -15,7 +15,7 @@ struct Corpus {
 func rowCorpus(at url: URL, count: Int, pageSize: Int) throws -> Corpus {
   let book = try Workbook.create(at: url, title: "Synthetic stock")
   let origin = try book.addItem(category: "source", kind: "fixture", title: "Synthetic inventory")
-  let table = try book.createDataset(
+  let table = try book.importDataset(
     title: "Stock",
     columns: [
       .init(id: "sku", title: "SKU"), .init(id: "part", title: "Part"),

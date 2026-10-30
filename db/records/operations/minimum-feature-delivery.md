@@ -52,4 +52,8 @@ answer says costs are unknown. Increment 2 is accepted after its installed-windo
 pass, which found and fixed four defects. Increment 3 is accepted: exact heading
 suggestions, a saved in-progress review and saved values from one XLSX worksheet all
 ran in the installed app through explicit acceptance and Undo. Every stored column must
-still be mapped. Increment 4 is next; increments 5 through 10 remain queued.
+still be mapped. Increment 4 is accepted: a 30 MB file that failed on its first batch and
+a 99,999-row file now save in batches inside the saved-change limit, and Stop, a killed
+process and retry repeat no rows, with progress counting committed rows only. A short row
+still costs about 10 KB of workbook storage. Increment 5 is next; increments 6 through 10
+remain queued.
