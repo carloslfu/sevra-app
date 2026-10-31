@@ -119,6 +119,14 @@ def main():
         checked('a formula with no saved value stays unresolved',
                 'no value' in reasons['D15']
                 and grid(book, items)['No saved value']['data']['c4'] == '#NO_CACHED_VALUE')
+        filled = root / 'Filled.xlsx'
+        write_xlsx(filled, {'Fill': {
+            1: [1, (2, {'f': shared(0, '+'.join(['A1'] * 1300), 'B1:B2701')})],
+            **{row: [1, (2, {'f': shared(0)})] for row in range(2, 2702)}}})
+        fill = run('import', book, filled, '--role', 'values')['intake']
+        checked('a fill past its bound imports and keeps its saved values',
+                fill['state'] == 'ready' and 'recalculate' in fill['detail']
+                and run('table-formulas', book, fill['datasetIDs'][0])['recalculating'] == 0)
         checked('text operators keep the saved value',
                 reasons['D16'] == 'Uses text values, which Sevra does not calculate.')
         rows = grid(book, items)

@@ -10,20 +10,23 @@ from xml.sax.saxutils import escape
 import zipfile
 
 
-def write_xlsx(path, sheets, formats=None):
+def write_xlsx(path, sheets, formats=None, charts=()):
     """Writes the smallest Office package the importer reads. A cell is a value, or a
     (value, attributes) pair. Strings are inline; tuples set type, style and formula.
-    The attribute f is a raw formula element, for shared and array formulas."""
+    The attribute f is a raw formula element, for shared and array formulas, and raw is
+    a raw value element. Charts are chart sheets after the worksheets."""
     names = list(sheets)
     numbers = ''.join(f'<numFmt numFmtId="{164 + i}" formatCode="{escape(code)}"/>'
                       for i, code in enumerate(formats or []))
     styles = '<xf numFmtId="0"/>' + ''.join(f'<xf numFmtId="{164 + i}"/>' for i, _ in enumerate(formats or []))
     with zipfile.ZipFile(path, 'w') as package:
         package.writestr('xl/workbook.xml', '<workbook xmlns:r="r"><sheets>' + ''.join(
-            f'<sheet name="{escape(name)}" r:id="rId{i + 1}"/>' for i, name in enumerate(names))
+            f'<sheet name="{escape(name)}" r:id="rId{i + 1}"/>' for i, name in enumerate(names + list(charts)))
             + '</sheets></workbook>')
         package.writestr('xl/_rels/workbook.xml.rels', '<Relationships>' + ''.join(
             f'<Relationship Id="rId{i + 1}" Type="x/worksheet" Target="worksheets/sheet{i + 1}.xml"/>' for i in range(len(names)))
+            + ''.join(f'<Relationship Id="rId{len(names) + i + 1}" Type="x/chartsheet" Target="chartsheets/sheet{i + 1}.xml"/>'
+                      for i, _ in enumerate(charts))
             + '</Relationships>')
         package.writestr('xl/styles.xml', f'<styleSheet><numFmts>{numbers}</numFmts><cellXfs>{styles}</cellXfs></styleSheet>')
         for index, name in enumerate(names):
@@ -35,7 +38,9 @@ def write_xlsx(path, sheets, formats=None):
                     reference = '' if extra.get('bare') else f' r="{chr(65 + column)}{number}"'
                     style = f' s="{extra["style"]}"' if 'style' in extra else ''
                     formula = extra.get('f') or (f'<f>{escape(extra["formula"])}</f>' if 'formula' in extra else '')
-                    if value is None:
+                    if 'raw' in extra:
+                        cells += f'<c{reference} t="{extra.get("type", "n")}"{style}>{formula}{extra["raw"]}</c>'
+                    elif value is None:
                         cells += f'<c{reference}{style}>{formula}</c>'
                     elif extra.get('error'):
                         cells += f'<c{reference} t="e">{formula}<v>{value}</v></c>'
@@ -292,6 +297,22 @@ def review_journeys(root, run, checked):
     allowed = run('table-update-preview', book, item, table, json.dumps(
         {'mode': 'merge', 'mapping': mapping, 'keys': ['sku']}))
     checked('xlsx: a padded number is fine in a decimal column', allowed['changed'] == 1)
+
+    written = root / 'written-numbers.xlsx'
+    write_xlsx(written, {'Sheet': {
+        1: ['sku', 'unit_price', 'note'],
+        2: ['0012', (None, {'raw': '<v>1.2E+0</v>'}), 'x'],
+        3: ['0013', (None, {'raw': '<v>7.0000000000000007E-2</v>'}), (None, {'style': 1})],
+        4: ['0014', 2, (None, {'type': 'str', 'formula': 'IF(A4="x","y","")', 'raw': '<v></v>'})]}},
+        ['00000'], charts=['Trend'])
+    item = run('import', book, written, '--role', 'reference')['source']['id']
+    inspection = run('table-update-inspect', book, item)
+    written_preview = run('table-update-preview', book, item, table, json.dumps(
+        {'mode': 'merge', 'mapping': mapping, 'keys': ['sku']}))
+    checked('xlsx: exponents, a blank zero-padded cell and an empty formula result all read',
+            inspection['examples'][1][1] == '0.07' and written_preview['added'] > 0)
+    checked('xlsx: a chart sheet is reported, not fatal',
+            any('Trend' in note for note in inspection['notes']))
 
     bare = root / 'bare-cells.xlsx'
     write_xlsx(bare, {'Sheet': {

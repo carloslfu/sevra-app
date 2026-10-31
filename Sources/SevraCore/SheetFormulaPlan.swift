@@ -314,7 +314,7 @@ extension Workbook {
         Dictionary(sheet.rowNumbers.enumerated().map { ($0.element, $0.offset) }) { first, _ in first })
       func reason(_ reference: String) -> String? {
         if oversized { return "The file has too many rows to recalculate." }
-        if unfollowed { return "An Excel array or data table in this file is too large to follow." }
+        if unfollowed { return "An Excel fill in this file is too large to follow." }
         switch sheet.formulaKinds[reference] {
         case "array": return "Filled by an Excel array formula."
         case "dataTable": return "Filled by an Excel data table."

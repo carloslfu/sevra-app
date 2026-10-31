@@ -5,7 +5,7 @@ public struct ImportedSheet: Codable, Sendable {
   public let name: String
   public let rows: [[String]]
   public let rowNumbers: [Int]
-  public let notes: [String]
+  public var notes: [String]
   public let formulas: [String: String]
   /// Cells, by reference, whose saved text is not a settled value: "error",
   /// "uncached" (a formula with no saved result) or "format" (a number Excel shows
@@ -101,10 +101,18 @@ public enum XLSX {
     try require(
       metadata.sheets.count <= 100, "xlsx_limit", "At most 100 worksheets can be imported together."
     )
+    var unread: [String] = []
+    // A short file can expand into far more text than it holds. Past this much across the file,
+    // filled formulas stay saved values.
+    var fillBudget = 8_000_000
     for (name, rid) in metadata.sheets {
       try cancellation.check()
       guard let target = relationships.paths[rid] else {
-        throw SevraError("xlsx", "Missing internal worksheet relationship.")
+        guard relationships.otherSheets.contains(rid) else {
+          throw SevraError("xlsx", "Missing internal worksheet relationship.")
+        }
+        unread.append(name)
+        continue
       }
       let path = target.hasPrefix("/") ? String(target.dropFirst()) : "xl/" + target
       try require(
@@ -112,14 +120,18 @@ public enum XLSX {
         "Unsafe worksheet relationship.")
       let sheet = SheetXML(
         shared: shared.values, styles: styles, epoch1904: metadata.epoch1904,
-        cancellation: cancellation)
+        fillBudget: fillBudget, cancellation: cancellation)
       try parse(path, sheet)
       if let error = sheet.failure { throw error }
+      fillBudget = sheet.fillBudget
       result.append(
         .init(
           name: name, rows: sheet.rows, rowNumbers: sheet.rowNumbers,
           notes: Array(sheet.notes).sorted(), formulas: sheet.formulas,
           unsettled: sheet.unsettled, formulaKinds: sheet.formulaKinds))
+    }
+    if !unread.isEmpty, !result.isEmpty {
+      result[0].notes.append("Not read, because it holds no cells: " + unread.joined(separator: ", ") + ".")
     }
     try StructuredResult(sheets: result).validate()
     return result
@@ -137,14 +149,19 @@ private final class WorkbookXML: NSObject, XMLParserDelegate {
 }
 private final class RelationshipsXML: NSObject, XMLParserDelegate {
   var paths: [String: String] = [:]
+  /// Chart, macro and dialog sheets share the sheet list with worksheets and hold no cells to read.
+  var otherSheets = Set<String>()
   func parser(
     _ parser: XMLParser, didStartElement name: String, namespaceURI: String?,
     qualifiedName: String?, attributes a: [String: String]
   ) {
-    if name == "Relationship", a["TargetMode"] != "External", let id = a["Id"],
-      let target = a["Target"], a["Type"]?.hasSuffix("/worksheet") == true
-    {
+    guard name == "Relationship", a["TargetMode"] != "External", let id = a["Id"],
+      let target = a["Target"], let type = a["Type"]
+    else { return }
+    if type.hasSuffix("/worksheet") {
       paths[id] = target
+    } else if type.hasSuffix("sheet") {
+      otherSheets.insert(id)
     }
   }
 }
@@ -190,9 +207,8 @@ private final class StylesXML: NSObject, XMLParserDelegate {
   }
   /// A format such as 0000 shows 14 as 0014, but only 14 is saved.
   func padsZeros(_ style: Int, _ saved: String) -> Bool {
-    guard styleIDs.indices.contains(style), let format = formats[styleIDs[style]] else {
-      return false
-    }
+    guard !saved.isEmpty, styleIDs.indices.contains(style), let format = formats[styleIDs[style]]
+    else { return false }
     let section = format.split(separator: ";", omittingEmptySubsequences: false).first ?? ""
     let plain = String(section).replacingOccurrences(
       of: "\"[^\"]*\"|\\\\.|\\[[^\\]]*\\]", with: "", options: .regularExpression)
@@ -207,15 +223,17 @@ private final class SheetXML: NSObject, XMLParserDelegate {
     formulas: [String: String] = [:], unsettled: [String: String] = [:],
     formulaKinds: [String: String] = [:], failure: Error?
   var current: [Int: String] = [:], number = 0, column = 0, reference = "", type = "", style = 0,
-    value = "", formula = "", reading = "", count = 0
+    value = "", formula = "", reading = "", count = 0, savedResult = false
   var formulaType = "", formulaGroup = "", formulaRange = ""
   var sharedFormulas: [String: (text: String, column: Int, row: Int)] = [:]
-  /// A short file can expand into far more text than it holds, so count what it expands to.
-  var expandedFormulaBytes = 0, filledCells = 0
-  init(shared: [String], styles: StylesXML, epoch1904: Bool, cancellation: Cancellation) {
+  var fillBudget: Int, filledCells = 0
+  init(
+    shared: [String], styles: StylesXML, epoch1904: Bool, fillBudget: Int, cancellation: Cancellation
+  ) {
     self.shared = shared
     self.styles = styles
     self.epoch1904 = epoch1904
+    self.fillBudget = fillBudget
     self.cancellation = cancellation
   }
   func parser(
@@ -261,6 +279,7 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       style = Int(a["s"] ?? "") ?? 0
       value = ""
       formula = ""
+      savedResult = false
       formulaType = ""
       formulaGroup = ""
       formulaRange = ""
@@ -272,6 +291,7 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       }
     }
     if ["v", "t", "f"].contains(name) { reading = name }
+    if name == "v" { savedResult = true }
     if name == "f" {
       formulaType = a["t"] ?? ""
       formulaGroup = a["si"] ?? ""
@@ -316,10 +336,10 @@ private final class SheetXML: NSObject, XMLParserDelegate {
             from: base.addingTimeInterval((serial - (!epoch1904 && serial >= 61 ? 1 : 0)) * 86400))
         }
       } else if type.isEmpty || type == "n" {
-        if styles.padsZeros(style, value) || value.lowercased().contains("e") {
+        let settled = Self.settled(value)
+        if styles.padsZeros(style, settled) || settled.lowercased().contains("e") {
           unsettled[reference] = "format"
         }
-        let settled = Self.settled(value)
         if settled != value {
           text = settled
           notes.insert("Numbers use the 15 significant digits Excel shows.")
@@ -330,14 +350,14 @@ private final class SheetXML: NSObject, XMLParserDelegate {
         if !formula.isEmpty {
           sharedFormulas[formulaGroup] = (formula, column - 1, number)
         } else if let first = sharedFormulas[formulaGroup] {
-          expandedFormulaBytes += first.text.utf8.count
-          if expandedFormulaBytes > 32_000_000 {
-            failure = SevraError("xlsx_limit", "Shared formulas expand past the 32 MB import limit.")
-            parser.abortParsing()
-            return
+          fillBudget -= first.text.utf8.count
+          if fillBudget < 0 {
+            // The saved values remain, and nothing in the file recalculates.
+            formulaKinds["*"] = "shared"
+          } else {
+            formula = SheetFormula.shifted(
+              first.text, columns: column - 1 - first.column, rows: number - first.row)
           }
-          formula = SheetFormula.shifted(
-            first.text, columns: column - 1 - first.column, rows: number - first.row)
         } else {
           formulaKinds[reference] = "shared"
         }
@@ -347,7 +367,7 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       if !formula.isEmpty {
         formulas[reference] = formula
         notes.insert("Formula cells start from the values Excel saved.")
-        if value.isEmpty {
+        if value.isEmpty, !savedResult {
           text = "#NO_CACHED_VALUE"
           unsettled[reference] = "uncached"
         }
@@ -380,9 +400,14 @@ private final class SheetXML: NSObject, XMLParserDelegate {
     }
   }
   /// Excel writes binary doubles with up to 17 digits, so a cell showing 1.15 can
-  /// save 1.1499999999999999. Fractions keep the 15 digits Excel shows.
+  /// save 1.1499999999999999. Fractions keep the 15 digits Excel shows, and a number written
+  /// with an exponent becomes plain digits when a decimal can hold it.
   private static func settled(_ saved: String) -> String {
-    guard saved.contains("."), !saved.lowercased().contains("e"),
+    if saved.lowercased().contains("e") {
+      guard let number = SheetFormula.number(saved), number != 0 else { return saved }
+      return SheetFormula.text(number)
+    }
+    guard saved.contains("."),
       saved.filter(\.isNumber).drop(while: { $0 == "0" }).count > 15, let number = Double(saved)
     else { return saved }
     let rounded = String(format: "%.15g", number)
@@ -417,7 +442,7 @@ extension Workbook {
     var imported: [ImportedSheet] = []
     let total = sheets.reduce(0) { $0 + $1.rows.count }
     var finished = 0
-    for sheet in sheets where !sheet.rows.isEmpty {
+    for (position, sheet) in sheets.enumerated() where !sheet.rows.isEmpty {
       try cancellation.check()
       let width = sheet.rows.map(\.count).max() ?? 0
       let columns = (0..<width).map { Column(id: "c\($0+1)", title: Self.spreadsheetColumn($0)) }
@@ -428,7 +453,8 @@ extension Workbook {
           "originalRows": .array(sheet.rowNumbers.map { .number(Double($0)) }),
           "formulas": .object(sheet.formulas.mapValues(Value.string)),
         ]), meaning: "actual", status: "accepted", inputs: [source.id],
-        transformation: "xlsx-cached-values-v1", token: "xlsx-sheet-" + sourceID + "-" + sheet.name)
+        transformation: "xlsx-cached-values-v1",
+        token: "xlsx-sheet-\(sourceID)-\(position)-\(sheet.name)")
       let rows = sheet.rows.map { row in
         Dictionary(
           uniqueKeysWithValues: columns.enumerated().map { i, c in
