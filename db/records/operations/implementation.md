@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-31T14:52:00+00:00
+updated: 2026-10-31T17:18:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -123,7 +123,8 @@ app the same recording returned `order two` in all three repetitions, with no re
 opened the audio at 1:12. `sevra verify` passed on both workbooks afterward.
 
 The join fix came after the suite. It changed one function and its check, so under the focused policy
-the full suite did not run again.
+the full suite did not run again locally. Hosted run 41212336041 then passed every step on a clean
+machine on `1559467`, in 55 minutes, and main's merge commit `226bb27` has that exact tree.
 
 Limits seen in this pass: after Transcribe the viewer shows no transcript, only a changed footnote,
 and the words are reached through search. An imported template lists as a second automation with the

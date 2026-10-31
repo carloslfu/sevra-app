@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-10-31T14:52:00+00:00
+updated: 2026-10-31T17:18:00+00:00
 summary: 'Resumed minimum features: increments 1 through 9 accepted; the window checks are done and an external user is next.'
 title: Paused minimum-feature agent handoff
 ---
@@ -28,6 +28,7 @@ and the resume order at the end are current.
 
 The public repository is `carloslfu/sevra-app`. This work was carried on branch
 `codex/sevra-minimum-features-handoff`, based on `170efa0`, and main now carries it.
+Work continues directly on `main`, by the owner's direction, with no feature branch or pull request.
 It is a test preview, not a release.
 Read `AGENTS.md`, [db/DB.md](../../DB.md), [[records/overview/start-here]], this handoff,
 [[records/operations/minimum-feature-delivery]] and
