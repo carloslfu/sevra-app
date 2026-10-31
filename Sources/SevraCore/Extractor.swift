@@ -241,6 +241,8 @@ extension Workbook {
     guard let assetID = record.assetID else { return }
     let bounded = Cancellation(parent: cancellation, deadlineAfterSeconds: 60)
     let previous = try extractionStatus(id)
+    // Extraction cannot read speech, so choosing a use for a recording keeps its transcript.
+    if previous["parser"].text.hasPrefix("apple-speech") { return }
     let attempt = identifier()
     _ = try mutation("extraction_start", request: .string(id)) {
       try db.execute(

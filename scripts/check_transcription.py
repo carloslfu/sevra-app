@@ -79,6 +79,19 @@ def main():
         assert transcript() == chunks, 'a repeat changed the transcript'
         assert call('verify', str(book))['ok']
         print('PASS: a repeat replaces the transcript and the workbook verifies')
+        call('intake-from-source', str(book), item, 'reference')
+        assert transcript() == chunks and call('search', str(book), 'olive')['hits'], \
+            'choosing a use for the recording lost its transcript'
+        print('PASS: choosing a use for a recording keeps its transcript')
+
+        # The transcriber reads no Opus directly, and this used to wait forever.
+        opus = root / 'Opus.caf'
+        subprocess.run(['afconvert', str(recording), str(opus), '-f', 'caff', '-d', 'opus'], check=True)
+        opus_item = call('import', str(book), str(opus), '--role', 'reference')['intake']['report']['index']['item_id']
+        call('transcribe', str(book), opus_item)
+        hits = call('search', str(book), 'bottles')['hits']
+        assert any(hit['itemID'] == opus_item for hit in hits), 'the Opus recording was not heard'
+        print('PASS: a format the transcriber cannot read still transcribes')
 
 
 if __name__ == '__main__':

@@ -75,8 +75,11 @@ func checkFoldersAndTemplates(at root: URL) {
     let words = FileTranscriber.words(text, after: 0)
     try expect(words.map(\.text) == ["We", "agreed", "Monday.", "Late"])
     try expect(words.map(\.start) == [0, 0.5, 31.2, 31.7] && words[2].end == 31.7)
-    // A later result carries on from the time already heard.
+    // A later result carries on from the time already heard, and a time with no value never lands.
     try expect(FileTranscriber.words(run("more", nil), after: 40).first?.start == 40)
+    var broken = AttributedString("still")
+    broken.audioTimeRange = CMTimeRange(start: .indefinite, duration: .indefinite)
+    try expect(FileTranscriber.words(broken, after: 12).first == SpokenWord(text: "still", start: 12, end: 12))
     let chunks = FileTranscriber.chunks(
       (0..<25).map { SpokenWord(text: "w\($0)", start: Double($0), end: Double($0) + 0.4) })
     try expect(chunks.count == 2 && chunks[1].text == "w24")
@@ -87,6 +90,17 @@ func checkFoldersAndTemplates(at root: URL) {
         SpokenWord(text: [2, 13, 29].contains($0) ? "w\($0)." : "w\($0)", start: 0, end: 0)
       })
     try expect(sentences.map { $0.text.split(separator: " ").count } == [14, 16])
+  }
+  check("Stop returns from system work that ignores it") {
+    let stop = Cancellation()
+    let stopped = DispatchSemaphore(value: 0)
+    Task {
+      do {
+        try await FileTranscriber.waiting(within: stop) { Thread.sleep(forTimeInterval: 4) }
+      } catch { if (error as? SevraError)?.code == "cancelled" { stopped.signal() } }
+    }
+    DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) { stop.cancel() }
+    try expect(stopped.wait(timeout: .now() + 2) == .success)
   }
   check("naming a category as a search kind still finds the evidence") {
     let book = try Workbook.create(

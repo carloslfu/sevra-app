@@ -35,7 +35,7 @@ public enum FileTranscriber {
         locator: "time=\($0.first!.start); end=\($0.last!.end)")
     }
   }
-  /// Each run of a transcript is one word with its time. A run with no time keeps the last one.
+  /// Each run of a transcript is one word with its time. A run with no usable time keeps the last one.
   @available(macOS 26.0, *)
   static func words(_ text: AttributedString, after earlier: Double) -> [SpokenWord] {
     var last = earlier
@@ -44,8 +44,55 @@ public enum FileTranscriber {
       guard !word.isEmpty else { return nil }
       let start = run.audioTimeRange?.start.seconds ?? last
       let end = run.audioTimeRange?.end.seconds ?? start
+      guard start.isFinite, end.isFinite else {
+        return SpokenWord(text: word, start: last, end: last)
+      }
       last = end
       return SpokenWord(text: word, start: start, end: end)
+    }
+  }
+  /// Waits for system work that may ignore Stop. Stop and the deadline always return here, and the
+  /// work is told to stop. A speech model download left running finishes on its own.
+  static func waiting(
+    within bounded: Cancellation, for work: @escaping @Sendable () async throws -> Void
+  ) async throws {
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+      let waiter = Waiter(continuation)
+      let task = Task {
+        do {
+          try await work()
+          waiter.finish(.success(()))
+        } catch { waiter.finish(.failure(error)) }
+      }
+      Task {
+        while waiter.isOpen {
+          do {
+            try bounded.check()
+            try await Task.sleep(nanoseconds: 100_000_000)
+          } catch {
+            task.cancel()
+            waiter.finish(.failure(error))
+            return
+          }
+        }
+      }
+    }
+  }
+  private final class Waiter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<Void, Error>?
+    init(_ continuation: CheckedContinuation<Void, Error>) { self.continuation = continuation }
+    var isOpen: Bool {
+      lock.lock()
+      defer { lock.unlock() }
+      return continuation != nil
+    }
+    func finish(_ result: Result<Void, Error>) {
+      lock.lock()
+      let open = continuation
+      continuation = nil
+      lock.unlock()
+      open?.resume(with: result)
     }
   }
   /// A whole recording goes to the long-form transcriber in one pass, with no speech permission.
@@ -65,15 +112,15 @@ public enum FileTranscriber {
       )
     }
     let asset = AVURLAsset(url: file)
-    let duration = try await asset.load(.duration).seconds
+    let tracks = (try? await asset.loadTracks(withMediaType: .audio)) ?? []
+    let duration = (try? await asset.load(.duration).seconds) ?? 0
     try require(
-      duration.isFinite && duration > 0 && duration <= durationLimit, "transcription_limit",
+      !tracks.isEmpty && duration.isFinite && duration > 0, "audio",
+      "This file has no readable audio track.")
+    try require(
+      duration <= durationLimit, "transcription_limit",
       "This version transcribes recordings up to two hours. Include a shorter excerpt to search its speech; the complete original stays in your workbook."
     )
-    let tracks = try await asset.loadTracks(withMediaType: .audio)
-    try require(
-      !tracks.isEmpty, "audio",
-      "This file has no readable audio track.")
     let transcriber = SpeechTranscriber(
       locale: language, transcriptionOptions: [], reportingOptions: [],
       attributeOptions: [.audioTimeRange])
@@ -81,54 +128,106 @@ public enum FileTranscriber {
       $0.identifier(.bcp47) == language.identifier(.bcp47)
     }
     if !installed,
-      let download = try await AssetInventory.assetInstallationRequest(supporting: [transcriber])
+      let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber])
     {
       progress("Downloading this language's speech model")
-      try await download.downloadAndInstall()
+      cancellation.track(request.progress)
+      defer { cancellation.untrack(request.progress) }
+      let bounded = Cancellation(parent: cancellation, deadlineAfterSeconds: 1800)
+      do {
+        try await waiting(within: bounded) { try await request.downloadAndInstall() }
+      } catch {
+        try bounded.check()
+        throw SevraError(
+          "speech_unavailable",
+          "This language's speech model could not be downloaded. The original remains available; no audio was sent to a server."
+        )
+      }
     }
-    try cancellation.check()
-    guard let audio = try? AVAudioFile(forReading: file) else {
-      throw SevraError("audio", "The sound in this file cannot be read.")
-    }
-    let analyzer = SpeechAnalyzer(modules: [transcriber])
     let bounded = Cancellation(parent: cancellation, deadlineAfterSeconds: max(120, duration))
+    let folder = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sevra-transcription-" + identifier())
+    defer { try? FileManager.default.removeItem(at: folder) }
+    let audio = try soundFile(file, asset: asset, tracks: tracks, folder: folder, bounded: bounded)
+    let analyzer = SpeechAnalyzer(modules: [transcriber])
     let heard = Task {
       var words: [SpokenWord] = []
       for try await result in transcriber.results {
         words += Self.words(result.text, after: words.last?.end ?? 0)
         if let end = words.last?.end {
-          progress("Transcribing on this Mac, \(min(99, Int(end / duration * 100)))%")
+          progress("Transcribing on this Mac, \(Int(max(0, min(99, end / duration * 100))))%")
         }
       }
       return words
     }
-    let monitor = Task {
-      while !Task.isCancelled {
-        do {
-          try bounded.check()
-          try await Task.sleep(nanoseconds: 100_000_000)
-        } catch {
-          await analyzer.cancelAndFinishNow()
-          return
-        }
-      }
-    }
     defer {
-      monitor.cancel()
       heard.cancel()
+      Task { await analyzer.cancelAndFinishNow() }
     }
-    let words: [SpokenWord]
     do {
-      try await analyzer.start(inputAudioFile: audio, finishAfterFile: true)
-      words = try await heard.value
+      try await waiting(within: bounded) {
+        try await analyzer.start(inputAudioFile: audio, finishAfterFile: true)
+        _ = try await heard.value
+      }
     } catch {
       try bounded.check()
-      throw error
+      throw SevraError("audio", "The sound in this file cannot be read.")
     }
-    try bounded.check()
+    let words = try await heard.value
     try require(
       !words.isEmpty, "no_speech", "No speech was recognized. The original remains available.")
     return chunks(words)
+  }
+  /// The transcriber reads one track of the common formats directly. Every other recording, such as
+  /// Opus, FLAC or a video with two audio tracks, is mixed into a temporary copy first.
+  private static func soundFile(
+    _ file: URL, asset: AVURLAsset, tracks: [AVAssetTrack], folder: URL, bounded: Cancellation
+  ) throws -> AVAudioFile {
+    let common: Set<AudioFormatID> = [
+      kAudioFormatLinearPCM, kAudioFormatMPEG4AAC, kAudioFormatMPEGLayer3, kAudioFormatAppleLossless,
+    ]
+    if tracks.count == 1, let audio = try? AVAudioFile(forReading: file), audio.length > 0,
+      common.contains(audio.fileFormat.streamDescription.pointee.mFormatID)
+    {
+      return audio
+    }
+    let unreadable = SevraError("audio", "The sound in this file cannot be read.")
+    let settings: [String: Any] = [
+      AVFormatIDKey: kAudioFormatLinearPCM, AVSampleRateKey: 16000, AVNumberOfChannelsKey: 1,
+      AVLinearPCMBitDepthKey: 16, AVLinearPCMIsFloatKey: false, AVLinearPCMIsBigEndianKey: false,
+      AVLinearPCMIsNonInterleaved: false,
+    ]
+    guard let reader = try? AVAssetReader(asset: asset),
+      let format = AVAudioFormat(settings: settings)
+    else { throw unreadable }
+    let mix = AVAssetReaderAudioMixOutput(audioTracks: tracks, audioSettings: settings)
+    guard reader.canAdd(mix) else { throw unreadable }
+    reader.add(mix)
+    guard reader.startReading() else { throw unreadable }
+    defer { reader.cancelReading() }
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    let copy = folder.appendingPathComponent("sound.wav")
+    var writer: AVAudioFile? = try AVAudioFile(
+      forWriting: copy, settings: settings, commonFormat: .pcmFormatInt16, interleaved: true)
+    while let sample = mix.copyNextSampleBuffer() {
+      try bounded.check()
+      let frames = AVAudioFrameCount(CMSampleBufferGetNumSamples(sample))
+      guard frames > 0 else { continue }
+      guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+        throw unreadable
+      }
+      buffer.frameLength = frames
+      let copied = CMSampleBufferCopyPCMDataIntoAudioBufferList(
+        sample, at: 0, frameCount: Int32(frames), into: buffer.mutableAudioBufferList)
+      guard copied == noErr else { throw unreadable }
+      try writer?.write(from: buffer)
+    }
+    // Closing the writer finishes the file before it is read back.
+    writer = nil
+    guard reader.status == .completed, let audio = try? AVAudioFile(forReading: copy),
+      audio.length > 0
+    else { throw unreadable }
+    return audio
   }
 }
 
