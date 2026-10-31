@@ -164,6 +164,8 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     grid.target = context.coordinator
     grid.action = #selector(Coordinator.openClickedLink)
     grid.allowsMultipleSelection = true
+    // Links, widths and copied rows follow the data's column order.
+    grid.allowsColumnReordering = false
     // The coordinator sizes columns from their contents and the visible width.
     grid.columnAutoresizingStyle = .noColumnAutoresizing
     grid.style = .inset

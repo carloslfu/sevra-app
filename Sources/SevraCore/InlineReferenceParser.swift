@@ -1,6 +1,32 @@
 import Foundation
 import Markdown
 
+/// The Markdown parser recurses once per quote or list level, and a few thousand `>` on one line
+/// can overflow the stack. Each level needs its own marker, so a line shows its depth.
+public enum MarkdownNesting {
+  static let limit = 100
+  public static func isReadable(_ text: String) -> Bool {
+    var depth = 0
+    var inPrefix = true
+    for byte in text.utf8 {
+      if byte == 10 {
+        depth = 0
+        inPrefix = true
+      } else if inPrefix {
+        switch byte {
+        case UInt8(ascii: ">"), UInt8(ascii: "-"), UInt8(ascii: "+"), UInt8(ascii: "*"):
+          depth += 1
+          if depth > limit { return false }
+        case UInt8(ascii: " "), 9, UInt8(ascii: "0")...UInt8(ascii: "9"), UInt8(ascii: "."), UInt8(ascii: ")"):
+          break
+        default: inPrefix = false
+        }
+      }
+    }
+    return true
+  }
+}
+
 public struct ReferenceParseResult: Sendable {
   public let selections: [ReferenceSelection]
   public let state: String
@@ -119,6 +145,11 @@ public enum InlineReferenceParser {
     func block(_ r: Range<Int>) { for i in r { blocked[i] = 1 } }
     var found: [(selection: ReferenceSelection, syntax: ReferenceSyntaxSpan)] = []
     var unsupported = 0
+    guard MarkdownNesting.isReadable(parserText) else {
+      return ReferenceParseResult(
+        selections: [], state: "partial",
+        detail: "This document nests too deeply to read its links.", unsupportedTokens: 0)
+    }
     let document = Document(parsing: parserText)
     try cancellation.check()
     var pending: [Markup] = [document]

@@ -20,6 +20,25 @@ import SwiftUI
 
     After [evidence](sevra://item/b).
     """
+  // A paragraph right above a table stays on screen.
+  let attached = ConversationPresentation("Results:\nnext line:\n| A | B |\n|---|---|\n| 1 | 2 |\n").blocks
+  guard case .text(let lead) = attached.first, case .table = attached.dropFirst().first else {
+    throw SevraError("readable_tables", "The lead-in was lost")
+  }
+  try expect(lead == "Results:\nnext line:\n")
+  // A cell shows exactly its text.
+  let exact = "| A | B |\n|---|---|\n| 2\\*3\\*4 | \\*\\*plain\\*\\* |\n| \\[a\\](http://b.example) | a\\|b |\n| ^ | xor |\n"
+  guard case .table(let cells) = ConversationPresentation(exact).blocks.first else {
+    throw SevraError("readable_tables", "Missing table")
+  }
+  try expect(
+    cells.cells(selected: [], headings: false)
+      == [["2*3*4", "**plain**"], ["[a](http://b.example)", "a|b"], ["^", "xor"]])
+  // A message too deep to parse stays plain text and never reaches the recursive parser.
+  let deep = String(repeating: ">", count: 12_000) + " x"
+  try expect(ConversationPresentation(deep).blocks == [.text(deep)])
+  let shallow = "> > quoted\n\n| A |\n|---|\n| 1 |\n"
+  try expect(ConversationPresentation(shallow).blocks.count == 3)
   let blocks = ConversationPresentation(source).blocks
   try expect(blocks.count == 3)
   guard case .text(let before) = blocks[0], case .table(let table) = blocks[1],

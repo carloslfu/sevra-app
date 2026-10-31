@@ -1,5 +1,6 @@
 import Foundation
 import Markdown
+import SevraCore
 
 /// A native read-only presentation. No displayed row becomes a saved Record.
 public struct PreviewTableContent: Equatable {
@@ -33,6 +34,7 @@ public enum ConversationBlock: Equatable {
   case table(PreviewTableContent)
 
   static func parse(_ source: String) -> [ConversationBlock] {
+    guard MarkdownNesting.isReadable(source) else { return [.text(source)] }
     // Source positions keep prose, code and links outside tables byte-identical.
     // The existing CommonMark parser handles escaped pipes and fenced examples.
     let document = Document(parsing: source, options: [.disableSmartOpts])
@@ -44,21 +46,33 @@ public enum ConversationBlock: Equatable {
       let value = lineStarts[position.line - 1] + position.column - 1
       return (0...bytes.count).contains(value) ? value : nil
     }
+    // Cells keep their source, so escapes and a literal ^ survive to the one place that reads them.
+    func text(_ cell: Markdown.Table.Cell) -> String {
+      guard let range = cell.range, let start = offset(range.lowerBound),
+        let stop = offset(range.upperBound), stop >= start
+      else { return cell.children.map { $0.format() }.joined() }
+      return String(decoding: bytes[start..<stop], as: UTF8.self)
+        .trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "\\|", with: "|")
+    }
     var blocks: [ConversationBlock] = []
     var end = 0
     for child in document.children {
       guard let table = child as? Markdown.Table, let range = table.range,
-        let start = offset(range.lowerBound), let stop = offset(range.upperBound),
-        start >= end, stop >= start
+        let stop = offset(range.upperBound)
       else { continue }
+      // A paragraph with no blank line before the table shares its range, so start at the heading.
+      let heading = range.upperBound.line - table.body.childCount - 2
+      guard lineStarts.indices.contains(heading), lineStarts[heading] >= end,
+        stop >= lineStarts[heading]
+      else { continue }
+      let start = lineStarts[heading]
       if start > end {
         blocks.append(.text(String(decoding: bytes[end..<start], as: UTF8.self)))
       }
       blocks.append(
         .table(
           .init(
-            headings: table.head.cells.map { $0.children.map { $0.format() }.joined() },
-            rows: table.body.rows.map { $0.cells.map { $0.children.map { $0.format() }.joined() } },
+            headings: table.head.cells.map(text), rows: table.body.rows.map { $0.cells.map(text) },
             markdown: true)))
       end = stop
     }
