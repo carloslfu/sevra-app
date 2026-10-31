@@ -12,6 +12,7 @@ extension Workbook {
       !table.archived, "archived_dataset", "Restore this table before proposing row edits.")
     var descriptions: [String] = []
     var full: [RowEdit] = []
+    let recalculating = try recalculatingColumns(datasetID)
     for edit in edits {
       try require(
         !edit.values.isEmpty, "empty_edit", "Each proposed row needs at least one changed field.")
@@ -31,6 +32,9 @@ extension Workbook {
         try require(
           column.formula == nil, "calculated_cell",
           "Change the formula inputs instead of a calculated value.")
+        try require(
+          recalculating[old.logicalID]?.contains(key) != true, "calculated_cell",
+          "This cell comes from an Excel formula. Edit the cells it reads instead.")
         descriptions.append(
           old.title + ": " + column.title + ": " + (values[key]?.text ?? "Unknown") + " → "
             + value.text)

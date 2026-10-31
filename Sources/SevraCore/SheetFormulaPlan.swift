@@ -6,6 +6,8 @@ struct SheetFormulaPlan: Codable, Sendable {
   struct Sheet: Codable, Sendable {
     let name: String
     let dataset: String
+    /// Columns the sheet held. A read past them is blank, while one inside them was removed.
+    let width: Int
     /// Excel row numbers, and the table row each became. Empty rows have no table row.
     let rows: [Int]
     let logical: [String]
@@ -68,10 +70,11 @@ public struct SheetFormulaReport: Codable, Sendable, Equatable {
 /// One pass over a plan: dependency order, then values. Import and recalculation share it,
 /// so a cell recalculates by the same rules that accepted it.
 struct SheetFormulaEngine {
-  struct Key: Hashable {
+  struct Key: Hashable, Comparable {
     var sheet: Int
     var column: Int
     var row: Int
+    static func < (a: Key, b: Key) -> Bool { (a.sheet, a.row, a.column) < (b.sheet, b.row, b.column) }
   }
   let plan: SheetFormulaPlan
   private let sheetIndex: [String: Int]
@@ -139,9 +142,10 @@ struct SheetFormulaEngine {
   private mutating func settle() {
     var readers: [Key: [Key]] = [:]
     for (key, reads) in dependencies { for read in reads { readers[read, default: []].append(key) } }
-    var queue = Array(reasons.keys)
+    // Sorted, so one file always states the same reason.
+    var queue = reasons.keys.sorted()
     while let blocked = queue.popLast() {
-      for reader in readers[blocked] ?? [] where expressions[reader] != nil {
+      for reader in (readers[blocked] ?? []).sorted() where expressions[reader] != nil {
         expressions[reader] = nil
         reasons[reader] = "Reads \(name(blocked)), which keeps its saved value."
         queue.append(reader)
@@ -180,10 +184,16 @@ struct SheetFormulaEngine {
     return columns
   }
 
-  /// Every recalculating cell's value, reading the stored value of anything else.
-  func values(stored: (Key) -> SheetValue) -> [Key: SheetValue] {
+  /// The cells one formula reads, in reading order.
+  func reads(_ key: Key) -> [Key] { (dependencies[key] ?? []).sorted() }
+
+  /// Every recalculating cell's value, reading the stored value of anything else. A skipped cell
+  /// has no result, so whatever reads it sees its stored value.
+  func values(skipping skipped: (Key) -> Bool = { _ in false }, stored: (Key) -> SheetValue)
+    -> [Key: SheetValue]
+  {
     var results: [Key: SheetValue] = [:]
-    for key in order {
+    for key in order where !skipped(key) {
       let value = expressions[key]!.evaluate { cell in
         guard let target = self.key(cell, from: key.sheet) else { return .error("#REF!") }
         return results[target] ?? stored(target)
@@ -268,8 +278,11 @@ extension Workbook {
           "INSERT INTO meta VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
           [.string("sheet-formulas:" + table.id), .string(try item(id).logicalID)])
       }
-      // A row edited while the import was stopped already moved past the saved values.
-      if let table = tables.first { try recalculateSheetFormulas(after: table.id) }
+      // A row edited while the import was stopped already moved past the saved values. Excel's
+      // own results stand until then, including ones that differ only in binary noise.
+      if let table = tables.first {
+        try applySheetFormulaChanges(try sheetFormulaChanges(after: table.id, importing: true))
+      }
       return .string(id)
     }
   }
@@ -295,8 +308,8 @@ extension Workbook {
         "A worksheet no longer matches its table.")
       plan.sheets.append(
         .init(
-          name: sheet.name, dataset: tables[index].id, rows: oversized ? [] : sheet.rowNumbers,
-          logical: logical))
+          name: sheet.name, dataset: tables[index].id, width: tables[index].columns.count,
+          rows: oversized ? [] : sheet.rowNumbers, logical: logical))
       positions.append(
         Dictionary(sheet.rowNumbers.enumerated().map { ($0.element, $0.offset) }) { first, _ in first })
       func reason(_ reference: String) -> String? {
@@ -330,10 +343,22 @@ extension Workbook {
     where !SheetFormula.same(value, as: saved(key)) {
       mismatched[key] = "Sevra's result differs from the value Excel saved."
     }
+    // A saved date reads as text here and as a number in Excel, so a formula can match by accident.
+    for key in engine.order where mismatched[key] == nil {
+      if let date = engine.reads(key).first(where: { isSheetDate(saved($0)) }) {
+        mismatched[key] = "Reads the date in \(engine.name(date)), which Sevra does not calculate."
+      }
+    }
     engine.exclude(mismatched)
     plan.cells = engine.settledCells
     plan.capList()
     return plan
+  }
+
+  private func isSheetDate(_ text: String) -> Bool {
+    text.range(
+      of: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\\z|Excel-only date", options: .regularExpression
+    ) != nil
   }
 
   private static func readingOrder(_ first: String, _ second: String) -> Bool {
@@ -352,9 +377,9 @@ extension Workbook {
   /// The cells that move, by row and column, once `pending` rows are saved. Every value comes
   /// from inputs, so an error clears as soon as its input does. A person's edit and the cells
   /// it recalculates can then share one row version, which Undo restores as one step.
-  func sheetFormulaChanges(after datasetID: String, pending: [String: [String: Value]] = [:])
-    throws -> (plan: String, cells: [String: [String: String]])?
-  {
+  func sheetFormulaChanges(
+    after datasetID: String, pending: [String: [String: Value]] = [:], importing: Bool = false
+  ) throws -> (plan: String, cells: [String: [String: String]])? {
     guard let (planID, plan) = try sheetFormulaPlan(datasetID) else { return nil }
     let engine = SheetFormulaEngine(plan: plan)
     guard !engine.order.isEmpty else { return nil }
@@ -389,18 +414,21 @@ extension Workbook {
         }
       }
     }
-    let results = engine.values { key in
-      // Rows Excel left empty read as blank. A row or column since removed is a broken reference.
+    // A formula in a removed column writes nothing, and what reads it sees the broken reference.
+    let results = engine.values(skipping: { columns[$0.sheet]?.contains($0.column) != true }) { key in
+      // Rows and columns Excel left empty read as blank. Ones since removed are a broken reference.
       guard mapped[key.sheet]?.contains(key.row) == true else { return .blank }
-      guard rows[Key(sheet: key.sheet, column: -1, row: key.row)] != nil,
-        columns[key.sheet]?.contains(key.column) == true
-      else { return .error("#REF!") }
+      guard rows[Key(sheet: key.sheet, column: -1, row: key.row)] != nil else { return .error("#REF!") }
+      guard columns[key.sheet]?.contains(key.column) == true else {
+        return key.column < plan.sheets[key.sheet].width ? .error("#REF!") : .blank
+      }
       return SheetValue(stored: texts[key] ?? "")
     }
     var changes: [String: [String: String]] = [:]
     for (key, value) in results {
+      let saved = texts[key] ?? ""
       guard let logical = rows[Key(sheet: key.sheet, column: -1, row: key.row)],
-        !SheetFormula.same(value, as: texts[key] ?? "")
+        importing ? !SheetFormula.same(value, as: saved) : SheetFormula.moved(value, from: saved)
       else { continue }
       let id = "c\(key.column + 1)", text = SheetFormula.text(value)
       if let column = typed[key.sheet]?.first(where: { $0.id == id }) {
@@ -451,8 +479,11 @@ extension Workbook {
   /// Columns per row that only recalculation may write.
   func recalculatingColumns(_ datasetID: String) throws -> [String: Set<String>] {
     var columns: [String: Set<String>] = [:]
-    for (row, cells) in try sheetFormulaCells(datasetID) ?? [:] {
-      let live = cells.filter { $0.value.reason == nil }
+    let cells = try sheetFormulaCells(datasetID) ?? [:]
+    guard !cells.isEmpty else { return columns }
+    let stored = Set(try synchronized { try db.managedSchema(datasetID).stored.map(\.id) })
+    for (row, cells) in cells {
+      let live = cells.filter { $0.value.reason == nil && stored.contains($0.key) }
       if !live.isEmpty { columns[row] = Set(live.keys) }
     }
     return columns

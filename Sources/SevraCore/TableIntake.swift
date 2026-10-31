@@ -406,6 +406,8 @@ extension Workbook {
               var values = old.data.object
               let moved = stored.filter { !sameValue($0, row[$0.id] ?? .null, old.data[$0.id]) }
               for column in moved { values[column.id] = row[column.id] ?? .null }
+              // Acceptance reviews every stored column, including one added after this row.
+              for column in stored where values[column.id] == nil { values[column.id] = .null }
               if moved.isEmpty {
                 unchanged += 1
               } else {

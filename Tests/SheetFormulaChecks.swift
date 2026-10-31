@@ -38,7 +38,18 @@ func checkSheetFormulas(at root: URL) {
     try expect(try value("ROUND(2.345,2)") == number("2.35"))
     try expect(try value("ROUND(-2.345,2)") == number("-2.35"))
     try expect(try value("ROUND(1250,-2)") == number("1300"))
-    try expect(try value("ROUND(1.5,0.5)") == .error("#NUM!"))
+    // Excel drops the fraction of the digits and takes any count of them.
+    try expect(try value("ROUND(1.234,2.5)") == number("1.23") && value("ROUND(1.5,0.5)") == number("2"))
+    try expect(try value("ROUND(1.2345,30)") == number("1.2345") && value("ROUND(5,-30)") == number("0"))
+    try expect(try value("COUNT(1/A1,5)") == number("1"))
+    // A value too small to divide is an error, never a number that cannot be written.
+    let tiny: [String: SheetValue] = ["A1": number("1E-128")]
+    try expect(try value("A1%", tiny) == .error("#NUM!"))
+    try expect(try value("AVERAGE(A1,B1)", tiny.merging(["B1": number("0")]) { a, _ in a }) == .error("#NUM!"))
+    do {
+      _ = try SheetFormula.parse("1E-999")
+      throw SevraError("test", "Accepted a number past the decimal range")
+    } catch is SheetFormulaGap {}
   }
   check("sheet references keep quoted names and ranges share their sheet") {
     let quoted = try SheetFormula.parse("'It''s here'!B2+Other!C3").references
@@ -92,6 +103,14 @@ func checkSheetFormulas(at root: URL) {
     try expect(SheetValue(stored: "1E5x") == .text("1E5x"))
     try expect(SheetValue(stored: "E5") == .text("E5"))
     try expect(SheetValue(stored: "1E+999") == .text("1E+999"))
+    // Text that only looks like a number keeps its saved form instead of recalculating.
+    try expect(!SheetFormula.same(number("123"), as: "00123") && !SheetFormula.same(number("7.2"), as: "7.20"))
+    // Noise never moves a saved cell at import, and any digit Excel would show moves it later.
+    try expect(!SheetFormula.moved(number("20000000000000"), from: "20000000000000"))
+    try expect(SheetFormula.moved(number("20000000000001"), from: "20000000000000"))
+    try expect(SheetFormula.moved(number("1000000.00000001"), from: "1000000"))
+    try expect(!SheetFormula.moved(number("0.3"), from: "0.30000000000000004"))
+    try expect(!SheetFormula.moved(number("7.2"), from: "7.20"))
   }
   check("an edit and its recalculated cells are one row version, and Undo restores both") {
     let book = try Workbook.create(at: root.appendingPathComponent("Formulas.sevra"), title: "Lines")
@@ -125,6 +144,91 @@ func checkSheetFormulas(at root: URL) {
     try expect(rows[1].data["c3"].text == "6")
     try expect(try book.verify()["ok"] == .bool(true))
   }
+  func imported(_ name: String, _ rows: [[String]], _ formulas: [String: String]) throws
+    -> (book: Workbook, table: Dataset)
+  {
+    let book = try Workbook.create(at: root.appendingPathComponent(name + ".sevra"), title: name)
+    let source = try book.addItem(category: "source", kind: "note", title: name + ".xlsx")
+    let ids = rows[0].indices.map { "c\($0 + 1)" }
+    let table = try book.createDataset(
+      title: name, columns: ids.map { Column(id: $0, title: $0) },
+      rows: rows.map { row in Dictionary(uniqueKeysWithValues: zip(ids, row.map(Value.string))) },
+      sourceID: source.id)
+    let sheet = ImportedSheet(
+      name: name, rows: rows, rowNumbers: Array(1...rows.count), notes: [], formulas: formulas)
+    try book.recordSheetFormulas(sourceID: source.id, sheets: [sheet], tables: [table])
+    return (book, table)
+  }
+  func edit(_ book: Workbook, _ table: Dataset, row: Int, _ cells: [String: String]) throws {
+    let current = try book.rows(table.id)[row]
+    var values = current.data.object
+    for (column, text) in cells { values[column] = .string(text) }
+    _ = try book.editRows(table.id, edits: [RowEdit(id: current.id, values: values)])
+  }
+  check("a Unique column does not hide the edited row from recalculation") {
+    let (book, table) = try imported(
+      "Unique", [["a", "2", "4"], ["b", "3", "6"], ["t", "", "10"]],
+      ["C1": "B1*2", "C2": "B2*2", "C3": "SUM(C1:C2)"])
+    var columns = table.columns
+    columns[0].unique = true
+    try book.setColumns(table.id, columns: columns)
+    try edit(book, table, row: 0, ["c2": "5"])
+    let rows = try book.rows(table.id)
+    try expect(rows[0].data["c3"].text == "10" && rows[2].data["c3"].text == "16")
+  }
+  check("a reference past the sheet stays blank and a removed formula column writes nothing") {
+    let (book, table) = try imported(
+      "Removed", [["2", "4", "5", "note"], ["3", "6", "7", "note"]],
+      ["B1": "A1*2", "B2": "A2*2", "C1": "B1+1+Z1", "C2": "SUM(E2:F2)+B2+1"])
+    try expect(try book.rows(table.id)[0].version == 1 && book.sheetFormulaReport(table.id)?.saved == 0)
+    try edit(book, table, row: 0, ["c1": "5"])
+    try expect(try book.rows(table.id)[0].data["c3"].text == "11")
+    try expect(try book.rows(table.id)[1].data["c3"].text == "7")
+    try book.setColumns(table.id, columns: table.columns.filter { $0.id != "c2" })
+    var rows = try book.rows(table.id)
+    try expect(rows[0].data["c3"].text == "#REF!" && rows[1].data["c3"].text == "#REF!")
+    let versions = rows.map(\.version)
+    // The row stays editable, and an edit elsewhere rewrites nothing that did not move.
+    var values = Workbook.activeValues(rows[1].data.object, columns: try book.dataset(table.id).columns)
+    values["c4"] = .string("other")
+    _ = try book.editRows(table.id, edits: [RowEdit(id: rows[1].id, values: values)])
+    rows = try book.rows(table.id)
+    try expect(rows[0].version == versions[0] && rows[1].version == versions[1] + 1)
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check("a reviewed table change respects formula cells from draft to Undo") {
+    let (book, table) = try imported(
+      "Reviewed", [["2", "4"], ["", "4"]], ["B1": "A1*2", "B2": "SUM(B1:B1)"])
+    let row = try book.rows(table.id)[0]
+    try refuses("calculated_cell") {
+      _ = try book.proposeTableEdit(table.id, edits: [RowEdit(id: row.id, values: ["c2": .string("9")])])
+    }
+    let proposal = try book.proposeTableEdit(
+      table.id, edits: [RowEdit(id: row.id, values: ["c1": .string("5")])])
+    let accepted = try book.accept(proposal.id)
+    try expect(try book.rows(table.id).map { $0.data["c2"].text } == ["10", "10"])
+    _ = try book.undoItem(accepted.id, actor: .human("Owner"))
+    try expect(try book.rows(table.id).map { $0.data["c2"].text } == ["4", "4"])
+  }
+  check("an edited row keeps lineage to the formula plan that recalculated it") {
+    let (book, table) = try imported("Lineage", [["2", "4"]], ["B1": "A1*2"])
+    try edit(book, table, row: 0, ["c1": "3"])
+    let row = try book.rows(table.id)[0]
+    try expect(row.data["c2"].text == "6")
+    try expect(
+      try book.db.scalar(
+        "SELECT count(*) FROM lineage l JOIN items i ON i.id=l.parent WHERE l.child=? AND i.kind=?",
+        [.string(row.id), .string(Workbook.sheetFormulaKind)]
+      ).int == 1)
+  }
+  check("a saved date keeps formulas that read it on their saved value") {
+    let (book, table) = try imported(
+      "Dates", [["2024-01-01T00:00:00Z", "1", "3"], ["3", "", "6"]],
+      ["B1": "IF(A1>45000,1,0)", "C1": "A2*1", "C2": "A2*2"])
+    let report = try book.sheetFormulaReport(table.id)
+    try expect(report?.recalculating == 2 && report?.saved == 1)
+    try expect(report?.savedCells.first?.reason?.contains("the date in A1") == true)
+  }
   check("a fill too large to list keeps every formula in the file on its saved value") {
     let book = try Workbook.create(at: root.appendingPathComponent("Fills.sevra"), title: "Fills")
     let source = try book.addItem(category: "source", kind: "note", title: "Budget.xlsx")
@@ -142,7 +246,7 @@ func checkSheetFormulas(at root: URL) {
   }
   check("a formula list past its bound keeps a sample and the exact count") {
     var plan = SheetFormulaPlan(
-      sheets: [.init(name: "A", dataset: "a", rows: [], logical: [])],
+      sheets: [.init(name: "A", dataset: "a", width: 1, rows: [], logical: [])],
       cells: (1...100_001).map { .init(sheet: 0, cell: "A\($0)", formula: "1", reason: nil) })
     plan.capList()
     try expect(plan.cells.count == 200 && plan.unlisted == [99_801])

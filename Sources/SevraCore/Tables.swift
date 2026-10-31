@@ -472,11 +472,12 @@ extension Workbook {
       status: "accepted", scenario: "actual", inputs: decisionInputs(),
       transformation: "decision-table-edit-v2")
     var ids: [String] = []
-    try prepareManagedRowEdits(datasetID, exactIDs: edits.map(\.id))
     let recalculating = try recalculatingColumns(datasetID)
     var edited: [String: [String: Value]] = [:]
     for edit in edits { edited[try item(edit.id).logicalID] = edit.values }
+    // Recalculation reads the table, so it runs before a Unique column takes these rows out of it.
     var formulas = try sheetFormulaChanges(after: datasetID, pending: edited)
+    try prepareManagedRowEdits(datasetID, exactIDs: edits.map(\.id))
     for edit in edits {
       let old = try item(edit.id)
       try require(
@@ -496,14 +497,15 @@ extension Workbook {
           "This cell comes from an Excel formula. Edit the cells it reads instead.")
       }
       var values = edit.values
-      for (column, text) in formulas?.cells.removeValue(forKey: old.logicalID) ?? [:] {
-        values[column] = .string(text)
-      }
+      let recalculated = formulas?.cells.removeValue(forKey: old.logicalID) ?? [:]
+      for (column, text) in recalculated { values[column] = .string(text) }
       let new = try insertItem(
         category: "record", kind: old.kind, title: old.title,
         text: values.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value.text)" }.joined(
           separator: "\n"), data: .object(values), meaning: old.meaning, status: old.status,
-        scenario: old.scenario, inputs: [old.id, evidence] + (proposalID.map { [$0] } ?? []),
+        scenario: old.scenario,
+        inputs: [old.id, evidence] + (proposalID.map { [$0] } ?? [])
+          + (recalculated.isEmpty ? [] : formulas.map { [$0.plan] } ?? []),
         transformation: "table-edit-v1",
         supersedes: old.id)
       ids.append(new)
@@ -541,12 +543,16 @@ extension Workbook {
       try db.execute("SELECT * FROM table_changes WHERE id=?", [.string(id)]).first
     }
     guard let change else { throw SevraError("undo", "No such table change.") }
-    let before = try Value.parse(change["before_ids"]!.text).array
-    let after = try Value.parse(change["after_ids"]!.text).array
-    let columns = try dataset(change["dataset_id"]!.text).columns
-    let recalculating = try recalculatingColumns(change["dataset_id"]!.text)
-    let edits = try zip(before, after).map { old, new -> RowEdit in
-      // Recalculation restores formula cells from the inputs Undo puts back.
+    let edits = try restoringEdits(
+      change["dataset_id"]!.text, before: change["before_ids"]!.text, after: change["after_ids"]!.text)
+    return try editRows(change["dataset_id"]!.text, edits: edits, actor: actor)
+  }
+  /// The edits that put a table change back. Recalculation restores formula cells from the inputs
+  /// these restore, so those cells stay as they are until then.
+  private func restoringEdits(_ datasetID: String, before: String, after: String) throws -> [RowEdit] {
+    let columns = try dataset(datasetID).columns
+    let recalculating = try recalculatingColumns(datasetID)
+    return try zip(try Value.parse(before).array, try Value.parse(after).array).map { old, new in
       let current = try item(new.text)
       var values = Self.activeValues(try item(old.text).data.object, columns: columns)
       for column in recalculating[current.logicalID] ?? [] {
@@ -554,7 +560,6 @@ extension Workbook {
       }
       return RowEdit(id: new.text, values: values)
     }
-    return try editRows(change["dataset_id"]!.text, edits: edits, actor: actor)
   }
   @discardableResult public func undoItem(
     _ id: String, token: String = identifier(), cancellation: Cancellation = .init(),
@@ -603,13 +608,8 @@ extension Workbook {
           let row = try db.execute("SELECT * FROM table_changes WHERE id=?", [.string(change)])
             .first
         else { throw SevraError("undo", "The accepted table change is missing.") }
-        let before = try Value.parse(row["before_ids"]!.text).array
-        let after = try Value.parse(row["after_ids"]!.text).array
-        let columns = try dataset(row["dataset_id"]!.text).columns
-        let edits = try zip(before, after).map {
-          RowEdit(
-            id: $1.text, values: Self.activeValues(try item($0.text).data.object, columns: columns))
-        }
+        let edits = try restoringEdits(
+          row["dataset_id"]!.text, before: row["before_ids"]!.text, after: row["after_ids"]!.text)
         let inverse = try applyRows(
           row["dataset_id"]!.text, edits: edits, request: .object(["undo": .string(change)]),
           proposalID: current.id)

@@ -202,6 +202,15 @@ def review_journeys(root, run, checked):
             saved['decisions'] == mapping[:2] and saved['sheet'] == 'Quotes'
             and run('table-update-draft', copy, source) == saved and run('verify', book)['ok'])
     checked('draft: saving choices changes no working table', run('rows', book, table) == before)
+    history = run('commits', book, '1000')
+    run('table-update-draft-save', book, json.dumps({**draft, 'decisions': mapping[:1]}))
+    run('table-update-draft-save', book, json.dumps(draft))
+    checked('draft: saving it again adds nothing to permanent history',
+            run('commits', book, '1000') == history)
+    rebuilt = root / 'review-rebuilt.sevra'
+    run('reconstruct', book, rebuilt)
+    checked('draft: a reconstructed workbook keeps the current draft',
+            run('table-update-draft', rebuilt, source) == saved)
     run('table-update-draft-save', book, json.dumps({**draft, 'decisions': mapping[:1] * 2}),
         error='update_draft')
     run('table-update-draft-save', book, json.dumps({**draft, 'sourceID': before[0]['id']}), error='update_draft')
@@ -321,6 +330,28 @@ def review_journeys(root, run, checked):
     run('table-update-preview', book, item, table, json.dumps(
         {'mode': 'append', 'mapping': [{'position': 0, 'target': 'sku'}]}), error='update_mapping')
     checked('suggestion: a preview still requires the complete explicit mapping', True)
+
+    stock = root / 'Stock.csv'
+    stock.write_text('sku,qty\nA,1\nB,2\n')
+    target = run('import', book, stock, '--role', 'values')['intake']['datasetIDs'][0]
+    schema = run('table-schema', book, target)
+    columns = schema['columns'] + [{'id': 'note', 'title': 'note', 'type': 'text'}]
+    run('table-edit-schema', book, target, schema['version'], schema['definitionID'],
+        json.dumps({'columns': columns}), 'add-note')
+    update = root / 'Stock update.csv'
+    update.write_text('sku,qty,note\nA,5,\nB,2,\n')
+    item = run('import', book, update, '--role', 'update')['source']['id']
+    options = {'mode': 'merge', 'keys': ['sku'], 'mapping': [
+        {'position': 0, 'target': 'sku'}, {'position': 1, 'target': 'qty'},
+        {'position': 2, 'target': 'note'}]}
+    preview = run('table-update-preview', book, item, target, json.dumps(options))
+    proposal = run('table-update-propose', book, item, target, json.dumps({
+        **options, 'newRowMeaning': 'actual', 'newRowScenario': 'actual',
+        'expectedRevision': preview['revision'], 'expectedFingerprint': preview['fingerprint'],
+        'token': 'stock-merge'}))
+    accepted = run('accept', book, proposal['id'], 'stock-accept')
+    checked('merge: a column added after the rows still accepts',
+            accepted['status'] == 'accepted' and run('rows', book, target)[0]['data']['qty'] == '5')
 
 
 if __name__ == '__main__':

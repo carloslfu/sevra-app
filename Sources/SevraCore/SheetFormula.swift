@@ -120,12 +120,21 @@ enum SheetFormula {
     return number
   }
 
-  /// Binary and decimal arithmetic can differ in the last places of a long chain.
+  /// Whether a calculation reproduces what Excel saved. Binary and decimal arithmetic can differ
+  /// in the last places of a long chain. No calculation saves 00123 or 7.20, so Excel kept text.
   static func same(_ value: SheetValue, as saved: String) -> Bool {
     guard case .number(let number) = value else { return text(value) == saved }
-    guard let other = Self.number(saved) else { return false }
+    guard saved.range(of: "^[+-]?0[0-9]|\\.[0-9]*0\\z", options: .regularExpression) == nil,
+      let other = Self.number(saved)
+    else { return false }
     let gap = abs(number - other)
     return gap <= max(abs(number), abs(other)) * Decimal(string: "0.00000000000005")!
+  }
+
+  /// A cell moves when any of the 15 digits Excel would show do.
+  static func moved(_ value: SheetValue, from saved: String) -> Bool {
+    guard case .number = value, let other = number(saved) else { return text(value) != saved }
+    return text(value) != text(other)
   }
 }
 
@@ -247,7 +256,8 @@ enum SheetFormulaToken: Equatable {
         }
         guard
           let number = Decimal(
-            string: String(input[index..<end]), locale: Locale(identifier: "en_US_POSIX"))
+            string: String(input[index..<end]), locale: Locale(identifier: "en_US_POSIX")),
+          !number.isNaN
         else { throw SheetFormulaGap(uses: "a number it cannot read") }
         output.append(.number(number))
         index = end
@@ -457,7 +467,8 @@ extension SheetExpression {
     case .percent(let node):
       let value = try numeric(node)
       guard case .number(let number) = value else { return value }
-      return .number(number / 100)
+      guard let result = try? Numbers.binary(number, 100, op: "/") else { return .error("#NUM!") }
+      return .number(result)
     case .arithmetic(let op, let lhs, let rhs):
       let left = try numeric(lhs)
       guard case .number(let x) = left else { return left }
@@ -489,8 +500,8 @@ extension SheetExpression {
       guard case .number(var number) = value else { return value }
       let digits = try numeric(arguments[1])
       guard case .number(let places) = digits else { return digits }
-      let whole = NSDecimalNumber(decimal: places).intValue
-      guard Decimal(whole) == places, (-28...28).contains(whole) else { return .error("#NUM!") }
+      // Excel drops the fraction of the digits, and the widest rounding leaves nothing or everything.
+      let whole = NSDecimalNumber(decimal: max(-127, min(127, places))).intValue
       var output = Decimal()
       NSDecimalRound(&output, &number, whole, .plain)
       return .number(output)
@@ -509,7 +520,7 @@ extension SheetExpression {
         default:
           switch try numeric(argument) {
           case .number(let number): numbers.append(number)
-          case let failure: return failure
+          case let failure: if name != "COUNT" { return failure }
           }
         }
         for cell in cells {
@@ -532,7 +543,10 @@ extension SheetExpression {
         }
         if name == "SUM" { return .number(total) }
         guard !numbers.isEmpty else { return .error("#DIV/0!") }
-        return .number(total / Decimal(numbers.count))
+        guard let mean = try? Numbers.binary(total, Decimal(numbers.count), op: "/") else {
+          return .error("#NUM!")
+        }
+        return .number(mean)
       }
     }
   }
