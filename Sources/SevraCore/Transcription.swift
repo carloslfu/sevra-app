@@ -24,14 +24,18 @@ public struct SpokenWord: Equatable, Sendable {
     guard duration > 60 else { return [0] }
     return Array(stride(from: 0, to: duration - overlapSeconds, by: partSeconds - overlapSeconds))
   }
-  /// Later parts repeat what the overlap already heard, so only words past it join.
+  /// The end of a part is unreliable: the recognizer can drop a cut word and stretch the one before
+  /// it across the gap. So a part hands over halfway through the overlap, and the next part supplies
+  /// every word after the last one kept. A silent next part takes nothing away.
   nonisolated static func joined(_ words: [SpokenWord], _ next: [SpokenWord], offset: Double)
     -> [SpokenWord]
   {
-    let heard = words.last?.end ?? 0
-    return words
+    guard !next.isEmpty else { return words }
+    let kept = words.filter { $0.end <= offset + overlapSeconds / 2 }
+    let heard = kept.last?.end ?? 0
+    return kept
       + next.map { SpokenWord(text: $0.text, start: $0.start + offset, end: $0.end + offset) }
-      .filter { $0.start >= heard - 0.05 }
+      .filter { ($0.start + $0.end) / 2 >= heard }
   }
   nonisolated static func chunks(_ words: [SpokenWord]) -> [Chunk] {
     stride(from: 0, to: words.count, by: 24).map { index in

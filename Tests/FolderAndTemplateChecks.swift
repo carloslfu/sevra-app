@@ -72,6 +72,34 @@ func checkFoldersAndTemplates(at root: URL) {
     try expect(joined.map(\.text) == ["alpha", "beta", "gamma"] && joined[2].start == 59)
     // A silent part adds nothing and loses nothing.
     try expect(FileTranscriber.joined(first, [], offset: 56) == first)
+    func spoken(_ text: String, _ start: Double, _ end: Double) -> SpokenWord {
+      SpokenWord(text: text, start: start, end: end)
+    }
+    // A real recording lost "order two": the part ended mid-phrase, the recognizer dropped those
+    // words and stretched "gasket" across the gap.
+    let cut = [
+      spoken("delivered", 56.1, 56.45), spoken("the", 56.5, 56.9), spoken("gasket", 56.96, 57.8),
+    ]
+    let whole = [
+      spoken("the", 0.55, 0.85), spoken("gasket", 0.96, 1.3), spoken("order", 1.36, 1.6),
+      spoken("two", 1.66, 1.85), spoken("days", 1.9, 2.2), spoken("late", 2.25, 2.6),
+    ]
+    try expect(
+      FileTranscriber.joined(cut, whole, offset: 56).map(\.text)
+        == ["delivered", "the", "gasket", "order", "two", "days", "late"])
+    // A word across the handover joins once, and later timing that drifts a little changes nothing.
+    let earlier = [
+      spoken("one", 56.2, 56.7), spoken("word", 56.8, 57.2), spoken("after", 57.3, 57.7),
+    ]
+    for drift in [-0.1, 0, 0.1] {
+      let later = [
+        spoken("one", 0.2 + drift, 0.7 + drift), spoken("word", 0.8 + drift, 1.2 + drift),
+        spoken("after", 1.3 + drift, 1.7 + drift), spoken("more", 2 + drift, 2.4 + drift),
+      ]
+      try expect(
+        FileTranscriber.joined(earlier, later, offset: 56).map(\.text)
+          == ["one", "word", "after", "more"])
+    }
     let chunks = FileTranscriber.chunks((0..<25).map { word("w\($0)", Double($0)) })
     try expect(chunks.count == 2 && chunks[1].text == "w24")
     try expect(chunks[1].locator == "time=24.0; end=24.4")

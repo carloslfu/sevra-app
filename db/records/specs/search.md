@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-29T18:54:58.412663+00:00
+updated: 2026-10-31T14:52:00+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -95,7 +95,9 @@ Q10. Audio/video are included or explicitly linked, previewed natively and index
 by metadata. On-device transcription is capability-gated and its timestamps index
 only after successful recognition; no fabricated transcript. A recording of up to two
 hours is divided into overlapping parts of 58 seconds, each transcribed on this Mac, and
-words heard twice in an overlap join once. Timestamps stay those of the original. Nothing
+words heard twice in an overlap join once. A part hands over halfway through its overlap,
+because the recognizer can drop a word cut at the end of a part and stretch the one before
+it across the gap. Timestamps stay those of the original. Nothing
 is indexed until every part finishes, so Stop leaves the original as it was and a retry
 starts over. A silent part is skipped. Recognition uses the Mac's language. Encrypted/unsupported
 files remain browsable and have actionable extraction status. Never recursively

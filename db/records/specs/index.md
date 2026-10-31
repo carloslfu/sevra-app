@@ -2,17 +2,17 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-31T00:11:42Z
+updated: 2026-10-31T14:52:00Z
 ---
 
 # records/specs
 
+- [[records/specs/search]] — FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 - [[records/specs/document-composition]] — Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 - [[records/specs/intelligence]] — Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 - [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 - [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 - [[records/specs/agent-activity]] — Native live agent activity with shimmer, exact tool receipts, cancellation, bounded inspection and durable history.
-- [[records/specs/search]] — FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 - [[records/specs/mvp-delivery]] — Owner-directed fast MVP: one complete native file-to-result journey, focused verification, coherent setup and deferred infrastructure.
 - [[records/specs/condition-dispatch]] — "Schema30 dispatch and conversational rule saving/native handoff have scoped proof. Text/voice Enable, model workflow/restart, dataset adapters and release remain open."
 - [[records/specs/native-app-engine]] — Customizable Home and native engine: forms/actions, reusable computation, durable workflows, local automations, authority, portability and phased acceptance. Implementation remains open.
