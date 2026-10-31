@@ -32,8 +32,8 @@ increment 4, bounded bulk intake, and increment 5, an explicit Excel formula sub
 accepted for their scope. So are increment 6, bounded conversation continuation, now on for the
 native 32K profile, increment 7, reaching automation review by text or voice, increment 8, folder
 comparison and job templates, and increment 9, longer audio. Increment 10 has its real-model
-journey, install, suite and window pass; signing and the hardware matrix remain open. Main retains
-the prior audit while the handoff branch carries this work.
+journey, install, suite and window pass; signing and the hardware matrix remain open. Main carries
+this work.
 
 The October 29 follow-up authorizes sequential minimum usable features, testing
 and polish: [[records/operations/minimum-feature-delivery]]. That queue supersedes

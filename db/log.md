@@ -1429,3 +1429,6 @@ Installed-window pass on candidate 4e96746 with a synthetic workbook: a real req
 ## [2026-10-31 14:50] verification | records/operations/implementation
 Owner-assisted window pass on the installed build: Add a folder, template export and import, and Transcribe on real audio. A dropped-words join defect was found and fixed; all 576 core checks pass and the same recording now keeps every word at the join.
 
+## [2026-10-31 14:54] verification | records/operations/agent-handoff
+Records now state that main carries the handoff work, ahead of its merge through a pull request.
+

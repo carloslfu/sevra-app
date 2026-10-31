@@ -26,9 +26,9 @@ The earlier pause source is [[sources/notes/2026/10/minimum-features-pause]]. Th
 sections below keep the paused checkpoint detail; where they conflict, this section
 and the resume order at the end are current.
 
-The public repository is `carloslfu/sevra-app`. All in-flight code, tests and docs
-are preserved on branch `codex/sevra-minimum-features-handoff`, based on `170efa0`.
-This is an unfinished checkpoint, not a release. Main remains at the prior audit.
+The public repository is `carloslfu/sevra-app`. This work was carried on branch
+`codex/sevra-minimum-features-handoff`, based on `170efa0`, and main now carries it.
+It is a test preview, not a release.
 Read `AGENTS.md`, [db/DB.md](../../DB.md), [[records/overview/start-here]], this handoff,
 [[records/operations/minimum-feature-delivery]] and
 [[records/operations/implementation]] before making changes.
