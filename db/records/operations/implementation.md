@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-31T18:26:00+00:00
+updated: 2026-10-31T18:59:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -53,12 +53,19 @@ each, 8 or 9 steps and 66 to 98 s. The single-citation run recorded below did no
 **VoiceOver has not run.** Turning it on changes a system setting. The accessibility tree was read
 instead on Welcome, Home, Search, the audio viewer and a table, and every control had a name except
 three, now changed. Menu names fell back to `More` after a view updated, `You message actions` is
-now `Your message actions`, and the Add files split button had no name. The tree was not read again
-after the fix, because the Mac locked. The arrow beside Add files still has no name of its own.
+now `Your message actions`, and the Add files split button had no name. On the rebuilt app the names
+held after moving between views. The arrow beside Add files still has no name of its own.
 
-**Keyboard is partly checked.** Return sends from the composer and runs a search, and the Message
-Sevra command focuses the composer. Escape on a sheet and Command shortcuts need the app in front.
-That takes the owner's approval, which timed out before the Mac locked, so both stay unchecked.
+**Keyboard passed on the main path, with the app in front.** Command-L, Command-Return,
+Shift-Command-F, Option-Command-F, Shift-Command-Y, Command-[, Command-Z, Shift-Command-Z,
+Command-comma and Command-W each did their job, and Return sends, runs a search and saves a table
+cell. Escape closed conversation search, the Spaces popover, New automation and Use saved files, and
+discarded a cell edit. Undo and redo recalculated dependent cells.
+
+Nothing on the keyboard stopped a running request, so Stop joined the Conversation menu with
+Command-period. That key has not been pressed, though the Stop it calls was checked with its button.
+Command-N, Command-O, Command-I and Shift-Command-E were not pressed, because they open file panels
+that test tools may not touch.
 
 `bash scripts/check.sh` ran once on this code, with 806 PASS lines and 576 core checks. Its last step
 stopped on records still being edited during the run, and they validate with their indexes rebuilt.

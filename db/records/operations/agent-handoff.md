@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-10-31T18:26:00+00:00
+updated: 2026-10-31T18:59:00+00:00
 summary: 'Resumed minimum features: increments 1 through 9 accepted; the window checks are done and an external user is next.'
 title: Paused minimum-feature agent handoff
 ---
@@ -17,7 +17,7 @@ while asking for fewer tests: [[sources/notes/2026/10/ship-with-enough-testing]]
 on for the native 32K profile. The installed-window pass is done, including Add a folder, template
 export and import, and Transcribe on real audio. A longer recording then showed the old recognizer
 discarding speech before a pause, so Transcribe moved to Apple's long-form on-device transcriber.
-Escape, Command shortcuts and VoiceOver itself are still unchecked, and an external user is next.
+VoiceOver itself is still unchecked, and an external user is next.
 Exact evidence and limits are in
 [[records/operations/implementation]], the
 [reviewed-update receipt](../../../integration/evidence/2026-10-30-reviewed-updates.json.gz),

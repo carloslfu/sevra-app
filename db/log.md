@@ -1438,3 +1438,6 @@ Hosted run 41212336041 passed on 1559467; main merge 226bb27 has that exact tree
 ## [2026-10-31 18:35] verification | records/operations/implementation
 Long audio check found the file recognizer discarding speech before a pause; Transcribe moved to the on-device long-form transcriber. The 27:37 recording matched 95.93% in 17 s with no run of lost words, the transcript shows under the player, and five comparison runs cited three sources each. Escape, Command shortcuts and VoiceOver itself remain unchecked.
 
+## [2026-10-31 18:59] verification | records/operations/implementation
+Keyboard pass with the app in front: ten Command shortcuts, Return and Escape worked on the main path. VoiceOver names held on the rebuilt app. Stop joined the Conversation menu with Command-period, which has not been pressed. VoiceOver itself has not run.
+
