@@ -59,7 +59,8 @@ document in 35.0 s, the missing contract in 25.3 s, and cancel, persist and rest
 65.8 s. The real eight-report job passed once: 11 steps, 8 checkpoints, a peak of 22,854 tokens
 against the 24,576 limit, and 294 s. Its three recovery cases all passed: stopped once, a failed
 summary, and stopped twice, each finishing in 11 steps after the follow-up. This is the first real
-run with the stopped reply out of the prompt.
+run with the stopped reply out of the prompt. `scripts/check.sh` passed once on the candidate in
+10:03 with 815 PASS lines.
 
 **Also fixed from the smaller list.** Lineage from an edited row to the formula record, stable formula
 reasons, a repeated sheet name, the actor on an imported template, Stop while hashing a folder,

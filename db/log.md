@@ -1441,3 +1441,6 @@ Long audio check found the file recognizer discarding speech before a pause; Tra
 ## [2026-10-31 18:59] verification | records/operations/implementation
 Keyboard pass with the app in front: ten Command shortcuts, Return and Escape worked on the main path. VoiceOver names held on the rebuilt app. Stop joined the Conversation menu with Command-period, which has not been pressed. VoiceOver itself has not run.
 
+## [2026-10-31 22:45] verification | records/operations/implementation
+All 32 ranked review findings fixed on main. Real model checks, the eight-report job, its three recovery cases, a window check and the full suite passed.
+

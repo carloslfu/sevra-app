@@ -2,16 +2,17 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-31T18:05:00Z
+updated: 2026-10-31T23:30:00Z
 ---
 
 # records/specs
 
-- [[records/specs/search]] — FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
+- [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
+- [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 - [[records/specs/document-composition]] — Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
+- [[records/specs/search]] — FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 - [[records/specs/intelligence]] — Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 - [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
-- [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 - [[records/specs/agent-activity]] — Native live agent activity with shimmer, exact tool receipts, cancellation, bounded inspection and durable history.
 - [[records/specs/mvp-delivery]] — Owner-directed fast MVP: one complete native file-to-result journey, focused verification, coherent setup and deferred infrastructure.
 - [[records/specs/condition-dispatch]] — "Schema30 dispatch and conversational rule saving/native handoff have scoped proof. Text/voice Enable, model workflow/restart, dataset adapters and release remain open."
@@ -36,6 +37,5 @@ updated: 2026-10-31T18:05:00Z
 - [[records/specs/managed-datasets]] — Schema12 managed storage, definition lifecycle and bounded stored-scalar query/index paths have scoped proof; complete MJ/Excel continuity and release remain open.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 - [[records/specs/persistence-readiness]] — Required complete, causal and replayable local persistence for future syncing; cloud, transport, replica coordination and a new conflict resolver remain out of scope.
-- [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 - [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 - [[records/specs/identity]] — Approved Observer zebra, exact original Mac icon, native outlined wordmark and restrained light/dark placement.
