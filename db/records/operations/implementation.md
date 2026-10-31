@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-31T00:11:42+00:00
+updated: 2026-10-31T02:58:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -61,7 +61,8 @@ copied parts, a repeated import and a file that is not a template.
 **Increment 9 is accepted for its mechanism.** Recordings of up to two hours divide into overlapping
 parts: [[records/specs/search]]. Part planning, overlap joining and timestamps have checks, and a
 real 75.6-second recording exported as parts of 58.0 and 19.6 s. Recognition itself has not run on
-longer audio, because the CLI holds no speech permission and the screen was locked.
+longer audio, because the CLI holds no speech permission and the window pass could not reach the
+action.
 
 **Increment 10, candidate checks.** Commit `4e96746`, native build installed through
 `scripts/install.sh --native --no-build`. `scripts/check_model.py` against the packaged CLI:
@@ -86,11 +87,25 @@ progress text, which they had stopped seeing.
 `bash scripts/check.sh` passed once on `4e96746`: exit 0, 803 PASS lines, 576 core checks and no
 warnings. The real eight-report job also passed on that commit.
 
-Not done: the installed-window pass. The screen stayed locked, so the folder dialog, template
-buttons, automation screen from a real window, Transcribe with real speech, and the keyboard and
-appearance pass on this build remain unseen. There is no Developer ID identity on this Mac, so the
-build stays ad-hoc signed and notarization did not run. Only this 48 GB M5 Pro Mac has been tested.
-No external user has tried it.
+**Installed-window pass, later on October 30.** The screen stayed locked through the suite, so
+this ran afterward on the installed candidate with a synthetic scratch workbook, through background
+controls only. "Open the Monday stock check automation." called `open_automation` once and opened
+the native review in the window in 12 s. The reply said nothing was enabled, and the workbook holds
+no activation. Reclaimable memory stayed above 12 GB during that run and swap did not grow. Also
+seen working: the automation list, its search and no-match message, the review from the list,
+Export template opening its save panel with the suggested `Monday stock check template.json`, Home,
+a table, the audio viewer and the review in Light and Dark, and arrow keys in a read-only table.
+
+Three steps still need a person at this Mac. macOS runs Open and Save panels in a separate process
+the test tools may not touch, so no folder or file was chosen, and Add a folder's count sheet, the
+exported file and Import template have only their core checks. Transcribe on this Mac sits in a
+pop-up menu the background tools cannot open, so speech recognition has not run on real audio.
+Escape and Command shortcuts could not be delivered in the background, so they were not checked on
+this build. Quit from the menu did not end the app while the save panel was open. The test process
+was stopped there, and the workbook reopened and passed `sevra verify`.
+
+There is no Developer ID identity on this Mac, so the build stays ad-hoc signed and notarization
+did not run. Only this 48 GB M5 Pro Mac has been tested. No external user has tried it.
 
 [Continuation receipt](../../../integration/evidence/2026-10-30-conversation-continuation.json.gz),
 SHA-256 `414a7e40a566cfcb4f7f32ca01b47b673af3574665d73a322468cbbfa6332f9c`, binds the sources,

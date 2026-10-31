@@ -1423,3 +1423,6 @@ Increments 6 through 9 in their smallest reliable versions: bounded continuation
 ## [2026-10-31 00:11] verification | records/operations/implementation
 Candidate 4e96746: full suite exit 0 with 803 PASS lines, the real eight-report job passed, and the four real journeys passed on the second pass after one comparison cited the source instead of rows. The window pass did not run because the screen stayed locked.
 
+## [2026-10-31 02:56] verification | records/operations/implementation
+Installed-window pass on candidate 4e96746 with a synthetic workbook: a real request opened automation review in 12 s with nothing enabled, and the automation screens, save panel suggestion, Light and Dark and table arrow keys worked. Add a folder, template export and import, and Transcribe with real speech still need a person at this Mac.
+
