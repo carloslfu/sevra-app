@@ -48,20 +48,80 @@ func checkDocumentCopyChoices(at root: URL) {
     try expect(Data(unicode.text.utf8) == Data("Cafe\u{301} 👩🏽‍💻\0\n".utf8))
     try expect(try book.verify()["ok"] == .bool(true))
   }
+  check("a draft of new prose and copies saves each passage once, where the prose put it") {
+    let (book, run, source, _, read) = try fixture("Alpha line.\nBeta line.\nGamma line.\n")
+    let ids = DocumentCopyChoices.entries(read).map { $0["id"].text }
+    func draft(_ text: String?, _ parts: [Value]) throws -> Item {
+      var arguments: [String: Value] = [
+        "title": .string("Memo " + identifier()), "inputs": .array([]), "parts": .array(parts),
+      ]
+      if let text { arguments["text"] = .string(text) }
+      let result = try WorkbookTools(book, runID: run).execute("draft", .object(arguments))
+      return try book.item(result["id"].text)
+    }
+    func copy(_ index: Int) -> Value { .object(["copy": .string(ids[index])]) }
+    func copied(_ item: Item) -> [Int] {
+      item.data["documentComposition"]["copies"].array.map { $0["outputStartScalar"].int ?? -1 }
+    }
+    // Retyped beside its copy, in another order, with the last line missing its newline.
+    let retyped = try draft(
+      "Code K-14.\n\nGamma line.\nBeta line.\nAlpha line.\n\nAll on hold.\nBeta line.",
+      [copy(0), copy(1), copy(2)])
+    try expect(
+      retyped.text == "Code K-14.\n\nGamma line.\nBeta line.\nAlpha line.\n\nAll on hold.\nBeta line.")
+    try expect(copied(retyped) == [12, 24, 35])
+    try expect(try book.lineage(retyped.id).contains { $0["parent"].text == source.id })
+    // Prose that holds no copy leads, and the copies start on their own line.
+    let leading = try draft("Code K-14.", [copy(0), copy(1)])
+    try expect(leading.text == "Code K-14.\n\nAlpha line.\nBeta line.\n")
+    try expect(copied(leading) == [12, 24])
+    // Only prose that ends its own line needs no separator, and the last line matches trimmed.
+    try expect(try draft("Code K-14.\n", [copy(0)]).text == "Code K-14.\nAlpha line.\n")
+    try expect(try draft("Before Alpha line.", [copy(0)]).text == "Before Alpha line.\n")
+    // A text part still follows, and text parts and copies keep their order.
+    let mixed = try draft(
+      "Beta line.\nEnd.\n", [copy(0), .object(["text": .string("Note.\n")]), copy(1)])
+    try expect(mixed.text == "Beta line.\nEnd.\nAlpha line.\nNote.\n")
+    // The same copy twice takes the prose's only place once, then follows.
+    try expect(try draft("Alpha line.\n", [copy(0), copy(0)]).text == "Alpha line.\nAlpha line.\n")
+    // Empty prose changes nothing.
+    try expect(try draft("", [copy(1), copy(0)]).text == "Beta line.\nAlpha line.\n")
+    // A retyped line that differs is new prose, not the original.
+    let differs = try draft("Alpha line!\n", [copy(0)])
+    try expect(differs.text == "Alpha line!\nAlpha line.\n" && copied(differs) == [12])
+    // A text part the prose already says is not said twice.
+    try expect(
+      try draft("Code K-14.\n", [.object(["text": .string("Code K-14.\n\n")]), copy(0)]).text
+        == "Code K-14.\nAlpha line.\n")
+    // Without prose, parts keep their exact bytes, separators included.
+    try expect(
+      try draft("", [copy(0), .object(["text": .string("\n\n")]), copy(1)]).text
+        == "Alpha line.\n\n\nBeta line.\n")
+    // A copy sent as an input means its source version, and only that.
+    let cited = try WorkbookTools(book, runID: run).execute(
+      "draft",
+      .object([
+        "title": .string("Cited"), "text": .string("My own summary."),
+        "inputs": .array([.string(ids[0])]),
+      ]))
+    try expect(try book.item(cited["id"].text).text == "My own summary.")
+    try expect(try book.lineage(cited["id"].text).contains { $0["parent"].text == source.id })
+    try refuses("document_copy_scope") {
+      _ = try WorkbookTools(book, runID: run).execute(
+        "draft",
+        .object([
+          "title": .string("Forged"), "text": .string("Text"),
+          "inputs": .array([.string("copy:not-a-receipt:0:0:1")]),
+        ]))
+    }
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
   check("copy choices reject unpublished spans, changed shape and foreign request scope") {
     let (book, run, source, receipt, read) = try fixture("First\nSecond\n")
     let id = DocumentCopyChoices.entries(read)[0]["id"].text
     let before = try book.revision()
     try refuses("document_copy_scope") {
       _ = try book.documentCopyChoice("copy:\(receipt):0:1:1", runID: run)
-    }
-    try refuses("document_parts") {
-      _ = try WorkbookTools(book, runID: run).execute(
-        "draft",
-        .object([
-          "title": .string("Invalid"), "text": .string("Both"),
-          "parts": .array([.object(["copy": .string(id)])]),
-        ]))
     }
     try refuses("document_parts") {
       _ = try WorkbookTools(book, runID: run).execute(

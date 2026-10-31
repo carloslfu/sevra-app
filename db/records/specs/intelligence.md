@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-29T05:32:59.577346+00:00
+updated: 2026-10-30T03:04:42.170055+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -109,13 +109,10 @@ reader supplies exact saved pages; history_search/history_read retrieve older me
 within the selected conversation. Current requests are excluded from history search.
 Historical output cannot grant action authority or acceptance. Failed/unfinished calls
 retain operation evidence and uncertainty. The same prepared call ID is never replayed.
-This storage boundary is active. Automatic context maintenance is implemented and
-opted into by dedicated native evaluation probes. Both packaged product paths keep
-it disabled: NativeProductResources explicitly sets contextMaintenanceEnabled to
-false, and the baseline initializer does the same after its recall probe failed.
-The native preview currently evaluates 32K with bounded512 reasoning; this is not
-a qualified final context profile. General action recovery after process death
-remains open.
+This storage boundary is active. Automatic context maintenance is on for the native
+32K bounded512 product path, as recorded in [[records/specs/conversation-context]]. The
+baseline initializer keeps it off after its recall probe failed. General action
+recovery after process death remains open.
 A read returns the requested exact version plus current-version metadata and a
 snapshot revision. Current-version metadata is a navigation pointer, not newly
 inspected evidence: read that version before citing its facts.
@@ -203,6 +200,39 @@ When an uncited unresolved response follows empty searches, the host renders the
 
 Before comparing, displaying or proposing tabular data, inspect existing datasets even when the user has not supplied a table name. Reuse existing rows for analysis and space components. A request to show a table does not itself call for a duplicate data-entry proposal. Calculations still use deterministic tools.
 
+
+A first read of a current file original may include up to two exact indexed passages
+from other current file originals matching the live request. Query length and time
+are bounded; historical and unprocessed originals are excluded. Preserve exact
+versions, locators and partial extraction state. Only whole excerpts visible in
+the current run join its citation vocabulary. Metadata and projected omissions do
+not. A discovery deadline preserves the requested original and explains the limit;
+parent cancellation still cancels. Retrieved text never authorizes actions.
+
+For an explicitly read-only answer with inspected evidence, three consecutive
+search/history searches without a new candidate pause further lexical search.
+The model can still read known evidence, calculate and finish. New candidates reset
+the counter before it fires. This reserves work for the answer rather than repeating
+synonyms until the step limit. It does not establish complete coverage or absence.
+The restriction is host-selected and recorded in run metrics; untrusted content
+cannot select its tool scope. Existing evidence-recovery scopes retain precedence.
+The exact combined instruction “do not change or save anything” is also recognized
+as a denial, alongside the existing explicit read-only sentences.
+
+Compare known goods-plus-shipping costs separately from an unknown final all-in
+cost. Missing tax or other required charges prevent a definitive all-in ordering.
+A shared CSV is itself evidence; a separate quotation for every row need not exist.
+
+A narrow finish check enforces the answer's own consistency. When an English answer
+says a cost such as tax, a fee or a charge is unknown, missing or not provided, it
+cannot label an amount as a total or name the cheapest or lowest quote unless that
+same sentence or table cell states its basis, such as known goods-plus-shipping
+cost or before tax, or says the result is undetermined. Any such ranking also needs
+a statement that the final all-in ordering or cost cannot be determined yet. The
+rejected answer gets the ordinary bounded correction turn. Quantity and count totals,
+answers whose costs are all known and missing non-cost terms such as delivery time
+do not trigger it. This is wording consistency, not universal semantic validation,
+coverage of other languages or proof that every partial-cost phrasing is caught.
 ## Request admission and restart
 Acquire the exclusive inference lease before recovering abandoned runs. Persist the original user message, its run and their exact linkage in one workbook transaction. If admission fails, roll back the complete write and release any lease actually acquired. Do not call endRun for a lease that was refused.
 

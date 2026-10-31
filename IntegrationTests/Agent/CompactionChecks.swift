@@ -398,6 +398,171 @@ func checkRunningCompaction() async throws {
     try expectEqual(try book.unresolvedToolCalls().isEmpty, true)
     try expectEqual(try book.verify()["ok"], .bool(true))
   }
+  let source = "PACKED-LABEL: first line.\nThe rest of the original."
+  let read = try ToolResultProjection.presentedRead(
+    .object([
+      "item": .object(["id": .string("a"), "text": .string("PACKED-LABEL: first")]),
+      "chunks": .array([.object(["body": .string(source)])]),
+      "references": .object([
+        "hits": .array([]), "nextCursor": .null, "notice": .string("Long guidance."),
+        "fileCoverage": .object(["snapshot": .null, "latestExtraction": .object([:])]),
+      ]),
+    ])
+  ).json()
+  try expectEqual(read.contains("PACKED-LABEL: first\""), false)
+  try expectEqual(read.contains("Long guidance"), false)
+  try expectEqual(read.contains("The rest of the original"), true)
+  // Coverage that says something, or a page that has hits, stays exactly as the receipt has it.
+  let linked: Value = .object([
+    "references": .object(["hits": .array([.object(["id": .string("b")])]), "nextCursor": .null])
+  ])
+  try expectEqual(ToolResultProjection.presentedRead(linked), linked)
+
+  let version = identifier()
+  let state: Value = .object([
+    "calls": .array([
+      .object([
+        "id": .string("save"), "tool": .string("save_space"), "state": .string("completed"),
+        "operation_token": .string("token"), "message_id": .string("message"),
+        "committedOperation": .object(["kind": .string("space")]),
+      ]),
+      .object([
+        "id": .string("read"), "tool": .string("read"), "state": .string("completed"),
+        "operation_token": .string("token"), "message_id": .string("message"),
+      ]),
+      .object([
+        "id": .string("write"), "tool": .string("draft"), "state": .string("prepared"),
+        "operation_token": .string("token"), "message_id": .null,
+      ]),
+    ]),
+    "documentCopies": .object([
+      "entries": .array([.object(["sourceVersionID": .string(version), "text": .string("Copy")])])
+    ]),
+    "readEvidence": .object([
+      "entries": .array([
+        .object([
+          "versionID": .string(version), "textPrefix": .string("Copy and more"),
+          "resultHash": .string("hash"), "receiptID": .string("read"),
+          "originalStatus": .string("draft"), "originalMeaning": .string("actual"),
+          "currentVersionID": .string(version), "currentStatus": .string("draft"),
+          "currentMeaning": .string("actual"), "isCurrentVersion": .bool(true),
+        ]),
+        .object([
+          "versionID": .string("older"), "textPrefix": .string("Kept excerpt"),
+          "resultHash": .string("hash"), "receiptID": .string("older-read"),
+          "originalStatus": .string("draft"), "originalMeaning": .string("actual"),
+          "currentVersionID": .string("newer"), "currentStatus": .string("accepted"),
+          "currentMeaning": .string("actual"), "isCurrentVersion": .bool(false),
+        ]),
+      ])
+    ]),
+    "recordStates": .array([
+      .object([
+        "originalVersion": .string(version), "currentVersion": .string(version),
+        "datasetID": .null, "status": .string("draft"),
+      ]),
+      .object([
+        "originalVersion": .string("older"), "currentVersion": .string("newer"),
+        "datasetID": .string("table"), "status": .string("accepted"),
+      ]),
+    ]),
+  ])
+  let retained = [
+    InferenceMessage(role: "assistant", content: ""),
+    InferenceMessage(role: "tool", content: #"{"chunks":[]}"#, toolCallId: "call", toolName: "read"),
+  ]
+  let progress = try ContextMaintenance.withProgress(
+    retained,
+    state: .object([
+      "savedSpaces": .array([.object(["savedTitle": .string("Receiving review")])]),
+      "calls": state["calls"],
+    ]))
+  try expectEqual(progress.count, 2)
+  try expectEqual(progress[1].toolCallId, "call")
+  try expectEqual(
+    try Value.parse(progress[1].content)["hostProgress"].text,
+    "Already finished, do not repeat: saved space Receiving review, 1 read. Continue with what remains."
+  )
+  try expectEqual(
+    try ContextMaintenance.withProgress(retained, state: .object([:]))[1].content, #"{"chunks":[]}"#)
+  // What a stopped request saved is finished too, even though this run did none of it.
+  try expectEqual(
+    try Value.parse(
+      ContextMaintenance.withProgress(
+        retained,
+        state: .object([
+          "stoppedRequest": .object([
+            "saved": .array([
+              .object(["tool": .string("save_space"), "title": .string("Receiving review")]),
+              .object(["tool": .string("restore_space"), "title": .null]),
+            ])
+          ])
+        ]))[1].content)["hostProgress"].text,
+    "Already finished, do not repeat: saved Receiving review, completed restore_space. Continue with what remains."
+  )
+  // Only the host's own comparison marks a note as the person's exact words.
+  func marked(_ text: String) -> Bool {
+    ContextMaintenance.withVerbatim(
+      .object(["text": .string(text)]),
+      userWords: ["Purchase code MAPLE-27. Sample is exactly 0.10 kg."]
+    )["verbatim"] == .bool(true)
+  }
+  try expectEqual(marked("Sample is exactly 0.10 kg."), true)
+  try expectEqual(marked("Sample is 0.10 kilogram."), false)
+  try expectEqual(marked(""), false)
+
+  // The reply that only says a request stopped is not left to be mistaken for that request.
+  func conversation(_ state: String, _ role: String = "assistant") throws -> [Message] {
+    try JSONDecoder().decode(
+      [Message].self,
+      from: Data(
+        try Value.array(
+          [("a", "user", "complete"), ("b", role, state), ("c", "user", "complete")].map {
+            .object([
+              "id": .string($0.0), "role": .string($0.1), "state": .string($0.2),
+              "body": .string("Words"), "created": .string("2026-10-30T00:00:00Z"),
+            ])
+          }
+        ).json().utf8))
+  }
+  for state in ["cancelled", "failed", "interrupted"] {
+    try expectEqual(
+      ContextMaintenance.replyToStopped(try conversation(state), requestID: "c"), "b")
+  }
+  try expectEqual(
+    ContextMaintenance.replyToStopped(try conversation("complete"), requestID: "c"), nil)
+  try expectEqual(
+    ContextMaintenance.replyToStopped(try conversation("failed", "user"), requestID: "c"), nil)
+  try expectEqual(
+    ContextMaintenance.replyToStopped(try conversation("failed"), requestID: "a"), nil)
+  // An outcome names a reply, so a cancelled one cannot be read as the request it answered.
+  try expectEqual(
+    ContextMaintenance.presented(
+      .object([
+        "referencedOutcomes": .array([
+          .object(["messageID": .string("reply"), "state": .string("cancelled")])
+        ])
+      ]))["referencedOutcomes"].array,
+    [.object(["replyID": .string("reply"), "state": .string("cancelled")])])
+
+  let presented = ContextMaintenance.presented(state)
+  try expectEqual(presented["calls"].array[0], state["calls"].array[0])
+  try expectEqual(
+    presented["calls"].array[1],
+    .object(["id": .string("read"), "tool": .string("read"), "state": .string("completed")]))
+  try expectEqual(presented["calls"].array[2], state["calls"].array[2])
+  let current = presented["readEvidence"]["entries"].array[0]
+  try expectEqual(Set(current.object.keys), [
+    "versionID", "receiptID", "originalStatus", "originalMeaning", "isCurrentVersion",
+  ])
+  // An entry that moved on keeps its excerpt and everything that says so.
+  let moved = presented["readEvidence"]["entries"].array[1]
+  try expectEqual(moved["textPrefix"].text, "Kept excerpt")
+  try expectEqual(moved["currentVersionID"].text, "newer")
+  try expectEqual(moved["resultHash"], .null)
+  try expectEqual(presented["recordStates"].array[0]["isCurrentVersion"], .bool(true))
+  try expectEqual(presented["recordStates"].array[0]["currentVersion"], .null)
+  try expectEqual(presented["recordStates"].array[1], state["recordStates"].array[1])
   print(
     "PASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations"
   )

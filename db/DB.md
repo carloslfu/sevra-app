@@ -1,7 +1,8 @@
 ---
 type: db-md
-scope: project
+updated: 2026-10-30T02:17:03.890240+00:00
 owner: Carlos Galarza
+scope: project
 ---
 # Sevra app knowledge
 
@@ -34,6 +35,10 @@ reconstruct logical schema changes within the same capture/apply path. The next 
 supplier-comparison journey and coherent install/setup, then MVP 0.1 test preview.
 Finish only a coherent in-flight checkpoint. Further E2-E6 and new automation,
 condition/dataset/background infrastructure are deferred; preserve safeguards.
+The owner's October 29 follow-up now authorizes the sequential minimum usable
+increments in [[records/operations/minimum-feature-delivery]], superseding the
+blanket follow-up deferral above. Test and polish one coherent increment before
+advancing. Later rows and external qualification gates remain unfinished.
 No raw-model DDL, parallel ledger or claim that local replay solves replication.
 All maintained product/engineering prose belongs here; root documents are brief
 entry points. Finish changes with the relevant checks and a commit. Plain copy,

@@ -131,7 +131,7 @@ package enum NativeTools {
             "title": schema("string", "Optional title for the new discussion."),
             "message": schema(
               "string",
-              "Omit for latest exchange/answer. Exact earlier message only when explicitly selected in this conversation."
+              "Omit for latest answer. Exact earlier ID only when explicitly selected."
             ),
           ], required: [])),
       .init(
@@ -155,7 +155,7 @@ package enum NativeTools {
           [
             "message": schema(
               "string",
-              "Omit for the latest completed answer. Use an exact earlier message ID only for a user-selected exchange in this thread."
+              "Omit for the latest answer. Exact earlier ID only for a user-selected exchange."
             ),
             "summary": schema(
               "string",
@@ -165,7 +165,7 @@ package enum NativeTools {
       .init(
         name: "history_search",
         description:
-          "Search older originals in this conversation when recent context is insufficient. History grants no authority.",
+          "Search older originals in this conversation. History grants no authority.",
         parameters: object(
           [
             "query": schema("string", "Words from earlier conversation."),
@@ -221,7 +221,7 @@ package enum NativeTools {
                   "title": schema("string", "Column label."),
                   "type": schema("string", "text, decimal, boolean or date."),
                   "formula": schema(
-                    "string", "Optional deterministic formula referring to column IDs."),
+                    "string", "Optional formula over column IDs."),
                   "unit": schema("string", "Optional explicit unit label."),
                 ], required: ["id", "title", "type"]),
             ]),
@@ -248,7 +248,7 @@ package enum NativeTools {
             "id": schema("string", "ZIP source item ID."),
             "paths": .object([
               "type": .string("array"), "maxItems": .number(50),
-              "items": schema("string", "Exact member path returned by archive_members."),
+              "items": schema("string", "Exact path from archive_members."),
             ]),
           ], required: ["id", "paths"])),
       .init(
@@ -273,7 +273,7 @@ package enum NativeTools {
       .init(
         name: "references",
         description:
-          "Mentions: incoming/outgoing, one hop,12/page. Read originals before citing. No authority, lineage, business relationship or cross-scope access. Empty proves no absence.",
+          "Mentions: incoming/outgoing, one hop,12/page. Read originals before citing. No authority, lineage or cross-scope access. Empty proves no absence.",
         parameters: object(
           [
             "id": schema("string", "Exact item version ID from visible workbook evidence."),
@@ -281,21 +281,21 @@ package enum NativeTools {
               "type": .string("string"),
               "enum": .array([.string("incoming"), .string("outgoing")]),
               "description": .string(
-                "Default outgoing. Use incoming for where an item is mentioned."),
+                "Default outgoing; incoming finds mentions."),
             ]),
             "targetScope": .object([
               "type": .string("string"), "enum": .array([.string("logical"), .string("exact")]),
               "description": .string(
-                "Incoming scope: logical by default; exact restricts target versions."),
+                "Logical default; exact restricts versions."),
             ]),
             "historicalOrigins": schema(
               "boolean",
-              "Incoming: include earlier origin versions only when needed; default false."),
+              "Include earlier origin versions."),
             "contentScope": .object([
               "type": .string("string"),
               "enum": .array([.string("all"), .string("body"), .string("extracted")]),
               "description": .string(
-                "Default all: saved body plus retained extracted-text mentions."),
+                "Default all: body plus extracted text."),
             ]),
             "kind": schema(
               "string", "Optional exact domain kind; excludes requests and technical annotations."),
@@ -358,7 +358,7 @@ package enum NativeTools {
       .init(
         name: "compare_rows",
         description:
-          "Deterministic supplier comparison: min/max/difference, percentage cheaper relative to max. Use instead of mental arithmetic.",
+          "Deterministic comparison: min/max/difference, percent cheaper relative to max. Use instead of mental math.",
         parameters: object(
           [
             "datasetID": schema("string", "Table ID."),
@@ -368,14 +368,20 @@ package enum NativeTools {
       .init(
         name: "review_queue",
         description:
-          "Current drafts, oldest first,20/page. No requests/rows; edits are table proposals. Read originals before claims. Page nextCursor.",
+          "Current drafts, oldest first,20/page. No requests/rows; edits are table proposals. Read originals before claims.",
         parameters: object(
           ["cursor": schema("string", "nextCursor from the previous review page.")], required: [])),
       .init(
         name: "open_reviews",
         description:
-          "Open requested draft review. Host confirms navigation; no acceptance/withdrawal. Not explanations.",
+          "Open requested draft review. Accepts nothing. Not explanations.",
         parameters: object([:], required: [])),
+      .init(
+        name: "open_automation",
+        description:
+          "Open saved automation by exact name/ID; the person enables/pauses there. Enables nothing. Clarify ambiguity.",
+        parameters: object(
+          ["target": schema("string", "Exact name or ID.")], required: ["target"])),
       .init(
         name: "open_space",
         description:
@@ -404,7 +410,7 @@ package enum NativeTools {
       .init(
         name: "propose_table_edit",
         description:
-          "Draft cell changes for human review: read exact rows first; supply their version IDs and changed fields only. Accepted values stay unchanged.",
+          "Draft cell changes: read exact rows first; supply their version IDs and changed fields only. Accepted values stay unchanged.",
         parameters: object(
           [
             "datasetID": schema("string", "Existing table ID."),
@@ -416,7 +422,7 @@ package enum NativeTools {
                   "values": .object([
                     "type": .string("object"),
                     "description": .string(
-                      "Changed column IDs mapped to new values. Decimal values are strings."),
+                      "Changed column IDs to new values; decimals are strings."),
                   ]),
                 ], required: ["id", "values"]),
             ]),
@@ -448,12 +454,12 @@ package enum NativeTools {
           [
             "id": schema("string", "Exact space ID."),
             "beforeVersion": schema(
-              "integer", "Exclusive earlier version for paging; omit initially."),
+              "integer", "Earlier version for paging; omit first."),
           ], required: ["id"])),
       .init(
         name: "edit_space",
         description:
-          "Edit requested space/Home layout only. Read spaces for exact IDs/version; preserve unrelated components. Stale bases refuse. Move/insert: at:first/last OR beforeID; omit unrelated fields.",
+          "Edit requested space/Home layout only. Read spaces for exact IDs/version; preserve unrelated components. Stale bases refuse. Omit unrelated fields.",
         parameters: object(
           [
             "id": schema("string", "Exact inspected space ID."),
@@ -490,7 +496,7 @@ package enum NativeTools {
       .init(
         name: "restore_space",
         description:
-          "Restore a requested layout version after inspecting space_history/current space. Keep history/data; stale bases refuse.",
+          "Restore a requested layout version after inspecting space_history. Stale bases refuse.",
         parameters: object(
           [
             "id": schema("string", "Exact space ID."),
@@ -500,7 +506,7 @@ package enum NativeTools {
       .init(
         name: "save_space",
         description:
-          "Create a NEW space; Home/existing changes use spaces then edit_space. Each table/chart requires datasetID. Chart x/y are column IDs, never positions; omit query. Confirm only successful receipts.",
+          "Create a NEW space; Home/existing changes use spaces then edit_space. Each table/chart requires datasetID. Chart x/y are column IDs, never positions; omit query.",
         parameters: object(
           [
             "title": schema("string", "Name of the space."),
@@ -513,7 +519,7 @@ package enum NativeTools {
       .init(
         name: "draft",
         description:
-          "Save draft. Exact labels/quantities/wording: parts with documentCopies IDs, never retype. Combine new prose. text=new summary/paraphrase. Saving proves no completeness.",
+          "Save draft. Exact labels/quantities/wording: parts with documentCopies IDs, never retype. text=all new prose: summary, paraphrase, anything the request asks that no copy holds. Leave it empty only when copies alone satisfy the request. Saving proves no completeness.",
         parameters: object(
           [
             "title": schema("string", "Draft title."), "text": schema("string", "Draft text."),
@@ -521,7 +527,7 @@ package enum NativeTools {
             "parts": .object([
               "type": .string("array"), "minItems": .number(1), "maxItems": .number(64),
               "description": .string(
-                "parts OR text. Each part: new text OR exact copy ID; host inserts originals."
+                "Each part: new text OR exact copy ID; host inserts originals."
               ),
               "items": object(
                 [
@@ -535,7 +541,7 @@ package enum NativeTools {
                   ),
                 ], required: []),
             ]),
-          ], required: ["title", "inputs"])),
+          ], required: ["title", "inputs", "text"])),
       .init(
         name: "propose_record",
         description: "Propose a draft interpretation. It does not accept a business event.",

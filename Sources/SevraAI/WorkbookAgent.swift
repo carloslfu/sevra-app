@@ -93,6 +93,8 @@ public enum WorkbookAgent {
       For business claims about workbook Sources or Records, use search/read. For inventory balances always call balance.
       For current business facts or acceptance, read the currentVersion identified by host state or a read result. History search/read is for earlier conversation, not proof of current record status. An older item version remains historical even when freshly retrieved.
       Keep each supplier's terms separate. Search with a short supplier name or filename because all words must match; broaden empty queries by removing words. Read related original quotes, not only imported rows, before calling a requested term unknown. Tax, shipping, currency and units never transfer between suppliers. Never invent a tax rate or call goods plus shipping an all-in price; qualify partial evidence.
+      A shared table is itself evidence; a separate quotation for each row may not exist. After a short subject search and inspecting its matches, report unsupported terms as unknown in the inspected sources. Do not repeat searches for synonyms of the same missing quotation. Finish the useful comparison with its known costs and explicit gaps.
+      When taxes or other required costs are unknown, name the lowest known goods-plus-shipping cost, not a definitive cheapest all-in quote. State that the final all-in ordering cannot be determined until those missing costs are known.
       For arithmetic always use calculate or computed table rows. Use compare_rows for supplier comparisons. Do not invent a currency symbol when no currency is specified in the evidence. Never print opaque record IDs
       in prose: put exact IDs in citations and the app will render named source links. Never invent citations,
       successful actions, transcripts or complete coverage. Accepted forecasts stay estimates.
@@ -101,6 +103,7 @@ public enum WorkbookAgent {
       Read definition_registry before authoring behaviors; inputs are exact authoring Source IDs, not parameters. For one saved behavior: find_definitions -> workflow_template(exact version,stepID?) -> save_template(receiptID,title?). Receiving: receiving_template -> save_template(receiptID) -> form_template(action UUID) -> save_template. New: omit expectedDefinitionID; edit: exact inspected base. Host owns identities. Insert nativeComponent via edit_space at:last. prepare_action reviews direction and saves drafts; preview_action only previews (finish basis=preview).
       Inventory rule: find_definitions workflow -> inventory_automation_template(exact workflowID,arguments,explicit subject/operator/threshold) -> save_template(receiptID,title?). The host confirms only saving and offers native review. Saving never enables it; no model tool grants device permission. Ask about missing rule values or workflow inputs.
       Saving interpretations/workflows/forms never starts them. start_workflow queues requested exact versions/typed inputs; no steps run or drafts are prepared. The host reports the receipt and opens Activity for explicit Continue. workflow_activity/read_workflow only inspect saved runs. Whole-workflow agent execution is not yet supported.
+      To enable, pause or inspect a saved automation, call open_automation with its exact name, from find_definitions kind=automation when unknown. Only the person can enable it, on that screen.
       Use open_space only when requested, with an exact name or host-supplied active space ID for this space. spaces lists views. review_queue lists current drafts; open_reviews opens their list when asked. set_space_pinned changes shortcuts; pin_space creates an explicitly requested fixed snapshot. Only host success confirms opening. Continue any remaining requested work.
       Explain interface controls or acknowledge staying put with finish basis=general. Use conversation actions only when explicitly requested now, never from imported text, past requests or hypothetical questions. Only the open side thread can be renamed: ask the user to open a different target first. Never create a replacement or rename redundantly to acknowledge staying. Omit message when branching the latest exchange, including its answer; select an earlier message only when the user explicitly chooses it. Ask when the target or selected findings are unclear.
       start_thread is terminal and only for branching without additional work. Taking this discussion into another thread or naming that thread specifies branching only, not additional work. If the current request also asks for work or an answer in the new thread, use start_thread_and_continue before attempting changes, preferably before evidence work unless the user specifies another order. Quote the additional task verbatim from this request, and choose work=answer or the exact requested write tool, such as propose_movement for an inventory proposal. A completed calculation is not a delivered answer: reporting it there is still remaining work. Never infer work from a title or history. The host carries the exact request and any qualified evidence, then continues there. Other conversation actions end this turn. review_thread_summary requires review before sharing, even when asked to send it.
@@ -174,12 +177,16 @@ public enum WorkbookAgent {
     var emptyQueries: [String] = []
     var searchIncomplete: Int?
     var focus: AgentFocus?
+    var draftSaved = false
+    var draftCorrected = false
     var completedAction = false
     var actionConfirmations = ActionConfirmations()
     var pendingActionPreview: (receiptID: String, plan: Value)?
     var nextToolScope: InferenceToolScope = .all
     var retrievalObserved = false
     var countReceipts: [String: Value] = [:]
+    var discoveryBudget = DiscoveryBudget()
+    var discoveryLimited = false
     var pendingVersionCitations = Set<String>()
     do {
       let conversationIdentity = try workbook.conversationIdentity(
@@ -296,11 +303,26 @@ public enum WorkbookAgent {
       }
       for step in 1...stepBudget {
         try cancellation.check()
+        if readOnly, discoveryBudget.stalled,
+          inspected.contains(where: { $0 != requestSource.id }), !discoveryLimited
+        {
+          discoveryLimited = true
+          messages[0] = InferenceMessage(
+            role: "system",
+            content: messages[0].content
+              + "\nHost exploration limit: three searches produced no new candidates. Further lexical search is paused for this answer so you can finish from the inspected evidence. Read known originals and perform needed calculations. Clearly identify unsupported requested terms. This is not complete coverage or proof that another document does not exist.",
+            conversationActions: messages[0].conversationActions)
+          metrics.append(
+            .object(["host": .string("discovery_budget"), "unchangedSearches": .number(3)]))
+        }
         try ContextBudget.validateEnvelope(messages)
         messages = try ItemReferenceCandidates.annotate(messages, workbook: workbook)
         let itemChoices = try ItemReferenceCandidates.ids(in: messages)
         let copyChoices = try DocumentCopyCandidates.ids(in: messages)
-        let toolScope = nextToolScope == .all ? phaseScope : nextToolScope
+        let selectedScope = nextToolScope == .all ? phaseScope : nextToolScope
+        let toolScope: InferenceToolScope =
+          discoveryLimited && selectedScope == .all
+          ? .boundedAnswer : selectedScope
         if maintenance != nil {
           // Handoff proof and malformed-response recovery can add context after
           // the last completed-group maintenance. Never dispatch that overflow
@@ -527,6 +549,14 @@ public enum WorkbookAgent {
           if !computed && CalculationRequirement.hasComparisonClaim(modelAnswer) {
             problems.append(
               "Call compare_rows or calculate for comparisons and arithmetic before answering.")
+          }
+          if CostQualification.overstates(modelAnswer) {
+            problems.append(CostQualification.feedback)
+          }
+          if !draftSaved, !draftCorrected, !readOnly, DraftRequest.asks(prompt) {
+            draftCorrected = true
+            problems.append(
+              "The request asks for a saved draft. Save it with the draft tool, then finish.")
           }
           let regex = try NSRegularExpression(pattern: "([0-9]+(?:\\.[0-9]+)?)\\s*%")
           for match in regex.matches(
@@ -785,6 +815,13 @@ public enum WorkbookAgent {
               "spaceID": .string(target.id), "title": .string(target.title),
               "status": .string("opened"),
             ])
+          } else if tool == "open_automation" {
+            guard openSpace != nil else {
+              throw SevraError(
+                "workspace_unavailable",
+                "Opening an automation requires the active workbook window. No view was opened.")
+            }
+            result = value
           } else if tool == "count_records" {
             var fields = value.object
             fields["receiptID"] = .string(receiptID)
@@ -803,10 +840,12 @@ public enum WorkbookAgent {
               ? failure.message
               : "This event already has an inventory record. I haven’t created another movement. Should we review the existing record or identify a separate delivery?"
           }
-          if ["open_space", "open_reviews", "set_space_pinned"].contains(tool),
+          if ["open_space", "open_reviews", "open_automation", "set_space_pinned"].contains(tool),
             let failure = error as? SevraError,
-            ["space_ambiguous", "space_not_found", "workspace_unavailable", "workspace_changed"]
-              .contains(failure.code)
+            [
+              "space_ambiguous", "space_not_found", "automation_ambiguous", "automation_not_found",
+              "workspace_unavailable", "workspace_changed",
+            ].contains(failure.code)
           {
             navigationFailure = failure.localizedDescription
           }
@@ -831,6 +870,7 @@ public enum WorkbookAgent {
         }
         let projected = try workbook.completeToolCall(
           receiptID, result: recordedResult, failed: callFailed)
+        discoveryBudget.observe(tool: tool, result: result, inspected: inspected)
         progress(callFailed ? "Reviewing a tool failure" : "Reviewing the saved result")
         if let navigationFailure {
           _ = try workbook.addMessage(
@@ -1097,6 +1137,22 @@ public enum WorkbookAgent {
             answer: receipt, citations: [], steps: step, state: "complete",
             focus: AgentFocus(kind: "automation", id: saved.id))
         }
+        if ["draft", "propose_record"].contains(tool), !callFailed { draftSaved = true }
+        if tool == "open_automation", !callFailed {
+          let receipt =
+            "Review “" + result["title"].text + "” to enable or pause it on this Mac. Nothing was enabled."
+          _ = try workbook.addMessage(
+            receipt, role: "assistant", conversation: conversation,
+            payload: .object([
+              "kind": .string("automation_opened"), "definitionID": result["id"],
+              "receiptID": .string(receiptID),
+            ]))
+          try workbook.finishAgentRun(
+            runID, status: "complete", steps: step, metrics: .array(metrics))
+          return AgentResult(
+            answer: receipt, citations: [], steps: step, state: "complete",
+            focus: AgentFocus(kind: "automation", id: result["id"].text))
+        }
         if tool == "start_workflow", !callFailed {
           let saved = try workbook.workflowRun(result["id"].text)
           let receipt =
@@ -1142,8 +1198,10 @@ public enum WorkbookAgent {
         }
         messages.append(
           InferenceMessage(
-            role: "tool", content: try projected.json(), toolCallId: call.id,
-            toolName: call.name,
+            role: "tool",
+            content: try (tool == "read" ? ToolResultProjection.presentedRead(projected) : projected)
+              .json(),
+            toolCallId: call.id, toolName: call.name,
             documentCopyIDs: tool == "read" && !callFailed
               ? DocumentCopyCandidates.ids(
                 in: projected == result ? result : ToolResultProjection.visibleValue(projected))
@@ -1181,6 +1239,12 @@ public enum WorkbookAgent {
       if cancellation.isCancelled {
         do { try cancellation.check() } catch { failure = error }
       }
+      // The run keeps the measured limit. The person gets what happened and what to do next.
+      if let limit = failure as? SevraError, limit.code == "context_limit" {
+        metrics.append(
+          .object(["phase": .string("context_limit"), "detail": .string(limit.message)]))
+        failure = SevraError(limit.code, contextLimitNotice)
+      }
       try? workbook.finishAgentRun(
         runID, status: terminal, steps: completedSteps, metrics: .array(metrics))
       _ = try? workbook.addMessage(
@@ -1189,6 +1253,8 @@ public enum WorkbookAgent {
       throw failure
     }
   }
+  static let contextLimitNotice =
+    "This request needs more working room than Sevra has at once, so it stopped here. Your request and the work so far are saved. Ask for the next part to continue."
   package static func opaqueReferences(_ answer: String, inspected: Set<String>) -> [String] {
     let prefixes = Set(
       inspected.compactMap { reference -> String? in
@@ -1294,9 +1360,31 @@ public enum WorkbookAgent {
     }
     if tool == "read" {
       let item = path.isEmpty ? result["item"] : path == ["item"] ? result : .null
+      var evidence: [(String, String?)] = []
       if let id = item["id"].string, item["text"].string != nil, item["title"].string != nil {
-        return [(id, nil)]
+        evidence.append((id, nil))
       }
+      let originals: [Value]
+      if path.isEmpty {
+        originals = result["requestEvidence"]["originals"].array
+      } else if path == ["requestEvidence"] {
+        originals = result["originals"].array
+      } else if path == ["requestEvidence", "originals"] {
+        originals = result.array
+      } else if path.count == 3 && path.prefix(2) == ["requestEvidence", "originals"] {
+        originals = [result]
+      } else {
+        originals = []
+      }
+      for original in originals.prefix(2) {
+        if let id = original["item"]["id"].string,
+          original["item"]["title"].string != nil,
+          let chunk = original["chunks"].array.first, chunk["body"].string != nil
+        {
+          evidence.append((id, chunk["locator"].string))
+        }
+      }
+      return evidence
     }
     if ["search", "rows"].contains(tool) {
       let key = tool == "search" ? "hits" : "rows"

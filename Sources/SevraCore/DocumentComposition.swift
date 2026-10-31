@@ -38,6 +38,67 @@ public struct DocumentPart: Codable, Equatable, Sendable {
     text = nil
     self.copy = copy
   }
+
+  /// New prose and copies sent together. A copy takes the place of its own words in the prose,
+  /// so a line retyped beside its copy is saved once, where the prose put it. Every other part
+  /// follows the prose in the order sent, unless the prose already says it.
+  static func placed(_ parts: [(part: DocumentPart, words: String?)], in prose: String)
+    -> [DocumentPart]
+  {
+    guard !prose.isEmpty else { return parts.map(\.part) }
+    var anchors: [(range: Range<String.Index>, part: DocumentPart, words: String)] = []
+    var following: [DocumentPart] = []
+    for (part, words) in parts {
+      if let text = part.text, !trimmed(text).isEmpty, prose.contains(trimmed(text)) { continue }
+      if let words,
+        let range = free(words, in: prose, avoiding: anchors.map(\.range))
+          ?? free(trimmed(words), in: prose, avoiding: anchors.map(\.range))
+      {
+        anchors.append((range, part, words))
+      } else {
+        following.append(part)
+      }
+    }
+    var result: [DocumentPart] = []
+    var start = prose.startIndex
+    var tail = ""
+    for anchor in anchors.sorted(by: { $0.range.lowerBound < $1.range.lowerBound }) {
+      if start < anchor.range.lowerBound {
+        result.append(.init(text: String(prose[start..<anchor.range.lowerBound])))
+      }
+      result.append(anchor.part)
+      tail = anchor.words
+      start = anchor.range.upperBound
+    }
+    if start < prose.endIndex {
+      tail = String(prose[start...])
+      result.append(.init(text: tail))
+    }
+    // Copies that follow start on their own line, not on the end of the last sentence.
+    if !result.isEmpty, !following.isEmpty, !tail.hasSuffix("\n") {
+      result.append(.init(text: "\n\n"))
+    }
+    return result + following
+  }
+
+  /// A copied line often ends in a newline that the last line of the prose does not have.
+  private static func trimmed(_ words: String) -> String {
+    var words = Substring(words)
+    while let last = words.last, last.isNewline { words.removeLast() }
+    return String(words)
+  }
+
+  private static func free(
+    _ words: String, in prose: String, avoiding taken: [Range<String.Index>]
+  ) -> Range<String.Index>? {
+    guard !words.isEmpty else { return nil }
+    var start = prose.startIndex
+    while let found = prose.range(of: words, options: .literal, range: start..<prose.endIndex) {
+      if !taken.contains(where: { $0.overlaps(found) }) { return found }
+      start = found.upperBound
+    }
+    return nil
+  }
 }
 
 extension Workbook {

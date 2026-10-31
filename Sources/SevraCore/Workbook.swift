@@ -8,6 +8,8 @@ public final class Workbook: @unchecked Sendable {
   let db: Database
   private let lock = NSRecursiveLock()
   private var lockFD: Int32 = -1
+  /// Tables whose rows changed in the running transaction.
+  var tablesWithChangedRows = Set<String>()
   public static func create(at url: URL, title: String) throws -> Workbook {
     try require(
       !FileManager.default.fileExists(atPath: url.path), "exists", "Choose a new workbook location."
@@ -149,7 +151,9 @@ public final class Workbook: @unchecked Sendable {
           try require(
             rev == expected, "stale_revision", "The workbook changed. Refresh and try again.")
         }
+        tablesWithChangedRows = []
         let result = try body()
+        try recalculateChangedSheets()
         try db.execute("UPDATE meta SET value=? WHERE key='revision'", [.string(String(rev + 1))])
         try db.execute(
           "INSERT INTO operations VALUES(?,?,?,?,?,?)",
@@ -224,6 +228,18 @@ public final class Workbook: @unchecked Sendable {
       return try decodeItem(r)
     }
   }
+  /// The stored version `item(_:)` resolves to, without reading its content.
+  func itemVersionID(_ id: String) throws -> String {
+    try synchronized {
+      guard
+        let r = try db.execute(
+          "SELECT id FROM items WHERE id=? OR id=(SELECT item_id FROM heads WHERE logical_id=?) LIMIT 1",
+          [.string(id), .string(id)]
+        ).first
+      else { throw SevraError("not_found", "Record not found: \(id)") }
+      return r["id"]!.text
+    }
+  }
   func decodeItem(_ r: [String: Value]) throws -> Item {
     guard let version = r["version"]?.int, version > 0,
       ["source", "record"].contains(r["category"]?.text ?? ""),
@@ -271,6 +287,9 @@ public final class Workbook: @unchecked Sendable {
     supersedes: String? = nil, token: String = identifier(), expectedRevision: Int? = nil,
     references: [ReferenceSelection]? = nil
   ) throws -> Item {
+    try require(
+      kind != Self.sheetFormulaKind || supersedes == nil, "proposal_tool",
+      "Only an Excel import records its formulas.")
     try require(
       kind != "table-intake-update", "proposal_tool",
       "Use the reviewed table-update pipeline to create or revise this proposal.")

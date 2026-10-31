@@ -103,12 +103,13 @@ func checkContextThreshold() async throws {
     _ = try await WorkbookAgent.run(
       "Explain a workbook without changing records.", workbook: book, model: model)
   } catch let error as SevraError {
-    refused = error.code == "context_limit" && error.message.contains("24576")
+    refused = error.code == "context_limit" && !error.message.contains("token")
   }
   try expectEqual(refused, true)
   try expectEqual(await model.responses, 1)
   try expectEqual(try book.contextCheckpoints().isEmpty, true)
   try expectEqual(try book.agentRuns().first?["status"].text, "failed")
+  try expectEqual(try book.agentRuns().first?["metrics"].json().contains("24576"), true)
   try expectEqual(try book.verify()["ok"], .bool(true))
   print("PASS added retry context is checked before generation without dropping the live request")
 }

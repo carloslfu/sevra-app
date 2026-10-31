@@ -302,7 +302,7 @@ all current rows, and merge rejects empty/duplicate input or target keys. Keys a
 lexical; there is no case, whitespace or locale normalization. Current bounds are
 1,000 incoming rows, 10,000 target rows, 8 MB mapped input and 16 MB target content.
 Every stored target column must be mapped once. Calculated columns stay intact;
-partial-column and XLSX updates are not implemented. The incoming original stays
+partial-column updates are not implemented. The incoming original stays
 unchanged. A typed preview retains columns, exact target fingerprint/revision,
 counts, duplicate disclosure, at most 20 examples and parsed source-record locators.
 
@@ -322,11 +322,117 @@ The CLI supplies table-update-inspect, table-update-preview and
 table-update-propose, using the same host core.
 The repo skill documents exact options and review authority. The native path starts
 from a CSV/TSV role choice or File actions, retains a pending update use across
-reopen and shows a reviewable draft before acceptance. Mapping-form edits are not
-yet persisted across navigation/relaunch. Source/preview/publication callbacks are
-fenced, and exact failed publication retries reuse their token. This focused slice
-does not qualify general local-model/voice update tools or the FJ persistence gates
-in [[records/specs/persistence-readiness]]. Those remain next in the ordered plan.
+reopen and shows a reviewable draft before acceptance. Source/preview/publication
+callbacks are fenced, and exact failed publication retries reuse their token. This
+focused slice does not qualify general local-model/voice update tools or the FJ
+persistence gates in [[records/specs/persistence-readiness]]. Those remain next in
+the ordered plan.
+
+Less manual reviewed updates, October 30:
+
+Suggestions. An incoming heading suggests a stored column when it equals that
+column's title or ID, ignoring case, character width, spaces, hyphens and
+underscores. Accents and words still count. A heading or column with two candidates
+stays for a person. A suggestion fills only undecided inputs, so a chosen column or
+an explicit Ignore stands. One matched column declared unique is suggested as the
+key. Values are never inspected to infer a mapping or key, and a preview still needs
+the complete explicit mapping. Offer one action to ignore remaining inputs once every
+stored column is mapped, and name what still blocks a preview.
+
+Saved drafts. An in-progress review is saved per original as a presentation draft in
+the workbook. It survives leaving the page, relaunch and portable export, changes no
+table and grants nothing. Saves run in order, keep the newest choices, and a failed
+save is shown without interrupting the review. Reopening restores the choices and
+says so, and clears any choice a changed table no longer supports. Creating the
+proposal ends the draft in the same transaction. Start over discards it.
+
+Excel saved values. An XLSX original can update a table from one named worksheet. A
+multi-sheet file names its worksheets before anything is read. Header and source rows
+use real worksheet row numbers, empty rows and empty styled cells are skipped, and a
+value outside the headings refuses. The 1,000-row, 10,000-row, 8 MB and 16 MB bounds
+are unchanged. Text cells keep leading zeros. A number Excel shows differently, such
+as 14 under the format 0000, refuses in a key, a non-decimal column or a column holding
+leading zeros, because only the unpadded value is saved. Error cells and formulas with
+no saved value refuse and name the cell. Other formula cells use saved values, the
+preview counts them, and nothing recalculates. Fractions keep the 15 significant digits
+Excel shows, so a cell showing 1.15 is not read as 1.1499999999999999; this also applies
+to saved-value import. A cell without a reference follows the previous cell in its row.
+Workflow intake stays CSV/TSV.
+
+Ambiguous input. Keys stay exact, so a key that differs from an existing or another
+incoming key only by case, surrounding spaces or leading zeros stops the review
+instead of becoming a new row. Decimal columns compare amounts, so 1.2 does not change
+a saved 1.20 and the earlier spelling stays. A value a column refuses names its source
+record.
+
+Bulk table intake, October 30:
+
+Batches. A table import commits at most 1,000 rows or about 6 MB of cell values at a
+time, and always at least one row. Rows also carry their headings, so a batch can pass
+that estimate and still exceed the 64 MiB saved-change limit. The refused batch saves
+nothing and a batch half its size starts at the same row. The limit itself stays. A row
+over the 16 MB record bound stops the import, is named by its position among the data
+rows, and earlier rows stay.
+
+Resuming. Saved rows are a committed prefix in source order. After Stop, a failure or a
+killed process, a retry parses the same verified original and continues after the saved
+rows, repeating none. An edit made to a saved row in the meantime stays. A table whose
+definition or row count changed refuses with import_changed and keeps its rows. A
+multi-sheet XLSX import finishes its current sheet and then the sheets not yet started.
+
+Progress. Rows count only once committed. The app status line reads "Saved 12,000 of
+99,999 rows", across every sheet of an XLSX import, and a resumed import shows its saved
+count first. Stopping reports the saved count, and Continue on Home saves the rest
+without asking again. Until the last row commits, Home and the table footer say how many
+of the source rows are saved, and table results carry unfinishedImportTotal so a person
+or agent reading them can say the table is incomplete. Saved rows stay usable meanwhile.
+
+Excel formula subset, October 30:
+
+Declared subset. Sevra recalculates numbers, percent, + - * /, cell and range references
+(absolute, relative and mixed, on the same sheet or a named sheet of the same file), and
+SUM, AVERAGE, MIN, MAX, COUNT, ROUND and IF with both results. A comparison is read only as
+IF's condition. A shared formula expands to each cell it fills. This is a small declared
+calculator, not an Excel engine, and it does not claim to match one.
+
+Acceptance at import. A formula joins only if the subset reads it and its result matches the
+value Excel saved, to 15 significant digits. Everything else keeps its saved value and records
+why: an unsupported function by name, text operators, whole-column references, defined names,
+references to another file, powers, array formulas and data tables, a formula with no saved
+value, a circular reference, a sheet that was not imported, and any result that differs from
+Excel's. A formula reading one of
+these keeps its saved value too, so a chain is never part current and part stale. Comparing with
+the saved value also catches what the importer cannot see, such as a date stored as text or text
+that looks numeric.
+
+Calculation rules. Blank counts as zero in arithmetic. Aggregates skip text and blanks in cell
+references. Comparisons sort numbers before text and ignore case in text, and a blank equals
+zero and empty text alike. Text in arithmetic gives #VALUE!, division by zero #DIV/0! and an
+out-of-range result #NUM!. The first error carries forward, though COUNT ignores errors and IF reads only its chosen
+branch. Arithmetic is exact decimal, and a stored result keeps 15 significant digits. A saved
+number may carry an exponent, as spreadsheets write very large and very small values.
+
+Recalculation. Formula cells hold stored values, so filters, sorting, exports, queries and tools
+see the same numbers. Any change to a table's rows recalculates the whole file's formulas in that
+same transaction, across sheets. A person's edit and the cells it moves on that row form one row
+version, so Undo restores both, and other rows get their own versions with lineage to the formula
+record. Typing over a recalculating cell refuses. A saved-value cell stays editable and nothing
+recalculates from it. An error clears when its input is fixed, and a removed column gives #REF!.
+An archived table stays current with its file, because recalculation is not a person's edit.
+An edit that would rewrite more than 2,000 rows saves nothing, and so does one whose result a
+typed column cannot hold, such as #DIV/0! in a Number column.
+
+Showing it. A recalculating cell reads normally, takes no typing and offers its formula as help.
+A saved-value cell reads quieter and says why. The table footer counts both and opens the list of
+saved cells with their reasons, and warns once values have changed since import, because saved
+cells may then be behind. The intake detail, `table-formulas` and the rows tool report the same.
+
+Bounds. A file recalculates up to 10,000 formulas, 20,000 rows and 200,000 read cells, and one
+formula reads up to 10,000 cells. Past a bound every formula in the file keeps its saved value
+and says so, so a file is never half recalculated. An array or data table too large to list
+does the same, because any formula could be reading a cell it fills. A reviewed update refuses a table whose file
+still has recalculating formulas, because it could replace rows those formulas read. Only an
+import writes the formula record, and later changes cannot revise it.
 
 Implementation phases:
 
@@ -341,7 +447,9 @@ Implementation phases:
    shared core, CLI and native review paths within the bounds below. General local
    model/voice update tools and broader mapping usability remain unqualified.
 4. Add Excel feature inventory, source-coordinate mapping and bounded native
-   per-cell/dependency support, then qualify the declared continuity subset.
+   per-cell/dependency support, then qualify the declared continuity subset. The
+   formula subset above is implemented and matches LibreOffice on the committed
+   fixtures. A file written by Excel itself, sparse regions and layout remain open.
 5. Connect natural-language/voice and CLI/skill contracts, actual native usability,
    portable recovery and truthful completion. Expand the feature matrix by evidence.
 
@@ -358,3 +466,14 @@ structure, motivating an inventory beyond cell extraction:
 [Structure of a SpreadsheetML document](https://learn.microsoft.com/en-us/office/open-xml/spreadsheet/structure-of-a-spreadsheetml-document).
 Both checked October 28, 2026. The architecture and qualification choices above
 are Sevra design decisions, not requirements asserted by those documents.
+
+## Folder comparison, October 30
+
+Add a folder compares one chosen folder with what earlier passes saved from it, by relative path
+and content, and shows the counts before anything is added. Nothing watches the folder. Hidden
+files, symbolic links and package contents are skipped. A changed file becomes a new Source
+beside the earlier one, content already in the workbook is not added again, and a file gone from
+the folder stays in the workbook and is reported. Replaying a stopped pass saves nothing twice.
+
+One pass handles at most 200 files and 2 GB; past that it refuses and adds nothing. Two folders
+with the same name count as one. Each added file goes through normal intake.

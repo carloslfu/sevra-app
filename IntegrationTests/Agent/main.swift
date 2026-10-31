@@ -254,6 +254,10 @@ func expectValue<T>(_ value: T?) throws -> T {
   return value
 }
 do {
+  if CommandLine.arguments.dropFirst() == ["--related-original-checks"] {
+    try await checkRelatedOriginals()
+    exit(0)
+  }
   if CommandLine.arguments.dropFirst() == ["--automation-authoring-checks"] {
     try await checkInventoryAutomationAuthoring()
     exit(0)
@@ -292,6 +296,7 @@ do {
   try await checkReferenceTraversal()
   try await checkReferenceScope()
   try await checkSearchCoverage()
+  try await checkRelatedOriginals()
   try await checkCompaction()
   try await checkRunningCompaction()
   let checks = ToolPolicyChecks()
@@ -401,6 +406,11 @@ do {
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5],
       maintainedOnly: CommandLine.arguments[1] == "--active-context-maintained")
+  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--active-context-recovery"
+  {
+    try await runActiveContextRecoveryProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
   } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--reasoning-boundary" {
     try runReasoningBoundaryProbe(
       modelFolder: CommandLine.arguments[2], library: CommandLine.arguments[3],

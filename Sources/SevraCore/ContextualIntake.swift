@@ -152,7 +152,27 @@ extension Workbook {
 
   /// No workbook lock is held during file extraction/inspection. Attempt fencing prevents a
   /// cancelled or superseded worker from replacing a newer result. Table batches are resumable.
-  public func runIntake(_ id: String, cancellation: Cancellation = .init()) throws -> IntakeJob {
+  private static func savedValueDetail(_ formulas: (recalculating: Int, saved: Int)?) -> String {
+    let created = "Saved-value tables created."
+    guard let formulas else { return created }
+    let (live, saved) = (formulas.recalculating, formulas.saved)
+    func count(_ number: Int, _ one: String, _ many: String) -> String {
+      number == 1 ? "1 " + one : "\(number) " + many
+    }
+    if live == 0 {
+      return created + " "
+        + count(
+          saved, "Excel formula keeps its saved value and does not recalculate.",
+          "Excel formulas keep their saved values and do not recalculate.")
+    }
+    return created + " "
+      + count(live, "Excel formula recalculates after edits.", "Excel formulas recalculate after edits.")
+      + (saved == 0
+        ? "" : " " + count(saved, "keeps its saved value.", "keep their saved values."))
+  }
+  public func runIntake(
+    _ id: String, cancellation: Cancellation = .init(), progress: (Int, Int) -> Void = { _, _ in }
+  ) throws -> IntakeJob {
     try cancellation.check()
     let initial = try intakeJob(id)
     if initial.state == "ready" { return initial }
@@ -209,7 +229,7 @@ extension Workbook {
         return try intakeJob(id)
       }
       if role == .update {
-        _ = try inspectTableUpdateSource(initial.sourceID, cancellation: cancellation)
+        try validateTableUpdateOriginal(initial.sourceID, cancellation: cancellation)
         try publish(
           "awaiting_update",
           "Original saved. Choose the target table, mapping and update method; review before applying."
@@ -255,19 +275,33 @@ extension Workbook {
           "Saved-value tables currently support CSV, TSV and XLSX. The original remains available as a reference."
         )
         if format == .xlsx {
-          tables = try importXLSX(initial.sourceID, cancellation: cancellation).map(\.id)
+          tables =
+            try importXLSX(initial.sourceID, cancellation: cancellation, progress: progress)
+            .map(\.id)
         } else {
-          tables = [try importCSV(initial.sourceID, cancellation: cancellation).id]
+          tables = [
+            try importCSV(initial.sourceID, cancellation: cancellation, progress: progress).id
+          ]
         }
         var fields = report.object
         fields["conversion"] = .string("saved_values")
+        let formulas = try sheetFormulaSummary(tables)
+        if let formulas {
+          fields["formulas"] = .object([
+            "recalculating": .number(Double(formulas.recalculating)),
+            "saved": .number(Double(formulas.saved)),
+          ])
+          var inspection = report["inspection"].object
+          inspection["liveExcelFormulas"] = .bool(formulas.recalculating > 0)
+          fields["inspection"] = .object(inspection)
+        }
         report = .object(fields)
         try publish(
           "ready",
           tables.isEmpty
             ? "Original saved. No nonempty tables were found. Excel continuity is not implemented."
             : format == .xlsx
-              ? "Saved-value tables created. Excel formulas are retained as evidence and do not recalculate."
+              ? Self.savedValueDetail(formulas)
               : "Working tables created from delimited values. The first row supplies the headings."
         )
       }
@@ -285,10 +319,16 @@ extension Workbook {
           tables = partial
         }
       }
+      let saved =
+        (try? intakeStatus())?.filter { tables.contains($0["datasetID"].text) }
+        .reduce(0) { $0 + ($1["completed"].int ?? 0) } ?? 0
       // A cancelled or superseded worker must never mark a newer attempt failed.
+      let count = saved.formatted(.number.locale(Locale(identifier: "en_US")))
       try? publish(
         cancellation.isCancelled ? "cancelled" : "failed",
-        "Original retained. " + String(error.localizedDescription.prefix(4096)))
+        cancellation.isCancelled && saved > 0
+          ? "Stopped with \(count) rows saved. Continue to save the rest. Nothing is repeated."
+          : "Original retained. " + String(error.localizedDescription.prefix(4096)))
       throw error
     }
   }

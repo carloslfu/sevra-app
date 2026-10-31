@@ -589,3 +589,39 @@ visible interaction remains pending. These results do not qualify full 64K
 comparison, production compaction, all generated semantics, engine adoption or
 release. Evidence and exact limits: [[records/operations/implementation]] and
 [[records/specs/document-composition]].
+
+## Qualified continuation, October 30
+
+Automatic context maintenance is on for the native 32K bounded512 profile only. The preserved
+baseline stays off. The 75% trigger, the 12-step limit, the 1,800-token response and the
+reasoning budget are unchanged.
+
+With maintenance on, a request sees everything since the last checkpoint, not only the last
+eight saved messages, so a long session summarizes as it goes. A request that stops at the
+limit says so in plain words and keeps what it saved.
+
+Repeating the real job exposed defects that a threshold could not fix. Each was repaired at its
+source and nothing was relabeled:
+
+- A retried save made a second space, so a title is now refused once per workbook.
+- A read repeated its first chunk, and host state repeated identifiers. The model now sees each
+  once; saved receipts keep everything.
+- After a checkpoint a long job restarted its opening steps. The next result now says what is
+  already finished.
+- A stopped request's reply read like the request itself, so that reply no longer appears beside
+  a follow-up. Outcomes name a reply, not a request.
+- Once a follow-up reads a stopped request, its text stays in host state, because maintenance
+  otherwise summarized away the only copy of the instructions being continued. A stopped
+  request's text still enters only through history_read, and it applies only if the current
+  request asks to continue it. Saved work is listed beside the text. Earlier reads do not carry
+  over, because a copy needs a read from the same request.
+- A note in its message's exact words is marked verbatim by the host, so nothing has to fetch it
+  again. The host compares the words; a model cannot claim this.
+
+Limits. Twelve steps still bound one request, so a job of more than about nine documents needs
+more than one request, and each follow-up reads again what it still needs. A request far longer
+than 8 KB stays behind history_read. A model response can still end unfinished: this happened
+once in the real runs below and ended the request with a plain message and nothing saved wrongly.
+Asking again continues.
+
+Evidence: [[records/operations/implementation]].

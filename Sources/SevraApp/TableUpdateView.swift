@@ -3,64 +3,78 @@ import SevraTableUI
 import SwiftUI
 
 struct TableUpdateView: View {
-  private enum MappingChoice: Hashable {
-    case unselected, ignore
-    case column(String)
-  }
   let book: Workbook
   let sourceID: String
   let intakeID: String?
   @ObservedObject var state: WorkspaceState
   @StateObject private var session = TableUpdateSession()
-  @State private var target = ""
-  @State private var mode: TableUpdateMode?
-  @State private var header = "1"
-  @State private var mapping: [Int: MappingChoice] = [:]
-  @State private var keys = Set<String>()
-  @State private var meaning = ""
-  @State private var scenario = ""
-  private var table: Dataset? { state.datasets.first { $0.id == target } }
+  @State private var form = TableUpdateForm()
+  // Outlives a failed read, so a person can still choose another worksheet.
+  @State private var sheetNames: [String] = []
+  @State private var notice: String?
+  // Restored choices are not edits, and a finished review keeps no draft.
+  @State private var ready = false
+  @State private var changed = false
+  @State private var finished = false
+  private var table: Dataset? { state.datasets.first { $0.id == form.target } }
   private var columns: [Column] { table?.columns.filter { $0.formula == nil } ?? [] }
   private var entries: [IntakeColumnMapping] {
     (session.source?.headings.indices ?? 0..<0).map {
       let target: String?
-      if case .column(let id) = mapping[$0] { target = id } else { target = nil }
+      if case .column(let id) = form.mapping[$0] { target = id } else { target = nil }
       return .init(position: $0, target: target)
     }
   }
-  private var canPreview: Bool {
-    guard let source = session.source, table != nil, let mode else { return false }
-    let targets = mapping.values.compactMap {
-      if case .column(let id) = $0 { return id }
-      return nil
-    }
-    return source.headerRow == Int(header) && mapping.count == source.headings.count
-      && !mapping.values.contains(.unselected)
-      && Set(targets) == Set(columns.map(\.id)) && targets.count == columns.count
-      && (mode != .merge || !keys.isEmpty)
-  }
+  private var blocker: String? { form.blocker(session.source, columns: table?.columns) }
+  private var draft: TableUpdateDraft { form.draft(sourceID: sourceID) }
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       ScrollView {
         VStack(alignment: .leading, spacing: 18) {
           Text("Update a working table").font(.title2)
           Text(
-            "Choose how the saved CSV or TSV should change a table. This creates a draft first; your original stays available."
+            "Choose how the saved file should change a table. This creates a draft first; your original stays available. Your choices are kept if you leave this page."
           )
           .foregroundStyle(.secondary)
+          if let notice { Text(notice).font(.callout) }
+          if sheetNames.count > 1 {
+            Picker(
+              "Worksheet",
+              selection: Binding(get: { form.sheet }, set: { choose(sheet: $0) })
+            ) {
+              Text("Choose a worksheet").tag(Optional<String>.none)
+              ForEach(sheetNames, id: \.self) { Text($0).tag(Optional($0)) }
+            }
+            .fixedSize().disabled(session.busy || state.busy)
+          }
           HStack {
-            TextField("Header record", text: $header).frame(maxWidth: 190)
-            Button("Read headings") { Task { await inspect() } }
-              .disabled(Int(header).map { $0 > 0 } != true)
+            Text(sheetNames.isEmpty ? "Header record" : "Header row")
+            TextField(
+              "Header record",
+              text: Binding(get: { form.header }, set: { choose(header: $0) })
+            ).frame(maxWidth: 90)
+            Button("Read headings") { Task { await read() } }
+              .disabled(Int(form.header).map { $0 > 0 } != true)
           }.disabled(session.busy || state.busy)
-          Text("Header record is counted from 1. Quoted fields may span several lines.")
-            .font(.caption).foregroundStyle(.secondary)
-          if Int(header).map({ $0 > 0 }) != true {
+          Text(
+            !sheetNames.isEmpty
+              ? "Use the worksheet row number of the headings. Empty rows are skipped."
+              : "Header record is counted from 1. Quoted fields may span several lines."
+          )
+          .font(.caption).foregroundStyle(.secondary)
+          if Int(form.header).map({ $0 > 0 }) != true {
             Text("Enter a whole header record number of 1 or more.")
               .font(.caption).foregroundStyle(.secondary)
           }
-          if let source = session.source {
-            Text("\(source.incoming) incoming rows · CSV/TSV values only").font(.callout)
+          if let source = session.source, !source.needsSheet {
+            Text(
+              "\(source.incoming) incoming rows · "
+                + (source.sheets.isEmpty
+                  ? "CSV/TSV values only" : "saved Excel values; formulas are not recalculated")
+            ).font(.callout)
+            ForEach(source.notes, id: \.self) {
+              Text($0).font(.caption).foregroundStyle(.secondary)
+            }
             configuration(source)
             if let preview = session.preview {
               Divider()
@@ -72,6 +86,9 @@ struct TableUpdateView: View {
       if let failure = session.failure {
         Text(failure).foregroundStyle(.red).textSelection(.enabled).padding(.horizontal, 22)
       }
+      if let failure = session.draftFailure {
+        Text(failure).foregroundStyle(.red).textSelection(.enabled).padding(.horizontal, 22)
+      }
       Divider()
       HStack {
         if session.busy {
@@ -80,71 +97,96 @@ struct TableUpdateView: View {
           Button("Stop") { session.stop() }
         } else {
           Button("Preview changes") { Task { await inspectChanges() } }
-            .disabled(!canPreview || state.busy)
+            .disabled(blocker != nil || session.source == nil || state.busy)
+          if let blocker {
+            Text(blocker).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+          }
           Spacer()
+          Button("Start over") { Task { await startOver() } }.disabled(state.busy)
           Button("Create update draft") { Task { await publish() } }
-            .disabled(session.preview == nil || meaning.isEmpty || scenario.isEmpty || state.busy)
+            .disabled(
+              session.preview == nil || form.meaning.isEmpty || form.scenario.isEmpty || state.busy)
         }
       }.padding(18)
     }
-    .task { await inspect() }
-    .onDisappear { session.stop() }
-    .onChange(of: header) { _, _ in
-      mapping = [:]
-      session.invalidate(clearSource: true)
+    .task { await open() }
+    .onDisappear {
+      session.stop()
+      guard ready, changed, !finished else { return }
+      let current = draft
+      let book = book
+      session.keep(immediately: true) { try book.saveTableUpdateDraft(current) }
     }
-    .onChange(of: target) { _, _ in
-      mapping = [:]
-      keys = []
-      session.invalidate()
+    .onChange(of: draft) { old, new in
+      guard ready else { return }
+      changed = true
+      var before = old
+      var after = new
+      (before.meaning, before.scenario, after.meaning, after.scenario) = ("", "", "", "")
+      // Changing the header or worksheet already restarted reading.
+      if before.headerRow == after.headerRow && before.sheet == after.sheet {
+        if before == after { session.renewPublication() } else { session.invalidate() }
+      }
+      let book = book
+      session.keep { try book.saveTableUpdateDraft(new) }
     }
-    .onChange(of: mode) { _, _ in
-      keys = []
-      session.invalidate()
-    }
-    .onChange(of: mapping) { _, _ in session.invalidate() }
-    .onChange(of: keys) { _, _ in session.invalidate() }
-    .onChange(of: meaning) { _, _ in session.invalidate() }
-    .onChange(of: scenario) { _, _ in session.invalidate() }
   }
   @ViewBuilder private func configuration(_ source: TableUpdateSource) -> some View {
     VStack(alignment: .leading, spacing: 14) {
-      Picker("Target table", selection: $target) {
+      Picker(
+        "Target table",
+        selection: Binding(
+          get: { form.target },
+          set: { next in
+            form.choose(target: next, source: session.source, columns: dataset(next)?.columns)
+          })
+      ) {
         Text("Choose a table").tag("")
         ForEach(state.datasets) { Text($0.title).tag($0.id) }
       }
-      Picker("Update method", selection: $mode) {
+      Picker(
+        "Update method",
+        selection: Binding(
+          get: { form.mode },
+          set: { form.choose(mode: $0, source: session.source, columns: table?.columns) })
+      ) {
         Text("Choose method").tag(Optional<TableUpdateMode>.none)
         Text("Add rows").tag(Optional(TableUpdateMode.append))
         Text("Replace all rows").tag(Optional(TableUpdateMode.replace))
         Text("Match by key").tag(Optional(TableUpdateMode.merge))
       }
       Text(
-        mode == nil
+        form.mode == nil
           ? "Choose a method before previewing."
-          : mode == .append
+          : form.mode == .append
             ? "Add every incoming row, including duplicates."
-            : mode == .replace
+            : form.mode == .replace
               ? "Remove every current row from this table, then add the incoming rows. Undo preserves history."
               : "Update matching rows and add new keys. Empty or duplicate keys require correction first."
       )
-      .font(.callout).foregroundStyle(mode == .replace ? .primary : .secondary)
+      .font(.callout).foregroundStyle(form.mode == .replace ? .primary : .secondary)
       if table != nil {
         Text("Map incoming columns").font(.headline)
         Text(
           "Map each stored table column exactly once. Calculated columns are kept. Choose Ignore explicitly for unused input."
         )
         .font(.caption).foregroundStyle(.secondary)
+        ForEach(form.suggestionNotes, id: \.self) {
+          Text($0).font(.caption).foregroundStyle(.secondary)
+        }
+        if form.canIgnoreRest(session.source, columns: columns) {
+          Button("Ignore the other incoming columns") { form.ignoreRest(session.source) }
+        }
         ForEach(Array(source.headings.enumerated()), id: \.offset) { index, heading in
           VStack(alignment: .leading, spacing: 4) {
             Picker(
               "\(index + 1). \(heading.isEmpty ? "Unnamed column" : heading)",
               selection: Binding(
-                get: { mapping[index] ?? .unselected }, set: { mapping[index] = $0 })
+                get: { form.mapping[index] ?? .unselected }, set: { form.mapping[index] = $0 })
             ) {
-              Text("Choose column").tag(MappingChoice.unselected)
-              Text("Ignore this input").tag(MappingChoice.ignore)
-              ForEach(columns) { Text($0.title).tag(MappingChoice.column($0.id)) }
+              Text("Choose column").tag(TableUpdateForm.Choice.unselected)
+              Text("Ignore this input").tag(TableUpdateForm.Choice.ignore)
+              ForEach(columns) { Text($0.title).tag(TableUpdateForm.Choice.column($0.id)) }
             }
             Text(
               "Examples: "
@@ -152,30 +194,36 @@ struct TableUpdateView: View {
                   separator: " · ")
             )
             .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            if form.isSuggested(index) {
+              Label("Suggested from the same heading", systemImage: "checkmark")
+                .font(.caption).foregroundStyle(.secondary)
+            }
           }
         }
-        if mode == .merge {
+        if form.mode == .merge {
           Text("Match rows using").font(.headline)
           ForEach(columns) { column in
             Toggle(
               column.title,
               isOn: Binding(
-                get: { keys.contains(column.id) },
+                get: { form.keys.contains(column.id) },
                 set: {
-                  if $0 { keys.insert(column.id) } else { keys.remove(column.id) }
+                  if $0 { form.keys.insert(column.id) } else { form.keys.remove(column.id) }
                 })
             ).toggleStyle(.checkbox)
           }
-          Text("Keys match exact values. Leading zeros, case and whitespace are preserved.")
-            .font(.caption).foregroundStyle(.secondary)
+          Text(
+            "Keys match exact values. Leading zeros, case and whitespace are preserved. A key that only nearly matches stops the review."
+          )
+          .font(.caption).foregroundStyle(.secondary)
         }
-        Picker("New rows describe", selection: $meaning) {
+        Picker("New rows describe", selection: $form.meaning) {
           Text("Choose meaning").tag("")
           ForEach(["actual", "estimate", "plan", "commitment", "assumption", "rule"], id: \.self) {
             Text($0.capitalized).tag($0)
           }
         }
-        TextField("New row scenario, for example actual or forecast", text: $scenario)
+        TextField("New row scenario, for example actual or forecast", text: $form.scenario)
         Text(
           "Matching rows keep their current meaning and scenario. Updating values does not post inventory or financial transactions."
         )
@@ -187,49 +235,117 @@ struct TableUpdateView: View {
       }
     }.disabled(session.busy || state.busy)
   }
-  private func inspect() async {
-    guard let row = Int(header), row > 0 else { return }
+  private func dataset(_ id: String) -> Dataset? { state.datasets.first { $0.id == id } }
+  private func open() async {
+    ready = false
     let source = sourceID
+    let book = book
+    let (saved, waiting) = await Task.detached { () -> (TableUpdateDraft?, Bool) in
+      let saved = try? book.tableUpdateDraft(source)
+      let job = saved?.intakeID.flatMap { try? book.intakeJob($0) }
+      return (saved, job?.state == "awaiting_update")
+    }.value
+    if let saved { form.restore(saved) }
+    form.intake = intakeID ?? (waiting ? saved?.intakeID : nil)
+    await inspect()
+    if let saved, let headings = session.source?.headings, session.source?.needsSheet == false {
+      let kept = saved.reconciled(headings: headings, columns: table?.columns)
+      if kept != saved {
+        notice = "Some saved choices no longer apply and were cleared."
+        let intake = form.intake
+        form.restore(kept)
+        form.intake = intake
+      } else {
+        notice = "Your saved choices were restored. Review them before previewing."
+      }
+    }
+    form.suggest(session.source, columns: table?.columns)
+    ready = true
+  }
+  private func choose(header next: String) {
+    guard next != form.header else { return }
+    form.header = next
+    form.clearInputs()
+    session.invalidate(clearSource: true)
+  }
+  private func choose(sheet next: String?) {
+    guard next != form.sheet else { return }
+    form.sheet = next
+    form.clearInputs()
+    Task { await read() }
+  }
+  private func read() async {
+    await inspect()
+    form.suggest(session.source, columns: table?.columns)
+  }
+  private func startOver() async {
+    let source = sourceID
+    let book = book
+    let job = form.intake
+    finished = false
+    ready = false
+    changed = false
+    session.invalidate()
+    // Queued behind any earlier save, so that save cannot bring the draft back.
+    session.keep(immediately: true) { try book.discardTableUpdateDraft(source) }
+    form = TableUpdateForm()
+    form.intake = job
+    notice = nil
+    await read()
+    ready = true
+  }
+  private func inspect() async {
+    guard let row = Int(form.header), row > 0 else { return }
+    let source = sourceID
+    let selected = form.sheet
     await session.inspect { cancel in
       try await Task.detached {
-        try book.inspectTableUpdateSource(source, headerRow: row, cancellation: cancel)
+        try book.inspectTableUpdateSource(
+          source, headerRow: row, sheet: selected, cancellation: cancel)
       }.value
     }
+    if let names = session.source?.sheets, !names.isEmpty { sheetNames = names }
   }
   private func inspectChanges() async {
-    guard let operation = mode else { return }
-    let selected = target
+    guard let operation = form.mode else { return }
+    let selected = form.target
     let mapped = entries
-    let match = keys.sorted()
-    let row = Int(header) ?? 0
+    let match = form.keys.sorted()
+    let row = Int(form.header) ?? 0
     let source = sourceID
+    let worksheet = session.source?.sheet
     await session.inspectChanges { cancel in
       try await Task.detached {
         try book.previewTableUpdate(
           sourceID: source, datasetID: selected,
-          mode: operation, mapping: mapped, keys: match, headerRow: row, cancellation: cancel)
+          mode: operation, mapping: mapped, keys: match, headerRow: row, sheet: worksheet,
+          cancellation: cancel)
       }.value
     }
   }
   private func publish() async {
     guard let preview = session.preview else { return }
     let owner = state.interactionIdentity
-    let newMeaning = meaning
-    let newScenario = scenario
-    let job = intakeID
+    let newMeaning = form.meaning
+    let newScenario = form.scenario
+    let job = form.intake
+    finished = true
     let result = await session.publish { token, cancel in
       try await Task.detached {
         try book.proposeTableUpdate(
           sourceID: preview.sourceID, datasetID: preview.datasetID,
           mode: preview.mode, mapping: preview.mapping, keys: preview.keys,
-          headerRow: preview.headerRow,
+          headerRow: preview.headerRow, sheet: preview.sheet,
           newRowMeaning: newMeaning, newRowScenario: newScenario,
           expectedRevision: preview.revision, expectedFingerprint: preview.fingerprint,
           intakeID: job, token: token, cancellation: cancel)
       }.value
     }
-    guard let result, state.interactionActive, state.interactionIdentity == owner,
-      state.workbook === book
+    guard let result else {
+      finished = false
+      return
+    }
+    guard state.interactionActive, state.interactionIdentity == owner, state.workbook === book
     else { return }
     state.refresh()
     state.navigate(.item(result.id))
@@ -241,13 +357,16 @@ struct TableUpdateSummary: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       Text(
-        "\(preview.added) added · \(preview.changed) changed · \(preview.removed) removed · \(preview.unchanged) matched rows unchanged"
+        "\(preview.added) added · \(preview.changed) changed · \(preview.removed) removed · \(preview.unchanged) unchanged"
       )
       .font(.headline)
-      Text(
-        "\(preview.repeatedIncomingRows) repeated incoming rows · \(preview.rowsMatchingTarget) incoming rows exactly match existing values"
-      )
-      .font(.callout)
+      if preview.repeatedIncomingRows > 0 {
+        Text("Repeated incoming rows: \(preview.repeatedIncomingRows)").font(.callout)
+      }
+      if preview.rowsMatchingTarget > 0 {
+        Text("Incoming rows that exactly match existing values: \(preview.rowsMatchingTarget)")
+          .font(.callout)
+      }
       ForEach(preview.limitations, id: \.self) {
         Text($0).font(.caption).foregroundStyle(.secondary)
       }
@@ -256,17 +375,15 @@ struct TableUpdateSummary: View {
         ForEach(Array(preview.examples.enumerated()), id: \.offset) { _, example in
           VStack(alignment: .leading, spacing: 4) {
             Text(
-              example["operation"].text.capitalized + " · Source record "
+              example["operation"].text.capitalized
+                + (preview.sheet == nil ? " · Source record " : " · Worksheet row ")
                 + (example["sourceRecord"].int.map(String.init) ?? "unknown")
             ).font(.subheadline.weight(.medium))
             ForEach(preview.columns.filter { $0.formula == nil }) { column in
               let after = example["after"][column.id]
               let before = example["before"][column.id]
-              Text(
-                column.title + ": "
-                  + (example["operation"].text == "change" ? shown(before) + " → " : "")
-                  + shown(after)
-              )
+              let moved = example["operation"].text == "change" && before != after
+              Text(column.title + ": " + (moved ? shown(before) + " → " : "") + shown(after))
               .font(.callout).textSelection(.enabled)
             }
           }.padding(.vertical, 6)

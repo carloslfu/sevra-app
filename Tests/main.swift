@@ -1013,6 +1013,57 @@ check("structured import resumes committed batches without duplicating rows") {
     title: "Resumable", columns: columns, rows: data, sourceID: s.id)
   try expect(resumed.rowCount == 2500 && resumed.id == retried.id && retried.rowCount == 2500)
 }
+check("structured import batches by value bytes and reports only committed rows") {
+  let s = try book.addItem(category: "source", kind: "fixture", title: "Wide intake")
+  let note = String(repeating: "n", count: 16_000)
+  let data = (0..<800).map { ["n": Value.string(String($0)), "note": Value.string(note)] }
+  let columns = [Column(id: "n", title: "N", type: "decimal"), Column(id: "note", title: "Note")]
+  let cancel = Cancellation()
+  var seen: [Int] = []
+  try refuses("cancelled") {
+    _ = try book.importDataset(
+      title: "Wide", columns: columns, rows: data, sourceID: s.id, cancellation: cancel,
+      progress: { done, _ in
+        seen.append(done)
+        cancel.cancel()
+      })
+  }
+  let partial = try book.intakeStatus().first { $0["sourceID"].text == s.id }!
+  let table = try book.dataset(partial["datasetID"].text)
+  try expect(seen == [374] && table.rowCount == 374 && table.unfinishedImportTotal == 800)
+  let resumed = try book.importDataset(
+    title: "Wide", columns: columns, rows: data, sourceID: s.id,
+    progress: { done, _ in seen.append(done) })
+  try expect(seen == [374, 374, 748, 800] && resumed.rowCount == 800)
+  try expect(resumed.unfinishedImportTotal == nil)
+  try expect(try book.rows(table.id, offset: 373, limit: 2).map { $0.data["n"].text } == ["373", "374"])
+}
+check("multi-sheet XLSX import reports rows across every sheet") {
+  let path = temp.appendingPathComponent("Two sheets.xlsx")
+  let archive = try Archive(url: path, accessMode: .create)
+  func sheet(_ rows: Int) -> String {
+    let cells = (1...rows).map { #"<row r="\#($0)"><c r="A\#($0)"><v>\#($0)</v></c></row>"# }
+    return "<worksheet><sheetData>" + cells.joined() + "</sheetData></worksheet>"
+  }
+  let parts = [
+    "xl/workbook.xml":
+      #"<workbook xmlns:r="r"><sheets><sheet name="One" r:id="r1"/><sheet name="Two" r:id="r2"/></sheets></workbook>"#,
+    "xl/_rels/workbook.xml.rels":
+      #"<Relationships><Relationship Id="r1" Type="x/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="r2" Type="x/worksheet" Target="worksheets/sheet2.xml"/></Relationships>"#,
+    "xl/worksheets/sheet1.xml": sheet(3), "xl/worksheets/sheet2.xml": sheet(2),
+  ]
+  for (name, text) in parts {
+    let bytes = Data(text.utf8)
+    try archive.addEntry(
+      with: name, type: .file, uncompressedSize: Int64(bytes.count),
+      provider: { position, count in bytes.subdata(in: Int(position)..<Int(position) + count) })
+  }
+  let source = try book.importFile(path)
+  try book.extract(source.id)
+  var seen: [String] = []
+  let tables = try book.importXLSX(source.id, progress: { seen.append("\($0)/\($1)") })
+  try expect(tables.map(\.rowCount) == [3, 2] && seen == ["3/5", "5/5"])
+}
 check("copy cancellation and extraction deadlines leave the workbook usable") {
   let file = temp.appendingPathComponent("cancel-large.bin")
   try Data(repeating: 42, count: 4_000_000).write(to: file)
@@ -1145,6 +1196,7 @@ checkContinuationEvidence(at: temp)
 checkToolReceipts(at: temp)
 checkDocumentComposition(at: temp)
 checkDocumentCopyChoices(at: temp)
+checkFoldersAndTemplates(at: temp)
 checkReferences(at: temp)
 checkInlineReferences(at: temp)
 checkFileReferences(at: temp)
@@ -1153,6 +1205,7 @@ checkContextualIntake(at: temp)
 checkTableIntake(at: temp)
 checkManagedDatasets(at: temp)
 checkDatasetDefinitions(at: temp)
+checkSheetFormulas(at: temp)
 checkDatasetQueries(at: temp)
 checkApplicationDefinitions(at: temp)
 checkApplicationActions(at: temp)
