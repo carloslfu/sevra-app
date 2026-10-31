@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-31T02:58:00+00:00
+updated: 2026-10-31T14:52:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -58,11 +58,11 @@ file are in [[records/specs/manual-workflows]]. Core checks cover new, repeated,
 and duplicate files, a replayed pass, the 200-file bound, a copied automation pointing at its own
 copied parts, a repeated import and a file that is not a template.
 
-**Increment 9 is accepted for its mechanism.** Recordings of up to two hours divide into overlapping
-parts: [[records/specs/search]]. Part planning, overlap joining and timestamps have checks, and a
-real 75.6-second recording exported as parts of 58.0 and 19.6 s. Recognition itself has not run on
-longer audio, because the CLI holds no speech permission and the window pass could not reach the
-action.
+**Increment 9 is accepted, with recognition proven on one short recording.** Recordings of up to
+two hours divide into overlapping parts: [[records/specs/search]]. Part planning, overlap joining
+and timestamps have checks, and a real 75.6-second recording exported as parts of 58.0 and 19.6 s.
+Recognition ran on that recording in the installed window on October 31, below, and exposed a join
+defect that is now fixed. Nothing longer has been recognized.
 
 **Increment 10, candidate checks.** Commit `4e96746`, native build installed through
 `scripts/install.sh --native --no-build`. `scripts/check_model.py` against the packaged CLI:
@@ -96,13 +96,40 @@ seen working: the automation list, its search and no-match message, the review f
 Export template opening its save panel with the suggested `Monday stock check template.json`, Home,
 a table, the audio viewer and the review in Light and Dark, and arrow keys in a read-only table.
 
-Three steps still need a person at this Mac. macOS runs Open and Save panels in a separate process
-the test tools may not touch, so no folder or file was chosen, and Add a folder's count sheet, the
-exported file and Import template have only their core checks. Transcribe on this Mac sits in a
-pop-up menu the background tools cannot open, so speech recognition has not run on real audio.
-Escape and Command shortcuts could not be delivered in the background, so they were not checked on
-this build. Quit from the menu did not end the app while the save panel was open. The test process
-was stopped there, and the workbook reopened and passed `sevra verify`.
+Quit from the menu did not end the app while the save panel was open. The test process was stopped
+there, and the workbook reopened and passed `sevra verify`.
+
+**Person-assisted pass, October 31.** macOS keeps Open and Save panels and its permission prompts
+outside what the test tools may touch. So the owner chose the file and folder and answered the speech
+prompt on the installed build, and the agent drove the rest and read the results, on the same
+synthetic workbooks.
+
+| Step | Result |
+|---|---|
+| Export template | Saved `Monday stock check template.json`: three definitions, no workbook content or paths |
+| Import template | Three new definitions, its review opened, no activation and no run |
+| Add a folder | Arrow menu, picker and prompt worked: 3 new, 0 changed, 0 already in this workbook. All three files added, one from a subfolder, with matching hashes |
+| Transcribe on this Mac | Ran on real audio for the first time, and found the defect below |
+
+The recording is a synthetic voice reading 230 words for 76 seconds, across one part join. The first
+run lost `order two` in one of its three repetitions. Those words sat at the 58-second end of the
+first part, where the recognizer dropped them and stretched the word before across the gap, so the
+join discarded what the second part had heard. A long recording could lose words like that about
+once a minute with no warning. A check of that shape failed, 575 of 576. A part now hands over
+halfway through the overlap: [[records/specs/search]]. All 576 core checks pass, and on the rebuilt
+app the same recording returned `order two` in all three repetitions, with no repeated word, across
+10 timed pieces. Two recognition errors remain, `Atlas` heard once as `at least` and `met` once as
+`meant`. On the first run, searching `Marigold budget` in the window found the phrase, and the result
+opened the audio at 1:12. `sevra verify` passed on both workbooks afterward.
+
+The join fix came after the suite. It changed one function and its check, so under the focused policy
+the full suite did not run again.
+
+Limits seen in this pass: after Transcribe the viewer shows no transcript, only a changed footnote,
+and the words are reached through search. An imported template lists as a second automation with the
+same name and nothing to tell the two apart. Each ad-hoc rebuild loses the speech permission, so macOS
+asks again. A second folder pass rests on its core check. No human voice has been transcribed. Escape,
+Command shortcuts and VoiceOver were not checked on this build.
 
 There is no Developer ID identity on this Mac, so the build stays ad-hoc signed and notarization
 did not run. Only this 48 GB M5 Pro Mac has been tested. No external user has tried it.

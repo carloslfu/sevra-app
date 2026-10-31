@@ -1426,3 +1426,6 @@ Candidate 4e96746: full suite exit 0 with 803 PASS lines, the real eight-report 
 ## [2026-10-31 02:56] verification | records/operations/implementation
 Installed-window pass on candidate 4e96746 with a synthetic workbook: a real request opened automation review in 12 s with nothing enabled, and the automation screens, save panel suggestion, Light and Dark and table arrow keys worked. Add a folder, template export and import, and Transcribe with real speech still need a person at this Mac.
 
+## [2026-10-31 14:50] verification | records/operations/implementation
+Owner-assisted window pass on the installed build: Add a folder, template export and import, and Transcribe on real audio. A dropped-words join defect was found and fixed; all 576 core checks pass and the same recording now keeps every word at the join.
+

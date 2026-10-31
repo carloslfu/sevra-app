@@ -2,7 +2,7 @@
 type: operational
 id: 01m6578ccnp83zedvmr7gpp45q
 created: 2026-10-30T01:37:13.109871+00:00
-updated: 2026-10-30T03:04:42.170055+00:00
+updated: 2026-10-31T14:52:00+00:00
 summary: Ordered bounded implementation, test and polish increments for the audited Sevra feature gaps.
 title: Minimum usable feature sequence
 ---
@@ -66,7 +66,6 @@ The owner kept the whole queue and asked for fewer tests:
 reliable version, the real failure and one counterexample, with the suite and install run once on
 the candidate. Increments 6 through 9 are accepted for their bounded scope, with the limits in
 [[records/operations/implementation]]. Continuation is on for the native 32K profile. Increment 10
-has its real-model journey, install, suite and window pass, apart from three steps only a person
-can finish: Add a folder, template export and import, and Transcribe with real speech. Signing and
-the hardware matrix remain open. Next are those three steps, then an external user, as
-[[records/specs/mvp-delivery]] requires.
+has its real-model journey, install, suite and window pass, including Add a folder, template export
+and import, and Transcribe on real audio. Signing and the hardware matrix remain open. Next is an
+external user, as [[records/specs/mvp-delivery]] requires.

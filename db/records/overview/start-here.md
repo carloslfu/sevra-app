@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-30T03:04:42.170055+00:00
+updated: 2026-10-31T14:52:00+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -32,9 +32,8 @@ increment 4, bounded bulk intake, and increment 5, an explicit Excel formula sub
 accepted for their scope. So are increment 6, bounded conversation continuation, now on for the
 native 32K profile, increment 7, reaching automation review by text or voice, increment 8, folder
 comparison and job templates, and increment 9, longer audio. Increment 10 has its real-model
-journey, install, suite and window pass, apart from three steps that need a person; signing and the
-hardware matrix remain open. Main retains the prior audit while the handoff branch carries this
-work.
+journey, install, suite and window pass; signing and the hardware matrix remain open. Main retains
+the prior audit while the handoff branch carries this work.
 
 The October 29 follow-up authorizes sequential minimum usable features, testing
 and polish: [[records/operations/minimum-feature-delivery]]. That queue supersedes
