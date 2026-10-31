@@ -59,4 +59,12 @@ still costs about 10 KB of workbook storage. Increment 5 is accepted: a declared
 subset recalculates after edits, Undo, export and reopen, 3,600 formulas calculated by
 LibreOffice match it on import and after edits, and every other formula keeps its saved
 value with a stated reason. It is not Excel, and no file written by Excel itself has been
-tested. Increment 6 is next; increments 7 through 10 remain queued.
+tested.
+
+The owner kept the whole queue and asked for fewer tests:
+[[sources/notes/2026/10/ship-with-enough-testing]]. Each remaining increment took its smallest
+reliable version, the real failure and one counterexample, with the suite and install run once on
+the candidate. Increments 6 through 9 are accepted for their bounded scope, with the limits in
+[[records/operations/implementation]]. Continuation is on for the native 32K profile. Increment 10
+has its real-model journey, install and suite. Its window pass, signing and hardware matrix remain
+open. Next is that window pass, then an external user, as [[records/specs/mvp-delivery]] requires.

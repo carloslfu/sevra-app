@@ -1417,3 +1417,9 @@ Excel formula subset: recalculation after edits, Undo, export and reopen, with e
 ## [2026-10-30 19:05] verification | records/operations/implementation
 3,600 formulas calculated by LibreOffice match on import and after 20 edits; installed window pass on a synthetic workbook, typing, Undo, saved values, popover and dark mode. No file written by Excel itself was tested.
 
+## [2026-10-31 00:11] implementation | records/specs/conversation-context
+Increments 6 through 9 in their smallest reliable versions: bounded continuation on for the native 32K profile, open_automation, Add a folder, job templates and longer audio parts. One request now saves one draft per title.
+
+## [2026-10-31 00:11] verification | records/operations/implementation
+Candidate 4e96746: full suite exit 0 with 803 PASS lines, the real eight-report job passed, and the four real journeys passed on the second pass after one comparison cited the source instead of rows. The window pass did not run because the screen stayed locked.
+

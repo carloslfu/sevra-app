@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-10-30T03:04:42.170055Z
+updated: 2026-10-31T00:11:42Z
 ---
 
 # records/specs
 
+- [[records/specs/document-composition]] — Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 - [[records/specs/intelligence]] — Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 - [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 - [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
@@ -36,6 +37,5 @@ updated: 2026-10-30T03:04:42.170055Z
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 - [[records/specs/persistence-readiness]] — Required complete, causal and replayable local persistence for future syncing; cloud, transport, replica coordination and a new conflict resolver remain out of scope.
 - [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
-- [[records/specs/document-composition]] — Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 - [[records/specs/splash-integration]] — Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 - [[records/specs/identity]] — Approved Observer zebra, exact original Mac icon, native outlined wordmark and restrained light/dark placement.

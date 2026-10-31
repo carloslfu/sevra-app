@@ -3,11 +3,98 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-30T03:04:42.170055+00:00
+updated: 2026-10-31T00:11:42+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Increments 6 through 10, October 30
+
+The owner kept the whole queue and asked for the smallest reliable version of each item, with
+fewer tests: [[sources/notes/2026/10/ship-with-enough-testing]]. From this point an increment
+gets its real failure and one counterexample, and the suite, install and window pass run once on
+the candidate.
+
+**Increment 6, bounded continuation, is accepted with a limit and is on for the native 32K
+profile.** Rules and repairs are in [[records/specs/conversation-context]] and
+[[records/specs/document-composition]]. The real eight-report job needs eleven of its twelve steps:
+
+| Commit | Full job | Recovery | What repeating it found |
+|---|---|---|---|
+| `136c198` | 0 of 1 | | Stopped at the limit after six reads |
+| `ed4b602` | 1 of 3 | 0 of 2 | A retried save duplicated a space, and a refused draft cost the last step |
+| `e51e9e3` | 0 of 3 | 0 of 2 | Without a text field the memo lost the code and amounts |
+| `8eeb94e` | 1 of 3 | 1 of 3 | Empty drafts, copy IDs sent as inputs, and instructions lost after a checkpoint |
+| `a8467ae` | 3 of 3 | 2 of 3 | The plain Stop case ended on one unfinished model response |
+| `7e2442a` | 0 of 1 | | With shortened `draft` wording it saved every line of one report, then a corrected draft |
+| `4e96746` | 1 of 1 | | The tested wording is back, and a second draft under one title is refused |
+
+At `a8467ae` each job took 11 steps, 8 checkpoints and a peak of about 22,900 tokens against the
+24,576 limit, in 266 to 299 s including verification. The final commit's run matched that: 11
+steps, 8 checkpoints, a peak of 22,838 tokens and 246 s. Ordinary six-request continuity passes
+with four summaries. On the packaged CLI, killing the process during its second maintenance pass
+left integrity intact, and an ordinary follow-up finished the memo in 11 steps and 313.7 s.
+
+Adding `open_automation` pushed the tool prompt past its check, and the first job after the
+wording was shortened failed. One failure cannot prove the cause, but that wording had no passing
+run. The earlier `draft` wording is back, the tokens came from rarely used tools, and the 8,192
+check is unchanged: [[records/specs/document-composition]].
+
+The fixture is deliberately harsh: each report is about 7,700 tokens of hexadecimal fingerprints,
+roughly three times denser than prose. Outside this fixture the largest saved prompt is about
+18,700 tokens, so ordinary jobs have not needed maintenance yet. One real memo repeated each line
+in reworded form beside its exact copy, which stays a limit.
+
+**Increment 7 is accepted.** `open_automation` reaches an automation's native review from text or
+dictation: [[records/specs/native-automation-owner]]. On the packaged CLI the real model chose it
+for an exact name, and said no view opened because a CLI has no window. A vague request found
+nothing and asked which one. No activation existed afterward. Scripted checks cover a window, no
+window, a partial name and two automations with one name.
+
+**Increment 8 is accepted.** Add a folder compares a chosen folder once and shows counts before
+adding anything: [[records/specs/contextual-import]]. Export and import of one job as an inert
+file are in [[records/specs/manual-workflows]]. Core checks cover new, repeated, changed, missing
+and duplicate files, a replayed pass, the 200-file bound, a copied automation pointing at its own
+copied parts, a repeated import and a file that is not a template.
+
+**Increment 9 is accepted for its mechanism.** Recordings of up to two hours divide into overlapping
+parts: [[records/specs/search]]. Part planning, overlap joining and timestamps have checks, and a
+real 75.6-second recording exported as parts of 58.0 and 19.6 s. Recognition itself has not run on
+longer audio, because the CLI holds no speech permission and the screen was locked.
+
+**Increment 10, candidate checks.** Commit `4e96746`, native build installed through
+`scripts/install.sh --native --no-build`. `scripts/check_model.py` against the packaged CLI:
+
+| Real request | Result |
+|---|---|
+| Compare the supplier quotes, by how much and what percentage, make a space | 12.73% cheaper, Purchasing space with table and chart, 8 steps, 68.8 s |
+| Summarize a document holding hostile instructions | Summarized, instructions ignored, 3 steps, 34.0 s |
+| Find a contract that is not there | Said so and reported partial coverage, 3 steps, 22.2 s |
+| Stop a long request, then ask something else | Cancelled, integrity held, next answer correct in 82.0 s |
+
+That is the second pass on this build. In the first, the comparison gave the same answer and
+space but cited the source document once, not the two rows the request asked for, so its check
+failed and stopped the run. The two earlier builds cited the rows. The check was not relaxed. This
+stays a limit: the link still verifies the answer, but the request was not followed exactly.
+
+The journey found one bug no earlier check had: the model passed `source` as a search kind, which
+matched nothing and read as an empty workbook. A category there now means no filter. Without that
+fix the plain comparison request failed. A second fix makes two checks trigger on current native
+progress text, which they had stopped seeing.
+
+`bash scripts/check.sh` passed once on `4e96746`: exit 0, 803 PASS lines, 576 core checks and no
+warnings. The real eight-report job also passed on that commit.
+
+Not done: the installed-window pass. The screen stayed locked, so the folder dialog, template
+buttons, automation screen from a real window, Transcribe with real speech, and the keyboard and
+appearance pass on this build remain unseen. There is no Developer ID identity on this Mac, so the
+build stays ad-hoc signed and notarization did not run. Only this 48 GB M5 Pro Mac has been tested.
+No external user has tried it.
+
+[Continuation receipt](../../../integration/evidence/2026-10-30-conversation-continuation.json.gz),
+SHA-256 `414a7e40a566cfcb4f7f32ca01b47b673af3574665d73a322468cbbfa6332f9c`, binds the sources,
+every real run above and its outcome.
 
 ## Increment 5, an explicit Excel formula subset, October 30
 

@@ -3,8 +3,8 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-10-30T03:04:42.307148+00:00
-summary: 'Resumed minimum features: increments 1 through 5 accepted; increment 6 qualified conversation continuation is next.'
+updated: 2026-10-30T23:07:04.209148+00:00
+summary: 'Resumed minimum features: increments 1 through 9 accepted; the increment 10 window pass and an external user are next.'
 title: Paused minimum-feature agent handoff
 ---
 # Paused feature implementation: agent handoff
@@ -12,9 +12,11 @@ title: Paused minimum-feature agent handoff
 ## State and first action
 
 **Resumed by the owner on October 29:** [[sources/notes/2026/10/minimum-features-resume]].
-Increments 1 through 5 are accepted for their bounded scope, with native build 23
-installed. Increment 6, qualified bounded conversation continuation, is next. Exact
-evidence and limits are in [[records/operations/implementation]], the
+Increments 1 through 9 are accepted for their bounded scope, and the owner kept the whole queue
+while asking for fewer tests: [[sources/notes/2026/10/ship-with-enough-testing]]. Continuation is
+on for the native 32K profile. The next steps are the installed-window pass, which a locked screen
+interrupted, then an external user. Exact evidence and limits are in
+[[records/operations/implementation]], the
 [reviewed-update receipt](../../../integration/evidence/2026-10-30-reviewed-updates.json.gz),
 the [bulk intake receipt](../../../integration/evidence/2026-10-30-bulk-intake.json.gz) and
 the [Excel formula receipt](../../../integration/evidence/2026-10-30-excel-formula-subset.json.gz).
@@ -217,7 +219,7 @@ The installed-window pass then ran on build 9 with synthetic workbooks under
 
 ## Resume in this order
 
-The original order follows; all six steps are complete. Continue with increment 6 in
+The original order follows; all six steps are complete. Continue from the current work in
 [[records/operations/minimum-feature-delivery]].
 
 1. Check the branch/diff and read the contracts above. Preserve this work.

@@ -29,8 +29,11 @@ The owner resumed the minimum-feature work after a handoff pause:
 with qualified partial costs, is accepted for its scope. Increment 2, native
 comparison and original-table grids, increment 3, less manual reviewed updates,
 increment 4, bounded bulk intake, and increment 5, an explicit Excel formula subset, are
-accepted for their scope. Increment 6, qualified bounded conversation continuation, is
-next. Main retains the prior audit while the handoff branch carries this work.
+accepted for their scope. So are increment 6, bounded conversation continuation, now on for the
+native 32K profile, increment 7, reaching automation review by text or voice, increment 8, folder
+comparison and job templates, and increment 9, longer audio. Increment 10 has its real-model
+journey, install and suite; its window pass, signing and hardware matrix remain open. Main retains
+the prior audit while the handoff branch carries this work.
 
 The October 29 follow-up authorizes sequential minimum usable features, testing
 and polish: [[records/operations/minimum-feature-delivery]]. That queue supersedes
