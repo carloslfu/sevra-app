@@ -44,7 +44,7 @@ struct WorkbookView: View {
           Label("Add files…", systemImage: "plus")
         } primaryAction: {
           state.importPanel()
-        }.disabled(state.busy)
+        }.disabled(state.busy).accessibilityLabel("Add files, a folder or pasted data")
       }.padding(.horizontal, 20).padding(.vertical, 12)
       Divider()
       HSplitView {

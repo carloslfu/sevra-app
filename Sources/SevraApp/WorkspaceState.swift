@@ -8,7 +8,6 @@ import SevraPreviewUI
 import SevraProduct
 import SevraSearchUI
 import SevraVoice
-import Speech
 import SwiftUI
 
 @MainActor private final class AssetCopySaveDelegate: NSObject, NSOpenSavePanelDelegate {
@@ -146,7 +145,6 @@ struct FolderReview {
   private let operations = WorkspaceOperationScope()
   private let refreshSession = WorkspaceRefreshSession()
   private var loadedRefreshIdentity: WorkspaceReadIdentity?
-  private var awaitingSpeechPermission: WorkspaceOperation?
   let mediaOwner = UUID()
   private(set) var interactionActive = false
   private(set) var interactionIdentity = UUID()
@@ -1100,39 +1098,23 @@ struct FolderReview {
     }
   }
   func transcribe(_ id: String) {
-    guard let (book, ticket) = beginOperation("Preparing on-device transcription") else { return }
+    guard let (book, ticket) = beginOperation("Transcribing on this Mac") else { return }
     speech.stop()
     PlaybackRegistry.shared.pauseAll()
-    awaitingSpeechPermission = ticket
-    SFSpeechRecognizer.requestAuthorization { authorization in
-      Task { @MainActor in
-        guard self.owns(ticket, in: book) else { return }
-        self.awaitingSpeechPermission = nil
-        defer { self.finishOperation(ticket, in: book) }
-        do {
-          try ticket.cancellation.check()
-          try require(
-            authorization == .authorized, "speech_permission",
-            "Speech recognition permission was not granted. The original remains available.")
-          self.status = "Transcribing on this Mac"
-          try await book.transcribe(id, cancellation: ticket.cancellation) { value in
-            Task { @MainActor in
-              if self.owns(ticket, in: book) { self.status = value }
-            }
+    Task { @MainActor in
+      defer { self.finishOperation(ticket, in: book) }
+      do {
+        try await book.transcribe(id, cancellation: ticket.cancellation) { value in
+          Task { @MainActor in
+            if self.owns(ticket, in: book) { self.status = value }
           }
-        } catch { self.report(error, for: ticket, in: book) }
-      }
+        }
+      } catch { self.report(error, for: ticket, in: book) }
     }
   }
   func stop() {
     speech.stop()
     operations.cancel()
-    // A system permission prompt cannot be dismissed programmatically. Release
-    // our waiting UI immediately; its late response no longer owns this window.
-    if let pending = awaitingSpeechPermission, operations.owns(pending), let book = workbook {
-      awaitingSpeechPermission = nil
-      finishOperation(pending, in: book)
-    }
     if activePreview?.loading == true { activePreview?.stop() }
     if busy {
       status = "Stopping…"
@@ -1457,7 +1439,6 @@ struct FolderReview {
     operations.invalidate()
     refreshSession.reset()
     loadedRefreshIdentity = nil
-    awaitingSpeechPermission = nil
     busy = false
     status = ""
     liveActivity = nil

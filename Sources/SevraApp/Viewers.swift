@@ -193,6 +193,11 @@ import SwiftUI
               if let player { PlaybackRegistry.shared.register(player, owner: state.mediaOwner) }
             }
             Toggle("Keep playing while I explore", isOn: $keepPlaying).padding(10)
+            TranscriptView(item: item.id, workbook: workbook, revision: state.revision) { seconds in
+              player?.seek(
+                to: CMTime(seconds: seconds, preferredTimescale: 600), toleranceBefore: .zero,
+                toleranceAfter: .zero)
+            }
           }.onDisappear {
             if !keepPlaying || !state.interactionActive {
               player?.releasePlayback()
@@ -609,6 +614,80 @@ struct PDFWorkspace: View {
     .onChange(of: controls.page) { _, page in onPage(page) }
   }
 }
+struct TranscriptLine: Identifiable, Sendable {
+  let id: Int
+  let seconds: Double
+  let text: String
+  /// Only a transcript's chunks carry a time.
+  init?(_ chunk: Value) {
+    let locator = chunk["locator"].text
+    guard let id = chunk["id"].int, let range = locator.range(of: "^time=[0-9.]+", options: .regularExpression),
+      let seconds = Double(locator[range].dropFirst(5))
+    else { return nil }
+    self.id = id
+    self.seconds = seconds
+    text = chunk["body"].text
+  }
+}
+
+/// What Transcribe heard, in order. Choosing a time moves the player there.
+struct TranscriptView: View {
+  let item: String
+  let workbook: Workbook
+  let revision: Int
+  let seek: (Double) -> Void
+  @State private var lines: [TranscriptLine] = []
+  private func clock(_ seconds: Double) -> String {
+    let whole = Int(seconds)
+    let minutes = String(format: "%d:%02d", whole / 60 % 60, whole % 60)
+    return whole < 3600 ? minutes : "\(whole / 3600):" + String(format: "%02d:%02d", whole / 60 % 60, whole % 60)
+  }
+  private func load() async {
+    let book = workbook
+    let id = item
+    let found = await Task.detached { () -> [TranscriptLine] in
+      var read = 0
+      var rows: [TranscriptLine] = []
+      while let page = try? book.readChunks(id, offset: read, limit: 12), !page.isEmpty {
+        read += page.count
+        rows += page.compactMap(TranscriptLine.init)
+      }
+      return rows
+    }.value
+    lines = found
+  }
+  var body: some View {
+    VStack(spacing: 0) {
+      Color.clear.frame(height: 0)
+      if !lines.isEmpty {
+        Divider()
+        HStack {
+          Text("Transcript").font(.headline)
+          Spacer()
+          Button("Copy") {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(
+              lines.map(\.text).joined(separator: " "), forType: .string)
+          }.help("Copy the whole transcript")
+        }.padding(.horizontal, 12).padding(.top, 8)
+        ScrollView {
+          LazyVStack(alignment: .leading, spacing: 8) {
+            ForEach(lines) { line in
+              HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Button(clock(line.seconds)) { seek(line.seconds) }
+                  .buttonStyle(.link).monospacedDigit().frame(width: 56, alignment: .trailing)
+                  .accessibilityLabel("Go to \(clock(line.seconds))")
+                Text(line.text).textSelection(.enabled)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+              }
+            }
+          }.padding(12)
+        }.frame(maxHeight: .infinity)
+      }
+    }.task(id: "\(item) \(revision)") { await load() }
+  }
+}
+
 @MainActor struct PDFViewer: NSViewRepresentable {
   let url: URL
   let locator: String?

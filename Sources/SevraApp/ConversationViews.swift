@@ -37,7 +37,8 @@ struct ConversationMessageRow: View {
         }
         Spacer()
         MoreActionsMenu(
-          speaker + " message actions", help: "Open links, save this exchange or start a thread"
+          (speaker == "You" ? "Your" : speaker) + " message actions",
+          help: "Open links, save this exchange or start a thread"
         ) {
           ConversationMessageActions(state: state, message: message, content: content)
         }

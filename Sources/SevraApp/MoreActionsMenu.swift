@@ -17,7 +17,7 @@ struct MoreActionsMenu<Content: View>: View {
     Menu {
       content
     } label: {
-      Image(systemName: "ellipsis")
+      Label(title, systemImage: "ellipsis").labelStyle(.iconOnly)
         .frame(width: 28, height: 28)
         .contentShape(Rectangle())
     }

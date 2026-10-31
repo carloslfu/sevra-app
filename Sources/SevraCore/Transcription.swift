@@ -13,49 +13,51 @@ public struct SpokenWord: Equatable, Sendable {
   }
 }
 
-@MainActor public enum FileTranscriber {
-  /// The recognizer takes about a minute at a time. Parts overlap so that a word cut at one
-  /// boundary is heard whole in the next.
-  nonisolated static let partSeconds = 58.0
-  nonisolated static let overlapSeconds = 2.0
-  nonisolated static let durationLimit = 7200.0
+public enum FileTranscriber {
+  static let durationLimit = 7200.0
 
-  nonisolated static func partStarts(duration: Double) -> [Double] {
-    guard duration > 60 else { return [0] }
-    return Array(stride(from: 0, to: duration - overlapSeconds, by: partSeconds - overlapSeconds))
-  }
-  /// The end of a part is unreliable: the recognizer can drop a cut word and stretch the one before
-  /// it across the gap. So a part hands over halfway through the overlap, and the next part supplies
-  /// every word after the last one kept. A silent next part takes nothing away.
-  nonisolated static func joined(_ words: [SpokenWord], _ next: [SpokenWord], offset: Double)
-    -> [SpokenWord]
-  {
-    guard !next.isEmpty else { return words }
-    let kept = words.filter { $0.end <= offset + overlapSeconds / 2 }
-    let heard = kept.last?.end ?? 0
-    return kept
-      + next.map { SpokenWord(text: $0.text, start: $0.start + offset, end: $0.end + offset) }
-      .filter { ($0.start + $0.end) / 2 >= heard }
-  }
-  nonisolated static func chunks(_ words: [SpokenWord]) -> [Chunk] {
-    stride(from: 0, to: words.count, by: 24).map { index in
-      let group = words[index..<min(index + 24, words.count)]
-      return Chunk(
-        group.map(\.text).joined(separator: " "),
-        locator: "time=\(group.first!.start); end=\(group.last!.end)")
+  /// A chunk ends with a sentence where it can, and at 24 words where it cannot.
+  static func chunks(_ words: [SpokenWord]) -> [Chunk] {
+    var groups: [[SpokenWord]] = []
+    var group: [SpokenWord] = []
+    for word in words {
+      group.append(word)
+      let sentence = word.text.last.map { ".?!".contains($0) } ?? false
+      if group.count == 24 || (group.count >= 12 && sentence) {
+        groups.append(group)
+        group = []
+      }
+    }
+    if !group.isEmpty { groups.append(group) }
+    return groups.map {
+      Chunk(
+        $0.map(\.text).joined(separator: " "),
+        locator: "time=\($0.first!.start); end=\($0.last!.end)")
     }
   }
-  /// Never requests permission or enables a remote recognizer. The app owns that explicit interaction.
+  /// Each run of a transcript is one word with its time. A run with no time keeps the last one.
+  @available(macOS 26.0, *)
+  static func words(_ text: AttributedString, after earlier: Double) -> [SpokenWord] {
+    var last = earlier
+    return text.runs.compactMap { run in
+      let word = String(text[run.range].characters).trimmingCharacters(in: .whitespacesAndNewlines)
+      guard !word.isEmpty else { return nil }
+      let start = run.audioTimeRange?.start.seconds ?? last
+      let end = run.audioTimeRange?.end.seconds ?? start
+      last = end
+      return SpokenWord(text: word, start: start, end: end)
+    }
+  }
+  /// A whole recording goes to the long-form transcriber in one pass, with no speech permission.
+  /// The file recognizer it replaced took about a minute at a time and discarded the speech before
+  /// a pause of several seconds, while still reporting success. Audio never leaves this Mac; the
+  /// first use of a language can download its speech model from Apple.
   public static func transcribe(
     _ file: URL, cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void = { _ in }
   ) async throws -> [Chunk] {
     try cancellation.check()
-    try require(
-      SFSpeechRecognizer.authorizationStatus() == .authorized, "speech_permission",
-      "Enable speech recognition through Sevra's Transcribe action before using file transcription."
-    )
-    guard let recognizer = SFSpeechRecognizer(), recognizer.supportsOnDeviceRecognition,
-      recognizer.isAvailable
+    guard #available(macOS 26.0, *), SpeechTranscriber.isAvailable,
+      let language = await SpeechTranscriber.supportedLocale(equivalentTo: .current)
     else {
       throw SevraError(
         "speech_unavailable",
@@ -72,93 +74,61 @@ public struct SpokenWord: Equatable, Sendable {
     try require(
       !tracks.isEmpty, "audio",
       "This file has no readable audio track.")
-    let folder = FileManager.default.temporaryDirectory
-      .appendingPathComponent("sevra-transcription-" + identifier())
-    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-    defer { try? FileManager.default.removeItem(at: folder) }
-    let starts = partStarts(duration: duration)
-    var words: [SpokenWord] = []
-    for (index, start) in starts.enumerated() {
-      try cancellation.check()
-      if starts.count > 1 {
-        progress("Transcribing part \(index + 1) of \(starts.count) on this Mac")
-      }
-      var part = file
-      if starts.count > 1 {
-        part = folder.appendingPathComponent("\(index).m4a")
-        try await export(asset, from: start, to: part)
-      }
-      // A silent part is not a failed recording.
-      let heard = try await SpeechFileJob().run(part, recognizer: recognizer, cancellation: cancellation)
-      words = joined(words, heard, offset: start)
-      if part != file { try? FileManager.default.removeItem(at: part) }
+    let transcriber = SpeechTranscriber(
+      locale: language, transcriptionOptions: [], reportingOptions: [],
+      attributeOptions: [.audioTimeRange])
+    let installed = await SpeechTranscriber.installedLocales.contains {
+      $0.identifier(.bcp47) == language.identifier(.bcp47)
     }
+    if !installed,
+      let download = try await AssetInventory.assetInstallationRequest(supporting: [transcriber])
+    {
+      progress("Downloading this language's speech model")
+      try await download.downloadAndInstall()
+    }
+    try cancellation.check()
+    guard let audio = try? AVAudioFile(forReading: file) else {
+      throw SevraError("audio", "The sound in this file cannot be read.")
+    }
+    let analyzer = SpeechAnalyzer(modules: [transcriber])
+    let bounded = Cancellation(parent: cancellation, deadlineAfterSeconds: max(120, duration))
+    let heard = Task {
+      var words: [SpokenWord] = []
+      for try await result in transcriber.results {
+        words += Self.words(result.text, after: words.last?.end ?? 0)
+        if let end = words.last?.end {
+          progress("Transcribing on this Mac, \(min(99, Int(end / duration * 100)))%")
+        }
+      }
+      return words
+    }
+    let monitor = Task {
+      while !Task.isCancelled {
+        do {
+          try bounded.check()
+          try await Task.sleep(nanoseconds: 100_000_000)
+        } catch {
+          await analyzer.cancelAndFinishNow()
+          return
+        }
+      }
+    }
+    defer {
+      monitor.cancel()
+      heard.cancel()
+    }
+    let words: [SpokenWord]
+    do {
+      try await analyzer.start(inputAudioFile: audio, finishAfterFile: true)
+      words = try await heard.value
+    } catch {
+      try bounded.check()
+      throw error
+    }
+    try bounded.check()
     try require(
       !words.isEmpty, "no_speech", "No speech was recognized. The original remains available.")
     return chunks(words)
-  }
-  static func export(_ asset: AVURLAsset, from start: Double, to file: URL) async throws {
-    guard
-      let session = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A)
-    else { throw SevraError("audio", "This recording cannot be divided into parts.") }
-    session.timeRange = CMTimeRange(
-      start: CMTime(seconds: start, preferredTimescale: 600),
-      duration: CMTime(seconds: partSeconds, preferredTimescale: 600))
-    try await session.export(to: file, as: .m4a)
-  }
-}
-
-@MainActor private final class SpeechFileJob {
-  private var continuation: CheckedContinuation<[SpokenWord], Error>?
-  private var task: SFSpeechRecognitionTask?
-  private var monitor: Task<Void, Never>?
-  func run(_ file: URL, recognizer: SFSpeechRecognizer, cancellation: Cancellation) async throws
-    -> [SpokenWord]
-  {
-    let bounded = Cancellation(parent: cancellation, deadlineAfterSeconds: 90)
-    return try await withCheckedThrowingContinuation { continuation in
-      self.continuation = continuation
-      let request = SFSpeechURLRecognitionRequest(url: file)
-      request.requiresOnDeviceRecognition = true
-      request.shouldReportPartialResults = false
-      task = recognizer.recognitionTask(with: request) { [weak self] result, error in
-        Task { @MainActor in
-          guard let self else { return }
-          if let result, result.isFinal {
-            self.finish(
-              .success(
-                result.bestTranscription.segments.map {
-                  SpokenWord(
-                    text: $0.substring, start: $0.timestamp, end: $0.timestamp + $0.duration)
-                }))
-          } else if let error {
-            // The recognizer reports a part with nothing to hear as an error.
-            let silent = (error as NSError).code == 1110
-            self.finish(silent ? .success([]) : .failure(error))
-          }
-        }
-      }
-      monitor = Task { [weak self] in
-        while !Task.isCancelled {
-          do {
-            try bounded.check()
-            try await Task.sleep(nanoseconds: 100_000_000)
-          } catch {
-            self?.finish(.failure(error))
-            return
-          }
-        }
-      }
-    }
-  }
-  private func finish(_ result: Result<[SpokenWord], Error>) {
-    guard let continuation else { return }
-    self.continuation = nil
-    monitor?.cancel()
-    monitor = nil
-    task?.cancel()
-    task = nil
-    continuation.resume(with: result)
   }
 }
 
@@ -183,7 +153,7 @@ extension Workbook {
         sourceID, chunks: chunks, state: "ready",
         detail:
           "On-device speech transcription with timestamps. Recognition may contain errors; check the original.",
-        parser: "apple-speech-ondevice-v1")
+        parser: "apple-speech-analyzer-v1")
     }.value
   }
 }

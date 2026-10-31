@@ -37,6 +37,7 @@ python3 scripts/check_business_inputs.py --cli "$BIN/sevra" --worker "$BIN/sevra
 python3 scripts/check_references.py --cli "$BIN/sevra"
 python3 scripts/check_extracted_references.py --cli "$BIN/sevra"
 python3 scripts/check_contextual_intake.py --cli "$BIN/sevra"
+python3 scripts/check_transcription.py --cli "$BIN/sevra"
 python3 scripts/check_table_updates.py --cli "$BIN/sevra"
 python3 scripts/check_bulk_intake.py --cli "$BIN/sevra"
 python3 scripts/check_sheet_formulas.py --cli "$BIN/sevra"

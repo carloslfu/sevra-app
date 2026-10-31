@@ -59,9 +59,25 @@ extension Workbook {
       let hex = Array(seed.suffix(32))
       let logical = [0..<8, 8..<12, 12..<16, 16..<20, 20..<32]
         .map { String(hex[$0]) }.joined(separator: "-")
-      let definition = try saveApplicationDefinition(
-        logicalID: logical, content: Value.parse(content),
-        token: "template-" + origin.suffix(16) + "-" + entry["id"].text)
+      let definition: ApplicationDefinition
+      if let existing = try? applicationDefinition(logical) {
+        definition = existing
+      } else {
+        var parsed = try Value.parse(content)
+        // A copy beside one of the same name says so in the list.
+        let namesake = try synchronized {
+          try db.execute(
+            "SELECT 1 FROM app_definition_heads h JOIN app_definitions d ON d.id=h.definition_id WHERE d.kind=? AND d.title=? LIMIT 1",
+            [.string(parsed["kind"].text), .string(parsed["title"].text)])
+        }
+        if !namesake.isEmpty, case .object(var fields) = parsed {
+          fields["title"] = .string(parsed["title"].text + " (imported)")
+          parsed = .object(fields)
+        }
+        definition = try saveApplicationDefinition(
+          logicalID: logical, content: parsed,
+          token: "template-" + origin.suffix(16) + "-" + entry["id"].text)
+      }
       moved += [(entry["id"].text, definition.id), (entry["logicalID"].text, logical)]
       saved = definition
     }
