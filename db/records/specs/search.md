@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-31T14:52:00+00:00
+updated: 2026-10-31T18:05:00+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -94,12 +94,13 @@ or changing historical citations.
 Q10. Audio/video are included or explicitly linked, previewed natively and indexed
 by metadata. On-device transcription is capability-gated and its timestamps index
 only after successful recognition; no fabricated transcript. A recording of up to two
-hours is divided into overlapping parts of 58 seconds, each transcribed on this Mac, and
-words heard twice in an overlap join once. A part hands over halfway through its overlap,
-because the recognizer can drop a word cut at the end of a part and stretch the one before
-it across the gap. Timestamps stay those of the original. Nothing
-is indexed until every part finishes, so Stop leaves the original as it was and a retry
-starts over. A silent part is skipped. Recognition uses the Mac's language. Encrypted/unsupported
+hours goes in one pass to Apple's long-form on-device transcriber, which needs no speech
+permission. The file recognizer it replaced took about a minute at a time and discarded the
+speech before a pause of several seconds while still reporting success. Timestamps stay those of
+the original. Nothing is indexed until the whole recording finishes, so Stop leaves the original
+as it was and a retry starts over. Recognition uses the Mac's language, and the first use of a
+language can download its speech model from Apple; audio never leaves the Mac. The viewer shows
+the transcript under the player, and a time moves the player there. Encrypted/unsupported
 files remain browsable and have actionable extraction status. Never recursively
 expand arbitrary archives during evidence intake. Explicit ZIP intake can select
 members through a bounded reviewed import operation.

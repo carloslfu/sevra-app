@@ -3,11 +3,65 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-31T17:18:00+00:00
+updated: 2026-10-31T18:26:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Checks after the merge, October 31
+
+The owner set signing and other Macs aside and asked for the remaining checks. They started from
+main at `fcc7c34`. This section replaces the transcription method and limits recorded under
+increments 9 and 10 below.
+
+**Longer audio failed, and Transcribe moved to a new engine.** A 27:37 synthetic recording, two
+voices and 4,958 words with a 70-second silence in the middle, went through Transcribe:
+
+| Engine | Time | Words matched | Longest run lost |
+|---|---|---|---|
+| File recognizer, 58-second parts | 65 s | 89.45% | 114 words, about 50 s of speech before the silence |
+| Long-form transcriber, whole file | 17 s | 95.93% | 1 word |
+
+The old engine reported success. A 47.5-second file with no part join confirmed the cause: an
+8-second pause lost all 23 seconds of speech before it. Any meeting with a long pause could lose a
+part's worth of words with no warning, and the join fix below could not have caught this.
+Transcribe now sends the whole recording to Apple's on-device `SpeechAnalyzer`:
+[[records/specs/search]]. It has no parts or joins and needs no speech permission, so
+`sevra transcribe` works on the CLI and a rebuild no longer asks again. Sentences now have
+punctuation and capitals.
+
+On the installed CLI m4a, mp4, mov, mp3 and wav each transcribed, a repeat replaced an older
+transcript, and `sevra verify` passed. Interrupting the long recording returned `cancelled` and
+saved no transcript, and a retry finished in 25 s. `scripts/check_transcription.py` runs the real
+pause failure in the local suite. It needs the speech model, so hosted CI does not run it.
+
+The first use of a language can download its model from Apple. English was already on this Mac, so
+that path has not run. Recognition uses the Mac's language, so a Spanish recording on an English
+Mac reads as wrong English. No human voice has been transcribed.
+
+**The transcript now shows.** The viewer lists it under the player, a sentence to a line with its
+time. In the window the 27:37 recording showed its lines, and choosing 0:29 moved the player to
+0:30. Copy was not pressed, because that would overwrite the owner's clipboard.
+
+**An imported template says so.** Beside a same-named definition it saves as `Monday count
+(imported)`, and importing again changes nothing. This rests on its core check.
+
+**Comparison citations held.** Five real comparison runs on this build passed with three citations
+each, 8 or 9 steps and 66 to 98 s. The single-citation run recorded below did not recur.
+
+**VoiceOver has not run.** Turning it on changes a system setting. The accessibility tree was read
+instead on Welcome, Home, Search, the audio viewer and a table, and every control had a name except
+three, now changed. Menu names fell back to `More` after a view updated, `You message actions` is
+now `Your message actions`, and the Add files split button had no name. The tree was not read again
+after the fix, because the Mac locked. The arrow beside Add files still has no name of its own.
+
+**Keyboard is partly checked.** Return sends from the composer and runs a search, and the Message
+Sevra command focuses the composer. Escape on a sheet and Command shortcuts need the app in front.
+That takes the owner's approval, which timed out before the Mac locked, so both stay unchecked.
+
+`bash scripts/check.sh` ran once on this code, with 806 PASS lines and 576 core checks. Its last step
+stopped on records still being edited during the run, and they validate with their indexes rebuilt.
 
 ## Increments 6 through 10, October 30
 

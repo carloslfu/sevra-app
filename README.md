@@ -56,6 +56,9 @@ Add a folder compares a folder with what you already added and shows the counts 
 not watch the folder. Ask to enable a saved automation by name and Sevra opens its review, where
 you decide. Long conversations summarize as they go, and a long request that stops keeps its saved
 work, so you can ask it to continue.
+File actions > Transcribe on this Mac turns a recording of up to two hours into a searchable
+transcript with times, in the Mac's language. Audio stays on the Mac, though the first use of a
+language can download its speech model from Apple.
 Focused requests work best: one request handles about nine documents, and a broad question can
 still miss a file.
 Check the original evidence before relying on an answer. Unknown tax remains unknown.

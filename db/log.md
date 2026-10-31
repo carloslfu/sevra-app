@@ -1435,3 +1435,6 @@ Records now state that main carries the handoff work, ahead of its merge through
 ## [2026-10-31 17:19] verification | records/operations/implementation.md
 Hosted run 41212336041 passed on 1559467; main merge 226bb27 has that exact tree; work continues directly on main.
 
+## [2026-10-31 18:35] verification | records/operations/implementation
+Long audio check found the file recognizer discarding speech before a pause; Transcribe moved to the on-device long-form transcriber. The 27:37 recording matched 95.93% in 17 s with no run of lost words, the transcript shows under the player, and five comparison runs cited three sources each. Escape, Command shortcuts and VoiceOver itself remain unchecked.
+
