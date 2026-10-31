@@ -131,6 +131,7 @@ private struct ConversationCommandContent: View {
   @ObservedObject var state: WorkspaceState
   var body: some View {
     Button("Message Sevra") { state.composerFocusRequest = UUID() }.keyboardShortcut("l")
+    Button("Stop", action: state.stop).keyboardShortcut(".").disabled(!state.busy)
     Button("Search This Conversation…") { state.showingHistorySearch = true }
       .keyboardShortcut("f", modifiers: [.command, .option])
     Button("Start a Thread") {
