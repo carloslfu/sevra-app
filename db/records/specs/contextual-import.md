@@ -2,7 +2,7 @@
 type: spec
 id: 01m61c4z13j3paexnc7xvyyqhs
 created: 2026-10-28T13:45:46.275195+00:00
-updated: 2026-10-30T00:57:36.701824+00:00
+updated: 2026-10-31T23:30:00+00:00
 summary: One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 title: Contextual import and Excel continuity
 status: reviewed
@@ -353,10 +353,12 @@ value outside the headings refuses. The 1,000-row, 10,000-row, 8 MB and 16 MB bo
 are unchanged. Text cells keep leading zeros. A number Excel shows differently, such
 as 14 under the format 0000, refuses in a key, a non-decimal column or a column holding
 leading zeros, because only the unpadded value is saved. Error cells and formulas with
-no saved value refuse and name the cell. Other formula cells use saved values, the
-preview counts them, and nothing recalculates. Fractions keep the 15 significant digits
-Excel shows, so a cell showing 1.15 is not read as 1.1499999999999999; this also applies
-to saved-value import. A cell without a reference follows the previous cell in its row.
+no saved value refuse and name the cell. An empty result is a saved value. Other formula
+cells use saved values, the preview counts them, and nothing recalculates. Fractions keep
+the 15 significant digits Excel shows, so a cell showing 1.15 is not read as
+1.1499999999999999, and a number saved with an exponent becomes plain digits when a decimal
+can hold it; both also apply to saved-value import. A cell without a reference follows the
+previous cell in its row. A chart, macro or dialog sheet is named in the notes, not read.
 Workflow intake stays CSV/TSV.
 
 Ambiguous input. Keys stay exact, so a key that differs from an existing or another
@@ -402,22 +404,26 @@ references to another file, powers, array formulas and data tables, a formula wi
 value, a circular reference, a sheet that was not imported, and any result that differs from
 Excel's. A formula reading one of
 these keeps its saved value too, so a chain is never part current and part stale. Comparing with
-the saved value also catches what the importer cannot see, such as a date stored as text or text
-that looks numeric.
+the saved value also catches what the importer cannot see. A saved result such as 00123 or 7.20 is
+text Excel kept, so it stays as saved. A formula reading a saved date stays as saved too, because
+a date reads as text here and as a number in Excel, so a comparison can match by accident.
 
 Calculation rules. Blank counts as zero in arithmetic. Aggregates skip text and blanks in cell
 references. Comparisons sort numbers before text and ignore case in text, and a blank equals
 zero and empty text alike. Text in arithmetic gives #VALUE!, division by zero #DIV/0! and an
 out-of-range result #NUM!. The first error carries forward, though COUNT ignores errors and IF reads only its chosen
-branch. Arithmetic is exact decimal, and a stored result keeps 15 significant digits. A saved
-number may carry an exponent, as spreadsheets write very large and very small values.
+branch. ROUND drops the fraction of its digits, as Excel does. A cell in a column the sheet never
+held reads as blank. Arithmetic is exact decimal, and a stored result keeps 15 significant digits.
+A saved number may carry an exponent, as spreadsheets write very large and very small values.
 
 Recalculation. Formula cells hold stored values, so filters, sorting, exports, queries and tools
 see the same numbers. Any change to a table's rows recalculates the whole file's formulas in that
 same transaction, across sheets. A person's edit and the cells it moves on that row form one row
 version, so Undo restores both, and other rows get their own versions with lineage to the formula
 record. Typing over a recalculating cell refuses. A saved-value cell stays editable and nothing
-recalculates from it. An error clears when its input is fixed, and a removed column gives #REF!.
+recalculates from it. An error clears when its input is fixed, and a removed column gives #REF!
+to what reads it, while a formula in the removed column writes nothing. At import a result within
+5e-14 of Excel's stands. After that a cell moves when any of the 15 digits Excel would show moves.
 An archived table stays current with its file, because recalculation is not a person's edit.
 An edit that would rewrite more than 2,000 rows saves nothing, and so does one whose result a
 typed column cannot hold, such as #DIV/0! in a Number column.
@@ -429,8 +435,9 @@ cells may then be behind. The intake detail, `table-formulas` and the rows tool 
 
 Bounds. A file recalculates up to 10,000 formulas, 20,000 rows and 200,000 read cells, and one
 formula reads up to 10,000 cells. Past a bound every formula in the file keeps its saved value
-and says so, so a file is never half recalculated. An array or data table too large to list
-does the same, because any formula could be reading a cell it fills. A reviewed update refuses a table whose file
+and says so, so a file is never half recalculated. An array or data table too large to list, or
+filled formulas past 8 MB of expanded text across the file, do the same, because any formula could
+be reading a cell they fill. A reviewed update refuses a table whose file
 still has recalculating formulas, because it could replace rows those formulas read. Only an
 import writes the formula record, and later changes cannot revise it.
 

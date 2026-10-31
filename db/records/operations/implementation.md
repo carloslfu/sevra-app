@@ -3,13 +3,80 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-31T18:59:00+00:00
+updated: 2026-10-31T23:30:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
 
-## Checks after the merge, October 31
+## Review fixes, October 31
+
+The owner asked for a full code review of everything since the merge base, then for the findings to
+be fixed. The review ranked 32 verified defects and listed about 35 smaller ones. All 32 are fixed on
+main, most by reproducing the failure first and rerunning the same reproduction afterward.
+
+**Transcribe.** Stop could hang forever, and an MP4 with Opus audio never finished even without
+Stop. Sixty random interrupts on four files now all exit within 0.11 s. Stop and the time limit also
+end the wait during a speech model download, which rests on a core check because no download ran.
+Opus, FLAC, AC-3 and multi-track recordings now go through a temporary mixed copy. On the installed
+CLI, 27 of 46 media files transcribed, 12 of noise or silence reported no speech, and 7 damaged or
+silent files reported no readable audio, with none of the old misleading errors. A recording whose second track holds the only speech now
+works. When two tracks speak at once the transcript interleaves their words, so that case is not
+solved. Choosing a use for a recording no longer replaces its transcript. Two hours of synthetic
+speech took 77.03 s, kept 22,887 of about 23,030 words and ended at 7,198.8 s, with the CLI at 53.8
+MiB and the speech service at about 127 MB.
+
+**Formulas and tables.** Recalculation no longer breaks under a Unique column, past a sheet's stored
+columns, or after a formula column is removed. A recalculated cell moves when any of its 15 digits
+moves, though at import Excel's own result stands within the old tolerance, so opening a file rewrites
+nothing. Underflow gives `#NUM!` instead of crashing. COUNT and ROUND follow Excel on the cases found.
+Text such as 00123 and formulas reading a date now keep their saved value, with a stated reason.
+Undoing an accepted table change works, proposals refuse formula cells at draft time, a merge
+accepts a column added after the rows, and update drafts left permanent history. The LibreOffice
+check still matches on import and after edits.
+
+**Excel files.** An empty formula result, an exponent, a blank zero-padded cell, a chart sheet and
+fills past the expansion bound no longer refuse a file. Fills stop at 8 MB of expanded text across
+the file and then keep their saved values.
+
+**Messages and tables on screen.** A paragraph directly above a table stays, a cell shows exactly
+its text, column reordering is off, and a message nested past 100 levels stays plain text instead of
+overflowing the stack. In the installed window, a saved 12,000-level message opened as plain text
+with no crash, and a table right under a paragraph showed the paragraph and the cells `2*3*4`,
+`**plain**`, `^` and `a|b`. The old build's crash was measured in a probe, not in the window, and
+dragging a column was not tried in the window.
+
+**Agent.** Copied passages land on whole words, a refused repeat no longer reads as a failure, a
+search kind no item has widens with a notice, and questions about drafts no longer order one. The
+exploration limit survives compaction and covers an answer handoff, evidence survives empty searches,
+and related excerpts stay inside the first read's byte bound. Progress lists reads apart from what
+must not be repeated, and a stopped request's work joins it only once the current request has read
+that request. The reply to a stopped request now really stays out of the prompt: the old lookup
+could never find it, so the earlier continuation runs all had it in view.
+
+On the installed build `scripts/check_model.py` passed comparison in 8 steps and 71.1 s, the hostile
+document in 35.0 s, the missing contract in 25.3 s, and cancel, persist and restart with recovery in
+65.8 s. The real eight-report job passed once: 11 steps, 8 checkpoints, a peak of 22,854 tokens
+against the 24,576 limit, and 294 s. Its three recovery cases all passed: stopped once, a failed
+summary, and stopped twice, each finishing in 11 steps after the follow-up. This is the first real
+run with the stopped reply out of the prompt.
+
+**Also fixed from the smaller list.** Lineage from an edited row to the formula record, stable formula
+reasons, a repeated sheet name, the actor on an imported template, Stop while hashing a folder,
+`open_automation` by logical ID, the rows tool's lock, `sevra verify` reading formula records, CSV
+preview of a megabyte of short rows, one clock for transcript and locator times, Stop staying on
+screen during an import, and three overstated record lines.
+
+**Not changed.** Decimal merge treats 0012 and 12 as the same amount, which is intended. A template
+import refused partway keeps earlier copies, and importing again finishes it. These remain open and
+are small: `table-update-suggest` on a multi-sheet file with no sheet named, the 30-second index
+budget being all or nothing, a stray quote in a CSV over 1 MB, a hidden draft read failure,
+`importProgress` being global, per-batch status work on the main thread, a draft of more than about
+30 copies passing the 64-part bound after placement, verbatim marks on fragments, one
+cost-qualification false positive, read coverage in saved reads, untitled saves merging in
+continuation state, export of live bindings below a workflow (the two reviewers disagreed), and eight
+efficiency and cleanup notes.
+
 
 The owner set signing and other Macs aside and asked for the remaining checks. They started from
 main at `fcc7c34`. This section replaces the transcription method and limits recorded under

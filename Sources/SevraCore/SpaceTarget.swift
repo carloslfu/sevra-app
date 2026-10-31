@@ -14,8 +14,8 @@ extension Workbook {
       "Which automation do you mean?")
     return try synchronized {
       let rows = try db.execute(
-        "SELECT d.* FROM app_definitions d JOIN app_definition_heads h ON h.definition_id=d.id WHERE d.kind='automation' AND (d.id=? OR d.title=? COLLATE NOCASE) ORDER BY d.id LIMIT 2",
-        [.string(target), .string(target)])
+        "SELECT d.* FROM app_definitions d JOIN app_definition_heads h ON h.definition_id=d.id WHERE d.kind='automation' AND (d.id=? OR h.logical_id=? OR d.title=? COLLATE NOCASE) ORDER BY d.id LIMIT 2",
+        [.string(target), .string(target), .string(target)])
       try require(
         !rows.isEmpty, "automation_not_found",
         "No saved automation has that exact name. Which one do you mean?")

@@ -12,16 +12,25 @@ public struct DelimitedPreview {
     let file = try FileHandle(forReadingFrom: url)
     defer { try? file.close() }
     let data = try file.read(upToCount: byteLimit + 1) ?? Data()
-    let truncated = data.count > byteLimit
+    var truncated = data.count > byteLimit
     var bytes = Data(data.prefix(byteLimit))
-    if truncated {
-      // Finish at a complete record, never at a quoted multiline newline.
-      var quoted = false
-      var complete = 0
-      for (index, byte) in bytes.enumerated() {
-        if byte == 34 { quoted.toggle() }
-        if (byte == 10 || byte == 13) && !quoted { complete = index + 1 }
+    // Finish at a complete record, never at a quoted multiline newline. A megabyte of short rows
+    // holds more records than the parser takes, so the scan also stops short of that bound.
+    var quoted = false
+    var complete = 0
+    var lines = 0
+    for (index, byte) in bytes.enumerated() {
+      if byte == 34 { quoted.toggle() }
+      if (byte == 10 || byte == 13) && !quoted {
+        complete = index + 1
+        lines += 1
+        if lines >= 90_000 {
+          truncated = true
+          break
+        }
       }
+    }
+    if truncated {
       bytes = bytes.prefix(complete)
       try require(
         !bytes.isEmpty, "preview_limit",

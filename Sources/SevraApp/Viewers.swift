@@ -637,11 +637,7 @@ struct TranscriptView: View {
   let revision: Int
   let seek: (Double) -> Void
   @State private var lines: [TranscriptLine] = []
-  private func clock(_ seconds: Double) -> String {
-    let whole = Int(seconds)
-    let minutes = String(format: "%d:%02d", whole / 60 % 60, whole % 60)
-    return whole < 3600 ? minutes : "\(whole / 3600):" + String(format: "%02d:%02d", whole / 60 % 60, whole % 60)
-  }
+  private func clock(_ seconds: Double) -> String { DisplayText.clock(seconds) ?? "" }
   private func load() async {
     let book = workbook
     let id = item

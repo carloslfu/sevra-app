@@ -42,7 +42,9 @@ extension Workbook {
 
   /// The same file saves once. IDs inside a definition point at their imported copies, and one
   /// that names something from its original workbook is refused by the ordinary save check.
-  @discardableResult public func importTemplate(_ file: URL) throws -> ApplicationDefinition {
+  @discardableResult public func importTemplate(_ file: URL, actor: ChangeActor? = nil) throws
+    -> ApplicationDefinition
+  {
     let data = try Data(contentsOf: file)
     try require(data.count <= 1_048_576, "template_file", "This template file is too large.")
     guard let template = try? Value.parse(String(decoding: data, as: UTF8.self)),
@@ -76,7 +78,7 @@ extension Workbook {
         }
         definition = try saveApplicationDefinition(
           logicalID: logical, content: parsed,
-          token: "template-" + origin.suffix(16) + "-" + entry["id"].text)
+          token: "template-" + origin.suffix(16) + "-" + entry["id"].text, actor: actor)
       }
       moved += [(entry["id"].text, definition.id), (entry["logicalID"].text, logical)]
       saved = definition

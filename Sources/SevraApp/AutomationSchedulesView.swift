@@ -130,7 +130,9 @@ struct AutomationSchedulesView: View {
     }
     Task {
       do {
-        let saved = try await Task.detached { try book.importTemplate(file) }.value
+        let saved = try await Task.detached {
+          try book.importTemplate(file, actor: .human("Sevra.native-template-import"))
+        }.value
         workspace.refresh()
         if saved.kind == "automation" { selected = saved }
       } catch { failure = error.localizedDescription }

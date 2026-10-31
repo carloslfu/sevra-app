@@ -78,7 +78,7 @@ extension Workbook {
     var unchanged = 0
     for (relative, url) in found.sorted(by: { $0.relative < $1.relative }) {
       try cancellation.check()
-      let hash = try Self.hashFile(url)
+      let hash = try Self.hashFile(url, cancellation: cancellation)
       let file = FolderPlan.File(relative: relative, hash: hash)
       if saved[relative]?.contains(hash) == true || hashes.contains(hash) {
         unchanged += 1

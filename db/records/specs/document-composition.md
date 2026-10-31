@@ -2,7 +2,7 @@
 type: spec
 id: 01m609st2pz8zhg7bcpec874g1
 created: 2026-10-28T03:45:29.174789+00:00
-updated: 2026-10-31T00:11:42+00:00
+updated: 2026-10-31T23:30:00+00:00
 summary: Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 title: Source-bound document composition
 status: reviewed
@@ -365,9 +365,10 @@ stopped.
 
 `DocumentPart` stays a strict union at the mutation boundary. The tool layer composes the two:
 a copy takes the place of its own exact words in `text`, so a line retyped beside its copy is
-saved once, where the prose put it, with its provenance. Other copies follow the prose on their
-own line. A text part the prose already says is dropped. Without prose, parts keep their exact
-bytes. A retyped line that differs at all stays new prose, so a loose paraphrase beside its copy
+saved once, where the prose put it, with its provenance. It matches whole words, so MAPLE-2 is not
+placed inside MAPLE-27. Other copies follow the prose on their own line. A text part the prose
+already says as a whole line or sentence is dropped, and a heading such as Notes is not said by a
+sentence opening with that word. Without prose, parts keep their exact bytes. A retyped line that differs at all stays new prose, so a loose paraphrase beside its copy
 appears as two lines, which happened in one real run.
 
 A copy ID sent in `inputs` means its one source version.

@@ -69,6 +69,7 @@ extension Workbook {
       ? db.scalar("SELECT body FROM messages WHERE id=?", [request]).string : nil
     var fields: [String: Value] = [
       "messageID": request, "status": previous["status"]!, "saved": .array(saved),
+      "readByThisRequest": .bool(body != nil),
     ]
     let carried =
       " Saved work stays saved: do not repeat it. Earlier reads do not carry over: read what the remaining work needs."

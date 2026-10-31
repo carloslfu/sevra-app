@@ -3,8 +3,8 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-10-31T18:59:00+00:00
-summary: 'Resumed minimum features: increments 1 through 9 accepted; the window checks are done and an external user is next.'
+updated: 2026-10-31T23:30:00+00:00
+summary: 'Resumed minimum features: increments 1 through 9 accepted; a code review was fixed on main and an external user is next.'
 title: Paused minimum-feature agent handoff
 ---
 # Paused feature implementation: agent handoff
@@ -17,7 +17,10 @@ while asking for fewer tests: [[sources/notes/2026/10/ship-with-enough-testing]]
 on for the native 32K profile. The installed-window pass is done, including Add a folder, template
 export and import, and Transcribe on real audio. A longer recording then showed the old recognizer
 discarding speech before a pause, so Transcribe moved to Apple's long-form on-device transcriber.
-VoiceOver itself is still unchecked, and an external user is next.
+A review of everything since the merge found 32 ranked defects, and all are fixed on main; what is
+left is listed in [[records/operations/implementation]]. VoiceOver itself and five menu shortcuts
+are still unchecked (Command-period, Command-N, Command-O, Command-I and Shift-Command-E were read
+from the menu, not pressed), and an external user is next.
 Exact evidence and limits are in
 [[records/operations/implementation]], the
 [reviewed-update receipt](../../../integration/evidence/2026-10-30-reviewed-updates.json.gz),
@@ -193,7 +196,7 @@ Installed app is `~/Applications/Sevra Native Preview.app`, build 4.
 Latest build artifacts are under `output/native/`, build 5.
 Use `output/native/bin/sevra` for the latest packaged CLI or the correctly installed
 `~/.local/bin/sevra`. **Bare `sevra` resolves an unrelated retired Cloud CLI.**
-Do not modify the real Documents/Supplier test workbook. The current app window
+Do not modify a real business workbook. The current app window
 shows the synthetic `.build/design-audit/Comparison.sevra` original CSV. No original
 business data, microphone permission or model download was changed in this checkpoint.
 

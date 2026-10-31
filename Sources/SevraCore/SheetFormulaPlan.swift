@@ -255,6 +255,16 @@ extension Workbook {
     }
   }
 
+  func verifySheetFormulaPlans() throws {
+    for row in try db.execute("SELECT key FROM meta WHERE key LIKE 'sheet-formulas:%' ORDER BY key") {
+      let dataset = String(row["key"]!.text.dropFirst("sheet-formulas:".count))
+      guard let (_, plan) = try sheetFormulaPlan(dataset) else { continue }
+      try require(
+        plan.sheets.contains { $0.dataset == dataset }, "sheet_formulas",
+        "A table's formula record does not name it.")
+    }
+  }
+
   /// Runs once every sheet has its table. A formula joins the plan only if the declared
   /// subset reads it and reproduces the value Excel saved. Everything else keeps that value.
   func recordSheetFormulas(sourceID: String, sheets: [ImportedSheet], tables: [Dataset]) throws {

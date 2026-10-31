@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-31T18:05:00+00:00
+updated: 2026-10-31T23:30:00+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -100,7 +100,10 @@ speech before a pause of several seconds while still reporting success. Timestam
 the original. Nothing is indexed until the whole recording finishes, so Stop leaves the original
 as it was and a retry starts over. Recognition uses the Mac's language, and the first use of a
 language can download its speech model from Apple; audio never leaves the Mac. The viewer shows
-the transcript under the player, and a time moves the player there. Encrypted/unsupported
+the transcript under the player, and a time moves the player there. A format the transcriber cannot
+read directly, such as Opus or FLAC, or a recording with more than one audio track, is mixed into a
+temporary copy first. Choosing a use for a recording keeps its transcript. Stop and the time limit
+always end the wait, including during a model download. Encrypted/unsupported
 files remain browsable and have actionable extraction status. Never recursively
 expand arbitrary archives during evidence intake. Explicit ZIP intake can select
 members through a bounded reviewed import operation.
@@ -140,7 +143,9 @@ The latter are candidates only; history_read must expose an eligible original
 before a message:ID citation can support a statement about earlier conversation.
 A message citation never becomes business lineage or proof of current acceptance.
 
-Business kind, meaning, status or scenario filters deliberately exclude messages.
+Business kind, meaning, status or scenario filters deliberately exclude messages. A kind
+no item in the workbook has is not a filter, because kinds are not a fixed list: the search
+covers every kind and its result says so.
 Business continuation pages also stay in that index. Every result says whether
 conversation was searched. Its separate cursor continues through history_search
 with the same query, conversation and active-request ceiling. Current-request and

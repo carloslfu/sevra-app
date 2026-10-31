@@ -211,7 +211,7 @@ package final class ContextMaintenance {
       var fields = (try? Value.parse(last.content))?.object
     else { return retained }
     // A stopped request's work counts once this request has read it, which is how one continues.
-    let continuing = state["stoppedRequest"]["text"].string != nil
+    let continuing = state["stoppedRequest"]["readByThisRequest"] == .bool(true)
     var done = (continuing ? state["stoppedRequest"]["saved"].array : []).map { saved in
       saved["title"].string.map { "saved " + $0 } ?? "completed " + saved["tool"].text
     }

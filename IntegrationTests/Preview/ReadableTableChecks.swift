@@ -88,6 +88,9 @@ import SwiftUI
   try expect(bounded.detail.contains("within 1 MB"))
   try Data(("Code,Notes\n" + String(repeating: "0014,valid\n", count: 2_000)).utf8).write(to: large)
   try expect(try DelimitedPreview.load(large).detail.contains("of 2000"))
+  // A megabyte of very short rows holds more records than the parser takes.
+  try Data(("n\n" + String(repeating: "1\n", count: 490_000)).utf8).write(to: large)
+  try expect(try DelimitedPreview.load(large).table.rows.count == DelimitedPreview.rowLimit)
   let cancelled = Cancellation()
   cancelled.cancel()
   do {

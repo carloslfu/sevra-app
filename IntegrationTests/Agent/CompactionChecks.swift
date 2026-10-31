@@ -510,7 +510,9 @@ func checkRunningCompaction() async throws {
       ContextMaintenance.withProgress(
         retained,
         state: .object([
-          "stoppedRequest": .object(["saved": .array(stoppedSaves), "text": .string("The job")])
+          "stoppedRequest": .object([
+            "saved": .array(stoppedSaves), "readByThisRequest": .bool(true),
+          ])
         ]))[1].content)["hostProgress"].text,
     "Already finished, do not repeat: saved Receiving review, completed restore_space. Continue with what remains."
   )
@@ -518,7 +520,11 @@ func checkRunningCompaction() async throws {
   try expectEqual(
     try ContextMaintenance.withProgress(
       retained,
-      state: .object(["stoppedRequest": .object(["saved": .array(stoppedSaves)])]))[1].content,
+      state: .object([
+        "stoppedRequest": .object([
+          "saved": .array(stoppedSaves), "readByThisRequest": .bool(false),
+        ])
+      ]))[1].content,
     #"{"chunks":[]}"#)
   try expectEqual(
     try Value.parse(

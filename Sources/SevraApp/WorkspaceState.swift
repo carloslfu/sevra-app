@@ -614,8 +614,11 @@ struct FolderReview {
     { [weak self] done, total in
       Task { @MainActor in
         guard let self, self.busy else { return }
-        self.status = "Saved \(done.formatted()) of \(total.formatted()) rows"
         self.importProgress = (done, total)
+        // Stop stays on screen until the import has stopped.
+        if self.status != "Stopping…" {
+          self.status = "Saved \(done.formatted()) of \(total.formatted()) rows"
+        }
       }
     }
   }

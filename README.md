@@ -59,7 +59,7 @@ work, so you can ask it to continue.
 File actions > Transcribe on this Mac turns a recording of up to two hours into a searchable
 transcript with times, in the Mac's language. Audio stays on the Mac, though the first use of a
 language can download its speech model from Apple.
-Focused requests work best: one request handles about nine documents, and a broad question can
+Focused requests work best: one request handled eight documents in testing, and a broad question can
 still miss a file.
 Check the original evidence before relying on an answer. Unknown tax remains unknown.
 

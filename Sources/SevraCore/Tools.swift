@@ -256,7 +256,9 @@ public struct WorkbookTools {
     case "rows":
       let table = try workbook.dataset(a["datasetID"].string ?? string("id"))
       let rows = try workbook.rows(table.id, offset: a["offset"].int ?? 0, limit: 100)
-      let formulas = try workbook.sheetFormulaPage(table.id, rows: rows)
+      let formulas = try workbook.synchronized {
+        try workbook.sheetFormulaPage(table.id, rows: rows)
+      }
       var page: [String: Value] = [
         "dataset": try encoded(table),
         "rows": .array(

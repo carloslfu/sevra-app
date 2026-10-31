@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-28T16:32:39.892534+00:00
+updated: 2026-10-31T23:30:00+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -607,7 +607,9 @@ source and nothing was relabeled:
 - A read repeated its first chunk, and host state repeated identifiers. The model now sees each
   once; saved receipts keep everything.
 - After a checkpoint a long job restarted its opening steps. The next result now says what is
-  already finished.
+  already finished. Reads are counted apart, because compaction removes them from what can be
+  cited, so an answer may have to read again. A stopped request's saved work joins that list only
+  once the current request has read that request.
 - A stopped request's reply read like the request itself, so that reply no longer appears beside
   a follow-up. Outcomes name a reply, not a request.
 - Once a follow-up reads a stopped request, its text stays in host state, because maintenance
