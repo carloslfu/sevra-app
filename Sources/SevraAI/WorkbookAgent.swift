@@ -187,6 +187,7 @@ public enum WorkbookAgent {
     var countReceipts: [String: Value] = [:]
     var discoveryBudget = DiscoveryBudget()
     var discoveryLimited = false
+    let explorationLimit = "\nHost exploration limit: three searches produced no new candidates. Further lexical search is paused for this answer so you can finish from the inspected evidence. Read known originals and perform needed calculations. Clearly identify unsupported requested terms. This is not complete coverage or proof that another document does not exist."
     var pendingVersionCitations = Set<String>()
     do {
       let conversationIdentity = try workbook.conversationIdentity(
@@ -307,13 +308,14 @@ public enum WorkbookAgent {
           inspected.contains(where: { $0 != requestSource.id }), !discoveryLimited
         {
           discoveryLimited = true
-          messages[0] = InferenceMessage(
-            role: "system",
-            content: messages[0].content
-              + "\nHost exploration limit: three searches produced no new candidates. Further lexical search is paused for this answer so you can finish from the inspected evidence. Read known originals and perform needed calculations. Clearly identify unsupported requested terms. This is not complete coverage or proof that another document does not exist.",
-            conversationActions: messages[0].conversationActions)
           metrics.append(
             .object(["host": .string("discovery_budget"), "unchangedSearches": .number(3)]))
+        }
+        // Maintenance rebuilds this message, so the limit is restated whenever it goes missing.
+        if discoveryLimited, !messages[0].content.contains(explorationLimit) {
+          messages[0] = InferenceMessage(
+            role: "system", content: messages[0].content + explorationLimit,
+            conversationActions: messages[0].conversationActions)
         }
         try ContextBudget.validateEnvelope(messages)
         messages = try ItemReferenceCandidates.annotate(messages, workbook: workbook)
@@ -321,7 +323,7 @@ public enum WorkbookAgent {
         let copyChoices = try DocumentCopyCandidates.ids(in: messages)
         let selectedScope = nextToolScope == .all ? phaseScope : nextToolScope
         let toolScope: InferenceToolScope =
-          discoveryLimited && selectedScope == .all
+          discoveryLimited && (selectedScope == .all || selectedScope == .answer)
           ? .boundedAnswer : selectedScope
         if maintenance != nil {
           // Handoff proof and malformed-response recovery can add context after
@@ -1066,7 +1068,10 @@ public enum WorkbookAgent {
           }
 
         }
-        if tool == "search", emptySearches >= 3, let incomplete = result["incomplete"].int {
+        // With evidence in hand the model can still answer from it, so only an empty run stops here.
+        if tool == "search", emptySearches >= 3, let incomplete = result["incomplete"].int,
+          !inspected.contains(where: { $0 != requestSource.id })
+        {
           try cancellation.check()
           let receipt = SearchCoverage.renderSearchGap(
             queries: emptyQueries, incomplete: incomplete,

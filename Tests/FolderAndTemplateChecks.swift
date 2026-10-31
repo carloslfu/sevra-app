@@ -113,7 +113,36 @@ func checkFoldersAndTemplates(at root: URL) {
       )["hits"].array.count
     }
     try expect(try hits("source") == 1 && hits("Record") == 1 && hits("note") == 1)
-    try expect(try hits("movement") == 0)
+    // A word no record in this workbook uses searches every kind and says so.
+    try expect(try hits("quote") == 1 && hits("pdf") == 1)
+    let widened = try WorkbookTools(book).execute(
+      "search", .object(["query": .string("Atlas"), "kind": .string("invoice")]))
+    try expect(widened["kindNotice"].text.contains("invoice"))
+    // A kind that exists still narrows the search.
+    _ = try book.addItem(category: "source", kind: "memo", title: "Memo", text: "Nothing related.")
+    try expect(try hits("memo") == 0)
+  }
+  check("document parts land on whole words and whole statements") {
+    func text(_ parts: [(DocumentPart, String?)], _ prose: String) -> [String] {
+      DocumentPart.placed(parts.map { (part: $0.0, words: $0.1) }, in: prose).map { $0.text ?? "[copy]" }
+    }
+    let copy = DocumentPart(
+      copy: .init(receiptID: "r", path: [], startScalar: 0, scalarCount: 1, sha256: ""))
+    // A copy never lands inside a longer word or number.
+    try expect(
+      text([(copy, "MAPLE-2\n")], "Purchase code MAPLE-27 is confirmed.")
+        == ["Purchase code MAPLE-27 is confirmed.", "\n\n", "[copy]"])
+    try expect(text([(copy, "Total: 12\n")], "Total: 120 units.")
+      == ["Total: 120 units.", "\n\n", "[copy]"])
+    // A copy still takes the place of its own words.
+    try expect(text([(copy, "MAPLE-27")], "Code MAPLE-27 is set.") == ["Code ", "[copy]", " is set."])
+    // A heading is not said by a sentence that opens with the same word.
+    try expect(
+      text([(.init(text: "Notes"), nil)], "Notes on delivery follow.")
+        == ["Notes on delivery follow.", "\n\n", "Notes"])
+    // A whole line or sentence repeated beside the prose stays once.
+    try expect(text([(.init(text: "Notes"), nil)], "Notes\nBody.") == ["Notes\nBody."])
+    try expect(text([(.init(text: "It ships."), nil)], "Ready. It ships. Done.") == ["Ready. It ships. Done."])
   }
   check("a job template carries an inert copy to another workbook, once") {
     let original = try Workbook.create(

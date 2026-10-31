@@ -215,7 +215,7 @@ public struct WorkbookTools {
           info["data"] =
             item.data.text.utf8.count < 12000
             ? item.data : .string("Structured value exceeds read budget; use table rows.")
-          let result: Value = .object([
+          var fields: [String: Value] = [
             "item": .object(info),
             "isCurrentVersion": .bool(item.id == current?.id),
             "currentVersion": current.map { current in
@@ -237,9 +237,13 @@ public struct WorkbookTools {
               "nextOffset": hasMore ? .number(Double(offset + chunks.count)) : .null,
             ]),
             "extraction": try workbook.extractionStatus(item.id),
-            "requestEvidence": offset == 0 && item.assetID != nil && item.id == current?.id
-              ? try relatedOriginals(excluding: item.id) : .null,
-          ])
+          ]
+          if offset == 0, item.assetID != nil, item.id == current?.id {
+            fields["requestEvidence"] = try relatedOriginals(
+              excluding: item.id,
+              spent: try Value.object(fields).json().utf8.count)
+          }
+          let result: Value = .object(fields)
           return try receiptID.map {
             try DocumentCopyChoices.adding(
               to: result, receiptID: $0, offset: a["copyOffset"].int ?? 0,

@@ -247,6 +247,21 @@ func checkCompaction() async throws {
     model: DigestFixture(), directory: root, cancellation: .init(), progress: { _ in })
   let context = try await controller.maintain(through: request).messages.map(\.content).joined()
   try expectEqual(context.contains("MAPLE-27") && context.contains("0.10 kg"), true)
+  // The reply to a stopped request stays out of a follow-up's prompt.
+  let halted = try scoped.addMessage(
+    "This request stopped.", role: "assistant", conversation: tangent, state: "cancelled")
+  let followUp = try scoped.addMessage("Continue it.", role: "user", conversation: tangent)
+  let followRun = try scoped.startAgentRun(
+    conversation: tangent, model: "fixture", requestMessageID: followUp)
+  let followed = try await ContextMaintenance(
+    workbook: scoped, conversation: tangent, runID: followRun, requestID: followUp,
+    policy: .init(role: "system", content: "Use real state."),
+    request: .init(role: "user", content: "Continue it."),
+    model: DigestFixture(), directory: root, cancellation: .init(), progress: { _ in }
+  ).maintain(through: followUp).messages.map(\.content).joined()
+  try expectEqual(followed.contains("This request stopped."), false)
+  try expectEqual(
+    try scoped.historyMessage(halted, conversation: tangent).body, "This request stopped.")
   try expectEqual(
     context.contains("LATER-PARENT-ONLY-SECRET") || context.contains("SIBLING-ONLY-SECRET"), false)
   try expectEqual(try scoped.contextCheckpoints(conversation: "main").isEmpty, true)
@@ -481,25 +496,35 @@ func checkRunningCompaction() async throws {
   try expectEqual(progress[1].toolCallId, "call")
   try expectEqual(
     try Value.parse(progress[1].content)["hostProgress"].text,
-    "Already finished, do not repeat: saved space Receiving review, 1 read. Continue with what remains."
+    "Already finished, do not repeat: saved space Receiving review. 1 read so far. Read again only what you must cite. Continue with what remains."
   )
   try expectEqual(
     try ContextMaintenance.withProgress(retained, state: .object([:]))[1].content, #"{"chunks":[]}"#)
-  // What a stopped request saved is finished too, even though this run did none of it.
+  // What a stopped request saved is finished too, once this request has read that request.
+  let stoppedSaves: [Value] = [
+    .object(["tool": .string("save_space"), "title": .string("Receiving review")]),
+    .object(["tool": .string("restore_space"), "title": .null]),
+  ]
   try expectEqual(
     try Value.parse(
       ContextMaintenance.withProgress(
         retained,
         state: .object([
-          "stoppedRequest": .object([
-            "saved": .array([
-              .object(["tool": .string("save_space"), "title": .string("Receiving review")]),
-              .object(["tool": .string("restore_space"), "title": .null]),
-            ])
-          ])
+          "stoppedRequest": .object(["saved": .array(stoppedSaves), "text": .string("The job")])
         ]))[1].content)["hostProgress"].text,
     "Already finished, do not repeat: saved Receiving review, completed restore_space. Continue with what remains."
   )
+  // An unrelated request is not told what not to repeat, and reads alone forbid nothing.
+  try expectEqual(
+    try ContextMaintenance.withProgress(
+      retained,
+      state: .object(["stoppedRequest": .object(["saved": .array(stoppedSaves)])]))[1].content,
+    #"{"chunks":[]}"#)
+  try expectEqual(
+    try Value.parse(
+      ContextMaintenance.withProgress(retained, state: .object(["calls": state["calls"]]))[1].content
+    )["hostProgress"].text,
+    "1 read so far. Read again only what you must cite. Continue with what remains.")
   // Only the host's own comparison marks a note as the person's exact words.
   func marked(_ text: String) -> Bool {
     ContextMaintenance.withVerbatim(

@@ -5,15 +5,20 @@ import SevraCore
 /// of the generated content. Keep confirmation text within that boundary.
 package struct ActionConfirmations {
   private var entries: [Value] = []
+  package init() {}
   package var evidence: Value { .array(entries) }
   private func recoveredFailure(_ entry: Value, at index: Int) -> Bool {
     guard entry["kind"].text == "failure", let title = entry["attemptedTitle"].string,
       !title.isEmpty
     else { return false }
-    return entries.dropFirst(index + 1).contains {
+    // Refusing a repeat means the first save stands, so an earlier success settles it too.
+    let later = entries.dropFirst(index + 1)
+    return (entry["error"].text.contains(Self.repeatRefused) ? entries[...] : later).contains {
       $0["tool"] == entry["tool"] && $0["kind"].text != "failure" && $0["title"].text == title
     }
   }
+  /// What the host says to the model after a repeat, never to the person.
+  private static let repeatRefused = " Do not save it again."
   package var hasUnresolvedFailure: Bool {
     entries.enumerated().contains {
       $0.element["kind"].text == "failure" && !recoveredFailure($0.element, at: $0.offset)
@@ -105,7 +110,9 @@ package struct ActionConfirmations {
       case "definition":
         return "Saved reusable behavior “" + title
           + "”. Business acceptance is separate."
-      case "failure": return "Couldn’t finish " + title + ". " + entry["error"].text
+      case "failure":
+        let reason = entry["error"].text.components(separatedBy: Self.repeatRefused)[0]
+        return "Couldn’t finish " + title + ". " + reason
       case "draft": return "Saved draft [" + title + "](sevra://item/" + id + ")."
       case "space": return "Saved space “" + title + "”."
       case "space_edit": return "Updated space “" + title + "”."

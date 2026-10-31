@@ -49,7 +49,7 @@ public struct DocumentPart: Codable, Equatable, Sendable {
     var anchors: [(range: Range<String.Index>, part: DocumentPart, words: String)] = []
     var following: [DocumentPart] = []
     for (part, words) in parts {
-      if let text = part.text, !trimmed(text).isEmpty, prose.contains(trimmed(text)) { continue }
+      if let text = part.text, !trimmed(text).isEmpty, says(trimmed(text), in: prose) { continue }
       if let words,
         let range = free(words, in: prose, avoiding: anchors.map(\.range))
           ?? free(trimmed(words), in: prose, avoiding: anchors.map(\.range))
@@ -94,10 +94,39 @@ public struct DocumentPart: Codable, Equatable, Sendable {
     guard !words.isEmpty else { return nil }
     var start = prose.startIndex
     while let found = prose.range(of: words, options: .literal, range: start..<prose.endIndex) {
-      if !taken.contains(where: { $0.overlaps(found) }) { return found }
+      if !taken.contains(where: { $0.overlaps(found) }), wholeWords(found, in: prose) { return found }
       start = found.upperBound
     }
     return nil
+  }
+
+  /// MAPLE-2 is not found inside MAPLE-27, and 12 is not found inside 120.
+  private static func wholeWords(_ range: Range<String.Index>, in prose: String) -> Bool {
+    func word(_ character: Character) -> Bool { character.isLetter || character.isNumber }
+    let splitsStart =
+      range.lowerBound > prose.startIndex && word(prose[range.lowerBound])
+      && word(prose[prose.index(before: range.lowerBound)])
+    let splitsEnd =
+      range.upperBound < prose.endIndex && word(prose[range.upperBound])
+      && word(prose[prose.index(before: range.upperBound)])
+    return !splitsStart && !splitsEnd
+  }
+
+  /// Prose repeats a text part only as a whole line or sentence. A heading such as Notes is not
+  /// said by a sentence that starts with the same word.
+  private static func says(_ words: String, in prose: String) -> Bool {
+    var start = prose.startIndex
+    while let found = prose.range(of: words, options: .literal, range: start..<prose.endIndex) {
+      let opens =
+        found.lowerBound == prose.startIndex
+        || prose[prose.index(before: found.lowerBound)].isWhitespace
+      let closes =
+        found.upperBound == prose.endIndex || prose[found.upperBound].isNewline
+        || words.last.map { ".!?:".contains($0) } == true
+      if opens && closes { return true }
+      start = found.upperBound
+    }
+    return false
   }
 }
 

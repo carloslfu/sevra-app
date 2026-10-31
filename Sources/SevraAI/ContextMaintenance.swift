@@ -210,7 +210,9 @@ package final class ContextMaintenance {
     guard let last = retained.last, last.role == "tool", last.content.hasPrefix("{"),
       var fields = (try? Value.parse(last.content))?.object
     else { return retained }
-    var done = state["stoppedRequest"]["saved"].array.map { saved in
+    // A stopped request's work counts once this request has read it, which is how one continues.
+    let continuing = state["stoppedRequest"]["text"].string != nil
+    var done = (continuing ? state["stoppedRequest"]["saved"].array : []).map { saved in
       saved["title"].string.map { "saved " + $0 } ?? "completed " + saved["tool"].text
     }
     done += state["savedSpaces"].array.map { "saved space " + $0["savedTitle"].text }
@@ -223,11 +225,13 @@ package final class ContextMaintenance {
     let reads = state["calls"].array.filter {
       $0["tool"].text == "read" && $0["state"].text == "completed"
     }
-    if !reads.isEmpty { done.append("\(reads.count) \(reads.count == 1 ? "read" : "reads")") }
-    guard !done.isEmpty else { return retained }
-    fields["hostProgress"] = .string(
-      "Already finished, do not repeat: " + done.joined(separator: ", ")
-        + ". Continue with what remains.")
+    guard !done.isEmpty || !reads.isEmpty else { return retained }
+    // Compaction removes what was read from what can be cited, so a read may have to repeat.
+    let finished = done.isEmpty ? "" : "Already finished, do not repeat: " + done.joined(separator: ", ") + ". "
+    let read =
+      reads.isEmpty
+      ? "" : "\(reads.count) \(reads.count == 1 ? "read" : "reads") so far. Read again only what you must cite. "
+    fields["hostProgress"] = .string(finished + read + "Continue with what remains.")
     return retained.dropLast() + [
       InferenceMessage(
         role: last.role, content: try Value.object(fields).json(), toolCalls: last.toolCalls,
@@ -314,10 +318,9 @@ package final class ContextMaintenance {
       let page = try workbook.historySlice(
         conversation: conversation, after: checkpoint["last_message"].string,
         through: through, limit: 128, cancellation: cancellation)
-      let history = page.messages.filter { $0.id != requestID }
       // Once the retained group is covered, it remains verbatim as the final tool
       // group. Earlier groups have durable receipt locators instead of broken pairs.
-      let rebuilt = try messages(checkpoint: checkpoint, history: history, retained: retained)
+      let rebuilt = try messages(checkpoint: checkpoint, history: page.messages, retained: retained)
       let working = originalMessages ?? rebuilt
       let full: ContextMeasurement
       if page.hasMore || (try? ContextBudget.validateEnvelope(working)) == nil {

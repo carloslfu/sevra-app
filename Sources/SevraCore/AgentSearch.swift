@@ -4,21 +4,28 @@ extension WorkbookTools {
   /// One discovery entry point, with distinct evidence types and pagination.
   /// A filtered business query must not silently broaden into conversation.
   func searchEvidence(_ query: String, arguments: Value) throws -> Value {
-    // Source and Record are categories. Taken as a kind, either one would match nothing and
-    // read as if the workbook held no evidence.
-    let kind =
-      ["source", "record"].contains(arguments["kind"].text.lowercased())
-      ? nil : arguments["kind"].string
     return try workbook.synchronized {
       try workbook.db.readTransaction {
+        // Kinds are not a fixed list, and Source and Record are categories. A word that names no
+        // kind in this workbook would match nothing and read as if it held no evidence.
+        let requested = arguments["kind"].string
+        let kind = try requested.flatMap {
+          try workbook.db.scalar(
+            "SELECT kind FROM items WHERE lower(kind)=lower(?) LIMIT 1", [.string($0)]
+          ).string
+        }
         let business = try workbook.search(
           query, kind: kind, meaning: arguments["meaning"].string,
           limit: 12, offset: arguments["offset"].int ?? 0,
           cursor: arguments["cursor"].string, status: arguments["status"].string,
           scenario: arguments["scenario"].string, cancellation: cancellation, businessOnly: true)
         var result = try encoded(business).object
+        if let requested, kind == nil {
+          result["kindNotice"] = .string(
+            "Nothing here has the kind \(requested), so this searched every kind.")
+        }
         let filtered =
-          kind != nil
+          requested != nil
           || ["meaning", "status", "scenario"].contains { arguments[$0].string != nil }
         let paginated = arguments["cursor"].string != nil || (arguments["offset"].int ?? 0) > 0
         let includeConversation = !filtered && !paginated

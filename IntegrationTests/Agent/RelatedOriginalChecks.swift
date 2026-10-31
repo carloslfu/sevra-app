@@ -105,6 +105,41 @@ private actor StalledOriginalInference: WorkbookInference {
   }
 }
 
+/// Evidence read before three empty searches still answers the request.
+private actor EmptySearchesAfterEvidence: WorkbookInference {
+  let identity = "scripted empty searches after evidence"
+  let lastMetrics: Value = .null
+  let atlas: String
+  var step = 0
+  init(atlas: String) { self.atlas = atlas }
+  func beginRun() {}
+  func endRun() {}
+  func respond(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
+  ) throws -> NativeReply {
+    step += 1
+    let tool: String
+    let args: Value
+    switch step {
+    case 1:
+      tool = "read"
+      args = .object(["id": .string(atlas)])
+    case 2...4:
+      tool = "search"
+      args = .object(["query": .string("zzqx\(step) nothing")])
+    default:
+      tool = "finish"
+      args = .object([
+        "answer": .string("Atlas quotes the bolts."), "basis": .string("evidence"),
+        "citations": .array([.string(atlas)]),
+      ])
+    }
+    return .init(text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try args.json())])
+  }
+}
+
 /// Replays the actual missing-terms answer that labeled partial sums as totals
 /// and the cheapest quote, then supplies the qualified correction.
 private actor MissingCostInference: WorkbookInference {
@@ -234,6 +269,11 @@ func checkRelatedOriginals() async throws {
   try expectEqual(bounded.state, "complete")
   try expectEqual(bounded.steps, 7)
   try expectEqual(try book.items().filter { $0.kind != "request" }, before)
+  let empties = try await WorkbookAgent.run(
+    "What does Atlas quote for brass bolts? Do not change or save anything.", workbook: book,
+    model: EmptySearchesAfterEvidence(atlas: atlas.id))
+  try expectEqual(empties.state, "complete")
+  try expectEqual(empties.citations, [atlas.id])
   var discovery = DiscoveryBudget()
   func hit(_ id: String) -> Value { .object(["hits": .array([.object(["itemID": .string(id)])])]) }
   discovery.observe(tool: "search", result: hit("a"), inspected: [])
@@ -256,6 +296,25 @@ func checkRelatedOriginals() async throws {
   try expectEqual(context["originals"].array.map { $0["item"]["id"].text }, [brio.id])
   try expectEqual(context["hasMoreMatches"], .bool(false))
   try expectEqual(context["originals"].array[0]["partial"], .bool(true))
+  // A long first read keeps its text in view, and related excerpts take only the room left.
+  let long = try Workbook.create(at: root.appendingPathComponent("Long.sevra"), title: "Long")
+  var longIDs: [String] = []
+  for name in ["Atlas", "Brio", "Cedar"] {
+    let file = root.appendingPathComponent(name + ".txt")
+    let line = "\(name) brass bolts quote with delivery and tax terms for the harbor office.\n"
+    try String(repeating: line, count: 400).write(to: file, atomically: true, encoding: .utf8)
+    longIDs.append(try long.importFile(file).id)
+  }
+  let longRequest = try long.addItem(
+    category: "source", kind: "request", title: "Live request",
+    text: "Compare Atlas, Brio and Cedar brass bolts", data: .object(["conversationID": .string("main")]))
+  let longRun = try long.startAgentRequest(
+    "Compare Atlas, Brio and Cedar", conversation: "main", model: "scripted"
+  ).runID
+  let longRead = try WorkbookTools(long, runID: longRun, requestSourceID: longRequest.id).execute(
+    "read", .object(["id": .string(longIDs[0])]), receiptID: UUID().uuidString)
+  try expectEqual(try longRead.json().utf8.count <= ToolResultProjection.byteLimit, true)
+  try expectEqual(longRead["requestEvidence"]["notice"].text.isEmpty, false)
   for path in [
     [], ["requestEvidence"], ["requestEvidence", "originals"],
     ["requestEvidence", "originals", "0"],

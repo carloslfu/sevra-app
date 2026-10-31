@@ -3,8 +3,9 @@ import Foundation
 extension WorkbookTools {
   /// Supplement the first original read with a small amount of evidence for
   /// the whole live request, rather than only the model's first search terms.
-  /// This is indexed discovery and exact excerpts, never exhaustive coverage.
-  func relatedOriginals(excluding id: String) throws -> Value {
+  /// This is indexed discovery and exact excerpts, never exhaustive coverage. A read past its byte
+  /// bound shows the model none of its text, so what the read has `spent` limits these excerpts.
+  func relatedOriginals(excluding id: String, spent: Int) throws -> Value {
     guard let requestSourceID else { return .null }
     let request = try workbook.item(requestSourceID)
     guard request.kind == "request", request.data["conversationID"].text == conversation else {
@@ -51,6 +52,16 @@ extension WorkbookTools {
           SELECT chosen.item_id,c.body,c.locator FROM chosen
           JOIN chunks c ON c.id=chosen.id ORDER BY chosen.score,chosen.item_id
           """, [.string(terms), .string(id)])
+        // Room for the read's copy choices, the notice and each excerpt's labels comes off first.
+        let room = (ToolResultProjection.byteLimit - spent - 3_600) / 2 - 800
+        guard room >= 240 || matches.isEmpty else {
+          return .object([
+            "originals": .array([]), "hasMoreMatches": .bool(true),
+            "notice": .string(
+              "Other originals match words in the current request, and this read has no room to show them. Search for each remaining subject."
+            ),
+          ])
+        }
         let excerpts = try matches.prefix(2).map { match -> Value in
           try cancellation.check()
           let item = try readableItem(match["item_id"]!.text)
@@ -60,7 +71,7 @@ extension WorkbookTools {
               "meaning": .string(item.meaning), "status": .string(item.status),
             ]),
             "chunks": .array([
-              .object(["body": match["body"]!, "locator": match["locator"]!])
+              .object(["body": .string(Self.opening(of: match["body"]!.text, bytes: room)), "locator": match["locator"]!])
             ]),
             "extraction": try workbook.extractionStatus(item.id),
             "partial": .bool(true),
@@ -84,5 +95,14 @@ extension WorkbookTools {
         ),
       ])
     }
+  }
+  /// As much of a passage as fits, ending at a whole character.
+  private static func opening(of text: String, bytes: Int) -> String {
+    guard text.utf8.count > bytes else { return text }
+    var end = text.utf8.index(text.startIndex, offsetBy: bytes)
+    while !text.unicodeScalars.indices.contains(end), end > text.startIndex {
+      end = text.utf8.index(before: end)
+    }
+    return String(text[..<end])
   }
 }

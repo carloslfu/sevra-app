@@ -63,7 +63,33 @@ private actor ConfirmationModel: WorkbookInference {
   }
 }
 
+private func checkRefusedRepeats() throws {
+  let memo: Value = .object(["title": .string("Memo")])
+  let refusal = "A draft titled Memo was already saved in this request. Do not save it again. Finish, and say plainly what it still needs."
+  var repeated = ActionConfirmations()
+  repeated.record(
+    tool: "draft", arguments: memo,
+    result: .object(["id": .string("d"), "status": .string("draft"), "title": .string("Memo")]),
+    receiptID: "first")
+  repeated.recordFailure(
+    tool: "draft", arguments: memo, result: .object(["error": .string(refusal)]), receiptID: "second")
+  try expectEqual(repeated.hasUnresolvedFailure, false)
+  try expectEqual(repeated.rendered, "Saved draft [Memo](sevra://item/d).")
+  // With no earlier save in this request the refusal stands, in words meant for a person.
+  var elsewhere = ActionConfirmations()
+  elsewhere.recordFailure(
+    tool: "save_space", arguments: .object(["title": .string("Overview")]),
+    result: .object([
+      "error": .string(
+        "A space titled Overview already exists. Do not save it again. Use edit_space to change it.")
+    ]), receiptID: "only")
+  try expectEqual(elsewhere.hasUnresolvedFailure, true)
+  try expectEqual(
+    elsewhere.rendered, "Couldn’t finish saving the space. A space titled Overview already exists.")
+}
+
 func checkActionConfirmations() async throws {
+  try checkRefusedRepeats()
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "confirmation-" + identifier())
   defer { try? FileManager.default.removeItem(at: root) }

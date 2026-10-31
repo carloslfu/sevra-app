@@ -175,6 +175,11 @@ private actor SpaceActionModel: WorkbookInference {
   try expectEqual(DraftRequest.asks("Please write me a short draft of it."), true)
   try expectEqual(DraftRequest.asks("Redacta un borrador breve en español."), true)
   try expectEqual(DraftRequest.asks("What does the draft say?"), false)
+  try expectEqual(DraftRequest.asks("Can you write a short draft of it?"), true)
+  try expectEqual(DraftRequest.asks("Should I make a draft order for Brio or wait for tax terms?"), false)
+  try expectEqual(DraftRequest.asks("Did you make a draft yet?"), false)
+  try expectEqual(DraftRequest.asks("How do I create a draft?"), false)
+  try expectEqual(DraftRequest.asks("¿Cómo hago un borrador?"), false)
   try expectEqual(DraftRequest.asks("Show my pending drafts."), false)
   let chatAnswer: Value = .object([
     "answer": .string("Here it is in chat."), "basis": .string("general"),
