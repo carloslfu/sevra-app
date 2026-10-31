@@ -2,7 +2,7 @@
 type: spec
 id: 01m609st2pz8zhg7bcpec874g1
 created: 2026-10-28T03:45:29.174789+00:00
-updated: 2026-10-28T13:36:23.760759+00:00
+updated: 2026-10-31T00:11:42+00:00
 summary: Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 title: Source-bound document composition
 status: reviewed
@@ -355,3 +355,34 @@ opening forwards the exact copied locator. Programmatic checks cover this
 exception, stale refusal, exact retries and subsequent prose edits; visible
 interaction remains pending. See [[records/specs/references-and-relationships]]
 and [[records/operations/implementation]].
+
+## One draft with new prose and copies, October 30
+
+`draft` now always takes `text`, which may be empty, and may also take `parts`. A schema field
+prompts for new words better than a description does: with `text` removed the model sent only
+copies and lost the purchase code and amounts in three of three runs, and with it required that
+stopped.
+
+`DocumentPart` stays a strict union at the mutation boundary. The tool layer composes the two:
+a copy takes the place of its own exact words in `text`, so a line retyped beside its copy is
+saved once, where the prose put it, with its provenance. Other copies follow the prose on their
+own line. A text part the prose already says is dropped. Without prose, parts keep their exact
+bytes. A retyped line that differs at all stays new prose, so a loose paraphrase beside its copy
+appears as two lines, which happened in one real run.
+
+A copy ID sent in `inputs` means its one source version.
+
+A plain request to draft something, in English or Spanish, gets one correction if the model
+tries to finish without saving a draft, because the policy sentence alone failed twice. It is
+one correction, so a false alarm costs one step.
+
+One request saves one draft per title, as with spaces, and a later request may reuse the title.
+A second draft under that title is refused with `draft_duplicate`, and the same arguments again
+replay the saved draft. Correcting a saved draft is a review edit. A real run needed this: it
+saved every line of one report, including the fingerprints it was told to leave out, and then
+saved a corrected draft beside it.
+
+This tool's wording is tested behavior. That run followed a shortening of the wording to fit the
+tool prompt check. One failure cannot prove the cause, but the shortened wording had no passing
+run and the earlier wording had three, so the earlier wording is back and the tokens came from
+rarely used tools.

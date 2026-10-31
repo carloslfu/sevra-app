@@ -13,6 +13,20 @@ final class GridTable: NSTableView {
     selectionAction?()
     if event.clickCount == 2 { beginCellEditing() }
   }
+  /// A click on a read-only cell's text in a selected row goes to the cell, not `mouseDown`.
+  override func validateProposedFirstResponder(_ responder: NSResponder, for event: NSEvent?)
+    -> Bool
+  {
+    if let event, event.type == .leftMouseDown {
+      let point = convert(event.locationInWindow, from: nil)
+      let c = column(at: point)
+      if c >= 0, c != activeColumn, isRowSelected(row(at: point)) {
+        activeColumn = c
+        selectionAction?()
+      }
+    }
+    return super.validateProposedFirstResponder(responder, for: event)
+  }
   func beginCellEditing() {
     guard selectedRow >= 0,
       let field = view(atColumn: activeColumn, row: selectedRow, makeIfNecessary: true)
@@ -172,13 +186,16 @@ public struct NativeTable: NSViewRepresentable {
         parent.page.rows.indices.contains(row), parent.page.values.indices.contains(row)
       else { return nil }
       let value = parent.page.values[row][c.id]?.text ?? ""
+      let formula = parent.page.formulas[parent.page.rows[row].logicalID]?[c.id]
+      let recalculates = formula != nil && formula?.reason == nil
       let cell = BoundTableCell(
         row: parent.page.rows[row], column: c.id,
         revision: parent.page.revision, value: value)
       cell.isBordered = false
       cell.backgroundColor = .clear
       cell.font = .systemFont(ofSize: 13)
-      cell.isEditable = parent.editable && c.formula == nil && !parent.page.dataset.archived
+      cell.isEditable =
+        parent.editable && c.formula == nil && !parent.page.dataset.archived && !recalculates
       cell.isSelectable = true
       cell.delegate = self
       cell.identifier = .init(c.id)
@@ -191,6 +208,17 @@ public struct NativeTable: NSViewRepresentable {
         cell.setAccessibilityRole(.staticText)
         cell.setAccessibilityValue(cell.stringValue)
         cell.setAccessibilityHelp("Calculated from " + (c.formula ?? ""))
+      } else if recalculates, let formula {
+        cell.setAccessibilityRole(.staticText)
+        cell.setAccessibilityValue(cell.stringValue)
+        cell.setAccessibilityHelp("Calculated from =" + formula.formula)
+        cell.toolTip = "=" + formula.formula
+      } else if let reason = formula?.reason {
+        // A saved value reads quieter than a current one, wherever it appears.
+        cell.textColor = .secondaryLabelColor
+        cell.setAccessibilityRole(.textField)
+        cell.setAccessibilityHelp("Saved by Excel, not recalculated. " + reason)
+        cell.toolTip = "Saved by Excel, not recalculated. " + reason
       } else {
         cell.setAccessibilityRole(.textField)
         cell.setAccessibilityHelp(

@@ -38,6 +38,7 @@ struct WorkbookView: View {
         Menu {
           Button("Include files…") { state.importPanel() }
           Button("Link external files…") { state.importPanel(linked: true) }
+          Button("Add a folder…", action: state.folderPanel)
           Button("Paste table data…", action: state.pasteTableData)
         } label: {
           Label("Add files…", systemImage: "plus")
@@ -146,6 +147,23 @@ struct WorkbookView: View {
         ConversationHistorySheet(state: state, search: state.historySearch)
       }
       .sheet(item: $state.intakePrompt) { prompt in IntakeView(state: state, prompt: prompt) }
+      .alert(
+        state.folderReview.map {
+          $0.plan.files.isEmpty
+            ? $0.plan.folder + " has nothing new"
+            : "Add \($0.plan.files.count) files from \($0.plan.folder)?"
+        } ?? "",
+        isPresented: Binding(
+          get: { state.folderReview != nil }, set: { if !$0 { state.folderReview = nil } }),
+        presenting: state.folderReview
+      ) { review in
+        if !review.plan.files.isEmpty {
+          Button("Add \(review.plan.files.count) files") { state.addFolder(review) }
+        }
+        Button(review.plan.files.isEmpty ? "OK" : "Cancel", role: .cancel) {}
+      } message: { review in
+        Text(review.plan.summary + ". Nothing is deleted, and Sevra does not watch this folder.")
+      }
       .sheet(item: $editingSpace) { space in SpaceLayoutEditor(space: space, state: state) }
       .sheet(item: $state.summaryDraft) { draft in
         ConversationSummarySheet(draft: draft) { summary in

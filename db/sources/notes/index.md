@@ -2,11 +2,15 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-10-30T00:55:52.795199Z
+updated: 2026-10-30T22:23:41.197170Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/10/ship-with-enough-testing]] — Owner keeps the full queue and asks for the smallest reliable version of each item, with fewer tests.
+- [[sources/notes/2026/10/minimum-features-resume]] — Owner resumes the paused minimum-feature work: finish increments 1 and 2, then advance one tested feature at a time.
+- [[sources/notes/2026/10/minimum-features-pause]] — Owner pauses the sequential minimum-feature work and requests a resumable agent handoff.
+- [[sources/notes/2026/10/minimum-feature-delivery]] — Owner authorizes sequential minimum usable implementations and interaction polish for the audited design gaps.
 - [[sources/notes/2026/10/design-feature-audit]] — Owner requests a deep design-to-code feature audit with research and tests.
 - [[sources/notes/2026/10/native-surface-polish]] — Further owner-directed native UI audit and polish across controls, spacing, alignment and states.
 - [[sources/notes/2026/10/native-alignment-state-review]] — Owner requests centered welcome, aligned pane controls and further alignment, hover, focus and state review.

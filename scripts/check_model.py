@@ -150,7 +150,7 @@ with tempfile.TemporaryDirectory(prefix='sevra-real-model-') as temporary:
         interrupted=False
         try:
             for line in process.stderr:
-                if 'Thinking locally' in line:
+                if 'Processing context' in line or 'Thinking locally' in line:
                     process.send_signal(signal.SIGINT);interrupted=True;break
             output,error=process.communicate(timeout=60)
             assert interrupted and process.returncode==1,(output,error)

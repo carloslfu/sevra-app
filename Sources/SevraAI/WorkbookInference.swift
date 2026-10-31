@@ -5,7 +5,8 @@ import SevraCore
 package enum InferenceToolScope: String, Sendable {
   // Tool scopes retain the public tool names as their raw values.
   // swift-format-ignore: AlwaysUseLowerCamelCase
-  case all, finish, inspection, movementDirection, actionDirection, workflowAnswer, answer, draft,
+  case all, finish, inspection, movementDirection, actionDirection, workflowAnswer, answer,
+    boundedAnswer, draft,
     save_space,
     edit_space,
     restore_space, propose_movement,
@@ -23,6 +24,8 @@ package enum InferenceToolScope: String, Sendable {
     case .finish: return tool == "finish"
     case .inspection: return WorkbookTools.readOnlyTools.contains(tool)
     case .answer: return tool == "finish" || WorkbookTools.readOnlyTools.contains(tool)
+    case .boundedAnswer:
+      return Self.answer.allows(tool) && !["search", "history_search"].contains(tool)
     case .propose_movement:
       // Saved inventory actions still pass the complete movement review. A
       // future primitive without movements refuses there before submission.

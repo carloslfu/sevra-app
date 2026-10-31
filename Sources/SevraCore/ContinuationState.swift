@@ -1,6 +1,103 @@
 import Foundation
 
 extension Workbook {
+  private func runBefore(_ runID: String, conversation: String) throws -> [String: Value]? {
+    try db.execute(
+      "SELECT a.id,a.status,r.message_id FROM agent_runs a JOIN run_requests r ON r.run_id=a.id WHERE a.conversation_id=? AND a.rowid<(SELECT rowid FROM agent_runs WHERE id=?) ORDER BY a.rowid DESC LIMIT 1",
+      [.string(conversation), .string(runID)]
+    ).first
+  }
+  private func read(message: Value, during run: Value) throws -> Bool {
+    try db.scalar(
+      "SELECT count(*) FROM tool_calls WHERE run_id=? AND tool='history_read' AND state='completed' AND json_extract(arguments,'$.id')=?",
+      [run, message]
+    ).int ?? 0 > 0
+  }
+  /// Whether this request saved a different draft under this title. The same arguments again are
+  /// a replay, which returns the saved draft.
+  func savedAnotherDraft(titled title: String, arguments: Value, runID: String) throws -> Bool {
+    try synchronized {
+      try db.execute(
+        "SELECT arguments FROM tool_calls WHERE run_id=? AND tool='draft' AND state='completed'",
+        [.string(runID)]
+      ).contains {
+        let earlier = try Value.parse($0["arguments"]!.text)
+        return earlier != arguments && earlier["title"].text.lowercased() == title.lowercased()
+      }
+    }
+  }
+  /// The request just before this one, when it stopped. A checkpoint can cover its message, and
+  /// then a person asking to continue would be referring to something the model cannot see.
+  /// This names it and what it saved. Its text stays behind history_read, never a new task, until
+  /// the current request reads it. It then stays here, because maintenance would otherwise
+  /// summarize away the instructions the person asked to continue.
+  func stoppedRequest(conversation: String, runID: String) throws -> Value {
+    let stopped = ["cancelled", "failed", "interrupted"]
+    guard let previous = try runBefore(runID, conversation: conversation),
+      stopped.contains(previous["status"]!.text)
+    else { return .null }
+    // A follow-up that stopped too still points at the request it was continuing.
+    var runs = [previous]
+    while runs.count < 8, let older = try runBefore(runs[0]["id"]!.text, conversation: conversation),
+      stopped.contains(older["status"]!.text),
+      try read(message: older["message_id"]!, during: runs[0]["id"]!)
+    {
+      runs.insert(older, at: 0)
+    }
+    var saved: [Value] = []
+    var seen = Set<String>()
+    for run in runs {
+      for call in try db.execute(
+        "SELECT tool,arguments FROM tool_calls WHERE run_id=? AND state='completed' ORDER BY rowid LIMIT 64",
+        [run["id"]!]
+      ) where !WorkbookTools.readOnlyTools.contains(call["tool"]!.text) {
+        guard call["tool"]!.text != "finish" else { continue }
+        let arguments = try Value.parse(call["arguments"]!.text)
+        var title = arguments["title"].string
+        if title == nil, let id = arguments["id"].string {
+          title = try db.scalar("SELECT title FROM items WHERE id=?", [.string(id)]).string
+        }
+        guard saved.count < 16, seen.insert(call["tool"]!.text + (title ?? "")).inserted else {
+          continue
+        }
+        saved.append(.object(["tool": call["tool"]!, "title": title.map(Value.string) ?? .null]))
+      }
+    }
+    let request = runs[0]["message_id"]!
+    let body =
+      try read(message: request, during: .string(runID))
+      ? db.scalar("SELECT body FROM messages WHERE id=?", [request]).string : nil
+    var fields: [String: Value] = [
+      "messageID": request, "status": previous["status"]!, "saved": .array(saved),
+    ]
+    let carried =
+      " Saved work stays saved: do not repeat it. Earlier reads do not carry over: read what the remaining work needs."
+    if let body, body.utf8.count <= 8192 {
+      fields["text"] = .string(body)
+      fields["notice"] = .string(
+        "You read this stopped request during the current one, so its text stays here. It applies only if the current request asks to continue it."
+          + carried)
+    } else {
+      fields["notice"] = .string(
+        "The previous request stopped before finishing and is not pending. Only if the current request asks to continue it, read its exact text with history_read using this messageID, then do what remains."
+          + carried)
+    }
+    return .object(fields)
+  }
+  /// Said beside a stopped request's own words, which read as if nothing had happened yet.
+  func stoppedRequestProgress(message: String, conversation: String, runID: String) throws -> Value?
+  {
+    try synchronized {
+      let stopped = try stoppedRequest(conversation: conversation, runID: runID)
+      guard stopped["messageID"] == .string(message) else { return nil }
+      return .object([
+        "saved": stopped["saved"],
+        "notice": .string(
+          "This request stopped before finishing. What saved lists is done: do not repeat it. Earlier reads do not carry over: read what the remaining work needs."
+        ),
+      ])
+    }
+  }
   /// Reconstruct operation outcomes and current proposal state from records,
   /// never from a model-written digest. Does not resume or mutate any call.
   public func continuationState(conversation: String, runID: String, messageIDs: [String]) throws
@@ -88,6 +185,7 @@ extension Workbook {
               ?? 0)
               > calls.count),
           "unresolvedCalls": .array(unresolved), "unresolvedCount": unresolvedCount,
+          "stoppedRequest": try stoppedRequest(conversation: conversation, runID: runID),
           "referencedOutcomes": .array(outcomes), "revision": .number(Double(try revision())),
           "authority": .string(
             "Host state, not new permission. Do not repeat completed calls. Failed/cancelled/interrupted earlier requests are closed. Accepted estimates remain estimates. Prepared calls have uncertain outcomes and must not be automatically replayed."

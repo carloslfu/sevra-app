@@ -293,7 +293,7 @@ func checkAutomationDefinitions(at root: URL) {
   check("automation integrity rejects missing pinned dependency or nested argument lineage") {
     let (book, workflow, args, inputs) = try fixture("Integrity")
     let saved = try save(book, content(workflow, args))
-    try book.db.transaction {
+    _ = try book.db.transaction {
       try book.db.execute(
         "DELETE FROM lineage WHERE child=? AND parent=?",
         [.string(saved.sourceID), .string(inputs[1])])
@@ -301,7 +301,7 @@ func checkAutomationDefinitions(at root: URL) {
     try refuses("definition_integrity") { _ = try book.verify() }
     let (other, otherWorkflow, otherArgs, _) = try fixture("DependencyIntegrity")
     let second = try save(other, content(otherWorkflow, otherArgs))
-    try other.db.transaction {
+    _ = try other.db.transaction {
       try other.db.execute(
         "DELETE FROM app_definition_dependencies WHERE definition_id=?", [.string(second.id)])
     }

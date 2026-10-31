@@ -68,6 +68,7 @@ public struct WorkbookTools {
     space_history: id space ID, optional beforeVersion. Read up to 20 saved versions. A restore creates a new version.
     edit_space: id exact space ID, expectedVersion inspected current version, edits array. Operations: rename {title}; insert {component,at:first|last OR beforeID} at top level; remove {componentID}; move {componentID,at:first|last OR beforeID}; title {componentID,title}; text {componentID,text}; replace {componentID,component}. Omit unrelated fields. Move stays in its group. Replacement keeps the selected ID. Preserve unrelated components and snapshot bindings. Refuse stale bases and ask on ambiguous intent.
     restore_space: id exact space ID, version explicitly selected historical version, expectedVersion current version. Restore as a new version only when requested.
+    open_automation: target exact saved automation name or ID. Open its review, where the person can enable or pause it; unavailable without the live workbook window. Never enables anything.
     open_space: target exact space name or ID. Ask the live workbook window to open it; unavailable without that window. Use only when requested, not for interface explanations.
     set_space_pinned: target exact space name or ID, pinned boolean. Pin/unpin a navigation shortcut without copying or freezing data. Use pin_space only to create an explicitly requested fixed snapshot.
     save_space: title string, definition object {version:1,components:[{id:string,type:table|chart|document|asset|search|text,title:string,datasetID?:string,itemID?:string,x?:columnID,y?:columnID,query?:string,text?:string}]}.
@@ -116,8 +117,15 @@ public struct WorkbookTools {
       }
       return v
     }
+    // A copy belongs to one exact source version, so as an input it means that version.
     let inputs = Array(
-      Set(a["inputs"].array.compactMap(\.string) + (requestSourceID.map { [$0] } ?? []))
+      Set(
+        try a["inputs"].array.compactMap(\.string).map { id in
+          guard id.hasPrefix("copy:") else { return id }
+          return try workbook.documentCopyChoice(
+            id, runID: runID, conversation: conversation, cancellation: cancellation
+          ).sourceVersionID
+        } + (requestSourceID.map { [$0] } ?? []))
     ).sorted()
     let token = try operationToken(tool, a)
     if Self.applicationTools.contains(tool) {
@@ -155,8 +163,15 @@ public struct WorkbookTools {
         cursor: a["cursor"].string, limit: 8, beforeMessage: workbook.runRequestMessage(runID),
         cancellation: cancellation)
     case "history_read":
-      return try workbook.readHistoryEvidence(
+      let evidence = try workbook.readHistoryEvidence(
         string("id"), conversation: conversation, beforeMessage: workbook.runRequestMessage(runID))
+      guard
+        let progress = try workbook.stoppedRequestProgress(
+          message: string("id"), conversation: conversation, runID: runID)
+      else { return evidence }
+      var fields = evidence.object
+      fields["stoppedRequest"] = progress
+      return .object(fields)
     case "tool_result":
       if a["path"] != .null {
         guard case .array(let path) = a["path"], path.allSatisfy({ $0.string != nil }) else {
@@ -222,6 +237,8 @@ public struct WorkbookTools {
               "nextOffset": hasMore ? .number(Double(offset + chunks.count)) : .null,
             ]),
             "extraction": try workbook.extractionStatus(item.id),
+            "requestEvidence": offset == 0 && item.assetID != nil && item.id == current?.id
+              ? try relatedOriginals(excluding: item.id) : .null,
           ])
           return try receiptID.map {
             try DocumentCopyChoices.adding(
@@ -235,16 +252,21 @@ public struct WorkbookTools {
     case "rows":
       let table = try workbook.dataset(a["datasetID"].string ?? string("id"))
       let rows = try workbook.rows(table.id, offset: a["offset"].int ?? 0, limit: 100)
-      return .object([
+      let formulas = try workbook.sheetFormulaPage(table.id, rows: rows)
+      var page: [String: Value] = [
         "dataset": try encoded(table),
         "rows": .array(
-          rows.map {
-            .object([
+          try rows.map {
+            var row: [String: Value] = [
               "id": .string($0.id),
               "values": .object(workbook.calculatedValues($0, columns: table.columns)),
-            ])
+            ]
+            if let cells = formulas?.cells[$0.logicalID] { row["excelFormulas"] = try encoded(cells) }
+            return .object(row)
           }),
-      ])
+      ]
+      if let report = formulas?.report { page["excelFormulas"] = try encoded(report) }
+      return .object(page)
     case "propose_table":
       let columns = try JSONDecoder().decode([Column].self, from: Data(a["columns"].json().utf8))
       return try encoded(
@@ -287,6 +309,12 @@ public struct WorkbookTools {
         "notice": .string("Only the owning live window can confirm that the review list opened."),
       ])
     case "spaces": return try encoded(workbook.spaces())
+    case "open_automation":
+      let automation = try workbook.automationTarget(string("target"))
+      return .object([
+        "id": .string(automation.id), "title": .string(automation.title),
+        "status": .string("resolved"),
+      ])
     case "open_space":
       return .object([
         "target": try encoded(workbook.spaceTarget(string("target"), cancellation: cancellation)),
@@ -339,34 +367,52 @@ public struct WorkbookTools {
     case "save_space":
       let definition = try JSONDecoder().decode(
         SpaceDefinition.self, from: Data(a["definition"].json().utf8))
+      let title = try string("title")
+      // A long request can lose sight of its opening step, and a retry rarely repeats the same
+      // component IDs, so its operation token alone would leave a second copy of the view.
+      try require(
+        !(try workbook.spaces().contains {
+          $0.id != token && $0.title.lowercased() == title.lowercased()
+        }), "space_duplicate",
+        "A space titled \(title) already exists. Do not save it again. Use edit_space to change it, or continue with the remaining work."
+      )
       return .object([
         "spaceID": .string(
-          try workbook.saveSpace(
-            id: token, title: string("title"), definition: definition, token: token))
+          try workbook.saveSpace(id: token, title: title, definition: definition, token: token))
       ])
     case "draft", "propose_record":
+      // A late correction or retry would otherwise leave two drafts for one request to review.
+      if tool == "draft" {
+        let title = try string("title")
+        try require(
+          !(try workbook.savedAnotherDraft(titled: title, arguments: a, runID: runID)),
+          "draft_duplicate",
+          "A draft titled \(title) was already saved in this request. Do not save it again. Finish, and say plainly what it still needs."
+        )
+      }
       if tool == "draft", a["parts"] != .null {
-        try require(a["text"] == .null, "document_parts", "Choose parts or plain text, not both.")
         guard case .array(let parts) = a["parts"], !parts.isEmpty, parts.count <= 64 else {
           throw SevraError("document_parts", "Use one to 64 document parts.")
         }
-        let resolved = try parts.map { part -> DocumentPart in
+        let resolved = try parts.map { part -> (part: DocumentPart, words: String?) in
           try require(
             Set(part.object.keys).isSubset(of: ["text", "copy"]), "document_parts",
             "Unknown document part field.")
-          if let text = part["text"].string, part.object["copy"] == nil { return .init(text: text) }
+          if let text = part["text"].string, part.object["copy"] == nil {
+            return (.init(text: text), nil)
+          }
           if let id = part["copy"].string, part.object["text"] == nil {
-            return .init(
-              copy: try workbook.documentCopyChoice(
-                id, runID: runID, conversation: conversation, cancellation: cancellation
-              ).reference)
+            let copy = try workbook.documentCopyChoice(
+              id, runID: runID, conversation: conversation, cancellation: cancellation)
+            return (.init(copy: copy.reference), copy.text)
           }
           throw SevraError("document_parts", "Each part is new prose or one original passage.")
         }
         return try encoded(
           workbook.saveComposedDraft(
-            title: string("title"), parts: resolved, inputs: inputs, runID: runID,
-            conversation: conversation, token: token, cancellation: cancellation))
+            title: string("title"), parts: DocumentPart.placed(resolved, in: a["text"].text),
+            inputs: inputs, runID: runID, conversation: conversation, token: token,
+            cancellation: cancellation))
       }
       let item = try workbook.addItem(
         category: "record", kind: tool == "draft" ? "document" : string("kind"),

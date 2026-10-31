@@ -72,11 +72,12 @@ def main():
             archive.writestr('xl/_rels/workbook.xml.rels', '<Relationships><Relationship Id="r1" Type="x/worksheet" Target="worksheets/sheet1.xml"/></Relationships>')
             archive.writestr('xl/worksheets/sheet1.xml', '<worksheet><sheetData><row r="1"><c r="A1"><v>3</v></c><c r="B1"><f>A1*2</f><v>6</v></c></row></sheetData></worksheet>')
         saved = run('import', book, xlsx, '--role', 'values')['intake']
-        checked('Excel saved values report formula evidence without claiming recalculation',
+        checked('Excel saved values report what recalculates',
                 saved['report']['conversion'] == 'saved_values'
-                and saved['report']['inspection']['liveExcelFormulas'] is False
+                and saved['report']['inspection']['liveExcelFormulas'] is True
                 and saved['report']['inspection']['sheets'][0]['formulaCount'] == 1
-                and 'do not recalculate' in saved['detail'])
+                and saved['report']['formulas'] == {'recalculating': 1, 'saved': 0}
+                and '1 Excel formula recalculates' in saved['detail'])
         archive = folder / 'Portable.sevraz'
         restored = folder / 'Restored.sevra'
         run('export', book, archive)

@@ -39,7 +39,10 @@ extension Workbook {
     parser: String = "native-v1", cancellation: Cancellation = .init(),
     expectedAttemptID: String? = nil
   ) throws {
-    _ = try mutation("index", request: .string(id), cancellation: cancellation) {
+    // A spreadsheet indexes one chunk per row, so the largest file needs more than the default.
+    _ = try mutation(
+      "index", request: .string(id), cancellation: cancellation, deadlineSeconds: 30
+    ) {
       try insertIndex(
         id, chunks: chunks, state: state, detail: detail, parser: parser,
         cancellation: cancellation, expectedAttemptID: expectedAttemptID)

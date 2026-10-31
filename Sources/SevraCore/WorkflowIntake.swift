@@ -118,6 +118,8 @@ extension Workbook {
       request["itemID"].text, headerRow: intake.headerRow, worker: worker,
       cancellation: cancellation)
     try require(
+      input.sheet == nil, "update_format", "Workflow intake supports CSV and TSV originals.")
+    try require(
       input.assetID == request["assetID"].text && input.assetHash == request["assetHash"].text
         && (try worker.workflowIdentity(cancellation: cancellation)) == request["worker"],
       "workflow_intake_request", "The original or native helper changed during intake.")

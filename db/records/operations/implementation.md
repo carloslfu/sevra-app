@@ -3,11 +3,440 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-30T00:57:36.669658+00:00
+updated: 2026-10-31T14:52:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Increments 6 through 10, October 30
+
+The owner kept the whole queue and asked for the smallest reliable version of each item, with
+fewer tests: [[sources/notes/2026/10/ship-with-enough-testing]]. From this point an increment
+gets its real failure and one counterexample, and the suite, install and window pass run once on
+the candidate.
+
+**Increment 6, bounded continuation, is accepted with a limit and is on for the native 32K
+profile.** Rules and repairs are in [[records/specs/conversation-context]] and
+[[records/specs/document-composition]]. The real eight-report job needs eleven of its twelve steps:
+
+| Commit | Full job | Recovery | What repeating it found |
+|---|---|---|---|
+| `136c198` | 0 of 1 | | Stopped at the limit after six reads |
+| `ed4b602` | 1 of 3 | 0 of 2 | A retried save duplicated a space, and a refused draft cost the last step |
+| `e51e9e3` | 0 of 3 | 0 of 2 | Without a text field the memo lost the code and amounts |
+| `8eeb94e` | 1 of 3 | 1 of 3 | Empty drafts, copy IDs sent as inputs, and instructions lost after a checkpoint |
+| `a8467ae` | 3 of 3 | 2 of 3 | The plain Stop case ended on one unfinished model response |
+| `7e2442a` | 0 of 1 | | With shortened `draft` wording it saved every line of one report, then a corrected draft |
+| `4e96746` | 1 of 1 | | The tested wording is back, and a second draft under one title is refused |
+
+At `a8467ae` each job took 11 steps, 8 checkpoints and a peak of about 22,900 tokens against the
+24,576 limit, in 266 to 299 s including verification. The final commit's run matched that: 11
+steps, 8 checkpoints, a peak of 22,838 tokens and 246 s. Ordinary six-request continuity passes
+with four summaries. On the packaged CLI, killing the process during its second maintenance pass
+left integrity intact, and an ordinary follow-up finished the memo in 11 steps and 313.7 s.
+
+Adding `open_automation` pushed the tool prompt past its check, and the first job after the
+wording was shortened failed. One failure cannot prove the cause, but that wording had no passing
+run. The earlier `draft` wording is back, the tokens came from rarely used tools, and the 8,192
+check is unchanged: [[records/specs/document-composition]].
+
+The fixture is deliberately harsh: each report is about 7,700 tokens of hexadecimal fingerprints,
+roughly three times denser than prose. Outside this fixture the largest saved prompt is about
+18,700 tokens, so ordinary jobs have not needed maintenance yet. One real memo repeated each line
+in reworded form beside its exact copy, which stays a limit.
+
+**Increment 7 is accepted.** `open_automation` reaches an automation's native review from text or
+dictation: [[records/specs/native-automation-owner]]. On the packaged CLI the real model chose it
+for an exact name, and said no view opened because a CLI has no window. A vague request found
+nothing and asked which one. No activation existed afterward. Scripted checks cover a window, no
+window, a partial name and two automations with one name.
+
+**Increment 8 is accepted.** Add a folder compares a chosen folder once and shows counts before
+adding anything: [[records/specs/contextual-import]]. Export and import of one job as an inert
+file are in [[records/specs/manual-workflows]]. Core checks cover new, repeated, changed, missing
+and duplicate files, a replayed pass, the 200-file bound, a copied automation pointing at its own
+copied parts, a repeated import and a file that is not a template.
+
+**Increment 9 is accepted, with recognition proven on one short recording.** Recordings of up to
+two hours divide into overlapping parts: [[records/specs/search]]. Part planning, overlap joining
+and timestamps have checks, and a real 75.6-second recording exported as parts of 58.0 and 19.6 s.
+Recognition ran on that recording in the installed window on October 31, below, and exposed a join
+defect that is now fixed. Nothing longer has been recognized.
+
+**Increment 10, candidate checks.** Commit `4e96746`, native build installed through
+`scripts/install.sh --native --no-build`. `scripts/check_model.py` against the packaged CLI:
+
+| Real request | Result |
+|---|---|
+| Compare the supplier quotes, by how much and what percentage, make a space | 12.73% cheaper, Purchasing space with table and chart, 8 steps, 68.8 s |
+| Summarize a document holding hostile instructions | Summarized, instructions ignored, 3 steps, 34.0 s |
+| Find a contract that is not there | Said so and reported partial coverage, 3 steps, 22.2 s |
+| Stop a long request, then ask something else | Cancelled, integrity held, next answer correct in 82.0 s |
+
+That is the second pass on this build. In the first, the comparison gave the same answer and
+space but cited the source document once, not the two rows the request asked for, so its check
+failed and stopped the run. The two earlier builds cited the rows. The check was not relaxed. This
+stays a limit: the link still verifies the answer, but the request was not followed exactly.
+
+The journey found one bug no earlier check had: the model passed `source` as a search kind, which
+matched nothing and read as an empty workbook. A category there now means no filter. Without that
+fix the plain comparison request failed. A second fix makes two checks trigger on current native
+progress text, which they had stopped seeing.
+
+`bash scripts/check.sh` passed once on `4e96746`: exit 0, 803 PASS lines, 576 core checks and no
+warnings. The real eight-report job also passed on that commit.
+
+**Installed-window pass, later on October 30.** The screen stayed locked through the suite, so
+this ran afterward on the installed candidate with a synthetic scratch workbook, through background
+controls only. "Open the Monday stock check automation." called `open_automation` once and opened
+the native review in the window in 12 s. The reply said nothing was enabled, and the workbook holds
+no activation. Reclaimable memory stayed above 12 GB during that run and swap did not grow. Also
+seen working: the automation list, its search and no-match message, the review from the list,
+Export template opening its save panel with the suggested `Monday stock check template.json`, Home,
+a table, the audio viewer and the review in Light and Dark, and arrow keys in a read-only table.
+
+Quit from the menu did not end the app while the save panel was open. The test process was stopped
+there, and the workbook reopened and passed `sevra verify`.
+
+**Person-assisted pass, October 31.** macOS keeps Open and Save panels and its permission prompts
+outside what the test tools may touch. So the owner chose the file and folder and answered the speech
+prompt on the installed build, and the agent drove the rest and read the results, on the same
+synthetic workbooks.
+
+| Step | Result |
+|---|---|
+| Export template | Saved `Monday stock check template.json`: three definitions, no workbook content or paths |
+| Import template | Three new definitions, its review opened, no activation and no run |
+| Add a folder | Arrow menu, picker and prompt worked: 3 new, 0 changed, 0 already in this workbook. All three files added, one from a subfolder, with matching hashes |
+| Transcribe on this Mac | Ran on real audio for the first time, and found the defect below |
+
+The recording is a synthetic voice reading 230 words for 76 seconds, across one part join. The first
+run lost `order two` in one of its three repetitions. Those words sat at the 58-second end of the
+first part, where the recognizer dropped them and stretched the word before across the gap, so the
+join discarded what the second part had heard. A long recording could lose words like that about
+once a minute with no warning. A check of that shape failed, 575 of 576. A part now hands over
+halfway through the overlap: [[records/specs/search]]. All 576 core checks pass, and on the rebuilt
+app the same recording returned `order two` in all three repetitions, with no repeated word, across
+10 timed pieces. Two recognition errors remain, `Atlas` heard once as `at least` and `met` once as
+`meant`. On the first run, searching `Marigold budget` in the window found the phrase, and the result
+opened the audio at 1:12. `sevra verify` passed on both workbooks afterward.
+
+The join fix came after the suite. It changed one function and its check, so under the focused policy
+the full suite did not run again.
+
+Limits seen in this pass: after Transcribe the viewer shows no transcript, only a changed footnote,
+and the words are reached through search. An imported template lists as a second automation with the
+same name and nothing to tell the two apart. Each ad-hoc rebuild loses the speech permission, so macOS
+asks again. A second folder pass rests on its core check. No human voice has been transcribed. Escape,
+Command shortcuts and VoiceOver were not checked on this build.
+
+There is no Developer ID identity on this Mac, so the build stays ad-hoc signed and notarization
+did not run. Only this 48 GB M5 Pro Mac has been tested. No external user has tried it.
+
+[Continuation receipt](../../../integration/evidence/2026-10-30-conversation-continuation.json.gz),
+SHA-256 `414a7e40a566cfcb4f7f32ca01b47b673af3574665d73a322468cbbfa6332f9c`, binds the sources,
+every real run above and its outcome.
+
+## Increment 5, an explicit Excel formula subset, October 30
+
+Increment 5 is accepted for its bounded scope. An imported XLSX now recalculates a small
+declared subset of its own formulas after edits, Undo, export and reopen. Every other formula
+keeps its saved value with a stated reason. This is a small calculator, not Excel, and the app
+says so. Rules are in [[records/specs/contextual-import]].
+
+A formula joins only if Sevra reads it and reproduces the saved value, so import itself turns
+away what Sevra would get wrong. The synthetic budget has 18 formulas: 11 recalculate and 7 keep
+saved values, for VLOOKUP by name, a cell reading that one, a result that differs from the saved
+value, two circular cells, a formula with no saved value and text operators.
+
+Comparison with another engine. LibreOffice 25.8 calculated and saved two synthetic files
+holding the same 3,600 formulas of 24 shapes over 150 rows, with different inputs. All 3,600
+match on import, and after the same 20 edits every value matches what LibreOffice calculated.
+Microsoft Excel is not on this Mac, so no file written by Excel itself has been tested. The
+comparison found two defects the hand-written journeys had missed, both fixed: a number saved
+with an exponent read as text, and a comparison with text gave #VALUE! where spreadsheets sort
+numbers before text. Both failed safely, by keeping saved values.
+
+Measuring near the bounds exposed two older XLSX defects that increment 4 had missed, because it
+measured bulk speed on CSV only. Each imported row decoded a record listing every row of its
+worksheet to check its lineage parent, so import time grew with the square of the rows. A plain
+10,001-row XLSX took 74.5 s and now takes 7.1 s. The check now reads the version ID alone, and a
+journey fails if four times the rows take more than nine times as long. Separately, a 99,999-row
+XLSX failed before saving a row, because its search index has one chunk per row and ran in one
+transaction with a 3 s limit. It now has the 30 s limit row imports use.
+
+Native build 23, release CLI on synthetic files, one process at a time on the M5 Pro 48 GiB Mac:
+
+| Work | Result | Time | Peak memory |
+|---|---|---:|---:|
+| Import 20,000 rows, 10,000 formulas, 199,981 read cells | All recalculate | 16.8 s | 356 MB |
+| One edit in that file, 20 rows move | Saved | 0.60 s | 85 MB |
+| Import 2,001 rows, 2,000 reading one rate | All recalculate | 1.6 s | 151 MB |
+| Edit that rate, the largest rewrite allowed | 2,000 rows saved | 1.5 s | 320 MB |
+| Import 10,001 formulas, one over the bound | All keep saved values and say why | 7.2 s | 208 MB |
+| Import the largest XLSX, 99,999 rows, no formulas | All saved | 97.1 s | 1533 MB |
+
+The largest file verifies and became a 996 MB workbook.
+
+Installed window, builds 22 and 23, on a synthetic workbook. The footer read "19 rows" and "11
+Excel formulas recalculate, 7 keep saved values", and saved values read quieter than current
+ones. Typing 25 over a quantity updated its line total, the total, average, rounded value, taxed
+total, percent and branch at once, and Undo put all of them back. A recalculating cell took no
+typing. A saved value took a correction, stayed quieter, and nothing recalculated from it.
+Sorting kept each saved value with its row. The popover listed all seven cells with their
+reasons and warned that values had changed since import. An edit saved from the CLI while the
+table was open also reached the window live.
+
+The pass found one defect, fixed: a click on a read-only cell's text in an already selected row
+kept the previous column, so the conversation would have been told about the wrong cell.
+Observed and left alone: imported columns are text, so sorting numbers is lexical until a
+column's type changes, and opening a workbook by its file while the app is closed leaves the
+Welcome window open behind it. Hover help on a cell was not seen, because hovering needs the
+screen. Native checks cover its text.
+
+Automated: `scripts/check_sheet_formulas.py` runs 31 CLI journeys through edits, refusals, Undo,
+export, reopen, a removed column, a stopped import, every bound and the LibreOffice files. Nine
+core checks cover the formula rules, and a native check covers cell editing, help and
+accessibility text.
+
+Limits: a file recalculates up to 10,000 formulas, 20,000 rows and 200,000 read cells, and an
+edit rewrites at most 2,000 rows. Past those, formulas keep saved values or the edit saves
+nothing. Dates, TRUE and FALSE values, text results, defined names, powers and text operators
+keep saved values. Text ordering ignores case but does not follow a locale's collation. A
+reviewed update refuses a table whose file has recalculating formulas. No file written by Excel
+itself has been tested. Files were synthetic.
+
+[Excel formula receipt](../../../integration/evidence/2026-10-30-excel-formula-subset.json.gz),
+SHA-256 `e500929c29dbac6bc126a28b8d47f64821e23d5b8d00ad1ef32b25418cb7f35c`, binds the sources, fixtures, measurements, window observations, 31 journeys
+and the full suite: exit 0, 795 pass lines and zero warnings.
+
+## Increment 4, bounded bulk intake, October 30
+
+Increment 4 is accepted for its bounded scope. Table imports commit in batches of at most
+1,000 rows or about 6 MB of cell values, retry a batch the saved-change limit refuses at
+half its size, and continue after the saved rows following Stop, a failure or a killed
+process. Progress counts committed rows only. Rules are in
+[[records/specs/contextual-import]].
+
+The gap was real. A 30 MB CSV of 1,900 long rows failed on its first batch, and a retry
+could not help because batches were always 1,000 rows. The audited 100,000-row benchmark
+failed on the same limit because it built its table in one transaction.
+
+Native build 17, release CLI on synthetic files, one import at a time on the M5 Pro 48 GiB
+Mac:
+
+| File | Result | Time | Peak memory | Batches | Largest change | Workbook |
+|---|---|---:|---:|---:|---:|---:|
+| 30 MB CSV, 1,900 rows of about 16 KB | All saved | 6.8 s | 488 MB | 6 | 35.8 MB | 413 MB |
+| 7.3 MB CSV, 99,999 rows | All saved | 93.9 s | 351 MB | 100 | 5.2 MB | 999 MB |
+
+A workbook build 13 had left at 0 of 1,900 rows resumed on this code and finished in 7.2 s
+at 512 MB. Both final workbooks verify. The release row benchmark now completes: warm p95
+14.9 ms at 10,000 rows and 156.7 ms at 100,000, against the 200 ms target, so the audit's
+failure is closed. Its document cohorts were not rerun here.
+
+Installed window, synthetic 30,000-row CSV: progress moved live in the toolbar, the
+conversation, the intake sheet and the Home row. Done left the import running. Stop ended
+at a committed batch with no error, and Home showed one row, "Stopped with 25,000 rows
+saved. Continue to save the rest. Nothing is repeated." Killing the app with SIGKILL at
+19,000 rows left a verifying workbook. Reopening showed "Interrupted. Continue to pick up
+where it stopped." and the table footer read "Import unfinished: 19,000 of 30,000 rows
+saved". Continue finished without another prompt. The exported table then equaled the source
+row for row with 30,000 distinct SKUs, the original stayed byte-identical and the workbook
+verified.
+
+The window pass found five defects, all fixed: a deliberate Stop showed a red error; one
+import appeared up to three times under Intake needs attention; a killed job kept saying
+"Continuing"; Home kept a stale count, and a stale "How would you like to use it?", during a
+run; and long tables showed ungrouped row numbers, with "1 rows" for one row.
+
+Automated: `scripts/check_bulk_intake.py` runs 26 CLI journeys for long values, long
+headings, cancellation, repeated SIGKILL, exact resume, an edit made while stopped, a changed
+definition, a 15 MB row, a row over the record bound, export and reopen, and a two-sheet
+XLSX stopped midway. Two core checks cover batch sizes, resumed progress and progress across
+worksheets. Agent tools see `unfinishedImportTotal`, so a table stays visibly incomplete there.
+
+A suite run with the screen asleep also exposed an earlier check: the conversation wheel test
+needs the display link to move a view, so it failed once the display turned off. The check now
+always proves the gesture reaches the conversation's scroll view, and checks the movement
+whenever the display is awake. The real wheel pass remains the evidence for movement.
+
+Storage is the main finding, recorded and not changed here: each short row costs about 10 KB
+because it keeps its version, search text and history. The 7.3 MB file became a 999 MB
+workbook, of which 529 MB is saved-change history, 97 MB business events, 68 MB items and
+49 MB search data. An import saves roughly 1,000 short rows a second.
+
+Limits: the file limits stay 32 MB, 99,999 data rows, one million cells and 500 columns. A
+retry parses the whole original again before continuing. The table list cannot refresh during
+a run because batches keep the workbook busy, so a new table appears on Home when the import
+stops or finishes. Saved rows stay usable meanwhile, and nothing blocks an answer over them;
+actual-model wording over a partial table is not qualified. The two-sheet stop ran through the
+CLI, not the window. Files were synthetic.
+
+[Bulk intake receipt](../../../integration/evidence/2026-10-30-bulk-intake.json.gz),
+SHA-256 `3a6a4f3875d3e80efba6d0db90673a5e4f47c6426f1db981516c9e102ecd889c`, binds the source
+hashes, measurements, window observations, 26 journeys and the full suite: exit 0, 786 pass
+lines and zero warnings.
+
+## Increment 3, reviewed updates, October 30
+
+Increment 3 is accepted for its bounded scope. Reviewed updates now suggest exact
+heading matches, keep an in-progress review and accept saved values from one XLSX
+worksheet. Behavior and bounds are in [[records/specs/contextual-import]].
+
+The installed app, build 13, ran the whole path on synthetic workbooks. Home Continue
+opens a pending update directly. The real dropdowns chose a worksheet, target, method,
+mapping and meaning, and a missing header row named the first row with values while
+the worksheet choice stayed. Choosing the target filled exact headings, one action
+ignored the remaining input, and a line beside Preview changes named what was still
+missing. The choices survived leaving the page and quitting the app. Accept then kept
+1.20, changed 2.50 to 2.75 and added 0014 as an estimate, with no change to rows before
+that. Undo restored the exact rows, and every workbook used verifies.
+
+That pass and the review itself changed the design in these ways. A hidden trap: the
+table imported from `0012` has a decimal `sku` column, so a padded number could not be
+judged by column type alone; keys and columns holding leading zeros now count as exact
+text. Excel saves 1.15 as 1.1499999999999999, so fractions keep the 15 significant digits
+Excel shows, which also corrects saved-value import. Lexical comparison marked 1.20 and
+1.2 as changed, so decimal columns compare amounts. An XLSX whose headings are not in
+row 1 failed before the review could open, so a pending update now needs only a readable
+original. Cells without a reference collapsed into column A, and now follow the previous
+cell. Each Continue added a repeated Activity message, and the header field had no
+visible label; both are fixed.
+
+Checks: 73 synthetic CLI journeys in `scripts/check_table_updates.py`, covering all three
+methods on XLSX, multi-sheet choice, row locators, drafts through export and reopen,
+refusals that name the cell or key, and Undo. New table UI checks run the form rules and
+draft ordering without a window. `bash scripts/check.sh` exits 0 in about 7 minutes with
+zero warnings, including core 557/0, native document lifecycle 27/0 and 31 Splash checks.
+A clean recompile of the core also surfaced two unused-result warnings in an existing
+check, now fixed. The [reviewed-update receipt](../../../integration/evidence/2026-10-30-reviewed-updates.json.gz),
+SHA-256 `abd5c3b74aabfde66aed9450272269fefefc79c741390060697dabb3a89beda3`, binds the
+sources, journeys, window results and limits.
+
+Limits: every stored column must still be mapped. Suggestions cover exact headings only.
+Number formats are inspected only for zero padding, so percent, currency and other
+display formats use saved values. Date cells keep the timestamp form used by saved-value
+import. Excel tables, merged cells and hidden state are not interpreted. Workflow intake
+stays CSV/TSV, and actual-model and voice update tools are not qualified. No actual model
+ran in this increment.
+
+## Resumed increments 1 and 2, October 29
+
+The owner resumed the paused work: [[sources/notes/2026/10/minimum-features-resume]].
+[[records/operations/agent-handoff]] records the current checkpoint and next steps.
+
+Increment 1 is accepted for its bounded scope. A narrow English finish check rejects
+an answer that says a cost is unknown while labeling a partial sum as a total or
+naming the cheapest quote without its basis, and requires any ranking to leave the
+final all-in ordering open. Scripted replay of the exact earlier missing-terms
+answer and the October 29 audit answer is rejected with that guidance; the qualified
+correction completes with unchanged business state. Fresh synthetic actual-model
+probes with the build-6 CLI both complete. CSV only: 8 steps, goods-plus-shipping
+labels, no invented delivery or tax, and an undetermined all-in ordering. CSV plus
+PDF: 11 steps, both citations, Brio's 5-business-day delivery, excluded tax with no
+rate, the lowest goods-plus-shipping cost and the same open all-in ordering. Neither
+run needed the new check; one corrected an invented currency symbol. These are two
+functional probes, not an accuracy rate.
+
+Increment 2 gained content-aware sizing after offscreen renders of the shipped
+components showed equal-width columns, mid-word breaks, overestimated row heights
+and a spare header strip. Conversation tables now hug their natural width, wider
+tables wrap to whole-word minimums before scrolling, original files fill or scroll
+at natural widths, rows are measured with equal padding, cells over six lines end in
+an ellipsis and a dragged column width persists. Component checks cover these cases
+with selection, TSV/rich/CSV copy, source actions and accessible values.
+
+**Installed-window pass, October 30.** With Screen Recording granted, the installed
+app was driven on synthetic workbooks through background window control. That pass
+found four defects the offscreen renders could not show, all fixed in build 9. A table
+that fit still showed a scroller and moved about 5 points, because the inset style
+pads 5 points above the rows and 10 below, and it captured the wheel from the
+conversation. Cell text sat 2 points left of its heading. Source links in cells looked
+like plain text and opened only from the context menu. A long heading took width from
+short values and wrapped every row in the narrow pane. Build 9 measures the real
+padding, autohides scrollers and gives the conversation each wheel gesture the table
+cannot use, including at its top and bottom edges. Cell text lines up with headings,
+one source link in a cell is link-colored and opens on click, Shift and Command clicks
+only change the selection, and values get width before a long heading.
+
+Seen in installed build 9, light and dark: 280 and 420 point conversation panes, which
+are that pane's limits; wrapped and unwrapped values; a six-column table with hidden
+columns; a 30-row table with its own vertical scrolling; a 48-row wide CSV filling and
+scrolling in the viewer; multi-row selection, inactive-window highlight, source
+navigation from prose and cell links, and accessible cell labels. A first approval
+prompt for full-screen control timed out while the Mac was locked, so the first receipt
+lists the context menu, clipboard and wheel as unchecked. A later full-screen pass on
+build 13 covered them. A real wheel gesture over a fitting table scrolls the conversation,
+and over the 30-row table scrolls the table to its end and then the conversation.
+Command-C writes tab-separated rows, the context menu offers its three copy actions, and
+Copy as CSV writes quoted CSV. A focused window shows the accent selection with white
+text, including a selected link. A click inside a multi-row selection collapses it, and
+the next click opens the link. Component checks also cover copy formats, menu actions and
+a synthesized wheel event that moves a real SwiftUI `ScrollView`, which fails when the
+sharing is disabled.
+
+Focused related-original checks, the full scripted agent regression (42 passes),
+preview checks, native build 7, its isolated package paths-only check and
+`bash scripts/check.sh` all exit 0 at the first checkpoint. That full suite took 6
+minutes 49 seconds with zero warnings, including core 557/0, native document lifecycle
+27/0 and 31 Splash checks. After build 9, `bash scripts/check.sh`
+exits 0 again in about 6 minutes 48 seconds with zero warnings, including core 557/0,
+native document lifecycle 27/0 and 31 Splash checks. The
+[installed-window receipt](../../../integration/evidence/2026-10-30-native-table-window-pass.json.gz),
+SHA-256 `905f55df8c630e20d74ed8ae815c43c5e2722fc11912d1e26dc67a42cbfd7f66`, binds the
+sources, defects, coverage and limits above. The [continuation receipt](../../../integration/evidence/2026-10-30-minimum-increments-1-2.json.gz),
+SHA-256 `91f2b9101b50a31b6a93cac7eba3a2c5bbd4ed7c4dda6f6a4e7f4e89600b64df`, binds
+sources, check output, actual answers, snapshot measurements and limits.
+
+## Owner pause and agent handoff, October 29
+
+Implementation was paused at the owner's request:
+[[sources/notes/2026/10/minimum-features-pause]] and later resumed as recorded
+above. The paragraphs below are the paused checkpoint, kept as history.
+The unfinished code, tests, specs and failure evidence are preserved on
+`codex/sevra-minimum-features-handoff`, based on audit commit `170efa0`.
+
+Increment 1 now surfaces bounded related original passages and limits stalled
+lexical search for recognized read-only requests. The actual CSV/PDF comparison
+completes in 11 steps with both citations, delivery/tax and explicit unknown all-in
+costs. The missing-PDF case completes in 9 steps without invented terms but retains
+overly broad cheapest/total wording. Increment 1 is not fully accepted.
+Increment 2 implements native Markdown/CSV/TSV grids, exact textual values,
+read-only multi-row selection and TSV/rich/explicit CSV copy. Native component
+checks pass; final build-5 sizing/accessibility changes still need installed visual
+verification. Installed preview remains build 4. No later increment was implemented.
+
+Full scripted agent regression, focused related-original checks, final native
+preview checks and native build 5 exit 0. `bash scripts/check.sh` was stopped by the
+pause and exits 143, incomplete rather than passed. All task-owned background
+processes have stopped. The latest completed full suite remains the pre-change
+audit run. The [paused checkpoint receipt](../../../integration/evidence/2026-10-30-paused-minimum-features.json.gz),
+SHA-256 `7a285eaabaeb2ef82e7f6512a441bdedfa1a7334aaae1ec7f583144bdfc0d3b0`,
+binds source/tests, actual outcomes, failed iterations and verification limits.
+The handoff contains the exact remaining checks and ordered continuation.
+
+## Sequential minimum features, October 29
+
+The owner now authorizes one usable increment at a time, followed by focused tests
+and interaction polish: [[sources/notes/2026/10/minimum-feature-delivery]].
+[[records/operations/minimum-feature-delivery]] controls the ordered queue and
+supersedes the earlier instruction to defer every follow-up after the supplier
+preview. The expanded product remains incomplete; later rows are queued.
+
+Increment 1 is in verification: a first current-original read supplements its
+result with at most two indexed passages from other current originals matching
+the live request. Exact visible excerpts can be cited; missing/omitted content,
+partial extraction and bounded retrieval do not establish complete coverage.
+Focused scripted checks pass the missed-supplier path, exact citation boundary,
+unrelated/historical exclusion, partial and failed extraction, cancellation and
+unchanged business state. Actual-model acceptance and native polish are pending.
+
+Active blockers remain (1) complete ordinary multi-document answers; (2) readable
+native comparisons/intake and bounded larger tables; (3) accessibility, supported
+hardware and production distribution. Completing a bounded increment does not
+qualify those wider gates.
 
 This is MVP 0.1, a native source test preview for the focused file-to-result
 workflow below. The expanded specification is unfinished. The owner-directed

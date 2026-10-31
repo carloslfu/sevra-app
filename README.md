@@ -52,7 +52,12 @@ Files are saved and indexed without an extra dialog. Convert the saved CSV into
 a working table when needed; the searchable PDF stays an included reference.
 Open the quotation and ask for a cited summary, calculate goods plus shipping,
 keep a live table/chart in a space, edit an input, Undo, and make a portable copy.
-Use focused requests: broad questions can miss relevant files or hit the step limit.
+Add a folder compares a folder with what you already added and shows the counts first; it does
+not watch the folder. Ask to enable a saved automation by name and Sevra opens its review, where
+you decide. Long conversations summarize as they go, and a long request that stops keeps its saved
+work, so you can ask it to continue.
+Focused requests work best: one request handles about nine documents, and a broad question can
+still miss a file.
 Check the original evidence before relying on an answer. Unknown tax remains unknown.
 
 While Sevra works, the activity line shows its current phase, elapsed time and Stop.

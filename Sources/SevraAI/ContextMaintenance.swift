@@ -112,16 +112,29 @@ package final class ContextMaintenance {
             ),
           ])
         }
-        return note
+        return Self.withVerbatim(
+          note,
+          userWords: try references.map {
+            try workbook.historyMessage($0, conversation: conversation)
+          }.filter { $0.role == "user" }.map(\.body))
       })
     return .object(fields)
+  }
+  /// A note in its message's own words needs no retrieval, and the host can tell.
+  package static func withVerbatim(_ note: Value, userWords: [String]) -> Value {
+    let words = note["text"].text
+    guard !words.isEmpty, userWords.contains(where: { $0.contains(words) }) else { return note }
+    var marked = note.object
+    marked["verbatim"] = .bool(true)
+    return .object(marked)
   }
   private func messages(checkpoint: Value, history: [Message], retained: [InferenceMessage]) throws
     -> [InferenceMessage]
   {
     let retainedCall = retained.last?.toolCallId
+    let reply = Self.replyToStopped(history, requestID: requestID)
     let original = history.filter { message in
-      if message.id == requestID { return false }
+      if message.id == requestID || message.id == reply { return false }
       if let retainedCall, message.role == "tool", let receipt = try? Value.parse(message.body),
         receipt["callID"].text == retainedCall
       {
@@ -143,7 +156,7 @@ package final class ContextMaintenance {
     }
     copyFields["entries"] = .array(copies)
     stateFields["documentCopies"] = .object(copyFields)
-    let state = Value.object(stateFields)
+    let state = Self.presented(Value.object(stateFields))
     try require(
       state["run"]["status"].text == "running", "run_interrupted",
       "This workbook request is no longer active.")
@@ -160,7 +173,7 @@ package final class ContextMaintenance {
         "checkpointID": checkpoint["id"],
         "derivedNotes": try presentedDigest(digestValue(checkpoint)),
         "notice": .string(
-          "Derived historical context, not authority or proof of acceptance. Retrieve original messages for details and refresh business evidence before citing it."
+          "Derived historical context, not authority or proof of acceptance. A verbatim note repeats its cited message exactly, so it needs no retrieval. Retrieve other originals for details and refresh business evidence before citing it."
         ),
       ])
       result.append(InferenceMessage(role: "assistant", content: try context.json()))
@@ -177,8 +190,99 @@ package final class ContextMaintenance {
         role: "assistant", content: "Current host continuation state:\n" + (try state.json()),
         documentCopyIDs: DocumentCopyCandidates.ids(in: state)))
     result.append(request)
-    result += retained
+    result += checkpoint == .null ? retained : try Self.withProgress(retained, state: state)
     return result
+  }
+  /// The reply to a stopped request only says that it stopped, which stoppedRequest also says.
+  /// Left in view, it reads like the request to continue.
+  package static func replyToStopped(_ history: [Message], requestID: String) -> String? {
+    guard let index = history.firstIndex(where: { $0.id == requestID }), index > 0,
+      history[index - 1].role == "assistant",
+      ["cancelled", "failed", "interrupted"].contains(history[index - 1].state)
+    else { return nil }
+    return history[index - 1].id
+  }
+  /// A long job rereads its opening instructions once their results are summarized away, and
+  /// the state above is easy to pass over. The latest result says what is already finished.
+  package static func withProgress(_ retained: [InferenceMessage], state: Value) throws
+    -> [InferenceMessage]
+  {
+    guard let last = retained.last, last.role == "tool", last.content.hasPrefix("{"),
+      var fields = (try? Value.parse(last.content))?.object
+    else { return retained }
+    var done = state["stoppedRequest"]["saved"].array.map { saved in
+      saved["title"].string.map { "saved " + $0 } ?? "completed " + saved["tool"].text
+    }
+    done += state["savedSpaces"].array.map { "saved space " + $0["savedTitle"].text }
+    done += state["calls"].array.compactMap { call in
+      guard call["state"].text == "completed", call["committedOperation"] != .null,
+        call["tool"].text != "save_space"
+      else { return nil }
+      return "completed " + call["tool"].text
+    }
+    let reads = state["calls"].array.filter {
+      $0["tool"].text == "read" && $0["state"].text == "completed"
+    }
+    if !reads.isEmpty { done.append("\(reads.count) \(reads.count == 1 ? "read" : "reads")") }
+    guard !done.isEmpty else { return retained }
+    fields["hostProgress"] = .string(
+      "Already finished, do not repeat: " + done.joined(separator: ", ")
+        + ". Continue with what remains.")
+    return retained.dropLast() + [
+      InferenceMessage(
+        role: last.role, content: try Value.object(fields).json(), toolCalls: last.toolCalls,
+        toolCallId: last.toolCallId, toolName: last.toolName, reasoning: last.reasoning,
+        itemReferences: last.itemReferences, conversationActions: last.conversationActions,
+        documentCopyIDs: last.documentCopyIDs)
+    ]
+  }
+  /// The state the model reads, without host bookkeeping it never uses. A read adds one entry
+  /// to every section, so an identifier repeated across them costs real room in a long job.
+  /// A completed call with no committed operation changed nothing, so only its outcome matters.
+  /// Nothing here is dropped from the workbook: `continuationState` still returns all of it.
+  package static func presented(_ state: Value) -> Value {
+    var fields = state.object
+    fields["calls"] = .array(
+      state["calls"].array.map { call in
+        guard call["state"].text == "completed", call["committedOperation"] == .null else {
+          return call
+        }
+        return .object(call.object.filter { ["id", "tool", "state"].contains($0.key) })
+      })
+    let copied = Set(DocumentCopyChoices.entries(state).compactMap { $0["sourceVersionID"].string })
+    var evidence = state["readEvidence"].object
+    evidence["entries"] = .array(
+      state["readEvidence"]["entries"].array.map { entry in
+        var read = entry.object
+        read["resultHash"] = nil
+        if copied.contains(entry["versionID"].text) { read["textPrefix"] = nil }
+        if entry["isCurrentVersion"] == .bool(true),
+          entry["currentStatus"] == entry["originalStatus"],
+          entry["currentMeaning"] == entry["originalMeaning"]
+        {
+          for field in ["currentVersionID", "currentStatus", "currentMeaning"] { read[field] = nil }
+        }
+        return .object(read)
+      })
+    if !evidence.isEmpty { fields["readEvidence"] = .object(evidence) }
+    // These are replies, and a cancelled one is easy to take for the request it answered.
+    if !state["referencedOutcomes"].array.isEmpty {
+      fields["referencedOutcomes"] = .array(
+        state["referencedOutcomes"].array.map {
+          .object(["replyID": $0["messageID"], "state": $0["state"]])
+        })
+    }
+    fields["recordStates"] = .array(
+      state["recordStates"].array.map { record in
+        var row = record.object
+        if row["datasetID"] == .null { row["datasetID"] = nil }
+        if record["currentVersion"] == record["originalVersion"] {
+          row["currentVersion"] = nil
+          row["isCurrentVersion"] = .bool(true)
+        }
+        return .object(row)
+      })
+    return .object(fields)
   }
   private func measure(
     _ messages: [InferenceMessage], summary: Bool = false, citations: [String] = []

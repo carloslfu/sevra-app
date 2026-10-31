@@ -19,6 +19,11 @@ import SwiftUI
   }
 }
 
+struct FolderReview {
+  let root: URL
+  let plan: FolderPlan
+}
+
 @MainActor final class WorkspaceState: ObservableObject {
   enum Route: Equatable {
     case space(String)
@@ -33,6 +38,7 @@ import SwiftUI
     case workflow(String)
   }
   @Published var workbook: Workbook?
+  @Published var folderReview: FolderReview?
   @Published var spaces: [Space] = []
   let spaceNavigation = SpaceNavigationSession()
   @Published var pendingReview: ReviewQueuePage?
@@ -59,7 +65,8 @@ import SwiftUI
   @Published var chapters: [Value] = []
   @Published var bookmarks: [Value] = []
   @Published var pendingExtractions: [Value] = []
-  @Published var intakeStatus: [Value] = []
+  @Published var importProgress: (saved: Int, total: Int)?
+  @Published var activeIntake: String?
   @Published var intakePrompt: IntakePrompt?
   @Published var conversation = "main" {
     didSet {
@@ -186,7 +193,8 @@ import SwiftUI
     chapters = []
     bookmarks = []
     pendingExtractions = []
-    intakeStatus = []
+    importProgress = nil
+    activeIntake = nil
     intakePrompt = nil
     revision = 0
     conversation = conversationSession.conversation
@@ -304,7 +312,7 @@ import SwiftUI
         self.chapters = snapshot.chapters
         self.bookmarks = snapshot.bookmarks
         self.pendingExtractions = snapshot.pendingExtractions
-        self.intakeStatus = snapshot.intakeStatus
+        if !self.busy { self.importProgress = nil }
       case .failure(let failure):
         // A busy workbook can be retried by the next timer tick. An explicit
         // refresh reports its failure while preserving the last complete view.
@@ -417,6 +425,7 @@ import SwiftUI
     busy = false
     status = ""
     liveActivity = nil
+    activeIntake = nil
     refresh()
   }
   private func report(_ failure: Error, for ticket: WorkspaceOperation, in book: Workbook) {
@@ -453,7 +462,29 @@ import SwiftUI
     else { return }
     importFiles(panel.urls, linked: linked)
   }
-  func importFiles(_ urls: [URL], linked: Bool = false) {
+  /// One explicit comparison of a folder, shown before anything is added.
+  func folderPanel() {
+    guard interactionActive, !busy, workbook != nil else { return }
+    let panel = NSOpenPanel()
+    panel.canChooseFiles = false
+    panel.canChooseDirectories = true
+    panel.message = "Sevra compares this folder once, now. It does not watch it."
+    guard panel.runModal() == .OK, let folder = panel.url else { return }
+    run(
+      "Comparing folder",
+      operation: { book, cancel in try book.folderPlan(folder, cancellation: cancel) },
+      completion: { self.folderReview = FolderReview(root: folder, plan: $0) })
+  }
+  func addFolder(_ review: FolderReview) {
+    let plan = review.plan
+    let urls = plan.files.map { review.root.appendingPathComponent($0.relative) }
+    importFiles(
+      urls, tokens: Dictionary(uniqueKeysWithValues: zip(urls, plan.files.map(plan.token))),
+      finished: "Compared folder " + plan.folder + ": " + plan.summary + ". Nothing was deleted.")
+  }
+  func importFiles(
+    _ urls: [URL], linked: Bool = false, tokens: [URL: String] = [:], finished: String? = nil
+  ) {
     let chat = conversation
     run(
       linked ? "Linking files" : "Including files",
@@ -465,7 +496,8 @@ import SwiftUI
             // Capturing a file is enough to make it evidence. Table conversion
             // remains an explicit later request, never an import prerequisite.
             let job = try book.captureIntake(
-              url, linked: linked, role: .reference, cancellation: cancel)
+              url, linked: linked, role: .reference, token: tokens[url] ?? UUID().uuidString,
+              cancellation: cancel)
             let item = try book.item(job.sourceID)
             _ = try book.addMessage(
               (linked ? "Linked " : "Included ") + item.referenceMarkdown, role: "event",
@@ -479,6 +511,7 @@ import SwiftUI
         if !failures.isEmpty {
           throw SevraError("import_partial", failures.joined(separator: "\n"))
         }
+        if let finished { _ = try book.addMessage(finished, role: "event", conversation: chat) }
         return urls.count
       },
       completion: { _ in
@@ -496,9 +529,20 @@ import SwiftUI
           job: job, title: source.title,
           supportsTable: ["csv", "tsv", "xlsx"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()),
-          supportsUpdate: ["csv", "tsv"].contains(
+          supportsUpdate: ["csv", "tsv", "xlsx"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()))
-      }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
+      },
+      completion: { choice in
+        // A chosen update has nothing left to ask; go straight back to its review.
+        if choice.job.state == "awaiting_update" {
+          self.navigate(.tableUpdate(choice.job.sourceID, choice.id))
+        } else if choice.job.role == .values {
+          // Saving the rest of a stopped table import is the only next step.
+          Task { self.continueIntake(choice, role: .values) }
+        } else {
+          self.intakePrompt = .init(choices: [choice])
+        }
+      })
   }
   func useSavedFile(_ sourceID: String) {
     run(
@@ -511,12 +555,15 @@ import SwiftUI
           job: job, title: source.title,
           supportsTable: ["csv", "tsv", "xlsx"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()),
-          supportsUpdate: ["csv", "tsv"].contains(
+          supportsUpdate: ["csv", "tsv", "xlsx"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()))
       }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
   }
   func continueIntake(_ choice: IntakeChoice, role: IntakeRole) {
+    guard !busy else { return }
     let chat = conversation
+    let progress = rowProgress()
+    activeIntake = choice.id
     run(
       "Preparing " + choice.title,
       operation: { book, cancel in
@@ -530,12 +577,17 @@ import SwiftUI
               "This intake already has another use. Reopen the saved file to start a different use."
             )
           }
-          let result = try book.runIntake(choice.id, cancellation: cancel)
-          _ = try book.addMessage(result.detail, role: "event", conversation: chat)
+          let result = try book.runIntake(
+            choice.id, cancellation: cancel, progress: progress)
+          if result.state != current.state {
+            _ = try book.addMessage(result.detail, role: "event", conversation: chat)
+          }
           return IntakeAttempt(job: result, failure: nil)
         } catch {
+          // Stop is the person's own choice, and Home shows what it left saved.
           return try IntakeAttempt(
-            job: book.intakeJob(choice.id), failure: error.localizedDescription)
+            job: book.intakeJob(choice.id),
+            failure: cancel.isCancelled ? nil : error.localizedDescription)
         }
       },
       completion: { attempt in
@@ -551,12 +603,36 @@ import SwiftUI
         }
         self.intakePrompt?.choices.removeAll { $0.id == result.id }
         if self.intakePrompt?.choices.isEmpty == true { self.intakePrompt = nil }
+        if result.state == "cancelled" { return }
         if role == .update {
           self.navigate(.tableUpdate(result.sourceID, result.id))
         } else if let id = result.datasetIDs.first {
           self.navigate(.table(id))
         }
       })
+  }
+  /// Status follows committed rows, reported from the import's own thread.
+  func rowProgress() -> @Sendable (Int, Int) -> Void {
+    { [weak self] done, total in
+      Task { @MainActor in
+        guard let self, self.busy else { return }
+        self.status = "Saved \(done.formatted()) of \(total.formatted()) rows"
+        self.importProgress = (done, total)
+      }
+    }
+  }
+  /// Home's line for an intake: live while it runs, and plain once nothing is running.
+  func intakeDetail(_ job: Value) -> String {
+    if let activeIntake, job["job_id"].string == activeIntake { return status }
+    return job["state"].text == "running" && !busy
+      ? "Interrupted. Continue to pick up where it stopped." : job["detail"].text
+  }
+  /// How much of an unfinished import is saved. The table list only catches up
+  /// after the import, because a running import keeps the workbook busy between batches.
+  func savedRows(_ table: Dataset) -> String? {
+    guard let source = table.unfinishedImportTotal else { return nil }
+    let saved = importProgress?.saved ?? table.rowCount
+    return "\(saved.formatted()) of \((importProgress?.total ?? source).formatted()) rows saved"
   }
   func pasteTableData() {
     guard interactionActive, !busy else { return }
@@ -888,6 +964,10 @@ import SwiftUI
         importPanel(linked: true)
         return true
       }
+      if lower == "add folder" || lower == "add a folder" {
+        folderPanel()
+        return true
+      }
       if lower == "make a shareable copy" || lower == "export workbook" {
         exportPanel()
         return true
@@ -1035,7 +1115,11 @@ import SwiftUI
             authorization == .authorized, "speech_permission",
             "Speech recognition permission was not granted. The original remains available.")
           self.status = "Transcribing on this Mac"
-          try await book.transcribe(id, cancellation: ticket.cancellation)
+          try await book.transcribe(id, cancellation: ticket.cancellation) { value in
+            Task { @MainActor in
+              if self.owns(ticket, in: book) { self.status = value }
+            }
+          }
         } catch { self.report(error, for: ticket, in: book) }
       }
     }

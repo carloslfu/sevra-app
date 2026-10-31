@@ -2,6 +2,164 @@ import Foundation
 import SevraCore
 
 func checkContinuationEvidence(at root: URL) {
+  check("one request saves one space per title, however its components are named") {
+    let book = try Workbook.create(at: root.appendingPathComponent("Spaces.sevra"), title: "Spaces")
+    let request = try book.addMessage("Save one review", role: "user")
+    let run = try book.startAgentRun(
+      conversation: "main", model: "fixture", requestMessageID: request)
+    func save(_ title: String, component: String) throws -> Value {
+      let definition = SpaceDefinition(components: [
+        .init(id: component, type: "text", title: title, text: "In progress")
+      ])
+      let args: Value = .object(["title": .string(title), "definition": try encoded(definition)])
+      let id = try book.prepareToolCall(
+        runID: run, callID: identifier(), tool: "save_space", arguments: args)
+      let result = try WorkbookTools(book, runID: run).execute("save_space", args)
+      _ = try book.completeToolCall(id, result: result)
+      return result
+    }
+    let first = try save("Receiving review", component: "one")
+    try expect(try save("Receiving review", component: "one") == first)
+    try refuses("space_duplicate") { _ = try save("Receiving review", component: "two") }
+    try refuses("space_duplicate") { _ = try save("RECEIVING REVIEW", component: "three") }
+    _ = try save("Another view", component: "two")
+    try expect(try book.spaces().filter { $0.title == "Receiving review" }.count == 1)
+    try expect(try book.spaces().count == 3)
+    // A later request cannot save it again either, and it hears what the stopped one finished.
+    try book.finishAgentRun(run, status: "cancelled", steps: 3, metrics: .array([]))
+    let next = try book.startAgentRun(
+      conversation: "main", model: "fixture",
+      requestMessageID: try book.addMessage("Please continue", role: "user"))
+    let stopped = try book.continuationState(conversation: "main", runID: next, messageIDs: [])[
+      "stoppedRequest"]
+    try expect(stopped["messageID"].text == request && stopped["status"].text == "cancelled")
+    try expect(stopped["saved"].array.map { $0["title"].text } == ["Receiving review", "Another view"])
+    try expect(stopped["text"] == .null)
+    try refuses("space_duplicate") {
+      _ = try WorkbookTools(book, runID: next).execute(
+        "save_space",
+        .object([
+          "title": .string("Receiving review"),
+          "definition": try encoded(
+            SpaceDefinition(components: [.init(type: "text", title: "Later", text: "Again")])),
+        ]))
+    }
+    try book.finishAgentRun(next, status: "complete", steps: 1, metrics: .array([]))
+    let after = try book.startAgentRun(
+      conversation: "main", model: "fixture",
+      requestMessageID: try book.addMessage("Something else", role: "user"))
+    try expect(
+      try book.continuationState(conversation: "main", runID: after, messageIDs: [])[
+        "stoppedRequest"] == .null)
+  }
+  check("one request saves one draft per title, and a later request may reuse the title") {
+    let book = try Workbook.create(at: root.appendingPathComponent("Drafts.sevra"), title: "Drafts")
+    let source = try book.addItem(category: "source", kind: "note", title: "Report", text: "Held")
+    func start(_ words: String) throws -> String {
+      try book.startAgentRun(
+        conversation: "main", model: "fixture",
+        requestMessageID: try book.addMessage(words, role: "user"))
+    }
+    func save(_ run: String, _ title: String, _ text: String) throws -> Value {
+      let args: Value = .object([
+        "title": .string(title), "text": .string(text), "inputs": .array([.string(source.id)]),
+      ])
+      let id = try book.prepareToolCall(
+        runID: run, callID: identifier(), tool: "draft", arguments: args)
+      let result = try WorkbookTools(book, runID: run).execute("draft", args)
+      _ = try book.completeToolCall(id, result: result)
+      return result
+    }
+    let run = try start("Draft the memo")
+    let saved = try save(run, "Receiving memo", "One line")
+    try expect(try save(run, "Receiving memo", "One line") == saved)
+    try refuses("draft_duplicate") { _ = try save(run, "Receiving memo", "Corrected line") }
+    try refuses("draft_duplicate") { _ = try save(run, "RECEIVING MEMO", "Corrected line") }
+    _ = try save(run, "Supplier memo", "Another line")
+    try book.finishAgentRun(run, status: "complete", steps: 5, metrics: .array([]))
+    _ = try save(try start("Draft it for next month"), "Receiving memo", "Next month")
+    try expect(try book.items(kind: "document").filter { $0.category == "record" }.count == 3)
+  }
+  check("a stopped request's text stays once read, across another stop, and only then") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("Stopped.sevra"), title: "Stopped")
+    func start(_ words: String) throws -> (run: String, message: String) {
+      let message = try book.addMessage(words, role: "user")
+      return (
+        try book.startAgentRun(conversation: "main", model: "fixture", requestMessageID: message),
+        message
+      )
+    }
+    func call(_ run: String, _ name: String, _ args: Value) throws {
+      let id = try book.prepareToolCall(
+        runID: run, callID: identifier(), tool: name, arguments: args)
+      let result = try WorkbookTools(book, runID: run).execute(name, args)
+      _ = try book.completeToolCall(id, result: result)
+    }
+    func stopped(_ run: String) throws -> Value {
+      try book.continuationState(conversation: "main", runID: run, messageIDs: [])["stoppedRequest"]
+    }
+    func space(_ title: String) throws -> Value {
+      .object([
+        "title": .string(title),
+        "definition": try encoded(
+          SpaceDefinition(components: [.init(type: "text", title: title, text: "Open")])),
+      ])
+    }
+    let source = try book.addItem(
+      category: "source", kind: "document", title: "Report", text: "Line one.\n", meaning: "estimate")
+    let first = try start("Save a review, read the report, then save a memo.")
+    try call(first.run, "save_space", try space("Review"))
+    try call(first.run, "read", .object(["id": .string(source.id)]))
+    try book.finishAgentRun(first.run, status: "cancelled", steps: 2, metrics: .array([]))
+
+    // Reads do not carry over, so they are not listed as finished work.
+    let second = try start("Please continue")
+    var state = try stopped(second.run)
+    try expect(state["messageID"].text == first.message && state["text"] == .null)
+    try expect(state["saved"].array.map { $0["tool"].text } == ["save_space"])
+    try expect(state["notice"].text.contains("history_read"))
+    try expect(state["notice"].text.contains("Earlier reads do not carry over"))
+
+    // Reading another message keeps nothing. Reading this one keeps its words.
+    let unrelated = try book.addMessage("Something unrelated", role: "user")
+    try call(second.run, "history_read", .object(["id": .string(unrelated)]))
+    try expect(try stopped(second.run)["text"] == .null)
+    try call(second.run, "history_read", .object(["id": .string(first.message)]))
+    state = try stopped(second.run)
+    try expect(state["text"].text == "Save a review, read the report, then save a memo.")
+    try expect(state["notice"].text.contains("applies only if the current request asks"))
+    try call(second.run, "save_space", try space("Second view"))
+    try book.finishAgentRun(second.run, status: "failed", steps: 2, metrics: .array([]))
+
+    // The next follow-up points at the first request, not at "Please continue".
+    let third = try start("Continue again")
+    state = try stopped(third.run)
+    try expect(state["messageID"].text == first.message && state["status"].text == "failed")
+    try expect(state["saved"].array.map { $0["title"].text } == ["Review", "Second view"])
+    try expect(state["text"] == .null)
+    // Reading that request says what is done, right beside its words.
+    let history = try WorkbookTools(book, runID: third.run).execute(
+      "history_read", .object(["id": .string(first.message)]))
+    try expect(history["message"]["body"].text.contains("Save a review"))
+    try expect(history["stoppedRequest"]["saved"].array.count == 2)
+    try expect(history["stoppedRequest"]["notice"].text.contains("do not repeat"))
+    let plain = try WorkbookTools(book, runID: third.run).execute(
+      "history_read", .object(["id": .string(unrelated)]))
+    try expect(plain["stoppedRequest"] == .null)
+    try book.finishAgentRun(third.run, status: "complete", steps: 0, metrics: .array([]))
+    let newWork = try start("New work")
+    try expect(try stopped(newWork.run) == .null)
+    try book.finishAgentRun(newWork.run, status: "complete", steps: 0, metrics: .array([]))
+
+    // A very long request stays behind history_read instead of filling the context.
+    let long = try start(String(repeating: "long ", count: 2000))
+    try book.finishAgentRun(long.run, status: "interrupted", steps: 0, metrics: .array([]))
+    let afterLong = try start("Continue")
+    try call(afterLong.run, "history_read", .object(["id": .string(long.message)]))
+    state = try stopped(afterLong.run)
+    try expect(state["text"] == .null && state["notice"].text.contains("history_read"))
+  }
   check("continuation preserves exact source bindings and saved spaces, with live version status") {
     let book = try Workbook.create(
       at: root.appendingPathComponent("Continuing.sevra"), title: "Continue")

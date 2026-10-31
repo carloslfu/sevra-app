@@ -255,6 +255,7 @@ extension Workbook {
         try verifyItemDerivations()
         try verifyBusinessInputDeclarations()
         try verifyFormDrafts()
+        try verifyTableUpdateDrafts()
         try verifyWorkflowClarificationDrafts()
         try verifySpaces()
         try verifyContextCheckpoints()

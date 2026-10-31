@@ -1387,3 +1387,48 @@ Further native surface polish: aligned forms/layout, compact action fallback, pe
 ## [2026-10-30 00:56] verification | records/reviews/design-feature-audit.md
 Completed design-to-code audit on 5f55035: broad suite passes; retained native-model coverage failure and 100000-row fixture transaction failure; documented feature matrix and three priorities without product changes.
 
+## [2026-10-30 02:23] implementation | records/operations/agent-handoff.md
+Owner-paused unfinished increments1 and2; stopped full suite143, preserved source-bound failure evidence and detailed ordered handoff. Focused agent/preview checks pass; final pricing wording and installed visual checks remain.
+
+## [2026-10-30 03:04] implementation | records/operations/agent-handoff.md
+Resumed increments 1 and 2: narrow missing-cost wording check, content-aware read-only table sizing, offscreen snapshot mode; native build 7 installed. Installed-window check pending Screen Recording permission.
+
+## [2026-10-30 03:04] verification | records/operations/implementation.md
+Focused related-original, full agent regression (42), preview checks, native build 7, package paths-only and bash scripts/check.sh exit 0; two fresh actual-model supplier probes complete with qualified wording. Receipt 91f2b910.
+
+## [2026-10-30 13:55] verification | records/operations/implementation
+Installed-window pass on native build 9 found and fixed four table defects; context menu, clipboard write and real wheel gesture stay component-checked only.
+
+## [2026-10-30 14:36] implementation | records/specs/contextual-import
+Increment 3: exact heading suggestions, saved in-progress reviews and bounded XLSX saved-value updates with ambiguity refusals.
+
+## [2026-10-30 14:36] verification | records/operations/implementation
+Reviewed updates ran in installed build 13 through acceptance and Undo; 73 CLI journeys and the full suite pass with zero warnings.
+
+## [2026-10-30 15:47] implementation | records/specs/contextual-import
+Increment 4: table imports commit in row and byte bounded batches, resume after saved rows and report committed rows only.
+
+## [2026-10-30 15:47] verification | records/operations/implementation
+Bulk intake ran in installed build 17 through Stop, SIGKILL and Continue; 26 CLI journeys, the 100,000-row benchmark and the full suite pass.
+
+## [2026-10-30 19:05] implementation | records/specs/contextual-import
+Excel formula subset: recalculation after edits, Undo, export and reopen, with every other formula keeping its saved value and a stated reason. Fixed XLSX import that grew with the square of the rows and a search index limit that stopped the largest files.
+
+## [2026-10-30 19:05] verification | records/operations/implementation
+3,600 formulas calculated by LibreOffice match on import and after 20 edits; installed window pass on a synthetic workbook, typing, Undo, saved values, popover and dark mode. No file written by Excel itself was tested.
+
+## [2026-10-31 00:11] implementation | records/specs/conversation-context
+Increments 6 through 9 in their smallest reliable versions: bounded continuation on for the native 32K profile, open_automation, Add a folder, job templates and longer audio parts. One request now saves one draft per title.
+
+## [2026-10-31 00:11] verification | records/operations/implementation
+Candidate 4e96746: full suite exit 0 with 803 PASS lines, the real eight-report job passed, and the four real journeys passed on the second pass after one comparison cited the source instead of rows. The window pass did not run because the screen stayed locked.
+
+## [2026-10-31 02:56] verification | records/operations/implementation
+Installed-window pass on candidate 4e96746 with a synthetic workbook: a real request opened automation review in 12 s with nothing enabled, and the automation screens, save panel suggestion, Light and Dark and table arrow keys worked. Add a folder, template export and import, and Transcribe with real speech still need a person at this Mac.
+
+## [2026-10-31 14:50] verification | records/operations/implementation
+Owner-assisted window pass on the installed build: Add a folder, template export and import, and Transcribe on real audio. A dropped-words join defect was found and fixed; all 576 core checks pass and the same recording now keeps every word at the join.
+
+## [2026-10-31 14:54] verification | records/operations/agent-handoff
+Records now state that main carries the handoff work, ahead of its merge through a pull request.
+

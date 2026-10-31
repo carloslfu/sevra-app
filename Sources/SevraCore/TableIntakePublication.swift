@@ -3,20 +3,22 @@ import Foundation
 extension Workbook {
   public func proposeTableUpdate(
     sourceID: String, datasetID: String, mode: TableUpdateMode,
-    mapping: [IntakeColumnMapping], keys: [String] = [], headerRow: Int = 1,
+    mapping: [IntakeColumnMapping], keys: [String] = [], headerRow: Int = 1, sheet: String? = nil,
     newRowMeaning: String, newRowScenario: String,
     expectedRevision: Int, expectedFingerprint: String,
     intakeID: String? = nil,
     token: String = UUID().uuidString, cancellation: Cancellation = .init()
   ) throws -> Item {
-    let request: Value = .object([
+    var fields: [String: Value] = [
       "source": .string(sourceID), "dataset": .string(datasetID), "mode": .string(mode.rawValue),
       "mapping": try encoded(mapping), "keys": .array(keys.map(Value.string)),
       "headerRow": .number(Double(headerRow)), "meaning": .string(newRowMeaning),
       "scenario": .string(newRowScenario), "revision": .number(Double(expectedRevision)),
       "fingerprint": .string(expectedFingerprint),
       "intakeID": intakeID.map(Value.string) ?? .null,
-    ])
+    ]
+    if let sheet { fields["sheet"] = .string(sheet) }
+    let request: Value = .object(fields)
     // Receipt lookup precedes parsing: retry must work after an original disappears
     // or after acceptance changes the target. The transactional check repeats below.
     if let prior = try synchronized({
@@ -34,7 +36,7 @@ extension Workbook {
       "update_meaning", "Choose the meaning and scenario for new rows explicitly.")
     let plan = try tableUpdatePlan(
       sourceID: sourceID, datasetID: datasetID, mode: mode,
-      mapping: mapping, keys: keys, headerRow: headerRow,
+      mapping: mapping, keys: keys, headerRow: headerRow, sheet: sheet,
       cancellation: cancellation)
     try require(
       plan.preview.revision == expectedRevision && plan.preview.fingerprint == expectedFingerprint,
@@ -58,6 +60,7 @@ extension Workbook {
       let proposal = try insertTableUpdatePlan(
         plan, newRowMeaning: newRowMeaning, newRowScenario: newRowScenario,
         cancellation: cancellation)
+      try removeTableUpdateDraft(sourceID)
       if let intakeID {
         var report = try intakeJob(intakeID).report.object
         report["conversion"] = .string("proposed_update")

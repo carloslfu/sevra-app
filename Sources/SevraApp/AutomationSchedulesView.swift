@@ -17,6 +17,7 @@ struct AutomationSchedulesView: View {
       HStack {
         TextField("Find an automation", text: $query)
         Button("New automation…") { creating = true }.disabled(workspace.busy)
+        Button("Import template…", action: importTemplate).disabled(workspace.busy)
         Button("Runs") { workspace.navigate(.activity) }
       }
       Text(owner.gate).font(.callout).foregroundStyle(.secondary)
@@ -120,6 +121,20 @@ struct AutomationSchedulesView: View {
         AutomationScheduleDetail(definition: definition, workspace: workspace)
       }
       .sheet(isPresented: $creating) { AutomationScheduleEditor(workspace: workspace) }
+  }
+  private func importTemplate() {
+    let panel = NSOpenPanel()
+    panel.allowedContentTypes = [.json]
+    guard panel.runModal() == .OK, let file = panel.url, let book = workspace.workbook else {
+      return
+    }
+    Task {
+      do {
+        let saved = try await Task.detached { try book.importTemplate(file) }.value
+        workspace.refresh()
+        if saved.kind == "automation" { selected = saved }
+      } catch { failure = error.localizedDescription }
+    }
   }
   private func open(_ id: String) {
     guard let book = workspace.workbook else { return }
@@ -332,6 +347,7 @@ struct AutomationScheduleDetail: View {
         || (grantIsCurrent && grant?.definitionID == shown.id && grant?.allowAI == allowAI))
     Button("Run once") { runOnce() }.disabled(preview == nil)
     Button("Edit…") { editing = true }
+    Button("Export template…", action: exportTemplate)
     if isCondition && state["consumer_id"].string != nil {
       Button("Only from now…") { confirmingFromNow = true }
     }
@@ -392,6 +408,20 @@ struct AutomationScheduleDetail: View {
       await load()
       workspace.refresh()
       working = false
+    }
+  }
+  private func exportTemplate() {
+    let panel = NSSavePanel()
+    panel.allowedContentTypes = [.json]
+    panel.nameFieldStringValue = shown.title + " template.json"
+    guard panel.runModal() == .OK, let file = panel.url, let book = workspace.workbook else {
+      return
+    }
+    let id = shown.id
+    Task {
+      do {
+        try await Task.detached { try book.exportTemplate(id, to: file) }.value
+      } catch { failure = error.localizedDescription }
     }
   }
   private func runOnce() {

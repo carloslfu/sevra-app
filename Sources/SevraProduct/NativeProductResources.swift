@@ -52,7 +52,7 @@
         grammarSHA256: manifest.grammarSHA256, modelsRoot: modelsRoot,
         memoryBytes: 12 * 1024 * 1024 * 1024,
         contextBudget: .init(profile: .evaluation32K), reasoning: .bounded512,
-        modelLayout: .installed, contextMaintenanceEnabled: false)
+        modelLayout: .installed, contextMaintenanceEnabled: true)
     }
     static func check(validateMetal: Bool) throws -> Value {
       let (manifest, engine, grammar) = try layout()

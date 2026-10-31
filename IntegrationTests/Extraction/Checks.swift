@@ -435,7 +435,7 @@ private final class Failures: @unchecked Sendable {
         to: URL(fileURLWithPath: CommandLine.arguments.last!))
       try FileHandle.standardOutput.write(
         contentsOf: Data(
-          #"{"version":1,"result":{"sheets":[{"name":"","rows":[["part","quantity"],["Brass","12"]],"rowNumbers":[1,2],"notes":[],"formulas":{}}]}}"#
+          #"{"version":1,"result":{"sheets":[{"name":"","rows":[["part","quantity"],["Brass","12"]],"rowNumbers":[1,2],"notes":[],"formulas":{},"unsettled":{},"formulaKinds":{}}]}}"#
             .utf8))
     case "descriptors":
       for fd in 3..<getdtablesize() {

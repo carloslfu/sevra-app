@@ -6,6 +6,25 @@ public struct SpaceTarget: Codable, Equatable, Sendable {
 }
 
 extension Workbook {
+  /// The same rule for a saved automation. Naming one opens its review and enables nothing.
+  public func automationTarget(_ nameOrID: String) throws -> ApplicationDefinition {
+    let target = nameOrID.trimmingCharacters(in: .whitespacesAndNewlines)
+    try require(
+      !target.isEmpty && target.utf8.count <= 512, "automation_target",
+      "Which automation do you mean?")
+    return try synchronized {
+      let rows = try db.execute(
+        "SELECT d.* FROM app_definitions d JOIN app_definition_heads h ON h.definition_id=d.id WHERE d.kind='automation' AND (d.id=? OR d.title=? COLLATE NOCASE) ORDER BY d.id LIMIT 2",
+        [.string(target), .string(target)])
+      try require(
+        !rows.isEmpty, "automation_not_found",
+        "No saved automation has that exact name. Which one do you mean?")
+      try require(
+        rows.count == 1, "automation_ambiguous",
+        "More than one automation has that name. Which one do you mean?")
+      return try ApplicationDefinition(rows[0])
+    }
+  }
   /// Resolve an exact ID or an unambiguous name. A partial name never selects the
   /// first convenient match. The caller must ask when the saved names collide.
   public func spaceTarget(_ nameOrID: String, cancellation: Cancellation = .init()) throws

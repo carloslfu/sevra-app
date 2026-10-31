@@ -212,7 +212,6 @@ struct SpaceView: View {
       case "recent": return !state.items.isEmpty
       case "intake":
         return !state.pendingExtractions.isEmpty
-          || state.intakeStatus.contains { $0["state"].text != "ready" }
       case "shortcuts":
         let shortcuts = SpacePickerSections(
           spaces: state.spaces, navigation: state.spaceNavigation.state, query: "")
@@ -281,7 +280,10 @@ struct WorkbookSection: View {
               Image(systemName: "tablecells")
               Text(table.title)
               Spacer()
-              Text("\(table.rowCount) rows").foregroundStyle(.secondary)
+              Text(
+                state.savedRows(table)
+                  ?? (table.rowCount == 1 ? "1 row" : "\(table.rowCount.formatted()) rows")
+              ).foregroundStyle(.secondary)
             }.padding(.vertical, 7)
           }.buttonStyle(.plain)
         }
@@ -304,7 +306,7 @@ struct WorkbookSection: View {
           HStack {
             VStack(alignment: .leading) {
               Text(job["title"].text)
-              Text(job["detail"].text).font(.caption).foregroundStyle(.secondary)
+              Text(state.intakeDetail(job)).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
             if let id = job["job_id"].string {
@@ -313,8 +315,10 @@ struct WorkbookSection: View {
               }.disabled(state.busy)
             } else if job["asset_id"].string != nil {
               Button("Resume") {
+                let progress = state.rowProgress()
                 state.run("Resuming intake") { book, cancel in
-                  try book.resumeIntake(job["item_id"].text, cancellation: cancel)
+                  try book.resumeIntake(
+                    job["item_id"].text, cancellation: cancel, progress: progress)
                 }
               }
             } else {
@@ -322,15 +326,6 @@ struct WorkbookSection: View {
             }
           }
         }
-      }
-      ForEach(state.intakeStatus.filter { $0["state"].text != "ready" }, id: \.text) { job in
-        let title = job["title"].text
-        let completed = job["completed"].text
-        let total = job["total"].text
-        Text(
-          "\(title): \(completed) of \(total) rows imported. Resume from the original source."
-        )
-        .font(.callout).foregroundStyle(.secondary)
       }
 
     case "recent":
@@ -567,6 +562,7 @@ struct DatasetView: View {
   }
   @State private var column = 0
   @State private var clipboardStatus = ""
+  @State private var showingFormulas = false
   private var pageIsCurrent: Bool { loader.loadedQuery == query && !loader.loading }
   private var canPaste: Bool {
     pageIsCurrent && !selection.isEmpty && !table.archived && !state.busy
@@ -685,8 +681,8 @@ struct DatasetView: View {
         }.disabled(offset == 0)
         Text(
           rows.isEmpty
-            ? "0 rows on this page of \(total)"
-            : "\(displayedOffset+1)–\(min(displayedOffset+rows.count,total)) of \(total)"
+            ? "0 rows on this page of \(total.formatted())"
+            : "\((displayedOffset+1).formatted())–\(min(displayedOffset+rows.count,total).formatted()) of \(total.formatted())"
         )
         .font(.caption)
         Button("Next") {
@@ -694,6 +690,16 @@ struct DatasetView: View {
         }.disabled(offset + rows.count >= total)
       } else {
         Text(total == 1 ? "1 row" : "\(total) rows").font(.caption).foregroundStyle(.secondary)
+      }
+      if let saved = state.savedRows(table) {
+        Text("Import unfinished: " + saved).font(.caption).foregroundStyle(.secondary)
+      }
+      if let report = loader.page?.formulaReport {
+        Button(report.summary) { showingFormulas = true }
+          .buttonStyle(.link).font(.caption)
+          .popover(isPresented: $showingFormulas, arrowEdge: .top) {
+            ExcelFormulaReportView(report: report)
+          }
       }
       if !selection.isEmpty {
         Text("\(selection.count) selected on this page").font(.caption).foregroundStyle(.secondary)

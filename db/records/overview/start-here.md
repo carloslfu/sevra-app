@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-30T00:57:36.686686+00:00
+updated: 2026-10-31T14:52:00+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -23,6 +23,25 @@ for the secondary service. Website pricing/support does not apply to this app.
 Slotstream remains independent.
 
 ## Current preview and delivery order
+
+The owner resumed the minimum-feature work after a handoff pause:
+[[records/operations/agent-handoff]]. Increment 1, bounded multi-original evidence
+with qualified partial costs, is accepted for its scope. Increment 2, native
+comparison and original-table grids, increment 3, less manual reviewed updates,
+increment 4, bounded bulk intake, and increment 5, an explicit Excel formula subset, are
+accepted for their scope. So are increment 6, bounded conversation continuation, now on for the
+native 32K profile, increment 7, reaching automation review by text or voice, increment 8, folder
+comparison and job templates, and increment 9, longer audio. Increment 10 has its real-model
+journey, install, suite and window pass; signing and the hardware matrix remain open. Main carries
+this work.
+
+The October 29 follow-up authorizes sequential minimum usable features, testing
+and polish: [[records/operations/minimum-feature-delivery]]. That queue supersedes
+the previous blanket follow-up deferral below. Start with bounded multi-original
+evidence coverage, then native comparison/CSV presentation; preserve the focused
+supplier journey and existing safety/integrity contracts. Later increments and
+external qualification remain unfinished. [[records/operations/implementation]]
+records current acceptance and retained failures.
 
 MVP 0.1 is a native source test preview. The focused supplier journey has actual
 native proof: include CSV/PDF, inspect a cited quotation summary, calculate a cost
