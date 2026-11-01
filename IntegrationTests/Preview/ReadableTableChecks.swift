@@ -80,6 +80,9 @@ import SwiftUI
   let tab = try DelimitedPreview.load(tsv)
   try expect(tab.table.headings == ["Code", "Price", "Column 3"])
   try expect(tab.table.rows == [["0014", "1,20", ""], ["0007", "3,40", "extra"]])
+  let semicolon = root.appendingPathComponent("Semicolon.csv")
+  try Data("Code;Price\n0014;1,20\n".utf8).write(to: semicolon)
+  try expect(try DelimitedPreview.load(semicolon).table.rows == [["0014", "1,20"]])
   let large = root.appendingPathComponent("Large.csv")
   try Data(
     ("Code,Notes\n" + String(repeating: "0014,\"line one\nline two\"\n", count: 60_000)).utf8

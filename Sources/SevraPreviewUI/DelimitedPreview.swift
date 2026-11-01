@@ -42,7 +42,7 @@ public struct DelimitedPreview {
         "preview_encoding", "This table is not UTF-8 text. Open a copy to inspect the original.")
     }
     let records = try CSV.parse(
-      text, delimiter: url.pathExtension.lowercased() == "tsv" ? "\t" : ",",
+      text, delimiter: url.pathExtension.lowercased() == "tsv" ? "\t" : CSV.delimiter(of: text),
       cancellation: cancellation)
     let width = records.map(\.count).max() ?? 0
     let first = records.first ?? []

@@ -107,8 +107,9 @@ public enum Extractor {
       else { throw SevraError("image", "Cannot decode this image.") }
       let width = props[kCGImagePropertyPixelWidth] as? Int ?? 0
       let height = props[kCGImagePropertyPixelHeight] as? Int ?? 0
+      try require(width > 0 && height > 0, "image", "Cannot decode this image.")
       try require(
-        width > 0 && height > 0 && Double(width) * Double(height) <= 100_000_000, "image_limit",
+        Double(width) * Double(height) <= 100_000_000, "image_limit",
         "Image exceeds the OCR pixel limit.")
       guard
         let image = CGImageSourceCreateThumbnailAtIndex(
