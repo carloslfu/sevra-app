@@ -117,12 +117,8 @@ func checkScopedSearch() async throws {
       .object([
         "query": .string("cafe supplier"), field: .string("nonmatching"),
       ]))
-    // A kind no item has widens to every kind and says so, still leaving conversation out.
-    if field == "kind" {
-      try expectEqual(filtered["kindNotice"].text.contains("nonmatching"), true)
-    } else {
-      try expectEqual(filtered["hits"].array.isEmpty, true)
-    }
+    // A value no item has widens the search and says so, still leaving conversation out.
+    try expectEqual(filtered["filterNotice"].text.contains("nonmatching"), true)
     try expectEqual(filtered["conversation"]["searched"], .bool(false))
     try expectEqual(filtered["conversation"]["hits"].array.isEmpty, true)
     try expectEqual(filtered["definitions"]["searched"], .bool(false))

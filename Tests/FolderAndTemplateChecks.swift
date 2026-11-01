@@ -140,7 +140,11 @@ func checkFoldersAndTemplates(at root: URL) {
     try expect(try hits("quote") == 1 && hits("pdf") == 1)
     let widened = try WorkbookTools(book).execute(
       "search", .object(["query": .string("Atlas"), "kind": .string("invoice")]))
-    try expect(widened["kindNotice"].text.contains("invoice"))
+    try expect(widened["filterNotice"].text.contains("invoice"))
+    let meaning = try WorkbookTools(book).execute(
+      "search", .object(["query": .string("Atlas"), "meaning": .string("inventory balance")]))
+    try expect(meaning["filterNotice"].text.contains("inventory balance"))
+    try expect(meaning["hits"].array.count == 1)
     // A kind that exists still narrows the search.
     _ = try book.addItem(category: "source", kind: "memo", title: "Memo", text: "Nothing related.")
     try expect(try hits("memo") == 0)
