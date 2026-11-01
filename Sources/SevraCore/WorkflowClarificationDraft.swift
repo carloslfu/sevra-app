@@ -13,6 +13,10 @@ public struct WorkflowClarificationEntry: Codable, Equatable, Identifiable, Send
     self.target = target
     token = identifier()
   }
+  /// Nothing typed or saved, so dropping this entry loses nothing.
+  var isUntouched: Bool {
+    values == .object([:]) && reason.isEmpty && receipt == nil && preparation == nil
+  }
 }
 
 /// Unsent input is presentation state. Only submission creates new evidence.
@@ -168,8 +172,13 @@ extension Workbook {
     keepOther: Bool
   ) throws -> WorkflowClarificationDraft {
     let current = try workflowClarificationDraft(runID)
+    // Cleanup may have dropped an untouched draft while its window stayed open.
+    let dropped =
+      current == nil && expected.map { ([$0.entry] + $0.alternatives).allSatisfy(\.isUntouched) }
+      == true
     try require(
-      current == expected || current == draft || keepOther, "clarification_draft_conflict",
+      current == expected || current == draft || keepOther || dropped,
+      "clarification_draft_conflict",
       "Another window changed these inputs. Keep both drafts before continuing.")
     var saved = draft
     if keepOther, let current, current != expected && current != draft {
@@ -290,7 +299,7 @@ extension Workbook {
   }
 
   /// Called inside the presentation transaction. Only discard a cached entry
-  /// when every answer has its exact durable business-operation receipt.
+  /// when every answer is untouched or has its exact durable business-operation receipt.
   func pruneSubmittedClarificationDrafts(limit: Int) throws -> Int {
     try require(
       (1...128).contains(limit), "clarification_draft_limit", "Use a bounded cache cleanup.")
@@ -304,7 +313,7 @@ extension Workbook {
           String(key.dropFirst("workflow-clarification-draft:".count)))
       else { continue }
       var complete = true
-      for entry in [draft.entry] + draft.alternatives {
+      for entry in [draft.entry] + draft.alternatives where !entry.isUntouched {
         do {
           if try workflowClarificationDraftReceipt(entry) == nil {
             complete = false

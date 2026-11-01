@@ -134,12 +134,7 @@ func checkWorkflowInterpretations(at root: URL) {
       ]),
     ])
   }
-  func paused(
-    _ name: String, outputMeaning: String = "actual", inventory: Bool = false,
-    twoInputs: Bool = false
-  ) throws -> (Workbook, WorkflowExecutionSession, Value, Value) {
-    let (book, _, session) = try fixture(
-      name, outputMeaning: outputMeaning, inventory: inventory, twoInputs: twoInputs)
+  func pause(_ book: Workbook, _ session: WorkflowExecutionSession) throws -> (Value, Value) {
     let claim = try book.claimWorkflowStep(session, owner: "synthetic")
     let request = try book.prepareWorkflowInterpretation(session, claim: claim, model: "synthetic")
     let result = try book.completeWorkflowStep(
@@ -151,7 +146,51 @@ func checkWorkflowInterpretations(at root: URL) {
           "issues": .array([.string("Please confirm the received count.")]),
         ]),
       ]))
+    return (result, claim)
+  }
+  func paused(
+    _ name: String, outputMeaning: String = "actual", inventory: Bool = false,
+    twoInputs: Bool = false
+  ) throws -> (Workbook, WorkflowExecutionSession, Value, Value) {
+    let (book, _, session) = try fixture(
+      name, outputMeaning: outputMeaning, inventory: inventory, twoInputs: twoInputs)
+    let (result, claim) = try pause(book, session)
     return (book, session, result, claim)
+  }
+  check("an empty draft is prunable and a failed retry does not reopen its old question") {
+    let (book, session, _, _) = try paused("EmptyDraft")
+    var draft = try book.newWorkflowClarificationDraft(session.runID)
+    let empty = try book.saveWorkflowClarificationDraft(session.runID, draft: draft, expected: nil)
+    func prune() throws -> Int {
+      try book.presentationMutation { try book.pruneSubmittedClarificationDrafts(limit: 1) }
+    }
+    try expect(try prune() == 1 && book.workflowClarificationDraft(session.runID) == nil)
+    // A window still holding that draft keeps working, and what it types is never dropped.
+    draft.entry.reason = "Typed after cleanup"
+    _ = try book.saveWorkflowClarificationDraft(session.runID, draft: draft, expected: empty)
+    try expect(try prune() == 0 && book.workflowClarificationDraft(session.runID) == draft)
+
+    let target = try book.workflowClarification(session.runID)
+    _ = try book.retryWorkflow(session, token: "retry")
+    let claim = try book.claimWorkflowStep(session, owner: "second")
+    let failed = try book.failWorkflowStep(session, claim: claim, detail: "The model stopped.")
+    try expect(failed["state"] == .string("needs_attention"))
+    try refuses("workflow_clarification") { _ = try book.workflowClarification(session.runID) }
+    try refuses("workflow_clarification") {
+      _ = try book.clarifyWorkflow(
+        session, target: target, values: .object(["quantity": .string("5")]),
+        reason: "An answer to the old question.", token: "stale")
+    }
+    try expect(try book.verify()["ok"] == .bool(true))
+    // A later attempt that asks again is answerable.
+    _ = try book.retryWorkflow(session, token: "retry-again")
+    _ = try pause(book, session)
+    let asked = try book.workflowClarification(session.runID)
+    try expect(asked != target)
+    let answered = try book.clarifyWorkflow(
+      session, target: asked, values: .object(["quantity": .string("5")]),
+      reason: "The answer to the new question.", token: "answer")
+    try expect(answered["state"] == .string("queued"))
   }
   check("two inputs naming one Source offer it once for a clarification answer") {
     let (book, session, _, _) = try paused("Repeated", twoInputs: true)

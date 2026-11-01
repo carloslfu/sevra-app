@@ -12,7 +12,12 @@ extension Workbook {
       step["state"] == .string("needs_attention"), step["kind"] == .string("interpret"),
       step["output"]["value"]["kind"] == .string("interpretation"),
       step["output"]["value"]["response"]["state"] == .string("needs_input"),
-      step["output"]["value"]["clarification"] == .null
+      step["output"]["value"]["clarification"] == .null,
+      // A retry that failed leaves this output behind, but the question no longer stands.
+      try db.scalar(
+        "SELECT id FROM workflow_attempts WHERE run_id=? AND step_id=? ORDER BY generation DESC LIMIT 1",
+        [run["id"], step["step_id"]]
+      ) == step["output"]["value"]["request"]["attemptID"]
     else {
       throw SevraError(
         "workflow_clarification", "This run has no paused interpretation awaiting information.")
