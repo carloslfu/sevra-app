@@ -253,23 +253,9 @@ extension Workbook {
     return sha.finalize().map { String(format: "%02x", $0) }.joined()
   }
   public func verify(cancellation: Cancellation = .init(), assets: Bool = true) throws -> Value {
-    // The search checks need SQLite's write lock, which it will not wait for from inside a
-    // read, so writers stay out until verification ends.
-    try excludingWriters(cancellation: cancellation) {
-      try db.budget(cancellation: cancellation, seconds: .infinity) {
-        try db.readTransaction { try verifiedContents(assets: assets, cancellation: cancellation) }
-      }
-    }
-  }
-  private func verifiedContents(assets: Bool, cancellation: Cancellation) throws -> Value {
-    let check = try db.scalar("PRAGMA integrity_check").text
-    try require(check == "ok", "integrity", check)
-    try require(
-      try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
-      "Invalid workbook references.")
-    try db.verifyBusinessEvents()
+    // Hashing a large file takes no lock, so it keeps no writer or opening window waiting.
     var missing: [Value] = []
-    for row in assets ? try db.execute("SELECT id,name FROM assets") : [] {
+    for row in assets ? try synchronized({ try db.execute("SELECT id,name FROM assets") }) : [] {
       do {
         _ = try assetURL(row["id"]!.text, verify: true, cancellation: cancellation)
       } catch {
@@ -278,6 +264,21 @@ extension Workbook {
           .object(["name": row["name"]!, "error": .string(error.localizedDescription)]))
       }
     }
+    // The search checks need SQLite's write lock, which it will not wait for from inside a
+    // read, so writers stay out until verification ends.
+    return try excludingWriters(cancellation: cancellation) {
+      try db.budget(cancellation: cancellation, seconds: .infinity) {
+        try db.readTransaction { try verifiedContents(missing: missing) }
+      }
+    }
+  }
+  private func verifiedContents(missing: [Value]) throws -> Value {
+    let check = try db.scalar("PRAGMA integrity_check").text
+    try require(check == "ok", "integrity", check)
+    try require(
+      try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
+      "Invalid workbook references.")
+    try db.verifyBusinessEvents()
     try db.execute("INSERT INTO search_fts(search_fts,rank) VALUES('integrity-check',1)")
     try db.execute("INSERT INTO names_fts(names_fts,rank) VALUES('integrity-check',1)")
     try db.execute("INSERT INTO message_fts(message_fts,rank) VALUES('integrity-check',1)")

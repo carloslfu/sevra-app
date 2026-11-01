@@ -95,7 +95,7 @@ extension Workbook {
       sevra_enable_triggers(target.handle, 1) == SQLITE_OK, "change_triggers",
       "Cannot restore canonical storage triggers.")
     let checked = try Workbook(package)
-    _ = try checked.verify()
+    _ = try checked.verify(cancellation: cancellation)
     try cancellation.check()
     try fm.moveItem(at: package, to: destination)
     return try Workbook(destination)

@@ -222,9 +222,11 @@ public final class Workbook: @unchecked Sendable {
       return try synchronized(cancellation: cancellation) {
         try Self.lockPackage(lockFD, cancellation: cancellation)
         defer { flock(lockFD, LOCK_UN) }
-        return try db.shortWait {
+        func run() throws -> Value {
           try db.budget(cancellation: cancellation, seconds: deadlineSeconds) { try transaction() }
         }
+        // Work with no deadline is too long to lose to a reader passing at COMMIT.
+        return try deadlineSeconds.isInfinite ? run() : db.shortWait(run)
       }
     }
     return try synchronized {

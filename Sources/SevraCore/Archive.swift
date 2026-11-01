@@ -186,11 +186,12 @@ extension Workbook {
       try workbook.db.scalar(
         "SELECT count(*) FROM assets WHERE mode='linked' AND (path!='' OR bookmark IS NOT NULL)"
       ).int == 0, "archive_linked", "This archive names files outside itself and was not opened.")
-    let integrity = try workbook.verify()
+    _ = try workbook.verify(cancellation: cancellation, assets: false)
     // Missing explicit external dependencies are portable and remain visible.
     let includedIDs = try workbook.db.execute("SELECT id FROM assets WHERE mode='included'")
-    for row in includedIDs { _ = try workbook.assetURL(row["id"]!.text, verify: true) }
-    _ = integrity
+    for row in includedIDs {
+      _ = try workbook.assetURL(row["id"]!.text, verify: true, cancellation: cancellation)
+    }
     try fm.moveItem(at: staging, to: destination)
     return try Workbook(destination)
   }
