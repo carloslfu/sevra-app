@@ -137,6 +137,8 @@ package struct ActionConfirmations {
         return "Saved reusable behavior “" + title
           + "”. Business acceptance is separate."
       case "failure":
+        // What refuses a thread change speaks to the model, not to the person.
+        if title == "changing the thread" { return "Couldn’t finish changing the thread." }
         let reason = entry["error"].text.components(separatedBy: Self.repeatRefused)[0]
         return "Couldn’t finish " + title + ". " + reason
       case "draft": return "Saved draft [" + title + "](sevra://item/" + id + ")."

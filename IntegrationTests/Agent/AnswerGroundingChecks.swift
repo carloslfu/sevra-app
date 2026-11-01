@@ -377,7 +377,17 @@ func checkRefusedToolCalls() async throws {
       "Say hello.", workbook: book, model: ScriptedCalls([refused, refused, refused]))
     throw SevraError("fixture", "Repeated refusals completed.")
   } catch let error as SevraError where error.code == "model_format" {}
-  print("PASS refused tool arguments reach the model for correction, three times at most")
+  let cutOff: ScriptedCalls.Step = { _ in throw SevraError("truncated", "Cut off.") }
+  let redone = ScriptedCalls([cutOff, finish("Hello.", basis: "general")])
+  let shorter = try await WorkbookAgent.run("Say hello.", workbook: book, model: redone)
+  try expectEqual(shorter.state, "complete")
+  try expectEqual(shorter.steps, 2)
+  do {
+    _ = try await WorkbookAgent.run(
+      "Say hello.", workbook: book, model: ScriptedCalls([cutOff, cutOff, cutOff]))
+    throw SevraError("fixture", "Repeated cut-off responses completed.")
+  } catch let error as SevraError where error.code == "truncated" {}
+  print("PASS refused or cut-off responses reach the model for correction, three times at most")
 }
 
 /// A table read to its end can outrun the 256 IDs the grammar can name. The run carries on, every

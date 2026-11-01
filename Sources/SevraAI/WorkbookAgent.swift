@@ -64,9 +64,10 @@ public enum WorkbookAgent {
       if cancellation.isCancelled {
         do { try cancellation.check() } catch { failure = error }
       }
-      try workbook.rejectAgentRequest(
+      let rejected = try workbook.rejectAgentRequest(
         prompt, conversation: conversation, model: identity,
         cancelled: cancellation.isCancelled, reason: failure.localizedDescription)
+      requestStarted(rejected, conversation)
       throw failure
     }
     do {
@@ -391,9 +392,23 @@ public enum WorkbookAgent {
         // Offer read-only requests no write tools. Core denial remains independent
         // so a malformed/custom inference adapter still gets a recorded refusal.
         let inferenceScope: InferenceToolScope = readOnly && toolScope == .all ? .answer : toolScope
-        let response = try await model.respond(
-          messages: messages, directory: modelDirectory, cancellation: cancellation,
-          progress: progress, toolScope: inferenceScope, citationIDs: citationChoices())
+        let response: NativeReply
+        do {
+          response = try await model.respond(
+            messages: messages, directory: modelDirectory, cancellation: cancellation,
+            progress: progress, toolScope: inferenceScope, citationIDs: citationChoices())
+        } catch let error as SevraError where error.code == "truncated" && failures < 2 {
+          // Nothing from a response cut off at the output limit was applied, so it can be redone.
+          failures += 1
+          completedSteps = step
+          messages.append(
+            InferenceMessage(
+              role: "user",
+              content:
+                "Your previous response ran past the output limit and was discarded. No action from it was executed. Respond again with shorter reasoning and shorter arguments, without retyping text you can copy by passage ID."
+            ))
+          continue
+        }
         try cancellation.check()
         metrics.append(await model.lastMetrics)
         completedSteps = step

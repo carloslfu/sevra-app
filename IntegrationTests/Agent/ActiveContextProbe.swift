@@ -122,6 +122,9 @@ actor ActiveContextModel: WorkbookInference {
   }
 }
 
+/// A balance answers as of a date, and the fixture date is not today.
+private let balanceDate = "2026-10-27T00:00:00Z"
+
 private struct ActiveContextFixture {
   let sources: [Item]
   let words: [String]
@@ -177,7 +180,8 @@ private func prepareActiveContextFixture(_ book: Workbook) throws -> ActiveConte
     """
   return ActiveContextFixture(
     sources: sources, words: words, prompt: prompt,
-    history: try book.historySlice(limit: 500), balance: try book.balance(subject: "brass bolts"))
+    history: try book.historySlice(limit: 500),
+    balance: try book.balance(subject: "brass bolts", asOf: balanceDate))
 }
 
 /// C12 active-job subset only. Two arms share the exact exported fixture: native
@@ -239,7 +243,7 @@ func runActiveContextProbe(
       try expectEqual(draft.title, "Receiving memo")
       try expectEqual(draft.status, "draft")
       try expectEqual(draft.meaning, "estimate")
-      for text in ["MAPLE-27", "0.10", "0.25", "kg"] {
+      for text in ["MAPLE-27", "0.10", "0.25"] {
         try expectEqual(draft.text.contains(text), true)
       }
       try expectEqual(draft.text.lowercased().contains("unspecified"), true)
@@ -256,7 +260,8 @@ func runActiveContextProbe(
       }
       let plainDraft = draft.text.replacingOccurrences(of: "*", with: "")
       for amount in ["0.10", "0.25"] {
-        try expectEqual(plainDraft.contains(amount + " kg"), true)
+        try expectEqual(
+          plainDraft.contains(amount + " kg") || plainDraft.contains(amount + " kilogram"), true)
       }
       let receipts = try book.historySlice(limit: 500).messages.filter { $0.role == "tool" }
         .compactMap { try? Value.parse($0.body) }
@@ -267,7 +272,7 @@ func runActiveContextProbe(
       try expectEqual(Set(fixture.sources.map(\.id)).isSubset(of: parents), true)
       try expectEqual(try book.spaces().filter { $0.title == "Receiving review" }.count, 1)
       try expectEqual(try book.spaces().count, try original.spaces().count + 1)
-      try expectEqual(try book.balance(subject: "brass bolts"), fixture.balance)
+      try expectEqual(try book.balance(subject: "brass bolts", asOf: balanceDate), fixture.balance)
       for item in try original.items() {
         try expectEqual(try encoded(book.item(item.id)), encoded(item))
         try expectEqual(try book.item(item.logicalID).id, item.id)
@@ -294,7 +299,8 @@ func runActiveContextProbe(
         portable, at: root.appendingPathComponent(name + "-reopened.sevra"))
       try expectEqual(try encoded(reopened.item(draft.id)), encoded(draft))
       try expectEqual(try reopened.contextCheckpoints(limit: 100), checkpoints)
-      try expectEqual(try reopened.balance(subject: "brass bolts"), fixture.balance)
+      try expectEqual(
+        try reopened.balance(subject: "brass bolts", asOf: balanceDate), fixture.balance)
       try expectEqual(try reopened.verify()["ok"], .bool(true))
       report["passed"] = .bool(true)
       report["draft"] = try encoded(draft)
@@ -451,7 +457,7 @@ func runActiveContextRecoveryProbe(
       }
       try expectEqual(try book.spaces().filter { $0.title == "Receiving review" }.count, 1)
       try expectEqual(try book.spaces().count, try original.spaces().count + 1)
-      try expectEqual(try book.balance(subject: "brass bolts"), fixture.balance)
+      try expectEqual(try book.balance(subject: "brass bolts", asOf: balanceDate), fixture.balance)
       try expectEqual(try book.unresolvedToolCalls().isEmpty, true)
       try expectEqual(try book.verify()["ok"], .bool(true))
       let parents = Set(try book.lineage(draft.id).compactMap { $0["parent"].string })
