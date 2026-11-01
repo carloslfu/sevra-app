@@ -8,6 +8,8 @@ import SwiftUI
 
 @main struct SevraApp: App {
   init() {
+    // macOS otherwise opens contact AutoFill over fields it takes for a person's title.
+    UserDefaults.standard.register(defaults: ["NSAutoFillHeuristicsEnabled": false])
     if CommandLine.arguments.contains("--check-resources") {
       Task.detached {
         do {
