@@ -5,6 +5,8 @@ public final class Workbook: @unchecked Sendable {
   public let url: URL
   /// Package identity survives copying/export. Links never use the filesystem path.
   public let id: String
+  /// Written once at creation.
+  public let title: String
   let db: Database
   private let lock = NSRecursiveLock()
   private var lockFD: Int32 = -1
@@ -58,6 +60,7 @@ public final class Workbook: @unchecked Sendable {
       m["id"].string != nil, "workbook_identity", "The workbook identity must be a string.")
     try Self.validateReferenceIdentity(m["id"].text)
     id = m["id"].text
+    title = m["title"].text
     db = try Database(url.appendingPathComponent("workbook.sqlite"))
     try require(
       try db.scalar("PRAGMA application_id").int == Schema.applicationID, "format",
@@ -100,11 +103,6 @@ public final class Workbook: @unchecked Sendable {
     }
   }
   deinit { if lockFD >= 0 { Darwin.close(lockFD) } }
-  public var title: String {
-    ((try? Value.parse(
-      String(contentsOf: url.appendingPathComponent("manifest.json"), encoding: .utf8)))?["title"]
-      .text) ?? url.deletingPathExtension().lastPathComponent
-  }
   public func revision() throws -> Int {
     try synchronized { try db.scalar("SELECT value FROM meta WHERE key='revision'").int ?? 0 }
   }

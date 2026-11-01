@@ -3,15 +3,23 @@ import SevraCore
 import SevraPreviewUI
 import SwiftUI
 
-struct ConversationMessageRow: View {
-  @ObservedObject var state: WorkspaceState
+/// Takes plain values, so only a changed message or review draws this row again.
+struct ConversationMessageRow: View, Equatable {
+  let state: WorkspaceState
   let message: Message
+  let content: ConversationMessageContent
+  let review: ProposalReviewState?
+  static func == (left: Self, right: Self) -> Bool {
+    left.message.id == right.message.id && left.message.body == right.message.body
+      && left.message.state == right.message.state && left.message.role == right.message.role
+      && left.review == right.review
+  }
   private var speaker: String {
     message.role == "user" ? "You" : message.role == "event" ? "Activity" : "Sevra"
   }
   private var status: String {
     guard message.state == "needs_review" else { return message.state }
-    guard let review = state.proposalReviews[message.id] else { return "Review requested" }
+    guard let review else { return "Review requested" }
     switch review.status {
     case "accepted": return "Current version accepted"
     case "rejected": return "Current version withdrawn"
@@ -21,12 +29,11 @@ struct ConversationMessageRow: View {
     }
   }
   var body: some View {
-    let content = ConversationPresentation(message.body)
     VStack(alignment: .leading, spacing: 6) {
       HStack {
         Text(speaker).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
         if message.state != "complete" {
-          if let review = state.proposalReviews[message.id] {
+          if let review {
             Button(status) { state.navigate(.item(review.currentVersionID)) }
               .buttonStyle(.plain).font(.caption)
               .foregroundStyle(review.status == "draft" ? Color.orange : Color.secondary)
@@ -40,17 +47,15 @@ struct ConversationMessageRow: View {
           (speaker == "You" ? "Your" : speaker) + " message actions",
           help: "Open links, save this exchange or start a thread"
         ) {
-          ConversationMessageActions(state: state, message: message, content: content)
+          ConversationMessageActions(
+            state: state, message: message, content: content.presentation)
         }
       }
       VStack(alignment: .leading, spacing: 10) {
         ForEach(Array(content.blocks.enumerated()), id: \.offset) { _, block in
           switch block {
           case .text(let text):
-            if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-              Text(ConversationPresentation(text.trimmingCharacters(in: .newlines)).text)
-                .textSelection(.enabled).lineSpacing(4)
-            }
+            Text(text).textSelection(.enabled).lineSpacing(4)
           case .table(let table):
             ReadOnlyTableView(
               content: table, label: "Comparison table", inline: true,
@@ -59,19 +64,21 @@ struct ConversationMessageRow: View {
         }
       }
       .accessibilityActions {
-        ForEach(content.links) { link in
+        ForEach(content.presentation.links) { link in
           Button(link.actionTitle) { state.openConversationLink(link.url) }
         }
       }
     }.accessibilityElement(children: .contain)
       .accessibilityLabel(speaker + " message" + (message.state == "complete" ? "" : ", " + status))
       .accessibilityIdentifier("message-" + message.id)
-      .contextMenu { ConversationMessageActions(state: state, message: message, content: content) }
+      .contextMenu {
+        ConversationMessageActions(state: state, message: message, content: content.presentation)
+      }
   }
 }
 
 struct ConversationMessageActions: View {
-  @ObservedObject var state: WorkspaceState
+  let state: WorkspaceState
   let message: Message
   let content: ConversationPresentation
   var body: some View {
@@ -144,14 +151,13 @@ private struct ConversationCommandContent: View {
     Divider()
     Section("Recent exchanges") {
       ForEach(Array(state.messages.filter { $0.role != "tool" }.suffix(20).reversed())) { message in
-        let preview = ConversationPresentation(String(message.body.prefix(240)))
+        let content = state.messageContent(message).presentation
         let speaker =
           message.role == "user" ? "You" : message.role == "event" ? "Activity" : "Sevra"
-        let text = String(preview.text.characters).replacingOccurrences(of: "\n", with: " ")
-        Menu(speaker + ": " + String(text.prefix(60))) {
-          ConversationMessageActions(
-            state: state, message: message,
-            content: ConversationPresentation(message.body))
+        let text = String(content.text.characters.prefix(60))
+          .replacingOccurrences(of: "\n", with: " ")
+        Menu(speaker + ": " + text) {
+          ConversationMessageActions(state: state, message: message, content: content)
         }
       }
     }

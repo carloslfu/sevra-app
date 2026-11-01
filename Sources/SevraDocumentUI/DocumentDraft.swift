@@ -25,13 +25,22 @@ import SevraCore
   }
   deinit { scheduled?.cancel() }
 
-  public func refreshHead() {
+  public func refreshHead() async {
     // Source viewers also need an explicit historical-version warning. Inspect
     // bounded metadata rather than decoding the newer document's entire body.
-    guard let versions = try? workbook.citationVersions([current.id]),
-      let head = versions["versions"].array.first?["current"]["id"].string
-    else { return }
-    newerVersionID = head == current.id ? nil : head
+    let version = current.id
+    let book = workbook
+    let head = await Task.detached(priority: .utility) {
+      Self.head(of: version, in: book, cancellation: Cancellation(deadlineAfterSeconds: 3))
+    }.value
+    guard let head, current.id == version else { return }
+    newerVersionID = head == version ? nil : head
+  }
+  private nonisolated static func head(
+    of version: String, in workbook: Workbook, cancellation: Cancellation
+  ) -> String? {
+    let versions = try? workbook.citationVersions([version], cancellation: cancellation)
+    return versions?["versions"].array.first?["current"]["id"].string
   }
 
   @discardableResult public func begin() -> Bool {
@@ -93,9 +102,11 @@ import SevraCore
     {
       operation = (current.id, text, separate, identifier())
     }
+    // Navigation waits for this save, so a busy workbook cannot hold the window for longer.
+    let control = Cancellation(deadlineAfterSeconds: 3)
     do {
       let saved = try workbook.editDocument(
-        current.id, text: text, separate: separate, token: operation!.token)
+        current.id, text: text, separate: separate, token: operation!.token, cancellation: control)
       current = saved
       text = saved.text
       operation = nil
@@ -105,8 +116,10 @@ import SevraCore
       return true
     } catch {
       failure = error.localizedDescription
-      if let head = try? workbook.item(current.logicalID), head.id != current.id {
-        newerVersionID = head.id
+      if let head = Self.head(of: current.id, in: workbook, cancellation: control),
+        head != current.id
+      {
+        newerVersionID = head
         failure =
           "A newer version exists. Your text is still here. Keep your changes as a separate draft to preserve both versions."
       }

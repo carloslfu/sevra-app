@@ -38,6 +38,42 @@ func checkConversationPresentation() throws {
     try expect(String(blocked.text.characters).contains("Preserved label"))
   }
   try expect(ConversationPresentation("Plain **formatted** text").links.isEmpty)
+  let table = "Before\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n   \n"
+  let parsed = ConversationMessageContent(table)
+  try expect(parsed.blocks.count == 2)
+  if case .text(let before) = parsed.blocks[0] {
+    try expect(String(before.characters).trimmingCharacters(in: .whitespaces) == "Before")
+  } else {
+    try expect(false)
+  }
+  if case .table(let cells) = parsed.blocks[1] { try expect(cells.rows == [["1", "2"]]) } else {
+    try expect(false)
+  }
+  let cache = ConversationContentCache()
+  func message(_ id: String, _ body: String) throws -> Message {
+    let saved: Value = .object([
+      "id": .string(id), "role": .string("assistant"), "body": .string(body),
+      "state": .string("complete"), "created": .string("2026-11-01"),
+    ])
+    return try JSONDecoder().decode(Message.self, from: Data(saved.json().utf8))
+  }
+  let window = try (0..<100).map { try message("m\($0)", "Answer **\($0)**") }
+  try cache.prepare(window, cancellation: .init())
+  try cache.prepare(window, cancellation: .init())
+  for shown in window { _ = cache.content(id: shown.id, body: shown.body) }
+  try expect(cache.parseCount == 100)
+  let edited = cache.content(id: "m7", body: "Corrected **answer**")
+  try expect(String(edited.presentation.text.characters) == "Corrected answer")
+  try expect(cache.parseCount == 101)
+  cache.retain([try message("m7", "Corrected **answer**")])
+  _ = cache.content(id: "m8", body: "Answer **8**")
+  try expect(cache.parseCount == 102)
+  let stopped = Cancellation()
+  stopped.cancel()
+  do {
+    try ConversationContentCache().prepare(window, cancellation: stopped)
+    try expect(false)
+  } catch let error as SevraError { try expect(error.code == "cancelled") }
   let many = ConversationPresentation(
     (0..<2_000).map { "[Source \($0)](sevra://item/source-\($0))" }.joined(separator: "\n"))
   try expect(many.links.count == 2_000)

@@ -209,8 +209,7 @@ struct WorkbookView: View {
   var routeTitle: String {
     switch state.route {
     case .space(let id): return state.spaces.first { $0.id == id }?.title ?? "Space"
-    case .item(let id):
-      return (try? state.workbook?.item(state.viewedItemVersion ?? id).title) ?? "Document"
+    case .item: return state.viewedItemTitle ?? "Document"
     case .table(let id): return state.dataset(id)?.title ?? "Table"
     case .tableUpdate: return "Review table update"
     case .search: return "Search workbook"
@@ -318,7 +317,10 @@ struct WorkbookView: View {
             }
             ForEach(state.messages.filter { $0.role != "tool" }) { message in
               VStack(alignment: .leading, spacing: 12) {
-                ConversationMessageRow(state: state, message: message)
+                ConversationMessageRow(
+                  state: state, message: message, content: state.messageContent(message),
+                  review: state.proposalReviews[message.id]
+                ).equatable()
                 ForEach(state.requestActivities.filter { $0.requestID == message.id }) { activity in
                   AgentActivityView(
                     workspace: state, activity: activity,
@@ -445,10 +447,8 @@ struct WorkbookView: View {
           SpaceView(space: space, state: state).id(space.id)
         }
       case .item(let id):
-        if let item = try? book.item(id) {
-          ItemView(item: item, workbook: book, state: state).id(
-            id + state.itemPreviewIdentity.uuidString)
-        }
+        ItemRouteView(id: id, workbook: book, state: state).id(
+          id + state.itemPreviewIdentity.uuidString)
       case .table(let id):
         if let table = state.dataset(id) {
           DatasetView(table: table, state: state)

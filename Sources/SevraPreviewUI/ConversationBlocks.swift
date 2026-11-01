@@ -3,7 +3,7 @@ import Markdown
 import SevraCore
 
 /// A native read-only presentation. No displayed row becomes a saved Record.
-public struct PreviewTableContent: Equatable {
+public struct PreviewTableContent: Equatable, Sendable {
   public let headings: [String]
   public let rows: [[String]]
   public let markdown: Bool

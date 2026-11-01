@@ -51,6 +51,10 @@ struct FolderReview {
     (datasets + archivedDatasets).first { $0.id == id }
   }
   @Published var messages: [Message] = []
+  private let contents = ConversationContentCache()
+  func messageContent(_ message: Message) -> ConversationMessageContent {
+    contents.content(id: message.id, body: message.body)
+  }
   @Published var requestActivities: [RequestActivity] = []
   @Published var liveActivity: LiveRequestActivity?
   @Published var proposalReviews: [String: ProposalReviewState] = [:]
@@ -82,6 +86,10 @@ struct FolderReview {
   }
   @Published var navigation: [Route] = []
   @Published var viewedItemVersion: String?
+  /// Known once the viewer has the item, so no view reads the workbook to draw its title.
+  var viewedItemTitle: String? {
+    activeDocument.flatMap { $0.current.id == viewedItemVersion ? $0.current.title : nil }
+  }
   @Published var itemPreviewIdentity = UUID()
   weak var activeDocument: DocumentDraft?
   weak var activePreview: AssetPreviewSession?
@@ -155,7 +163,8 @@ struct FolderReview {
   private var unsent: (input: String, chat: String, book: Workbook)?
   let speech = SpeechInput(pausePlayback: { PlaybackRegistry.shared.pauseAll() })
   func open(_ url: URL) async throws {
-    let opened = try Workbook(url)
+    // Opening checks the whole schema and can wait for another process to let go of the workbook.
+    let opened = try await Task.detached(priority: .userInitiated) { try Workbook(url) }.value
     try require(
       documentDrafts.flush(), "document_save",
       "Save or preserve the current draft before opening another workbook.")
@@ -271,11 +280,14 @@ struct FolderReview {
     let knownRevision = polling && loadedRefreshIdentity == identity ? revision : nil
     let knownSpaceNavigation = spaceNavigation.state
     let navigationGeneration = spaceNavigation.generation
+    let contents = contents
     refreshSession.request(identity: identity, onlyWhenIdle: polling && !changedView) { control in
-      try book.workspaceSnapshot(
+      let snapshot = try book.workspaceSnapshot(
         conversation: identity.conversation, messageAnchor: readingAnchor,
         ifChangedFrom: knownRevision, ifSpaceNavigationMatches: knownSpaceNavigation,
         cancellation: control)
+      if let snapshot { try contents.prepare(snapshot.messages, cancellation: control) }
+      return snapshot
     } complete: { [weak self] result in
       guard let self, self.interactionActive, self.workbook === book,
         self.interactionIdentity == identity.window,
@@ -306,6 +318,7 @@ struct FolderReview {
         self.datasets = snapshot.datasets
         self.archivedDatasets = snapshot.archivedDatasets
         self.messages = snapshot.messages
+        self.contents.retain(snapshot.messages)
         self.requestActivities = snapshot.requestActivities
         self.proposalReviews = snapshot.proposalReviews
         self.hasEarlierMessages = snapshot.hasEarlierMessages
@@ -959,7 +972,7 @@ struct FolderReview {
     switch route {
     case .space(let id): return "Space: " + (spaces.first { $0.id == id }?.title ?? id)
     case .item(let id):
-      return "Item: " + ((try? workbook?.item(viewedItemVersion ?? id).title) ?? id)
+      return "Item: " + (viewedItemTitle ?? id)
     case .table(let id): return "Table: " + (dataset(id)?.title ?? id)
     case .tableUpdate: return "Review table update"
     case .search: return "Workbook search"

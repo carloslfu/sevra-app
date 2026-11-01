@@ -8,6 +8,48 @@ import SevraPreviewUI
 import SevraVoice
 import SwiftUI
 
+/// Reads the item off the main thread, then hands it to its viewer.
+struct ItemRouteView: View {
+  let id: String
+  let workbook: Workbook
+  @ObservedObject var state: WorkspaceState
+  @State private var item: Item?
+  @State private var failure: String?
+  var body: some View {
+    Group {
+      if let item {
+        ItemView(item: item, workbook: workbook, state: state)
+      } else if let failure {
+        ContentUnavailableView(
+          "Item unavailable", systemImage: "doc.badge.ellipsis", description: Text(failure))
+      } else {
+        ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
+    }.task {
+      let (id, book) = (id, workbook)
+      do {
+        let loaded = try await Task.detached(priority: .userInitiated) { try book.item(id) }.value
+        guard !Task.isCancelled else { return }
+        item = loaded
+      } catch {
+        guard !Task.isCancelled else { return }
+        failure = error.localizedDescription
+      }
+    }
+  }
+}
+
+/// Saved facts about an item that its viewer shows beside the content.
+private struct ItemDetails: Sendable {
+  struct Link: Identifiable, Sendable {
+    let id: String
+    let target: String
+    let title: String
+  }
+  var extraction = ""
+  var links: [Link] = []
+}
+
 @MainActor struct ItemView: View {
   @StateObject private var document: DocumentDraft
   @StateObject private var preview = AssetPreviewSession()
@@ -26,6 +68,7 @@ import SwiftUI
   @State private var keepPlaying = false
   @State private var asset: Asset?
   @State private var choosingArchiveMembers = false
+  @State private var details = ItemDetails()
   private var classification: String {
     let status = item.status == "rejected" ? "Withdrawn" : item.status.capitalized
     return [item.category.capitalized, item.meaning.capitalized, status].joined(separator: " · ")
@@ -316,10 +359,9 @@ import SwiftUI
               })
         }
       }
-      if let status = try? state.workbook?.extractionStatus(item.id), !status["detail"].text.isEmpty
-      {
+      if !details.extraction.isEmpty {
         Divider()
-        Text(status["detail"].text).font(.caption).foregroundStyle(.secondary).padding(10).frame(
+        Text(details.extraction).font(.caption).foregroundStyle(.secondary).padding(10).frame(
           maxWidth: .infinity, alignment: .leading)
       }
     }.sheet(isPresented: $choosingArchiveMembers) {
@@ -361,6 +403,7 @@ import SwiftUI
       }
     }
     .task(id: "\(item.id):\(state.revision)") {
+      await loadDetails()
       await references.load(item, workbook: workbook)
     }
     .onAppear {
@@ -373,9 +416,9 @@ import SwiftUI
         state.viewedItemVersion = document.current.id
         state.refresh()
       }
-      document.refreshHead()
+      Task { await document.refreshHead() }
     }
-    .onChange(of: state.revision) { _, _ in document.refreshHead() }
+    .onChange(of: state.revision) { _, _ in Task { await document.refreshHead() } }
     .onDisappear {
       references.cancel()
       linkNavigation?.cancel()
@@ -396,11 +439,13 @@ import SwiftUI
       player = nil
       keepPlaying = false
       // Keep external-file recovery available even when the original is missing.
-      asset = try? workbook.asset(assetID)
+      let book = workbook
+      let saved = await Task.detached(priority: .userInitiated) { try? book.asset(assetID) }.value
+      guard !Task.isCancelled else { return }
+      asset = saved
       preview.isExternal = asset?.mode == "linked"
       let chosen = preview.originalURL
       let identity = preview.reloadID
-      let book = workbook
       let resolved = await preview.load { cancel, progress in
         try await Task.detached {
           if let chosen {
@@ -422,14 +467,27 @@ import SwiftUI
     item.kind == "table-intake-update" && item.status == "rejected"
       && item.data["afterFingerprint"].string != nil
   }
+  private func loadDetails() async {
+    let (id, book) = (item.id, workbook)
+    let loaded = await Task.detached(priority: .userInitiated) {
+      let links = (try? book.lineage(id)) ?? []
+      return ItemDetails(
+        extraction: (try? book.extractionStatus(id))?["detail"].text ?? "",
+        links: links.map { link in
+          let target = link["child"].text == id ? link["parent"].text : link["child"].text
+          return .init(
+            id: link.text, target: target, title: (try? book.item(target).title) ?? target)
+        })
+    }.value
+    guard !Task.isCancelled else { return }
+    details = loaded
+  }
   @ViewBuilder var lineage: some View {
-    if let links = try? state.workbook?.lineage(item.id), !links.isEmpty {
+    if !details.links.isEmpty {
       Divider()
       Text("Evidence and history").font(.headline)
-      ForEach(links, id: \.text) { link in
-        let id = link["child"].text == item.id ? link["parent"].text : link["child"].text
-        Button((try? state.workbook?.item(id).title) ?? id) { state.navigate(.item(id)) }
-          .buttonStyle(.link)
+      ForEach(details.links) { link in
+        Button(link.title) { state.navigate(.item(link.target)) }.buttonStyle(.link)
       }
     }
   }

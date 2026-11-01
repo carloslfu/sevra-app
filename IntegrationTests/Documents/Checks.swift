@@ -291,17 +291,17 @@ nonisolated(unsafe) private var checksCompleted = false
         try book.item(original.logicalID).id == other.id
           && editor.current.logicalID != other.logicalID, "Copy replaced the competing version")
     }
-    check("Opening an earlier citation does not silently retarget its editor") {
+    await checkAsync("Opening an earlier citation does not silently retarget its editor") {
       let (book, original) = try fixture()
       let newer = try book.editDocument(original.id, text: "Newest")
       let editor = DocumentDraft(workbook: book, item: original)
-      editor.refreshHead()
+      await editor.refreshHead()
       try expect(
         editor.current.id == original.id && editor.text == original.text
           && editor.newerVersionID == newer.id, "Historical view was silently replaced")
       try expect(!editor.begin() && !editor.editing, "A stale citation entered editing")
     }
-    check("Historical source viewers expose newer versions without replacing the original") {
+    await checkAsync("Historical source viewers expose newer versions without replacing the original") {
       let (book, _) = try fixture()
       let source = try book.addItem(
         category: "source", kind: "document", title: "Original", text: "Old source")
@@ -309,7 +309,7 @@ nonisolated(unsafe) private var checksCompleted = false
         category: "source", kind: "document", title: "Correction", text: "New source",
         supersedes: source.id)
       let viewer = DocumentDraft(workbook: book, item: source)
-      viewer.refreshHead()
+      await viewer.refreshHead()
       try expect(!viewer.editable && viewer.newerVersionID == newer.id, "Source history was hidden")
       try expect(
         viewer.current.id == source.id && viewer.text == "Old source", "Original retargeted")
@@ -345,6 +345,24 @@ nonisolated(unsafe) private var checksCompleted = false
       try expect(
         DocumentProvenance.make(revised).passages.isEmpty, "Edited text claimed an old copy")
       try expect(try book.verify()["ok"] == .bool(true), "Presentation altered the workbook")
+    }
+    check("A save waiting on a busy workbook gives up in seconds and keeps the text") {
+      let (book, original) = try fixture()
+      let lock = open(book.url.appendingPathComponent(".write-lock").path, O_RDWR)
+      try expect(lock >= 0 && flock(lock, LOCK_EX | LOCK_NB) == 0, "Fixture lock failed")
+      defer { close(lock) }
+      let editor = DocumentDraft(workbook: book, item: original)
+      try expect(editor.begin(), "Cannot begin")
+      editor.update("Typed while another process writes")
+      let began = ProcessInfo.processInfo.systemUptime
+      try expect(
+        !editor.flush() && ProcessInfo.processInfo.systemUptime - began < 4.5,
+        "A busy save held the window")
+      try expect(
+        editor.dirty && editor.text == "Typed while another process writes",
+        "A deadline dropped the text")
+      flock(lock, LOCK_UN)
+      try expect(editor.flush() && !editor.dirty, "Retry after the lock cleared failed")
     }
     await checkAsync("Debounced autosave coalesces typing and a later flush is idempotent") {
       let (book, original) = try fixture()
