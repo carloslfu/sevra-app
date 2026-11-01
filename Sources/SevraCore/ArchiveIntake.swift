@@ -23,16 +23,29 @@ enum ZIPDirectory {
 
   /// The entries the directory declares, after walking them up to the largest listing Sevra reads.
   static func entryCount(_ file: URL, cancellation: Cancellation) throws -> UInt64 {
-    let bytes = try Data(contentsOf: file, options: .alwaysMapped)
-    let length = UInt64(bytes.count)
-    func integer(_ offset: Int, _ size: Int) throws -> UInt64 {
-      guard offset >= 0, offset <= bytes.count - size else { throw damaged }
-      return (0..<size).reversed().reduce(0) { $0 << 8 | UInt64(bytes[offset + $1]) }
+    // Read, not mapped: a file that vanishes under a mapping ends the process.
+    let input = try FileHandle(forReadingFrom: file)
+    defer { try? input.close() }
+    let length = Int(try input.seekToEnd())
+    var window = Data()
+    var windowStart = max(0, length - 66_000)
+    func load(_ offset: Int) throws {
+      try input.seek(toOffset: UInt64(offset))
+      window = try input.read(upToCount: 1 << 20) ?? Data()
+      windowStart = offset
     }
-    var end = bytes.count - 22
+    try load(windowStart)
+    func integer(_ offset: Int, _ size: Int) throws -> UInt64 {
+      guard offset >= 0, offset <= length - size else { throw damaged }
+      if offset < windowStart || offset + size > windowStart + window.count { try load(offset) }
+      guard offset + size <= windowStart + window.count else { throw damaged }
+      let first = window.startIndex + offset - windowStart
+      return (0..<size).reversed().reduce(0) { $0 << 8 | UInt64(window[first + $1]) }
+    }
+    var end = length - 22
     let earliest = max(0, end - 65_535)
     while end >= earliest, try integer(end, 4) != 0x0605_4B50 { end -= 1 }
-    guard end >= earliest, try integer(end + 20, 2) + 22 <= length - UInt64(end) else {
+    guard end >= earliest, try integer(end + 20, 2) + 22 <= UInt64(length - end) else {
       throw damaged
     }
     var count = try integer(end + 10, 2)
@@ -47,7 +60,7 @@ enum ZIPDirectory {
     var walked: UInt64 = 0
     while walked < min(count, 100_001) {
       if walked % 1024 == 0 { try cancellation.check() }
-      guard position <= length else { throw damaged }
+      guard position <= UInt64(length) else { throw damaged }
       let header = Int(position)
       guard try integer(header, 4) == 0x0201_4B50 else { throw damaged }
       try require(
@@ -63,7 +76,7 @@ enum ZIPDirectory {
       // A field at its maximum continues in the ZIP64 extra field, in this order.
       var field = header + 46 + name
       let fieldsEnd = field + extra
-      guard fieldsEnd + comment <= bytes.count else { throw damaged }
+      guard fieldsEnd + comment <= length else { throw damaged }
       while field + 4 < fieldsEnd {
         let size = Int(try integer(field + 2, 2))
         guard field + 4 + size <= fieldsEnd else { break }
@@ -84,7 +97,9 @@ enum ZIPDirectory {
         }
         field += 4 + size
       }
-      guard compressed <= length, offset <= length, expanded < 1 << 62 else { throw damaged }
+      guard compressed <= UInt64(length), offset <= UInt64(length), expanded < 1 << 62 else {
+        throw damaged
+      }
       position += UInt64(46 + name + extra + comment)
       walked += 1
     }
