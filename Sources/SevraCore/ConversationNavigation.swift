@@ -15,9 +15,8 @@ extension Workbook {
       .map { String($0.characters) } ?? String(text.prefix(4096))
     let words = plain.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).joined(
       separator: " ")
-    var title = String(words.prefix(64)).unicodeScalars.filter {
-      !CharacterSet.controlCharacters.contains($0)
-    }.map(String.init).joined()
+    var title = String(words.prefix(64)).unicodeScalars.filter { !breaksTitle($0) }
+      .map(String.init).joined()
     while title.utf8.count > 480 { title.removeLast() }
     return title.isEmpty ? "New thread" : title + (words.count > 64 ? "…" : "")
   }
@@ -87,9 +86,15 @@ extension Workbook {
     let name = title.trimmingCharacters(in: .whitespacesAndNewlines)
     try require(
       !name.isEmpty && name.utf8.count <= 512 && name.count <= 120
-        && !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains),
+        && !name.unicodeScalars.contains(where: breaksTitle),
       "thread_title", "Use a thread title of 1 to 120 characters on one line.")
     return name
+  }
+
+  /// A title stays on one line. Joiners are not line breaks: emoji sequences and Persian words
+  /// are spelled with them.
+  private static func breaksTitle(_ scalar: Unicode.Scalar) -> Bool {
+    [.control, .lineSeparator, .paragraphSeparator].contains(scalar.properties.generalCategory)
   }
 
   /// UI history is separate from agent retrieval. At most 100 visible messages

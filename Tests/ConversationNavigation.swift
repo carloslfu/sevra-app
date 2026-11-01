@@ -3,6 +3,34 @@ import Foundation
 import SevraCore
 
 func checkConversationNavigation(at root: URL) {
+  check("A thread branches from a reply waiting on review, and only a complete one is shared") {
+    let b = try Workbook.create(
+      at: root.appendingPathComponent("Review reply.sevra"), title: "Review reply")
+    _ = try b.addMessage("Propose a plan.", role: "user")
+    let reply = try b.addMessage("Ready to review.", role: "assistant", state: "needs_review")
+    let request = try b.startAgentRequest("Branch here", conversation: "main", model: "fixture")
+    func action(_ fields: [String: Value], conversation: String = "main", requestID: String)
+      throws -> ConversationActionResult
+    {
+      try b.conversationAction(
+        .object(fields), conversation: conversation, requestMessage: requestID,
+        expectedTitle: "Main", token: identifier())
+    }
+    let branched = try action(
+      ["action": .string("start_thread")], requestID: request.messageID)
+    try expect(branched.message == reply)
+    try expect(
+      try action(
+        ["action": .string("start_thread"), "message": .string(reply)],
+        requestID: request.messageID
+      ).message == reply)
+    let asked = try b.addMessage("Share it.", role: "user", conversation: branched.conversation)
+    try refuses("history_scope") {
+      _ = try action(
+        ["action": .string("review_summary"), "message": .string(asked)],
+        conversation: branched.conversation, requestID: asked)
+    }
+  }
   check("Immediate threads keep exact parent context, retry identity and editable titles") {
     let b = try Workbook.create(
       at: root.appendingPathComponent("Thread navigation.sevra"), title: "Threads")
@@ -27,6 +55,13 @@ func checkConversationNavigation(at root: URL) {
     try refuses("conversation") { try b.renameThread("main", title: "Other") }
     try refuses("thread_title") { try b.renameThread(first, title: "Two\nlines") }
     try refuses("thread_title") { _ = try b.startThread(parentMessage: original, title: " ") }
+    try refuses("thread_title") { try b.renameThread(first, title: "Two\u{2028}lines") }
+    try refuses("thread_title") { try b.renameThread(first, title: "Bell\u{7}") }
+    // Joiners spell these words and emoji, so neither path may refuse or strip them.
+    let joined = "می\u{200C}خواهم 👨\u{200D}👩\u{200D}👧"
+    try expect(Workbook.threadTitle(from: joined) == joined)
+    let spelled = try b.startThread(parentMessage: original, title: joined)
+    try expect(try b.conversationIdentity(spelled)["title"].text == joined)
     chats = try Workbook(b.url).conversations()
     try expect(chats.first { $0["id"].text == first }?["title"].text == "Supplier scenario")
     try expect(chats.first { $0["id"].text == first }?["parent_message"].text == original)
@@ -38,7 +73,7 @@ func checkConversationNavigation(at root: URL) {
     try expect(ProcessInfo.processInfo.systemUptime - started < 4.5)
     flock(fd, LOCK_UN)
     Darwin.close(fd)
-    try expect(try b.conversations().count == 3)
+    try expect(try b.conversations().count == 4)
     _ = try b.startThread(parentMessage: original, title: "After lock release")
     let cancelled = Cancellation()
     cancelled.cancel()

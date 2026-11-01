@@ -23,7 +23,7 @@ public enum ConversationCommand: Equatable, Sendable {
       return .startThread(title: nil)
     }
     if phrase == "share summary with conversation" { return .shareSummary(text: nil) }
-    for prefix in ["start a thread called ", "start a thread: ", "thread ", "tangent "] {
+    for prefix in ["start a thread called ", "start a thread: ", "thread: ", "tangent: "] {
       if lower.hasPrefix(prefix) {
         let title = String(text.dropFirst(prefix.count)).trimmingCharacters(
           in: .whitespacesAndNewlines)

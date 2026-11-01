@@ -113,11 +113,13 @@ extension Workbook {
           if let id = arguments["message"].string {
             source = id
           } else {
-            let roles =
-              action == "review_summary" ? "role='assistant'" : "role IN ('user','assistant')"
+            let scope =
+              action == "review_summary"
+              ? "state='complete' AND role='assistant'"
+              : "state IN ('complete','needs_review') AND role IN ('user','assistant')"
             let last = try db.scalar(
-              "SELECT id FROM messages WHERE conversation_id=? AND state='complete' AND NOT EXISTS (SELECT 1 FROM message_payloads p WHERE p.message_id=messages.id AND json_extract(p.payload,'$.kind')='conversation_action') AND "
-                + roles
+              "SELECT id FROM messages WHERE conversation_id=? AND NOT EXISTS (SELECT 1 FROM message_payloads p WHERE p.message_id=messages.id AND json_extract(p.payload,'$.kind')='conversation_action') AND "
+                + scope
                 + " AND rowid<? ORDER BY rowid DESC LIMIT 1",
               [.string(conversation), ceiling])
             source = last.string ?? (action != "review_summary" ? requestMessage : "")
@@ -126,8 +128,10 @@ extension Workbook {
             !source.isEmpty, "summary",
             "There is no completed thread answer to share. Ask which findings to use.")
           let message = try historyMessage(source, conversation: conversation)
+          // A reply waiting on review is still the exchange a new thread branches from.
+          let states = action == "review_summary" ? ["complete"] : ["complete", "needs_review"]
           try require(
-            message.state == "complete" && ["user", "assistant"].contains(message.role)
+            states.contains(message.state) && ["user", "assistant"].contains(message.role)
               && (try messageLocation(source)["rowid"].int ?? 0) <= (ceiling.int ?? 0)
               && (action != "review_summary" || source != requestMessage),
             "history_scope", "Choose a completed earlier exchange in this conversation.")

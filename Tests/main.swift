@@ -543,7 +543,10 @@ check("thread commands preserve titles and do not interpret quoted or negated in
   try expect(
     ConversationCommand.parse("Start a thread called What if we raise prices?")
       == .startThread(title: "What if we raise prices?"))
-  try expect(ConversationCommand.parse("tangent Hiring") == .startThread(title: "Hiring"))
+  try expect(ConversationCommand.parse("tangent: Hiring") == .startThread(title: "Hiring"))
+  try expect(ConversationCommand.parse("Thread: Hiring") == .startThread(title: "Hiring"))
+  try expect(ConversationCommand.parse("Thread count for the Acme bolts?") == nil)
+  try expect(ConversationCommand.parse("tangent lines on the chart") == nil)
   try expect(
     ConversationCommand.parse("Share summary with conversation: Keep prices at $12.")
       == .shareSummary(text: "Keep prices at $12."))
