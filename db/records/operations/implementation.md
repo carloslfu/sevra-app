@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-01T16:00:00+00:00
+updated: 2026-11-01T16:40:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -59,10 +59,27 @@ instead of silently returning nothing. The real model did this on the demo's own
 never ran; all run now. The journeys left out of CI and `scripts/check.sh` were added, `sevra-checks`
 leaves no folder behind however a run ends, and several checks now name the exact code they expect.
 
-**What ran, on the installed native build.** At `d1bee3e`: `scripts/check_model.py` passed comparison,
-the hostile document, the missing contract, and cancel, persist and restart with recovery. The
-eight-report job passed in 12 steps with 8 checkpoints, a peak of 22,959 tokens against the 24,576
-limit, and 260 s. Its three recovery cases passed, each in 11 steps after the follow-up. The
+**A second look at the fixes.** Two independent reviewers then read the fix diff itself, one for the
+window code and one for the core. They found fourteen more problems. Thirteen are fixed, and the
+fourteenth, a table filter cost, is listed below. A refused request was
+saved and also returned to the composer, which is now one or the other, and a long shared summary was
+refused by the message limit. Quit during a reply now stops the reply before the helper. Hashing during
+verify no longer holds the package lock, so a large file cannot make another process time out. Stop
+reaches the verify step of opening an archive. Long plain tables and lists no longer count as deep
+Markdown, because a plain pair such as `**Total**` is now one finished level. Numbers glued to letters,
+such as 3D, 4K or 1080p, and link destinations no longer need numeric grounding, while 144USD and 25kg
+still do. A reused form slot saves without a false conflict, mark-only filter terms are ignored, RTF
+with binary blocks reads through its own parser, and reindex keeps the normal wait at COMMIT.
+
+**The hosted run caught one more.** A plain CLI command on the hosted Mac died at exit, after its work
+and before printing its result, because exiting released GPU memory it had never used. Exiting now
+leaves Metal alone unless an engine was loaded. A local Mac with a GPU never showed this.
+
+**What ran, on the installed native build.** At the final code, `scripts/check.sh` passed with 902 PASS
+lines and no failures in 10:57. `scripts/check_model.py` passed comparison, the hostile document, the
+missing contract, and cancel, persist and restart with recovery. The eight-report job passed in 11
+steps with 8 checkpoints, a peak of 22,875 tokens against the 24,576 limit, and 251 s. At `d1bee3e`,
+before the last core fixes, the three recovery cases passed, each in 11 steps after the follow-up, the
 conversation workflow answer check passed its 30 calls and two cases, and the native interpretation
 probe passed at `fb7ec7f`. At `a0f3e17`, "Why do we have 18 brass bolts?" on a fresh demo answered
 correctly in three of three runs. The bad filter did not recur in those three, so the widening rests
@@ -75,8 +92,8 @@ a thread, and text typed there did not follow back to the main composer. Close A
 workbook from outside worked, and a `.sevraz` opened from a cold start offered its save panel. The demo question ran in the window, which is how the filter defect was found. The new Home row
 click area and an over-limit message were not tried, because the screen locked first, and neither were:
 AAC and AIF players, Transcribe from the menu, Quick Look pages, PDF links, the citation jump on audio,
-saved-file pickers, the Excel-like large table selection, or the automation page cases. A second
-reviewer traced the send, restore and quit paths, and those fixes rest on that trace and the suites.
+saved-file pickers, the large table selection, or the automation page cases. The send, restore and quit
+fixes rest on a reviewer's trace and the suites, not on the window.
 
 **Found, not fixed.** `evaluate_definition` query pages can still reach `context_limit`. Space-grouped
 thousands read as two numbers. The oldest digest pointers drop silently and stay reachable by
@@ -85,7 +102,10 @@ plain. 256 forms with unsent inputs refuse a new draft. East of UTC a date-only 
 counts as future until 00:00 UTC. Autosave stays on the main thread for up to 3 s. A long document
 lays out on the main thread at about 0.2 s per MB per width. A paste-table Done leaves a "Choose use"
 row. Replace-mode intake of an identical file still proposes a rewrite. Verify with bit rot needs a
-second click to download. A failed `capture-url` leaves a 0-byte `CFNetworkDownload_*.tmp`. CJK search
+second click to download. A failed `capture-url` leaves a 0-byte `CFNetworkDownload_*.tmp`. Filtering a
+100,000-row table on a word in its title or a column ID was estimated at about 5 s inside the workbook
+lock, off the main thread, and was not measured. A ruler of 50 or more spaced dashes and a line
+indented 100 spaces read as deep nesting and show as plain text. CJK search
 stays as it was, because a segmented copy needs another schema change and breaks Q13's query-time
 rule.
 

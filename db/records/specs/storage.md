@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-11-01T08:40:00.000000+00:00
+updated: 2026-11-01T16:40:00+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -170,8 +170,9 @@ has a nonempty idempotency token (`operation_token`) and optional expected revis
 Reject stale revisions rather than silently overwriting. UI refreshes from revision
 changes. Opening a workbook and every write wait at most 30 seconds for another
 process's lock, less when the caller's deadline ends first, and then refuse with
-`workbook_busy`. Stop ends that wait. Verification holds the package lock for its
-whole run, because its search checks need SQLite's write lock. A write answers from
+`workbook_busy`. Stop ends that wait. Verification hashes files first with no lock
+held, then holds the package lock for its database checks, because its search checks
+need SQLite's write lock. A write answers from
 what it reads back before COMMIT, and its deadline is checked last before COMMIT:
 past that point the change is saved and nothing reports it as failed.
 JSON nests at most 128 levels (`json_depth`), wherever it comes from. A number in a

@@ -82,3 +82,6 @@ State CLI exit and refusal notes, composer commands, keep-both tokens, workflow-
 ## [2026-11-01 15:31] implementation | records/operations/implementation
 Recorded the whole-app review and its verification
 
+## [2026-11-01 16:26] implementation | records/operations/implementation
+Recorded the regression review of the fixes and the final verification
+
