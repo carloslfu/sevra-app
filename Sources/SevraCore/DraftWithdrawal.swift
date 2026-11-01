@@ -8,7 +8,10 @@ extension Workbook {
   ) throws
     -> Item
   {
-    return try mutation("withdraw_draft", token: token, request: .string(id), actor: actor, reading: { try item($0.text) }) {
+    return try mutation(
+      "withdraw_draft", token: token, request: .string(id), actor: actor,
+      reading: { try item($0.text) }
+    ) {
       try validateDecisionActor(actor)
       let old = try item(id)
       try require(

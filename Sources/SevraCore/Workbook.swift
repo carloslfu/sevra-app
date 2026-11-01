@@ -77,7 +77,8 @@ public final class Workbook: @unchecked Sendable {
         try Self.keepWaiting(until: giveUp, cancellation)
       }
     }
-    try require(header?.application == Schema.applicationID, "format", "This is not a Sevra workbook.")
+    try require(
+      header?.application == Schema.applicationID, "format", "This is not a Sevra workbook.")
     try require(
       header?.version == Schema.version, "schema",
       "This development workbook uses an unsupported format. Its files were not changed. Use a matching development build to recover or export it."

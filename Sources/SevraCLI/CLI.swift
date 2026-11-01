@@ -808,7 +808,7 @@ import SevraProduct
     "create": 2...3, "demo": 2...2, "open-archive": 3...3, "calculate": 2...3,
     "inspect": 2...2, "intake-status": 2...2, "intake-use": 4...5, "intake-from-source": 4...5,
     "intake-resume": 3...3, "resume-intake": 3...3, "runs": 2...2, "pin-space": 3...4,
-    "column-history": 3...3, "table-formulas": 3...3, "verify": 2...2, "extract": 3...3,
+    "column-history": 3...3, "table-formulas": 3...3, "verify": 2...2,
     "capture-url": 3...3, "link-url": 3...4, "transcribe": 3...3, "archive-members": 3...3,
     "include-members": 4...4, "include": 3...3, "relink": 4...4, "search": 3...4, "read": 3...3,
     "records": 2...3, "rows": 3...4, "add": 3...3, "edit-row": 4...5, "accept": 3...4,
