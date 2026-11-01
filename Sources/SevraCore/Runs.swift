@@ -1,6 +1,8 @@
 import Foundation
 
 public struct AgentRequest: Sendable {
+  /// The longest message the local model is asked to work from.
+  public static let maximumPromptBytes = 16_000
   public let runID: String
   public let messageID: String
 }

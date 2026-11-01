@@ -49,7 +49,9 @@ public enum WorkbookAgent {
     openSpace: SpaceOpener? = nil,
     openReviews: ReviewQueueOpener? = nil
   ) async throws -> AgentResult {
-    try require(prompt.utf8.count <= 16000, "prompt_limit", "Please shorten this message.")
+    try require(
+      prompt.utf8.count <= AgentRequest.maximumPromptBytes, "prompt_limit",
+      "Please shorten this message.")
     try require(
       context.utf8.count <= ContextBudget.maximumMessageBytes, "context_structure",
       "The selected context exceeds its preparation limit.")
@@ -91,7 +93,9 @@ public enum WorkbookAgent {
     handoff: AgentRequestHandoff? = nil,
     handoffReceipt: CompletedHandoff? = nil, stepBudget: Int = 12
   ) async throws -> AgentResult {
-    try require(prompt.utf8.count <= 16000, "prompt_limit", "Please shorten this message.")
+    try require(
+      prompt.utf8.count <= AgentRequest.maximumPromptBytes, "prompt_limit",
+      "Please shorten this message.")
     try require(
       context.utf8.count <= ContextBudget.maximumMessageBytes, "context_structure",
       "The selected context exceeds its preparation limit.")

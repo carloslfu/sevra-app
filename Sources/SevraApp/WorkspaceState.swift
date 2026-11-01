@@ -10,6 +10,7 @@ import SevraSearchUI
 import SevraTableUI
 import SevraVoice
 import SwiftUI
+import os
 
 @MainActor private final class AssetCopySaveDelegate: NSObject, NSOpenSavePanelDelegate {
   let workbook: Workbook
@@ -150,6 +151,8 @@ struct FolderReview {
   private(set) var interactionActive = false
   private(set) var interactionIdentity = UUID()
   private var applyingDictation = false
+  /// The submitted message until its conversation has saved it. Only one operation runs at a time.
+  private var unsent: (input: String, chat: String, book: Workbook)?
   let speech = SpeechInput(pausePlayback: { PlaybackRegistry.shared.pauseAll() })
   func open(_ url: URL) async throws {
     let opened = try Workbook(url)
@@ -694,6 +697,10 @@ struct FolderReview {
     else { return }
     speech.stop()
     let input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+    do { try ComposerInput.admit(input) } catch {
+      self.error = error.localizedDescription
+      return
+    }
     if let answerCommand = WorkflowAnswerCommand.parse(input) {
       prompt = ""
       workflowAnswerCommand(answerCommand, input: input, book: book)
@@ -702,7 +709,9 @@ struct FolderReview {
     clarificationDrafts.invalidateConversationPreviews()
     if let command = WorkspaceControlCommand.parse(input) {
       prompt = ""
+      error = nil
       control(command, input: input, book: book)
+      if error != nil { returnInput(input) }
       return
     }
     if documentCommand(input, book: book) {
@@ -717,13 +726,18 @@ struct FolderReview {
     conversationSession.updateReading(.init())
     readingRequest = UUID()
     if let target = WorkspaceControlCommand.captureURL(input) {
-      guard let (_, ticket) = beginOperation("Capturing source") else { return }
+      unsent = (input, conversation, book)
+      guard let (_, ticket) = beginOperation("Capturing source") else {
+        returnUnsent()
+        return
+      }
       let chat = conversation
       let navigationID = itemPreviewIdentity
       Task {
         defer { finishOperation(ticket, in: book) }
         do {
           let source = try await book.captureURL(target, cancellation: ticket.cancellation)
+          unsent = nil
           _ = try book.addMessage(
             (source.assetID == nil ? "Saved reference: " : "Captured ") + source.referenceMarkdown,
             role: "event", conversation: chat)
@@ -731,7 +745,10 @@ struct FolderReview {
           if conversation == chat, itemPreviewIdentity == navigationID {
             navigate(.item(source.id))
           }
-        } catch { report(error, for: ticket, in: book) }
+        } catch {
+          returnUnsent()
+          report(error, for: ticket, in: book)
+        }
       }
       return
     }
@@ -744,7 +761,13 @@ struct FolderReview {
       refresh()
       return
     }
-    guard let (_, ticket) = beginOperation("Preparing local AI") else { return }
+    unsent = (input, conversation, book)
+    guard let (_, ticket) = beginOperation("Preparing local AI") else {
+      returnUnsent()
+      return
+    }
+    // Set on the agent's own thread, so a failure right after admission still sees it.
+    let admitted = OSAllocatedUnfairLock(initialState: false)
     liveActivity = LiveRequestActivity(conversation: conversation)
     let chat = conversation
     let navigationID = itemPreviewIdentity
@@ -802,7 +825,9 @@ struct FolderReview {
             }
           },
           requestStarted: { request, destination in
+            admitted.withLock { $0 = true }
             Task { @MainActor in
+              self.unsent = nil
               guard self.owns(ticket, in: book), self.operations.acceptsProgress(ticket) else {
                 return
               }
@@ -812,6 +837,7 @@ struct FolderReview {
           },
           openSpace: { target in try openRequestedView(.space(target.id)) },
           openReviews: { try openRequestedView(.reviews) })
+        unsent = nil
         guard owns(ticket, in: book) else { return }
         refresh()
         let present =
@@ -838,7 +864,27 @@ struct FolderReview {
           default: navigate(.item(focus.id))
           }
         }
-      } catch { report(error, for: ticket, in: book) }
+      } catch {
+        if admitted.withLock({ $0 }) { unsent = nil } else { returnUnsent() }
+        report(error, for: ticket, in: book)
+      }
+    }
+  }
+  /// Puts a message that failed before anything was saved back in front of the person.
+  private func returnInput(_ input: String) {
+    prompt = ComposerInput.restored(input, over: prompt)
+  }
+  /// A message that never reached its conversation goes back where it was typed. When that
+  /// composer is showing something else or has closed, it becomes that conversation's draft.
+  private func returnUnsent() {
+    guard let unsent else { return }
+    self.unsent = nil
+    if interactionActive, workbook === unsent.book, conversation == unsent.chat,
+      !changingConversation
+    {
+      returnInput(unsent.input)
+    } else {
+      try? ComposerInput.keep(unsent.input, conversation: unsent.chat, in: unsent.book)
     }
   }
   private func workflowAnswerCommand(
@@ -891,7 +937,10 @@ struct FolderReview {
           refresh()
         } catch { report(error, for: ticket, in: book) }
       }
-    } catch { self.error = error.localizedDescription }
+    } catch {
+      self.error = error.localizedDescription
+      returnInput(input)
+    }
   }
   var agentContext: String {
     switch route {
@@ -943,7 +992,10 @@ struct FolderReview {
         requestSummary(text: text)
       }
 
-    } catch { self.error = error.localizedDescription }
+    } catch {
+      self.error = error.localizedDescription
+      returnInput(input)
+    }
     return true
   }
   func localCommand(_ input: String, book: Workbook) -> Bool {
@@ -1010,17 +1062,19 @@ struct FolderReview {
         }
         return true
       }
-      if lower.hasPrefix("accept ") {
-        review(String(input.dropFirst(7)), accepting: true)
+      switch WorkbookTextCommand.parse(input) {
+      case .accept(let id):
+        review(id, accepting: true)
         return true
-      }
-      if lower.hasPrefix("undo ") {
-        review(String(input.dropFirst(5)), accepting: false)
+      case .undo(let id):
+        review(id, accepting: false)
         return true
-      }
-      if lower.hasPrefix("chapter "), let message = messages.last {
-        try book.chapter(title: String(input.dropFirst(8)), message: message.id)
-        return true
+      case .chapter(let title):
+        if let message = messages.last {
+          try book.chapter(title: title, message: message.id)
+          return true
+        }
+      case nil: break
       }
     } catch {
       self.error = error.localizedDescription
@@ -1433,6 +1487,7 @@ struct FolderReview {
   func beginInteraction() { interactionActive = true }
   func endInteraction() {
     interactionActive = false
+    returnUnsent()
     conversationDraft = nil
     summaryDraft = nil
     showingHistorySearch = false

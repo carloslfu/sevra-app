@@ -33,7 +33,9 @@ import SevraCore
 
   public func open(_ workbook: Workbook, conversation: String = "main") async -> Bool {
     guard !loading, await flush() else { return false }
-    return await load(conversation, from: workbook)
+    if await load(conversation, from: workbook) { return true }
+    // The remembered conversation can be gone from this file. The workbook still opens.
+    return conversation != "main" ? await load("main", from: workbook) : false
   }
   public func select(_ conversation: String) async -> Bool {
     guard !loading, await flush() else { return false }

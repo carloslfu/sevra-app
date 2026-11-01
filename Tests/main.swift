@@ -556,6 +556,16 @@ check("thread commands preserve titles and do not interpret quoted or negated in
   ] {
     try expect(ConversationCommand.parse(text) == nil)
   }
+  let version = "6f1d3a44-92a1-4c0e-8e0b-1f7a1c7e2d10"
+  try expect(WorkbookTextCommand.parse("Accept " + version) == .accept(version))
+  try expect(WorkbookTextCommand.parse("undo " + version + "\n") == .undo(version))
+  try expect(WorkbookTextCommand.parse("Chapter: Delivery dates") == .chapter("Delivery dates"))
+  for text in [
+    "Accept the quote from Acme", "Undo the last change to the table",
+    "Chapter 3 of the contract says what?", "chapter:", "accept",
+  ] {
+    try expect(WorkbookTextCommand.parse(text) == nil)
+  }
 }
 
 check(

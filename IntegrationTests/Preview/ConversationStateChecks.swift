@@ -17,6 +17,29 @@ private func draftCheck(_ value: Bool, _ code: String, _ message: String) throws
   let thread = try book.tangent(title: "Scenario", parentMessage: first)
   let other = try book.addMessage("Scenario answer", role: "assistant", conversation: thread)
   let counts = try book.counts()
+  let stale = ConversationSession()
+  try draftCheck(
+    await stale.open(book, conversation: "gone") && stale.conversation == "main"
+      && stale.failure == nil, "draft_check", "A remembered conversation kept the workbook closed")
+  try ComposerInput.admit(String(repeating: "é", count: 8_000))
+  do {
+    try ComposerInput.admit(String(repeating: "é", count: 8_000) + "x")
+    throw SevraError("draft_check", "An over-limit message was admitted")
+  } catch let error as SevraError {
+    try draftCheck(error.code == "prompt_limit", "draft_check", "Wrong refusal: " + error.code)
+  }
+  try draftCheck(
+    ComposerInput.restored("Sent", over: "") == "Sent"
+      && ComposerInput.restored("Sent", over: "Typed after") == "Sent\n\nTyped after",
+    "draft_check", "A returned message replaced what was typed after it")
+  try ComposerInput.keep("Unsent in a closed window", conversation: thread, in: book)
+  try ComposerInput.keep("Second unsent", conversation: thread, in: book)
+  try draftCheck(
+    try book.conversationViewState(thread).draft
+      == "Second unsent\n\nUnsent in a closed window",
+    "draft_check", "A message for a closed composer was not kept")
+  _ = try book.saveConversationViewState(
+    thread, draft: "", reading: .init(), expectedDraft: book.conversationViewState(thread).draft)
   let session = ConversationSession()
   try draftCheck(await session.open(book), "draft_check", "Could not open draft session")
   session.updateDraft("Unsent main draft 🐈 café")
