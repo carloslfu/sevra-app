@@ -1252,9 +1252,10 @@ check("relinked bytes, an Office document type and a damaged archive member are 
   let carrier = temp.appendingPathComponent("carrier.png")
   let stored = Data("Bytes stored without compression".utf8)
   try stored.write(to: carrier)
-  let holder = try Workbook.create(at: temp.appendingPathComponent("Held.sevra"), title: "Held")
+  let holder = try Workbook.create(
+    at: temp.appendingPathComponent("Carrier.sevra"), title: "Carrier")
   _ = try holder.importFile(carrier)
-  let copy = temp.appendingPathComponent("Held.sevraz")
+  let copy = temp.appendingPathComponent("Carrier.sevraz")
   try holder.export(to: copy)
   var damaged = try Data(contentsOf: copy)
   damaged[damaged.firstRange(of: stored)!.lowerBound] ^= 0xFF
