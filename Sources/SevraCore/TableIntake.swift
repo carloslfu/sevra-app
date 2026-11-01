@@ -174,11 +174,10 @@ extension Workbook {
       sheets: names, sheet: input.sheet, notes: input.notes)
   }
 
-  /// A pending update needs a readable original. An Excel header row is chosen
-  /// during review, so its first row need not be the heading.
+  /// A pending update needs a readable original. The header row is chosen during
+  /// review, so its first row need not be the heading.
   func validateTableUpdateOriginal(_ sourceID: String, cancellation: Cancellation) throws {
-    let original = try tableUpdateOriginal(sourceID, worker: .init(), cancellation: cancellation)
-    if original.format != .xlsx { _ = try original.input(headerRow: 1, sheet: nil) }
+    _ = try tableUpdateOriginal(sourceID, worker: .init(), cancellation: cancellation)
   }
 
   func tableUpdateInput(
@@ -403,7 +402,8 @@ extension Workbook {
             }
             nearKeys[near(row)] = row
             if let old = keyed[value] {
-              var values = old.data.object
+              // A removed column stays in the row's history, not in an edit of it.
+              var values = Self.activeValues(old.data.object, columns: table.columns)
               let moved = stored.filter { !sameValue($0, row[$0.id] ?? .null, old.data[$0.id]) }
               for column in moved { values[column.id] = row[column.id] ?? .null }
               // Acceptance reviews every stored column, including one added after this row.

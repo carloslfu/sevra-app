@@ -339,5 +339,39 @@ func checkTableIntake(at root: URL) {
       results.errors.isEmpty && results.values.count == 2 && Set(results.values).count == 1)
     try expect(try book.dataset(table.id).rowCount == 3 && book.verify()["ok"] == .bool(true))
   }
+  check("a merge reaches a table that lost a column, and a header below a title line works") {
+    let (book, _, table) = try fixture("RemovedColumn", text: "sku,qty\n")
+    let base = try book.datasetDefinition(table.id)
+    let wider = try book.updateDatasetDefinition(
+      table.id, expectedVersion: base.version, expectedDefinitionID: base.id,
+      columns: table.columns + [.init(id: "note", title: "Note")])
+    _ = try book.editRow(try book.rows(table.id)[0].id, values: ["note": .string("old")])
+    _ = try book.updateDatasetDefinition(
+      table.id, expectedVersion: wider.version, expectedDefinitionID: wider.id,
+      columns: table.columns)
+    let file = root.appendingPathComponent("Titled.csv")
+    try Data("Parts for October\nsku,qty\n0012,9\n".utf8).write(to: file)
+    let intake = try book.captureIntake(file, role: .update)
+    let pending = try book.runIntake(intake.id)
+    try expect(pending.state == "awaiting_update")
+    try refuses("update_mapping") { _ = try book.inspectTableUpdateSource(pending.sourceID) }
+    try expect(try book.inspectTableUpdateSource(pending.sourceID, headerRow: 2).incoming == 1)
+    let mapped: [IntakeColumnMapping] = [
+      .init(position: 0, target: "sku"), .init(position: 1, target: "qty"),
+    ]
+    let preview = try book.previewTableUpdate(
+      sourceID: pending.sourceID, datasetID: table.id, mode: .merge, mapping: mapped,
+      keys: ["sku"], headerRow: 2)
+    let proposal = try book.proposeTableUpdate(
+      sourceID: pending.sourceID, datasetID: table.id, mode: .merge, mapping: mapped,
+      keys: ["sku"], headerRow: 2, newRowMeaning: "actual", newRowScenario: "actual",
+      expectedRevision: preview.revision, expectedFingerprint: preview.fingerprint)
+    let accepted = try book.accept(proposal.id)
+    let row = try book.rows(table.id)[0]
+    try expect(row.data["qty"].text == "9" && (try book.item(row.id)).data["note"].text == "old")
+    _ = try book.undoItem(accepted.id)
+    try expect(try book.rows(table.id)[0].data["qty"].text == "4")
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
 
 }
