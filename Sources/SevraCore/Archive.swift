@@ -78,6 +78,7 @@ extension Workbook {
     try require(
       !fm.fileExists(atPath: destination.path), "exists",
       "Choose a new destination for the opened workbook.")
+    let declared = try ZIPDirectory.entryCount(archiveURL, cancellation: cancellation)
     let archive = try Archive(url: archiveURL, accessMode: .read)
     var paths = Set<String>()
     var total: UInt64 = 0
@@ -116,6 +117,7 @@ extension Workbook {
         "Expanded workbook exceeds the allowed size.")
       total += UInt64(entry.uncompressedSize)
     }
+    guard UInt64(count) == declared else { throw ZIPDirectory.damaged }
     try require(
       paths.contains("manifest.json") && paths.contains("workbook.sqlite"), "format",
       "Archive is missing workbook metadata.")
@@ -136,7 +138,7 @@ extension Workbook {
       let zipProgress = Progress()
       cancellation.track(zipProgress)
       defer { cancellation.untrack(zipProgress) }
-      let checksum = try archive.extract(entry, to: target, progress: zipProgress)
+      let checksum = try extract(entry, from: archive, to: target, progress: zipProgress)
       try require(
         checksum == entry.checksum, "archive_checksum", "Archive entry failed its checksum.")
     }

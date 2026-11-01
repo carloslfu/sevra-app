@@ -69,6 +69,15 @@ public struct ExtractionWorker: Sendable {
     return result
   }
 
+  /// A ZIP library that traps on a hostile file stops this helper, which is a refused file.
+  public func zipMembers(_ url: URL, cancellation: Cancellation = .init()) throws -> [ZIPMember] {
+    do {
+      return try run(url, mode: ["--zip-members"], cancellation: cancellation)
+    } catch let error as SevraError where error.code == "extraction_crash" {
+      throw ZIPDirectory.damaged
+    }
+  }
+
   private func run<Result: Codable>(
     _ url: URL, mode: [String], cancellation: Cancellation
   ) throws -> Result {
@@ -224,7 +233,8 @@ public struct ExtractionWorker: Sendable {
   public static func runMain() -> Never {
     let arguments = Array(CommandLine.arguments.dropFirst())
     let format: StructuredFormat?
-    if arguments.count == 1 {
+    let listing = arguments.count == 2 && arguments[0] == "--zip-members"
+    if arguments.count == 1 || listing {
       format = nil
     } else if arguments.count == 2, arguments[0].hasPrefix("--structured="),
       let selected = StructuredFormat(rawValue: String(arguments[0].dropFirst(13)))
@@ -244,6 +254,11 @@ public struct ExtractionWorker: Sendable {
     }
     watchdog.resume()
     let status: Int32 = withExtendedLifetime(watchdog) {
+      if listing {
+        return writeReply {
+          try ZIPDirectory.members(url, cancellation: Cancellation(deadlineAfterSeconds: 60))
+        }
+      }
       if let format {
         return writeReply {
           let result = try StructuredResult.readInProcess(

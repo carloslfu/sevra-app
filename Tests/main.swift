@@ -1172,6 +1172,96 @@ check("archive traversal entries cannot escape their destination") {
     !FileManager.default.fileExists(atPath: temp.appendingPathComponent("escaped.txt").path))
 }
 
+check("a ZIP is refused for what is wrong with it and an ordinary one still opens") {
+  let folder = temp.appendingPathComponent("ZIPChecks")
+  try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+  let zipBook = try Workbook.create(at: folder.appendingPathComponent("Host.sevra"), title: "ZIP")
+  func put(_ value: UInt32, at offset: Int, in bytes: inout Data) {
+    for shift in 0..<4 { bytes[offset + shift] = UInt8(value >> (8 * UInt32(shift)) & 0xFF) }
+  }
+  /// Local and central header offsets of the named entry.
+  func headers(_ name: String, in bytes: Data) -> [Int] {
+    let local = Data([0x50, 0x4B, 3, 4])
+    let central = Data([0x50, 0x4B, 1, 2])
+    var found: [Int] = []
+    var cursor = bytes.startIndex
+    while let hit = bytes[cursor...].firstRange(of: Data(name.utf8)) {
+      cursor = hit.upperBound
+      if bytes[(hit.lowerBound - 30)..<(hit.lowerBound - 26)] == local {
+        found.append(hit.lowerBound - 30)
+      } else if bytes[(hit.lowerBound - 46)..<(hit.lowerBound - 42)] == central {
+        found.append(hit.lowerBound - 46)
+      }
+    }
+    return found
+  }
+  let plain = folder.appendingPathComponent("plain.zip")
+  let archive = try Archive(url: plain, accessMode: .create)
+  for name in ["a.txt", "b.txt"] {
+    let bytes = Data(String(repeating: name, count: 2000).utf8)
+    try archive.addEntry(
+      with: name, type: .file, uncompressedSize: Int64(bytes.count), compressionMethod: .deflate,
+      provider: { position, size in bytes.subdata(in: Int(position)..<(Int(position) + size)) })
+  }
+  let ordinary = try zipBook.importFile(plain)
+  try expect(try zipBook.archiveMembers(ordinary.id).map(\.path) == ["a.txt", "b.txt"])
+  try expect(try zipBook.includeArchiveMembers(ordinary.id, paths: ["b.txt"]).count == 1)
+  func hostile(_ name: String, _ bytes: Data) throws -> (URL, String) {
+    let file = folder.appendingPathComponent(name + ".zip")
+    try bytes.write(to: file)
+    return (file, try zipBook.importFile(file).id)
+  }
+  // The second entry is password protected. A listing used to stop there without a word.
+  var locked = try Data(contentsOf: plain)
+  locked[headers("b.txt", in: locked)[1] + 8] |= 1
+  let (lockedFile, lockedID) = try hostile("locked", locked)
+  try refuses("archive_encrypted") { _ = try zipBook.archiveMembers(lockedID) }
+  try refuses("archive_encrypted") {
+    _ = try Workbook.openArchive(lockedFile, at: folder.appendingPathComponent("Locked.sevra"))
+  }
+  // A ZIP64 directory offset past 2^63 ends ZIPFoundation with a trap, so it never reaches it.
+  var wide = Data(repeating: 0, count: 8)
+  for (size, value) in [
+    (4, UInt64(0x0606_4B50)), (8, 44), (2, 45), (2, 45), (4, 0), (4, 0), (8, 1), (8, 1), (8, 0),
+    (8, UInt64.max), (4, 0x0706_4B50), (4, 0), (8, 8), (4, 1), (4, 0x0605_4B50), (2, 0), (2, 0),
+    (2, 0xFFFF), (2, 0xFFFF), (4, 0xFFFF_FFFF), (4, 0xFFFF_FFFF), (2, 0),
+  ] { wide.append(contentsOf: (0..<size).map { UInt8(value >> (8 * UInt64($0)) & 0xFF) }) }
+  let (wideFile, wideID) = try hostile("wide", wide)
+  try refuses("archive_format") { _ = try zipBook.archiveMembers(wideID) }
+  try refuses("archive_format") {
+    _ = try Workbook.openArchive(wideFile, at: folder.appendingPathComponent("Wide.sevra"))
+  }
+  // Whatever else traps while reading a ZIP costs the helper and refuses the file.
+  let crashing = folder.appendingPathComponent("crashing-helper")
+  try Data("#!/bin/sh\nkill -ABRT $$\n".utf8).write(to: crashing)
+  try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: crashing.path)
+  try refuses("archive_format") { _ = try ExtractionWorker(executable: crashing).zipMembers(plain) }
+  // A member that inflates past what it declares stops at the claim and leaves nothing.
+  var lying = try Data(contentsOf: plain)
+  let spots = headers("a.txt", in: lying)
+  put(1, at: spots[0] + 22, in: &lying)
+  put(1, at: spots[1] + 24, in: &lying)
+  let (_, lyingID) = try hostile("lying", lying)
+  try expect(try zipBook.archiveMembers(lyingID).first?.bytes == 1)
+  try refuses("archive_limit") { _ = try zipBook.includeArchiveMembers(lyingID, paths: ["a.txt"]) }
+  let staging = zipBook.url.appendingPathComponent("staging")
+  try expect(try FileManager.default.contentsOfDirectory(atPath: staging.path).isEmpty)
+  let portable = folder.appendingPathComponent("Portable.sevraz")
+  try zipBook.export(to: portable)
+  var copy = try Data(contentsOf: portable)
+  let manifest = headers("manifest.json", in: copy)
+  put(1, at: manifest[0] + 22, in: &copy)
+  put(1, at: manifest[1] + 24, in: &copy)
+  let (lyingCopy, _) = try hostile("lying-copy", copy)
+  let opening = folder.appendingPathComponent("Opening")
+  try FileManager.default.createDirectory(at: opening, withIntermediateDirectories: true)
+  try refuses("archive_limit") {
+    _ = try Workbook.openArchive(lyingCopy, at: opening.appendingPathComponent("Lying.sevra"))
+  }
+  try expect(try FileManager.default.contentsOfDirectory(atPath: opening.path).isEmpty)
+  _ = try Workbook.openArchive(portable, at: opening.appendingPathComponent("Clean.sevra"))
+}
+
 check("deep JSON and long dependency chains are refused by name on a worker stack") {
   /// The last column comes first, so nothing is cached on the way down.
   func chain(_ length: Int, _ extra: String = "") -> [Column] {
