@@ -174,7 +174,8 @@ import SwiftUI
               guard state.workbook === workbook, state.viewedItemVersion == item.id else { return }
               state.itemLocators[item.id] = "page=\(page)"
             },
-            onSelection: { state.selectedContext = $0 })
+            onSelection: { state.selectedContext = $0 },
+            onLink: { state.openConversationLink($0) })
         } else if ["mp4", "mov", "m4v", "mp3", "wav", "m4a", "aiff"].contains(ext) {
           VStack {
             NativeMediaPlayer(player: player).onAppear {
@@ -563,6 +564,7 @@ struct PDFWorkspace: View {
   let locator: String?
   let onPage: (Int) -> Void
   let onSelection: (String) -> Void
+  let onLink: (URL) -> Void
   @StateObject private var controls = PDFControls()
   var body: some View {
     VStack(spacing: 0) {
@@ -598,7 +600,8 @@ struct PDFWorkspace: View {
         }
         Divider()
       }
-      PDFViewer(url: url, locator: locator, onSelection: onSelection, controls: controls)
+      PDFViewer(
+        url: url, locator: locator, onSelection: onSelection, onLink: onLink, controls: controls)
         .overlay {
           if controls.unavailable {
             ContentUnavailableView(
@@ -688,10 +691,14 @@ struct TranscriptView: View {
   let url: URL
   let locator: String?
   let onSelection: (String) -> Void
+  let onLink: (URL) -> Void
   let controls: PDFControls
-  func makeCoordinator() -> Coordinator { Coordinator(onSelection, controls: controls) }
+  func makeCoordinator() -> Coordinator {
+    Coordinator(onSelection, onLink: onLink, controls: controls)
+  }
   func makeNSView(context: Context) -> PDFView {
     let view = PDFView()
+    view.delegate = context.coordinator
     view.autoScales = true
     view.displayMode = .singlePageContinuous
     context.coordinator.navigation.apply(view, url: url, locator: locator)
@@ -703,16 +710,23 @@ struct TranscriptView: View {
   func updateNSView(_ view: PDFView, context: Context) {
     context.coordinator.navigation.apply(view, url: url, locator: locator)
   }
-  @MainActor final class Coordinator: NSObject {
+  @MainActor final class Coordinator: NSObject, @preconcurrency PDFViewDelegate {
     let callback: (String) -> Void
+    let onLink: (URL) -> Void
     var token: NSObjectProtocol?
     var pageToken: NSObjectProtocol?
     let controls: PDFControls
     let navigation = PDFReadingNavigation()
-    init(_ callback: @escaping (String) -> Void, controls: PDFControls) {
+    init(
+      _ callback: @escaping (String) -> Void, onLink: @escaping (URL) -> Void,
+      controls: PDFControls
+    ) {
       self.callback = callback
+      self.onLink = onLink
       self.controls = controls
     }
+    // Left to its default, PDFView opens a link of any scheme directly.
+    func pdfViewWillClick(onLink sender: PDFView, with url: URL) { onLink(url) }
     func observe(_ view: PDFView) {
       pageToken = NotificationCenter.default.addObserver(
         forName: .PDFViewPageChanged, object: view, queue: .main
