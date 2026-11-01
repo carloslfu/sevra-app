@@ -15,7 +15,9 @@ func refuses(_ operation: () throws -> Void) throws {
 let start = ISO8601DateFormatter().date(from: "2026-10-01T08:00:00Z")!
 let due = ISO8601DateFormatter().date(from: "2026-10-01T09:00:00Z")!
 
-func fixture(_ root: URL, _ name: String) throws -> (Workbook, ApplicationDefinition) {
+func fixture(_ root: URL, _ name: String, title: String? = nil) throws -> (
+  Workbook, ApplicationDefinition
+) {
   let book = try Workbook.create(at: root.appendingPathComponent(name + ".sevra"), title: name)
   let function = try book.saveApplicationDefinition(
     logicalID: identifier(),
@@ -43,7 +45,7 @@ func fixture(_ root: URL, _ name: String) throws -> (Workbook, ApplicationDefini
   let automation = try book.saveApplicationDefinition(
     logicalID: identifier(),
     content: .object([
-      "kind": .string("automation"), "title": .string(name),
+      "kind": .string("automation"), "title": .string(title ?? name),
       "description": .string("Synthetic schedule"), "parameters": .array([]),
       "payload": .object([
         "policy": .string("calendar-drafts-v1"),
@@ -344,6 +346,119 @@ func conditionSale(_ book: Workbook) throws {
     try expect(try !store.matches(grant, workbook: replay))
     try expect(try replay.automationState(definition.id)["state"] == .string("armed"))
     _ = try replay.verify()
+  }
+  await check("a long title or one bad registry entry leaves every other schedule running") {
+    let store = registry("Registry-Bounds")
+    let owner = NativeAutomationController(registry: store, runner: runner)
+    let (long, longDefinition) = try fixture(
+      root, "LongTitle", title: String(repeating: "\u{E9}", count: 1000))
+    let (other, otherDefinition) = try fixture(root, "OtherTitle")
+    try await owner.enable(
+      long, exactID: longDefinition.id, expectedGeneration: 0, allowAI: false, now: start)
+    try await owner.enable(
+      other, exactID: otherDefinition.id, expectedGeneration: 0, allowAI: false, now: start)
+    try expect(owner.grants.count == 2 && owner.notice == nil && owner.failure == nil)
+    let grant = owner.grants.first { $0.workbookID == long.id }!
+    try expect(grant.title == String(repeating: "\u{E9}", count: 512))
+    _ = try store.restore(grant)
+
+    let file = store.directory.appendingPathComponent("automations.json")
+    var saved = try JSONSerialization.jsonObject(with: Data(contentsOf: file)) as! [String: Any]
+    var entries = saved["grants"] as! [[String: Any]]
+    let index = entries.firstIndex { $0["workbookID"] as? String == long.id }!
+    entries[index]["title"] = String(repeating: "x", count: 1025)
+    saved["grants"] = entries
+    try JSONSerialization.data(withJSONObject: saved).write(to: file)
+    try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
+    let inventory = try store.inventory()
+    try expect(inventory.grants.map(\.workbookID) == [other.id] && inventory.unreadable == 1)
+    await owner.reload()
+    try expect(owner.grants.count == 1 && owner.failure == nil && owner.notice != nil)
+    owner.poll(now: due)
+    await owner.waitForCurrentPoll()
+    try expect(try other.workflowRuns().first?["state"] == .string("completed"))
+    try expect(try long.workflowRuns().isEmpty)
+
+    // Enabling it again replaces the entry that could not be read.
+    let current = try long.automationState(longDefinition.id)["generation"].int!
+    try await owner.enable(
+      long, exactID: longDefinition.id, expectedGeneration: current, allowAI: false,
+      now: due)
+    try expect(owner.grants.count == 2 && owner.notice == nil)
+    try expect(try store.inventory().unreadable == 0)
+    _ = try long.verify()
+    _ = try other.verify()
+  }
+  await check("a failed dispatch retries without saving another plan until a new slot is due") {
+    let (book, definition) = try fixture(root, "StaleLookup")
+    let basis = try book.addItem(category: "source", kind: "observation", title: "Catalog basis")
+    let table = try book.createDataset(
+      title: "Catalog", columns: [.init(id: "code", title: "Code")],
+      rows: [["code": .string("0012")]], sourceID: basis.id)
+    let query = try book.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: .object([
+        "kind": .string("query"), "title": .string("Find code"),
+        "description": .string("Exact schema"), "parameters": .array([]),
+        "payload": .object([
+          "dataMode": .string("exact"),
+          "query": .object([
+            "sources": .array([
+              .object(["datasetID": .string(table.id), "definitionID": .string(table.definitionID)])
+            ]),
+            "select": .array([
+              .object([
+                "id": .string("code"),
+                "column": .object(["source": .number(0), "column": .string("code")]),
+              ])
+            ]),
+            "limit": .number(10),
+          ]),
+        ]),
+      ]))
+    let workflow = try book.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: .object([
+        "kind": .string("workflow"), "title": .string("Look up"),
+        "description": .string("Synthetic lookup"), "parameters": .array([]),
+        "payload": .object([
+          "readPolicy": .string("latest-at-step"),
+          "steps": .array([
+            .object([
+              "id": .string("match"), "kind": .string("evaluate"),
+              "binding": .object(["mode": .string("exact"), "versionID": .string(query.id)]),
+              "arguments": .object([:]),
+            ])
+          ]),
+        ]),
+      ]))
+    var payload = definition.payload.object
+    payload["workflow"] = .object(["mode": .string("exact"), "versionID": .string(workflow.id)])
+    var content = definition.content.object
+    content["payload"] = .object(payload)
+    let lookup = try book.saveApplicationDefinition(
+      logicalID: identifier(), content: .object(content))
+    let owner = NativeAutomationController(registry: registry("Registry-Stale"), runner: runner)
+    try await owner.enable(
+      book, exactID: lookup.id, expectedGeneration: 0, allowAI: false, now: start)
+    _ = try book.updateDatasetDefinition(
+      table.id, expectedVersion: table.version, expectedDefinitionID: table.definitionID,
+      title: "Renamed", columns: nil, archived: nil, token: "rename")
+    owner.poll(now: due)
+    await owner.waitForCurrentPoll()
+    let planned = try book.items(kind: "automation_planning", limit: 100).count
+    let revision = try book.revision()
+    try expect(planned == 1 && owner.statuses[owner.grants[0].id] != "Schedule checked.")
+    for seconds in [31.0, 62, 93] {
+      owner.poll(now: due.addingTimeInterval(seconds))
+      await owner.waitForCurrentPoll()
+    }
+    try expect(try book.revision() == revision && book.workflowRuns().isEmpty)
+    // The pending request is past its 24-hour limit by the next day's slot, which plans once.
+    owner.poll(now: due.addingTimeInterval(86_500))
+    await owner.waitForCurrentPoll()
+    try expect(try book.items(kind: "automation_planning", limit: 100).count == 2)
+    _ = try book.verify()
   }
   await check("driver defers while inactive, stays write-free while idle and completes one due run")
   {

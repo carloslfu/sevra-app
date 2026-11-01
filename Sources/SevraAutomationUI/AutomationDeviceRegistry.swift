@@ -15,6 +15,18 @@ public struct AutomationDeviceGrant: Codable, Equatable, Identifiable, Sendable 
   public let workbookTitle: String
   public let bookmark: Data
   let physical: AutomationPhysicalIdentity
+
+  /// What a stored entry may hold. A definition title can run to 2,048 bytes, so titles are cut
+  /// before they get here.
+  fileprivate var isStorable: Bool {
+    (1...1_000_000_000).contains(generation) && bookmark.count <= 32_768
+      && title.utf8.count <= 1024 && workbookTitle.utf8.count <= 1024
+  }
+  fileprivate static func storedTitle(_ text: String) -> String {
+    var title = text
+    while title.utf8.count > 1024 { title.removeLast() }
+    return title
+  }
 }
 
 /// What a saved version's page says about the version enabled on this Mac. Opening an old version
@@ -64,12 +76,39 @@ public final class AutomationDeviceRegistry: @unchecked Sendable {
   private struct Registry: Codable {
     let version: Int
     var grants: [AutomationDeviceGrant]
+    /// Entries that cannot be used. They never run, and the next save leaves them out.
+    var unreadable = 0
+    private enum CodingKeys: String, CodingKey { case version, grants }
+    private struct Entry: Decodable {
+      let grant: AutomationDeviceGrant?
+      init(from decoder: Decoder) throws {
+        grant = (try? AutomationDeviceGrant(from: decoder)).flatMap { $0.isStorable ? $0 : nil }
+      }
+    }
+    init(version: Int, grants: [AutomationDeviceGrant]) {
+      self.version = version
+      self.grants = grants
+    }
+    init(from decoder: Decoder) throws {
+      let container = try decoder.container(keyedBy: CodingKeys.self)
+      version = try container.decode(Int.self, forKey: .version)
+      let entries = try container.decode([Entry].self, forKey: .grants)
+      grants = entries.compactMap(\.grant)
+      unreadable = entries.count - grants.count
+    }
   }
   public let directory: URL
   private var file: URL { directory.appendingPathComponent("automations.json") }
   public init(directory: URL) { self.directory = directory.standardizedFileURL }
 
   public func grants() throws -> [AutomationDeviceGrant] { try locked { try read().grants } }
+  /// The usable grants, and how many stored entries could not be used.
+  public func inventory() throws -> (grants: [AutomationDeviceGrant], unreadable: Int) {
+    try locked {
+      let registry = try read()
+      return (registry.grants, registry.unreadable)
+    }
+  }
 
   /// Only an explicit native Enable calls this, after the exact workbook grant.
   public func register(_ book: Workbook, session: AutomationExecutionSession) throws
@@ -87,8 +126,8 @@ public final class AutomationDeviceRegistry: @unchecked Sendable {
     let grant = AutomationDeviceGrant(
       workbookID: book.id, definitionID: definition.id, activationID: session.planning.activationID,
       generation: session.planning.generation, sourceID: state["source_id"].text,
-      allowAI: session.allowAI, title: definition.title,
-      workbookTitle: String(book.title.prefix(256)),
+      allowAI: session.allowAI, title: AutomationDeviceGrant.storedTitle(definition.title),
+      workbookTitle: AutomationDeviceGrant.storedTitle(String(book.title.prefix(256))),
       bookmark: try book.url.bookmarkData(
         options: [], includingResourceValuesForKeys: nil,
         relativeTo: nil), physical: physical)
@@ -220,18 +259,16 @@ public final class AutomationDeviceRegistry: @unchecked Sendable {
         "The device registry is corrupt. Its file was preserved; scheduling is deferred.")
     }
     try require(
-      registry.version == 1 && registry.grants.count <= 32
-        && Set(registry.grants.map(\.id)).count == registry.grants.count
-        && registry.grants.allSatisfy {
-          (1...1_000_000_000).contains($0.generation)
-            && $0.bookmark.count <= 32_768 && $0.title.utf8.count <= 1024
-            && $0.workbookTitle.utf8.count <= 1024
-        },
+      registry.version == 1 && registry.grants.count + registry.unreadable <= 32
+        && Set(registry.grants.map(\.id)).count == registry.grants.count,
       "automation_registry", "Unsupported or malformed device permissions. The file was preserved.")
     return registry
   }
 
   private func write(_ registry: Registry) throws {
+    try require(
+      registry.grants.allSatisfy(\.isStorable), "automation_registry",
+      "This device permission is outside the stored limits.")
     let data = try JSONEncoder().encode(registry)
     try require(data.count <= 2_097_152, "automation_registry", "The device registry is full.")
     let temp = directory.appendingPathComponent(".write-" + UUID().uuidString)

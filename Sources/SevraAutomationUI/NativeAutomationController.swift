@@ -13,6 +13,8 @@ import SevraCore
   @Published public private(set) var grants: [AutomationDeviceGrant] = []
   @Published public private(set) var statuses: [String: String] = [:]
   @Published public private(set) var failure: String?
+  /// Other schedules keep running while this shows. `failure` stops all of them.
+  @Published public private(set) var notice: String?
   @Published public private(set) var runningID: String?
   @Published public private(set) var gate = "Waiting for Sevra to become active."
   private let runner: Runner
@@ -29,7 +31,12 @@ import SevraCore
   public func reload() async {
     do {
       let registry = registry
-      grants = try await Task.detached { try registry.grants() }.value
+      let inventory = try await Task.detached { try registry.inventory() }.value
+      grants = inventory.grants
+      notice =
+        inventory.unreadable == 0
+        ? nil
+        : "A saved schedule on this Mac could not be read and will not run. Open it and enable it again."
       failure = nil
       let ids = Set(grants.map(\.id))
       nextChecks = nextChecks.filter { ids.contains($0.key) }
@@ -237,19 +244,22 @@ import SevraCore
       throw SevraError("automation_time", "The saved schedule cursor is invalid.")
     }
     let next = try schedule.preview(after: cursor, count: 1, cancellation: cancellation)
-    if state["catch_up_remaining"].int == 0, pending == .null,
-      let due = next["occurrences"].array.first?["due"].string.flatMap(formatter.date(from:)),
-      due > now
-    {
+    let due = next["occurrences"].array.first?["due"].string.flatMap(formatter.date(from:))
+    let covered = state["catch_up_remaining"].int == 0 && due.map { $0 > now } == true
+    if covered, pending == .null, let due {
       return result(
         nil, "Next: " + due.formatted(date: .abbreviated, time: .shortened),
         next: min(due, now.addingTimeInterval(60)))
     }
-    let planned = try book.planAutomationOccurrences(
-      session.planning, through: now,
-      token: identifier(), cancellation: cancellation)
-    guard planned["catchUpRemaining"] == .bool(false) else {
-      return result(nil, "Catching up on missed times.", next: now)
+    // A failed dispatch retries every 30 seconds, and each plan saves a Source. With no new slot
+    // there is nothing to plan, and dispatch applies the same 24-hour limit to the pending one.
+    if !covered {
+      let planned = try book.planAutomationOccurrences(
+        session.planning, through: now,
+        token: identifier(), cancellation: cancellation)
+      guard planned["catchUpRemaining"] == .bool(false) else {
+        return result(nil, "Catching up on missed times.", next: now)
+      }
     }
     let dispatch = try book.dispatchAutomationOccurrence(
       session, observedAt: now,

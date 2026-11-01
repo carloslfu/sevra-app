@@ -25,7 +25,7 @@ struct AutomationSchedulesView: View {
         "Saved automations travel with this workbook. Enable each exact version on this Mac to run it here."
       )
       .font(.caption).foregroundStyle(.secondary)
-      if let failure = failure ?? pages.failure ?? owner.failure {
+      if let failure = failure ?? pages.failure ?? owner.failure ?? owner.notice {
         Text(failure).foregroundStyle(.red).textSelection(.enabled)
       }
       if pages.loading { ProgressView("Reading automations") }
