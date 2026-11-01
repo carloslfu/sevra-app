@@ -101,6 +101,25 @@ func checkFoldersAndTemplates(at root: URL) {
     }
     DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) { stop.cancel() }
     try expect(stopped.wait(timeout: .now() + 2) == .success)
+    let halt = Cancellation()
+    let ended = DispatchSemaphore(value: 0)
+    let answered = DispatchSemaphore(value: 0)
+    Task {
+      do {
+        let tracks = try await FileTranscriber.waiting(within: halt) { () -> [Int] in
+          try await Task.sleep(nanoseconds: 60_000_000_000)
+          return [1]
+        }
+        print("waited for", tracks)
+      } catch { if (error as? SevraError)?.code == "cancelled" { ended.signal() } }
+    }
+    Task {
+      let value = try await FileTranscriber.waiting(within: .init()) { 7 }
+      if value == 7 { answered.signal() }
+    }
+    DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) { halt.cancel() }
+    try expect(ended.wait(timeout: .now() + 2) == .success)
+    try expect(answered.wait(timeout: .now() + 2) == .success)
   }
   check("naming a category as a search kind still finds the evidence") {
     let book = try Workbook.create(

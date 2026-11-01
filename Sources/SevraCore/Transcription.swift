@@ -53,15 +53,14 @@ public enum FileTranscriber {
   }
   /// Waits for system work that may ignore Stop. Stop and the deadline always return here, and the
   /// work is told to stop. A speech model download left running finishes on its own.
-  static func waiting(
-    within bounded: Cancellation, for work: @escaping @Sendable () async throws -> Void
-  ) async throws {
-    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+  static func waiting<Result: Sendable>(
+    within bounded: Cancellation, for work: @escaping @Sendable () async throws -> Result
+  ) async throws -> Result {
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Result, Error>) in
       let waiter = Waiter(continuation)
       let task = Task {
         do {
-          try await work()
-          waiter.finish(.success(()))
+          waiter.finish(.success(try await work()))
         } catch { waiter.finish(.failure(error)) }
       }
       Task {
@@ -78,16 +77,16 @@ public enum FileTranscriber {
       }
     }
   }
-  private final class Waiter: @unchecked Sendable {
+  private final class Waiter<Result: Sendable>: @unchecked Sendable {
     private let lock = NSLock()
-    private var continuation: CheckedContinuation<Void, Error>?
-    init(_ continuation: CheckedContinuation<Void, Error>) { self.continuation = continuation }
+    private var continuation: CheckedContinuation<Result, Error>?
+    init(_ continuation: CheckedContinuation<Result, Error>) { self.continuation = continuation }
     var isOpen: Bool {
       lock.lock()
       defer { lock.unlock() }
       return continuation != nil
     }
-    func finish(_ result: Result<Void, Error>) {
+    func finish(_ result: Swift.Result<Result, Error>) {
       lock.lock()
       let open = continuation
       continuation = nil
@@ -104,7 +103,9 @@ public enum FileTranscriber {
   ) async throws -> [Chunk] {
     try cancellation.check()
     guard #available(macOS 26.0, *), SpeechTranscriber.isAvailable,
-      let language = await SpeechTranscriber.supportedLocale(equivalentTo: .current)
+      let language = try await waiting(
+        within: cancellation,
+        for: { await SpeechTranscriber.supportedLocale(equivalentTo: .current) })
     else {
       throw SevraError(
         "speech_unavailable",
@@ -112,8 +113,13 @@ public enum FileTranscriber {
       )
     }
     let asset = AVURLAsset(url: file)
-    let tracks = (try? await asset.loadTracks(withMediaType: .audio)) ?? []
-    let duration = (try? await asset.load(.duration).seconds) ?? 0
+    // A damaged or unreachable file can leave these waiting, and Stop still has to end them.
+    let tracks = try await waiting(within: cancellation) {
+      (try? await asset.loadTracks(withMediaType: .audio)) ?? []
+    }
+    let duration = try await waiting(within: cancellation) {
+      (try? await asset.load(.duration).seconds) ?? 0
+    }
     try require(
       !tracks.isEmpty && duration.isFinite && duration > 0, "audio",
       "This file has no readable audio track.")
@@ -124,12 +130,15 @@ public enum FileTranscriber {
     let transcriber = SpeechTranscriber(
       locale: language, transcriptionOptions: [], reportingOptions: [],
       attributeOptions: [.audioTimeRange])
-    let installed = await SpeechTranscriber.installedLocales.contains {
-      $0.identifier(.bcp47) == language.identifier(.bcp47)
+    let installed = try await waiting(within: cancellation) {
+      await SpeechTranscriber.installedLocales.contains {
+        $0.identifier(.bcp47) == language.identifier(.bcp47)
+      }
     }
-    if !installed,
-      let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber])
-    {
+    let installation = try await waiting(within: cancellation) {
+      installed ? nil : try await AssetInventory.assetInstallationRequest(supporting: [transcriber])
+    }
+    if let request = installation {
       progress("Downloading this language's speech model")
       cancellation.track(request.progress)
       defer { cancellation.untrack(request.progress) }
