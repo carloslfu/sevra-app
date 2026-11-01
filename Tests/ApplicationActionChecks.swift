@@ -353,6 +353,16 @@ func checkApplicationActions(at root: URL) {
     let copy = try b.reconstruct(to: root.appendingPathComponent("FormCheckpoint.sevra"))
     try expect(try copy.formDraft("Home:receiving") == saved && copy.revision() == revision)
     _ = try copy.verify()
+    // A window whose empty draft gave up its slot in a full workbook just saves again.
+    let spare = try b.saveFormDraft("spare", state: state, expected: nil)
+    for index in 0..<254 {
+      _ = try b.saveFormDraft("filler\(index)", state: incomplete, expected: nil)
+    }
+    _ = try b.saveFormDraft("newest", state: state, expected: nil)
+    try expect(try b.formDraft("spare") == nil)
+    var typed = spare
+    typed.arguments = .object(["delivery": .string("typed later")])
+    try expect(try b.saveFormDraft("spare", state: typed, expected: spare) == typed)
   }
   check("action/form history, dependency search and reconstruction remain inert and complete") {
     let b = try book("Replay")

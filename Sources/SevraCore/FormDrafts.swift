@@ -29,6 +29,8 @@ public struct FormDraftState: Codable, Equatable, Sendable {
   public var invocationToken: String
   public var lastReceipt: Value?
   public var alternatives: [FormDraftAlternative] = []
+  /// A submitted or empty draft holds nothing to lose, so a full workbook can reuse its slot.
+  var isSpare: Bool { alternatives.isEmpty && (lastReceipt != nil || arguments == .object([:])) }
   public static func componentKey(spaceID: String, componentID: String) throws -> String {
     try require(
       !spaceID.isEmpty && !componentID.isEmpty && spaceID.utf8.count <= 256
@@ -151,8 +153,10 @@ extension Workbook {
   ) throws -> FormDraftState {
     try presentationMutation {
       let current = try readFormDraft(key)
+      // The window of a spare draft given to another form still holds its copy.
+      let reused = current == nil && expected?.isSpare == true
       try require(
-        current == expected || current == state || keepOther,
+        current == expected || current == state || keepOther || reused,
         "form_draft_conflict",
         "Another window changed this form draft. Your inputs are still here. Keep both drafts before continuing."
       )
@@ -187,7 +191,7 @@ extension Workbook {
       if current == nil,
         try db.scalar("SELECT count(*) FROM meta WHERE key LIKE 'form-draft:%'").int ?? 0 >= 256
       {
-        // Only unsent inputs keep a slot. A submitted or empty draft holds nothing to lose.
+        // Only unsent inputs keep a slot.
         let spare = try db.scalar(
           "SELECT key FROM meta WHERE key LIKE 'form-draft:%' AND json_array_length(value,'$.alternatives')=0 AND (json_type(value,'$.lastReceipt')='object' OR json_extract(value,'$.arguments')='{}') LIMIT 1"
         )

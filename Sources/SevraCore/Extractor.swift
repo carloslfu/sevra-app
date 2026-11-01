@@ -155,28 +155,24 @@ public enum Extractor {
       defer { try? handle.close() }
       let data = try handle.read(upToCount: 8_000_000) ?? Data()
       let cut = bytes > data.count
-      guard let decoded = decodedText(data, cut: cut) else {
-        throw SevraError("encoding", "Text encoding could not be read.")
-      }
+      // RTF has its own parser, and its binary blocks are not text in any encoding.
+      let rtf =
+        ext == "rtf"
+        ? try? NSAttributedString(
+          data: data, options: [.documentType: NSAttributedString.DocumentType.rtf],
+          documentAttributes: nil) : nil
+      guard let decoded = rtf.map({ (text: $0.string, guessed: false) }) ?? decodedText(data, cut: cut)
+      else { throw SevraError("encoding", "Text encoding could not be read.") }
       var text = decoded.text
-      var guessed = decoded.guessed
       if ext == "html" || ext == "htm" {
         text = decodedEntities(
           text.replacingOccurrences(
             of: "(?is)<(script|style)\\b[^>]*>.*?</\\1>", with: "", options: .regularExpression
           ).replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression))
       }
-      if ext == "rtf",
-        let attributed = try? NSAttributedString(
-          data: data, options: [.documentType: NSAttributedString.DocumentType.rtf],
-          documentAttributes: nil)
-      {
-        text = attributed.string
-        guessed = false
-      }
       let notes = [
         cut ? "Only the first 8 MB were indexed." : nil,
-        guessed
+        decoded.guessed
           ? "This file is not UTF-8, so it was read as Windows-1252. Check the original if characters look wrong."
           : nil,
       ].compactMap { $0 }

@@ -188,6 +188,8 @@ func checkDatasetDefinitions(at root: URL) {
     }
     try expect(try book.rows(table.id, query: "cafe 12").count == 1)
     try expect(try book.filteredRowCount(table.id, query: "BET") == 1)
+    // A term of marks alone, such as an emoji's variation selector, asks for nothing.
+    try expect(try book.filteredRowCount(table.id, query: "beta ⚠️") == 1)
     let base = try book.datasetDefinition(table.id)
     _ = try book.updateDatasetDefinition(
       table.id, expectedVersion: base.version, expectedDefinitionID: base.id,

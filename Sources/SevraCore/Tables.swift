@@ -419,7 +419,8 @@ extension Workbook {
   }
   /// The same words the index reads: runs of letters and digits, without case or accents.
   private static func filterWords(_ text: String) -> [String] {
-    text.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
+    text.components(separatedBy: CharacterSet.alphanumerics.inverted)
+      .filter { word in word.unicodeScalars.contains { !CharacterSet.nonBaseCharacters.contains($0) } }
       .map { $0.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil) }
   }
   static func rowHolds(_ data: String, query: String, columns: String) -> Bool {

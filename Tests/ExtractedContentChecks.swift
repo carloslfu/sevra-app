@@ -31,6 +31,10 @@ func checkExtractedContent(at root: URL) {
     let rtf = try Extractor.extract(
       file("raw.rtf", "{\\rtf1\\ansi\\ansicpg1252 Café}".data(using: .isoLatin1)!))
     try expect(rtf.state == "ready" && text(rtf) == "Café")
+    // A binary block is neither UTF-8 nor Windows-1252, and the parser reads past it.
+    let binary = try Extractor.extract(
+      file("binary.rtf", Data("{\\rtf1\\ansi Before \\bin2 ".utf8) + Data([0, 0xFF]) + Data(" after}".utf8)))
+    try expect(text(binary).contains("Before") && text(binary).contains("after"), text(binary))
     try refuses("encoding") { _ = try Extractor.extract(file("binary.txt", Data([0xFF, 0, 0xE9]))) }
     let cutWide = Extractor.decodedText(marked + Data([0x3D, 0xD8, 0x00]), cut: true)
     try expect(cutWide?.text == "Añejo €5" && cutWide?.guessed == false)
