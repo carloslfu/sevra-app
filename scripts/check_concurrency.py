@@ -52,15 +52,19 @@ with tempfile.TemporaryDirectory(prefix='sevra-concurrency-') as temporary:
     assert waiting.returncode!=0 and json.loads(stderr)['error']['code']=='cancelled',stderr
     os.close(lock)
     large=folder/'Large.bin';large.write_bytes(os.urandom(64_000_000));run('import',book,large)
-    scratch=folder/'scratch';scratch.mkdir();target=folder/'stopped';target.mkdir()
+    target=folder/'stopped';target.mkdir()
+    # Foundation takes the temporary folder from the system, whatever TMPDIR says.
+    system=Path(subprocess.check_output(['getconf','DARWIN_USER_TEMP_DIR'],text=True).strip())
+    copies=lambda:set(system.glob('sevra-export-*'))
+    before=copies()
     for number in [signal.SIGINT,signal.SIGTERM,signal.SIGHUP]:
         process=subprocess.Popen([str(cli),'export',str(book),str(target/'Stopped.sevraz')],text=True,
-                                 stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={**os.environ,'TMPDIR':str(scratch)})
+                                 stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         deadline=time.monotonic()+60
         while process.poll() is None and time.monotonic()<deadline and not list(target.iterdir()):
             time.sleep(0.005)
         process.send_signal(number)
         _,stderr=process.communicate(timeout=60)
         assert process.returncode!=0 and json.loads(stderr)['error']['code']=='cancelled',stderr
-        assert not list(target.iterdir()) and not list(scratch.iterdir())
+        assert not list(target.iterdir()) and copies()==before
     print(json.dumps({'crossProcessIntakeRetry':True,'concurrentWriters':30,'snapshotVerified':True,'idempotentRetry':True,'staleWriteRefused':True,'inventoryPreserved':True}))
