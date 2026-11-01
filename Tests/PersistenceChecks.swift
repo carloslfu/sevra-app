@@ -221,6 +221,42 @@ func checkPersistence(at root: URL) {
     _ = try book.accept(draft.id, token: "real-token")
     try expect(try book.verify()["ok"] == .bool(true))
   }
+  check("a limit reached before commit saves nothing, and one after commit cannot fail the save") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("LateStop.sevra"), title: "Stop")
+    let revision = try book.revision()
+    let early = Cancellation()
+    try refuses("cancelled") {
+      try book.mutation("late", cancellation: early, commitGuard: { early.cancel() }) { .null }
+    }
+    try expect(try book.revision() == revision)
+    let late = Cancellation()
+    try book.db.budget(cancellation: late, seconds: 3) {
+      try book.db.transaction {}
+      late.cancel()
+    }
+    // A read has nothing to lose, so a Stop during it still reports.
+    let read = Cancellation()
+    try refuses("cancelled") {
+      try book.db.budget(cancellation: read, seconds: 3) {
+        try book.db.readTransaction {}
+        read.cancel()
+      }
+    }
+    // An inner read hands the watch back, so the outer limit still stops a long statement.
+    let outer = Cancellation()
+    let started = ProcessInfo.processInfo.systemUptime
+    try refuses("cancelled") {
+      try book.db.budget(cancellation: outer, seconds: 30) {
+        try book.db.budget(cancellation: .init(), seconds: 3) {}
+        outer.cancel()
+        try book.db.execute(
+          "WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM n WHERE i<1000000000) SELECT count(*) FROM n"
+        )
+      }
+    }
+    try expect(ProcessInfo.processInfo.systemUptime - started < 5)
+  }
   check("saved SQLite values keep large integers, exact UTF-8, empty blobs and IEEE-754 bits") {
     let database = try Database(root.appendingPathComponent("Typed.sqlite"), create: true)
     try database.script("CREATE TABLE values_fixture(a,b,c,d,e);")

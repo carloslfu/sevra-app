@@ -32,8 +32,8 @@ extension Workbook {
       return .string(
         try writeReferenceSelections(originVersionID, selections: selections, previous: current))
     }
-    return try referenceSnapshot(
-      originVersionID, snapshotID: result.text, cancellation: cancellation)
+    // Saved by now, so a late Stop must not read as a failed save.
+    return try referenceSnapshot(originVersionID, snapshotID: result.text)
   }
 
   func publishInitialReferences(

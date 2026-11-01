@@ -6,6 +6,8 @@ final class Database {
   var changes: ChangeCapture?
   var changeColumns: [String: [String]] = [:]
   var queryControl: DatasetQueryControl?
+  /// The running budget, until a commit makes its outcome final.
+  private var activeBudget: Cancellation?
   init(_ url: URL, create: Bool = false) throws {
     let flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX | (create ? SQLITE_OPEN_CREATE : 0)
     guard
@@ -111,23 +113,34 @@ final class Database {
   {
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: seconds)
     try control.check()
-    let pointer = Unmanaged.passUnretained(control).toOpaque()
+    let outer = activeBudget
+    activeBudget = control
+    watchProgress(control)
+    defer {
+      activeBudget = outer
+      watchProgress(outer)
+    }
+    do {
+      let result = try body()
+      try activeBudget?.check()
+      return result
+    } catch {
+      try control.check()
+      throw error
+    }
+  }
+  private func watchProgress(_ control: Cancellation?) {
+    guard let control else {
+      sqlite3_progress_handler(handle, 0, nil, nil)
+      return
+    }
     sqlite3_progress_handler(
       handle, 5000,
       { context in
         guard let context else { return 1 }
         let control = Unmanaged<Cancellation>.fromOpaque(context).takeUnretainedValue()
         return (try? control.check()) == nil ? 1 : 0
-      }, pointer)
-    defer { sqlite3_progress_handler(handle, 0, nil, nil) }
-    do {
-      let result = try body()
-      try control.check()
-      return result
-    } catch {
-      try control.check()
-      throw error
-    }
+      }, Unmanaged.passUnretained(control).toOpaque())
   }
   func failure() -> SevraError { .init("database", String(cString: sqlite3_errmsg(handle))) }
   func shortWait<T>(_ body: () throws -> T) rethrows -> T {
@@ -143,7 +156,10 @@ final class Database {
       let value = try body()
       try changes?.publish(self)
       try beforeCommit?()
+      // Past COMMIT the change is saved, so a limit can only refuse it here.
+      try activeBudget?.check()
       try execute("COMMIT")
+      activeBudget = nil
       changes?.reset()
       return value
     } catch {

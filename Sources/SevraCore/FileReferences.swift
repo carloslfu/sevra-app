@@ -249,7 +249,7 @@ extension Workbook {
           detail: "Explicit choices in retained extracted text. Other mentions may exist.",
           inherited: nil))
     }
-    return try fileReferenceSnapshot(
-      originVersionID, snapshotID: result.text, cancellation: cancellation)
+    // Saved by now, so a late Stop must not read as a failed save.
+    return try fileReferenceSnapshot(originVersionID, snapshotID: result.text)
   }
 }
