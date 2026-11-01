@@ -305,6 +305,7 @@ do {
   try await checkEvidenceAdmission()
   try await checkTerminalReceipts()
   try await checkRefusedToolCalls()
+  try await checkPagedTableRows()
   try await checkDocumentCopies()
   try await checkCurrencyRejection()
   try await checkHistoryTools()

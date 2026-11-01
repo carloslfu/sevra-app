@@ -1,6 +1,7 @@
 import Foundation
 import SevraAI
 import SevraCore
+import SevraNativeAI
 
 /// Plays one tool call per step and keeps every prompt, so a check can read what the host said.
 actor ScriptedCalls: WorkbookInference {
@@ -377,4 +378,89 @@ func checkRefusedToolCalls() async throws {
     throw SevraError("fixture", "Repeated refusals completed.")
   } catch let error as SevraError where error.code == "model_format" {}
   print("PASS refused tool arguments reach the model for correction, three times at most")
+}
+
+/// A table read to its end can outrun the 256 IDs the grammar can name. The run carries on, every
+/// row read stays evidence, and the answer links the table.
+func checkPagedTableRows() async throws {
+  let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+    "sevra-paged-rows-" + identifier())
+  defer { try? FileManager.default.removeItem(at: root) }
+  let book = try Workbook.create(at: root.appendingPathComponent("a.sevra"), title: "Rows")
+  let source = try book.addItem(
+    category: "source", kind: "note", title: "Price list", text: "Supplier prices.")
+  func table(_ title: String, rows: Int) throws -> Dataset {
+    try book.createDataset(
+      title: title,
+      columns: [.init(id: "supplier", title: "Supplier"), .init(id: "note", title: "Note")],
+      rows: (0..<rows).map {
+        ["supplier": .string("S\($0)"), "note": .string($0 == 5 ? "Discount 19%" : "None")]
+      }, sourceID: source.id)
+  }
+  func page(_ table: Dataset, _ offset: Int) -> ScriptedCalls.Step {
+    call("rows", .object(["datasetID": .string(table.id), "offset": .number(Double(offset))]))
+  }
+  let long = try table("Long prices", rows: 350)
+  let rows = try book.rows(long.id, limit: 350).map(\.id)
+  try expectEqual(rows.count, 350)
+
+  // Three full pages, then a fourth to show further pages keep working.
+  let model = ScriptedCalls([
+    page(long, 0), page(long, 100), page(long, 200), page(long, 300),
+    // Row 349 was read, and row 5's rate is on a page that left the citation choices.
+    finish("S5 has a 19% discount.", basis: "evidence", citations: [rows[349]]),
+  ])
+  let answer = try await WorkbookAgent.run(
+    "List every supplier with a discount.", workbook: book, context: "Table: \(long.id)",
+    model: model)
+  try expectEqual(answer.state, "complete")
+  try expectEqual(answer.steps, 5)
+  let refusedRate = await model.refusals
+  try expectEqual(refusedRate, [])
+  try expectEqual(answer.answer.contains("[Long prices, 350 rows read](sevra://item/\(source.id))"), true)
+  try expectEqual(answer.citations.contains(source.id), true)
+  let choices = await model.vocabularies
+  try expectEqual(choices.allSatisfy { $0.count <= 256 }, true)
+  try expectEqual(choices.last!.contains(rows[349]), true)
+  try expectEqual(choices.last!.contains(rows[0]), false)
+  // The same limits the live grammar applies, on the prompt that reached the model.
+  let last = try expectValue(await model.prompts.last)
+  _ = try NativeCitationPolicy.make(
+    choices.last!, itemReferenceIDs: try ItemReferenceCandidates.ids(in: last))
+  let saved = try expectValue(book.messages().last { $0.role == "assistant" })
+  try expectEqual(try book.messagePayload(saved.id)["readTables"].array.count, 1)
+
+  // Past the choices a read row is still evidence. An unread row never was, and a wrong rate
+  // is still wrong.
+  let bounded = ScriptedCalls([
+    page(long, 0), page(long, 100), page(long, 200),
+    finish("S340 has no discount.", basis: "evidence", citations: [rows[340]]),
+    finish("S5 has an 18% discount.", basis: "evidence", citations: [rows[5]]),
+    finish("S5 has a 19% discount.", basis: "evidence", citations: [rows[5]]),
+  ])
+  let kept = try await WorkbookAgent.run(
+    "List every supplier with a discount.", workbook: book, context: "Table: \(long.id)",
+    model: bounded)
+  try expectEqual(kept.state, "complete")
+  try expectEqual(kept.citations.contains(rows[340]), false)
+  try expectEqual(kept.citations.contains(rows[5]), true)
+  let refused = await bounded.refusals
+  try expectEqual(refused.count, 2)
+  try expectEqual(refused[0].contains("Citations must be inspected"), true)
+  try expectEqual(refused[1].contains("percentage is unsupported"), true)
+
+  // Under the limit nothing changes: every row is a choice and the host adds no link.
+  let short = try table("Short prices", rows: 150)
+  let shortRows = try book.rows(short.id, limit: 150).map(\.id)
+  let plain = ScriptedCalls([
+    page(short, 0), page(short, 100),
+    finish("S5 has a 19% discount.", basis: "evidence", citations: [shortRows[5]]),
+  ])
+  let cited = try await WorkbookAgent.run(
+    "List every supplier with a discount.", workbook: book, context: "Table: \(short.id)",
+    model: plain)
+  try expectEqual(cited.citations, [shortRows[5]])
+  try expectEqual(cited.answer.contains("rows read"), false)
+  try expectEqual(await plain.vocabularies.last!.count, 150)
+  print("PASS a table can be paged past the citation limit; read rows stay evidence, unread refused")
 }

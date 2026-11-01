@@ -37,6 +37,8 @@ public enum WorkbookAgent {
   /// The citation grammar names every ID it allows, and every ID costs prompt room and stops at
   /// 256. A longer receipt adds only the versions it names.
   private static let citableCalculationInputs = 32
+  /// NativeCitationPolicy and the grammar's enumerations both stop here.
+  private static let citationChoiceLimit = 256
   package static func run(
     _ prompt: String, workbook: Workbook, conversation: String = "main", context: String = "",
     modelDirectory: URL = FileManager.default.temporaryDirectory,
@@ -205,6 +207,17 @@ public enum WorkbookAgent {
     var discoveryLimited = false
     let explorationLimit = "\nHost exploration limit: three searches produced no new candidates. Further lexical search is paused for this answer so you can finish from the inspected evidence. Read known originals and perform needed calculations. Clearly identify unsupported requested terms. This is not complete coverage or proof that another document does not exist."
     var pendingVersionCitations = Set<String>()
+    var readRows: [(id: String, table: String)] = []
+    /// A table read to its end can outrun what the citation grammar can name, so the oldest rows
+    /// leave the choices first. They stay inspected, and the answer links their table.
+    func unnamedRows() -> [(id: String, table: String)] {
+      var seen = Set<String>()
+      let rows = readRows.filter { inspected.contains($0.id) && seen.insert($0.id).inserted }
+      return Array(rows.prefix(max(0, inspected.count - citationChoiceLimit)))
+    }
+    func citationChoices() -> [String] {
+      inspected.subtracting(unnamedRows().map(\.id)).sorted()
+    }
     /// The run's last word. Whatever else it saved or could not finish stays in that word.
     func conclude(
       _ receipt: String, step: Int, receiptID: String? = nil, state: String = "complete",
@@ -365,7 +378,7 @@ public enum WorkbookAgent {
           // or discard an in-progress group to manufacture a smaller prompt.
           let prepared = try await model.measureContext(
             messages: messages, directory: modelDirectory, cancellation: cancellation,
-            summary: false, citationIDs: inspected.sorted(), progress: progress)
+            summary: false, citationIDs: citationChoices(), progress: progress)
           try require(
             prepared.promptTokens < prepared.threshold, "context_limit",
             "The prepared prompt uses \(prepared.promptTokens) tokens, reaching the \(prepared.threshold)-token maintenance threshold. Current request and incomplete work cannot be discarded. Original input and completed work are saved."
@@ -376,7 +389,7 @@ public enum WorkbookAgent {
         let inferenceScope: InferenceToolScope = readOnly && toolScope == .all ? .answer : toolScope
         let response = try await model.respond(
           messages: messages, directory: modelDirectory, cancellation: cancellation,
-          progress: progress, toolScope: inferenceScope, citationIDs: inspected.sorted())
+          progress: progress, toolScope: inferenceScope, citationIDs: citationChoices())
         try cancellation.check()
         metrics.append(await model.lastMetrics)
         completedSteps = step
@@ -428,12 +441,27 @@ public enum WorkbookAgent {
           var citations = actionText == nil ? a["citations"].array.compactMap(\.string) : []
           // An answer built from host outcomes states no calculation, and neither does an
           // unresolved one or a preview. Any other answer carries the inputs of what it ran.
+          let reportsWork =
+            actionText == nil && !["unresolved", "completed_action", "preview"].contains(basis)
           let attachedInputs =
-            actionText != nil || ["unresolved", "completed_action", "preview"].contains(basis)
-            ? [] : calculationInputs.ids.filter { !citations.contains($0) }
+            reportsWork ? calculationInputs.ids.filter { !citations.contains($0) } : []
+          var readTables: [Value] = []
+          let unnamed = reportsWork ? unnamedRows() : []
+          for id in Set(unnamed.map(\.table)).sorted() {
+            let read = Set(readRows.filter { $0.table == id && inspected.contains($0.id) }.map(\.id))
+            let source =
+              try workbook.datasetSource(id) ?? unnamed.first { $0.table == id }!.id
+            guard !citations.contains(source) else { continue }
+            readTables.append(
+              .object([
+                "table": .string(id), "title": .string(try workbook.dataset(id).title),
+                "source": .string(source), "rows": .number(Double(read.count)),
+              ]))
+          }
+          let carried = attachedInputs + readTables.map { $0["source"].text }
           let citable = inspected.union(calculationInputs.ids)
           let currentRequestOnly =
-            attachedInputs.isEmpty && !citations.isEmpty
+            carried.isEmpty && !citations.isEmpty
             && citations.allSatisfy { $0 == requestSource.id }
           var problems: [String] = []
           if pendingActionPreview != nil && basis != "preview" {
@@ -479,7 +507,7 @@ public enum WorkbookAgent {
           // A count receipt authorizes only its exact structured result. With
           // no inspected citations, never publish other model-authored claims.
           let countOnly =
-            basis == "evidence" && citations.isEmpty && attachedInputs.isEmpty
+            basis == "evidence" && citations.isEmpty && carried.isEmpty
             && !coverageEvidence.isEmpty
           if countOnly { answer = "" }
           // A failed search can establish its query/coverage receipt, not the
@@ -527,7 +555,7 @@ public enum WorkbookAgent {
               "Declare the answer basis using the finish schema. Workbook and earlier-conversation facts use evidence, including facts suggested by saved context or host status."
             )
           }
-          if basis == "evidence" && citations.isEmpty && attachedInputs.isEmpty
+          if basis == "evidence" && citations.isEmpty && carried.isEmpty
             && coverageEvidence.isEmpty
           {
             if inspected.isEmpty { nextToolScope = .inspection }
@@ -557,10 +585,10 @@ public enum WorkbookAgent {
             Array(
               Set(citations.filter { citable.contains($0) && !$0.hasPrefix("message:") })
                 .union(pendingVersionCitations).subtracting([requestSource.id])
-                .subtracting(attachedInputs)),
+                .subtracting(carried)),
             cancellation: cancellation)
           // A long receipt outruns one version check, and only a version that moved on is news.
-          let checkedInputs = attachedInputs.filter { $0 != requestSource.id }
+          let checkedInputs = carried.filter { $0 != requestSource.id }
           var movedInputs: [Value] = []
           for start in stride(from: 0, to: checkedInputs.count, by: 256) {
             movedInputs += try workbook.citationVersions(
@@ -573,7 +601,7 @@ public enum WorkbookAgent {
             + movedInputs
           let historicalVersions = checkedHistoricalVersions.filter {
             citations.contains($0["cited"]["id"].text)
-              || attachedInputs.contains($0["cited"]["id"].text)
+              || carried.contains($0["cited"]["id"].text)
           }
           let unrefreshed = checkedHistoricalVersions.filter {
             !inspected.contains($0["current"]["id"].text)
@@ -650,7 +678,7 @@ public enum WorkbookAgent {
               let updated = try await maintenance.maintain(
                 through: validationMessage,
                 currentMessages: messages, retained: Array(messages.suffix(2)),
-                citationIDs: inspected.sorted())
+                citationIDs: citationChoices())
               messages = updated.messages
               metrics += updated.metrics
               if updated.compacted {
@@ -703,6 +731,13 @@ public enum WorkbookAgent {
                 label: attachedInputs.count == 1
                   ? nil : "\(calculationInputs.ids.count) calculation inputs"))
           }
+          for table in readTables {
+            citationLinks.append(
+              citationLink(
+                table["source"].text,
+                label: citationLabel(table["title"].text) + ", \(table["rows"].int ?? 0) rows read"
+              ))
+          }
           let suffix = citationLinks.isEmpty ? "" : "\n\n" + citationLinks.joined(separator: " ")
           let coverageText =
             coverageEvidence.isEmpty
@@ -741,6 +776,7 @@ public enum WorkbookAgent {
                   "attached": .number(Double(attachedInputs.count)),
                   "receiptIDs": .array(calculationInputs.receipts.map(Value.string)),
                 ]),
+              "readTables": .array(readTables),
               "actionConfirmations": actionText == nil && supplementalActionText == nil
                 ? .array([]) : actionConfirmations.evidence,
               "renderedReferences": .object(inlineReferences.mapValues(Value.string)),
@@ -765,7 +801,7 @@ public enum WorkbookAgent {
             runID, status: "complete", steps: step, metrics: .array(metrics))
           return AgentResult(
             answer: answer + suffix + coverageText + versionText + outcomeText,
-            citations: citations + attachedInputs, steps: step,
+            citations: citations + carried, steps: step,
             state: "complete",
             focus: focus)
         }
@@ -1099,6 +1135,7 @@ public enum WorkbookAgent {
             }
           }
           var evidence = visibleEvidence(tool: tool, result: visible)
+          var rowsTable = tool == "rows" ? a["datasetID"].string ?? a["id"].string : nil
           if tool == "tool_result" {
             let original = try workbook.toolCall(a["id"].text, conversation: conversation)
             // Old receipts are history. Fresh evidence must be inspected again
@@ -1108,11 +1145,16 @@ public enum WorkbookAgent {
                 tool: original["tool"].text,
                 result: ToolResultProjection.visibleValue(result),
                 path: a["path"].array.compactMap(\.string))
+              if original["tool"].text == "rows" {
+                let arguments = original["arguments"]
+                rowsTable = arguments["datasetID"].string ?? arguments["id"].string
+              }
             }
           }
           for (id, locator) in evidence {
             inspected.insert(id)
             observedThisStep.insert(id)
+            if let rowsTable { readRows.append((id, rowsTable)) }
             if let locator, locators[id] == nil { locators[id] = locator }
           }
 
@@ -1232,7 +1274,7 @@ public enum WorkbookAgent {
           let end = try workbook.toolCall(receiptID, conversation: conversation)["message_id"].text
           let updated = try await maintenance.maintain(
             through: end, currentMessages: messages,
-            retained: Array(messages.suffix(2)), citationIDs: inspected.sorted(),
+            retained: Array(messages.suffix(2)), citationIDs: citationChoices(),
             retainedCitationIDs: observedThisStep.sorted())
           messages = updated.messages
           metrics += updated.metrics

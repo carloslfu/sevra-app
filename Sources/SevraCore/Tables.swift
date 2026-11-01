@@ -322,6 +322,12 @@ extension Workbook {
       }
     }
   }
+  /// The Source a table was made from, which stands for the table in a citation.
+  public func datasetSource(_ id: String) throws -> String? {
+    try synchronized {
+      try db.scalar("SELECT source_id FROM datasets WHERE id=?", [.string(id)]).string
+    }
+  }
   public func datasets(archived: Bool = false) throws -> [Dataset] {
     try synchronized {
       try db.readTransaction {

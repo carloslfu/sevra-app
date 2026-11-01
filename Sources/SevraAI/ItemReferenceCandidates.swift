@@ -26,8 +26,9 @@ package enum ItemReferenceCandidates {
     let regex = try NSRegularExpression(
       pattern:
         "(?i)(?<![0-9a-z])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?![0-9a-z])")
-    var mentioned = Set<String>()
-    for message in messages {
+    var mentioned: [String] = []
+    var seen = Set<String>()
+    for message in messages.reversed() {
       // Reading preserves original bytes, including URLs superseded by saved
       // bindings. Those raw routes are not canonical lookup authority. The
       // read's structural references (or an explicit discovery result) supply
@@ -46,22 +47,25 @@ package enum ItemReferenceCandidates {
         in: lookupText, range: NSRange(lookupText.startIndex..., in: lookupText))
       {
         guard let range = Range(match.range, in: lookupText) else { continue }
-        mentioned.insert(String(lookupText[range]))
+        let id = String(lookupText[range])
+        if seen.insert(id).inserted { mentioned.append(id) }
       }
     }
     try require(
       mentioned.count <= 2048, "context_limit",
       "Too many lookup values in this context. Narrow the question.")
+    // A table read page by page can outrun the limit. Its rows give way first, oldest first:
+    // their values are already in view, and anything else may be the only way to reach it.
     var verified: [String] = []
-    for id in mentioned.sorted() {
+    var rows: [String] = []
+    for id in mentioned {
       do {
-        _ = try workbook.item(id)
-        verified.append(id)
+        if try workbook.item(id).kind == "row" { rows.append(id) } else { verified.append(id) }
       } catch let error as SevraError where error.code == "not_found" {
         continue
       }
     }
-    let choices = try normalized(verified)
+    let choices = try normalized(verified + rows.prefix(max(0, maximum - verified.count)))
     // Replace any previous annotation, including one dropped/rebuilt by context
     // maintenance. No hidden candidate catalog survives a visible-context change.
     return messages.enumerated().map { index, message in
