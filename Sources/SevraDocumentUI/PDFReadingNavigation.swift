@@ -12,7 +12,8 @@ import PDFKit
 
   @discardableResult public func apply(_ view: PDFView, url: URL, locator: String?) -> Bool {
     let newView = self.view !== view
-    let newFile = self.url != url || view.document?.documentURL != url
+    // An unreadable file stays without a document, so it is tried once per file and view.
+    let newFile = newView || self.url != url
     let newLocator = self.locator != locator
     self.view = view
     self.url = url

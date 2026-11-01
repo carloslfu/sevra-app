@@ -123,9 +123,7 @@ private struct ItemDetails: Sendable {
               Button("Update a working table…") { state.navigate(.tableUpdate(item.id, nil)) }
                 .disabled(state.busy)
             }
-            if let ext = file?.pathExtension.lowercased(),
-              ["mp4", "mov", "m4v", "mp3", "wav", "m4a", "aiff"].contains(ext)
-            {
+            if let file, MediaFile.isPlayable(file) {
               Button("Transcribe on this Mac") { state.transcribe(item.id) }.disabled(state.busy)
             }
             if file?.pathExtension.lowercased() == "zip" {
@@ -219,30 +217,19 @@ private struct ItemDetails: Sendable {
             },
             onSelection: { state.selectedContext = $0 },
             onLink: { state.openConversationLink($0) })
-        } else if ["mp4", "mov", "m4v", "mp3", "wav", "m4a", "aiff"].contains(ext) {
+        } else if MediaFile.isPlayable(file) {
           VStack {
             NativeMediaPlayer(player: player).onAppear {
               guard state.interactionActive, state.workbook === workbook else { return }
               if player == nil {
                 player = AVPlayer(url: file)
-                if let locator = state.itemLocators[item.id],
-                  let range = locator.range(of: "time=[0-9.]+", options: .regularExpression),
-                  let seconds = Double(locator[range].dropFirst(5)), seconds.isFinite
-                {
-                  player?.seek(
-                    to: CMTime(seconds: seconds, preferredTimescale: 600), toleranceBefore: .zero,
-                    toleranceAfter: .zero)
-                }
+                seekToLocator()
               }
               if let player { PlaybackRegistry.shared.register(player, owner: state.mediaOwner) }
             }
             Toggle("Keep playing while I explore", isOn: $keepPlaying).padding(10)
-            TranscriptView(item: item.id, workbook: workbook, revision: state.revision) { seconds in
-              player?.seek(
-                to: CMTime(seconds: seconds, preferredTimescale: 600), toleranceBefore: .zero,
-                toleranceAfter: .zero)
-            }
-          }.onDisappear {
+            TranscriptView(item: item.id, workbook: workbook, revision: state.revision, seek: seek)
+          }.onChange(of: state.locatorRequest) { _, _ in seekToLocator() }.onDisappear {
             if !keepPlaying || !state.interactionActive {
               player?.releasePlayback()
               player = nil
@@ -252,10 +239,8 @@ private struct ItemDetails: Sendable {
               state.backgroundMediaTitle = item.title
             }
           }
-        } else if ["png", "jpg", "jpeg", "heic", "tiff", "webp"].contains(ext),
-          let image = NSImage(contentsOf: file)
-        {
-          ImageViewer(image: image)
+        } else if ["png", "jpg", "jpeg", "heic", "tiff", "webp"].contains(ext) {
+          ImageFileViewer(file: file)
         } else if [
           "html", "htm", "svg", "xml", "js", "swift", "py", "json", "txt", "md", "csv", "tsv",
         ].contains(ext) {
@@ -467,6 +452,14 @@ private struct ItemDetails: Sendable {
         state.refresh()
       }
     }
+  }
+  private func seek(_ seconds: Double) {
+    player?.seek(
+      to: CMTime(seconds: seconds, preferredTimescale: 600), toleranceBefore: .zero,
+      toleranceAfter: .zero)
+  }
+  private func seekToLocator() {
+    if let seconds = MediaFile.seconds(state.itemLocators[item.id]) { seek(seconds) }
   }
   private var isTableUpdateRedo: Bool {
     item.kind == "table-intake-update" && item.status == "rejected"
@@ -831,6 +824,37 @@ struct QuickLookViewer: NSViewRepresentable {
   }
   func updateNSView(_ view: QLPreviewView, context: Context) {
     if (view.previewItem as? NSURL) != url as NSURL { view.previewItem = url as NSURL }
+  }
+  /// Leaving the page must end any sound the preview is playing.
+  static func dismantleNSView(_ view: QLPreviewView, coordinator: ()) { view.close() }
+}
+/// Decodes off the main thread. A file ImageIO cannot read still gets Quick Look.
+struct ImageFileViewer: View {
+  let file: URL
+  @State private var image: NSImage?
+  @State private var unreadable = false
+  var body: some View {
+    Group {
+      if let image {
+        ImageViewer(image: image)
+      } else if unreadable {
+        QuickLookViewer(url: file)
+      } else {
+        ProgressView("Opening image").frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
+    }.task(id: file) {
+      image = nil
+      unreadable = false
+      let loaded = await Task.detached(priority: .userInitiated) { [file] in
+        PreviewImage.load(file)
+      }.value
+      guard !Task.isCancelled else { return }
+      if let loaded {
+        image = NSImage(cgImage: loaded.image, size: loaded.points)
+      } else {
+        unreadable = true
+      }
+    }
   }
 }
 struct ImageViewer: View {

@@ -461,7 +461,7 @@ struct WorkbookView: View {
       case .activity: WorkflowActivityView(workspace: state)
       case .automations: AutomationSchedulesView(workspace: state)
       case .automation(let id): AutomationFocusedView(definitionID: id, workspace: state)
-      case .workflow(let id): WorkflowRunView(runID: id, workspace: state)
+      case .workflow(let id): WorkflowRunView(runID: id, workspace: state).id(id)
       }
     }
   }

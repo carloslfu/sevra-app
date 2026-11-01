@@ -24,6 +24,11 @@ private actor ReferenceReadGate<T: Sendable> {
   }
 }
 
+private final class CountingPDFView: PDFView {
+  var loads = 0
+  override var document: PDFDocument? { didSet { loads += 1 } }
+}
+
 @MainActor func checkNativeReferences(
   at root: URL,
   check: (String, () throws -> Void) -> Void,
@@ -241,6 +246,15 @@ private actor ReferenceReadGate<T: Sendable> {
         !navigation.apply(view, url: path, locator: invalid)
           && view.currentPage === loaded.page(at: 0), "Invalid locator changed the reading page")
     }
+    let broken = path.deletingLastPathComponent().appendingPathComponent("broken.pdf")
+    try Data("%PDF-1.7 no structure".utf8).write(to: broken)
+    let counting = CountingPDFView(frame: NSRect(x: 0, y: 0, width: 300, height: 500))
+    let reader = PDFReadingNavigation()
+    reader.apply(counting, url: broken, locator: nil)
+    reader.apply(counting, url: broken, locator: nil)
+    try expect(counting.document == nil && counting.loads == 1, "An unreadable PDF was re-read")
+    reader.apply(counting, url: path, locator: nil)
+    try expect(counting.document != nil && counting.loads == 2, "The next file was not opened")
   }
   await checkAsync("Native scroll observation restores and retains a real clip-view position") {
     let initial = DocumentReadingPosition(offset: 400, scrollable: 1600, width: 400)

@@ -8,6 +8,55 @@ private func textView(in view: NSView) -> NSTextView? {
   (view as? NSTextView) ?? view.subviews.lazy.compactMap(textView).first
 }
 
+func checkMediaFiles() throws {
+  func expect(_ condition: Bool, _ message: String) throws {
+    try require(condition, "media_files", message)
+  }
+  for name in ["a.flac", "a.aac", "a.aif", "a.aiff", "a.mp3", "a.M4A", "a.mov", "a.mp4", "a.wav"] {
+    try expect(MediaFile.isPlayable(URL(fileURLWithPath: name)), name + " lost its player")
+  }
+  for name in ["a.pdf", "a.txt", "a.csv", "a.png", "a.zip", "a.ts", "a"] {
+    try expect(!MediaFile.isPlayable(URL(fileURLWithPath: name)), name + " became a recording")
+  }
+  try expect(MediaFile.seconds("time=12.5; end=20") == 12.5, "A citation lost its time")
+  try expect(MediaFile.seconds("page=3") == nil, "A page became a time")
+  try expect(MediaFile.seconds(nil) == nil, "No locator became a time")
+
+  let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+    "sevra-images-" + identifier())
+  try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+  defer { try? FileManager.default.removeItem(at: root) }
+  func png(_ width: Int, _ height: Int, dpi: Int?) throws -> URL {
+    let context = CGContext(
+      data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+      space: CGColorSpace(name: CGColorSpace.sRGB)!,
+      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+    context.setFillColor(CGColor(red: 0.2, green: 0.4, blue: 0.6, alpha: 1))
+    context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+    let file = root.appendingPathComponent("\(width)x\(height).png")
+    let output = CGImageDestinationCreateWithURL(file as CFURL, "public.png" as CFString, 1, nil)!
+    let properties = dpi.map {
+      [kCGImagePropertyDPIWidth: $0, kCGImagePropertyDPIHeight: $0] as CFDictionary
+    }
+    CGImageDestinationAddImage(output, context.makeImage()!, properties)
+    try expect(CGImageDestinationFinalize(output), "Fixture image failed")
+    return file
+  }
+  guard let wide = PreviewImage.load(try png(6_000, 40, dpi: nil)) else {
+    throw SevraError("media_files", "A wide image did not load")
+  }
+  try expect(wide.image.width == PreviewImage.maximumPixels, "A large image was not bounded")
+  try expect(wide.points.width == 6_000, "A bounded image changed its size on screen")
+  let small = PreviewImage.load(try png(200, 100, dpi: nil))
+  try expect(small?.image.width == 200 && small?.points.width == 200, "A small image changed")
+  let retina = PreviewImage.load(try png(400, 300, dpi: 144))
+  try expect(retina?.image.width == 400 && retina?.points.width == 200, "Resolution was lost")
+  let broken = root.appendingPathComponent("broken.png")
+  try Data("not an image".utf8).write(to: broken)
+  try expect(PreviewImage.load(broken) == nil, "An unreadable file became an image")
+  print("PASS media files: player by type, citation time, bounded image decode")
+}
+
 /// Real views in an offscreen window: the same layout a viewer does, without the app.
 @MainActor func checkLongText() throws {
   func expect(_ condition: Bool, _ message: String) throws {

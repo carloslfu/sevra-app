@@ -60,6 +60,8 @@ import SwiftUI
     } catch {
       guard request == identity, !Task.isCancelled, !token.isCancelled else { return false }
       failure = error.localizedDescription
+      // A refused original is not tried again. Retry reads the workbook's own file.
+      originalURL = nil
       return false
     }
   }

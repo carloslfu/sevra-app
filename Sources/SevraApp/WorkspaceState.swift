@@ -117,6 +117,8 @@ struct FolderReview {
   }
   @Published var selectionLabel: String?
   @Published var itemLocators: [String: String] = [:]
+  /// Changes each time a citation asks for its place, even the same place twice.
+  @Published var locatorRequest = UUID()
   @Published var itemReading: [String: DocumentReadingPosition] = [:]
   @Published var referenceModal: ReferenceModal?
   var referencePanel: ReferenceDirection? {
@@ -355,7 +357,10 @@ struct FolderReview {
   }
   func openEvidence(_ id: String, locator: String? = nil) {
     guard navigate(.item(id)) else { return }
-    if let locator { itemLocators[id] = locator }
+    if let locator {
+      itemLocators[id] = locator
+      locatorRequest = UUID()
+    }
   }
   func jumpToMessage(_ id: String) {
     do {

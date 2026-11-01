@@ -72,6 +72,7 @@ private actor ReadGate {
       try checkRequestContextPresentation()
       try checkConversationPresentation()
       try checkLongText()
+      try checkMediaFiles()
       try checkReadableTables()
       try await checkConversationState()
       try await checkHistorySearch()
@@ -211,6 +212,21 @@ private actor ReadGate {
       "An old completion discarded a newly chosen original")
     session.didResolve(session.reloadID)
     try expect(session.originalURL == nil, "Successful reconnection kept a stale candidate")
+    session.reconnect(to: second)
+    await session.load { _, _ in throw SevraError("changed_asset", "Different bytes") }
+    try expect(
+      session.originalURL == nil && session.failure == "Different bytes",
+      "Retry would repeat an original the workbook refused")
+    let relink = ReadGate()
+    session.reconnect(to: second)
+    let relinking = Task { await session.load { try await relink.read($0, $1) } }
+    await relink.wait()
+    session.stop()
+    await relink.fail()
+    _ = await relinking.value
+    try expect(session.originalURL == second, "Stop forgot an original that was not refused")
+    session.cancel()
+    session.didResolve(session.reloadID)
 
     for input in [
       "Stop.", "cancel", "stop preview", "retry preview", "find the original file",
