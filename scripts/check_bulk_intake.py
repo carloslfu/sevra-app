@@ -169,6 +169,8 @@ def main():
         first = run('rows', book, table)[0]
         checked('resuming saves only the remaining rows, in order',
                 resumed['state'] == 'ready' and exact(book, table, 4200))
+        checked('resuming reuses the index instead of writing it again',
+                resumed['report']['indexReused'] is True)
         checked('resuming keeps an edit made to a saved row',
                 first['data']['note'] == 'corrected while stopped')
         again = run('intake-resume', book, job['id'])
