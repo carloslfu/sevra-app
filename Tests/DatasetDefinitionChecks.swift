@@ -175,6 +175,25 @@ func checkDatasetDefinitions(at root: URL) {
     try refuses("column") { _ = try book.editRow(cleared.id, values: ["missing": .string("1")]) }
     try expect(try book.verify()["ok"] == .bool(true))
   }
+  check("a table filter reads the cells, not the row titles and column IDs every row shares") {
+    let (book, table) = try fixture(
+      "RowFilter",
+      rows: [
+        ["sku": .string("Café-12"), "cost": .string("1")],
+        ["sku": .string("beta"), "cost": .string("2")],
+      ])
+    for query in ["Orders", "row", "sku", "cost"] {
+      try expect(try book.rows(table.id, query: query).isEmpty)
+      try expect(try book.filteredRowCount(table.id, query: query) == 0)
+    }
+    try expect(try book.rows(table.id, query: "cafe 12").count == 1)
+    try expect(try book.filteredRowCount(table.id, query: "BET") == 1)
+    let base = try book.datasetDefinition(table.id)
+    _ = try book.updateDatasetDefinition(
+      table.id, expectedVersion: base.version, expectedDefinitionID: base.id,
+      columns: [table.columns[1]])
+    try expect(try book.rows(table.id, query: "beta").isEmpty)
+  }
   check("a quotient keeps 38 digits wherever it is read, and an exact result stays exact") {
     let (book, table) = try fixture(
       "Quotients",

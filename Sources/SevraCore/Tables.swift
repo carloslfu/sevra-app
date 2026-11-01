@@ -298,13 +298,8 @@ extension Workbook {
     try synchronized {
       try db.readTransaction {
         let schema = try db.managedSchema(datasetID)
-        let term = try Self.searchTerms(query)
-        var args: [Value] = []
-        let filter =
-          term.isEmpty
-          ? ""
-          : " WHERE n.\"_sevra_item\" IN (SELECT c.item_id FROM search_fts JOIN chunks c ON c.id=search_fts.rowid WHERE search_fts MATCH ?)"
-        if !term.isEmpty { args.append(.string(term)) }
+        var (filter, args) = try Self.rowFilter(query, schema: schema)
+        if !filter.isEmpty { filter = " WHERE n.\"_sevra_item\" IN " + filter }
         var order = "n.\"_sevra_ordinal\",n.\"_sevra_row\""
         if let sort {
           guard let column = schema.columns.first(where: { $0.id == sort }) else {
@@ -339,13 +334,38 @@ extension Workbook {
   public func filteredRowCount(_ datasetID: String, query: String) throws -> Int {
     try synchronized {
       let schema = try db.managedSchema(datasetID)
-      let term = try Self.searchTerms(query)
-      if term.isEmpty { return try dataset(datasetID).rowCount }
+      let (filter, args) = try Self.rowFilter(query, schema: schema)
+      if filter.isEmpty { return try dataset(datasetID).rowCount }
       return try db.scalar(
         "SELECT count(*) FROM " + ChangeFormat.quote(schema.table)
-          + " WHERE \"_sevra_item\" IN(SELECT c.item_id FROM search_fts JOIN chunks c ON c.id=search_fts.rowid WHERE search_fts MATCH ?)",
-        [.string(term)]
+          + " WHERE \"_sevra_item\" IN " + filter, args
       ).int ?? 0
+    }
+  }
+  /// The search index also holds each row's title and column IDs, which every row shares. It
+  /// finds the candidates, and the row's own cells decide.
+  private static func rowFilter(_ query: String, schema: ManagedDatasetSchema) throws -> (String, [Value]) {
+    let term = try searchTerms(query)
+    if term.isEmpty { return ("", []) }
+    return (
+      "(SELECT c.item_id FROM search_fts JOIN chunks c ON c.id=search_fts.rowid JOIN items f ON f.id=c.item_id WHERE search_fts MATCH ? AND SEVRA_ROW_HOLDS(f.data,?,?))",
+      [
+        .string(term), .string(query),
+        .string(schema.columns.map(\.id).joined(separator: "\u{1f}")),
+      ]
+    )
+  }
+  /// The same words the index reads: runs of letters and digits, without case or accents.
+  private static func filterWords(_ text: String) -> [String] {
+    text.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
+      .map { $0.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil) }
+  }
+  static func rowHolds(_ data: String, query: String, columns: String) -> Bool {
+    guard let row = try? Value.parse(data) else { return false }
+    let active = Set(columns.components(separatedBy: "\u{1f}"))
+    let words = row.object.filter { active.contains($0.key) }.values.flatMap { filterWords($0.text) }
+    return filterWords(query).prefix(24).allSatisfy { term in
+      words.contains { $0.hasPrefix(term) }
     }
   }
   public func tablePage(

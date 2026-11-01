@@ -57,6 +57,20 @@ extension Database {
         }
       }, nil, nil, nil)
     try require(result == SQLITE_OK, "query_function", "Cannot install query input accounting.")
+    let rowHolds = sqlite3_create_function_v2(
+      handle, "SEVRA_ROW_HOLDS", 3, flags, nil,
+      { context, _, values in
+        guard let context, let values else { return }
+        let texts = (0..<3).map { index -> String in
+          guard let bytes = sqlite3_value_text(values[index]) else { return "" }
+          return String(
+            decoding: UnsafeBufferPointer(start: bytes, count: Int(sqlite3_value_bytes(values[index]))),
+            as: UTF8.self)
+        }
+        sqlite3_result_int(
+          context, Workbook.rowHolds(texts[0], query: texts[1], columns: texts[2]) ? 1 : 0)
+      }, nil, nil, nil)
+    try require(rowHolds == SQLITE_OK, "query_function", "Cannot install the table row filter.")
     for name in ["SEVRA_DECIMAL_SUM"] {
       let result = sqlite3_create_function_v2(
         handle, name, 1, flags, pointer, nil,
