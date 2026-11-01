@@ -11,6 +11,7 @@
 <key>CFBundleVersion</key><string>1</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>NSHighResolutionCapable</key><true/>
+<key>NSAppTransportSecurity</key><dict><key>NSAllowsArbitraryLoads</key><true/></dict>
 <key>NSMicrophoneUsageDescription</key><string>Sevra uses your microphone for on-device dictation when you choose to speak.</string>
 <key>NSSpeechRecognitionUsageDescription</key><string>Sevra converts speech to text on this Mac. Dictated text is sent only when you choose Send.</string>
 <key>CFBundleDocumentTypes</key><array><dict><key>CFBundleTypeName</key><string>Sevra Workbook</string><key>CFBundleTypeRole</key><string>Editor</string><key>LSItemContentTypes</key><array><string>com.sevra.workbook</string></array><key>LSTypeIsPackage</key><true/></dict><dict><key>CFBundleTypeName</key><string>Portable Sevra Workbook</string><key>CFBundleTypeRole</key><string>Editor</string><key>LSItemContentTypes</key><array><string>com.sevra.workbook.archive</string></array></dict></array>

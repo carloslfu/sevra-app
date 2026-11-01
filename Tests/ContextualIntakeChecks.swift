@@ -172,6 +172,20 @@ func checkContextualIntake(at root: URL) {
     try expect(try book.runIntake(job.id).state == "ready")
     try refuses("intake_role") { _ = try book.chooseIntakeRole(job.id, role: .values) }
   }
+  check("including a linked file twice saves one copy, even when its contents cannot be read") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("Including.sevra"), title: "Including")
+    let file = root.appendingPathComponent("unreadable.pdf")
+    try Data("not a pdf".utf8).write(to: file)
+    let linked = try book.importFile(file, linked: true)
+    let included = try book.includeLinked(linked.id)
+    try expect(included.supersedes == linked.id)
+    try expect(try book.extractionStatus(included.id)["state"].text == "failed")
+    let sources = try book.counts()["sources"]
+    try expect(try book.includeLinked(linked.id).id == included.id)
+    try expect(try book.counts()["sources"] == sources)
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
   check("previous development format is refused without erasing its contents") {
     let book = try Workbook.create(
       at: root.appendingPathComponent("UnsupportedRoleV7.sevra"), title: "V7")

@@ -200,14 +200,18 @@ extension Workbook {
     let old = try item(id)
     guard let asset = old.assetID else { throw SevraError("asset", "This record has no asset.") }
     let source = try assetURL(asset, verify: true, cancellation: cancellation)
-    let imported = try importFile(source, cancellation: cancellation, inputs: [old.id])
-    try extract(imported.id, cancellation: cancellation)
+    // A retry finds the same copy instead of saving another. Extraction records its own failure,
+    // and an unreadable file is still included.
+    let token = "include-" + old.id + "-" + (try self.asset(asset).hash)
+    let imported = try importFile(
+      source, cancellation: cancellation, token: token + "-file", inputs: [old.id])
+    do { try extract(imported.id, cancellation: cancellation) } catch { try cancellation.check() }
     let included = try addItem(
       category: old.category, kind: old.kind, title: old.title, text: old.text, data: old.data,
       meaning: old.meaning, status: old.status, scenario: old.scenario,
       inputs: [old.id, imported.id], transformation: "include-external-v1",
-      assetID: imported.assetID, supersedes: old.id)
-    try extract(included.id, cancellation: cancellation)
+      assetID: imported.assetID, supersedes: old.id, token: token)
+    do { try extract(included.id, cancellation: cancellation) } catch { try cancellation.check() }
     return included
   }
   @discardableResult public func relinkAsset(

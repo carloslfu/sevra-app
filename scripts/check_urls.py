@@ -1,8 +1,10 @@
 """Deterministic loopback fixtures, with no external source dependency."""
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-import json, subprocess, tempfile, threading
+import json, plistlib, subprocess, tempfile, threading
 root=Path(__file__).resolve().parent.parent
+# Capture allows HTTP as well as HTTPS, so the app needs App Transport Security to allow it too.
+assert plistlib.loads((root/'Resources/Info.plist').read_bytes())['NSAppTransportSecurity']=={'NSAllowsArbitraryLoads':True}
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path=='/redirect':
