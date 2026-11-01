@@ -772,6 +772,7 @@ func checkWorkflowInterpretations(at root: URL) {
     let request = try book.prepareWorkflowInterpretation(session, claim: claim, model: "synthetic")
     try expect(request["evidence"].array[0]["content"] == .string("Received5 bolts."))
     try expect(request["evidence"].array[0]["extractionInputID"].string != nil)
+    try expect(request["evidence"].array[0]["regions"] == .null)
     try book.index(
       source.id, chunks: [Chunk("Replaced text.")], state: "partial",
       detail: "Synthetic incomplete extraction", parser: "synthetic-v2")
@@ -797,5 +798,24 @@ func checkWorkflowInterpretations(at root: URL) {
     }
     try expect(try partial.revision() == before)
     try expect(try partial.verify()["ok"] == .bool(true))
+    // A file's text counts once against the 64 KiB of evidence, however it was split.
+    func fileText(_ name: String, bytes: Int) throws -> (Workbook, WorkflowExecutionSession, Value) {
+      let (book, source, session) = try fixture(name, file: true)
+      let line = "Delivery line for five bolts received today.\n"
+      try book.index(
+        source.id,
+        chunks: [Chunk(String(repeating: line, count: bytes / line.utf8.count), locator: "all")],
+        parser: "synthetic-large")
+      return (book, session, try book.claimWorkflowStep(session, owner: "synthetic"))
+    }
+    let (fitting, fittingSession, fittingClaim) = try fileText("Fits", bytes: 34_000)
+    let large = try fitting.prepareWorkflowInterpretation(
+      fittingSession, claim: fittingClaim, model: "synthetic")
+    try expect(large["evidence"].array[0]["content"].text.utf8.count > 33_000)
+    let (over, overSession, overClaim) = try fileText("Over", bytes: 70_000)
+    try refuses("interpretation_limit") {
+      _ = try over.prepareWorkflowInterpretation(
+        overSession, claim: overClaim, model: "synthetic")
+    }
   }
 }

@@ -96,9 +96,9 @@ extension Workbook {
           fields["assetHash"] = input["asset_hash"]
           fields["coverage"] = .string(
             "Complete retained text extraction only; not proof of every fact in the original file.")
-          let regions = try Value.parse(input["regions"]!.text).array
-          fields["regions"] = .array(regions)
-          content = regions.map { $0["text"].text }.joined(separator: "\n")
+          // The input ID keeps the regions. The model needs their text once, in content.
+          content = try Value.parse(input["regions"]!.text).array.map { $0["text"].text }
+            .joined(separator: "\n")
         } else {
           fields["coverage"] = .string("Exact saved body and structured data.")
           if item.data != .object([:]) && item.data != .null {

@@ -85,6 +85,27 @@ func checkOutput(frontend: SplashTextFrontend) throws {
     throw SplashError("Stop sequence authorized a tool")
   }
   print("PASS decoder lifecycle, invalid token and stop limits")
+  // Tool history reaches the template from JSONSerialization, as NSNumber values.
+  func history(_ arguments: [String: any Sendable]) throws -> SplashTextFrontend.Prompt {
+    let toolCall: [String: any Sendable] = [
+      "type": "function", "id": "call_1",
+      "function": ["name": "set_space_pinned", "arguments": arguments] as [String: any Sendable],
+    ]
+    return try frontend.prepare(messages: [
+      ["role": "user", "content": "Pin it."],
+      ["role": "assistant", "content": "", "tool_calls": [toolCall] as [any Sendable]],
+      ["role": "tool", "content": "{}", "tool_call_id": "call_1", "name": "set_space_pinned"],
+    ])
+  }
+  let parsed =
+    try JSONSerialization.jsonObject(with: Data(#"{"pinned":true,"ratio":2.0,"count":3}"#.utf8))
+    as! [String: any Sendable]
+  let bridged = try history(parsed)
+  guard bridged.tokens == (try history(["pinned": true, "ratio": 2.0, "count": 3]).tokens),
+    frontend.decode(bridged.tokens).contains("\ntrue\n"),
+    frontend.decode(bridged.tokens).contains("\n2.0\n")
+  else { throw SplashError("Tool history lost a boolean or float on its way to the template") }
+  print("PASS tool history renders JSON booleans and floats as written")
 }
 
 private func checkProjection() throws {

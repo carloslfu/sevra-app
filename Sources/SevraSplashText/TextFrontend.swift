@@ -1,3 +1,4 @@
+import CoreFoundation
 import CryptoKit
 import Foundation
 import Hub
@@ -246,6 +247,12 @@ public final class SplashTextFrontend {
       if value is NSNull { return Optional<String>.none as any Sendable }
       if let object = value as? [String: any Sendable] { return object.mapValues(templateValue) }
       if let array = value as? [any Sendable] { return array.map(templateValue) }
+      // Tool history comes from JSONSerialization, and swift-jinja reads any NSNumber as an
+      // Int, which would show true as 1 and 2.0 as 2.
+      if let number = value as? NSNumber {
+        if CFGetTypeID(number) == CFBooleanGetTypeID() { return number.boolValue }
+        if ["f", "d"].contains(String(cString: number.objCType)) { return number.doubleValue }
+      }
       return value
     }
     // Tool definitions are the host's own. Everything in a message is not.
