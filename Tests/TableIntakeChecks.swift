@@ -373,5 +373,25 @@ func checkTableIntake(at root: URL) {
     try expect(try book.rows(table.id)[0].data["qty"].text == "4")
     try expect(try book.verify()["ok"] == .bool(true))
   }
+  check("a CSV keeps its codes, long headings and exact cells, and ends at its last row") {
+    func imported(_ name: String, _ text: String) throws -> (Workbook, Dataset) {
+      let book = try Workbook.create(
+        at: root.appendingPathComponent(name + ".sevra"), title: name)
+      let file = root.appendingPathComponent(name + ".csv")
+      try Data(text.utf8).write(to: file)
+      return (book, try book.importCSV(try book.importFile(file).id))
+    }
+    let heading = String(repeating: "How satisfied were you ", count: 8)
+    let (book, table) = try imported(
+      "CSVCodes", "sku,qty,\(heading),\(heading)x,_sevra_row\n0012,1.50,a,b,c\n12,2,d,e,f\n\n\n")
+    try expect(table.rowCount == 2 && table.columns.allSatisfy { $0.id.utf8.count <= 100 })
+    try expect(table.columns.map(\.type) == ["text", "decimal", "text", "text", "text"])
+    try expect(try book.rows(table.id).map(\.data["sku"].text) == ["0012", "12"])
+    try expect(try CSV.parse("a\n1\n\n2\n\n") == [["a"], ["1"], [""], ["2"]])
+    try expect(try CSV.parse("a\n1\n\"\"\n") == [["a"], ["1"], [""]])
+    try expect(try CSV.parse("\n\n").isEmpty)
+    try expect(try CSV.parse("a,b\r\n1,\u{301}x\r\n") == [["a", "b"], ["1", "\u{301}x"]])
+    try refuses("csv") { _ = try CSV.parse("a,b\n5\" pipe,x\n") }
+  }
 
 }

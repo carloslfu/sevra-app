@@ -67,10 +67,17 @@ public enum CSV {
     var field = ""
     var quoted = false
     var started = false
-    var i = text.hasPrefix("\u{feff}") ? text.index(after: text.startIndex) : text.startIndex
+    // Separators are single scalars, so a combining mark after one must not hide it.
+    let scalars = text.unicodeScalars
+    let separator = delimiter.unicodeScalars.first!
+    // Tab-separated text comes from other programs, which quote a cell only when it holds a tab,
+    // line break or quote. Any other quote is part of the cell, as in 5" pipe.
+    let literalQuotes = separator == "\t"
+    var i = scalars.first == "\u{feff}" ? scalars.index(after: scalars.startIndex) : scalars.startIndex
     var fieldBytes = 0
     var processed = 0
     var cells = 0
+    var blankLines = 0
     func appendRow() throws {
       try require(
         row.count <= 500 && result.count < 100_000, "csv_limit",
@@ -79,28 +86,51 @@ public enum CSV {
       try require(cells <= 1_000_000, "csv_limit", "CSV exceeds one million cells.")
       result.append(row)
     }
-    while i < text.endIndex {
+    func closes(after start: String.UnicodeScalarView.Index) -> Bool {
+      var at = start
+      while at < scalars.endIndex {
+        let next = scalars.index(after: at)
+        guard scalars[at] == "\"" else {
+          at = next
+          continue
+        }
+        guard next < scalars.endIndex else { return true }
+        guard scalars[next] == "\"" else {
+          return [separator, "\n", "\r"].contains(scalars[next])
+        }
+        at = scalars.index(after: next)
+      }
+      return false
+    }
+    while i < scalars.endIndex {
       if processed % 4096 == 0 { try cancellation.check() }
       processed += 1
-      let c = text[i]
-      var next = text.index(after: i)
+      let c = scalars[i]
+      var next = scalars.index(after: i)
       if c == "\"" {
         started = true
-        if quoted && next < text.endIndex && text[next] == "\"" {
+        if quoted && next < scalars.endIndex && scalars[next] == "\"" {
           field.append("\"")
           fieldBytes += 1
-          next = text.index(after: next)
-        } else if quoted || field.isEmpty {
+          next = scalars.index(after: next)
+        } else if quoted || (field.isEmpty && (!literalQuotes || closes(after: next))) {
           quoted.toggle()
+        } else if literalQuotes {
+          field.append("\"")
+          fieldBytes += 1
         } else {
           throw SevraError("csv", "Unexpected quote inside an unquoted field.")
         }
-      } else if c == delimiter && !quoted {
+      } else if c == separator && !quoted {
         started = true
         row.append(field)
         field = ""
         fieldBytes = 0
-      } else if (c == "\n" || c == "\r" || c == "\r\n") && !quoted {
+      } else if (c == "\n" || c == "\r") && !quoted {
+        if c == "\r", next < scalars.endIndex, scalars[next] == "\n" {
+          next = scalars.index(after: next)
+        }
+        blankLines = started ? 0 : blankLines + 1
         row.append(field)
         try appendRow()
         started = false
@@ -109,8 +139,8 @@ public enum CSV {
         fieldBytes = 0
       } else {
         started = true
-        field.append(c)
-        fieldBytes += c.utf8.count
+        field.unicodeScalars.append(c)
+        fieldBytes += UTF8.width(c)
       }
       try require(
         fieldBytes <= 1_000_000 && row.count < 500 && result.count <= 100_000, "csv_limit",
@@ -122,7 +152,10 @@ public enum CSV {
     if started || !field.isEmpty || !row.isEmpty {
       row.append(field)
       try appendRow()
+      blankLines = 0
     }
+    // Blank lines at the end of a file are not rows. A quoted empty cell is.
+    result.removeLast(blankLines)
     return result
   }
   public static func encode(_ rows: [[String]]) -> String {
@@ -164,15 +197,24 @@ extension Workbook {
     let columns = header.enumerated().map { i, name -> Column in
       let title =
         name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Column \(i+1)" : name
-      var id = title.lowercased().replacingOccurrences(
-        of: "[^a-z0-9_]+", with: "_", options: .regularExpression)
-      if id.isEmpty { id = "column_\(i+1)" }
+      // A heading is free text. Its ID only has to stay short, usable and unique.
+      var id = String(
+        title.lowercased().replacingOccurrences(
+          of: "[^a-z0-9_]+", with: "_", options: .regularExpression
+        ).prefix(90))
+      if id.isEmpty || id.hasPrefix("_sevra_") { id = "column_\(i+1)" + id }
       while used.contains(id) { id += "_\(i+1)" }
       used.insert(id)
       let samples = rows.dropFirst().compactMap { i < $0.count ? $0[i] : nil }.filter {
         !$0.isEmpty
       }
-      let numeric = !samples.isEmpty && samples.allSatisfy { (try? Numbers.decimal($0)) != nil }
+      // 0012 and 12 are different codes. As decimals they would compare, group and sort as one.
+      let numeric =
+        !samples.isEmpty
+        && samples.allSatisfy {
+          (try? Numbers.decimal($0)) != nil
+            && $0.range(of: "^[+-]?0[0-9]", options: .regularExpression) == nil
+        }
       return Column(id: id, title: title, type: numeric ? "decimal" : "text")
     }
     return try importDataset(

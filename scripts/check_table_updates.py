@@ -288,7 +288,7 @@ def review_journeys(root, run, checked):
     refused_cell('decimal-variant', {2: ['12.0', 1, 'x']}, 'update_key_ambiguous', '0012')
     refused_cell('incoming-variant', {2: ['0015', 1, 'new'], 3: ['0016', 2, ' New']},
                  'update_key_ambiguous', 'new', keys=['note'])
-    refused_cell('spaced-decimal', {2: [' 0015', 1, 'x']}, 'number', 'Source record 2')
+    refused_cell('spaced-decimal', {2: ['0012', ' 1', 'x']}, 'number', 'Source record 2')
     refused_cell('decimal-comma', {2: ['0012', '1,20', 'x']}, 'number', 'Source record 2')
 
     padded = root / 'padded-amount.xlsx'
