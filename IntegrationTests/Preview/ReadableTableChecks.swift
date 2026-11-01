@@ -37,6 +37,8 @@ import SwiftUI
   // A message too deep to parse stays plain text and never reaches the recursive parser.
   let deep = String(repeating: ">", count: 12_000) + " x"
   try expect(ConversationPresentation(deep).blocks == [.text(deep)])
+  let spans = String(repeating: "*a ", count: 6000) + "b" + String(repeating: " c*", count: 6000)
+  try expect(ConversationPresentation(spans).blocks == [.text(spans)])
   let shallow = "> > quoted\n\n| A |\n|---|\n| 1 |\n"
   try expect(ConversationPresentation(shallow).blocks.count == 3)
   let blocks = ConversationPresentation(source).blocks

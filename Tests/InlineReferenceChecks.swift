@@ -8,6 +8,20 @@ private func parsedLabels(_ text: String) throws -> [String] {
   }
 }
 
+/// Worker threads get 512 KiB, where a few hundred nested levels used to end the process.
+private func onWorkerStack(_ body: @escaping () throws -> Void) throws {
+  var failure: Error?
+  let finished = DispatchSemaphore(value: 0)
+  let thread = Thread {
+    do { try body() } catch { failure = error }
+    finished.signal()
+  }
+  thread.stackSize = 512 * 1024
+  thread.start()
+  finished.wait()
+  if let failure { throw failure }
+}
+
 func checkInlineReferences(at root: URL) {
   check("shared parser preserves exact Unicode spans and resolves only explicit stable routes") {
     let body =
@@ -32,6 +46,65 @@ func checkInlineReferences(at root: URL) {
     try expect(
       try parsedLabels("prefix\0 [[real|label]] [pin](sevra://item/pin)") == ["label", "pin"],
       "NUL labels=\(try parsedLabels("prefix\0 [[real|label]] [pin](sevra://item/pin)"))")
+  }
+  check("hostile nesting is refused on a worker stack and ordinary Markdown keeps its links") {
+    let steps = (0..<400).map { String(repeating: " ", count: $0 * 2) + "- a" }
+    let hostile = [
+      "[[x]] " + String(repeating: "*a ", count: 1000) + "b"
+        + String(repeating: " c*", count: 1000),
+      "[[x]] " + String(repeating: "![", count: 1000) + "a"
+        + String(repeating: "](b)", count: 1000),
+      // Closers inside code spans must not cancel the openers they follow.
+      "[[x]] " + String(repeating: "*a `b*` ", count: 400) + "c"
+        + String(repeating: " d*", count: 400),
+      "a\r" + String(repeating: ">", count: 2000) + " [[x]]",
+      "\u{FEFF}" + String(repeating: ">", count: 2000) + " [[x]]",
+      steps.joined(separator: "\n") + "\n[[x]]",
+    ]
+    let deepest =
+      (0..<49).map { String(repeating: " ", count: $0 * 2) + "- a" }.joined(separator: "\n")
+      + "\n" + String(repeating: " ", count: 98) + "- [[x]] "
+      + String(repeating: "*a ", count: 100) + "b" + String(repeating: " c*", count: 100)
+    try onWorkerStack {
+      for text in hostile {
+        let parsed = try InlineReferenceParser.parse(text)
+        try expect(parsed.state == "partial" && parsed.selections.isEmpty, String(text.prefix(40)))
+      }
+      try expect(try InlineReferenceParser.parse(deepest).selections.count == 1)
+    }
+    let bold = (0..<300).map { "- **Item \($0)** text" }.joined(separator: "\n")
+    let ruled = [String(repeating: "-", count: 120), String(repeating: "*", count: 120)]
+    for text in ruled + [bold, "a\r\n\r\n> [[real]]"] {
+      try expect(try InlineReferenceParser.parse(text + "\n\n[[last]]").state == "ready", text)
+    }
+    try expect(try parsedLabels(ruled[0] + "\n\n[[Quote]]") == ["Quote"])
+  }
+  check("Markdown positions name the right bytes or the parse says it is partial") {
+    let link = "[b](sevra://item/pin)"
+    // cmark numbers these lines from the first line's column.
+    for body in [
+      "Intro\n    [a] \(link)", "  First\n\(link)", "- item\n      \(link)",
+      "> quote\n\(link)", "Title\n  \(link)\n=====",
+    ] {
+      try expect(try parsedLabels(body) == ["b"], body)
+    }
+    try expect(try parsedLabels("   First\n`[[code]]` [[real]]") == ["real"])
+    // A backslash break leaves cmark on the wrong line. Nothing is bound to other bytes.
+    let broken = try InlineReferenceParser.parse("a\\\n  \(link) [[real]]")
+    try expect(broken.state == "partial" && broken.selections.isEmpty)
+    // Only a whole definition is ambiguous. Bracketed text before a colon is a paragraph.
+    try expect(
+      try parsedLabels("[[Acme Quote]]: 30 days net\n\n[[Other]] \(link)")
+        == ["Acme Quote", "Other", "b"])
+    try expect(try parsedLabels("[Note] see [Other]: thing and [[Real]]") == ["Real"])
+    // A bracket in a label's code span is not the end of the label.
+    try expect(try parsedLabels("[a `]` b](sevra://item/pin)") == ["a `]` b"])
+    try expect(try parsedLabels("[a [b] c](sevra://item/pin)") == ["a [b] c"])
+    // Tags are matched by whole name, a self-closed tag hides nothing, and a closer may be spaced.
+    for body in ["a <premium> [[real]]", "<code>x</code > [[real]]", "<code/> [[real]]"] {
+      try expect(try parsedLabels(body) == ["real"], body)
+    }
+    try expect(try parsedLabels("a <pre lang=\"x\">[[code]]</pre> [[real]]") == ["real"])
   }
   check("links in escaped syntax, code, images and HTML code remain plain examples") {
     let body = #"""

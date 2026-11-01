@@ -1,27 +1,96 @@
 import Foundation
 import Markdown
 
-/// The Markdown parser recurses once per quote or list level, and a few thousand `>` on one line
-/// can overflow the stack. Each level needs its own marker, so a line shows its depth.
+/// The Markdown parser recurses once per level of quotes, lists and inline spans, and a few hundred
+/// levels can overflow a worker thread's stack. Each block level has a marker to the right of its
+/// parent's, so a marker's column bounds its depth. An inline level needs a delimiter that can open
+/// and, after every opener inside it, one that can close, so a block cannot nest past the limit
+/// without more than the limit of each, in that order. Raw bytes include delimiters in code, which
+/// only overcounts.
 public enum MarkdownNesting {
   static let limit = 100
   public static func isReadable(_ text: String) -> Bool {
-    var depth = 0
+    let bytes = Array(text.utf8)
+    func isSpace(_ byte: UInt8) -> Bool { byte == 32 || byte == 9 || byte == 10 || byte == 13 }
+    func isWord(_ byte: UInt8) -> Bool {
+      (48...57).contains(byte) || (65...90).contains(byte) || (97...122).contains(byte)
+    }
+    func isPunctuation(_ byte: UInt8) -> Bool {
+      (33...126).contains(byte) && !isWord(byte)
+    }
+    // A delimiter run faces `inner` and turns its back on `outer`, as in CommonMark's flanking
+    // rules. Bytes outside ASCII count as neither space nor punctuation, again overcounting.
+    func flanks(_ delimiter: UInt8, inner: UInt8, outer: UInt8) -> Bool {
+      !isSpace(inner)
+        && !(isWord(outer) && (delimiter == UInt8(ascii: "_") || isPunctuation(inner)))
+    }
+    var opened = 0
+    var closed = 0
+    var column = 0
     var inPrefix = true
-    for byte in text.utf8 {
-      if byte == 10 {
-        depth = 0
+    var blank = true
+    var bullet = false
+    // cmark drops a leading byte order mark before it reads the first line's markers.
+    var index = bytes.starts(with: [0xEF, 0xBB, 0xBF]) ? 3 : 0
+    while index < bytes.count {
+      let byte = bytes[index]
+      if byte == 10 || byte == 13 {
+        if blank {
+          opened = 0
+          closed = 0
+        }
+        column = 0
         inPrefix = true
-      } else if inPrefix {
+        blank = true
+        bullet = false
+        index += byte == 13 && index + 1 < bytes.count && bytes[index + 1] == 10 ? 2 : 1
+        continue
+      }
+      if byte != 32 && byte != 9 && byte != UInt8(ascii: ">") { blank = false }
+      let next = index + 1 < bytes.count ? bytes[index + 1] : 10
+      if inPrefix {
         switch byte {
-        case UInt8(ascii: ">"), UInt8(ascii: "-"), UInt8(ascii: "+"), UInt8(ascii: "*"):
-          depth += 1
-          if depth > limit { return false }
-        case UInt8(ascii: " "), 9, UInt8(ascii: "0")...UInt8(ascii: "9"), UInt8(ascii: "."), UInt8(ascii: ")"):
-          break
+        case 32, UInt8(ascii: "0")...UInt8(ascii: "9"): column += 1
+        case 9: column += 4 - column % 4
+        case UInt8(ascii: ">"):
+          if column >= limit { return false }
+          column += 1
+        case UInt8(ascii: "-"), UInt8(ascii: "+"), UInt8(ascii: "*"), UInt8(ascii: "."),
+          UInt8(ascii: ")"):
+          if isSpace(next) {
+            if column >= limit { return false }
+            // A bullet with text always ends the paragraph before it. A number need not.
+            if column < 4 && byte != UInt8(ascii: ".") && byte != UInt8(ascii: ")") {
+              bullet = true
+            }
+            column += 1
+          } else {
+            inPrefix = false
+          }
         default: inPrefix = false
         }
+        if bullet && !inPrefix {
+          opened = 0
+          closed = 0
+        }
       }
+      switch byte {
+      case UInt8(ascii: "*"), UInt8(ascii: "_"), UInt8(ascii: "~"):
+        var end = index + 1
+        while end < bytes.count && bytes[end] == byte { end += 1 }
+        let previous = index > 0 ? bytes[index - 1] : 10
+        let following = end < bytes.count ? bytes[end] : 10
+        if flanks(byte, inner: following, outer: previous) { opened += end - index }
+        if opened > limit && flanks(byte, inner: previous, outer: following) {
+          closed += end - index
+        }
+        index = end - 1
+      case UInt8(ascii: "!") where next == UInt8(ascii: "["): opened += 1
+      case UInt8(ascii: "]") where opened > limit: closed += 1
+      default: break
+      }
+      if closed > limit { return false }
+      index += 1
     }
     return true
   }
@@ -58,6 +127,11 @@ public struct ReferenceSyntaxSpan: Sendable {
 /// Markdown supplies code/image/HTML boundaries; raw scalar spans preserve bytes.
 public enum InlineReferenceParser {
   public static let identity = "inline-links-v1-markdown-0.9.0"
+  // One whole definition: a plain label, a destination, an optional title, then the line's end.
+  // Bracketed text that happens to precede a colon is an ordinary paragraph.
+  private static let referenceDefinition =
+    #"\A {0,3}\[(?:[^\[\]\\]|\\.)+\]:[ \t]*(?:\R[ \t]*)?(?:<[^<>\r\n]*>|[^\s<]\S*)"#
+    + #"(?:\s+(?:"[^"]*"|'[^']*'|\([^()]*\)))?[ \t]*(?:\R|\z)"#
 
   public static func target(_ route: String) -> ReferenceTarget? {
     guard route.utf8.count <= 1024 else { return nil }
@@ -121,11 +195,19 @@ public enum InlineReferenceParser {
       }
       position += 1
     }
+    // cmark 0.9 numbers an inline on a paragraph's later line from the paragraph's first column,
+    // after dropping that line's own indent and quote markers.
+    var paragraphStart: SourceLocation?
     func offset(_ location: SourceLocation) -> Int? {
       guard location.line > 0, location.line <= lines.count, location.column > 0 else { return nil }
-      let start = lines[location.line - 1]
-      guard location.column - 1 <= bytes.count - start else { return nil }
-      let byte = start + location.column - 1
+      var start = lines[location.line - 1]
+      var column = location.column
+      if let paragraphStart, location.line > paragraphStart.line {
+        while start < bytes.count, [32, 9, UInt8(ascii: ">")].contains(bytes[start]) { start += 1 }
+        column += 1 - paragraphStart.column
+      }
+      guard column > 0, column - 1 <= bytes.count - start else { return nil }
+      let byte = start + column - 1
       var low = 0
       var high = byteOffsets.count
       while low < high {
@@ -137,6 +219,19 @@ public enum InlineReferenceParser {
     func range(_ node: Markup) -> Range<Int>? {
       guard let r = node.range, let start = offset(r.lowerBound), let end = offset(r.upperBound),
         start <= end
+      else { return nil }
+      // Some positions stay wrong, such as after a backslash line break or an escaped table pipe.
+      // Every delimited inline must find its own delimiters at the bytes it names.
+      let delimiters: (opening: String, closing: String)
+      switch node {
+      case is InlineCode: delimiters = ("`", "`")
+      case is InlineHTML: delimiters = ("<", ">")
+      case is Image: delimiters = ("!", ")]")
+      case is Link: delimiters = ("[<", ")]>")
+      default: return start..<end
+      }
+      guard start < end, delimiters.opening.unicodeScalars.contains(scalars[start]),
+        delimiters.closing.unicodeScalars.contains(scalars[end - 1])
       else { return nil }
       return start..<end
     }
@@ -165,11 +260,12 @@ public enum InlineReferenceParser {
           unsupportedTokens: 0)
       }
       if visited % 128 == 0 { try cancellation.check() }
+      if node is BlockMarkup { paragraphStart = nil }
       // cmark 0.9 can assign inline positions to a removed leading reference
       // definition. Refuse that paragraph's ambiguous coordinate system rather
       // than attach a real destination to bytes from the definition.
       if node is Paragraph, let r = range(node),
-        string(r).range(of: #"\A {0,3}\[[^\r\n]*\]:"#, options: .regularExpression) != nil
+        string(r).range(of: referenceDefinition, options: .regularExpression) != nil
       {
         return ReferenceParseResult(
           selections: [], state: "partial",
@@ -177,6 +273,7 @@ public enum InlineReferenceParser {
             "A paragraph combines a leading reference definition and content with ambiguous Markdown positions. Separate them with a blank line. Original text is retained.",
           unsupportedTokens: 1)
       }
+      if node is Paragraph || node is Heading { paragraphStart = node.range?.lowerBound }
       if node is CodeBlock || node is InlineCode || node is Image || node is HTMLBlock {
         guard let r = range(node) else {
           return ReferenceParseResult(
@@ -196,13 +293,15 @@ public enum InlineReferenceParser {
         }
         block(r)
         let html = string(r).lowercased()
-        if ["<code", "<pre", "<script", "<style"].contains(where: { html.hasPrefix($0) }) {
-          if htmlCodeStart == nil { htmlCodeStart = r.lowerBound }
-        } else if htmlCodeStart != nil
-          && ["</code>", "</pre>", "</script>", "</style>"].contains(html)
-        {
-          block(htmlCodeStart!..<r.upperBound)
-          htmlCodeStart = nil
+        let closing = html.hasPrefix("</")
+        let tag = html.dropFirst(closing ? 2 : 1).prefix { $0.isLetter || $0.isNumber || $0 == "-" }
+        if ["code", "pre", "script", "style"].contains(String(tag)) {
+          if !closing {
+            if htmlCodeStart == nil && !html.hasSuffix("/>") { htmlCodeStart = r.lowerBound }
+          } else if let start = htmlCodeStart {
+            block(start..<r.upperBound)
+            htmlCodeStart = nil
+          }
         }
         continue
       }
@@ -222,24 +321,19 @@ public enum InlineReferenceParser {
           continue
         }
         var label: Range<Int>?
-        if r.count >= 2 && scalars[r.lowerBound] == "<" {
+        if scalars[r.lowerBound] == "<" {
           label = (r.lowerBound + 1)..<(r.upperBound - 1)
-        } else if r.count >= 2 && scalars[r.lowerBound] == "[" {
-          var depth = 1
-          var i = r.lowerBound + 1
-          while i < r.upperBound {
-            if scalars[i] == "\\" {
-              i += 2
-              continue
-            }
-            if scalars[i] == "[" { depth += 1 }
-            if scalars[i] == "]" { depth -= 1 }
-            if depth == 0 {
-              label = (r.lowerBound + 1)..<i
-              break
-            }
-            i += 1
+        } else if let last = Array(link.children).reversed().lazy.compactMap(range).first {
+          // The label ends where its last inline does: a `]` in a code span is not the bracket.
+          var end = last.upperBound
+          while end < r.upperBound && scalars[end].properties.isWhitespace { end += 1 }
+          guard end < r.upperBound, scalars[end] == "]" else {
+            return ReferenceParseResult(
+              selections: [], state: "partial",
+              detail: "A Markdown link location could not be preserved. Original text is retained.",
+              unsupportedTokens: 1)
           }
+          label = (r.lowerBound + 1)..<end
         }
         if let label, !label.isEmpty, label.count <= 1024, string(label).utf8.count <= 1024 {
           found.append(
