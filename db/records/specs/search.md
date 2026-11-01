@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzajb661yc3bj5xatkxj
 created: 2026-10-25T01:48:47.314196+00:00
-updated: 2026-10-31T23:30:00+00:00
+updated: 2026-11-01T08:40:00+00:00
 summary: FTS5, structured and filename indexes, bounded extraction, exact citations, agent query refinement and measured scalability.
 title: Ingestion and agentic search
 status: reviewed
@@ -18,7 +18,9 @@ and synthesize a cited answer. It must never load the whole workbook into contex
 Exact lexical search works before model setup and remains directly usable.
 Q02. FTS5 indexes titles, body chunks and captions with Unicode tokenization,
 diacritic normalization and prefix search. BM25 ranking weights titles above body;
-snippets identify matched passages. Separate filename/alias trigram index supports
+snippets identify matched passages. A query term of combining marks alone, such as
+an emoji's variation selector, is dropped, because the index holds no token for it.
+Separate filename/alias trigram index supports
 partial names; structured B-tree indexes cover kind, meaning, status, scenario,
 time, asset hash, logical/version identity, parent/child and dataset row order.
 Q03. External-content FTS tables are maintained transactionally by canonical
@@ -78,7 +80,16 @@ create duplicate business effects. Importing evidence does not automatically
 accept extracted financial/business events.
 Q09. Plain text/Markdown/CSV/TSV/JSON/HTML, PDF text, image OCR, basic DOCX and XLSX
 get explicit extractor paths. PDFKit extracts per page; image/scanned-page OCR
-uses Vision locally. CSV quoting, multiline fields, BOM, CRLF, duplicate/empty
+uses Vision locally and detects the language. Text files read as UTF-8, allowing for a
+character the 8 MB read cut in half. UTF-16 needs its byte order mark. Anything else
+with no NUL reads as Windows-1252 and says so, and text that fits none of these refuses
+with `encoding`. An RTF file uses its own encoding, and HTML entities decode once. DOCX
+keeps a word whole across formatting runs and leaves out deleted text, moved-away text
+and field codes. `ready` means everything the extractor reads was read. `partial` covers
+a text file past 8 MB, a Windows-1252 guess, a PDF stopped by its 45-second page
+budget or text limit or past 1,000 pages, a multi-page image of which only the first
+page was read, any PDF, image or DOCX that yielded no text, and XLSX saved values.
+CSV quoting, multiline fields, BOM, CRLF, duplicate/empty
 headers and locale ambiguity have tests. Current XLSX intake retains cached values
 and basic cell types; it does not execute retained formulas or qualify continuity.
 The expanded adopted design in [[records/specs/contextual-import]] separates the
@@ -117,7 +128,11 @@ Q12. Evidence URL capture preserves included bytes and safe origin/retrieval tim
 Ordinary data URLs stay links. HTTP(S) only, no recursive crawl; redirects checked,
 content type/size bounded, cookies/credentials not imported from unrelated apps.
 Strip credential-bearing URL fields from portable metadata without inventing an
-incorrect origin. Failed/authenticated captures remain explicit references.
+incorrect origin: a query value reads REDACTED when its name holds token, signature,
+apikey, accesskey, secret, authorization, password, passwd, credential or session,
+has the whole word key, sig, auth or pwd, or starts x-amz- or x-goog-. Every other
+parameter keeps its exact bytes. Plain HTTP works from the app as from the CLI.
+Failed/authenticated captures remain explicit references.
 
 ## Scale and measurements
 
@@ -176,7 +191,7 @@ without ignoring evidence changes or introducing a database migration.
 ## Search completeness and exact counts
 A lexical query establishes only matches for its terms and filters. An empty result or table list does not establish that a business event, file or record does not exist. Sources may be unindexed, incompletely extracted, differently worded or not yet interpreted.
 
-The read-only count_records tool counts current heads in SQLite using an explicit Source/Record category and optional exact kind, status, meaning and scenario filters. Every result reports all filters and its workbook revision. It includes classified entries even when their text is not indexed. It does not count facts hidden inside documents, external files, historical versions or real-world events. Accepted estimates remain estimates.
+The read-only count_records tool counts current heads in SQLite using an explicit Source/Record category and optional exact kind, status, meaning and scenario filters. With no kind filter it leaves out host bookkeeping such as saved requests; naming a kind counts it. Every result reports all filters and its workbook revision. It includes classified entries even when their text is not indexed. It does not count facts hidden inside documents, external files, historical versions or real-world events. Accepted estimates remain estimates.
 
 finish.counts can reference up to four visible count receipts from the current run. The host rechecks the count, refuses changed/unknown receipts, renders the exact count and scope itself, and saves the verified result with the answer. Compaction invalidates count eligibility when the corresponding result leaves working context. A count receipt is not a Source/Record citation. When an evidence answer has counts and no inspected citations, the displayed answer consists solely of host-rendered counts. Discard the model prose in that presentation so a valid count cannot authorize unrelated factual claims. The original finish arguments remain in the diagnostic payload, explicitly marked host_counts; they are not the displayed answer.
 
@@ -273,8 +288,10 @@ an adjacent native sevra-extract helper. The parent alone records extraction sta
 and publishes validated chunks, after checking source identity. It passes only the
 source path, no workbook database or lock descriptors. This is fault isolation,
 not an operating-system security sandbox. CSV/TSV and XLSX structured parsing use
-the same helper boundary under Q11b below. Archives, file transcription and viewer
-rendering remain separate paths with their own qualification requirements.
+the same helper boundary under Q11b below. ZIP member listing runs there too, so
+`archive-members` needs `sevra-extract` and a hostile ZIP costs the helper, not the
+workbook's process. Member extraction, file transcription and viewer rendering remain
+separate paths with their own qualification requirements.
 
 At most two extraction workers run per host process. A 60-second parent deadline
 includes queue time; queued cancellation starts no child. The helper checks parent
@@ -308,7 +325,12 @@ publication, including included assets. A changed original requires a new source
 version. A parser failure cannot publish partial table results.
 
 CSV/TSV accepts UTF-8 with an optional BOM, quoted multiline fields, escaped quotes
-and native CRLF/LF/CR records. Preserve quoted empty records. Enforce at most 32 MB
+and native CRLF/LF/CR records. A `.csv` whose first line has semicolons and no comma
+outside quotes is semicolon-separated, as spreadsheets write it where the comma is the
+decimal mark. In tab-separated text, from a `.tsv` file or the clipboard, a quote counts
+only around a whole cell, so 5" pipe stays as written. Separators are matched by
+Unicode scalar, so a combining mark after one cannot hide it. Blank lines at the end of
+a file are not rows. Preserve quoted empty records. Enforce at most 32 MB
 input, 1 MB per field, 500 columns and 100,000 rows at EOF as well as delimiters.
 Iterate without materializing a second character array; check cancellation during
 parsing. Clipboard text still uses the bounded in-process parser, not file intake.
@@ -323,7 +345,8 @@ integer overflow. Missing or malformed helpers, incomplete results and limits fa
 explicitly without an in-process fallback or silently truncated tables.
 
 The host still performs typed-column inference and existing 1,000-row transactional
-publication. Cancellation after committed batches preserves those batches for retry;
+publication. A column with a value like 0012 stays text, because 0012 and 12 are
+different codes. A heading becomes a short unique column ID, whatever its length. Cancellation after committed batches preserves those batches for retry;
 parsing success does not accept inferred business events. Persist running, failed
 and cancelled structured-intake status independently from text-index status, expose
 it in Home/CLI with Resume, and retain the current attempt identity. An older parser

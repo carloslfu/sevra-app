@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-10-30T03:04:42.170055+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
@@ -169,6 +169,9 @@ main history. Share summary with conversation lets the user choose/edit findings
 and copies only that summary, linked to its exact original exchange. This does not
 accept records, widen retrieval access or start an AI turn. Text/voice equivalents
 include Let's explore this separately and Go back to our main conversation.
+Only `thread: ` and `tangent: ` start a thread by prefix, `chapter: Title` adds a
+chapter, and `accept` and `undo` need an exact UUID, so a sentence that begins with
+one of those words stays a message.
 
 Chapters are optional named headings at message boundaries within the same
 history, available when useful rather than introduced as an upfront concept.
@@ -287,7 +290,9 @@ jobs, reusable behavior, maintenance and correctness.
 
 P13. PDFKit page navigation/search/selection; images zoom and pan; AVKit audio/video
 playback; Quick Look fallback for supported formats. Unsupported files retain
-metadata and an explicit Open a copy action. A preview is not an editor.
+metadata and an explicit Open a copy action. A preview is not an editor. A link in a
+PDF follows the conversation link gate: web and mail links open in their usual app,
+workbook links navigate here, and any other scheme does nothing.
 The button and exact text/voice commands such as "open this in another app" use
 the same native save picker, then open a verified copy in its associated app.
 The user chooses a persistent destination outside any workbook, with a new
@@ -376,6 +381,9 @@ P05a. Each message is a separate accessible group, preserving its speaker, statu
 selectable text and links. Message actions expose the same exact destinations as
 inline links, plus saving an exchange, starting a thread and explicitly sharing
 selected findings. Named assistive actions and native menus complement the text.
+A saved document body over 16,000 bytes renders through TextKit so it cannot freeze
+the window: its links still open on click, but it has no Open X context or assistive
+items.
 The app's Conversation menu follows the focused workbook and provides its twenty
 most recent visible exchanges; closing that workbook removes its actions.
 Command-L focuses the composer without sending text or starting dictation.
@@ -590,11 +598,11 @@ components cannot hide the pending-review preview.
 Open an entry to inspect its original and lineage before deciding. A current draft
 may be accepted or withdrawn individually. Withdrawal records a new human decision
 without applying the draft's proposed inventory or table effects. A first draft
-becomes withdrawn. For an inventory correction, restore the earlier accepted
+becomes withdrawn. For a correction or edit of any kind, restore the earlier accepted
 version as the current head and preserve its effect; declining a correction must
-not cancel the already accepted occurrence.
+not cancel the already accepted version or occurrence.
 Undo of withdrawal restores the declined draft, never accepts it. Undo of an
-accepted inventory correction restores the previously accepted effect. The review
+accepted correction restores the previously accepted version and effect. The review
 view spells out Increase or Decrease and the quantity; the user must check the
 direction before acceptance. Sources and original versions remain unchanged. A completed review replaces the current
 item route, so one Back returns to the preceding list or view instead of stepping

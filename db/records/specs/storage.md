@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxza39hbjgke18phvzhfd
 created: 2026-10-25T01:48:47.299215+00:00
-updated: 2026-10-29T17:21:32.200019+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 title: Workbook storage and domain model
 status: reviewed
@@ -53,14 +53,20 @@ import has its own source identity even when bytes deduplicate. Store original
 filename, media type, byte count, hash, origin, capture time, inclusion mode,
 bookmark and extraction status. User-visible identity is not the hash.
 S03. Include by default, including Downloads and large video. Stream copy/hash
-with bounded memory, cancellation and disk-space checking. Flush bytes, atomically
-rename staging to assets, then commit the catalog reference. Crash before catalog
-commit may leave an orphan, never a committed reference to half a file. Never
+with bounded memory, cancellation and disk-space checking. A file that changes while
+it is read refuses with `changed_file`, judged on fresh size and modification time.
+Flush bytes, atomically rename staging to assets, then commit the catalog reference.
+Crash before catalog commit may leave an orphan, never a committed reference to half
+a file. An import holds a lock on its staging entry until the entry is published or
+removed, so opening a workbook removes any entry no live process holds. Never
 silently turn a failed copy into a link. Do not delete originals.
 S04. Explicit external links use a macOS bookmark and observed hash/version.
+Bookmarks resolve without mounting anything, so a linked file on an unmounted volume
+reports `missing_asset`.
 Missing or changed targets remain visible. Reading a changed file never silently
 replaces the version behind an answer. Relinking validates the expected hash or
-creates an explicitly new capture. Include converts by copying the required bytes.
+creates an explicitly new capture. Include converts by copying the required bytes;
+a retry finds the same copy, and a file that cannot be extracted is still included.
 
 
 Preview verification snapshots asset metadata under the workbook lock, then
@@ -79,6 +85,9 @@ existing files and remove partial staging on cancellation or error. A completed
 copy is user-owned and remains after Stop or window closure. Process death may
 leave an unreferenced hidden staging file in the selected directory, never a
 partly published destination. Reimport is an explicit new source operation.
+A copy opened in another app first takes the macOS quarantine flag of a download.
+If macOS refuses the flag, the copy stays saved, is not opened and the refusal is
+`copy_quarantine`.
 ## Durable entities
 
 S05. Sources and Records are categories of immutable item versions. Each version
@@ -87,6 +96,11 @@ meaning, status, effective time, recorded time, scenario ID, structured JSON,
 search text, optional asset and supersedes link. Current heads are indexed.
 Sources include human claims/decisions/rules, documents and observations. Derived
 Records reference exact input versions and transformation identity/parameters.
+Only host pipelines write the kinds later work trusts: rows, movements, table
+drafts, decisions, calculations and technical kinds. A free-form writer (`add`,
+propose_record, draft) refuses those with `proposal_tool`, and refuses
+documentComposition on a document Record. A request or annotation Source written
+that way is allowed, authorizes nothing and starts no business origin.
 S06. Meaning and acceptance are independent. Domain meanings include actual,
 estimate, plan, commitment, assumption and rule. Accepted forecasts remain
 estimates. Unknowns are null/explicit unknown, never silently zero. Status is
@@ -107,6 +121,14 @@ idempotency key. Multiple evidence documents can support one effect. Identical
 independent deliveries are distinct occurrences. Only accepted actual effects in
 the requested scope/scenario change actual balances. Opening basis has an as-of
 time and unknown is not zero. Corrections supersede; later returns add events.
+A balance counts effects after its basis through its as-of instant, which defaults
+to now, and names what it left out in excludedEffects and excludedCount. Actual
+stock cannot rest on an estimate, a plan or another scenario, and a correction
+cannot turn one into actual: both refuse with `interpretation_meaning`. A captured
+user request is the exception as input, because it reports the event itself. Dates
+fall in the years 0001 through 9999, whatever offset they carry. Subjects and
+occurrences are stored in one Unicode form (NFC), and an occurrence is at most 512
+bytes.
 S09. Tables have stable dataset/column/row IDs, exact logical values and immutable row
 versions. The managed physical layout and type rules are in
 [[records/specs/managed-datasets]]. Text/decimal/boolean/date columns; preserve
@@ -114,7 +136,14 @@ original text on import.
 Use Decimal arithmetic with explicit precision/rounding for financial results.
 Formula engine is a bounded expression evaluator, not eval: arithmetic, referenced
 columns/cells, SUM/AVERAGE/MIN/MAX/COUNT and conditional operations. Detect cycles,
-division by zero, missing fields and invalid units. No arbitrary code execution.
+division by zero and missing fields. Adding, subtracting or comparing columns of
+different units refuses with `unit_mismatch`; a product or ratio of two units has no
+unit. A formula has at most 4,096 bytes, 256 tokens, 32 nesting levels and 64
+evaluation levels, and a column reads through at most 128 others (`formula_limit`).
+Every + - * / result keeps at most 38 significant digits, half rounding away from
+zero, so an exact 39-digit sum in a calculated cell rounds instead of refusing.
+Balances, condition totals and query SUM stay exact or refuse. No arbitrary code
+execution.
 
 ## Contextual conversion and continuity
 
@@ -137,10 +166,23 @@ target/mapping. The spec defines per-cell/cross-sheet work and support gates.
 S10. One shared Swift core enforces all mutations for app, local agent and CLI.
 Use parameterized statements, foreign keys, transactional schema changes, busy timeout
 and a process-safe workbook write lock. SQLite serializes writes; every operation
-has an idempotency token and optional expected revision. Reject stale revisions
-rather than silently overwriting. UI refreshes from revision changes.
-S11. Use rollback journal initially with FULL synchronous durability and serialized
-mutations. SQLite's published WAL-reset advisory means system SQLite must not be
+has a nonempty idempotency token (`operation_token`) and optional expected revision.
+Reject stale revisions rather than silently overwriting. UI refreshes from revision
+changes. Opening a workbook and every write wait at most 30 seconds for another
+process's lock, less when the caller's deadline ends first, and then refuse with
+`workbook_busy`. Stop ends that wait. Verification holds the package lock for its
+whole run, because its search checks need SQLite's write lock. A write answers from
+what it reads back before COMMIT, and its deadline is checked last before COMMIT:
+past that point the change is saved and nothing reports it as failed.
+JSON nests at most 128 levels (`json_depth`), wherever it comes from. A number in a
+CLI JSON argument with more digits than JSON keeps refuses with `json_number`, and
+the tool-call parser refuses the same number from the model, so a long decimal goes
+as a string.
+S11. Use rollback journal initially with FULL synchronous durability, `fullfsync=ON`
+and serialized mutations. Included assets, external copies, their directories and
+the export archive flush with F_FULLFSYNC, because plain fsync stops at the drive's
+cache. A volume that refuses it gets fsync. A new workbook's schema is one
+transaction. SQLite's published WAL-reset advisory means system SQLite must not be
 assumed patched for multi-connection WAL. Reconsider WAL only against a verified
 fixed library/version and concurrency tests. Keep queries and transactions short.
 S12. Follow the pre-1.0 compatibility policy in [[records/specs/distribution]].
@@ -169,6 +211,9 @@ history and exact current/latest agreement. Restore is a new edit, not deletion.
 Semantic operations rename, insert, remove, move, title, text and replace preserve
 unrelated components. Position is explicit first/last or before a stable sibling ID;
 unknown operations, unrelated defined fields and invalid compositions refuse atomically.
+Only new or changed components answer for their arguments and columns, so a view a
+live table or function moved out from under does not block edits around it. A pinned
+chart or metric answers for the columns its snapshot saved.
 Snapshots retain their mode, saved bindings and values. System host sections are
 live host views and cannot be frozen as if they were bound business results.
 The native editor keeps its opened base version fixed across background refresh;
@@ -182,16 +227,27 @@ S14. Export uses SQLite backup API to a staging snapshot and copies exactly the
 immutable assets referenced by that snapshot. Exclude transient journals, caches,
 bookmarks/absolute local paths and credentials. Record unresolved dependencies.
 Never copy a changing database file directly. No implicit garbage collection of
-historical assets. Check cancellation and free space; final archive publishes
-atomically after integrity checks.
+historical assets. Check cancellation and free space, counting the database and
+included assets twice when snapshot and archive share a volume (`disk_full`). The
+snapshot must reopen and pass record verification before the archive is written, so
+a copy that could not reopen is never published. Final archive publishes atomically
+after integrity checks.
 S15. ZIP64-compatible `.sevraz` uses lossless compression for text/database and
-stores already compressed media. Validate archive entry count, expanded byte
+stores already compressed media. Walk the central directory first with checked
+reads, because ZIPFoundation traps on hostile offsets and ends a listing silently at
+an entry it cannot represent. A damaged file or one that is not a ZIP refuses with
+`archive_format`, a password-protected entry with `archive_encrypted`, and a listing
+must reach the declared entry count. Validate archive entry count, expanded byte
 budget and paths; reject symlinks, traversal, absolute paths, duplicate/case-fold
-collisions and nested archives posing as workbook structure. Extract into staging,
-verify database and all included asset hashes, then rename into the destination.
-No overwrite by default. Failure leaves the original untouched.
-S16. Recovery checks SQLite integrity/foreign keys, missing bytes, orphan staging,
-invalid lineage and stale indexes. Rebuild derived indexes from authoritative rows.
+collisions and nested archives posing as workbook structure. Declared sizes are
+only a claim: a member that writes more bytes than it declares stops with
+`archive_limit`. Extract into staging. A linked asset row with a path or bookmark
+refuses with `archive_linked`, because export clears both and one here would let the
+archive choose what this Mac reads or mounts. Verify database and all included asset
+hashes, then rename into the destination. No overwrite by default. Failure leaves the
+original untouched.
+S16. Recovery checks SQLite integrity/foreign keys, missing bytes, invalid lineage
+and stale indexes. Rebuild derived indexes from authoritative rows.
 Report external dependencies accurately. No silent destructive repair. A workbook
 on a network drive/sync folder is not supported for concurrent multi-host editing.
 
@@ -370,14 +426,15 @@ of whole-app, disk, import or FTS performance. Existing draft history still cost
 index traversal; this is not an O(current-drafts) complexity claim.
 
 Withdrawal appends a decision Source. A first draft becomes a rejected current
-version, with its proposed effects preserved but unapplied. For a movement
-correction, the latest preceding settled version determines accepted state. If it
-was accepted, copy that accepted content/effect into the new head and link both the
-declined draft and prior acceptance; withdrawing the correction must not erase the
-earlier accepted effect. Undo of this withdrawal restores the declined draft while
-retaining accepted inventory. Undo of an accepted correction similarly restores
-the earlier accepted effect, or withdraws the occurrence when no accepted effect
-preceded it. The lineage transformation distinguishes withdrawal from acceptance.
+version, with its proposed effects preserved but unapplied. For a correction or
+edit of any kind, the latest preceding settled version determines accepted state. If
+it was accepted, copy that accepted content/effect into the new head and link both
+the declined draft and prior acceptance; withdrawing the correction must not erase
+the earlier accepted version or effect. Undo of this withdrawal restores the declined
+draft while retaining accepted inventory. Undo of an accepted correction similarly
+restores the earlier accepted version and effect, or withdraws the occurrence when no
+accepted effect preceded it. The lineage transformation distinguishes withdrawal
+from acceptance.
 Retrying the same withdrawal token returns the same result; obsolete and accepted
 targets refuse withdrawal. Movement revisions preserve subject and occurrence.
 Original inputs and versions remain immutable; this repair needs no schema change.
@@ -533,7 +590,7 @@ The canonical development schema is17. application_definitions admits extraction
 
 ## Workflow clarification presentation storage
 
-Current schema18 adds no canonical family for raw clarification inputs. meta keys prefixed workflow-clarification-draft: hold portable presentation state, bounded to1MB per run,128 cached runs,65,536 UTF-8 bytes of raw values,4096 bytes of explanation and eight alternatives. Saved targets are checked against their exact historical interpretation publication. A matching canonical operation supplies a six-field receipt projection; never duplicate the full run into this cache. Exact-baseline saves require explicit keep-both on conflict. At capacity evict only checkpoints for which every answer has an exact durable submission receipt, preserving all unsent alternatives and all canonical history. Presentation state does not advance business revision, enter authoritative change payloads or grant execution. Inert reconstruction copies it separately and validates it. See [[records/specs/manual-workflows]] and [[records/operations/persistence-coverage]].
+Current schema18 adds no canonical family for raw clarification inputs. meta keys prefixed workflow-clarification-draft: hold portable presentation state, bounded to1MB per run,128 cached runs,65,536 UTF-8 bytes of raw values,4096 bytes of explanation and eight alternatives. Saved targets are checked against their exact historical interpretation publication. A matching canonical operation supplies a six-field receipt projection; never duplicate the full run into this cache. Exact-baseline saves require explicit keep-both on conflict. At capacity evict only checkpoints for which every answer is untouched or has an exact durable submission receipt, preserving all unsent alternatives and all canonical history. Presentation state does not advance business revision, enter authoritative change payloads or grant execution. Inert reconstruction copies it separately and validates it. See [[records/specs/manual-workflows]] and [[records/operations/persistence-coverage]].
 
 ## Conversation preparation provenance
 
@@ -577,7 +634,7 @@ Read-only condition-origins now resolves exact complete retained changes/clock v
 
 ## Schema28 original-input capture and shared causes, October 29
 
-business_inputs is an immutable captured registry over exact original Sources and their creating committed change/item insertion index, kind and business-input-v1 policy. Several declared inputs in one transaction share one business root. Host observation/top-level file intake can declare intent; ordinary model output, generic Source labels, review, derived imports and copied metadata cannot. Human acceptance/withdrawal now links the exact proposal. Verification and inert reconstruction retain complete declarations, without live grants. Read-only condition-causes merges validated automatic production boundaries and declared independent inputs; missing/unclassified/over-budget origins block. It creates no automatic admissions/charges or dispatch. Broad530 core checkpoint, final20 focused/39 installed calls, two actual publication deaths, native package/controller/ProductAI and visible Activity continuation pass. The exact receipt, iterations and limits are in [[records/specs/business-provenance]]. Shared business-root admission/current-grant candidate dispatch remains next.
+business_inputs is an immutable captured registry over exact original Sources and their creating committed change/item insertion index, kind and business-input-v1 policy. Several declared inputs in one transaction share one business root. Host observation, top-level file intake and the host's capture of a user request can declare intent; ordinary model output, generic Source labels, a request Source from any other writer, review, derived imports and copied metadata cannot. Schema31 adds that request kind. Human acceptance, withdrawal and Undo link the exact version they decide. Verification and inert reconstruction retain complete declarations, without live grants. Read-only condition-causes merges validated automatic production boundaries and declared independent inputs; missing/unclassified/over-budget origins block. It creates no automatic admissions/charges or dispatch. Broad530 core checkpoint, final20 focused/39 installed calls, two actual publication deaths, native package/controller/ProductAI and visible Activity continuation pass. The exact receipt, iterations and limits are in [[records/specs/business-provenance]]. Shared business-root admission/current-grant candidate dispatch remains next.
 
 ## Schema29 shared business admissions, October 29
 
@@ -585,4 +642,4 @@ The existing automatic_roots family now distinguishes calendar occurrences and b
 
 ## Schema30 condition execution, October 29
 
-Actual owned inventory-condition candidates now dispatch through exact current physical-file grants and the same captured workflow/admission ledger, with complete original/automatic causes and persisted shared budgets. Native typed preview/save/Enable/Pause, ordered queue dismissal/resume/from-now and read-only idle polling are connected. Broad555 core checkpoint, final18 focused/21 owner groups,17 condition/21 calendar/22 shared/39 cause installed calls, nine candidate writers/two actual SIGKILL boundaries and fresh visible deterministic native crossing/Activity/pause/reconstruction pass. No final full-core rerun or fresh model inference is claimed. [[records/specs/condition-dispatch]] retains exact source/package hashes, failures, prepared-probe correction and limits. Conversational authoring/Enable, real-model condition review/restart, dataset adapters and E5-E6/release remain open.
+Actual owned inventory-condition candidates now dispatch through exact current physical-file grants and the same captured workflow/admission ledger, with complete original/automatic causes and persisted shared budgets. Native typed preview/save/Enable/Pause, ordered queue dismissal/resume/from-now and read-only idle polling are connected. Broad555 core checkpoint, final18 focused/21 owner groups,17 condition/21 calendar/22 shared/39 cause installed calls, nine candidate writers/two actual SIGKILL boundaries and fresh visible deterministic native crossing/Activity/pause/reconstruction pass. No final full-core rerun or fresh model inference is claimed. [[records/specs/condition-dispatch]] retains exact source/package hashes, failures, prepared-probe correction and limits. Conversational authoring/Enable, real-model condition review/restart, dataset adapters and E5-E6/release remain open. The canonical schema is 31, which differs from 30 only in the business_inputs kinds.

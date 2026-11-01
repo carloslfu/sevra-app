@@ -2,7 +2,7 @@
 type: spec
 id: 01m61vcs2a1prctcr1em7z68cm
 created: 2026-10-28T18:12:10.954425+00:00
-updated: 2026-10-28T21:53:39.457479+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: Schema12 managed storage, definition lifecycle and bounded stored-scalar query/index paths have scoped proof; complete MJ/Excel continuity and release remain open.
 title: Managed datasets and replayable storage
 status: reviewed
@@ -283,12 +283,19 @@ Use one atomic managed command with an exact expected definition version/identit
 complete retry payload, actual actor and recorded decision Source. Rename, add,
 remove, type/formula/required/unique changes, archive and restore use this path.
 Restoring an old definition creates a new UUID/version and predecessor. Archive
-hides a table from normal discovery and blocks ordinary row updates; retained views
-can still inspect it. Undoing table creation records an archive definition instead
-of a disconnected metadata flag.
+hides a table from normal discovery and blocks ordinary row updates, proposed row
+edits and row Undo with `archived_dataset`; retained views can still inspect it.
+Undoing table creation records an archive definition instead of a disconnected
+metadata flag.
+
+`edit-row` changes only the columns it names. An explicit null clears one, naming
+none refuses with `empty_edit`, and a value that is not a JSON object refuses with
+`arguments`.
 
 Removed fields leave the active projection but remain in immutable row payloads.
-Subsequent active-field edits preserve inactive fields. Restoring the same column
+Subsequent active-field edits preserve inactive fields. A merge into a table that lost
+a column plans from active fields, so its removed values stay in row history and out
+of the edit. Restoring the same column
 ID recovers its latest retained value, while exact old row versions remain unchanged.
 A removal/reorder must not silently retarget an unchanged named or A1/range formula.
 Reject affected unchanged bindings until the formula is explicitly revised. Native
@@ -354,6 +361,8 @@ business revision or durable derived Record by themselves.
 Decimal filters/order/grouping use the native exact collation. Sum is a host
 Decimal aggregate and refuses precision loss/overflow. Average uses the existing
 38-digit Decimal arithmetic with plain rounding, disclosed in the result contract.
+The same arithmetic rounds any + - * / result past 38 digits in a calculated column,
+while Sum, balances and condition totals stay exact or refuse.
 Never call SQLite floating-point SUM/AVG for money. Numeric/date/boolean empty
 values are unknown for ordered comparisons and aggregates; null and empty remain
 distinct in selected fields. Omitted versus explicit-null originals remain
@@ -394,7 +403,9 @@ indexes. Creation/removal changes no business revision, operations or committed
 history. Growth eviction happens before the same row-write publication;
 a later publication failure restores both canonical rows and removed indexes.
 Explicit projection repair has a cancellable 30-second deadline, including lock
-acquisition, versus three seconds for ordinary interactive writes. The first
+acquisition, versus three seconds for ordinary interactive writes. Accept, Undo and
+definition changes have the same 30 seconds, because accepting a reviewed update can
+rewrite 10,000 rows. The first
 50,000-row indexed repair hit the former three-second deadline and rolled back;
 that failed attempt is retained. The 64 MiB/250,000-change transaction caps remain. Users choose their work; storage controls remain CLI/core maintenance.
 

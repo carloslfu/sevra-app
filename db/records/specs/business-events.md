@@ -2,7 +2,7 @@
 type: spec
 id: 01m63pbtkqgpmeas26bahejmj0
 created: 2026-10-29T11:22:45.751359+00:00
-updated: 2026-10-29T12:45:51.316493+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: 'Reviewed schema22 semantic outbox over captured history: atomic settled versions, inventory basis and dataset membership/schema events, bounded indexed delivery and no execution authority.'
 title: Committed business-event delivery
 status: implemented
@@ -24,7 +24,7 @@ A batch corresponds to one complete committed change, with that exact ID, actor,
 - Dataset membership: retain the first before and final after mapping of each dataset/row slot changed in the commit. A temporary delete/reinsert with identical final mapping produces no semantic event. Membership data is separate from row values and never resolved using today's head as a historical value. Preserve lossless ordinal strings and logical identities.
 - Dataset schema: each final new immutable column version retains its exact prior/final version and Source IDs. Archival/schema changes are observable without treating disposable native projection churn as row business events.
 
-Scope keys and record kinds are stored separately. Inventory subject, logical record and dataset lookups are indexed with batch position and ordinal. No full committed-payload scan per poll. Reading current items cannot be used to fabricate past membership, state or event order.
+Scope keys and record kinds are stored separately. Inventory subject, logical record and dataset lookups are indexed with batch position and ordinal. A movement's scope key is its subject, so a record-scope read finds a record by logical ID across scopes. No full committed-payload scan per poll. Reading current items cannot be used to fabricate past membership, state or event order.
 
 ## Storage and publication
 

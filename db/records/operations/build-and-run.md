@@ -2,7 +2,7 @@
 type: operational
 id: 01m5refyq97sez3da1rywz08wf
 created: 2026-10-25T02:33:33.673437+00:00
-updated: 2026-10-30T00:08:26.397839+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: Source installation, local AI setup, independent CLI use, verification and uninstall.
 title: Build and run
 ---
@@ -34,8 +34,8 @@ The installer stages the matching native app, CLI, extraction helper and all eng
 grammar resources, verifies them before replacement, and preserves upstream signed
 engine bytes. The CLI link is `~/.local/bin/sevra`; add that folder to PATH or use
 its full path. An unrelated existing CLI is preserved and the installation refuses.
-Explicit `--native` can retarget the CLI link from an identified Sevra baseline
-installation to the native preview, preserving that baseline app and all workbooks.
+Either install can retarget the CLI link from the other identified Sevra installation,
+preserving that app and all workbooks.
 It refuses a different tool or a mismatched application identity.
 
 Source builds are locally ad-hoc signed, not production Developer ID notarized.
@@ -195,6 +195,14 @@ sevra verify "$HOME/Documents/Willow.sevra"
 Use a new path for each create/demo command. Existing workbooks are never replaced.
 Open the package using the app's Open command. Included files, search, tables,
 formulas and export work without model setup.
+
+`balance WORKBOOK SUBJECT [AS_OF]` stops at now by default and names what it left out.
+`verify` exits 1 with `asset_issues` when a file fails, and `capture-url` exits 1 with
+`capture_failed`, naming the saved record. `edit-row` changes only the columns it names,
+and an explicit null clears one. `add` refuses kinds Sevra writes itself with
+`proposal_tool`. `archive-members` needs the installed `sevra-extract`. A workbook held by
+another process refuses with `workbook_busy` after 30 seconds. The other refusals are
+in [[records/specs/distribution]] D05.
 
 ## Local AI
 
@@ -1242,6 +1250,10 @@ The CLI advertises thread WORKBOOK TITLE MESSAGE_ID and share-summary WORKBOOK
 MESSAGE_ID TEXT. Quote the selected text as one argument. The older tangent spelling
 and persisted IDs remain supported. Existing workbooks need no data migration.
 
+In the composer, `thread: Title` and `tangent: Title` also start a thread, and a sentence
+such as Thread count for the Acme bolts? stays an ordinary message. `chapter: Title`
+adds a chapter. `accept ID` and `undo ID` need one exact UUID.
+
 ## Conversation keyboard and assistive actions
 
 Command-L focuses Message Sevra in the active workbook. Each message has an actions
@@ -1733,12 +1745,12 @@ The shared check script and CI include the process-death and independent CLI pro
 Definitions use kind workflow and the contract in [[records/specs/manual-workflows]]. Current development schema17 replaces earlier development schemas without a legacy adapter. Preserve old packages and use a matching earlier development build for recovery. Only recreate selected disposable fixtures. No installed user package is reset or upgraded automatically.
 
 ## Manual workflow activity
-Use workflow-activity WORKBOOK [STATE|- [CURSOR]] for bounded newest-first pages, workflow-inspect WORKBOOK RUN_ID for exact inputs/steps/proposals/attempts, and workflow-continue WORKBOOK RUN_ID for a deliberate continuation to the next review or terminal state. Read/inspect never resumes a run. Native Activity is accessible beside Review drafts; Continue, Retry unfinished work and Stop workflow use the same trusted core commands. A changed workflow-run family clock requires refresh; agent journal and unrelated writes preserve continuation. Full workflow/automation and accessibility gates remain open.
+Use workflow-activity WORKBOOK [STATE|- [CURSOR]] for bounded newest-first pages, workflow-list WORKBOOK [STATE] for the latest runs, newest first, workflow-inspect WORKBOOK RUN_ID for exact inputs/steps/proposals/attempts, and workflow-continue WORKBOOK RUN_ID for a deliberate continuation to the next review or terminal state. workflow-advance refuses extract, intake and interpret steps, which only that coordinator can run. Read/inspect never resumes a run. Native Activity is accessible beside Review drafts; Continue, Retry unfinished work and Stop workflow use the same trusted core commands. A changed workflow-run family clock requires refresh; agent journal and unrelated writes preserve continuation. Full workflow/automation and accessibility gates remain open.
 
 ## Workflow form submission
 Use form-template WORKBOOK TARGET_ID for an exact inspected current action or workflow. The returned form follows that target live. Its payload has exactly one action/workflow binding, with identical typed parameters. Save it through definition-save and bind it as a normal native form component. Workflow action steps may use only action-backed forms, preventing hidden recursive workflow execution.
 
-form-draft-preview WORKBOOK STATE_JSON is pure. For a workflow form it checks exact opened definitions and parameters and lists steps; it does not execute queries/model/import/effects. form-draft-submit WORKBOOK STATE_JSON PREVIEW_JSON uses the saved draft's invocation token and creates a queued run plus receipt atomically. Repeating exact submission returns that receipt. Save lastReceipt through the compare-and-set form-draft-save command if using the low-level CLI; native sessions reconcile it after crashes automatically. Continue the returned workflowRunID explicitly. Native Start workflow also deliberately continues under its originating workbook/window; Open workflow remains available after submission. No scheduled/background execution is granted.
+form-draft-preview WORKBOOK STATE_JSON is pure. For a workflow form it checks exact opened definitions and parameters and lists steps; it does not execute queries/model/import/effects. form-draft-submit WORKBOOK STATE_JSON PREVIEW_JSON uses the saved draft's invocation token and creates a queued run plus receipt atomically. Repeating exact submission returns that receipt. Save lastReceipt through the compare-and-set form-draft-save command if using the low-level CLI, and read the returned state, because --keep-both can give a side a new invocation token; native sessions reconcile it after crashes automatically. Continue the returned workflowRunID explicitly. Native Start workflow also deliberately continues under its originating workbook/window; Open workflow remains available after submission. No scheduled/background execution is granted.
 
 ## Conversation workflow tools and local-model probe
 The agent can find/read/save exact workflow definitions, create associated form templates and queue a requested run. start_workflow returns a saved run and ends with the host-owned no-execution receipt. Open Activity through Workbook > Workflow Activity (Command-Shift-Y), then inspect and explicitly Continue. Opening/reconstructing/queuing never starts a worker. Native form Start is a separate deliberate continuation.
@@ -1953,7 +1965,7 @@ Focused check: `.build/debug/sevra-checks --automation-causality`. Installed syn
 
 ## Condition dispatch qualification
 
-Schema30 is canonical. The native Automations editor supports exact calendar and inventory-threshold workflows. Preview and Save stay inactive; Enable on this Mac authorizes that physical workbook/version. Ordinary Resume preserves saved and missed transitions, while Only from now records an explicit skip and new baseline. Run once remains a separate manual workflow. Automatic business changes require review.
+Schema31 is canonical. The native Automations editor supports exact calendar and inventory-threshold workflows. Preview and Save stay inactive; Enable on this Mac authorizes that physical workbook/version. Ordinary Resume preserves saved and missed transitions, while Only from now records an explicit skip and new baseline. Run once remains a separate manual workflow. Automatic business changes require review.
 
 Focused core: `.build/debug/sevra-checks --condition-dispatch`. Actual synthetic candidate process/race/recovery check: `python3 scripts/check_condition_dispatch.py --cli output/native/bin/sevra --worker .build/debug/sevra-checks --output NEW_RESULT.json`. Native controller/registry: `.build/debug/sevra-automation-ui-checks`. check.sh and both installed CI paths include condition dispatch; artifact upload includes its JSON. No ordinary CLI/model dispatch override or arbitrary parent/root input is exposed. The public condition-causes inspector stays read-only and grants no authority. Full scope/evidence: [[records/specs/condition-dispatch]].
 

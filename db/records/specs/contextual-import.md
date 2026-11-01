@@ -2,7 +2,7 @@
 type: spec
 id: 01m61c4z13j3paexnc7xvyyqhs
 created: 2026-10-28T13:45:46.275195+00:00
-updated: 2026-10-31T23:30:00+00:00
+updated: 2026-11-01T08:40:00+00:00
 summary: One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 title: Contextual import and Excel continuity
 status: reviewed
@@ -93,7 +93,8 @@ mandatory role questionnaire. This default changes no working table or business
 state. Preserve the original, a readable inclusion message and later-use actions.
 Ask a short contextual clarification only when a requested operation would change
 working data and its target or method is ambiguous. Explicit native File actions >
-Use saved file offers conversion or table update without reimporting the original.
+Use saved file offers conversion or table update without reimporting the original,
+and its intake job starts only once a use is chosen, so leaving the choice adds nothing.
 Prefer a useful question such as whether to create a new table or update the
 selected one. Never ask users to choose storage internals. The October 29 native
 journey review is [[records/reviews/native-journey-polish]].
@@ -168,6 +169,12 @@ identity, revision checks and durable resumable batches. Copy/index once and der
 new native data only for the requested role. Preserve originals as files inside
 the workbook, outside SQLite, unless explicitly linked. SQLite owns job state,
 lineage, mappings, support reports, tables and formula/dependency metadata.
+A capture retry names the same request whether or not the input file still exists.
+Each use reuses a `ready` or `partial` index, and the intake report says so with
+indexReused. A failed index stops a reference or analysis use. A values or update use
+reads the original instead and goes on, with the failure kept on the source and in the
+report. A use can be chosen while a role-less job still reads: its worker is fenced
+out, and a killed worker never reports.
 
 An import receipt records exact source versions, selected role, destination,
 mapping/feature-report version, applied native changes and incomplete stages. The
@@ -190,7 +197,9 @@ I12. Paste is contextual. Ordinary text stays text. A spreadsheet cell range can
 start a table/reference/analysis or propose an update; selected table paste edits
 only the explicit range. Capture the submitted range as Source information and
 derive changes with lineage. Label a values-only clipboard payload truthfully;
-plain TSV cannot promise retained formulas/styles. Rich clipboard parsing is an
+plain TSV cannot promise retained formulas/styles. Tab-separated text, pasted or from
+a `.tsv` file, takes any line ending, and a quote counts only around a whole cell, so
+5" pipe stays as written. Rich clipboard parsing is an
 explicit supported path, never an excuse to read arbitrary clipboard content.
 Do not redirect a paste intended for the composer or a document into a table.
 
@@ -265,6 +274,10 @@ receipts. A bare file no longer creates a table from its suffix. Reference and
 analysis can reuse one original without creating permanent working tables;
 analysis readiness does not mean an analysis was performed. Explicit values
 conversion retains the existing CSV first-row and XLSX saved-value limitations.
+A `.csv` whose first line has semicolons and no comma outside quotes reads as
+semicolon-separated. Blank lines at the end of a file are not rows. A column with a
+value like 0012 stays text, because 0012 and 12 are different codes. A heading of any
+length works, because its column ID is cut to a short unique one.
 ZIP member capture and a source with no chosen use now ask for a role; retrying an
 already requested table conversion retains that intent. Source/Record acceptance
 and duplicate business-effect rules do not change.
@@ -314,7 +327,8 @@ meaning/scenario. Replacement retains removed rows as rejected historical versio
 Checked Undo/redo compensates row versions and restores stable membership/order.
 All row lineage retains the original, proposal, decision and source-record locator.
 No inventory/financial effects are posted. Generic record creation cannot forge a
-table-update proposal. Retry tokens return prior receipts before checking changed
+table-update proposal or any other host-owned kind ([[records/specs/storage]] S05).
+Retry tokens return prior receipts before checking changed
 state or a missing linked original; changed arguments refuse. Stale preview/apply/
 Undo and fault/cancellation tests preserve working data.
 
@@ -360,6 +374,16 @@ the 15 significant digits Excel shows, so a cell showing 1.15 is not read as
 can hold it; both also apply to saved-value import. A cell without a reference follows the
 previous cell in its row. A chart, macro or dialog sheet is named in the notes, not read.
 Workflow intake stays CSV/TSV.
+
+Dates and times. A worksheet saves these as numbers, and the cell format says which one
+a number is. Only the format's first section counts, and labels, escapes and bracketed
+colors or locales say nothing. A date reads as a date, a time of day as HH:MM:SS, and a
+[h], [m] or [s] format as a duration that can pass 24 hours or go negative. A format
+with h or s and no date part is a time; one with m alone is a date. Built-in formats 32
+to 35 and 52 to 56 are times in some Chinese and Japanese workbooks and dates in others,
+so a serial below 1 reads as a time there. A time of day outside 0 to 1 keeps its saved
+number, and text in a date-styled cell stays text. Phonetic reading guides stay out of a
+cell's value, and _xHHHH_ escapes decode.
 
 Ambiguous input. Keys stay exact, so a key that differs from an existing or another
 incoming key only by case, surrounding spaces or leading zeros stops the review
@@ -413,7 +437,8 @@ references. Comparisons sort numbers before text and ignore case in text, and a 
 zero and empty text alike. Text in arithmetic gives #VALUE!, division by zero #DIV/0! and an
 out-of-range result #NUM!. The first error carries forward, though COUNT ignores errors and IF reads only its chosen
 branch. ROUND drops the fraction of its digits, as Excel does. A cell in a column the sheet never
-held reads as blank. Arithmetic is exact decimal, and a stored result keeps 15 significant digits.
+held reads as blank. Arithmetic is decimal and keeps at most 38 significant digits, half rounding
+away from zero, and a stored result keeps 15.
 A saved number may carry an exponent, as spreadsheets write very large and very small values.
 
 Recalculation. Formula cells hold stored values, so filters, sorting, exports, queries and tools
@@ -482,5 +507,6 @@ files, symbolic links and package contents are skipped. A changed file becomes a
 beside the earlier one, content already in the workbook is not added again, and a file gone from
 the folder stays in the workbook and is reported. Replaying a stopped pass saves nothing twice.
 
-One pass handles at most 200 files and 2 GB; past that it refuses and adds nothing. Two folders
-with the same name count as one. Each added file goes through normal intake.
+One pass adds at most 200 new or changed files and 2 GB; past that it refuses and adds nothing.
+Files already saved are counted and passed over, so a folder can outgrow those limits one pass at
+a time. Two folders with the same name count as one. Each added file goes through normal intake.

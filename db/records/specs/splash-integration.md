@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-10-27T16:48:37.593299+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -47,11 +47,21 @@ I06. Render the selected model's actual chat template, tokenize and incrementall
 decode in Swift using maintained libraries where suitable. Compare prompt token
 IDs, special tokens, Unicode, system/tool/history formatting and truncation with
 the pinned upstream frontend. Never silently substitute a handwritten approximation.
+One difference from upstream is deliberate. The tokenizer matches added tokens
+anywhere in a rendered prompt, so a document could close its turn and open a system
+one. A literal added token in message content, tool arguments or names therefore
+gets a space after its `<` before rendering. Text with no such literal and the host's
+tool definitions keep upstream's exact tokens.
 I07. Native transport must reject bad versions, oversized frames, invalid IDs,
 duplicate/gapped tokens and unexpected terminal events. Bound buffers, deadlines
 and result sizes. Model completion, truncation, cancellation, memory refusal and
-engine failure have distinct app states. Kill only a helper owned by this app;
+engine failure have distinct app states. Engine failures reach the host typed:
+`model_refused`, `model_retry`, `model_engine`, and `model_stopped` when the helper
+stopped, with its last output when there is any. Kill only a helper owned by this app;
 drain its pipes and reap it on exit. A failed helper must not damage the workbook.
+Only a failure that closed the helper ends its session, and a helper that died idle
+is replaced by the next request. With no session to keep warm, a run's end frees the
+model lease at once.
 I08. Match reasoning/stop parsing, tool schemas and streaming tool-call assembly.
 Validate arguments and existing workbook authority rules. Reuse the workbook's
 typed tools and persisted traces. Constrained JSON requires a native grammar/mask
@@ -111,11 +121,13 @@ all upstream schema composition, arbitrary tool metadata or API protocols.
 Only a verified successful native terminal can return tool candidates. Cancellation,
 truncation, errors and caller stop sequences authorize no calls, including calls
 that closed before the interruption. Refuse unfinished framing, unknown names and
-duplicate parameters instead of applying upstream's permissive repair. Cap calls
-at 16, each argument object/parameter at 256 KiB and JSON nesting at 32. Integer
-tokens must first fit Int64; workbook arguments also obey I16's exact-range gate.
-Exact decimals and larger identifiers use strings. Reject lossy conversion before
-Foundation JSON parsing and before dispatch into workbook storage.
+duplicate parameters or nested keys instead of applying upstream's permissive repair.
+Cap calls at 16, each argument object/parameter at 256 KiB and JSON nesting at 32.
+Integer tokens must first fit Int64; workbook arguments also obey I16's exact-range
+gate. Exact decimals and larger identifiers use strings: a number past 15 significant
+digits that a Double cannot give back refuses. Reject lossy conversion before
+Foundation JSON parsing and before dispatch into workbook storage. The model gets the
+reason for a refused argument back and can correct the call; nothing from that call ran.
 
 A projected candidate is not yet a validated or authorized action. Validate the
 complete schema, required fields, semantic limits, evidence references and workbook
@@ -153,9 +165,11 @@ be strings. Domain rules, evidence checks and user authority remain separate and
 are still required. Model calls can create proposals; human acceptance remains a
 separate operation. Cancellation/truncation cannot dispatch a previously closed call.
 
-Tool-history rendering must preserve nested nulls. Bridge NSNull to the maintained
-Swift Jinja library's boxed-nil representation, after input bounds validation,
-and verify exact prompt token IDs against the upstream template.
+Tool-history rendering must preserve nested nulls, booleans and floats. Bridge NSNull
+to the maintained Swift Jinja library's boxed-nil representation, after input bounds
+validation, convert boolean and floating NSNumber values to their Swift types, which
+that library would otherwise read as integers, and verify exact prompt token IDs
+against the upstream template.
 
 ## Workbook inference and conversation state
 
@@ -300,7 +314,7 @@ Implementation references: pinned install/local.py, install/models.py, install/a
 ## Native product isolation
 The workbook agent owns tool schemas and conversation values without importing Slotstream or MLX. The preserved engine and history conversion live in SevraBaseline. SevraProduct is the single app/CLI entry point for setup, status, unload and workbook runs. The migration build switch is internal; users do not choose a backend.
 
-The native candidate uses the verified installed assembly, including its separate tokenizer and draft folders. Settings downloads into managed storage by default and can explicitly reuse a complete existing Fast pack in place. Reused originals must remain available. Setup and inference are serialized; cancellation preserves resumable bytes and never publishes an incomplete selection. New sessions validate selected source identities and original files. Repeating setup verifies an existing pinned assembly before considering a download; this preserves explicit reuse without creating a second weight copy. Broken originals can be repaired into managed snapshots, with the previous selection retained until the replacement verifies.
+The native candidate uses the verified installed assembly, including its separate tokenizer and draft folders. Settings downloads into managed storage by default and can explicitly reuse a complete existing Fast pack in place. Reused originals must remain available. Setup and inference are serialized; cancellation preserves resumable bytes and never publishes an incomplete selection. New sessions validate selected source identities and original files: each launch checks sizes and recorded identities and hashes only a file whose identity moved. Verify model files hashes every file of an existing pinned assembly before considering a download; this preserves explicit reuse without creating a second weight copy. Only a missing or changed original starts a download, repaired into managed snapshots with the previous selection retained until the replacement verifies. Any other failure, such as a busy lock, stops setup with its error.
 
 An isolated preview app and CLI package the unchanged Splash helper and Metal files, native grammar library, resource bundles and dependency notices. Runtime lookups resolve only installed locations. Missing packaged resources must fail even when the contributor build tree exists. The preview has a distinct bundle identifier and does not register workbook associations or replace the installed baseline. Candidate builds keep automatic compaction disabled until its adoption gate passes. The 32K context, bounded512 reasoning and 12 GiB engine budget remain qualification settings, not a broad hardware performance claim.
 

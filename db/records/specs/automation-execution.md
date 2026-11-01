@@ -2,7 +2,7 @@
 type: spec
 id: 01m63fsbde30gp34z969yt19sc
 created: 2026-10-29T09:27:48.910880+00:00
-updated: 2026-10-29T10:46:56.394516+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: Schema21 foreground scheduled draft execution with distinct AI scope, atomic occurrence binding, one active run and pause-safe claims; native device restoration is scoped in native-automation-owner.
 title: Foreground automation workflow execution
 status: implemented
@@ -63,6 +63,6 @@ Manual continuation of an existing scheduled run creates a separate Source; CLI 
 
 ## Native device restoration and publication fences
 
-The later [[records/specs/native-automation-owner]] slice extends the existing process capability with a package-only restore entry point and a live device fence. Trusted native code first verifies its private exact physical-workbook registration. Restoration checks exact definition, generation, authorization Source and AI scope; workbook rows alone still cannot create authority. Every automation check invokes the fence, and workflow claim/heartbeat/failure/retry/cancel, interpretation request/response and completion invoke it in the publication guard. Independent manual work retains its separate authority. No physical schema change, serialization of a process capability or change to the explicit CLI permission lifetime.
+Verification reads a retained run against the definition it ran with, so a later table or schema change cannot fail verify, reconstruction or an opened archive. The later [[records/specs/native-automation-owner]] slice extends the existing process capability with a package-only restore entry point and a live device fence. Trusted native code first verifies its private exact physical-workbook registration. Restoration checks exact definition, generation, authorization Source and AI scope; workbook rows alone still cannot create authority. Every automation check invokes the fence, and workflow claim/heartbeat/failure/retry/cancel, interpretation request/response and completion invoke it in the publication guard. Independent manual work retains its separate authority. No physical schema change, serialization of a process capability or change to the explicit CLI permission lifetime.
 
 The native owner is a real active-app timer, distinct from this original process-only CLI checkpoint. Its final proof includes real registry process death/removal and deterministic injected controller execution, not new selected-model inference or closed-window/background qualification. Full scope, failure semantics and immutable evidence are in the owner spec.

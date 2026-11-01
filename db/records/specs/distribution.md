@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzbe4pdmde0k72e3j6n6
 created: 2026-10-25T01:48:47.342811+00:00
-updated: 2026-10-28T18:14:38.955996+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 title: Distribution and verification
 status: reviewed
@@ -26,7 +26,9 @@ Both product layouts ship sevra-extract adjacent to the real app/CLI executable.
 Resolving an installed CLI symlink must still find its helper. A missing helper
 refuses extraction without silently returning to in-process parsing.
 `scripts/install.sh` installs to user Applications plus a user-owned CLI bin folder,
-refuses unexpected overwrite, and records version. Uninstall removes binaries only;
+refuses unexpected overwrite, and records version. Either Sevra install takes the CLI
+link back from the other, once that app's identity checks, and leaves that app alone.
+Uninstall removes binaries only;
 workbooks/model files survive. Unsigned/ad-hoc builds are labeled honestly.
 D04. README gives exact prerequisites, fresh-checkout commands, launch, setup, demo,
 CLI usage, verification, troubleshooting and data locations. No fabricated one-line
@@ -36,6 +38,13 @@ accept/correct, spaces, conversation, inspect, verify, export/open and local ask
 Versioned JSON result/error envelope, schemaVersion, nonzero errors, bounded output,
 app-closed use and optional expectedRevision/idempotency. A shipped `skills/sevra`
 skill teaches safe tool composition over this exact CLI, not direct SQL writes.
+The CLI refuses what it cannot act on. An empty path or one starting with `-`, a wrong
+argument count, an unknown import option or a non-numeric offset gives `usage`. add and
+movement refuse an unknown or wrong-typed field with `arguments`; observe does the same
+for a wrong type and gives `business_input` for an unknown field. `verify` exits 1 with
+`asset_issues` when a file fails, and `capture-url` exits 1 with `capture_failed`,
+naming the saved record. SIGTERM and SIGHUP stop like SIGINT, so working copies clean
+up. definition-publish records a programmatic actor.
 D06. All durable operations share the same core across UI and CLI. Integration test
 opens a package from both processes, rejects stale writes, retries safely, and
 observes refreshed UI state. CLI must not need a running desktop app.
@@ -131,7 +140,7 @@ existing context-budget regression because this change actually exposed it.
 Broader cohorts already performed remain evidence, not a reason to repeat them.
 
 Remote CI follows the same owner-approved policy. The existing complete Checks
-job retains all 26 steps and assertions, but runs automatically only on main
+job retains all 36 steps and assertions, but runs automatically only on main
 integration pushes, v-prefixed release-tag pushes, and non-draft pull requests
 when opened, reopened or marked ready for review. Ordinary development pushes
 and pull-request synchronize events do not launch it. Draft jobs are skipped;

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzb0mz1b78ergkwybtnp
 created: 2026-10-25T01:48:47.328971+00:00
-updated: 2026-10-30T03:04:42.170055+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 title: Local intelligence and rendering
 status: reviewed
@@ -41,7 +41,11 @@ propose records/events/edits, create/update space, draft document and finish.
 Missing/invalid arguments receive structured errors the model can correct.
 A06. Read tools execute immediately within the workbook. Mutations use shared core
 commands and idempotency tokens. Reversible view/draft creation can happen within
-a user's request. Business interpretations are proposals until explicitly accepted
+a user's request. propose_record takes domain kinds only: the kinds host pipelines
+own and a document Record's reserved documentComposition refuse with `proposal_tool`
+([[records/specs/storage]] S05). The model cannot call commit_action_preview itself;
+the host commits a preview after prepare_action reviews every direction.
+Business interpretations are proposals until explicitly accepted
 or covered by a user-approved import rule. Imported instructions cannot authorize
 filesystem access, network capture or acceptance. Clarify ambiguous mutations.
 An explicit read-only request must also prevent reversible drafts, proposals and
@@ -115,11 +119,15 @@ baseline initializer keeps it off after its recall probe failed. General action
 recovery after process death remains open.
 A read returns the requested exact version plus current-version metadata and a
 snapshot revision. Current-version metadata is a navigation pointer, not newly
-inspected evidence: read that version before citing its facts.
+inspected evidence: read that version before citing its facts. A read or search hit
+counts as inspected only when it showed text the item says: an omitted page, or the
+file-metadata chunk of a file whose extraction is not ready or partial, grants no
+citation, and such a search hit carries no snippet. A read keeps the chunks that fit
+its result, at least one, and pages the rest.
 
 
 ## Conversation citations
-history_read exposes a message:ID citation only for an eligible original message earlier than the active request. Eligibility includes the active conversation and the fixed parent excerpt explicitly inherited by a tangent. It does not include other parent messages, later parent changes, siblings or transitive ancestors. History search and saved tool-result access remain within the active conversation.
+history_read exposes a message:ID citation only for an eligible original message earlier than the active request. Only a complete user or assistant message is eligible, so a tool receipt or a stopped reply earns none. Eligibility includes the active conversation and the fixed parent excerpt explicitly inherited by a tangent. It does not include other parent messages, later parent changes, siblings or transitive ancestors. History search and saved tool-result access remain within the active conversation.
 
 A freshly read original body must actually be visible before that reference joins the allowed finish citations. Search snippets, omitted bodies, a derived digest, an unread parent excerpt and the current request do not grant it. The app renders an Earlier message link to the original message's owning conversation, including for nested tangents. Business item version IDs retain their existing meaning and lineage rules. Conversation citations support what someone said, not current inventory, acceptance or permission.
 ## Bounded reasoning comparison
@@ -148,7 +156,9 @@ same model and workbook authority boundaries in either mode.
 Retain parsed reasoning in ephemeral assistant messages between tools within the same request. The exact pinned template places reasoning_content in its thinking block after the latest user query. Count it in preparation and rendered-token budgets. Do not save it in original messages, tool receipts, summaries, Sources or Records. New requests reconstruct evidence from durable history with no old private reasoning. Context maintenance may discard older reasoning while retaining the latest complete tool group, with the same measured budget and citation reset rules. This is model execution state, never authority or independently citeable evidence. Reasoning remains disabled in the non-thinking control and the preserved Slotstream backend; shared host validation applies to both adapters.
 
 ## Calculated answer provenance
-The host retains the inspected input version IDs used by balance and compare_rows. A final answer must cite all of them, including both opening stock and inventory effects. Reject an incomplete set with a bounded correction opportunity before recording success. Clear obligations when compaction invalidates the corresponding inspected calculations; retain the latest calculation inputs with its visible tool group. Do not add uninspected or historical IDs merely because a summary mentions them.
+The host retains the inspected input version IDs used by balance and compare_rows, including both opening stock and inventory effects. It attaches them from their receipts to any answer that reports work, so the model never retypes them and a list too long for an answer can still be carried. They render as one link, labeled "[N calculation inputs]" when there are several, and the finish payload records their count and receipt IDs as calculationInputs. A receipt with more than 32 inputs offers the model only the versions it names as citation choices. Unresolved, completed-action and preview answers and host-built outcomes state no calculation and carry none. Clear them when compaction invalidates the corresponding inspected calculations; retain the latest calculation inputs with its visible tool group. Do not add uninspected or historical IDs merely because a summary mentions them.
+
+The citation grammar names at most 256 choices. A table read past that drops its oldest rows from the choices, and they stay inspected. The answer links their table as "[Table, N rows read]" and the finish payload lists it in readTables.
 
 ## Answer grounding
 
@@ -189,7 +199,7 @@ When an evidence-based finish has no citations and the current run has no eligib
 This recovery step prevents repeated identical invalid finishes after reopening. It does not import citation eligibility from an earlier run, infer source facts from a digest, automatically accept a proposal or replay a completed mutation. Unknown/failed inspection results still need truthful handling. Existing format, final-validation and twelve-step limits remain; cancellation continues to release the run. Scope is ephemeral host execution state and appears in request metrics, never an instruction accepted from retrieved text. Exact prompt budgeting may conservatively count the full tool set before a narrower recovery response.
 
 ## Current-request numeric grounding
-For basis=current_request, each numeric value in the answer must occur in the current prompt or in a successfully completed, fully visible calculate call's inputs/result. Normalize ordinary decimal spelling without binary-float rounding; distinguish signs and skip numbered-list labels. Values mentioned only in a digest or older history do not qualify. Unsupported numbers receive bounded validation feedback; when there is no fresh evidence, require a read-only verification step before another finish.
+For basis=current_request, each numeric value in the answer must occur in the current prompt or in a successfully completed, fully visible calculate call's inputs/result. Normalize ordinary decimal spelling without binary-float rounding; distinguish signs and skip numbered-list labels. Read numbers as prose writes them: 1,234.56, 1.234,56, 12,5 and 1.234.567 all resolve, while a bare 1,234 stays thousands and a bare 1.234 a decimal because neither says which language it is in. A unit can follow directly, as in 144USD, and an ordinal suffix marks a position, not a quantity. A percentage in an answer must match a computed value or a rate stated in the prompt, its context or a read-only result, since a write only echoes the model's own words. Values mentioned only in a digest or older history do not qualify. Unsupported numbers receive bounded validation feedback; when there is no fresh evidence, require a read-only verification step before another finish.
 
 Spelled-out arithmetic remains possible: the model can use calculate to establish the operation and result. Retain its checked numbers only while the matching operation is visible; compaction clears omitted calculation evidence. This guard does not verify the meaning of prose, units, a calculation's relevance, or classification into other answer bases. It complements original citations and semantic evaluation rather than establishing general factual correctness.
 
@@ -248,7 +258,7 @@ Preserve every rejected finish candidate with its validation feedback and origin
 ## Typed calculation references
 A successful balance calculation returns typed evidence metadata: referenceType=item-version and the exact opening-basis/effect IDs in evidence.citations. These identify immutable workbook Source/Record versions, not conversation messages or count receipts. The host already admits those calculation inputs for citation after an untruncated successful result. Additional source content still requires read; history_read is only for conversation messages.
 
-A balance answer must cite every supporting calculation input. A missing-citation correction names the required IDs and their type and explains that history_read or count_records is not needed to cite the calculation. This clarifies the existing authority boundary; it does not admit fabricated IDs, count receipts as evidence, unread document claims or incomplete tool results. The model must still complete the normal validated finish path. No engine, sampling or caching change is involved.
+A balance answer carries every supporting calculation input through the host, as in Calculated answer provenance above, so history_read or count_records is never needed to cite the calculation. This clarifies the existing authority boundary; it does not admit fabricated IDs, count receipts as evidence, unread document claims or incomplete tool results. The model must still complete the normal validated finish path. No engine, sampling or caching change is involved.
 
 The motivating I1 case took twelve model steps and three rejected finishes on both frontends after an opening-source UUID was mistaken for a conversation-message ID. Functional regression must check the original balance, complete citations, unchanged business state, no repeat of that confusion, and actual native/reference completions. Latency observations from a small recovery probe do not qualify performance or universal reliability.
 
@@ -286,7 +296,8 @@ memorized command phrase. Expose separate start_thread, rename_current_thread, r
 review_thread_summary tools with action-specific arguments. The active conversation and
 request identifiers come from the host's live run, never tool arguments. Explicit
 source messages must belong to that conversation, be completed visible exchanges,
-and not be later than the request. Inherited parent excerpts and siblings do not
+and not be later than the request. A thread can also branch from a reply waiting on
+review; sharing a summary needs a completed assistant answer. Inherited parent excerpts and siblings do not
 become action targets. Clarify an ambiguous target rather than guessing another
 thread. Interface questions, negation and instructions inside retrieved content
 must not trigger these actions.
@@ -346,7 +357,7 @@ Interface guidance may finish directly with basis=general. A conceptual use of
 "difference" or "differences" is not a calculation claim. Do not force a dummy
 calculation or unrelated dataset lookup to explain a thread, a Source or a Record.
 The numeric-comparison backstop recognizes explicit numeric-difference statements
-alongside the existing cost/percentage expressions; it is a narrow language check,
+alongside the existing cost expressions; it is a narrow language check,
 not a semantic proof of all arithmetic or arbitrary prose. Existing citation,
 current-request numeric, calculation-input and percentage validation still applies.
 Keep financial-comparison refusal regressions while testing direct explanations.
@@ -831,7 +842,7 @@ tool/grammar claim. Add scoped role, retry, stale-target, injection and truthful
 completion cases as those tools are implemented, reusing unchanged engine evidence.
 
 ## Truthful artifact action outcomes
-Saved success/failure receipts determine artifact outcomes independently of a model finish label. General/unresolved/completed-action answers with tracked writes/navigation render host outcomes. Failed current-request answers do the same. Independently cited facts and successful checked current-request arithmetic remain validated, with explicit outcomes appended. Keep raw finish arguments and receipt history for inspection. A failed save cannot become a successful save by changing basis to general. A queued workflow receipt says no steps/proposals executed. Actual V3 authoring failed this invariant; the repair has scripted counterexamples and a final actual-model job in [[records/specs/manual-workflows]]. Host success establishes saved state, not semantic fidelity of generated behavior.
+Saved success/failure receipts determine artifact outcomes independently of a model finish label. Every failed write is tracked, and a later success with the same tool and target settles it. Every run ending keeps the other outcomes, including one that ends on a proposal, a prepared action, an automation, a workflow or a search gap. General/unresolved/completed-action answers with tracked writes/navigation render host outcomes. Failed current-request answers do the same. Independently cited facts and successful checked current-request arithmetic remain validated, with explicit outcomes appended. Keep raw finish arguments and receipt history for inspection. A failed save cannot become a successful save by changing basis to general. A queued workflow receipt says no steps/proposals executed. Actual V3 authoring failed this invariant; the repair has scripted counterexamples and a final actual-model job in [[records/specs/manual-workflows]]. Host success establishes saved state, not semantic fidelity of generated behavior.
 
 ## Workflow-owned prepared document evidence
 An interpretation item argument mapped directly from a completed extract step reads that step's exact immutable retained extraction input. It does not silently switch to a later current index. The same ready/untruncated limit, exact quote validation and meaning/scenario rules apply. Ready text does not prove complete facts, embedded-object coverage or OCR accuracy; native Activity shows retained-text coverage and an original-document link. Preparation itself uses the bounded bundled helper without a model. Core/actual packaged-model qualification and limits are in [[records/specs/manual-workflows]].

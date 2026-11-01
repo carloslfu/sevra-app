@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5zn6ks2pyv72pjs65f90rxj
 created: 2026-10-27T21:45:28.610289+00:00
-updated: 2026-10-29T02:49:33.074593+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: Adopted inline references, backlinks and bounded traversal with stable identities, versioned evidence and separate relationship claims.
 title: Inline references and relationships
 status: reviewed
@@ -277,19 +277,29 @@ fenced/indented/inline code, image labels, HTML blocks and inline code/pre/scrip
 style spans do not produce mentions. Labels retain their exact raw body scalars,
 including any Markdown formatting. UTF-8 parser columns map back to original
 Unicode scalars, including CRLF, emoji, combining marks and NUL. The original
-body is never normalized. Some upstream source locations are ambiguous when
-content directly follows a reference definition. Sevra publishes no edges for
-that parse and reports `partial`, with guidance to separate the content by a
-blank line. Missing locations and the 50,000-node traversal bound also fail
-closed. The AST itself is built for the bounded body before that traversal;
-this is not a measured whole-app memory guarantee or interruptible cmark call.
+body is never normalized. cmark numbers an inline on a paragraph's later line from
+the paragraph's first column, after dropping that line's indent and quote markers, so
+those columns are repaired against the raw line. A code span, tag, image or link must
+then find its own delimiters at the bytes it names. Some upstream source locations are
+ambiguous when content directly follows a reference definition. Sevra publishes no
+edges for that parse and reports `partial`, with guidance to separate the content by a
+blank line. Only a whole definition counts, so bracketed text before a colon is an
+ordinary paragraph. A location that stays wrong, as after a backslash break or an
+escaped table pipe, leaves that paragraph or table cell as plain text with `partial`
+coverage, and the rest of the body still reads. A missing location outside a paragraph,
+heading or cell and the 50,000-node traversal bound also fail closed, and so does
+nesting past 100 levels of quotes, lists or inline spans, measured before the parser
+runs because it recurses. The AST itself is built for the bounded body before that
+traversal; this is not a measured whole-app memory guarantee or interruptible cmark
+call.
 
 The existing 1,000,000-byte body, 128-occurrence and 1024-byte label/lookup bounds
 apply. Excess occurrences retain a partial bounded set. Malformed tokens remain
 plain text with partial coverage; oversized bodies report `unsupported`. Ordinary
 text saving still works. An eligible new or edited body publishes its parse,
 coverage, bindings and operation in the same transaction. Internal rows, request
-captures and annotation Sources are excluded from automatic body indexing.
+captures, annotation Sources and a document edit's submission Source are excluded from
+automatic body indexing, so autosaved edits cannot fill Mentioned in.
 Manual selections retain partial coverage. A completed empty parse is `ready`
 for supported item-body syntax, not proof that the whole document or workbook
 contains no other mentions.

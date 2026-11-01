@@ -2,7 +2,7 @@
 type: spec
 id: 01m63qzvdy3wsnm72v7xvtezs7
 created: 2026-10-29T11:51:10.526544+00:00
-updated: 2026-10-29T12:45:51.343103+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: 'Reviewed historical inventory adapter: exact committed cutoff and explicit effective time, retained basis and settled effects, bounded read-only reconciliation, no condition execution.'
 title: Inventory state at a retained business batch
 status: implemented
@@ -41,7 +41,7 @@ Require real workbook checks for past cutoffs after later corrections/withdrawal
 
 The read-only `Workbook.inventoryAtBusinessBatch(_:subject:effectiveThrough:cancellation:)` and `inventory-at-batch WORKBOOK BATCH_ID SUBJECT EFFECTIVE_THROUGH` now implement the bounded historical adapter. The exact retained batch determines committed knowledge; the mandatory explicit date determines effective eligibility. Later corrections, withdrawals or current heads cannot rewrite an earlier cutoff. Retained basis images survive later edits/removal. Missing/removed/not-yet-effective bases produce unknown with null quantity, never zero. Only the cutoff's settled accepted actual inventory effects contribute, strictly after the basis and through the date. A movement label, estimate, other scenario or unrelated subject cannot establish an effect. Exact event/batch/item/logical/occurrence IDs remain inspectable.
 
-Addition requires a no-error Decimal sum; precision loss refuses without a rounded balance. Reads share the cancellation-aware feed snapshot, short busy wait, three-second query and 8 MiB output budget. At most 10,000 contributing effects. Subject events lead fixed exact-item/item-indexed-effect joins; later settled detection uses the logical/version-position index across scopes. This is an establishment/reconciliation oracle, not an O(history) poll loop. Persistent incremental consumers remain required.
+Addition requires a no-error Decimal sum; precision loss refuses with `inventory_history_precision`, without a rounded balance. Reads share the cancellation-aware feed snapshot, short busy wait, three-second query and 8 MiB output budget. At most 10,000 contributing effects. Subject events lead fixed exact-item/item-indexed-effect joins; later settled detection uses the logical/version-position index across scopes. This is an establishment/reconciliation oracle, not an O(history) poll loop. Persistent incremental consumers remain required.
 
 Final V4 passes 11 focused groups, a real 10,000-effect success/10,001-effect explicit refusal, 14 nearby feed groups and 37 installed native CLI calls. The installed checks cover past cutoffs after later changes, explicit future dates/unknown basis, read-only history and inert reconstruction with identical inputs. Fresh native app/CLI build, installed resource reads with build-tree access denied, 10 missing-resource and altered-resource refusals, missing-model guidance/workbook preservation, ad-hoc signature and strict five-file Swift lint pass. The new ordinary groups, separate scale group and installed script join local/hosted checks. The prior 386-group full-core proof retains its original source scope under focused verification; no new full-suite or model/hardware/visible OS proof is claimed for this additive read adapter.
 

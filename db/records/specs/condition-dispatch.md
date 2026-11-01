@@ -2,14 +2,14 @@
 type: spec
 id: 01m648rwd9na7n0vz8pn1ae2pr
 created: 2026-10-29T16:44:27.945228+00:00
-updated: 2026-10-29T17:54:55.123473+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: '"Schema30 dispatch and conversational rule saving/native handoff have scoped proof. Text/voice Enable, model workflow/restart, dataset adapters and release remain open."'
 title: Atomic inventory-condition dispatch
 status: reviewed
 ---
 # Atomic inventory-condition dispatch
 
-This reviewed E4 contract now has scoped schema30 core, native-owner/editor and visible deterministic dispatch proof below. Conversational rule saving/native handoff now has scoped proof below. Text/voice Enable, real-model condition workflow journeys and broader release acceptance remain unfinished. It joins [[records/specs/inventory-condition-consumers]], [[records/specs/business-provenance]], [[records/specs/automation-causality]] and [[records/specs/native-automation-owner]]. Schema29 already qualifies exact input/cause identity and the trusted shared admission primitive. A test bridge through calendar bindings does not qualify actual condition execution. Keep the existing calendar behavior intact while adding a real, distinct condition path. Update canonical development schemas without legacy adapters.
+This reviewed E4 contract now has scoped schema30 core, native-owner/editor and visible deterministic dispatch proof below. The canonical schema is 31, which differs from 30 only in the business_inputs kinds. Conversational rule saving/native handoff now has scoped proof below. Text/voice Enable, real-model condition workflow journeys and broader release acceptance remain unfinished. It joins [[records/specs/inventory-condition-consumers]], [[records/specs/business-provenance]], [[records/specs/automation-causality]] and [[records/specs/native-automation-owner]]. Schema29 already qualifies exact input/cause identity and the trusted shared admission primitive. A test bridge through calendar bindings does not qualify actual condition execution. Keep the existing calendar behavior intact while adding a real, distinct condition path. Update canonical development schemas without legacy adapters.
 
 ## User meaning and scope
 

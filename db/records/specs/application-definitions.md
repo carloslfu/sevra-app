@@ -2,7 +2,7 @@
 type: spec
 id: 01m61v3tcay3v380asyfhvg260
 created: 2026-10-28T18:07:17.386524+00:00
-updated: 2026-10-29T08:44:37.996764+00:00
+updated: 2026-11-01T08:40:00.000000+00:00
 summary: Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
 title: Shared application definitions and actions
 status: reviewed
@@ -180,6 +180,8 @@ parameter/literal mappings with units. Only declared Decimal names and bounded
 built-in Formula operations are admitted. Resolve calls lazily, enforce depth 16
 and work 128, and revalidate changed live signatures at evaluation. Save rejects
 cycles across effective live/exact paths; a definition update cannot change kind.
+Save also refuses an expression past the 64 levels evaluation allows (`formula_limit`),
+because a long sum parses in a loop and could otherwise save and never run.
 Inputs distinguish omitted/null/defaults; defaults are literals with no ambient reads.
 Decimal strings, Boolean values, ISO dates, bounded choices and exact local item
 versions are strict types. Caller and callee units must match. Formula arithmetic
@@ -257,8 +259,11 @@ a distinct caller-supplied line identity, inventory subject and positive Decimal
 item count. This first primitive counts discrete items; it neither converts units
 nor claims physical-unit inventory support. A deterministic occurrence identity
 combines delivery and line identity. Same-occurrence duplicates use the existing
-movement guard. All lines create draft actual movements atomically, with separate
-review required before balances change. No partial delivery publication.
+movement guard, and a line whose earlier movements were all withdrawn is received
+again as a correction of that head. All lines create draft actual movements
+atomically, with separate review required before balances change. No partial delivery
+publication. Actual stock cannot rest on an estimate or another scenario, so evidence
+of that kind refuses with `interpretation_meaning`.
 
 Actions map typed parameters and literals, or qualified pure function results, to
 a registered primitive. Forms reference an action live or exact and retain an
@@ -317,16 +322,24 @@ bounded, and selected originals can be opened. Back/removing a view retains its
 window-owned draft session. Close/quit/open-workbook flushes pending inputs; failed
 saves retain the session and block dropping it. An open form keeps exact definitions;
 a changed live action/function needs explicit refresh, retaining prior inputs as an
-alternative. Submitted forms require explicit New entry before another submission.
+alternative, and a preview refused as stale offers that same choice. A failed submit
+drops its preview, so Preview runs again from the same inputs. Clearing an optional
+decimal or date saves null, and an optional item has a Clear control. Submitted forms
+require explicit New entry before another submission.
 
 Unsent state uses classified `meta` keys `form-draft:` via presentationMutation,
 not business evidence or a keystroke journal. It retains exact form/bindings, raw
 incomplete values, retry token, actual last receipt and up to eight alternatives.
-Concurrent windows refuse overwrites; Keep both retains both exact inputs. Recovery
+Concurrent windows refuse overwrites; Keep both retains both exact inputs on separate
+retry tokens, so `form-draft-save --keep-both` can return a new token on the side with
+no receipt. A draft whose token another draft spent takes a new one when opened. Recovery
 reconciles a committed invocation after a crash before its presentation confirmation,
 without resubmission. Limits: 64 KB current input, 1 MB checkpoint including alternatives,
-256 draft keys per workbook and 128 bound definitions. Current checkpoints copy
-separately during inert reconstruction and portable export. The original remains.
+256 draft keys per workbook and 128 bound definitions. A form nobody has edited saves no
+draft. At 256 keys a new draft takes the slot of a submitted or empty one with no
+alternatives, and `form_draft_limit` refuses only when every slot holds unsent inputs.
+Current checkpoints copy separately during inert reconstruction and portable export.
+The original remains.
 
 Evidence: [registered action and form receipt](../../../integration/evidence/2026-10-28-registered-actions-forms.json.gz), 31,349 bytes, SHA-256 dcb447bf7ee7e1127c4a31871f25f8fe76473e787bd82bc737e30e09155acb38. All 107 prior evidence files remain byte-identical. Broad scripts/check.sh passes with core217,
 extraction19, document27, voice15 and Splash30 groups plus the existing shared
@@ -605,7 +618,7 @@ Final packaged CLI, portable/inert reconstruction, full native Metal/resources/r
 Workflow discovery/save/form templates reuse the same catalog validation and exact-base writes. workflow_activity/read_workflow are bounded reads. start_workflow queues an exact saved workflow with explicit typed inputs, current AI request lineage and in-transaction authority revalidation. It never executes a step. A host-owned terminal receipt names saved status and native Activity; business acceptance remains separate. Read-only and unrelated task handoffs cannot queue runs. See [[records/specs/manual-workflows]] and the [scoped receipt](../../../integration/evidence/2026-10-28-agent-workflows.json.gz). Full workflow AI execution remains open.
 
 ## Explicit interpretation definitions, schema16
-A reusable interpretation declares bounded instruction text, required exact business item evidence parameters,1..32 typed output fields without defaults, meaning and scenario. Exact interpret workflow steps capture full bounded text/data or ready/untruncated extraction, actual model/schema/budget/read revision and exact quotations. Output is a separately reviewable draft Record. No tools, raw code, search or acceptance run inside interpretation. Typed named output mappings and transitive calculation lineage retain actual/estimate/scenario boundaries. See [[records/specs/manual-workflows]] for contracts and scoped core/native/actual-model qualification.
+A reusable interpretation declares bounded instruction text, required exact business item evidence parameters,1..32 typed output fields without defaults, meaning and scenario. Exact interpret workflow steps capture full bounded text/data or ready/untruncated extraction, actual model/schema/budget/read revision and exact quotations. An optional output returned as null states no value, so it needs no quotation. Output is a separately reviewable draft Record. No tools, raw code, search or acceptance run inside interpretation. Typed named output mappings and transitive calculation lineage retain actual/estimate/scenario boundaries. See [[records/specs/manual-workflows]] for contracts and scoped core/native/actual-model qualification.
 
 Core/CLI and conversation save_definition/find_definitions now author/discover interpretation with scoped grammar/model qualification in [[records/specs/manual-workflows]]. In-app creation omits expectedDefinitionID; editing supplies only its exact inspected base. The host derives identity. workflow_template copies exact validated behavior parameters/bindings for save_template without execution. Standalone evaluate_definition remains pure function/query evaluation. No implicit inference on discovery, opening, reconstruction or saved Home rendering.
 

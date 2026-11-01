@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-10-31T23:30:00+00:00
+updated: 2026-11-01T08:40:00+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -111,7 +111,9 @@ receipt retrieval in addition to the existing document/record search. The agent
 can recover details omitted by a summary using message IDs, ranges and evidence
 locators. Cite original versions for business claims, not the digest alone. Original
 conversation statements use a separate message:ID citation returned only after
-reading an eligible message. The current request and later messages cannot be
+reading an eligible message, which is a complete user or assistant message: a tool
+receipt holds what the model tried, refused answers included, and a stopped reply says
+only that it stopped. The current request and later messages cannot be
 presented as earlier evidence. In-app links open that original exchange; they do
 not make the message a business Record or grant permission. Track
 what evidence is present in the current working context; an ID remembered in a
@@ -230,10 +232,12 @@ current conversation-notes-v2 format keeps bounded typed notes; the host preserv
 previous user-backed fact/constraint/decision notes instead of letting routine
 progress displace them. Raw generated notes have at most six entries, 240 Unicode
 scalars each and one or two exact references. The merged saved digest remains at
-most 16 KiB. The host does not claim the initial model extraction is infallible:
-original messages remain retrievable, older unstructured checkpoints remain
-verbatim in a bounded legacyDigest field, contradictions stay visible, and unlimited
-note growth or semantic retirement is not solved by dropping old constraints.
+most 16 KiB and 128 message references. Protected notes keep their words while they
+fit. Past that the oldest shrink to the message IDs that hold them, and then the oldest
+pointers go, so a long conversation can always compact. The host does not claim the
+initial model extraction is infallible: original messages remain retrievable, older
+unstructured checkpoints remain verbatim in a bounded legacyDigest field,
+contradictions stay visible, and semantic retirement of notes remains unsolved.
 
 Backfill currently processes at most 128 original messages at a time, with whole
 entries and token-measured smaller batches. Its latency is foreground work. Native repeated-compaction, authority and recovery results are mixed: a later
@@ -441,6 +445,13 @@ with Start a thread and revisited by descriptive title. Back to conversation ret
 to main. Chapters remain optional message-boundary headings. Older tangent IDs,
 fixtures and API names remain compatible and retain their original scoped-context
 semantics; terminology alone does not widen access.
+
+A composer message is a command only in an explicit form. `thread: Title`,
+`tangent: Title` and Start a thread called Title open a thread, while Thread count
+for the Acme bolts? is an ordinary message. `chapter: Title` adds a chapter. `accept`
+and `undo` act only on one exact UUID. A message that is one URL and nothing else
+is captured as a source, so a link followed by prose stays a message. A thread title
+stays on one line and keeps its joiners, so emoji sequences and Persian words survive.
 
 Share summary with conversation preserves the exact source conversation/message
 link and user-selected text. The summary is a historical user contribution, not a
