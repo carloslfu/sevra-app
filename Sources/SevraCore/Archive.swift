@@ -68,7 +68,9 @@ extension Workbook {
         progress: zipProgress)
     }
     try cancellation.check()
+    try require(Self.flush(stagingArchive), "export", "Cannot persist the exported archive.")
     try fm.moveItem(at: stagingArchive, to: destination)
+    Self.flush(destination.deletingLastPathComponent())
   }
   public static func openArchive(
     _ archiveURL: URL, at destination: URL, maxBytes: UInt64 = 1_000_000_000_000,

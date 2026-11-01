@@ -99,7 +99,8 @@ extension Workbook {
     try require(
       copied == asset.bytes && hash == asset.hash, "changed_asset",
       "The original has changed. Capture it as a new source version.")
-    try output.synchronize()
+    try require(
+      Self.flush(output.fileDescriptor), "asset_flush", "Cannot persist the copied file.")
     try output.close()
     try cancellation.check()
     // Recheck aliases and refuse existing destinations again. RENAME_EXCL also
@@ -115,11 +116,7 @@ extension Workbook {
       }
       throw NSError(domain: NSPOSIXErrorDomain, code: Int(code))
     }
-    let folder = Darwin.open(parent.path, O_RDONLY)
-    if folder >= 0 {
-      _ = fsync(folder)
-      close(folder)
-    }
+    Self.flush(parent)
     // Publication is complete. A subsequent Stop must not remove the saved copy.
     return target
   }

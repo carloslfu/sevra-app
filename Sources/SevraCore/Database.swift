@@ -21,6 +21,8 @@ final class Database {
     sqlite3_busy_timeout(handle, 5000)
     try execute("PRAGMA foreign_keys=ON")
     try execute("PRAGMA trusted_schema=OFF")
+    // Plain fsync stops at the drive's cache, where a power cut can still lose a commit.
+    try execute("PRAGMA fullfsync=ON")
     // Decimal collation preserves ordering beyond binary floating-point precision.
     sqlite3_create_collation_v2(
       handle, "SEVRA_DECIMAL", SQLITE_UTF8, nil,

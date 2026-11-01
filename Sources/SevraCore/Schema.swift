@@ -3,11 +3,13 @@ import Foundation
 enum Schema {
   static let applicationID = 0x5356_5241
   static let version = 31
+  /// One transaction, so a crash leaves no partial schema and a new workbook costs one flush.
   static let sql = """
     PRAGMA application_id=1398166081;
     PRAGMA user_version=\(version);
     PRAGMA journal_mode=DELETE;
     PRAGMA synchronous=FULL;
+    BEGIN;
     CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
     INSERT INTO meta VALUES('revision','0');
     CREATE TABLE assets(id TEXT PRIMARY KEY,name TEXT NOT NULL,path TEXT NOT NULL,hash TEXT NOT NULL,bytes INTEGER NOT NULL,media_type TEXT NOT NULL,mode TEXT NOT NULL CHECK(mode IN ('included','linked')),origin TEXT,bookmark TEXT,created TEXT NOT NULL);
@@ -159,5 +161,6 @@ enum Schema {
     CREATE TABLE condition_observation_inputs(observation_id TEXT NOT NULL REFERENCES condition_observations(id),id TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(observation_id,id));
     CREATE INDEX condition_candidates_pending ON condition_candidates(consumer_id,state,id);
     CREATE TABLE committed_changes(id TEXT PRIMARY KEY,previous_id TEXT UNIQUE REFERENCES committed_changes(id),payload TEXT NOT NULL,hash TEXT NOT NULL,recorded TEXT NOT NULL,writer_id TEXT NOT NULL,actor TEXT NOT NULL,row_changes INTEGER NOT NULL CHECK(row_changes>0));
+    COMMIT;
     """
 }

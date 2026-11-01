@@ -62,7 +62,10 @@ extension Workbook {
       after.fileSize == info.fileSize
         && after.contentModificationDate == info.contentModificationDate, "changed_file",
       "The original changed during import. Please retry.")
-    try write?.synchronize()
+    if let write {
+      try require(
+        Self.flush(write.fileDescriptor), "asset_flush", "Cannot persist the included asset.")
+    }
     let hash = sha.finalize().map { String(format: "%02x", $0) }.joined()
     let assetID = identifier()
     let ext = source.pathExtension.lowercased().filter { $0.isLetter || $0.isNumber }.prefix(16)
@@ -95,12 +98,8 @@ extension Workbook {
         for directory in [
           dest.deletingLastPathComponent(), url.appendingPathComponent("assets"), url,
         ] {
-          let fd = Darwin.open(directory.path, O_RDONLY | O_DIRECTORY | O_CLOEXEC)
-          try require(fd >= 0, "asset_flush", "Cannot flush the included asset directory.")
-          let result = fsync(fd)
-          close(fd)
           try require(
-            result == 0, "asset_flush",
+            Self.flush(directory), "asset_flush",
             "Cannot persist the included asset directory before publishing its reference.")
         }
       }
@@ -128,6 +127,17 @@ extension Workbook {
       return .string(id)
     }
     return try item(result.text)
+  }
+  /// fsync stops at the drive's cache. A volume that refuses the full flush offers no more
+  /// than fsync.
+  static func flush(_ descriptor: Int32) -> Bool {
+    fcntl(descriptor, F_FULLFSYNC) == 0 || fsync(descriptor) == 0
+  }
+  @discardableResult static func flush(_ file: URL) -> Bool {
+    let descriptor = Darwin.open(file.path, O_RDONLY | O_CLOEXEC)
+    guard descriptor >= 0 else { return false }
+    defer { close(descriptor) }
+    return flush(descriptor)
   }
   /// Everything left unlocked in staging belongs to an import that ended without cleaning up.
   func removeAbandonedStaging() {
