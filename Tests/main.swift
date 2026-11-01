@@ -800,6 +800,51 @@ check("XLSX shared strings, inline text, sparse cells, dates and cached formulas
   try expect(tables.count == 1 && tables[0].rowCount == 2)
   try expect(try book.search("cafe").hits.contains { $0.itemID == item.id })
 }
+check("XLSX cells read as Excel shows them, and formatting past the columns refuses nothing") {
+  let path = temp.appendingPathComponent("shown.xlsx")
+  let archive = try Archive(url: path, accessMode: .create)
+  // Styles 1 to 10, then one number per style, each in its own row.
+  let formats = [
+    #"<xf numFmtId="20"/>"#, #"<xf numFmtId="46"/>"#, #"<xf numFmtId="14"/>"#,
+    #"<xf numFmtId="31"/>"#, #"<xf numFmtId="33"/>"#, #"<xf numFmtId="170"/>"#,
+    #"<xf numFmtId="171"/>"#, #"<xf numFmtId="172"/>"#, #"<xf numFmtId="173"/>"#,
+    #"<xf numFmtId="174"/>"#,
+  ].joined()
+  let numbers = [
+    "0.3541666666666667", "1.5", "46024", "46024", "0.5", "46024", "46024", "46024", "0.5", "2.25",
+  ]
+  let rows = numbers.enumerated().map { index, number in
+    #"<row r="\#(index + 3)"><c r="A\#(index + 3)" s="\#(index + 1)"><v>\#(number)</v></c></row>"#
+  }.joined()
+  let parts = [
+    "xl/workbook.xml":
+      #"<workbook xmlns:r="r"><sheets><sheet name="S" r:id="r1"/></sheets></workbook>"#,
+    "xl/_rels/workbook.xml.rels":
+      #"<Relationships><Relationship Id="r1" Type="x/worksheet" Target="worksheets/sheet1.xml"/></Relationships>"#,
+    "xl/sharedStrings.xml":
+      #"<sst><si><t>東京</t><rPh sb="0" eb="2"><t>トウキョウ</t></rPh><phoneticPr fontId="1"/></si><si><t>one_x000D_ two_x0009_</t></si><si><t>_x005F_x000D_ _xZZZZ_</t></si></sst>"#,
+    "xl/styles.xml":
+      #"<styleSheet><numFmts><numFmt numFmtId="170" formatCode="d-mmm"/><numFmt numFmtId="171" formatCode="0.00 &quot;dd&quot;"/><numFmt numFmtId="172" formatCode="[Red]0.00"/><numFmt numFmtId="173" formatCode="h:mm"/><numFmt numFmtId="174" formatCode="[h]:mm"/></numFmts><cellXfs><xf numFmtId="0"/>"#
+      + formats + "</cellXfs></styleSheet>",
+    "xl/worksheets/sheet1.xml":
+      #"<worksheet><sheetData><row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="s"><v>1</v></c><c r="C1" t="s"><v>2</v></c><c r="ZZ1" s="1"/></row><row r="2"><c r="A2" t="inlineStr"><is><t>Text</t><rPh sb="0" eb="1"><t>guide</t></rPh></is></c><c r="B2" t="str" s="3"><f>A9</f><v>2024</v></c><c r="C2" t="inlineStr" s="3"><is><t>12345</t></is></c></row>"#
+      + rows + "</sheetData></worksheet>",
+  ]
+  for (name, text) in parts {
+    let bytes = Data(text.utf8)
+    try archive.addEntry(
+      with: name, type: .file, uncompressedSize: Int64(bytes.count),
+      provider: { position, count in bytes.subdata(in: Int(position)..<Int(position) + count) })
+  }
+  let sheet = try XLSX.read(path)[0]
+  try expect(sheet.rows[0] == ["東京", "one\r two\t", "_x000D_ _xZZZZ_"])
+  try expect(sheet.rows[1] == ["Text", "2024", "12345"])
+  try expect(
+    sheet.rows.dropFirst(2).map(\.[0]) == [
+      "08:30:00", "36:00:00", "2026-01-02T00:00:00Z", "2026-01-02T00:00:00Z", "12:00:00",
+      "2026-01-02T00:00:00Z", "46024", "46024", "12:00:00", "54:00:00",
+    ])
+}
 check("XLSX refuses overflowing coordinates and expanded shared-string output") {
   func fixture(_ name: String, rows: String, shared: String = "") throws -> URL {
     let path = temp.appendingPathComponent(name + ".xlsx")

@@ -353,7 +353,7 @@ extension Workbook {
     where !SheetFormula.same(value, as: saved(key)) {
       mismatched[key] = "Sevra's result differs from the value Excel saved."
     }
-    // A saved date reads as text here and as a number in Excel, so a formula can match by accident.
+    // A saved date or time reads as text here and as a number in Excel, so a formula can match by accident.
     for key in engine.order where mismatched[key] == nil {
       if let date = engine.reads(key).first(where: { isSheetDate(saved($0)) }) {
         mismatched[key] = "Reads the date in \(engine.name(date)), which Sevra does not calculate."
@@ -367,7 +367,8 @@ extension Workbook {
 
   private func isSheetDate(_ text: String) -> Bool {
     text.range(
-      of: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\\z|Excel-only date", options: .regularExpression
+      of: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\\z|^-?[0-9]{2,}:[0-9]{2}:[0-9]{2}\\z|Excel-only date",
+      options: .regularExpression
     ) != nil
   }
 

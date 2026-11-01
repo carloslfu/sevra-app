@@ -39,6 +39,26 @@ public enum XLSX {
     }
     return name + String(row)
   }
+  /// Excel writes characters XML cannot hold as _xHHHH_, and a literal _x000D_ as _x005F_x000D_.
+  static func unescaped(_ text: String) -> String {
+    guard text.contains("_x") else { return text }
+    let input = Array(text.utf16)
+    var output: [UInt16] = []
+    var i = 0
+    while i < input.count {
+      if input[i] == 95, i + 6 < input.count, input[i + 1] == 120, input[i + 6] == 95 {
+        let digits = String(decoding: input[(i + 2)...(i + 5)], as: UTF16.self)
+        if digits.allSatisfy(\.isHexDigit), let unit = UInt16(digits, radix: 16) {
+          output.append(unit)
+          i += 7
+          continue
+        }
+      }
+      output.append(input[i])
+      i += 1
+    }
+    return String(decoding: output, as: UTF16.self)
+  }
   public static func read(_ url: URL, cancellation: Cancellation = .init()) throws
     -> [ImportedSheet]
   {
@@ -166,22 +186,27 @@ private final class RelationshipsXML: NSObject, XMLParserDelegate {
   }
 }
 private final class SharedStringsXML: NSObject, XMLParserDelegate {
-  var values: [String] = [], value = "", inText = false
+  var values: [String] = [], value = "", inText = false, inPhonetic = false
   func parser(
     _ parser: XMLParser, didStartElement name: String, namespaceURI: String?,
     qualifiedName: String?, attributes: [String: String]
   ) {
     if name == "si" { value = "" }
-    if name == "t" { inText = true }
+    // A reading guide above Japanese text, which Excel does not count as the cell's value.
+    if name == "rPh" { inPhonetic = true }
+    if name == "t", !inPhonetic { inText = true }
   }
   func parser(_ parser: XMLParser, foundCharacters text: String) { if inText { value += text } }
   func parser(
     _ parser: XMLParser, didEndElement name: String, namespaceURI: String?, qualifiedName: String?
   ) {
     if name == "t" { inText = false }
-    if name == "si" { values.append(value) }
+    if name == "rPh" { inPhonetic = false }
+    if name == "si" { values.append(XLSX.unescaped(value)) }
   }
 }
+/// A worksheet saves dates and times as numbers. Its cell format says which one a number is.
+enum SavedNumber { case number, date, timeOfDay, duration }
 private final class StylesXML: NSObject, XMLParserDelegate {
   var formats: [Int: String] = [:], styleIDs: [Int] = [], inCell = false
   func parser(
@@ -197,13 +222,39 @@ private final class StylesXML: NSObject, XMLParserDelegate {
   func parser(
     _ parser: XMLParser, didEndElement name: String, namespaceURI: String?, qualifiedName: String?
   ) { if name == "cellXfs" { inCell = false } }
-  func isDate(_ style: Int) -> Bool {
-    guard styleIDs.indices.contains(style) else { return false }
+  /// What a saved number means under a style. Ids 32-35 and 52-56 are times in some Chinese and
+  /// Japanese workbooks and dates in others, and a time of day has no whole days.
+  func reading(_ style: Int, serial: Double) -> SavedNumber {
+    guard styleIDs.indices.contains(style) else { return .number }
     let id = styleIDs[style]
-    if (14...22).contains(id) || (45...47).contains(id) { return true }
-    let format = (formats[id] ?? "").lowercased().replacingOccurrences(
-      of: "\"[^\"]*\"|\\\\.", with: "", options: .regularExpression)
-    return format.contains("yy") || format.contains("dd") || format.contains("hh")
+    if let format = formats[id] { return Self.reading(format: format) }
+    switch id {
+    case 14...17, 22, 27...31, 36, 50, 51, 57, 58: return .date
+    case 18...21, 45, 47: return .timeOfDay
+    case 46: return .duration
+    case 32...35, 52...56: return serial < 1 ? .timeOfDay : .date
+    default: return .number
+    }
+  }
+  /// Labels, escapes and [bracketed] colors or locales say nothing about the value. Only the
+  /// first section counts, since it is the one a positive value uses.
+  static func reading(format: String) -> SavedNumber {
+    func removing(_ pattern: String, from text: String) -> String {
+      text.replacingOccurrences(of: pattern, with: "", options: .regularExpression)
+    }
+    let plain = removing("\"[^\"]*\"|\\\\.|_.|\\*.", from: format.lowercased())
+    let section = String(plain.split(separator: ";", omittingEmptySubsequences: false)[0])
+    if section.range(of: "\\[(h+|m+|s+)\\]", options: .regularExpression) != nil { return .duration }
+    let tokens = removing(
+      "\\[[^\\]]*\\]|am/pm|a/p|general",
+      from: section.replacingOccurrences(
+        of: "s\\.0+", with: "s", options: .regularExpression))
+    if tokens.contains(where: { "0#?@".contains($0) }) { return .number }
+    let clock = tokens.contains("h") || tokens.contains("s")
+    if tokens.contains(where: { "ydeg".contains($0) }) || (tokens.contains("m") && !clock) {
+      return .date
+    }
+    return clock ? .timeOfDay : .number
   }
   /// A format such as 0000 shows 14 as 0014, but only 14 is saved.
   func padsZeros(_ style: Int, _ saved: String) -> Bool {
@@ -224,7 +275,7 @@ private final class SheetXML: NSObject, XMLParserDelegate {
     formulaKinds: [String: String] = [:], failure: Error?
   var current: [Int: String] = [:], number = 0, column = 0, reference = "", type = "", style = 0,
     value = "", formula = "", reading = "", count = 0, savedResult = false
-  var formulaType = "", formulaGroup = "", formulaRange = ""
+  var formulaType = "", formulaGroup = "", formulaRange = "", inPhonetic = false
   var sharedFormulas: [String: (text: String, column: Int, row: Int)] = [:]
   var fillBudget: Int, filledCells = 0
   init(
@@ -263,13 +314,8 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       let following = column + 1
       column = 0
       for char in reference.uppercased().unicodeScalars where (65...90).contains(Int(char.value)) {
-        // Check while parsing, before an adversarial reference can overflow Int.
-        column = column * 26 + Int(char.value) - 64
-        if column > 500 {
-          failure = SevraError("xlsx_limit", "Worksheet exceeds 500 columns.")
-          parser.abortParsing()
-          return
-        }
+        // Stop growing past the limit, before an adversarial reference can overflow Int.
+        column = min(column * 26 + Int(char.value) - 64, 1_000_000)
       }
       column = column > 0 ? column : following
       if reference.isEmpty, column <= 500 {
@@ -283,14 +329,15 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       formulaType = ""
       formulaGroup = ""
       formulaRange = ""
-      count += 1
-      if column > 500 || rows.count >= 100_000 || count > 1_000_000 {
-        failure = SevraError(
-          "xlsx_limit", "Worksheet exceeds 500 columns, 100,000 rows or one million cells.")
+      count += column <= 500 ? 1 : 0
+      if rows.count >= 100_000 || count > 1_000_000 {
+        failure = SevraError("xlsx_limit", "Worksheet exceeds 100,000 rows or one million cells.")
         parser.abortParsing()
       }
     }
-    if ["v", "t", "f"].contains(name) { reading = name }
+    // A reading guide above Japanese text, which Excel does not count as the cell's value.
+    if name == "rPh" { inPhonetic = true }
+    if ["v", "t", "f"].contains(name), !inPhonetic { reading = name }
     if name == "v" { savedResult = true }
     if name == "f" {
       formulaType = a["t"] ?? ""
@@ -305,9 +352,10 @@ private final class SheetXML: NSObject, XMLParserDelegate {
     _ parser: XMLParser, didEndElement name: String, namespaceURI: String?, qualifiedName: String?
   ) {
     if ["v", "t", "f"].contains(name) { reading = "" }
+    if name == "rPh" { inPhonetic = false }
     if name == "c" {
       var text = value
-      if type == "s" {
+      if type == "s", !value.isEmpty {
         if let index = Int(value), shared.indices.contains(index) {
           text = shared[index]
         } else {
@@ -320,30 +368,21 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       } else if type == "e" {
         notes.insert("Error cells remain explicit error strings.")
         unsettled[reference] = "error"
-      } else if styles.isDate(style), let serial = Double(value), serial.isFinite,
-        abs(serial) < 3_000_000
-      {
-        if !epoch1904 && serial >= 60 && serial < 61 {
-          text = "1900-02-29 (Excel-only date)"
-          notes.insert("Excel's nonexistent February 29, 1900 was preserved as text.")
-        } else {
-          let formatter = ISO8601DateFormatter()
-          formatter.formatOptions = [.withInternetDateTime]
-          formatter.timeZone = TimeZone(secondsFromGMT: 0)
-          let base = formatter.date(
-            from: epoch1904 ? "1904-01-01T00:00:00Z" : "1899-12-31T00:00:00Z")!
-          text = formatter.string(
-            from: base.addingTimeInterval((serial - (!epoch1904 && serial >= 61 ? 1 : 0)) * 86400))
-        }
       } else if type.isEmpty || type == "n" {
-        let settled = Self.settled(value)
-        if styles.padsZeros(style, settled) || settled.lowercased().contains("e") {
-          unsettled[reference] = "format"
+        if let shown = temporalText() {
+          text = shown
+        } else {
+          let settled = Self.settled(value)
+          if styles.padsZeros(style, settled) || settled.lowercased().contains("e") {
+            unsettled[reference] = "format"
+          }
+          if settled != value {
+            text = settled
+            notes.insert("Numbers use the 15 significant digits Excel shows.")
+          }
         }
-        if settled != value {
-          text = settled
-          notes.insert("Numbers use the 15 significant digits Excel shows.")
-        }
+      } else {
+        text = XLSX.unescaped(value)
       }
       if formulaType == "shared" {
         // Excel writes a filled formula once, on its first cell.
@@ -372,11 +411,45 @@ private final class SheetXML: NSObject, XMLParserDelegate {
           unsettled[reference] = "uncached"
         }
       }
-      current[column - 1] = text
+      // Formatting can run past the used columns. Only a value there exceeds the limit.
+      if column <= 500 {
+        current[column - 1] = text
+      } else if !text.isEmpty || !formula.isEmpty {
+        failure = SevraError("xlsx_limit", "Worksheet exceeds 500 columns.")
+        parser.abortParsing()
+        return
+      }
     }
     if name == "row", let last = current.keys.max() {
       rows.append((0...last).map { current[$0] ?? "" })
       rowNumbers.append(number)
+    }
+  }
+  /// A number whose format shows a date or time, as text. A date keeps its full timestamp. A
+  /// time of day or duration has no date to show, and a time beside whole days stays a number.
+  private func temporalText() -> String? {
+    guard let serial = Double(value), serial.isFinite, abs(serial) < 3_000_000 else { return nil }
+    func clock(_ seconds: Int) -> String {
+      String(format: "%02d:%02d:%02d", seconds / 3600, seconds / 60 % 60, seconds % 60)
+    }
+    switch styles.reading(style, serial: serial) {
+    case .number: return nil
+    case .timeOfDay:
+      guard (0..<1).contains(serial) else { return nil }
+      return clock(Int((serial * 86400).rounded()) % 86400)
+    case .duration:
+      return (serial < 0 ? "-" : "") + clock(Int((abs(serial) * 86400).rounded()))
+    case .date:
+      if !epoch1904 && serial >= 60 && serial < 61 {
+        notes.insert("Excel's nonexistent February 29, 1900 was preserved as text.")
+        return "1900-02-29 (Excel-only date)"
+      }
+      let formatter = ISO8601DateFormatter()
+      formatter.formatOptions = [.withInternetDateTime]
+      formatter.timeZone = TimeZone(secondsFromGMT: 0)
+      let base = formatter.date(from: epoch1904 ? "1904-01-01T00:00:00Z" : "1899-12-31T00:00:00Z")!
+      return formatter.string(
+        from: base.addingTimeInterval((serial - (!epoch1904 && serial >= 61 ? 1 : 0)) * 86400))
     }
   }
   private func recordFilledCells() {
