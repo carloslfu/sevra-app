@@ -178,11 +178,15 @@ extension Workbook {
     let query = components?.percentEncodedQueryItems
     components?.percentEncodedQueryItems = query?.map { item in
       let name = (item.name.removingPercentEncoding ?? item.name).lowercased()
+      // Short names count only as whole words, so keyword, design and author stay readable.
+      let words = name.split { !$0.isLetter && !$0.isNumber }.map(String.init)
       let sensitive =
         [
-          "token", "sig", "key", "authorization", "password", "passwd", "pwd", "secret",
-          "credential", "session",
-        ].contains(where: name.contains) || name.hasPrefix("x-amz-") || name.hasPrefix("x-goog-")
+          "token", "signature", "apikey", "accesskey", "secret", "authorization", "password",
+          "passwd", "credential", "session",
+        ].contains(where: name.contains)
+        || words.contains { ["key", "sig", "auth", "pwd"].contains($0) }
+        || name.hasPrefix("x-amz-") || name.hasPrefix("x-goog-")
       return sensitive ? URLQueryItem(name: item.name, value: "REDACTED") : item
     }
     components?.fragment = nil

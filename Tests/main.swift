@@ -1178,6 +1178,11 @@ check("saved URLs hide secrets by name and keep every other parameter's exact by
   try expect(
     saved == "https://a.example/x?APIKey=REDACTED&client_secret=REDACTED&Refresh_Token=REDACTED"
       + "&q=a%2Bb&r=c+d")
+  let words = Workbook.safeOrigin(
+    URL(string: "https://a.example/x?auth=1&api-key=2&sig=3&keyword=shoes&design=a&author=b")!)
+  try expect(
+    words == "https://a.example/x?auth=REDACTED&api-key=REDACTED&sig=REDACTED"
+      + "&keyword=shoes&design=a&author=b")
 }
 check("an archive cannot choose an outside file for this Mac to read") {
   let folder = temp.appendingPathComponent("LinkedArchive")
