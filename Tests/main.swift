@@ -869,17 +869,25 @@ check("archive expansion budget") {
       maxBytes: 10)
   }
 }
-check("reject unexpected schema before writes") {
-  let bad = temp.appendingPathComponent("bad.sevra")
-  try FileManager.default.copyItem(at: book.url, to: bad)
+func runSQLite(_ database: URL, _ sql: String) throws {
   let process = Process()
   process.executableURL = URL(fileURLWithPath: "/usr/bin/sqlite3")
-  process.arguments = [
-    bad.appendingPathComponent("workbook.sqlite").path, "CREATE TABLE unexpected(secret TEXT);",
-  ]
+  process.arguments = [database.path, sql]
   try process.run()
   process.waitUntilExit()
-  try refuses("schema") { _ = try Workbook(bad) }
+  try expect(process.terminationStatus == 0)
+}
+check("reject unexpected schema before writes") {
+  for (name, sql) in [
+    ("bad", "CREATE TABLE unexpected(secret TEXT);"),
+    // "_" in a LIKE test would exempt a planted trigger that only looks internal.
+    ("planted", "CREATE TRIGGER sqlite3evil AFTER INSERT ON items BEGIN DELETE FROM items; END;"),
+  ] {
+    let bad = temp.appendingPathComponent(name + ".sevra")
+    try FileManager.default.copyItem(at: book.url, to: bad)
+    try runSQLite(bad.appendingPathComponent("workbook.sqlite"), sql)
+    try refuses("schema") { _ = try Workbook(bad) }
+  }
 }
 
 check("conditional formulas are lazy, ranges resolve and rounding is explicit") {
@@ -1162,6 +1170,56 @@ check("archive traversal entries cannot escape their destination") {
   }
   try expect(
     !FileManager.default.fileExists(atPath: temp.appendingPathComponent("escaped.txt").path))
+}
+
+check("an archive cannot choose an outside file for this Mac to read") {
+  let folder = temp.appendingPathComponent("LinkedArchive")
+  try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+  let outside = folder.appendingPathComponent("outside.txt")
+  try Data("Outside the workbook".utf8).write(to: outside)
+  let source = try Workbook.create(
+    at: folder.appendingPathComponent("Source.sevra"), title: "Source")
+  _ = try source.importFile(outside, linked: true)
+  let clean = folder.appendingPathComponent("clean.sevraz")
+  try source.export(to: clean)
+  // A cleared link is portable: it stays visible as a file to reconnect.
+  let opened = try Workbook.openArchive(clean, at: folder.appendingPathComponent("Clean.sevra"))
+  try expect(try opened.verify()["database"] == .string("ok"))
+  for (name, field, value) in [("path", "path", outside.path), ("bookmark", "bookmark", "AAAA")] {
+    let unpacked = folder.appendingPathComponent(name)
+    let hostile = folder.appendingPathComponent(name + ".sevraz")
+    let written = try Archive(url: hostile, accessMode: .create)
+    for entry in try Archive(url: clean, accessMode: .read) {
+      _ = try Archive(url: clean, accessMode: .read).extract(
+        entry, to: unpacked.appendingPathComponent(entry.path))
+    }
+    try runSQLite(
+      unpacked.appendingPathComponent("workbook.sqlite"),
+      "UPDATE assets SET \(field)='\(value)' WHERE mode='linked';")
+    for name in ["manifest.json", "workbook.sqlite"] {
+      try written.addEntry(with: name, relativeTo: unpacked)
+    }
+    try refuses("archive_linked") {
+      _ = try Workbook.openArchive(hostile, at: folder.appendingPathComponent("Open-" + name))
+    }
+  }
+}
+check("a file rewritten in place during import is refused, not stored torn") {
+  let file = temp.appendingPathComponent("rewritten.bin")
+  try Data(repeating: 65, count: 3 * 1024 * 1024).write(to: file)
+  var rewritten = false
+  try refuses("changed_file") {
+    _ = try book.importFile(file) { _, _ in
+      guard !rewritten else { return }
+      rewritten = true
+      let handle = try! FileHandle(forWritingTo: file)
+      try! handle.seek(toOffset: 2 * 1024 * 1024)
+      try! handle.write(contentsOf: Data("Newer".utf8))
+      try! handle.close()
+    }
+  }
+  try expect(rewritten)
+  _ = try book.importFile(file)
 }
 
 check("search cancellation and deadline preserve the next query") {

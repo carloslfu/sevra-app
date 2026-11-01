@@ -133,8 +133,9 @@ extension Database {
   func validateCanonicalSchema() throws {
     let reference = try Database(URL(fileURLWithPath: "/:memory:"), create: true)
     try reference.script(Schema.sql)
-    let query =
-      "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY name"
+    // Only SQLite's automatic indexes have no SQL. A name test would also exempt
+    // a planted object, because "_" in LIKE matches any character.
+    let query = "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE sql IS NOT NULL ORDER BY name"
     let core = try reference.execute(query)
     let actual = try execute(query)
     let names = Set(core.compactMap { $0["name"]?.string })

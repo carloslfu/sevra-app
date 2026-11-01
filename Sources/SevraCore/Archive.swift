@@ -143,6 +143,12 @@ extension Workbook {
     try fm.createDirectory(
       at: staging.appendingPathComponent("staging"), withIntermediateDirectories: true)
     let workbook = try Workbook(staging)
+    // Export clears external locations, so one here is the archive choosing what
+    // this Mac reads or mounts during verification and later use.
+    try require(
+      try workbook.db.scalar(
+        "SELECT count(*) FROM assets WHERE mode='linked' AND (path!='' OR bookmark IS NOT NULL)"
+      ).int == 0, "archive_linked", "This archive names files outside itself and was not opened.")
     let integrity = try workbook.verify()
     // Missing explicit external dependencies are portable and remain visible.
     let includedIDs = try workbook.db.execute("SELECT id FROM assets WHERE mode='included'")

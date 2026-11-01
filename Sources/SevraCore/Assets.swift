@@ -50,7 +50,10 @@ extension Workbook {
     }
     try require(
       copied == count, "changed_file", "The file changed during import. Please try again.")
-    let after = try source.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
+    // URL caches resource values, so the first answer would only repeat itself.
+    var current = source
+    current.removeAllCachedResourceValues()
+    let after = try current.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
     try require(
       after.fileSize == info.fileSize
         && after.contentModificationDate == info.contentModificationDate, "changed_file",
@@ -168,7 +171,7 @@ extension Workbook {
       var stale = false
       if let data = Data(base64Encoded: bookmark),
         let resolved = try? URL(
-          resolvingBookmarkData: data, options: [.withoutUI], relativeTo: nil,
+          resolvingBookmarkData: data, options: [.withoutUI, .withoutMounting], relativeTo: nil,
           bookmarkDataIsStale: &stale)
       {
         file = resolved
