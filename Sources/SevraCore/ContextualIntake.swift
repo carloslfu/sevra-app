@@ -139,8 +139,9 @@ extension Workbook {
       request: .object(["id": .string(id), "role": .string(role.rawValue)])
     ) {
       let job = try intakeJob(id)
+      // A worker still reading is fenced out below, and one that was killed never reports back.
       try require(
-        job.role == nil && job.state != "running", "intake_role",
+        job.role == nil, "intake_role",
         "This intake already has a use. Start another use from the saved original.")
       try db.execute(
         "UPDATE intake_jobs SET role=?,state='captured',attempt=NULL,detail=?,updated=? WHERE id=?",
@@ -217,10 +218,21 @@ extension Workbook {
       }
     }
     do {
-      try extract(initial.sourceID, cancellation: cancellation)
+      // Reindexing counts the old text and the new against the saved-change limit, so a file
+      // that was accepted once could stop every later use and Continue. Each use reuses its index.
+      let reused = ["ready", "partial"].contains(try extractionStatus(initial.sourceID)["state"].text)
+      if !reused {
+        do { try extract(initial.sourceID, cancellation: cancellation) } catch {
+          // A table is read from the original, so a file too large to index still converts.
+          // The failed index stays on the source and in this report.
+          try cancellation.check()
+          guard active.role == .values || active.role == .update else { throw error }
+        }
+      }
       report = .object([
         "version": .number(1), "sourceID": .string(initial.sourceID),
-        "index": try extractionStatus(initial.sourceID), "conversion": .string("none"),
+        "index": try extractionStatus(initial.sourceID), "indexReused": .bool(reused),
+        "conversion": .string("none"),
       ])
       guard let role = active.role else {
         try publish("awaiting_role", "Original saved. How would you like to use it?")

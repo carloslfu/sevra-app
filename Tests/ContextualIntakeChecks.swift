@@ -122,6 +122,56 @@ func checkContextualIntake(at root: URL) {
     try expect(try book.runIntake(reference.id).state == "ready")
     try expect(try book.datasets().isEmpty)
   }
+  check("a use reuses an accepted index and an index failure leaves an explicit table role going") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("IndexReuse.sevra"), title: "Reuse")
+    let file = root.appendingPathComponent("index-reuse.csv")
+    try Data("sku,quantity\n0012,4\n".utf8).write(to: file)
+    let source = try book.importFile(file)
+    let first = try book.beginIntake(sourceID: source.id, role: .reference, token: "first-use")
+    try expect(try book.runIntake(first.id).report["indexReused"] == .bool(false))
+    // The next use runs with reindexing made to fail, as it does past the saved-change limit.
+    _ = try faultSQL(
+      book,
+      "CREATE TRIGGER index_fault BEFORE DELETE ON chunks BEGIN SELECT RAISE(ABORT,'index fault'); END;"
+    )
+    let second = try book.beginIntake(sourceID: source.id, role: .values, token: "second-use")
+    let converted = try book.runIntake(second.id)
+    try expect(converted.state == "ready" && converted.report["indexReused"] == .bool(true))
+    try expect(try book.rows(converted.datasetIDs[0]).count == 1)
+    try refuses("database") { try book.extract(source.id) }
+    _ = try faultSQL(book, "DROP TRIGGER index_fault;")
+    // A table import gets past a file it cannot index. A plain reference has only its index.
+    let other = root.appendingPathComponent("index-failure.csv")
+    try Data("sku,quantity\n0013,5\n".utf8).write(to: other)
+    let failing = try book.importFile(other)
+    _ = try faultSQL(
+      book,
+      "CREATE TRIGGER index_fault BEFORE INSERT ON chunks WHEN NEW.item_id='\(failing.id)' BEGIN SELECT RAISE(ABORT,'index fault'); END;"
+    )
+    let reference = try book.beginIntake(sourceID: failing.id, role: .reference)
+    try refuses("database") { _ = try book.runIntake(reference.id) }
+    try expect(try book.intakeJob(reference.id).state == "failed")
+    let values = try book.beginIntake(sourceID: failing.id, role: .values)
+    let table = try book.runIntake(values.id)
+    try expect(table.state == "ready" && table.report["index"]["state"].text == "failed")
+    _ = try faultSQL(book, "DROP TRIGGER index_fault;")
+    try expect(try book.rows(table.datasetIDs[0])[0].data["sku"].text == "0013")
+  }
+  check("a role-less intake killed while running still takes a use, and a late worker is fenced") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("RunningRole.sevra"), title: "Running")
+    let file = root.appendingPathComponent("running-role.txt")
+    try Data("Atlas note".utf8).write(to: file)
+    let source = try book.importFile(file)
+    let job = try book.beginIntake(sourceID: source.id, token: "killed-use")
+    _ = try referenceSQL(
+      book, "UPDATE intake_jobs SET state='running',attempt='gone' WHERE id='killed-use';")
+    let chosen = try book.chooseIntakeRole(job.id, role: .reference)
+    try expect(chosen.role == .reference && chosen.state == "captured")
+    try expect(try book.runIntake(job.id).state == "ready")
+    try refuses("intake_role") { _ = try book.chooseIntakeRole(job.id, role: .values) }
+  }
   check("previous development format is refused without erasing its contents") {
     let book = try Workbook.create(
       at: root.appendingPathComponent("UnsupportedRoleV7.sevra"), title: "V7")

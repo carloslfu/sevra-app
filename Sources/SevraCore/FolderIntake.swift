@@ -42,23 +42,6 @@ extension Workbook {
         at: root, includingPropertiesForKeys: Array(keys),
         options: [.skipsHiddenFiles, .skipsPackageDescendants])
     else { throw SevraError("folder_read", "This folder cannot be read.") }
-    var found: [(relative: String, url: URL)] = []
-    var bytes: Int64 = 0
-    for case let file as URL in walk {
-      try cancellation.check()
-      let info = try file.resourceValues(forKeys: keys)
-      guard info.isRegularFile == true, info.isSymbolicLink != true else { continue }
-      let relative = String(file.resolvingSymlinksInPath().path.dropFirst(root.path.count + 1))
-      bytes += Int64(info.fileSize ?? 0)
-      found.append((relative, file))
-      try require(
-        found.count <= Self.folderFileLimit, "folder_limit",
-        "This folder has more than \(Self.folderFileLimit) files. Nothing was added. Choose a smaller folder."
-      )
-      try require(
-        bytes <= Self.folderByteLimit, "folder_limit",
-        "This folder holds more than 2 GB. Nothing was added. Choose a smaller folder.")
-    }
     let prefix = Self.folderOriginPrefix(root.lastPathComponent)
     var saved: [String: Set<String>] = [:]
     var hashes = Set<String>()
@@ -73,16 +56,37 @@ extension Workbook {
         saved[relative, default: []].insert(row["hash"]!.text)
       }
     }
+    // The limits bound what a pass adds. A file already saved is counted and passed over, so a
+    // folder can outgrow them one pass at a time. The walk stops once only new files could remain.
+    let fileLimit = "This folder has more than \(Self.folderFileLimit) new or changed files. Nothing was added. Choose a smaller folder."
+    var found: [(relative: String, url: URL, bytes: Int64)] = []
+    for case let file as URL in walk {
+      try cancellation.check()
+      let info = try file.resourceValues(forKeys: keys)
+      guard info.isRegularFile == true, info.isSymbolicLink != true else { continue }
+      let relative = String(file.resolvingSymlinksInPath().path.dropFirst(root.path.count + 1))
+      found.append((relative, file, Int64(info.fileSize ?? 0)))
+      try require(found.count <= Self.folderFileLimit + hashes.count, "folder_limit", fileLimit)
+    }
     var added: [FolderPlan.File] = []
     var changed: [FolderPlan.File] = []
     var unchanged = 0
-    for (relative, url) in found.sorted(by: { $0.relative < $1.relative }) {
+    var bytes: Int64 = 0
+    for (relative, url, size) in found.sorted(by: { $0.relative < $1.relative }) {
       try cancellation.check()
       let hash = try Self.hashFile(url, cancellation: cancellation)
       let file = FolderPlan.File(relative: relative, hash: hash)
       if saved[relative]?.contains(hash) == true || hashes.contains(hash) {
         unchanged += 1
-      } else if saved[relative] != nil {
+        continue
+      }
+      bytes += size
+      try require(added.count + changed.count < Self.folderFileLimit, "folder_limit", fileLimit)
+      try require(
+        bytes <= Self.folderByteLimit, "folder_limit",
+        "This folder holds more than 2 GB of new or changed files. Nothing was added. Choose a smaller folder."
+      )
+      if saved[relative] != nil {
         changed.append(file)
       } else {
         added.append(file)

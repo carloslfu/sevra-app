@@ -57,6 +57,10 @@ func checkFoldersAndTemplates(at root: URL) {
       try Data("\(index)".utf8).write(to: large.appendingPathComponent("\(index).txt"))
     }
     try refuses("folder_limit") { _ = try book.folderPlan(large) }
+    // A file already saved is counted and passed over, and the rest fit the bound.
+    _ = try book.importFile(large.appendingPathComponent("0.txt"))
+    let grown = try book.folderPlan(large)
+    try expect(grown.unchanged == 1 && grown.added.count == Workbook.folderFileLimit)
   }
   check("a transcript keeps each word, its punctuation and its real time") {
     guard #available(macOS 26.0, *) else { return }
