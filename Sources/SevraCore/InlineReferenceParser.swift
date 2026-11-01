@@ -198,13 +198,13 @@ public enum InlineReferenceParser {
     // cmark 0.9 numbers an inline on a paragraph's later line from the paragraph's first column,
     // after dropping that line's own indent and quote markers.
     var paragraphStart: SourceLocation?
-    func offset(_ location: SourceLocation) -> Int? {
+    func offset(_ location: SourceLocation, firstColumn: Int? = nil) -> Int? {
       guard location.line > 0, location.line <= lines.count, location.column > 0 else { return nil }
       var start = lines[location.line - 1]
       var column = location.column
       if let paragraphStart, location.line > paragraphStart.line {
         while start < bytes.count, [32, 9, UInt8(ascii: ">")].contains(bytes[start]) { start += 1 }
-        column += 1 - paragraphStart.column
+        column += 1 - (firstColumn ?? paragraphStart.column)
       }
       guard column > 0, column - 1 <= bytes.count - start else { return nil }
       let byte = start + column - 1
@@ -217,8 +217,13 @@ public enum InlineReferenceParser {
       return low < byteOffsets.count && byteOffsets[low] == byte ? low : nil
     }
     func range(_ node: Markup) -> Range<Int>? {
-      guard let r = node.range, let start = offset(r.lowerBound), let end = offset(r.upperBound),
-        start <= end
+      // A code span or tag over several lines numbers its end from that line's own text instead,
+      // and a tag's end stops short of its `>`.
+      guard let r = node.range else { return nil }
+      let spansLines = r.lowerBound.line != r.upperBound.line
+      let firstColumn = !spansLines ? nil : node is InlineCode ? 1 : node is InlineHTML ? 0 : nil
+      guard let start = offset(r.lowerBound),
+        let end = offset(r.upperBound, firstColumn: firstColumn), start <= end
       else { return nil }
       // Some positions stay wrong, such as after a backslash line break or an escaped table pipe.
       // Every delimited inline must find its own delimiters at the bytes it names.
@@ -240,6 +245,18 @@ public enum InlineReferenceParser {
     func block(_ r: Range<Int>) { for i in r { blocked[i] = 1 } }
     var found: [(selection: ReferenceSelection, syntax: ReferenceSyntaxSpan)] = []
     var unsupported = 0
+    // cmark loses count of a line at a backslash break or a link destination on its own line, and
+    // of a column at an escaped table pipe. Every later position in that paragraph or cell is off,
+    // so it stays plain text and the rest of the body still reads.
+    var paragraph: Range<Int>?
+    var abandoned = false
+    func abandonParagraph() -> Bool {
+      guard let paragraph else { return false }
+      block(paragraph)
+      unsupported += 1
+      abandoned = true
+      return true
+    }
     guard MarkdownNesting.isReadable(parserText) else {
       return ReferenceParseResult(
         selections: [], state: "partial",
@@ -260,7 +277,13 @@ public enum InlineReferenceParser {
           unsupportedTokens: 0)
       }
       if visited % 128 == 0 { try cancellation.check() }
-      if node is BlockMarkup { paragraphStart = nil }
+      if node is BlockMarkup || node is Markdown.Table.Cell {
+        paragraphStart = nil
+        paragraph = nil
+        abandoned = false
+      } else if abandoned {
+        continue
+      }
       // cmark 0.9 can assign inline positions to a removed leading reference
       // definition. Refuse that paragraph's ambiguous coordinate system rather
       // than attach a real destination to bytes from the definition.
@@ -273,9 +296,15 @@ public enum InlineReferenceParser {
             "A paragraph combines a leading reference definition and content with ambiguous Markdown positions. Separate them with a blank line. Original text is retained.",
           unsupportedTokens: 1)
       }
-      if node is Paragraph || node is Heading { paragraphStart = node.range?.lowerBound }
+      if node is Markdown.Table.Cell {
+        paragraph = range(node)
+      } else if node is Paragraph || node is Heading {
+        paragraph = range(node)
+        paragraphStart = node.range?.lowerBound
+      }
       if node is CodeBlock || node is InlineCode || node is Image || node is HTMLBlock {
         guard let r = range(node) else {
+          if abandonParagraph() { continue }
           return ReferenceParseResult(
             selections: [], state: "partial",
             detail: "A Markdown source location could not be preserved. Original text is retained.",
@@ -286,6 +315,7 @@ public enum InlineReferenceParser {
       }
       if node is InlineHTML {
         guard let r = range(node) else {
+          if abandonParagraph() { continue }
           return ReferenceParseResult(
             selections: [], state: "partial",
             detail: "An HTML source location could not be preserved. Original text is retained.",
@@ -307,6 +337,7 @@ public enum InlineReferenceParser {
       }
       if let link = node as? Link {
         guard let r = range(node) else {
+          if abandonParagraph() { continue }
           return ReferenceParseResult(
             selections: [], state: "partial",
             detail: "A Markdown link location could not be preserved. Original text is retained.",
@@ -328,6 +359,7 @@ public enum InlineReferenceParser {
           var end = last.upperBound
           while end < r.upperBound && scalars[end].properties.isWhitespace { end += 1 }
           guard end < r.upperBound, scalars[end] == "]" else {
+            if abandonParagraph() { continue }
             return ReferenceParseResult(
               selections: [], state: "partial",
               detail: "A Markdown link location could not be preserved. Original text is retained.",

@@ -89,9 +89,16 @@ func checkInlineReferences(at root: URL) {
       try expect(try parsedLabels(body) == ["b"], body)
     }
     try expect(try parsedLabels("   First\n`[[code]]` [[real]]") == ["real"])
-    // A backslash break leaves cmark on the wrong line. Nothing is bound to other bytes.
-    let broken = try InlineReferenceParser.parse("a\\\n  \(link) [[real]]")
-    try expect(broken.state == "partial" && broken.selections.isEmpty)
+    // A code span or tag over two lines ends where it ends, however its paragraph is indented.
+    try expect(try parsedLabels("- a `b\n  c` d [[real]] `[[code]]`") == ["real"])
+    try expect(try parsedLabels("- a <b\n  c=\"1\"> d [[real]]") == ["real"])
+    // cmark loses a line here. That paragraph stays plain text and the next one still reads.
+    for lost in ["a\\\n  \(link) [[real]]", "see [x](\n  https://a.example) `[[code]]` [[real]]"] {
+      let body = lost + "\n\n[[after]]"
+      try expect(try InlineReferenceParser.parse(body).state == "partial", body)
+      try expect(try parsedLabels(body) == ["after"], body)
+    }
+    try expect(try parsedLabels("| `a\\|b` [[lost]] |\n|---|\n| [[kept]] |\n") == ["kept"])
     // Only a whole definition is ambiguous. Bracketed text before a colon is a paragraph.
     try expect(
       try parsedLabels("[[Acme Quote]]: 30 days net\n\n[[Other]] \(link)")
