@@ -158,6 +158,7 @@ public enum Extractor {
         throw SevraError("encoding", "Text encoding could not be read.")
       }
       var text = decoded.text
+      var guessed = decoded.guessed
       if ext == "html" || ext == "htm" {
         text = decodedEntities(
           text.replacingOccurrences(
@@ -170,10 +171,11 @@ public enum Extractor {
           documentAttributes: nil)
       {
         text = attributed.string
+        guessed = false
       }
       let notes = [
         cut ? "Only the first 8 MB were indexed." : nil,
-        decoded.guessed
+        guessed
           ? "This file is not UTF-8, so it was read as Windows-1252. Check the original if characters look wrong."
           : nil,
       ].compactMap { $0 }

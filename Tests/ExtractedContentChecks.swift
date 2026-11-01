@@ -27,6 +27,10 @@ func checkExtractedContent(at root: URL) {
     let latin = try Extractor.extract(file("latin.txt", "Café".data(using: .isoLatin1)!))
     try expect(latin.state == "partial" && text(latin) == "Café")
     try expect(latin.detail.contains("Windows-1252"))
+    // RTF names its own encoding, so its raw bytes are no guess.
+    let rtf = try Extractor.extract(
+      file("raw.rtf", "{\\rtf1\\ansi\\ansicpg1252 Café}".data(using: .isoLatin1)!))
+    try expect(rtf.state == "ready" && text(rtf) == "Café")
     try refuses("encoding") { _ = try Extractor.extract(file("binary.txt", Data([0xFF, 0, 0xE9]))) }
     let cutWide = Extractor.decodedText(marked + Data([0x3D, 0xD8, 0x00]), cut: true)
     try expect(cutWide?.text == "Añejo €5" && cutWide?.guessed == false)
