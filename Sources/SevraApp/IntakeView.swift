@@ -2,11 +2,30 @@ import SevraCore
 import SwiftUI
 
 struct IntakeChoice: Sendable, Identifiable {
-  let job: IntakeJob
+  /// Nil until a use is chosen, so looking at a saved file and leaving records nothing.
+  let job: IntakeJob?
+  let sourceID: String
   let title: String
   let supportsTable: Bool
   let supportsUpdate: Bool
-  var id: String { job.id }
+  /// The job's ID, also when the job is still to come.
+  let id: String
+  init(job: IntakeJob, title: String, supportsTable: Bool, supportsUpdate: Bool) {
+    self.job = job
+    sourceID = job.sourceID
+    self.title = title
+    self.supportsTable = supportsTable
+    self.supportsUpdate = supportsUpdate
+    id = job.id
+  }
+  init(sourceID: String, title: String, supportsTable: Bool, supportsUpdate: Bool) {
+    job = nil
+    self.sourceID = sourceID
+    self.title = title
+    self.supportsTable = supportsTable
+    self.supportsUpdate = supportsUpdate
+    id = UUID().uuidString
+  }
 }
 struct IntakePrompt: Identifiable {
   let id = UUID()
@@ -31,14 +50,16 @@ struct IntakeView: View {
           ForEach(prompt.choices) { choice in
             VStack(alignment: .leading, spacing: 10) {
               Text(choice.title).font(.headline)
-              DisclosureGroup("File details") {
-                Text(choice.job.detail).font(.callout).foregroundStyle(.secondary)
-                if let index = choice.job.report["index"]["state"].string {
-                  Text("Indexing: " + index + ". " + choice.job.report["index"]["detail"].text)
-                    .font(.caption).foregroundStyle(.secondary)
+              if let job = choice.job {
+                DisclosureGroup("File details") {
+                  Text(job.detail).font(.callout).foregroundStyle(.secondary)
+                  if let index = job.report["index"]["state"].string {
+                    Text("Indexing: " + index + ". " + job.report["index"]["detail"].text)
+                      .font(.caption).foregroundStyle(.secondary)
+                  }
                 }
               }
-              if let role = choice.job.role {
+              if let role = choice.job?.role {
                 Button("Continue selected use") { state.continueIntake(choice, role: role) }
               } else {
                 HStack(spacing: 12) {

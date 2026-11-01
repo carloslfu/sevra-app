@@ -15,6 +15,16 @@ extension SpaceDefinition {
   public static let sectionTypes: Set<String> = [
     "input", "reviews", "shortcuts", "tables", "intake", "recent",
   ]
+  /// P03b: however Home is arranged, waiting drafts stay in view. A Home with its own reviews
+  /// section keeps it where it is.
+  public func homeComponents(pendingReview: Bool) -> [Component] {
+    func includesReviews(_ components: [Component]) -> Bool {
+      components.contains { $0.type == "reviews" || includesReviews($0.children ?? []) }
+    }
+    guard pendingReview, !includesReviews(components) else { return components }
+    return [Component(id: "pending-reviews", type: "reviews", title: "Drafts to review")]
+      + components
+  }
 }
 
 public struct SpaceEdit: Codable, Equatable, Sendable {

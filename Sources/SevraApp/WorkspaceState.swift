@@ -554,9 +554,9 @@ struct FolderReview {
       },
       completion: { choice in
         // A chosen update has nothing left to ask; go straight back to its review.
-        if choice.job.state == "awaiting_update" {
-          self.navigate(.tableUpdate(choice.job.sourceID, choice.id))
-        } else if choice.job.role == .values {
+        if choice.job?.state == "awaiting_update" {
+          self.navigate(.tableUpdate(choice.sourceID, choice.id))
+        } else if choice.job?.role == .values {
           // Saving the rest of a stopped table import is the only next step.
           Task { self.continueIntake(choice, role: .values) }
         } else {
@@ -569,10 +569,9 @@ struct FolderReview {
       "Preparing saved file",
       operation: { book, _ in
         let source = try book.item(sourceID)
-        let job = try book.beginIntake(sourceID: source.id)
         let asset = try book.asset(source.assetID!)
         return IntakeChoice(
-          job: job, title: source.title,
+          sourceID: source.id, title: source.title,
           supportsTable: ["csv", "tsv", "xlsx"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()),
           supportsUpdate: ["csv", "tsv", "xlsx"].contains(
@@ -582,11 +581,13 @@ struct FolderReview {
   func continueIntake(_ choice: IntakeChoice, role: IntakeRole) {
     guard !busy else { return }
     let chat = conversation
+    let navigationID = itemPreviewIdentity
     let progress = rowProgress()
     activeIntake = choice.id
     run(
       "Preparing " + choice.title,
       operation: { book, cancel in
+        if choice.job == nil { _ = try book.beginIntake(sourceID: choice.sourceID, token: choice.id) }
         do {
           let current = try book.intakeJob(choice.id)
           if current.role == nil {
@@ -623,7 +624,12 @@ struct FolderReview {
         }
         self.intakePrompt?.choices.removeAll { $0.id == result.id }
         if self.intakePrompt?.choices.isEmpty == true { self.intakePrompt = nil }
-        if result.state == "cancelled" { return }
+        // Someone who moved on while this ran keeps their place, and their selection.
+        if result.state == "cancelled" || self.conversation != chat
+          || self.itemPreviewIdentity != navigationID
+        {
+          return
+        }
         if role == .update {
           self.navigate(.tableUpdate(result.sourceID, result.id))
         } else if let id = result.datasetIDs.first {

@@ -18,6 +18,24 @@ private actor ReviewReadGate {
 }
 
 @MainActor func checkReviewQueue() async throws {
+  let custom = SpaceDefinition(components: [Component(type: "text", title: "Note", text: "Mine")])
+  let shown = custom.homeComponents(pendingReview: true)
+  try require(
+    shown.first?.type == "reviews" && shown.count == 2, "review_check",
+    "A custom Home hid the waiting drafts")
+  try require(
+    custom.homeComponents(pendingReview: false) == custom.components, "review_check",
+    "An empty queue changed a custom Home")
+  let nested = SpaceDefinition(components: [
+    Component(
+      type: "comparison", title: "Both",
+      children: [Component(type: "reviews", title: "Mine to check")])
+  ])
+  try require(
+    nested.homeComponents(pendingReview: true) == nested.components
+      && SpaceDefinition.defaultHome.homeComponents(pendingReview: true)
+        == SpaceDefinition.defaultHome.components,
+    "review_check", "A Home with its own reviews section was rearranged")
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-review-" + identifier())
   defer { try? FileManager.default.removeItem(at: root) }

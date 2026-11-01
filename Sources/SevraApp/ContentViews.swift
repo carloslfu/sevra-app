@@ -205,7 +205,11 @@ struct SpaceView: View {
     )
   }
   private var visibleComponents: [Component] {
-    space.definition.components.filter { component in
+    let pending = state.pendingReview?.items.isEmpty == false
+    let components =
+      space.id == "home"
+      ? space.definition.homeComponents(pendingReview: pending) : space.definition.components
+    return components.filter { component in
       switch component.type {
       case "reviews": return state.pendingReview?.items.isEmpty == false
       case "tables": return !state.datasets.isEmpty || !state.archivedDatasets.isEmpty
