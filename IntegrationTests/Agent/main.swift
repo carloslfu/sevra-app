@@ -94,6 +94,19 @@ final class ToolPolicyChecks {
       candidate(
         "calculate", [("expression", "cost * 2"), ("values", "{\"cost\":\"12.40\"}")],
         policy: policy))
+    // Foundation keeps one of a repeated key and rounds a long decimal, both without a word.
+    for values in [
+      "{\"cost\":\"1\",\"cost\":\"2\"}", "{\"a\":{\"b\":1,\"\\u0062\":2}}",
+      "{\"cost\":1234567890123456.789}",
+    ] {
+      try expectThrows(
+        try candidate("calculate", [("expression", "cost"), ("values", values)], policy: policy))
+    }
+    try policy.validate(
+      candidate(
+        "calculate",
+        [("expression", "a"), ("values", "{\"a\":19.99,\"b\":{\"a\":0.30000000000000004}}")],
+        policy: policy))
     try expectThrows(
       try policy.validate(
         candidate(

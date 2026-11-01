@@ -52,7 +52,7 @@ extension CLI {
     try require(
       args.count == 5 && args[4].utf8.count <= 128_000, "usage",
       "\(command) WORKBOOK SOURCE_ID TABLE_ID OPTIONS_JSON")
-    let options = try Value.parse(args[4])
+    let options = try Value.parseExact(args[4])
     let allowed: Set<String> = [
       "mode", "mapping", "keys", "headerRow", "sheet", "newRowMeaning", "newRowScenario",
       "expectedRevision", "expectedFingerprint", "token", "intakeID",

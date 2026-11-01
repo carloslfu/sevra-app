@@ -4,7 +4,7 @@ import SevraCore
 extension CLI {
   static func referenceOptions(_ text: String, allowed: Set<String>) throws -> Value {
     try require(text.utf8.count <= 400_000, "usage", "Reference JSON is limited to 400,000 bytes.")
-    let value = try Value.parse(text)
+    let value = try Value.parseExact(text)
     guard case .object(let fields) = value, Set(fields.keys).isSubset(of: allowed) else {
       throw SevraError("usage", "Use a JSON object with documented reference options.")
     }

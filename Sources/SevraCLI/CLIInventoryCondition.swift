@@ -12,7 +12,8 @@ extension CLI {
         "condition-create WORKBOOK SUBJECT RULE_JSON EFFECTIVE_THROUGH TOKEN")
       try require(args[3].utf8.count <= 4096, "condition_limit", "Rule input is limited to 4 KiB.")
       return try book.createInventoryCondition(
-        subject: args[2], rule: Value.parse(args[3]), effectiveThrough: args[4], token: args[5],
+        subject: args[2], rule: Value.parseExact(args[3]), effectiveThrough: args[4],
+        token: args[5],
         cancellation: cancellation, actor: .programmatic("SevraCLI"))
     case "condition-step":
       try require(args.count == 5, "usage", "condition-step WORKBOOK CONSUMER_ID THROUGH TOKEN")

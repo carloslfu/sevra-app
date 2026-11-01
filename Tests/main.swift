@@ -1306,6 +1306,14 @@ check("deep JSON and long dependency chains are refused by name on a worker stac
   if let failure { throw failure }
 }
 
+check("a typed number keeps its digits or is refused, and ordinary JSON numbers still read") {
+  try refuses("json_number") { _ = try Value.parseExact("{\"a\":1234567890123456.789}") }
+  try refuses("json_number") { _ = try Value.parseExact("[9007199254740993]") }
+  let exact = try Value.parseExact("{\"a\":19.99,\"b\":\"1234567890123456.789\"}")
+  try expect(exact["a"] == .number(19.99) && exact["b"] == .string("1234567890123456.789"))
+  try expect(try Value.parseExact("[1e30,0.30000000000000004,-0.5]").array.count == 3)
+}
+
 check("formulas that can never evaluate are refused when saved") {
   func function(_ terms: Int) throws -> ApplicationDefinition {
     try book.saveApplicationDefinition(

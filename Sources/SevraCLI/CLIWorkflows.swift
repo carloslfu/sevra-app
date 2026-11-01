@@ -24,7 +24,7 @@ extension CLI {
         args.count == 5, "usage", "workflow-start WORKBOOK EXACT_DEFINITION_ID ARGUMENTS_JSON TOKEN"
       )
       return try book.startWorkflow(
-        args[2], arguments: Value.parse(args[3]), token: args[4],
+        args[2], arguments: Value.parseExact(args[3]), token: args[4],
         actor: actor, cancellation: cancellation)
     case "workflow-read":
       try require(args.count == 3, "usage", "workflow-read WORKBOOK RUN_ID")
@@ -37,8 +37,8 @@ extension CLI {
         args.count == 7, "usage",
         "workflow-clarify WORKBOOK RUN_ID TARGET_JSON VALUES_JSON REASON TOKEN")
       return try book.clarifyWorkflow(
-        book.authorizeWorkflowExecution(args[2]), target: Value.parse(args[3]),
-        values: Value.parse(args[4]), reason: args[5], token: args[6],
+        book.authorizeWorkflowExecution(args[2]), target: Value.parseExact(args[3]),
+        values: Value.parseExact(args[4]), reason: args[5], token: args[6],
         actor: .programmatic("SevraCLI.workflowClarification"), cancellation: cancellation)
     case "workflow-list":
       try require((2...3).contains(args.count), "usage", "workflow-list WORKBOOK [STATE]")
@@ -74,14 +74,14 @@ extension CLI {
           session, owner: "cli:" + identifier(), cancellation: cancellation)
       case "workflow-finish":
         return try book.completeWorkflowStep(
-          session, claim: Value.parse(args[3]), cancellation: cancellation)
+          session, claim: Value.parseExact(args[3]), cancellation: cancellation)
       case "workflow-claim":
         return try book.claimWorkflowStep(
           session, owner: args[3], leaseSeconds: Double(args[4]) ?? -1,
           token: args[5], cancellation: cancellation)
       case "workflow-heartbeat":
         return try book.heartbeatWorkflowStep(
-          session, claim: Value.parse(args[3]),
+          session, claim: Value.parseExact(args[3]),
           leaseSeconds: Double(args[4]) ?? -1, token: args[5])
       case "workflow-retry": return try book.retryWorkflow(session, token: args[3])
       default: return try book.cancelWorkflow(session, token: args[3])

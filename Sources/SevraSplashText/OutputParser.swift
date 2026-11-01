@@ -328,6 +328,13 @@ public final class SplashOutputParser {
     events.append(.text(combined))
   }
 
+  private func significantDigits(_ number: String) -> Substring {
+    let mantissa = number.prefix { $0 != "e" && $0 != "E" }.filter(\.isNumber)
+    var digits = mantissa.drop { $0 == "0" }
+    while digits.last == "0" { digits.removeLast() }
+    return digits
+  }
+
   private func convertValue(_ text: String, types: Set<String>) throws -> Any {
     if types == ["string"] { return text }
     // Foundation may silently round large JSON integer literals into floating
@@ -339,6 +346,10 @@ public final class SplashOutputParser {
     var depth = 0
     var quoted = false
     var escaped = false
+    var stringStart = 0
+    // One entry per open object or array. Foundation keeps only one of a repeated key, and the
+    // model's other value would vanish without a word.
+    var keys: [Set<String>?] = []
     while index < bytes.count {
       let byte = bytes[index]
       if quoted {
@@ -348,14 +359,25 @@ public final class SplashOutputParser {
           escaped = true
         } else if byte == 34 {
           quoted = false
+          var next = index + 1
+          while next < bytes.count, [9, 10, 13, 32].contains(bytes[next]) { next += 1 }
+          if next < bytes.count, bytes[next] == 58, case .some(.some) = keys.last {
+            let literal = Data(bytes[stringStart...index])
+            let key = try? JSONSerialization.jsonObject(with: literal, options: [.fragmentsAllowed])
+            guard let key = key as? String, keys[keys.count - 1]?.insert(key).inserted == true
+            else { throw SplashError("Tool argument repeats a key") }
+          }
         }
       } else if byte == 34 {
         quoted = true
+        stringStart = index
       } else if byte == 91 || byte == 123 {
         depth += 1
         guard depth <= 32 else { throw SplashError("Tool argument structure exceeds its limit") }
+        keys.append(byte == 123 ? [] : nil)
       } else if byte == 93 || byte == 125 {
         depth -= 1
+        _ = keys.popLast()
       } else if byte == 45 || (48...57).contains(byte) {
         let start = index
         while index + 1 < bytes.count && ![9, 10, 13, 32, 44, 93, 125].contains(bytes[index + 1]) {
@@ -366,6 +388,14 @@ public final class SplashOutputParser {
           && Int64(String(decoding: literal, as: UTF8.self)) == nil
         {
           throw SplashError("Tool integer is outside the supported range; use a string")
+        }
+        // Double keeps any 15 significant digits. Past that, it must give back the digits written.
+        let number = String(decoding: literal, as: UTF8.self)
+        let written = significantDigits(number)
+        if written.count > 15, let double = Double(number), double.isFinite,
+          significantDigits(String(double)) != written
+        {
+          throw SplashError("Tool number has more digits than the workbook keeps; use a string")
         }
       }
       index += 1

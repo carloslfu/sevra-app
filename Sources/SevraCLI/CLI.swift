@@ -67,7 +67,8 @@ import SevraProduct
     }
     if command == "calculate" {
       return .string(
-        try Numbers.calculate(arg(1), values: args.count > 2 ? Value.parse(args[2]).object : [:]))
+        try Numbers.calculate(
+          arg(1), values: args.count > 2 ? Value.parseExact(args[2]).object : [:]))
     }
     if command == "model-status" {
       try require(
@@ -240,7 +241,8 @@ import SevraProduct
     case "include-members":
       return try encoded(
         book.includeArchiveMembers(
-          arg(2), paths: Value.parse(arg(3)).array.compactMap(\.string), cancellation: cancellation)
+          arg(2), paths: Value.parseExact(arg(3)).array.compactMap(\.string),
+          cancellation: cancellation)
       )
     case "include": return try encoded(book.includeLinked(arg(2), cancellation: cancellation))
     case "relink":
@@ -321,7 +323,7 @@ import SevraProduct
       return try encoded(book.datasets(archived: args.count == 3))
     case "definition-input-issues":
       try require(args.count == 4, "usage", "definition-input-issues WORKBOOK ID ARGUMENTS_JSON")
-      return .array(try book.applicationInputIssues(args[2], arguments: Value.parse(args[3])))
+      return .array(try book.applicationInputIssues(args[2], arguments: Value.parseExact(args[3])))
     case "form-template":
       try require(args.count == 3, "usage", "form-template WORKBOOK ACTION_OR_WORKFLOW_ID")
       let action = try book.applicationDefinition(args[2])
@@ -336,7 +338,7 @@ import SevraProduct
       try require(args.count == 4, "usage", "form-draft-submit WORKBOOK STATE_JSON PREVIEW_JSON")
       let state = try JSONDecoder().decode(FormDraftState.self, from: Data(args[2].utf8))
       return try book.submitFormDraft(
-        state, preview: Value.parse(args[3]), actor: .programmatic("SevraCLI.form"),
+        state, preview: Value.parseExact(args[3]), actor: .programmatic("SevraCLI.form"),
         cancellation: cancellation)
     case "form-draft-read":
       try require(args.count == 3, "usage", "form-draft-read WORKBOOK DRAFT_KEY")
@@ -364,12 +366,13 @@ import SevraProduct
     case "action-preview":
       try require(args.count == 4, "usage", "action-preview WORKBOOK ID ARGUMENTS_JSON")
       return try book.previewApplicationAction(
-        args[2], arguments: Value.parse(args[3]), cancellation: cancellation)
+        args[2], arguments: Value.parseExact(args[3]), cancellation: cancellation)
     case "action-invoke":
       try require(
         args.count == 6, "usage", "action-invoke WORKBOOK ID ARGUMENTS_JSON PREVIEW_JSON TOKEN")
       return try book.invokeApplicationAction(
-        args[2], arguments: Value.parse(args[3]), preview: Value.parse(args[4]), token: args[5],
+        args[2], arguments: Value.parseExact(args[3]), preview: Value.parseExact(args[4]),
+        token: args[5],
         cancellation: cancellation)
     case "definition-save":
       try require(
@@ -377,7 +380,7 @@ import SevraProduct
         "definition-save WORKBOOK LOGICAL_ID CONTENT_JSON BASE_ID_OR_NEW TOKEN [INPUTS_JSON]")
       var inputs: [String] = []
       if args.count == 7 {
-        let value = try Value.parse(args[6])
+        let value = try Value.parseExact(args[6])
         guard case .array(let array) = value, array.allSatisfy({ $0.string != nil }) else {
           throw SevraError("arguments", "Authoring inputs must be an array of exact item IDs.")
         }
@@ -385,7 +388,7 @@ import SevraProduct
       }
       return try encoded(
         book.saveApplicationDefinition(
-          logicalID: args[2], content: Value.parse(args[3]),
+          logicalID: args[2], content: Value.parseExact(args[3]),
           expectedDefinitionID: args[4] == "new" ? nil : args[4], inputs: inputs,
           token: args[5], cancellation: cancellation))
     case "definition-read", "definition-dependencies":
@@ -412,7 +415,7 @@ import SevraProduct
         (4...5).contains(args.count), "usage",
         "definition-evaluate WORKBOOK ID ARGUMENTS_JSON [CURSOR]")
       return try book.evaluateApplicationDefinition(
-        args[2], arguments: Value.parse(args[3]), cursor: args.count == 5 ? args[4] : nil,
+        args[2], arguments: Value.parseExact(args[3]), cursor: args.count == 5 ? args[4] : nil,
         cancellation: cancellation)
     case "component-evaluate":
       try require(
@@ -438,7 +441,7 @@ import SevraProduct
       } else {
         raw = args[2]
       }
-      let request = try Value.parse(raw)
+      let request = try Value.parseExact(raw)
       let fields = request.object
       try require(
         Set(fields.keys).isSubset(of: [
@@ -464,7 +467,7 @@ import SevraProduct
     case "definition-search":
       try require(
         (3...4).contains(args.count), "usage", "definition-search WORKBOOK QUERY [OPTIONS_JSON]")
-      let options = args.count == 4 ? try Value.parse(args[3]) : .object([:])
+      let options = args.count == 4 ? try Value.parseExact(args[3]) : .object([:])
       guard case .object(let fields) = options,
         Set(fields.keys).isSubset(of: ["kind", "historical", "limit", "cursor"]),
         fields["kind"] == nil || fields["kind"]?.string != nil,
@@ -484,7 +487,7 @@ import SevraProduct
         "usage",
         "table-query WORKBOOK QUERY_JSON [CURSOR]; table-query-plan/table-optimize WORKBOOK QUERY_JSON"
       )
-      let request = try Value.parse(arg(2))
+      let request = try Value.parseExact(arg(2))
       if args[0] == "table-query-plan" {
         return try book.datasetQueryPlan(request, cancellation: cancellation)
       }
@@ -509,7 +512,7 @@ import SevraProduct
       try require(
         args.count == 7, "usage",
         "table-edit-schema WORKBOOK DATASET_ID BASE_VERSION BASE_DEFINITION_ID OPTIONS_JSON TOKEN")
-      let options = try Value.parse(arg(5))
+      let options = try Value.parseExact(arg(5))
       guard case .object(let fields) = options else {
         throw SevraError("arguments", "Schema options must be an object.")
       }
@@ -567,7 +570,7 @@ import SevraProduct
       return try encoded(book.rows(arg(2), offset: args.count > 3 ? Int(args[3]) ?? 0 : 0))
     case "observe":
       try require(args.count == 3, "usage", "observe WORKBOOK OBSERVATION_JSON")
-      let observation = try Value.parse(arg(2))
+      let observation = try Value.parseExact(arg(2))
       try require(
         Set(observation.object.keys).isSubset(of: ["title", "text", "data", "token"]),
         "business_input", "An independent observation cannot replace or claim existing inputs.")
@@ -577,7 +580,7 @@ import SevraProduct
           data: observation["data"] == .null ? .object([:]) : observation["data"],
           token: observation["token"].string ?? identifier(), cancellation: cancellation))
     case "add":
-      let v = try Value.parse(arg(2))
+      let v = try Value.parseExact(arg(2))
       return try encoded(
         book.addItem(
           category: v["category"].string ?? "source", kind: v["kind"].string ?? "note",
@@ -593,7 +596,7 @@ import SevraProduct
     case "edit-row":
       return try encoded(
         book.editRow(
-          arg(2), values: Value.parse(arg(3)).object,
+          arg(2), values: Value.parseExact(arg(3)).object,
           expectedRevision: args.count > 4 ? Int(args[4]) : nil))
     case "accept":
       return try encoded(
@@ -611,7 +614,7 @@ import SevraProduct
         subject: arg(2), quantity: arg(3), effective: arg(4), sourceID: arg(5))
       return .bool(true)
     case "movement":
-      let a = try Value.parse(arg(2))
+      let a = try Value.parseExact(arg(2))
       return try encoded(
         book.movement(
           subject: a["subject"].text, quantity: a["quantity"].text,
@@ -661,7 +664,7 @@ import SevraProduct
       return try book.toolCall(arg(3), conversation: arg(2))
     case "tool-result":
       let positional = args.filter { $0 != "--raw-json" }
-      let pathValue = positional.count > 4 ? try Value.parse(positional[4]) : .array([])
+      let pathValue = positional.count > 4 ? try Value.parseExact(positional[4]) : .array([])
       guard case .array(let values) = pathValue, values.allSatisfy({ $0.string != nil }) else {
         throw SevraError("result_path", "A result path must be a JSON array of strings.")
       }
@@ -696,7 +699,7 @@ import SevraProduct
       return .bool(true)
     case "tool":
       return try WorkbookTools(book).execute(
-        arg(2), args.count > 3 ? Value.parse(args[3]) : .object([:]))
+        arg(2), args.count > 3 ? Value.parseExact(args[3]) : .object([:]))
     case "ask":
       let result = try await ProductAI.shared.run(
         arg(2), workbook: book,

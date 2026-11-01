@@ -30,7 +30,7 @@ extension CLI {
       try require(
         raw.utf8.count <= 65_536, "schedule_limit", "Schedule input is limited to 64 KiB.")
     }
-    let rule = try NativeCalendarSchedule(Value.parse(raw))
+    let rule = try NativeCalendarSchedule(Value.parseExact(raw))
     return try rule.preview(
       after: scheduleInstant(args[2]), count: scheduleLimit(args, 3, default: 5),
       horizonDays: scheduleLimit(args, 4, default: 3660), cancellation: cancellation)

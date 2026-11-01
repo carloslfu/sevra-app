@@ -77,6 +77,50 @@ public enum Value: Codable, Equatable, Sendable {
     try requireDepth(string)
     return try JSONDecoder().decode(Value.self, from: Data(string.utf8))
   }
+  /// A JSON number passes through Double, so one written with more digits than Double keeps would
+  /// quietly become a different number. Text typed by a person must arrive exact or not at all.
+  /// Stored JSON and Foundation's own output are not read this way: 19.99 is written as
+  /// 19.989999999999998 and means the same Double.
+  public static func parseExact(_ string: String) throws -> Value {
+    let value = try parse(string)
+    func digits(_ number: String) -> Substring {
+      let mantissa = number.prefix { $0 != "e" && $0 != "E" }.filter(\.isNumber)
+      var digits = mantissa.drop { $0 == "0" }
+      while digits.last == "0" { digits.removeLast() }
+      return digits
+    }
+    let bytes = Array(string.utf8)
+    var index = 0
+    var quoted = false
+    var escaped = false
+    while index < bytes.count {
+      let byte = bytes[index]
+      if quoted {
+        if escaped {
+          escaped = false
+        } else if byte == UInt8(ascii: "\\") {
+          escaped = true
+        } else if byte == UInt8(ascii: "\"") {
+          quoted = false
+        }
+      } else if byte == UInt8(ascii: "\"") {
+        quoted = true
+      } else if byte == UInt8(ascii: "-") || (48...57).contains(byte) {
+        let start = index
+        while index + 1 < bytes.count, ![9, 10, 13, 32, 44, 93, 125].contains(bytes[index + 1]) {
+          index += 1
+        }
+        let number = String(decoding: bytes[start...index], as: UTF8.self)
+        // Double keeps any 15 significant digits.
+        try require(
+          digits(number).count <= 15 || Double(number).map { digits(String($0)) } == digits(number),
+          "json_number",
+          number + " has more digits than a JSON number keeps. Write it as a string.")
+      }
+      index += 1
+    }
+    return value
+  }
   /// Decoding recurses once per level, and a few hundred levels overflow a worker thread's stack.
   /// A file, an archive or a model can all supply the text, so measure before decoding starts.
   public static func requireDepth(_ json: String) throws {

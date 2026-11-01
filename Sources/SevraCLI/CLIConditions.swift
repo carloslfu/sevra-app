@@ -39,6 +39,6 @@ extension CLI {
         "Condition JSON input is limited to 64 KiB.")
       text = argument
     }
-    return try Value.parse(text)
+    return try Value.parseExact(text)
   }
 }
