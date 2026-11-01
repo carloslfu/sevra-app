@@ -205,6 +205,24 @@ public enum WorkbookAgent {
     var discoveryLimited = false
     let explorationLimit = "\nHost exploration limit: three searches produced no new candidates. Further lexical search is paused for this answer so you can finish from the inspected evidence. Read known originals and perform needed calculations. Clearly identify unsupported requested terms. This is not complete coverage or proof that another document does not exist."
     var pendingVersionCitations = Set<String>()
+    /// The run's last word. Whatever else it saved or could not finish stays in that word.
+    func conclude(
+      _ receipt: String, step: Int, receiptID: String? = nil, state: String = "complete",
+      payload: Value = .null, citations: [String] = [], focus: AgentFocus? = nil,
+      conversationAction: ConversationActionResult? = nil
+    ) throws -> AgentResult {
+      let outcomes = actionConfirmations.rendered(excluding: receiptID)
+      let answer = receipt + (outcomes.map { "\n\n" + $0 } ?? "")
+      var fields = payload.object
+      if outcomes != nil { fields["actionConfirmations"] = actionConfirmations.evidence }
+      _ = try workbook.addMessage(
+        answer, role: "assistant", conversation: conversation, state: state,
+        payload: fields.isEmpty ? .null : .object(fields))
+      try workbook.finishAgentRun(runID, status: state, steps: step, metrics: .array(metrics))
+      return AgentResult(
+        answer: answer, citations: citations, steps: step, state: state, focus: focus,
+        conversationAction: conversationAction)
+    }
     do {
       let conversationIdentity = try workbook.conversationIdentity(
         conversation, cancellation: cancellation)
@@ -765,6 +783,7 @@ public enum WorkbookAgent {
         var movementReview: Value?
         var preparationPreviewReceiptID: String?
         var commitArguments: Value?
+        var refusedAsUnchanged = false
         do {
           try require(
             tool != "start_thread_and_continue" || step < stepBudget,
@@ -869,6 +888,8 @@ public enum WorkbookAgent {
           }
         } catch {
           callFailed = true
+          // Asking for the title a thread already has changes nothing, so nothing failed.
+          refusedAsUnchanged = (error as? SevraError)?.code == "unchanged_thread"
           if ["propose_movement", "prepare_action"].contains(tool),
             let failure = error as? SevraError,
             ["movement_direction", "movement_review", "duplicate_effect"].contains(failure.code)
@@ -910,14 +931,7 @@ public enum WorkbookAgent {
           receiptID, result: recordedResult, failed: callFailed)
         discoveryBudget.observe(tool: tool, result: result, inspected: inspected)
         progress(callFailed ? "Reviewing a tool failure" : "Reviewing the saved result")
-        if let navigationFailure {
-          _ = try workbook.addMessage(
-            navigationFailure, role: "assistant", conversation: conversation)
-          try workbook.finishAgentRun(
-            runID, status: "complete", steps: step, metrics: .array(metrics))
-          return AgentResult(
-            answer: navigationFailure, citations: [], steps: step, state: "complete", focus: nil)
-        }
+        if let navigationFailure { return try conclude(navigationFailure, step: step) }
         if !callFailed
           && (tool == "conversation_action" || WorkbookTools.conversationTools[tool] != nil)
         {
@@ -942,24 +956,22 @@ public enum WorkbookAgent {
               steps: step + result.steps, state: result.state, focus: result.focus,
               conversationAction: outcome)
           }
-          _ = try workbook.addMessage(
-            outcome.answer, role: "assistant", conversation: conversation,
+          actionConfirmations.record(tool: tool, arguments: a, result: result, receiptID: receiptID)
+          return try conclude(
+            outcome.answer, step: step, receiptID: receiptID,
             payload: .object([
               "kind": .string("conversation_action"), "result": result,
               "runID": .string(runID), "receiptID": .string(receiptID),
               "notice": .string(
                 "Saved thread changes are complete. Navigation and review apply only in the originating live window; no summary has been shared."
               ),
-            ]))
-          try workbook.finishAgentRun(
-            runID, status: "complete", steps: step, metrics: .array(metrics))
-          return AgentResult(
-            answer: outcome.answer, citations: [], steps: step, state: "complete",
-            focus: nil, conversationAction: outcome)
+            ]), conversationAction: outcome)
         }
         if callFailed {
-          actionConfirmations.recordFailure(
-            tool: tool, arguments: a, result: result, receiptID: receiptID)
+          if !refusedAsUnchanged {
+            actionConfirmations.recordFailure(
+              tool: tool, arguments: a, result: result, receiptID: receiptID)
+          }
           let key = try action.json()
           rejectedActions[key, default: 0] += 1
           try require(
@@ -1110,11 +1122,7 @@ public enum WorkbookAgent {
           let receipt = SearchCoverage.renderSearchGap(
             queries: emptyQueries, incomplete: incomplete,
             includesHistory: emptySearchesIncludedHistory)
-          _ = try workbook.addMessage(receipt, role: "assistant", conversation: conversation)
-          try workbook.finishAgentRun(
-            runID, status: "complete", steps: step, metrics: .array(metrics))
-          return AgentResult(
-            answer: receipt, citations: [], steps: step, state: "complete", focus: focus)
+          return try conclude(receipt, step: step, focus: focus)
         }
         if tool == "prepare_action", !callFailed, result["state"].text == "draft" {
           let proposals = try result["proposals"].array.map { try workbook.item($0.text) }
@@ -1125,16 +1133,12 @@ public enum WorkbookAgent {
             "Ready to review:\n"
             + proposals.map { "- " + $0.referenceMarkdown }.joined(separator: "\n")
             + "\nAccepted balances are unchanged. Review and accept each proposal separately."
-          _ = try workbook.addMessage(
-            receipt, role: "assistant", conversation: conversation, state: "needs_review",
+          return try conclude(
+            receipt, step: step, receiptID: receiptID, state: "needs_review",
             payload: .object([
               "kind": .string("application_proposals"), "itemIDs": result["proposals"],
               "receiptID": .string(receiptID),
-            ]))
-          try workbook.finishAgentRun(
-            runID, status: "needs_review", steps: step, metrics: .array(metrics))
-          return AgentResult(
-            answer: receipt, citations: proposals.map(\.id), steps: step, state: "needs_review",
+            ]), citations: proposals.map(\.id),
             focus: AgentFocus(kind: "item", id: proposals[0].id))
         }
         if tool == "read_workflow", !callFailed, result["clarification"] != .null, !readOnly,
@@ -1145,52 +1149,38 @@ public enum WorkbookAgent {
         if tool == "prepare_workflow_answer", !callFailed {
           let receipt =
             "Prepared an unsent answer from your current message. Say or type “Preview my answer” to check every value before confirming. The paused interpretation and business balances are unchanged."
-          _ = try workbook.addMessage(
-            receipt, role: "assistant", conversation: conversation,
+          return try conclude(
+            receipt, step: step, receiptID: receiptID,
             payload: .object([
               "kind": .string("workflow_answer_prepared"), "workflowRunID": result["workflowRunID"],
               "entryID": result["entryID"], "receiptID": .string(receiptID),
-            ]))
-          try workbook.finishAgentRun(
-            runID, status: "complete", steps: step, metrics: .array(metrics))
-          return AgentResult(
-            answer: receipt, citations: [], steps: step, state: "complete",
-            focus: AgentFocus(kind: "workflow", id: result["workflowRunID"].text))
+            ]), focus: AgentFocus(kind: "workflow", id: result["workflowRunID"].text))
         }
         if ["save_definition", "save_template"].contains(tool), !callFailed,
           result["kind"] == .string("automation")
         {
           let saved = try workbook.applicationDefinition(result["id"].text)
           let receipt =
-            "Saved automation “" + saved.title
+            "Saved automation “" + citationLabel(saved.title)
             + "”. Saving does not enable it. Review this exact version to enable or pause it on this Mac. Business changes require separate review."
-          _ = try workbook.addMessage(
-            receipt, role: "assistant", conversation: conversation,
+          return try conclude(
+            receipt, step: step, receiptID: receiptID,
             payload: .object([
               "kind": .string("automation_saved"), "definitionID": .string(saved.id),
               "receiptID": .string(receiptID), "execution": .string("not-authorized-by-save"),
-            ]))
-          try workbook.finishAgentRun(
-            runID, status: "complete", steps: step, metrics: .array(metrics))
-          return AgentResult(
-            answer: receipt, citations: [], steps: step, state: "complete",
-            focus: AgentFocus(kind: "automation", id: saved.id))
+            ]), focus: AgentFocus(kind: "automation", id: saved.id))
         }
         if ["draft", "propose_record"].contains(tool), !callFailed { draftSaved = true }
         if tool == "open_automation", !callFailed {
           let receipt =
-            "Review “" + result["title"].text + "” to enable or pause it on this Mac. Nothing was enabled."
-          _ = try workbook.addMessage(
-            receipt, role: "assistant", conversation: conversation,
+            "Review “" + citationLabel(result["title"].text)
+            + "” to enable or pause it on this Mac. Nothing was enabled."
+          return try conclude(
+            receipt, step: step, receiptID: receiptID,
             payload: .object([
               "kind": .string("automation_opened"), "definitionID": result["id"],
               "receiptID": .string(receiptID),
-            ]))
-          try workbook.finishAgentRun(
-            runID, status: "complete", steps: step, metrics: .array(metrics))
-          return AgentResult(
-            answer: receipt, citations: [], steps: step, state: "complete",
-            focus: AgentFocus(kind: "automation", id: result["id"].text))
+            ]), focus: AgentFocus(kind: "automation", id: result["id"].text))
         }
         if tool == "start_workflow", !callFailed {
           let saved = try workbook.workflowRun(result["id"].text)
@@ -1198,17 +1188,12 @@ public enum WorkbookAgent {
             "Saved the workflow run. This command queues work without executing steps or preparing proposals. Current saved status: "
             + saved["state"].text
             + ". Open Activity to inspect it and continue. Business acceptance remains separate."
-          _ = try workbook.addMessage(
-            receipt, role: "assistant", conversation: conversation,
+          return try conclude(
+            receipt, step: step, receiptID: receiptID,
             payload: .object([
               "kind": .string("workflow_queued"), "workflowRunID": saved["id"],
               "receiptID": .string(receiptID), "stateAtSubmission": result["state"],
-            ]))
-          try workbook.finishAgentRun(
-            runID, status: "complete", steps: step, metrics: .array(metrics))
-          return AgentResult(
-            answer: receipt, citations: [], steps: step, state: "complete",
-            focus: AgentFocus(kind: "workflow", id: saved["id"].text))
+            ]), focus: AgentFocus(kind: "workflow", id: saved["id"].text))
         }
         if [
           "propose_table", "propose_table_edit", "propose_movement", "propose_record",
@@ -1223,17 +1208,12 @@ public enum WorkbookAgent {
               ? ". Saved as a " + proposal.meaning
                 + " draft. Review it when ready; accepting it keeps its meaning."
               : ". Existing accepted values are unchanged. Accept this proposal to continue.")
-          _ = try workbook.addMessage(
-            receipt, role: "assistant", conversation: conversation, state: "needs_review",
+          return try conclude(
+            receipt, step: step, receiptID: receiptID, state: "needs_review",
             payload: .object([
               "kind": .string("proposal"), "itemID": .string(id),
               "receiptID": .string(receiptID),
-            ]))
-          try workbook.finishAgentRun(
-            runID, status: "needs_review", steps: step, metrics: .array(metrics))
-          return AgentResult(
-            answer: receipt, citations: [id], steps: step, state: "needs_review",
-            focus: AgentFocus(kind: "item", id: id))
+            ]), citations: [id], focus: AgentFocus(kind: "item", id: id))
         }
         messages.append(
           InferenceMessage(

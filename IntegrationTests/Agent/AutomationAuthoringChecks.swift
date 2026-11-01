@@ -58,7 +58,7 @@ private actor InventoryAutomationAuthor: WorkbookInference {
         arguments = .object([
           "templateReceiptID": .string(
             mode == "foreign" ? identifier() : template["receiptID"].string ?? "invalid"),
-          "title": .string("Prepare low-stock report"),
+          "title": .string("Prepare [low-stock](https://example.com) report"),
         ])
       }
     default:
@@ -119,6 +119,11 @@ func checkInventoryAutomationAuthoring() async throws {
       try expectEqual(result.focus?.kind, "automation")
       try expectEqual(result.focus?.id, saved.id)
       try expectEqual(result.answer.contains("Saving does not enable it."), true)
+      try expectEqual(result.answer.contains("Saved reusable behavior"), false)
+      if mode == "template" {
+        try expectEqual(result.answer.contains("[low-stock](https://example.com)"), false)
+        try expectEqual(result.answer.contains("\\[low-stock\\]"), true)
+      }
       try expectEqual(saved.payload["workflow"]["versionID"], .string(workflow.id))
       try expectEqual(saved.payload["condition"]["rule"]["threshold"], .string("10"))
       try expectEqual(try book.automationState(saved.id), .null)

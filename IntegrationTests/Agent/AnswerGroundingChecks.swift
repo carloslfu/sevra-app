@@ -298,3 +298,57 @@ func checkEvidenceAdmission() async throws {
   try expectEqual(try book.countRecords(named)["count"].int, 1)
   print("PASS metadata-only files, receipts and request Sources stay out of evidence and counts")
 }
+
+/// However a run ends, its last message says what else it saved or could not finish.
+func checkTerminalReceipts() async throws {
+  let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+    "sevra-terminal-" + identifier())
+  defer { try? FileManager.default.removeItem(at: root) }
+  try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+  let book = try Workbook.create(at: root.appendingPathComponent("a.sevra"), title: "Terminal")
+  let note = try book.addItem(category: "source", kind: "note", title: "Input", text: "Bolts.")
+  let draft = call(
+    "draft",
+    .object([
+      "title": .string("Memo"), "text": .string("About bolts."),
+      "inputs": .array([.string(note.id)]),
+    ]))
+  func table(_ rows: Value) -> ScriptedCalls.Step {
+    call(
+      "propose_table",
+      .object([
+        "title": .string("Plan"), "meaning": .string("plan"),
+        "columns": .array([
+          .object(["id": .string("units"), "title": .string("Units"), "type": .string("decimal")])
+        ]),
+        "rows": rows,
+      ]))
+  }
+  let good = Value.array([.object(["units": .string("5")])])
+  let saved = ScriptedCalls([draft, table(good)])
+  let proposal = try await WorkbookAgent.run(
+    "Write a memo and propose a plan table.", workbook: book, model: saved)
+  try expectEqual(proposal.state, "needs_review")
+  try expectEqual(proposal.answer.hasPrefix("Ready to review: ["), true)
+  try expectEqual(proposal.answer.contains("Saved draft [Memo](sevra://item/"), true)
+  let message = try expectValue(book.messages().last { $0.role == "assistant" })
+  try expectEqual(message.state, "needs_review")
+  let payload = try book.messagePayload(message.id)
+  try expectEqual(payload["kind"].text, "proposal")
+  try expectEqual(payload["actionConfirmations"].array.count, 1)
+
+  // A proposal that failed cannot read as done, and retrying it clears the failure.
+  let bad = Value.array([.object(["units": .string("many")])])
+  let failed = ScriptedCalls([table(bad), finish("The plan is ready.", basis: "completed_action")])
+  let claimed = try await WorkbookAgent.run(
+    "Propose a plan table.", workbook: book, model: failed)
+  try expectEqual(claimed.state, "complete")
+  try expectEqual(claimed.answer.hasPrefix("Couldn’t finish preparing the proposal."), true)
+  try expectEqual(claimed.answer.contains("The plan is ready"), false)
+  let retried = ScriptedCalls([table(bad), table(good)])
+  let settled = try await WorkbookAgent.run(
+    "Propose a plan table.", workbook: book, model: retried)
+  try expectEqual(settled.state, "needs_review")
+  try expectEqual(settled.answer.contains("Couldn’t finish"), false)
+  print("PASS every run ending keeps what else it saved, and every write failure is reported")
+}

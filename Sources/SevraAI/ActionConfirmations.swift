@@ -8,14 +8,21 @@ package struct ActionConfirmations {
   package init() {}
   package var evidence: Value { .array(entries) }
   private func recoveredFailure(_ entry: Value, at index: Int) -> Bool {
-    guard entry["kind"].text == "failure", let title = entry["attemptedTitle"].string,
-      !title.isEmpty
-    else { return false }
+    guard entry["kind"].text == "failure" else { return false }
     // Refusing a repeat means the first save stands, so an earlier success settles it too.
     let later = entries.dropFirst(index + 1)
     return (entry["error"].text.contains(Self.repeatRefused) ? entries[...] : later).contains {
-      $0["tool"] == entry["tool"] && $0["kind"].text != "failure" && $0["title"].text == title
+      $0["tool"] == entry["tool"] && $0["kind"].text != "failure"
+        && $0["attempt"] == entry["attempt"]
     }
+  }
+  /// What a call acted on, so a later success can settle the failure before it. A thread tool
+  /// acts on the current conversation whatever its arguments say.
+  private static func attempt(_ tool: String, _ arguments: Value) -> String {
+    if WorkbookTools.conversationTools[tool] != nil { return "" }
+    return arguments["content"]["title"].string
+      ?? ["id", "title", "target", "subject", "datasetID", "templateReceiptID"].lazy
+      .compactMap { arguments[$0].string }.first ?? ""
   }
   /// What the host says to the model after a repeat, never to the person.
   private static let repeatRefused = " Do not save it again."
@@ -36,19 +43,27 @@ package struct ActionConfirmations {
     case "save_space", "edit_space", "restore_space", "pin_space": task = "saving the space"
     case "set_space_pinned": task = "changing the shortcut"
     case "open_space", "open_reviews", "open_automation": task = "opening the view"
-    default: return
+    case "propose_table", "propose_table_edit", "propose_movement", "propose_record",
+      "publish_result", "prepare_action":
+      task = "preparing the proposal"
+    case "include_archive_members": task = "including the archive files"
+    case "prepare_workflow_answer": task = "preparing the answer"
+    case "conversation_action", _ where WorkbookTools.conversationTools[tool] != nil:
+      task = "changing the thread"
+    default:
+      guard !WorkbookTools.readOnlyTools.contains(tool) else { return }
+      task = "that action"
     }
-    let attemptedTitle =
-      arguments["content"]["title"].string.map(Value.string) ?? arguments["title"]
     entries.append(
       .object([
         "receiptID": .string(receiptID), "tool": .string(tool), "kind": .string("failure"),
         "targetID": .string(receiptID), "title": .string(task), "error": result["error"],
-        "attemptedTitle": attemptedTitle,
+        "attempt": .string(Self.attempt(tool, arguments)),
       ]))
   }
 
   package mutating func record(tool: String, arguments: Value, result: Value, receiptID: String) {
+    let attempt = Self.attempt(tool, arguments)
     let kind: String
     let id: String
     let title: String
@@ -86,21 +101,32 @@ package struct ActionConfirmations {
       kind = "opened"
       id = result["spaceID"].string ?? "review-queue"
       title = result["title"].text
-    default: return
+    default:
+      // Nothing here to confirm, but a retry that worked settles the failure before it.
+      guard
+        entries.contains(where: {
+          $0["kind"].text == "failure" && $0["tool"].text == tool && $0["attempt"].text == attempt
+        })
+      else { return }
+      kind = "settled"
+      id = receiptID
+      title = ""
     }
     entries.append(
       .object([
         "receiptID": .string(receiptID), "tool": .string(tool), "kind": .string(kind),
         "targetID": .string(id), "title": .string(title), "qualifier": .string(qualifier),
+        "attempt": .string(attempt),
       ]))
   }
 
-  package var rendered: String? {
-    guard !entries.isEmpty else { return nil }
+  package var rendered: String? { rendered(excluding: nil) }
+  /// A receipt that already speaks for one call leaves that call out of the list.
+  package func rendered(excluding receiptID: String?) -> String? {
     var seen = Set<String>()
     let lines = entries.enumerated().compactMap { index, entry -> String? in
       let kind = entry["kind"].text
-      if recoveredFailure(entry, at: index) { return nil }
+      if recoveredFailure(entry, at: index) || entry["receiptID"].string == receiptID { return nil }
       let id = entry["targetID"].text
       let qualifier = entry["qualifier"].text
       guard seen.insert(kind + ":" + id + ":" + qualifier).inserted else { return nil }
@@ -127,6 +153,6 @@ package struct ActionConfirmations {
       default: return nil
       }
     }
-    return lines.joined(separator: "\n")
+    return lines.isEmpty ? nil : lines.joined(separator: "\n")
   }
 }

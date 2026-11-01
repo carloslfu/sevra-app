@@ -86,6 +86,41 @@ private func checkRefusedRepeats() throws {
   try expectEqual(elsewhere.hasUnresolvedFailure, true)
   try expectEqual(
     elsewhere.rendered, "Couldn’t finish saving the space. A space titled Overview already exists.")
+
+  // Every write can fail, and a later success on the same target settles it.
+  let bad: Value = .object(["error": .string("Column total is missing.")])
+  let table: Value = .object(["title": .string("Quotes")])
+  var proposals = ActionConfirmations()
+  proposals.recordFailure(tool: "propose_table", arguments: table, result: bad, receiptID: "a")
+  proposals.recordFailure(
+    tool: "include_archive_members", arguments: .object(["id": .string("zip")]), result: bad,
+    receiptID: "b")
+  proposals.recordFailure(tool: "read", arguments: table, result: bad, receiptID: "c")
+  try expectEqual(proposals.evidence.array.count, 2)
+  try expectEqual(
+    proposals.rendered,
+    "Couldn’t finish preparing the proposal. Column total is missing.\n"
+      + "Couldn’t finish including the archive files. Column total is missing.")
+  proposals.record(
+    tool: "propose_table", arguments: .object(["title": .string("Other")]),
+    result: .object(["id": .string("t")]), receiptID: "d")
+  try expectEqual(proposals.rendered?.contains("preparing the proposal"), true)
+  proposals.record(
+    tool: "propose_table", arguments: table, result: .object(["id": .string("t")]), receiptID: "e")
+  proposals.record(
+    tool: "include_archive_members", arguments: .object(["id": .string("zip")]),
+    result: .object(["included": .array([])]), receiptID: "f")
+  try expectEqual(proposals.hasUnresolvedFailure, false)
+  try expectEqual(proposals.rendered, nil)
+  var layout = ActionConfirmations()
+  let edit: Value = .object(["id": .string("home"), "expectedVersion": .number(1)])
+  layout.recordFailure(tool: "edit_space", arguments: edit, result: bad, receiptID: "g")
+  layout.record(
+    tool: "edit_space", arguments: edit,
+    result: .object(["spaceID": .string("home"), "title": .string("Home")]), receiptID: "h")
+  try expectEqual(layout.hasUnresolvedFailure, false)
+  try expectEqual(layout.rendered, "Updated space “Home”.")
+  try expectEqual(layout.rendered(excluding: "h"), nil)
 }
 
 func checkActionConfirmations() async throws {
