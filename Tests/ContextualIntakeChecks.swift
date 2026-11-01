@@ -21,6 +21,13 @@ func checkContextualIntake(at root: URL) {
         token: "one-capture")
     }
     try expect(try book.runIntake(first.id).role == .reference)
+    // A "/private" spelling standardizes differently once the file is gone.
+    let plain = root.path.hasPrefix("/private/") ? String(root.path.dropFirst(8)) : root.path
+    let spelled = URL(fileURLWithPath: "/private" + plain + "/capture-spelled.csv")
+    try Data("sku,quantity\n0012,4\n".utf8).write(to: spelled)
+    let kept = try book.captureIntake(spelled, role: .reference, token: "spelled")
+    try FileManager.default.removeItem(at: spelled)
+    try expect(try book.captureIntake(spelled, role: .reference, token: "spelled").id == kept.id)
   }
   check("interrupted capture registration recovers its requested use without guessing from suffix")
   {

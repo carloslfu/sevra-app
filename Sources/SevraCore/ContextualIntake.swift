@@ -26,8 +26,11 @@ extension Workbook {
     try require(
       !token.isEmpty && token.utf8.count <= 512, "intake_token",
       "Invalid intake request identifier.")
-    let pathHash = SHA256.hash(data: Data(file.standardizedFileURL.path.utf8))
-      .map { String(format: "%02x", $0) }.joined()
+    // Standardizing drops "/private" only while the file exists. Drop it here too,
+    // so a retry after the input vanished still names the same request.
+    var path = file.standardizedFileURL.path
+    if path.hasPrefix("/private/") { path.removeFirst("/private".count) }
+    let pathHash = SHA256.hash(data: Data(path.utf8)).map { String(format: "%02x", $0) }.joined()
     _ = try mutation(
       "intake_capture_request", token: token,
       request: .object([
