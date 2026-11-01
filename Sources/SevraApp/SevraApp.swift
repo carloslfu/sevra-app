@@ -34,12 +34,7 @@ import SwiftUI
     .defaultSize(width: 1200, height: 800)
     .commands {
       ConversationCommands()
-      CommandGroup(replacing: .newItem) {
-        Button("New Workbook…") { NotificationCenter.default.post(name: .sevraNew, object: nil) }
-          .keyboardShortcut("n")
-        Button("Open Workbook…") { NotificationCenter.default.post(name: .sevraOpen, object: nil) }
-          .keyboardShortcut("o")
-      }
+      WorkbookFileCommands()
       CommandMenu("Workbook") {
         Button("Add Files…") { NotificationCenter.default.post(name: .sevraImport, object: nil) }
           .keyboardShortcut("i")
@@ -69,8 +64,74 @@ import SwiftUI
   }
 }
 
+/// New and Open belong to the app, so they work with no window open or another window in front.
+private struct WorkbookFileCommands: Commands {
+  @Environment(\.openWindow) private var openWindow
+  private var files: WorkbookFiles { WorkbookFiles(openWindow: openWindow) }
+  var body: some Commands {
+    CommandGroup(replacing: .newItem) {
+      Button("New Workbook…") { files.create() }.keyboardShortcut("n")
+      Button("Open Workbook…") { files.open() }.keyboardShortcut("o")
+    }
+  }
+}
+
+/// Everything that starts from a file rather than from a window.
+@MainActor struct WorkbookFiles {
+  let openWindow: OpenWindowAction
+  func create() {
+    let panel = NSSavePanel()
+    panel.title = "Create a workbook"
+    panel.nameFieldStringValue = "Untitled.sevra"
+    panel.canCreateDirectories = true
+    guard panel.runModal() == .OK, let url = panel.url else { return }
+    let title = url.deletingPathExtension().lastPathComponent
+    build(url) { _ = try Workbook.create(at: url, title: title) }
+  }
+  func open() {
+    let panel = NSOpenPanel()
+    panel.canChooseDirectories = true
+    panel.canChooseFiles = true
+    panel.treatsFilePackagesAsDirectories = false
+    if panel.runModal() == .OK, let url = panel.url { open(url) }
+  }
+  func open(_ url: URL) {
+    guard url.pathExtension == "sevraz" else {
+      openWindow(value: url.path)
+      return
+    }
+    let panel = NSSavePanel()
+    panel.title = "Open portable workbook"
+    panel.nameFieldStringValue = url.deletingPathExtension().lastPathComponent + ".sevra"
+    guard panel.runModal() == .OK, let target = panel.url else { return }
+    build(target) { _ = try Workbook.openArchive(url, at: target) }
+  }
+  func demo() {
+    let panel = NSSavePanel()
+    panel.nameFieldStringValue = "Willow Workshop.sevra"
+    guard panel.runModal() == .OK, let url = panel.url else { return }
+    build(url) { try Demo.create(at: url) }
+  }
+  private func build(_ url: URL, _ work: @escaping @Sendable () throws -> Void) {
+    Task {
+      do {
+        try await Task.detached(priority: .userInitiated, operation: work).value
+        openWindow(value: url.path)
+      } catch {
+        let alert = NSAlert()
+        alert.messageText = "Cannot open workbook"
+        alert.informativeText = error.localizedDescription
+        alert.runModal()
+      }
+    }
+  }
+}
+
 @MainActor final class DocumentDelegate: NSObject, NSApplicationDelegate, ObservableObject {
   @Published var pending: [URL] = []
+  /// From the latest window. It outlives that window, so a file opened from Finder after the last
+  /// one closed still gets a window. Until the first window appears, files wait in `pending`.
+  var files: WorkbookFiles?
   func applicationDidFinishLaunching(_ notification: Notification) {
     NativeAutomationHost.shared.start()
   }
@@ -96,12 +157,14 @@ import SwiftUI
   func applicationWillTerminate(_ notification: Notification) {
     NotificationCenter.default.post(name: .sevraStopping, object: nil)
   }
-  func application(_ application: NSApplication, open urls: [URL]) { pending += urls }
+  func application(_ application: NSApplication, open urls: [URL]) {
+    if let files { urls.forEach(files.open) } else { pending += urls }
+  }
 }
 extension Notification.Name {
   static let sevraStopping = Notification.Name("sevraStopping")
-  static let sevraNew = Notification.Name("sevraNew"), sevraOpen = Notification.Name("sevraOpen"),
-    sevraImport = Notification.Name("sevraImport"), sevraSearch = Notification.Name("sevraSearch"),
+  static let sevraImport = Notification.Name("sevraImport"),
+    sevraSearch = Notification.Name("sevraSearch"),
     sevraReviews = Notification.Name("sevraReviews"),
     sevraActivity = Notification.Name("sevraActivity"),
     sevraExport = Notification.Name("sevraExport")
@@ -141,6 +204,7 @@ struct WorkspaceWindow: View {
         window?.title = state.workbook?.title ?? "Sevra"
       }
     )
+    .onAppear { inbox.files = files }
     .task(id: path) {
       if let path {
         do {
@@ -169,7 +233,7 @@ struct WorkspaceWindow: View {
       DispatchQueue.main.async {
         let urls = inbox.pending
         inbox.pending = []
-        for url in urls { openURL(url) }
+        urls.forEach(files.open)
       }
     }
     .alert(
@@ -180,8 +244,6 @@ struct WorkspaceWindow: View {
     } message: {
       Text(welcomeError ?? "")
     }
-    .onReceive(NotificationCenter.default.publisher(for: .sevraNew)) { _ in if isKey { create() } }
-    .onReceive(NotificationCenter.default.publisher(for: .sevraOpen)) { _ in if isKey { open() } }
     .onReceive(NotificationCenter.default.publisher(for: .sevraImport)) { _ in
       if isKey { state.importPanel() }
     }
@@ -202,22 +264,11 @@ struct WorkspaceWindow: View {
     }
   }
   var isKey: Bool { ownWindow != nil && NSApp.keyWindow === ownWindow }
+  private var files: WorkbookFiles { WorkbookFiles(openWindow: openWindow) }
   var welcome: some View {
     WelcomeView(
-      startFromFiles: startFromFiles, open: open, create: create, demo: demo,
-      openRecent: { openWindow(value: $0) })
-  }
-  func create() {
-    let panel = NSSavePanel()
-    panel.title = "Create a workbook"
-    panel.nameFieldStringValue = "Untitled.sevra"
-    panel.canCreateDirectories = true
-    if panel.runModal() == .OK, let url = panel.url {
-      do {
-        _ = try Workbook.create(at: url, title: url.deletingPathExtension().lastPathComponent)
-        openWindow(value: url.path)
-      } catch { welcomeError = error.localizedDescription }
-    }
+      startFromFiles: startFromFiles, open: { files.open() }, create: { files.create() },
+      demo: { files.demo() }, openRecent: { openWindow(value: $0) })
   }
   func startFromFiles() {
     guard let owner = ownWindow, owner.isVisible else { return }
@@ -240,43 +291,14 @@ struct WorkspaceWindow: View {
     guard destination.runModal() == .OK, ownWindow === owner, owner.isVisible,
       let url = destination.url
     else { return }
-    do {
-      _ = try Workbook.create(at: url, title: url.deletingPathExtension().lastPathComponent)
-      startingFiles = (url.path, files)
-      path = url.path
-    } catch { welcomeError = error.localizedDescription }
-  }
-  func open() {
-    let panel = NSOpenPanel()
-    panel.canChooseDirectories = true
-    panel.canChooseFiles = true
-    panel.treatsFilePackagesAsDirectories = false
-    if panel.runModal() == .OK, let url = panel.url { openURL(url) }
-  }
-  func openURL(_ url: URL) {
-    if url.pathExtension == "sevraz" {
-      let panel = NSSavePanel()
-      panel.title = "Open portable workbook"
-      panel.nameFieldStringValue = url.deletingPathExtension().lastPathComponent + ".sevra"
-      if panel.runModal() == .OK, let target = panel.url {
-        Task {
-          do {
-            _ = try await Task.detached { try Workbook.openArchive(url, at: target) }.value
-            openWindow(value: target.path)
-          } catch { welcomeError = error.localizedDescription }
-        }
-      }
-    } else {
-      openWindow(value: url.path)
-    }
-  }
-  func demo() {
-    let panel = NSSavePanel()
-    panel.nameFieldStringValue = "Willow Workshop.sevra"
-    if panel.runModal() == .OK, let url = panel.url {
+    let title = url.deletingPathExtension().lastPathComponent
+    Task {
       do {
-        try Demo.create(at: url)
-        openWindow(value: url.path)
+        _ = try await Task.detached(priority: .userInitiated) {
+          try Workbook.create(at: url, title: title)
+        }.value
+        startingFiles = (url.path, files)
+        path = url.path
       } catch { welcomeError = error.localizedDescription }
     }
   }
