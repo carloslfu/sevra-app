@@ -1330,6 +1330,21 @@ check("formulas that can never evaluate are refused when saved") {
   try expect(try book.evaluateApplicationDefinition(function(64).id)["result"].text == "64")
 }
 
+check("dates past the year range and oversized occurrences cannot wedge inventory consumers") {
+  try refuses("date") { _ = try BusinessTime.normalized("9999-12-31T23:59:59-01:00") }
+  try refuses("date") { _ = try BusinessTime.normalized("0001-01-01T00:00:00+01:00") }
+  try expect(try BusinessTime.normalized("9999-12-31T23:59:59Z").hasPrefix("9999-12-31"))
+  let evidence = try book.addItem(category: "source", kind: "observation", title: "Delivery")
+  try refuses("movement") {
+    _ = try book.movement(
+      subject: "long", quantity: "1", occurrence: String(repeating: "x", count: 513),
+      effective: "2026-01-01", input: evidence.id)
+  }
+  _ = try book.movement(
+    subject: "long", quantity: "1", occurrence: String(repeating: "x", count: 512),
+    effective: "2026-01-01", input: evidence.id)
+}
+
 check("saved URLs hide secrets by name and keep every other parameter's exact bytes") {
   let saved = Workbook.safeOrigin(
     URL(string: "https://a.example/x?APIKey=1&client_secret=2&Refresh_Token=3&q=a%2Bb&r=c+d#f")!)

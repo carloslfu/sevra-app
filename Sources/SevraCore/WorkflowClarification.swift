@@ -24,6 +24,10 @@ extension Workbook {
     let value = step["output"]["value"]
     let definition = try applicationDefinition(step["output"]["definitionID"].text)
     let interpretation = try DefinitionInterpretation(DefinitionDescriptor(definition.content))
+    // Two inputs can name one Source. The answer picks from distinct evidence.
+    var seen = Set<String>()
+    let evidence = value["request"]["evidence"].array.map { $0["id"] }
+      .filter { seen.insert($0.text).inserted }
     return .object([
       "workbookID": .string(id), "runID": .string(runID), "stepID": step["step_id"],
       "outputHash": .string(ChangeFormat.hash(try step["output"].json())),
@@ -31,7 +35,7 @@ extension Workbook {
       "title": .string(definition.title), "fields": interpretation.rawOutputs,
       "meaning": .string(interpretation.meaning), "scenario": .string(interpretation.scenario),
       "issues": value["response"]["issues"],
-      "evidenceIDs": .array(value["request"]["evidence"].array.map { $0["id"] }),
+      "evidenceIDs": .array(evidence),
     ])
   }
 

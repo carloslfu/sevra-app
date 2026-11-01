@@ -151,7 +151,7 @@ struct ClarificationEvidenceField: View {
         guard let workbook else { return }
         let ids = evidenceIDs
         let names = await Task.detached {
-          Dictionary(uniqueKeysWithValues: ids.map { ($0, (try? workbook.item($0).title) ?? $0) })
+          Dictionary(ids.map { ($0, (try? workbook.item($0).title) ?? $0) }) { first, _ in first }
         }.value
         guard !Task.isCancelled else { return }
         titles = names

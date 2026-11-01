@@ -5,7 +5,7 @@ import Foundation
 func checkWorkflowInterpretations(at root: URL) {
   func fixture(
     _ name: String, meaning: String = "actual", file: Bool = false,
-    outputMeaning: String = "actual", inventory: Bool = false
+    outputMeaning: String = "actual", inventory: Bool = false, twoInputs: Bool = false
   ) throws -> (
     Workbook, Item, WorkflowExecutionSession
   ) {
@@ -28,10 +28,12 @@ func checkWorkflowInterpretations(at root: URL) {
       content: .object([
         "kind": .string("interpretation"), "title": .string("Read count"),
         "description": .string("Synthetic"),
-        "parameters": .array([ActionRegistry.field("evidence", "Evidence", "item")]),
+        "parameters": .array(
+          [ActionRegistry.field("evidence", "Evidence", "item")]
+            + (twoInputs ? [ActionRegistry.field("again", "Again", "item")] : [])),
         "payload": .object([
           "instruction": .string("Extract the received count; never accept inventory."),
-          "evidence": .array([.string("evidence")]),
+          "evidence": .array([.string("evidence")] + (twoInputs ? [.string("again")] : [])),
           "outputs": .array([ActionRegistry.field("quantity", "Count", "decimal", unit: "items")]),
           "meaning": .string(outputMeaning), "scenario": .string("actual"),
         ]),
@@ -47,7 +49,10 @@ func checkWorkflowInterpretations(at root: URL) {
     let read: Value = .object([
       "id": .string("read"), "kind": .string("interpret"),
       "binding": .object(["mode": .string("exact"), "versionID": .string(interpretation.id)]),
-      "arguments": .object(["evidence": .object(["parameter": .string("evidence")])]),
+      "arguments": .object(
+        ["evidence": .object(["parameter": .string("evidence")])].merging(
+          twoInputs ? ["again": .object(["parameter": .string("evidence")])] : [:]
+        ) { first, _ in first }),
     ])
     let calculate: Value = .object([
       "id": .string("double"), "kind": .string("evaluate"),
@@ -130,10 +135,11 @@ func checkWorkflowInterpretations(at root: URL) {
     ])
   }
   func paused(
-    _ name: String, outputMeaning: String = "actual", inventory: Bool = false
+    _ name: String, outputMeaning: String = "actual", inventory: Bool = false,
+    twoInputs: Bool = false
   ) throws -> (Workbook, WorkflowExecutionSession, Value, Value) {
     let (book, _, session) = try fixture(
-      name, outputMeaning: outputMeaning, inventory: inventory)
+      name, outputMeaning: outputMeaning, inventory: inventory, twoInputs: twoInputs)
     let claim = try book.claimWorkflowStep(session, owner: "synthetic")
     let request = try book.prepareWorkflowInterpretation(session, claim: claim, model: "synthetic")
     let result = try book.completeWorkflowStep(
@@ -146,6 +152,11 @@ func checkWorkflowInterpretations(at root: URL) {
         ]),
       ]))
     return (book, session, result, claim)
+  }
+  check("two inputs naming one Source offer it once for a clarification answer") {
+    let (book, session, _, _) = try paused("Repeated", twoInputs: true)
+    let target = try book.workflowClarification(session.runID)
+    try expect(target["evidenceIDs"].array.count == 1)
   }
   check(
     "supplied clarification preserves the model result, exact lineage and separate stock review"

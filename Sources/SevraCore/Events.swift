@@ -37,7 +37,13 @@ public enum BusinessTime {
     }
     parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     parser.timeZone = TimeZone(secondsFromGMT: 0)
-    return parser.string(from: date)
+    // An offset can carry a date out of the four-digit years, where this text stops naming it.
+    let normalized = parser.string(from: date)
+    let stored = parser.date(from: normalized)
+    try require(
+      normalized.utf8.count == 24 && stored.map { abs($0.timeIntervalSince(date)) < 1 } == true,
+      "date", "Use a date between the years 0001 and 9999.")
+    return normalized
   }
 }
 
@@ -96,6 +102,9 @@ extension Workbook {
     try require(
       !subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !occurrence.isEmpty,
       "movement", "Subject and occurrence must not be empty.")
+    // Consumers read effects in bounded rows, so one oversized value would stop them for good.
+    try require(
+      occurrence.utf8.count <= 512, "movement", "An occurrence is limited to 512 bytes.")
     _ = try Numbers.decimal(quantity)
     var fields: [String: Value] = [
       "subject": .string(subject), "quantity": .string(quantity), "occurrence": .string(occurrence),
