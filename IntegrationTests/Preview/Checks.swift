@@ -39,7 +39,16 @@ private actor ReadGate {
 }
 
 @main private struct Checks {
-  @MainActor static func main() async {
+  /// Not an async main: posting an AppKit event stops the main run loop, and an async main takes
+  /// that for the end of the program. It would exit(0) with the remaining checks unrun.
+  static func main() {
+    Task { @MainActor in
+      await checks()
+      exit(0)
+    }
+    while true { RunLoop.main.run(mode: .default, before: .distantFuture) }
+  }
+  @MainActor static func checks() async {
     do {
       if CommandLine.arguments.count == 3, CommandLine.arguments[1] == "--large-asset" {
         try await checkLargePreview(at: URL(fileURLWithPath: CommandLine.arguments[2]))
