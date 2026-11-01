@@ -99,6 +99,24 @@ func checkInventoryEventState(at root: URL) {
     try expect(
       try book.balance(subject: "parts", asOf: "2030-01-01")["quantity"] == future["quantity"])
   }
+  check("balance stops at now and names the accepted effects it left out") {
+    let (book, source, _) = try fixture("Period")
+    for (occurrence, quantity, date) in [
+      ("today", "-1", "2026-01-02"), ("same-instant", "-2", "2026-01-01"), ("later", "-3", "2030-01-01"),
+    ] {
+      _ = try book.movement(
+        subject: "parts", quantity: quantity, occurrence: occurrence, effective: date,
+        input: source.id, status: "accepted")
+    }
+    let now = try book.balance(subject: "parts")
+    try expect(now["quantity"].text == "19" && now["effects"].array.count == 1)
+    try expect(now["excludedCount"].int == 2)
+    try expect(
+      now["excludedEffects"].array.map { $0["reason"].text } == ["not-after-basis", "after-as-of"])
+    let future = try book.balance(subject: "parts", asOf: "2030-01-01")
+    try expect(future["quantity"].text == "16" && future["excludedCount"].int == 1)
+    try refuses("unknown_basis") { _ = try book.balance(subject: "parts", asOf: "2025-12-31") }
+  }
   check("later cross-scope settled revisions cannot leave an older logical effect active") {
     let (book, source, _) = try fixture("CrossScope")
     let first = try book.movement(

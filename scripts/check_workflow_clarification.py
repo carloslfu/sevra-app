@@ -110,7 +110,7 @@ def worker_call(operation, folder):
 
 def snapshot(book, run_id):
     return {'run': call('workflow-read', book, run_id), 'counts': call('inspect', book),
-            'balance': call('balance', book, 'bolts'), 'events': call('workflow-events', book),
+            'balance': call('balance', book, 'bolts', '2099-12-31'), 'events': call('workflow-events', book),
             'integrity': call('verify', book)}
 
 

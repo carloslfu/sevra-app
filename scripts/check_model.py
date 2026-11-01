@@ -46,7 +46,7 @@ with tempfile.TemporaryDirectory(prefix='sevra-real-model-') as temporary:
     folder=Path(temporary);book=folder/'Eval.sevra'
     run('demo',book)
     if 'inventory' in checks:
-        before,_=run('balance',book,'brass bolts')
+        before,_=run('balance',book,'brass bolts','2099-12-31')
         records,_=run('records',book)
         spaces,_=run('spaces',book)
         required={before['basis'],*(r['item_id'] for r in before['effects'])}
@@ -57,7 +57,7 @@ with tempfile.TemporaryDirectory(prefix='sevra-real-model-') as temporary:
         receipts=[json.loads(m['body']) for m in history if m['role']=='tool']
         assert not any('validation' in r for r in receipts),receipts
         assert not any(r['tool'] in ['history_read','history_search','count_records'] for r in receipts),receipts
-        assert run('balance',book,'brass bolts')[0]==before
+        assert run('balance',book,'brass bolts','2099-12-31')[0]==before
         after=run('records',book)[0]
         originals={r['id'] for r in records}
         assert [r for r in after if r['id'] in originals]==records

@@ -14,7 +14,7 @@ import SevraCore
   static func snapshot(_ book: Workbook, runID: String) throws -> Value {
     .object([
       "run": try book.workflowRun(runID), "counts": try book.counts(),
-      "balance": try book.balance(subject: "bolts"), "events": try book.workflowEvents(limit: 50),
+      "balance": try book.balance(subject: "bolts", asOf: "2099-12-31"), "events": try book.workflowEvents(limit: 50),
       "integrity": try book.verify(),
     ])
   }

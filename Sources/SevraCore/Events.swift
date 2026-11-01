@@ -35,6 +35,14 @@ public enum BusinessTime {
     guard let date else {
       throw SevraError("date", "Use an ISO 8601 date or timestamp, including a time zone.")
     }
+    // This calendar jumps from 1582-10-04 to 1582-10-15 and moves any date between them.
+    parser.formatOptions = [.withInternetDateTime]
+    let written = String(value.prefix(19))
+    let wall = parser.date(from: written + (value.count == 10 ? "T00:00:00Z" : "Z"))
+    let change = parser.date(from: "1582-10-15T00:00:00Z")!
+    try require(
+      wall.map { parser.string(from: $0).hasPrefix(written) && ($0 < change) == (date < change) }
+        == true, "date", "This calendar date does not exist.")
     parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     parser.timeZone = TimeZone(secondsFromGMT: 0)
     // An offset can carry a date out of the four-digit years, where this text stops naming it.
@@ -277,8 +285,11 @@ extension Workbook {
     }
     return accepted
   }
-  public func balance(subject: String, asOf: String = "9999-12-31T23:59:59Z") throws -> Value {
-    let asOf = try BusinessTime.normalized(asOf)
+  /// A dated entry is not stock until its date arrives, so `asOf` defaults to now. Accepted
+  /// effects outside the period stay visible: a quantity never hides what it left out.
+  public func balance(subject: String, asOf: String? = nil) throws -> Value {
+    let asOf = try BusinessTime.normalized(asOf ?? timestamp())
+    let subject = subject.precomposedStringWithCanonicalMapping
     return try synchronized {
       guard
         let base = try db.execute("SELECT * FROM bases WHERE subject=?", [.string(subject)]).first
@@ -287,16 +298,31 @@ extension Workbook {
         base["effective"]!.text <= asOf, "unknown_basis",
         "No opening basis exists before this date.")
       var total = try Numbers.decimal(base["quantity"]!.text)
+      let settled =
+        "FROM effects e JOIN items i ON i.id=e.item_id WHERE e.subject=? AND i.status='accepted' AND i.meaning='actual' AND i.scenario='actual' AND NOT EXISTS(SELECT 1 FROM items n WHERE n.logical_id=i.logical_id AND n.version>i.version AND n.status IN ('accepted','rejected'))"
+      let period: [Value] = [.string(subject), base["effective"]!, .string(asOf)]
       let rows = try db.execute(
-        "SELECT e.*,i.logical_id FROM effects e JOIN items i ON i.id=e.item_id WHERE e.subject=? AND i.status='accepted' AND i.meaning='actual' AND i.scenario='actual' AND e.effective>? AND e.effective<=? AND NOT EXISTS(SELECT 1 FROM items n WHERE n.logical_id=i.logical_id AND n.version>i.version AND n.status IN ('accepted','rejected')) ORDER BY e.effective,e.item_id",
-        [.string(subject), base["effective"]!, .string(asOf)])
+        "SELECT e.*,i.logical_id \(settled) AND e.effective>? AND e.effective<=? ORDER BY e.effective,e.item_id",
+        period)
       for row in rows {
         total = try exactInventorySum(total, Numbers.decimal(row["quantity"]!.text))
       }
+      let outside = "AND (e.effective<=? OR e.effective>?)"
+      let excluded = try db.execute(
+        "SELECT e.*,i.logical_id \(settled) \(outside) ORDER BY e.effective,e.item_id LIMIT 20",
+        period)
       return .object([
         "subject": .string(subject), "quantity": .string(Numbers.string(total)),
         "basis": base["source_id"]!, "effects": .array(rows.map(Value.object)),
         "asOf": .string(asOf),
+        "excludedCount": try db.scalar("SELECT count(*) \(settled) \(outside)", period),
+        "excludedEffects": .array(
+          excluded.map { row in
+            var effect = row
+            effect["reason"] = .string(
+              row["effective"]!.text > asOf ? "after-as-of" : "not-after-basis")
+            return .object(effect)
+          }),
       ])
     }
   }

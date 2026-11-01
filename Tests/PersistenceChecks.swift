@@ -111,7 +111,9 @@ func checkPersistence(at root: URL) {
     try FileManager.default.removeItem(at: file)
     let restored = try book.reconstruct(to: root.appendingPathComponent("Reconstructed.sevra"))
     try expect(restored.id == book.id && restored.revision() == book.revision())
-    try expect(try restored.balance(subject: "parts") == book.balance(subject: "parts"))
+    try expect(
+      try restored.balance(subject: "parts", asOf: "2099-12-31")
+        == book.balance(subject: "parts", asOf: "2099-12-31"))
     try expect(try restored.rows(table.id)[0].data == book.rows(table.id)[0].data)
     try expect(try restored.item(report.id) == book.item(report.id))
     try expect(

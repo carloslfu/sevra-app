@@ -32,7 +32,7 @@ private struct Plan: Codable {
       "checkpoints": .array(checkpoints),
       "checkpointDetails": .array(
         try checkpoints.map { try book.contextCheckpoint($0["id"].text) }),
-      "balance": try book.balance(subject: "brass bolts"),
+      "balance": try book.balance(subject: "brass bolts", asOf: "2099-12-31"),
       "forecast": try encoded(book.item(plan.forecastLogical)), "integrity": try book.verify(),
     ])
   }

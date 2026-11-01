@@ -610,7 +610,7 @@ import SevraProduct
           arg(2), token: args.count > 3 ? args[3] : identifier(), cancellation: cancellation))
     case "withdraw":
       return try encoded(book.withdrawDraft(arg(2), token: args.count > 3 ? args[3] : identifier()))
-    case "balance": return try book.balance(subject: arg(2))
+    case "balance": return try book.balance(subject: arg(2), asOf: args.count > 3 ? args[3] : nil)
     case "opening":
       try book.setOpeningBalance(
         subject: arg(2), quantity: arg(3), effective: arg(4), sourceID: arg(5))
@@ -744,7 +744,7 @@ import SevraProduct
     index-references WORKBOOK VERSION_ID | index-reference-bodies WORKBOOK [OPTIONS_JSON] | rebuild-references WORKBOOK
     accept WORKBOOK ID [TOKEN] | withdraw WORKBOOK ID [TOKEN] | undo WORKBOOK ID [TOKEN] | lineage WORKBOOK ID
     opening WORKBOOK SUBJECT QUANTITY ISO_DATE SOURCE_ID | movement WORKBOOK JSON
-    balance WORKBOOK SUBJECT | calculate EXPRESSION [VALUES_JSON]
+    balance WORKBOOK SUBJECT [AS_OF] | calculate EXPRESSION [VALUES_JSON]
     schedule-preview SCHEDULE_JSON_OR_@FILE AFTER_ISO [COUNT] [HORIZON_DAYS]
     automation-preview WORKBOOK EXACT_DEFINITION_ID AFTER_ISO [COUNT] [HORIZON_DAYS]
     condition-preview RULE_JSON_OR_@FILE OBSERVATIONS_JSON_OR_@FILE

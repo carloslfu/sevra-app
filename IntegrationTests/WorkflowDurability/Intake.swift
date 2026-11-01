@@ -16,7 +16,7 @@ enum WorkflowIntakeDurability {
       "run": try book.workflowRun(runID), "counts": try book.counts(),
       "rows": .array(try book.rows(datasetID).map { try encoded($0) }),
       "proposals": .array(try book.items(kind: "table-intake-update").map { try encoded($0) }),
-      "balance": try book.balance(subject: "stock"),
+      "balance": try book.balance(subject: "stock", asOf: "2099-12-31"),
       "events": try book.workflowEvents(limit: 50), "integrity": try book.verify(),
     ])
   }

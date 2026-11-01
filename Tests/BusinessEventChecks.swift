@@ -139,7 +139,7 @@ func checkBusinessEvents(at root: URL) {
     try expect(
       try book.db.scalar("SELECT count(*) FROM effects WHERE item_id=?", [.string(impostor.id)]).int
         == 0)
-    try expect(try book.balance(subject: "parts")["quantity"].text == "18")
+    try expect(try book.balance(subject: "parts", asOf: "2030-02-01")["quantity"].text == "18")
     try expect(try book.verify()["ok"] == .bool(true))
   }
   check("an estimate never becomes an actual through a correction or actual evidence") {
@@ -209,6 +209,17 @@ func checkBusinessEvents(at root: URL) {
     try expect(
       try book.inventoryCondition(consumer["id"].text)["lastCompleteObservation"]["quantity"].text
         == "15")
+  }
+  check("a date is stored as written or refused with date") {
+    for value in ["1582-10-05", "1582-10-10", "1582-10-14", "1582-10-10T12:00:00Z"] {
+      try refuses("date") { _ = try BusinessTime.normalized(value) }
+    }
+    try refuses("date") { _ = try BusinessTime.normalized("1582-10-15T01:00:00+05:00") }
+    for value in ["1582-10-04", "1582-10-15", "2026-02-28"] {
+      try expect(try BusinessTime.normalized(value) == value + "T00:00:00.000Z")
+    }
+    try expect(
+      try BusinessTime.normalized("2026-03-01T01:00:00+05:00") == "2026-02-28T20:00:00.000Z")
   }
   check("dataset schema and membership feed uses captured maps after later removal") {
     let (book, source) = try businessFixture(root, "BusinessDataset")
