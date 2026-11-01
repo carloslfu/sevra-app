@@ -716,7 +716,7 @@ struct FolderReview {
     messageAnchor = nil
     conversationSession.updateReading(.init())
     readingRequest = UUID()
-    if let target = URL(string: input), ["http", "https"].contains(target.scheme ?? "") {
+    if let target = WorkspaceControlCommand.captureURL(input) {
       guard let (_, ticket) = beginOperation("Capturing source") else { return }
       let chat = conversation
       let navigationID = itemPreviewIdentity

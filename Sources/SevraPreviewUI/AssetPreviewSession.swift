@@ -123,6 +123,16 @@ public enum WorkspaceControlCommand: Equatable {
     }
   }
 
+  /// A submission is a page to capture only when the whole of it is one URL.
+  /// `URL(string:)` percent-encodes spaces, so prose after a link would parse too.
+  public static func captureURL(_ input: String) -> URL? {
+    let text = input.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard text.rangeOfCharacter(from: .whitespacesAndNewlines) == nil,
+      let target = URL(string: text), ["http", "https"].contains(target.scheme ?? "")
+    else { return nil }
+    return target
+  }
+
   public static func allowsSubmission(_ input: String, busy: Bool) -> Bool {
     guard !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
     if !busy { return true }

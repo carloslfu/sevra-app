@@ -221,6 +221,18 @@ private actor ReadGate {
     try expect(
       WorkspaceControlCommand.allowsSubmission("Compare the suppliers", busy: false),
       "Ordinary model requests were disabled while idle")
+    for input in ["https://example.com/quote.pdf", "  http://example.com/a?b=c\n"] {
+      try expect(
+        WorkspaceControlCommand.captureURL(input) != nil, "A bare URL was not captured")
+    }
+    for input in [
+      "https://example.com/quote.pdf summarize this", "http://example.com is this safe?",
+      "https://example.com/a\nand also b", "ftp://example.com/a",
+    ] {
+      try expect(
+        WorkspaceControlCommand.captureURL(input) == nil,
+        "A request that mentions a link was fetched as a URL")
+    }
     for input in ["Open a copy.", "open in another app", "open this file in another app"] {
       try expect(
         WorkspaceControlCommand.parse(input) == .openCopy, "Copy command was not recognized")
