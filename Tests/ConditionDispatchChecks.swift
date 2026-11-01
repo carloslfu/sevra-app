@@ -129,6 +129,27 @@ func checkConditionDispatch(at directory: URL) {
     }
     try expect(try f.book.committedHistory() == before)
   }
+  check("a crossing held by a full queue asks for no step until the queue has room") {
+    let f = try fixture("Held")
+    for _ in 0..<101 {
+      try f.move("-15")
+      try f.move("15")
+    }
+    for _ in 0..<1000 {
+      let result = try f.book.stepAutomationCondition(
+        f.session, through: f.through, token: identifier())
+      if result["backpressure"] == .bool(true) { break }
+    }
+    let before = try f.book.committedHistory()
+    let held = try f.book.deviceConditionWork(f.session, through: f.observed)
+    try expect(held["needsStep"] == .bool(false) && held["pendingCandidates"].int == 100)
+    try expect(try f.book.committedHistory() == before)
+    let queue = try f.book.inventoryConditionQueue(f.consumer, limit: 1)
+    _ = try f.book.dismissInventoryConditionCandidate(
+      queue["candidates"].array[0]["candidateID"].text, reason: "Reviewed", token: "room")
+    try expect(
+      try f.book.deviceConditionWork(f.session, through: f.observed)["needsStep"] == .bool(true))
+  }
   check(
     "native condition probes stay read-only and notice due effective inputs without idle writes"
   ) {

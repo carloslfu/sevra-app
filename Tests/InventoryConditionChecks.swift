@@ -71,6 +71,28 @@ func checkInventoryConditions(at root: URL) {
       ])
     try expect(Set(rows.compactMap { $0["candidateID"].string }).count == 2)
   }
+  check("establishing over many small batches reads them a page at a time") {
+    let (book, source) = try businessFixture(root, "InventoryConditionEstablish")
+    try book.setOpeningBalance(
+      subject: "parts", quantity: "20", effective: "2026-01-01", sourceID: source.id)
+    for index in 0..<150 {
+      _ = try book.movement(
+        subject: "parts", quantity: "1", occurrence: "small-\(index)", effective: "2026-01-02",
+        input: source.id, status: "accepted")
+    }
+    let id = try book.createInventoryCondition(
+      subject: "parts", rule: inventoryConditionRule(), effectiveThrough: "2026-12-31",
+      token: "establish")["id"].text
+    var steps = 0
+    while try book.inventoryCondition(id)["hasMore"] == .bool(true) {
+      _ = try book.stepInventoryCondition(id, through: "2026-12-31", token: identifier())
+      steps += 1
+    }
+    try expect(steps <= 6, "Took \(steps) steps over 151 batches")
+    let status = try book.inventoryCondition(id)
+    try expect(status["lastCompleteObservation"]["quantity"].text == "170")
+    _ = try book.verify()
+  }
   check("condition bootstrap and large atomic batch resume without page-boundary observations") {
     let (book, source, id) = try fixture("LargeAtomic")
     _ = try drainInventoryCondition(book, id)

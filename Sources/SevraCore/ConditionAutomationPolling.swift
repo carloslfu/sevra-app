@@ -65,9 +65,12 @@ extension Workbook {
         [row["id"]!, .string(work.through)])
       let basisTime = work.basis["effective"].string.flatMap { $0 > work.through ? $0 : nil }
       let next = [basisTime, due.string].compactMap { $0 }.min()
+      // A crossing held back by the queue stays held. Stepping it would only add a commit.
+      let held = try inventoryConditionHeld(row, work: work, pending: pending.int ?? 0)
       let needsStep =
-        !work.ready || work.phase != "idle" || batch.int == 1
-        || work.through < work.requestedThrough || next.map { $0 <= instant } == true
+        !held
+        && (!work.ready || work.phase != "idle" || batch.int == 1
+          || work.through < work.requestedThrough || next.map { $0 <= instant } == true)
       let ahead = work.requestedThrough > instant
       return .object([
         "consumerID": row["id"]!, "needsStep": .bool(needsStep && !ahead),

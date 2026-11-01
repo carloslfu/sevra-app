@@ -142,6 +142,16 @@ func checkBusinessEvents(at root: URL) {
     try expect(try book.balance(subject: "parts", asOf: "2030-02-01")["quantity"].text == "18")
     try expect(try book.verify()["ok"] == .bool(true))
   }
+  check("record scope finds a movement by its identity, and a stranger finds nothing") {
+    let (book, source) = try businessFixture(root, "BusinessRecordScope")
+    let movement = try book.movement(
+      subject: "parts", quantity: "-2", occurrence: "sale", effective: "2026-01-02",
+      input: source.id, status: "accepted")
+    let scoped = try book.businessBatches(scopeKind: "record", scopeKey: movement.logicalID)
+    try expect(scoped["batches"].array.count == 1 && scoped["hasMore"] == .bool(false))
+    let other = try book.businessBatches(scopeKind: "record", scopeKey: "no-such-record")
+    try expect(other["batches"].array.isEmpty)
+  }
   check("an estimate never becomes an actual through a correction or actual evidence") {
     let (book, source) = try businessFixture(root, "BusinessNoPromotion")
     try book.setOpeningBalance(

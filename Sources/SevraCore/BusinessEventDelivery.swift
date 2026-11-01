@@ -12,11 +12,19 @@ extension Workbook {
       (scopeKind == nil && scopeKey == nil)
         || (["record", "inventory", "dataset"].contains(scopeKind ?? "") && scopeKey != nil),
       "business_scope", "Choose both an exact scope kind and key, or neither.")
+    let scopeKey =
+      scopeKind == "inventory" ? scopeKey?.precomposedStringWithCanonicalMapping : scopeKey
     return try readBusinessFeed(cancellation: cancellation) {
       let position = try businessCursor(cursor)
       let tail = try businessTail()
       let candidates: [[String: Value]]
-      if let scopeKind, let scopeKey {
+      if scopeKind == "record", let scopeKey {
+        // A movement is scoped to its subject, so a record is found by its identity instead.
+        candidates = try db.execute(
+          "SELECT CAST(batch_position AS TEXT) AS position,batch_id AS id FROM business_events WHERE logical_id=? AND family='record-settled' AND batch_position>CAST(? AS INTEGER) GROUP BY batch_position ORDER BY batch_position LIMIT ?",
+          [.string(scopeKey), .string(position), .number(Double(limit + 1))],
+          maxRows: limit + 1, maxBytes: 1_048_576)
+      } else if let scopeKind, let scopeKey {
         // Seek the sparse scope index, rather than scanning unrelated commits.
         candidates = try db.execute(
           "SELECT CAST(batch_position AS TEXT) AS position,batch_id AS id FROM business_events WHERE scope_kind=? AND scope_key=? AND batch_position>CAST(? AS INTEGER) GROUP BY batch_position ORDER BY batch_position LIMIT ?",

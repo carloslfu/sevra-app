@@ -95,6 +95,7 @@ extension Workbook {
 
   /// Advances at most one 100-row page. A complete batch/group, observation,
   /// candidate and completed cursor are published together, or not at all.
+  /// Establishing a baseline keeps reading whole batches up to that same page.
   public func stepInventoryCondition(
     _ id: String, through: String, token: String, cancellation: Cancellation = .init()
   ) throws -> Value {
@@ -126,15 +127,20 @@ extension Workbook {
         through >= work.requestedThrough, "condition_clock",
         "The retained condition horizon cannot move backwards.")
       work.requestedThrough = through
-      if work.phase == "idle" {
-        try self.beginInventoryConditionPage(row, work: &work)
-      }
-      switch work.phase {
-      case "batch": try self.applyInventoryConditionBatch(row, work: &work, control: control)
-      case "clock": try self.applyInventoryConditionClock(row, work: &work, control: control)
-      case "rebuild": try self.rebuildInventoryCondition(row, work: &work, control: control)
-      default: break
-      }
+      var page = 100
+      repeat {
+        if work.phase == "idle" {
+          try self.beginInventoryConditionPage(row, work: &work)
+        }
+        switch work.phase {
+        case "batch":
+          page -= try self.applyInventoryConditionBatch(
+            row, work: &work, limit: page, control: control)
+        case "clock": try self.applyInventoryConditionClock(row, work: &work, control: control)
+        case "rebuild": try self.rebuildInventoryCondition(row, work: &work, control: control)
+        default: break
+        }
+      } while !work.ready && work.phase == "idle" && page > 0
       if work.phase == "finalize" { try self.finalizeInventoryCondition(row, work: &work) }
       try self.db.execute(
         "UPDATE condition_consumers SET state=? WHERE id=?",
@@ -258,7 +264,7 @@ extension Workbook {
       "requestedThrough": .string(work.requestedThrough),
       "pendingBatchID": work.pendingBatch.map(Value.string) ?? .null,
       "pendingOrdinal": .number(Double(work.ordinal)), "pendingCandidates": pending,
-      "backpressure": .bool(work.phase == "finalize" && pending.int == 100),
+      "backpressure": .bool(try inventoryConditionHeld(row, work: work, pending: pending.int ?? 0)),
       "hasMore": .bool(
         !work.ready || work.phase != "idle" || more.int == 1 || work.through < work.requestedThrough
       ),

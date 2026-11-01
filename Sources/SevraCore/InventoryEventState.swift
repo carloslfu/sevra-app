@@ -8,6 +8,7 @@ extension Workbook {
     cancellation: Cancellation = .init()
   ) throws -> Value {
     let effectiveThrough = try BusinessTime.normalized(effectiveThrough)
+    let subject = subject.precomposedStringWithCanonicalMapping
     return try readBusinessFeed(cancellation: cancellation) {
       let batch = try businessBatchMetadata(batchID)
       let position = batch["position"]

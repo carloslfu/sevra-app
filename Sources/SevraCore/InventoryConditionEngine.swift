@@ -66,20 +66,22 @@ extension Workbook {
     }
   }
 
+  /// Returns how many entries of the page this took.
   func applyInventoryConditionBatch(
-    _ row: [String: Value], work: inout InventoryConditionWork, control: Cancellation
-  ) throws {
+    _ row: [String: Value], work: inout InventoryConditionWork, limit: Int, control: Cancellation
+  ) throws -> Int {
     guard let batch = work.pendingBatch else {
       throw SevraError("condition_integrity", "An unfinished business batch has no identity.")
     }
     let entries = try db.execute(
-      "SELECT * FROM business_events WHERE batch_id=? AND ordinal>? ORDER BY ordinal LIMIT 101",
-      [.string(batch), .number(Double(work.ordinal))], maxRows: 101, maxBytes: 8_388_608)
+      "SELECT * FROM business_events WHERE batch_id=? AND ordinal>? ORDER BY ordinal LIMIT ?",
+      [.string(batch), .number(Double(work.ordinal)), .number(Double(limit + 1))],
+      maxRows: limit + 1, maxBytes: 8_388_608)
     try require(
       !entries.isEmpty, "condition_integrity",
       "An unfinished business batch lost its remaining entries.")
     var basisChanged = false
-    for entry in entries.prefix(100) {
+    for entry in entries.prefix(limit) {
       try control.check()
       if entry["family"] == .string("record-settled") {
         try updateInventoryConditionEffect(row, event: entry, work: &work)
@@ -114,7 +116,7 @@ extension Workbook {
       work.quantity = nil
       work.rebuildRequired = true
     }
-    if entries.count <= 100 {
+    if entries.count <= limit {
       if !work.ready && row["anchor_id"] != .string(batch) {
         let metadata = try businessBatchMetadata(batch)
         work.cursorID = batch
@@ -127,6 +129,7 @@ extension Workbook {
         work.phase = "finalize"
       }
     }
+    return min(entries.count, limit)
   }
 
   func applyInventoryConditionClock(
@@ -183,6 +186,16 @@ extension Workbook {
     if effects.count <= 100 { work.phase = "finalize" }
   }
 
+  /// Only a crossing waits for the queue. Every other observation still publishes.
+  func inventoryConditionHeld(
+    _ row: [String: Value], work: InventoryConditionWork, pending: Int
+  ) throws -> Bool {
+    guard work.phase == "finalize", pending >= 100, work.lastCertainTruth == false else {
+      return false
+    }
+    return try work.quantity.map(NativeConditionRule(Value.parse(row["rule"]!.text)).truth) == true
+  }
+
   func finalizeInventoryCondition(_ row: [String: Value], work: inout InventoryConditionWork) throws
   {
     let rule = try NativeConditionRule(Value.parse(row["rule"]!.text))
@@ -193,7 +206,7 @@ extension Workbook {
         "SELECT count(*) FROM condition_candidates WHERE consumer_id=? AND state='pending'",
         [row["id"]!]
       ).int ?? 0
-    if crossing && pending >= 100 { return }
+    if try inventoryConditionHeld(row, work: work, pending: pending) { return }
     let batch = work.pendingBatch ?? work.cursorID
     let coordinate: Value = .array([
       row["id"]!, batch.map(Value.string) ?? .null, .string(work.through),
