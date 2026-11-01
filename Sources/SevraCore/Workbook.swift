@@ -128,6 +128,8 @@ public final class Workbook: @unchecked Sendable {
     deadlineSeconds: TimeInterval = 3, commitGuard: (() throws -> Void)? = nil,
     _ body: () throws -> Value
   ) throws -> Value {
+    // The token becomes the saved change's identity, which verification requires.
+    try require(!token.isEmpty, "operation_token", "An operation needs a nonempty token.")
     let receiptRequest: Value =
       try actor.map {
         .object(["arguments": request, "actor": try encoded($0)])

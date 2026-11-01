@@ -200,6 +200,27 @@ func checkPersistence(at root: URL) {
     let replay = try book.reconstruct(to: root.appendingPathComponent("ActorsReplay.sevra"))
     try expect(try replay.committedHistory() == book.committedHistory())
   }
+  check("an empty operation token is refused on every path, so history stays verifiable") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("EmptyToken.sevra"), title: "Tokens")
+    let source = try book.addItem(category: "source", kind: "note", title: "Input")
+    let draft = try book.addItem(
+      category: "record", kind: "forecast", title: "Draft", inputs: [source.id])
+    let revision = try book.revision()
+    try refuses("operation_token") {
+      _ = try book.addItem(category: "source", kind: "note", title: "Empty", token: "")
+    }
+    try refuses("operation_token") { _ = try book.accept(draft.id, token: "") }
+    try refuses("operation_token") { _ = try book.withdrawDraft(draft.id, token: "") }
+    try refuses("operation_token") {
+      _ = try book.movement(
+        subject: "bolts", quantity: "1", occurrence: "one", effective: "2026-01-01",
+        input: source.id, token: "")
+    }
+    try expect(try book.revision() == revision)
+    _ = try book.accept(draft.id, token: "real-token")
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
   check("saved SQLite values keep large integers, exact UTF-8, empty blobs and IEEE-754 bits") {
     let database = try Database(root.appendingPathComponent("Typed.sqlite"), create: true)
     try database.script("CREATE TABLE values_fixture(a,b,c,d,e);")
