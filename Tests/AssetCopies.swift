@@ -30,6 +30,15 @@ func checkAssetCopies(at root: URL) {
     try book.copyAsset(source.assetID!, to: emptyCopy)
     try expect(try Data(contentsOf: emptyCopy).isEmpty)
     _ = try book.verify()
+    try expect(getxattr(emptyCopy.path, "com.apple.quarantine", nil, 0, 0, 0) == -1)
+    try Workbook.quarantineCopy(emptyCopy)
+    let flag = try emptyCopy.resourceValues(forKeys: [.quarantinePropertiesKey])
+    try expect(flag.quarantineProperties?["LSQuarantineAgentName"] as? String == "Sevra")
+    try expect(getxattr(emptyCopy.path, "com.apple.quarantine", nil, 0, 0, 0) > 0)
+    try expect(try Data(contentsOf: emptyCopy).isEmpty)
+    try refuses("copy_quarantine") {
+      try Workbook.quarantineCopy(folder.appendingPathComponent("missing.txt"))
+    }
   }
 
   check("cancelled or changed asset copies publish nothing and retain bounded progress") {

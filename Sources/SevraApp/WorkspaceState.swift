@@ -908,7 +908,9 @@ struct FolderReview {
     {
       returnInput(unsent.input)
     } else {
-      try? ComposerInput.keep(unsent.input, conversation: unsent.chat, in: unsent.book)
+      do { try ComposerInput.keep(unsent.input, conversation: unsent.chat, in: unsent.book) } catch {
+        if interactionActive { returnInput(unsent.input) }
+      }
     }
   }
   private func workflowAnswerCommand(
@@ -1332,6 +1334,7 @@ struct FolderReview {
               + ". Edits to the copy are not added to this workbook.", role: "event",
             conversation: chat)
           guard owns(ticket, in: book), !ticket.cancellation.isCancelled else { return }
+          try Workbook.quarantineCopy(copy)
           if !NSWorkspace.shared.open(copy) {
             error =
               "The copy was saved, but no app opened it. You can find it in the folder you chose."

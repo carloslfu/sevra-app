@@ -1,8 +1,26 @@
+import CoreServices
 import CryptoKit
 import Darwin
 import Foundation
 
 extension Workbook {
+  /// A workbook can hold anything someone sent. macOS checks a quarantined file before it runs,
+  /// so a copy that goes to another app carries the same flag as a download.
+  public static func quarantineCopy(_ file: URL) throws {
+    var copy = file
+    var values = URLResourceValues()
+    values.quarantineProperties = [
+      kLSQuarantineAgentNameKey as String: "Sevra",
+      kLSQuarantineTypeKey as String: kLSQuarantineTypeOtherDownload as String,
+    ]
+    do { try copy.setResourceValues(values) } catch {
+      throw SevraError(
+        "copy_quarantine",
+        "The copy was saved, but macOS could not mark it as a download, so Sevra did not open it. You can find it in the folder you chose."
+      )
+    }
+  }
+
   /// External editors receive a user-owned copy, never the workbook's evidence.
   /// This validates a destination for a native save panel; copying revalidates it.
   public func assetCopyDestination(_ destination: URL) throws -> URL {

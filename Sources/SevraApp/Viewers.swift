@@ -12,7 +12,7 @@ import SwiftUI
 struct ItemRouteView: View {
   let id: String
   let workbook: Workbook
-  @ObservedObject var state: WorkspaceState
+  let state: WorkspaceState
   @State private var item: Item?
   @State private var failure: String?
   var body: some View {
