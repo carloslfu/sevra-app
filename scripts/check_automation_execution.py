@@ -17,7 +17,8 @@ def main():
     parser.add_argument('--worker', default=ROOT / '.build/debug/sevra-automation-durability', type=Path)
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
-    output = args.output or Path(tempfile.mkdtemp(prefix='sevra-automation-execution-'))
+    scratch = None if args.output else tempfile.TemporaryDirectory(prefix='sevra-automation-execution-')
+    output = args.output or Path(scratch.name)
     if args.output:
         output.mkdir(parents=True, exist_ok=False)
     cli, checks, worker = args.cli.resolve(strict=True), args.checks.resolve(strict=True), args.worker.resolve(strict=True)
@@ -119,7 +120,7 @@ def main():
         result['ok'] = True
     finally:
         (output / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
-    print(json.dumps({'ok': result['ok'], 'calls': len(result['calls']), 'output': str(output)}))
+    print(json.dumps({'ok': result['ok'], 'calls': len(result['calls']), 'output': str(args.output or '')}))
 
 
 if __name__ == '__main__':

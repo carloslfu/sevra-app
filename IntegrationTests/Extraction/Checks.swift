@@ -388,6 +388,8 @@ private final class Failures: @unchecked Sendable {
         "Orphaned parser survived with an unread output pipe")
     }
     print("\(passed) passed; \(failed) failed. Process isolation is not a security sandbox.")
+    // exit skips the deferred removal.
+    try? FileManager.default.removeItem(at: root)
     exit(failed == 0 ? 0 : 1)
   }
 

@@ -17,7 +17,8 @@ def main():
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     cli, checks = args.cli.resolve(strict=True), args.checks.resolve(strict=True)
-    output = args.output or Path(tempfile.mkdtemp(prefix='sevra-automation-causality-'))
+    scratch = None if args.output else tempfile.TemporaryDirectory(prefix='sevra-automation-causality-')
+    output = args.output or Path(scratch.name)
     if args.output:
         output.mkdir(parents=True, exist_ok=False)
     evidence = {
@@ -97,7 +98,7 @@ def main():
     finally:
         save()
     print(json.dumps({'ok': evidence['ok'], 'calls': len(evidence['calls']),
-                      'writers': len(evidence['workers']), 'output': str(output)}))
+                      'writers': len(evidence['workers']), 'output': str(args.output or '')}))
 
 
 if __name__ == '__main__':

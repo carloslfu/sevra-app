@@ -22,7 +22,8 @@ args = parser.parse_args()
 cli = args.cli.resolve(strict=True)
 worker = args.worker.resolve(strict=True) if args.worker else None
 assert worker or (args.model_root and args.skip_crashes), 'A synthetic worker is required without a model or for crash checks'
-root = args.output.resolve() if args.output else Path(tempfile.mkdtemp(prefix='sevra-clarification-'))
+scratch = None if args.output else tempfile.TemporaryDirectory(prefix='sevra-clarification-')
+root = args.output.resolve() if args.output else Path(scratch.name)
 if args.output:
     root.mkdir(parents=True, exist_ok=False)
 result = {'ok': False, 'calls': [], 'crashChecks': [],
@@ -210,7 +211,7 @@ try:
         'completed steps retained', 'inert reconstruction', 'integrity', 'atomic SIGKILL recovery when selected'])
     save()
     print(j({'ok': True, 'actualModel': result['actualModel'], 'calls': len(result['calls']),
-             'crashBoundaries': len(result['crashChecks']), 'output': str(root)}))
+             'crashBoundaries': len(result['crashChecks']), 'output': str(args.output or '')}))
 except BaseException as error:
     result['failure'] = repr(error)
     save()

@@ -17,7 +17,8 @@ parser.add_argument('--model-root', type=Path)
 parser.add_argument('--output', type=Path)
 args = parser.parse_args()
 cli = args.cli.resolve(strict=True)
-root = args.output.resolve() if args.output else Path(tempfile.mkdtemp(prefix='sevra-workflow-lookup-'))
+scratch = None if args.output else tempfile.TemporaryDirectory(prefix='sevra-workflow-lookup-')
+root = args.output.resolve() if args.output else Path(scratch.name)
 if args.output:
     root.mkdir(parents=True, exist_ok=False)
 result = {'ok': False, 'calls': [], 'recordedUTC': datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -205,7 +206,7 @@ try:
                     'stock20 before review and25 after exact review once', 'report preserves estimate meaning',
                     'completed retry stable', 'inert reconstruction', 'original/copy integrity'])
     save()
-    print(j({'ok': True, 'actualModel': result['actualModel'], 'calls': len(result['calls']), 'output': str(root)}))
+    print(j({'ok': True, 'actualModel': result['actualModel'], 'calls': len(result['calls']), 'output': str(args.output or '')}))
 except BaseException as error:
     result['failure'] = repr(error)
     save()

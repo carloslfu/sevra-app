@@ -17,7 +17,8 @@ parser.add_argument('--model-root', type=Path)
 parser.add_argument('--output', type=Path)
 args = parser.parse_args()
 cli = args.cli.resolve(strict=True)
-root = args.output.resolve() if args.output else Path(tempfile.mkdtemp(prefix='sevra-document-actions-'))
+scratch = None if args.output else tempfile.TemporaryDirectory(prefix='sevra-document-actions-')
+root = args.output.resolve() if args.output else Path(scratch.name)
 if args.output:
     root.mkdir(parents=True, exist_ok=False)
 result = {'ok': False, 'calls': [], 'recordedUTC': datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -162,7 +163,7 @@ try:
                     'actual stock25 only after inventory review' if args.model_root else 'stock20 unchanged',
                     'inert reconstruction', 'original and copy integrity'])
     save()
-    print(j({'ok': True, 'actualModel': result['actualModel'], 'output': str(root)}))
+    print(j({'ok': True, 'actualModel': result['actualModel'], 'output': str(args.output or '')}))
 except BaseException as error:
     result['failure'] = repr(error)
     save()

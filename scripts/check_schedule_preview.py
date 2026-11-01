@@ -19,7 +19,8 @@ def main():
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     cli = args.cli.resolve(strict=True)
-    output = args.output.resolve() if args.output else Path(tempfile.mkdtemp(prefix='sevra-calendar-'))
+    scratch = None if args.output else tempfile.TemporaryDirectory(prefix='sevra-calendar-')
+    output = args.output.resolve() if args.output else Path(scratch.name)
     if args.output:
         output.mkdir(parents=True, exist_ok=False)
     result = {
@@ -139,7 +140,7 @@ def main():
             result['ok'] = True
         finally:
             save()
-    print(json.dumps({'ok': result['ok'], 'calls': len(result['calls']), 'output': str(output)}))
+    print(json.dumps({'ok': result['ok'], 'calls': len(result['calls']), 'output': str(args.output or '')}))
 
 
 if __name__ == '__main__':

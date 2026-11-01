@@ -48,10 +48,6 @@ func refuses(_ code: String? = nil, _ body: () throws -> Void) throws {
   }
   throw SevraError("test", "Expected refusal")
 }
-let temp = FileManager.default.temporaryDirectory.appendingPathComponent(
-  "sevra-checks-" + identifier())
-try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
-defer { try? FileManager.default.removeItem(at: temp) }
 if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--business-input-death-worker" {
   try businessInputDeathWorker(
     at: URL(fileURLWithPath: CommandLine.arguments[2]), stage: CommandLine.arguments[3])

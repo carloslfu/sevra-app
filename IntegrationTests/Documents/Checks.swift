@@ -498,6 +498,8 @@ nonisolated(unsafe) private var checksCompleted = false
     )
     checksCompleted = true
     withExtendedLifetime(applicationDelegate) {}
+    // exit skips the deferred removal.
+    try? FileManager.default.removeItem(at: root)
     exit(failures.isEmpty ? 0 : 1)
   }
 }
