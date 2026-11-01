@@ -240,8 +240,7 @@ struct AutomationScheduleEditor: View {
     if trigger == "inventory" {
       return .object([
         "kind": .string("automation"), "title": .string(title),
-        "description": .string(
-          "Prepare this workflow when the inventory rule crosses its threshold."),
+        "description": .string(description(Self.inventoryDescription)),
         "parameters": .array([]),
         "payload": .object([
           "policy": .string("inventory-condition-drafts-v1"),
@@ -259,8 +258,7 @@ struct AutomationScheduleEditor: View {
     }
     return .object([
       "kind": .string("automation"), "title": .string(title),
-      "description": .string(
-        existing?.description ?? "Prepare this saved workflow on a calendar schedule."),
+      "description": .string(description(Self.calendarDescription)),
       "parameters": .array([]),
       "payload": .object([
         "policy": .string("calendar-drafts-v1"),
@@ -272,6 +270,16 @@ struct AutomationScheduleEditor: View {
         ]),
       ]),
     ])
+  }
+  private static let calendarDescription = "Prepare this saved workflow on a calendar schedule."
+  private static let inventoryDescription =
+    "Prepare this workflow when the inventory rule crosses its threshold."
+  /// A written description survives an edit. The stock wording follows the trigger.
+  private func description(_ stock: String) -> String {
+    guard let saved = existing?.description,
+      ![Self.calendarDescription, Self.inventoryDescription].contains(saved)
+    else { return stock }
+    return saved
   }
   private func argument(_ parameter: Value) -> Binding<Value> {
     let key = parameter["id"].text

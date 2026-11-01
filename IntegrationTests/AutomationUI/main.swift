@@ -668,5 +668,10 @@ if CommandLine.arguments.count == 6, CommandLine.arguments[1] == "--registry-cra
   }
   exit(0)
 }
+try expect(
+  AutomationGrantNotice.text(enabled: 3, shown: 3) == "This version is enabled on this Mac.")
+try expect(AutomationGrantNotice.text(enabled: 2, shown: 3).hasPrefix("An older saved version"))
+try expect(AutomationGrantNotice.text(enabled: 4, shown: 3).hasPrefix("A newer saved version"))
+try expect(AutomationGrantNotice.text(enabled: nil, shown: 3).hasPrefix("Another saved version"))
 let failures = try await runChecks()
 exit(failures == 0 ? 0 : 1)

@@ -185,6 +185,7 @@ struct AutomationScheduleDetail: View {
   @State private var editing = false
   @State private var failure: String?
   @State private var updatedDefinition: ApplicationDefinition?
+  @State private var enabledVersion: Int?
   private var shown: ApplicationDefinition { updatedDefinition ?? definition }
   private var isCondition: Bool {
     shown.payload["policy"] == .string("inventory-condition-drafts-v1")
@@ -247,9 +248,9 @@ struct AutomationScheduleDetail: View {
           if let grant {
             Text(
               grantIsCurrent
-                ? (grant.definitionID == shown.id
-                  ? "This version is enabled on this Mac."
-                  : "An older saved version remains enabled on this Mac. Enable this version to replace it.")
+                ? AutomationGrantNotice.text(
+                  enabled: grant.definitionID == shown.id ? shown.version : enabledVersion,
+                  shown: shown.version)
                 : "This device registration is stale. The workbook no longer authorizes it.")
             Text(owner.statuses[grant.id] ?? owner.gate).foregroundStyle(.secondary)
             Button(grantIsCurrent ? "Pause on this Mac" : "Remove stale registration") {
@@ -284,8 +285,6 @@ struct AutomationScheduleDetail: View {
     }.padding(24).frame(minWidth: 540, idealWidth: 620, minHeight: 440, idealHeight: 660)
       .disabled(working || workspace.busy).interactiveDismissDisabled(working)
       .task(id: shown.id) { await load() }
-      .onAppear { NativeAutomationHost.shared.setBusy(inspectionOwner, true) }
-      .onDisappear { NativeAutomationHost.shared.setBusy(inspectionOwner, false) }
       .confirmationDialog("Start only from now?", isPresented: $confirmingFromNow) {
         Button("Skip earlier transitions and start from now") {
           guard let book = workspace.workbook else { return }
@@ -397,16 +396,26 @@ struct AutomationScheduleDetail: View {
       grant = try await Task.detached {
         try candidates.first { try registry.matches($0, workbook: book) }
       }.value
-      if let grant { allowAI = grant.allowAI }
+      if let grant {
+        allowAI = grant.allowAI
+        let id = grant.definitionID
+        enabledVersion = try? await Task.detached {
+          try book.applicationDefinition(id).version
+        }.value
+      }
     } catch { failure = error.localizedDescription }
   }
   private func perform(_ operation: @escaping @MainActor () async throws -> Void) {
     working = true
     failure = nil
+    // Automatic work waits for this change only. It must not wait for the page to close.
+    let owner = inspectionOwner
+    NativeAutomationHost.shared.setBusy(owner, true)
     Task {
       do { try await operation() } catch {
         failure = "Could not confirm the requested state. " + error.localizedDescription
       }
+      NativeAutomationHost.shared.setBusy(owner, false)
       await load()
       workspace.refresh()
       working = false

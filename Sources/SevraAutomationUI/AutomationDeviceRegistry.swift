@@ -17,6 +17,19 @@ public struct AutomationDeviceGrant: Codable, Equatable, Identifiable, Sendable 
   let physical: AutomationPhysicalIdentity
 }
 
+/// What a saved version's page says about the version enabled on this Mac. Opening an old version
+/// while a newer one runs is as likely as the reverse.
+public enum AutomationGrantNotice {
+  public static func text(enabled: Int?, shown: Int) -> String {
+    guard let enabled else {
+      return "Another saved version is enabled on this Mac. Enable this version to replace it."
+    }
+    if enabled == shown { return "This version is enabled on this Mac." }
+    return (enabled < shown ? "An older" : "A newer")
+      + " saved version is enabled on this Mac. Enable this version to replace it."
+  }
+}
+
 struct AutomationPhysicalIdentity: Codable, Equatable, Sendable {
   let package: FileIdentity
   let database: FileIdentity
