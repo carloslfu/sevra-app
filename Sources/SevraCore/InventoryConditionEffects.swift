@@ -69,12 +69,11 @@ extension Workbook {
   {
     var lhs = try Numbers.decimal(total)
     var rhs = try Numbers.decimal(quantity)
+    if subtract { rhs.negate() }
     var result = Decimal()
-    let error =
-      subtract
-      ? NSDecimalSubtract(&result, &lhs, &rhs, .plain) : NSDecimalAdd(&result, &lhs, &rhs, .plain)
+    // Adding the negated value, because NSDecimalSubtract does not report a rounded result.
     try require(
-      error == .noError, "condition_precision",
+      NSDecimalAdd(&result, &lhs, &rhs, .plain) == .noError, "condition_precision",
       "The condition sum exceeds exact decimal precision. No rounded observation was published.")
     return try Numbers.string(Numbers.decimal(Numbers.string(result)))
   }

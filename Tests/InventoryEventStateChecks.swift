@@ -194,6 +194,17 @@ func checkInventoryEventState(at root: URL) {
       subject: "parts", quantity: "0.1", occurrence: "fraction", effective: "2026-01-02",
       input: input.id, status: "accepted")
     try refuses { _ = try state(large, tail(large)) }
+    // A balance and a running total hold exact values, whichever way the sum goes.
+    let huge = "1" + String(repeating: "0", count: 60)
+    let (distant, evidence, _) = try fixture("HugeBalance", quantity: huge)
+    _ = try distant.movement(
+      subject: "parts", quantity: "-1", occurrence: "taken", effective: "2026-01-02",
+      input: evidence.id, status: "accepted")
+    try refuses("inventory_history_precision") { _ = try distant.balance(subject: "parts") }
+    try refuses("condition_precision") {
+      _ = try distant.conditionExactSum(huge, "1", subtract: true)
+    }
+    try expect(try distant.conditionExactSum("5", "1.5", subtract: true) == "3.5")
   }
   check("historical inventory reads mutate nothing and reconstruct with exact contribution IDs") {
     let (book, source, _) = try fixture("Reconstruction")

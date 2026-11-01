@@ -272,9 +272,7 @@ extension Workbook {
         "SELECT e.*,i.logical_id FROM effects e JOIN items i ON i.id=e.item_id WHERE e.subject=? AND i.status='accepted' AND i.meaning='actual' AND i.scenario='actual' AND e.effective>? AND e.effective<=? AND NOT EXISTS(SELECT 1 FROM items n WHERE n.logical_id=i.logical_id AND n.version>i.version AND n.status IN ('accepted','rejected')) ORDER BY e.effective,e.item_id",
         [.string(subject), base["effective"]!, .string(asOf)])
       for row in rows {
-        total = try Numbers.decimal(
-          Numbers.calculate(
-            "a+b", values: ["a": .string(Numbers.string(total)), "b": row["quantity"]!]))
+        total = try exactInventorySum(total, Numbers.decimal(row["quantity"]!.text))
       }
       return .object([
         "subject": .string(subject), "quantity": .string(Numbers.string(total)),

@@ -119,7 +119,7 @@ extension Workbook {
     return value
   }
 
-  private func exactInventorySum(_ total: Decimal, _ quantity: Decimal) throws -> Decimal {
+  func exactInventorySum(_ total: Decimal, _ quantity: Decimal) throws -> Decimal {
     var lhs = total
     var rhs = quantity
     var sum = Decimal()
