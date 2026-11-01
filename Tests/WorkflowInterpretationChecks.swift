@@ -613,6 +613,48 @@ func checkWorkflowInterpretations(at root: URL) {
     try expect(try copy.workflowRun(session.runID) == done)
     try expect(try copy.verify()["ok"] == .bool(true) && book.verify()["ok"] == .bool(true))
   }
+  check("an optional interpretation output returned as null needs no quotation") {
+    let definition = try DefinitionInterpretation(
+      DefinitionDescriptor(
+        .object([
+          "kind": .string("interpretation"), "title": .string("Read count"),
+          "description": .string("Synthetic"),
+          "parameters": .array([ActionRegistry.field("evidence", "Evidence", "item")]),
+          "payload": .object([
+            "instruction": .string("Extract the received count."),
+            "evidence": .array([.string("evidence")]),
+            "outputs": .array([
+              ActionRegistry.field("quantity", "Count", "decimal"),
+              .object([
+                "id": .string("note"), "label": .string("Note"), "type": .string("text"),
+                "required": .bool(false),
+              ]),
+            ]),
+            "meaning": .string("actual"), "scenario": .string("actual"),
+          ]),
+        ])))
+    let evidence: Value = .object(["id": .string("source"), "content": .string("Received 5 bolts")])
+    func response(_ note: Value, cited: [String]) -> Value {
+      .object([
+        "state": .string("ready"),
+        "values": .object(["quantity": .string("5"), "note": note]),
+        "citations": .array(
+          cited.map {
+            .object([
+              "field": .string($0), "itemID": .string("source"), "quote": .string("Received 5"),
+            ])
+          }),
+        "issues": .array([]),
+      ])
+    }
+    let result = try definition.validateResponse(
+      response(.null, cited: ["quantity"]), evidence: [evidence])
+    try expect(result["values"]["note"] == .null && result["values"]["quantity"].text == "5")
+    try refuses("interpretation_citation") {
+      _ = try definition.validateResponse(
+        response(.string("late"), cited: ["quantity"]), evidence: [evidence])
+    }
+  }
   check("workflow interpretation rejects forged requests, quotations and late model publication") {
     let (book, source, session) = try fixture("Fenced")
     let claim = try book.claimWorkflowStep(session, owner: "old", leaseSeconds: 1)

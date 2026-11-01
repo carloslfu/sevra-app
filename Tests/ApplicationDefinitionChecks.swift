@@ -98,6 +98,25 @@ func checkApplicationDefinitions(at root: URL) {
       rows: [["price": .string("2.10")], ["price": .string("3.20")]], sourceID: original.id)
   }
 
+  check("a saved default names a local item at every level of a definition") {
+    let book = try book("NestedDefaults")
+    let local = try book.addItem(category: "source", kind: "observation", title: "Local")
+    func rows(_ item: String) -> Value {
+      parameter(
+        "rows", type: "entries",
+        extra: [
+          "maxEntries": .number(2),
+          "fields": .array([
+            parameter("evidence", type: "item", extra: ["default": .string(item)]),
+            parameter("count"),
+          ]),
+        ])
+    }
+    try refuses("not_found") {
+      _ = try save(book, function("1", parameters: [rows(identifier())]))
+    }
+    _ = try save(book, function("1", parameters: [rows(local.id)]))
+  }
   check("saved pure definitions preserve exact inputs, provenance and read-only evaluation") {
     let b = try book("Pure")
     let saved = try save(b, function("x*2", unit: "USD", rounding: 2), actor: .human("native-test"))

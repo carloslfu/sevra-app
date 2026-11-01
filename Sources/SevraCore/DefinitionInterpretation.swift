@@ -186,9 +186,10 @@ struct DefinitionInterpretation {
       }
       cited.insert(field)
     }
+    // An optional output returned as null states no value, so it has nothing to quote.
     try require(
-      unresolved || Set(normalized.keys) == cited, "interpretation_citation",
-      "Every returned field needs an original evidence quotation.")
+      unresolved || Set(normalized.filter { $0.value != .null }.keys).isSubset(of: cited),
+      "interpretation_citation", "Every returned field needs an original evidence quotation.")
     func checkItems(_ parameter: DefinitionParameter, _ value: Value) throws {
       if parameter.type == "item", value != .null {
         try require(

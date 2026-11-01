@@ -190,11 +190,13 @@ extension Workbook {
     try state.enter(definition, depth: depth)
     defer { state.active.remove(definition.id) }
     let descriptor = try DefinitionDescriptor(definition.content)
-    for parameter in descriptor.parameters {
+    func validateDefaults(_ parameter: DefinitionParameter) throws {
       if let value = parameter.defaultValue, value != .null {
         try validateDefinitionItemReferences(parameter, value)
       }
+      for field in parameter.fields { try validateDefaults(field) }
     }
+    for parameter in descriptor.parameters { try validateDefaults(parameter) }
     if descriptor.kind == "automation" {
       _ = try validateAutomationDefinition(descriptor)
     } else if descriptor.kind == "intake" {
