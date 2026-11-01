@@ -111,11 +111,18 @@ package enum WorkflowCoordinator {
     }.value
     if claim == .null { return try workbook.workflowRun(session.runID) }
     let heartbeat = Task.detached {
+      var leaseEnd = Double(claim["deadline"].text) ?? 0
       while !Task.isCancelled {
         do {
           try await Task.sleep(nanoseconds: 5_000_000_000)
           try control.check()
-          _ = try workbook.heartbeatWorkflowStep(session, claim: claim)
+          let beat = try workbook.heartbeatWorkflowStep(session, claim: claim)
+          leaseEnd = Double(beat["deadline"].text) ?? leaseEnd
+        } catch let error as SevraError
+          where error.code == "database" && Date().timeIntervalSince1970 < leaseEnd
+        {
+          // Another process held the file for a moment. The lease still stands, so beat again.
+          continue
         } catch {
           if !Task.isCancelled {
             control.cancel(
