@@ -380,6 +380,7 @@ extension Workbook {
       if let found = cache[column.id] { return found }
       try require(
         !visiting.contains(column.id), "formula_cycle", "Formula cycle at \(column.title).")
+      try require(visiting.count < 128, "formula_limit", "Column dependency depth exceeds 128.")
       visiting.insert(column.id)
       defer { visiting.remove(column.id) }
       guard let formula = column.formula else {

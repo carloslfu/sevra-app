@@ -40,7 +40,9 @@ func checkStructuredPresentation() throws {
       && exact?["decimal"] == .string("1.2300") && exact?["small"] == .string("1e-20")
       && exact?["negativeZero"] == .string("-0") && exact?["enabled"] == .bool(false)
       && exact?["missing"] == .null && exact?["quoted"] == .string("1.2 \"3\"")
-      && StructuredPresentation.parseJSON("{1:2}") == nil,
+      && StructuredPresentation.parseJSON("{1:2}") == nil
+      && StructuredPresentation.parseJSON(
+        String(repeating: "[", count: 300) + String(repeating: "]", count: 300)) == nil,
     "presentation_check",
     "Structured file preview changed number spelling, escaped text or invalid syntax")
   try require(

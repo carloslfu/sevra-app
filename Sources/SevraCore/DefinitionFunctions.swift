@@ -81,7 +81,9 @@ struct DefinitionFunction {
       ).union(calls.map(\.alias)))
   }
 
-  private func validate(_ node: Expression, names: Set<String>) throws {
+  /// A long sum parses in a loop but evaluates to its depth, so refuse here what can never run.
+  private func validate(_ node: Expression, names: Set<String>, depth: Int = 0) throws {
+    try require(depth < 64, "formula_limit", "This formula exceeds its evaluation depth budget.")
     switch node {
     case .number: break
     case .name(let name):
@@ -90,10 +92,10 @@ struct DefinitionFunction {
     case .range:
       throw SevraError(
         "definition_function", "A reusable function cannot read ambient table ranges.")
-    case .negate(let child): try validate(child, names: names)
+    case .negate(let child): try validate(child, names: names, depth: depth + 1)
     case .binary(_, let a, let b):
-      try validate(a, names: names)
-      try validate(b, names: names)
+      try validate(a, names: names, depth: depth + 1)
+      try validate(b, names: names, depth: depth + 1)
     case .call(let name, let args):
       let valid: Bool
       switch name {
@@ -105,7 +107,7 @@ struct DefinitionFunction {
       }
       try require(
         valid, "definition_function", "Unknown function or invalid argument count: " + name)
-      for argument in args { try validate(argument, names: names) }
+      for argument in args { try validate(argument, names: names, depth: depth + 1) }
     }
   }
 }

@@ -418,6 +418,7 @@ import SevraProduct
       try require(
         (3...4).contains(args.count), "usage", "component-evaluate WORKBOOK COMPONENT_JSON [CURSOR]"
       )
+      try Value.requireDepth(args[2])
       let component = try JSONDecoder().decode(Component.self, from: Data(args[2].utf8))
       return try book.componentDefinitionResult(
         component, cursor: args.count == 4 ? args[3] : nil, cancellation: cancellation)
@@ -633,6 +634,7 @@ import SevraProduct
           arg(2), version: integer(3), expectedVersion: integer(4),
           token: args.count > 5 ? args[5] : identifier()))
     case "space":
+      try Value.requireDepth(arg(3))
       let definition = try JSONDecoder().decode(SpaceDefinition.self, from: Data(arg(3).utf8))
       return .string(try book.saveSpace(title: arg(2), definition: definition))
     case "conversation":

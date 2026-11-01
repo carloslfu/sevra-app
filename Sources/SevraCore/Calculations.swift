@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 
 public enum Numbers {
@@ -66,10 +67,22 @@ indirect enum Expression {
   case negate(Expression)
   case binary(String, Expression, Expression)
   case call(String, [Expression])
+  /// A formula can read a cell or column whose formula reads the next, each one up to the depth
+  /// limit below. Those multiply, so only the thread's own stack bounds them, and a worker's is
+  /// 512 KiB. Leave room for the parsing and storage reads that one more level needs.
+  private static var stackHasRoom: Bool {
+    let thread = pthread_self()
+    var here = 0
+    let position = withUnsafePointer(to: &here) { UInt(bitPattern: $0) }
+    let top = UInt(bitPattern: pthread_get_stackaddr_np(thread))
+    return position > top - UInt(pthread_get_stacksize_np(thread)) + 256 * 1024
+  }
   func evaluate(values: [String: Value], resolve: ((String) throws -> Decimal)?, depth: Int = 0)
     throws -> Decimal
   {
-    try require(depth < 64, "formula_limit", "Formula evaluation exceeds its depth budget.")
+    try require(
+      depth < 64 && Self.stackHasRoom, "formula_limit",
+      "Formula evaluation exceeds its depth budget.")
     func eval(_ node: Expression) throws -> Decimal {
       try node.evaluate(values: values, resolve: resolve, depth: depth + 1)
     }

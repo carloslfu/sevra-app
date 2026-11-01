@@ -191,5 +191,12 @@ func checkFoldersAndTemplates(at root: URL) {
     let other = root.appendingPathComponent("Other.json")
     try Data("{\"format\":\"something\"}".utf8).write(to: other)
     try refuses("template_file") { _ = try copy.importTemplate(other) }
+    for bad in [
+      String(repeating: "[", count: 300) + String(repeating: "]", count: 300),
+      String(repeating: " ", count: 1_048_577),
+    ] {
+      try Data(bad.utf8).write(to: other)
+      try refuses("template_file") { _ = try copy.importTemplate(other) }
+    }
   }
 }

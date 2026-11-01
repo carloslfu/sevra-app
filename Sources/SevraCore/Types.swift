@@ -17,10 +17,16 @@ public enum Value: Codable, Equatable, Sendable {
       self = .string(v)
     } else if let v = try? c.decode(Double.self) {
       self = .number(v)
-    } else if let v = try? c.decode([Value].self) {
-      self = .array(v)
     } else {
-      self = .object(try c.decode([String: Value].self))
+      // Every JSON decoder reaches nested data through here, whatever the outer type.
+      try require(decoder.codingPath.count < Self.depthLimit, "json_depth", Self.depthMessage)
+      if var items = try? decoder.unkeyedContainer() {
+        var values: [Value] = []
+        while !items.isAtEnd { values.append(try items.decode(Value.self)) }
+        self = .array(values)
+      } else {
+        self = .object(try c.decode([String: Value].self))
+      }
     }
   }
   public func encode(to encoder: Encoder) throws {
@@ -68,8 +74,36 @@ public enum Value: Codable, Equatable, Sendable {
     return String(decoding: try e.encode(self), as: UTF8.self)
   }
   public static func parse(_ string: String) throws -> Value {
-    try JSONDecoder().decode(Value.self, from: Data(string.utf8))
+    try requireDepth(string)
+    return try JSONDecoder().decode(Value.self, from: Data(string.utf8))
   }
+  /// Decoding recurses once per level, and a few hundred levels overflow a worker thread's stack.
+  /// A file, an archive or a model can all supply the text, so measure before decoding starts.
+  public static func requireDepth(_ json: String) throws {
+    var depth = 0
+    var quoted = false
+    var escaped = false
+    for byte in json.utf8 {
+      if quoted {
+        if escaped {
+          escaped = false
+        } else if byte == UInt8(ascii: "\\") {
+          escaped = true
+        } else if byte == UInt8(ascii: "\"") {
+          quoted = false
+        }
+      } else if byte == UInt8(ascii: "\"") {
+        quoted = true
+      } else if byte == UInt8(ascii: "[") || byte == UInt8(ascii: "{") {
+        depth += 1
+        try require(depth <= depthLimit, "json_depth", depthMessage)
+      } else if byte == UInt8(ascii: "]") || byte == UInt8(ascii: "}") {
+        depth -= 1
+      }
+    }
+  }
+  static let depthLimit = 128
+  private static let depthMessage = "This JSON nests more than \(depthLimit) levels deep."
 }
 public struct SevraError: Error, LocalizedError, Codable {
   public let code: String

@@ -1172,6 +1172,66 @@ check("archive traversal entries cannot escape their destination") {
     !FileManager.default.fileExists(atPath: temp.appendingPathComponent("escaped.txt").path))
 }
 
+check("deep JSON and long dependency chains are refused by name on a worker stack") {
+  /// The last column comes first, so nothing is cached on the way down.
+  func chain(_ length: Int, _ extra: String = "") -> [Column] {
+    ((1..<length).map {
+      Column(id: "c\($0)", title: "C\($0)", type: "decimal", formula: "c\($0 - 1)" + extra)
+    } + [Column(id: "c0", title: "Base", type: "decimal")]).reversed()
+  }
+  let row = try book.addItem(
+    category: "source", kind: "observation", title: "Row", data: .object(["c0": .string("1")]))
+  try expect(book.calculatedValues(row, columns: chain(100))["c99"] == .string("1"))
+  let refused = book.calculatedValues(row, columns: chain(200))["c199"]?.text ?? ""
+  try expect(refused.contains("exceeds 128"), refused)
+  var failure: Error?
+  let finished = DispatchSemaphore(value: 0)
+  let worker = Thread {
+    do {
+      func nested(_ depth: Int, _ open: String, _ close: String) -> String {
+        String(repeating: open, count: depth) + String(repeating: close, count: depth)
+      }
+      try expect(try Value.parse(nested(128, "[", "]")) != .null)
+      for depth in [129, 423, 5000] {
+        try refuses("json_depth") { _ = try Value.parse(nested(depth, "[", "]")) }
+        try refuses("json_depth") { _ = try Value.parse(nested(depth, "{\"a\":", "}")) }
+      }
+      // Every other decoder reaches nested data through Value too.
+      try refuses("json_depth") {
+        _ = try JSONDecoder().decode(Value.self, from: Data(nested(300, "[", "]").utf8))
+      }
+      try expect(try Value.parse("\"" + String(repeating: "[", count: 300) + "\"") != .null)
+      try refuses("json_depth") { try Value.requireDepth(nested(150, "{\"children\":[", "]}")) }
+      // Column chains multiply each formula's own depth. Here that stops at the stack it has.
+      for extra in ["", String(repeating: "+1", count: 60)] {
+        let long = book.calculatedValues(row, columns: chain(400, extra))["c399"]?.text ?? ""
+        try expect(long.hasPrefix("#ERROR"), long)
+      }
+    } catch { failure = error }
+    finished.signal()
+  }
+  worker.stackSize = 512 * 1024
+  worker.start()
+  finished.wait()
+  if let failure { throw failure }
+}
+
+check("formulas that can never evaluate are refused when saved") {
+  func function(_ terms: Int) throws -> ApplicationDefinition {
+    try book.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: .object([
+        "kind": .string("function"), "title": .string("Sum"), "description": .string("Long"),
+        "parameters": .array([]),
+        "payload": .object([
+          "expression": .string(Array(repeating: "1", count: terms).joined(separator: "+"))
+        ]),
+      ]))
+  }
+  try refuses("formula_limit") { _ = try function(65) }
+  try expect(try book.evaluateApplicationDefinition(function(64).id)["result"].text == "64")
+}
+
 check("saved URLs hide secrets by name and keep every other parameter's exact bytes") {
   let saved = Workbook.safeOrigin(
     URL(string: "https://a.example/x?APIKey=1&client_secret=2&Refresh_Token=3&q=a%2Bb&r=c+d#f")!)

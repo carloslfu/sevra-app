@@ -45,7 +45,9 @@ extension Workbook {
   @discardableResult public func importTemplate(_ file: URL, actor: ChangeActor? = nil) throws
     -> ApplicationDefinition
   {
-    let data = try Data(contentsOf: file)
+    let handle = try FileHandle(forReadingFrom: file)
+    defer { try? handle.close() }
+    let data = try handle.read(upToCount: 1_048_577) ?? Data()
     try require(data.count <= 1_048_576, "template_file", "This template file is too large.")
     guard let template = try? Value.parse(String(decoding: data, as: UTF8.self)),
       template["format"].text == Self.templateFormat,

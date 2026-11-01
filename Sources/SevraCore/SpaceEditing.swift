@@ -49,6 +49,8 @@ public struct SpaceRevision: Codable, Sendable, Identifiable {
 
 extension Workbook {
   func decodedSpaceDefinition(_ row: [String: Value]) throws -> SpaceDefinition {
+    // Components hold components, so a copied workbook can nest them past the stack.
+    try Value.requireDepth(row["definition"]!.text)
     let saved = try JSONDecoder().decode(
       SpaceDefinition.self, from: Data(row["definition"]!.text.utf8))
     // The declared initial Home has no authored layout. Its stable default is a
