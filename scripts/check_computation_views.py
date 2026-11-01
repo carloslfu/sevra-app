@@ -50,6 +50,7 @@ def qualify(root):
     request_file = root / 'publication.json'
     request_file.write_text(j(request))
     published = call('definition-publish', book, '@' + str(request_file), 'publish-case-units')
+    assert call('commits', book, 1)[0]['actor']['kind'] == 'programmatic'
     assert published['status'] == 'draft' and published['meaning'] == 'estimate'
     accepted = call('accept', book, published['id'], 'review-estimate')
     assert accepted['meaning'] == 'estimate' and accepted['status'] == 'accepted'

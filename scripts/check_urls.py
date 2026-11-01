@@ -1,8 +1,11 @@
 """Deterministic loopback fixtures, with no external source dependency."""
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-import json, plistlib, subprocess, tempfile, threading
+import argparse, json, plistlib, subprocess, tempfile, threading
 root=Path(__file__).resolve().parent.parent
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--cli',type=Path,default=root/'output/bin/sevra')
+cli=parser.parse_args().cli.resolve(strict=True)
 # Capture allows HTTP as well as HTTPS, so the app needs App Transport Security to allow it too.
 assert plistlib.loads((root/'Resources/Info.plist').read_bytes())['NSAppTransportSecurity']=={'NSAllowsArbitraryLoads':True}
 class Handler(BaseHTTPRequestHandler):
@@ -22,7 +25,7 @@ try:
     with tempfile.TemporaryDirectory(prefix='sevra-url-check-') as temporary:
         book=Path(temporary)/'URLs.sevra'
         def run(*args,success=True):
-            r=subprocess.run([str(root/'output/bin/sevra'),*map(str,args)],capture_output=True,text=True)
+            r=subprocess.run([str(cli),*map(str,args)],capture_output=True,text=True,timeout=120)
             assert (r.returncode==0)==success,r.stdout+r.stderr
             return json.loads(r.stdout if success else r.stderr)
         run('create',book)
@@ -30,8 +33,11 @@ try:
         captured=run('capture-url',book,base+'/redirect')['result']
         assert captured['assetID']
         assert run('search',book,'brass invoice')['result']['hits']
-        loop=run('capture-url',book,base+'/loop')['result']
-        auth=run('capture-url',book,base+'/auth')['result']
+        # A failed capture exits nonzero and still keeps a record of the link.
+        for path in ['/loop','/auth']:
+            assert run('capture-url',book,base+path,success=False)['error']['code']=='capture_failed'
+        saved=run('records',book)['result']
+        loop,auth=[next(r for r in saved if r['data'].get('url','').endswith(path)) for path in ['/loop','/auth']]
         assert loop['data']['captureState']=='failed' and auth['data']['captureState']=='failed'
         assert not auth.get('assetID') and 'No file was captured' in auth['text']
         assert run('read',book,auth['id'])['result']['extraction']['state']=='failed'

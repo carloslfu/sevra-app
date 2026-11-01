@@ -51,9 +51,25 @@ with tempfile.TemporaryDirectory(prefix='sevra-document-cli-') as directory:
     run('edit-document', book, edited['id'], text, '--unexpected', error='usage')
     run('edit-document', book, edited['id'], text, '--separate', '--separate', error='usage')
     run('edit-document', book, edited['id'], root, error='document_file')
+    # Arguments the CLI cannot act on are refused by name, never dropped.
+    for fields in [{'title': 'Typo', 'meening': 'actual'}, {'title': 'Typed', 'token': 5},
+                   {'title': 'Typed', 'expectedRevision': 'abc'}, []]:
+        run('add', book, json.dumps(fields), error='arguments')
+    run('add', book, json.dumps({'title': 'Extra'}), 'extra', error='usage')
+    run('create', '--help', error='usage')
+    assert not (root / '--help').exists()
+    run('import', book, text, '--rol', 'values', error='usage')
+    run('search', book, 'words', 'next', error='usage')
     assert run('inspect', book) == counts
     accepted = run('accept', book, edited['id'])
     assert accepted['text'] == edited['text'] and accepted['meaning'] == 'estimate'
+    assert run('verify', book)['ok'] is True
+    run('import', book, text, '--role', 'reference')
+    asset = next(path for path in (book / 'assets').rglob('*') if path.is_file())
+    kept = asset.read_bytes()
+    asset.write_bytes(b'changed')
+    run('verify', book, error='asset_issues')
+    asset.write_bytes(kept)
     assert run('verify', book)['ok'] is True
     print(json.dumps({'atomicEdit': True, 'exactRetry': True, 'staleRefusal': True, 'explicitCopy': True,
                       'boundedUTF8File': True, 'invalidInputsUnchanged': True, 'currentVersionAccepted': True}))

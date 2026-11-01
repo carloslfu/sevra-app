@@ -7,12 +7,16 @@ import SevraProduct
 @main struct CLI {
   static func main() async {
     let cancellation = Cancellation()
-    signal(SIGINT, SIG_IGN)
-    let interrupt = DispatchSource.makeSignalSource(
-      signal: SIGINT, queue: .global(qos: .userInitiated))
-    interrupt.setEventHandler { cancellation.cancel() }
-    interrupt.resume()
-    defer { interrupt.cancel() }
+    // A closed terminal or a plain kill stops like Control-C, so copies in progress clean up.
+    let stops = [SIGINT, SIGTERM, SIGHUP].map { number in
+      signal(number, SIG_IGN)
+      let stop = DispatchSource.makeSignalSource(
+        signal: number, queue: .global(qos: .userInitiated))
+      stop.setEventHandler { cancellation.cancel() }
+      stop.resume()
+      return stop
+    }
+    defer { stops.forEach { $0.cancel() } }
     do {
       let args = Array(CommandLine.arguments.dropFirst())
       let result = try await run(args, cancellation: cancellation)
@@ -32,6 +36,9 @@ import SevraProduct
   }
   static func run(_ args: [String], cancellation: Cancellation) async throws -> Value {
     guard let command = args.first else { return .string(help) }
+    if let counts = argumentCounts[command] {
+      try require(counts.contains(args.count), "usage", help)
+    }
     if command == "check-resources" {
       return try await ProductAI.checkResources(validateMetal: !args.contains("--paths-only"))
     }
@@ -56,7 +63,20 @@ import SevraProduct
       }
       return value
     }
-    func url(_ i: Int) throws -> URL { URL(fileURLWithPath: try arg(i)).standardizedFileURL }
+    func url(_ i: Int) throws -> URL {
+      let path = try arg(i)
+      try require(
+        !path.isEmpty && !path.hasPrefix("-"), "usage",
+        "Expected a path, not an option. Write ./" + path + " for a file with that name.")
+      return URL(fileURLWithPath: path).standardizedFileURL
+    }
+    func offset(_ i: Int) throws -> Int {
+      guard args.count > i else { return 0 }
+      guard let value = Int(args[i]), value >= 0 else {
+        throw SevraError("usage", "Expected a nonnegative offset.")
+      }
+      return value
+    }
     if command == "create" {
       let book = try Workbook.create(
         at: url(1),
@@ -98,7 +118,7 @@ import SevraProduct
       return .bool(true)
     }
     if command == "demo" { return try Demo.create(at: url(1)) }
-    let book = try Workbook(url(1))
+    let book = try Workbook(url(1), cancellation: cancellation)
     if command == "business-origins" {
       try require(
         (3...18).contains(args.count), "usage", "business-origins WORKBOOK ITEM_ID [ITEM_ID...]")
@@ -205,24 +225,44 @@ import SevraProduct
         throw SevraError("not_found", "This table has no Excel formulas.")
       }
       return try encoded(report)
-    case "verify": return try book.verify()
+    case "verify":
+      let report = try book.verify(cancellation: cancellation)
+      let issues = report["assetIssues"].array.map { $0["name"].text + ": " + $0["error"].text }
+      try require(
+        issues.isEmpty, "asset_issues",
+        "\(issues.count) file(s) failed verification. "
+          + issues.prefix(20).joined(separator: "; "))
+      return report
     case "extract":
       try require(args.count == 3, "usage", "extract WORKBOOK VERSION_ID")
       try book.extract(arg(2), cancellation: cancellation)
       return try book.extractionStatus(arg(2))
     case "import":
       var role: IntakeRole?
-      if let index = args.firstIndex(of: "--role") {
-        guard args.count > index + 1, let choice = IntakeRole(rawValue: args[index + 1]) else {
-          throw SevraError("intake_role", "Choose --role reference, analysis, values or update.")
-        }
-        role = choice
-      }
       var token = identifier()
-      if let index = args.firstIndex(of: "--token") { token = try arg(index + 1) }
+      var linked = false
+      var seen: Set<String> = []
+      var index = 3
+      while index < args.count {
+        let option = args[index]
+        try require(seen.insert(option).inserted, "usage", "Duplicate import option.")
+        switch option {
+        case "--link": linked = true
+        case "--role":
+          index += 1
+          guard args.count > index, let choice = IntakeRole(rawValue: args[index]) else {
+            throw SevraError("intake_role", "Choose --role reference, analysis, values or update.")
+          }
+          role = choice
+        case "--token":
+          index += 1
+          token = try arg(index)
+        default: throw SevraError("usage", "Unknown import option: " + option)
+        }
+        index += 1
+      }
       let job = try book.captureIntake(
-        url(2), linked: args.contains("--link"), role: role, token: token,
-        cancellation: cancellation)
+        url(2), linked: linked, role: role, token: token, cancellation: cancellation)
       let item = try book.item(job.sourceID)
       return .object([
         "source": try encoded(item),
@@ -230,7 +270,11 @@ import SevraProduct
       ])
     case "capture-url":
       guard let target = URL(string: try arg(2)) else { throw SevraError("url", "Invalid URL.") }
-      return try encoded(await book.captureURL(target, cancellation: cancellation))
+      let captured = try await book.captureURL(target, cancellation: cancellation)
+      try require(
+        captured.data["captureState"].string != "failed", "capture_failed",
+        captured.text + " Saved as " + captured.id + ".")
+      return try encoded(captured)
     case "link-url":
       guard let target = URL(string: try arg(2)) else { throw SevraError("url", "Invalid URL.") }
       return try encoded(
@@ -251,7 +295,7 @@ import SevraProduct
       try book.relinkAsset(arg(2), to: url(3), cancellation: cancellation)
       return .bool(true)
     case "search":
-      return try encoded(book.search(arg(2), offset: args.count > 3 ? Int(args[3]) ?? 0 : 0))
+      return try encoded(book.search(arg(2), offset: offset(3)))
     case "read": return try WorkbookTools(book).execute("read", .object(["id": .string(arg(2))]))
     case "records": return try encoded(book.items(kind: args.count > 2 ? args[2] : nil))
     case "edit-document":
@@ -464,8 +508,8 @@ import SevraProduct
           request["id"].text, arguments: request["arguments"], evaluation: request["evaluation"],
           title: request["title"].text, meaning: request["meaning"].text,
           scenario: fields["scenario"]?.text ?? "actual",
-          inputs: request["inputs"].array.map(\.text), token: args[3], actor: .human("cli"),
-          cancellation: cancellation))
+          inputs: request["inputs"].array.map(\.text), token: args[3],
+          actor: .programmatic("SevraCLI.definition-publish"), cancellation: cancellation))
     case "definition-search":
       try require(
         (3...4).contains(args.count), "usage", "definition-search WORKBOOK QUERY [OPTIONS_JSON]")
@@ -569,13 +613,14 @@ import SevraProduct
         arg(2), expectedRevision: Int(args[3])!, token: arg(4), cancellation: cancellation)
       return try book.datasetSchema(arg(2))
     case "rows":
-      return try encoded(book.rows(arg(2), offset: args.count > 3 ? Int(args[3]) ?? 0 : 0))
+      return try encoded(book.rows(arg(2), offset: offset(3)))
     case "observe":
       try require(args.count == 3, "usage", "observe WORKBOOK OBSERVATION_JSON")
       let observation = try Value.parseExact(arg(2))
       try require(
         Set(observation.object.keys).isSubset(of: ["title", "text", "data", "token"]),
         "business_input", "An independent observation cannot replace or claim existing inputs.")
+      try checkFields(observation, text: ["title", "text", "token"], other: ["data"])
       return try encoded(
         book.recordBusinessObservation(
           title: observation["title"].text, text: observation["text"].text,
@@ -583,6 +628,23 @@ import SevraProduct
           token: observation["token"].string ?? identifier(), cancellation: cancellation))
     case "add":
       let v = try Value.parseExact(arg(2))
+      try checkFields(
+        v,
+        text: [
+          "category", "kind", "title", "text", "meaning", "status", "scenario", "supersedes",
+          "token",
+        ],
+        other: ["data", "inputs", "expectedRevision", "references"])
+      if let inputs = v.object["inputs"] {
+        guard case .array(let values) = inputs, values.allSatisfy({ $0.string != nil }) else {
+          throw SevraError("arguments", "Inputs must be an array of exact item IDs.")
+        }
+      }
+      if let revision = v.object["expectedRevision"] {
+        guard let value = revision.int, value >= 0, revision == .number(Double(value)) else {
+          throw SevraError("arguments", "expectedRevision must be a nonnegative whole number.")
+        }
+      }
       return try encoded(
         book.addItem(
           category: v["category"].string ?? "source", kind: v["kind"].string ?? "note",
@@ -599,9 +661,14 @@ import SevraProduct
       guard case .object(let values) = try Value.parseExact(arg(3)) else {
         throw SevraError("arguments", "Give the columns to change as a JSON object.")
       }
-      return try encoded(
-        book.editRow(
-          arg(2), values: values, expectedRevision: args.count > 4 ? Int(args[4]) : nil))
+      var expected: Int?
+      if args.count > 4 {
+        guard let value = Int(args[4]), value >= 0 else {
+          throw SevraError("usage", "Expected a nonnegative workbook revision.")
+        }
+        expected = value
+      }
+      return try encoded(book.editRow(arg(2), values: values, expectedRevision: expected))
     case "accept":
       return try encoded(
         book.accept(
@@ -619,6 +686,12 @@ import SevraProduct
       return .bool(true)
     case "movement":
       let a = try Value.parseExact(arg(2))
+      try checkFields(
+        a,
+        text: [
+          "subject", "quantity", "occurrence", "effective", "input", "meaning", "status",
+          "supersedes", "token",
+        ])
       return try encoded(
         book.movement(
           subject: a["subject"].text, quantity: a["quantity"].text,
@@ -668,6 +741,7 @@ import SevraProduct
       return try book.toolCall(arg(3), conversation: arg(2))
     case "tool-result":
       let positional = args.filter { $0 != "--raw-json" }
+      try require((4...6).contains(positional.count), "usage", help)
       let pathValue = positional.count > 4 ? try Value.parseExact(positional[4]) : .array([])
       guard case .array(let values) = pathValue, values.allSatisfy({ $0.string != nil }) else {
         throw SevraError("result_path", "A result path must be a JSON array of strings.")
@@ -693,13 +767,13 @@ import SevraProduct
       return .bool(true)
     case "share-summary": return .string(try book.shareSummary(message: arg(2), text: arg(3)))
     case "reindex":
-      try book.rebuildSearch()
+      try book.rebuildSearch(cancellation: cancellation)
       return .bool(true)
     case "export":
       try book.export(to: url(2), cancellation: cancellation)
       return .bool(true)
     case "export-csv":
-      try book.exportCSV(arg(2), to: url(3))
+      try book.exportCSV(arg(2), to: url(3), cancellation: cancellation)
       return .bool(true)
     case "tool":
       return try WorkbookTools(book).execute(
@@ -718,6 +792,35 @@ import SevraProduct
     default: throw SevraError("usage", help)
     }
   }
+  /// A JSON argument names only these fields, and those in `text` hold text.
+  static func checkFields(_ value: Value, text: Set<String>, other: Set<String> = []) throws {
+    guard case .object(let fields) = value else {
+      throw SevraError("arguments", "Give the fields as a JSON object.")
+    }
+    for (name, field) in fields {
+      try require(
+        text.contains(name) || other.contains(name), "arguments", "Unknown field: " + name)
+      try require(!text.contains(name) || field.string != nil, "arguments", name + " must be text.")
+    }
+  }
+  /// How many arguments each command takes, counting itself. Others check their own.
+  static let argumentCounts: [String: ClosedRange<Int>] = [
+    "create": 2...3, "demo": 2...2, "open-archive": 3...3, "calculate": 2...3,
+    "inspect": 2...2, "intake-status": 2...2, "intake-use": 4...5, "intake-from-source": 4...5,
+    "intake-resume": 3...3, "resume-intake": 3...3, "runs": 2...2, "pin-space": 3...4,
+    "column-history": 3...3, "table-formulas": 3...3, "verify": 2...2, "extract": 3...3,
+    "capture-url": 3...3, "link-url": 3...4, "transcribe": 3...3, "archive-members": 3...3,
+    "include-members": 4...4, "include": 3...3, "relink": 4...4, "search": 3...4, "read": 3...3,
+    "records": 2...3, "rows": 3...4, "add": 3...3, "edit-row": 4...5, "accept": 3...4,
+    "undo": 3...4, "withdraw": 3...4, "balance": 3...4, "opening": 6...6, "movement": 3...3,
+    "lineage": 3...3, "spaces": 2...2, "space-history": 3...4, "space-edit": 5...6,
+    "space-restore": 5...6, "space": 4...4, "conversation": 2...3, "history": 2...4,
+    "history-search": 4...5, "history-read": 4...4, "unresolved-calls": 2...3,
+    "tool-receipt": 4...4, "checkpoints": 2...3, "checkpoint": 4...4, "chapter": 4...4,
+    "thread": 4...4, "tangent": 4...4, "start-thread": 3...4, "rename-thread": 4...4,
+    "share-summary": 4...4, "reindex": 2...2, "export": 3...3, "export-csv": 4...4,
+    "tool": 3...4, "ask": 3...4,
+  ]
   static let help = """
     Sevra 0.1.0 development CLI. Every result is JSON; errors exit nonzero.
     create PATH.sevra [TITLE] | demo PATH.sevra | inspect WORKBOOK | verify WORKBOOK
