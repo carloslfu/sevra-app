@@ -70,11 +70,17 @@ public enum SplashModelSetup {
         .init(phase: "Checking existing model", file: pack.name, completedBytes: 0, totalBytes: 0))
       do {
         return try SplashModelPreparation.installed(
-          pack: pack, modelsRoot: root, cancelled: cancelled)
-      } catch {
+          pack: pack, modelsRoot: root, fullVerification: true, cancelled: cancelled
+        ) { state in
+          progress(
+            .init(
+              phase: "Verifying", file: state.file, completedBytes: state.verifiedBytes,
+              totalBytes: state.totalBytes))
+        }
+      } catch let error as SplashError where error.repairable {
         if cancelled() { throw SplashError("Model setup cancelled") }
-        // A missing or changed original can be repaired into managed snapshots.
-        // Keep its old selection until the replacement verifies completely.
+        // A missing or changed original can be repaired into managed snapshots, and only that
+        // starts a 21 GB download. Keep its old selection until the replacement verifies.
       }
     }
     let snapshots = root.appendingPathComponent(".snapshots")
@@ -141,8 +147,9 @@ public enum SplashModelSetup {
     }
     if cancelled() { throw SplashError("Model setup cancelled") }
     return try SplashModelPreparation.prepare(
-      pack: pack, target: directories[0], draft: directories[1],
-      modelsRoot: root, pinnedSources: true, cancelled: cancelled
+      pack: pack, target: directories[0], draft: directories[1], modelsRoot: root,
+      fullVerification: reusingTarget != nil || reusingDraft != nil, pinnedSources: true,
+      cancelled: cancelled
     ) { state in
       progress(
         .init(

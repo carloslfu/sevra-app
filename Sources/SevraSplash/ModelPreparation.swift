@@ -85,10 +85,12 @@ private func safeRelativePath(_ value: String) -> Bool {
 /// Matches Splash 1.4.1's immutable text-only MLX-affine assembly contract.
 /// This verifies/links original weights; it never changes or deletes their source.
 public enum SplashModelPreparation {
-  /// Open the selected installed pack without assuming the draft lives inside
-  /// a legacy target folder. Revalidate the pinned originals before use.
+  /// Open the selected installed pack without assuming the draft lives inside a legacy target
+  /// folder. Each launch checks sizes and recorded identities, and hashes only a file whose
+  /// identity moved. An explicit Verify asks for `fullVerification`, which hashes every file.
   public static func installed(
-    pack: SplashModelPack, modelsRoot: URL, cancelled: () -> Bool = { false }
+    pack: SplashModelPack, modelsRoot: URL, fullVerification: Bool = false,
+    cancelled: () -> Bool = { false }, progress: (Progress) -> Void = { _ in }
   ) throws -> URL {
     try pack.validate()
     let selection = modelsRoot.appendingPathComponent(pack.name).resolvingSymlinksInPath()
@@ -101,12 +103,16 @@ public enum SplashModelPreparation {
       record.sources["draft"]?.revision == pack.draft.revision,
       let target = record.files["target/config.json"]?.path,
       let draft = record.files["draft/config.json"]?.path
-    else { throw SplashError("The installed model does not match the selected target and draft") }
+    else {
+      throw SplashError(
+        "The installed model does not match the selected target and draft", repairable: true)
+    }
     return try prepare(
       pack: pack,
       target: URL(fileURLWithPath: target).deletingLastPathComponent(),
       draft: URL(fileURLWithPath: draft).deletingLastPathComponent(),
-      modelsRoot: modelsRoot, pinnedSources: true, cancelled: cancelled)
+      modelsRoot: modelsRoot, fullVerification: fullVerification, pinnedSources: true,
+      cancelled: cancelled, progress: progress)
   }
 
   public struct Progress {
@@ -241,14 +247,14 @@ public enum SplashModelPreparation {
   ) throws -> Fingerprint {
     let descriptor = open(url.path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
     guard descriptor >= 0 else {
-      throw SplashError("Missing or unreadable model file: " + expected.path)
+      throw SplashError("Missing or unreadable model file: " + expected.path, repairable: true)
     }
     let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
     defer { try? handle.close() }
     var st = stat()
     guard fstat(descriptor, &st) == 0, (st.st_mode & S_IFMT) == S_IFREG,
       st.st_size == expected.bytes
-    else { throw SplashError("Model file size mismatch: " + expected.path) }
+    else { throw SplashError("Model file size mismatch: " + expected.path, repairable: true) }
     let before = makeFingerprint(url, st, expected.sha256)
     if before != previous {
       var hash = SHA256()
@@ -270,7 +276,7 @@ public enum SplashModelPreparation {
       guard count == expected.bytes,
         hash.finalize().map({ String(format: "%02x", $0) }).joined() == expected.sha256
       else {
-        throw SplashError("Model file hash mismatch: " + expected.path)
+        throw SplashError("Model file hash mismatch: " + expected.path, repairable: true)
       }
     }
     var after = stat()
@@ -297,7 +303,10 @@ public enum SplashModelPreparation {
       digest: digest)
   }
   private static func readRecord(_ url: URL) throws -> Record {
-    try JSONDecoder().decode(Record.self, from: readRecordBytes(url))
+    guard let record = try? JSONDecoder().decode(Record.self, from: readRecordBytes(url)) else {
+      throw SplashError("Cannot read model assembly record", repairable: true)
+    }
+    return record
   }
   private static func readRecordBytes(_ url: URL) throws -> Data {
     let fd = open(url.path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)

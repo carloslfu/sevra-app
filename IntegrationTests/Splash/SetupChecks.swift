@@ -1,4 +1,5 @@
 import CryptoKit
+import Darwin
 import Foundation
 import SevraSplash
 
@@ -245,6 +246,66 @@ func checkNativeSetup() {
     try rejects { _ = try SplashModelPreparation.installed(pack: f.pack, modelsRoot: f.cache) }
     try bytes.write(to: original)
     _ = try SplashModelPreparation.installed(pack: f.pack, modelsRoot: f.cache)
+  }
+  test("launch checks identity, Verify hashes every file and only a bad original downloads") {
+    let f = try ModelFixture()
+    defer { f.remove() }
+    reset("normal")
+    ModelHTTPFixture.files = [:]
+    for (source, folder) in [(f.pack.target, f.target), (f.pack.draft, f.draft)] {
+      for file in source.files {
+        ModelHTTPFixture.files["/\(source.repository)/resolve/\(source.revision)/\(file.path)"] =
+          try Data(contentsOf: folder.appendingPathComponent(file.path))
+      }
+    }
+    func install() throws -> URL {
+      try SplashModelSetup.install(
+        pack: f.pack, modelsRoot: f.cache, configuration: configuration(),
+        capacity: { _ in 1_000_000_000 })
+    }
+    _ = try SplashModelSetup.install(
+      pack: f.pack, modelsRoot: f.cache, reusingTarget: f.target, reusingDraft: f.draft,
+      configuration: configuration(), capacity: { _ in 1_000_000_000 })
+    func updates(full: Bool) throws -> Int {
+      var count = 0
+      _ = try SplashModelPreparation.installed(
+        pack: f.pack, modelsRoot: f.cache, fullVerification: full, progress: { _ in count += 1 })
+      return count
+    }
+    // Each file reports once, and hashing one reports its bytes as well.
+    try expect(try updates(full: false) == 6 && updates(full: true) == 12)
+    // Damage that keeps the recorded size and identity is what only Verify can find.
+    let weights = f.target.appendingPathComponent("weights.safetensors")
+    let good = try Data(contentsOf: weights)
+    try Data(repeating: 65, count: good.count).write(to: weights)
+    var st = stat()
+    try expect(lstat(weights.path, &st) == 0)
+    let recordURL = f.cache.appendingPathComponent(f.pack.name + "/model.json")
+    var record = try JSONSerialization.jsonObject(with: Data(contentsOf: recordURL)) as! [String: Any]
+    var files = record["files"] as! [String: [String: Any]]
+    for (key, var entry) in files where entry["path"] as? String == weights.path {
+      entry["mtime_ns"] = Int64(st.st_mtimespec.tv_sec) * 1_000_000_000 + Int64(st.st_mtimespec.tv_nsec)
+      entry["ctime_ns"] = Int64(st.st_ctimespec.tv_sec) * 1_000_000_000 + Int64(st.st_ctimespec.tv_nsec)
+      files[key] = entry
+    }
+    record["files"] = files
+    try JSONSerialization.data(withJSONObject: record).write(to: recordURL)
+    _ = try SplashModelPreparation.installed(pack: f.pack, modelsRoot: f.cache)
+    try expect(ModelHTTPFixture.requests.isEmpty)
+    let repaired = try install()
+    try expect(ModelHTTPFixture.requests.count == 6)
+    try expect(
+      try Data(contentsOf: repaired.appendingPathComponent("target/weights.safetensors")) == good)
+    // A selection that cannot be published is not a damaged original, so nothing downloads.
+    ModelHTTPFixture.requests = []
+    let selection = f.cache.appendingPathComponent(f.pack.name)
+    try FileManager.default.removeItem(at: selection)
+    try FileManager.default.createDirectory(at: selection, withIntermediateDirectories: false)
+    try FileManager.default.copyItem(
+      at: repaired.appendingPathComponent("model.json"),
+      to: selection.appendingPathComponent("model.json"))
+    try rejects { _ = try install() }
+    try expect(ModelHTTPFixture.requests.isEmpty)
   }
   test("verifying an installed reused model does not download duplicate weights") {
     let f = try ModelFixture()

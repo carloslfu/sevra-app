@@ -2,8 +2,13 @@ import Foundation
 
 public struct SplashError: LocalizedError, CustomStringConvertible, Sendable {
   public let description: String
+  /// An original that is missing or differs. Setup can repair that; it cannot repair anything else.
+  public let repairable: Bool
   public var errorDescription: String? { description }
-  public init(_ message: String) { description = message }
+  public init(_ message: String, repairable: Bool = false) {
+    description = message
+    self.repairable = repairable
+  }
 }
 
 func check(_ condition: Bool, _ message: String) throws {
