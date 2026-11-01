@@ -301,6 +301,7 @@ do {
   try await checkCitationVersions()
   try await checkActionConfirmations()
   try await checkAnswerGrounding()
+  try await checkAttachedCalculationInputs()
   try await checkDocumentCopies()
   try await checkCurrencyRejection()
   try await checkHistoryTools()

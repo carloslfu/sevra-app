@@ -301,7 +301,7 @@ public struct WorkbookTools {
         "citations": .array(ids.map(Value.string)),
         "notice": .string(
           "The basis and effects identify workbook Source/Record versions, not conversation messages. "
-            + "This calculation inspects those inputs. Put these exact citations in finish.citations when reporting the balance. "
+            + "This calculation inspects those inputs, and the host attaches them to your answer. They need no place in finish.citations. "
             + "Use read for additional source content. No history_read or count_records call is needed to cite this calculation."
         ),
       ])

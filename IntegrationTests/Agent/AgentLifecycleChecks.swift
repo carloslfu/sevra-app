@@ -106,11 +106,6 @@ private actor ScriptedInference: WorkbookInference {
         try expectEqual(balance["evidence"]["citations"].array.compactMap(\.string), balanceIDs)
         try expectEqual(
           balance["evidence"]["notice"].text.contains("not conversation messages"), true)
-      } else {
-        try expectEqual(responses, 3)
-        try expectEqual(omitBalanceCitation, true)
-        try expectEqual(messages.last!.content.contains("every inspected input"), true)
-        try expectEqual(messages.last!.content.contains("not conversation-message IDs"), true)
       }
       try expectEqual(balanceIDs.allSatisfy { citationIDs.contains($0) && !$0.isEmpty }, true)
       let ids = omitBalanceCitation && responses == 2 ? Array(balanceIDs.prefix(1)) : balanceIDs
@@ -410,12 +405,8 @@ func checkAgentLifecycle() async throws {
     "What is the brass bolt stock? Cite the basis and movements. Make no changes.",
     workbook: inventory, model: ScriptedInference(balanceOnly: true, omitBalanceCitation: true))
   try expectEqual(corrected.state, "complete")
-  try expectEqual(corrected.steps, 3)
+  try expectEqual(corrected.steps, 2)
   try expectEqual(Set(corrected.citations), Set(balanceAnswer.citations))
-  let validations = try inventory.messages(limit: 100).filter {
-    $0.role == "tool" && $0.body.contains("every inspected input")
-  }
-  try expectEqual(validations.count, 1)
   let linked = try await WorkbookAgent.run(
     "What is the brass bolt stock? Cite the basis and movements. Make no changes.",
     workbook: inventory, model: ScriptedInference(balanceOnly: true, inlineBalanceReferences: true))

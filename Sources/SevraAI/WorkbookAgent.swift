@@ -22,6 +22,21 @@ public enum WorkbookAgent {
     let call: InferenceCall
     let result: Value
   }
+  /// What this run's own calculations read. The host cites these from their receipts, as one
+  /// collapsed link, so the model never retypes a list too long to fit its answer.
+  private struct CalculationInputs {
+    private(set) var ids: [String] = []
+    private(set) var receipts: [String] = []
+    private var known = Set<String>()
+    mutating func add(_ inputs: [String], receiptID: String) {
+      ids += inputs.filter { known.insert($0).inserted }
+      if !receipts.contains(receiptID) { receipts.append(receiptID) }
+    }
+    func contains(_ id: String) -> Bool { known.contains(id) }
+  }
+  /// The citation grammar names every ID it allows, and every ID costs prompt room and stops at
+  /// 256. A longer receipt adds only the versions it names.
+  private static let citableCalculationInputs = 32
   package static func run(
     _ prompt: String, workbook: Workbook, conversation: String = "main", context: String = "",
     modelDirectory: URL = FileManager.default.temporaryDirectory,
@@ -168,7 +183,7 @@ public enum WorkbookAgent {
     var computed = false
     let requestNumbers = numericValues(prompt)
     var computedNumbers = Set<String>()
-    var calculationInputs = Set<String>()
+    var calculationInputs = CalculationInputs()
     var currencyEvidence = prompt.contains("$") || prompt.contains("€") || prompt.contains("£")
     var percentages: [Decimal] = []
     let statedPercentages = Self.percentValues(prompt + "\n" + context)
@@ -390,8 +405,15 @@ public enum WorkbookAgent {
           let supplementalActionText = actionText == nil ? actionConfirmations.rendered : nil
           var answer = actionText ?? a["answer"].text
           var citations = actionText == nil ? a["citations"].array.compactMap(\.string) : []
+          // An answer built from host outcomes states no calculation, and neither does an
+          // unresolved one or a preview. Any other answer carries the inputs of what it ran.
+          let attachedInputs =
+            actionText != nil || ["unresolved", "completed_action", "preview"].contains(basis)
+            ? [] : calculationInputs.ids.filter { !citations.contains($0) }
+          let citable = inspected.union(calculationInputs.ids)
           let currentRequestOnly =
-            !citations.isEmpty && citations.allSatisfy { $0 == requestSource.id }
+            attachedInputs.isEmpty && !citations.isEmpty
+            && citations.allSatisfy { $0 == requestSource.id }
           var problems: [String] = []
           if pendingActionPreview != nil && basis != "preview" {
             problems.append(
@@ -435,7 +457,9 @@ public enum WorkbookAgent {
           }
           // A count receipt authorizes only its exact structured result. With
           // no inspected citations, never publish other model-authored claims.
-          let countOnly = basis == "evidence" && citations.isEmpty && !coverageEvidence.isEmpty
+          let countOnly =
+            basis == "evidence" && citations.isEmpty && attachedInputs.isEmpty
+            && !coverageEvidence.isEmpty
           if countOnly { answer = "" }
           // A failed search can establish its query/coverage receipt, not the
           // missing document's contents. Keep that useful result even if the
@@ -482,7 +506,9 @@ public enum WorkbookAgent {
               "Declare the answer basis using the finish schema. Workbook and earlier-conversation facts use evidence, including facts suggested by saved context or host status."
             )
           }
-          if basis == "evidence" && citations.isEmpty && coverageEvidence.isEmpty {
+          if basis == "evidence" && citations.isEmpty && attachedInputs.isEmpty
+            && coverageEvidence.isEmpty
+          {
             if inspected.isEmpty { nextToolScope = .inspection }
             problems.append(
               "An evidence-based answer requires inspected citations. Read the current record or original message in this run first, even if an earlier run read it. A digest or host-state pointer is not a citation."
@@ -498,34 +524,35 @@ public enum WorkbookAgent {
               "No completed action is available to confirm. Inspect the saved receipts/state and do not claim success."
             )
           }
-          if (answer.isEmpty && !countOnly) || !citations.allSatisfy({ inspected.contains($0) }) {
+          if (answer.isEmpty && !countOnly) || !citations.allSatisfy({ citable.contains($0) }) {
             problems.append(
               "Citations must be inspected Source/Record versions or message:ID references returned by history_read. Space and table IDs are not valid citations. When only confirming a saved space, use an empty citations array."
             )
-          }
-          if !["unresolved", "completed_action", "preview"].contains(basis)
-            && !calculationInputs.isSubset(of: Set(citations))
-          {
-            problems.append(
-              "Include every inspected input supporting the balance or comparison in citations: "
-                + calculationInputs.sorted().joined(separator: ", ")
-                + ". These are workbook item-version IDs already inspected by the calculation, not conversation-message IDs. "
-                + "Put them in finish.citations; history_read and count_records are not needed to cite this calculation. "
-                + "Do not put these IDs in answer prose.")
           }
           // The immutable live submission is request evidence. A later Source
           // head cannot widen this run's conversation ceiling. Business evidence
           // still requires the current-version refresh below.
           let versionState = try workbook.citationVersions(
             Array(
-              Set(citations.filter { inspected.contains($0) && !$0.hasPrefix("message:") })
-                .union(pendingVersionCitations).subtracting([requestSource.id])),
+              Set(citations.filter { citable.contains($0) && !$0.hasPrefix("message:") })
+                .union(pendingVersionCitations).subtracting([requestSource.id])
+                .subtracting(attachedInputs)),
             cancellation: cancellation)
-          let checkedHistoricalVersions = versionState["versions"].array.filter {
-            $0["isCurrentVersion"] == .bool(false)
+          // A long receipt outruns one version check, and only a version that moved on is news.
+          let checkedInputs = attachedInputs.filter { $0 != requestSource.id }
+          var movedInputs: [Value] = []
+          for start in stride(from: 0, to: checkedInputs.count, by: 256) {
+            movedInputs += try workbook.citationVersions(
+              Array(checkedInputs[start..<min(start + 256, checkedInputs.count)]),
+              cancellation: cancellation
+            )["versions"].array.filter { $0["isCurrentVersion"] == .bool(false) }
           }
+          let checkedHistoricalVersions =
+            versionState["versions"].array.filter { $0["isCurrentVersion"] == .bool(false) }
+            + movedInputs
           let historicalVersions = checkedHistoricalVersions.filter {
             citations.contains($0["cited"]["id"].text)
+              || attachedInputs.contains($0["cited"]["id"].text)
           }
           let unrefreshed = checkedHistoricalVersions.filter {
             !inspected.contains($0["current"]["id"].text)
@@ -535,15 +562,15 @@ public enum WorkbookAgent {
             nextToolScope = .inspection
             problems.append(
               "A cited version is historical. Read each current version below before answering. Keep the original citation for historical facts, but do not describe its old status as current. A withdrawn/rejected proposal is not waiting for acceptance. "
-                + (try Value.array(unrefreshed).json()))
+                + (try Value.array(Array(unrefreshed.prefix(16))).json()))
           }
           let inlineReferences = renderableReferences(
-            modelAnswer, citations: citations, inspected: inspected)
+            modelAnswer, citations: citations, inspected: citable)
           var unrenderedAnswer = modelAnswer
           for reference in inlineReferences.keys {
             unrenderedAnswer = unrenderedAnswer.replacingOccurrences(of: reference, with: "")
           }
-          if let feedback = opaqueReferenceFeedback(unrenderedAnswer, inspected: inspected) {
+          if let feedback = opaqueReferenceFeedback(unrenderedAnswer, inspected: citable) {
             problems.append(feedback)
           }
           if !currencyEvidence && modelAnswer.contains(where: { "$€£".contains($0) }) {
@@ -611,14 +638,14 @@ public enum WorkbookAgent {
                 locators.removeAll()
                 computed = false
                 computedNumbers.removeAll()
-                calculationInputs.removeAll()
+                calculationInputs = CalculationInputs()
                 percentages = []
                 currencyEvidence = prompt.contains(where: { "$€£".contains($0) })
               }
             }
             continue
           }
-          func citationLink(_ id: String) -> String {
+          func citationLink(_ id: String, label: String? = nil) -> String {
             if id.hasPrefix("message:") {
               var link = URLComponents()
               link.scheme = "sevra"
@@ -639,18 +666,23 @@ public enum WorkbookAgent {
             if let locator = locators[id] {
               link.queryItems = [URLQueryItem(name: "locator", value: locator)]
             }
-            return "[\(citationLabel(title))](\(link.url!.absoluteString))"
+            return "[\(label ?? citationLabel(title))](\(link.url!.absoluteString))"
           }
           // Formatting an already validated exact citation does not require
           // another model turn. Keep the original arguments in the receipt.
-          answer = renderReferenceLinks(answer, references: inlineReferences, link: citationLink)
+          answer = renderReferenceLinks(
+            answer, references: inlineReferences, link: { citationLink($0) })
           if let actionText { answer = actionText }
-          let remainingCitations = citations.filter { !inlineReferences.values.contains($0) }
-          let suffix =
-            remainingCitations.isEmpty
-            ? ""
-            : "\n\n"
-              + remainingCitations.map(citationLink).joined(separator: " ")
+          var citationLinks = citations.filter { !inlineReferences.values.contains($0) }
+            .map { citationLink($0) }
+          if let first = attachedInputs.first {
+            citationLinks.append(
+              citationLink(
+                first,
+                label: attachedInputs.count == 1
+                  ? nil : "\(calculationInputs.ids.count) calculation inputs"))
+          }
+          let suffix = citationLinks.isEmpty ? "" : "\n\n" + citationLinks.joined(separator: " ")
           let coverageText =
             coverageEvidence.isEmpty
             ? ""
@@ -678,7 +710,16 @@ public enum WorkbookAgent {
               "runID": .string(runID), "callID": .string(call.id),
               "assistantText": .string(response.text),
               "coverageEvidence": .array(coverageEvidence),
-              "citationVersions": versionState,
+              "citationVersions": .object(
+                versionState.object.merging(
+                  ["versions": .array(versionState["versions"].array + movedInputs)]
+                ) { $1 }),
+              "calculationInputs": attachedInputs.isEmpty
+                ? .null
+                : .object([
+                  "attached": .number(Double(attachedInputs.count)),
+                  "receiptIDs": .array(calculationInputs.receipts.map(Value.string)),
+                ]),
               "actionConfirmations": actionText == nil && supplementalActionText == nil
                 ? .array([]) : actionConfirmations.evidence,
               "renderedReferences": .object(inlineReferences.mapValues(Value.string)),
@@ -703,7 +744,7 @@ public enum WorkbookAgent {
             runID, status: "complete", steps: step, metrics: .array(metrics))
           return AgentResult(
             answer: answer + suffix + coverageText + versionText + outcomeText,
-            citations: citations, steps: step,
+            citations: citations + attachedInputs, steps: step,
             state: "complete",
             focus: focus)
         }
@@ -716,7 +757,7 @@ public enum WorkbookAgent {
         var observedThisStep = Set<String>()
         var computedThisStep = false
         var computedNumbersThisStep = Set<String>()
-        var calculationInputsThisStep = Set<String>()
+        var calculationInputsThisStep = CalculationInputs()
         var percentagesThisStep: [Decimal] = []
         var currencyThisStep = false
         var callFailed = false
@@ -973,6 +1014,14 @@ public enum WorkbookAgent {
               percentagesThisStep.append(n)
             }
           }
+          func admitCalculation(_ inputs: [String], naming named: [String]) {
+            calculationInputs.add(inputs, receiptID: receiptID)
+            calculationInputsThisStep.add(inputs, receiptID: receiptID)
+            for id in inputs.count <= citableCalculationInputs ? inputs : named {
+              inspected.insert(id)
+              observedThisStep.insert(id)
+            }
+          }
           if projected == result, tool == "evaluate_definition", result["kind"].text == "function",
             let number = result["result"].string
           {
@@ -983,41 +1032,26 @@ public enum WorkbookAgent {
               computedNumbersThisStep.formUnion(numericValues(value.text))
             }
             computedNumbers.formUnion(computedNumbersThisStep)
-            for id in result["resolvedDefinitions"].array.compactMap({ $0["sourceID"].string }) {
-              inspected.insert(id)
-              observedThisStep.insert(id)
-              calculationInputs.insert(id)
-              calculationInputsThisStep.insert(id)
-            }
+            let inputs = result["resolvedDefinitions"].array.compactMap { $0["sourceID"].string }
+            admitCalculation(inputs, naming: inputs)
           }
-          if projected == result, tool == "balance" {
+          // A long receipt is paged, but what the model must see of it comes first and is short.
+          // Its inputs are the host's to cite, so they need not have been shown.
+          let visible = projected == result ? result : ToolResultProjection.visibleValue(projected)
+          if tool == "balance", visible["quantity"] != .null {
             computed = true
             computedThisStep = true
-            if let basis = result["basis"].string {
-              inspected.insert(basis)
-              observedThisStep.insert(basis)
-              calculationInputs.insert(basis)
-              calculationInputsThisStep.insert(basis)
-            }
-            for effect in result["effects"].array {
-              if let id = effect["item_id"].string {
-                inspected.insert(id)
-                observedThisStep.insert(id)
-                calculationInputs.insert(id)
-                calculationInputsThisStep.insert(id)
-              }
-            }
+            let basis = result["basis"].string.map { [$0] } ?? []
+            admitCalculation(
+              basis + result["effects"].array.compactMap { $0["item_id"].string }, naming: basis)
           }
-          if projected == result, tool == "compare_rows" {
+          if tool == "compare_rows", visible["minimum"] != .null, visible["maximum"] != .null {
             computed = true
             computedThisStep = true
-            for id in result["inputs"].array.compactMap(\.string) {
-              inspected.insert(id)
-              observedThisStep.insert(id)
-              calculationInputs.insert(id)
-              calculationInputsThisStep.insert(id)
-            }
-            if let n = try? Numbers.decimal(result["percentCheaper"].text) {
+            admitCalculation(
+              result["inputs"].array.compactMap(\.string),
+              naming: [result["minimum"]["id"].text, result["maximum"]["id"].text])
+            if let n = try? Numbers.decimal(visible["percentCheaper"].text) {
               percentages.append(n)
               percentagesThisStep.append(n)
             }
@@ -1049,7 +1083,6 @@ public enum WorkbookAgent {
               emptySearchesIncludedHistory = true
             }
           }
-          let visible = projected == result ? result : ToolResultProjection.visibleValue(projected)
           var evidence = visibleEvidence(tool: tool, result: visible)
           if tool == "tool_result" {
             let original = try workbook.toolCall(a["id"].text, conversation: conversation)
