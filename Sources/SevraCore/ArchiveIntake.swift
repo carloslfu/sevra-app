@@ -1,4 +1,5 @@
 import CryptoKit
+import Darwin
 import Foundation
 import ZIPFoundation
 
@@ -210,7 +211,12 @@ extension Workbook {
     let archive = try Archive(url: assetURL(assetID, cancellation: cancellation), accessMode: .read)
     let folder = url.appendingPathComponent("staging/archive-" + identifier())
     try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-    defer { try? FileManager.default.removeItem(at: folder) }
+    let held = Darwin.open(folder.path, O_RDONLY | O_CLOEXEC)
+    defer {
+      try? FileManager.default.removeItem(at: folder)
+      close(held)
+    }
+    flock(held, LOCK_EX)
     var imported: [Item] = []
     for path in paths {
       try cancellation.check()

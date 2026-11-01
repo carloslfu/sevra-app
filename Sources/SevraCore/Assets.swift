@@ -30,8 +30,12 @@ extension Workbook {
     defer { try? read.close() }
     var write: FileHandle?
     if !linked {
-      FileManager.default.createFile(atPath: temp.path, contents: nil)
-      write = try FileHandle(forWritingTo: temp)
+      // The lock ends with this process, so opening the workbook can tell a killed import's copy
+      // from one still in use. It stays held until the copy is published or removed.
+      let descriptor = Darwin.open(
+        temp.path, O_CREAT | O_EXCL | O_WRONLY | O_EXLOCK | O_CLOEXEC, 0o644)
+      try require(descriptor >= 0, "asset", "Cannot create a working copy of this file.")
+      write = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
     }
     defer { try? write?.close() }
     var sha = SHA256()
@@ -59,8 +63,6 @@ extension Workbook {
         && after.contentModificationDate == info.contentModificationDate, "changed_file",
       "The original changed during import. Please retry.")
     try write?.synchronize()
-    try write?.close()
-    write = nil
     let hash = sha.finalize().map { String(format: "%02x", $0) }.joined()
     let assetID = identifier()
     let ext = source.pathExtension.lowercased().filter { $0.isLetter || $0.isNumber }.prefix(16)
@@ -126,6 +128,17 @@ extension Workbook {
       return .string(id)
     }
     return try item(result.text)
+  }
+  /// Everything left unlocked in staging belongs to an import that ended without cleaning up.
+  func removeAbandonedStaging() {
+    let files = FileManager.default
+    let folder = url.appendingPathComponent("staging")
+    for entry in (try? files.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? [] {
+      let descriptor = Darwin.open(entry.path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+      guard descriptor >= 0 else { continue }
+      defer { close(descriptor) }
+      if flock(descriptor, LOCK_EX | LOCK_NB) == 0 { try? files.removeItem(at: entry) }
+    }
   }
   public func asset(_ id: String) throws -> Asset {
     try synchronized {

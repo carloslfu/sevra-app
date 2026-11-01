@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import SevraCore
 
@@ -171,6 +172,47 @@ func checkContextualIntake(at root: URL) {
     try expect(chosen.role == .reference && chosen.state == "captured")
     try expect(try book.runIntake(job.id).state == "ready")
     try refuses("intake_role") { _ = try book.chooseIntakeRole(job.id, role: .values) }
+  }
+  check("a semicolon file splits into columns and a comma file stays as it was") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("Semicolons.sevra"), title: "Semicolons")
+    func table(_ name: String, _ text: String) throws -> [Column] {
+      let file = root.appendingPathComponent(name)
+      try Data(text.utf8).write(to: file)
+      let job = try book.captureIntake(file, role: .values)
+      return try book.dataset(try book.runIntake(job.id).datasetIDs[0]).columns
+    }
+    try expect(try table("semi.csv", "Name;Menge\nSchraube;5\n").map(\.title) == ["Name", "Menge"])
+    try expect(
+      try table("comma.csv", "\"Name;Alt\",Menge\nA;B,5\n").map(\.title) == ["Name;Alt", "Menge"])
+    try expect(try table("quoted.csv", "\"a;b\"\n\"c;d\"\n").map(\.title) == ["a;b"])
+  }
+  check("a query keeps its words when one term is only a mark, as an emoji's selector is") {
+    let book = try Workbook.create(at: root.appendingPathComponent("Marks.sevra"), title: "Marks")
+    let item = try book.addItem(
+      category: "source", kind: "note", title: "Note", text: "Atlas invoice", status: "accepted")
+    try book.index(item.id, chunks: [Chunk("Atlas invoice")])
+    try expect(try book.search("invoice \u{2764}\u{FE0F}").hits.count == 1)
+    try expect(try book.search("\u{2764}\u{FE0F}").hits.isEmpty)
+    try expect(try book.search("missing \u{FE0F}").hits.isEmpty)
+  }
+  check("opening a workbook removes a killed import's copy and leaves one still being written") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("Staging.sevra"), title: "Staging")
+    let staging = book.url.appendingPathComponent("staging")
+    let abandoned = staging.appendingPathComponent("abandoned")
+    let folder = staging.appendingPathComponent("archive-abandoned")
+    let live = staging.appendingPathComponent("live")
+    try Data("partial".utf8).write(to: abandoned)
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
+    let held = open(live.path, O_CREAT | O_WRONLY | O_EXLOCK, 0o644)
+    try expect(held >= 0)
+    _ = try Workbook(book.url)
+    let names = try FileManager.default.contentsOfDirectory(atPath: staging.path)
+    try expect(names == ["live"])
+    close(held)
+    _ = try Workbook(book.url)
+    try expect(try FileManager.default.contentsOfDirectory(atPath: staging.path).isEmpty)
   }
   check("including a linked file twice saves one copy, even when its contents cannot be read") {
     let book = try Workbook.create(

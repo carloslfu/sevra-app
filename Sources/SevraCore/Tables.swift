@@ -57,6 +57,20 @@ public struct TablePage: Sendable {
   public let formulaReport: SheetFormulaReport?
 }
 public enum CSV {
+  /// Where the comma is the decimal mark, spreadsheets separate cells with semicolons. A first
+  /// line with semicolons and no comma outside quotes is one of those files.
+  static func delimiter(of text: String) -> Character {
+    var quoted = false
+    var semicolon = false
+    for scalar in text.unicodeScalars {
+      if scalar == "\"" { quoted.toggle() }
+      if quoted { continue }
+      if scalar == "," { return "," }
+      if scalar == ";" { semicolon = true }
+      if scalar == "\n" || scalar == "\r" { break }
+    }
+    return semicolon ? ";" : ","
+  }
   public static func parse(
     _ text: String, delimiter: Character = ",", cancellation: Cancellation = .init()
   ) throws -> [[String]] {

@@ -84,6 +84,7 @@ public final class Workbook: @unchecked Sendable {
     try db.enableChangeCapture(workbookID: id)
     lockFD = descriptor
     opened = true
+    removeAbandonedStaging()
   }
   private func validateSchema() throws {
     // Pre-1.0 development formats have no compatibility commitment. Never

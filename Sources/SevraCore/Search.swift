@@ -3,7 +3,10 @@ import Foundation
 extension Workbook {
   static func searchTerms(_ query: String) throws -> String {
     try require(query.utf8.count <= 2048, "query_limit", "Search is limited to 2048 bytes.")
-    return query.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
+    // Marks count as alphanumeric, but the index has no token for a term of marks alone, such as
+    // the variation selector in an emoji, and an empty term would leave no hits at all.
+    return query.components(separatedBy: CharacterSet.alphanumerics.inverted)
+      .filter { term in term.unicodeScalars.contains { !CharacterSet.nonBaseCharacters.contains($0) } }
       .prefix(24).map { "\"" + $0 + "\"*" }.joined(separator: " AND ")
   }
   func insertChunks(_ item: String, title: String, chunks: [Chunk]) throws {

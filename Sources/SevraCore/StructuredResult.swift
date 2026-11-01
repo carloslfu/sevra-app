@@ -23,7 +23,7 @@ public struct StructuredResult: Codable, Sendable {
       throw SevraError("encoding", "CSV and TSV imports require UTF-8 text.")
     }
     let rows = try CSV.parse(
-      text, delimiter: format == .tsv ? "\t" : ",", cancellation: cancellation)
+      text, delimiter: format == .tsv ? "\t" : CSV.delimiter(of: text), cancellation: cancellation)
     return .init(sheets: [
       .init(
         name: "", rows: rows,
