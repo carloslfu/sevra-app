@@ -220,13 +220,12 @@ public enum WorkbookAgent {
       try cancellation.check()
       let requestSource =
         try handoff.map { try workbook.item($0.sourceID) }
-        ?? workbook.addItem(
-          category: "source", kind: "request", title: "User request", text: prompt,
+        ?? workbook.captureUserRequest(
+          prompt,
           data: .object([
             "conversationID": .string(conversation), "messageID": .string(requestMessage),
             "context": .string(context),
-          ]), meaning: "plan", status: "accepted", transformation: "conversation-submission-v1",
-          token: runID + "-request")
+          ]), token: runID + "-request")
       let tools = WorkbookTools(
         workbook, runID: runID, cancellation: cancellation, requestSourceID: requestSource.id,
         conversation: conversation, readOnly: readOnly,

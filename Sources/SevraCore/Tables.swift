@@ -712,7 +712,8 @@ extension Workbook {
         category: "source", kind: "decision", title: "Undo \(current.title)",
         text: actor.label + " requested restoration of the prior version.",
         data: try decisionData(id), meaning: "actual", status: "accepted",
-        scenario: "actual", inputs: decisionInputs(), transformation: "decision-undo-v2")
+        scenario: "actual", inputs: [current.id], transformation: "decision-undo-v2",
+        controlInputs: decisionInputs())
       let restored = try insertItem(
         category: current.category, kind: current.kind, title: old.title, text: old.text,
         data: restoredData, meaning: old.meaning,

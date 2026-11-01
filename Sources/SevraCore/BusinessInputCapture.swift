@@ -2,7 +2,7 @@ import Foundation
 
 enum BusinessInput {
   static let policy = "business-input-v1"
-  static let kinds: Set<String> = ["observation", "external-file"]
+  static let kinds: Set<String> = ["observation", "external-file", "request"]
 
   static func root(workbook: String, commit: String) throws -> String {
     "business-root:"
@@ -31,6 +31,25 @@ extension Workbook {
         meaning: "actual", status: "accepted", scenario: "actual", inputs: [],
         transformation: BusinessInput.policy)
       try declareNewBusinessInput(source, kind: "observation")
+      return .string(source)
+    }
+    return try item(result.text)
+  }
+
+  /// The user's words as the host received them. A movement can rest on these alone, so
+  /// they start a business origin. A `request` Source any other writer saves does not.
+  package func captureUserRequest(
+    _ text: String, data: Value, token: String, cancellation: Cancellation = .init()
+  ) throws -> Item {
+    let result = try mutation(
+      "user_request", token: token, request: .object(["text": .string(text), "data": data]),
+      cancellation: cancellation
+    ) {
+      let source = try insertItem(
+        category: "source", kind: "request", title: "User request", text: text, data: data,
+        meaning: "plan", status: "accepted", scenario: "actual", inputs: [],
+        transformation: "conversation-submission-v1")
+      try declareNewBusinessInput(source, kind: "request")
       return .string(source)
     }
     return try item(result.text)
@@ -79,7 +98,7 @@ extension Database {
     try require(
       row?["category"] == .string("source") && row?["version"] == .number(1)
         && row?["supersedes"] == .null
-        && ((kind == "observation" && row?["kind"] == .string("observation"))
+        && ((kind == row?["kind"]?.string && kind != "external-file")
           || (kind == "external-file" && row?["kind"] == .string("document")
             && row?["asset_id"] != .null))
         && scalar("SELECT EXISTS(SELECT 1 FROM lineage WHERE child=?)", [.string(id)]).int == 0,
@@ -102,7 +121,7 @@ extension Database {
       change.actor.kind != "ai" && entry.table == "items" && entry.before == nil
         && entry.resetProjection == nil && item.count == 15 && item[0].string == source
         && item[2] == .integer("1") && item[3].string == "source" && item[12] == .null
-        && ((kind == "observation" && item[4].string == "observation")
+        && ((kind == item[4].string && kind != "external-file")
           || (kind == "external-file" && item[4].string == "document" && item[11] != .null))
         && !change.changes.contains {
           $0.table == "lineage" && $0.after?.values.first?.string == source

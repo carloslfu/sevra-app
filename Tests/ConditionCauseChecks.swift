@@ -80,6 +80,51 @@ func checkConditionCauses(at root: URL) {
     try expect(origins["unclassifiedOrigins"].array.isEmpty)
     _ = try book.verify()
   }
+  check("an Undo and the user's captured request both resolve to a declared origin") {
+    let (book, data) = try fixture("UndoRequest")
+    let consumer = data["consumerIDs"].array[0].text
+    let draft = try book.movement(
+      subject: "parts", quantity: "10", occurrence: "receipt", effective: "2026-03-01",
+      input: data["sourceID"].text)
+    let accepted = try book.accept(draft.id, actor: .human("synthetic"))
+    _ = try conditionInputObservation(book, consumer)
+    _ = try book.undoItem(accepted.id, actor: .human("synthetic"))
+    let undone = try trace(book, conditionInputObservation(book, consumer)["id"].text)
+    try expect(undone["resolution"].text == "resolved", try undone.json())
+    let request = try book.captureUserRequest(
+      "We sold fifteen parts", data: .object([:]), token: "request")
+    try expect(
+      try book.captureUserRequest("We sold fifteen parts", data: .object([:]), token: "request").id
+        == request.id)
+    let sale = try book.movement(
+      subject: "parts", quantity: "-15", occurrence: "chat-sale", effective: "2026-03-02",
+      input: data["sourceID"].text, requestSourceID: request.id)
+    _ = try book.accept(sale.id, actor: .human("synthetic"))
+    let sold = try trace(book, conditionInputObservation(book, consumer)["id"].text)
+    try expect(sold["resolution"].text == "resolved", try sold.json())
+    try expect(sold["declaredInputs"].array.contains { $0["kind"] == .string("request") })
+    _ = try book.verify()
+  }
+  check("a request Source saved by any other writer stays unclassified") {
+    let (book, data) = try fixture("LabelledRequest")
+    let consumer = data["consumerIDs"].array[0].text
+    let request = try book.addItem(
+      category: "source", kind: "request", title: "Copied label", meaning: "plan",
+      status: "accepted")
+    let sale = try book.movement(
+      subject: "parts", quantity: "-15", occurrence: "labelled", effective: "2026-03-02",
+      input: data["sourceID"].text, requestSourceID: request.id)
+    _ = try book.accept(sale.id, actor: .human("synthetic"))
+    let value = try trace(book, conditionInputObservation(book, consumer)["id"].text)
+    try expect(value["blockedReasons"].array.contains(.string("unclassified-business-origins")))
+    try ChangeAttribution.$actor.withValue(
+      .ai("synthetic", model: "synthetic", policy: "synthetic")
+    ) {
+      try refuses("business_input") {
+        _ = try book.captureUserRequest("Model output", data: .object([:]), token: "ai")
+      }
+    }
+  }
   check("automatic correction with an explicit independent observation retains both root kinds") {
     let url = root.appendingPathComponent("ConditionCause-Mixed.sevra")
     let data = try createAutomaticAncestryFixture(at: url)

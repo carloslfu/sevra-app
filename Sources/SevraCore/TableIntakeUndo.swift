@@ -33,8 +33,8 @@ extension Workbook {
       text: (db.changes?.actor.label ?? "The calling program")
         + " requested a checked restoration of the previous table state.",
       data: try decisionData(current.id), meaning: "actual",
-      status: "accepted", scenario: "actual", inputs: decisionInputs(),
-      transformation: "decision-table-intake-undo-v2")
+      status: "accepted", scenario: "actual", inputs: [current.id],
+      transformation: "decision-table-intake-undo-v2", controlInputs: decisionInputs())
     var inverse: [Value] = []
     // The saved membership above is the authority for the compensating change.
     // Clear the projection before restoring rows so unique keys can swap safely.

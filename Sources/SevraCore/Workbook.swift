@@ -291,7 +291,7 @@ public final class Workbook: @unchecked Sendable {
     supersedes: String? = nil, token: String = identifier(), expectedRevision: Int? = nil,
     references: [ReferenceSelection]? = nil
   ) throws -> Item {
-    // A request or annotation Source authorizes nothing. Agents capture requests here.
+    // A request or annotation Source written here authorizes nothing and starts no origin.
     try require(
       !Item.hostOwnedKinds.contains(kind)
         || (category == "source" && ["request", "annotation"].contains(kind)),

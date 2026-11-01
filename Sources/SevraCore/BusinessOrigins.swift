@@ -69,8 +69,10 @@ extension Workbook {
       try report.charge(.object(summary))
       report.items.append(.object(summary))
       if producer == nil && business.isEmpty {
+        let declared = try db.scalar(
+          "SELECT EXISTS(SELECT 1 FROM business_inputs WHERE source_id=?)", [.string(id)])
         if item["category"] == .string("source") && edges.isEmpty
-          && !Item.technicalKinds.contains(item["kind"]!.text)
+          && (!Item.technicalKinds.contains(item["kind"]!.text) || declared.int == 1)
         {
           report.originals.append(.string(id))
         } else {
