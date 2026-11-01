@@ -27,6 +27,9 @@ extension Workbook {
     }
     let copy = try Database(snapshot.appendingPathComponent("workbook.sqlite"))
     let assets = try copy.execute("SELECT * FROM assets")
+    try Self.requireExportSpace(
+      for: assets, database: snapshot.appendingPathComponent("workbook.sqlite"),
+      in: [temp, destination.deletingLastPathComponent()])
     for row in assets {
       try cancellation.check()
       if row["mode"]!.text == "included" {
@@ -45,6 +48,11 @@ extension Workbook {
       }
     }
     try copy.execute("UPDATE assets SET bookmark=NULL,path='' WHERE mode='linked'")
+    // A copy that cannot reopen is worse than a refusal while the original still stands.
+    // The loop above hashed every included file, so this checks the records.
+    _ = try Workbook(snapshot, cancellation: cancellation).verify(
+      cancellation: cancellation, assets: false)
+    try fm.removeItem(at: snapshot.appendingPathComponent(".write-lock"))
     let stagingArchive = destination.deletingLastPathComponent().appendingPathComponent(
       ".sevra-\(identifier()).zip")
     defer { try? fm.removeItem(at: stagingArchive) }
@@ -63,14 +71,39 @@ extension Workbook {
       let zipProgress = Progress()
       cancellation.track(zipProgress)
       defer { cancellation.untrack(zipProgress) }
-      try archive.addEntry(
-        with: path, relativeTo: snapshot, compressionMethod: compressed ? .none : .deflate,
-        progress: zipProgress)
+      do {
+        try archive.addEntry(
+          with: path, relativeTo: snapshot, compressionMethod: compressed ? .none : .deflate,
+          progress: zipProgress)
+      } catch {
+        try cancellation.check()
+        throw error
+      }
     }
     try cancellation.check()
     try require(Self.flush(stagingArchive), "export", "Cannot persist the exported archive.")
     try fm.moveItem(at: stagingArchive, to: destination)
     Self.flush(destination.deletingLastPathComponent())
+  }
+  /// The snapshot and its archive can share a volume, and media does not compress.
+  private static func requireExportSpace(
+    for assets: [[String: Value]], database: URL, in folders: [URL]
+  ) throws {
+    let fm = FileManager.default
+    let included = assets.filter { $0["mode"]?.text == "included" }
+    var needed = Int64(try database.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0)
+    for row in included { needed += Int64(row["bytes"]?.int ?? 0) }
+    let volumes = Set(
+      try folders.map { try fm.attributesOfItem(atPath: $0.path)[.systemNumber] as? Int ?? 0 })
+    if volumes.count == 1 { needed *= 2 }
+    for folder in folders {
+      let free =
+        try folder.resourceValues(forKeys: [.volumeAvailableCapacityKey]).volumeAvailableCapacity
+        ?? 0
+      try require(
+        Int64(free) - needed > 16_777_216, "disk_full",
+        "There is not enough free space to export this workbook.")
+    }
   }
   public static func openArchive(
     _ archiveURL: URL, at destination: URL, maxBytes: UInt64 = 1_000_000_000_000,

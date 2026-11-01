@@ -385,7 +385,14 @@ func checkPersistence(at root: URL) {
   check(
     "corrupt, missing, unsupported and out-of-band history refuses without publishing a reconstruction"
   ) {
-    for mode in ["hash", "missing", "version", "base", "unlogged"] {
+    // A status edit is well formed, so only replaying history can notice it.
+    let refusals: [(mode: String, verify: String?, reconstruct: String)] = [
+      ("hash", "change_hash", "change_hash"), ("missing", "integrity", "change_predecessor"),
+      ("version", "change_version", "change_version"),
+      ("base", "change_integrity", "change_integrity"), ("unlogged", "integrity", "change_closure"),
+      ("status", nil, "change_closure"),
+    ]
+    for (mode, verifyCode, reconstructCode) in refusals {
       let book = try Workbook.create(
         at: root.appendingPathComponent("Corrupt-" + mode + ".sevra"), title: mode)
       _ = try book.addItem(category: "source", kind: "note", title: "First")
@@ -396,6 +403,8 @@ func checkPersistence(at root: URL) {
       case "missing": _ = try referenceSQL(book, "DELETE FROM committed_changes WHERE rowid=1;")
       case "unlogged":
         _ = try referenceSQL(book, "UPDATE items SET body='unlogged edit' WHERE rowid=1;")
+      case "status":
+        _ = try referenceSQL(book, "UPDATE items SET status='rejected' WHERE rowid=1;")
       default:
         let row = try book.db.execute(
           "SELECT payload FROM committed_changes ORDER BY rowid LIMIT 1")[0]
@@ -413,8 +422,14 @@ func checkPersistence(at root: URL) {
           [.string(payload), .string(ChangeFormat.hash(payload))])
       }
       let destination = root.appendingPathComponent("NoPublish-" + mode + ".sevra")
-      try refuses { _ = try book.verify() }
-      try refuses { _ = try book.reconstruct(to: destination) }
+      if let verifyCode {
+        try refuses(verifyCode) { _ = try book.verify() }
+        // An archive of this could never reopen, so export says so before writing one.
+        let copy = root.appendingPathComponent("NoExport-" + mode + ".sevraz")
+        try refuses(verifyCode) { try book.export(to: copy) }
+        try expect(!FileManager.default.fileExists(atPath: copy.path))
+      }
+      try refuses(reconstructCode) { _ = try book.reconstruct(to: destination) }
       try expect(!FileManager.default.fileExists(atPath: destination.path))
       try expect(try book.counts()["sources"].int == 2)
     }

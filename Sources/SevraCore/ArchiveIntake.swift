@@ -135,22 +135,26 @@ extension Workbook {
   static func extract(
     _ entry: Entry, from archive: Archive, to target: URL, progress: Progress
   ) throws -> CRC32 {
-    guard entry.type == .file else {
-      return try archive.extract(entry, to: target, progress: progress)
+    do {
+      guard entry.type == .file else {
+        return try archive.extract(entry, to: target, progress: progress)
+      }
+      FileManager.default.createFile(atPath: target.path, contents: nil)
+      let output = try FileHandle(forWritingTo: target)
+      defer { try? output.close() }
+      var written: UInt64 = 0
+      let checksum = try archive.extract(entry, progress: progress) { chunk in
+        written += UInt64(chunk.count)
+        try require(
+          written <= entry.uncompressedSize, "archive_limit",
+          "A ZIP member holds more data than it declares, so it was not opened.")
+        try output.write(contentsOf: chunk)
+      }
+      try FileManager.default.setAttributes(entry.fileAttributes, ofItemAtPath: target.path)
+      return checksum
+    } catch Archive.ArchiveError.cancelledOperation {
+      throw SevraError("cancelled", "The operation was cancelled.")
     }
-    FileManager.default.createFile(atPath: target.path, contents: nil)
-    let output = try FileHandle(forWritingTo: target)
-    defer { try? output.close() }
-    var written: UInt64 = 0
-    let checksum = try archive.extract(entry, progress: progress) { chunk in
-      written += UInt64(chunk.count)
-      try require(
-        written <= entry.uncompressedSize, "archive_limit",
-        "A ZIP member holds more data than it declares, so it was not opened.")
-      try output.write(contentsOf: chunk)
-    }
-    try FileManager.default.setAttributes(entry.fileAttributes, ofItemAtPath: target.path)
-    return checksum
   }
 
   public func archiveMembers(_ sourceID: String, cancellation: Cancellation = .init()) throws
