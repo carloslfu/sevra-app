@@ -1436,7 +1436,15 @@ public enum WorkbookAgent {
     if tool == "read" {
       let item = path.isEmpty ? result["item"] : path == ["item"] ? result : .null
       var evidence: [(String, String?)] = []
-      if let id = item["id"].string, item["text"].string != nil, item["title"].string != nil {
+      // A page can omit the text, and a file's only chunk can be its own metadata. Neither
+      // shows anything the item says.
+      let extracted =
+        item["assetID"] == .null
+        || ["ready", "partial"].contains(result["extraction"]["state"].text)
+      let shown =
+        !item["text"].text.isEmpty
+        || (extracted && result["chunks"].array.contains { !$0["body"].text.isEmpty })
+      if let id = item["id"].string, item["title"].string != nil, shown {
         evidence.append((id, nil))
       }
       let originals: [Value]
@@ -1474,7 +1482,7 @@ public enum WorkbookAgent {
         return []
       }
       return values.compactMap { value in
-        if tool == "search", let id = value["itemID"].string, value["snippet"].string != nil {
+        if tool == "search", let id = value["itemID"].string, !value["snippet"].text.isEmpty {
           return (id, value["locator"].string)
         }
         if tool == "rows", let id = value["id"].string, case .object = value["values"] {

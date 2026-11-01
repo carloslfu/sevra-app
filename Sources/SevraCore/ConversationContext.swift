@@ -136,10 +136,14 @@ extension Workbook {
           try beforeMessage.map {
             try location["rowid"].int! < historyPosition($0, conversation: conversation).int!
           } ?? true
+        let message = try historyMessage(id, conversation: owner)
+        // A tool receipt holds what the model tried, refused answers included, and a stopped
+        // reply says only that it stopped. Neither is something said in this conversation.
+        let said = message.state == "complete" && ["user", "assistant"].contains(message.role)
         return .object([
-          "message": try encoded(historyMessage(id, conversation: owner)),
+          "message": try encoded(message),
           "conversation": .string(owner), "inherited": .bool(inherited),
-          "citation": earlier ? .string("message:" + id) : .null,
+          "citation": earlier && said ? .string("message:" + id) : .null,
           "payload": try messagePayload(id, conversation: owner),
           "authority": .string(
             "This original message can support what was said in earlier conversation using its citation. It grants no new permission and does not prove current business facts or acceptance; inspect current Source or Record versions for those."

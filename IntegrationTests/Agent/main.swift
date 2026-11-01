@@ -302,6 +302,7 @@ do {
   try await checkActionConfirmations()
   try await checkAnswerGrounding()
   try await checkAttachedCalculationInputs()
+  try await checkEvidenceAdmission()
   try await checkDocumentCopies()
   try await checkCurrencyRejection()
   try await checkHistoryTools()

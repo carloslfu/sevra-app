@@ -20,6 +20,21 @@ extension WorkbookTools {
           cursor: arguments["cursor"].string, status: arguments["status"].string,
           scenario: arguments["scenario"].string, cancellation: cancellation, businessOnly: true)
         var result = try encoded(business).object
+        // A file that yielded no text matches on its name, and its chunk is only file metadata.
+        // The hit still says the file exists, with nothing that could be cited.
+        result["hits"] = .array(
+          try result["hits"]!.array.map { hit in
+            guard
+              let state = try workbook.db.execute(
+                "SELECT coalesce(e.state,'') AS state FROM items i LEFT JOIN extraction e ON e.item_id=i.id WHERE i.id=? AND i.asset_id IS NOT NULL",
+                [hit["itemID"]]
+              ).first?["state"]?.text, !["ready", "partial"].contains(state)
+            else { return hit }
+            var unread = hit.object
+            unread["snippet"] = nil
+            unread["extraction"] = .string(state)
+            return .object(unread)
+          })
         if let requested, kind == nil {
           result["kindNotice"] = .string(
             "Nothing here has the kind \(requested), so this searched every kind.")

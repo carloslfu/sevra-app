@@ -34,6 +34,8 @@ extension Workbook {
       terms.append("i.\(field)=?")
       values.append(.string(value))
     }
+    // Host bookkeeping such as saved requests is not what someone counting Sources means.
+    if filters["kind"] == .null { terms.append("i.kind NOT IN (\(Item.technicalKindSQL))") }
     return try synchronized {
       try db.budget(cancellation: cancellation, seconds: 3) {
         try db.readTransaction {
@@ -45,7 +47,7 @@ extension Workbook {
             "scope": .string("current-classified-workbook-items"), "filters": filters,
             "count": count, "snapshotRevision": .number(Double(try revision())),
             "notice": .string(
-              "Exact count of current classified workbook items matching every filter, including items without extracted text. Not a count of real-world events, unclassified information inside documents, historical versions, or external files. Use this call's receipt ID in finish.counts; the host renders the scoped count. Do not turn it into a broader absence claim."
+              "Exact count of current classified workbook items matching every filter, including items without extracted text. Host bookkeeping such as saved requests counts only when its kind is named. Not a count of real-world events, unclassified information inside documents, historical versions, or external files. Use this call's receipt ID in finish.counts; the host renders the scoped count. Do not turn it into a broader absence claim."
             ),
           ])
         }

@@ -242,3 +242,59 @@ func checkAttachedCalculationInputs() async throws {
   try expectEqual(refreshed.answer.contains("Version check:"), true)
   print("PASS calculation inputs attach from receipts as one link; grounding rules stay")
 }
+
+func checkEvidenceAdmission() async throws {
+  let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+    "sevra-admission-" + identifier())
+  defer { try? FileManager.default.removeItem(at: root) }
+  try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+  let book = try Workbook.create(at: root.appendingPathComponent("a.sevra"), title: "Admission")
+  let unreadable = root.appendingPathComponent("invoice_scan_123.fixture")
+  try Data([0, 1, 2]).write(to: unreadable)
+  let file = try book.importFile(unreadable)
+  let said = try book.addMessage("Delivery is on Friday.", role: "user")
+  let stopped = try book.addMessage("Stopped.", role: "assistant", state: "failed")
+  let receipt = try book.addMessage(
+    try Value.object([
+      "tool": .string("finish"), "validation": .string("Refused."),
+      "arguments": .object(["answer": .string("Stock is 9999 units.")]),
+    ]).json(), role: "tool")
+  let request = try book.startAgentRequest("What is on file?", conversation: "main", model: "m")
+  let tools = WorkbookTools(book, runID: request.runID)
+
+  // A file that yielded no text can be found, but nothing about it can be cited.
+  func evidence(_ tool: String, _ arguments: Value) throws -> [String] {
+    WorkbookAgent.visibleEvidence(tool: tool, result: try tools.execute(tool, arguments)).map(\.0)
+  }
+  let search: Value = .object(["query": .string("invoice_scan_123")])
+  let read: Value = .object(["id": .string(file.id)])
+  let hit = try expectValue(try tools.execute("search", search)["hits"].array.first)
+  try expectEqual(hit["itemID"].text, file.id)
+  try expectEqual(hit["snippet"], .null)
+  try expectEqual(try evidence("search", search), [])
+  try expectEqual(try evidence("read", read), [])
+  try book.index(file.id, chunks: [Chunk("Invoice total 40.", locator: "page 1")])
+  try expectEqual(try evidence("search", search), [file.id])
+  try expectEqual(try evidence("read", read), [file.id])
+  // A paged read whose chunks were omitted shows no text either.
+  let page: Value = .object([
+    "item": .object(["id": .string(file.id), "title": .string("Scan"), "text": .string("")])
+  ])
+  try expectEqual(WorkbookAgent.visibleEvidence(tool: "read", result: page).count, 0)
+
+  // Only what was said in the conversation is citable from it.
+  func citation(_ id: String) throws -> Value {
+    try tools.execute("history_read", .object(["id": .string(id)]))["citation"]
+  }
+  try expectEqual(try citation(said), .string("message:" + said))
+  try expectEqual(try citation(stopped), .null)
+  try expectEqual(try citation(receipt), .null)
+
+  // A count of Sources means the person's Sources, unless the request kind is named.
+  _ = try book.addItem(category: "source", kind: "request", title: "Request", text: "Hello")
+  let sources: Value = .object(["category": .string("source")])
+  try expectEqual(try book.countRecords(sources)["count"].int, 1)
+  let named: Value = .object(["category": .string("source"), "kind": .string("request")])
+  try expectEqual(try book.countRecords(named)["count"].int, 1)
+  print("PASS metadata-only files, receipts and request Sources stay out of evidence and counts")
+}
