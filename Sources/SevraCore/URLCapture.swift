@@ -174,14 +174,15 @@ extension Workbook {
   }
   public static func safeOrigin(_ url: URL) -> String {
     var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-    let query = components?.queryItems
-    components?.queryItems = query?.map { item in
-      let name = item.name.lowercased()
+    // The encoded items keep every other parameter's exact bytes, such as %2B.
+    let query = components?.percentEncodedQueryItems
+    components?.percentEncodedQueryItems = query?.map { item in
+      let name = (item.name.removingPercentEncoding ?? item.name).lowercased()
       let sensitive =
         [
-          "token", "signature", "sig", "key", "api_key", "access_token", "authorization",
-          "password", "credential",
-        ].contains(name) || name.hasPrefix("x-amz-") || name.hasPrefix("x-goog-")
+          "token", "sig", "key", "authorization", "password", "passwd", "pwd", "secret",
+          "credential", "session",
+        ].contains(where: name.contains) || name.hasPrefix("x-amz-") || name.hasPrefix("x-goog-")
       return sensitive ? URLQueryItem(name: item.name, value: "REDACTED") : item
     }
     components?.fragment = nil

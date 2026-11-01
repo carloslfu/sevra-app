@@ -1172,6 +1172,13 @@ check("archive traversal entries cannot escape their destination") {
     !FileManager.default.fileExists(atPath: temp.appendingPathComponent("escaped.txt").path))
 }
 
+check("saved URLs hide secrets by name and keep every other parameter's exact bytes") {
+  let saved = Workbook.safeOrigin(
+    URL(string: "https://a.example/x?APIKey=1&client_secret=2&Refresh_Token=3&q=a%2Bb&r=c+d#f")!)
+  try expect(
+    saved == "https://a.example/x?APIKey=REDACTED&client_secret=REDACTED&Refresh_Token=REDACTED"
+      + "&q=a%2Bb&r=c+d")
+}
 check("an archive cannot choose an outside file for this Mac to read") {
   let folder = temp.appendingPathComponent("LinkedArchive")
   try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
