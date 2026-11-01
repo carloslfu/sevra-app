@@ -248,6 +248,28 @@ func checkWorkflows(at root: URL) {
     _ = try b.verify()
   }
 
+  check("a failure reaches the run past a long detail and another process's write lock") {
+    let (b, definition, args) = try fixture("FailureDetail")
+    let session = try start(b, definition, args)
+    let claim = try b.claimWorkflowStep(session, owner: "failing")
+    let other = try Database(b.url.appendingPathComponent("workbook.sqlite"))
+    try other.execute("BEGIN IMMEDIATE")
+    DispatchQueue.global().asyncAfter(deadline: .now() + 0.4) { _ = try? other.execute("ROLLBACK") }
+    let long = String(repeating: "e\u{301}\u{302}\u{303}\u{304}\u{305}", count: 1000)
+    b.db.shortWait { b.recordWorkflowFailure(session, claim: claim, error: SevraError("x", long)) }
+    let failed = try b.workflowRun(session.runID)
+    try expect(failed["state"] == .string("needs_attention"))
+    let detail = failed["detail"].text
+    try expect(detail.utf8.count <= 4096 && long.hasPrefix(detail) && detail.count > 300)
+    // One character too long for the limit still leaves the run with a reason.
+    let (c, second, values) = try fixture("FailureCluster")
+    let run = try start(c, second, values)
+    let held = try c.claimWorkflowStep(run, owner: "failing")
+    let cluster = "e" + String(repeating: "\u{301}", count: 3000)
+    c.recordWorkflowFailure(run, claim: held, error: SevraError("x", cluster))
+    try expect(try c.workflowRun(run.runID)["detail"] == .string("This step could not finish."))
+  }
+
   check("manual workflows retain exact outputs, wait for review and apply inventory once") {
     let (b, definition, args) = try fixture("Receiving")
     let session = try start(b, definition, args)

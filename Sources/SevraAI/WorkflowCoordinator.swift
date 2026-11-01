@@ -138,9 +138,8 @@ package enum WorkflowCoordinator {
     do {
       return try await operation(claim, control)
     } catch {
-      _ = try? await Task.detached {
-        try workbook.failWorkflowStep(
-          session, claim: claim, detail: String(error.localizedDescription.prefix(1000)))
+      await Task.detached {
+        workbook.recordWorkflowFailure(session, claim: claim, error: error)
       }.value
       throw error
     }

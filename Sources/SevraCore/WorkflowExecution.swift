@@ -219,8 +219,7 @@ extension Workbook {
     if claim == .null { return try workflowRun(session.runID) }
     do { return try completeWorkflowStep(session, claim: claim, cancellation: cancellation) } catch
     {
-      let detail = String(error.localizedDescription.prefix(1000))
-      _ = try? failWorkflowStep(session, claim: claim, detail: detail)
+      recordWorkflowFailure(session, claim: claim, error: error)
       throw error
     }
   }

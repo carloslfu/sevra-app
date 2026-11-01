@@ -175,6 +175,29 @@ extension Workbook {
     }
   }
 
+  /// Saves why a claimed step failed. Unsaved, the step would stay claimed and the run look busy
+  /// until its lease ends, so another process holding the file is waited out, as the heartbeat
+  /// does. Once the lease has ended the claim check refuses this, which ends the wait.
+  public func recordWorkflowFailure(
+    _ session: WorkflowExecutionSession, claim: Value, error: Error
+  ) {
+    var detail = String(error.localizedDescription.prefix(1000))
+    // A character can carry many scalars, so its count says little about bytes.
+    while detail.utf8.count > 4096 { detail.removeLast() }
+    if detail.isEmpty { detail = "This step could not finish." }
+    let giveUp = ProcessInfo.processInfo.systemUptime + 30
+    while true {
+      do {
+        _ = try failWorkflowStep(session, claim: claim, detail: detail)
+        return
+      } catch let failure as SevraError
+        where failure.code == "database" && ProcessInfo.processInfo.systemUptime < giveUp
+      {
+        Thread.sleep(forTimeInterval: 0.1)
+      } catch { return }
+    }
+  }
+
   public func retryWorkflow(
     _ session: WorkflowExecutionSession, token: String,
     actor: ChangeActor = .programmatic("SevraCore.workflowManualRetry")
