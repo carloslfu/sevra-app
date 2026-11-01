@@ -208,47 +208,57 @@ public struct WorkbookTools {
             where error.code == "item_scope"
           { current = nil }
           let page = try workbook.readChunks(item.id, offset: offset, limit: chunkLimit + 1)
-          let chunks = Array(page.prefix(chunkLimit))
-          let hasMore = page.count > chunks.count
           var info = try encoded(item).object
           info["text"] = .string(String(item.text.prefix(1000)))
           info["data"] =
             item.data.text.utf8.count < 12000
             ? item.data : .string("Structured value exceeds read budget; use table rows.")
-          var fields: [String: Value] = [
-            "item": .object(info),
-            "isCurrentVersion": .bool(item.id == current?.id),
-            "currentVersion": current.map { current in
-              .object([
-                "id": .string(current.id), "title": .string(current.title),
-                "status": .string(current.status), "meaning": .string(current.meaning),
-              ])
-            } ?? .null,
-            "snapshotRevision": .number(Double(try workbook.revision())),
-            "references": item.kind == "request"
-              ? .null : try referenceEvidence(.object(["id": .string(item.id)])),
-            "notice": .string(
-              "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head."
-            ),
-            "chunks": .array(chunks),
-            "chunkPage": .object([
-              "offset": .number(Double(offset)), "count": .number(Double(chunks.count)),
-              "hasMore": .bool(hasMore),
-              "nextOffset": hasMore ? .number(Double(offset + chunks.count)) : .null,
-            ]),
-            "extraction": try workbook.extractionStatus(item.id),
-          ]
-          if offset == 0, item.assetID != nil, item.id == current?.id {
-            fields["requestEvidence"] = try relatedOriginals(
-              excluding: item.id,
-              spent: try Value.object(fields).json().utf8.count)
+          func assembled(_ chunks: [Value]) throws -> Value {
+            let hasMore = page.count > chunks.count
+            var fields: [String: Value] = [
+              "item": .object(info),
+              "isCurrentVersion": .bool(item.id == current?.id),
+              "currentVersion": current.map { current in
+                .object([
+                  "id": .string(current.id), "title": .string(current.title),
+                  "status": .string(current.status), "meaning": .string(current.meaning),
+                ])
+              } ?? .null,
+              "snapshotRevision": .number(Double(try workbook.revision())),
+              "references": item.kind == "request"
+                ? .null : try referenceEvidence(.object(["id": .string(item.id)])),
+              "notice": .string(
+                "The item is the exact requested version. When it is historical, read currentVersion.id for current facts or acceptance; do not present historical status as current. A null currentVersion means the latest head is outside this read scope, not that it is absent. For movements, data preserves original creation arguments: data.status is not the current status. Use item.status for this version and currentVersion.status for its latest head."
+              ),
+              "chunks": .array(chunks),
+              "chunkPage": .object([
+                "offset": .number(Double(offset)), "count": .number(Double(chunks.count)),
+                "hasMore": .bool(hasMore),
+                "nextOffset": hasMore ? .number(Double(offset + chunks.count)) : .null,
+              ]),
+              "extraction": try workbook.extractionStatus(item.id),
+            ]
+            if offset == 0, item.assetID != nil, item.id == current?.id {
+              fields["requestEvidence"] = try relatedOriginals(
+                excluding: item.id,
+                spent: try Value.object(fields).json().utf8.count)
+            }
+            let result: Value = .object(fields)
+            return try receiptID.map {
+              try DocumentCopyChoices.adding(
+                to: result, receiptID: $0, offset: a["copyOffset"].int ?? 0,
+                cancellation: cancellation)
+            } ?? result
           }
-          let result: Value = .object(fields)
-          return try receiptID.map {
-            try DocumentCopyChoices.adding(
-              to: result, receiptID: $0, offset: a["copyOffset"].int ?? 0,
-              cancellation: cancellation)
-          } ?? result
+          // A result past its limit is paged and loses every chunk to a descriptor, and their
+          // copy IDs with them. Wide text fits fewer chunks, so keep what fits and page the rest.
+          var chunks = Array(page.prefix(chunkLimit))
+          var result = try assembled(chunks)
+          while chunks.count > 1, try result.json().utf8.count > ToolResultProjection.byteLimit {
+            chunks.removeLast()
+            result = try assembled(chunks)
+          }
+          return result
         }
       }
     case "lineage": return try scopedLineage(string("id"))

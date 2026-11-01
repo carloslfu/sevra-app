@@ -208,6 +208,18 @@ func checkDocumentCopyChoices(at root: URL) {
     _ = try book.documentCopyChoice(entries[0]["id"].text, runID: run)
     try expect(state["documentCopies"]["omittedCandidates"].int == 2)
   }
+  check("a wide page keeps the chunks that fit, with their copy IDs, and pages the rest") {
+    let text = String(repeating: "納品書の確認と在庫の照合を行う。\n", count: 700)
+    let (book, run, source, receipt, read) = try fixture(text)
+    try expect(read["chunks"].array.count == 1 && read["chunkPage"]["hasMore"] == .bool(true))
+    try expect(read["chunkPage"]["nextOffset"].int == 1)
+    try expect(try read.json().utf8.count <= ToolResultProjection.byteLimit)
+    try expect(try ToolResultProjection.project(read, receiptID: receipt) == read)
+    try expect(!DocumentCopyChoices.entries(read).isEmpty)
+    let next = try WorkbookTools(book, runID: run).execute(
+      "read", .object(["id": .string(source.id), "offset": .number(1)]))
+    try expect(next["chunks"].array.count == 1 && next["chunkPage"]["offset"].int == 1)
+  }
   check("ordinary reads page two chunks explicitly and keep wider reads available") {
     let (book, run, source, _, _) = try fixture("Original")
     try book.index(source.id, chunks: (0..<5).map { Chunk("Passage \($0)", locator: "page \($0)") })
