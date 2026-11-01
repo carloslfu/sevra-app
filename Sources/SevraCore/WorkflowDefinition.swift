@@ -183,6 +183,19 @@ extension Workbook {
       }
       try exactClosure(target, depth: 0)
       let targetDescriptor = try DefinitionDescriptor(target.content)
+      if !historical {
+        // A run can start without an optional input, and nothing supplies it after that.
+        for parameter in targetDescriptor.parameters
+        where parameter.required && parameter.defaultValue == nil {
+          guard let from = step.arguments[parameter.id]?["parameter"].string,
+            let input = descriptor.parameters.first(where: { $0.id == from })
+          else { continue }
+          try require(
+            input.required || input.defaultValue != nil, "workflow_mapping",
+            "Make " + input.label + " required or give it a default. This step needs a value for "
+              + parameter.label + ".")
+        }
+      }
       var plain = step.arguments
       for (name, mapping) in step.arguments where mapping.object["step"] != nil {
         guard let source = previous[mapping["step"].text],
@@ -245,6 +258,7 @@ extension Workbook {
   ) throws -> Value {
     guard let binding = step.binding else { return .object([:]) }
     var mappings = step.arguments
+    let target = try DefinitionDescriptor(resolveDefinition(binding).content)
     for (name, mapping) in step.arguments where mapping.object["step"] != nil {
       guard let output = outputs[mapping["step"].text] else {
         throw SevraError("workflow_mapping", "The prior result is not complete.")
@@ -271,8 +285,17 @@ extension Workbook {
           try require(
             output["kind"] == .string("interpretation")
               && (output["response"]["state"] == .string("ready")
-                || output["clarification"] != .null)
-              && values.object[field] != nil, "workflow_mapping",
+                || output["clarification"] != .null),
+            "workflow_mapping", "The prior interpretation field is unresolved.")
+          // Leaving out an optional output is a complete answer, so an optional target goes without.
+          if values.object[field] == nil,
+            target.parameters.first(where: { $0.id == name })?.required == false
+          {
+            mappings.removeValue(forKey: name)
+            continue
+          }
+          try require(
+            values.object[field] != nil, "workflow_mapping",
             "The prior interpretation field is unresolved.")
           value = values[field]
         }
@@ -286,10 +309,9 @@ extension Workbook {
       if let unit = mapping.object["unit"] { literal["unit"] = unit }
       mappings[name] = .object(literal)
     }
-    let target = try resolveDefinition(binding)
     let result = try mapDefinitionCall(
       .init(alias: step.id, binding: binding, arguments: mappings),
-      caller: descriptor, target: DefinitionDescriptor(target.content), arguments: supplied.object)
+      caller: descriptor, target: target, arguments: supplied.object)
     return .object(result)
   }
 

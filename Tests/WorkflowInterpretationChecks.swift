@@ -5,7 +5,8 @@ import Foundation
 func checkWorkflowInterpretations(at root: URL) {
   func fixture(
     _ name: String, meaning: String = "actual", file: Bool = false,
-    outputMeaning: String = "actual", inventory: Bool = false, twoInputs: Bool = false
+    outputMeaning: String = "actual", inventory: Bool = false, twoInputs: Bool = false,
+    optionalOutput: Bool = false
   ) throws -> (
     Workbook, Item, WorkflowExecutionSession
   ) {
@@ -34,7 +35,15 @@ func checkWorkflowInterpretations(at root: URL) {
         "payload": .object([
           "instruction": .string("Extract the received count; never accept inventory."),
           "evidence": .array([.string("evidence")] + (twoInputs ? [.string("again")] : [])),
-          "outputs": .array([ActionRegistry.field("quantity", "Count", "decimal", unit: "items")]),
+          "outputs": .array(
+            [ActionRegistry.field("quantity", "Count", "decimal", unit: "items")]
+              + (optionalOutput
+                ? [
+                  .object([
+                    "id": .string("corrects"), "label": .string("Corrected movement"),
+                    "type": .string("item"), "required": .bool(false),
+                  ])
+                ] : [])),
           "meaning": .string(outputMeaning), "scenario": .string("actual"),
         ]),
       ]))
@@ -90,6 +99,10 @@ func checkWorkflowInterpretations(at root: URL) {
           ($0["id"].text, Value.object(["parameter": $0["id"]]))
         })
       mappings["quantity"] = .object(["step": .string("double"), "unit": .string("items")])
+      if optionalOutput {
+        parameters.removeAll { $0["id"] == .string("supersedes") }
+        mappings["supersedes"] = .object(["step": .string("read"), "field": .string("corrects")])
+      }
       steps.append(
         .object([
           "id": .string("propose"), "kind": .string("action"),
@@ -156,6 +169,67 @@ func checkWorkflowInterpretations(at root: URL) {
       name, outputMeaning: outputMeaning, inventory: inventory, twoInputs: twoInputs)
     let (result, claim) = try pause(book, session)
     return (book, session, result, claim)
+  }
+  check("an optional output left out leaves its optional target unset and the run continues") {
+    let (book, source, session) = try fixture(
+      "OptionalOutput", inventory: true, optionalOutput: true)
+    let claim = try book.claimWorkflowStep(session, owner: "synthetic")
+    let request = try book.prepareWorkflowInterpretation(session, claim: claim, model: "synthetic")
+    _ = try book.completeWorkflowStep(
+      session, claim: claim, interpretation: envelope(request, source: source))
+    let waiting = try book.continueWorkflow(session, owner: "continue")
+    try expect(waiting["state"] == .string("waiting_review"), waiting["detail"].text)
+    try expect(waiting["steps"].array[2]["output"]["arguments"].object["supersedes"] == nil)
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
+  check("an optional input cannot feed a required target, but a default or required input can") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("OptionalInput.sevra"), title: "OptionalInput")
+    let function = try book.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: .object([
+        "kind": .string("function"), "title": .string("Double"), "description": .string("Synthetic"),
+        "parameters": .array([ActionRegistry.field("quantity", "Count", "decimal", unit: "items")]),
+        "payload": .object(["expression": .string("quantity*2"), "unit": .string("items")]),
+      ]))
+    func workflow(_ input: [String: Value]) -> Value {
+      .object([
+        "kind": .string("workflow"), "title": .string("Double a count"),
+        "description": .string("Synthetic"),
+        "parameters": .array([
+          .object(
+            [
+              "id": .string("count"), "label": .string("Count"), "type": .string("decimal"),
+              "unit": .string("items"),
+            ].merging(input) { _, value in value })
+        ]),
+        "payload": .object([
+          "readPolicy": .string("latest-at-step"),
+          "steps": .array([
+            .object([
+              "id": .string("double"), "kind": .string("evaluate"),
+              "binding": .object(["mode": .string("exact"), "versionID": .string(function.id)]),
+              "arguments": .object(["quantity": .object(["parameter": .string("count")])]),
+            ])
+          ]),
+        ]),
+      ])
+    }
+    let optional = workflow(["required": .bool(false)])
+    try refuses("workflow_mapping") {
+      _ = try book.saveApplicationDefinition(logicalID: identifier(), content: optional)
+    }
+    // Saved definitions stay readable, so an older run can still be opened and stopped.
+    try book.validateWorkflowDefinition(DefinitionDescriptor(optional), historical: true)
+    let defaulted = try book.saveApplicationDefinition(
+      logicalID: identifier(),
+      content: workflow(["required": .bool(false), "default": .string("4")]))
+    let run = try book.startWorkflow(defaulted.id, arguments: .object([:]), token: "default")
+    let done = try book.continueWorkflow(
+      book.authorizeWorkflowExecution(run["id"].text), owner: "test")
+    try expect(done["state"] == .string("completed"), done["detail"].text)
+    _ = try book.saveApplicationDefinition(
+      logicalID: identifier(), content: workflow(["required": .bool(true)]))
   }
   check("an empty draft is prunable and a failed retry does not reopen its old question") {
     let (book, session, _, _) = try paused("EmptyDraft")
