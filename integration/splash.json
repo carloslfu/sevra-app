@@ -93,7 +93,7 @@
         "Sources/SevraSplashText/Resources/template-patch.json",
         "Sources/SevraSplashText/StreamingDecoder.swift"
       ],
-      "status": "15-exact-prompt-and-80-streaming-fixtures-passed",
+      "status": "24-exact-prompt-and-80-streaming-fixtures-passed",
       "checks": [
         "IntegrationTests/Text/main.swift",
         "IntegrationTests/Text/fixtures.json",
