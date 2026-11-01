@@ -91,7 +91,7 @@ def main():
             assert all(json.loads(r['stderr'])['code'] == 'causal_work_limit' for r in refused), refused
             assert counts(book) == [32, 1, 32, 32, 32]
             with sqlite3.connect(book / 'workbook.sqlite') as db:
-                assert db.execute('PRAGMA user_version').fetchone()[0] == 30
+                assert db.execute('PRAGMA user_version').fetchone()[0] == 31
                 assert db.execute('SELECT count(*) FROM automation_occurrences').fetchone()[0] == 0
                 assert db.execute('SELECT count(*) FROM automation_runs WHERE occurrence_id IS NOT NULL OR candidate_id IS NULL').fetchone()[0] == 0
                 assert db.execute("SELECT count(*) FROM condition_candidates WHERE state='pending'").fetchone()[0] == 2

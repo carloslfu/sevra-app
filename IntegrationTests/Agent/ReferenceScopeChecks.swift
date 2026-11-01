@@ -76,7 +76,7 @@ private actor RequestCeilingInference: WorkbookInference {
       // Simulate a separate owner writing after this run's captured request.
       _ = try book.addItem(
         category: "source", kind: "request", title: "FUTURE-SECRET-TITLE",
-        text: "FUTURE-SECRET-CONTENT", supersedes: source.id)
+        text: "FUTURE-SECRET-CONTENT", meaning: "plan", supersedes: source.id)
       return .init(
         text: "",
         calls: [

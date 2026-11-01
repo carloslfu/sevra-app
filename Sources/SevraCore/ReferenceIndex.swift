@@ -64,8 +64,7 @@ extension Workbook {
         [.string(originVersionID)]
       ).first!
       try require(
-        !["row", "request", "annotation", "submission"].contains(metadata["kind"]!.text),
-        "reference_scope",
+        !["row", "request", "annotation"].contains(metadata["kind"]!.text), "reference_scope",
         "This internal item is outside body-link indexing.")
       if (metadata["bytes"]?.int ?? Int.max) > Self.referenceBodyLimit {
         if try db.scalar(

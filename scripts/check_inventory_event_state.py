@@ -60,7 +60,9 @@ def run(cli: Path, output: Path):
         assert state(fourth)['quantity'] == '18'
         projected = state(fourth, '2030-01-01')
         assert projected['quantity'] == '21' and len(projected['effects']) == 2
-        assert projected['quantity'] == call('balance', book, 'parts')['quantity']
+        assert projected['quantity'] == call('balance', book, 'parts', '2030-01-01')['quantity']
+        now = call('balance', book, 'parts')
+        assert now['quantity'] == '18' and now['excludedEffects'][0]['reason'] == 'after-as-of'
         unknown = state(fourth, '2025-12-31')
         assert unknown['known'] is False and unknown['quantity'] is None and unknown['reason'] == 'basis_not_effective'
         no_basis = call('inventory-at-batch', book, fourth, 'unknown-subject', '2030-01-01')

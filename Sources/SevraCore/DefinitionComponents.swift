@@ -103,7 +103,9 @@ extension Workbook {
     try require(
       target.kind == (component.type == "calculation" ? "function" : "query"), "view",
       "The component and definition kinds must agree.")
-    if checkArguments { _ = try definitionArguments(DefinitionDescriptor(target.content), arguments) }
+    if checkArguments {
+      _ = try definitionArguments(DefinitionDescriptor(target.content), arguments)
+    }
     guard let saved = component.evaluationSnapshot else {
       try require(!pinned, "view", "A pinned computation needs its saved evaluation.")
       return

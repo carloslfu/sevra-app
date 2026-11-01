@@ -36,13 +36,15 @@ public enum BusinessTime {
       throw SevraError("date", "Use an ISO 8601 date or timestamp, including a time zone.")
     }
     // This calendar jumps from 1582-10-04 to 1582-10-15 and moves any date between them.
-    parser.formatOptions = [.withInternetDateTime]
-    let written = String(value.prefix(19))
-    let wall = parser.date(from: written + (value.count == 10 ? "T00:00:00Z" : "Z"))
-    let change = parser.date(from: "1582-10-15T00:00:00Z")!
-    try require(
-      wall.map { parser.string(from: $0).hasPrefix(written) && ($0 < change) == (date < change) }
-        == true, "date", "This calendar date does not exist.")
+    if value < "1583" {
+      parser.formatOptions = [.withInternetDateTime]
+      let written = String(value.prefix(19))
+      let wall = parser.date(from: written + (value.count == 10 ? "T00:00:00Z" : "Z"))
+      let change = parser.date(from: "1582-10-15T00:00:00Z")!
+      try require(
+        wall.map { parser.string(from: $0).hasPrefix(written) && ($0 < change) == (date < change) }
+          == true, "date", "This calendar date does not exist.")
+    }
     parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     parser.timeZone = TimeZone(secondsFromGMT: 0)
     // An offset can carry a date out of the four-digit years, where this text stops naming it.

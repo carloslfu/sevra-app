@@ -43,7 +43,7 @@ def main():
         before = call('automation-causality', book, run)
         assert before['rootCharges'][0]['admittedRuns'] == 25
         with sqlite3.connect(book / 'workbook.sqlite') as db:
-            assert db.execute('PRAGMA user_version').fetchone()[0] == 30
+            assert db.execute('PRAGMA user_version').fetchone()[0] == 31
             workbook = db.execute("SELECT value FROM meta WHERE key='workbook-id'").fetchone()[0]
             commit = db.execute('SELECT commit_id FROM business_inputs WHERE source_id=?', [source]).fetchone()[0]
         canonical = json.dumps(['business-input-v1', workbook, commit], ensure_ascii=False, separators=(',', ':'))

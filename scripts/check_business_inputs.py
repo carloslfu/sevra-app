@@ -38,7 +38,7 @@ def run(cli, worker, output):
         assert not fixture.stderr, fixture.stderr
         data = json.loads(fixture.stdout)
         with sqlite3.connect(book / "workbook.sqlite") as db:
-            assert db.execute("PRAGMA user_version").fetchone()[0] == 30
+            assert db.execute("PRAGMA user_version").fetchone()[0] == 31
             workbook_id = db.execute("SELECT value FROM meta WHERE key='workbook-id'").fetchone()[0]
             declaration = db.execute("SELECT commit_id,kind,policy FROM business_inputs WHERE source_id=?",
                                      [data["sourceID"]]).fetchone()

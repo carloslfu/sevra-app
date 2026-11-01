@@ -173,7 +173,8 @@ extension Workbook {
         }
         let table = try dataset(id)
         // A snapshot answers for the columns it saved, whatever the table has become.
-        let columns = definition.pinnedAt == nil ? table.columns : c.snapshot?.columns ?? table.columns
+        let columns =
+          definition.pinnedAt == nil ? table.columns : c.snapshot?.columns ?? table.columns
         if ["chart", "metric"].contains(c.type), !unchanged.contains(c) {
           try require(
             columns.contains { $0.id == c.y }, "view",
