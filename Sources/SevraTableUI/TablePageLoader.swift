@@ -23,6 +23,11 @@ public struct TableQuery: Hashable, Sendable {
     self.sort = sort
     self.descending = descending
   }
+  /// A chosen sort outlives its column when a table definition changes. The saved sort stays,
+  /// and the table goes back to row order instead of failing to load.
+  public static func sort(_ id: String?, in columns: [Column]) -> String? {
+    columns.contains { $0.id == id && $0.formula == nil } ? id : nil
+  }
 }
 
 @MainActor public final class TablePageLoader: ObservableObject {

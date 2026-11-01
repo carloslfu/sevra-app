@@ -94,6 +94,8 @@ public struct NativeTable: NSViewRepresentable {
     // Empty space must not resemble additional records in a full-height table.
     table.usesAlternatingRowBackgroundColors = false
     table.allowsMultipleSelection = true
+    // Copy, paste and the active column all count in the table's own column order.
+    table.allowsColumnReordering = false
     table.columnAutoresizingStyle = .noColumnAutoresizing
     table.headerView = NSTableHeaderView()
     table.gridStyleMask = [.solidHorizontalGridLineMask]

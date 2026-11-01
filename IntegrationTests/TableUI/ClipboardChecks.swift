@@ -108,6 +108,17 @@ import SevraCore
   try expect(
     single.label.contains(page.values[0]["total"]!.text),
     "Single-row context lost its computed cell")
+  let named = TableSelectionPresentation(page: page, selected: [page.rows[0]], column: 0)
+  try expect(
+    !named.context.contains(page.values[0][page.dataset.columns[0].id]!.text)
+      && named.context.contains(page.rows[0].id),
+    "A cell's text entered the person's message instead of its exact row version")
+  try expect(
+    TableQuery.sort("total", in: page.dataset.columns) == nil
+      && TableQuery.sort("gone", in: page.dataset.columns) == nil
+      && TableQuery.sort(page.dataset.columns[0].id, in: page.dataset.columns)
+        == page.dataset.columns[0].id,
+    "A sort survived on a column that cannot sort")
   let empty = TableSelectionPresentation(page: page, selected: [], column: 0)
   try expect(empty.label.isEmpty && empty.context.isEmpty, "Cleared selection left context")
   try expect(try book.revision() == revision, "Copy or selection mutated the workbook")

@@ -186,14 +186,18 @@ public struct TableSelectionPresentation {
         + indexes.map { page.rows[$0].id }.joined(separator: ", ")
     } else {
       let value = field.flatMap { page.values[first][$0.id] }
-      label =
+      let place =
         "\(prefix), row \(page.offset + first + 1)"
-        + (field.map { " · " + String($0.title.prefix(80)) + ": " } ?? "")
+        + (field.map { " · " + String($0.title.prefix(80)) } ?? "")
+      label =
+        place + (field == nil ? "" : ": ")
         + (value.map {
           $0 == .null ? "Unknown" : $0.text.isEmpty ? "Empty" : String($0.text.prefix(160))
         }
           ?? "")
-      context = label + ". Exact row version: " + page.rows[first].id
+      // A cell's text can come from any file. It reaches the model as evidence read from this
+      // row, not inside the person's own message.
+      context = place + ". Read this exact row version for its value: " + page.rows[first].id
     }
   }
 }

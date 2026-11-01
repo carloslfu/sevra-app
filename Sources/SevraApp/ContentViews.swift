@@ -557,7 +557,8 @@ struct DatasetView: View {
   private var query: TableQuery {
     TableQuery(
       workbook: state.workbook?.url, dataset: table.id, revision: state.revision,
-      offset: offset, filter: filter, sort: state.tableSorts[table.id],
+      offset: offset, filter: filter,
+      sort: TableQuery.sort(state.tableSorts[table.id], in: table.columns),
       descending: state.tableDescending[table.id] ?? false)
   }
   @State private var column = 0
