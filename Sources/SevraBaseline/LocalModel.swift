@@ -133,9 +133,10 @@ public actor LocalModel: WorkbookInference {
     if !active && !leased {
       idleRelease?.cancel()
       idleRelease = nil
+      // Exiting comes through here too, and a plain command never touched the GPU.
+      if engine != nil { Engine.releaseUnusedMemory() }
       engine = nil
       loadedPath = nil
-      Engine.releaseUnusedMemory()
       if processLock >= 0 {
         flock(processLock, LOCK_UN)
         Darwin.close(processLock)
