@@ -238,6 +238,24 @@ func checkWorkflowIntakes(at root: URL) {
     try expect(try book.items().filter { $0.kind == "table-intake-update" }.count == 1)
     try expect(try book.verify()["ok"] == .bool(true))
   }
+  check("a plain advance leaves a coordinator step queued and lists the newest run first") {
+    let (book, _, _, _, session) = try fixture("PlainAdvance")
+    let revision = try book.revision()
+    try refuses("workflow_intake") { _ = try book.advanceWorkflow(session, owner: "plain") }
+    try expect(try book.workflowRun(session.runID)["state"] == .string("queued"))
+    try expect(try book.revision() == revision)
+    let (claim, _, _) = try prepared(book, session)
+    try expect(claim["generation"].int == 1)
+    let definition = try book.workflowRun(session.runID)["definition_id"].text
+    let source = try book.workflowRun(session.runID)["arguments"]
+    let oldest = session.runID
+    let newest = try book.startWorkflow(definition, arguments: source, token: "newest")
+    // Timestamps have one-second resolution, so set the older run apart.
+    try Database(book.url.appendingPathComponent("workbook.sqlite")).execute(
+      "UPDATE workflow_runs SET updated='2026-01-01T00:00:00Z' WHERE id=?", [.string(oldest)])
+    try expect(try book.workflowRuns().map(\.["id"]) == [newest["id"], .string(oldest)])
+    try expect(try book.workflowRuns(limit: 1).map(\.["id"]) == [newest["id"]])
+  }
   check("committed intake retry needs no source file and cannot reuse another step preparation") {
     let (book, source, _, _, session) = try fixture("Retry")
     let (claim, _, result) = try prepared(book, session)

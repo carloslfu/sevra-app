@@ -4,7 +4,7 @@ extension Workbook {
   public func claimWorkflowStep(
     _ session: WorkflowExecutionSession, owner: String,
     leaseSeconds: TimeInterval = 30, token: String = identifier(),
-    cancellation: Cancellation = .init()
+    withoutPreparation: Bool = false, cancellation: Cancellation = .init()
   ) throws -> Value {
     try workflowSession(session)
     try workflowToken(token)
@@ -30,6 +30,10 @@ extension Workbook {
       guard let step = run["steps"].array.first(where: { $0["state"] != .string("completed") })
       else {
         throw SevraError("workflow_integrity", "An active workflow has no unfinished step.")
+      }
+      // The refusal rolls back here, so the step stays queued for the coordinator.
+      if withoutPreparation, let refusal = DefinitionWorkflow.preparationRefusal(step["kind"].text) {
+        throw refusal
       }
       let runID = session.runID
       let stepID = step["step_id"].text
@@ -169,13 +173,16 @@ extension Workbook {
     }
   }
 
-  public func retryWorkflow(_ session: WorkflowExecutionSession, token: String) throws -> Value {
+  public func retryWorkflow(
+    _ session: WorkflowExecutionSession, token: String,
+    actor: ChangeActor = .programmatic("SevraCore.workflowManualRetry")
+  ) throws -> Value {
     try workflowSession(session)
     try workflowToken(token)
     let deviceFence: () throws -> Void = { try session.automation?.deviceFence?() }
     return try mutation(
       "workflow_retry", token: token, request: .string(session.runID),
-      cancellation: .init(), actor: .programmatic("SevraCore.workflowManualRetry"),
+      cancellation: .init(), actor: actor,
       commitGuard: deviceFence
     ) {
       try self.workflowSession(session)

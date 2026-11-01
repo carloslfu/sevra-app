@@ -181,6 +181,7 @@ extension Workbook {
     }
   }
 
+  /// Newest first, so a limit never hides the run that just changed.
   public func workflowRuns(state: String? = nil, limit: Int = 20) throws -> [Value] {
     try require(
       (1...50).contains(limit)
@@ -191,7 +192,7 @@ extension Workbook {
     return try synchronized {
       try db.execute(
         "SELECT id,definition_id,state,detail,created,updated FROM workflow_runs"
-          + (state == nil ? "" : " WHERE state=?") + " ORDER BY updated,id LIMIT ?",
+          + (state == nil ? "" : " WHERE state=?") + " ORDER BY updated DESC,id DESC LIMIT ?",
         (state.map { [.string($0)] } ?? []) + [.number(Double(limit))]
       ).map(Value.object)
     }

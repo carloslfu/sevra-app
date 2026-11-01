@@ -418,8 +418,12 @@ func checkWorkflows(at root: URL) {
       category: old.category, kind: old.kind, title: old.title, text: "Changed proposal",
       data: old.data, meaning: old.meaning, inputs: [old.id], supersedes: old.id)
     try refuses("workflow_stale_review") { _ = try b.advanceWorkflow(session, owner: "worker") }
-    try expect(try b.workflowRun(session.runID)["state"] == .string("needs_attention"))
-    _ = try b.retryWorkflow(session, token: "retry")
+    let attention = try b.workflowRun(session.runID)
+    try expect(attention["state"] == .string("needs_attention"))
+    try expect(attention["detail"].text.hasPrefix("A proposal changed"), attention["detail"].text)
+    _ = try b.retryWorkflow(
+      session, token: "retry", actor: .human("synthetic-retry"))
+    try expect(try b.committedHistory(limit: 1)[0]["actor"]["kind"] == .string("human"))
     try refuses("workflow_stale_review") { _ = try b.advanceWorkflow(session, owner: "worker") }
     let cancelled = try b.cancelWorkflow(session, token: "cancel")
     try expect(

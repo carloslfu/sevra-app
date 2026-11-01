@@ -390,7 +390,10 @@ struct FolderReview {
         let session = try await Task.detached {
           let session = try book.authorizeWorkflowExecution(
             runID, actor: .human("Sevra.native-workflow-continue"))
-          if retry { _ = try book.retryWorkflow(session, token: identifier()) }
+          if retry {
+            _ = try book.retryWorkflow(
+              session, token: identifier(), actor: .human("Sevra.native-workflow-retry"))
+          }
           return session
         }.value
         await NativeAutomationHost.shared.yieldForInteractive()

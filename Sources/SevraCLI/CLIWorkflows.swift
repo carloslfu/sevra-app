@@ -83,7 +83,7 @@ extension CLI {
         return try book.heartbeatWorkflowStep(
           session, claim: Value.parseExact(args[3]),
           leaseSeconds: Double(args[4]) ?? -1, token: args[5])
-      case "workflow-retry": return try book.retryWorkflow(session, token: args[3])
+      case "workflow-retry": return try book.retryWorkflow(session, token: args[3], actor: actor)
       default: return try book.cancelWorkflow(session, token: args[3])
       }
     default: throw SevraError("usage", "Unknown workflow command. See help.")

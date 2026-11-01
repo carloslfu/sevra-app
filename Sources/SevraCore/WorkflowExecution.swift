@@ -97,11 +97,7 @@ extension Workbook {
           output = .object(retained)
         }
       } else if step.kind == "extract" {
-        guard let extraction else {
-          throw SevraError(
-            "workflow_extraction", "Continue document preparation through the workflow coordinator."
-          )
-        }
+        guard let extraction else { throw DefinitionWorkflow.preparationRefusal(step.kind)! }
         output = try self.insertWorkflowExtraction(
           extraction, run: run, step: step, arguments: args,
           attemptID: attemptID, cancellation: cancellation)
@@ -111,10 +107,7 @@ extension Workbook {
           detail = String(output["detail"].text.prefix(1000))
         }
       } else if step.kind == "intake" {
-        guard let intake else {
-          throw SevraError(
-            "workflow_intake", "Continue structured intake through the workflow coordinator.")
-        }
+        guard let intake else { throw DefinitionWorkflow.preparationRefusal(step.kind)! }
         output = try self.insertWorkflowIntake(
           intake, run: run, step: step, arguments: args,
           attemptID: attemptID, cancellation: cancellation)
@@ -126,10 +119,7 @@ extension Workbook {
             [.string(session.runID), .string(review.id), proposal])
         }
       } else if step.kind == "interpret" {
-        guard let interpretation else {
-          throw SevraError(
-            "workflow_model", "Continue this step through the local AI workflow coordinator.")
-        }
+        guard let interpretation else { throw DefinitionWorkflow.preparationRefusal(step.kind)! }
         output = try self.insertWorkflowInterpretation(
           interpretation, run: run, step: step, attemptID: attemptID)
         revision = output["request"]["readRevision"].int!
@@ -224,11 +214,12 @@ extension Workbook {
     _ session: WorkflowExecutionSession, owner: String,
     cancellation: Cancellation = .init()
   ) throws -> Value {
-    let claim = try claimWorkflowStep(session, owner: owner, cancellation: cancellation)
+    let claim = try claimWorkflowStep(
+      session, owner: owner, withoutPreparation: true, cancellation: cancellation)
     if claim == .null { return try workflowRun(session.runID) }
     do { return try completeWorkflowStep(session, claim: claim, cancellation: cancellation) } catch
     {
-      let detail = String(String(describing: error).prefix(1000))
+      let detail = String(error.localizedDescription.prefix(1000))
       _ = try? failWorkflowStep(session, claim: claim, detail: detail)
       throw error
     }

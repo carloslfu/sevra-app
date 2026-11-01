@@ -10,6 +10,23 @@ struct DefinitionWorkflow {
   }
   let steps: [Step]
 
+  /// Why a step cannot finish without a result prepared outside the transaction, which only the
+  /// coordinator has. Nil for a step the workbook can finish alone.
+  static func preparationRefusal(_ kind: String) -> SevraError? {
+    switch kind {
+    case "extract":
+      return SevraError(
+        "workflow_extraction", "Continue document preparation through the workflow coordinator.")
+    case "intake":
+      return SevraError(
+        "workflow_intake", "Continue structured intake through the workflow coordinator.")
+    case "interpret":
+      return SevraError(
+        "workflow_model", "Continue this step through the local AI workflow coordinator.")
+    default: return nil
+    }
+  }
+
   init(_ descriptor: DefinitionDescriptor) throws {
     let payload = try definitionObject(descriptor.payload, keys: ["steps", "readPolicy"])
     guard payload["readPolicy"] == .string("latest-at-step"),
