@@ -353,7 +353,7 @@ struct FolderReview {
       selectedContext = ""
       if case .space(let id) = new { spaceNavigation.visit(id) }
     }
-    return route == new
+    return true
   }
   func openEvidence(_ id: String, locator: String? = nil) {
     guard navigate(.item(id)) else { return }

@@ -86,6 +86,7 @@ public struct LongReadingText: NSViewRepresentable {
     let view = NSTextView(usingTextLayoutManager: false)
     prepareReadingView(view)
     view.isRichText = true
+    view.isVerticallyResizable = false
     view.textContainerInset = .zero
     view.textContainer?.lineFragmentPadding = 0
     view.textContainer?.widthTracksTextView = false

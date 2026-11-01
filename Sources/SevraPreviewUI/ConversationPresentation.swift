@@ -4,8 +4,8 @@ import SevraCore
 
 /// The same parsed text supplies inline links and discoverable message actions.
 /// Preserve exact destinations and merge adjacent formatting runs within a link.
-public struct ConversationPresentation {
-  public struct Link: Identifiable, Equatable {
+public struct ConversationPresentation: Sendable {
+  public struct Link: Identifiable, Equatable, Sendable {
     public let url: URL
     public let title: String
     public var id: String { url.absoluteString }

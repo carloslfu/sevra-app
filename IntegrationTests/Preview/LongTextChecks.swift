@@ -94,6 +94,10 @@ func checkMediaFiles() throws {
   try expect(view.font?.isFixedPitch == true, "The preview lost its fixed-width font")
   try expect(view.effectiveAppearance.name == .darkAqua, "The window appearance was not followed")
   try expect(scroll.hasVerticalScroller && !scroll.drawsBackground, "The scroll view changed")
+  try expect(view.frame.width > 700, "The text did not fill the viewer")
+  try expect(
+    view.textContainer?.containerSize.width == view.frame.width - 2 * view.textContainerInset.width,
+    "Text wraps to the wrong width")
   view.setSelectedRange(NSRange(location: 80, length: 79))
   try expect(copied(view) == String(repeating: "x", count: 79), "A selection did not copy")
   view.selectAll(nil)
@@ -103,6 +107,9 @@ func checkMediaFiles() throws {
   host.rootView = TextFileView(text: "Short")
   host.layoutSubtreeIfNeeded()
   try expect(view.string == "Short" && view.visibleRect.minY == 0, "A new file kept the old place")
+  window.setContentSize(NSSize(width: 500, height: 400))
+  host.layoutSubtreeIfNeeded()
+  try expect(view.frame.width < 520, "The text did not follow the window width")
   withExtendedLifetime(window) {}
 
   var opened: [URL] = []
