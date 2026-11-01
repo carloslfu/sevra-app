@@ -63,7 +63,8 @@ extension Workbook {
     }
     let observation = try validateDispatchCandidate(candidate)
     let consumer = try inventoryConditionRow(candidate["consumer_id"]!.text)
-    let retained = try validateAutomationDefinition(DefinitionDescriptor(saved.content))
+    let retained = try validateAutomationDefinition(
+      DefinitionDescriptor(saved.content), historical: true)
     guard let condition = try DefinitionAutomation(DefinitionDescriptor(saved.content)).condition
     else {
       throw SevraError("automation_integrity", "The condition run points to a calendar definition.")

@@ -67,7 +67,8 @@ extension Workbook {
         let dispatch = try item(binding["dispatch_source"].text)
         let authority = try item(binding["authorization_source"].text)
         let saved = try applicationDefinition(binding["definition_id"].text)
-        let retained = try validateAutomationDefinition(DefinitionDescriptor(saved.content))
+        let retained = try validateAutomationDefinition(
+          DefinitionDescriptor(saved.content), historical: true)
         let descriptor = try DefinitionDescriptor(retained.workflow.content)
         let normalized = Value.object(try definitionArguments(descriptor, retained.arguments))
         if binding["candidate_id"] != .null {

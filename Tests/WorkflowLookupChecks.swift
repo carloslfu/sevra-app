@@ -182,6 +182,48 @@ func checkWorkflowLookups(at root: URL) {
     try expect(try copy.balance(subject: "bolts")["quantity"] == .string("22"))
     try expect(try book.verify()["ok"] == .bool(true) && copy.verify()["ok"] == .bool(true))
   }
+  check("a retained scheduled run verifies after a table edit, and new authority reads the edit") {
+    let (book, table, _, workflow, args) = try fixture("Retained")
+    let automation = try executionAutomation(book, workflow: workflow, arguments: args)
+    let session = try book.authorizeAutomationExecution(
+      automation.id, expectedGeneration: 0, after: automationDate("2026-10-01T08:00:00Z"),
+      token: "authorize", actor: .human("synthetic"))
+    let first = automationDate("2026-10-01T09:00:00Z")
+    _ = try book.planAutomationOccurrences(session.planning, through: first, token: "plan-1")
+    let run = try book.dispatchAutomationOccurrence(session, observedAt: first, token: "run-1")
+    try expect(run["runID"].string != nil)
+    // A condition run retains its definition the same way.
+    let counted = try book.recordBusinessObservation(title: "Counted opening inventory")
+    try book.setOpeningBalance(
+      subject: "parts", quantity: "20", effective: "2026-01-01", sourceID: counted.id)
+    let watched = try book.authorizeInventoryConditionExecution(
+      conditionAutomation(book, workflow: workflow, arguments: args).id, expectedGeneration: 0,
+      after: automationDate("2026-12-31T00:00:00Z"), token: "watch", actor: .human("synthetic"))
+    func drain() throws {
+      while try book.stepAutomationCondition(watched, through: "2026-12-31", token: identifier())[
+        "hasMore"] == .bool(true)
+      {}
+    }
+    try drain()
+    _ = try book.movement(
+      subject: "parts", quantity: "-15", occurrence: "low", effective: "2026-02-01",
+      input: book.recordBusinessObservation(title: "New counted input").id, status: "accepted")
+    try drain()
+    let low = try book.dispatchInventoryCondition(
+      watched, observedAt: automationDate("2027-01-01T00:00:00Z"), token: "run-condition")
+    try expect(low["runID"].string != nil)
+    _ = try book.updateDatasetDefinition(
+      table.id, expectedVersion: 1, expectedDefinitionID: table.definitionID,
+      title: "Renamed catalog")
+    try expect(try book.verify()["ok"] == .bool(true))
+    let copy = try book.reconstruct(to: root.appendingPathComponent("Retained-copy.sevra"))
+    try expect(try copy.verify()["ok"] == .bool(true))
+    try refuses("stale_schema") {
+      _ = try book.authorizeAutomationExecution(
+        automation.id, expectedGeneration: 1, after: automationDate("2026-10-02T08:00:00Z"),
+        token: "authorize-again", actor: .human("synthetic"))
+    }
+  }
   check("selected catalog values retain data provenance through an intervening scalar function") {
     let (book, table, query, workflow, args) = try fixture("ScalarRoles", calculation: true)
     let row = try book.rows(table.id)[0]
