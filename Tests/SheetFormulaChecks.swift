@@ -41,6 +41,9 @@ func checkSheetFormulas(at root: URL) {
     // Excel drops the fraction of the digits and takes any count of them.
     try expect(try value("ROUND(1.234,2.5)") == number("1.23") && value("ROUND(1.5,0.5)") == number("2"))
     try expect(try value("ROUND(1.2345,30)") == number("1.2345") && value("ROUND(5,-30)") == number("0"))
+    try expect(try value("ROUND(1.23456,10/3)") == number("1.235"))
+    try expect(try value("ROUND(1234.5678,-10/3)") == number("1000"))
+    try expect(try value("ROUND(1234.5678,-1/3)") == number("1235"))
     try expect(try value("COUNT(1/A1,5)") == number("1"))
     // A value too small to divide is an error, never a number that cannot be written.
     let tiny: [String: SheetValue] = ["A1": number("1E-128")]

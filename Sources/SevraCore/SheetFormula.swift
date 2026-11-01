@@ -501,9 +501,11 @@ extension SheetExpression {
       let digits = try numeric(arguments[1])
       guard case .number(let places) = digits else { return digits }
       // Excel drops the fraction of the digits, and the widest rounding leaves nothing or everything.
-      let whole = NSDecimalNumber(decimal: max(-127, min(127, places))).intValue
+      var bounded = max(-127, min(127, places))
+      var whole = Decimal()
+      NSDecimalRound(&whole, &bounded, 0, bounded < 0 ? .up : .down)
       var output = Decimal()
-      NSDecimalRound(&output, &number, whole, .plain)
+      NSDecimalRound(&output, &number, NSDecimalNumber(decimal: whole).intValue, .plain)
       return .number(output)
     case .call(let name, let arguments):
       var numbers: [Decimal] = []
