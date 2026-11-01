@@ -7,11 +7,16 @@ public final class AutomationPlanningSession: @unchecked Sendable {
   public let activationID: String
   public let generation: Int
   let sourceID: String
-  init(_ workbook: Workbook, activation: Value) {
+  /// The native owner's live device grant, when it restored this session.
+  let deviceFence: (@Sendable () throws -> Void)?
+  init(
+    _ workbook: Workbook, activation: Value, deviceFence: (@Sendable () throws -> Void)? = nil
+  ) {
     self.workbook = workbook
     activationID = activation["id"].text
     generation = activation["generation"].int!
     sourceID = activation["source_id"].text
+    self.deviceFence = deviceFence
   }
 }
 
@@ -253,6 +258,7 @@ extension Workbook {
   }
 
   func automationSession(_ session: AutomationPlanningSession) throws -> Value {
+    try session.deviceFence?()
     try require(
       session.workbook === self, "automation_authority", "Authorize this open workbook explicitly.")
     let current = try automationActivation(session.activationID)

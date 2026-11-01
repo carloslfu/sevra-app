@@ -391,7 +391,9 @@ func checkConditionDispatch(at directory: URL) {
     _ = try f.drain(f.session)
     let revoked = Cancellation()
     let session = AutomationExecutionSession(
-      f.session.planning, allowAI: false, deviceFence: { try revoked.check() })
+      AutomationPlanningSession(
+        f.book, activation: try f.book.deviceAutomationScope(f.session),
+        deviceFence: { try revoked.check() }), allowAI: false)
     let before = try f.book.committedHistory()
     let observer: @Sendable (AutomationPublicationProbe.Stage, String) -> Void = { stage, _ in
       if stage == .prepared { revoked.cancel() }

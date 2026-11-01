@@ -5,14 +5,10 @@ import Foundation
 public final class AutomationExecutionSession: @unchecked Sendable {
   public let planning: AutomationPlanningSession
   public let allowAI: Bool
-  let deviceFence: (@Sendable () throws -> Void)?
-  init(
-    _ planning: AutomationPlanningSession, allowAI: Bool,
-    deviceFence: (@Sendable () throws -> Void)? = nil
-  ) {
+  var deviceFence: (@Sendable () throws -> Void)? { planning.deviceFence }
+  init(_ planning: AutomationPlanningSession, allowAI: Bool) {
     self.planning = planning
     self.allowAI = allowAI
-    self.deviceFence = deviceFence
   }
 }
 
@@ -43,7 +39,7 @@ extension Workbook {
           && current["state"] == .string("armed"),
         "automation_authority", "This device registration was superseded. Enable the scope again.")
       let session = AutomationExecutionSession(
-        AutomationPlanningSession(self, activation: current), allowAI: allowAI, deviceFence: fence)
+        AutomationPlanningSession(self, activation: current, deviceFence: fence), allowAI: allowAI)
       _ = try automationExecutionSession(session)
       return session
     }
@@ -62,7 +58,6 @@ extension Workbook {
   }
 
   func automationExecutionSession(_ session: AutomationExecutionSession) throws -> Value {
-    try session.deviceFence?()
     let activation = try automationSession(session.planning)
     try require(
       [.string("foreground-drafts-v1"), .string("condition-drafts-v1")].contains(

@@ -68,6 +68,29 @@ func checkAutomationExecution(at root: URL) {
     _ = try book.planAutomationOccurrences(session.planning, through: due, token: "plan")
     return try book.dispatchAutomationOccurrence(session, observedAt: due, token: "dispatch")
   }
+  check("planning stops with the device grant, before work and at the final commit") {
+    final class Grant: @unchecked Sendable { var checks = 0 }
+    let (book, _, session) = try fixture("Device-fence")
+    let enabled = try book.deviceAutomationScope(session)
+    // Planning reads the grant at its snapshot, in its transaction and before commit.
+    for allowed in [0, 2] {
+      let grant = Grant()
+      let device = AutomationPlanningSession(
+        book, activation: enabled,
+        deviceFence: {
+          grant.checks += 1
+          try require(grant.checks <= allowed, "automation_authority", "Permission removed.")
+        })
+      let before = try book.committedHistory()
+      try refuses("automation_authority") {
+        _ = try book.planAutomationOccurrences(device, through: due, token: "plan-\(allowed)")
+      }
+      try expect(try book.committedHistory() == before)
+    }
+    let granted = AutomationPlanningSession(book, activation: enabled, deviceFence: {})
+    let planned = try book.planAutomationOccurrences(granted, through: due, token: "plan")
+    try expect(planned["preparedCount"].int == 1)
+  }
   check("preparation permission cannot be relabeled as execution or borrowed by another connection")
   {
     let (book, definition) = try automationPlanningFixture(
