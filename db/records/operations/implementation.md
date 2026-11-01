@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-01T16:40:00+00:00
+updated: 2026-11-01T19:20:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -76,24 +76,43 @@ and before printing its result, because exiting released GPU memory it had never
 leaves Metal alone unless an engine was loaded. A local Mac with a GPU never showed this.
 
 **What ran, on the installed native build.** At the final code, `scripts/check.sh` passed with 902 PASS
-lines and no failures in 10:57. `scripts/check_model.py` passed comparison, the hostile document, the
-missing contract, and cancel, persist and restart with recovery. The eight-report job passed in 11
-steps with 8 checkpoints, a peak of 22,875 tokens against the 24,576 limit, and 251 s. At `d1bee3e`,
-before the last core fixes, the three recovery cases passed, each in 11 steps after the follow-up, the
-conversation workflow answer check passed its 30 calls and two cases, and the native interpretation
-probe passed at `fb7ec7f`. At `a0f3e17`, "Why do we have 18 brass bolts?" on a fresh demo answered
-correctly in three of three runs. The bad filter did not recur in those three, so the widening rests
-on its core check. `probe_balance_evidence.py` was not run because it is pinned to an older baseline.
+lines and no failures in 11:01, and `sevra-agent-checks` passed its 50 checks. At `324937f`,
+`scripts/check_model.py` passed comparison, the hostile document, the missing contract, and cancel,
+persist and restart with recovery. The eight-report job passed in 11 steps with 8 checkpoints, a peak
+of 22,875 tokens against the 24,576 limit, and 251 s. The conversation workflow answer check passed
+its 30 calls and two cases at `aea144a`. The native interpretation probe last passed at `fb7ec7f`. At
+`a0f3e17`, "Why do we have 18 brass bolts?" on a fresh demo answered correctly in three of three runs.
+The bad filter did not recur in those three, so the widening rests on its core check.
+`probe_balance_evidence.py` was not run because it is pinned to an older baseline.
+
+**Recovery after Stop is not settled by one run.** The three recovery cases passed at `d1bee3e`, then
+failed two of three at `aea144a`. The prompts had not changed between those runs, so this is the
+model's variance, not a regression. In `stopped-twice` the model passed a record's ID to
+`history_read`, read that one report, and finished complete with a summary of it and no memo, which
+is the wrong result without a failure message. In `stopped` it reread the request and two notes it
+already had and reached the 12-step limit with the draft as its last step, so it failed honestly.
+A missed `history_read` now names the stopped request. Two more runs on the final code passed all
+three cases, but the wrong ID did not recur in them, so that fix rests on its core check. One of those
+`stopped` runs used all 12 steps. Across the four runs 10 of 12 cases passed. The job in this probe
+needs 11 of 12 steps, so a follow-up with more than one stray step still stops at the limit.
 
 **What ran in the window.** Opening a workbook held by another process stayed responsive and then showed
-the busy message. A 2 MB text file opened at once with the first-1-MB note. A FLAC file got the player, a 6,000-pixel PNG displayed, a corrupt PNG showed the file icon and its
-reason. Stop during a running request kept the message and showed the stopped state. `thread: ` opened
-a thread, and text typed there did not follow back to the main composer. Close All followed by opening a
-workbook from outside worked, and a `.sevraz` opened from a cold start offered its save panel. The demo question ran in the window, which is how the filter defect was found. The new Home row
-click area and an over-limit message were not tried, because the screen locked first, and neither were:
-AAC and AIF players, Transcribe from the menu, Quick Look pages, PDF links, the citation jump on audio,
-saved-file pickers, the large table selection, or the automation page cases. The send, restore and quit
-fixes rest on a reviewer's trace and the suites, not on the window.
+the busy message. A 2 MB text file opened at once with the first-1-MB note. FLAC, AAC and AIF files got
+the player, a 6,000-pixel PNG displayed, a corrupt PNG showed the file icon and its reason. Stop during
+a running request kept the message and showed the stopped state. `thread: ` opened a thread, and text
+typed there did not follow back to the main composer. Close All followed by opening a workbook from
+outside worked, and a `.sevraz` opened from a cold start offered its save panel. The demo question ran
+in the window, which is how the filter defect was found. An over-limit message stayed in the composer
+with its shorten notice and saved nothing. A click anywhere on a Home row opened its item. The
+Automations page, its focused sheet and the Edit sheet opened, and Preview listed five upcoming times
+in the automation's own time zone. That pass found macOS contact AutoFill opening over the title
+field, once in three tries, because the word "title" reads as a person's title. The app now turns those
+heuristics off for itself. Without the setting the AutoFill window appears as the sheet opens, and with
+it no such window exists.
+
+Not tried in the window: Transcribe from the menu, Quick Look pages, PDF links, the citation jump on
+audio, saved-file pickers, the large table selection, enabling an automation, and the U5, U10 and U11
+automation cases. The send, restore and quit fixes rest on a reviewer's trace and the suites.
 
 **Found, not fixed.** `evaluate_definition` query pages can still reach `context_limit`. Space-grouped
 thousands read as two numbers. The oldest digest pointers drop silently and stay reachable by
@@ -105,7 +124,9 @@ row. Replace-mode intake of an identical file still proposes a rewrite. Verify w
 second click to download. A failed `capture-url` leaves a 0-byte `CFNetworkDownload_*.tmp`. Filtering a
 100,000-row table on a word in its title or a column ID was estimated at about 5 s inside the workbook
 lock, off the main thread, and was not measured. A ruler of 50 or more spaced dashes and a line
-indented 100 spaces read as deep nesting and show as plain text. CJK search
+indented 100 spaces read as deep nesting and show as plain text. Quit does nothing while a sheet is
+open, and works within a second once it closes. After a killed app, relaunch restores a window and
+`open` adds a second window of the same workbook. CJK search
 stays as it was, because a segmented copy needs another schema change and breaks Q13's query-time
 rule.
 

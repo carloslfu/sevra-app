@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-11-01T08:40:00+00:00
+updated: 2026-11-01T19:20:00+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -628,6 +628,8 @@ source and nothing was relabeled:
   request's text still enters only through history_read, and it applies only if the current
   request asks to continue it. Saved work is listed beside the text. Earlier reads do not carry
   over, because a copy needs a read from the same request.
+- A follow-up took a record's ID for the stopped request and lost the job. A missed history_read
+  now names the unread stopped request's messageID, and says nothing extra otherwise.
 - A note in its message's exact words is marked verbatim by the host, so nothing has to fetch it
   again. The host compares the words; a model cannot claim this.
 

@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-11-01T16:40:00Z
+updated: 2026-11-01T19:20:00Z
 ---
 
 # records/specs
 
+- [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 - [[records/specs/intelligence]] — Native Splash direction, Swift adapter, bounded tools, proposal acceptance, on-device voice and declarative spaces.
 - [[records/specs/storage]] — Versioned SQLite records, separate content-addressed assets, event effects, deterministic calculations and coherent portable snapshots.
 - [[records/specs/application-definitions]] — Schema18 definitions, reviewed CSV/TSV intake and queued native workflows have scoped proof; full journeys and release gates remain open.
@@ -19,7 +20,6 @@ updated: 2026-11-01T16:40:00Z
 - [[records/specs/condition-dispatch]] — "Schema30 dispatch and conversational rule saving/native handoff have scoped proof. Text/voice Enable, model workflow/restart, dataset adapters and release remain open."
 - [[records/specs/condition-transition-inputs]] — Exact retained condition inputs now support bounded historical producer resolution. Complete windows, real limits and native CLI checks pass; independent roots and dispatch remain open.
 - [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
-- [[records/specs/conversation-context]] — Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 - [[records/specs/distribution]] — Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 - [[records/specs/inventory-condition-consumers]] — Schema 23 inventory conditions with saved baselines, pages and clocks, exact observations, inert candidates and backpressure; automatic dispatch remains unqualified.
 - [[records/specs/inventory-event-state]] — Reviewed historical inventory adapter: exact committed cutoff and explicit effective time, retained basis and settled effects, bounded read-only reconciliation, no condition execution.
