@@ -60,12 +60,20 @@ func peer(_ mode: String) throws {
     try emit(golden["error_engine"]!)
     return
   }
+  if mode == "startup-crash" {
+    try FileHandle.standardError.write(contentsOf: Data("first\nno Metal device\n".utf8))
+    return
+  }
   if mode == "stderr" {
     try FileHandle.standardError.write(contentsOf: Data(repeating: 120, count: 262144))
   }
   for byte in golden["ready"]! { try emit(Data([byte])) }
   if mode == "ignore-terminate" { while true { pause() } }
-  if mode == "crash" { return }
+  if mode == "crash" {
+    try FileHandle.standardError.write(
+      contentsOf: Data("lost the device at \(NSHomeDirectory())/model\n".utf8))
+    return
+  }
   while let header = try readExactly(16) {
     let type = get(header, 6, width: 2)
     let size = get(header, 8, width: 8)
@@ -362,6 +370,21 @@ test("malformed stream, duplicate completion and child exit fail closed") {
     try rejects { _ = try p.generate(request()) }
     try expect(kill(pid, 0) == -1 && errno == ESRCH)
     try rejects { _ = try p.generate(request(92)) }
+  }
+}
+test("a stopped helper reads as closed and leaves its last line, without the home folder") {
+  let live = try process()
+  try expect(live.isOpen)
+  live.close()
+  try expect(!live.isOpen)
+  let p = try process("crash")
+  try rejects { _ = try p.generate(request()) }
+  try expect(!p.isOpen && p.lastDiagnostic == "lost the device at ~/model")
+  do {
+    _ = try process("startup-crash")
+    throw SplashError("Expected a failed start")
+  } catch let error as SplashError {
+    try expect(error.description.hasSuffix(": no Metal device"))
   }
 }
 test("startup failure, partial frame and timeout clean up") {

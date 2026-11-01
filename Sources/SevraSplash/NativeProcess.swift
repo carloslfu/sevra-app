@@ -30,6 +30,14 @@ public final class SplashNativeProcess {
   private var lastRequest: UInt64 = 0
   public private(set) var ready: Ready?
   public var diagnosticTail: String { String(decoding: stderr, as: UTF8.self) }
+  /// The helper's last line, for a failure message. A workbook keeps that message and can be
+  /// shared, so the home folder stays out of it.
+  public var lastDiagnostic: String {
+    let line = diagnosticTail.split(whereSeparator: \.isNewline).last.map(String.init) ?? ""
+    return String(line.replacingOccurrences(of: NSHomeDirectory(), with: "~").suffix(300))
+  }
+  /// False once the helper has exited or a transport failure closed it.
+  public var isOpen: Bool { !closed && process.isRunning }
   public var processID: Int32 { process.processIdentifier }
   private var clock: Double { ProcessInfo.processInfo.systemUptime }
 
@@ -79,7 +87,8 @@ public final class SplashNativeProcess {
       }
     } catch {
       close()
-      throw error
+      guard let failure = error as? SplashError, !lastDiagnostic.isEmpty else { throw error }
+      throw SplashError(failure.description + ": " + lastDiagnostic)
     }
   }
 

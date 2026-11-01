@@ -143,7 +143,9 @@ public actor ProductAI {
     }
   }
 
-  /// Ordinary user unload does not interrupt an active job.
+  /// Ordinary user unload does not interrupt an active job. Exiting calls this too: the inference
+  /// lock ends with the process, so the helper has to stop first or another process could load
+  /// the model while this one still holds the memory.
   @discardableResult public func unload() async -> Bool {
     guard !active else { return false }
     active = true

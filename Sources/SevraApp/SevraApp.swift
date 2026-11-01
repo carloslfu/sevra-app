@@ -147,6 +147,7 @@ private struct WorkbookFileCommands: Commands {
       let complete = saved && formsSaved && clarificationsSaved && DocumentDraftScope.flushAll()
       if complete {
         await NativeAutomationHost.shared.stop()
+        await ProductAI.shared.unload()
       } else {
         NativeAutomationHost.shared.cancelTermination()
       }

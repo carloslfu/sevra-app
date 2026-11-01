@@ -16,9 +16,11 @@ import SevraProduct
     do {
       let args = Array(CommandLine.arguments.dropFirst())
       let result = try await run(args, cancellation: cancellation)
+      await ProductAI.shared.unload()
       print(
         try Value.object(["schemaVersion": .number(1), "ok": .bool(true), "result": result]).json())
     } catch {
+      await ProductAI.shared.unload()
       let e = error as? SevraError ?? SevraError("operation", error.localizedDescription)
       let result: Value = .object([
         "schemaVersion": .number(1), "ok": .bool(false),

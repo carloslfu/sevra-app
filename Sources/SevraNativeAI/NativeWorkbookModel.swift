@@ -94,6 +94,12 @@ package actor NativeWorkbookModel: WorkbookInference {
     guard !active else { return }
     leased = false
     idleRelease?.cancel()
+    // With no helper to keep warm, the idle wait would only hold the lock against other processes.
+    guard await worker.hasSession() else {
+      _ = await unload()
+      return
+    }
+    guard !leased else { return }
     idleRelease = Task { [weak self] in
       do { try await Task.sleep(nanoseconds: 120_000_000_000) } catch { return }
       _ = await self?.unload()
@@ -291,14 +297,18 @@ private final class NativeWorker: @unchecked Sendable {
       // A cold device/OS shader cache can compile for several minutes. Keep
       // startup cancellable and bounded, separately from generation deadlines.
       progress("Preparing local AI. First start may compile native components…")
-      helper = try SplashNativeProcess(
-        executable: configuration.engine,
-        arguments: [
-          "serve-native", assembly.path, String(configuration.contextBudget.contextTokens),
-          String(configuration.memoryBytes),
-          "--persistent-cache", "off", "--idle-sleep", "allow", "--verify-rows", "all",
-        ],
-        timeout: 360, cancelled: { cancellation.isCancelled || cancellation.isExpired })
+      do {
+        helper = try SplashNativeProcess(
+          executable: configuration.engine,
+          arguments: [
+            "serve-native", assembly.path, String(configuration.contextBudget.contextTokens),
+            String(configuration.memoryBytes),
+            "--persistent-cache", "off", "--idle-sleep", "allow", "--verify-rows", "all",
+          ],
+          timeout: 360, cancelled: { cancellation.isCancelled || cancellation.isExpired })
+      } catch {
+        throw nativeFailure(error, helperStopped: true, diagnostic: "")
+      }
     }
     deinit { helper.close() }
     private static func verify(_ url: URL, _ digest: String, _ cancellation: Cancellation) throws {
@@ -317,6 +327,12 @@ private final class NativeWorker: @unchecked Sendable {
       try require(
         hash.finalize().map { String(format: "%02x", $0) }.joined() == digest,
         "model_setup", "Native runtime file failed verification: " + url.lastPathComponent)
+    }
+  }
+
+  func hasSession() async -> Bool {
+    await withCheckedContinuation { continuation in
+      queue.async { continuation.resume(returning: self.session != nil) }
     }
   }
 
@@ -364,7 +380,8 @@ private final class NativeWorker: @unchecked Sendable {
         do {
           try cancellation.check()
           let directory = directory.standardizedFileURL.resolvingSymlinksInPath()
-          if self.session?.directory != directory {
+          // A helper that died while idle is replaced here, so this request never meets it.
+          if self.session?.directory != directory || self.session?.helper.isOpen == false {
             try require(
               self.session?.helper.close() != false, "native_shutdown",
               "The previous native helper has not stopped. Retry unloading it.")
@@ -377,8 +394,14 @@ private final class NativeWorker: @unchecked Sendable {
           try cancellation.check()
           continuation.resume(returning: result)
         } catch {
-          if self.session?.helper.close() != false { self.session = nil }
-          continuation.resume(throwing: error)
+          // Only a failure that closed the helper ends the session. Reloading the model after a
+          // cancelled request or an oversized prompt would cost minutes and help nothing.
+          let helper = self.session?.helper
+          let stopped = helper?.isOpen == false
+          let failure = nativeFailure(
+            error, helperStopped: stopped, diagnostic: helper?.lastDiagnostic ?? "")
+          if stopped, helper?.close() != false { self.session = nil }
+          continuation.resume(throwing: failure)
         }
       }
     }
@@ -610,6 +633,32 @@ private final class NativeWorker: @unchecked Sendable {
     )
   }
 
+}
+
+/// Engine and transport failures as typed errors, in words a person can act on. The engine's own
+/// words stay in brackets. Anything else, such as a refused prompt, passes through unchanged.
+package func nativeFailure(_ error: Error, helperStopped: Bool, diagnostic: String) -> Error {
+  let output = diagnostic.isEmpty ? "" : " Last engine output: " + diagnostic
+  switch error {
+  case let failure as SplashWire.Failure where failure.classification == 1:
+    guard failure.retryable else {
+      return SevraError(
+        "model_refused", "The local model refused this request (\(failure.description)).")
+    }
+    let wait = failure.retryAfter > 0 ? " in about \(failure.retryAfter / 60 + 1) minutes" : ""
+    return SevraError(
+      "model_retry",
+      "The local model could not finish this request (\(failure.description)). Try again\(wait).")
+  case let failure as SplashWire.Failure:
+    return SevraError(
+      "model_engine", "The local model stopped (\(failure.description)). Try again." + output)
+  case let failure as SplashError where helperStopped:
+    return SevraError(
+      "model_stopped",
+      "The local model stopped unexpectedly (\(failure.description)). Try again." + output)
+  default:
+    return error
+  }
 }
 
 package func nativeTemplateMessage(_ message: InferenceMessage) throws -> [String: any Sendable] {

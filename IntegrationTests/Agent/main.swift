@@ -280,6 +280,12 @@ do {
     try checks.testActualWorkbookSchemas()
     exit(0)
   }
+  if CommandLine.arguments.dropFirst() == ["--inference-lease"] {
+    try await inferenceLeaseChild()
+    exit(0)
+  }
+  try checkInferenceLease()
+  try checkNativeFailures()
   try checkContextBudget()
   try await checkContextThreshold()
   try checkReasoningBudget()
