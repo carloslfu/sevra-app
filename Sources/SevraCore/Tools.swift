@@ -163,8 +163,19 @@ public struct WorkbookTools {
         cursor: a["cursor"].string, limit: 8, beforeMessage: workbook.runRequestMessage(runID),
         cancellation: cancellation)
     case "history_read":
-      let evidence = try workbook.readHistoryEvidence(
-        string("id"), conversation: conversation, beforeMessage: workbook.runRequestMessage(runID))
+      let evidence: Value
+      do {
+        evidence = try workbook.readHistoryEvidence(
+          string("id"), conversation: conversation,
+          beforeMessage: workbook.runRequestMessage(runID))
+      } catch let error as SevraError where ["message", "history_scope"].contains(error.code) {
+        guard
+          let stopped = try workbook.unreadStoppedRequest(
+            conversation: conversation, runID: runID)
+        else { throw error }
+        throw SevraError(
+          error.code, error.message + " The stopped request's messageID is \(stopped).")
+      }
       guard
         let progress = try workbook.stoppedRequestProgress(
           message: string("id"), conversation: conversation, runID: runID)

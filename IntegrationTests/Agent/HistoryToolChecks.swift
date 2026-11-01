@@ -220,6 +220,23 @@ func checkHistoryTools() async throws {
       try expectEqual(try book.toolCall(body["receiptID"].text)["state"].text, "completed")
     }
   }
+  let continued = try Workbook.create(
+    at: root.appendingPathComponent("continued.sevra"), title: "Continued")
+  let stopped = try continued.rejectAgentRequest(
+    "Read everything.", conversation: "main", model: "test", cancelled: true, reason: "Stopped.")
+  let follow = try continued.startAgentRequest("Continue.", conversation: "main", model: "test")
+  let unrelated = try Workbook.create(
+    at: root.appendingPathComponent("unrelated.sevra"), title: "Unrelated")
+  let first = try unrelated.startAgentRequest("Hello.", conversation: "main", model: "test")
+  func missed(_ book: Workbook, _ runID: String) throws -> String {
+    do {
+      _ = try WorkbookTools(book, runID: runID).execute(
+        "history_read", .object(["id": .string("a-record-id")]))
+    } catch let error as SevraError { return error.message }
+    return ""
+  }
+  try expectEqual(try missed(continued, follow.runID).contains(stopped.messageID), true)
+  try expectEqual(try missed(unrelated, first.runID), "This conversation message is missing.")
   let hit: Value = .object([
     "itemID": .string("observed"), "snippet": .string("Five units"), "locator": .string("page 1"),
   ])

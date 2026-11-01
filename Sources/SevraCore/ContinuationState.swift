@@ -99,6 +99,13 @@ extension Workbook {
       ])
     }
   }
+  /// Continuing means finding this message, and a record's ID looks just like it.
+  func unreadStoppedRequest(conversation: String, runID: String) throws -> String? {
+    try synchronized {
+      let stopped = try stoppedRequest(conversation: conversation, runID: runID)
+      return stopped["readByThisRequest"] == .bool(false) ? stopped["messageID"].string : nil
+    }
+  }
   /// Reconstruct operation outcomes and current proposal state from records,
   /// never from a model-written digest. Does not resume or mutate any call.
   public func continuationState(conversation: String, runID: String, messageIDs: [String]) throws
