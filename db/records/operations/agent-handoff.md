@@ -3,8 +3,8 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-10-31T23:30:00+00:00
-summary: 'Resumed minimum features: increments 1 through 9 accepted; a code review was fixed on main and an external user is next.'
+updated: 2026-11-01T16:00:00+00:00
+summary: 'Resumed minimum features: increments 1 through 9 accepted; a whole-app review was fixed on main and an external user is next.'
 title: Paused minimum-feature agent handoff
 ---
 # Paused feature implementation: agent handoff
@@ -17,8 +17,9 @@ while asking for fewer tests: [[sources/notes/2026/10/ship-with-enough-testing]]
 on for the native 32K profile. The installed-window pass is done, including Add a folder, template
 export and import, and Transcribe on real audio. A longer recording then showed the old recognizer
 discarding speech before a pause, so Transcribe moved to Apple's long-form on-device transcriber.
-A review of everything since the merge found 32 ranked defects, and all are fixed on main; what is
-left is listed in [[records/operations/implementation]]. VoiceOver itself and five menu shortcuts
+A whole-app review of every feature on November 1 found 32 ranked defects and about 130 smaller ones.
+All 32 are fixed on main, with the schema now at 31; what is left, and which window cases still need
+an unlocked screen, is listed in [[records/operations/implementation]]. VoiceOver itself and five menu shortcuts
 are still unchecked (Command-period, Command-N, Command-O, Command-I and Shift-Command-E were read
 from the menu, not pressed), and an external user is next.
 Exact evidence and limits are in

@@ -3,11 +3,91 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-10-31T23:30:00+00:00
+updated: 2026-11-01T16:00:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Whole-app review, November 1
+
+The owner asked for an adversarial review of every feature and every line. Separate reviewers read
+the whole repository at `a7f7c7f`, about 160 candidates came out, and the 32 worst were verified and
+ranked. All 32 are fixed on main, and so are the smaller candidates apart from the items listed
+below. Nine fix batches landed one at a time, then a regression read of the fixes themselves and the
+real model checks found more, which are fixed too. Each fix was proven with the real failure and one
+counterexample where a check could reach it.
+
+**Format.** The workbook schema is now 31, because `business_inputs.kind` gained `request`. A workbook
+from an earlier development build refuses to open with `schema`, and its files stay untouched. There
+is no migration, by the pre-1.0 rule.
+
+**Trust.** Imported text can no longer forge model control tokens. `propose_record` and `add` cannot
+forge host-owned kinds, reviewed changes or document compositions. Archives are checked for planted
+triggers, linked paths, bookmarks, real sizes rather than declared ones, encryption and hostile ZIP64
+data, with member listing moved out of process. Prose after a URL is no longer sent to that host, and
+saved URLs lose keys, tokens and session values.
+
+**Data.** A committed change can no longer be reported as failed, because anything read back from a
+save is now read before COMMIT. Saves flush past the drive cache with `fullfsync`, which added about 1
+ms to a real item save and nothing measurable to a 5,000-row import. Opening a busy workbook and
+writing to one wait 30 seconds and then give `workbook_busy`, and Stop still lands. Withdrawing or
+undoing now restores the last accepted version for every kind. `edit-row` no longer erases columns it
+was not given. Forecast evidence no longer becomes actual stock. Retained automation runs verify after
+a table edit. Torn copies of a changing file are refused.
+
+**Crashes and hangs.** Deep nesting in Markdown, JSON and calculated columns is bounded, a repeated
+evidence ID no longer traps the clarification view, a long automation title no longer stops every
+schedule, and text preview no longer freezes on a large file. Workflow runs no longer stall on
+legitimate input, and bulk intake no longer stops on files it already accepted.
+
+**Numbers and imports.** Ordinary division works in calculated cells and averages, and calculated
+results fit 38 digits, so an exact 39-digit calculated-cell sum rounds instead of refusing. Balance,
+condition totals and query SUM stay exact or refuse. CSV inference keeps `0012` as text, reads
+semicolon files, and Excel import keeps phonetic, escaped and date text. Three-second budgets that
+blocked stated table sizes are gone.
+
+**Model.** A response cut off at the 1,800-token output limit is now redone, three tries at most, with
+a note to answer shorter. The limit is unchanged. This came from a real failed recovery run where the
+final draft step ran past the limit; the eight-report job's draft step ranges from about 1,050 to
+1,400 tokens, so that limit is close. A prepared workflow answer whose quotation states a figure must
+prepare that figure. The real model filled in a doubled count before this rule. A search filter value
+no item has, such as a meaning of `inventory balance`, now widens the search with `filterNotice`
+instead of silently returning nothing. The real model did this on the demo's own suggested question.
+
+**Checks.** `sevra-preview-checks` had been exiting 0 after its table check, so 9 of its 19 groups
+never ran; all run now. The journeys left out of CI and `scripts/check.sh` were added, `sevra-checks`
+leaves no folder behind however a run ends, and several checks now name the exact code they expect.
+
+**What ran, on the installed native build.** At `d1bee3e`: `scripts/check_model.py` passed comparison,
+the hostile document, the missing contract, and cancel, persist and restart with recovery. The
+eight-report job passed in 12 steps with 8 checkpoints, a peak of 22,959 tokens against the 24,576
+limit, and 260 s. Its three recovery cases passed, each in 11 steps after the follow-up. The
+conversation workflow answer check passed its 30 calls and two cases, and the native interpretation
+probe passed at `fb7ec7f`. At `a0f3e17`, "Why do we have 18 brass bolts?" on a fresh demo answered
+correctly in three of three runs. The bad filter did not recur in those three, so the widening rests
+on its core check. `probe_balance_evidence.py` was not run because it is pinned to an older baseline.
+
+**What ran in the window.** Opening a workbook held by another process stayed responsive and then showed
+the busy message. A 2 MB text file opened at once with the first-1-MB note. A FLAC file got the player, a 6,000-pixel PNG displayed, a corrupt PNG showed the file icon and its
+reason. Stop during a running request kept the message and showed the stopped state. `thread: ` opened
+a thread, and text typed there did not follow back to the main composer. Close All followed by opening a
+workbook from outside worked, and a `.sevraz` opened from a cold start offered its save panel. The demo question ran in the window, which is how the filter defect was found. The new Home row
+click area and an over-limit message were not tried, because the screen locked first, and neither were:
+AAC and AIF players, Transcribe from the menu, Quick Look pages, PDF links, the citation jump on audio,
+saved-file pickers, the Excel-like large table selection, or the automation page cases. A second
+reviewer traced the send, restore and quit paths, and those fixes rest on that trace and the suites.
+
+**Found, not fixed.** `evaluate_definition` query pages can still reach `context_limit`. Space-grouped
+thousands read as two numbers. The oldest digest pointers drop silently and stay reachable by
+`history_search`. Lazily indented list continuation stays partial. A CR-only message table stays
+plain. 256 forms with unsent inputs refuse a new draft. East of UTC a date-only movement for today
+counts as future until 00:00 UTC. Autosave stays on the main thread for up to 3 s. A long document
+lays out on the main thread at about 0.2 s per MB per width. A paste-table Done leaves a "Choose use"
+row. Replace-mode intake of an identical file still proposes a rewrite. Verify with bit rot needs a
+second click to download. A failed `capture-url` leaves a 0-byte `CFNetworkDownload_*.tmp`. CJK search
+stays as it was, because a segmented copy needs another schema change and breaks Q13's query-time
+rule.
 
 ## Review fixes, October 31
 

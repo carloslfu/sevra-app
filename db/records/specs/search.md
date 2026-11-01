@@ -158,9 +158,9 @@ The latter are candidates only; history_read must expose an eligible original
 before a message:ID citation can support a statement about earlier conversation.
 A message citation never becomes business lineage or proof of current acceptance.
 
-Business kind, meaning, status or scenario filters deliberately exclude messages. A kind
-no item in the workbook has is not a filter, because kinds are not a fixed list: the search
-covers every kind and its result says so.
+Business kind, meaning, status or scenario filters deliberately exclude messages. A value
+no item in the workbook has is not a filter, because the model cannot know every value in use:
+the search leaves that filter out and its result says so in filterNotice.
 Business continuation pages also stay in that index. Every result says whether
 conversation was searched. Its separate cursor continues through history_search
 with the same query, conversation and active-request ceiling. Current-request and

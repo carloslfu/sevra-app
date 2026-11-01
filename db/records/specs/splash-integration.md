@@ -203,7 +203,8 @@ Check cancellation again before dispatch. Preserve existing evidence, calculatio
 proposal review, citations and persisted run state. The original probes use an 8,192-token development context; the isolated product
 preview uses the provisional 32K profile. Both have an output allowance of at most 1,800 tokens, reduced
 to the remaining context capacity. Refuse when fewer than 256 output tokens remain;
-a length-limited response cannot execute a tool. Longer-job context management
+a length-limited response cannot execute a tool. The agent discards it, tells the model it ran past
+the limit and tries again, three tries at most, sharing the count with malformed responses. Longer-job context management
 and its wider workload qualification remain open under [[records/specs/conversation-context]].
 
 Conversation history includes needs-review receipts and explicit cancelled, failed
