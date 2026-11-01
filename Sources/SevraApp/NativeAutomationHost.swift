@@ -11,7 +11,8 @@ import SevraProduct
   private var pressure: DispatchSourceMemoryPressure?
   private var busyOwners: Set<UUID> = []
   private var active = false
-  private var sleeping = false
+  private var systemSleeping = false
+  private var screensSleeping = false
   private var sessionInactive = false
   private var memoryConstrained = false
   private var stopping = false
@@ -45,19 +46,19 @@ import SevraProduct
       $0.tick()
     }
     observe(workspace, NSWorkspace.willSleepNotification) {
-      $0.sleeping = true
+      $0.systemSleeping = true
       $0.tick()
     }
     observe(workspace, NSWorkspace.screensDidSleepNotification) {
-      $0.sleeping = true
+      $0.screensSleeping = true
       $0.tick()
     }
     observe(workspace, NSWorkspace.didWakeNotification) {
-      $0.sleeping = false
+      $0.systemSleeping = false
       $0.tick()
     }
     observe(workspace, NSWorkspace.screensDidWakeNotification) {
-      $0.sleeping = false
+      $0.screensSleeping = false
       $0.tick()
     }
     observe(workspace, NSWorkspace.sessionDidResignActiveNotification) {
@@ -121,7 +122,7 @@ import SevraProduct
       reason = "Paused while Sevra is inactive."
     } else if NSApp.keyWindow == nil {
       reason = "Paused while no Sevra window is active."
-    } else if sleeping || sessionInactive {
+    } else if systemSleeping || screensSleeping || sessionInactive {
       reason = "Deferred while the screen or user session is inactive."
     } else if !busyOwners.isEmpty {
       reason = "Deferred for your current work."
