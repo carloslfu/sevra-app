@@ -46,7 +46,7 @@ extension Workbook {
           JOIN items headItem ON headItem.id=h.item_id
           WHERE t.id=? AND a.conversation_id=? AND t.state='completed'
             AND receipt.conversation_id=a.conversation_id AND receipt.rowid<proposal.rowid
-            AND t.tool IN ('propose_record','propose_movement','propose_table','propose_table_edit')
+            AND t.tool IN ('propose_record','propose_movement','propose_table','propose_table_edit','publish_result')
             AND json_extract(t.result,'$.status')='draft'
             AND original.category='record' AND original.status='draft'
           """, [.string(message.id), receiptID, .string(conversation)]

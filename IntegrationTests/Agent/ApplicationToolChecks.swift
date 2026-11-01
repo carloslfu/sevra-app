@@ -169,6 +169,10 @@ func checkApplicationTools() async throws {
       let match = try book.toolResultPage(
         receipt!["receiptID"].text, path: ["directionReview", "matches"])
       try expectEqual(match["value"], .bool(true))
+      // The commit runs under the preview's token, and the journal still finds it.
+      try expectEqual(
+        try book.toolCall(receipt!["receiptID"].text)["committedOperation"]["kind"]
+          == .null, false)
       if large { try expectEqual(await model.scopes.filter { $0 == .actionDirection }.count, 5) }
     }
     if ["previewOnly", "readOnly"].contains(mode) {

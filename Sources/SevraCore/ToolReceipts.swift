@@ -291,10 +291,22 @@ extension Workbook {
           == WorkbookTools(self, runID: row["run_id"]!.text).operationToken(
             row["tool"]!.text, value["arguments"]!),
         "integrity", "Saved operation identity does not match its tool call.")
+      // prepare_action commits through its own host preview, under that commit's token.
+      var token = row["operation_token"]!
+      if row["tool"]?.text == "prepare_action",
+        let preview = try db.execute(
+          "SELECT id FROM tool_calls WHERE run_id=? AND call_id=?",
+          [row["run_id"]!, .string("action-preview-" + id)]
+        ).first?["id"]
+      {
+        token = .string(
+          try WorkbookTools(self, runID: row["run_id"]!.text).operationToken(
+            "commit_action_preview", .object(["previewReceiptID": preview])))
+      }
       // This is the exact committed operation, not an assertion by a summary.
       // Some intake tools perform several resumable operations and have no single token.
       if let operation = try db.execute(
-        "SELECT id,kind,result,revision FROM operations WHERE id=?", [row["operation_token"]!]
+        "SELECT id,kind,result,revision FROM operations WHERE id=?", [token]
       ).first {
         var proof = operation
         proof["result"] = try Value.parse(operation["result"]!.text)

@@ -75,6 +75,21 @@ func checkProposalReview() throws {
       "[An item](sevra://item/\(revised.id))", role: "assistant", state: "needs_review")
     try expect(try book.workspaceSnapshot(conversation: "main")!.proposalReviews[unknown] == nil)
   }
+  // A published result is a proposal too, and its review state follows the same way.
+  let published = try book.addItem(
+    category: "record", kind: "analysis", title: "Expected units", text: "12", meaning: "estimate",
+    status: "draft", inputs: [observation.id])
+  let run = try book.startAgentRequest("Publish it", conversation: "main", model: "fixture")
+  let receipt = try book.prepareToolCall(
+    runID: run.runID, callID: identifier(), tool: "publish_result", arguments: .object([:]))
+  _ = try book.completeToolCall(receipt, result: try encoded(published))
+  let reply = try book.addMessage(
+    "Ready to review.", role: "assistant", state: "needs_review",
+    payload: .object([
+      "kind": .string("proposal"), "itemID": .string(published.id), "receiptID": .string(receipt),
+    ]))
+  let review = try book.workspaceSnapshot(conversation: "main")!.proposalReviews[reply]
+  try expect(review?.proposalID == published.id && review?.status == "draft")
   try expect(try book.verify()["ok"] == .bool(true))
   print(
     "PASS proposal status follows acceptance, Undo, newer drafts and reopen without rewriting history or guessing foreign/unknown associations"
