@@ -79,7 +79,9 @@ extension Workbook {
     }
   }
 
-  func validateDefinitionComponent(_ component: Component, pinned: Bool) throws {
+  func validateDefinitionComponent(
+    _ component: Component, pinned: Bool, checkArguments: Bool = true
+  ) throws {
     try require(
       ["calculation", "query"].contains(component.type)
         && component.datasetID == nil && component.itemID == nil && component.snapshot == nil
@@ -101,7 +103,7 @@ extension Workbook {
     try require(
       target.kind == (component.type == "calculation" ? "function" : "query"), "view",
       "The component and definition kinds must agree.")
-    _ = try definitionArguments(DefinitionDescriptor(target.content), arguments)
+    if checkArguments { _ = try definitionArguments(DefinitionDescriptor(target.content), arguments) }
     guard let saved = component.evaluationSnapshot else {
       try require(!pinned, "view", "A pinned computation needs its saved evaluation.")
       return

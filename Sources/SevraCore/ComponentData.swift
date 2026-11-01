@@ -78,6 +78,11 @@ extension Workbook {
       guard let space = try spaces().first(where: { $0.id == id }) else {
         throw SevraError("view", "Space not found.")
       }
+      if let title {
+        try require(
+          !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && title.utf8.count <= 500,
+          "view", "Use a space title of up to 500 bytes.")
+      }
       let captured = space.definition.pinnedAt ?? timestamp()
       let revision = try revision()
       func pin(_ component: Component) throws -> Component {
@@ -126,7 +131,10 @@ extension Workbook {
       try cancellation.check()
       let saved = identifier()
       let date = timestamp()
-      let name = title ?? space.title + " · " + timestamp()
+      var base = space.title
+      let suffix = " · " + timestamp()
+      while base.utf8.count + suffix.utf8.count > 500 { base.removeLast() }
+      let name = title ?? base + suffix
       let values: [Value] = [
         .string(saved), .string(name), .string(data), .number(1), .string(date),
       ]

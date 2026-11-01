@@ -113,7 +113,7 @@ extension Workbook {
         && !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         && title.utf8.count <= 500, "view", "Use a space ID and a title of up to 500 bytes.")
     try refuseAuthoredEvaluationSnapshots(definition, current: current)
-    try validateSpaceDefinition(definition)
+    try validateSpaceDefinition(definition, replacing: current?.definition.components ?? [])
     if let current {
       try require(current.version < 1_000_000_000, "view_limit", "Space version limit reached.")
       let saved = try db.execute(

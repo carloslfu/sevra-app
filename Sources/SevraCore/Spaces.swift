@@ -105,7 +105,16 @@ extension Workbook {
     }
     return id
   }
-  func validateSpaceDefinition(_ definition: SpaceDefinition) throws {
+  /// `saved` is the layout this replaces. A live table or function can change under a view that
+  /// was saved earlier, and that must not block edits around it, so only new or changed views
+  /// answer for their arguments and columns.
+  func validateSpaceDefinition(_ definition: SpaceDefinition, replacing saved: [Component] = [])
+    throws
+  {
+    func flatten(_ components: [Component]) -> [Component] {
+      components.flatMap { [$0] + flatten($0.children ?? []) }
+    }
+    let unchanged = flatten(saved)
     try require(
       definition.version == 1 && definition.components.count <= 16, "view",
       "Unsupported view version or too many components.")
@@ -134,7 +143,8 @@ extension Workbook {
         !c.id.isEmpty && c.id.utf8.count <= 256 && c.title.utf8.count <= 500, "view",
         "Use bounded component IDs and labels.")
       if ["calculation", "query"].contains(c.type) {
-        try validateDefinitionComponent(c, pinned: definition.pinnedAt != nil)
+        try validateDefinitionComponent(
+          c, pinned: definition.pinnedAt != nil, checkArguments: !unchanged.contains(c))
       } else if c.type == "form" {
         try require(
           definition.pinnedAt == nil && c.datasetID == nil && c.itemID == nil
@@ -162,15 +172,17 @@ extension Workbook {
           throw SevraError("view", "Component \(c.id) (\(c.type)) requires its own datasetID.")
         }
         let table = try dataset(id)
-        if ["chart", "metric"].contains(c.type) {
+        // A snapshot answers for the columns it saved, whatever the table has become.
+        let columns = definition.pinnedAt == nil ? table.columns : c.snapshot?.columns ?? table.columns
+        if ["chart", "metric"].contains(c.type), !unchanged.contains(c) {
           try require(
-            table.columns.contains { $0.id == c.y }, "view",
+            columns.contains { $0.id == c.y }, "view",
             "Set y to an existing dataset column ID, not a layout position. Inspect datasets for column IDs."
           )
         }
-        if c.type == "chart" {
+        if c.type == "chart", !unchanged.contains(c) {
           try require(
-            table.columns.contains { $0.id == c.x }
+            columns.contains { $0.id == c.x }
               && ["bar", "line"].contains(c.chartStyle ?? "bar"), "view",
             "Set x to an existing dataset column ID, not a layout position; use bar or line style.")
         }

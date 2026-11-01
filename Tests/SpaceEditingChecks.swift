@@ -29,6 +29,83 @@ func checkSpaceEditing(at temp: URL) {
     try expect(try rebuilt.spaceHistory("home").map(\.version) == [3, 2, 1])
     try expect(try rebuilt.item(draft.id).status == "draft")
   }
+  check("a view that went stale under a saved space does not block edits around it") {
+    let book = try fixture()
+    let source = try book.addItem(category: "source", kind: "observation", title: "Stock")
+    let table = try book.createDataset(
+      title: "Stock",
+      columns: [
+        Column(id: "name", title: "Name", type: "text"),
+        Column(id: "qty", title: "Quantity", type: "decimal"),
+      ], rows: [["name": .string("bolts"), "qty": .string("5")]], sourceID: source.id
+    ).id
+    let logical = identifier()
+    func function(_ parameters: [Value]) -> Value {
+      .object([
+        "kind": .string("function"), "title": .string("Double"), "description": .string("Test"),
+        "parameters": .array(parameters),
+        "payload": .object(["expression": .string("a*2")]),
+      ])
+    }
+    let a = ActionRegistry.field("a", "A", "decimal")
+    let first = try book.saveApplicationDefinition(
+      logicalID: logical, content: function([a]))
+    let calculation = Component(
+      id: "calc", type: "calculation", title: "Doubled",
+      definitionBinding: .object(["mode": .string("live"), "logicalID": .string(logical)]),
+      arguments: .object(["a": .string("3")]))
+    let chart = Component(
+      id: "chart", type: "chart", title: "Quantity", datasetID: table, x: "name", y: "qty")
+    let metric = Component(
+      id: "metric", type: "metric", title: "Total", datasetID: table, y: "qty")
+    let live = try book.saveSpace(
+      title: "Stock", definition: SpaceDefinition(components: [chart, metric, calculation]))
+    let noCalculation = try book.saveSpace(
+      title: "Charts", definition: SpaceDefinition(components: [chart, metric]))
+    let pinned = try book.pinSpace(noCalculation, title: "Snapshot")
+    _ = try book.saveApplicationDefinition(
+      logicalID: logical,
+      content: function([a, ActionRegistry.field("b", "Rate", "decimal")]),
+      expectedDefinitionID: first.id)
+    let definition = try book.datasetDefinition(table)
+    _ = try book.updateDatasetDefinition(
+      table, expectedVersion: definition.version, expectedDefinitionID: definition.id,
+      columns: [definition.columns[0]])
+    let renamed = try book.editSpace(
+      live, expectedVersion: 1, edits: [.init(operation: "rename", title: "Renamed")])
+    try expect(renamed.title == "Renamed")
+    // A changed view still answers for itself, and a snapshot for the columns it kept.
+    try refuses("definition_input") {
+      _ = try book.editSpace(
+        live, expectedVersion: 2,
+        edits: [
+          .init(operation: "remove", componentID: "calc"),
+          .init(
+            operation: "insert", at: "last",
+            component: Component(
+              id: "calc2", type: "calculation", title: "New",
+              definitionBinding: calculation.definitionBinding, arguments: calculation.arguments)),
+        ])
+    }
+    let relabelled = try book.editSpace(
+      pinned, expectedVersion: 1,
+      edits: [.init(operation: "title", componentID: "chart", title: "Saved quantity")])
+    try expect(relabelled.definition.components[0].title == "Saved quantity")
+    _ = try book.verify()
+  }
+  check("a snapshot title obeys the same bounds as any space title") {
+    let book = try fixture()
+    let live = try book.saveSpace(
+      id: "long", title: String(repeating: "t", count: 500),
+      definition: SpaceDefinition(components: []))
+    for title in ["", "   ", String(repeating: "x", count: 501)] {
+      try refuses("view") { _ = try book.pinSpace(live, title: title) }
+    }
+    let snapshot = try book.pinSpace(live)
+    try expect(try book.space(snapshot).title.utf8.count <= 500)
+    _ = try book.editSpace(
+      snapshot, expectedVersion: 1, edits: [.init(operation: "rename", title: "Kept")])
+  }
   check("space edits compare exact bases and retries keep the original saved version") {
     let book = try fixture()
     let other = try Workbook(book.url)
