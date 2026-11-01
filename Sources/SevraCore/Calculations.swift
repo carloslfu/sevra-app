@@ -29,6 +29,17 @@ public enum Numbers {
     let tree = try parser.parse()
     return string(try tree.evaluate(values: values, resolve: resolve))
   }
+  /// Decimal holds one digit past the 38 `decimal` reads back. A quotient that does not end
+  /// reaches it, and so does anything added to one, so a result that long keeps 38. Half rounds
+  /// away from zero. A shorter result is returned as it is.
+  private static func fitted(_ number: Decimal) -> Decimal {
+    guard number.significand >= precisionLimit else { return number }
+    var input = number
+    var output = Decimal()
+    NSDecimalRound(&output, &input, -Int(number.exponent) - 1, .plain)
+    return output
+  }
+  private static let precisionLimit = Decimal(sign: .plus, exponent: 38, significand: 1)
   static func binary(_ lhs: Decimal, _ rhs: Decimal, op: String) throws -> Decimal {
     if ["=", "<>", "<", ">", "<=", ">="].contains(op) {
       let result: Bool
@@ -57,7 +68,7 @@ public enum Numbers {
     try require(
       error == .noError || error == .lossOfPrecision, "number",
       "Calculation exceeded decimal range.")
-    return out
+    return fitted(out)
   }
 }
 indirect enum Expression {

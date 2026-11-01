@@ -164,6 +164,42 @@ func checkDatasetDefinitions(at root: URL) {
       expectedVersion: archived.version, expectedDefinitionID: archived.id)
     try expect(try book.datasets().count == 1 && book.rows(table.id)[0].id == row.id)
   }
+  check("a quotient keeps 38 digits wherever it is read, and an exact result stays exact") {
+    let (book, table) = try fixture(
+      "Quotients",
+      columns: [
+        .init(id: "a", title: "A", type: "decimal"), .init(id: "b", title: "B", type: "decimal"),
+        .init(id: "ratio", title: "Ratio", type: "decimal", formula: "a/b"),
+        .init(id: "more", title: "More", type: "decimal", formula: "ratio+1000"),
+        .init(id: "mean", title: "Mean", type: "decimal", formula: "AVERAGE(a,b,1)"),
+      ],
+      rows: [
+        ["a": .string("22"), "b": .string("7")], ["a": .string("1"), "b": .string("8")],
+      ])
+    func cells(_ book: Workbook) throws -> [[String]] {
+      try book.tablePage(table.id).values.map { row in
+        ["ratio", "more", "mean"].map { row[$0]?.text ?? "" }
+      }
+    }
+    let quotient = [
+      "3.1428571428571428571428571428571428571", try cells(book)[0][1], "10",
+    ]
+    try expect(quotient[1].hasPrefix("1003.142857142857") && Numbers.decimal(quotient[1]) > 1003)
+    try expect(
+      try cells(book)
+        == [quotient, ["0.125", "1000.125", "3.3333333333333333333333333333333333333"]])
+    try expect(try book.cellValue(table.id, address: "C1") == quotient[0])
+    try expect(try Numbers.calculate("10/4") == "2.5" && Numbers.calculate("2.5*2") == "5")
+    try refuses("division_by_zero") { _ = try Numbers.calculate("1/0") }
+    let row = try book.rows(table.id)[0]
+    let edit = try book.editRows(table.id, edits: [.init(id: row.id, values: ["a": .string("5"), "b": .string("3")])])
+    try expect(try cells(book)[0][0] == "1.6666666666666666666666666666666666667")
+    _ = try book.undoTableChange(edit.id)
+    try expect(try cells(book)[0] == quotient && cells(Workbook(book.url))[0] == quotient)
+    let export = root.appendingPathComponent("Quotients.csv")
+    try book.exportCSV(table.id, to: export)
+    try expect(try String(contentsOf: export, encoding: .utf8).contains(quotient[1]))
+  }
   check("retained formulas cannot silently bind to removed or reordered columns") {
     let (book, table) = try fixture(
       "DefinitionBindings",
