@@ -10,16 +10,20 @@ import SevraCore
   @Published public private(set) var issues: [Value] = []
   @Published public private(set) var failure: String?
   @Published public private(set) var conflict = false
+  /// A live action or function changed under this draft, so only the current form can submit.
+  @Published public private(set) var stale = false
   @Published public private(set) var busy = false
   private let workbook: Workbook
   private let key: String
   private var baseline: FormDraftState?
+  /// A form nobody has edited takes no saved-draft slot, however many a workbook shows.
+  private var untouched: FormDraftState?
   private var saving: Task<Bool, Never>?
   private var scheduled: Task<Void, Never>?
   private var keepOther = false
   public var changed: (() -> Void)?
   public var revealFailure: (() -> Void)?
-  public var dirty: Bool { state != baseline }
+  public var dirty: Bool { state != baseline && state != untouched }
   public init(workbook: Workbook, key: String) {
     self.workbook = workbook
     self.key = key
@@ -32,16 +36,23 @@ import SevraCore
     do {
       let loaded = try await Task.detached { [workbook, key] in
         let existing = try workbook.formDraft(key)
-        let value = try existing ?? workbook.newFormDraft(formID)
+        var value = try existing ?? workbook.newFormDraft(formID)
         let definition = try workbook.applicationDefinition(value.definitionID)
-        let receipt = try workbook.applicationFormReceipt(
-          value.invocationToken, definitionID: value.definitionID, arguments: value.arguments)
+        var receipt: Value?
+        do {
+          receipt = try workbook.applicationFormReceipt(
+            value.invocationToken, definitionID: value.definitionID, arguments: value.arguments)
+        } catch let error as SevraError where error.code == "action_token" {
+          // Another draft spent this retry identity. These inputs can still go under a new one.
+          value.invocationToken = identifier()
+        }
         return (existing, value, definition, receipt)
       }.value
       baseline = loaded.0
       state = loaded.1
       definition = loaded.2
       if let receipt = loaded.3 { state?.lastReceipt = receipt }
+      if loaded.0 == nil, loaded.3 == nil { untouched = state }
       _ = await flush()
     } catch { fail(error) }
   }
@@ -62,6 +73,7 @@ import SevraCore
     guard !busy, let value = state else { return }
     busy = true
     preview = nil
+    stale = false
     defer { busy = false }
     do {
       let result = try await Task.detached { [workbook] in
@@ -79,6 +91,8 @@ import SevraCore
     guard !busy, let value = state, let preview, value.lastReceipt == nil else { return }
     busy = true
     defer { busy = false }
+    // The retry identity is saved before it spends anything.
+    untouched = nil
     guard await flush() else { return }
     do {
       let receipt = try await Task.detached { [workbook] in
@@ -88,7 +102,11 @@ import SevraCore
       self.preview = nil
       _ = await flush()
       changed?()
-    } catch { fail(error) }
+    } catch {
+      // The plan it showed is no longer what would run. Preview again from the same inputs.
+      self.preview = nil
+      fail(error)
+    }
   }
   /// This explicit choice follows current definitions. Keep prior unsent values as an alternative.
   public func useCurrent(_ formID: String, carryInputs: Bool) async {
@@ -120,6 +138,7 @@ import SevraCore
       self.definition = definition
       preview = nil
       issues = []
+      stale = false
       _ = await flush()
     } catch { fail(error) }
   }
@@ -169,7 +188,9 @@ import SevraCore
             try workbook.saveFormDraft(key, state: value, expected: expected, keepOther: preserve)
           }.value
           baseline = saved
+          untouched = nil
           state?.alternatives = saved.alternatives
+          state?.invocationToken = saved.invocationToken
           keepOther = false
           failure = nil
           conflict = false
@@ -187,9 +208,16 @@ import SevraCore
   private func fail(_ error: Error) {
     failure = error.localizedDescription
     conflict = (error as? SevraError)?.code == "form_draft_conflict"
+    stale = (error as? SevraError)?.code == "stale_form_definition"
     changed?()
     revealFailure?()
   }
+}
+
+/// What a text box holds as a value. An empty optional number or date is no value at all.
+public func formFieldValue(_ text: String, parameter: Value) -> Value {
+  text.isEmpty && parameter["required"] != .bool(true) && parameter["type"] != .string("text")
+    ? .null : .string(text)
 }
 
 @MainActor public final class FormDraftScope {

@@ -116,7 +116,7 @@ private struct NativeFormEditor: View {
           } else {
             Button("Preview") { Task { await session.prepare() } }.disabled(session.busy)
           }
-          if let currentFormID, currentFormID != state.definitionID {
+          if let currentFormID, currentFormID != state.definitionID || session.stale {
             Button("Use current form and keep these inputs") {
               Task { await session.useCurrent(currentFormID, carryInputs: true) }
             }.font(.callout).disabled(session.busy)
@@ -232,6 +232,9 @@ struct FormParameterField: View {
               Button("Open") {
                 NotificationCenter.default.post(name: .sevraOpenEvidence, object: value.text)
               }.accessibilityLabel("Open " + title)
+              if parameter["required"] != .bool(true) {
+                Button("Clear") { value = .null }.accessibilityLabel("Clear " + title)
+              }
             }
           }
           .sheet(isPresented: $choosingEvidence) {
@@ -254,7 +257,9 @@ struct FormParameterField: View {
       default:
         TextField(
           parameter["type"].text == "date" ? "YYYY-MM-DD" : title,
-          text: Binding(get: { value == .null ? "" : value.text }, set: { value = .string($0) }),
+          text: Binding(
+            get: { value == .null ? "" : value.text },
+            set: { value = formFieldValue($0, parameter: parameter) }),
           axis: parameter["type"].text == "text" ? .vertical : .horizontal
         )
         .lineLimit(1...12).textFieldStyle(.roundedBorder).accessibilityLabel(title)

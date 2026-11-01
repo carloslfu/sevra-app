@@ -158,10 +158,19 @@ extension Workbook {
       )
       var saved = state
       if keepOther, let current, current != expected && current != state {
+        // Two drafts on one retry identity would strand whichever submits second.
+        var token = current.invocationToken
+        if token == saved.invocationToken {
+          if saved.lastReceipt == nil {
+            saved.invocationToken = identifier()
+          } else if current.lastReceipt == nil {
+            token = identifier()
+          }
+        }
         let alternative = FormDraftAlternative(
           id: identifier(), definitionID: current.definitionID,
           resolvedDefinitions: current.resolvedDefinitions, arguments: current.arguments,
-          invocationToken: current.invocationToken, lastReceipt: current.lastReceipt)
+          invocationToken: token, lastReceipt: current.lastReceipt)
         saved.alternatives =
           current.alternatives
           + saved.alternatives.filter { candidate in
@@ -175,10 +184,17 @@ extension Workbook {
         encoded.utf8.count <= 1_000_000, "form_draft_limit",
         "Form drafts and alternatives exceed 1 MB.")
       let storageKey = try formDraftKey(key)
-      if current == nil {
+      if current == nil,
+        try db.scalar("SELECT count(*) FROM meta WHERE key LIKE 'form-draft:%'").int ?? 0 >= 256
+      {
+        // Only unsent inputs keep a slot. A submitted or empty draft holds nothing to lose.
+        let spare = try db.scalar(
+          "SELECT key FROM meta WHERE key LIKE 'form-draft:%' AND json_array_length(value,'$.alternatives')=0 AND (json_type(value,'$.lastReceipt')='object' OR json_extract(value,'$.arguments')='{}') LIMIT 1"
+        )
         try require(
-          try db.scalar("SELECT count(*) FROM meta WHERE key LIKE 'form-draft:%'").int ?? 0 < 256,
-          "form_draft_limit", "This workbook already has 256 form drafts.")
+          spare != .null, "form_draft_limit",
+          "This workbook already has 256 form drafts with unsent inputs.")
+        try db.execute("DELETE FROM meta WHERE key=?", [spare])
       }
       try db.execute(
         "INSERT INTO meta(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",

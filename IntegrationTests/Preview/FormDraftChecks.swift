@@ -146,6 +146,108 @@ import SevraPreviewUI
   try require(
     stale.preview != nil && stale.state?.alternatives.count == 1, "form_check",
     "Explicit refresh failed to retain old inputs")
+  // A form that changed after its preview offers Preview again, then the current form.
+  let late = FormDraftSession(workbook: b, key: "Late")
+  await late.open(form.id)
+  late.update(inputs("late-delivery"))
+  await late.prepare()
+  try require(late.preview != nil, "form_check", late.failure ?? "No preview")
+  let liveAction = try b.applicationDefinition(action.logicalID)
+  actionContent["description"] = .string("Changed after the preview")
+  _ = try b.saveApplicationDefinition(
+    logicalID: action.logicalID, content: .object(actionContent),
+    expectedDefinitionID: liveAction.id)
+  await late.submit()
+  try require(
+    late.preview == nil && late.failure != nil && late.state?.lastReceipt == nil, "form_check",
+    "A refused submission kept showing its old preview")
+  await late.prepare()
+  try require(late.stale, "form_check", "A changed live action offered no way forward")
+  await late.useCurrent(form.id, carryInputs: true)
+  try require(!late.stale, "form_check", "The current form still reports a stale definition")
+  await late.prepare()
+  try require(late.preview != nil, "form_check", late.failure ?? "No current preview")
+
+  // Keep both leaves two drafts that can each be sent.
+  let left = FormDraftSession(workbook: b, key: "Both")
+  await left.open(form.id)
+  left.update(inputs("both-left"))
+  let leftSaved = await left.flush()
+  let right = FormDraftSession(workbook: try Workbook(b.url), key: "Both")
+  await right.open(form.id)
+  left.update(inputs("both-left-edited"))
+  let leftEdited = await left.flush()
+  right.update(inputs("both-right"))
+  let rightRefused = await right.flush()
+  try require(leftSaved && leftEdited && !rightRefused, "form_check", "No draft conflict")
+  await right.keepBoth()
+  await right.prepare()
+  await right.submit()
+  try require(right.state?.lastReceipt != nil, "form_check", right.failure ?? "Right not sent")
+  await right.restoreAlternative(right.state!.alternatives[0].id)
+  await right.prepare()
+  await right.submit()
+  try require(
+    right.state?.lastReceipt != nil && right.state?.arguments == inputs("both-left-edited"),
+    "form_check", right.failure ?? "The kept draft could not be sent")
+
+  // A draft whose retry identity went to other inputs still opens, inputs intact.
+  var spent = try b.newFormDraft(form.id)
+  spent.invocationToken = right.state!.invocationToken
+  spent.arguments = inputs("spent-identity")
+  _ = try b.saveFormDraft("Spent", state: spent, expected: nil)
+  let recoveredSpent = FormDraftSession(workbook: b, key: "Spent")
+  await recoveredSpent.open(form.id)
+  await recoveredSpent.prepare()
+  await recoveredSpent.submit()
+  try require(
+    recoveredSpent.state?.arguments == inputs("spent-identity")
+      && recoveredSpent.state?.lastReceipt != nil,
+    "form_check", recoveredSpent.failure ?? "A spent retry identity stranded its inputs")
+
+  // Only unsent inputs hold a draft slot.
+  let slots = try Workbook.create(at: root.appendingPathComponent("Slots.sevra"), title: "Slots")
+  let slotAction = try slots.saveApplicationDefinition(
+    logicalID: identifier(), content: ActionRegistry.receivingDefinition())
+  let slotForm = try slots.saveApplicationDefinition(
+    logicalID: identifier(), content: ActionRegistry.formDefinition(target: slotAction))
+  let viewed = FormDraftSession(workbook: slots, key: "viewed")
+  await viewed.open(slotForm.id)
+  let viewedFlushed = await viewed.flush()
+  try require(
+    try viewedFlushed && slots.formDraft("viewed") == nil, "form_check",
+    "Viewing a form took a draft slot")
+  viewed.update(.object(["delivery": .string("typed")]))
+  let typedFlushed = await viewed.flush()
+  try require(
+    try typedFlushed && slots.formDraft("viewed") != nil, "form_check",
+    "A first edit was not saved")
+  let blank = try slots.newFormDraft(slotForm.id)
+  var typed = blank
+  typed.arguments = .object(["delivery": .string("typed")])
+  for index in 1..<256 { _ = try slots.saveFormDraft("slot-\(index)", state: typed, expected: nil) }
+  do {
+    _ = try slots.saveFormDraft("slot-256", state: typed, expected: nil)
+    throw SevraError("form_check", "A 257th unsent draft was saved")
+  } catch let error as SevraError where error.code == "form_draft_limit" {}
+  _ = try slots.saveFormDraft("slot-1", state: blank, expected: typed)
+  _ = try slots.saveFormDraft("slot-256", state: typed, expected: nil)
+  try require(
+    try slots.formDraft("slot-1") == nil && slots.formDraft("slot-256") != nil, "form_check",
+    "An empty draft kept its slot from a form with inputs")
+
+  // An optional number or date can be emptied. A required field and plain text stay text.
+  func field(_ type: String, required: Bool) -> Value {
+    .object(["type": .string(type), "required": .bool(required)])
+  }
+  try require(
+    formFieldValue("", parameter: field("decimal", required: false)) == .null
+      && formFieldValue("", parameter: field("date", required: false)) == .null
+      && formFieldValue("2", parameter: field("decimal", required: false)) == .string("2")
+      && formFieldValue("", parameter: field("decimal", required: true)) == .string("")
+      && formFieldValue("", parameter: field("text", required: false)) == .string(""),
+    "form_check", "An emptied optional field kept an empty string")
+
   let reconstruct = try b.reconstruct(to: root.appendingPathComponent("Reconstructed.sevra"))
   try require(
     try reconstruct.formDraft("Home:receiving") == b.formDraft("Home:receiving"), "form_check",
