@@ -224,7 +224,7 @@ extension Workbook {
   }
 
   private func receivingMovements(_ arguments: [String: Value]) throws -> [Value] {
-    let delivery = arguments["delivery"]!.text
+    let delivery = arguments["delivery"]!.text.precomposedStringWithCanonicalMapping
     try require(
       !delivery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         && delivery.utf8.count <= 512,
@@ -234,8 +234,8 @@ extension Workbook {
     var lines = Set<String>()
     var movements: [Value] = []
     for row in arguments["lines"]!.array {
-      let line = row["line"].text
-      let subject = row["subject"].text
+      let line = row["line"].text.precomposedStringWithCanonicalMapping
+      let subject = row["subject"].text.precomposedStringWithCanonicalMapping
       let quantity = try Numbers.decimal(row["quantity"].text)
       var original = quantity
       var rounded = Decimal()
@@ -255,17 +255,19 @@ extension Workbook {
       let occurrence =
         "delivery:" + ChangeFormat.hash(try Value.array([.string(delivery), .string(line)]).json())
       // A delivery-line identity is unique across subjects. Editing the SKU cannot duplicate a line.
+      let heads = try db.execute(
+        "SELECT DISTINCT h.item_id FROM effects e JOIN items i ON i.id=e.item_id JOIN heads h ON h.logical_id=i.logical_id WHERE e.occurrence=? AND e.kind='inventory'",
+        [.string(occurrence)]
+      ).map { try item($0["item_id"]!.text) }
       try require(
-        try db.scalar(
-          "SELECT count(*) FROM effects WHERE occurrence=? AND kind='inventory'",
-          [.string(occurrence)]
-        ).int == 0,
-        "duplicate_effect",
+        heads.allSatisfy { $0.status == "rejected" }, "duplicate_effect",
         "This delivery line already has a proposal. Review or correct its existing record.")
+      // A withdrawn line can be received again, as the next version of that same record.
       movements.append(
         try movementRequest(
           subject: subject, quantity: Numbers.string(quantity),
-          occurrence: occurrence, effective: effective, input: evidence))
+          occurrence: occurrence, effective: effective, input: evidence,
+          supersedes: heads.first { $0.data["subject"].text == subject }?.id))
     }
     return movements
   }

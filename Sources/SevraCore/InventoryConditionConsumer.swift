@@ -61,6 +61,7 @@ extension Workbook {
     subject: String, rule: Value, through: String,
     owner: ApplicationDefinition? = nil
   ) throws -> String {
+    let subject = subject.precomposedStringWithCanonicalMapping
     let anchor = try db.scalar(
       "SELECT id FROM business_batches ORDER BY position DESC LIMIT 1")
     let source = try insertItem(

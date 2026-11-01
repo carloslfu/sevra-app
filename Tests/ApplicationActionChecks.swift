@@ -85,6 +85,48 @@ func checkApplicationActions(at root: URL) {
     try expect(try b.balance(subject: "bolts")["quantity"] == .string("25"))
     _ = try b.verify()
   }
+  check("a withdrawn delivery line can be received again, and forecast evidence never can") {
+    let b = try book("ReceiveAgain")
+    let s = try evidence(b)
+    let a = try action(b)
+    try b.setOpeningBalance(
+      subject: "bolts", quantity: "20", effective: "2026-01-01", sourceID: s.id)
+    func receive(_ input: Value) throws -> [String] {
+      let preview = try b.previewApplicationAction(a.logicalID, arguments: input)
+      return try b.invokeApplicationAction(
+        a.logicalID, arguments: input, preview: preview, token: identifier()
+      )["proposals"].array.map(\.text)
+    }
+    let first = try receive(args(s, quantities: ["50"]))[0]
+    try refuses("duplicate_effect") { _ = try receive(args(s, quantities: ["5"])) }
+    let withdrawn = try b.withdrawDraft(first)
+    let second = try b.item(try receive(args(s, quantities: ["5"]))[0])
+    try expect(second.logicalID == withdrawn.logicalID && second.supersedes == withdrawn.id)
+    try refuses("duplicate_effect") { _ = try receive(args(s, quantities: ["6"])) }
+    let accepted = try b.accept(second.id)
+    try expect(try b.balance(subject: "bolts")["quantity"] == .string("25"))
+    try refuses("duplicate_effect") { _ = try receive(args(s, quantities: ["6"])) }
+    let undone = try b.undoItem(accepted.id)
+    try expect(undone.status == "rejected" && b.balance(subject: "bolts")["quantity"].text == "20")
+    // Withdrawing a wrong SKU frees the delivery line for the right one.
+    var other = args(s, delivery: "receipt-002", quantities: ["7"]).object
+    let line = try b.withdrawDraft(try receive(.object(other))[0])
+    other["lines"] = .array([
+      .object([
+        "line": .string("line-1"), "subject": .string("washers"), "quantity": .string("7"),
+      ])
+    ])
+    let moved = try b.item(try receive(.object(other))[0])
+    try expect(moved.logicalID != line.logicalID && moved.supersedes == nil)
+    let forecast = try b.addItem(
+      category: "record", kind: "forecast", title: "Expected", meaning: "estimate",
+      status: "accepted", scenario: "forecast", inputs: [s.id])
+    try refuses("interpretation_meaning") {
+      _ = try b.previewApplicationAction(
+        a.logicalID, arguments: args(forecast, delivery: "expected"))
+    }
+    _ = try b.verify()
+  }
   check(
     "exact receiving retries survive later definitions; new tokens cannot duplicate delivery lines"
   ) {

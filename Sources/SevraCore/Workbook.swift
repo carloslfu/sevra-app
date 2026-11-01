@@ -298,6 +298,12 @@ public final class Workbook: @unchecked Sendable {
       "proposal_tool",
       "Sevra writes this kind itself. Use propose_table, propose_table_edit, propose_movement or publish_result, or name a domain kind such as forecast or analysis."
     )
+    if meaning == "actual", let supersedes {
+      let previous = try item(supersedes)
+      try require(
+        previous.meaning == "actual" && previous.scenario == scenario, "interpretation_meaning",
+        "A correction cannot turn an estimate, plan or other scenario into an actual result.")
+    }
     // Verification reads this key on every document Record, null included.
     try require(
       !(category == "record" && kind == "document"

@@ -142,6 +142,74 @@ func checkBusinessEvents(at root: URL) {
     try expect(try book.balance(subject: "parts")["quantity"].text == "18")
     try expect(try book.verify()["ok"] == .bool(true))
   }
+  check("an estimate never becomes an actual through a correction or actual evidence") {
+    let (book, source) = try businessFixture(root, "BusinessNoPromotion")
+    try book.setOpeningBalance(
+      subject: "parts", quantity: "20", effective: "2026-01-01", sourceID: source.id)
+    let estimate = try book.movement(
+      subject: "parts", quantity: "-15", occurrence: "forecast", effective: "2026-02-01",
+      input: source.id, meaning: "estimate", status: "accepted")
+    try refuses("interpretation_meaning") {
+      _ = try book.movement(
+        subject: "parts", quantity: "-15", occurrence: "forecast", effective: "2026-02-01",
+        input: source.id, supersedes: estimate.id)
+    }
+    let forecast = try book.addItem(
+      category: "record", kind: "forecast", title: "Expected delivery", meaning: "estimate",
+      status: "accepted", scenario: "forecast", inputs: [source.id])
+    try refuses("interpretation_meaning") {
+      _ = try book.movement(
+        subject: "parts", quantity: "500", occurrence: "delivery", effective: "2026-03-01",
+        input: forecast.id)
+    }
+    try refuses("interpretation_meaning") {
+      _ = try book.addItem(
+        category: "record", kind: "forecast", title: "Now certain", inputs: [source.id],
+        supersedes: forecast.id)
+    }
+    // Forecast evidence still supports a forecast, and the user's own message an actual.
+    _ = try book.movement(
+      subject: "parts", quantity: "500", occurrence: "delivery", effective: "2026-03-01",
+      input: forecast.id, meaning: "estimate")
+    let request = try book.addItem(
+      category: "source", kind: "request", title: "We sold five", meaning: "plan",
+      status: "accepted")
+    _ = try book.movement(
+      subject: "parts", quantity: "-5", occurrence: "sale", effective: "2026-02-02",
+      input: request.id, status: "accepted")
+    try expect(try book.balance(subject: "parts")["quantity"].text == "15")
+  }
+  check("one inventory subject and occurrence, however its text was composed") {
+    let (book, source) = try businessFixture(root, "BusinessUnicode")
+    let composed = "caf\u{e9}"
+    let decomposed = "cafe\u{301}"
+    try book.setOpeningBalance(
+      subject: composed, quantity: "20", effective: "2026-01-01", sourceID: source.id)
+    try refuses("basis_exists") {
+      try book.setOpeningBalance(
+        subject: decomposed, quantity: "7", effective: "2026-01-01", sourceID: source.id)
+    }
+    _ = try book.movement(
+      subject: decomposed, quantity: "-5", occurrence: composed, effective: "2026-01-02",
+      input: source.id, status: "accepted")
+    try refuses("duplicate_effect") {
+      _ = try book.movement(
+        subject: composed, quantity: "-5", occurrence: decomposed, effective: "2026-01-03",
+        input: source.id, status: "accepted")
+    }
+    for subject in [composed, decomposed] {
+      try expect(try book.balance(subject: subject)["quantity"].text == "15")
+      let scoped = try book.businessBatches(scopeKind: "inventory", scopeKey: subject)
+      try expect(scoped["batches"].array.count == 2)
+    }
+    let consumer = try book.createInventoryCondition(
+      subject: decomposed, rule: inventoryConditionRule(decomposed),
+      effectiveThrough: "2026-12-31", token: "condition")
+    try expect(try drainInventoryCondition(book, consumer["id"].text)["subject"].text == composed)
+    try expect(
+      try book.inventoryCondition(consumer["id"].text)["lastCompleteObservation"]["quantity"].text
+        == "15")
+  }
   check("dataset schema and membership feed uses captured maps after later removal") {
     let (book, source) = try businessFixture(root, "BusinessDataset")
     let dataset = try book.createDataset(

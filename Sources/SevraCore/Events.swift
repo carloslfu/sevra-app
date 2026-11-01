@@ -60,6 +60,7 @@ extension Workbook {
     subject: String, quantity: String, effective: String, sourceID: String
   ) throws {
     let effective = try BusinessTime.normalized(effective)
+    let subject = subject.precomposedStringWithCanonicalMapping
     _ = try Numbers.decimal(quantity)
     _ = try item(sourceID)
     _ = try mutation(
@@ -99,6 +100,9 @@ extension Workbook {
     requestSourceID: String? = nil
   ) throws -> Value {
     let effective = try BusinessTime.normalized(effective)
+    // SQL compares these by bytes and Swift by canonical equivalence, so keep one form.
+    let subject = subject.precomposedStringWithCanonicalMapping
+    let occurrence = occurrence.precomposedStringWithCanonicalMapping
     try require(
       !subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !occurrence.isEmpty,
       "movement", "Subject and occurrence must not be empty.")
@@ -127,8 +131,21 @@ extension Workbook {
         source.id == requestID && source.category == "source" && source.kind == "request",
         "movement_request", "The movement request must reference its captured user submission.")
     }
+    // Nothing turns an estimate, plan or other scenario into actual stock. A captured request
+    // is the user's own report, so its `plan` meaning says nothing about the event it reports.
+    let actual = request["meaning"] == .string("actual")
+    try require(
+      !actual
+        || ((input.meaning == "actual" || input.kind == "request") && input.scenario == "actual"),
+      "interpretation_meaning", "Actual stock cannot rest on an estimate, plan or another scenario."
+    )
     let previous = try request["supersedes"].string.map(item)
     if let previous {
+      try require(
+        !actual || (previous.meaning == "actual" && previous.scenario == "actual"),
+        "interpretation_meaning",
+        "A correction cannot turn an estimate or plan into actual stock. Record the event as its own occurrence."
+      )
       try require(
         previous.id == request["supersedes"].text, "movement_revision",
         "A correction needs the exact movement version.")
