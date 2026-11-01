@@ -155,6 +155,15 @@ public actor ProductAI {
     return released
   }
 
+  /// For exiting, once a running job has been told to stop.
+  @discardableResult public func unload(waitingSeconds seconds: TimeInterval) async -> Bool {
+    let giveUp = ProcessInfo.processInfo.systemUptime + seconds
+    while active, ProcessInfo.processInfo.systemUptime < giveUp {
+      try? await Task.sleep(nanoseconds: 50_000_000)
+    }
+    return await unload()
+  }
+
   /// Warnings defer release until the current transaction/job finishes. Critical
   /// pressure reaches the existing cancellation path, then releases after endRun.
   @discardableResult public func handleMemoryPressure(critical: Bool) async -> PressureResponse {

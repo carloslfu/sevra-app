@@ -147,7 +147,9 @@ private struct WorkbookFileCommands: Commands {
       let complete = saved && formsSaved && clarificationsSaved && DocumentDraftScope.flushAll()
       if complete {
         await NativeAutomationHost.shared.stop()
-        await ProductAI.shared.unload()
+        // A reply in progress holds the model, and unload declines until it stops.
+        NotificationCenter.default.post(name: .sevraStopping, object: nil)
+        await ProductAI.shared.unload(waitingSeconds: 5)
       } else {
         NativeAutomationHost.shared.cancelTermination()
       }

@@ -97,7 +97,16 @@ struct FolderReview {
   let conversationSession = ConversationSession()
   let formDrafts = FormDraftScope()
   let clarificationDrafts = WorkflowClarificationScope()
-  @Published private(set) var changingConversation = false
+  @Published private(set) var changingConversation = false {
+    didSet {
+      if !changingConversation, unsentAwaitsChange {
+        unsentAwaitsChange = false
+        returnUnsent()
+      }
+    }
+  }
+  /// A change saves the drafts it leaves, so a message that fails meanwhile waits for it.
+  private var unsentAwaitsChange = false
   @Published var readingRequest = UUID()
   private var restoringConversation = false
   @Published var prompt = "" {
@@ -724,9 +733,12 @@ struct FolderReview {
     else { return }
     speech.stop()
     let input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
-    do { try ComposerInput.admit(input) } catch {
-      self.error = error.localizedDescription
-      return
+    // A command never reaches the model, and a shared summary may be longer than a message.
+    if ConversationCommand.parse(input) == nil {
+      do { try ComposerInput.admit(input) } catch {
+        self.error = error.localizedDescription
+        return
+      }
     }
     if let answerCommand = WorkflowAnswerCommand.parse(input) {
       prompt = ""
@@ -905,10 +917,12 @@ struct FolderReview {
   /// composer is showing something else or has closed, it becomes that conversation's draft.
   private func returnUnsent() {
     guard let unsent else { return }
+    guard !changingConversation else {
+      unsentAwaitsChange = true
+      return
+    }
     self.unsent = nil
-    if interactionActive, workbook === unsent.book, conversation == unsent.chat,
-      !changingConversation
-    {
+    if interactionActive, workbook === unsent.book, conversation == unsent.chat {
       returnInput(unsent.input)
     } else {
       do { try ComposerInput.keep(unsent.input, conversation: unsent.chat, in: unsent.book) } catch {
@@ -1005,6 +1019,10 @@ struct FolderReview {
   private func conversationCommand(_ input: String, book: Workbook) -> Bool {
     guard let command = ConversationCommand.parse(input) else { return false }
     do {
+      let parent = messages.last { ["user", "assistant"].contains($0.role) }
+      if case .startThread = command, parent == nil {
+        throw SevraError("conversation", "Start the conversation before opening a thread.")
+      }
       // Keep navigation/sharing instructions in their originating history. Only
       // the explicitly shared findings are copied into the main conversation.
       _ = try book.addMessage(input, role: "user", conversation: conversation)
@@ -1012,11 +1030,7 @@ struct FolderReview {
       switch command {
       case .backToConversation: changeConversation("main")
       case .startThread(let title):
-        guard let message = messages.last(where: { ["user", "assistant"].contains($0.role) })
-        else {
-          throw SevraError("conversation", "Start the conversation before opening a thread.")
-        }
-        startThread(from: message.id, title: title)
+        if let parent { startThread(from: parent.id, title: title) }
       case .shareSummary(let text):
         requestSummary(text: text)
       }
@@ -1253,6 +1267,7 @@ struct FolderReview {
       notice = "Opening the file again."
     case .findOriginal:
       findOriginal()
+      guard error == nil else { return }
       notice = "Find original requested. The selected file must match the recorded bytes."
     case .openCopy:
       openAssetCopy(input: input)
