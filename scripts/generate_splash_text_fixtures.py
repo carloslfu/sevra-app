@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Regenerate pinned-reference tokenizer fixtures; run in the isolated reference environment."""
 import sys,json,hashlib,difflib,argparse
+from functools import reduce
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser(description=__doc__)
@@ -60,6 +61,11 @@ for thinking, preserve in [(False, False), (True, False), (False, True), (True, 
 cases.append(('occupied_changed', [system('Use only these observations.'), user(history), assistant('Recorded.'), user('Find a different supplier.')], False, False, [tool]))
 for label, number in [('integer',1),('double',1.0),('zero',0.0),('negative_zero',-0.0)]:
  cases.append(('occupied_numeric_'+label, [user(history),{'role':'assistant','content':'','tool_calls':[{'type':'function','id':'number-call','function':{'name':'propose_record','arguments':{'data':{'value':number}}}}]},{'role':'tool','content':'Draft saved.','tool_call_id':'number-call'},user('Describe the saved number.')],False,False,[record_tool]))
+# The Swift frontend renders added-token literals in message text as plain text.
+# The reference gets the same text; each fixture keeps its original input.
+def plain(message):
+ if '<' not in message['content']: return message
+ return {**message,'content':reduce(lambda text,literal:text.replace(literal,'< '+literal[1:]),t.get_added_vocab(),message['content'])}
 out=[]
 for name,messages,thinking,preserve,tools in cases:
  # Workbook JSON has canonical sorted object keys; pass the exact same ordering to the reference.
@@ -67,7 +73,7 @@ for name,messages,thinking,preserve,tools in cases:
  tools=json.loads(json.dumps(tools,sort_keys=True,ensure_ascii=False))
  options=template_options(reasoning_effort=None,preserve_thinking=preserve,tools=tools,add_generation_prompt=True,enable_thinking=thinking)
  options['chat_template']=prepared.source
- text=render_chat_template(t,messages,{**options,'tokenize':False})
+ text=render_chat_template(t,[plain(m) for m in messages],{**options,'tokenize':False})
  ids=t(text,add_special_tokens=False)['input_ids']
  generation=_generation_prompt(prepared.generation_prompt(options),text,ids)[1]
  out.append(dict(name=name,messages=messages,tools=tools,thinking=thinking,preserveThinking=preserve,tokens=ids,generationTokens=generation,rendered=text))

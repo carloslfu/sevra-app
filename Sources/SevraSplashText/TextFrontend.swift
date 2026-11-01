@@ -27,6 +27,7 @@ public final class SplashTextFrontend {
   private static let promptCacheBudget = 8 * 1024 * 1024
   private let lock = NSLock()
   private var addedGrammarTokens: [UInt32: [UInt8]] = [:]
+  private var addedLiterals: [String] = []
   private var grammarVocabularyCache: ByteVocabulary?
   private var outputSpecialTokens: Set<UInt32> = []
   public struct ByteVocabulary {
@@ -108,6 +109,10 @@ public final class SplashTextFrontend {
         || (content.hasPrefix("<") && content.hasSuffix(">"))
       addedGrammarTokens[UInt32(id)] = (special ? [0xff] : []) + Array(content.utf8)
       if entry.special.boolean(or: false) { outputSpecialTokens.insert(UInt32(id)) }
+      guard content.hasPrefix("<") else {
+        throw SplashError("Selected tokenizer has an unsupported added token")
+      }
+      addedLiterals.append(content)
     }
     for (text, id) in [
       "<|endoftext|>": 248044, "<|im_end|>": 248046,
@@ -243,7 +248,10 @@ public final class SplashTextFrontend {
       if let array = value as? [any Sendable] { return array.map(templateValue) }
       return value
     }
-    let templateMessages = messages.map { $0.mapValues(templateValue) }
+    // Tool definitions are the host's own. Everything in a message is not.
+    let templateMessages = messages.map(messageWithoutAddedLiterals).map {
+      $0.mapValues(templateValue)
+    }
     let templateTools = tools?.map { $0.mapValues(templateValue) }
     let context: [String: any Sendable] = [
       "enable_thinking": thinking, "preserve_thinking": preserveThinking,
@@ -272,6 +280,46 @@ public final class SplashTextFrontend {
       }
     }
     return prompt
+  }
+
+  /// The tokenizer matches added tokens anywhere in the rendered prompt, so a
+  /// document could otherwise close its turn and open a system one. The template
+  /// renders the real control tokens itself, after this pass. Text with no literal
+  /// comes back unchanged, so ordinary prompts keep their exact tokens.
+  private func withoutAddedLiterals(_ text: String) -> String {
+    guard text.utf8.contains(UInt8(ascii: "<")) else { return text }
+    // Literal options match code units as the tokenizer does. The default
+    // comparison misses a token that a combining mark follows.
+    return addedLiterals.reduce(text) {
+      $0.replacingOccurrences(of: $1, with: "< " + $1.dropFirst(), options: .literal)
+    }
+  }
+  /// The template closes tool and parameter names with its own ">", which could
+  /// complete a literal that the name leaves open.
+  private func nameWithoutAddedLiterals(_ name: String) -> String {
+    var scalars = withoutAddedLiterals(name + ">").unicodeScalars
+    scalars.removeLast()
+    return String(scalars)
+  }
+  private func messageWithoutAddedLiterals(_ object: [String: any Sendable]) -> [String: any Sendable] {
+    // Sorted so keys that collide here resolve the same way on every render.
+    var result: [String: any Sendable] = [:]
+    for (key, value) in object.sorted(by: { $0.key < $1.key }) {
+      let name = nameWithoutAddedLiterals(key)
+      guard result[name] == nil else { continue }
+      if key == "name", let text = value as? String {
+        result[name] = nameWithoutAddedLiterals(text)
+      } else {
+        result[name] = valueWithoutAddedLiterals(value)
+      }
+    }
+    return result
+  }
+  private func valueWithoutAddedLiterals(_ value: any Sendable) -> any Sendable {
+    if let text = value as? String { return withoutAddedLiterals(text) }
+    if let object = value as? [String: any Sendable] { return messageWithoutAddedLiterals(object) }
+    if let array = value as? [any Sendable] { return array.map(valueWithoutAddedLiterals) }
+    return value
   }
 
   public var promptCacheStatistics: (entries: Int, bytes: Int, hits: Int) {
