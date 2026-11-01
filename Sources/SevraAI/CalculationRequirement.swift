@@ -8,7 +8,7 @@ package enum CalculationRequirement {
     let numericDifference =
       #"\bdifferences?\b[^.!?\n]{0,80}?(?:\b(?:is|are|of|equals?)\b[ \t]*|[:=][ \t]*)[−+\-]?(?:\d|\.\d)"#
     return text.range(
-      of: #"(?i)\bcheaper\b|\bmore expensive\b|\blower cost\b|\bhigher cost\b|%|"#
+      of: #"(?i)\bcheaper\b|\bmore expensive\b|\blower cost\b|\bhigher cost\b|"#
         + numericDifference,
       options: .regularExpression) != nil
   }

@@ -171,6 +171,7 @@ public enum WorkbookAgent {
     var calculationInputs = Set<String>()
     var currencyEvidence = prompt.contains("$") || prompt.contains("€") || prompt.contains("£")
     var percentages: [Decimal] = []
+    let statedPercentages = Self.percentValues(prompt + "\n" + context)
     var finalFailures = 0
     var emptySearches = 0
     var emptySearchesIncludedHistory = true
@@ -279,6 +280,7 @@ public enum WorkbookAgent {
           InferenceMessage(role: "tool", content: content, toolCallId: call.id, toolName: tool))
         inspected.formUnion(visibleEvidence(tool: tool, result: value).map { $0.0 })
         currencyEvidence = currencyEvidence || content.contains(where: { "$€£".contains($0) })
+        percentages += Self.percentValues(content)
         if tool == "calculate" {
           computed = true
           computedNumbers.formUnion(numericValues(arguments["expression"].text))
@@ -559,14 +561,8 @@ public enum WorkbookAgent {
             problems.append(
               "The request asks for a saved draft. Save it with the draft tool, then finish.")
           }
-          let regex = try NSRegularExpression(pattern: "([0-9]+(?:\\.[0-9]+)?)\\s*%")
-          for match in regex.matches(
-            in: modelAnswer, range: NSRange(modelAnswer.startIndex..., in: modelAnswer))
-          {
-            guard let range = Range(match.range(at: 1), in: modelAnswer),
-              let claimed = try? Numbers.decimal(String(modelAnswer[range]))
-            else { continue }
-            let supported = percentages.contains { number in
+          for claimed in Self.percentValues(modelAnswer) {
+            let supported = (statedPercentages + percentages).contains { number in
               if number == claimed { return true }
               for places in 0...6 {
                 var a = number
@@ -1031,6 +1027,12 @@ public enum WorkbookAgent {
             currencyEvidence = true
             currencyThisStep = true
           }
+          // A rate the workbook states can be repeated. A write echoes the model's own words.
+          if WorkbookTools.readOnlyTools.contains(tool) {
+            let stated = Self.percentValues(evidenceText)
+            percentages += stated
+            percentagesThisStep += stated
+          }
 
           if tool == "search" {
             if result["hits"].array.isEmpty && result["conversation"]["hits"].array.isEmpty {
@@ -1336,20 +1338,56 @@ public enum WorkbookAgent {
       + " Recheck the entire answer: no listed ID may remain even once."
   }
 
+  /// One number as prose writes it: 1,234.56, 1.234,56, 12,5 or 1.234.567. A bare 1,234 stays
+  /// thousands and a bare 1.234 a decimal, as neither says which language it is in. A unit can
+  /// follow directly, as in 144USD, and an ordinal suffix makes it a position, not a quantity.
+  private static let numberPattern =
+    "(?<![\\p{L}\\p{N}.])[+-]?(?:[0-9]{1,3}(?:\\.[0-9]{3})+,[0-9]+"
+    + "|[0-9]{1,3}(?:,[0-9]{3})+(?:\\.[0-9]+)?|[0-9]{1,3}(?:\\.[0-9]{3}){2,}"
+    + "|(?<![0-9],)[0-9]+,(?:[0-9]{1,2}|[0-9]{4,})(?![0-9]|,[0-9])"
+    + "|[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)"
+    + "(?![\\p{N}])(?!(?i:st|nd|rd|th|er|do|ro|to)\\b|[ºª])"
+
+  private static func plainNumber(_ written: String) -> String {
+    let dots = written.filter { $0 == "." }.count
+    guard let comma = written.lastIndex(of: ",") else {
+      return dots > 1 ? written.replacingOccurrences(of: ".", with: "") : written
+    }
+    if let dot = written.lastIndex(of: "."), dot > comma {
+      return written.replacingOccurrences(of: ",", with: "")
+    }
+    if dots > 0 {
+      return written.replacingOccurrences(of: ".", with: "").replacingOccurrences(
+        of: ",", with: ".")
+    }
+    let grouped = written.range(
+      of: "^[+-]?[1-9][0-9]{0,2}(?:,[0-9]{3})+$", options: .regularExpression) != nil
+    return written.replacingOccurrences(of: ",", with: grouped ? "" : ".")
+  }
+
   /// A narrow numeric-grounding check, not a semantic verifier of prose or units.
   /// Decimal normalization allows ordinary formatting without Float rounding.
   package static func numericValues(_ text: String) -> Set<String> {
     let prose = text.replacingOccurrences(of: "−", with: "-").replacingOccurrences(
       of: "(?m)^\\s*[0-9]{1,2}[.)]\\s+", with: "", options: .regularExpression)
-    let pattern =
-      "(?<![\\p{L}\\p{N}.])[+-]?(?:[0-9]{1,3}(?:,[0-9]{3})+(?:\\.[0-9]+)?|[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?![\\p{L}\\p{N}])"
-    let regex = try! NSRegularExpression(pattern: pattern)
+    let regex = try! NSRegularExpression(pattern: numberPattern)
     return Set(
       regex.matches(in: prose, range: NSRange(prose.startIndex..., in: prose)).compactMap {
         guard let range = Range($0.range, in: prose) else { return nil }
-        let value = String(prose[range]).replacingOccurrences(of: ",", with: "")
+        let value = plainNumber(String(prose[range]))
         return (try? Numbers.decimal(value)).map(Numbers.string) ?? value
       })
+  }
+
+  /// What a text states as a percentage. The sign is left off: a fall of -5% states 5%.
+  package static func percentValues(_ text: String) -> [Decimal] {
+    let regex = try! NSRegularExpression(
+      pattern: "(" + numberPattern + ")\\s*(?:%|(?i:percent|por ciento)\\b)")
+    return regex.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap {
+      guard let range = Range($0.range(at: 1), in: text) else { return nil }
+      return try? Numbers.decimal(plainNumber(String(text[range]).trimmingCharacters(
+        in: CharacterSet(charactersIn: "+-"))))
+    }
   }
 
   package static func visibleEvidence(tool: String, result: Value, path: [String] = []) -> [(

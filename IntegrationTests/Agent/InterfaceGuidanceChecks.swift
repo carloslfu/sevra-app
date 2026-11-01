@@ -48,13 +48,14 @@ func checkInterfaceGuidance() async throws {
     "A difference between a Source and a Record is whether it is an input or a derivation.",
     "1. Main conversation.\n2. Side threads. Their difference is conversation scope.",
     "Key differences:\n\n1. **Structure**: the main conversation is the default root.\n2. **Shared data**: the same workbook.",
+    "VAT on this invoice is 19%.",
   ] {
     try expectEqual(CalculationRequirement.hasComparisonClaim(text), false)
   }
   for text in [
     "The price difference is 2.40.", "The difference in totals equals 12.",
     "A difference of .25 units.", "Difference: −2", "It is cheaper.",
-    "This is more expensive.", "A lower cost.", "A higher cost.", "Savings are 20%.",
+    "This is more expensive.", "A lower cost.", "A higher cost.",
   ] {
     try expectEqual(CalculationRequirement.hasComparisonClaim(text), true)
   }

@@ -300,6 +300,7 @@ do {
   try await checkComputationTools()
   try await checkCitationVersions()
   try await checkActionConfirmations()
+  try await checkAnswerGrounding()
   try await checkDocumentCopies()
   try await checkCurrencyRejection()
   try await checkHistoryTools()
