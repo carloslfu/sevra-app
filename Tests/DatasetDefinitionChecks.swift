@@ -194,6 +194,18 @@ func checkDatasetDefinitions(at root: URL) {
       columns: [table.columns[1]])
     try expect(try book.rows(table.id, query: "beta").isEmpty)
   }
+  check("an archived table refuses Undo of a row edit, as it refuses the edit") {
+    let (book, table) = try fixture("ArchivedUndo")
+    let edit = try book.editRow(try book.rows(table.id)[0].id, values: ["cost": .string("3")])
+    let base = try book.datasetDefinition(table.id)
+    let archived = try book.updateDatasetDefinition(
+      table.id, expectedVersion: base.version, expectedDefinitionID: base.id, archived: true)
+    try refuses("archived_dataset") { _ = try book.undoItem(edit.id) }
+    _ = try book.restoreDatasetDefinition(
+      table.id, definitionID: base.id, expectedVersion: archived.version,
+      expectedDefinitionID: archived.id)
+    try expect(try book.undoItem(edit.id).data["cost"].text == "2.40")
+  }
   check("a quotient keeps 38 digits wherever it is read, and an exact result stays exact") {
     let (book, table) = try fixture(
       "Quotients",

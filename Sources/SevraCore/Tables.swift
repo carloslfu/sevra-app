@@ -613,6 +613,15 @@ extension Workbook {
       guard let prior = current.supersedes else {
         throw SevraError("undo", "No previous version exists.")
       }
+      if current.kind == "row",
+        let table = try db.scalar(
+          "SELECT dataset_id FROM dataset_rows WHERE logical_id=?", [.string(current.logicalID)]
+        ).string
+      {
+        try require(
+          !(try dataset(table).archived), "archived_dataset",
+          "Restore this archived table before undoing an edit to its rows.")
+      }
       var old = try item(prior)
       var restoredStatus =
         current.status == "accepted" && old.status == "draft" ? "rejected" : old.status
