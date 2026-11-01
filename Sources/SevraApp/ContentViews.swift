@@ -288,7 +288,7 @@ struct WorkbookSection: View {
                 state.savedRows(table)
                   ?? (table.rowCount == 1 ? "1 row" : "\(table.rowCount.formatted()) rows")
               ).foregroundStyle(.secondary)
-            }.padding(.vertical, 7)
+            }.padding(.vertical, 7).contentShape(Rectangle())
           }.buttonStyle(.plain)
         }
       }
@@ -355,7 +355,7 @@ struct WorkbookSection: View {
             }
             Spacer()
             Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
-          }.padding(.vertical, 6)
+          }.padding(.vertical, 6).contentShape(Rectangle())
         }.buttonStyle(.plain)
       }
 
