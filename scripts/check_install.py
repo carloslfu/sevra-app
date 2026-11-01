@@ -11,16 +11,16 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     folder=Path(path)
     env={**os.environ,"SEVRA_APP_INSTALL_DIR":str(folder/"Applications"),"SEVRA_CLI_INSTALL_DIR":str(folder/"bin"),"SEVRA_UNINSTALL_TRASH_DIR":str(folder/"Trash")}
     def script(name,*args,success=True):
-        result=subprocess.run([str(root/"scripts"/name),*args],env=env,capture_output=True,text=True)
+        result=subprocess.run([str(root/"scripts"/name),*args],env=env,capture_output=True,text=True,timeout=300)
         assert (result.returncode==0)==success,result.stdout+result.stderr
         return result
-    baseline=folder/"Applications/Sevra.app"
-    if options.native:
-        (baseline/"Contents/CLI").mkdir(parents=True)
-        (baseline/"Contents/Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier":"com.sevra.workbooks"}))
-        (baseline/"Contents/CLI/sevra").write_text("preserved baseline sentinel")
-        (folder/"bin").mkdir()
-        (folder/"bin/sevra").symlink_to(baseline/"Contents/CLI/sevra")
+    # Each product takes the CLI link from the other and leaves that app alone.
+    other=folder/"Applications"/("Sevra.app" if options.native else "Sevra Native Preview.app")
+    (other/"Contents/CLI").mkdir(parents=True)
+    (other/"Contents/Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier":"com.sevra.workbooks" if options.native else "com.sevra.workbooks.native-preview"}))
+    (other/"Contents/CLI/sevra").write_text("preserved sentinel")
+    (folder/"bin").mkdir()
+    (folder/"bin/sevra").symlink_to(other/"Contents/CLI/sevra")
     script("install.sh",*mode,"--no-build")
     app = folder/"Applications"/(name+".app")/"Contents"
     info = plistlib.loads((app/"Info.plist").read_bytes())
@@ -31,14 +31,13 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
         "Sevra_SevraSplash.bundle", "Sevra_SevraSplashText.bundle", "Sevra_SevraSplashGrammar.bundle"} if options.native else set())
     cli=folder/"bin/sevra"
     def command(*args):
-        result=subprocess.run([str(cli),*map(str,args)],cwd=folder,capture_output=True,text=True,check=True)
+        result=subprocess.run([str(cli),*map(str,args)],cwd=folder,capture_output=True,text=True,check=True,timeout=120)
         value=json.loads(result.stdout)
         assert value["ok"],value
         return value["result"]
     assert command("version")["version"]=="0.1.0-dev"
-    if options.native:
-        assert (baseline/"Contents/CLI/sevra").read_text()=="preserved baseline sentinel"
-        assert cli.readlink()==app/"CLI/sevra"
+    assert (other/"Contents/CLI/sevra").read_text()=="preserved sentinel"
+    assert cli.readlink()==app/"CLI/sevra"
     resources = command("check-resources","--paths-only")
     assert resources["extractionWorker"]
     assert resources["runtimeDigests"] and resources["grammarLibrary"] if options.native else resources["tokenizerResources"]
@@ -64,16 +63,15 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     script("install.sh",*mode,"--no-build",success=False)
     assert (folder/"bin/sevra").read_text()=="unrelated sentinel"
     assert not (folder/"Applications"/(name+".app")).exists()
-    if options.native:
-        cli.unlink()
-        (baseline/"Contents/Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier":"unrelated.app"}))
-        cli.symlink_to(baseline/"Contents/CLI/sevra")
-        script("install.sh",*mode,"--no-build",success=False)
-        assert cli.readlink()==baseline/"Contents/CLI/sevra"
+    cli.unlink()
+    (other/"Contents/Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier":"unrelated.app"}))
+    cli.symlink_to(other/"Contents/CLI/sevra")
+    script("install.sh",*mode,"--no-build",success=False)
+    assert cli.readlink()==other/"Contents/CLI/sevra"
     skill_env={**env,"SEVRA_SKILL_ROOT":str(folder/"skills")}
     installed=subprocess.run([str(root/"scripts/install_skill.sh"),"codex"],env=skill_env,capture_output=True,text=True)
     assert installed.returncode==0,installed.stderr
     skill=(folder/"skills/sevra/SKILL.md").read_bytes()
     conflict=subprocess.run([str(root/"scripts/install_skill.sh"),"claude"],env=skill_env,capture_output=True,text=True)
     assert conflict.returncode!=0 and (folder/"skills/sevra/SKILL.md").read_bytes()==skill
-    print(json.dumps({"native":options.native,"ownedBaselineCLITransition":options.native,"skillInstallAndConflict":True,"installed":True,"updated":True,"standaloneCLI":True,"uninstalled":True,"workbookPreserved":True,"unrelatedCLIProtected":True}))
+    print(json.dumps({"native":options.native,"ownedCLITransition":True,"skillInstallAndConflict":True,"installed":True,"updated":True,"standaloneCLI":True,"uninstalled":True,"workbookPreserved":True,"unrelatedCLIProtected":True}))

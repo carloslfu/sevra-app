@@ -40,9 +40,17 @@ if [ -e "$LINK" ] || [ -L "$LINK" ]; then
   if [ -L "$LINK" ]; then
     TARGET=$(readlink "$LINK")
     if [ "$TARGET" = "$APP/Contents/CLI/sevra" ]; then OWNED=1; fi
-    if [ "$NATIVE" = 1 ] && [ "$TARGET" = "$APP_TARGET/Sevra.app/Contents/CLI/sevra" ]; then
-      BASELINE_ID=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$APP_TARGET/Sevra.app/Contents/Info.plist" 2>/dev/null || true)
-      if [ "$BASELINE_ID" = com.sevra.workbooks ]; then OWNED=1; fi
+    # Either Sevra app may take the link back from the other.
+    if [ "$NATIVE" = 1 ]; then
+      OTHER_NAME=Sevra
+      OTHER_ID=com.sevra.workbooks
+    else
+      OTHER_NAME='Sevra Native Preview'
+      OTHER_ID=com.sevra.workbooks.native-preview
+    fi
+    if [ "$TARGET" = "$APP_TARGET/$OTHER_NAME.app/Contents/CLI/sevra" ]; then
+      FOUND_ID=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$APP_TARGET/$OTHER_NAME.app/Contents/Info.plist" 2>/dev/null || true)
+      if [ "$FOUND_ID" = "$OTHER_ID" ]; then OWNED=1; fi
     fi
   fi
   [ "$OWNED" = 1 ] || {
