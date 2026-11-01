@@ -88,6 +88,11 @@ func checkRequestHandoffs() async throws {
     try expectEqual(names, WorkbookTools.readOnlyTools.union(["finish"]).union(extra))
     try expectEqual(scope.allows("start_thread"), false)
   }
+  // No scope may reach the commit without the direction review in prepare_action.
+  for scope in [InferenceToolScope.all, .propose_movement, .answer] {
+    try expectEqual(scope.allows("commit_action_preview"), false)
+  }
+  try expectEqual(InferenceToolScope.all.allows("prepare_action"), true)
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-handoffs-" + identifier())
   defer { try? FileManager.default.removeItem(at: root) }

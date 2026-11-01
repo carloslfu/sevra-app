@@ -16,8 +16,11 @@ package enum InferenceToolScope: String, Sendable {
   package func allows(_ tool: String) -> Bool {
     switch self {
     case .all:
-      return !["review_movement_direction", "review_action_directions", "prepare_workflow_answer"]
-        .contains(tool)
+      // The host commits a preview itself, after prepare_action reviews every direction.
+      return ![
+        "review_movement_direction", "review_action_directions", "prepare_workflow_answer",
+        "commit_action_preview",
+      ].contains(tool)
     case .workflowAnswer: return Self.answer.allows(tool) || tool == "prepare_workflow_answer"
     case .movementDirection: return tool == "review_movement_direction"
     case .actionDirection: return tool == "review_action_directions"
