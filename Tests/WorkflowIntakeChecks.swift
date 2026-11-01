@@ -238,6 +238,38 @@ func checkWorkflowIntakes(at root: URL) {
     try expect(try book.items().filter { $0.kind == "table-intake-update" }.count == 1)
     try expect(try book.verify()["ok"] == .bool(true))
   }
+  check("a file that matches the table finishes the run with nothing to review") {
+    let (book, _, table, _, session) = try fixture(
+      "Unchanged", text: "code,amount\n0012,4\n0013,5\n")
+    let original = try book.rows(table.id)
+    let (claim, _, result) = try prepared(book, session)
+    let saved = try book.completeWorkflowStep(session, claim: claim, intake: result)
+    let intake = saved["steps"].array[0]["output"]["value"]
+    try expect(saved["state"] == .string("queued") && intake["proposals"] == .array([]))
+    try expect(intake["summary"]["unchanged"].int == 2 && intake["planDigest"] == .null)
+    let done = try book.continueWorkflow(session, owner: "review")
+    try expect(done["state"] == .string("completed"), done["detail"].text)
+    try expect(done["steps"].array[1]["output"]["value"]["ready"] == .bool(true))
+    try expect(try book.items().allSatisfy { $0.kind != "table-intake-update" })
+    try expect(try book.rows(table.id) == original)
+    try expect(try book.verify()["ok"] == .bool(true))
+    let inspected = try book.inspectWorkflow(session.runID)
+    try expect(inspected["steps"].array[1]["proposals"] == .array([]))
+    let copy = try book.reconstruct(to: root.appendingPathComponent("UnchangedCopy.sevra"))
+    try expect(try copy.verify()["ok"] == .bool(true))
+
+    // A retained step claiming changes with no proposal is not this case.
+    var forged = done["steps"].array[0]["output"].object
+    var value = forged["value"]!.object
+    var summary = value["summary"]!.object
+    summary["added"] = .number(1)
+    value["summary"] = .object(summary)
+    forged["value"] = .object(value)
+    try Database(book.url.appendingPathComponent("workbook.sqlite")).execute(
+      "UPDATE workflow_steps SET output=? WHERE run_id=? AND step_id='import_rows'",
+      [.string(try Value.object(forged).json()), .string(session.runID)])
+    try refuses("workflow_integrity") { try book.verifyWorkflows() }
+  }
   check("a plain advance leaves a coordinator step queued and lists the newest run first") {
     let (book, _, _, _, session) = try fixture("PlainAdvance")
     let revision = try book.revision()

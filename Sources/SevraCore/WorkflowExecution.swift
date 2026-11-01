@@ -230,6 +230,12 @@ extension Workbook {
     let rows = try db.execute(
       "SELECT * FROM workflow_approvals WHERE run_id=? AND step_id=? ORDER BY proposal_id LIMIT 51",
       [.string(runID), .string(stepID)])
+    if rows.isEmpty, try workflowIntakeProposedNothing(runID, reviewStepID: stepID) {
+      return .object([
+        "ready": .bool(true), "accepted": .array([]), "pending": .array([]),
+        "meaning": .string("The file matched the table, so there was nothing to review."),
+      ])
+    }
     try require(
       !rows.isEmpty && rows.count <= 50, "workflow_integrity",
       "Review needs 1 to 50 exact proposals.")
@@ -262,6 +268,18 @@ extension Workbook {
       "ready": .bool(pending.isEmpty), "accepted": .array(accepted), "pending": .array(pending),
       "meaning": .string("Acceptance preserves each proposal's meaning and scenario."),
     ])
+  }
+
+  private func workflowIntakeProposedNothing(_ runID: String, reviewStepID: String) throws -> Bool {
+    let run = try workflowRun(runID)
+    let definition = try applicationDefinition(run["definition_id"].text)
+    let workflow = try DefinitionWorkflow(DefinitionDescriptor(definition.content))
+    let reviewed = workflow.steps.first { $0.id == reviewStepID }?.review
+    guard let step = run["steps"].array.first(where: { $0["step_id"].string == reviewed })
+    else { return false }
+    return step["state"] == .string("completed")
+      && step["output"]["value"]["kind"] == .string("intake")
+      && step["output"]["value"]["proposals"] == .array([])
   }
 
   func workflowAcceptedVersion(_ proposal: Item, _ accepted: Item) throws -> Bool {

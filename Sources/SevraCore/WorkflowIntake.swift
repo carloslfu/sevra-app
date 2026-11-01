@@ -177,18 +177,29 @@ extension Workbook {
       "workflow_intake_request", "The prepared plan belongs to another workflow step.")
     try validateIntakeDefinition(
       DefinitionDescriptor(applicationDefinition(step.binding!.target).content))
-    let proposal = try insertTableUpdatePlan(
-      preparation.plan, newRowMeaning: intake.meaning, newRowScenario: intake.scenario,
-      workflow: request,
-      controlInputs: [try applicationDefinition(step.binding!.target).sourceID],
-      producerInputs: [run["source_id"].text],
-      cancellation: cancellation)
-    let data = try item(proposal).data
     let preview = preparation.preview
+    // A file that matches the table is a finished step, not a failure to retry. Nothing is proposed,
+    // so a repeated scheduled file cannot hold its automation open.
+    let changes = preview.added + preview.changed + preview.removed > 0
+    var proposals: [Value] = []
+    var planDigest: Value = .null
+    if changes {
+      let proposal = try insertTableUpdatePlan(
+        preparation.plan, newRowMeaning: intake.meaning, newRowScenario: intake.scenario,
+        workflow: request,
+        controlInputs: [try applicationDefinition(step.binding!.target).sourceID],
+        producerInputs: [run["source_id"].text],
+        cancellation: cancellation)
+      proposals = [.string(proposal)]
+      planDigest = .string(ChangeFormat.hash(try item(proposal).data.json()))
+    } else {
+      try require(
+        try tableFingerprint(preview.datasetID) == preview.fingerprint, "stale_revision",
+        "The target changed. Review it again.")
+    }
     return .object([
       "kind": .string("intake"), "definitionID": request["definitionID"], "request": request,
-      "proposals": .array([.string(proposal)]),
-      "planDigest": .string(ChangeFormat.hash(try data.json())),
+      "proposals": .array(proposals), "planDigest": planDigest,
       "summary": .object([
         "datasetID": .string(intake.datasetID), "mode": .string(intake.mode.rawValue),
         "incoming": .number(Double(preview.incoming)), "added": .number(Double(preview.added)),
@@ -199,7 +210,9 @@ extension Workbook {
         "newRowMeaning": .string(intake.meaning), "newRowScenario": .string(intake.scenario),
       ]),
       "notice": .string(
-        "Draft update only. Review the exact mapped values before applying rows. No inventory or financial effects."
+        changes
+          ? "Draft update only. Review the exact mapped values before applying rows. No inventory or financial effects."
+          : "This file matches the table, so nothing changed and nothing needs review."
       ),
     ])
   }
@@ -214,26 +227,35 @@ extension Workbook {
         && request["stepID"] == .string(step.id)
         && value["definitionID"] == request["definitionID"]
         && request["definitionID"] == .string(step.binding!.target)
-        && value["proposals"].array.count == 1,
+        && value["proposals"].array.count <= 1,
       "workflow_integrity", "The structured-intake output lost its exact definition or proposal.")
-    let proposal = try item(value["proposals"].array[0].text)
-    try require(
-      proposal.kind == "table-intake-update" && proposal.status == "draft"
-        && proposal.data["workflow"] == request
-        && proposal.data["preview"]["fingerprint"] == request["fingerprint"]
-        && proposal.data["newRowMeaning"] == .string(intake.meaning)
-        && proposal.data["newRowScenario"] == .string(intake.scenario)
-        && value["planDigest"] == .string(ChangeFormat.hash(try proposal.data.json()))
-        && proposal.data["incoming"].array.count == proposal.data["preview"]["incoming"].int,
-      "workflow_integrity", "The structured-intake checkpoint differs from its retained plan.")
     var summary: [String: Value] = [
       "datasetID": .string(intake.datasetID), "mode": .string(intake.mode.rawValue),
       "newRowMeaning": .string(intake.meaning), "newRowScenario": .string(intake.scenario),
     ]
-    for field in [
+    let counts = [
       "incoming", "added", "changed", "removed", "unchanged", "repeatedIncomingRows",
       "rowsMatchingTarget",
-    ] { summary[field] = proposal.data["preview"][field] }
+    ]
+    if let id = value["proposals"].array.first {
+      let proposal = try item(id.text)
+      try require(
+        proposal.kind == "table-intake-update" && proposal.status == "draft"
+          && proposal.data["workflow"] == request
+          && proposal.data["preview"]["fingerprint"] == request["fingerprint"]
+          && proposal.data["newRowMeaning"] == .string(intake.meaning)
+          && proposal.data["newRowScenario"] == .string(intake.scenario)
+          && value["planDigest"] == .string(ChangeFormat.hash(try proposal.data.json()))
+          && proposal.data["incoming"].array.count == proposal.data["preview"]["incoming"].int,
+        "workflow_integrity", "The structured-intake checkpoint differs from its retained plan.")
+      for field in counts { summary[field] = proposal.data["preview"][field] }
+    } else {
+      try require(
+        value["planDigest"] == .null
+          && ["added", "changed", "removed"].allSatisfy { value["summary"][$0].int == 0 },
+        "workflow_integrity", "A structured intake with no proposal changed nothing.")
+      for field in counts { summary[field] = value["summary"][field] }
+    }
     try require(
       value["summary"] == .object(summary), "workflow_integrity",
       "The structured-intake summary differs from its retained preview.")
