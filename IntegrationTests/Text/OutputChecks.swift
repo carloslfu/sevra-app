@@ -177,10 +177,26 @@ private func checkProjection() throws {
       + String(repeating: "x", count: 256 * 1024 + 1))
   try refuses(String(repeating: "x", count: SplashTextStream.maximumBytes + 1))
   try refuses(String(repeating: call, count: 17))
-  try refuses(call.replacingOccurrences(of: "\n4\n", with: "\n9223372036854775808\n"))
-  try refuses(
-    "<tool_call>\n<function=find_evidence>\n<parameter=tags>\n" + String(repeating: "[", count: 40)
-      + "0" + String(repeating: "]", count: 40) + "\n</parameter>\n</function>\n</tool_call>")
+  // A value the workbook cannot keep comes back for correction instead of ending the request.
+  func corrected(_ text: String, _ reason: String) throws {
+    let parser = try SplashOutputParser(tools: tools)
+    _ = try parser.append(text)
+    let output = try parser.finish(.stop).0
+    guard output.calls.isEmpty, output.refusal?.contains(reason) == true else {
+      throw SplashError("A refused tool argument did not come back as a refusal")
+    }
+  }
+  func tags(_ json: String) -> String {
+    "<tool_call>\n<function=find_evidence>\n<parameter=tags>\n" + json
+      + "\n</parameter>\n</function>\n</tool_call>"
+  }
+  try corrected(
+    call.replacingOccurrences(of: "\n4\n", with: "\n9223372036854775808\n"), "Tool integer")
+  try corrected(
+    tags(String(repeating: "[", count: 40) + "0" + String(repeating: "]", count: 40)),
+    "structure exceeds")
+  try corrected(tags(#"[{"a":1,"a":2}]"#), "repeats a key")
+  try corrected(tags("[1234567890123456.789]"), "more digits")
   let scalars = call.unicodeScalars.map(String.init)
   for length in 0...scalars.count {
     let cut = scalars.prefix(length).joined()

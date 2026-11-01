@@ -392,8 +392,11 @@ public enum WorkbookAgent {
           messages.append(
             InferenceMessage(
               role: "user",
-              content:
-                "Use exactly one of the supplied native tools. Use finish to deliver an answer with citations. No action from your previous response was executed."
+              content: response.refusal.map {
+                "That tool call was refused: " + $0
+                  + ". No action from your previous response was executed. Call the tool again with a corrected value."
+              }
+                ?? "Use exactly one of the supplied native tools. Use finish to deliver an answer with citations. No action from your previous response was executed."
             ))
           continue
         }

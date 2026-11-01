@@ -546,12 +546,20 @@ private final class NativeWorker: @unchecked Sendable {
     try constraint.finish(committed: generated.tokens, requireComplete: true)
     let parsed = try output.finish(generated.done.reason).0
     let reasoningTokens = try reasoning.generatedTokens(generated.tokens)
-    try require(parsed.calls.count == 1, "model_format", "Expected one complete native tool call.")
-    let calls: [InferenceCall] = try parsed.calls.map { candidate in
-      try policy.validate(candidate)
-      return InferenceCall(
-        id: "call_" + identifier(), name: candidate.name,
-        inputJSON: String(decoding: candidate.arguments, as: UTF8.self))
+    try require(
+      parsed.calls.count == 1 || parsed.refusal != nil, "model_format",
+      "Expected one complete native tool call.")
+    var refusal = parsed.refusal
+    var calls: [InferenceCall] = []
+    do {
+      calls = try parsed.calls.map { candidate in
+        try policy.validate(candidate)
+        return InferenceCall(
+          id: "call_" + identifier(), name: candidate.name,
+          inputJSON: String(decoding: candidate.arguments, as: UTF8.self))
+      }
+    } catch let refused as SplashError {
+      refusal = refused.description
     }
     try cancellation.check()
     let metrics: Value = .object([
@@ -596,7 +604,10 @@ private final class NativeWorker: @unchecked Sendable {
           "metrics": metrics,
         ]))
     }
-    return (NativeReply(text: parsed.text, calls: calls, reasoning: parsed.reasoning), metrics)
+    return (
+      NativeReply(
+        text: parsed.text, calls: calls, reasoning: parsed.reasoning, refusal: refusal), metrics
+    )
   }
 
 }

@@ -92,10 +92,15 @@ package struct NativeReply: Sendable {
   package let text: String
   package let reasoning: String
   package let calls: [InferenceCall]
-  package init(text: String, calls: [InferenceCall], reasoning: String = "") {
+  /// Why a tool call the model wrote was dropped. The workbook loop tells the model.
+  package let refusal: String?
+  package init(
+    text: String, calls: [InferenceCall], reasoning: String = "", refusal: String? = nil
+  ) {
     self.text = text
     self.reasoning = reasoning
     self.calls = calls
+    self.refusal = refusal
   }
 }
 

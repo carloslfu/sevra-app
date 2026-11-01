@@ -30,6 +30,8 @@ public struct SplashParsedOutput: Sendable {
   public let reasoning: String
   public let calls: [SplashToolCandidate]
   public let finish: SplashWire.Finish
+  /// Why an argument was refused. The call is dropped and the model can correct it.
+  public let refusal: String?
 }
 
 /// Selected Qwen XML and reasoning projection. Behavior follows Splash 1.4.1
@@ -68,6 +70,7 @@ public final class SplashOutputParser {
   private var valueStarted = false
   private var arguments: [String: Any] = [:]
   private var calls: [SplashToolCandidate] = []
+  private var refusal: String?
 
   public init(tools: [SplashOutputTool] = [], thinking: Bool = false, structured: Bool = false)
     throws
@@ -168,7 +171,7 @@ public final class SplashOutputParser {
     heldWhitespace = ""
     let result = SplashParsedOutput(
       text: text, reasoning: reasoning,
-      calls: reason == .stop ? calls : [], finish: reason)
+      calls: reason == .stop && refusal == nil ? calls : [], finish: reason, refusal: refusal)
     calls = []
     return (result, events)
   }
@@ -248,7 +251,13 @@ public final class SplashOutputParser {
           guard let name, let parameter, let types = tools[name]?.parameters[parameter] else {
             throw SplashError("Tool parameter has no declared type")
           }
-          arguments[parameter] = try convertValue(value, types: types)
+          // The output is still well formed, so the generation runs to its normal end and the
+          // refusal goes back to the model. Throwing here would close the helper and the request.
+          do {
+            arguments[parameter] = try convertValue(value, types: types)
+          } catch let refused as SplashError {
+            refusal = refusal ?? refused.description
+          }
           self.parameter = nil
           value = ""
           pending = Data(pending[(range.lowerBound + Self.valueEnd.count)...])

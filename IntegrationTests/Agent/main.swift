@@ -304,6 +304,7 @@ do {
   try await checkAttachedCalculationInputs()
   try await checkEvidenceAdmission()
   try await checkTerminalReceipts()
+  try await checkRefusedToolCalls()
   try await checkDocumentCopies()
   try await checkCurrencyRejection()
   try await checkHistoryTools()

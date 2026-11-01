@@ -24,6 +24,7 @@ actor ScriptedCalls: WorkbookInference {
       throw SevraError("fixture", "The script ran out at: " + (messages.last?.content ?? ""))
     }
     let (tool, arguments) = try steps.removeFirst()(messages)
+    if tool == "refused" { return .init(text: "", calls: [], refusal: arguments.text) }
     return .init(
       text: "", calls: [.init(id: identifier(), name: tool, inputJSON: try arguments.json())])
   }
@@ -351,4 +352,29 @@ func checkTerminalReceipts() async throws {
   try expectEqual(settled.state, "needs_review")
   try expectEqual(settled.answer.contains("Couldn’t finish"), false)
   print("PASS every run ending keeps what else it saved, and every write failure is reported")
+}
+
+/// A tool call the parser refused goes back to the model through the same three corrections as
+/// any malformed response, and the request carries on.
+func checkRefusedToolCalls() async throws {
+  let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+    "sevra-refused-" + identifier())
+  defer { try? FileManager.default.removeItem(at: root) }
+  let book = try Workbook.create(at: root.appendingPathComponent("a.sevra"), title: "Refused")
+  let refused: ScriptedCalls.Step = { _ in
+    ("refused", .string("Tool argument repeats a key"))
+  }
+  let recovered = ScriptedCalls([refused, finish("Hello.", basis: "general")])
+  let answer = try await WorkbookAgent.run("Say hello.", workbook: book, model: recovered)
+  try expectEqual(answer.state, "complete")
+  try expectEqual(answer.steps, 2)
+  let told = try expectValue(await recovered.prompts.last?.last)
+  try expectEqual(told.role, "user")
+  try expectEqual(told.content.hasPrefix("That tool call was refused: Tool argument repeats"), true)
+  do {
+    _ = try await WorkbookAgent.run(
+      "Say hello.", workbook: book, model: ScriptedCalls([refused, refused, refused]))
+    throw SevraError("fixture", "Repeated refusals completed.")
+  } catch let error as SevraError where error.code == "model_format" {}
+  print("PASS refused tool arguments reach the model for correction, three times at most")
 }
