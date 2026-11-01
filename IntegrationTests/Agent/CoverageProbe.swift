@@ -22,7 +22,7 @@ func runCoverageProbe(modelFolder: String, library: String, engine: String, mode
       if name == "hidden" {
         let source = try book.addItem(
           category: "source", kind: "note", title: "Handover", text: "Two units handed over.")
-        _ = try book.addItem(
+        _ = try book.addHostOwnedItem(
           category: "record", kind: "movement", title: "Dispatch", text: "Two units handed over.",
           status: "accepted", inputs: [source.id])
       }

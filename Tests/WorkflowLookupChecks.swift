@@ -272,7 +272,7 @@ func checkWorkflowLookups(at root: URL) {
     ] {
       let (book, table, _, workflow, args) = try fixture(name, calculation: true)
       let old = try book.rows(table.id)[0]
-      let row = try book.addItem(
+      let row = try book.addHostOwnedItem(
         category: "record", kind: "row", title: old.title, data: old.data,
         meaning: meaning, status: "accepted", scenario: scenario, inputs: [old.id],
         supersedes: old.id)

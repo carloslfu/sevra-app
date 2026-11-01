@@ -42,7 +42,7 @@ private actor ReviewReadGate {
     expected.insert(item.id)
   }
   for kind in ["row", "request"] {
-    _ = try book.addItem(category: "source", kind: kind, title: "Not a standalone review")
+    _ = try book.addHostOwnedItem(category: "source", kind: kind, title: "Not a standalone review")
   }
   for index in 0..<30 {
     _ = try book.addItem(

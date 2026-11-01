@@ -100,7 +100,7 @@ func checkConditionInputs(at root: URL) {
     try expect(
       entry["input"]["beforeID"].text == original.id && entry["input"]["afterID"].text == revised.id
     )
-    let withdrawal = try book.addItem(
+    let withdrawal = try book.addHostOwnedItem(
       category: "record", kind: "movement", title: "Different scope",
       data: .object(["subject": .string("other")]), status: "accepted", inputs: [source.id],
       supersedes: revised.id)
@@ -112,7 +112,7 @@ func checkConditionInputs(at root: URL) {
     try expect(withdrawn["quantity"].text == "20")
     let renewed = try conditionInputMove(book, source, "-2")
     _ = try conditionInputObservation(book, id)
-    let rejected = try book.addItem(
+    let rejected = try book.addHostOwnedItem(
       category: "record", kind: "movement", title: "Rejected correction", data: .object([:]),
       status: "rejected", inputs: [source.id], supersedes: renewed.id)
     let rejection = try conditionInputObservation(book, id)

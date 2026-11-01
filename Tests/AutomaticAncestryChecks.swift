@@ -130,7 +130,7 @@ func checkAutomaticAncestry(at root: URL) {
   check("forged invocation run IDs and missing exact automatic bindings refuse") {
     let (book, data) = try fixture("Forged")
     let original = try book.item(data["invocationID"].text)
-    let forged = try book.addItem(
+    let forged = try book.addHostOwnedItem(
       category: "source", kind: "application_invocation", title: "Untrusted invocation",
       data: original.data)
     try refuses("ancestry_integrity") {
@@ -324,7 +324,7 @@ func checkAutomaticAncestry(at root: URL) {
   check("oversize invocation metadata refuses before decoding an unbounded payload") {
     let book = try Workbook.create(
       at: root.appendingPathComponent("AncestryMetadata.sevra"), title: "Metadata")
-    let source = try book.addItem(
+    let source = try book.addHostOwnedItem(
       category: "source", kind: "application_invocation", title: "Oversize invocation",
       data: .string(String(repeating: "x", count: 1_048_577)))
     try refuses("ancestry_limit") { _ = try book.automaticDerivationAncestry(inputs: [source.id]) }

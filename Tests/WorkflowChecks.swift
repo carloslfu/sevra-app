@@ -414,7 +414,7 @@ func checkWorkflows(at root: URL) {
     _ = try b.advanceWorkflow(session, owner: "worker")
     let proposed = try b.advanceWorkflow(session, owner: "worker")
     let old = try b.item(draft(proposed))
-    _ = try b.addItem(
+    _ = try b.addHostOwnedItem(
       category: old.category, kind: old.kind, title: old.title, text: "Changed proposal",
       data: old.data, meaning: old.meaning, inputs: [old.id], supersedes: old.id)
     try refuses("workflow_stale_review") { _ = try b.advanceWorkflow(session, owner: "worker") }

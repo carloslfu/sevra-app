@@ -137,7 +137,7 @@ func checkDefinitionResults(at root: URL) {
         "rows"
       ].array.count == 2)
     let original = try b.rows(table.id)[0]
-    _ = try b.addItem(
+    _ = try b.addHostOwnedItem(
       category: "record", kind: "row", title: original.title,
       data: .object(["quantity": .string("8")]), meaning: "estimate", status: "accepted",
       inputs: [original.id], supersedes: original.id)
@@ -184,7 +184,7 @@ func checkDefinitionResults(at root: URL) {
     try expect(
       try b.componentDefinitionResult(item.applicationResultComponent!)["result"] == .string("36"))
     try expect(try b.publishedApplicationResultComponent(item.id) != nil)
-    let claim = try b.addItem(
+    let claim = try b.addHostOwnedItem(
       category: "record", kind: "calculation", title: "Unverified copied claim", data: item.data,
       inputs: [definition.sourceID])
     try expect(try b.publishedApplicationResultComponent(claim.id) == nil)

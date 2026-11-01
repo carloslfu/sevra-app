@@ -43,7 +43,7 @@ extension Workbook {
       try validateValues(values, columns: table.columns)
       full.append(RowEdit(id: old.id, values: values))
     }
-    return try addItem(
+    return try addHostOwnedItem(
       category: "record", kind: "table-change", title: "Review changes to " + table.title,
       text: descriptions.joined(separator: "\n"),
       data: .object(["datasetID": .string(datasetID), "edits": try encoded(full)]), meaning: "plan",
@@ -66,7 +66,7 @@ extension Workbook {
       columns.map(\.title).joined(separator: " · ") + "\n\n"
       + rows.map { row in columns.map { row[$0.id]?.text ?? "Unknown" }.joined(separator: " · ") }
       .joined(separator: "\n")
-    return try addItem(
+    return try addHostOwnedItem(
       category: "record", kind: "table-creation", title: "Review table: " + title, text: preview,
       data: .object([
         "title": .string(title), "columns": try encoded(columns),

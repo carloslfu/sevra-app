@@ -25,7 +25,7 @@ func checkRecentItems(at root: URL) {
       FixtureContext(seed: 9481, date: "2099-01-01T00:00:00Z")
     ) {
       for index in 0..<10 {
-        _ = try book.addItem(
+        _ = try book.addHostOwnedItem(
           category: "source", kind: ["row", "request", "annotation"][index % 3],
           title: "Internal \(index)")
       }

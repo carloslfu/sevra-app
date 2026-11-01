@@ -69,14 +69,14 @@ func checkInventoryEventState(at root: URL) {
     _ = try book.movement(
       subject: "other", quantity: "99", occurrence: "other", effective: "2026-01-02",
       input: source.id, status: "accepted")
-    _ = try book.addItem(
+    _ = try book.addHostOwnedItem(
       category: "record", kind: "movement", title: "No effect",
       data: .object(["subject": .string("parts"), "quantity": .string("99")]), status: "accepted",
       inputs: [source.id])
     let actual = try book.movement(
       subject: "parts", quantity: "1.25", occurrence: "actual", effective: "2026-01-02",
       input: source.id, status: "accepted")
-    _ = try book.addItem(
+    _ = try book.addHostOwnedItem(
       category: "record", kind: "movement", title: "Other scenario", data: actual.data,
       status: "accepted", scenario: "forecast", inputs: [source.id], supersedes: actual.id)
     let value = try state(book, tail(book))
@@ -105,7 +105,7 @@ func checkInventoryEventState(at root: URL) {
       subject: "parts", quantity: "2", occurrence: "one", effective: "2026-01-02",
       input: source.id, status: "accepted")
     let before = try tail(book)
-    _ = try book.addItem(
+    _ = try book.addHostOwnedItem(
       category: "record", kind: "movement", title: "Replacement claim has no effect",
       data: .object(["subject": .string("other")]), status: "accepted", inputs: [source.id],
       supersedes: first.id)

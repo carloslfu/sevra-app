@@ -253,7 +253,7 @@ func checkBusinessOrigins(at root: URL) {
       category: "source", kind: "observation", title: "Large original",
       data: .string(String(repeating: "x", count: 1_048_577)))
     try expect(try trace(book, [large.id])["originalInputCandidates"].array == [.string(large.id)])
-    let invocation = try book.addItem(
+    let invocation = try book.addHostOwnedItem(
       category: "source", kind: "application_invocation", title: "Oversize producer",
       data: .string(String(repeating: "x", count: 1_048_577)), inputs: [source.id])
     try refuses("origin_limit") { _ = try book.businessOrigins(inputs: [invocation.id]) }

@@ -341,7 +341,15 @@ func checkDocumentComposition(at root: URL) {
       columns: [.init(id: "documentComposition", title: "documentComposition", type: "text")],
       rows: [["documentComposition": .string("Original field value")]], sourceID: f.source.id)
     try expect(try f.book.verify()["ok"] == .bool(true))
-    _ = try f.book.addItem(
+    for reserved in [field, .object(["documentComposition": .null])] {
+      try refuses("proposal_tool") {
+        _ = try f.book.addItem(
+          category: "record", kind: "document", title: "Malformed reserved metadata",
+          data: reserved, inputs: [f.source.id])
+      }
+    }
+    try expect(try f.book.verify()["ok"] == .bool(true))
+    _ = try f.book.addHostOwnedItem(
       category: "record", kind: "document", title: "Malformed reserved metadata", data: field,
       inputs: [f.source.id])
     try refuses("integrity") { _ = try f.book.verify() }

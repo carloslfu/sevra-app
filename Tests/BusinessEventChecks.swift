@@ -49,7 +49,7 @@ func checkBusinessEvents(at root: URL) {
         category: "record", kind: "forecast", title: status, status: status, inputs: [source.id])
     }
     for kind in Item.technicalKinds {
-      _ = try book.addItem(
+      _ = try book.addHostOwnedItem(
         category: "record", kind: kind, title: kind, status: "accepted", inputs: [source.id])
     }
     _ = try book.addMessage("Operational conversation", role: "user")
@@ -132,7 +132,7 @@ func checkBusinessEvents(at root: URL) {
     try expect(
       try book.db.scalar("SELECT count(*) FROM effects WHERE item_id=?", [.string(movement.id)]).int
         == 1)
-    let impostor = try book.addItem(
+    let impostor = try book.addHostOwnedItem(
       category: "record", kind: "movement", title: "Just a claim",
       data: .object(["subject": .string("parts")]),
       status: "accepted", inputs: [source.id])

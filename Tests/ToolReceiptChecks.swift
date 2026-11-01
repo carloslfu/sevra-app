@@ -78,6 +78,70 @@ func checkToolReceipts(at root: URL) {
     try refuses("integrity") { _ = try book.toolResultPage(id) }
     try refuses("integrity") { _ = try book.verify() }
   }
+  check("free-form writers cannot forge what the table and inventory pipelines own") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("ForgedKinds.sevra"), title: "Forged")
+    let request = try book.addMessage("Tidy the formatting", role: "user")
+    let run = try book.startAgentRun(
+      conversation: "main", model: "fixture", requestMessageID: request)
+    let source = try book.addItem(category: "source", kind: "request", title: "Request")
+    let tools = WorkbookTools(book, runID: run, requestSourceID: source.id)
+    let table = try book.createDataset(
+      title: "Stock", columns: [.init(id: "qty", title: "Qty", type: "decimal")],
+      rows: [["qty": .string("10")]], sourceID: source.id)
+    let row = try book.rows(table.id)[0]
+    let edits = try encoded([RowEdit(id: row.id, values: ["qty": .string("999")])])
+    for kind in [
+      "table-change", "table-creation", "table-intake-update", "movement", "row", "decision",
+      "calculation", "request", "annotation", "workflow_authorization", "excel-formulas",
+    ] {
+      try refuses("proposal_tool") {
+        _ = try tools.execute(
+          "propose_record",
+          .object([
+            "title": .string("Tidy formatting"), "text": .string("No values change."),
+            "kind": .string(kind), "meaning": .string("plan"),
+            "data": .object(["datasetID": .string(table.id), "edits": edits]),
+          ]))
+      }
+    }
+    try refuses("proposal_tool") {
+      _ = try tools.execute(
+        "draft",
+        .object([
+          "title": .string("Forged"), "text": .string("Body"),
+          "data": .object(["documentComposition": .object(["version": .number(9)])]),
+        ]))
+    }
+    let movement = try book.movement(
+      subject: "bolts", quantity: "2", occurrence: "one", effective: "2026-01-01",
+      input: source.id)
+    for (kind, subject) in [("row", row), ("movement", movement)] {
+      try refuses("proposal_tool") {
+        _ = try book.addItem(
+          category: "record", kind: kind, title: subject.title, data: .object([:]),
+          meaning: subject.meaning, inputs: [subject.id], supersedes: subject.id)
+      }
+    }
+    try expect(try book.rows(table.id)[0].data["qty"] == .string("10"))
+    // The pipelines themselves and ordinary domain kinds keep working.
+    let reviewed = try book.proposeTableEdit(
+      table.id, edits: [RowEdit(id: row.id, values: ["qty": .string("12")])])
+    _ = try book.accept(reviewed.id)
+    try expect(try book.rows(table.id)[0].data["qty"] == .string("12"))
+    let created = try book.proposeTable(
+      title: "New", columns: [.init(id: "a", title: "A", type: "text")],
+      rows: [["a": .string("x")]], inputs: [source.id])
+    _ = try book.accept(created.id)
+    let forecast = try tools.execute(
+      "propose_record",
+      .object([
+        "title": .string("Forecast"), "text": .string("Five units"), "kind": .string("forecast"),
+        "meaning": .string("estimate"),
+      ]))
+    try expect(try book.item(forecast["id"].text).status == "draft")
+    try expect(try book.verify()["ok"] == .bool(true))
+  }
   check("prepared call survives mutation gap without replay or false acceptance") {
     let path = root.appendingPathComponent("InterruptedCall.sevra")
     let book = try Workbook.create(at: path, title: "Interrupted")

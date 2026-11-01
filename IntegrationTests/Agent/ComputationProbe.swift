@@ -46,7 +46,7 @@ func runComputationProbe(modelsRoot: String, library: String, engine: String, ou
       ["sku": .string("nuts"), "quantity": .string("5")],
     ], sourceID: original.id)
   for row in try book.rows(table.id) {
-    _ = try book.addItem(
+    _ = try book.addHostOwnedItem(
       category: "record", kind: "row", title: row.title, data: row.data, meaning: "estimate",
       inputs: [row.id], supersedes: row.id)
   }
@@ -137,7 +137,7 @@ func runComputationProbe(modelsRoot: String, library: String, engine: String, ou
       try book.lineage(report.id).contains { $0["parent"] == .string(published.id) }, true)
     print("PASS selected model derives a report from the exact saved result without acceptance")
     let old = try book.rows(table.id).first { $0.data["sku"] == .string("bolts") }!
-    _ = try book.addItem(
+    _ = try book.addHostOwnedItem(
       category: "record", kind: "row", title: old.title,
       data: .object(["sku": .string("bolts"), "quantity": .string("8")]), meaning: "estimate",
       inputs: [old.id], supersedes: old.id)

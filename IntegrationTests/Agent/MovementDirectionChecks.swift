@@ -88,7 +88,7 @@ func checkMovementDirection() async throws {
   try expectEqual(await duplicate.scopes, [.all, .movementDirection])
   try expectEqual(try b.items(kind: "movement").count, 1)
   for kind in Item.technicalKinds.sorted() {
-    let technical = try b.addItem(
+    let technical = try b.addHostOwnedItem(
       category: "source", kind: kind, title: "Technical metadata",
       text: "We received 2 units into our stock.")
     var attempted = args.object

@@ -137,7 +137,7 @@ func checkInventoryConditions(at root: URL) {
     _ = try book.movement(
       subject: "parts", quantity: "-99", occurrence: "draft", effective: "2026-01-02",
       input: source.id)
-    _ = try book.addItem(
+    _ = try book.addHostOwnedItem(
       category: "record", kind: "movement", title: "No exact effect",
       data: .object(["subject": .string("other")]), status: "accepted", inputs: [source.id],
       supersedes: first.id)

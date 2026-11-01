@@ -146,7 +146,7 @@ func checkDatasetQueries(at root: URL) {
   check("managed query source scopes keep accepted estimates separate from actuals") {
     let (book, table) = try fixture("QueryMeaning")
     let first = try book.rows(table.id)[0]
-    _ = try book.addItem(
+    _ = try book.addHostOwnedItem(
       category: "record", kind: "row", title: "Accepted estimate", data: first.data,
       meaning: "estimate", status: "accepted", scenario: "forecast", inputs: [first.id],
       supersedes: first.id)

@@ -111,7 +111,7 @@ func checkApplicationTools() async throws {
     "lateUnclear", "previewOnly", "overclaimRecover", "noPreview", "technical",
   ] {
     let book = try Workbook.create(at: root.appendingPathComponent(mode + ".sevra"), title: mode)
-    let source = try book.addItem(
+    let source = try book.addHostOwnedItem(
       category: "source", kind: mode == "technical" ? "application_definition" : "observation",
       title: "R1",
       text: "We received 3 bolts and 2 nuts into our stock.")

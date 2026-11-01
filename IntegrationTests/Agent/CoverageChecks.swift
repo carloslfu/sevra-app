@@ -86,7 +86,7 @@ private actor CoverageInference: WorkbookInference {
       }
       if mode == "stale" {
         let source = try book.addItem(category: "source", kind: "note", title: "Handover")
-        _ = try book.addItem(
+        _ = try book.addHostOwnedItem(
           category: "record", kind: "movement", title: "Dispatch", inputs: [source.id])
       }
       let value: Value =
@@ -133,10 +133,10 @@ func checkSearchCoverage() async throws {
   defer { try? FileManager.default.removeItem(at: root) }
   let book = try Workbook.create(at: root.appendingPathComponent("Count.sevra"), title: "Scope")
   let source = try book.addItem(category: "source", kind: "note", title: "Handover")
-  let first = try book.addItem(
+  let first = try book.addHostOwnedItem(
     category: "record", kind: "movement", title: "Dispatch", meaning: "estimate",
     inputs: [source.id])
-  let current = try book.addItem(
+  let current = try book.addHostOwnedItem(
     category: "record", kind: "movement", title: "Dispatch", meaning: "estimate",
     status: "accepted", inputs: [source.id], supersedes: first.id)
   let filters: Value = .object(["category": .string("record"), "kind": .string("movement")])

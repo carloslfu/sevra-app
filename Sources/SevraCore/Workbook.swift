@@ -280,6 +280,8 @@ public final class Workbook: @unchecked Sendable {
       }
     }
   }
+  /// The entry for free-form writers: `propose_record`, `draft` and the CLI's `add`.
+  /// A pipeline writes the kinds it owns through `addHostOwnedItem` or `insertItem`.
   @discardableResult public func addItem(
     category: String, kind: String, title: String, text: String = "", data: Value = .object([:]),
     meaning: String = "actual", status: String = "draft", scenario: String = "actual",
@@ -287,12 +289,31 @@ public final class Workbook: @unchecked Sendable {
     supersedes: String? = nil, token: String = identifier(), expectedRevision: Int? = nil,
     references: [ReferenceSelection]? = nil
   ) throws -> Item {
+    // A request or annotation Source authorizes nothing. Agents capture requests here.
     try require(
-      kind != Self.sheetFormulaKind || supersedes == nil, "proposal_tool",
-      "Only an Excel import records its formulas.")
+      !Item.hostOwnedKinds.contains(kind)
+        || (category == "source" && ["request", "annotation"].contains(kind)),
+      "proposal_tool",
+      "Sevra writes this kind itself. Use propose_table, propose_table_edit, propose_movement or publish_result, or name a domain kind such as forecast or analysis."
+    )
+    // Verification reads this key on every document Record, null included.
     try require(
-      kind != "table-intake-update", "proposal_tool",
-      "Use the reviewed table-update pipeline to create or revise this proposal.")
+      !(category == "record" && kind == "document"
+        && data.object.keys.contains("documentComposition")),
+      "proposal_tool", "Only a composed draft records its copied passages.")
+    return try addHostOwnedItem(
+      category: category, kind: kind, title: title, text: text, data: data, meaning: meaning,
+      status: status, scenario: scenario, inputs: inputs, transformation: transformation,
+      assetID: assetID, supersedes: supersedes, token: token, expectedRevision: expectedRevision,
+      references: references)
+  }
+  @discardableResult package func addHostOwnedItem(
+    category: String, kind: String, title: String, text: String = "", data: Value = .object([:]),
+    meaning: String = "actual", status: String = "draft", scenario: String = "actual",
+    inputs: [String] = [], transformation: String = "human", assetID: String? = nil,
+    supersedes: String? = nil, token: String = identifier(), expectedRevision: Int? = nil,
+    references: [ReferenceSelection]? = nil
+  ) throws -> Item {
     var fields: [String: Value] = [
       "category": .string(category), "kind": .string(kind), "title": .string(title),
       "text": .string(text), "data": data, "meaning": .string(meaning), "status": .string(status),
