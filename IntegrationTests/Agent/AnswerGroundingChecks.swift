@@ -61,6 +61,8 @@ func checkAnswerGrounding() async throws {
     ("0,125 y 12,5", ["0.125", "12.5"]),
     ("Filas 1,2,3 y 10,20,30", ["1", "2", "3", "10", "20", "30"]),
     ("The 2nd and 3rd, el 1er y 2do, H2O, Q3.", []),
+    ("A 3D model at 4K over 5G with 2FA, 1080p, 24h, open at 7am.", []),
+    ("See [12 bolts](sevra://item/550e8400-e29b-41d4-a716-446655440000).", ["12"]),
   ]
   for (text, values) in readings { try expectEqual(WorkbookAgent.numericValues(text), values) }
   try expectEqual(

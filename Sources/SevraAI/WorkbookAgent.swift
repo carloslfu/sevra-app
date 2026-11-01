@@ -1417,13 +1417,14 @@ public enum WorkbookAgent {
 
   /// One number as prose writes it: 1,234.56, 1.234,56, 12,5 or 1.234.567. A bare 1,234 stays
   /// thousands and a bare 1.234 a decimal, as neither says which language it is in. A unit can
-  /// follow directly, as in 144USD, and an ordinal suffix makes it a position, not a quantity.
+  /// follow directly, as in 144USD. Other letters make it a name or a position, as in 3D or 2nd.
   private static let numberPattern =
     "(?<![\\p{L}\\p{N}.])[+-]?(?:[0-9]{1,3}(?:\\.[0-9]{3})+,[0-9]+"
     + "|[0-9]{1,3}(?:,[0-9]{3})+(?:\\.[0-9]+)?|[0-9]{1,3}(?:\\.[0-9]{3}){2,}"
     + "|(?<![0-9],)[0-9]+,(?:[0-9]{1,2}|[0-9]{4,})(?![0-9]|,[0-9])"
     + "|[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)"
-    + "(?![\\p{N}])(?!(?i:st|nd|rd|th|er|do|ro|to)\\b|[ºª])"
+    + "(?![\\p{N}ºª])(?=[^\\p{L}]|\\z"
+    + "|(?i:usd|eur|gbp|cop|mxn|brl|cad|aud|kg|mg|lbs?|oz|ml|km|cm|mm|ft|hrs?|min|sec|percent)\\b)"
 
   private static func plainNumber(_ written: String) -> String {
     let dots = written.filter { $0 == "." }.count
@@ -1446,7 +1447,8 @@ public enum WorkbookAgent {
   /// Decimal normalization allows ordinary formatting without Float rounding.
   package static func numericValues(_ text: String) -> Set<String> {
     let prose = text.replacingOccurrences(of: "−", with: "-").replacingOccurrences(
-      of: "(?m)^\\s*[0-9]{1,2}[.)]\\s+", with: "", options: .regularExpression)
+      of: "(?m)^\\s*[0-9]{1,2}[.)]\\s+", with: "", options: .regularExpression
+    ).replacingOccurrences(of: "\\]\\([^)\\s]*\\)", with: "]", options: .regularExpression)
     let regex = try! NSRegularExpression(pattern: numberPattern)
     return Set(
       regex.matches(in: prose, range: NSRange(prose.startIndex..., in: prose)).compactMap {
