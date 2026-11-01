@@ -97,4 +97,31 @@ package enum ContextDigest {
   package static func references(_ digest: Value) -> Set<String> {
     Set(digest["notes"].array.flatMap { $0["messages"].array.compactMap(\.string) })
   }
+  package static let maximumBytes = 16_384
+  /// These share a continuation state's 256 messages with up to 128 of history.
+  package static let maximumReferences = 128
+  /// Protected notes keep their words while they fit. Then the oldest shrink to the message IDs
+  /// that hold them, and past that the oldest pointers go. The originals stay in history, while
+  /// a digest that could not shrink would refuse every later compaction.
+  package static func bounded(
+    protected: [Value], additions: [Value], reservedBytes: Int = 0
+  ) throws -> [Value] {
+    var kept = protected
+    func notes() -> Value { .object(["notes": .array(kept + additions)]) }
+    while references(notes()).count > maximumReferences, !kept.isEmpty { kept.removeFirst() }
+    var oldest = 0
+    while try notes().json().utf8.count + reservedBytes > maximumBytes, !kept.isEmpty {
+      if oldest < kept.count {
+        kept[oldest] = .object([
+          "kind": kept[oldest]["kind"], "messages": kept[oldest]["messages"],
+          "referenceOnly": .bool(true),
+        ])
+        oldest += 1
+      } else {
+        kept.removeFirst()
+        oldest -= 1
+      }
+    }
+    return kept + additions
+  }
 }

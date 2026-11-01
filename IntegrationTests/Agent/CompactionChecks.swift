@@ -107,11 +107,93 @@ private func historyFixture(_ root: URL, name: String, count: Int = 310) throws 
   return (book, old, forecast)
 }
 
+/// Every summary adds six full constraints, the most the digest format allows.
+private actor DurableNotes: WorkbookInference {
+  let identity = "synthetic durable notes"
+  let supportsCompaction = true
+  let lastMetrics: Value = .object(["phase": .string("context_summary")])
+  func beginRun() {}
+  func endRun() {}
+  func respond(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    progress: @escaping @Sendable (String) -> Void, toolScope: InferenceToolScope,
+    citationIDs: [String]
+  ) throws -> NativeReply {
+    throw SevraError("fixture", "Maintenance dispatches no workbook tools.")
+  }
+  func measureContext(
+    messages: [InferenceMessage], directory: URL, cancellation: Cancellation,
+    summary: Bool, citationIDs: [String], progress: @escaping @Sendable (String) -> Void
+  ) throws -> ContextMeasurement {
+    .init(
+      promptTokens: 1000 + messages.reduce(0) { $0 + $1.content.utf8.count / 4 },
+      capacity: 32768, templateIdentity: "fixture-token-accounting-v1")
+  }
+  func summarize(
+    messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
+    cancellation: Cancellation, progress: @escaping @Sendable (String) -> Void
+  ) throws -> String {
+    let users = try Value.parse(messages[1].content)["userInputs"].array
+    let notes: [Value] = users.prefix(6).map {
+      .object([
+        "kind": .string("constraint"), "text": .string(String(repeating: "€", count: 240)),
+        "messages": .array([$0["id"]]),
+      ])
+    }
+    return try Value.object(["notes": .array(notes)]).json()
+  }
+}
+
+/// A long conversation can always compact, however many durable notes it gathers.
+private func checkBoundedDigest(_ root: URL) async throws {
+  func note(_ index: Int) -> Value {
+    .object([
+      "kind": .string("constraint"), "text": .string("Rule \(index)"),
+      "messages": .array([.string(String(format: "%036d", index))]),
+    ])
+  }
+  let few = (0..<4).map(note)
+  try expectEqual(try ContextDigest.bounded(protected: few, additions: [note(9)]), few + [note(9)])
+  let many = (0..<400).map(note)
+  let kept = try ContextDigest.bounded(protected: many, additions: [note(400)])
+  let digest: Value = .object(["notes": .array(kept)])
+  try expectEqual(try digest.json().utf8.count <= ContextDigest.maximumBytes, true)
+  try expectEqual(ContextDigest.references(digest).count, ContextDigest.maximumReferences)
+  try expectEqual(kept.suffix(2), [many[399], note(400)])
+
+  let book = try Workbook.create(at: root.appendingPathComponent("Long.sevra"), title: "Long")
+  for index in 0..<420 {
+    _ = try book.addMessage(
+      "Standing rule \(index). " + String(repeating: "Always check the shelf labels. ", count: 12),
+      role: "user")
+    _ = try book.addMessage("Noted.", role: "assistant")
+  }
+  let request = try book.addMessage("Continue.", role: "user")
+  let run = try book.startAgentRun(
+    conversation: "main", model: "fixture", requestMessageID: request)
+  let result = try await ContextMaintenance(
+    workbook: book, conversation: "main", runID: run, requestID: request,
+    policy: .init(role: "system", content: "Use the current request."),
+    request: .init(role: "user", content: "Continue."), model: DurableNotes(), directory: root,
+    cancellation: .init(), progress: { _ in }
+  ).maintain(through: request)
+  try expectEqual(result.compacted, true)
+  let checkpoints = try book.contextCheckpoints(limit: 100)
+  try expectEqual(checkpoints.count > 4, true)
+  let saved = try Value.parse(checkpoints[0]["summary"].text)
+  try expectEqual(try saved.json().utf8.count <= ContextDigest.maximumBytes, true)
+  let pointers = saved["notes"].array.filter { $0["referenceOnly"] == .bool(true) }
+  try expectEqual(pointers.isEmpty, false)
+  try expectEqual(pointers.allSatisfy { $0["text"] == .null && !$0["messages"].array.isEmpty }, true)
+  try expectEqual(saved["notes"].array.suffix(6).allSatisfy { !$0["text"].text.isEmpty }, true)
+}
+
 func checkCompaction() async throws {
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "sevra-compaction-" + identifier())
   try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   defer { try? FileManager.default.removeItem(at: root) }
+  try await checkBoundedDigest(root)
   for accepted in [false, true] {
     let (book, original, forecast) = try historyFixture(root, name: "Continuity-\(accepted)")
     let before = try book.historySlice(limit: 500)

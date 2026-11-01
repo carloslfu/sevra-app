@@ -406,16 +406,20 @@ package final class ContextMaintenance {
       let additions = proposed["notes"].array.filter { note in
         !protectedReferences.contains(Set(note["messages"].array.compactMap(\.string)))
       }
-      var digestFields: [String: Value] = ["notes": .array(protected + additions)]
+      var digestFields: [String: Value] = [:]
       // Older checkpoints have no per-note message references. Preserve their
       // bounded digest verbatim instead of silently losing it during migration.
       // It remains historical context and never supplies authority or citations.
       if previous["legacyDigest"] != .null {
         digestFields["legacyDigest"] = previous["legacyDigest"]
       }
+      digestFields["notes"] = .array(
+        try ContextDigest.bounded(
+          protected: protected, additions: additions,
+          reservedBytes: try Value.object(digestFields).json().utf8.count))
       let digest: Value = .object(digestFields)
       try require(
-        try digest.json().utf8.count <= 16_384, "context_limit",
+        try digest.json().utf8.count <= ContextDigest.maximumBytes, "context_limit",
         "Durable conversation constraints exceed the compact context budget. Original history is preserved."
       )
       let summaryMetric = await model.lastMetrics
