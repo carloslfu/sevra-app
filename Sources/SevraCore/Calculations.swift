@@ -23,10 +23,11 @@ public enum Numbers {
   }
   public static func calculate(
     _ expression: String, values: [String: Value] = [:],
-    resolve: ((String) throws -> Decimal)? = nil
+    units: ((String) -> String?)? = nil, resolve: ((String) throws -> Decimal)? = nil
   ) throws -> String {
     var parser = try Formula(expression)
     let tree = try parser.parse()
+    if let units { _ = try tree.unit(units) }
     return string(try tree.evaluate(values: values, resolve: resolve))
   }
   /// Decimal holds one digit past the 38 `decimal` reads back. A quotient that does not end
@@ -87,6 +88,45 @@ indirect enum Expression {
     let position = withUnsafePointer(to: &here) { UInt(bitPattern: $0) }
     let top = UInt(bitPattern: pthread_get_stackaddr_np(thread))
     return position > top - UInt(pthread_get_stacksize_np(thread)) + 256 * 1024
+  }
+  /// The unit this value carries. Adding, subtracting or comparing two different units has no
+  /// answer. A product or ratio of units is a new unit no column names, so it reads as none.
+  func unit(_ units: (String) -> String?) throws -> String? {
+    func same(_ first: String?, _ second: String?) throws -> String? {
+      try require(
+        first == nil || second == nil || first == second, "unit_mismatch",
+        "This formula mixes \(first ?? "") with \(second ?? "").")
+      return first ?? second
+    }
+    switch self {
+    case .number: return nil
+    case .name(let name): return units(name)
+    case .range(let first, let last):
+      let (start, _) = try CellReference.parse(first)
+      let (end, _) = try CellReference.parse(last)
+      guard start <= end else { return nil }
+      return try (start...end).reduce(nil as String?) {
+        try same($0, units(Workbook.spreadsheetColumn($1) + "1"))
+      }
+    case .negate(let node): return try node.unit(units)
+    case .binary(let op, let a, let b):
+      let (left, right) = (try a.unit(units), try b.unit(units))
+      switch op {
+      case "*": return left == nil ? right : right == nil ? left : nil
+      case "/": return right == nil ? left : nil
+      case "+", "-": return try same(left, right)
+      default:
+        _ = try same(left, right)
+        return nil
+      }
+    case .call("COUNT", _): return nil
+    case .call("ROUND", let nodes): return try nodes.first?.unit(units)
+    case .call("IF", let nodes):
+      _ = try nodes.first?.unit(units)
+      return try nodes.dropFirst().reduce(nil as String?) { try same($0, $1.unit(units)) }
+    case .call(_, let nodes):
+      return try nodes.reduce(nil as String?) { try same($0, $1.unit(units)) }
+    }
   }
   func evaluate(values: [String: Value], resolve: ((String) throws -> Decimal)?, depth: Int = 0)
     throws -> Decimal

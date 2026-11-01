@@ -386,7 +386,9 @@ extension Workbook {
       guard let formula = column.formula else {
         return try Numbers.decimal(raw[column.id]?.text ?? "")
       }
-      let result = try Numbers.calculate(formula, values: raw) { name in
+      let result = try Numbers.calculate(
+        formula, values: raw, units: { Self.unit(of: $0, columns: columns) }
+      ) { name in
         if let c = columns.first(where: { $0.id == name }) { return try resolve(c) }
         if datasetID == nil {
           datasetID = try self.synchronized {
@@ -410,6 +412,14 @@ extension Workbook {
       }
     }
     return output
+  }
+  /// The unit of a column named in a formula, by its ID or a cell address in it.
+  private static func unit(of name: String, columns: [Column]) -> String? {
+    if let column = columns.first(where: { $0.id == name }) { return column.unit }
+    guard let (index, _) = try? CellReference.parse(name), columns.indices.contains(index) else {
+      return nil
+    }
+    return columns[index].unit
   }
   public func validateColumns(_ columns: [Column]) throws {
     try ManagedDatasetSchema.validateColumns(columns)
@@ -725,7 +735,8 @@ extension Workbook {
             formula,
             values: item.data.object.filter { entry in
               !table.columns.contains { $0.id == entry.key && $0.formula != nil }
-            }
+            },
+            units: { Self.unit(of: $0, columns: table.columns) }
           ) { name in
             if let index = table.columns.firstIndex(where: { $0.id == name }) {
               return try resolve(Self.spreadsheetColumn(index) + String(row + 1))

@@ -200,6 +200,27 @@ func checkDatasetDefinitions(at root: URL) {
     try book.exportCSV(table.id, to: export)
     try expect(try String(contentsOf: export, encoding: .utf8).contains(quotient[1]))
   }
+  check("a formula cannot add or compare two units, and a plain number takes the other's") {
+    let (book, table) = try fixture(
+      "Units",
+      columns: [
+        .init(id: "usd", title: "USD", type: "decimal", unit: "USD"),
+        .init(id: "eur", title: "EUR", type: "decimal", unit: "EUR"),
+        .init(id: "fee", title: "Fee", type: "decimal", unit: "USD"),
+        .init(id: "same", title: "Same", type: "decimal", formula: "usd*2+fee+1", unit: "USD"),
+        .init(id: "rate", title: "Rate", type: "decimal", formula: "usd/eur+1"),
+        .init(id: "added", title: "Added", type: "decimal", formula: "usd+eur"),
+        .init(id: "compared", title: "Compared", type: "decimal", formula: "IF(usd>eur,1,0)"),
+        .init(id: "cells", title: "Cells", type: "decimal", formula: "SUM(A1:B1)"),
+      ],
+      rows: [["usd": .string("4"), "eur": .string("2"), "fee": .string("1")]])
+    let row = try book.tablePage(table.id).values[0]
+    try expect(row["same"]?.text == "10" && row["rate"]?.text == "3")
+    for column in ["added", "compared", "cells"] {
+      try expect(row[column]?.text.hasPrefix("#ERROR: This formula mixes") == true)
+    }
+    try refuses("unit_mismatch") { _ = try book.cellValue(table.id, address: "F1") }
+  }
   check("retained formulas cannot silently bind to removed or reordered columns") {
     let (book, table) = try fixture(
       "DefinitionBindings",
