@@ -6,7 +6,8 @@ import Markdown
 /// parent's, so a marker's column bounds its depth. An inline level needs a delimiter that can open
 /// and, after every opener inside it, one that can close, so a block cannot nest past the limit
 /// without more than the limit of each, in that order. Raw bytes include delimiters in code, which
-/// only overcounts.
+/// only overcounts. The one exception is a plain pair such as **Total**, which opens and closes one
+/// level with nothing between that could hide either run, so long tables and lists are not deep.
 public enum MarkdownNesting {
   static let limit = 100
   public static func isReadable(_ text: String) -> Bool {
@@ -26,6 +27,7 @@ public enum MarkdownNesting {
     }
     var opened = 0
     var closed = 0
+    var plainOpener: (byte: UInt8, count: Int)?
     var column = 0
     var inPrefix = true
     var blank = true
@@ -39,6 +41,7 @@ public enum MarkdownNesting {
           opened = 0
           closed = 0
         }
+        plainOpener = nil
         column = 0
         inPrefix = true
         blank = true
@@ -50,7 +53,13 @@ public enum MarkdownNesting {
       let next = index + 1 < bytes.count ? bytes[index + 1] : 10
       if inPrefix {
         switch byte {
-        case 32, UInt8(ascii: "0")...UInt8(ascii: "9"): column += 1
+        case 32: column += 1
+        case UInt8(ascii: "0")...UInt8(ascii: "9"):
+          column += 1
+          // A list number runs straight into its delimiter.
+          let number =
+            (48...57).contains(next) || next == UInt8(ascii: ".") || next == UInt8(ascii: ")")
+          if !number { inPrefix = false }
         case 9: column += 4 - column % 4
         case UInt8(ascii: ">"):
           if column >= limit { return false }
@@ -80,13 +89,30 @@ public enum MarkdownNesting {
         while end < bytes.count && bytes[end] == byte { end += 1 }
         let previous = index > 0 ? bytes[index - 1] : 10
         let following = end < bytes.count ? bytes[end] : 10
-        if flanks(byte, inner: following, outer: previous) { opened += end - index }
-        if opened > limit && flanks(byte, inner: previous, outer: following) {
-          closed += end - index
+        let count = end - index
+        let opens = flanks(byte, inner: following, outer: previous)
+        let closes = flanks(byte, inner: previous, outer: following)
+        // Outside ASCII a run's flanking is unknown, so only the rule above decides.
+        if closes && !opens, previous < 0x80, following < 0x80, let opener = plainOpener,
+          opener.byte == byte, opener.count == count
+        {
+          opened -= count
+          plainOpener = nil
+        } else {
+          if opens { opened += count }
+          if opened > limit && closes { closed += count }
+          let plain = opens && !closes && isWord(following) && previous != UInt8(ascii: "\\")
+          plainOpener = plain ? (byte, count) : nil
         }
         index = end - 1
       case UInt8(ascii: "!") where next == UInt8(ascii: "["): opened += 1
-      case UInt8(ascii: "]") where opened > limit: closed += 1
+      case UInt8(ascii: "]") where opened > limit:
+        closed += 1
+        plainOpener = nil
+      // Code spans, HTML, link parts and escapes can hide a run from the parser.
+      case UInt8(ascii: "`"), UInt8(ascii: "<"), UInt8(ascii: ">"), UInt8(ascii: "["),
+        UInt8(ascii: "]"), UInt8(ascii: "("), UInt8(ascii: ")"), UInt8(ascii: "\\"):
+        plainOpener = nil
       default: break
       }
       if closed > limit { return false }

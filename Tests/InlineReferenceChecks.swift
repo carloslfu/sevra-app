@@ -57,6 +57,15 @@ func checkInlineReferences(at root: URL) {
       // Closers inside code spans must not cancel the openers they follow.
       "[[x]] " + String(repeating: "*a `b*` ", count: 400) + "c"
         + String(repeating: " d*", count: 400),
+      // A run the parser never sees must not pair with a real closer.
+      "[[x]] " + String(repeating: "*a ", count: 400) + "b"
+        + String(repeating: "<x y=\"*q\"> r* ", count: 400),
+      "[[x]] " + String(repeating: "*a ", count: 400) + "b"
+        + String(repeating: "\\*q r* ", count: 400),
+      "[[x]] " + String(repeating: "*a ", count: 400) + "b"
+        + String(repeating: "*\u{A0}q r* ", count: 400),
+      "[[x]] " + String(repeating: "*a:*\u{E9} ", count: 400) + "b"
+        + String(repeating: " c*", count: 800),
       "a\r" + String(repeating: ">", count: 2000) + " [[x]]",
       "\u{FEFF}" + String(repeating: ">", count: 2000) + " [[x]]",
       steps.joined(separator: "\n") + "\n[[x]]",
@@ -72,6 +81,14 @@ func checkInlineReferences(at root: URL) {
       }
       try expect(try InlineReferenceParser.parse(deepest).selections.count == 1)
     }
+    // Long plain tables and lists are not deep, however many short bold spans they hold.
+    let rows = (0..<300).map { "| **Item \($0)** | **\($0)** |" }
+    let table = (["| A | B |", "| - | - |"] + rows).joined(separator: "\n") + "\n[[x]]"
+    try expect(try InlineReferenceParser.parse(table).selections.count == 1)
+    let terms = (1...300).map { "\($0). **Term:** value" }.joined(separator: "\n") + " [[x]]"
+    try expect(try InlineReferenceParser.parse(terms).selections.count == 1)
+    let figures = (1...60).map(String.init).joined(separator: " ") + ". [[x]]"
+    try expect(try InlineReferenceParser.parse(figures).selections.count == 1)
     let bold = (0..<300).map { "- **Item \($0)** text" }.joined(separator: "\n")
     let ruled = [String(repeating: "-", count: 120), String(repeating: "*", count: 120)]
     for text in ruled + [bold, "a\r\n\r\n> [[real]]"] {
