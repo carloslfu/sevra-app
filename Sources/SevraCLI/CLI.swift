@@ -594,10 +594,12 @@ import SevraProduct
           references: v.object.keys.contains("references")
             ? decodeReferenceSelections(v["references"]) : nil))
     case "edit-row":
+      guard case .object(let values) = try Value.parseExact(arg(3)) else {
+        throw SevraError("arguments", "Give the columns to change as a JSON object.")
+      }
       return try encoded(
         book.editRow(
-          arg(2), values: Value.parseExact(arg(3)).object,
-          expectedRevision: args.count > 4 ? Int(args[4]) : nil))
+          arg(2), values: values, expectedRevision: args.count > 4 ? Int(args[4]) : nil))
     case "accept":
       return try encoded(
         book.accept(

@@ -532,19 +532,26 @@ extension Workbook {
       ])
     return .object(["id": .string(change), "items": .array(ids.map(Value.string))])
   }
+  /// Changes the columns in `values`, and only those. Clearing one takes an explicit null.
   @discardableResult public func editRow(
     _ id: String, values: [String: Value], expectedRevision: Int? = nil,
     token: String = identifier(), actor: ChangeActor? = nil
   ) throws -> Item {
-    let datasetID = try synchronized {
-      try db.scalar(
-        "SELECT dataset_id FROM dataset_rows WHERE logical_id=?", [.string(try item(id).logicalID)]
-      ).text
+    try require(!values.isEmpty, "empty_edit", "Name at least one column to change.")
+    let (datasetID, row) = try synchronized {
+      let row = try item(id)
+      return (
+        try db.scalar(
+          "SELECT dataset_id FROM dataset_rows WHERE logical_id=?", [.string(row.logicalID)]
+        ).text, row
+      )
     }
     try require(!datasetID.isEmpty, "row", "This is not a table row.")
+    let current = Self.activeValues(row.data.object, columns: try dataset(datasetID).columns)
     return try editRows(
-      datasetID, edits: [RowEdit(id: id, values: values)], expectedRevision: expectedRevision,
-      token: token, actor: actor
+      datasetID,
+      edits: [RowEdit(id: id, values: current.merging(values) { _, new in new })],
+      expectedRevision: expectedRevision, token: token, actor: actor
     ).items[0]
   }
   @discardableResult public func undoTableChange(

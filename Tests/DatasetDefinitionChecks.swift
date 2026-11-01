@@ -115,7 +115,7 @@ func checkDatasetDefinitions(at root: URL) {
     try book.setColumns(table.id, columns: columns)
     let rows = try book.rows(table.id)
     let current = try book.db.authorityDigest()
-    try refuses("required") { _ = try book.editRow(rows[0].id, values: ["cost": .string("2")]) }
+    try refuses("required") { _ = try book.editRow(rows[0].id, values: ["sku": .null]) }
     try refuses("unique") { _ = try book.editRow(rows[0].id, values: ["sku": .string("B")]) }
     try expect(try book.db.authorityDigest() == current)
     let swap = try book.editRows(
@@ -163,6 +163,17 @@ func checkDatasetDefinitions(at root: URL) {
       table.id, definitionID: first.id,
       expectedVersion: archived.version, expectedDefinitionID: archived.id)
     try expect(try book.datasets().count == 1 && book.rows(table.id)[0].id == row.id)
+  }
+  check("a row edit changes the columns it names, and clearing one takes an explicit null") {
+    let (book, table) = try fixture("PartialEdit")
+    let row = try book.rows(table.id)[0]
+    let changed = try book.editRow(row.id, values: ["cost": .string("3")])
+    try expect(changed.data == .object(["sku": .string("0012"), "cost": .string("3")]))
+    let cleared = try book.editRow(changed.id, values: ["cost": .null])
+    try expect(try book.rows(table.id)[0].data["sku"].text == "0012" && cleared.data["cost"] == .null)
+    try refuses("empty_edit") { _ = try book.editRow(cleared.id, values: [:]) }
+    try refuses("column") { _ = try book.editRow(cleared.id, values: ["missing": .string("1")]) }
+    try expect(try book.verify()["ok"] == .bool(true))
   }
   check("a quotient keeps 38 digits wherever it is read, and an exact result stays exact") {
     let (book, table) = try fixture(
