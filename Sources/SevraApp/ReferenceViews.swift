@@ -17,6 +17,7 @@ enum ReferenceModal: Identifiable {
 }
 
 struct ReferenceReadingText: View {
+  let identity: String
   let presentation: ReferencePresentation
   let open: (ReferenceOccurrence) -> Void
   private var attributed: AttributedString {
@@ -31,7 +32,37 @@ struct ReferenceReadingText: View {
     }
     return result
   }
+  private var isLong: Bool {
+    presentation.parts.reduce(0) { $0 + $1.text.utf8.count } > LongReadingText.thresholdBytes
+  }
+  private var longText: NSAttributedString {
+    let result = NSMutableAttributedString()
+    for part in presentation.parts {
+      let text = NSMutableAttributedString(attributedString: LongReadingText.plain(part.text))
+      if let occurrence = part.occurrence {
+        let whole = NSRange(location: 0, length: text.length)
+        text.addAttribute(.link, value: occurrence.url, range: whole)
+        text.addAttribute(
+          .foregroundColor,
+          value: occurrence.reference.resolution == .bound ? NSColor.linkColor : NSColor.orange,
+          range: whole)
+      }
+      result.append(text)
+    }
+    return result
+  }
   var body: some View {
+    if isLong {
+      LongReadingText(identity: identity, text: { longText }) { url in
+        if let occurrence = presentation.occurrences.first(where: { $0.url == url }) {
+          open(occurrence)
+        }
+      }
+    } else {
+      shortText
+    }
+  }
+  private var shortText: some View {
     Text(attributed).textSelection(.enabled)
       // Attributed-text link children can lack a working native press action.
       // Give assistive technology ordinary controls over the same saved spans.

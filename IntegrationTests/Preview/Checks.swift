@@ -71,6 +71,7 @@ private actor ReadGate {
       try await checkReviewQueue()
       try checkRequestContextPresentation()
       try checkConversationPresentation()
+      try checkLongText()
       try checkReadableTables()
       try await checkConversationState()
       try await checkHistorySearch()

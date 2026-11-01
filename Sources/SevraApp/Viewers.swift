@@ -285,7 +285,12 @@ private struct ItemDetails: Sendable {
               }
             }
             if let saved = references.document, saved.body.originVersionID == item.id {
-              ReferenceReadingText(presentation: saved.presentation, open: openReference)
+              ReferenceReadingText(
+                identity: item.id + (saved.body.id ?? ""), presentation: saved.presentation,
+                open: openReference)
+            } else if item.text.utf8.count > LongReadingText.thresholdBytes {
+              LongReadingText(
+                identity: item.id, text: { [text = item.text] in LongReadingText.plain(text) })
             } else {
               Text(item.text).textSelection(.enabled)
             }
@@ -897,16 +902,24 @@ struct SafeTextViewer: View {
   @State private var text = ""
   @State private var detail = ""
   @State private var structured: Value?
-  var body: some View {
-    ScrollView {
-      if let structured {
-        StructuredValueView(value: structured).padding(20)
-      } else if file.pathExtension.lowercased() != "json" {
-        Text(text).font(.system(.body, design: .monospaced)).textSelection(.enabled).frame(
-          maxWidth: .infinity, alignment: .leading
-        ).padding(20)
-      }
+  private var note: some View {
+    Group {
       if !detail.isEmpty { Text(detail).font(.caption).foregroundStyle(.secondary).padding(10) }
+    }
+  }
+  var body: some View {
+    Group {
+      if file.pathExtension.lowercased() != "json" {
+        VStack(spacing: 0) {
+          TextFileView(text: text)
+          note
+        }
+      } else {
+        ScrollView {
+          if let structured { StructuredValueView(value: structured).padding(20) }
+          note
+        }
+      }
     }.task(id: file) {
       guard !Task.isCancelled else { return }
       text = ""
