@@ -41,8 +41,12 @@ func checkCalendarSchedules() {
       invalid[key] = value
       try refuses("schedule") { _ = try NativeCalendarSchedule(.object(invalid)) }
     }
-    for zone in ["PST", "local", "America/Nonexistent", "", "UTC+5"] {
+    for zone in ["PST", "local", "America/Nonexistent", "america/bogota", "GMT", "", "UTC+5"] {
       try refuses("schedule_zone") { _ = try NativeCalendarSchedule(definition(zone: zone)) }
+    }
+    // Absent from Foundation's known list, which keeps the older spelling Asia/Calcutta.
+    for zone in ["Asia/Kolkata", "US/Eastern", "Etc/GMT+5"] {
+      try expect(try NativeCalendarSchedule(definition(zone: zone)).timeZone == zone)
     }
     let invalidRules: [Value] = [
       .object(["kind": .string("daily"), "interval": .number(2)]),
@@ -88,6 +92,19 @@ func checkCalendarSchedules() {
     try expect(first["requestedLocalTime"].text == "02:37:00")
     try expect(first["actualLocalTime"].text == "03:00:00" && first["shifted"] == .bool(true))
     try expect(value["occurrences"].array[1]["shifted"] == .bool(false))
+  }
+  check("a gap that ends a day runs when the next day opens and keeps the skipped day's slot") {
+    let rule = definition(zone: "America/Nuuk", hour: 23, minute: 30)
+    let value = try preview(rule, after: "2026-03-27T12:00:00Z", count: 3)
+    try expect(dates(value) == ["2026-03-27", "2026-03-28", "2026-03-29"])
+    try expect(
+      instants(value)[1...] == ["2026-03-29T01:00:00.000Z", "2026-03-30T00:30:00.000Z"],
+      try value.json())
+    let gap = value["occurrences"].array[1]
+    try expect(gap["slotKey"].text == "2026-03-28" && gap["actualLocalTime"].text == "00:00:00")
+    try expect(gap["shifted"] == .bool(true))
+    try expect(dates(preview(rule, after: "2026-03-29T01:00:00Z", count: 1)) == ["2026-03-29"])
+    try expect(dates(preview(rule, after: "2026-03-29T00:59:59Z", count: 1)) == ["2026-03-28"])
   }
   check("repeated clock time runs only at its first instance even when queried between instances") {
     let rule = definition(zone: "America/New_York", hour: 1, minute: 30)

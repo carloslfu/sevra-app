@@ -20,8 +20,8 @@ public struct NativeCalendarSchedule: Equatable, Sendable {
         && value["policy"] == .string("native-calendar-v1"),
       "schedule", "Use a native-calendar-v1 schedule with its exact declared fields.")
     guard let zone = value["timeZone"].string,
-      zone == "UTC" || (zone.contains("/") && TimeZone.knownTimeZoneIdentifiers.contains(zone)),
-      TimeZone(identifier: zone) != nil
+      // The known list holds one spelling per zone, so it refuses valid names such as Asia/Kolkata.
+      zone == "UTC" || (zone.contains("/") && TimeZone(identifier: zone) != nil)
     else { throw SevraError("schedule_zone", "Choose an explicit named IANA time zone or UTC.") }
     timeZone = zone
     hour = try Self.integer(value["hour"], range: 0...23)
@@ -107,7 +107,7 @@ public struct NativeCalendarSchedule: Equatable, Sendable {
       }
       inspected += 1
       if matches(day, calendar: calendar),
-        let candidate = try resolve(interval, calendar: calendar, cancellation: cancellation),
+        case let candidate = try resolve(interval, calendar: calendar, cancellation: cancellation),
         candidate > after
       {
         let components = calendar.dateComponents([.hour, .minute, .second], from: candidate)
@@ -138,9 +138,27 @@ public struct NativeCalendarSchedule: Equatable, Sendable {
     ])
   }
 
+  /// Whether a retained slot names a date and time this rule selects. Its instant stays with the
+  /// saved Source, because a later time zone rule change moves what preview computes, not what ran.
+  func selects(_ slot: Value) -> Bool {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.locale = Locale(identifier: "en_US_POSIX")
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    let date = slot["localDate"].text
+    let parts = date.split(separator: "-").compactMap { Int($0) }
+    guard parts.count == 3,
+      let day = calendar.date(
+        from: DateComponents(year: parts[0], month: parts[1], day: parts[2])),
+      Self.civilDate(day, calendar: calendar) == date
+    else { return false }
+    return slot["slotKey"].text == date && slot["timeZone"] == .string(timeZone)
+      && slot["requestedLocalTime"] == .string(String(format: "%02d:%02d:00", hour, minute))
+      && matches(day, calendar: calendar)
+  }
+
   private func resolve(
     _ interval: DateInterval, calendar: Calendar, cancellation: Cancellation
-  ) throws -> Date? {
+  ) throws -> Date {
     try require(
       interval.duration > 0 && interval.duration <= 172_800, "schedule_date",
       "The local day exceeds the supported 48-hour resolution bound.")
@@ -172,7 +190,9 @@ public struct NativeCalendarSchedule: Equatable, Sendable {
       }
       lower = upper
     }
-    return nil
+    // The gap ran past the end of this day, so no clock reading here reached the time. The next
+    // valid instant opens the following day, and the slot keeps this day's key.
+    return interval.end
   }
 
   private func matches(_ day: Date, calendar: Calendar) -> Bool {

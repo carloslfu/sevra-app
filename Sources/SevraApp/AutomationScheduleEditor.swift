@@ -17,7 +17,8 @@ struct AutomationScheduleEditor: View {
   @State private var subject = ""
   @State private var comparison = "<"
   @State private var threshold = "10"
-  @State private var zone = TimeZone.current.identifier
+  // With TZ=UTC Foundation names the zone GMT, which the schedule refuses as unnamed.
+  @State private var zone = TimeZone.current.identifier == "GMT" ? "UTC" : TimeZone.current.identifier
   @State private var hour = 9
   @State private var minute = 0
   @State private var recurrence = "daily"
@@ -162,7 +163,7 @@ struct AutomationScheduleEditor: View {
               Stepper("Day: \(day)", value: $day, in: 1...31)
             }
             Text(
-              "Missing dates are skipped. Repeated clock times run once; skipped clock times use the next valid time that day. The explicit time zone stays fixed when you travel."
+              "Missing dates are skipped. Repeated clock times run once; skipped clock times use the next valid time. The explicit time zone stays fixed when you travel."
             )
             .font(.caption).foregroundStyle(.secondary)
           }

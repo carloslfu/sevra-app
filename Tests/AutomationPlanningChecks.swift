@@ -155,6 +155,65 @@ func checkAutomationPlanning(at root: URL) {
       ])
     _ = try book.verify()
   }
+  check("a daylight-saving gap or fold keeps its date's slot and a run at that instant verifies") {
+    for (name, zone, hour, minute, due, key) in [
+      ("Spring", "America/New_York", 2, 30, "2026-03-08T07:00:00Z", "2026-03-08"),
+      ("DayEnd", "America/Nuuk", 23, 30, "2026-03-29T01:00:00Z", "2026-03-28"),
+      ("Fall", "America/New_York", 1, 30, "2026-11-01T05:30:00Z", "2026-11-01"),
+    ] {
+      let (book, definition) = try fixture(
+        name,
+        schedule: .object([
+          "policy": .string("native-calendar-v1"), "timeZone": .string(zone),
+          "hour": .number(Double(hour)), "minute": .number(Double(minute)),
+          "recurrence": .object(["kind": .string("daily")]),
+        ]))
+      let instant = automationDate(due)
+      let session = try book.authorizeAutomationExecution(
+        definition.id, expectedGeneration: 0, after: instant.addingTimeInterval(-60),
+        token: "authorize")
+      // One scanned day ends exactly at the day-end slot, which must still leave the cursor past it.
+      let planned = try book.planAutomationOccurrences(
+        session.planning, through: instant, token: "plan", horizonDays: 1)
+      try expect(planned["pending"]["slot_key"].text == key, try planned.json())
+      try expect(try AutomationTime.date(planned["cursor"].text) >= instant, try planned.json())
+      let again = try book.planAutomationOccurrences(
+        session.planning, through: instant.addingTimeInterval(1), token: "again")
+      try expect(again["preparedCount"].int == 0, try again.json())
+      let dispatched = try book.dispatchAutomationOccurrence(
+        session, observedAt: instant, token: "dispatch")
+      let run = try book.authorizeAutomationWorkflowExecution(
+        session, runID: dispatched["runID"].text)
+      try expect(try book.continueWorkflow(run, owner: "test")["state"].text == "completed")
+      try expect(try book.verify()["ok"] == .bool(true))
+    }
+  }
+  check("verification keeps a retained slot's instant and checks its date against the rule") {
+    let rule = try NativeCalendarSchedule(
+      .object([
+        "policy": .string("native-calendar-v1"), "timeZone": .string("America/Bogota"),
+        "hour": .number(9), "minute": .number(0),
+        "recurrence": .object(["kind": .string("weekly"), "weekdays": .array([.number(1)])]),
+      ]))
+    let saved = try rule.preview(after: automationDate("2026-10-01T00:00:00Z"), count: 1)[
+      "occurrences"
+    ].array[0]
+    try expect(saved["localDate"].text == "2026-10-05" && rule.selects(saved))
+    // A later zone rule change moves what preview computes, never what was already planned.
+    func edited(_ field: String, _ value: Value) -> Value {
+      var slot = saved.object
+      slot[field] = value
+      return .object(slot)
+    }
+    try expect(rule.selects(edited("due", .string("2026-10-05T15:00:00.000Z"))))
+    for (field, value) in [
+      ("requestedLocalTime", Value.string("10:00:00")), ("timeZone", .string("UTC")),
+      ("slotKey", .string("2026-10-12")), ("localDate", .string("2026-10-06")),
+      ("localDate", .string("2026-02-30")), ("localDate", .null),
+    ] {
+      try expect(!rule.selects(edited(field, value)), field)
+    }
+  }
   check(
     "pause cancels pending preparation, revokes sessions and cannot be undone by an old receipt"
   ) {

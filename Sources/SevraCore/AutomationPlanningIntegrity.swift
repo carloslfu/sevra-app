@@ -114,12 +114,9 @@ extension Workbook {
         if decision.kind == "automation_dispatch" {
           try verifyAutomationDispatchDecision(occurrence, source: decision)
         }
-        let due = try AutomationTime.date(occurrence["due"].text)
         let rule = try DefinitionAutomation(DefinitionDescriptor(saved.content)).schedule
-        let planned = try rule.preview(
-          after: due.addingTimeInterval(-0.001), count: 1, horizonDays: 2)
         try require(
-          planned["occurrences"].array.first == slot, "automation_integrity",
+          rule.selects(slot), "automation_integrity",
           "The occurrence does not match its pinned calendar rule.")
         let authorization = try item(source.data["authorizationSourceID"].text)
         try require(

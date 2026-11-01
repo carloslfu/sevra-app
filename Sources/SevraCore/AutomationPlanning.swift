@@ -77,7 +77,9 @@ extension Workbook {
         through,
         try AutomationTime.date(preview["scannedThroughExclusive"].text).addingTimeInterval(-0.001))
     }
-    let nextCursor = try AutomationTime.text(max(cursor, covered))
+    // A slot past a gap that ended its day sits exactly on the exclusive scan boundary.
+    let newest = try eligible.last.map { try AutomationTime.date($0["due"].text) } ?? cursor
+    let nextCursor = try AutomationTime.text(max(cursor, covered, newest))
     let actor = ChangeActor.programmatic("SevraCore.calendar-preparation")
     let fence: () throws -> Void = { _ = try self.automationSession(session) }
     return try mutation(
