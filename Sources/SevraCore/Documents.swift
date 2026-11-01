@@ -41,7 +41,7 @@ extension Workbook {
         title: original.title.utf8.count <= 4_090 ? "Edit " + original.title : "Document edit",
         text: text, data: .object(["document": .string(original.id), "separate": .bool(separate)]),
         meaning: original.meaning, status: "accepted", scenario: original.scenario, inputs: [],
-        transformation: "document-input-v1")
+        transformation: "document-input-v1", inheritReferenceBindings: false)
       try cancellation.check()
       var data = original.data
       // A free-text edit can move or change any copied span. Its new submission

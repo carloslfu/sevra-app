@@ -84,14 +84,15 @@ func checkBusinessEvents(at root: URL) {
       category: "record", kind: "forecast", title: "Edit", inputs: [source.id], supersedes: first.id
     )
     let corrected = try book.accept(draft.id)
-    let withdrawn = try book.undoItem(corrected.id)
+    let restored = try book.undoItem(corrected.id)
+    try expect(restored.title == "First")
     let entries = try businessEntries(book)
     try expect(entries.count == 3)
     try expect(
       entries[1]["beforeID"].text == first.id && entries[1]["afterID"].text == corrected.id)
     try expect(
-      entries[2]["beforeID"].text == corrected.id && entries[2]["afterID"].text == withdrawn.id)
-    try expect(entries[2]["payload"]["after"]["status"].text == "rejected")
+      entries[2]["beforeID"].text == corrected.id && entries[2]["afterID"].text == restored.id)
+    try expect(entries[2]["payload"]["after"]["status"].text == "accepted")
     try expect(try book.verify()["ok"] == .bool(true))
   }
   check("atomic business commit coalesces logical edits and preserves independent occurrences") {

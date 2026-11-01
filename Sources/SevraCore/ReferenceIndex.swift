@@ -64,7 +64,8 @@ extension Workbook {
         [.string(originVersionID)]
       ).first!
       try require(
-        !["row", "request", "annotation"].contains(metadata["kind"]!.text), "reference_scope",
+        !["row", "request", "annotation", "submission"].contains(metadata["kind"]!.text),
+        "reference_scope",
         "This internal item is outside body-link indexing.")
       if (metadata["bytes"]?.int ?? Int.max) > Self.referenceBodyLimit {
         if try db.scalar(
@@ -96,7 +97,7 @@ extension Workbook {
     let candidates = try synchronized(cancellation: cancellation) {
       try db.budget(cancellation: cancellation, seconds: 3) {
         try db.execute(
-          "SELECT i.id FROM items i LEFT JOIN reference_coverage c ON c.origin_id=i.id WHERE c.origin_id IS NULL AND i.kind NOT IN ('row',\(Item.technicalKindSQL)) AND i.id>? ORDER BY i.id LIMIT ?",
+          "SELECT i.id FROM items i LEFT JOIN reference_coverage c ON c.origin_id=i.id WHERE c.origin_id IS NULL AND i.kind NOT IN ('row','submission',\(Item.technicalKindSQL)) AND i.id>? ORDER BY i.id LIMIT ?",
           [.string(afterID ?? ""), .number(Double(limit + 1))])
       }
     }

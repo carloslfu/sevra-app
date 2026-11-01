@@ -19,11 +19,9 @@ extension Workbook {
       try require(
         old.status == "draft", "not_draft",
         "Only a current draft can be withdrawn. Use Undo for an accepted change.")
-      let settled =
-        old.kind == "movement"
-        ? try settledMovement(old.logicalID, before: old.version) : nil
-      // Declining a correction leaves the previously accepted movement in force.
-      // Preserve it as the new head so the visible state and inventory agree.
+      let settled = try settledVersion(old.logicalID, before: old.version)
+      // Declining a correction or an edit leaves the previously accepted version in force.
+      // Preserve it as the new head, so it stays current and inventory agrees.
       let content = settled?.status == "accepted" ? settled! : old
       let decision = try insertItem(
         category: "source", kind: "decision", title: "Withdraw \(old.title)",

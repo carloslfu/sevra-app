@@ -667,7 +667,7 @@ extension Workbook {
       var old = try item(prior)
       var restoredStatus =
         current.status == "accepted" && old.status == "draft" ? "rejected" : old.status
-      if current.kind == "movement", current.status == "accepted", old.status == "draft" {
+      if current.status == "accepted", old.status == "draft" {
         let declinedCorrection =
           try db.scalar(
             "SELECT EXISTS(SELECT 1 FROM lineage WHERE child=? AND transformation='withdraw-draft-v1')",
@@ -675,7 +675,7 @@ extension Workbook {
           ).int == 1
         if declinedCorrection {
           restoredStatus = "draft"
-        } else if let settled = try settledMovement(current.logicalID, before: old.version),
+        } else if let settled = try settledVersion(current.logicalID, before: old.version),
           settled.status == "accepted"
         {
           old = settled

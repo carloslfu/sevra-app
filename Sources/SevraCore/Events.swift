@@ -56,11 +56,11 @@ public enum BusinessTime {
 }
 
 extension Workbook {
-  /// Drafts do not replace the last accepted/withdrawn inventory decision.
+  /// Drafts do not replace the last accepted/withdrawn decision.
   /// Call within the workbook transaction when restoring a review decision.
-  func settledMovement(_ logicalID: String, before version: Int) throws -> Item? {
+  func settledVersion(_ logicalID: String, before version: Int) throws -> Item? {
     try db.execute(
-      "SELECT * FROM items WHERE logical_id=? AND version<? AND kind='movement' AND status IN ('accepted','rejected') ORDER BY version DESC LIMIT 1",
+      "SELECT * FROM items WHERE logical_id=? AND version<? AND status IN ('accepted','rejected') ORDER BY version DESC LIMIT 1",
       [.string(logicalID), .number(Double(version))]
     ).first.map(decodeItem)
   }

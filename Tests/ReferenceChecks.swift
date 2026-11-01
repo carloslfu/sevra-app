@@ -42,6 +42,43 @@ private func selection(
 }
 
 func checkReferences(at root: URL) {
+  check("a withdrawn edit leaves the accepted document current and autosaves mention nothing") {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("WithdrawnEdit.sevra"), title: "Edits")
+    let target = try book.addItem(category: "source", kind: "observation", title: "Quote")
+    let source = try book.addItem(category: "source", kind: "observation", title: "Evidence")
+    let body = "See [quote](sevra://logical/\(target.logicalID))."
+    let proposal = try book.addItem(
+      category: "record", kind: "document", title: "Plan", text: body, meaning: "estimate",
+      inputs: [source.id])
+    let accepted = try book.accept(proposal.id)
+    let first = try book.editDocument(accepted.id, text: "Mistaken edit one")
+    let edit = try book.editDocument(first.id, text: body + " More words.")
+    let mentions = try book.referenceLinks(target.id, direction: .incoming, targetScope: .logical)
+    try expect(
+      mentions["hits"].array.allSatisfy { $0["evidence"]["kind"].text != "submission" },
+      try mentions.json())
+    try expect(
+      try book.indexReferenceBodies()["processed"].array.allSatisfy {
+        try book.item($0.text).kind != "submission"
+      })
+    let withdrawn = try book.withdrawDraft(edit.id)
+    try expect(withdrawn.status == "accepted" && withdrawn.text == body)
+    try expect(try book.item(accepted.logicalID).id == withdrawn.id)
+    try expect(try book.referenceSnapshot(withdrawn.id).references.count == 1)
+    let reopened = try book.undoItem(withdrawn.id)
+    try expect(reopened.status == "draft" && reopened.text == edit.text)
+    // Accepting that edit and undoing it returns to the accepted text, not to a withdrawn copy.
+    let replaced = try book.accept(reopened.id)
+    let undone = try book.undoItem(replaced.id)
+    try expect(undone.status == "accepted" && undone.text == body)
+    // A first proposal has nothing accepted behind it, so withdrawing it still withdraws.
+    let lone = try book.addItem(
+      category: "record", kind: "document", title: "Other", text: "Other", meaning: "estimate",
+      inputs: [source.id])
+    try expect(try book.withdrawDraft(lone.id).status == "rejected")
+    _ = try book.verify()
+  }
   check("current-format reopening preserves saved bindings and projections") {
     let book = try Workbook.create(
       at: root.appendingPathComponent("ReferenceV5.sevra"), title: "V5")
