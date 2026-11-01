@@ -87,7 +87,8 @@ extension Workbook {
     let result = try mutation(
       "dataset_definition", token: token, request: request,
       cancellation: cancellation,
-      actor: actor ?? ChangeAttribution.actor ?? .programmatic("SevraCore.datasetDefinition")
+      actor: actor ?? ChangeAttribution.actor ?? .programmatic("SevraCore.datasetDefinition"),
+      deadlineSeconds: 30
     ) {
       try checkDatasetBase(id, version: expectedVersion, definitionID: expectedDefinitionID)
       return .string(
@@ -109,7 +110,8 @@ extension Workbook {
     let result = try mutation(
       "restore_dataset_definition", token: token, request: request,
       cancellation: cancellation,
-      actor: actor ?? ChangeAttribution.actor ?? .programmatic("SevraCore.datasetDefinition")
+      actor: actor ?? ChangeAttribution.actor ?? .programmatic("SevraCore.datasetDefinition"),
+      deadlineSeconds: 30
     ) {
       try checkDatasetBase(id, version: expectedVersion, definitionID: expectedDefinitionID)
       let saved = try savedDatasetDefinition(id, definitionID: definitionID)

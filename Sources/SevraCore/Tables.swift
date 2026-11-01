@@ -576,8 +576,10 @@ extension Workbook {
     _ id: String, token: String = identifier(), cancellation: Cancellation = .init(),
     actor: ChangeActor = .programmatic("SevraCore.undo")
   ) throws -> Item {
+    // Undo of a reviewed update puts back as many rows as accepting it replaced.
     let result = try mutation(
-      "undo", token: token, request: .string(id), cancellation: cancellation, actor: actor
+      "undo", token: token, request: .string(id), cancellation: cancellation, actor: actor,
+      deadlineSeconds: 30
     ) {
       try validateDecisionActor(actor)
       let current = try item(id)

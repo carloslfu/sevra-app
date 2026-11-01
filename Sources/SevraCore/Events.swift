@@ -187,8 +187,10 @@ extension Workbook {
     _ id: String, token: String = identifier(), cancellation: Cancellation = .init(),
     actor: ChangeActor = .programmatic("SevraCore.accept")
   ) throws -> Item {
+    // Accepting a reviewed update rewrites up to 10,000 rows in one change.
     let result = try mutation(
-      "accept", token: token, request: .string(id), cancellation: cancellation, actor: actor
+      "accept", token: token, request: .string(id), cancellation: cancellation, actor: actor,
+      deadlineSeconds: 30
     ) {
       try validateDecisionActor(actor)
       let old = try item(id)
