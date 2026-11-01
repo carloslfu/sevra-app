@@ -215,9 +215,11 @@ def main():
         # A partial table that changed underneath the import is not silently completed.
         book = root / 'Changed.sevra'
         run('create', book, 'Synthetic changed')
-        interrupted(book, ['import', book, source, '--role', 'values'], signal.SIGINT)
+        code, _, _, _ = interrupted(book, ['import', book, source, '--role', 'values'], signal.SIGINT)
         entry = run('intake-status', book)['tables'][0]
         job = run('intake-status', book)['jobs'][0]
+        checked('the stop reached the import before it finished',
+                code != 0 and job['state'] == 'cancelled')
         table = entry['datasetID']
         schema = run('table-schema', book, table)
         run('table-edit-schema', book, table, schema['version'], schema['definitionID'],
@@ -267,8 +269,10 @@ def main():
         digest = sha256(sheets)
         book = root / 'Sheets.sevra'
         run('create', book, 'Synthetic sheets')
-        interrupted(book, ['import', book, sheets, '--role', 'values'], signal.SIGINT)
+        code, _, _, _ = interrupted(book, ['import', book, sheets, '--role', 'values'], signal.SIGINT)
         job = run('intake-status', book)['jobs'][0]
+        checked('the stop reached the workbook import before it finished',
+                code != 0 and job['state'] == 'cancelled')
         resumed = run('intake-resume', book, job['id'])
         tables = {entry['title'].rsplit(' ', 1)[-1]: entry for entry in saved(book)}
         checked('both worksheets finish exactly after a stop',

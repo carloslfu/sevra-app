@@ -251,8 +251,11 @@ def main():
                 process.send_signal(signal.SIGINT)
                 break
             time.sleep(0.01)
-        process.communicate(timeout=120)
+        _, stopped = process.communicate(timeout=120)
         job = run('intake-status', book)['jobs'][0]
+        checked('the stop reached the import before it finished',
+                process.returncode != 0 and json.loads(stopped)['error']['code'] == 'cancelled'
+                and job['state'] == 'cancelled')
         finished = run('intake-resume', book, job['id'])
         repeat = run('import', book, filled, '--role', 'values', '--token', 'one')
         lines = tables(book)['Lines']

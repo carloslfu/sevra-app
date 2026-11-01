@@ -34,11 +34,17 @@ with tempfile.TemporaryDirectory(prefix='sevra-persistence-') as directory:
     intake_seconds = time.monotonic() - started
     dataset = imported['intake']['datasetIDs'][0]
     assert run('tables', book)[0]['rowCount'] == options.rows
+    revision = run('inspect', book)['revision']
+    saved_commits = len(run('commits', book, 1000))
     def write(index):
         return run('add', book, json.dumps({'title': f'Writer {index}', 'text': 'Independent evidence', 'token': f'write-{index}', 'status': 'accepted'}))
     with ThreadPoolExecutor(max_workers=4) as pool:
         written = list(pool.map(write, range(12)))
     assert len({item['id'] for item in written}) == 12
+    # A reported write must be in the file the next process opens, once each.
+    assert [run('read', book, item['id'])['item']['title'] for item in written] == [f'Writer {index}' for index in range(12)]
+    assert run('inspect', book)['revision'] == revision + 12
+    assert len(run('commits', book, 1000)) == saved_commits + 12
     commits = run('commits', book, 20)
     assert len(commits) >= 12 and all(item['actor']['kind'] == 'programmatic' for item in commits)
     assert len({item['writerID'] for item in commits}) >= 12

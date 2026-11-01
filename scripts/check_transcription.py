@@ -35,7 +35,7 @@ def main():
     cli = parser.parse_args().cli
 
     def call(*args):
-        run = subprocess.run([cli, *args], capture_output=True, text=True)
+        run = subprocess.run([cli, *args], capture_output=True, text=True, timeout=300)
         assert run.returncode == 0, run.stdout + run.stderr
         return json.loads(run.stdout)['result']
 

@@ -88,7 +88,9 @@ def main():
         assert call('automation-causality', copy, run) == trace
         assert call('verify', copy)['ok']
         damaged = []
-        for damage in ['root-commit', 'representative', 'declaration', 'relation', 'lineage']:
+        refusals = {'root-commit': 'integrity', 'representative': 'causal_inputs', 'declaration': 'integrity',
+                    'relation': 'causal_integrity', 'lineage': 'causal_integrity'}
+        for damage, code in refusals.items():
             bad = folder / (damage + '.sevra')
             shutil.copytree(book, bad)
             with sqlite3.connect(bad / 'workbook.sqlite') as db:
@@ -98,7 +100,7 @@ def main():
                 elif damage == 'relation': db.execute('DELETE FROM automatic_independent_inputs WHERE run_id=?', [run])
                 else: db.execute('UPDATE lineage SET roles=2 WHERE child=(SELECT source_id FROM workflow_runs WHERE id=?) AND parent=?', [run, source])
             p = subprocess.run([str(cli), 'automation-causality', str(bad), run], capture_output=True, text=True, timeout=30)
-            assert p.returncode != 0 and not p.stdout and json.loads(p.stderr)['ok'] is False, (damage, p.stdout, p.stderr)
+            assert p.returncode != 0 and not p.stdout and json.loads(p.stderr)['error']['code'] == code, (damage, p.stdout, p.stderr)
             damaged.append({'damage': damage, 'returncode': p.returncode, 'stderr': p.stderr})
         deaths = []
         for stage in ['prepared', 'committed']:

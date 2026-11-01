@@ -12,6 +12,7 @@ jobs:
   native:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: macos-26
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - name: Select current Xcode
@@ -207,6 +208,19 @@ jobs:
           python3 scripts/check_workflow_intake.py --cli output/bin/sevra
           python3 scripts/check_workflow_lookup.py --cli output/bin/sevra
           python3 scripts/check_workflow_clarification.py --cli output/bin/sevra --worker .build/debug/sevra-workflow-durability
+          python3 scripts/check_application_actions.py --cli output/bin/sevra
+          python3 scripts/check_application_definitions.py --cli output/bin/sevra
+          python3 scripts/check_bulk_intake.py --cli output/bin/sevra
+          python3 scripts/check_contextual_intake.py --cli output/bin/sevra
+          python3 scripts/check_dataset_definitions.py --cli output/bin/sevra
+          python3 scripts/check_dataset_queries.py --cli output/bin/sevra
+          python3 scripts/check_extracted_references.py --cli output/bin/sevra
+          python3 scripts/check_managed_datasets.py --cli output/bin/sevra
+          python3 scripts/check_persistence.py --cli output/bin/sevra
+          python3 scripts/check_references.py --cli output/bin/sevra
+          python3 scripts/check_sheet_formulas.py --cli output/bin/sevra
+          python3 scripts/check_space_editing.py output/bin/sevra
+          python3 scripts/check_table_updates.py --cli output/bin/sevra
       - name: Build and check the isolated Splash preview
         env:
           SEVRA_BUILD_JOBS: 3
@@ -237,6 +251,19 @@ jobs:
           python3 scripts/check_workflow_intake.py --cli output/native/bin/sevra
           python3 scripts/check_workflow_lookup.py --cli output/native/bin/sevra
           python3 scripts/check_workflow_clarification.py --cli output/native/bin/sevra --worker .build/debug/sevra-workflow-durability --skip-crashes
+          python3 scripts/check_application_actions.py --cli output/native/bin/sevra
+          python3 scripts/check_application_definitions.py --cli output/native/bin/sevra
+          python3 scripts/check_bulk_intake.py --cli output/native/bin/sevra
+          python3 scripts/check_contextual_intake.py --cli output/native/bin/sevra
+          python3 scripts/check_dataset_definitions.py --cli output/native/bin/sevra
+          python3 scripts/check_dataset_queries.py --cli output/native/bin/sevra
+          python3 scripts/check_extracted_references.py --cli output/native/bin/sevra
+          python3 scripts/check_managed_datasets.py --cli output/native/bin/sevra
+          python3 scripts/check_persistence.py --cli output/native/bin/sevra
+          python3 scripts/check_references.py --cli output/native/bin/sevra
+          python3 scripts/check_sheet_formulas.py --cli output/native/bin/sevra
+          python3 scripts/check_space_editing.py output/native/bin/sevra
+          python3 scripts/check_table_updates.py --cli output/native/bin/sevra
           SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra-extraction-checks -j 3
           .build/native-product/release/sevra-extraction-checks
       - name: Retain automatic admission race evidence

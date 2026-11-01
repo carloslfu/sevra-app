@@ -106,7 +106,10 @@ def main():
             assert call('automation-causality', rebuilt, run) == origin
             assert counts(rebuilt) == counts(book)
             damaged = []
-            for damage in ['owner', 'candidate-state', 'observation', 'dispatch', 'binding']:
+            refusals = {'owner': 'condition_integrity', 'candidate-state': 'automation_integrity',
+                        'observation': 'condition_candidate', 'dispatch': 'automation_integrity',
+                        'binding': 'integrity'}
+            for damage, code in refusals.items():
                 bad = root / (damage + '.sevra')
                 shutil.copytree(book, bad)
                 with sqlite3.connect(bad / 'workbook.sqlite') as db:
@@ -121,6 +124,7 @@ def main():
                     else:
                         db.execute('DELETE FROM automation_runs WHERE run_id=?', [run])
                 reply = call('verify', bad, error=True)
+                assert reply['error']['code'] == code, (damage, reply)
                 damaged.append({'damage': damage, 'reply': reply})
             deaths = []
             for stage in ['prepared', 'committed']:

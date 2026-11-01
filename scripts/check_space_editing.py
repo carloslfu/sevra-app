@@ -13,7 +13,7 @@ with tempfile.TemporaryDirectory(prefix='sevra-layout-') as d:
  initial=next(s for s in run('spaces',b) if s['id']=='home')
  assert [x['id'] for x in initial['definition']['components']]==['input','reviews','shortcuts','tables','intake','recent']
  def write(n):
-  r=subprocess.run([cli,'space-edit',str(b),'home','1',json.dumps([{'operation':'rename','title':f'Writer {n}'}]),f'writer-{n}'],capture_output=True,text=True)
+  r=subprocess.run([cli,'space-edit',str(b),'home','1',json.dumps([{'operation':'rename','title':f'Writer {n}'}]),f'writer-{n}'],capture_output=True,text=True,timeout=60)
   return r
  with ThreadPoolExecutor(2) as pool:r=list(pool.map(write,range(2)))
  assert sum(x.returncode==0 for x in r)==1,[x.stdout+x.stderr for x in r]

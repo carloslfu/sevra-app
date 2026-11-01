@@ -19,7 +19,7 @@ with tempfile.TemporaryDirectory(prefix="sevra-history-cli-") as folder:
     root = Path(folder)
     workbook = root / "History.sevra"
     fixture = subprocess.run([str(args.checks.resolve()), "--history-fixture", str(workbook)],
-                             text=True, capture_output=True)
+                             text=True, capture_output=True, timeout=120)
     assert fixture.returncode == 0, fixture.stdout + fixture.stderr
     expected = json.loads(fixture.stdout)
     assert expected["integrity"]["ok"] and len(expected["ids"]) == 700
@@ -40,14 +40,14 @@ with tempfile.TemporaryDirectory(prefix="sevra-history-cli-") as folder:
                 for p in path.rglob("*") if p.is_file()}
 
     before = hashes(old)
-    refused = subprocess.run([str(CLI), "inspect", str(old)], text=True, capture_output=True)
+    refused = subprocess.run([str(CLI), "inspect", str(old)], text=True, capture_output=True, timeout=60)
     assert refused.returncode != 0, refused.stdout
     assert json.loads(refused.stderr)["error"]["code"] == "schema", refused.stderr
     assert hashes(old) == before, "Unsupported workbook was changed"
 
     def run(*args):
         result = subprocess.run([str(CLI), *map(str, args)], cwd=root,
-                                text=True, capture_output=True)
+                                text=True, capture_output=True, timeout=60)
         assert result.returncode == 0, result.stdout + result.stderr
         value = json.loads(result.stdout)
         assert value["ok"], value

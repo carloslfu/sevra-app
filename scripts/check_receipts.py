@@ -1,4 +1,5 @@
 """Packaged CLI reads the exact journal fixture produced through the Swift core."""
+import argparse
 import json
 import os
 from pathlib import Path
@@ -6,14 +7,18 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-CLI = ROOT / 'output/bin/sevra'
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--cli', type=Path, default=ROOT / 'output/bin/sevra')
+parser.add_argument('--checks', type=Path, default=ROOT / '.build/debug/sevra-checks')
+args = parser.parse_args()
+CLI = args.cli.resolve(strict=True)
 with tempfile.TemporaryDirectory(prefix='sevra-receipt-cli-') as directory:
     root = Path(directory)
     archive = root / 'Fixture.sevraz'
-    subprocess.run([str(ROOT / '.build/debug/sevra-checks')], check=True,
+    subprocess.run([str(args.checks.resolve(strict=True)), '--tool-receipts'], check=True, timeout=120,
                    env={**os.environ, 'SEVRA_RECEIPT_FIXTURE': str(archive)}, capture_output=True, text=True)
     def run(*args, success=True):
-        output = subprocess.run([str(CLI), *map(str, args)], capture_output=True, text=True)
+        output = subprocess.run([str(CLI), *map(str, args)], capture_output=True, text=True, timeout=120)
         assert (output.returncode == 0) == success, output.stderr + output.stdout
         value = json.loads(output.stdout if success else output.stderr)
         assert value['ok'] == success, value

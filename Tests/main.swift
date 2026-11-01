@@ -83,6 +83,11 @@ if (4...5).contains(CommandLine.arguments.count)
   }
   exit(0)
 }
+if CommandLine.arguments.dropFirst() == ["--tool-receipts"] {
+  checkToolReceipts(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.dropFirst() == ["--condition-dispatch"] {
   checkConditionDispatch(at: temp)
   print("\(passed) passed; \(failed) failed")
@@ -1216,14 +1221,51 @@ check("archive traversal entries cannot escape their destination") {
   let file = temp.appendingPathComponent("hostile.sevraz")
   let archive = try Archive(url: file, accessMode: .create)
   try archive.addEntry(
-    with: "../escaped.txt", type: .file, uncompressedSize: Int64(3),
+    with: "assets/../../escaped.txt", type: .file, uncompressedSize: Int64(3),
     provider: { _, _ in Data("bad".utf8) }
   )
-  try refuses {
+  try refuses("archive_path") {
     _ = try Workbook.openArchive(file, at: temp.appendingPathComponent("Hostile.sevra"))
   }
   try expect(
     !FileManager.default.fileExists(atPath: temp.appendingPathComponent("escaped.txt").path))
+}
+
+check("relinked bytes, an Office document type and a damaged archive member are refused") {
+  let original = temp.appendingPathComponent("linked-original.txt")
+  try Data("Original linked bytes".utf8).write(to: original)
+  let linked = try book.importFile(original, linked: true)
+  let changed = temp.appendingPathComponent("linked-changed.txt")
+  try Data("Changed linked bytes".utf8).write(to: changed)
+  try refuses("changed_asset") { try book.relinkAsset(linked.assetID!, to: changed) }
+  try book.relinkAsset(linked.assetID!, to: original)
+
+  let sheet = temp.appendingPathComponent("entity.xlsx")
+  let office = try Archive(url: sheet, accessMode: .create)
+  let declared = Data(#"<!DOCTYPE workbook [<!ENTITY x "y">]><workbook/>"#.utf8)
+  try office.addEntry(
+    with: "xl/workbook.xml", type: .file, uncompressedSize: Int64(declared.count),
+    provider: { position, count in declared.subdata(in: Int(position)..<Int(position) + count) })
+  try refuses("xlsx") { _ = try XLSX.read(sheet) }
+
+  // A .png member is stored uncompressed, so its bytes can be found and changed in the file.
+  let carrier = temp.appendingPathComponent("carrier.png")
+  let stored = Data("Bytes stored without compression".utf8)
+  try stored.write(to: carrier)
+  let holder = try Workbook.create(at: temp.appendingPathComponent("Held.sevra"), title: "Held")
+  _ = try holder.importFile(carrier)
+  let copy = temp.appendingPathComponent("Held.sevraz")
+  try holder.export(to: copy)
+  var damaged = try Data(contentsOf: copy)
+  damaged[damaged.firstRange(of: stored)!.lowerBound] ^= 0xFF
+  let hostile = temp.appendingPathComponent("Damaged.sevraz")
+  try damaged.write(to: hostile)
+  try refuses("archive_checksum") {
+    _ = try Workbook.openArchive(hostile, at: temp.appendingPathComponent("Damaged.sevra"))
+  }
+  try expect(
+    try Workbook.openArchive(copy, at: temp.appendingPathComponent("Whole.sevra")).verify()["ok"]
+      == .bool(true))
 }
 
 check("a ZIP is refused for what is wrong with it and an ordinary one still opens") {
