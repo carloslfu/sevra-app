@@ -21,10 +21,11 @@ extension Workbook {
     try require(
       !token.isEmpty && token.utf8.count <= 512, "business_input",
       "Use a nonempty observation token up to 512 UTF-8 bytes.")
-    let result = try mutation(
+    return try mutation(
       "business_observation", token: token,
       request: .object(["title": .string(title), "text": .string(text), "data": data]),
-      cancellation: cancellation
+      cancellation: cancellation,
+      reading: { try item($0.text) }
     ) {
       let source = try insertItem(
         category: "source", kind: "observation", title: title, text: text, data: data,
@@ -33,7 +34,6 @@ extension Workbook {
       try declareNewBusinessInput(source, kind: "observation")
       return .string(source)
     }
-    return try item(result.text)
   }
 
   /// The user's words as the host received them. A movement can rest on these alone, so
@@ -41,9 +41,10 @@ extension Workbook {
   package func captureUserRequest(
     _ text: String, data: Value, token: String, cancellation: Cancellation = .init()
   ) throws -> Item {
-    let result = try mutation(
+    return try mutation(
       "user_request", token: token, request: .object(["text": .string(text), "data": data]),
-      cancellation: cancellation
+      cancellation: cancellation,
+      reading: { try item($0.text) }
     ) {
       let source = try insertItem(
         category: "source", kind: "request", title: "User request", text: text, data: data,
@@ -52,7 +53,6 @@ extension Workbook {
       try declareNewBusinessInput(source, kind: "request")
       return .string(source)
     }
-    return try item(result.text)
   }
 
   func declareNewBusinessInput(_ id: String, kind: String) throws {

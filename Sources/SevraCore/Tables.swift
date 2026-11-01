@@ -250,19 +250,19 @@ extension Workbook {
       "columns", "Columns require unique identifiers.")
     let id = identifier()
     let columnsJSON = try encoded(columns).json()
-    let result = try mutation(
+    return try mutation(
       "dataset", token: token,
       request: .object([
         "title": .string(title), "source": .string(sourceID), "columns": .string(columnsJSON),
         "rows": .string(try Self.rowDigest(rows)),
-      ])
+      ]),
+      reading: { try dataset($0.text) }
     ) {
       try insertDataset(
         id: id, title: title, columns: columns, rows: rows, sourceID: sourceID, inputs: [sourceID],
         meaning: "actual")
       return .string(id)
     }
-    return try dataset(result.text)
   }
   func insertDataset(
     id: String, title: String, columns: [Column], rows: [[String: Value]], sourceID: String,
@@ -539,13 +539,15 @@ extension Workbook {
       "dataset": .string(datasetID), "edits": try encoded(edits),
       "expectedRevision": expectedRevision.map { .number(Double($0)) } ?? .null,
     ])
-    let result = try mutation(
-      "edit_rows", token: token, request: request, expected: expectedRevision, actor: actor
+    return try mutation(
+      "edit_rows", token: token, request: request, expected: expectedRevision, actor: actor,
+      reading: { result in
+        TableEdit(
+          id: result["id"].text, items: try result["items"].array.map { try item($0.text) })
+      }
     ) {
       try applyRows(datasetID, edits: edits, request: request)
     }
-    return TableEdit(
-      id: result["id"].text, items: try result["items"].array.map { try item($0.text) })
   }
   func applyRows(_ datasetID: String, edits: [RowEdit], request: Value, proposalID: String? = nil)
     throws -> Value
@@ -666,9 +668,10 @@ extension Workbook {
     actor: ChangeActor = .programmatic("SevraCore.undo")
   ) throws -> Item {
     // Undo of a reviewed update puts back as many rows as accepting it replaced.
-    let result = try mutation(
+    return try mutation(
       "undo", token: token, request: .string(id), cancellation: cancellation, actor: actor,
-      deadlineSeconds: 30
+      deadlineSeconds: 30,
+      reading: { try item($0.text) }
     ) {
       try validateDecisionActor(actor)
       let current = try item(id)
@@ -746,7 +749,6 @@ extension Workbook {
         [.string(restored), .string(old.id)])
       return .string(restored)
     }
-    return try item(result.text)
   }
   public func setColumns(
     _ id: String, columns: [Column], expectedVersion: Int? = nil,
@@ -757,7 +759,9 @@ extension Workbook {
       id, expectedVersion: expectedVersion ?? base.version,
       expectedDefinitionID: base.id, columns: columns, actor: actor)
   }
-  public func exportCSV(_ id: String, to destination: URL) throws {
+  public func exportCSV(_ id: String, to destination: URL, cancellation: Cancellation = .init())
+    throws
+  {
     let fm = FileManager.default
     try require(
       !fm.fileExists(atPath: destination.path), "exists", "Export destination already exists.")
@@ -771,7 +775,8 @@ extension Workbook {
       try? fm.removeItem(at: stage)
     }
     try synchronized {
-      try db.backup(to: snapshotURL.appendingPathComponent("workbook.sqlite"))
+      try db.backup(
+        to: snapshotURL.appendingPathComponent("workbook.sqlite"), cancellation: cancellation)
       try fm.copyItem(
         at: url.appendingPathComponent("manifest.json"),
         to: snapshotURL.appendingPathComponent("manifest.json"))
@@ -784,6 +789,7 @@ extension Workbook {
     try file.write(contentsOf: Data(CSV.encode([table.columns.map(\.title)]).utf8))
     var offset = 0
     while true {
+      try cancellation.check()
       let batch = try snapshot.rows(id, offset: offset, limit: 1000)
       if batch.isEmpty { break }
       try autoreleasepool {

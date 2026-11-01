@@ -191,7 +191,8 @@ extension Workbook {
         _ = try failWorkflowStep(session, claim: claim, detail: detail)
         return
       } catch let failure as SevraError
-        where failure.code == "database" && ProcessInfo.processInfo.systemUptime < giveUp
+        where ["database", "workbook_busy"].contains(failure.code)
+          && ProcessInfo.processInfo.systemUptime < giveUp
       {
         Thread.sleep(forTimeInterval: 0.1)
       } catch { return }

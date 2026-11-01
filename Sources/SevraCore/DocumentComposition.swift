@@ -244,9 +244,10 @@ extension Workbook {
       "inputs": .array(inputs.map(Value.string)),
       "runID": .string(runID), "conversation": .string(conversation),
     ])
-    let result = try mutation(
+    return try mutation(
       "composed_document", token: token, request: request, expected: expectedRevision,
-      cancellation: cancellation
+      cancellation: cancellation,
+      reading: { try item($0.text) }
     ) {
       try require(
         try db.scalar(
@@ -296,7 +297,6 @@ extension Workbook {
           ]), meaning: "estimate", status: "draft", scenario: "actual",
           inputs: lineage.sorted(), transformation: "source-bound-document-v1; run=" + runID))
     }
-    return try item(result.text)
   }
 
   /// Acceptance, withdrawal and Undo preserve the same composition metadata.

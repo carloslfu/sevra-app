@@ -263,8 +263,8 @@ extension Workbook {
       ).map(Value.object)
     }
   }
-  public func rebuildSearch() throws {
-    _ = try mutation("rebuild_search") {
+  public func rebuildSearch(cancellation: Cancellation = .init()) throws {
+    _ = try mutation("rebuild_search", cancellation: cancellation, deadlineSeconds: .infinity) {
       try db.execute(
         "UPDATE chunks SET is_current=EXISTS(SELECT 1 FROM heads h WHERE h.item_id=chunks.item_id)")
       try db.execute("INSERT INTO search_fts(search_fts) VALUES('rebuild')")

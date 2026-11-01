@@ -119,7 +119,8 @@ package enum WorkflowCoordinator {
           let beat = try workbook.heartbeatWorkflowStep(session, claim: claim)
           leaseEnd = Double(beat["deadline"].text) ?? leaseEnd
         } catch let error as SevraError
-          where error.code == "database" && Date().timeIntervalSince1970 < leaseEnd
+          where ["database", "workbook_busy"].contains(error.code)
+            && Date().timeIntervalSince1970 < leaseEnd
         {
           // Another process held the file for a moment. The lease still stands, so beat again.
           continue

@@ -145,6 +145,8 @@ final class Database {
       }, Unmanaged.passUnretained(control).toOpaque())
   }
   func failure() -> SevraError { .init("database", String(cString: sqlite3_errmsg(handle))) }
+  /// Whether the last statement failed only because another connection holds the file.
+  var isBusy: Bool { sqlite3_errcode(handle) & 0xFF == SQLITE_BUSY }
   func shortWait<T>(_ body: () throws -> T) rethrows -> T {
     sqlite3_busy_timeout(handle, 100)
     defer { sqlite3_busy_timeout(handle, 5000) }

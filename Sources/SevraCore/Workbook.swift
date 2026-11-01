@@ -37,7 +37,10 @@ public final class Workbook: @unchecked Sendable {
       throw error
     }
   }
-  public init(_ url: URL) throws {
+  public init(
+    _ url: URL, cancellation: Cancellation = .init(),
+    busyWaitSeconds: TimeInterval = Workbook.busyWaitSeconds
+  ) throws {
     self.url = url.standardizedFileURL
     let manifestURL = url.appendingPathComponent("manifest.json")
     for name in [
@@ -62,12 +65,21 @@ public final class Workbook: @unchecked Sendable {
     id = m["id"].text
     title = m["title"].text
     db = try Database(url.appendingPathComponent("workbook.sqlite"))
+    let giveUp = ProcessInfo.processInfo.systemUptime + busyWaitSeconds
+    // Read before making the lock file, so a workbook in another format stays untouched.
+    var header: (application: Int?, version: Int?)?
+    while header == nil {
+      do {
+        header = try db.shortWait {
+          (try db.scalar("PRAGMA application_id").int, try db.scalar("PRAGMA user_version").int)
+        }
+      } catch where db.isBusy {
+        try Self.keepWaiting(until: giveUp, cancellation)
+      }
+    }
+    try require(header?.application == Schema.applicationID, "format", "This is not a Sevra workbook.")
     try require(
-      try db.scalar("PRAGMA application_id").int == Schema.applicationID, "format",
-      "This is not a Sevra workbook.")
-    let incomingVersion = try db.scalar("PRAGMA user_version").int
-    try require(
-      incomingVersion == Schema.version, "schema",
+      header?.version == Schema.version, "schema",
       "This development workbook uses an unsupported format. Its files were not changed. Use a matching development build to recover or export it."
     )
     let descriptor = Darwin.open(
@@ -79,7 +91,7 @@ public final class Workbook: @unchecked Sendable {
       flock(descriptor, LOCK_UN)
       if !opened { Darwin.close(descriptor) }
     }
-    try require(flock(descriptor, LOCK_EX) == 0, "lock", "Cannot lock the workbook for opening.")
+    try Self.lockPackage(descriptor, cancellation: cancellation, until: giveUp)
     try validateSchema()
     try db.enableChangeCapture(workbookID: id)
     lockFD = descriptor
@@ -104,6 +116,27 @@ public final class Workbook: @unchecked Sendable {
     }
   }
   deinit { if lockFD >= 0 { Darwin.close(lockFD) } }
+  /// Sized to the 30-second budget of the longest bounded write.
+  public static let busyWaitSeconds: TimeInterval = 30
+  /// Polls rather than sleeping inside flock, so another process's hold costs at most the
+  /// wait and a Stop still lands. The caller releases the lock.
+  private static func lockPackage(
+    _ descriptor: Int32, cancellation: Cancellation?,
+    until giveUp: TimeInterval = ProcessInfo.processInfo.systemUptime + busyWaitSeconds
+  ) throws {
+    while flock(descriptor, LOCK_EX | LOCK_NB) != 0 {
+      try require(errno == EWOULDBLOCK || errno == EAGAIN, "lock", "Cannot lock workbook.")
+      try keepWaiting(until: giveUp, cancellation)
+      Thread.sleep(forTimeInterval: 0.01)
+    }
+  }
+  private static func keepWaiting(until giveUp: TimeInterval, _ cancellation: Cancellation?) throws
+  {
+    try cancellation?.check()
+    try require(
+      ProcessInfo.processInfo.systemUptime < giveUp, "workbook_busy",
+      "Another process is using this workbook. Try again when it finishes.")
+  }
   public func revision() throws -> Int {
     try synchronized { try db.scalar("SELECT value FROM meta WHERE key='revision'").int ?? 0 }
   }
@@ -121,11 +154,26 @@ public final class Workbook: @unchecked Sendable {
     try cancellation.check()
     return try body()
   }
+  /// A mutation that answers with something read from what it saved. The read runs before
+  /// COMMIT: past that point the change is final, and a busy file must not report it as failed.
+  func mutation<T>(
+    _ kind: String, token: String = identifier(), request: Value = .null, expected: Int? = nil,
+    cancellation: Cancellation? = nil, actor: ChangeActor? = nil,
+    deadlineSeconds: TimeInterval = 3, commitGuard: (() throws -> Void)? = nil,
+    reading read: (Value) throws -> T, _ body: () throws -> Value
+  ) throws -> T {
+    var answer: T?
+    try mutation(
+      kind, token: token, request: request, expected: expected, cancellation: cancellation,
+      actor: actor, deadlineSeconds: deadlineSeconds, commitGuard: commitGuard,
+      readBack: { answer = try read($0) }, body)
+    return answer!
+  }
   @discardableResult func mutation(
     _ kind: String, token: String = identifier(), request: Value = .null, expected: Int? = nil,
     cancellation: Cancellation? = nil, actor: ChangeActor? = nil,
     deadlineSeconds: TimeInterval = 3, commitGuard: (() throws -> Void)? = nil,
-    _ body: () throws -> Value
+    readBack: (Value) throws -> Void = { _ in }, _ body: () throws -> Value
   ) throws -> Value {
     // The token becomes the saved change's identity, which verification requires.
     try require(!token.isEmpty, "operation_token", "An operation needs a nonempty token.")
@@ -145,7 +193,9 @@ public final class Workbook: @unchecked Sendable {
             prior["request"]?.text == receiptRequest.json() && prior["kind"]?.text == kind,
             "idempotency",
             "The operation identifier was reused with different arguments.")
-          return try Value.parse(prior["result"]!.text)
+          let replayed = try Value.parse(prior["result"]!.text)
+          try readBack(replayed)
+          return replayed
         }
         let rev = try revision()
         if let expected {
@@ -163,16 +213,13 @@ public final class Workbook: @unchecked Sendable {
             .string(try result.json()),
             .string(timestamp()), .number(Double(rev + 1)),
           ])
+        try readBack(result)
         return result
       }
     }
     if let cancellation {
       return try synchronized(cancellation: cancellation) {
-        while flock(lockFD, LOCK_EX | LOCK_NB) != 0 {
-          try require(errno == EWOULDBLOCK || errno == EAGAIN, "lock", "Cannot lock workbook.")
-          try cancellation.check()
-          Thread.sleep(forTimeInterval: 0.01)
-        }
+        try Self.lockPackage(lockFD, cancellation: cancellation)
         defer { flock(lockFD, LOCK_UN) }
         return try db.shortWait {
           try db.budget(cancellation: cancellation, seconds: deadlineSeconds) { try transaction() }
@@ -180,9 +227,16 @@ public final class Workbook: @unchecked Sendable {
       }
     }
     return try synchronized {
-      guard flock(lockFD, LOCK_EX) == 0 else { throw SevraError("lock", "Cannot lock workbook.") }
+      try Self.lockPackage(lockFD, cancellation: nil)
       defer { flock(lockFD, LOCK_UN) }
       return try transaction()
+    }
+  }
+  func excludingWriters<T>(cancellation: Cancellation, _ body: () throws -> T) throws -> T {
+    try synchronized(cancellation: cancellation) {
+      try Self.lockPackage(lockFD, cancellation: cancellation)
+      defer { flock(lockFD, LOCK_UN) }
+      return try body()
     }
   }
   /// Small UI-state writes share the package lock, but do not journal keystrokes
@@ -191,11 +245,7 @@ public final class Workbook: @unchecked Sendable {
   func presentationMutation<T>(_ body: () throws -> T) throws -> T {
     let control = Cancellation(deadlineAfterSeconds: 3)
     return try synchronized(cancellation: control) {
-      while flock(lockFD, LOCK_EX | LOCK_NB) != 0 {
-        try require(errno == EWOULDBLOCK || errno == EAGAIN, "lock", "Cannot lock workbook.")
-        try control.check()
-        Thread.sleep(forTimeInterval: 0.01)
-      }
+      try Self.lockPackage(lockFD, cancellation: control)
       defer { flock(lockFD, LOCK_UN) }
       return try db.shortWait {
         try db.budget(cancellation: control, seconds: 3) { try db.transaction(body) }
@@ -207,11 +257,7 @@ public final class Workbook: @unchecked Sendable {
   func localProjectionMutation<T>(cancellation: Cancellation, _ body: () throws -> T) throws -> T {
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
     return try synchronized(cancellation: control) {
-      while flock(lockFD, LOCK_EX | LOCK_NB) != 0 {
-        try require(errno == EWOULDBLOCK || errno == EAGAIN, "lock", "Cannot lock workbook.")
-        try control.check()
-        Thread.sleep(forTimeInterval: 0.01)
-      }
+      try Self.lockPackage(lockFD, cancellation: control)
       defer { flock(lockFD, LOCK_UN) }
       return try db.shortWait {
         try db.budget(cancellation: control, seconds: 3) { try db.transaction(body) }
@@ -329,8 +375,9 @@ public final class Workbook: @unchecked Sendable {
       "supersedes": supersedes.map(Value.string) ?? .null,
     ]
     if let references { fields["references"] = try Self.referenceSelectionsValue(references) }
-    let result = try mutation(
-      "item", token: token, request: .object(fields), expected: expectedRevision
+    return try mutation(
+      "item", token: token, request: .object(fields), expected: expectedRevision,
+      reading: { try item($0.text) }
     ) {
       let saved = try insertItem(
         category: category, kind: kind, title: title, text: text, data: data, meaning: meaning,
@@ -341,7 +388,6 @@ public final class Workbook: @unchecked Sendable {
       }
       return .string(saved)
     }
-    return try item(result.text)
   }
   func insertItem(
     category: String, kind: String, title: String, text: String, data: Value, meaning: String,

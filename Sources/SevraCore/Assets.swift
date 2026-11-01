@@ -77,13 +77,14 @@ extension Workbook {
     let media =
       UTType(filenameExtension: source.pathExtension)?.preferredMIMEType
       ?? "application/octet-stream"
-    let result = try mutation(
+    return try mutation(
       "import", token: token,
       request: .object([
         "hash": .string(hash), "linked": .bool(linked), "name": .string(source.lastPathComponent),
         "origin": origin.map(Value.string) ?? .null, "inputs": .array(inputs.map(Value.string)),
         "independentInput": .bool(independentInput),
-      ])
+      ]),
+      reading: { try item($0.text) }
     ) {
       try cancellation.check()
       if !linked {
@@ -126,7 +127,6 @@ extension Workbook {
         ])
       return .string(id)
     }
-    return try item(result.text)
   }
   /// fsync stops at the drive's cache. A volume that refuses the full flush offers no more
   /// than fsync.
@@ -252,48 +252,56 @@ extension Workbook {
     try cancellation.check()
     return sha.finalize().map { String(format: "%02x", $0) }.joined()
   }
-  public func verify() throws -> Value {
-    try synchronized {
-      try db.readTransaction {
-        let check = try db.scalar("PRAGMA integrity_check").text
-        try require(check == "ok", "integrity", check)
-        try require(
-          try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
-          "Invalid workbook references.")
-        try db.verifyBusinessEvents()
-        var missing: [Value] = []
-        for row in try db.execute("SELECT id,name FROM assets") {
-          do { _ = try assetURL(row["id"]!.text, verify: true) } catch {
-            missing.append(
-              .object(["name": row["name"]!, "error": .string(error.localizedDescription)]))
-          }
-        }
-        try db.execute("INSERT INTO search_fts(search_fts,rank) VALUES('integrity-check',1)")
-        try db.execute("INSERT INTO names_fts(names_fts,rank) VALUES('integrity-check',1)")
-        try db.execute("INSERT INTO message_fts(message_fts,rank) VALUES('integrity-check',1)")
-        try db.execute(
-          "INSERT INTO definition_fts(definition_fts,rank) VALUES('integrity-check',1)")
-        try verifyManagedDatasets()
-        try verifyApplicationDefinitions()
-        try verifyWorkflows()
-        try verifyAutomationPlanning()
-        try verifyConditionInputStorage()
-        try verifyItemDerivations()
-        try verifyBusinessInputDeclarations()
-        try verifyFormDrafts()
-        try verifyTableUpdateDrafts()
-        try verifySheetFormulaPlans()
-        try verifyWorkflowClarificationDrafts()
-        try verifySpaces()
-        try verifyContextCheckpoints()
-        try verifyToolCalls()
-        try verifyDocumentCompositions()
-        try verifyReferences()
-        try verifyFileReferences()
-        return .object([
-          "database": .string("ok"), "assetIssues": .array(missing), "ok": .bool(missing.isEmpty),
-        ])
+  public func verify(cancellation: Cancellation = .init(), assets: Bool = true) throws -> Value {
+    // The search checks need SQLite's write lock, which it will not wait for from inside a
+    // read, so writers stay out until verification ends.
+    try excludingWriters(cancellation: cancellation) {
+      try db.budget(cancellation: cancellation, seconds: .infinity) {
+        try db.readTransaction { try verifiedContents(assets: assets, cancellation: cancellation) }
       }
     }
+  }
+  private func verifiedContents(assets: Bool, cancellation: Cancellation) throws -> Value {
+    let check = try db.scalar("PRAGMA integrity_check").text
+    try require(check == "ok", "integrity", check)
+    try require(
+      try db.execute("PRAGMA foreign_key_check").isEmpty, "integrity",
+      "Invalid workbook references.")
+    try db.verifyBusinessEvents()
+    var missing: [Value] = []
+    for row in assets ? try db.execute("SELECT id,name FROM assets") : [] {
+      do {
+        _ = try assetURL(row["id"]!.text, verify: true, cancellation: cancellation)
+      } catch {
+        try cancellation.check()
+        missing.append(
+          .object(["name": row["name"]!, "error": .string(error.localizedDescription)]))
+      }
+    }
+    try db.execute("INSERT INTO search_fts(search_fts,rank) VALUES('integrity-check',1)")
+    try db.execute("INSERT INTO names_fts(names_fts,rank) VALUES('integrity-check',1)")
+    try db.execute("INSERT INTO message_fts(message_fts,rank) VALUES('integrity-check',1)")
+    try db.execute(
+      "INSERT INTO definition_fts(definition_fts,rank) VALUES('integrity-check',1)")
+    try verifyManagedDatasets()
+    try verifyApplicationDefinitions()
+    try verifyWorkflows()
+    try verifyAutomationPlanning()
+    try verifyConditionInputStorage()
+    try verifyItemDerivations()
+    try verifyBusinessInputDeclarations()
+    try verifyFormDrafts()
+    try verifyTableUpdateDrafts()
+    try verifySheetFormulaPlans()
+    try verifyWorkflowClarificationDrafts()
+    try verifySpaces()
+    try verifyContextCheckpoints()
+    try verifyToolCalls()
+    try verifyDocumentCompositions()
+    try verifyReferences()
+    try verifyFileReferences()
+    return .object([
+      "database": .string("ok"), "assetIssues": .array(missing), "ok": .bool(missing.isEmpty),
+    ])
   }
 }

@@ -44,9 +44,10 @@ extension Workbook {
     try require(
       plan.preview.added + plan.preview.changed + plan.preview.removed > 0,
       "update_unchanged", "The reviewed input makes no working changes.")
-    let result = try mutation(
+    return try mutation(
       "propose_table_update", token: token, request: request,
-      expected: expectedRevision, cancellation: cancellation
+      expected: expectedRevision, cancellation: cancellation,
+      reading: { try item($0.text) }
     ) {
       try require(
         try tableFingerprint(datasetID) == expectedFingerprint, "stale_revision",
@@ -76,7 +77,6 @@ extension Workbook {
       }
       return .string(proposal)
     }
-    return try item(result.text)
   }
 
   /// Shared insertion body. The caller owns the transaction, exact retry receipt

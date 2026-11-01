@@ -64,9 +64,10 @@ extension Workbook {
       "requestRunID": requestRunID.map(Value.string) ?? .null,
       "requestSourceID": requestSourceID.map(Value.string) ?? .null,
     ])
-    let result = try mutation(
+    return try mutation(
       "save_application_definition", token: token, request: request,
-      cancellation: cancellation, actor: actual
+      cancellation: cancellation, actor: actual,
+      reading: { try applicationDefinition($0.text) }
     ) {
       if let requestRunID {
         try validateApplicationToolRun(requestRunID, requestSourceID: requestSourceID)
@@ -168,7 +169,6 @@ extension Workbook {
       try sealNewDefinitionDerivation(source)
       return .string(id)
     }
-    return try applicationDefinition(result.text)
   }
 
   @discardableResult public func restoreApplicationDefinition(

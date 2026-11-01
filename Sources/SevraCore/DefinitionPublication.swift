@@ -30,9 +30,10 @@ extension Workbook {
       try request.json().utf8.count <= 1_048_576, "definition_limit",
       "Result publication request exceeds 1 MiB. Select a smaller result.")
     let control = Cancellation(parent: cancellation, deadlineAfterSeconds: 3)
-    let saved = try mutation(
+    return try mutation(
       "publish_application_result", token: token, request: request, cancellation: control,
-      actor: actual
+      actor: actual,
+      reading: { try item($0.text) }
     ) {
       if let requestRunID {
         try validateApplicationToolRun(requestRunID, requestSourceID: requestSourceID)
@@ -119,7 +120,6 @@ extension Workbook {
       try control.check()
       return .string(result)
     }
-    return try item(saved.text)
   }
 
   /// Deterministic reading/search text complements typed retained values. Query

@@ -84,11 +84,12 @@ extension Workbook {
       "columns": try columns.map { try encoded($0) } ?? .null,
       "archived": archived.map(Value.bool) ?? .null,
     ])
-    let result = try mutation(
+    return try mutation(
       "dataset_definition", token: token, request: request,
       cancellation: cancellation,
       actor: actor ?? ChangeAttribution.actor ?? .programmatic("SevraCore.datasetDefinition"),
-      deadlineSeconds: 30
+      deadlineSeconds: 30,
+      reading: { try savedDatasetDefinition(id, definitionID: $0.text) }
     ) {
       try checkDatasetBase(id, version: expectedVersion, definitionID: expectedDefinitionID)
       return .string(
@@ -96,7 +97,6 @@ extension Workbook {
           id, title: title, columns: columns,
           archived: archived, request: request, cancellation: cancellation))
     }
-    return try synchronized { try savedDatasetDefinition(id, definitionID: result.text) }
   }
   @discardableResult public func restoreDatasetDefinition(
     _ id: String, definitionID: String, expectedVersion: Int, expectedDefinitionID: String,
@@ -107,11 +107,12 @@ extension Workbook {
       "baseVersion": .number(Double(expectedVersion)),
       "baseDefinitionID": .string(expectedDefinitionID),
     ])
-    let result = try mutation(
+    return try mutation(
       "restore_dataset_definition", token: token, request: request,
       cancellation: cancellation,
       actor: actor ?? ChangeAttribution.actor ?? .programmatic("SevraCore.datasetDefinition"),
-      deadlineSeconds: 30
+      deadlineSeconds: 30,
+      reading: { try savedDatasetDefinition(id, definitionID: $0.text) }
     ) {
       try checkDatasetBase(id, version: expectedVersion, definitionID: expectedDefinitionID)
       let saved = try savedDatasetDefinition(id, definitionID: definitionID)
@@ -121,7 +122,6 @@ extension Workbook {
           archived: saved.archived, request: request, cancellation: cancellation,
           restoring: saved.id))
     }
-    return try synchronized { try savedDatasetDefinition(id, definitionID: result.text) }
   }
   func checkDatasetBase(_ id: String, version: Int, definitionID: String) throws {
     let current = try datasetDefinition(id)

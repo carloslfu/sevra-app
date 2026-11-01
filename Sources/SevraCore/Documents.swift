@@ -16,9 +16,10 @@ extension Workbook {
       "version": .string(versionID), "text": .string(text), "separate": .bool(separate),
     ]
     if let references { fields["references"] = try Self.referenceSelectionsValue(references) }
-    let result = try mutation(
+    return try mutation(
       "document_edit", token: token, request: .object(fields), expected: expectedRevision,
-      cancellation: cancellation
+      cancellation: cancellation,
+      reading: { try item($0.text) }
     ) {
       try cancellation.check()
       let original = try item(versionID)
@@ -68,7 +69,6 @@ extension Workbook {
       try cancellation.check()
       return .string(draft)
     }
-    return try item(result.text)
   }
 
   private static func documentCopyTitle(_ original: String) -> String {

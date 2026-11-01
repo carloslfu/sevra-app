@@ -15,8 +15,9 @@ extension Workbook {
       "selections": try Self.referenceSelectionsValue(selections),
       "expectedSnapshotID": expectedSnapshotID.map(Value.string) ?? .null,
     ])
-    let result = try mutation(
-      "reference_annotation", token: token, request: request, cancellation: cancellation
+    return try mutation(
+      "reference_annotation", token: token, request: request, cancellation: cancellation,
+      reading: { try referenceSnapshot(originVersionID, snapshotID: $0.text) }
     ) {
       try exactReferenceOrigin(originVersionID)
       try require(
@@ -32,8 +33,6 @@ extension Workbook {
       return .string(
         try writeReferenceSelections(originVersionID, selections: selections, previous: current))
     }
-    // Saved by now, so a late Stop must not read as a failed save.
-    return try referenceSnapshot(originVersionID, snapshotID: result.text)
   }
 
   func publishInitialReferences(

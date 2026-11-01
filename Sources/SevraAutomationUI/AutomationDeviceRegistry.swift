@@ -179,7 +179,7 @@ public final class AutomationDeviceRegistry: @unchecked Sendable {
   {
     try validate(grant, cancellation: cancellation)
     let url = try resolvedURL(grant)
-    let book = try Workbook(url)
+    let book = try Workbook(url, cancellation: cancellation)
     try require(book.id == grant.workbookID, "automation_file", "The workbook identity changed.")
     let session = try book.restoreDeviceAutomationExecution(
       activationID: grant.activationID, definitionID: grant.definitionID,

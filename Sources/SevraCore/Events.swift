@@ -98,10 +98,10 @@ extension Workbook {
       subject: subject, quantity: quantity, occurrence: occurrence, effective: effective,
       input: input, meaning: meaning, status: status, supersedes: supersedes,
       requestSourceID: requestSourceID)
-    let result = try mutation(
-      "movement", token: token, request: request, cancellation: cancellation, actor: actor
+    return try mutation(
+      "movement", token: token, request: request, cancellation: cancellation, actor: actor,
+      reading: { try item($0.text) }
     ) { .string(try self.insertMovement(request)) }
-    return try item(result.text)
   }
 
   func movementRequest(
@@ -215,9 +215,10 @@ extension Workbook {
     actor: ChangeActor = .programmatic("SevraCore.accept")
   ) throws -> Item {
     // Accepting a reviewed update rewrites up to 10,000 rows in one change.
-    let result = try mutation(
+    let accepted = try mutation(
       "accept", token: token, request: .string(id), cancellation: cancellation, actor: actor,
-      deadlineSeconds: 30
+      deadlineSeconds: 30,
+      reading: { try item($0.text) }
     ) {
       try validateDecisionActor(actor)
       let old = try item(id)
@@ -280,7 +281,6 @@ extension Workbook {
       }
       return .string(newID)
     }
-    let accepted = try item(result.text)
     if accepted.kind == "table-intake-update", let runID = accepted.data["workflow"]["runID"].string
     {
       WorkflowPublicationProbe.observer?(.committed, runID)

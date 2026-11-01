@@ -205,12 +205,13 @@ extension Workbook {
       "At most 128 extracted references can be selected.")
     for entry in selections { _ = try Self.referenceSelectionsValue([entry.selection]) }
     let request = try JSONDecoder().decode(Value.self, from: JSONEncoder().encode(selections))
-    let result = try mutation(
+    return try mutation(
       "file_reference_annotation", token: token,
       request: .object([
         "origin": .string(originVersionID), "expectedSnapshotID": .string(expectedSnapshotID),
         "selections": request,
-      ]), cancellation: cancellation
+      ]), cancellation: cancellation,
+      reading: { try fileReferenceSnapshot(originVersionID, snapshotID: $0.text) }
     ) {
       try require(
         try db.scalar("SELECT category FROM items WHERE id=?", [.string(originVersionID)]).text
@@ -249,7 +250,5 @@ extension Workbook {
           detail: "Explicit choices in retained extracted text. Other mentions may exist.",
           inherited: nil))
     }
-    // Saved by now, so a late Stop must not read as a failed save.
-    return try fileReferenceSnapshot(originVersionID, snapshotID: result.text)
   }
 }

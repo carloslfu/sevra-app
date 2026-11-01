@@ -259,6 +259,49 @@ func checkPersistence(at root: URL) {
     }
     try expect(ProcessInfo.processInfo.systemUptime - started < 5)
   }
+  check("a held workbook refuses at its deadline, a Stop ends the wait and a release lets it in") {
+    let book = try Workbook.create(at: root.appendingPathComponent("Held.sevra"), title: "Held")
+    let lock = open(book.url.appendingPathComponent(".write-lock").path, O_RDWR)
+    try expect(lock >= 0 && flock(lock, LOCK_EX | LOCK_NB) == 0)
+    defer { close(lock) }
+    let started = ProcessInfo.processInfo.systemUptime
+    try refuses("workbook_busy") { _ = try Workbook(book.url, busyWaitSeconds: 0.05) }
+    let stopped = Cancellation()
+    stopped.cancel()
+    try refuses("cancelled") { _ = try Workbook(book.url, cancellation: stopped) }
+    try refuses("cancelled") { _ = try book.verify(cancellation: stopped) }
+    // A writer inside its commit stops even the header read, and that is the same busy file.
+    let writer = try Database(book.url.appendingPathComponent("workbook.sqlite"))
+    try writer.execute("BEGIN EXCLUSIVE")
+    try refuses("workbook_busy") { _ = try Workbook(book.url, busyWaitSeconds: 0.05) }
+    try writer.execute("ROLLBACK")
+    try expect(ProcessInfo.processInfo.systemUptime - started < 2)
+    flock(lock, LOCK_UN)
+    try expect(try Workbook(book.url).verify()["ok"] == .bool(true))
+  }
+  check("a save stays a save when another process takes the file as COMMIT ends") {
+    let book = try Workbook.create(at: root.appendingPathComponent("Taken.sevra"), title: "Taken")
+    try expect(try book.db.scalar("PRAGMA fullfsync").int == 1)
+    let other = try Database(book.url.appendingPathComponent("workbook.sqlite"))
+    sqlite3_trace_v2(
+      book.db.handle, UInt32(SQLITE_TRACE_PROFILE),
+      { _, context, statement, _ in
+        if let statement, String(cString: sqlite3_sql(OpaquePointer(statement))) == "COMMIT" {
+          try? Unmanaged<Database>.fromOpaque(context!).takeUnretainedValue()
+            .execute("BEGIN EXCLUSIVE")
+        }
+        return 0
+      }, Unmanaged.passUnretained(other).toOpaque())
+    defer { sqlite3_trace_v2(book.db.handle, 0, nil, nil) }
+    // The first call saves and the second replays, and each answers without reading after COMMIT.
+    for _ in 0..<2 {
+      let saved = try book.addItem(
+        category: "source", kind: "note", title: "Saved", token: "taken-after-commit")
+      try other.execute("ROLLBACK")
+      try expect(saved.title == "Saved")
+    }
+    try expect(try book.counts()["sources"].int == 1)
+  }
   check("saved SQLite values keep large integers, exact UTF-8, empty blobs and IEEE-754 bits") {
     let database = try Database(root.appendingPathComponent("Typed.sqlite"), create: true)
     try database.script("CREATE TABLE values_fixture(a,b,c,d,e);")

@@ -78,11 +78,12 @@ extension Workbook {
   public func beginIntake(
     sourceID: String, role: IntakeRole? = nil, token: String = UUID().uuidString
   ) throws -> IntakeJob {
-    _ = try mutation(
+    return try mutation(
       "intake_begin", token: token,
       request: .object([
         "source": .string(sourceID), "role": role.map { .string($0.rawValue) } ?? .null,
-      ])
+      ]),
+      reading: { _ in try intakeJob(token) }
     ) {
       let source = try item(sourceID)
       try require(
@@ -98,7 +99,6 @@ extension Workbook {
         ])
       return .string(token)
     }
-    return try intakeJob(token)
   }
 
   public func intakeJob(_ id: String) throws -> IntakeJob {
@@ -134,9 +134,10 @@ extension Workbook {
   public func chooseIntakeRole(
     _ id: String, role: IntakeRole, token: String = UUID().uuidString
   ) throws -> IntakeJob {
-    _ = try mutation(
+    return try mutation(
       "intake_role", token: token,
-      request: .object(["id": .string(id), "role": .string(role.rawValue)])
+      request: .object(["id": .string(id), "role": .string(role.rawValue)]),
+      reading: { _ in try intakeJob(id) }
     ) {
       let job = try intakeJob(id)
       // A worker still reading is fenced out below, and one that was killed never reports back.
@@ -151,7 +152,6 @@ extension Workbook {
         ])
       return .string(id)
     }
-    return try intakeJob(id)
   }
 
   /// No workbook lock is held during file extraction/inspection. Attempt fencing prevents a

@@ -796,7 +796,9 @@ struct DatasetView: View {
     let panel = NSSavePanel()
     panel.nameFieldStringValue = table.title + ".csv"
     if panel.runModal() == .OK, let url = panel.url {
-      state.run("Exporting table") { book, _ in try book.exportCSV(table.id, to: url) }
+      state.run("Exporting table") { book, control in
+        try book.exportCSV(table.id, to: url, cancellation: control)
+      }
     }
   }
 }
