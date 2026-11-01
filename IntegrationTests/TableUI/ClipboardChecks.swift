@@ -39,6 +39,18 @@ import SevraCore
   try expect(
     try TableClipboard.read(from: board) == [[.string("a,b")], [.string("c,d")]],
     "A comma in ordinary text was guessed to be a CSV column")
+  let windowsLine = try TableClipboard(cells: [[.string("one\r\ntwo"), .string("x")]])
+  try expect(windowsLine.text == "\"one\r\ntwo\"\tx", "A CR LF inside a cell was copied unquoted")
+  board.clearContents()
+  board.setString("5\" pipe\tx\r\n\"say \"\"hi\"\"\"\t\"6\" tall\r\n\"a\nb\"\t\"open\r\n", forType: .string)
+  try expect(
+    try TableClipboard.read(from: board).map { $0.map(\.text) } == [
+      ["5\" pipe", "x"], ["say \"hi\"", "\"6\" tall"], ["a\nb", "\"open"],
+    ], "A quote in ordinary text refused or merged cells")
+  try expect(
+    TableClipboard.holdsTable("a\tb\r\n1\t2\r\n") && TableClipboard.holdsTable("a\tb\r1\t2")
+      && TableClipboard.holdsTable("a\tb\n") && !TableClipboard.holdsTable("a\r\nb")
+      && !TableClipboard.holdsTable("a\tb"), "Table text was judged by one line ending")
   print(
     "PASS clipboard typed, TSV and escaped HTML round trips; codes, commas, multiline and empty cells"
   )

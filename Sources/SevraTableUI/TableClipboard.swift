@@ -17,13 +17,20 @@ public struct TableClipboard {
     let cells: [[Value]]
   }
 
+  /// Whether copied text has columns and rows, whichever line ending its program wrote.
+  public static func holdsTable(_ text: String) -> Bool {
+    text.utf8.count <= maximumTextBytes && text.utf8.contains(9)
+      && text.utf8.contains { $0 == 10 || $0 == 13 }
+  }
+
   public init(cells: [[Value]]) throws {
     try Self.validate(cells)
     let strings = cells.map { $0.map(\.text) }
     let text = strings.map { row in
       row.map { value in
-        value.isEmpty || value.contains("\t") || value.contains("\n")
-          || value.contains("\r") || value.contains("\"")
+        // CR LF is one Character, equal to neither "\r" nor "\n".
+        value.isEmpty || value.contains("\t") || value.contains("\"")
+          || value.contains(where: \.isNewline)
           ? "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\"" : value
       }.joined(separator: "\t")
     }.joined(separator: "\n")

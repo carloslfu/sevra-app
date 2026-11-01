@@ -7,6 +7,7 @@ import SevraDocumentUI
 import SevraPreviewUI
 import SevraProduct
 import SevraSearchUI
+import SevraTableUI
 import SevraVoice
 import SwiftUI
 
@@ -637,8 +638,7 @@ struct FolderReview {
   }
   func pasteTableData() {
     guard interactionActive, !busy else { return }
-    guard let text = NSPasteboard.general.string(forType: .string),
-      text.utf8.count <= 4_000_000, text.contains("\t"), text.contains("\n")
+    guard let text = NSPasteboard.general.string(forType: .string), TableClipboard.holdsTable(text)
     else {
       error =
         "Copy a table range with tab-separated columns and rows, up to 4 MB. Ordinary text belongs in the conversation."
