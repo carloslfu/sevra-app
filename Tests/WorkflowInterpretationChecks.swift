@@ -369,6 +369,11 @@ func checkWorkflowInterpretations(at root: URL) {
       _ = try tools.execute("prepare_workflow_answer", .object(bad))
     }
     bad = arguments.object
+    bad["values"] = .object(["quantity": .string("10")])
+    try refuses("workflow_answer") {
+      _ = try tools.execute("prepare_workflow_answer", .object(bad))
+    }
+    bad = arguments.object
     bad["readReceiptID"] = .string(identifier())
     try refuses { _ = try tools.execute("prepare_workflow_answer", .object(bad)) }
     let cancelled = Cancellation()

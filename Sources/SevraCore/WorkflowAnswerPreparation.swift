@@ -48,13 +48,34 @@ extension Workbook {
       values == normalized && Set(quotes.object.keys) == Set(values.object.keys)
         && !values.object.isEmpty && quotes.json().utf8.count <= 16_000,
       "workflow_answer", "Quote this submission for every prepared value.")
-    for quote in quotes.object.values {
+    for (id, quote) in quotes.object {
       guard let text = quote.string, !text.isEmpty, text.utf8.count <= 4096,
         Data(source.text.utf8).range(of: Data(text.utf8)) != nil
       else {
         throw SevraError(
           "workflow_answer", "Each quotation must match the current message exactly.")
       }
+      // A result worked out from the message is not what the person said. A quotation in words,
+      // such as "five", states no figure to compare.
+      let figures = Self.statedFigures(text)
+      if !figures.isEmpty, interpretation.outputs.first(where: { $0.id == id })?.type == "decimal",
+        let value = try? Numbers.decimal(values[id].text)
+      {
+        try require(
+          figures.contains(value.magnitude), "workflow_answer",
+          "Prepare the figure this quotation states, not a result worked out from it.")
+      }
+    }
+  }
+
+  /// Reads "." and "," each way, since a quotation does not say which is the decimal point.
+  private static func statedFigures(_ quote: String) -> [Decimal] {
+    quote.split { !$0.isASCII || !($0.isNumber || $0 == "." || $0 == ",") }.flatMap { token in
+      let digits = token.trimmingCharacters(in: CharacterSet(charactersIn: ".,"))
+      return [
+        digits.replacingOccurrences(of: ",", with: ""),
+        digits.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: "."),
+      ].compactMap { try? Numbers.decimal($0) }
     }
   }
 
