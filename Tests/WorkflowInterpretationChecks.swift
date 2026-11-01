@@ -188,7 +188,8 @@ func checkWorkflowInterpretations(at root: URL) {
     let function = try book.saveApplicationDefinition(
       logicalID: identifier(),
       content: .object([
-        "kind": .string("function"), "title": .string("Double"), "description": .string("Synthetic"),
+        "kind": .string("function"), "title": .string("Double"),
+        "description": .string("Synthetic"),
         "parameters": .array([ActionRegistry.field("quantity", "Count", "decimal", unit: "items")]),
         "payload": .object(["expression": .string("quantity*2"), "unit": .string("items")]),
       ]))

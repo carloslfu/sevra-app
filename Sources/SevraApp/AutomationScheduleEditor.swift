@@ -18,7 +18,8 @@ struct AutomationScheduleEditor: View {
   @State private var comparison = "<"
   @State private var threshold = "10"
   // With TZ=UTC Foundation names the zone GMT, which the schedule refuses as unnamed.
-  @State private var zone = TimeZone.current.identifier == "GMT" ? "UTC" : TimeZone.current.identifier
+  @State private var zone =
+    TimeZone.current.identifier == "GMT" ? "UTC" : TimeZone.current.identifier
   @State private var hour = 9
   @State private var minute = 0
   @State private var recurrence = "daily"

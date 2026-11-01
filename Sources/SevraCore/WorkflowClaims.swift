@@ -32,7 +32,9 @@ extension Workbook {
         throw SevraError("workflow_integrity", "An active workflow has no unfinished step.")
       }
       // The refusal rolls back here, so the step stays queued for the coordinator.
-      if withoutPreparation, let refusal = DefinitionWorkflow.preparationRefusal(step["kind"].text) {
+      if withoutPreparation,
+        let refusal = DefinitionWorkflow.preparationRefusal(step["kind"].text)
+      {
         throw refusal
       }
       let runID = session.runID

@@ -178,7 +178,7 @@ extension Workbook {
     try validateIntakeDefinition(
       DefinitionDescriptor(applicationDefinition(step.binding!.target).content))
     let preview = preparation.preview
-    // A file that matches the table is a finished step, not a failure to retry. Nothing is proposed,
+    // A file that changes nothing is a finished step, not a failure to retry. Nothing is proposed,
     // so a repeated scheduled file cannot hold its automation open.
     let changes = preview.added + preview.changed + preview.removed > 0
     var proposals: [Value] = []
@@ -212,7 +212,7 @@ extension Workbook {
       "notice": .string(
         changes
           ? "Draft update only. Review the exact mapped values before applying rows. No inventory or financial effects."
-          : "This file matches the table, so nothing changed and nothing needs review."
+          : "This file changes nothing in the table, so there is nothing to review."
       ),
     ])
   }

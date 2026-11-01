@@ -287,7 +287,7 @@ extension Workbook {
               && (output["response"]["state"] == .string("ready")
                 || output["clarification"] != .null),
             "workflow_mapping", "The prior interpretation field is unresolved.")
-          // Leaving out an optional output is a complete answer, so an optional target goes without.
+          // Leaving out an optional output is a complete answer. An optional target goes without.
           if values.object[field] == nil,
             target.parameters.first(where: { $0.id == name })?.required == false
           {

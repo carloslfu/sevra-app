@@ -172,7 +172,7 @@ func checkAutomationPlanning(at root: URL) {
       let session = try book.authorizeAutomationExecution(
         definition.id, expectedGeneration: 0, after: instant.addingTimeInterval(-60),
         token: "authorize")
-      // One scanned day ends exactly at the day-end slot, which must still leave the cursor past it.
+      // One scanned day ends exactly at the day-end slot, and the cursor must still pass it.
       let planned = try book.planAutomationOccurrences(
         session.planning, through: instant, token: "plan", horizonDays: 1)
       try expect(planned["pending"]["slot_key"].text == key, try planned.json())

@@ -233,7 +233,7 @@ extension Workbook {
     if rows.isEmpty, try workflowIntakeProposedNothing(runID, reviewStepID: stepID) {
       return .object([
         "ready": .bool(true), "accepted": .array([]), "pending": .array([]),
-        "meaning": .string("The file matched the table, so there was nothing to review."),
+        "meaning": .string("The file changed nothing, so there was nothing to review."),
       ])
     }
     try require(
