@@ -318,6 +318,12 @@ import SevraCore
   public func invalidateConversationPreviews() {
     for session in sessions.values { session.invalidateConversationPreview() }
   }
+  /// After the window saved and closed.
+  public func close() {
+    invalidateConversationPreviews()
+    workbook = nil
+    sessions = [:]
+  }
   public static func flushAll() async -> Bool {
     Self.scopes.removeAll { $0.value == nil }
     var saved = true

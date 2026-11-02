@@ -456,12 +456,14 @@ nonisolated(unsafe) private var checksCompleted = false
       var continuation: CheckedContinuation<Bool, Never>?
       var attempts = 0
       var finished = 0
-      let guarder = DocumentCloseGuard(asyncFlush: {
-        attempts += 1
-        let result = await withCheckedContinuation { continuation = $0 }
-        finished += 1
-        return result
-      })
+      var closed = 0
+      let guarder = DocumentCloseGuard(
+        asyncFlush: {
+          attempts += 1
+          let result = await withCheckedContinuation { continuation = $0 }
+          finished += 1
+          return result
+        }, closed: { _ in closed += 1 })
       window.delegate = original
       guarder.attach(to: window)
       window.orderFront(nil)
@@ -482,7 +484,8 @@ nonisolated(unsafe) private var checksCompleted = false
       continuation = nil
       refused?.resume(returning: false)
       try await waitUntil { finished == 1 }
-      try expect(window.isVisible && original.requests == 0, "Failed save closed the window")
+      try expect(
+        window.isVisible && original.requests == 0 && closed == 0, "Failed save closed the window")
       window.performClose(nil)
       try await waitUntil { attempts == 2 && continuation != nil }
       let accepted = continuation
@@ -490,7 +493,7 @@ nonisolated(unsafe) private var checksCompleted = false
       accepted?.resume(returning: true)
       try await waitUntil { !window.isVisible }
       try expect(
-        !window.isVisible && original.requests == 1 && original.closes == 1,
+        !window.isVisible && original.requests == 1 && original.closes == 1 && closed == 1,
         "Successful asynchronous flush did not close through the original delegate")
     }
     check("Moving a close guard restores the first window delegate") {

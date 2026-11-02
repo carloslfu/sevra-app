@@ -147,9 +147,10 @@ private struct WorkbookFileCommands: Commands {
     owners.setObject(window, forKey: path as NSString)
     return true
   }
-  static func release(_ path: String, by window: NSWindow) {
-    if owners.object(forKey: path as NSString) === window {
-      owners.removeObject(forKey: path as NSString)
+  static func release(_ window: NSWindow) {
+    for case let path as NSString in owners.keyEnumerator().allObjects
+    where owners.object(forKey: path) === window {
+      owners.removeObject(forKey: path)
     }
   }
 }
@@ -162,9 +163,16 @@ private struct WorkbookFileCommands: Commands {
   private var quitting = false
   func applicationDidFinishLaunching(_ notification: Notification) {
     NativeAutomationHost.shared.start()
-    NSAppleEventManager.shared().setEventHandler(
+    let events = NSAppleEventManager.shared()
+    events.setEventHandler(
       self, andSelector: #selector(quitEvent(_:reply:)),
       forEventClass: AEEventClass(kCoreEventClass), andEventID: AEEventID(kAEQuitApplication))
+    // Once launched, files from Finder and `open` come straight here. SwiftUI's own handling also
+    // made an empty window for each, which stayed when the workbook was already open. The file
+    // that launched the app still goes through SwiftUI, which makes the first window for it.
+    events.setEventHandler(
+      self, andSelector: #selector(openEvent(_:reply:)),
+      forEventClass: AEEventClass(kCoreEventClass), andEventID: AEEventID(kAEOpenDocuments))
   }
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
     guard DocumentDraftScope.flushAll() else { return .terminateCancel }
@@ -191,6 +199,14 @@ private struct WorkbookFileCommands: Commands {
   }
   @objc private func quitEvent(_ event: NSAppleEventDescriptor, reply: NSAppleEventDescriptor) {
     quit()
+  }
+  @objc private func openEvent(_ event: NSAppleEventDescriptor, reply: NSAppleEventDescriptor) {
+    guard let files = event.paramDescriptor(forKeyword: keyDirectObject) else { return }
+    let urls =
+      files.numberOfItems > 0
+      ? (1...files.numberOfItems).compactMap { files.atIndex($0)?.fileURLValue }
+      : [files.fileURLValue].compactMap { $0 }
+    application(NSApp, open: urls)
   }
   private func finishWork() async -> Bool {
     NativeAutomationHost.shared.beginTermination()
@@ -232,8 +248,14 @@ struct WorkspaceWindow: View {
   @StateObject private var state = WorkspaceState()
   @Environment(\.openWindow) private var openWindow
   @State private var welcomeError: String?
+  /// Cleared as the window closes, or the window would keep itself alive through its own views.
   @State private var ownWindow: NSWindow?
-  @State private var lostClaim = false
+  /// Set once the window lost its claim or closed. SwiftUI keeps calling the accessor for a
+  /// closed window, and it must not take the window back.
+  @State private var retired = false
+  /// The workbook opens only once this window holds it, so a window that loses the claim never
+  /// opens a second connection.
+  @State private var claimed: String?
   @State private var closeGuard: DocumentCloseGuard?
   @State private var startingFiles: (destination: String, files: [URL])?
   var body: some View {
@@ -243,18 +265,26 @@ struct WorkspaceWindow: View {
     .frame(minWidth: 820, minHeight: 600)
     .background(
       WindowAccessor { window in
-        guard !lostClaim else { return }
+        guard !retired else { return }
         if ownWindow !== window { ownWindow = window }
-        if let window, let path, !WorkbookWindows.claim(path, by: window) {
-          lostClaim = true
-          window.close()
-          return
+        if let window, let path, claimed != path {
+          guard WorkbookWindows.claim(path, by: window) else {
+            retired = true
+            window.close()
+            return
+          }
+          claimed = path
         }
         if let window {
           if closeGuard == nil {
-            closeGuard = DocumentCloseGuard(asyncFlush: { [weak state] in
-              await state?.saveBeforeClosing() ?? true
-            })
+            closeGuard = DocumentCloseGuard(
+              asyncFlush: { [weak state] in await state?.saveBeforeClosing() ?? true },
+              closed: { [weak state] window in
+                state?.close()
+                WorkbookWindows.release(window)
+                retired = true
+                ownWindow = nil
+              })
           }
           closeGuard?.attach(to: window)
           state.documentDrafts.revealFailure = { [weak window] in
@@ -269,8 +299,8 @@ struct WorkspaceWindow: View {
       }
     )
     .onAppear { inbox.files = files }
-    .task(id: path) {
-      if let path, !lostClaim {
+    .task(id: claimed) {
+      if let path = claimed {
         do {
           try await state.open(URL(fileURLWithPath: path))
           guard !Task.isCancelled else { return }
@@ -289,12 +319,6 @@ struct WorkspaceWindow: View {
     }
     .onReceive(NotificationCenter.default.publisher(for: .sevraStopping)) { _ in
       state.endInteraction()
-    }
-    .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { event in
-      if let window = event.object as? NSWindow, window === ownWindow {
-        state.endInteraction()
-        if let path { WorkbookWindows.release(path, by: window) }
-      }
     }
     .onReceive(NotificationCenter.default.publisher(for: .sevraWorkbookOpened)) { _ in
       // Opening a workbook starts a new window, so the page it was opened from stays behind.

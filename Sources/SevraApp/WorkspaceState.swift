@@ -1490,6 +1490,22 @@ struct FolderReview {
     let clarificationsSaved = await clarificationDrafts.flush()
     return saved && formsSaved && clarificationsSaved && documentDrafts.flush()
   }
+  /// SwiftUI can keep a closed window's views, and this state with them, long after the window is
+  /// gone. The window saved before it closed, so the workbook is let go here and its connection
+  /// and memory end with the window.
+  func close() {
+    endInteraction()
+    conversationSession.close()
+    formDrafts.close()
+    clarificationDrafts.close()
+    spaceNavigation.close()
+    workbook = nil
+    spaces = []
+    items = []
+    datasets = []
+    archivedDatasets = []
+    messages = []
+  }
   func restoreSavedConversationDraft(_ id: String) {
     guard !changingConversation else { return }
     changingConversation = true

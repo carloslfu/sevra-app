@@ -163,4 +163,11 @@ import SevraCore
     }
     return success
   }
+  /// After the window saved and closed: the workbook is let go and nothing more is written.
+  public func close() {
+    scheduled?.cancel()
+    scheduled = nil
+    workbook = nil
+    ready = false
+  }
 }

@@ -3,11 +3,49 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-02T01:05:00+00:00
+updated: 2026-11-02T15:45:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Window pass, November 2
+
+The screen was unlocked for part of the morning, so the window cases left from November 1 could
+be tried in the installed app. Two of them failed and are fixed.
+
+**Quit with a sheet open.** With the New automation sheet open, Quit from the menu ended the
+installed app in about a second, and the workbook verified.
+
+**Closing a window and opening its workbook again.** This crashed every time. The one-window rule
+from November 1 kept a closed window as the workbook's owner, because the view heard of the close
+too late or not at all, and opening again asked AppKit to bring the closed window forward. The
+window's delegate now reports the close, the claim is let go there, and opening again makes a new
+window. A closed window also kept its workbook connection open. AppKit and SwiftUI hold a closed
+window's views for a while, and the window held itself through its own view state. The workbook and
+its drafts are now let go as the window closes, after the usual saving, and the window drops its
+reference to itself. A window also opens its workbook only once it holds it, so one that loses
+never opens a second connection. Counted from the open files, closing let go of the connection
+within two seconds, opening again held one, and a cold open, a repeated open, a second workbook and
+two relaunches held one connection per workbook throughout.
+
+**An empty window for each file.** Every file opened from Finder or `open` also made an empty
+welcome window. For a new workbook the welcome rule closed it, but for a workbook already open it
+stayed on screen. Once the app is running, file events now come straight to the app rather than
+through SwiftUI. The file that launches the app still goes through SwiftUI, which makes the first
+window. Telling SwiftUI to take no file events at all left a cold launch with a file with no
+window, so that was not kept. A log build showed no extra window made and the welcome page closing.
+
+**Checks.** The full local suite passed 907 checks with none failing. The asynchronous close check
+now also requires the close report to run once on a completed close and never on a refused one.
+
+**Not tried in the window.** The screen locked again partway through, and the window server stops
+reporting what is on screen while locked, so whether the closed welcome page left the screen was
+read from AppKit, not seen. Still untried: a paste-table Done, which needs the clipboard, live
+resize on a long document, Transcribe from the menu, Quick Look pages, PDF links, the citation jump
+on audio, the large table selection, enabling an automation, the U5, U10 and U11 automation cases,
+and the five menu shortcuts. Saved-file pickers cannot be driven by an agent. VoiceOver itself,
+signing, other Macs and an external user stay open.
 
 ## Whole-app review, November 1
 

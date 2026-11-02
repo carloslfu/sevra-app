@@ -7,15 +7,20 @@ import AppKit
   private weak var window: NSWindow?
   private let flush: () -> Bool
   private let asyncFlush: (() async -> Bool)?
+  private let closed: ((NSWindow) -> Void)?
   private var closing = false
   private var permitted = false
   public init(flush: @escaping () -> Bool) {
     self.flush = flush
     asyncFlush = nil
+    closed = nil
   }
-  public init(asyncFlush: @escaping () async -> Bool) {
+  /// `closed` runs as the window closes. SwiftUI can take the window's views down before a
+  /// notification observer among them hears it, so the delegate is the reliable place.
+  public init(asyncFlush: @escaping () async -> Bool, closed: ((NSWindow) -> Void)? = nil) {
     flush = { true }
     self.asyncFlush = asyncFlush
+    self.closed = closed
   }
   public func attach(to window: NSWindow) {
     if self.window !== window {
@@ -45,6 +50,10 @@ import AppKit
     }
     guard flush() else { return false }
     return previous?.windowShouldClose?(sender) ?? true
+  }
+  public func windowWillClose(_ notification: Notification) {
+    if let window = notification.object as? NSWindow { closed?(window) }
+    previous?.windowWillClose?(notification)
   }
   public override func responds(to selector: Selector!) -> Bool {
     super.responds(to: selector) || previous?.responds(to: selector) == true

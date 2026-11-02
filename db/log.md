@@ -91,3 +91,6 @@ Finish the whole-app review: AutoFill off, stopped-request lookup named, recover
 ## [2026-11-02 06:12] implementation | records/operations/implementation
 Review follow-up: Stop then continue, Quit with a sheet, one window per workbook and the open list fixed; suite passes on the candidate; window cases wait for an unlocked screen
 
+## [2026-11-02 15:34] implementation | records/operations/implementation
+Window pass: fixed the crash on reopening a closed workbook, the connection kept by a closed window, and the empty window left by each opened file; Quit with a sheet passed in the installed app
+

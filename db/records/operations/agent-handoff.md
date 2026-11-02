@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-02T01:05:00+00:00
+updated: 2026-11-02T15:45:00+00:00
 summary: 'Resumed minimum features: increments 1 through 9 accepted; a whole-app review was fixed on main and an external user is next.'
 title: Paused minimum-feature agent handoff
 ---
@@ -19,8 +19,10 @@ export and import, and Transcribe on real audio. A longer recording then showed 
 discarding speech before a pause, so Transcribe moved to Apple's long-form on-device transcriber.
 A whole-app review of every feature on November 1 found 32 ranked defects and about 130 smaller ones.
 All 32 are fixed on main, with the schema now at 31. The follow-up that day fixed the review's open
-list, including Stop then continue, Quit with a sheet open and one window per workbook. What stays,
-and which window cases still need an unlocked screen, is listed in
+list, including Stop then continue, Quit with a sheet open and one window per workbook. The window
+pass on November 2 found that closing a window and opening its workbook again crashed, and that each
+opened file left an empty window; both are fixed. What stays, and which window cases still need an
+unlocked screen, is listed in
 [[records/operations/implementation]]. VoiceOver itself and five menu shortcuts are still unchecked
 (Command-period, Command-N, Command-O, Command-I and Shift-Command-E were read from the menu, not
 pressed), and an external user is next.

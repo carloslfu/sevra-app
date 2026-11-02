@@ -26,6 +26,12 @@ import SevraCore
     generation += 1
     changed?()
   }
+  /// After the window saved and closed.
+  public func close() {
+    workbook = nil
+    pending = []
+    generation += 1
+  }
   public func receive(_ value: SpaceNavigationState, generation expected: Int) {
     guard generation == expected, !isSaving else { return }
     state = value

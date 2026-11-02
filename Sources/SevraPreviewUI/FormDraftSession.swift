@@ -251,6 +251,11 @@ public func formFieldValue(_ text: String, parameter: Value) -> Value {
     for session in sessions.values { if !(await session.flush()) { success = false } }
     return success
   }
+  /// After the window saved and closed.
+  public func close() {
+    workbook = nil
+    sessions = [:]
+  }
   public static func flushAll() async -> Bool {
     Self.scopes.removeAll { $0.value == nil }
     var success = true
