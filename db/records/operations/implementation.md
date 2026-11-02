@@ -39,13 +39,29 @@ window, so that was not kept. A log build showed no extra window made and the we
 **Checks.** The full local suite passed 907 checks with none failing. The asynchronous close check
 now also requires the close report to run once on a completed close and never on a refused one.
 
-**Not tried in the window.** The screen locked again partway through, and the window server stops
-reporting what is on screen while locked, so whether the closed welcome page left the screen was
-read from AppKit, not seen. Still untried: a paste-table Done, which needs the clipboard, live
-resize on a long document, Transcribe from the menu, Quick Look pages, PDF links, the citation jump
-on audio, the large table selection, enabling an automation, the U5, U10 and U11 automation cases,
-and the five menu shortcuts. Saved-file pickers cannot be driven by an agent. VoiceOver itself,
-signing, other Macs and an external user stay open.
+**Seen on screen with the installed fix.** A cold open, a repeated open, a second workbook and two
+relaunches each showed one window per workbook and no empty one. After a launch with no file,
+opening a workbook closed the welcome page. File > Close took the window and its connection away,
+and opening the workbook again showed one window with no crash. The window server stops reporting
+what is on screen while the screen is locked, so counts taken during a lock were not used.
+
+**The other window cases.** A PDF's internal link on page 1 landed on page 3; web links were not
+clicked. A three-page Word file rendered through Quick Look and scrolled to its third page. After a
+CLI transcription, a search hit at 7.86 seconds opened the player at 0:08, and a transcript time
+jumped it to 0:38. Dragging the window corner over `long.md` and over the 1 MB preview of a 2 MB
+text reflowed the text, each drag cost about 0.6 s of processor time, and the app went idle at once.
+In the 99,998-row table, Shift-Down extended a selection to seven rows, the composer and footer both
+said seven, and Next showed rows 201 to 400 with the selection cleared. Enable on this Mac armed an
+automation, which the CLI confirmed. A newer saved version said the older one was enabled, and
+enabling it replaced the older one.
+
+**Not tried in the window.** Transcribe from the menu, because the command sits in a pull-down menu
+that background control cannot open and the request for full-screen control got no answer; the
+transcription itself ran from the CLI. U5, because the due time passed while the app was in the
+background, where automations pause by design, and the screen then locked, so no run was recorded.
+U10 and U11, a paste-table Done, which needs the clipboard, and the five menu shortcuts, four of
+which open file panels. Saved-file pickers cannot be driven by an agent. VoiceOver itself, signing,
+other Macs and an external user stay open.
 
 ## Whole-app review, November 1
 
