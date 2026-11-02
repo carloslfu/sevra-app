@@ -100,3 +100,6 @@ Window cases seen on screen: windows per workbook, PDF link, Quick Look, audio j
 ## [2026-11-02 17:16] implementation | records/operations/implementation
 Automation cases: fixed a stale next time shown while paused (U5); a hand-written description survived an edit (U11, first half); U10, the trigger flip, Transcribe from the menu and the shortcuts not tried
 
+## [2026-11-02 18:49] implementation | records/operations/agent-handoff
+Paused by the owner; resume note lists the window checks that need full-screen control
+

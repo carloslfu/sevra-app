@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-02T15:45:00+00:00
+updated: 2026-11-02T18:00:00+00:00
 summary: 'Resumed minimum features: increments 1 through 9 accepted; a whole-app review was fixed on main and an external user is next.'
 title: Paused minimum-feature agent handoff
 ---
@@ -21,11 +21,22 @@ A whole-app review of every feature on November 1 found 32 ranked defects and ab
 All 32 are fixed on main, with the schema now at 31. The follow-up that day fixed the review's open
 list, including Stop then continue, Quit with a sheet open and one window per workbook. The window
 pass on November 2 found that closing a window and opening its workbook again crashed, and that each
-opened file left an empty window; both are fixed. What stays, and which window cases still need an
-unlocked screen, is listed in
+opened file left an empty window; both are fixed. Later that day an automation page that kept a
+passed next time while paused was fixed too. What stays is listed in
 [[records/operations/implementation]]. VoiceOver itself and five menu shortcuts are still unchecked
 (Command-period, Command-N, Command-O, Command-I and Shift-Command-E were read from the menu, not
 pressed), and an external user is next.
+
+**Resume here (paused by the owner, November 2).** Main is clean and pushed. The window checks still
+open need full-screen control, which an agent gets only when the owner approves its prompt with
+the Claude window in front: Transcribe from an audio item's File actions menu and Stop with
+Command-period; Command-N, Command-O, Command-I and Shift-Command-E, cancelling each file panel;
+U11's second half, flipping the When trigger in Edit automation and checking that a hand-written
+description stays while the stock wording follows the trigger; and U5, a run at its due time with
+the automation's page open and Sevra in front. U10 needs the 20 GB local model and waits for enough
+free memory. A paste-table Done needs the owner's consent to use the clipboard. The test workbooks
+were synthetic and temporary; make fresh ones with `sevra create` and `sevra demo`, and save an
+automation due a few minutes ahead with `sevra definition-save`.
 Exact evidence and limits are in
 [[records/operations/implementation]], the
 [reviewed-update receipt](../../../integration/evidence/2026-10-30-reviewed-updates.json.gz),
