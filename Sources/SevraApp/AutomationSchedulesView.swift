@@ -252,7 +252,7 @@ struct AutomationScheduleDetail: View {
                   enabled: grant.definitionID == shown.id ? shown.version : enabledVersion,
                   shown: shown.version)
                 : "This device registration is stale. The workbook no longer authorizes it.")
-            Text(owner.statuses[grant.id] ?? owner.gate).foregroundStyle(.secondary)
+            Text(owner.status(grant.id)).foregroundStyle(.secondary)
             Button(grantIsCurrent ? "Pause on this Mac" : "Remove stale registration") {
               perform { try await owner.pause(grant) }
             }

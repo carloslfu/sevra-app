@@ -97,3 +97,6 @@ Window pass: fixed the crash on reopening a closed workbook, the connection kept
 ## [2026-11-02 15:58] implementation | records/operations/implementation
 Window cases seen on screen: windows per workbook, PDF link, Quick Look, audio jump, live resize, large table selection and enabling an automation; Transcribe from the menu, U5, U10, U11, paste-table and menu shortcuts not tried
 
+## [2026-11-02 17:16] implementation | records/operations/implementation
+Automation cases: fixed a stale next time shown while paused (U5); a hand-written description survived an edit (U11, first half); U10, the trigger flip, Transcribe from the menu and the shortcuts not tried
+

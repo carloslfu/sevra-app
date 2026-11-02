@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m63j49s9re5f080dvrddxp9d
 created: 2026-10-29T10:08:44.841064+00:00
-updated: 2026-11-01T08:40:00.000000+00:00
+updated: 2026-11-02T17:20:00.000000+00:00
 summary: Native schedule controls and persistent physical-workbook device grants with a conservative active-app owner; scoped synthetic, process-death and installed-package proof, full lifecycle/release open.
 title: Native automation owner
 status: reviewed
@@ -16,7 +16,7 @@ Status: reviewed implementation contract. This slice implements native schedule 
 
 Activity has a Schedules destination beside saved runs. Search saved automations, inspect exact workflow/typed inputs, upcoming local/UTC occurrences, device status and any active run. Create or edit with a workflow picker, native typed parameter fields, daily/weekly/monthly/yearly recurrence, explicit named time zone and clock fields. Preview is inert. Saving keeps intent; Enable on this Mac is a distinct, clear action whose scope covers the exact immutable version, its arguments, local-AI allowance and draft-only workflow. Never infer authority from a Source, chat transcript, copied package or a saved armed row. Version edits require a fresh explicit enable and cannot change a currently active run. Pause revokes this device registration and its exact current workbook generation. Run once creates a separately attributed manual workflow and does not consume a scheduled occurrence or enable future runs. Input/evidence identity and all business approvals remain existing core contracts.
 
-Routine polls and reopening the same physical workbook restore the exact authorized generation from the local registry without generating new authorizations. Pause, superseding CLI authorization or an edited definition never silently enlarges the old grant. The registered version remains pinned, and a saved version's page says whether the enabled version is older or newer. Failed saves keep inputs; registry failures never report a running timer.
+Routine polls and reopening the same physical workbook restore the exact authorized generation from the local registry without generating new authorizations. Pause, superseding CLI authorization or an edited definition never silently enlarges the old grant. The registered version remains pinned, and a saved version's page says whether the enabled version is older or newer. While work is paused or deferred, the page shows that reason instead of its last check, so a next time that has passed is never shown as still coming. Failed saves keep inputs; registry failures never report a running timer.
 
 ## Device boundary
 

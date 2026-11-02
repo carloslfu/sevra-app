@@ -17,6 +17,7 @@ import SevraCore
   @Published public private(set) var notice: String?
   @Published public private(set) var runningID: String?
   @Published public private(set) var gate = "Waiting for Sevra to become active."
+  @Published public private(set) var deferred = true
   private let runner: Runner
   private var task: Task<Void, Never>?
   private var cancellation: Cancellation?
@@ -46,7 +47,13 @@ import SevraCore
 
   public func deferWork(_ reason: String) {
     gate = reason
+    deferred = true
     cancellation?.cancel(reason: reason)
+  }
+  /// What a schedule's page says now. A pause outranks the last check, whose next time can pass
+  /// while the page stays open.
+  public func status(_ grantID: String) -> String {
+    deferred ? gate : statuses[grantID] ?? gate
   }
 
   /// Caller provides current OS/UI eligibility each tick. No retained true state
@@ -57,6 +64,7 @@ import SevraCore
       return
     }
     gate = "Runs while Sevra is active. Business changes require review."
+    deferred = false
     guard task == nil else { return }
     let control = Cancellation(deadlineAfterSeconds: 240)
     cancellation = control

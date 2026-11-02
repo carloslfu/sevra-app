@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-02T15:45:00+00:00
+updated: 2026-11-02T17:20:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -55,13 +55,23 @@ said seven, and Next showed rows 201 to 400 with the selection cleared. Enable o
 automation, which the CLI confirmed. A newer saved version said the older one was enabled, and
 enabling it replaced the older one.
 
-**Not tried in the window.** Transcribe from the menu, because the command sits in a pull-down menu
-that background control cannot open and the request for full-screen control got no answer; the
-transcription itself ran from the CLI. U5, because the due time passed while the app was in the
-background, where automations pause by design, and the screen then locked, so no run was recorded.
-U10 and U11, a paste-table Done, which needs the clipboard, and the five menu shortcuts, four of
-which open file panels. Saved-file pickers cannot be driven by an agent. VoiceOver itself, signing,
-other Macs and an external user stay open.
+**Automation cases, later that day.** U5 found a defect. Staying on an enabled automation's page
+while the app was in the background, the page kept saying `Next: Nov 2, 2026 at 12:01 PM` after
+12:01 had passed, with no word that work was paused. The page showed its last check whenever it had
+one and the pause reason only when it had none. A pause or deferral now takes the place of the last
+check, and the driver check requires it. On the installed fix, enabling in the background showed
+`Paused while Sevra is inactive.` where the old build showed `Enabled on this Mac.` A run at the
+due time itself was not seen: the app was brought forward once, and another app came forward
+before 12:01, so the run paused by design. U11's first half passed: an edit saved through the
+sheet kept the hand-written description. Its second half, flipping the trigger, needs the When
+pop-up, which background control cannot open.
+
+**Not tried in the window.** Transcribe from the menu and the five menu shortcuts, because they need
+full-screen control and two requests for it got no answer; the transcription itself ran from the
+CLI, and four of the shortcuts open file panels. U10, because an older version's page opens only
+through the assistant, and the 20 GB local model left too little memory on this Mac at the time. A
+paste-table Done, which needs the clipboard. Saved-file pickers cannot be driven by an agent.
+VoiceOver itself, signing, other Macs and an external user stay open.
 
 ## Whole-app review, November 1
 

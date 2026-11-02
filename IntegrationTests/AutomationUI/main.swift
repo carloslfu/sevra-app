@@ -473,6 +473,8 @@ func conditionSale(_ book: Workbook) throws {
     owner.poll(now: start)
     await owner.waitForCurrentPoll()
     try expect(try book.revision() == revision)
+    owner.poll(now: due, deferral: "Inactive")
+    try expect(owner.status(owner.grants[0].id) == "Inactive", "A paused page kept its next time")
     owner.poll(now: due)
     await owner.waitForCurrentPoll()
     let runs = try book.workflowRuns()
