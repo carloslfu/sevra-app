@@ -8,6 +8,8 @@ public final class Workbook: @unchecked Sendable {
   /// Written once at creation.
   public let title: String
   let db: Database
+  /// The query and table `temp.filtered_rows` holds, while one page reads it.
+  var rememberedFilter: String?
   private let lock = NSRecursiveLock()
   private var lockFD: Int32 = -1
   /// Tables whose rows changed in the running transaction.

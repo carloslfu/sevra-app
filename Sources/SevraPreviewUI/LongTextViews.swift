@@ -82,8 +82,17 @@ public struct LongReadingText: NSViewRepresentable {
   }
   public func makeCoordinator() -> Coordinator { Coordinator() }
 
+  /// Laying out a long text takes about 0.2 s per MB, too long for every step of a window drag.
+  /// It keeps its width during the drag and lays out once at the end.
+  private final class ReadingTextView: NSTextView {
+    override func viewDidEndLiveResize() {
+      super.viewDidEndLiveResize()
+      invalidateIntrinsicContentSize()
+    }
+  }
+
   public func makeNSView(context: Context) -> NSTextView {
-    let view = NSTextView(usingTextLayoutManager: false)
+    let view = ReadingTextView(usingTextLayoutManager: false)
     prepareReadingView(view)
     view.isRichText = true
     view.isVerticallyResizable = false
@@ -111,8 +120,8 @@ public struct LongReadingText: NSViewRepresentable {
     let coordinator = context.coordinator
     let offered = proposal.width.flatMap { $0.isFinite ? $0 : nil } ?? view.bounds.width
     let width = offered > 0 ? offered : 480
-    if width != coordinator.width, let manager = view.layoutManager,
-      let container = view.textContainer
+    if width != coordinator.width, coordinator.width < 0 || !view.inLiveResize,
+      let manager = view.layoutManager, let container = view.textContainer
     {
       container.containerSize = NSSize(width: width, height: CGFloat.greatestFiniteMagnitude)
       manager.ensureLayout(for: container)

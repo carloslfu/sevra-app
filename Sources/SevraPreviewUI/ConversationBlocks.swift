@@ -40,7 +40,11 @@ public enum ConversationBlock: Equatable {
     let document = Document(parsing: source, options: [.disableSmartOpts])
     let bytes = Array(source.utf8)
     var lineStarts = [0]
-    for (offset, byte) in bytes.enumerated() where byte == 10 { lineStarts.append(offset + 1) }
+    for (offset, byte) in bytes.enumerated() where byte == 10 || byte == 13 {
+      // CR, LF and CRLF each end one line, as they do for the parser.
+      if byte == 10, offset > 0, bytes[offset - 1] == 13 { lineStarts.removeLast() }
+      lineStarts.append(offset + 1)
+    }
     func offset(_ position: SourceLocation) -> Int? {
       guard position.line > 0, position.line <= lineStarts.count else { return nil }
       let value = lineStarts[position.line - 1] + position.column - 1

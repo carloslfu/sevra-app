@@ -155,6 +155,18 @@ nonisolated(unsafe) private var checksCompleted = false
       }
       try expect(try book.counts() == counts, "Refused retry left data")
     }
+    check("Typing saves in the background, and a flush right after builds on that save") {
+      let (book, original) = try fixture()
+      let editor = DocumentDraft(workbook: book, item: original)
+      try expect(editor.begin(), "Cannot begin")
+      editor.update("First text")
+      RunLoop.main.run(until: Date().addingTimeInterval(0.7))
+      editor.update("Second text")
+      try expect(editor.end(), editor.failure ?? "The flush conflicted with the background save")
+      try expect(editor.text == "Second text" && !editor.dirty, "The newer text was lost")
+      try expect(try book.item(original.logicalID).text == "Second text", "Not saved")
+      try expect(editor.failure == nil && editor.newerVersionID == nil, "A false conflict")
+    }
     check("A storage failure after source insertion rolls back and preserves the editor for retry")
     {
       let (book, original) = try fixture()

@@ -14,6 +14,7 @@ import SevraCore
   private let workbook: Workbook
   private var scheduled: Task<Void, Never>?
   private var operation: (version: String, text: String, separate: Bool, token: String)?
+  private var background: BackgroundSave?
   public var dirty: Bool { text != current.text }
   public var editable: Bool {
     current.category == "record" && current.kind == "document" && current.assetID == nil
@@ -72,12 +73,15 @@ import SevraCore
   public func update(_ value: String) {
     guard editing, value != text else { return }
     text = value
+    schedule()
+  }
+  private func schedule() {
     scheduled?.cancel()
     scheduled = Task { [weak self] in
       do {
         try await Task.sleep(nanoseconds: 600_000_000)
         try Task.checkCancellation()
-        self?.flush()
+        self?.saveInBackground()
       } catch {}
     }
   }
@@ -89,40 +93,97 @@ import SevraCore
   @discardableResult public func flush() -> Bool { save(separate: false) }
   @discardableResult public func keepSeparate() -> Bool { save(separate: true) }
 
-  private func save(separate: Bool) -> Bool {
-    scheduled?.cancel()
-    scheduled = nil
-    guard editable else { return true }
-    guard dirty else {
-      failure = nil
-      return true
-    }
+  /// One save on its way. Its deadline bounds how long `settle` can wait for it.
+  private final class BackgroundSave: @unchecked Sendable {
+    let finished = DispatchSemaphore(value: 0)
+    let text: String
+    var result: Result<Item, Error>?
+    var head: String?
+    init(text: String) { self.text = text }
+  }
+  private func operationToken(separate: Bool) -> String {
     if operation?.version != current.id || operation?.text != text
       || operation?.separate != separate
     {
       operation = (current.id, text, separate, identifier())
     }
+    return operation!.token
+  }
+  private func accept(_ saved: Item, for savedText: String) {
+    current = saved
+    // Anything typed since stays, and the next save builds on this version.
+    if text == savedText { text = saved.text }
+    operation = nil
+    failure = nil
+    newerVersionID = nil
+    changed?()
+  }
+  private func report(_ error: Error, head: String?) {
+    failure = error.localizedDescription
+    if let head, head != current.id {
+      newerVersionID = head
+      failure =
+        "A newer version exists. Your text is still here. Keep your changes as a separate draft to preserve both versions."
+    }
+  }
+  /// Typing never waits for a busy workbook. Navigation and closing do, through `save`.
+  private func saveInBackground() {
+    scheduled = nil
+    guard background == nil else {
+      schedule()
+      return
+    }
+    guard editable, dirty else { return }
+    let token = operationToken(separate: false)
+    let job = BackgroundSave(text: text)
+    background = job
+    let book = workbook
+    let version = current.id
+    Task.detached(priority: .utility) { [weak self] in
+      let control = Cancellation(deadlineAfterSeconds: 3)
+      do {
+        job.result = .success(
+          try book.editDocument(
+            version, text: job.text, separate: false, token: token, cancellation: control))
+      } catch {
+        job.result = .failure(error)
+        job.head = Self.head(of: version, in: book, cancellation: control)
+      }
+      job.finished.signal()
+      await self?.settle(job)
+    }
+  }
+  /// The next save has to build on what this one made, so it finishes first.
+  private func settle(_ job: BackgroundSave? = nil) {
+    guard let running = background, job == nil || job === running else { return }
+    running.finished.wait()
+    background = nil
+    switch running.result {
+    case .success(let saved): accept(saved, for: running.text)
+    case .failure(let error): report(error, head: running.head)
+    case nil: break
+    }
+  }
+  private func save(separate: Bool) -> Bool {
+    scheduled?.cancel()
+    scheduled = nil
+    settle()
+    guard editable else { return true }
+    guard dirty else {
+      failure = nil
+      return true
+    }
+    let token = operationToken(separate: separate)
     // Navigation waits for this save, so a busy workbook cannot hold the window for longer.
     let control = Cancellation(deadlineAfterSeconds: 3)
+    let savedText = text
     do {
       let saved = try workbook.editDocument(
-        current.id, text: text, separate: separate, token: operation!.token, cancellation: control)
-      current = saved
-      text = saved.text
-      operation = nil
-      failure = nil
-      newerVersionID = nil
-      changed?()
+        current.id, text: text, separate: separate, token: token, cancellation: control)
+      accept(saved, for: savedText)
       return true
     } catch {
-      failure = error.localizedDescription
-      if let head = Self.head(of: current.id, in: workbook, cancellation: control),
-        head != current.id
-      {
-        newerVersionID = head
-        failure =
-          "A newer version exists. Your text is still here. Keep your changes as a separate draft to preserve both versions."
-      }
+      report(error, head: Self.head(of: current.id, in: workbook, cancellation: control))
       return false
     }
   }

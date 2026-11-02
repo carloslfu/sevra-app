@@ -360,7 +360,7 @@ extension Workbook {
     try synchronized {
       try db.readTransaction {
         let schema = try db.managedSchema(datasetID)
-        var (filter, args) = try Self.rowFilter(query, schema: schema)
+        var (filter, args) = try rowFilter(query, schema: schema)
         if !filter.isEmpty { filter = " WHERE n.\"_sevra_item\" IN " + filter }
         var order = "n.\"_sevra_ordinal\",n.\"_sevra_row\""
         if let sort {
@@ -396,7 +396,7 @@ extension Workbook {
   public func filteredRowCount(_ datasetID: String, query: String) throws -> Int {
     try synchronized {
       let schema = try db.managedSchema(datasetID)
-      let (filter, args) = try Self.rowFilter(query, schema: schema)
+      let (filter, args) = try rowFilter(query, schema: schema)
       if filter.isEmpty { return try dataset(datasetID).rowCount }
       return try db.scalar(
         "SELECT count(*) FROM " + ChangeFormat.quote(schema.table)
@@ -406,8 +406,11 @@ extension Workbook {
   }
   /// The search index also holds each row's title and column IDs, which every row shares. It
   /// finds the candidates, and the row's own cells decide.
-  private static func rowFilter(_ query: String, schema: ManagedDatasetSchema) throws -> (String, [Value]) {
-    let term = try searchTerms(query)
+  private func rowFilter(_ query: String, schema: ManagedDatasetSchema) throws -> (String, [Value]) {
+    if rememberedFilter == query + "\u{1f}" + schema.table {
+      return ("(SELECT item FROM temp.filtered_rows)", [])
+    }
+    let term = try searchTerms(query, in: "search_fts")
     if term.isEmpty { return ("", []) }
     return (
       "(SELECT c.item_id FROM search_fts JOIN chunks c ON c.id=search_fts.rowid JOIN items f ON f.id=c.item_id WHERE search_fts MATCH ? AND SEVRA_ROW_HOLDS(f.data,?,?))",
@@ -428,7 +431,7 @@ extension Workbook {
     let active = Set(columns.components(separatedBy: "\u{1f}"))
     let words = row.object.filter { active.contains($0.key) }.values.flatMap { filterWords($0.text) }
     return filterWords(query).prefix(24).allSatisfy { term in
-      words.contains { $0.hasPrefix(term) }
+      words.contains { isUnspaced(term) ? $0.contains(term) : $0.hasPrefix(term) }
     }
   }
   public func tablePage(
@@ -438,6 +441,18 @@ extension Workbook {
     try synchronized {
       try db.readTransaction {
         let table = try dataset(datasetID)
+        // A filter can read every row's cells, about 1 s per 100,000, so a page and its count
+        // share one reading.
+        let schema = try db.managedSchema(datasetID)
+        let (filter, arguments) = try rowFilter(query, schema: schema)
+        if !filter.isEmpty {
+          try db.execute("CREATE TEMP TABLE IF NOT EXISTS filtered_rows(item TEXT PRIMARY KEY)")
+          try db.execute("DELETE FROM temp.filtered_rows")
+          try db.execute(
+            "INSERT OR IGNORE INTO temp.filtered_rows SELECT * FROM " + filter, arguments)
+          rememberedFilter = query + "\u{1f}" + schema.table
+        }
+        defer { rememberedFilter = nil }
         let rows = try rows(
           datasetID, offset: offset, limit: limit, query: query, sort: sort,
           descending: descending)

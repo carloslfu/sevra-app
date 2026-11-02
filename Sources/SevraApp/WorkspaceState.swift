@@ -693,10 +693,8 @@ struct FolderReview {
         try Data(text.utf8).write(to: file, options: .atomic)
         let source = try book.importFile(
           file, origin: "clipboard:values-only", cancellation: cancel, independentInput: true)
-        let job = try book.beginIntake(sourceID: source.id)
-        let result = try book.runIntake(job.id, cancellation: cancel)
         return IntakeChoice(
-          job: result, title: "Copied table range (values only)", supportsTable: true,
+          sourceID: source.id, title: "Copied table range (values only)", supportsTable: true,
           supportsUpdate: true)
       }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
   }

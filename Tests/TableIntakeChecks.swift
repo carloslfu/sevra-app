@@ -64,6 +64,22 @@ func checkTableIntake(at root: URL) {
     try expect(clear.incoming == 0 && clear.removed == 2 && clear.added == 0)
     try expect(try book.dataset(table.id).rowCount == 2)
   }
+  check("replacing a table with the same rows changes nothing, in any order") {
+    let (book, source, table) = try fixture("SameRows", text: "code,amount\n0012,4\n0013,5\n")
+    let same = try book.previewTableUpdate(
+      sourceID: source.id, datasetID: table.id, mode: .replace, mapping: mapping)
+    try expect(same.added == 0 && same.removed == 0 && same.unchanged == 2)
+    let file = root.appendingPathComponent("SameRowsReordered.csv")
+    try Data("code,amount\n0013,5\n0012,4\n".utf8).write(to: file)
+    let reordered = try book.previewTableUpdate(
+      sourceID: book.importFile(file).id, datasetID: table.id, mode: .replace, mapping: mapping)
+    try expect(reordered.added == 0 && reordered.removed == 0 && reordered.unchanged == 2)
+    let other = root.appendingPathComponent("OneRowDifferent.csv")
+    try Data("code,amount\n0013,5\n0012,6\n".utf8).write(to: other)
+    let changed = try book.previewTableUpdate(
+      sourceID: book.importFile(other).id, datasetID: table.id, mode: .replace, mapping: mapping)
+    try expect(changed.added == 2 && changed.removed == 2)
+  }
   check("ambiguous merge keys and incomplete mappings refuse without any working changes") {
     for (name, text, code) in [
       ("DuplicateInput", "code,amount\n0012,4\n0012,7\n", "update_key_duplicate"),

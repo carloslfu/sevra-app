@@ -78,6 +78,12 @@ package enum PinnedModelDownload {
       // Only this setup-owned partial file is reset. Published selections and
       // user-supplied model folders are never modified here.
       try handle.truncate(atOffset: 0)
+      // Bytes kept from before went bad on disk, so a fresh copy can still succeed from here.
+      if st.st_size > 0 {
+        return try fetch(
+          url, to: destination, bytes: bytes, sha256: sha256, configuration: configuration,
+          cancelled: cancelled, progress: progress)
+      }
       throw SplashError("Model download failed SHA-256 verification; retry downloads a fresh copy")
     }
     progress(bytes)

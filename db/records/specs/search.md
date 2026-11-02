@@ -137,7 +137,9 @@ Failed/authenticated captures remain explicit references.
 ## Scale and measurements
 
 Q13. Search uses indexes, keyset pagination and result limits; database readers do
-not materialize entire documents or datasets. App uses paged/virtualized views.
+not materialize entire documents or datasets. Text written without spaces, such as CJK and
+Thai, indexes as whole runs, so a term from inside a run reads the search index's own word list
+for the runs that hold it, up to 64 per term. Only a query with such a term does this. App uses paged/virtualized views.
 Cold start reads manifest and counts, not every asset hash. Integrity verification
 is explicit or targeted to accessed/imported content, with lazy status reporting.
 Q14. Check representative synthetic corpora at 10k and 100k chunks; publish size,

@@ -46,6 +46,16 @@ func checkConversationPresentation() throws {
   } else {
     try expect(false)
   }
+  // CR, LF and CRLF each end a line, and text around the table keeps its exact bytes.
+  for ending in ["\r", "\r\n", "\n"] {
+    let lines = ["Before", "", "| a | b |", "|---|---|", "| 1 | 2 |", "", "After"]
+    let blocks = ConversationPresentation(lines.joined(separator: ending)).blocks
+    try expect(blocks.count == 3)
+    if case .table(let cells) = blocks[1] { try expect(cells.rows == [["1", "2"]]) } else {
+      try expect(false)
+    }
+    try expect(blocks[0] == .text("Before" + ending + ending))
+  }
   if case .table(let cells) = parsed.blocks[1] { try expect(cells.rows == [["1", "2"]]) } else {
     try expect(false)
   }

@@ -296,6 +296,17 @@ func checkNativeSetup() {
     try expect(ModelHTTPFixture.requests.count == 6)
     try expect(
       try Data(contentsOf: repaired.appendingPathComponent("target/weights.safetensors")) == good)
+    // A complete file that went bad costs one fresh copy, not a second press of Verify.
+    let entry = f.pack.target.files.first { $0.path == "weights.safetensors" }!
+    let kept = f.cache.appendingPathComponent("kept-weights")
+    try Data(repeating: 66, count: Int(entry.bytes)).write(to: kept)
+    ModelHTTPFixture.requests = []
+    try PinnedModelDownload.fetch(
+      URL(
+        string:
+          "https://huggingface.co/\(f.pack.target.repository)/resolve/\(f.pack.target.revision)/\(entry.path)"
+      )!, to: kept, bytes: entry.bytes, sha256: entry.sha256, configuration: configuration())
+    try expect(ModelHTTPFixture.requests.count == 1 && Data(contentsOf: kept) == good)
     // A selection that cannot be published is not a damaged original, so nothing downloads.
     ModelHTTPFixture.requests = []
     let selection = f.cache.appendingPathComponent(f.pack.name)

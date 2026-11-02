@@ -370,14 +370,15 @@ extension Workbook {
         }
         var incomingKeys = Set<String>()
         var digests = Set<String>()
-        let existingValues = try Set(
-          existing.map { old in
-            try Value.object(Dictionary(uniqueKeysWithValues: targets.map { ($0, old.data[$0]) }))
-              .json()
-          })
+        let existingDigests = try existing.map { old in
+          try Value.object(Dictionary(uniqueKeysWithValues: targets.map { ($0, old.data[$0]) }))
+            .json()
+        }
+        let existingValues = Set(existingDigests)
         var repeated = 0
         var unchanged = 0
         var matching = 0
+        var incomingDigests: [String] = []
         var changes: [RowEdit] = []
         var additions: [[String: Value]] = []
         var changeRecords: [String: Int] = [:]
@@ -389,6 +390,7 @@ extension Workbook {
           let digest = try Value.object(row).json()
           if !digests.insert(digest).inserted { repeated += 1 }
           if existingValues.contains(digest) { matching += 1 }
+          incomingDigests.append(digest)
           if mode == .merge {
             let value = try key(row)
             try require(
@@ -435,6 +437,14 @@ extension Workbook {
               ]))
           }
         }
+        // The same rows again replace nothing, whatever order they arrive in.
+        let sameRows = mode == .replace && incomingDigests.sorted() == existingDigests.sorted()
+        if sameRows {
+          unchanged = additions.count
+          additions = []
+          additionRecords = []
+          examples = []
+        }
         let preview = TableUpdatePreview(
           sourceID: parsed.sourceID, datasetID: datasetID, mode: mode,
           mapping: mapping, keys: keys, headerRow: headerRow, sheet: parsed.sheet,
@@ -442,7 +452,7 @@ extension Workbook {
           revision: try revision(),
           fingerprint: try tableFingerprint(datasetID), incoming: mapped.count,
           added: additions.count, changed: changes.count,
-          removed: mode == .replace ? existing.count : 0, unchanged: unchanged,
+          removed: mode == .replace && !sameRows ? existing.count : 0, unchanged: unchanged,
           repeatedIncomingRows: repeated, rowsMatchingTarget: matching, examples: examples,
           limitations: [
             (parsed.sheet == nil ? "CSV/TSV values only" : "Saved Excel cell values only")

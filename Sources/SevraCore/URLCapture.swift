@@ -1,13 +1,16 @@
 import Foundation
 import UniformTypeIdentifiers
 
-final class CaptureDownload: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
+/// A data task, because a failed download task leaves its own temporary file behind.
+final class CaptureDownload: NSObject, URLSessionDataDelegate, @unchecked Sendable {
   let maximum: Int64
   let cancellation: Cancellation
   let progress: @Sendable (Int64, Int64) -> Void
   private let lock = NSLock()
   private var continuation: CheckedContinuation<(URL, URLResponse), Error>?
   private var saved: (URL, URLResponse)?
+  private var file: FileHandle?
+  private var received: Int64 = 0
   private var failure: Error?
   private var redirects = 0
   init(
@@ -37,7 +40,7 @@ final class CaptureDownload: NSObject, URLSessionDownloadDelegate, @unchecked Se
     defer { session.invalidateAndCancel() }
     return try await withCheckedThrowingContinuation { continuation in
       self.continuation = continuation
-      let task = session.downloadTask(with: url)
+      let task = session.dataTask(with: url)
       task.resume()
       Task {
         while task.state == .running || task.state == .suspended {
@@ -67,33 +70,24 @@ final class CaptureDownload: NSObject, URLSessionDownloadDelegate, @unchecked Se
       task.cancel()
     }
   }
-  func urlSession(
-    _ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64,
-    totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64
-  ) {
-    if totalBytesWritten > maximum || totalBytesExpectedToWrite > maximum {
-      failure = SevraError(
-        "download_limit",
-        "This capture exceeds the 512 MB download limit. Download the file yourself and include it from disk."
-      )
-      downloadTask.cancel()
-    }
-    if cancellation.isCancelled { downloadTask.cancel() }
-    progress(totalBytesWritten, totalBytesExpectedToWrite)
+  private func tooLarge() -> SevraError {
+    SevraError(
+      "download_limit",
+      "This capture exceeds the 512 MB download limit. Download the file yourself and include it from disk."
+    )
   }
   func urlSession(
-    _ session: URLSession, downloadTask: URLSessionDownloadTask,
-    didFinishDownloadingTo location: URL
+    _ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
+    completionHandler: @escaping (URLSession.ResponseDisposition) -> Void
   ) {
     do {
-      guard let response = downloadTask.response as? HTTPURLResponse,
+      guard let response = response as? HTTPURLResponse,
         (200...299).contains(response.statusCode)
       else {
         throw SevraError(
           "http", "The source could not be retrieved. Authentication or access may be required.")
       }
-      let size = try location.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
-      try require(Int64(size) <= maximum, "download_limit", "The capture exceeds its size limit.")
+      guard response.expectedContentLength <= maximum else { throw tooLarge() }
       let folder = FileManager.default.temporaryDirectory.appendingPathComponent(
         "sevra-capture-" + identifier())
       try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -105,15 +99,35 @@ final class CaptureDownload: NSObject, URLSessionDownloadDelegate, @unchecked Se
         name += "." + ext
       }
       let dest = folder.appendingPathComponent(name)
-      try FileManager.default.moveItem(at: location, to: dest)
       saved = (dest, response)
-    } catch { failure = error }
+      try require(
+        FileManager.default.createFile(atPath: dest.path, contents: nil), "download",
+        "The captured file could not be created.")
+      file = try FileHandle(forWritingTo: dest)
+      completionHandler(.allow)
+    } catch {
+      failure = error
+      completionHandler(.cancel)
+    }
+  }
+  func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+    do {
+      received += Int64(data.count)
+      guard received <= maximum else { throw tooLarge() }
+      try file?.write(contentsOf: data)
+    } catch {
+      failure = error
+      dataTask.cancel()
+    }
+    if cancellation.isCancelled { dataTask.cancel() }
+    progress(received, dataTask.response?.expectedContentLength ?? -1)
   }
   func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
     lock.lock()
     let continuation = self.continuation
     self.continuation = nil
     lock.unlock()
+    try? file?.close()
     if failure != nil || error != nil || cancellation.isCancelled {
       if let saved { try? FileManager.default.removeItem(at: saved.0.deletingLastPathComponent()) }
     }

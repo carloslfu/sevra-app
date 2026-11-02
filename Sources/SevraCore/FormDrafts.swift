@@ -197,7 +197,7 @@ extension Workbook {
         )
         try require(
           spare != .null, "form_draft_limit",
-          "This workbook already has 256 form drafts with unsent inputs.")
+          "This workbook already has 256 form drafts with unsent inputs. Send or clear one of them before starting another.")
         try db.execute("DELETE FROM meta WHERE key=?", [spare])
       }
       try db.execute(

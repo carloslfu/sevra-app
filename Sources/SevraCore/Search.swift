@@ -1,13 +1,47 @@
 import Foundation
 
 extension Workbook {
-  static func searchTerms(_ query: String) throws -> String {
+  private static func searchWords(_ query: String) throws -> [String] {
     try require(query.utf8.count <= 2048, "query_limit", "Search is limited to 2048 bytes.")
     // Marks count as alphanumeric, but the index has no token for a term of marks alone, such as
     // the variation selector in an emoji, and an empty term would leave no hits at all.
-    return query.components(separatedBy: CharacterSet.alphanumerics.inverted)
-      .filter { term in term.unicodeScalars.contains { !CharacterSet.nonBaseCharacters.contains($0) } }
-      .prefix(24).map { "\"" + $0 + "\"*" }.joined(separator: " AND ")
+    return Array(
+      query.components(separatedBy: CharacterSet.alphanumerics.inverted)
+        .filter { term in
+          term.unicodeScalars.contains { !CharacterSet.nonBaseCharacters.contains($0) }
+        }
+        .prefix(24))
+  }
+  static func searchTerms(_ query: String) throws -> String {
+    try searchWords(query).map { "\"" + $0 + "\"*" }.joined(separator: " AND ")
+  }
+  /// Scripts written without spaces between words.
+  static func isUnspaced(_ word: String) -> Bool {
+    word.unicodeScalars.contains {
+      switch $0.value {
+      case 0x0E00...0x0E7F, 0x3040...0x30FF, 0x3400...0x9FFF, 0xAC00...0xD7AF, 0xF900...0xFAFF,
+        0x20000...0x3FFFF:
+        return true
+      default: return false
+      }
+    }
+  }
+  /// The index holds a run of such text as one word, and a term from inside it is no prefix of
+  /// that word. The index's own word list names the runs that hold the term. Only a query with
+  /// such a term reads that list.
+  func searchTerms(_ query: String, in index: String) throws -> String {
+    let words = try Self.searchWords(query)
+    guard words.contains(where: Self.isUnspaced) else { return try Self.searchTerms(query) }
+    try db.execute(
+      "CREATE VIRTUAL TABLE IF NOT EXISTS temp.\(index)_words USING fts5vocab(main,\(index),row)")
+    return try words.map { word in
+      let prefix = "\"" + word + "\"*"
+      guard Self.isUnspaced(word) else { return prefix }
+      let runs = try db.execute(
+        "SELECT term FROM temp.\(index)_words WHERE instr(term,?)>0 LIMIT 64", [.string(word)])
+      return "(" + ([prefix] + runs.map { "\"" + $0["term"]!.text + "\"" }).joined(separator: " OR ")
+        + ")"
+    }.joined(separator: " AND ")
   }
   func insertChunks(_ item: String, title: String, chunks: [Chunk]) throws {
     let metadata = try self.item(item)
@@ -93,7 +127,7 @@ extension Workbook {
     try synchronized {
       try db.budget(cancellation: cancellation, seconds: deadlineSeconds) {
         try db.readTransaction {
-          let terms = try Self.searchTerms(query)
+          let terms = try searchTerms(query, in: "search_fts")
           let count = min(max(limit, 1), 100)
           let skip = min(max(offset, 0), 10_000)
           let rev = try revision()

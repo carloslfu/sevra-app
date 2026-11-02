@@ -8,6 +8,8 @@ import Markdown
 /// without more than the limit of each, in that order. Raw bytes include delimiters in code, which
 /// only overcounts. The one exception is a plain pair such as **Total**, which opens and closes one
 /// level with nothing between that could hide either run, so long tables and lists are not deep.
+/// A marker only opens a level within reach of the last one, and a ruler opens none, so a far
+/// indented line or a long row of spaced dashes is not deep either.
 public enum MarkdownNesting {
   static let limit = 100
   public static func isReadable(_ text: String) -> Bool {
@@ -28,7 +30,20 @@ public enum MarkdownNesting {
     var opened = 0
     var closed = 0
     var plainOpener: (byte: UInt8, count: Int)?
+    // A level's text starts at most five past its marker, and a child's marker up to three past it.
+    var reach = 3
+    func isRuler(at start: Int) -> Bool {
+      let mark = bytes[start]
+      guard mark == UInt8(ascii: "-") || mark == UInt8(ascii: "*") else { return false }
+      var marks = 0
+      for byte in bytes[start...] {
+        if byte == 10 || byte == 13 { break }
+        if byte == mark { marks += 1 } else if byte != 32 && byte != 9 { return false }
+      }
+      return marks >= 3
+    }
     var column = 0
+    var digits = 0
     var inPrefix = true
     var blank = true
     var bullet = false
@@ -43,6 +58,7 @@ public enum MarkdownNesting {
         }
         plainOpener = nil
         column = 0
+        digits = 0
         inPrefix = true
         blank = true
         bullet = false
@@ -56,18 +72,31 @@ public enum MarkdownNesting {
         case 32: column += 1
         case UInt8(ascii: "0")...UInt8(ascii: "9"):
           column += 1
+          digits += 1
           // A list number runs straight into its delimiter.
           let number =
             (48...57).contains(next) || next == UInt8(ascii: ".") || next == UInt8(ascii: ")")
           if !number { inPrefix = false }
         case 9: column += 4 - column % 4
         case UInt8(ascii: ">"):
-          if column >= limit { return false }
-          column += 1
+          if column > reach {
+            inPrefix = false
+          } else {
+            if column >= limit { return false }
+            reach = max(reach, column + 8)
+            column += 1
+          }
         case UInt8(ascii: "-"), UInt8(ascii: "+"), UInt8(ascii: "*"), UInt8(ascii: "."),
           UInt8(ascii: ")"):
-          if isSpace(next) {
+          if column - digits > reach {
+            inPrefix = false
+          } else if isRuler(at: index) {
+            while index < bytes.count && bytes[index] != 10 && bytes[index] != 13 { index += 1 }
+            continue
+          } else if isSpace(next) {
             if column >= limit { return false }
+            reach = max(reach, column + 8)
+            digits = 0
             // A bullet with text always ends the paragraph before it. A number need not.
             if column < 4 && byte != UInt8(ascii: ".") && byte != UInt8(ascii: ")") {
               bullet = true

@@ -55,6 +55,17 @@ public enum BusinessTime {
       "date", "Use a date between the years 0001 and 9999.")
     return normalized
   }
+  /// The day it is where this Mac is. A date without a time means that whole day, which UTC can
+  /// reach hours early or late. A fixture's clock has no place, so it stands for itself.
+  static func localDay(at instant: String) throws -> String {
+    guard FixtureContext.current == nil, let date = ISO8601DateFormatter().date(from: instant)
+    else { return try normalized(instant) }
+    let formatter = DateFormatter()
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.dateFormat = "yyyy-MM-dd"
+    return try normalized(formatter.string(from: date))
+  }
 }
 
 extension Workbook {
@@ -289,27 +300,35 @@ extension Workbook {
   }
   /// A dated entry is not stock until its date arrives, so `asOf` defaults to now. Accepted
   /// effects outside the period stay visible: a quantity never hides what it left out.
-  public func balance(subject: String, asOf: String? = nil) throws -> Value {
-    let asOf = try BusinessTime.normalized(asOf ?? timestamp())
+  public func balance(subject: String, asOf requested: String? = nil) throws -> Value {
+    let asOf = try BusinessTime.normalized(requested ?? timestamp())
+    let day = requested == nil ? try BusinessTime.localDay(at: timestamp()) : asOf
+    let dateOnly = "T00:00:00.000Z"
+    func arrived(_ effective: String) -> Bool {
+      effective <= (effective.hasSuffix(dateOnly) ? day : asOf)
+    }
     let subject = subject.precomposedStringWithCanonicalMapping
     return try synchronized {
       guard
         let base = try db.execute("SELECT * FROM bases WHERE subject=?", [.string(subject)]).first
       else { throw SevraError("unknown_basis", "The opening balance is unknown for \(subject).") }
       try require(
-        base["effective"]!.text <= asOf, "unknown_basis",
+        arrived(base["effective"]!.text), "unknown_basis",
         "No opening basis exists before this date.")
       var total = try Numbers.decimal(base["quantity"]!.text)
       let settled =
         "FROM effects e JOIN items i ON i.id=e.item_id WHERE e.subject=? AND i.status='accepted' AND i.meaning='actual' AND i.scenario='actual' AND NOT EXISTS(SELECT 1 FROM items n WHERE n.logical_id=i.logical_id AND n.version>i.version AND n.status IN ('accepted','rejected'))"
-      let period: [Value] = [.string(subject), base["effective"]!, .string(asOf)]
+      let period: [Value] = [
+        .string(subject), base["effective"]!, .string("%" + dateOnly), .string(day), .string(asOf),
+      ]
+      let inside = "e.effective>? AND e.effective<=IIF(e.effective LIKE ?,?,?)"
       let rows = try db.execute(
-        "SELECT e.*,i.logical_id \(settled) AND e.effective>? AND e.effective<=? ORDER BY e.effective,e.item_id",
+        "SELECT e.*,i.logical_id \(settled) AND \(inside) ORDER BY e.effective,e.item_id",
         period)
       for row in rows {
         total = try exactInventorySum(total, Numbers.decimal(row["quantity"]!.text))
       }
-      let outside = "AND (e.effective<=? OR e.effective>?)"
+      let outside = "AND NOT (\(inside))"
       let excluded = try db.execute(
         "SELECT e.*,i.logical_id \(settled) \(outside) ORDER BY e.effective,e.item_id LIMIT 20",
         period)
@@ -322,7 +341,7 @@ extension Workbook {
           excluded.map { row in
             var effect = row
             effect["reason"] = .string(
-              row["effective"]!.text > asOf ? "after-as-of" : "not-after-basis")
+              arrived(row["effective"]!.text) ? "not-after-basis" : "after-as-of")
             return .object(effect)
           }),
       ])
