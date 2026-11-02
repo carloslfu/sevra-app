@@ -35,6 +35,11 @@ import SwiftUI
     }
     .defaultSize(width: 1200, height: 800)
     .commands {
+      CommandGroup(replacing: .appTermination) {
+        Button("Quit \(Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Sevra")") {
+          documentDelegate.quit()
+        }.keyboardShortcut("q")
+      }
       ConversationCommands()
       WorkbookFileCommands()
       CommandMenu("Workbook") {
@@ -129,35 +134,81 @@ private struct WorkbookFileCommands: Commands {
   }
 }
 
+/// One window per workbook. SwiftUI matches a file against the windows it has finished restoring,
+/// so a file opened during a restore can arrive at a second window of the same workbook.
+@MainActor enum WorkbookWindows {
+  private static let owners = NSMapTable<NSString, NSWindow>.strongToWeakObjects()
+  /// False when another window has it, which then comes forward.
+  static func claim(_ path: String, by window: NSWindow) -> Bool {
+    if let owner = owners.object(forKey: path as NSString), owner !== window {
+      owner.makeKeyAndOrderFront(nil)
+      return false
+    }
+    owners.setObject(window, forKey: path as NSString)
+    return true
+  }
+  static func release(_ path: String, by window: NSWindow) {
+    if owners.object(forKey: path as NSString) === window {
+      owners.removeObject(forKey: path as NSString)
+    }
+  }
+}
+
 @MainActor final class DocumentDelegate: NSObject, NSApplicationDelegate, ObservableObject {
   @Published var pending: [URL] = []
   /// From the latest window. It outlives that window, so a file opened from Finder after the last
   /// one closed still gets a window. Until the first window appears, files wait in `pending`.
   var files: WorkbookFiles?
+  private var quitting = false
   func applicationDidFinishLaunching(_ notification: Notification) {
     NativeAutomationHost.shared.start()
+    NSAppleEventManager.shared().setEventHandler(
+      self, andSelector: #selector(quitEvent(_:reply:)),
+      forEventClass: AEEventClass(kCoreEventClass), andEventID: AEEventID(kAEQuitApplication))
   }
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
     guard DocumentDraftScope.flushAll() else { return .terminateCancel }
-    NativeAutomationHost.shared.beginTermination()
-    Task {
-      await NativeAutomationHost.shared.yieldForInteractive()
-      let saved = await ConversationSession.flushAll()
-      let formsSaved = await FormDraftScope.flushAll()
-      let clarificationsSaved = await WorkflowClarificationScope.flushAll()
-      await SpaceNavigationSession.flushAll()
-      let complete = saved && formsSaved && clarificationsSaved && DocumentDraftScope.flushAll()
-      if complete {
-        await NativeAutomationHost.shared.stop()
-        // A reply in progress holds the model, and unload declines until it stops.
-        NotificationCenter.default.post(name: .sevraStopping, object: nil)
-        await ProductAI.shared.unload(waitingSeconds: 5)
-      } else {
-        NativeAutomationHost.shared.cancelTermination()
-      }
-      sender.reply(toApplicationShouldTerminate: complete)
-    }
+    Task { sender.reply(toApplicationShouldTerminate: await finishWork()) }
     return .terminateLater
+  }
+  /// AppKit ignores `terminate` while a sheet is open, from the menu, the Dock and logout alike,
+  /// and SwiftUI puts back a sheet closed from outside it. So with one open the same saving runs
+  /// here and the process ends itself; a failed save leaves the sheet as it was.
+  func quit() {
+    guard NSApp.windows.contains(where: { $0.attachedSheet != nil }) else {
+      NSApp.terminate(nil)
+      return
+    }
+    guard !quitting, DocumentDraftScope.flushAll() else { return }
+    quitting = true
+    Task {
+      if await finishWork() {
+        UserDefaults.standard.synchronize()
+        exit(0)
+      }
+      quitting = false
+    }
+  }
+  @objc private func quitEvent(_ event: NSAppleEventDescriptor, reply: NSAppleEventDescriptor) {
+    quit()
+  }
+  private func finishWork() async -> Bool {
+    NativeAutomationHost.shared.beginTermination()
+    await NativeAutomationHost.shared.yieldForInteractive()
+    let saved = await ConversationSession.flushAll()
+    let formsSaved = await FormDraftScope.flushAll()
+    let clarificationsSaved = await WorkflowClarificationScope.flushAll()
+    await SpaceNavigationSession.flushAll()
+    let complete = saved && formsSaved && clarificationsSaved && DocumentDraftScope.flushAll()
+    if complete {
+      await NativeAutomationHost.shared.stop()
+      // A reply in progress holds the model, and unload declines until it stops.
+      NotificationCenter.default.post(name: .sevraStopping, object: nil)
+      await ProductAI.shared.unload(waitingSeconds: 5)
+    } else {
+      NativeAutomationHost.shared.cancelTermination()
+    }
+    return complete
   }
   func applicationWillTerminate(_ notification: Notification) {
     NotificationCenter.default.post(name: .sevraStopping, object: nil)
@@ -168,6 +219,7 @@ private struct WorkbookFileCommands: Commands {
 }
 extension Notification.Name {
   static let sevraStopping = Notification.Name("sevraStopping")
+  static let sevraWorkbookOpened = Notification.Name("sevraWorkbookOpened")
   static let sevraImport = Notification.Name("sevraImport"),
     sevraSearch = Notification.Name("sevraSearch"),
     sevraReviews = Notification.Name("sevraReviews"),
@@ -181,6 +233,7 @@ struct WorkspaceWindow: View {
   @Environment(\.openWindow) private var openWindow
   @State private var welcomeError: String?
   @State private var ownWindow: NSWindow?
+  @State private var lostClaim = false
   @State private var closeGuard: DocumentCloseGuard?
   @State private var startingFiles: (destination: String, files: [URL])?
   var body: some View {
@@ -190,7 +243,13 @@ struct WorkspaceWindow: View {
     .frame(minWidth: 820, minHeight: 600)
     .background(
       WindowAccessor { window in
+        guard !lostClaim else { return }
         if ownWindow !== window { ownWindow = window }
+        if let window, let path, !WorkbookWindows.claim(path, by: window) {
+          lostClaim = true
+          window.close()
+          return
+        }
         if let window {
           if closeGuard == nil {
             closeGuard = DocumentCloseGuard(asyncFlush: { [weak state] in
@@ -211,10 +270,11 @@ struct WorkspaceWindow: View {
     )
     .onAppear { inbox.files = files }
     .task(id: path) {
-      if let path {
+      if let path, !lostClaim {
         do {
           try await state.open(URL(fileURLWithPath: path))
           guard !Task.isCancelled else { return }
+          NotificationCenter.default.post(name: .sevraWorkbookOpened, object: nil)
           let previous = UserDefaults.standard.stringArray(forKey: "recentWorkbooks") ?? []
           UserDefaults.standard.set(
             Array(([path] + previous.filter { $0 != path }).prefix(10)), forKey: "recentWorkbooks")
@@ -231,13 +291,26 @@ struct WorkspaceWindow: View {
       state.endInteraction()
     }
     .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { event in
-      if let window = event.object as? NSWindow, window === ownWindow { state.endInteraction() }
+      if let window = event.object as? NSWindow, window === ownWindow {
+        state.endInteraction()
+        if let path { WorkbookWindows.release(path, by: window) }
+      }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .sevraWorkbookOpened)) { _ in
+      // Opening a workbook starts a new window, so the page it was opened from stays behind.
+      if path == nil, state.workbook == nil, welcomeError == nil { ownWindow?.close() }
     }
     .onReceive(inbox.$pending) { pending in
       guard !pending.isEmpty else { return }
       DispatchQueue.main.async {
-        let urls = inbox.pending
+        var urls = inbox.pending
         inbox.pending = []
+        // A cold start already made this window, so the first workbook needs no second one.
+        if path == nil, state.workbook == nil,
+          let first = urls.firstIndex(where: { $0.pathExtension != "sevraz" })
+        {
+          path = urls.remove(at: first).path
+        }
         urls.forEach(files.open)
       }
     }

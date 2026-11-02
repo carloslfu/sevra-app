@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxz9j15p1fw5fmxw7p9hv
 created: 2026-10-25T01:48:47.282868+00:00
-updated: 2026-11-01T08:40:00.000000+00:00
+updated: 2026-11-01T23:50:00.000000+00:00
 summary: Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.
 title: Product and interaction specification
 status: reviewed
@@ -55,6 +55,9 @@ P01. One document window per workbook. Create/open/recent workbooks, document ti
 unsaved-operation status, keyboard shortcuts and native open/save panels. `.sevra`
 is a directory package; `.sevraz` is its portable ZIP64 archive. Opening an archive
 creates an editable package at a user-chosen location without overwriting a file.
+Opening a workbook that has a window brings that window forward, and a welcome page closes
+once a workbook opens. Quit works with a sheet open: the usual saving runs and the sheet goes as
+if cancelled, and a failed save leaves the sheet and its window as they were.
 P02. Adjustable conversation-left/workspace-right split, initial 34/66 proportion.
 Keep a composer visible. Minimum usable window 820x600; at narrow widths allow
 focus on one pane and an accessible switch. Never hide pending changes in a pane.
