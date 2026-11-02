@@ -77,7 +77,7 @@ extension Workbook {
       ).string
     }
   }
-  func runRequestMessage(_ id: String) throws -> String? {
+  public func runRequestMessage(_ id: String) throws -> String? {
     try synchronized {
       try db.scalar("SELECT message_id FROM run_requests WHERE run_id=?", [.string(id)]).string
     }

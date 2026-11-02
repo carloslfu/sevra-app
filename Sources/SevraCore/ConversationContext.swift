@@ -165,7 +165,7 @@ extension Workbook {
       try db.budget(cancellation: control, seconds: 3) {
         try db.readTransaction {
           try requireConversation(conversation)
-          let terms = try Self.searchTerms(query)
+          let terms = try searchTerms(query, in: "message_fts")
           let revision = try revision()
           let count = min(max(limit, 1), 100)
           let ceiling =

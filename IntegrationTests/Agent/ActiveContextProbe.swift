@@ -431,9 +431,19 @@ func runActiveContextRecoveryProbe(
         try expectEqual(try book.spaces().filter { $0.title == "Receiving review" }.count, 1)
         try expectEqual(try book.verify()["ok"], .bool(true))
       }
-      let result = try await WorkbookAgent.run(
-        followUp, workbook: book, modelDirectory: URL(fileURLWithPath: modelsRoot),
-        progress: { fputs("Recovery \(name): \($0)\n", stderr) }, model: model)
+      func ask() async throws -> AgentResult {
+        try await WorkbookAgent.run(
+          followUp, workbook: book, modelDirectory: URL(fileURLWithPath: modelsRoot),
+          progress: { fputs("Recovery \(name): \($0)\n", stderr) }, model: model)
+      }
+      let result: AgentResult
+      do {
+        result = try await ask()
+      } catch let error as SevraError where error.code == "step_limit" {
+        // The step limit tells the person to ask again, and the report keeps that it took one more.
+        report["askedAgain"] = .bool(true)
+        result = try await ask()
+      }
       report["answer"] = .string(result.answer)
       report["state"] = .string(result.state)
       report["steps"] = .number(Double(result.steps))

@@ -237,7 +237,7 @@ package final class ContextMaintenance {
         role: last.role, content: try Value.object(fields).json(), toolCalls: last.toolCalls,
         toolCallId: last.toolCallId, toolName: last.toolName, reasoning: last.reasoning,
         itemReferences: last.itemReferences, conversationActions: last.conversationActions,
-        documentCopyIDs: last.documentCopyIDs)
+        documentCopyIDs: last.documentCopyIDs, historyReferences: last.historyReferences)
     ]
   }
   /// The state the model reads, without host bookkeeping it never uses. A read adds one entry
@@ -293,7 +293,11 @@ package final class ContextMaintenance {
   ) async throws -> ContextMeasurement {
     try ContextBudget.validateEnvelope(messages)
     let messages =
-      summary ? messages : try ItemReferenceCandidates.annotate(messages, workbook: workbook)
+      summary
+      ? messages
+      : try ItemReferenceCandidates.annotate(
+        messages, workbook: workbook,
+        history: (conversation, try workbook.runRequestMessage(runID)))
     return try await model.measureContext(
       messages: messages, directory: directory, cancellation: cancellation,
       summary: summary, citationIDs: citations, progress: progress)
@@ -413,10 +417,14 @@ package final class ContextMaintenance {
       if previous["legacyDigest"] != .null {
         digestFields["legacyDigest"] = previous["legacyDigest"]
       }
-      digestFields["notes"] = .array(
-        try ContextDigest.bounded(
-          protected: protected, additions: additions,
-          reservedBytes: try Value.object(digestFields).json().utf8.count))
+      let notes = try ContextDigest.bounded(
+        protected: protected, additions: additions,
+        reservedBytes: try Value.object(digestFields).json().utf8.count + 32)
+      digestFields["notes"] = .array(notes)
+      // The originals stay in history, so the model should know there is more to search for.
+      let omitted =
+        (previous["olderNotesOmitted"].int ?? 0) + protected.count + additions.count - notes.count
+      if omitted > 0 { digestFields["olderNotesOmitted"] = .number(Double(omitted)) }
       let digest: Value = .object(digestFields)
       try require(
         try digest.json().utf8.count <= ContextDigest.maximumBytes, "context_limit",

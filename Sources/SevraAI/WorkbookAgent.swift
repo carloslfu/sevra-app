@@ -188,13 +188,16 @@ public enum WorkbookAgent {
     var handedOff = false
     var rejectedActions: [String: Int] = [:]
     var computed = false
-    let requestNumbers = numericValues(prompt)
+    // "Line 2 100 units" can mean 2100 or a 2 and a 100, and a request may mean either.
+    let requestNumbers = numericValues(prompt).union(
+      numericValues(prompt.replacingOccurrences(of: " ", with: "\n")))
     var computedNumbers = Set<String>()
     var calculationInputs = CalculationInputs()
     var currencyEvidence = prompt.contains("$") || prompt.contains("€") || prompt.contains("£")
     var percentages: [Decimal] = []
     let statedPercentages = Self.percentValues(prompt + "\n" + context)
     var finalFailures = 0
+    var stoppedRequestRaised = false
     var emptySearches = 0
     var emptySearchesIncludedHistory = true
     var emptyQueries: [String] = []
@@ -370,7 +373,9 @@ public enum WorkbookAgent {
             conversationActions: messages[0].conversationActions)
         }
         try ContextBudget.validateEnvelope(messages)
-        messages = try ItemReferenceCandidates.annotate(messages, workbook: workbook)
+        messages = try ItemReferenceCandidates.annotate(
+          messages, workbook: workbook,
+          history: (conversation, try workbook.runRequestMessage(runID)))
         let itemChoices = try ItemReferenceCandidates.ids(in: messages)
         let copyChoices = try DocumentCopyCandidates.ids(in: messages)
         let selectedScope = nextToolScope == .all ? phaseScope : nextToolScope
@@ -673,6 +678,14 @@ public enum WorkbookAgent {
               )
             }
           }
+          // Finishing without reading it is how a person's "continue" got an unrelated answer.
+          if !stoppedRequestRaised, step < stepBudget,
+            let stopped = try workbook.unreadStoppedRequest(
+              conversation: conversation, runID: runID)
+          {
+            stoppedRequestRaised = true
+            problems.append(Self.stoppedReminder(stopped, otherwise: "finish again"))
+          }
           if !problems.isEmpty {
             finalFailures += 1
             let feedback = try Value.object(["error": .string(problems.joined(separator: " "))])
@@ -841,7 +854,7 @@ public enum WorkbookAgent {
         var movementReview: Value?
         var preparationPreviewReceiptID: String?
         var commitArguments: Value?
-        var refusedAsUnchanged = false
+        var nothingFailed = false
         do {
           try require(
             tool != "start_thread_and_continue" || step < stepBudget,
@@ -851,6 +864,15 @@ public enum WorkbookAgent {
               || (tool != "conversation_action" && WorkbookTools.conversationTools[tool] == nil),
             "handoff_limit",
             "This request already moved to its new thread. Finish its remaining work here.")
+          // A "continue" taken for a new thread left the stopped request undone.
+          if WorkbookTools.conversationTools[tool] != nil, !stoppedRequestRaised, step < stepBudget,
+            let stopped = try workbook.unreadStoppedRequest(
+              conversation: conversation, runID: runID)
+          {
+            stoppedRequestRaised = true
+            throw SevraError(
+              "stopped_request", Self.stoppedReminder(stopped, otherwise: "make this call again"))
+          }
           try ItemReferenceCandidates.validate(tool: tool, arguments: a, choices: itemChoices)
           try DocumentCopyCandidates.validate(tool: tool, arguments: a, choices: copyChoices)
           if tool == "propose_movement", !readOnly {
@@ -947,7 +969,8 @@ public enum WorkbookAgent {
         } catch {
           callFailed = true
           // Asking for the title a thread already has changes nothing, so nothing failed.
-          refusedAsUnchanged = (error as? SevraError)?.code == "unchanged_thread"
+          nothingFailed = ["unchanged_thread", "stopped_request"].contains(
+            (error as? SevraError)?.code)
           if ["propose_movement", "prepare_action"].contains(tool),
             let failure = error as? SevraError,
             ["movement_direction", "movement_review", "duplicate_effect"].contains(failure.code)
@@ -1026,7 +1049,7 @@ public enum WorkbookAgent {
             ]), conversationAction: outcome)
         }
         if callFailed {
-          if !refusedAsUnchanged {
+          if !nothingFailed {
             actionConfirmations.recordFailure(
               tool: tool, arguments: a, result: result, receiptID: receiptID)
           }
@@ -1170,10 +1193,11 @@ public enum WorkbookAgent {
               }
             }
           }
+          let queryTables = tool == "rows" ? [:] : Self.queryRowTables(visible)
           for (id, locator) in evidence {
             inspected.insert(id)
             observedThisStep.insert(id)
-            if let rowsTable { readRows.append((id, rowsTable)) }
+            if let table = rowsTable ?? queryTables[id] { readRows.append((id, table)) }
             if let locator, locators[id] == nil { locators[id] = locator }
           }
 
@@ -1313,7 +1337,7 @@ public enum WorkbookAgent {
       }
       throw SevraError(
         "step_limit",
-        "The exploration reached its step limit. Completed changes are saved; narrow the question to continue."
+        "This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question."
       )
     } catch {
       if handedOff { throw error }
@@ -1415,18 +1439,20 @@ public enum WorkbookAgent {
       + " Recheck the entire answer: no listed ID may remain even once."
   }
 
-  /// One number as prose writes it: 1,234.56, 1.234,56, 12,5 or 1.234.567. A bare 1,234 stays
+  /// One number as prose writes it: 1,234.56, 1.234,56, 1 234,56, 12,5 or 1.234.567. A bare 1,234 stays
   /// thousands and a bare 1.234 a decimal, as neither says which language it is in. A unit can
   /// follow directly, as in 144USD. Other letters make it a name or a position, as in 3D or 2nd.
   private static let numberPattern =
-    "(?<![\\p{L}\\p{N}.])[+-]?(?:[0-9]{1,3}(?:\\.[0-9]{3})+,[0-9]+"
+    "(?<![\\p{L}\\p{N}.])[+-]?(?:[0-9]{1,3}(?:[ \\u00A0\\u202F][0-9]{3})+(?:[.,][0-9]+)?"
+    + "|[0-9]{1,3}(?:\\.[0-9]{3})+,[0-9]+"
     + "|[0-9]{1,3}(?:,[0-9]{3})+(?:\\.[0-9]+)?|[0-9]{1,3}(?:\\.[0-9]{3}){2,}"
     + "|(?<![0-9],)[0-9]+,(?:[0-9]{1,2}|[0-9]{4,})(?![0-9]|,[0-9])"
     + "|[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)"
     + "(?![\\p{N}ºª])(?=[^\\p{L}]|\\z"
     + "|(?i:usd|eur|gbp|cop|mxn|brl|cad|aud|kg|mg|lbs?|oz|ml|km|cm|mm|ft|hrs?|min|sec|percent)\\b)"
 
-  private static func plainNumber(_ written: String) -> String {
+  private static func plainNumber(_ spaced: String) -> String {
+    let written = spaced.filter { !" \u{A0}\u{202F}".contains($0) }
     let dots = written.filter { $0 == "." }.count
     guard let comma = written.lastIndex(of: ",") else {
       return dots > 1 ? written.replacingOccurrences(of: ".", with: "") : written
@@ -1466,6 +1492,24 @@ public enum WorkbookAgent {
       guard let range = Range($0.range(at: 1), in: text) else { return nil }
       return try? Numbers.decimal(plainNumber(String(text[range]).trimmingCharacters(
         in: CharacterSet(charactersIn: "+-"))))
+    }
+  }
+
+  private static func stoppedReminder(_ id: String, otherwise: String) -> String {
+    "The previous request stopped before finishing and you have not read it. If the current request asks to continue it, read it with history_read using id \(id), then do what remains. If not, \(otherwise)."
+  }
+  /// Which table each row of a saved query's page came from. Pages of them outrun the citation
+  /// choices the way a table read to its end does, and they leave those choices the same way.
+  package static func queryRowTables(_ value: Value) -> [String: String] {
+    switch value {
+    case .array(let values):
+      return values.reduce(into: [:]) { $0.merge(queryRowTables($1)) { first, _ in first } }
+    case .object(let fields):
+      if let id = fields["versionID"]?.string, let table = fields["datasetID"]?.string {
+        return [id: table]
+      }
+      return queryRowTables(.array(Array(fields.values)))
+    default: return [:]
     }
   }
 

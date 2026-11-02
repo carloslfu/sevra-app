@@ -63,6 +63,9 @@ func checkAnswerGrounding() async throws {
     ("The 2nd and 3rd, el 1er y 2do, H2O, Q3.", []),
     ("A 3D model at 4K over 5G with 2FA, 1080p, 24h, open at 7am.", []),
     ("See [12 bolts](sevra://item/550e8400-e29b-41d4-a716-446655440000).", ["12"]),
+    ("Son 1 234,50 kg y 12\u{00A0}345\u{202F}678 unidades.", ["1234.5", "12345678"]),
+    ("1 234 567 and 10 000.25", ["1234567", "10000.25"]),
+    ("Line 7 of 12 and 5 1234", ["7", "12", "5", "1234"]),
   ]
   for (text, values) in readings { try expectEqual(WorkbookAgent.numericValues(text), values) }
   try expectEqual(
@@ -380,15 +383,44 @@ func checkRefusedToolCalls() async throws {
     throw SevraError("fixture", "Repeated refusals completed.")
   } catch let error as SevraError where error.code == "model_format" {}
   let cutOff: ScriptedCalls.Step = { _ in throw SevraError("truncated", "Cut off.") }
-  let redone = ScriptedCalls([cutOff, finish("Hello.", basis: "general")])
+  // The person may be asking to continue the request that just failed, so finishing without
+  // reading it raises it once. An unrelated request finishes on the next try.
+  let stopped = try expectValue(book.messages().last { $0.role == "user" })
+  let redone = ScriptedCalls([
+    cutOff, finish("Hello.", basis: "general"), finish("Hello.", basis: "general"),
+  ])
   let shorter = try await WorkbookAgent.run("Say hello.", workbook: book, model: redone)
   try expectEqual(shorter.state, "complete")
-  try expectEqual(shorter.steps, 2)
+  try expectEqual(shorter.steps, 3)
+  let raised = await redone.refusals
+  try expectEqual(raised.count, 1)
+  try expectEqual(raised[0].contains(stopped.id), true)
   do {
     _ = try await WorkbookAgent.run(
       "Say hello.", workbook: book, model: ScriptedCalls([cutOff, cutOff, cutOff]))
     throw SevraError("fixture", "Repeated cut-off responses completed.")
   } catch let error as SevraError where error.code == "truncated" {}
+  let unread = try expectValue(book.messages().last { $0.role == "user" })
+  let continued = ScriptedCalls([
+    call("history_read", .object(["id": .string(unread.id)])), finish("Hello.", basis: "general"),
+  ])
+  let resumed = try await WorkbookAgent.run("Continue.", workbook: book, model: continued)
+  try expectEqual(resumed.steps, 2)
+  try expectEqual(await continued.refusals.isEmpty, true)
+  // A thread change raises it too, and a request that really asks for a thread gets one next try.
+  do {
+    _ = try await WorkbookAgent.run(
+      "Say hello.", workbook: book, model: ScriptedCalls([cutOff, cutOff, cutOff]))
+    throw SevraError("fixture", "Repeated cut-off responses completed.")
+  } catch let error as SevraError where error.code == "truncated" {}
+  let waiting = try expectValue(book.messages().last { $0.role == "user" })
+  let branch = call("start_thread", .object(["title": .string("Side")]))
+  let branching = ScriptedCalls([branch, branch])
+  let moved = try await WorkbookAgent.run("Start a thread.", workbook: book, model: branching)
+  try expectEqual(moved.conversationAction != nil, true)
+  try expectEqual(moved.answer.contains("Couldn’t"), false)
+  let reminded = await branching.prompts.last?.last?.content ?? ""
+  try expectEqual(reminded.contains(waiting.id), true)
   print("PASS refused or cut-off responses reach the model for correction, three times at most")
 }
 
@@ -412,6 +444,20 @@ func checkPagedTableRows() async throws {
   func page(_ table: Dataset, _ offset: Int) -> ScriptedCalls.Step {
     call("rows", .object(["datasetID": .string(table.id), "offset": .number(Double(offset))]))
   }
+  // Pages of a saved query leave the citation choices the same way, by naming their table.
+  let queried: Value = .object([
+    "result": .object([
+      "rows": .array([
+        .object([
+          "values": .object([:]),
+          "inputs": .array([
+            .object(["datasetID": .string("table"), "versionID": .string("row")]), .null,
+          ]),
+        ])
+      ])
+    ])
+  ])
+  try expectEqual(WorkbookAgent.queryRowTables(queried), ["row": "table"])
   let long = try table("Long prices", rows: 350)
   let rows = try book.rows(long.id, limit: 350).map(\.id)
   try expectEqual(rows.count, 350)

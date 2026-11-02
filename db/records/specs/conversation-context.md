@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-11-01T19:20:00+00:00
+updated: 2026-11-02T00:20:00+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -628,13 +628,25 @@ source and nothing was relabeled:
   request's text still enters only through history_read, and it applies only if the current
   request asks to continue it. Saved work is listed beside the text. Earlier reads do not carry
   over, because a copy needs a read from the same request.
-- A follow-up took a record's ID for the stopped request and lost the job. A missed history_read
-  now names the unread stopped request's messageID, and says nothing extra otherwise.
+- A follow-up took a record's ID for the stopped request and lost the job. history_read now offers
+  only messages this context names, up to 32, and is left out when there are none, so the native
+  model cannot pass a record's ID. Any other backend's miss still names the unread stopped
+  request's messageID, and says nothing extra otherwise.
+- That same follow-up then finished complete without reading the request it was asked to continue.
+  Finishing with an unread stopped request is now refused once, and that refusal says to read it if
+  the current request asks to continue it and to finish again if not. An unrelated request after a
+  stop therefore costs one more step, and nothing resumes on its own.
+- A later follow-up took "continue" for a new thread and left the work undone. A thread change with
+  an unread stopped request gets the same single reminder, and a request that really asks for a
+  thread gets one by repeating the call.
+- Asked to continue after a step limit, a request saved its memo a second time, so reading a
+  stopped request now also makes that request's draft titles refused as `draft_duplicate`.
 - A note in its message's exact words is marked verbatim by the host, so nothing has to fetch it
   again. The host compares the words; a model cannot claim this.
 
 Limits. Twelve steps still bound one request, so a job of more than about nine documents needs
-more than one request, and each follow-up reads again what it still needs. A request far longer
+more than one request, and each follow-up reads again what it still needs. A request that reaches
+the limit says so and to ask again, and asking again continues from what it saved. A request far longer
 than 8 KB stays behind history_read. A model response can still end unfinished: this happened
 once in the real runs below and ended the request with a plain message and nothing saved wrongly.
 Asking again continues.

@@ -19,8 +19,14 @@ package enum ItemReferenceCandidates {
     try normalized(messages.flatMap(\.itemReferences))
   }
 
+  /// A record's ID looks just like a message's, so history_read offers only messages.
+  package static func historyIDs(in messages: [InferenceMessage]) -> [String]? {
+    messages.first?.historyReferences
+  }
+
   package static func annotate(
-    _ messages: [InferenceMessage], workbook: Workbook
+    _ messages: [InferenceMessage], workbook: Workbook,
+    history: (conversation: String, before: String?)? = nil
   ) throws -> [InferenceMessage] {
     guard !messages.isEmpty else { return [] }
     let regex = try NSRegularExpression(
@@ -58,11 +64,16 @@ package enum ItemReferenceCandidates {
     // their values are already in view, and anything else may be the only way to reach it.
     var verified: [String] = []
     var rows: [String] = []
+    var earlier: [String] = []
     for id in mentioned {
       do {
         if try workbook.item(id).kind == "row" { rows.append(id) } else { verified.append(id) }
       } catch let error as SevraError where error.code == "not_found" {
-        continue
+        guard let history, earlier.count < 32,
+          (try? workbook.readHistoryEvidence(
+            id, conversation: history.conversation, beforeMessage: history.before)) != nil
+        else { continue }
+        earlier.append(id)
       }
     }
     let choices = try normalized(verified + rows.prefix(max(0, maximum - verified.count)))
@@ -73,7 +84,8 @@ package enum ItemReferenceCandidates {
         role: message.role, content: message.content, toolCalls: message.toolCalls,
         toolCallId: message.toolCallId, toolName: message.toolName, reasoning: message.reasoning,
         itemReferences: index == 0 ? choices : [], conversationActions: message.conversationActions,
-        documentCopyIDs: message.documentCopyIDs)
+        documentCopyIDs: message.documentCopyIDs,
+        historyReferences: index == 0 && history != nil ? earlier.sorted() : nil)
     }
   }
 

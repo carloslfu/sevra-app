@@ -7,6 +7,7 @@ private actor PagedSearchInference: WorkbookInference {
   let lastMetrics: Value = .object([:])
   var steps = 0
   var found = Set<String>()
+  var answer: Value = .null
   func beginRun() {}
   func endRun() {}
   func respond(
@@ -17,7 +18,11 @@ private actor PagedSearchInference: WorkbookInference {
     steps += 1
     var arguments: Value = .object(["query": .string("cafe supplier")])
     var tool = "search"
-    if steps > 1 {
+    // The fixture's earlier run never finished, so the host raises it once.
+    if steps == 4 {
+      tool = "finish"
+      arguments = answer
+    } else if steps > 1 {
       let page = try Value.parse(messages.last!.content)
       try expectEqual(page["hits"].array.count, steps == 2 ? 12 : 8)
       for hit in page["hits"].array {
@@ -36,6 +41,7 @@ private actor PagedSearchInference: WorkbookInference {
           "basis": .string("evidence"),
           "citations": .array(found.sorted().map(Value.string)),
         ])
+        answer = arguments
       }
     }
     return NativeReply(
@@ -150,7 +156,7 @@ func checkScopedSearch() async throws {
     "Inspect the cafe supplier evidence. Make no changes.", workbook: book,
     model: PagedSearchInference())
   try expectEqual(paged.state, "complete")
-  try expectEqual(paged.steps, 3)
+  try expectEqual(paged.steps, 4)
   let stable = try tools.execute("search", .object(["query": .string("cafe supplier")]))
   let context = try book.historySlice(limit: 500)
   _ = try book.saveContextCheckpoint(

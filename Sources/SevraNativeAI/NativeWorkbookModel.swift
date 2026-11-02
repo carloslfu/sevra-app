@@ -420,7 +420,8 @@ private final class NativeWorker: @unchecked Sendable {
           citationIDs, thinking: thinking,
           itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
           conversationActions: messages.first?.conversationActions,
-          documentCopyIDs: DocumentCopyCandidates.ids(in: messages)
+          documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
+          historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages)
         ).promptTools()
       let prompt = try session.frontend.prepare(
         messages: messages.map(nativeTemplateMessage),
@@ -507,7 +508,8 @@ private final class NativeWorker: @unchecked Sendable {
         citationIDs, toolScope: toolScope, thinking: reasoning.enabled,
         itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
         conversationActions: messages.first?.conversationActions,
-        documentCopyIDs: DocumentCopyCandidates.ids(in: messages))
+        documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
+        historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages))
     }
     let budget = configuration.contextBudget
     let prompt = try session.frontend.prepare(

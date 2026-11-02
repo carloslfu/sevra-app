@@ -414,7 +414,7 @@ public struct WorkbookTools {
         try require(
           !(try workbook.savedAnotherDraft(titled: title, arguments: a, runID: runID)),
           "draft_duplicate",
-          "A draft titled \(title) was already saved in this request. Do not save it again. Finish, and say plainly what it still needs."
+          "A draft titled \(title) was already saved for this work. Do not save it again. Finish, and say plainly what it still needs."
         )
       }
       if tool == "draft", a["parts"] != .null {

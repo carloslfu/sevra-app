@@ -10,7 +10,7 @@ package enum NativeCitationPolicy {
   package static func make(
     _ citationIDs: [String], toolScope: InferenceToolScope = .all, thinking: Bool = false,
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
-    documentCopyIDs: [String] = []
+    documentCopyIDs: [String] = [], historyReferenceIDs: [String]? = nil
   ) throws
     -> SplashToolPolicy
   {
@@ -21,7 +21,8 @@ package enum NativeCitationPolicy {
       "This exploration has too many evidence references. Continue with a narrower question.")
     let serialized = try NativeTools.serializedDefinitions(
       toolScope: toolScope, itemReferenceIDs: itemReferenceIDs,
-      conversationActions: conversationActions, documentCopyIDs: documentCopyIDs)
+      conversationActions: conversationActions, documentCopyIDs: documentCopyIDs,
+      historyReferenceIDs: historyReferenceIDs)
     if !toolScope.allows("finish") {
       return try SplashToolPolicy(toolsJSON: serialized, choice: .required, thinking: thinking)
     }

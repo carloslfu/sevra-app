@@ -65,7 +65,7 @@ private actor ConfirmationModel: WorkbookInference {
 
 private func checkRefusedRepeats() throws {
   let memo: Value = .object(["title": .string("Memo")])
-  let refusal = "A draft titled Memo was already saved in this request. Do not save it again. Finish, and say plainly what it still needs."
+  let refusal = "A draft titled Memo was already saved for this work. Do not save it again. Finish, and say plainly what it still needs."
   var repeated = ActionConfirmations()
   repeated.record(
     tool: "draft", arguments: memo,

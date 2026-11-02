@@ -4,7 +4,8 @@ import SevraCore
 extension NativeTools {
   package static func referenceDefinitions(
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
-    toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil
+    toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil,
+    historyReferenceIDs: [String]? = nil
   ) throws
     -> [WorkbookToolDefinition]
   {
@@ -42,6 +43,18 @@ extension NativeTools {
           name: definition.name, description: definition.description,
           parameters: .object(parameters))
       }
+      if definition.name == "history_read", let historyReferenceIDs {
+        guard !historyReferenceIDs.isEmpty else { return nil }
+        var parameters = definition.parameters.object
+        var properties = definition.parameters["properties"].object
+        var id = properties["id"]!.object
+        id["enum"] = .array(historyReferenceIDs.map(Value.string))
+        properties["id"] = .object(id)
+        parameters["properties"] = .object(properties)
+        return .init(
+          name: definition.name, description: definition.description,
+          parameters: .object(parameters))
+      }
       guard !ids.isEmpty else { return definition }
       guard ["read", "lineage", "references"].contains(definition.name) else { return definition }
       var parameters = definition.parameters.object
@@ -59,11 +72,13 @@ extension NativeTools {
   /// The same maintained declarations feed both backend boundaries.
   package static func serializedDefinitions(
     toolScope: InferenceToolScope = .all, itemReferenceIDs: [String] = [],
-    conversationActions: [String]? = nil, documentCopyIDs: [String]? = nil
+    conversationActions: [String]? = nil, documentCopyIDs: [String]? = nil,
+    historyReferenceIDs: [String]? = nil
   ) throws -> Data {
     let definitions = try referenceDefinitions(
       itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions,
-      toolScope: toolScope, documentCopyIDs: documentCopyIDs
+      toolScope: toolScope, documentCopyIDs: documentCopyIDs,
+      historyReferenceIDs: historyReferenceIDs
     )
     .filter { toolScope.allows($0.name) }
     let values: [[String: Any]] = try definitions.map {

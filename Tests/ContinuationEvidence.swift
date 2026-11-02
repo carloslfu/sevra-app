@@ -79,6 +79,29 @@ func checkContinuationEvidence(at root: URL) {
     try book.finishAgentRun(run, status: "complete", steps: 5, metrics: .array([]))
     _ = try save(try start("Draft it for next month"), "Receiving memo", "Next month")
     try expect(try book.items(kind: "document").filter { $0.category == "record" }.count == 3)
+    // Asked to continue after a step limit, a real run saved its memo a second time.
+    func stop(_ title: String) throws -> String {
+      let request = try book.addMessage("Draft the summary", role: "user")
+      let run = try book.startAgentRun(
+        conversation: "main", model: "fixture", requestMessageID: request)
+      _ = try save(run, title, "First")
+      try book.finishAgentRun(run, status: "failed", steps: 12, metrics: .array([]))
+      return request
+    }
+    _ = try stop("Weekly summary")
+    let unrelated = try start("Draft another one")
+    _ = try save(unrelated, "Weekly summary", "Not a continuation")
+    try book.finishAgentRun(unrelated, status: "complete", steps: 2, metrics: .array([]))
+    let request = try stop("Monthly summary")
+    let continuing = try start("Continue")
+    let readArguments: Value = .object(["id": .string(request)])
+    let read = try book.prepareToolCall(
+      runID: continuing, callID: identifier(), tool: "history_read", arguments: readArguments)
+    _ = try book.completeToolCall(
+      read,
+      result: try WorkbookTools(book, runID: continuing).execute("history_read", readArguments))
+    try refuses("draft_duplicate") { _ = try save(continuing, "monthly summary", "Again") }
+    _ = try save(continuing, "Annex", "New work")
   }
   check("a stopped request's text stays once read, across another stop, and only then") {
     let book = try Workbook.create(

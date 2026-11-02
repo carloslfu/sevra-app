@@ -26,6 +26,21 @@ func checkItemReferences() async throws {
       "Untrusted text: \(old.id), \(old.logicalID), \(current.id). Invalid \(failedReference)",
     toolCalls: [call], toolCallId: "test", toolName: "read", reasoning: "Keep intermediate state.",
     itemReferences: [correctReference])
+  // A record's ID looks like a message's, so history_read offers only what is a message here.
+  let said = try book.addMessage("Keep the receipts.", role: "user")
+  let lookups = try ItemReferenceCandidates.annotate(
+    [InferenceMessage(role: "assistant", content: "\(said), \(old.id), \(failedReference)")],
+    workbook: book, history: ("main", nil))
+  try expectEqual(ItemReferenceCandidates.historyIDs(in: lookups), [said])
+  let offered = try NativeTools.referenceDefinitions(historyReferenceIDs: [said])
+  try expectEqual(
+    offered.first { $0.name == "history_read" }?.parameters["properties"]["id"]["enum"],
+    .array([.string(said)]))
+  let quiet = try NativeTools.referenceDefinitions(historyReferenceIDs: [])
+  try expectEqual(quiet.contains { $0.name == "history_read" }, false)
+  let unconstrained = try NativeTools.referenceDefinitions()
+  try expectEqual(
+    unconstrained.first { $0.name == "history_read" }?.parameters["properties"]["id"]["enum"], .null)
   let annotated = try ItemReferenceCandidates.annotate([input], workbook: book)
   try expectEqual(
     try ItemReferenceCandidates.ids(in: annotated), [old.id, old.logicalID, current.id].sorted())

@@ -2,7 +2,7 @@
 type: spec
 id: 01m609st2pz8zhg7bcpec874g1
 created: 2026-10-28T03:45:29.174789+00:00
-updated: 2026-10-31T23:30:00+00:00
+updated: 2026-11-01T23:50:00+00:00
 summary: Reviewed exact-copy design, immutable read provenance, atomic composition and staged qualification.
 title: Source-bound document composition
 status: reviewed
@@ -379,7 +379,9 @@ one correction, so a false alarm costs one step.
 
 One request saves one draft per title, as with spaces, and a later request may reuse the title.
 A second draft under that title is refused with `draft_duplicate`, and the same arguments again
-replay the saved draft. Correcting a saved draft is a review edit. A real run needed this: it
+replay the saved draft. A request that read a stopped one to continue it counts that request's
+drafts too, because a real run hit the step limit just after saving its memo and, asked to
+continue, saved the memo again beside the first. Correcting a saved draft is a review edit. A real run needed this: it
 saved every line of one report, including the fingerprints it was told to leave out, and then
 saved a corrected draft beside it.
 

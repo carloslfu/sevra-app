@@ -13,17 +13,26 @@ extension Workbook {
       [run, message]
     ).int ?? 0 > 0
   }
-  /// Whether this request saved a different draft under this title. The same arguments again are
-  /// a replay, which returns the saved draft.
+  /// Whether this request, or a stopped one it read in order to continue, saved a different draft
+  /// under this title. The same arguments again are a replay, which returns the saved draft.
   func savedAnotherDraft(titled title: String, arguments: Value, runID: String) throws -> Bool {
     try synchronized {
-      try db.execute(
+      let sameTitle = { (other: String) in other.lowercased() == title.lowercased() }
+      if try db.execute(
         "SELECT arguments FROM tool_calls WHERE run_id=? AND tool='draft' AND state='completed'",
         [.string(runID)]
-      ).contains {
+      ).contains(where: {
         let earlier = try Value.parse($0["arguments"]!.text)
-        return earlier != arguments && earlier["title"].text.lowercased() == title.lowercased()
-      }
+        return earlier != arguments && sameTitle(earlier["title"].text)
+      }) { return true }
+      let conversation = try db.scalar(
+        "SELECT conversation_id FROM agent_runs WHERE id=?", [.string(runID)])
+      guard let conversation = conversation.string else { return false }
+      let stopped = try stoppedRequest(conversation: conversation, runID: runID)
+      return stopped["readByThisRequest"] == .bool(true)
+        && stopped["saved"].array.contains {
+          $0["tool"].text == "draft" && sameTitle($0["title"].text)
+        }
     }
   }
   /// The request just before this one, when it stopped. A checkpoint can cover its message, and
@@ -100,7 +109,7 @@ extension Workbook {
     }
   }
   /// Continuing means finding this message, and a record's ID looks just like it.
-  func unreadStoppedRequest(conversation: String, runID: String) throws -> String? {
+  public func unreadStoppedRequest(conversation: String, runID: String) throws -> String? {
     try synchronized {
       let stopped = try stoppedRequest(conversation: conversation, runID: runID)
       return stopped["readByThisRequest"] == .bool(false) ? stopped["messageID"].string : nil
