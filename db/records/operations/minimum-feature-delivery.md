@@ -2,7 +2,7 @@
 type: operational
 id: 01m6578ccnp83zedvmr7gpp45q
 created: 2026-10-30T01:37:13.109871+00:00
-updated: 2026-11-01T16:00:00+00:00
+updated: 2026-11-02T01:05:00+00:00
 summary: Ordered bounded implementation, test and polish increments for the audited Sevra feature gaps.
 title: Minimum usable feature sequence
 ---
@@ -70,5 +70,6 @@ has its real-model journey, install, suite and window pass, including Add a fold
 and import, and Transcribe on real audio. A later 27-minute check replaced the speech engine after
 the old one lost words before a pause. The keyboard pass finished apart from five menu shortcuts read
 from the menu but not pressed. A whole-app review on November 1 found 32 ranked defects, all
-fixed on main. VoiceOver itself, signing and the hardware matrix remain open. Next is an external
+fixed on main, and its follow-up fixed the open list, leaving the window cases that need an unlocked
+screen. VoiceOver itself, signing and the hardware matrix remain open. Next is an external
 user, as [[records/specs/mvp-delivery]] requires.

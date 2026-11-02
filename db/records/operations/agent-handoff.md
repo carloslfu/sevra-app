@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-01T16:00:00+00:00
+updated: 2026-11-02T01:05:00+00:00
 summary: 'Resumed minimum features: increments 1 through 9 accepted; a whole-app review was fixed on main and an external user is next.'
 title: Paused minimum-feature agent handoff
 ---
@@ -18,10 +18,12 @@ on for the native 32K profile. The installed-window pass is done, including Add 
 export and import, and Transcribe on real audio. A longer recording then showed the old recognizer
 discarding speech before a pause, so Transcribe moved to Apple's long-form on-device transcriber.
 A whole-app review of every feature on November 1 found 32 ranked defects and about 130 smaller ones.
-All 32 are fixed on main, with the schema now at 31; what is left, and which window cases still need
-an unlocked screen, is listed in [[records/operations/implementation]]. VoiceOver itself and five menu shortcuts
-are still unchecked (Command-period, Command-N, Command-O, Command-I and Shift-Command-E were read
-from the menu, not pressed), and an external user is next.
+All 32 are fixed on main, with the schema now at 31. The follow-up that day fixed the review's open
+list, including Stop then continue, Quit with a sheet open and one window per workbook. What stays,
+and which window cases still need an unlocked screen, is listed in
+[[records/operations/implementation]]. VoiceOver itself and five menu shortcuts are still unchecked
+(Command-period, Command-N, Command-O, Command-I and Shift-Command-E were read from the menu, not
+pressed), and an external user is next.
 Exact evidence and limits are in
 [[records/operations/implementation]], the
 [reviewed-update receipt](../../../integration/evidence/2026-10-30-reviewed-updates.json.gz),

@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-01T19:20:00+00:00
+updated: 2026-11-02T01:05:00+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
@@ -110,25 +110,80 @@ field, once in three tries, because the word "title" reads as a person's title. 
 heuristics off for itself. Without the setting the AutoFill window appears as the sheet opens, and with
 it no such window exists.
 
-Not tried in the window: Transcribe from the menu, Quick Look pages, PDF links, the citation jump on
-audio, saved-file pickers, the large table selection, enabling an automation, and the U5, U10 and U11
-automation cases. The send, restore and quit fixes rest on a reviewer's trace and the suites.
+Not tried in the window at that point: Transcribe from the menu, Quick Look pages, PDF links, the
+citation jump on audio, saved-file pickers, the large table selection, enabling an automation, and
+the U5, U10 and U11 automation cases. The send, restore and quit fixes rest on a reviewer's trace and
+the suites.
 
-**Found, not fixed.** `evaluate_definition` query pages can still reach `context_limit`. Space-grouped
-thousands read as two numbers. The oldest digest pointers drop silently and stay reachable by
-`history_search`. Lazily indented list continuation stays partial. A CR-only message table stays
-plain. 256 forms with unsent inputs refuse a new draft. East of UTC a date-only movement for today
-counts as future until 00:00 UTC. Autosave stays on the main thread for up to 3 s. A long document
-lays out on the main thread at about 0.2 s per MB per width. A paste-table Done leaves a "Choose use"
-row. Replace-mode intake of an identical file still proposes a rewrite. Verify with bit rot needs a
-second click to download. A failed `capture-url` leaves a 0-byte `CFNetworkDownload_*.tmp`. Filtering a
-100,000-row table on a word in its title or a column ID was estimated at about 5 s inside the workbook
-lock, off the main thread, and was not measured. A ruler of 50 or more spaced dashes and a line
-indented 100 spaces read as deep nesting and show as plain text. Quit does nothing while a sheet is
-open, and works within a second once it closes. After a killed app, relaunch restores a window and
-`open` adds a second window of the same workbook. CJK search
-stays as it was, because a segmented copy needs another schema change and breaks Q13's query-time
-rule.
+**Found, not fixed at the time.** The next section takes each of these in turn.
+
+## Review follow-up, November 1
+
+The owner then asked for everything left open to be fixed. Each item from the review's open list
+is now fixed or named below with the reason it stays.
+
+**Stop then continue.** The eight-report job failed about one run in six after Stop, and the worst
+failure was a complete, wrong answer. The model sent `history_read` a record's ID and then finished
+without reading the stopped request. `history_read` now offers only messages the context names, up
+to 32, and is left out when there are none, so the native model cannot send a record's ID. Finishing
+with an unread stopped request is refused once. A step-limit failure now says to ask again, and
+asking again continues from what was saved. Two more defects appeared only in real runs and are
+fixed: a request that hit the limit just after saving its memo saved it again when asked to continue,
+and "continue" was once taken for a new thread. Reading a stopped request now makes its draft titles
+`draft_duplicate`, and a thread change with an unread stopped request gets the same single reminder.
+Across the 24 real cases run since the first of these fixes, 23 ended with the memo saved and every
+value right, and 19 met every strict check. The final code passed 6 of 6. Three of the others kept
+every value but repeated a line or wrote `Inspection CEDAR:` for the exact `CEDAR-CHECK` label, and
+that wording slip is not fixed, so a memo can still miss a requested format. A job that needs a
+twelfth step still stops at the limit, and asking again finishes it.
+
+**Quit with a sheet open.** The cause is AppKit, not Sevra. `terminate` does nothing while a sheet is
+attached, in an empty test app too, from the menu and from a quit event alike, so Dock Quit and logout
+were refused as well. SwiftUI puts back a sheet closed from outside it, and a subclass cannot help
+because SwiftUI replaces the application class. Quit and the quit event now reach one function. With a
+sheet open it runs the usual saving and ends the process itself, and a failed save leaves the sheet as
+it was. The empty test app quit from the menu and from an event with a sheet open, and the installed
+app quit from an event with no sheet and its workbook verified. A sheet in the installed app is
+still not tried.
+
+**One window per workbook.** After a killed app, relaunch restored the workbook and its welcome
+pages, and `open` added a second window of the same workbook. A window now owns its workbook until it
+closes rather than while it is visible, because a restoring window is not visible yet. A window that
+loses never opens the workbook and stops pulling the owner forward. Welcome pages close once a
+workbook opens, which also ends the stray window that New, Open, Recent and the demo left behind. A
+cold open, a kill and reopen, a second `open` and a second workbook each held one connection per
+workbook, read from the open files with the screen locked. A log build confirmed the restored welcome
+pages and the loser closing.
+
+**The rest of the list.** Saved query pages leave the citation choices as table rows do, so
+`evaluate_definition` no longer reaches `context_limit`. Space-grouped thousands read as one number,
+including thin and no-break spaces. A digest that drops its oldest pointers counts them in
+`olderNotesOmitted`. A CR-only message table renders as a table. A date-only movement counts from the
+local day in both directions of UTC. Document autosave runs off the main thread and never blocks
+typing. Live resize no longer lays out a long document on every frame. A paste-table Done leaves no
+"Choose use" row. Replace-mode intake of identical rows reports no change. Verify refetches a damaged
+model file in one click. A failed `capture-url` leaves no temporary file. Spaced dashes and deep
+indents no longer read as deep nesting. CJK, Thai and other unspaced text now finds substrings
+through the index's own word list, with no schema change and Q13's query-time rule kept.
+
+Filtering 99,998 rows now takes one pass, shared by the page and its count: 1.3 s at worst on a word in
+no cell and 0.04 s on a rare code, off the main thread. It was 2.5 s before.
+
+**Stays as it is.** A list item that continues on a lazily indented line, with a link on that line, stays
+partial, because the Markdown parser reports wrong positions there; the link shows as plain text and
+the rest reads normally. First layout of a long document stays about 0.2 s per MB on the main thread.
+256 forms with unsent inputs remains a bound, and its message now says to send or clear one.
+
+**Checks on the final code.** The real model passed comparison, injection, missing terms, cancellation, the
+eight-report maintained job, the interpretation probe and the conversation workflow answer. Those ran
+before the last two edits, which act only after a stopped request, and recovery ran after them.
+Results of the full suite are in the log for this commit.
+
+**Not tried in the window,** because the screen stayed locked for this pass: Quit with a sheet open in the installed app, closing a window
+and reopening its workbook, a paste-table Done, live resize on a long document, Transcribe from the
+menu, Quick Look pages, PDF links, the citation jump on audio, the large table selection, enabling an
+automation, the U5, U10 and U11 automation cases, and the five menu shortcuts. Saved-file pickers
+cannot be driven by an agent. VoiceOver itself, signing, other Macs and an external user stay open.
 
 ## Review fixes, October 31
 

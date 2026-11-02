@@ -88,3 +88,6 @@ Recorded the regression review of the fixes and the final verification
 ## [2026-11-01 19:00] implementation | records/operations/implementation
 Finish the whole-app review: AutoFill off, stopped-request lookup named, recovery variance and final window pass recorded.
 
+## [2026-11-02 06:12] implementation | records/operations/implementation
+Review follow-up: Stop then continue, Quit with a sheet, one window per workbook and the open list fixed; suite passes on the candidate; window cases wait for an unlocked screen
+
