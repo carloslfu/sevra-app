@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m78qhn7q81ha6w72smnkerxt
 created: 2026-11-12T20:35:19.415048+00:00
-updated: 2026-11-12T22:31:00.882043+00:00
+updated: 2026-11-12T23:35:19.137211+00:00
 summary: Reviewed architecture and implementation gates for sandboxed JavaScript, reactive native UI, scoped workbook data, packaging and end-to-end verification.
 title: Programmable native app engine implementation
 ---
@@ -92,3 +92,57 @@ variants. The baseline release/signature, both isolated installers and baseline
 packaged extraction pass locally. The preserved installed baseline was not touched.
 See the [signing repair receipt](../../../integration/evidence/2026-11-12-native-app-signing.json.gz).
 This repairs the failing gate; the follow-up hosted run remains required.
+
+### Permission-review labels and pending final inspection
+
+A later review found that the Enable surface displayed the package's claimed table
+title. It now resolves names from the actual bound workbook tables off the main
+actor, and keeps Enable disabled until all bindings are available and match their
+schemas. Failed access review is visible and retryable. A meaningful regression
+uses a package title of “Harmless settings” for a real “Records” table and verifies
+the authoritative name; unbound and missing tables refuse.
+
+The updated production-path native harness passes 14 groups. Strict formatting,
+the native release build, path/resource/signature checks and the isolated native
+installer pass, including the sandboxed worker's exact bytes and entitlement.
+The new packaged main UUID is `15F450B0-8377-3D40-9211-F041DCE10EF0` and helper UUID
+is `86B9EB3E-68F7-3121-9426-DBF974EC92F4`. This package has not yet replaced the
+installed preview. The installed F6DAAB08 candidate retains the previously observed
+UI acceptance.
+
+The Mac locked before the affected dialog could be inspected. The owner has been
+asked to unlock it. Final acceptance remains open for installing this exact newer
+candidate and inspecting the authoritative table label and enable/re-enable flow.
+The prepared synthetic package points the Inventory binding at its existing Stock
+table while claiming “Harmless settings”; after verifying the real name, restore
+the ordinary inventory package. No real workbook is involved.
+
+This is a localized permission-review presentation correction, covered by the
+owner's focused-verification policy. Reuse unchanged integration evidence and
+state the exact hosted commit separately from this follow-up's local proof; do not
+claim a skipped or older CI run tested newer source.
+
+### Hosted acceptance passed; final dialog inspection pending
+
+[Checks run 43320623027](https://github.com/carloslfu/sevra-app/actions/runs/43320623027)
+passed all 40 reported steps for `628bd36780bdd45f82cb22f1053a3f7d9d3e0395`, including
+the repaired baseline release/signature, packaged CLI/installation journeys and
+isolated Native Preview build/package checks. The [hosted receipt](../../../integration/evidence/2026-11-12-native-app-ci.json.gz)
+records the exact commit and conclusions. The earlier failed signing run remains
+preserved; no failing gate was bypassed.
+
+The later bounded access-dialog refinement has [separate focused evidence](../../../integration/evidence/2026-11-12-native-app-access-review.json.gz)
+for its exact source hashes, 14 passing native groups, release build, package and
+isolated installer checks. Its ordinary native UI flows reuse the earlier installed
+proof where unchanged. The follow-up commit intentionally avoids a third unrelated
+full integration rerun under the owner-approved focused-verification policy; an
+older CI run is not claimed to test newer source.
+
+P7 stays open only for the actual installation and visual inspection of this latest
+permission dialog. The Mac is locked and the unlock request is pending. The latest
+packaged main UUID is `15F450B0-8377-3D40-9211-F041DCE10EF0`; the currently installed,
+previously exercised main UUID is `F6DAAB08-A438-3317-A0F4-BC2AE21EE8B7`. Resume by
+quitting the existing preview normally, installing the latest exact bundle, matching
+its main/helper UUIDs, then inspecting the real Stock label with the synthetic
+misnamed-binding package and restoring/enabling the standard inventory example.
+Do not redo accepted unrelated workflows or operate any real workbook.

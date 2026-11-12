@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m78sah1afmhpr6vzfbkrg1r2
 created: 2026-11-12T21:06:22.890879+00:00
-updated: 2026-11-12T21:58:14.368362+00:00
+updated: 2026-11-12T23:35:19.169221+00:00
 summary: 'Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.'
 title: Programmable native spaces SDK 1
 status: implemented
@@ -50,7 +50,7 @@ Receipts contain the operation token, resulting revision and exact row IDs. Reus
 
 ## Permissions, recovery and limits
 
-The native Enable surface lists requested table read/write access. The device-local grant key includes the physical SQLite file identity, workbook ID, space ID/version and package digest. Changing code/bindings/version or copying/replacing the database requires a fresh grant. Disable/navigation close the connection and revoke its in-memory capability. Draft checkpoints may finish after closing because they carry no business-write authority. Draft writes are serialized and restart waits for them. Native fields protect newer unsent values against older script frames.
+The native Enable surface lists requested table read/write access using names resolved from the bound workbook tables, not package-authored labels. Enable remains disabled until the native host validates those bindings. The device-local grant key includes the physical SQLite file identity, workbook ID, space ID/version and package digest. Changing code/bindings/version or copying/replacing the database requires a fresh grant. Disable/navigation close the connection and revoke its in-memory capability. Draft checkpoints may finish after closing because they carry no business-write authority. Draft writes are serialized and restart waits for them. Native fields protect newer unsent values against older script frames.
 
 Trusted chrome retains error/disable/restart controls outside the generated tree. A failed script poisons its runtime; it is not resumed in a partially evaluated state. Restart mounts saved source and retained drafts; it does not replay recorded database transactions. Authors must avoid unconditional business side effects during mount and retain operation tokens for explicit retry of uncertain requests. JavaScript source is portable but grants and OS privileges are not.
 
@@ -75,8 +75,9 @@ The owner's standing direction in [[sources/notes/2026/11/native-interface-quali
 
 ## Accepted delivery and authoring limits
 
-SDK 1 is implemented and locally accepted; see the plan and its portable receipt for
-exact checks and remaining hosted verification. The three bundled examples are an
+SDK 1 is implemented; see the plan and its portable receipts for exact local and
+hosted verification. The final authoritative-name permission dialog has passing
+automated checks and still awaits installed visual inspection after a Mac unlock. The three bundled examples are an
 inventory editor, job tracker with grouped status counts, and visual card planner.
 The planner deliberately shows the first 100 cards and discloses its total; its native
 scrolling document grows to include those cards. Source/CLI/package import is the

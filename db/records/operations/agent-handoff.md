@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-12T21:55:30.071998+00:00
+updated: 2026-11-12T23:35:19.153430+00:00
 summary: Native programmable app engine implementation and authorized installed verification; earlier accepted checkpoints and qualification limits remain documented.
 title: Minimum-feature continuation handoff
 ---
@@ -19,7 +19,22 @@ engine groups, 5 SDK tests, the broad suite after a repaired table gate, and nat
 release/package/install checks. The installed synthetic inventory, job tracker and
 planner journeys pass, including draft/stale-write protection, Undo, code restore,
 crash recovery and compact-window layout. The [acceptance receipt](../../../integration/evidence/2026-11-12-native-app-engine.json.gz)
-preserves exact evidence and limits. Commit/push and hosted checks remain to be recorded.
+preserves exact evidence and limits. The implementation and packaging repair are committed and pushed. [Hosted Checks](https://github.com/carloslfu/sevra-app/actions/runs/43320623027)
+passed all 40 steps for `628bd36780bdd45f82cb22f1053a3f7d9d3e0395`, including both
+packaging paths. The [hosted receipt](../../../integration/evidence/2026-11-12-native-app-ci.json.gz)
+records that exact scope.
+
+A subsequent permission-dialog correction resolves table names from workbook data
+instead of trusting package labels. Its [focused receipt](../../../integration/evidence/2026-11-12-native-app-access-review.json.gz)
+records 14 passing native groups, strict formatting, native release/package and
+isolated installer checks. The new packaged main UUID is
+`15F450B0-8377-3D40-9211-F041DCE10EF0`, helper `86B9EB3E-68F7-3121-9426-DBF974EC92F4`.
+It is not yet installed in the real Applications destination or visually verified.
+The Mac locked; an unlock request is pending. P7 remains open only for installing
+this exact newer candidate and inspecting its access dialog, then restoring the
+standard synthetic inventory package. See the plan for the resume steps. Reuse
+unchanged proof under the focused-verification policy; the prior full CI run does
+not claim coverage of this newer localized correction.
 The installed main UUID is `F6DAAB08-A438-3317-A0F4-BC2AE21EE8B7`.
 The synthetic workshop is left open on Inventory; no real workbook was modified.
 This work does not authorize VoiceOver or system-setting changes and does not qualify a production release.

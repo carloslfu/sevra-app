@@ -127,6 +127,27 @@ public final class NativeAppAccess: @unchecked Sendable {
 }
 
 extension Workbook {
+  /// Permission labels come from workbook authority, never package-authored display names.
+  public func nativeAppTableTitles(_ package: NativeAppPackage) throws -> [String: String] {
+    try package.validate()
+    return try synchronized {
+      try db.readTransaction {
+        var titles: [String: String] = [:]
+        for (alias, binding) in package.datasets {
+          guard let id = binding.datasetID else {
+            throw SevraError("app_permission", "This app has an unbound table.")
+          }
+          let table = try dataset(id)
+          try require(
+            !table.archived && table.columns == binding.columns, "app_schema",
+            "A requested table changed. Update this app before enabling it.")
+          titles[alias] = table.title
+        }
+        return titles
+      }
+    }
+  }
+
   /// Installs code without evaluating it. Tables and space are captured in one existing transaction.
   @discardableResult public func installNativeApp(
     _ package: NativeAppPackage, spaceID: String = identifier(), expectedVersion: Int? = nil,

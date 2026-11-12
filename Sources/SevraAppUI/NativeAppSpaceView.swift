@@ -5,6 +5,8 @@ import SwiftUI
 public struct NativeAppSpaceView: View {
   @StateObject private var session: NativeAppSession
   @State private var showSource = false
+  @State private var tableTitles: [String: String]?
+  @State private var tableAccessError: String?
   public init(book: Workbook, space: Space) {
     _session = StateObject(wrappedValue: NativeAppSession(book: book, space: space))
   }
@@ -35,11 +37,18 @@ public struct NativeAppSpaceView: View {
         ForEach(session.package.datasets.keys.sorted(), id: \.self) { key in
           let binding = session.package.datasets[key]!
           Label(
-            binding.title + (binding.writable ? " · Read and change records" : " · Read records"),
+            (tableTitles?[key]
+              ?? (tableAccessError == nil ? "Loading table…" : "Unavailable table"))
+              + (binding.writable ? " · Read and change records" : " · Read records"),
             systemImage: binding.writable ? "pencil" : "eye")
         }
         if session.package.datasets.isEmpty { Text("This app requests no business data access.") }
+        if let tableAccessError {
+          Text(tableAccessError).foregroundStyle(.red)
+          Button("Reload table access") { Task { await loadTableAccess() } }
+        }
         Button("Enable app") { session.enable() }.buttonStyle(.borderedProminent)
+          .disabled(tableTitles == nil)
         Spacer()
       } else if session.status == "starting" {
         ProgressView("Starting app…")
@@ -52,6 +61,7 @@ public struct NativeAppSpaceView: View {
       }
     }
     .padding(20)
+    .task { await loadTableAccess() }
     .onAppear { session.start() }
     .onDisappear { session.stop() }
     .sheet(isPresented: $showSource) {
@@ -64,6 +74,20 @@ public struct NativeAppSpaceView: View {
         }
         Button("Done") { showSource = false }.keyboardShortcut(.cancelAction)
       }.padding().frame(width: 720, height: 520)
+    }
+  }
+  private func loadTableAccess() async {
+    tableTitles = nil
+    tableAccessError = nil
+    let book = session.book
+    let package = session.package
+    do {
+      let titles = try await Task.detached { try book.nativeAppTableTitles(package) }.value
+      guard !Task.isCancelled else { return }
+      tableTitles = titles
+    } catch {
+      guard !Task.isCancelled else { return }
+      tableAccessError = error.localizedDescription
     }
   }
   private func exportTemplate() {

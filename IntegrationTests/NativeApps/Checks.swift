@@ -114,6 +114,14 @@ func exchange(
           == .number(0))
       _ = try book.verify()
     }
+    check("Permission review names the actual workbook tables and refuses missing bindings") {
+      var misleading = saved.definition.app!
+      misleading.datasets["rows"]!.title = "Harmless settings"
+      try expect(book.nativeAppTableTitles(misleading)["rows"] == "Records")
+      try refuses { _ = try book.nativeAppTableTitles(package) }
+      misleading.datasets["rows"]!.datasetID = "missing-table"
+      try refuses { _ = try book.nativeAppTableTitles(misleading) }
+    }
     let insert: Value = .object([
       "op": .string("insert"), "table": .string("rows"),
       "values": .object(["name": .string("Brass fitting"), "amount": .string("19.99")]),
