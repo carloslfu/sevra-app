@@ -699,6 +699,23 @@ import SevraProduct
           meaning: a["meaning"].string ?? "actual", status: a["status"].string ?? "draft",
           supersedes: a["supersedes"].string, token: a["token"].string ?? identifier()))
     case "lineage": return .array(try book.lineage(arg(2)))
+    case "app-install":
+      try require(
+        args.count == 3 || args.count == 5, "usage",
+        "app-install WORKBOOK PACKAGE [SPACE_ID BASE_VERSION]")
+      let package = try NativeAppPackage.load(from: url(2))
+      return try encoded(
+        book.installNativeApp(
+          package, spaceID: args.count == 5 ? arg(3) : identifier(),
+          expectedVersion: args.count == 5 ? integer(4) : nil))
+    case "app-export":
+      try require(args.count == 4, "usage", "app-export WORKBOOK SPACE_ID DESTINATION")
+      guard var package = try book.space(arg(2)).definition.app else {
+        throw SevraError("app", "This space has no native app.")
+      }
+      for key in package.datasets.keys { package.datasets[key]?.datasetID = nil }
+      try Data(encoded(package).json().utf8).write(to: url(3), options: .atomic)
+      return .string(try url(3).path)
     case "spaces": return try encoded(book.spaces())
     case "space-history":
       return try encoded(book.spaceHistory(arg(2), before: args.count > 3 ? integer(3) : nil))
@@ -859,6 +876,8 @@ import SevraProduct
     automation-events WORKBOOK [AFTER_SEQUENCE] [LIMIT]
     automation-pause WORKBOOK ACTIVATION_ID EXPECTED_GENERATION TOKEN
     automation-run-once WORKBOOK EXACT_DEFINITION_ID EXPECTED_GENERATION START_AFTER OBSERVED_AT TOKEN [--allow-ai [MODEL_DIRECTORY]]
+    app-install WORKBOOK PACKAGE [SPACE_ID BASE_VERSION]
+    app-export WORKBOOK SPACE_ID DESTINATION
     spaces WORKBOOK | space WORKBOOK TITLE DEFINITION_JSON | pin-space WORKBOOK SPACE_ID [TITLE]
     space-edit WORKBOOK SPACE_ID BASE_VERSION EDITS_JSON [TOKEN]
     space-history WORKBOOK SPACE_ID [BEFORE_VERSION]

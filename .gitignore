@@ -12,3 +12,5 @@ output/
 **/log.md.lock
 __pycache__/
 *.pyc
+
+sdk/node_modules/

@@ -1,0 +1,17 @@
+"""Exercise the real signed XPC service and native renderer in an isolated host bundle."""
+import argparse, pathlib, plistlib, shutil, subprocess
+from package_app_worker import package
+ROOT=pathlib.Path(__file__).resolve().parents[1]
+def main():
+    p=argparse.ArgumentParser();p.add_argument('--bin',default='.build/debug');args=p.parse_args()
+    binary=(ROOT/args.bin).resolve();app=ROOT/'.build/native-app-engine/Native App Checks.app'
+    if app.exists():shutil.rmtree(app)
+    (app/'Contents/MacOS').mkdir(parents=True);(app/'Contents/Resources').mkdir()
+    shutil.copy2(binary/'sevra-native-app-checks',app/'Contents/MacOS/checks')
+    shutil.copytree(binary/'Sevra_SevraAppRuntime.bundle',app/'Contents/Resources/Sevra_SevraAppRuntime.bundle')
+    (app/'Contents/Info.plist').write_bytes(plistlib.dumps({'CFBundleIdentifier':'com.sevra.native-app-checks','CFBundleExecutable':'checks','CFBundleName':'Native App Checks','CFBundlePackageType':'APPL'}))
+    package(app,binary)
+    subprocess.run(['codesign','--force','--sign','-',str(app)],check=True)
+    subprocess.run(['codesign','--verify','--deep','--strict',str(app)],check=True)
+    subprocess.run([str(app/'Contents/MacOS/checks'),'--xpc'],cwd=ROOT,check=True,timeout=90)
+if __name__=='__main__':main()

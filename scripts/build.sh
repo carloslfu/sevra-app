@@ -9,6 +9,7 @@ JOBS=${SEVRA_BUILD_JOBS:-4}
 swift build -c "$CONFIG" --product SevraDesktop -j "$JOBS"
 swift build -c "$CONFIG" --product sevra -j "$JOBS"
 swift build -c "$CONFIG" --product sevra-extract -j "$JOBS"
+swift build -c "$CONFIG" --product sevra-app-worker -j "$JOBS"
 BIN=$(swift build -c "$CONFIG" --show-bin-path)
 METAL="$ROOT/.build/metal/mlx.metallib"
 OUT="$METAL" /bin/bash "$ROOT/.build/checkouts/slotstream/Tools/fetch_metallib.sh"
@@ -38,7 +39,8 @@ for resource in swift-transformers_Hub ZIPFoundation_ZIPFoundation swift-crypto_
   ditto "$bundle" "$ROOT/output/bin/$(basename "$bundle")"
 done
 python3 "$ROOT/scripts/licenses.py"
-codesign --force --deep --sign - "$APP"
+python3 scripts/package_app_worker.py "$APP" "$BIN"
+codesign --force --sign - "$APP"
 codesign --verify --deep --strict "$APP"
 echo "Built $APP"
 echo "CLI: $ROOT/output/bin/sevra"

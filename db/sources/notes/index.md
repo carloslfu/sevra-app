@@ -2,11 +2,13 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-12T17:58:25.908345Z
+updated: 2026-11-12T21:44:08.667334Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/native-interface-quality]] — Owner requires deep visual and functional interface review, including spacing, placement and appearance, as a standing expectation.
+- [[sources/notes/2026/11/programmable-native-engine]] — Owner requests full native programmable app-engine implementation and verification, explicitly permitting installation and UI testing.
 - [[sources/notes/2026/11/accessibility-headless-tests-and-pause]] — Owner authorizes headless tests and failure fixes for all ten accessibility changes, then handoff, commit, push and pause; app launch, UI and VoiceOver remain prohibited.
 - [[sources/notes/2026/11/accessibility-code-fixes-and-pause]] — Owner authorizes all ten accessibility fixes in code, static review and compilation, then commit, push and pause; UI interaction and accessibility testing remain prohibited.
 - [[sources/notes/2026/11/accessibility-review-and-pause]] — Owner skips accessibility testing, requests an adversarial code review and known-limit closure plans, then commit, push and pause without touching the UI.

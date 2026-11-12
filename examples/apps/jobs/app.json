@@ -1,0 +1,1 @@
+{"name":"Job tracker","datasets":{"jobs":{"title":"Jobs","writable":true,"columns":[{"id":"title","title":"Job","type":"text","required":true},{"id":"owner","title":"Owner","type":"text"},{"id":"stage","title":"Stage","type":"text","required":true}]}}}

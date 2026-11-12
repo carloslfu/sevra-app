@@ -1,0 +1,1 @@
+{"name":"Inventory","datasets":{"stock":{"title":"Stock","writable":true,"columns":[{"id":"name","title":"Item","type":"text","required":true},{"id":"quantity","title":"Quantity","type":"decimal","required":true}]}}}

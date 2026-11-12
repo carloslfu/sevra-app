@@ -51,6 +51,7 @@ public struct SpaceDefinition: Codable, Equatable, Sendable {
   public var version: Int = 1
   public var components: [Component]
   public var pinnedAt: String?
+  public var app: NativeAppPackage?
   public init(components: [Component], pinnedAt: String? = nil) {
     self.components = components
     self.pinnedAt = pinnedAt
@@ -113,6 +114,12 @@ extension Workbook {
   {
     func flatten(_ components: [Component]) -> [Component] {
       components.flatMap { [$0] + flatten($0.children ?? []) }
+    }
+    if let app = definition.app {
+      try require(
+        definition.components.isEmpty && definition.pinnedAt == nil, "app_package",
+        "An app space owns its native interface and cannot be pinned.")
+      try validateNativeApp(app)
     }
     let unchanged = flatten(saved)
     try require(

@@ -51,6 +51,16 @@ import SwiftUI
       ConversationCommands()
       WorkbookFileCommands()
       CommandMenu("Workbook") {
+        Button("Add Native App…") { workspace?.importNativeApp() }.disabled(
+          workspace?.workbook == nil)
+        Button("Update Native App…") {
+          if let workspace, case .space(let id) = workspace.route,
+            let saved = workspace.spaces.first(where: { $0.id == id && $0.definition.app != nil })
+          {
+            workspace.importNativeApp(replacing: saved)
+          }
+        }.disabled(workspace?.workbook == nil)
+        Divider()
         Button("Add Files…") { NotificationCenter.default.post(name: .sevraImport, object: nil) }
           .keyboardShortcut("i")
         Button("Search Workbook") {

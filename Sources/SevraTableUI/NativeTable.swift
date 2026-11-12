@@ -45,6 +45,22 @@ final class GridTable: NSTableView {
     needsDisplay = true
     if event.clickCount == 2 { beginCellEditing() }
   }
+  /// AppKit can route clicks on selected read-only text through responder validation.
+  override func validateProposedFirstResponder(_ responder: NSResponder, for event: NSEvent?)
+    -> Bool
+  {
+    if let event, event.type == .leftMouseDown {
+      let point = convert(event.locationInWindow, from: nil)
+      let row = row(at: point)
+      let column = column(at: point)
+      if isRowSelected(row), column >= 0,
+        column != activeColumn || row != activeRow
+      {
+        focusCell(row: row, column: column)
+      }
+    }
+    return super.validateProposedFirstResponder(responder, for: event)
+  }
   func beginCellEditing() {
     let row = activeRow
     guard row >= 0,

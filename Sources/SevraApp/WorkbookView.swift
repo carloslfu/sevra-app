@@ -84,7 +84,13 @@ struct WorkbookView: View {
               if case .space(let id) = state.route,
                 let space = state.spaces.first(where: { $0.id == id })
               {
-                Button("Edit layout…") { editingSpace = space }.disabled(state.busy)
+                if space.definition.app != nil {
+                  Button("Update app…") { state.importNativeApp(replacing: space) }.disabled(
+                    state.busy)
+                  Button("App history…") { editingSpace = space }.disabled(state.busy)
+                } else {
+                  Button("Edit layout…") { editingSpace = space }.disabled(state.busy)
+                }
                 if !space.definition.components.isEmpty && !space.definition.containsSections {
                   Button("Save a snapshot") {
                     state.pinSpace(
@@ -198,7 +204,13 @@ struct WorkbookView: View {
       } message: { review in
         Text(review.plan.summary + ". Nothing is deleted, and Sevra does not watch this folder.")
       }
-      .sheet(item: $editingSpace) { space in SpaceLayoutEditor(space: space, state: state) }
+      .sheet(item: $editingSpace) { space in
+        if space.definition.app != nil {
+          NativeAppHistoryView(space: space, state: state)
+        } else {
+          SpaceLayoutEditor(space: space, state: state)
+        }
+      }
       .sheet(item: $state.summaryDraft) { draft in
         ConversationSummarySheet(draft: draft) { summary in
           guard let book = state.workbook else { return }

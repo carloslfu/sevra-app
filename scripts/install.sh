@@ -75,7 +75,7 @@ if [ "$NATIVE" = 1 ]; then
   # Upstream helpers are already signed. --deep would change pinned engine bytes.
   codesign --force --sign - "$STAGE/Sevra.app"
 else
-  codesign --force --deep --sign - "$STAGE/Sevra.app"
+  codesign --force --sign - "$STAGE/Sevra.app"
 fi
 codesign --verify --deep --strict "$STAGE/Sevra.app"
 "$STAGE/Sevra.app/Contents/CLI/sevra" version

@@ -1,5 +1,6 @@
 import AppKit
 import Charts
+import SevraAppUI
 import SevraCore
 import SevraPreviewUI
 import SevraSearchUI
@@ -182,6 +183,13 @@ struct SpaceView: View {
   let space: Space
   @ObservedObject var state: WorkspaceState
   var body: some View {
+    if space.definition.app != nil, let book = state.workbook {
+      NativeAppSpaceView(book: book, space: space).id(space.id + ":" + String(space.version))
+    } else {
+      ordinarySpace
+    }
+  }
+  private var ordinarySpace: some View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 28) {
         if let captured = space.definition.pinnedAt {

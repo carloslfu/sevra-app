@@ -3,15 +3,30 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-12T18:03:36.235205+00:00
-summary: Paused after 22 passing headless behavior groups across all ten accessibility fixes, 10 static adapter groups and native compilation; UI, VoiceOver and OS-level qualification remain skipped.
+updated: 2026-11-12T21:55:30.071998+00:00
+summary: Native programmable app engine implementation and authorized installed verification; earlier accepted checkpoints and qualification limits remain documented.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
-## Current checkpoint: paused November 12
+## Current checkpoint: native app engine, November 12
 
-The owner's latest instruction, [[sources/notes/2026/11/accessibility-headless-tests-and-pause]], authorized headless testing of all ten accessibility fixes, correction of failures, handoff, commit and push, then pause. **A1–A10 are implemented; 22 headless behavior groups and 10 supplemental static adapter groups pass. Actual UI and assistive-technology behavior remains untested.** No app was opened or installed, no UI or accessibility tree was touched, and VoiceOver, clipboard and system preferences were not used. This narrow check is complete; do not restart work from historical instructions or treat a general resume as permission for UI testing.
+The subsequent owner request and explicit installation/UI authorization in
+[[sources/notes/2026/11/programmable-native-engine]] supersede the earlier pause for
+this task. The reviewed plan is [[records/plans/programmable-native-engine]] and the
+SDK contract is [[records/specs/programmable-native-engine]]. The bounded SDK 1 is implemented and passes local acceptance: 13 production-path
+engine groups, 5 SDK tests, the broad suite after a repaired table gate, and native
+release/package/install checks. The installed synthetic inventory, job tracker and
+planner journeys pass, including draft/stale-write protection, Undo, code restore,
+crash recovery and compact-window layout. The [acceptance receipt](../../../integration/evidence/2026-11-12-native-app-engine.json.gz)
+preserves exact evidence and limits. Commit/push and hosted checks remain to be recorded.
+The installed main UUID is `F6DAAB08-A438-3317-A0F4-BC2AE21EE8B7`.
+The synthetic workshop is left open on Inventory; no real workbook was modified.
+This work does not authorize VoiceOver or system-setting changes and does not qualify a production release.
+
+## Earlier accessibility checkpoint: paused November 12
+
+The owner's earlier instruction, [[sources/notes/2026/11/accessibility-headless-tests-and-pause]], authorized headless testing of all ten accessibility fixes, correction of failures, handoff, commit and push, then pause. **A1–A10 are implemented; 22 headless behavior groups and 10 supplemental static adapter groups pass. Actual UI and assistive-technology behavior remains untested.** No app was opened or installed, no UI or accessibility tree was touched, and VoiceOver, clipboard and system preferences were not used. This narrow check is complete; do not restart work from historical instructions or treat a general resume as permission for UI testing.
 
 The checks execute the same production navigation, presentation, announcement/focus eligibility, reading-size and PDF-search decisions used by the app. Real synthetic workbook checks cover extracted text, description persistence/reopen, stale writes, exact source identities, paste/recalculate/Undo, validation errors and chart values. They run under a sandbox denying UI services, AppleEvents, network and other executable launches, with writes restricted to synthetic fixtures and Foundation atomic-write temporaries. The [headless receipt](../../../integration/evidence/2026-11-12-accessibility-headless-checks.json.gz) records source hashes, results, failures and corrections. [[records/reviews/accessibility-static-review-2026-11-12]] maps all ten findings to coverage and its limits.
 
@@ -39,7 +54,9 @@ The detailed register preserves failures and dated evidence: [[records/operation
 2. Broad AI requests can still miss evidence; Excel supports a declared subset; automations intentionally run only while Sevra is active. The closure plan proposes a per-question evidence checklist, bounded formula expansion and a separately opted-in background policy. These broader proposals were not implemented by the accessibility work.
 3. An uncoached external user, production signing/notarization and additional hardware qualification remain. Prior code-signing inspection found zero valid identities. Transcript accuracy and large-workbook storage costs also retain their stated limits.
 
-These are precise unfinished items, not a production-readiness claim. There are no active implementation slices while paused. On an explicit resume, choose a bounded next slice from the review/plan and reuse unchanged proof. The no-UI/no-VoiceOver decision survives a general resume.
+These are precise unfinished items, not a production-readiness claim. The earlier accessibility pause remains historical; the later native-engine task
+explicitly authorized its own implementation and UI verification. It does not
+expand into the broader closure plan or VoiceOver/system-setting qualification.
 
 ## Paused state and retained fixtures
 
@@ -48,3 +65,6 @@ The due-test activation was paused through the CLI at `2026-11-12T13:52:29Z`, ge
 Disposable fixtures remain under `.build/acceptance-2026-11-11/`, including `Window-checks.sevra` and the two `nov12-*-workflow.json` receipts. The [portable result receipt](../../../integration/evidence/2026-11-12-final-automation-observation.json.gz) preserves the synthetic proof without depending on the local fixture surviving. No real workbook was modified. The new runner is reproducible with the commands in the implementation record; it is not scheduled or left running. Do not operate retained fixtures while paused.
 
 If later work needs the CLI, use `output/native/bin/sevra` or the installed `~/.local/bin/sevra`; a bare `sevra` can resolve an unrelated retired CLI. Recreate selected disposable fixtures with `create` and `demo` when needed, with no pre-1.0 migrations. The model, engine, Slotstream and website repositories are unchanged.
+## Native engine implementation, November 12
+
+The owner explicitly requests complete native programmable app-engine implementation and verification, and explicitly permits installation and UI testing for this task: [[sources/notes/2026/11/programmable-native-engine]]. The earlier no-launch/UI restriction is superseded for this work; VoiceOver and system-setting changes remain outside it. Work continues on main under [[records/plans/programmable-native-engine]]. The architecture and SDK contract are [[records/specs/programmable-native-engine]]. Existing accepted features and historical test receipts remain unchanged.

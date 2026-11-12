@@ -1,7 +1,7 @@
 # Sevra
 
 A private native Mac workbook for working with documents, tables and business
-information through conversation. Local AI, checked calculations, and files you own.
+information through conversation. Local AI, checked calculations, and files you own. Programmable spaces also run small apps with native controls.
 
 **MVP 0.1 test preview.** Bring supplier files, inspect cited evidence, compare costs,
 keep a useful native table/chart, edit inputs, and share a portable workbook.
@@ -18,6 +18,19 @@ The app uses SwiftUI, AppKit and SQLite, with native Splash C++/Metal inference
 through Swift. A workbook contains its database plus ordinary included asset files.
 The repo's independent [db.md knowledge store](db/DB.md) owns its specifications
 and progress. Cloud/sync and the expanded roadmap are outside this next MVP slice.
+
+## Build a native mini app
+
+Import one of the [example app packages](examples/apps) using **Workbook > Add Native App…**,
+then review its table access and choose **Enable app**. Inventory, Jobs and Visual Planner
+exercise native forms, tables, live counts and a draggable canvas. JavaScript runs in a
+sandboxed worker; the interface is AppKit, with no web view. App code and business records
+travel with the workbook, while execution permissions stay on this Mac.
+
+The [SDK and architecture](db/records/specs/programmable-native-engine.md) explain
+TypeScript/JSX authoring, signals, native components, scoped data access and current limits.
+Existing local-AI tools still compose the original fixed spaces; programmable app authoring
+currently uses source packages and the CLI. This is SDK 1, not full Excel compatibility.
 
 ## Try the native MVP preview
 

@@ -1,6 +1,6 @@
 ---
 type: db-md
-updated: 2026-11-12T18:02:27.638735+00:00
+updated: 2026-11-12T21:20:51.237726+00:00
 owner: Carlos Galarza
 scope: project
 ---
@@ -45,8 +45,12 @@ changes. That checkpoint passes 22 behavioral and 10 static adapter groups, plus
 compilation, and returns to paused. Actual UI/OS accessibility remains unqualified.
 Do not open/install the app, manipulate the UI, toggle VoiceOver, inspect accessibility trees
 or change system settings. The headless authorization does not create a standing test loop.
-The current status and limits are in [[records/operations/agent-handoff]]. A later general
-resume does not revoke the no-UI/no-VoiceOver decision.
+That was the earlier accessibility checkpoint. The later explicit native-engine request
+and the owner's “Allow app installation and UI testing” answer in
+[[sources/notes/2026/11/programmable-native-engine]] authorize implementation,
+installation and native UI verification for [[records/plans/programmable-native-engine]].
+The earlier no-UI restriction is superseded for this task; VoiceOver and system-setting
+changes remain outside its scope. Use [[records/operations/agent-handoff]] for current status.
 No raw-model DDL, parallel ledger or claim that local replay solves replication.
 All maintained product/engineering prose belongs here; root documents are brief
 entry points. Finish changes with the relevant checks and a commit. Plain copy,

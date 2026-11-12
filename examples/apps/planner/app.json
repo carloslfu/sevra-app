@@ -1,0 +1,1 @@
+{"name":"Visual planner","datasets":{"cards":{"title":"Planning cards","writable":true,"columns":[{"id":"title","title":"Card","type":"text","required":true},{"id":"x","title":"X","type":"decimal","required":true},{"id":"y","title":"Y","type":"decimal","required":true}]}}}

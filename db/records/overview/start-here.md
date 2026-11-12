@@ -3,8 +3,8 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-11-12T18:02:27.578066+00:00
-summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
+updated: 2026-11-12T21:20:58.674258+00:00
+summary: Native programmable app engine implementation and authorized installed verification; earlier accepted checkpoints and qualification limits remain documented.
 title: Start here
 ---
 # Sevra app
@@ -24,9 +24,15 @@ Slotstream remains independent.
 
 ## Current preview and delivery order
 
-**Paused November 12:** [[records/operations/agent-handoff]] is the current checkpoint. Increments 1 through 9 are accepted for their bounded scope: multi-original evidence, native tables, reviewed updates, bulk intake, an Excel formula subset, conversation continuation, text/voice automation review, folder/templates and longer audio. The November 11 fixes and November 12 live automation observations passed their scoped functional checks; the exact code commit also passed hosted CI.
+**Native app engine implementation, November 12:** the later owner request explicitly
+authorizes implementation, installation and UI verification, superseding the earlier
+pause for this task. See [[records/plans/programmable-native-engine]] and
+[[records/specs/programmable-native-engine]]; [[records/operations/agent-handoff]] owns
+the current checkpoint. VoiceOver and system-setting changes remain outside scope.
 
-The owner first requested ten code fixes and then [[sources/notes/2026/11/accessibility-headless-tests-and-pause]]. All ten are implemented, with 22 passing headless behavior groups, 10 static adapter groups, native release compilation and strict lint. [[records/reviews/accessibility-static-review-2026-11-12]] separates this logic/storage evidence from actual UI, focus, speech and layout behavior, which remains untested. No app launch, UI interaction or VoiceOver was used. [[records/plans/known-limit-closure-2026-11-12]] retains the broader AI, Excel, automation and release proposals. External use, production signing and additional hardware remain unqualified. Work is paused after commit/push; do not restart UI work or tests from earlier instructions.
+**Earlier accepted work:** Increments 1 through 9 are accepted for their bounded scope: multi-original evidence, native tables, reviewed updates, bulk intake, an Excel formula subset, conversation continuation, text/voice automation review, folder/templates and longer audio. The November 11 fixes and November 12 live automation observations passed their scoped functional checks; the exact code commit also passed hosted CI.
+
+The owner first requested ten code fixes and then [[sources/notes/2026/11/accessibility-headless-tests-and-pause]]. All ten are implemented, with 22 passing headless behavior groups, 10 static adapter groups, native release compilation and strict lint. [[records/reviews/accessibility-static-review-2026-11-12]] separates this logic/storage evidence from actual UI, focus, speech and layout behavior, which remains untested. No app launch, UI interaction or VoiceOver was used. [[records/plans/known-limit-closure-2026-11-12]] retains the broader AI, Excel, automation and release proposals. External use, production signing and additional hardware remain unqualified. That checkpoint paused after commit/push. The later explicit authorization above governs native-engine work.
 
 The October 29 follow-up authorizes sequential minimum usable features, testing
 and polish: [[records/operations/minimum-feature-delivery]]. That queue supersedes
@@ -177,3 +183,6 @@ update canonical contracts and recreate selected disposable fixtures rather than
 adding legacy adapters. Previews do not activate support. Preserve current-format
 integrity, originals and user history. Cloud sync, transport, replica coordination
 and a new resolver remain outside the current scope.
+## Native engine implementation, November 12
+
+The owner explicitly requests complete native programmable app-engine implementation and verification, and explicitly permits installation and UI testing for this task: [[sources/notes/2026/11/programmable-native-engine]]. The earlier no-launch/UI restriction is superseded for this work; VoiceOver and system-setting changes remain outside it. Work continues on main under [[records/plans/programmable-native-engine]]. The architecture and SDK contract are [[records/specs/programmable-native-engine]]. Existing accepted features and historical test receipts remain unchanged.

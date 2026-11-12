@@ -7,6 +7,7 @@ import plistlib
 import shutil
 import subprocess
 import sys
+from package_app_worker import package as package_app_worker
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -138,6 +139,7 @@ def main():
         (folder / "native-runtime.json").write_text(json.dumps(manifest, indent=2) + "\n")
     notices(resources / "Licenses", scratch, splash, grammar)
     copy(resources / "Licenses", cli / "Licenses")
+    package_app_worker(app, binary)
     # Upstream engine and native grammar are already linker-signed. Preserve
     # their bytes and sign the containing app without --deep rewriting helpers.
     subprocess.run(["codesign", "--force", "--sign", "-", str(app)], check=True)

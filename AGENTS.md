@@ -56,7 +56,10 @@ unqualified. The handoff preserves results and the
 Work is paused after commit/push; the narrow headless check does not authorize continued work.
 Do not manipulate the UI, launch/install the app, inspect accessibility trees, use VoiceOver or
 change system settings unless the owner explicitly changes that decision. A general resume
-does not revoke it. External use, signing and hardware qualification remain open.
+does not revoke it. The later [native-engine request and explicit installation/UI approval](db/sources/notes/2026/11/programmable-native-engine.md)
+supersede the pause and no-app restriction for the [native engine implementation](db/records/plans/programmable-native-engine.md).
+Installation and UI tests are authorized for that task; VoiceOver and system-setting
+changes remain outside scope. External use, signing and hardware qualification remain open.
 Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
 failure and one counterexample, with the suite and install once on the candidate.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before
@@ -64,3 +67,11 @@ the suite, because its last step validates the records.
 Cloud sync, transport, replica coordination and a new resolver are out of scope.
 Preserve unrelated changes. Do not change the website business or Slotstream
 repository as a side effect. Keep public claims tied to measured acceptance.
+
+## Interface quality
+
+The owner explicitly requires deep visual and functional review of interface work.
+Inspect spacing, alignment, density, hierarchy, empty/loading/error states, native
+keyboard behavior and constrained-window layouts, not only compilation or saved
+data. Fix observed issues and inspect the result. This task has explicit app/UI
+authorization; VoiceOver and system-setting changes remain outside scope.

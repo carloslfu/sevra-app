@@ -1,0 +1,31 @@
+{
+  "name": "Visual planner",
+  "datasets": {
+    "cards": {
+      "title": "Planning cards",
+      "writable": true,
+      "columns": [
+        {
+          "id": "title",
+          "title": "Card",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "x",
+          "title": "X",
+          "type": "decimal",
+          "required": true
+        },
+        {
+          "id": "y",
+          "title": "Y",
+          "type": "decimal",
+          "required": true
+        }
+      ]
+    }
+  },
+  "sdkVersion": 1,
+  "source": "(() => {\n  var __create = Object.create;\n  var __defProp = Object.defineProperty;\n  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;\n  var __getOwnPropNames = Object.getOwnPropertyNames;\n  var __getProtoOf = Object.getPrototypeOf;\n  var __hasOwnProp = Object.prototype.hasOwnProperty;\n  var __commonJS = (cb, mod) => function __require() {\n    try {\n      return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;\n    } catch (e) {\n      throw mod = 0, e;\n    }\n  };\n  var __copyProps = (to, from, except, desc) => {\n    if (from && typeof from === \"object\" || typeof from === \"function\") {\n      for (let key of __getOwnPropNames(from))\n        if (!__hasOwnProp.call(to, key) && key !== except)\n          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });\n    }\n    return to;\n  };\n  var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(\n    // If the importer is in node compatibility mode or this is not an ESM\n    // file that has been converted to a CommonJS file using a Babel-\n    // compatible transform (i.e. \"__esModule\" has not been set), then set\n    // \"default\" to the CommonJS \"module.exports\" for node compatibility.\n    isNodeMode || !mod || !mod.__esModule ? __defProp(target, \"default\", { value: mod, enumerable: true }) : target,\n    mod\n  ));\n\n  // sdk:sevra\n  var require_sevra = __commonJS({\n    \"sdk:sevra\"(exports, module) {\n      module.exports = Sevra;\n    }\n  });\n\n  // examples/apps/planner/main.tsx\n  var import_sdk = __toESM(require_sevra());\n  function Planner() {\n    const title = (0, import_sdk.draftSignal)(\"title\", \"\"), status = (0, import_sdk.signal)(\"\"), cards = (0, import_sdk.liveQuery)({ table: \"cards\", limit: 100 });\n    async function add() {\n      if (!title.value.trim()) {\n        status.value = \"Enter a card title.\";\n        return;\n      }\n      try {\n        await import_sdk.data.transaction([{ op: \"insert\", table: \"cards\", values: { title: title.value, x: String(20 + cards.value.rows.length % 2 * 170), y: String(25 + Math.floor(cards.value.rows.length / 2) * 90) } }]);\n        title.value = \"\";\n        status.value = \"Card saved.\";\n      } catch (error) {\n        status.value = error.message;\n      }\n    }\n    async function move(event) {\n      const row = cards.value.rows.find((row2) => row2.key === event.value);\n      if (!row) return;\n      try {\n        await import_sdk.data.transaction([{ op: \"update\", table: \"cards\", id: row.id, values: { x: String(Math.max(0, Math.min(300, Number(row.values.x) + event.x))), y: String(Math.max(0, Number(row.values.y) + event.y)) } }], { revision: cards.value.revision });\n        status.value = \"Position saved.\";\n      } catch (error) {\n        status.value = error.message;\n      }\n    }\n    return /* @__PURE__ */ Sevra.h(import_sdk.Column, { gap: 12 }, /* @__PURE__ */ Sevra.h(import_sdk.Text, { text: \"Plan your work\", size: 26, weight: \"bold\" }), /* @__PURE__ */ Sevra.h(import_sdk.Text, { text: \"Drag a card to move it. Arrow keys move the selected card.\" }), /* @__PURE__ */ Sevra.h(import_sdk.Text, { text: () => `Showing ${cards.value.rows.length} of ${cards.value.total || 0} cards.` }), /* @__PURE__ */ Sevra.h(import_sdk.Row, null, /* @__PURE__ */ Sevra.h(import_sdk.TextField, { label: \"Card title\", placeholder: \"Card title\", value: title, width: 260 }), /* @__PURE__ */ Sevra.h(import_sdk.Button, { title: \"Add card\", onClick: add })), /* @__PURE__ */ Sevra.h(import_sdk.Text, { text: status, hidden: () => !status.value }), /* @__PURE__ */ Sevra.h(\n      import_sdk.Canvas,\n      {\n        label: \"Planning board\",\n        width: 450,\n        height: () => Math.max(420, ...cards.value.rows.map((row) => Number(row.values.y) + 100)),\n        shapes: () => cards.value.rows.flatMap((row) => [{ id: row.key, type: \"rect\", x: Number(row.values.x), y: Number(row.values.y), width: 150, height: 66, color: \"accent\" }, { id: row.key, type: \"text\", x: Number(row.values.x) + 12, y: Number(row.values.y) + 20, text: row.values.title, color: \"background\" }]),\n        regions: () => cards.value.rows.map((row) => ({ id: row.key, label: row.values.title, x: Number(row.values.x), y: Number(row.values.y), width: 150, height: 66 })),\n        onClick: (event) => {\n          status.value = \"Selected card.\";\n        },\n        onDrop: move\n      }\n    ));\n  }\n  (0, import_sdk.mount)(Planner);\n})();\n"
+}

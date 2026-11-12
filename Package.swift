@@ -9,6 +9,8 @@ let nativeCandidate = ProcessInfo.processInfo.environment["SEVRA_NATIVE_CANDIDAT
 let package = Package(
   name: "Sevra", platforms: [.macOS(.v14)],
   products: [
+    .executable(name: "sevra-app-worker", targets: ["SevraAppWorker"]),
+    .executable(name: "sevra-native-app-checks", targets: ["SevraNativeAppChecks"]),
     .executable(
       name: "sevra-accessibility-headless-checks", targets: ["SevraAccessibilityHeadlessChecks"]),
     .executable(name: "sevra-automation-ui-checks", targets: ["SevraAutomationUIChecks"]),
@@ -95,6 +97,28 @@ let package = Package(
       name: "SevraInferencePerformance",
       dependencies: ["SevraSplash", "SevraSplashText", "SevraSplashGrammar"],
       path: "IntegrationTests/Performance", swiftSettings: [.swiftLanguageMode(.v5)]),
+    .target(
+      name: "CQuickJS", exclude: ["LICENSE"],
+      sources: ["quickjs.c", "cutils.c", "libregexp.c", "libunicode.c", "dtoa.c", "SevraJS.c"],
+      publicHeadersPath: "include",
+      cSettings: [.define("CONFIG_VERSION", to: "\"2026-06-04\""), .define("_GNU_SOURCE")]),
+    .target(
+      name: "SevraAppProtocol", dependencies: ["SevraCore"],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
+    .target(
+      name: "SevraAppRuntime", dependencies: ["SevraCore", "SevraAppProtocol", "CQuickJS"],
+      resources: [.copy("Resources/sdk.js"), .copy("Resources/Signals-LICENSE.txt")],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
+    .target(
+      name: "SevraAppUI", dependencies: ["SevraCore", "SevraAppProtocol"],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(
+      name: "SevraAppWorker", dependencies: ["SevraAppRuntime", "SevraAppProtocol", "SevraCore"],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
+    .executableTarget(
+      name: "SevraNativeAppChecks",
+      dependencies: ["SevraAppRuntime", "SevraAppProtocol", "SevraCore", "SevraAppUI"],
+      path: "IntegrationTests/NativeApps", swiftSettings: [.swiftLanguageMode(.v5)]),
     .systemLibrary(name: "CSQLite"),
     .systemLibrary(name: "CLLGuidance"),
     .target(
@@ -186,7 +210,7 @@ let package = Package(
       name: "SevraApp",
       dependencies: [
         "SevraCore", "SevraAI", "SevraProduct", "SevraTableUI", "SevraSearchUI", "SevraVoice",
-        "SevraDocumentUI", "SevraPreviewUI", "SevraAutomationUI",
+        "SevraDocumentUI", "SevraPreviewUI", "SevraAutomationUI", "SevraAppUI",
       ],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(

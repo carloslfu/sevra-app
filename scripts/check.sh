@@ -3,6 +3,12 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 python3 scripts/generate_brand.py --check
+npm ci --prefix sdk --ignore-scripts
+python3 scripts/check_native_app_sources.py
+npm test --prefix sdk
+swift build --product sevra-app-worker -j "${SEVRA_BUILD_JOBS:-4}"
+swift build --product sevra-native-app-checks -j "${SEVRA_BUILD_JOBS:-4}"
+python3 scripts/check_native_apps.py
 swift build --product sevra-automation-ui-checks -j "${SEVRA_BUILD_JOBS:-4}"
 "$(swift build --show-bin-path)/sevra-automation-ui-checks"
 swift build --product sevra-extract -j "${SEVRA_BUILD_JOBS:-4}"
