@@ -109,3 +109,30 @@ Resumed minimum features: fixed historical automation lookup, indexed pasted ori
 ## [2026-11-12 03:17] verification | records/operations/implementation.md
 Full suite exit 0 (901 PASS lines), 50 agent groups, four real-model cases, explicit native package/install/extraction checks, visible lifecycle regressions and portable copy passed. Final live automation link observation and VoiceOver remain blocked by screen/approval; test activations paused.
 
+## [2026-11-12 16:38] design | sources/notes/2026/11/accessibility-review-and-pause.md
+Record owner decision: skip accessibility testing, use adversarial static review, update/push handoff and remain paused without UI interaction.
+
+## [2026-11-12 16:38] design | records/reviews/accessibility-static-review-2026-11-12.md
+Review native accessibility code and supporting boundaries at 831b7f3; record ten open findings and exact static-review limits. No runtime accessibility tests or UI interaction.
+
+## [2026-11-12 16:38] design | records/plans/known-limit-closure-2026-11-12.md
+Propose bounded closure paths for static accessibility findings, AI evidence coverage, Excel subset, optional background work and qualification limits; no implementation resumed.
+
+## [2026-11-12 16:38] verification | records/operations/implementation.md
+Preserve November 12 13:49/13:52 UTC live-run receipts and unsaved-AI counterexample, paused grants and successful prior hosted code check. Verify archived JSON and hashes; preserve historical evidence.
+
+## [2026-11-12 16:38] verification | records/operations/agent-handoff.md
+Update completed results, paused state, skipped accessibility testing and review/plan links; no product code, model run or UI changes.
+
+## [2026-11-12 16:38] design | records/operations/minimum-feature-delivery.md
+Align current scope with the owner-selected static accessibility review and pause; keep prior accepted increments and unfinished release gates explicit.
+
+## [2026-11-12 16:38] design | records/overview/start-here.md
+Project current November 12 checkpoint and new review/plan; distinguish dated October audit gaps from later accepted increments.
+
+## [2026-11-12 16:38] design | DB.md
+Project pause and skipped accessibility-testing decision into agent instructions and root AGENTS handoff pointer.
+
+## [2026-11-12 16:39] verification | records/operations/implementation.md
+Records validation has zero errors/warnings; Markdown links, diff and archived receipt/source hashes pass. Unchanged product code reuses successful CI at 831b7f3; records-only commit skips a new hosted product run to preserve pause.
+

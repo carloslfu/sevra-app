@@ -2,13 +2,15 @@
 type: operational
 id: 01m6578ccnp83zedvmr7gpp45q
 created: 2026-10-30T01:37:13.109871+00:00
-updated: 2026-11-12T03:15:12.929895+00:00
+updated: 2026-11-12T16:37:55.154836+00:00
 summary: Ordered bounded implementation, test and polish increments for the audited Sevra feature gaps.
 title: Minimum usable feature sequence
 ---
 # Minimum usable feature sequence
 
 ## Controlling instruction
+
+**Current state, November 12: paused.** [[sources/notes/2026/11/accessibility-review-and-pause]] selects static accessibility review and skips accessibility testing. The requested review, known-limit plan and final functional results are in [[records/operations/agent-handoff]]. Earlier resume instructions below are historical; do not restart UI work or VoiceOver from them.
 
 The owner authorizes sequential work on the gaps in
 [[records/reviews/design-feature-audit]]: [[sources/notes/2026/10/minimum-feature-delivery]].
@@ -32,13 +34,13 @@ feature or external qualification gate into completion.
 | 7 | Essential text/voice command parity. | Existing exact native automation preview/confirmation can be reached through submitted text or dictation with the same live authority boundaries; ambiguous language grants nothing. |
 | 8 | A small reusable workflow/template and folder intake experience. | Reuse one saved job from a portable inert template; a selected folder can be reconciled under an explicit bounded policy. State foreground/background limits accurately before any helper expansion. |
 | 9 | Searchable longer audio. | On-device chunked transcription preserves timestamps/provenance and supports cancellation/retry; unsupported speech availability leaves the original usable and sends nothing remotely. |
-| 10 | Release and accessibility qualification. | Finish feasible keyboard/VoiceOver/appearance/install checks, retain a precise hardware matrix and obtain actual production signing/notarization evidence when credentials exist. No unsupported completion claim. |
+| 10 | Release qualification and static accessibility review. | Preserve completed functional keyboard/appearance/install evidence. Accessibility testing is skipped by the owner on November 12; static review records open findings, not a test pass. External use, hardware and production signing/notarization still require evidence. |
 
 These are implementation slices, not a promise that arbitrary file formats,
 workflows, devices or language cases are supported. Follow the full owning specs
 for data integrity, meaning, review, current-format reconstruction and authority.
 
-## Current work
+## Accepted work before the November 12 pause
 
 Resumed by the owner after the handoff pause:
 [[sources/notes/2026/10/minimum-features-resume]]. Exact checks and limits are in
@@ -84,3 +86,9 @@ automation result-link observation was interrupted by the locked screen and rema
 with actual VoiceOver, external use, production signing and additional hardware. The exact evidence
 and final build/check status are in [[records/operations/implementation]]; the concise restart point
 is [[records/operations/agent-handoff]]. Do not repeat the accepted earlier increments by default.
+
+## November 12 completion and pause
+
+The remaining due-time/result-link observation and its unsaved-checkbox counterexample both passed. The exact code commit also passed its full hosted check. [[records/operations/implementation]] preserves run IDs and receipts. This closes the earlier screen-lock blocker.
+
+Accessibility testing is skipped by owner. [[records/reviews/accessibility-static-review-2026-11-12]] records ten open findings and the static review's limits. [[records/plans/known-limit-closure-2026-11-12]] gives concrete closure directions without restarting implementation. Increments 1 through 9 retain scoped acceptance; increment 10 does not become fully qualified because runtime accessibility was omitted. All product work is paused after the requested record updates, commit and push.

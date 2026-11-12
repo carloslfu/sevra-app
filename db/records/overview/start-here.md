@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-11-12T03:15:12.945363+00:00
+updated: 2026-11-12T16:37:55.169661+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -24,17 +24,9 @@ Slotstream remains independent.
 
 ## Current preview and delivery order
 
-The owner resumed the minimum-feature work after a handoff pause:
-[[records/operations/agent-handoff]]. Increment 1, bounded multi-original evidence
-with qualified partial costs, is accepted for its scope. Increment 2, native
-comparison and original-table grids, increment 3, less manual reviewed updates,
-increment 4, bounded bulk intake, and increment 5, an explicit Excel formula subset, are
-accepted for their scope. So are increment 6, bounded conversation continuation, now on for the
-native 32K profile, increment 7, reaching automation review by text or voice, increment 8, folder
-comparison and job templates, and increment 9, longer audio. Increment 10 has fresh real-model, install, suite and window evidence through November 11.
-Three observed defects were corrected; the final live automation result-link check was interrupted
-by a locked screen. Actual VoiceOver, external use, production signing and other hardware remain
-open. Main carries this work; [[records/operations/agent-handoff]] identifies the remaining checks.
+**Paused November 12:** [[records/operations/agent-handoff]] is the current checkpoint. Increments 1 through 9 are accepted for their bounded scope: multi-original evidence, native tables, reviewed updates, bulk intake, an Excel formula subset, conversation continuation, text/voice automation review, folder/templates and longer audio. The November 11 fixes and November 12 live automation observations passed their scoped functional checks; the exact code commit also passed hosted CI.
+
+The owner skipped accessibility testing and requested an adversarial code review without computer interaction. [[records/reviews/accessibility-static-review-2026-11-12]] records ten open findings, not a conformance pass. [[records/plans/known-limit-closure-2026-11-12]] proposes ways to close those findings and remaining AI, Excel, automation and release limits. No product code changed for that review. External use, production signing and additional hardware remain unqualified. Do not restart tests or UI work while paused; a general resume does not revoke the decision to skip accessibility testing.
 
 The October 29 follow-up authorizes sequential minimum usable features, testing
 and polish: [[records/operations/minimum-feature-delivery]]. That queue supersedes
@@ -67,12 +59,7 @@ work. The expanded E2-E6, condition/dataset/background infrastructure and full
 engine/hardware/release research remain deferred. The long-term design remains
 intact; deferred requirements are not completed requirements.
 
-The October 29 [[records/reviews/design-feature-audit]] is the current design-to-code
-coverage matrix. Fresh tests confirm incomplete cross-document answers, raw
-comparison/CSV presentation, bounded table updates, saved-value Excel import and
-disabled automatic context maintenance. A current 100,000-row fixture also exceeds
-the saved-change transaction budget before search; safe refusal is verified.
-These findings do not reopen all deferred work or establish production readiness.
+The October 29 [[records/reviews/design-feature-audit]] preserves the original design-to-code gaps. The later minimum-feature increments closed several of those specific presentation, bulk-import, formula and continuation gaps; use the current implementation register and handoff for status rather than treating the dated audit as current failure evidence. Remaining broad AI coverage and declared format/hardware limits do not establish production readiness.
 
 ## First user feedback
 

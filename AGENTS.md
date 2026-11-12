@@ -44,10 +44,14 @@ increment, test and polish it, then advance; later rows remain queued. Preserve
 the existing integrity and authority boundaries and report qualification limits.
 The current checkpoint is documented in the
 [agent handoff](db/records/operations/agent-handoff.md). Increments 1 through 9 are
-accepted for their scope. The November 11 pass exercised the remaining menu shortcuts,
-transcription, paste and trigger-description paths and fixed three observed defects. The
-final live automation result-link observation was interrupted by a locked screen; it and
-VoiceOver itself remain open, followed by an external user and release qualification.
+accepted for their scope. The November 11 fixes and November 12 live automation checks
+passed their scoped functional verification. Work is now paused. The owner selected an
+[adversarial static accessibility review](db/records/reviews/accessibility-static-review-2026-11-12.md)
+and [known-limit closure plan](db/records/plans/known-limit-closure-2026-11-12.md), with no UI
+interaction. Accessibility testing is skipped by owner, not passed or awaiting approval.
+Do not resume UI work while paused or run accessibility tests unless the owner explicitly
+changes that decision. Static findings, external use, signing and hardware qualification
+remain open. The handoff preserves the completed results and exact boundaries.
 Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
 failure and one counterexample, with the suite and install once on the candidate.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before

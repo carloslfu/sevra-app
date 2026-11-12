@@ -1,6 +1,6 @@
 ---
 type: db-md
-updated: 2026-10-30T02:17:03.890240+00:00
+updated: 2026-11-12T16:37:55.184603+00:00
 owner: Carlos Galarza
 scope: project
 ---
@@ -39,6 +39,11 @@ The owner's October 29 follow-up now authorizes the sequential minimum usable
 increments in [[records/operations/minimum-feature-delivery]], superseding the
 blanket follow-up deferral above. Test and polish one coherent increment before
 advancing. Later rows and external qualification gates remain unfinished.
+The November 12 owner instruction in [[sources/notes/2026/11/accessibility-review-and-pause]]
+leaves product work paused after the handoff/review records. Accessibility testing is
+skipped, not passed; do not toggle VoiceOver or resume UI work from older instructions.
+The current status and static findings are linked in [[records/operations/agent-handoff]].
+A later general resume does not revoke the accessibility-testing decision.
 No raw-model DDL, parallel ledger or claim that local replay solves replication.
 All maintained product/engineering prose belongs here; root documents are brief
 entry points. Finish changes with the relevant checks and a commit. Plain copy,

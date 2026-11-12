@@ -3,63 +3,44 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-12T03:17:10.180073+00:00
-summary: November 11 fixes and checks; final automation live-refresh observation, VoiceOver and external release qualification remain open.
+updated: 2026-11-12T16:37:55.122115+00:00
+summary: Paused after November 12 automation checks and static accessibility review; accessibility testing skipped by owner, ten findings and known-limit closure plan recorded.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
-## Current checkpoint
+## Current checkpoint: paused November 12
 
-The owner resumed on November 11 and requested end-to-end completion and verification:
-[[sources/notes/2026/11/minimum-features-completion-resume]]. Increments 1 through 9 remain accepted
-for their bounded scope. Continue directly on main; no branch or pull request. The current app is
-a source test preview, not a notarized production release. Read [[records/operations/implementation]]
-for the latest observed failures, fixes, checks and limits.
+The owner requested today's results, an adversarial accessibility code review and concrete ways to close the known limits, followed by commit/push and a pause. The controlling instruction is [[sources/notes/2026/11/accessibility-review-and-pause]]. Accessibility testing is **skipped by owner**, not passed and not waiting for permission. Do not turn on VoiceOver, manipulate the UI or restart tests from the older resume instructions. Keep accessibility testing skipped unless the owner explicitly changes that decision.
 
-The November 11 pass fixed three observed defects: exact historical automation lookup, pasted
-originals left unindexed after Done, and a stale Open saved run target on an automation page.
-The first two have installed-window proof and nearby counterexamples. The third has its reproduced
-failure, implementation, compiled candidate and automated checks; final visible verification was
-interrupted by the screen locking. Do not mark that last check complete from code inspection.
+The records pass changes no product code. The reviewed and exercised code is `831b7f3b1181b0fa8218f5d77e08cd992fd17246`. Increments 1 through 9 remain accepted for their bounded scope. Work stays on main, with no branch or pull request. This is MVP 0.1 source test preview, not a notarized production release.
 
-The five keyboard shortcuts, Transcribe from File actions with Stop and retry, both trigger-description
-cases, paste Done and subsequent table conversion, and historical version status were exercised.
-The real model ran successfully. Neither memory nor a need for a different automation interface is
-an outstanding blocker. Full local checks and fresh real-model regression are recorded in
-[[records/operations/implementation]].
+## What finished today
 
-## Resume with the remaining observation
+- **The remaining automation observation passed.** With the exact enabled definition open and Sevra in front, the 8:49 AM Bogotá run completed with result 6, the upcoming list advanced, and Open saved run opened that newly created run.
+- **The nearby counterexample passed.** At 8:52 AM, the next run completed with result 6 and its link opened the new run. An unsaved checked Allow local AI option stayed checked through the refresh while the persisted grant remained `allowAI: false`. A display change did not silently grant authority.
+- Both occurrences have exact saved run and activation receipts in [[records/operations/implementation]]. The previous screen-lock blocker is closed. The prior code commit's [hosted Checks run](https://github.com/carloslfu/sevra-app/actions/runs/43147307918) finished successfully, including all 39 reported steps. Prior local suite, installed model and packaging evidence is retained, not rerun for this records-only pass.
+- The owner stopped the incomplete VoiceOver attempt. VoiceOver was restored off and the unsent synthetic composer marker was cleared in the earlier session. The attempt establishes no accessibility qualification. The subsequent records/review pass used no computer UI or system-setting changes.
+- [[records/reviews/accessibility-static-review-2026-11-12]] now records ten ranked static findings, including table focus/paste, form context, query/snapshot table semantics, extracted-text access, chart values and status discovery. They are **open findings**, not implemented fixes. [[records/plans/known-limit-closure-2026-11-12]] gives concrete ways to close them and the broader product limits.
 
-1. Unlock the Mac and bring Sevra Native Preview to the front. App-scoped control may leave it
-   inactive, which correctly pauses automatic work. No global security-setting workaround is needed.
-2. Use a fresh synthetic workbook or the retained local fixtures under
-   `.build/acceptance-2026-11-11/`. `Window-checks.sevra` has an inert deterministic workflow returning
-   6, custom/stock trigger examples and historical automation versions. `fixture-definitions.json`
-   contains their exact IDs. `due-final-version.json` names the latest due-test definition. Test activations were paused
-   after the lock, so explicitly enable a newly scheduled version for the remaining check.
-3. Save a new calendar version due a few minutes ahead, then explicitly enable that version in the
-   native page with local AI off. Leave the page open and Sevra active through its due time.
-4. Check that the upcoming list advances and Open saved run opens the newly created run, not its
-   predecessor. Repeat with an unsaved checkbox change: the checkbox must stay as chosen while the
-   actual stored permission remains unchanged until Enable is explicitly used. Inspect the exact run
-   and activation through the CLI. Pause the synthetic activation after testing.
-5. VoiceOver itself requires the owner's pending approval to toggle the macOS setting and an unlocked
-   screen. Restore the original setting afterward. AX labels alone do not establish spoken VoiceOver
-   qualification.
+## Already fixed and verified
 
-Use `output/native/bin/sevra` or the installed `~/.local/bin/sevra`; a bare `sevra` may resolve an
-unrelated retired CLI. Never modify a real business workbook. Recreate selected disposable fixtures
-with `create` and `demo`; there are no pre-1.0 format migrations. The model, engine, Slotstream and
-website repositories are unchanged by this pass.
+The November 11 code commit fixed exact historical automation lookup, pasted originals left unindexed after Done, and stale Open saved run targets. The first two had installed-window proof and counterexamples on November 11; today's runs finish the third. File shortcuts, Transcribe from File actions with Stop/retry, trigger-description behavior and paste/table conversion were exercised. The local model ran successfully, so the earlier memory shortage is no longer a blocker on the tested Mac. Earlier window fixes prevent the closed-workbook reopen crash and duplicate blank windows.
 
-## Remaining qualification gates
+The detailed register preserves failures and dated evidence: [[records/operations/implementation]]. Do not restart accepted increments solely because an older section says a check was pending.
 
-- Finish the visible live-refresh observation and approved VoiceOver check.
-- Obtain an actual uncoached external user trial of the supplier journey.
-- Production signing/notarization and additional supported hardware require their own evidence.
-  `security find-identity -v -p codesigning` returned zero valid identities on this Mac.
+## Remaining work and limits
 
-These are unfinished gates, not accepted exceptions or a reason to restart the completed increments.
-The ordered scope stays in [[records/operations/minimum-feature-delivery]]. Earlier handoff details
-and failed iterations are preserved in Git and the dated implementation/evidence records.
+1. Static accessibility findings need implementation if the owner resumes that work. Runtime accessibility remains unqualified and deliberately skipped. The review separates direct code gaps from OS behavior that cannot be established through inspection.
+2. Broad AI requests can still miss evidence; Excel supports a declared subset; automations intentionally run only while Sevra is active. The closure plan proposes a per-question evidence checklist, bounded formula expansion and a separately opted-in background policy. None is implemented by this handoff.
+3. An uncoached external user, production signing/notarization and additional hardware qualification remain. Prior code-signing inspection found zero valid identities. Transcript accuracy and large-workbook storage costs also retain their stated limits.
+
+These are precise unfinished items, not a production-readiness claim. There are no active implementation slices while paused. On an explicit resume, choose a bounded next slice from the review/plan and reuse unchanged proof. The owner's accessibility-testing decision survives a general resume.
+
+## Paused state and retained fixtures
+
+The due-test activation was paused through the CLI at `2026-11-12T13:52:29Z`, generation 7, with local AI off. The other historical test activation was already paused at generation 2. The later read-only records work did not re-enable either. The app was left open and idle; this handoff does not claim the app quit or every window was closed. No test/model worker was left running by the earlier stopped session, and this records pass launched none.
+
+Disposable fixtures remain under `.build/acceptance-2026-11-11/`, including `Window-checks.sevra` and the two `nov12-*-workflow.json` receipts. The [portable result receipt](../../../integration/evidence/2026-11-12-final-automation-observation.json.gz) preserves the synthetic proof without depending on the local fixture surviving. No real workbook was modified. Do not operate retained fixtures while paused.
+
+If later work needs the CLI, use `output/native/bin/sevra` or the installed `~/.local/bin/sevra`; a bare `sevra` can resolve an unrelated retired CLI. Recreate selected disposable fixtures with `create` and `demo` when needed, with no pre-1.0 migrations. The model, engine, Slotstream and website repositories are unchanged.

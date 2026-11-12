@@ -3,11 +3,32 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-12T03:17:10.161966+00:00
+updated: 2026-11-12T16:39:22.289649+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Final automation observations and static review, November 12
+
+The owner resumed long enough to finish the remaining live automation observation, then stopped all interactive work and selected code review instead of accessibility testing. The latest instruction is [[sources/notes/2026/11/accessibility-review-and-pause]]. The current pause and next-work boundary are in [[records/operations/agent-handoff]]. This section supersedes November 11's pending live-refresh and VoiceOver instructions; it does not rewrite the historical failures below.
+
+**Final installed proof on code `831b7f3b1181b0fa8218f5d77e08cd992fd17246`.** The synthetic exact workflow evaluates `2*3` to 6 without local AI or business mutations. Its detail stayed open with Sevra active through each due time:
+
+| Case | Exact automation definition | New completed run | Observed result |
+|---|---|---|---|
+| Live refresh, November 12 at 13:49 UTC / 8:49 AM Bogotá | Version 4, `547d003d-b0cb-4767-aec9-f64c17698bd7` | `b0216d2d-618f-4e75-b990-6828dc5983d5` | Upcoming list advanced; Open saved run opened the 8:49 AM run and displayed 6. |
+| Unsaved AI checkbox, 13:52 UTC / 8:52 AM Bogotá | Version 5, `860e9536-87da-4c52-b3aa-e733178470f8` | `ca19e964-3ebe-4705-8c40-2161f4b102bf` | Link opened the 8:52 AM run and displayed 6; unsaved checkbox stayed checked, persisted permission stayed false. |
+
+Both definitions belong to logical automation `4eb1bb86-8a3c-42e8-bea7-cf22f862ab88` and exact workflow `ddfb9d9a-5824-4347-90dd-b7c3b81941f1`. The activation `ffa91910-67ec-4e3d-99ac-e65c71170629` was paused at `2026-11-12T13:52:29Z`, generation 7, `allowAI: false`. The historical activation was already paused. These are final functional proof and its nearby counterexample for the result-link fix, not background scheduling or accessibility qualification.
+
+The [portable observation receipt](../../../integration/evidence/2026-11-12-final-automation-observation.json.gz), SHA-256 `d565b65ec5515e448c885227bbb24cbdd0452b950399476f364b6d11c5bd8997`, contains the retained raw CLI results, source commit, successful hosted run and separately labeled earlier agent UI observations. It is not a recording of a new interaction in the records pass. The exact code commit's [hosted Checks run](https://github.com/carloslfu/sevra-app/actions/runs/43147307918) completed successfully at `2026-11-12T04:18:52Z`, with all 39 reported steps successful. The November 11 local 901-PASS suite, 50 agent groups, installed-model regression, resource/package/install checks remain the applicable unchanged-code evidence.
+
+**Accessibility decision and review.** The earlier owner-approved VoiceOver attempt did not finish before the owner paused it. VoiceOver was restored off and the unsent synthetic composer marker cleared. It is now skipped by owner, not a pass or a pending approval. The later static review and records work used no UI, changed no macOS settings and ran no accessibility tests. [[records/reviews/accessibility-static-review-2026-11-12]] identifies ten ranked findings across the native surfaces and records its review depth. Its [inventory](../../../integration/evidence/2026-11-12-accessibility-static-inventory.json.gz), SHA-256 `75956623f123e4b141fd405c4d0d12b3dfd964d9ebbe0d75f29f1c20e2e4416a`, binds the reviewed source tree. These are new open findings, not product fixes. [[records/plans/known-limit-closure-2026-11-12]] proposes closure paths for them, AI evidence coverage, Excel compatibility, optional background execution and remaining qualification limits.
+
+**Records verification.** `dbmd index rebuild --dir db --json`, `dbmd validate --all db --json` (zero errors and warnings), `python3 scripts/check_links.py`, `git diff --check`, and archived-receipt/source-hash checks pass. Product code is unchanged. The documentation-only commit uses `[skip ci]` to avoid restarting the long hosted product suite while paused; the successful hosted result above belongs to the prior code commit, not this records commit.
+
+**Completion boundary.** Only evidence and project records changed in this pass. No product test, model job or helper was started. Product work remains paused and the app was left open and idle in the earlier stopped session. The current source preview still lacks production signing, broader hardware evidence and an actual uncoached external trial. Accessibility runtime qualification remains deliberately unclaimed.
 
 ## Continuation and final window checks, November 11
 
