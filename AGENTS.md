@@ -48,12 +48,15 @@ accepted for their scope. The November 11 fixes and November 12 live automation 
 passed their scoped functional verification. Work is now paused. The owner selected an
 [adversarial static accessibility review](db/records/reviews/accessibility-static-review-2026-11-12.md)
 and then authorized [all ten code fixes](db/sources/notes/2026/11/accessibility-code-fixes-and-pause.md).
-Those fixes are implemented, statically reviewed and compiled; runtime accessibility remains
-unqualified for the owner's later testing. The handoff preserves the results and
+Those fixes are implemented, compiled and covered by the later owner-authorized
+[headless checkpoint](db/sources/notes/2026/11/accessibility-headless-tests-and-pause.md):
+22 behavior groups and 10 static adapter groups pass. UI/OS accessibility remains
+unqualified. The handoff preserves results and the
 [known-limit closure plan](db/records/plans/known-limit-closure-2026-11-12.md).
-Work is paused after commit/push. Do not manipulate the UI, launch/install the app or run
-accessibility tests unless the owner explicitly changes that decision. A general resume does
-not revoke it. External use, signing and hardware qualification remain open.
+Work is paused after commit/push; the narrow headless check does not authorize continued work.
+Do not manipulate the UI, launch/install the app, inspect accessibility trees, use VoiceOver or
+change system settings unless the owner explicitly changes that decision. A general resume
+does not revoke it. External use, signing and hardware qualification remain open.
 Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
 failure and one counterexample, with the suite and install once on the candidate.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before

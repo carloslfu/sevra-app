@@ -12,10 +12,7 @@ import SevraVoice
 import SwiftUI
 import os
 
-enum WorkbookReadingTarget: Hashable {
-  case workspace, conversation, composer, status
-  case message(String)
-}
+typealias WorkbookReadingTarget = ReadingTarget
 
 @MainActor private final class AssetCopySaveDelegate: NSObject, NSOpenSavePanelDelegate {
   let workbook: Workbook
@@ -102,8 +99,9 @@ struct FolderReview {
     if case .message = target { focus = false }
     readingFocusTarget = target
     readingFocusPending =
-      NSApp.isActive
-      && (readingWindow?.isKeyWindow == true || readingWindow?.attachedSheet?.isKeyWindow == true)
+      ReadingFocusPolicy.canRequest(
+        appIsActive: NSApp.isActive, ownWindowIsKey: readingWindow?.isKeyWindow == true,
+        ownSheetIsKey: readingWindow?.attachedSheet?.isKeyWindow == true)
     readingFocusRequest = UUID()
   }
   @Published var viewedItemVersion: String?

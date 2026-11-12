@@ -3,13 +3,34 @@ type: review
 meta-type: conclusion
 id: 01m789vd03b9gfr85kgg25p5qm
 created: 2026-11-12T16:35:58.595937+00:00
-updated: 2026-11-12T17:14:42.209929+00:00
-summary: All ten accessibility findings have code closures and static review; native compilation passes, runtime tests are skipped by owner and no conformance is claimed.
+updated: 2026-11-12T18:02:27.561046+00:00
+summary: All ten accessibility findings have code closures and passing headless logic/storage coverage; native UI, speech, layout and conformance remain unqualified.
 title: Adversarial accessibility code review, November 12
 ---
 # Adversarial accessibility code review, November 12
 
-## Code fixes after the owner follow-up, November 12
+## Headless verification follow-up, November 12
+
+The later [[sources/notes/2026/11/accessibility-headless-tests-and-pause]] narrowly authorizes headless behavior tests and failure fixes. **All ten findings now have passing headless coverage: 22 executable groups, plus 10 separate static adapter groups.** These checks call production code; no views, windows, event loop, accessibility tree, clipboard, preferences or speech are used. Native compilation verifies the view adapters type-check. This supersedes the earlier code-only verification status without rewriting its historical evidence.
+
+| Finding | Executed headless coverage | Remaining UI/OS boundary |
+|---|---|---|
+| A1 | Editable-cell Tab/backtab and arrow decisions, empty/readonly boundaries, logical selection after sort/reorder; real focused-column paste, recalculation, stale refusal and Undo. | Native event dispatch, actual focus drawing and field editing. |
+| A2 | Exact decimals, zero/false/empty/unknown, units, source URLs, row identity/reorder, duplicate/ragged and aggregate values in the shared table model. | Native table accessibility-tree/header traversal. |
+| A3 | Required/unit/constraint/line labels, path-specific errors, zero versus empty; real workbook input validation and required false values. | Rendered controls and explicit validation focus. |
+| A4 | Exact asset/hash/extraction status, 8-passage paging, revision/cancellation/offset refusals; unindexed, failed/unsupported, successful retry, Unicode/NUL and oversized text; description replay, stale writers, other-connection changes, size bounds, prior versions, reopen and clear. | OCR quality/reading order, native text interaction and description dialog. |
+| A5 | Real workbook chart data, column/unit labels, explicit unit override, omitted unknown values, plotted scope and exact decimal alternative. | Chart rendering and native chart semantics. |
+| A6 | Initial/duplicate suppression, explicit repeated generations, background/inactive and superseded-event refusal. | The OS announcement itself and actual spoken timing. |
+| A7 | Own-window/sheet eligibility, deferred/obsolete/consumed/retired focus refusal and message-return fallback. | Actual multi-window/modal focus order. |
+| A8 | 100–200 percent bounds and steps, invalid values and shared native row/header/text metrics without reading or writing preferences. | Clipping, enlarged layout, contrast and preference persistence in the installed app. |
+| A9 | Injected source/row callbacks reach exact destinations; multi-source/default actions, unsafe link filtering, stale action refusal and selection/open decision rules. | Native press/custom-action and keyboard delivery. |
+| A10 | UTF-16 match ranges, case-insensitive page wrapping, query/document reset, query bounds, scan-only input and Reduce Motion animation decision. | PDFKit selection and physical animation. |
+
+**Failures and fixes.** The first reader check exposed discovery metadata before extraction. A later adversarial check exposed it again after a failed/unsupported index; only ready/partial extractions with a retained identity now supply text. SQLite text `substr` stops at embedded NUL; a direct SQL reproduction confirmed the defect and the final workbook regression preserves the entire expected Unicode/NUL value. Bounded byte-prefix reading plus a 4,000-scalar cap preserves safe bounds and discloses truncation. PDF search now resets on document identity as well as query changes, checked with multiple same-query matches. Test-only corrections included the actual `offset=0` locator suffix, a valid UUID definition ID, required-empty field representation and Foundation's atomic-write temporary directory. These are distinguished from product defects in the [headless receipt](../../../integration/evidence/2026-11-12-accessibility-headless-checks.json.gz).
+
+**Evidence and commands.** `SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra-accessibility-headless-checks -j 4`, then `python3 scripts/run_accessibility_headless.py`; all 22 groups pass in the sandbox. `python3 scripts/check_accessibility_headless_wiring.py` passes 10 supplemental groups; these source-pattern checks are not independent behavior proof. The `SevraDesktop` release build and strict lint for 19 Swift files pass. The dedicated executable is separate from existing UI checks and does not instantiate the app. Standard CI remains skipped because it includes prohibited UI tests. No conformance or whole-app readiness claim follows. Work returns to paused; the manual suggestions below remain unexecuted.
+
+## Earlier code-only checkpoint, November 12
 
 The owner subsequently authorized all ten fixes in code, while continuing to prohibit UI interaction and accessibility tests: [[sources/notes/2026/11/accessibility-code-fixes-and-pause]]. **A1 through A10 are implemented and statically reviewed; runtime accessibility remains unqualified.** The numbered findings below preserve the original baseline and line references, not current open-code defects.
 
@@ -127,4 +148,4 @@ Keep native controls and dialogs, explicit Stop/Command-period, row/column names
 
 Prior functional keyboard/window observations remain valid for their exact cases. They do not establish Full Keyboard Access, VoiceOver speech, Switch Control, Voice Control, actual contrast, enlarged text layout, assistive-technology focus order or third-party PDF/Quick Look/AVKit behavior. Those runtime qualifications are deliberately not being pursued under the owner's current decision. Static remediation can be assessed by code inspection, but must not be relabeled as a tested accessibility pass.
 
-[[records/plans/known-limit-closure-2026-11-12]] gives implementation boundaries and future ordering. [[records/operations/agent-handoff]] records the paused checkpoint. All ten findings now have the code closures above. None is labeled runtime-tested.
+[[records/plans/known-limit-closure-2026-11-12]] gives implementation boundaries and future ordering. [[records/operations/agent-handoff]] records the paused checkpoint. All ten findings have the code closures and later headless coverage above. None is labeled UI/OS-tested.

@@ -21,13 +21,28 @@ extension Workbook {
           try require(offset >= 0 && offset <= 1_000_000, "extracted_text", "Invalid text page.")
           let asset = try self.asset(item.assetID!)
           let status = try extractionStatus(id)
-          let page = try db.execute(
-            "SELECT id,substr(body,1,4000) AS body,locator,length(body)>4000 AS truncated FROM chunks WHERE item_id=? ORDER BY id LIMIT 9 OFFSET ?",
-            [.string(id), .number(Double(offset))]
-          ).map(Value.object)
           let extractionID = try db.scalar(
             "SELECT s.input_id FROM file_reference_heads h JOIN file_reference_sets s ON s.id=h.set_id WHERE h.origin_id=?",
             [.string(id)])
+          // Import, failed and unsupported indexes can contain discovery metadata, not extracted text.
+          // Read a bounded byte prefix: SQLite text substr/length stop at an embedded NUL.
+          let readable =
+            extractionID.string != nil && ["ready", "partial"].contains(status["state"].text)
+          let rows =
+            !readable
+            ? []
+            : try db.execute(
+              "SELECT id,CAST(substr(CAST(body AS BLOB),1,16000) AS TEXT) AS body,locator,length(CAST(body AS BLOB))>16000 AS byte_truncated FROM chunks WHERE item_id=? ORDER BY id LIMIT 9 OFFSET ?",
+              [.string(id), .number(Double(offset))])
+          let page = rows.map { row -> Value in
+            var value = row
+            let scalars = row["body"]!.text.unicodeScalars
+            value["body"] = .string(String(String.UnicodeScalarView(scalars.prefix(4000))))
+            value["truncated"] = .number(
+              row["byte_truncated"]?.int == 1 || scalars.count > 4000 ? 1 : 0)
+            value.removeValue(forKey: "byte_truncated")
+            return .object(value)
+          }
           return .object([
             "itemID": .string(id), "title": .string(item.title), "assetHash": .string(asset.hash),
             "revision": .number(Double(revision)), "extractionID": extractionID,

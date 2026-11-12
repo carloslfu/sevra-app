@@ -142,3 +142,6 @@ Implemented A1-A10 under the owner code-only instruction; 40-file strict lint an
 ## [2026-11-12 17:17] verification | records/operations/implementation.md
 Final exact-source native release build and 40-file strict lint passed; dbmd validation has zero errors/warnings, links and diff whitespace pass, 198 prior evidence/source files are unchanged. No product/accessibility tests or UI interaction. Commit uses skip-ci and work returns to paused.
 
+## [2026-11-12 18:03] verification | records/operations/implementation
+Owner-authorized A1-A10 headless checkpoint: 22 behavior groups and 10 static adapter groups pass, 19 Swift files lint and native build pass; reader metadata/NUL and PDF document reset corrected; no UI or VoiceOver; handoff updated and work returns to paused after commit/push.
+

@@ -9,6 +9,8 @@ let nativeCandidate = ProcessInfo.processInfo.environment["SEVRA_NATIVE_CANDIDAT
 let package = Package(
   name: "Sevra", platforms: [.macOS(.v14)],
   products: [
+    .executable(
+      name: "sevra-accessibility-headless-checks", targets: ["SevraAccessibilityHeadlessChecks"]),
     .executable(name: "sevra-automation-ui-checks", targets: ["SevraAutomationUIChecks"]),
     .library(name: "SevraCore", targets: ["SevraCore"]),
     .executable(name: "SevraDesktop", targets: ["SevraApp"]),
@@ -43,6 +45,11 @@ let package = Package(
     .package(url: "https://github.com/swiftlang/swift-markdown.git", exact: "0.9.0"),
   ],
   targets: [
+    .executableTarget(
+      name: "SevraAccessibilityHeadlessChecks",
+      dependencies: ["SevraCore", "SevraPreviewUI", "SevraTableUI", "SevraDocumentUI"],
+      path: "IntegrationTests/AccessibilityHeadless", exclude: ["NoUI.sb"],
+      swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraAutomationUI", dependencies: ["SevraCore"],
       swiftSettings: [.swiftLanguageMode(.v5)]),

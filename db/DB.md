@@ -1,6 +1,6 @@
 ---
 type: db-md
-updated: 2026-11-12T17:14:42.335180+00:00
+updated: 2026-11-12T18:02:27.638735+00:00
 owner: Carlos Galarza
 scope: project
 ---
@@ -39,11 +39,14 @@ The owner's October 29 follow-up now authorizes the sequential minimum usable
 increments in [[records/operations/minimum-feature-delivery]], superseding the
 blanket follow-up deferral above. Test and polish one coherent increment before
 advancing. Later rows and external qualification gates remain unfinished.
-The November 12 owner instruction in [[sources/notes/2026/11/accessibility-review-and-pause]]
-was followed by [[sources/notes/2026/11/accessibility-code-fixes-and-pause]], which authorized all ten code fixes. They are implemented, statically reviewed and compiled, then work returns to paused. Accessibility testing is
-skipped, not passed; do not toggle VoiceOver or resume UI work from older instructions.
-The current status and static findings are linked in [[records/operations/agent-handoff]].
-A later general resume does not revoke the accessibility-testing decision.
+The November 12 code-only instruction was followed by [[sources/notes/2026/11/accessibility-headless-tests-and-pause]],
+which authorizes one headless logic/storage test-and-fix checkpoint for all ten accessibility
+changes. That checkpoint passes 22 behavioral and 10 static adapter groups, plus native
+compilation, and returns to paused. Actual UI/OS accessibility remains unqualified.
+Do not open/install the app, manipulate the UI, toggle VoiceOver, inspect accessibility trees
+or change system settings. The headless authorization does not create a standing test loop.
+The current status and limits are in [[records/operations/agent-handoff]]. A later general
+resume does not revoke the no-UI/no-VoiceOver decision.
 No raw-model DDL, parallel ledger or claim that local replay solves replication.
 All maintained product/engineering prose belongs here; root documents are brief
 entry points. Finish changes with the relevant checks and a commit. Plain copy,

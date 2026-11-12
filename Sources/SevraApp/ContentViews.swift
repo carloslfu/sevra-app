@@ -427,31 +427,26 @@ struct NativeComponent: View {
         }
       case "chart":
         if let data {
-          let points = data.rows.compactMap { row -> PlotPoint? in
-            guard let y = Double(row.values[component.y ?? ""]?.text ?? ""), y.isFinite else {
-              return nil
-            }
-            return PlotPoint(id: row.id, label: row.values[component.x ?? ""]?.text ?? "", value: y)
-          }
-          let xTitle = data.columns.first { $0.id == component.x }?.title ?? "Category"
-          let yTitle = data.columns.first { $0.id == component.y }?.title ?? "Value"
+          let presentation = ChartReadingPresentation(
+            data, x: component.x, y: component.y, unitOverride: component.unit)
+          let points = presentation.points
+          let xTitle = presentation.xTitle
+          let yTitle = presentation.yTitle
           Chart(points) { point in
             if component.chartStyle == "line" {
-              LineMark(x: .value(xTitle, point.label), y: .value(yTitle + unitSuffix, point.value))
+              LineMark(x: .value(xTitle, point.label), y: .value(yTitle, point.value))
                 .foregroundStyle(Color.accentColor)
-              PointMark(x: .value(xTitle, point.label), y: .value(yTitle + unitSuffix, point.value))
+              PointMark(x: .value(xTitle, point.label), y: .value(yTitle, point.value))
                 .foregroundStyle(Color.accentColor)
             } else {
-              BarMark(x: .value(xTitle, point.label), y: .value(yTitle + unitSuffix, point.value))
+              BarMark(x: .value(xTitle, point.label), y: .value(yTitle, point.value))
                 .foregroundStyle(Color.accentColor)
             }
           }
           .chartXAxisLabel(xTitle)
-          .chartYAxisLabel(yTitle + unitSuffix)
+          .chartYAxisLabel(yTitle)
           .accessibilityLabel(component.title)
-          .accessibilityValue(
-            "\(points.count) plotted rows of \(data.totalRows). " + yTitle + unitSuffix
-          )
+          .accessibilityValue(presentation.summary)
           .frame(height: 220)
           DisclosureGroup("Exact values and sources") {
             snapshotTable(data)
@@ -558,11 +553,6 @@ struct SearchComponentView: View {
       .readingFont(.caption).foregroundStyle(.secondary)
     }
   }
-}
-struct PlotPoint: Identifiable {
-  let id: String
-  let label: String
-  let value: Double
 }
 struct DatasetView: View {
   let table: Dataset

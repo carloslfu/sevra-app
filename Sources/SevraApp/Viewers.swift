@@ -588,45 +588,34 @@ private struct ItemDetails: Sendable {
   @Published var query = ""
   @Published var status = ""
   @Published var unavailable = false
-  private var previousQuery = ""
-  private var lastPage = -1
-  private var lastEnd = 0
+  private var search = PDFMatchSearch()
   func refresh() {
     unavailable = view?.document == nil
     pages = view?.document?.pageCount ?? 0
     page = (view?.currentPage.flatMap { view?.document?.index(for: $0) } ?? 0) + 1
   }
-  func nextMatch(animate: Bool = false) {
-    guard let view, let document = view.document, document.pageCount > 0 else { return }
-    guard !query.isEmpty && query.utf8.count <= 2048 else {
+  func nextMatch(reduceMotion: Bool = true) {
+    guard let view, let document = view.document else { return }
+    switch search.next(
+      query: query, documentID: String(describing: ObjectIdentifier(document)),
+      pageCount: document.pageCount, currentPage: page - 1, reduceMotion: reduceMotion,
+      text: { document.page(at: $0)?.string })
+    {
+    case .invalidQuery:
       status = "Enter up to 2,048 bytes of search text."
-      return
-    }
-    if previousQuery != query {
-      lastPage = -1
-      lastEnd = 0
-      previousQuery = query
-    }
-    let startPage = lastPage >= 0 ? lastPage : max(0, page - 1)
-    for step in 0...document.pageCount {
-      let index = (startPage + step) % document.pageCount
-      guard let pdfPage = document.page(at: index) else { continue }
-      let text = (pdfPage.string ?? "") as NSString
-      let start = step == 0 && lastPage == index ? min(lastEnd, text.length) : 0
-      let match = text.range(
-        of: query, options: .caseInsensitive,
-        range: NSRange(location: start, length: text.length - start))
-      if match.location != NSNotFound, let selection = pdfPage.selection(for: match) {
-        view.setCurrentSelection(selection, animate: animate)
-        view.go(to: selection)
-        lastPage = index
-        lastEnd = NSMaxRange(match)
-        status = "Match on page \(index + 1)"
-        refresh()
+    case .noMatch:
+      status = "No match in PDF text. Scanned pages may only be searchable through workbook OCR."
+    case .match(let match):
+      guard let selection = document.page(at: match.page)?.selection(for: match.range) else {
+        status =
+          "The matching text could not be selected. Read extracted text or open the original."
         return
       }
+      view.setCurrentSelection(selection, animate: match.animate)
+      view.go(to: selection)
+      status = "Match on page \(match.page + 1)"
+      refresh()
     }
-    status = "No match in PDF text. Scanned pages may only be searchable through workbook OCR."
   }
 }
 struct PDFWorkspace: View {
@@ -663,8 +652,8 @@ struct PDFWorkspace: View {
           Spacer()
           TextField("Search this PDF", text: $controls.query).textFieldStyle(.roundedBorder).frame(
             maxWidth: 220
-          ).onSubmit { controls.nextMatch(animate: !reduceMotion) }
-          Button("Next match") { controls.nextMatch(animate: !reduceMotion) }.disabled(
+          ).onSubmit { controls.nextMatch(reduceMotion: reduceMotion) }
+          Button("Next match") { controls.nextMatch(reduceMotion: reduceMotion) }.disabled(
             controls.query.isEmpty)
         }.padding(10)
         if !controls.status.isEmpty {

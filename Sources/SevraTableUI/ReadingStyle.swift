@@ -3,9 +3,12 @@ import SwiftUI
 
 /// App-local reading size. It never changes a macOS accessibility preference.
 public enum ReadingStyle {
-  public static let preference = "readingTextScale"
+  public static let preference = ReadingMetrics.preference
   public static func scale(_ value: Double) -> CGFloat {
-    value.isFinite ? CGFloat(min(2, max(1, value))) : 1
+    CGFloat(ReadingMetrics.scale(value))
+  }
+  public static func points(_ base: Double, scale: Double) -> CGFloat {
+    CGFloat(ReadingMetrics.points(base, scale: scale))
   }
   public static func size(_ style: Font.TextStyle) -> CGFloat {
     let native: NSFont.TextStyle
@@ -66,28 +69,21 @@ extension View {
 private struct StatusAnnouncement: NSViewRepresentable {
   let message: String?
   final class Coordinator {
-    var initialized = false
-    var generation = 0
-    var message: String?
+    var policy = StatusAnnouncementPolicy()
   }
   func makeCoordinator() -> Coordinator { Coordinator() }
   func makeNSView(context: Context) -> NSView { NSView() }
   func updateNSView(_ view: NSView, context: Context) {
     let owner = context.coordinator
-    let changed = owner.initialized && owner.message != message
-    if owner.message != message { owner.generation += 1 }
-    let generation = owner.generation
-    owner.initialized = true
-    owner.message = message
-    guard changed, let message, !message.isEmpty else { return }
+    guard let event = owner.policy.update(message) else { return }
     DispatchQueue.main.async { [weak view, weak owner] in
-      guard owner?.generation == generation, owner?.message == message, let window = view?.window,
-        window.isKeyWindow,
-        NSApp.isActive
+      guard let owner, let window = view?.window,
+        owner.policy.canDeliver(
+          event, ownWindowIsKey: window.isKeyWindow, appIsActive: NSApp.isActive)
       else { return }
       NSAccessibility.post(
         element: NSApp!, notification: .announcementRequested,
-        userInfo: [.announcement: message, .priority: NSAccessibilityPriorityLevel.low.rawValue])
+        userInfo: [.announcement: event.text, .priority: NSAccessibilityPriorityLevel.low.rawValue])
     }
   }
 }

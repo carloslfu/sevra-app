@@ -2,7 +2,7 @@
 type: operational
 id: 01m6578ccnp83zedvmr7gpp45q
 created: 2026-10-30T01:37:13.109871+00:00
-updated: 2026-11-12T17:14:42.318600+00:00
+updated: 2026-11-12T18:02:27.593317+00:00
 summary: Ordered bounded implementation, test and polish increments for the audited Sevra feature gaps.
 title: Minimum usable feature sequence
 ---
@@ -10,7 +10,7 @@ title: Minimum usable feature sequence
 
 ## Controlling instruction
 
-**Current state, November 12: paused.** [[sources/notes/2026/11/accessibility-review-and-pause]] selected static review and skipped accessibility testing. The later [[sources/notes/2026/11/accessibility-code-fixes-and-pause]] authorizes all ten code fixes while preserving the no-UI/no-accessibility-test boundary; those fixes are implemented and compiled. The requested review, known-limit plan and final functional results are in [[records/operations/agent-handoff]]. Earlier resume instructions below are historical; do not restart UI work or VoiceOver from them.
+**Current state, November 12: paused.** [[sources/notes/2026/11/accessibility-headless-tests-and-pause]] authorized the follow-up headless check of the ten implemented accessibility fixes. All 22 behavior groups and 10 static adapter groups pass; the native product compiles. UI, VoiceOver and OS-level accessibility testing remain prohibited. The requested review, known-limit plan and final results are in [[records/operations/agent-handoff]]. Earlier resume instructions below are historical.
 
 The owner authorizes sequential work on the gaps in
 [[records/reviews/design-feature-audit]]: [[sources/notes/2026/10/minimum-feature-delivery]].
@@ -34,7 +34,7 @@ feature or external qualification gate into completion.
 | 7 | Essential text/voice command parity. | Existing exact native automation preview/confirmation can be reached through submitted text or dictation with the same live authority boundaries; ambiguous language grants nothing. |
 | 8 | A small reusable workflow/template and folder intake experience. | Reuse one saved job from a portable inert template; a selected folder can be reconciled under an explicit bounded policy. State foreground/background limits accurately before any helper expansion. |
 | 9 | Searchable longer audio. | On-device chunked transcription preserves timestamps/provenance and supports cancellation/retry; unsupported speech availability leaves the original usable and sends nothing remotely. |
-| 10 | Release qualification and static accessibility review. | Preserve completed functional keyboard/appearance/install evidence. Accessibility testing is skipped by the owner on November 12; all ten static findings now have code closures, not a runtime test pass. External use, hardware and production signing/notarization still require evidence. |
+| 10 | Release qualification and static accessibility review. | Preserve completed functional keyboard/appearance/install evidence. All ten accessibility fixes have passing headless logic/storage coverage; UI/OS-level testing remains skipped by the owner. External use, hardware and production signing/notarization still require evidence. |
 
 These are implementation slices, not a promise that arbitrary file formats,
 workflows, devices or language cases are supported. Follow the full owning specs
@@ -96,3 +96,7 @@ Accessibility testing is skipped by owner. [[records/reviews/accessibility-stati
 ## November 12 code-fix checkpoint
 
 The owner's follow-up [[sources/notes/2026/11/accessibility-code-fixes-and-pause]] is complete as code work: all A1–A10 changes are implemented, statically reviewed and compiled. Strict lint covers 40 changed Swift files. The exact scope, original findings and owner-testing suggestions are in [[records/reviews/accessibility-static-review-2026-11-12]]. No UI, accessibility test, installation, model execution or system setting was used. Runtime qualification remains unclaimed; the owner intends to test afterwards. Work is paused after the requested commit and push.
+
+## November 12 headless checkpoint
+
+[[sources/notes/2026/11/accessibility-headless-tests-and-pause]] is complete: 22 headless groups across A1–A10, 10 static adapter groups, strict lint and native compilation pass. Reader metadata/NUL defects and PDF document-search reset were corrected. No app, UI, VoiceOver or system settings were used. [[records/reviews/accessibility-static-review-2026-11-12]] records exact coverage and limits. Broader increments and release qualification are unchanged; work is paused after commit/push.

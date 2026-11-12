@@ -5,9 +5,9 @@ struct ReadingSizeCommands: View {
   @AppStorage(ReadingStyle.preference) private var scale = 1.0
   private var current: Double { Double(ReadingStyle.scale(scale)) }
   var body: some View {
-    Button("Larger text") { scale = min(2, current + 0.25) }
+    Button("Larger text") { scale = ReadingMetrics.adjusted(current, steps: 1) }
       .keyboardShortcut("+", modifiers: .command).disabled(current >= 2)
-    Button("Smaller text") { scale = max(1, current - 0.25) }
+    Button("Smaller text") { scale = ReadingMetrics.adjusted(current, steps: -1) }
       .keyboardShortcut("-", modifiers: .command).disabled(current <= 1)
     Button("Standard text size") { scale = 1 }.disabled(current == 1)
   }

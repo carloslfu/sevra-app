@@ -1,0 +1,14 @@
+(version 1)
+(allow default)
+; Only synthetic fixtures and Foundation atomic-write replacement files may be written.
+(deny file-write* (require-not (require-any
+  (subpath (param "FIXTURE_ROOT"))
+  (literal (param "FOUNDATION_TEMP_ROOT"))
+  (regex (param "FOUNDATION_TEMP_PATTERN")))))
+(deny network*)
+(deny appleevent-send)
+(deny mach-lookup
+  (global-name-regex #"^com\.apple\.(windowserver|WindowServer|axserver|AX|speech|Speech)")
+  (global-name "com.apple.coreservices.appleevents"))
+; No application, helper, extractor or child test can be launched.
+(deny process-exec (require-not (literal (param "CHECK_BINARY"))))

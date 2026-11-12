@@ -3,11 +3,38 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-12T17:16:43.400343+00:00
+updated: 2026-11-12T18:04:30.963508+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Accessibility headless verification and pause, November 12
+
+**Authority and scope.** [[sources/notes/2026/11/accessibility-headless-tests-and-pause]] supersedes the earlier test skip only for headless checks and their failure fixes. Starting point: `3cdaf775d01d57d0d5dd463537ca94272b991dff`. All ten fixes now have executable logic/storage coverage. The app was not opened or installed; no UI, native accessibility tree, VoiceOver, clipboard, preferences, model or retained acceptance workbook was used. The current handoff is [[records/operations/agent-handoff]].
+
+**Production changes and observed failures.** Shared Foundation-only decisions now drive the real native adapters for cell navigation, form/evidence/chart presentation, source actions, announcement eligibility, own-window focus, reading metrics and PDF match search. The test executable calls those same decisions and real workbook operations instead of duplicating the implementation in mocks. The first reader check failed because import metadata was shown before extraction; a later check failed again for failed/unsupported indexes. Reading now requires a retained extraction identity and ready/partial state. A direct SQLite reproduction showed text `substr` truncating at embedded NUL; bounded byte-prefix reading and a 4,000-Unicode-scalar cap preserve the tested original text while retaining truncation disclosure. Document identity now resets the PDF search cursor, checked against two same-query matches. These are scoped corrections; no schema, automatic grant or background policy changed.
+
+**Executed acceptance.** The dedicated `sevra-accessibility-headless-checks` executable passes **22 behavior groups, zero failures**, covering A1–A10 and nearby refusal/edge cases. They include real table paste/recalculate/Undo, exact decimals and sources, real form validation, chart data, extraction status/identity/paging/Unicode/cancellation, and description persistence/reopen/idempotency/stale writes across workbook connections. Pure decisions cover native navigation and action destinations, status generations, window/request focus eligibility, scaling and UTF-16 PDF search/motion. The detailed per-finding coverage and remaining OS boundaries are in [[records/reviews/accessibility-static-review-2026-11-12]].
+
+Reproduction commands, with the native build cache already available:
+
+```sh
+SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product sevra-accessibility-headless-checks -j 4
+python3 scripts/run_accessibility_headless.py
+python3 scripts/check_accessibility_headless_wiring.py
+SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product SevraDesktop -j 4
+```
+
+The final behavior run uses `IntegrationTests/AccessibilityHeadless/NoUI.sb`: network, AppleEvents, window/accessibility/speech services and other executable launches are denied; writes are limited to synthetic fixtures and the dedicated Foundation atomic-write replacement paths. The static checker passes **10 supplemental adapter groups** and refuses forbidden UI/global-state API names in the harness. Those source patterns are wiring evidence, not independent behavior proof. Strict Swift lint passes for **19 changed/new Swift files**. Native release compilation exits 0 with no compiler warnings, without launching the result.
+
+**Test corrections and cleanup.** Initial fixture expectations were corrected for the indexed `offset=0` locator, required-empty numeric draft representation and a valid UUID logical definition ID. Foundation atomic writes needed their process-named replacement directories in the sandbox; changing TMPDIR alone did not suffice. Formatting required a whitespace-tolerant wiring expression. The harness returns from its scoped run before issuing a failure exit, so cleanup also executes on failed checks; initial failed-run fixtures were removed. These are test issues, distinguished from product defects. Final headless fixture storage is empty. Compiler and test processes completed; existing automation grants and the installed app were untouched.
+
+**Evidence.** [Headless receipt](../../../integration/evidence/2026-11-12-accessibility-headless-checks.json.gz), SHA-256 `7410531db72c396d3fb4d996f0c75dd3fcba367238f9b2b1058e4845c9b04e01`, binds 414 package/source/resource/script files, the headless binary, exact final outputs, original failures, the NUL SQL reproduction and execution limits. Production source stayed unchanged through final verification; the final test-only cleanup correction was rebuilt and rerun. Earlier source evidence and code-only receipts remain unchanged.
+
+**Unqualified and paused.** No native accessibility tree, actual event/focus dispatch, spoken announcement, enlarged layout/contrast, installed preference persistence or PDFKit animation was tested. Headless passing results do not establish whole-app accessibility conformance. Standard CI is deliberately skipped because it runs native UI/accessibility checks outside authorization. Broad AI evidence coverage, Excel fidelity, foreground scheduling, external use, signing/notarization and other hardware retain their prior limits. After record checks, commit and push, work returns to paused with no test/helper process or new automation left running.
+
+**Record gates.** `dbmd index rebuild --dir db --json`, `dbmd validate --all db --json`, `python3 scripts/check_links.py` and `git diff --check` pass. Full validation reports zero errors and zero warnings. All 414 receipt-bound source hashes match; pre-existing source wrappers and integration receipts are unchanged. No fresh headless fixture remains.
 
 ## Accessibility code closures and pause, November 12
 

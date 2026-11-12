@@ -339,9 +339,9 @@ private struct ReadOnlyGrid: NSViewRepresentable {
       }
       coordinator.headings = content.headings
     }
-    grid.headerView?.frame.size.height = 24 * ReadingStyle.scale(textScale)
+    grid.headerView?.frame.size.height = ReadingStyle.points(24, scale: textScale)
     for column in grid.tableColumns {
-      column.headerCell.font = .systemFont(ofSize: 11 * ReadingStyle.scale(textScale))
+      column.headerCell.font = .systemFont(ofSize: ReadingStyle.points(11, scale: textScale))
     }
     coordinator.measure()
     if scroll.window != nil { coordinator.fit(scroll.contentView.bounds.width) }
@@ -389,7 +389,7 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     private var userResized = false
     private var heights: [Int: CGFloat] = [:]
     private let measuring = NSTextField(wrappingLabelWithString: "")
-    var font: NSFont { .systemFont(ofSize: 13 * ReadingStyle.scale(parent.textScale)) }
+    var font: NSFont { .systemFont(ofSize: ReadingStyle.points(13, scale: parent.textScale)) }
     static let maximumLines = 6
     init(_ parent: ReadOnlyGrid) { self.parent = parent }
     /// Natural widths avoid wrapping short values; minimum widths keep whole
@@ -519,28 +519,23 @@ private struct ReadOnlyGrid: NSViewRepresentable {
         (tableColumn?.title.isEmpty == false ? tableColumn!.title : "Value") + ", row \(row + 1)"
           + (destinations.isEmpty ? "" : ", source link"))
       field.setAccessibilityValue(parent.content.plain(value))
-      let context = ", row \(row + 1), " + (tableColumn?.title ?? "Value")
-      field.setAccessibilityRole(destinations.count == 1 ? .link : .staticText)
+      let actionSet = PreviewCellActions(content: content, row: row, column: column)
+      field.setAccessibilityRole(actionSet.singleSource ? .link : .staticText)
       field.setAccessibilityCustomActions(
-        destinations.map { link in
-          NSAccessibilityCustomAction(name: "Open " + link.title + context) { [weak self] in
-            guard let self, self.parent.content == content else { return false }
-            self.parent.open(link.url)
-            return true
+        actionSet.actions.indices.map { index in
+          NSAccessibilityCustomAction(name: actionSet.actions[index].title) { [weak self] in
+            guard let self else { return false }
+            return actionSet.perform(
+              index, current: self.parent.content, open: self.parent.open,
+              inspect: self.parent.inspect)
           }
-        } + [
-          NSAccessibilityCustomAction(name: "Read full row \(row + 1)") { [weak self] in
-            guard let self, self.parent.content == content else { return false }
-            self.parent.inspect(row)
-            return true
-          }
-        ])
+        })
       field.press =
-        destinations.count == 1
+        actionSet.singleSource
         ? { [weak self] in
-          guard let self, self.parent.content == content else { return false }
-          self.parent.open(destinations[0].url)
-          return true
+          guard let self else { return false }
+          return actionSet.perform(
+            0, current: self.parent.content, open: self.parent.open, inspect: self.parent.inspect)
         } : nil
       field.focusChanged = { [weak self] in
         guard let self, self.parent.content == content, let grid = self.grid else { return }
@@ -573,8 +568,10 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     }
     func open(row: Int, column: Int) {
       guard parent.content.rows.indices.contains(row) else { return }
-      let links = parent.content.links(row: row, column: column)
-      if links.count == 1 { parent.open(links[0].url) } else { parent.inspect(row) }
+      let actions = PreviewCellActions(content: parent.content, row: row, column: column)
+      if let index = actions.primaryIndex {
+        actions.perform(index, current: parent.content, open: parent.open, inspect: parent.inspect)
+      }
     }
     func tableViewColumnDidResize(_ notification: Notification) {
       guard !applyingWidths else { return }
@@ -611,8 +608,11 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     @objc func openClickedLink() {
       guard let grid, parent.content.rows.indices.contains(grid.clickedRow),
         parent.content.rows[grid.clickedRow].indices.contains(grid.clickedColumn),
-        NSApp.currentEvent?.modifierFlags.intersection([.shift, .command]).isEmpty ?? true,
-        parent.content.markdown || (NSApp.currentEvent?.clickCount ?? 0) >= 2
+        PreviewCellActions.opensOnClick(
+          markdown: parent.content.markdown,
+          clicks: NSApp.currentEvent?.clickCount ?? 0,
+          extendingSelection:
+            !(NSApp.currentEvent?.modifierFlags.intersection([.shift, .command]).isEmpty ?? true))
       else { return }
       let links = parent.content.links(row: grid.clickedRow, column: grid.clickedColumn)
       if links.count == 1 { parent.open(links[0].url) }

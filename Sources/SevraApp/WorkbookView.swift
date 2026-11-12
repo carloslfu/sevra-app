@@ -268,8 +268,11 @@ struct WorkbookView: View {
     }
   }
   private func applyReadingFocus(_ request: UUID) {
-    guard state.readingFocusPending, state.interactionActive,
-      state.readingWindow?.isKeyWindow == true, NSApp.isActive
+    guard
+      ReadingFocusPolicy.canApply(
+        request: request, currentRequest: state.readingFocusRequest,
+        pending: state.readingFocusPending, interactionActive: state.interactionActive,
+        ownWindowIsKey: state.readingWindow?.isKeyWindow == true, appIsActive: NSApp.isActive)
     else { return }
     let target = state.readingFocusTarget
     readingFocus = nil
@@ -280,20 +283,21 @@ struct WorkbookView: View {
     }
     Task { @MainActor in
       await Task.yield()
-      guard state.readingFocusRequest == request, state.readingFocusPending,
-        state.interactionActive,
-        state.readingWindow?.isKeyWindow == true, NSApp.isActive
+      guard
+        ReadingFocusPolicy.canApply(
+          request: request, currentRequest: state.readingFocusRequest,
+          pending: state.readingFocusPending, interactionActive: state.interactionActive,
+          ownWindowIsKey: state.readingWindow?.isKeyWindow == true, appIsActive: NSApp.isActive)
       else { return }
       state.readingFocusPending = false
       if target == .composer {
         composerFocused = true
-      } else if case .message(let id) = target {
-        let present = state.messages.contains { $0.id == id && $0.role != "tool" }
-        keyboardPane = present ? target : .conversation
-        readingFocus = present ? target : .conversation
       } else {
-        keyboardPane = target
-        readingFocus = target
+        let destination = ReadingFocusPolicy.destination(
+          target,
+          visibleMessages: Set(state.messages.filter { $0.role != "tool" }.map(\.id)))
+        keyboardPane = destination
+        readingFocus = destination
       }
     }
   }

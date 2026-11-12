@@ -9,7 +9,10 @@ final class GridTable: NSTableView {
   var activeRowID: String?
   var activeColumnID: String?
   var activeColumn: Int {
-    get { tableColumns.firstIndex { $0.identifier.rawValue == activeColumnID } ?? 0 }
+    get {
+      TableCellNavigation.column(
+        identity: activeColumnID, columns: tableColumns.map { $0.identifier.rawValue })
+    }
     set {
       activeColumnID =
         tableColumns.indices.contains(newValue)
@@ -18,10 +21,8 @@ final class GridTable: NSTableView {
     }
   }
   var activeRow: Int {
-    if let id = activeRowID, let row = rowIdentities.firstIndex(of: id), isRowSelected(row) {
-      return row
-    }
-    return selectedRow
+    TableCellNavigation.row(
+      identity: activeRowID, rows: rowIdentities, selected: selectedRowIndexes)
   }
   func focusCell(row: Int, column: Int) {
     guard rowIdentities.indices.contains(row), tableColumns.indices.contains(column) else { return }
@@ -56,36 +57,20 @@ final class GridTable: NSTableView {
   }
   /// Arrows choose a column; Tab visits editable cells and leaves the grid at its boundary.
   @discardableResult func moveCell(_ delta: Int, editableOnly: Bool) -> Bool {
-    guard numberOfRows > 0, numberOfColumns > 0 else { return false }
-    let row = max(0, activeRow)
-    if !editableOnly {
-      if activeRow < 0 {
-        focusCell(row: 0, column: activeColumn)
-        return true
-      }
-      let column = activeColumn + delta
-      guard tableColumns.indices.contains(column) else { return false }
-      focusCell(row: row, column: column)
-      return true
-    }
-    var next =
-      activeRow < 0
-      ? (delta > 0 ? 0 : numberOfRows * numberOfColumns - 1)
-      : row * numberOfColumns + activeColumn + delta
-    while (0..<(numberOfRows * numberOfColumns)).contains(next) {
-      let r = next / numberOfColumns
-      let c = next % numberOfColumns
-      if let field = view(atColumn: c, row: r, makeIfNecessary: true) as? NSTextField,
-        field.isEditable
-      {
-        selectRowIndexes(IndexSet(integer: r), byExtendingSelection: false)
-        focusCell(row: r, column: c)
-        beginCellEditing()
-        return true
-      }
-      next += delta
-    }
-    return false
+    guard
+      let cell = TableCellNavigation.destination(
+        rows: numberOfRows, columns: numberOfColumns,
+        current: .init(row: activeRow, column: activeColumn), delta: delta,
+        editableOnly: editableOnly,
+        isEditable: { cell in
+          (self.view(atColumn: cell.column, row: cell.row, makeIfNecessary: true) as? NSTextField)?
+            .isEditable == true
+        })
+    else { return false }
+    if editableOnly { selectRowIndexes(IndexSet(integer: cell.row), byExtendingSelection: false) }
+    focusCell(row: cell.row, column: cell.column)
+    if editableOnly { beginCellEditing() }
+    return true
   }
   override func draw(_ dirtyRect: NSRect) {
     super.draw(dirtyRect)
@@ -172,7 +157,7 @@ public struct NativeTable: NSViewRepresentable {
     let table = GridTable()
     table.delegate = context.coordinator
     table.dataSource = context.coordinator
-    table.rowHeight = 30 * ReadingStyle.scale(textScale)
+    table.rowHeight = ReadingStyle.points(30, scale: textScale)
     // Empty space must not resemble additional records in a full-height table.
     table.usesAlternatingRowBackgroundColors = false
     table.allowsMultipleSelection = true
@@ -212,7 +197,7 @@ public struct NativeTable: NSViewRepresentable {
       || coordinator.parent.editable != editable || coordinator.textScale != textScale
     coordinator.parent = self
     coordinator.textScale = textScale
-    table.rowHeight = 30 * ReadingStyle.scale(textScale)
+    table.rowHeight = ReadingStyle.points(30, scale: textScale)
     table.copyAction = onCopy
     table.pasteAction = onPaste
     table.undoAction = onUndo
@@ -241,9 +226,9 @@ public struct NativeTable: NSViewRepresentable {
       table.activeColumn = columns.firstIndex { $0.id == activeColumnID } ?? 0
       coordinator.columns = columns
     }
-    table.headerView?.frame.size.height = 24 * ReadingStyle.scale(textScale)
+    table.headerView?.frame.size.height = ReadingStyle.points(24, scale: textScale)
     for (index, column) in table.tableColumns.enumerated() {
-      column.headerCell.font = .systemFont(ofSize: 11 * ReadingStyle.scale(textScale))
+      column.headerCell.font = .systemFont(ofSize: ReadingStyle.points(11, scale: textScale))
       column.isEditable = editable && columns[index].formula == nil && !page.dataset.archived
     }
     table.rowIdentities = page.rows.map(\.logicalID)
@@ -293,7 +278,7 @@ public struct NativeTable: NSViewRepresentable {
       }
       cell.isBordered = false
       cell.backgroundColor = .clear
-      cell.font = .systemFont(ofSize: 13 * ReadingStyle.scale(textScale))
+      cell.font = .systemFont(ofSize: ReadingStyle.points(13, scale: textScale))
       cell.isEditable =
         parent.editable && c.formula == nil && !parent.page.dataset.archived && !recalculates
       cell.isSelectable = true

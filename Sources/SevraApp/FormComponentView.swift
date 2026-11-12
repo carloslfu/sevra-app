@@ -193,28 +193,15 @@ struct FormParameterField: View {
   var path: [Value] = []
   @State private var choosingEvidence = false
   @State private var evidenceTitle: String?
-  private var title: String { label ?? parameter["label"].text }
-  private var fieldPath: [Value] { path.isEmpty ? [.string(parameter["id"].text)] : path }
-  private var fieldIssues: [String] {
-    issues.filter { $0["path"].array == fieldPath }.map { $0["message"].text }
+  private var presentation: FormFieldPresentation {
+    .init(
+      parameter: parameter, label: label, help: help, context: context, issues: issues, path: path)
   }
-  private var accessibleTitle: String {
-    ([
-      context, title, parameter["required"] == .bool(true) ? "Required" : nil,
-      parameter["unit"].string,
-    ].compactMap { $0 }).joined(separator: ", ")
-  }
-  private var fieldHelp: String {
-    var parts = [help].compactMap { $0 }.filter { !$0.isEmpty }
-    if parameter["type"] == .string("date") {
-      parts.append("Date in year-month-day format, YYYY-MM-DD.")
-    }
-    if parameter["min"] != .null { parts.append("Minimum: " + parameter["min"].text) }
-    if parameter["max"] != .null { parts.append("Maximum: " + parameter["max"].text) }
-    if let limit = parameter["maxEntries"].int { parts.append("Up to \(limit) lines.") }
-    parts += fieldIssues.map { "Error: " + $0 }
-    return parts.joined(separator: " ")
-  }
+  private var title: String { presentation.title }
+  private var fieldPath: [Value] { presentation.path }
+  private var fieldIssues: [String] { presentation.issues }
+  private var accessibleTitle: String { presentation.accessibleTitle }
+  private var fieldHelp: String { presentation.help }
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text(title + (parameter["required"] == .bool(true) ? " *" : "")).readingFont(
