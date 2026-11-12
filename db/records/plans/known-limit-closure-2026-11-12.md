@@ -3,8 +3,8 @@ type: spec
 meta-type: conclusion
 id: 01m789vd0k7cmce2ce4g1y2j00
 created: 2026-11-12T16:35:58.611467+00:00
-updated: 2026-11-12T16:35:58.611467+00:00
-summary: Proposed bounded work for accessibility, AI evidence completeness, Excel compatibility, optional background scheduling and external qualification; execution remains paused.
+updated: 2026-11-12T17:14:42.301357+00:00
+summary: Accessibility code closures are implemented and compiled; AI evidence completeness, Excel expansion, background execution and external qualification remain proposed and paused.
 title: Ways to close the remaining preview limits
 status: proposed
 ---
@@ -12,11 +12,9 @@ status: proposed
 
 ## Scope and current state
 
-Requested in [[sources/notes/2026/11/accessibility-review-and-pause]]. This is a concrete closure plan, not implemented behavior, an active work queue or approval to install a helper. Product work stays paused. Accessibility remains code review only; no accessibility testing is scheduled. The current source preview and accepted increments remain usable within their recorded limits.
+Originally requested in [[sources/notes/2026/11/accessibility-review-and-pause]]. The later [[sources/notes/2026/11/accessibility-code-fixes-and-pause]] authorized implementation of the ten accessibility findings only. Those code closures, static review and compiler verification are now recorded in [[records/reviews/accessibility-static-review-2026-11-12]]. Runtime accessibility testing remains skipped and the owner will evaluate the behavior afterwards. Work returns to paused after delivery.
 
-The new static accessibility findings are in [[records/reviews/accessibility-static-review-2026-11-12]]. First address table focus/paste identity, form context and consistent structured data presentation when implementation is explicitly resumed. Follow with extracted-text access, chart values and restrained status/focus handling. These reuse existing native surfaces and preserve immutable versions, explicit acceptance and Undo. Code inspection must trace the full input-to-action path rather than count labels. Runtime accessibility qualification stays unknown under the owner's decision.
-
-No more than three slices should become active after resumption. A reasonable first set is the table focus defect, shared table/form semantics, and a bounded evidence-coverage design. Background execution and broad Excel fidelity should not become prerequisites for those improvements.
+The remaining sections are concrete proposals, not implemented behavior, an active work queue or permission to install a helper. AI evidence coverage, the Excel subset, foreground-only automation and release qualification retain their earlier limits. No more than three slices should become active after an explicit resumption. Background execution and broad Excel fidelity should not become accidental prerequisites for a smaller selected improvement.
 
 ## 1. AI answers can omit relevant documents or requested terms
 
@@ -56,11 +54,11 @@ There must be one execution owner, bounded replay of missed occurrences, cancell
 
 | Limit | Concrete closure | Boundary |
 |---|---|---|
-| Accessibility implementation and runtime confidence | Implement the bounded fixes in the static review, with code-path review of semantics, focus and alternatives. | No runtime accessibility testing under the current owner decision; no conformance claim. |
+| Accessibility implementation and runtime confidence | The ten code fixes are implemented and compiled. Owner follow-up remains for actual focus, speech, enlarged layout and source interactions. | No runtime accessibility testing under the current owner decision; no conformance claim. |
 | External usefulness | Give one consenting, uncoached user the supplier files and an outcome, observe completion, then fix the actual blocker. | Internal fixtures do not prove adoption or usability for that audience. No outreach sent here. |
 | Production signing/notarization | Obtain a valid owner-controlled signing identity, build the exact release artifact, notarize/staple and verify installation/update/uninstall on a clean supported Mac. | No valid identity was found in the prior check. This remains a source preview; no credentials, purchase or release authorized here. |
 | Hardware and memory | Qualify the stated minimum and supported memory profiles on actual available Macs using the same complete job and resource bounds. Improve preflight and recoverable memory errors where needed. | The previous 20 GB-model memory blocker is closed on the tested 48 GB Mac. Other profiles are not inferred from that result. |
 | Transcript accuracy and availability | Show transcript uncertainty and preserve the original/time links; use a small labeled speech set in the intended languages before accuracy claims. Retain chunking, cancellation and retry. | The long-recording lifecycle passed; recognizer substitutions remain. On-device language availability is a separate prerequisite. |
 | Large-workbook storage and latency | Profile immutable-change/provenance bytes on representative row shapes, separate essential evidence from avoidable repeated payloads, and reuse shared immutable payloads where reconstruction permits. | Bulk import completion does not resolve the recorded roughly 10 KB per short-row footprint. Do not delete history or raise transaction limits to hide it. |
 
-Each future change should use the repository's focused verification policy. The source code, model and app were not changed for this plan. [[records/operations/agent-handoff]] is the restart point when the owner chooses to resume.
+Each future change should use the repository's focused verification policy. The later accessibility pass changes source code only. The broader proposals, installed app, model, grants and system settings are unchanged. [[records/operations/agent-handoff]] is the restart point when the owner chooses to resume.

@@ -1,5 +1,6 @@
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 struct SavedDefinitionResultView: View {
@@ -62,13 +63,13 @@ struct DefinitionComponentView: View {
     VStack(alignment: .leading, spacing: 10) {
       if let saved = component.evaluationSnapshot {
         Text("Saved as of " + DisplayText.date(saved.captured))
-          .font(.caption).foregroundStyle(.secondary)
+          .readingFont(.caption).foregroundStyle(.secondary)
         if let population = saved.inputPopulation {
           Text(
             "Retains \(population.reduce(0) { $0 + $1["rows"].array.count }) input versions. "
               + "Includes scoped candidates removed by filters or joins; group membership is not recorded."
           )
-          .font(.caption).foregroundStyle(.secondary)
+          .readingFont(.caption).foregroundStyle(.secondary)
         }
       }
       if let evaluation = results.evaluation {
@@ -78,11 +79,11 @@ struct DefinitionComponentView: View {
               $0 + ": " + evaluation["arguments"][$0].text
             }.joined(separator: " · ")
           )
-          .font(.callout).foregroundStyle(.secondary).textSelection(.enabled)
+          .readingFont(.callout).foregroundStyle(.secondary).textSelection(.enabled)
         }
         if component.type == "calculation" {
           Text(evaluation["result"].text + (evaluation["unit"].string.map { " " + $0 } ?? ""))
-            .font(.system(size: 32, weight: .medium, design: .rounded)).textSelection(.enabled)
+            .readingFont(size: 32, weight: .medium, design: .rounded).textSelection(.enabled)
         } else {
           query(evaluation["result"])
         }
@@ -110,11 +111,12 @@ struct DefinitionComponentView: View {
         Text(failure).foregroundStyle(.red).textSelection(.enabled)
         if results.evaluation != nil {
           Text("The values above are the last loaded result. Refresh before using them.")
-            .font(.caption).foregroundStyle(.secondary)
+            .readingFont(.caption).foregroundStyle(.secondary)
         }
         Button("Try again") { Task { await load(force: true) } }.disabled(results.loading)
       }
     }
+    .announceStatus(results.failure)
     .task(id: scope) { await load() }
     .onDisappear { results.cancel() }
     .sheet(item: $publication) { selection in
@@ -125,55 +127,35 @@ struct DefinitionComponentView: View {
   @ViewBuilder private func query(_ result: Value) -> some View {
     let rows = result["rows"].array
     let columns = result["columns"].array
-    ScrollView([.horizontal, .vertical]) {
-      Grid(alignment: .leading, horizontalSpacing: 20, verticalSpacing: 10) {
-        GridRow {
-          ForEach(columns.indices, id: \.self) { index in
-            Text(
-              columns[index]["title"].text
-                + (columns[index]["unit"].string.map { " (" + $0 + ")" } ?? "")
-            ).fontWeight(.semibold)
-          }
-          Text("Inputs").fontWeight(.semibold)
+    EvidenceTable(
+      title: component.title + " query results",
+      headings: columns.map {
+        $0["title"].text + ($0["unit"].string.map { " (" + $0 + ")" } ?? "")
+      },
+      rows: rows.map { row in columns.map { row["values"][$0["id"].text] } },
+      rowIDs: rows.map(\.text),
+      sources: rows.enumerated().map { index, row in
+        row["inputs"].array.compactMap { input in
+          guard let id = input["versionID"].string else { return nil }
+          return EvidenceTable.source(
+            id,
+            title: "Result row \(index + 1), " + input["meaning"].text
+              + ", " + input["status"].text + ", " + input["scenario"].text)
         }
-        ForEach(rows.indices, id: \.self) { index in
-          GridRow {
-            ForEach(columns.indices, id: \.self) { field in
-              let value = rows[index]["values"][columns[field]["id"].text]
-              Text(value == .null ? "Unknown" : value.text.isEmpty ? "Empty" : value.text)
-                .textSelection(.enabled)
-            }
-            VStack(alignment: .leading) {
-              ForEach(rows[index]["inputs"].array.indices, id: \.self) { inputIndex in
-                let input = rows[index]["inputs"].array[inputIndex]
-                if let id = input["versionID"].string {
-                  Button(
-                    input["meaning"].text + " · " + input["status"].text + " · "
-                      + input["scenario"].text
-                  ) {
-                    workspace.navigate(.item(id))
-                  }.accessibilityLabel(
-                    "Open original row, " + input["meaning"].text + ", " + input["status"].text)
-                }
-              }
-              if rows[index]["inputs"].array.isEmpty {
-                Text("Aggregate over declared table scopes").font(.caption).foregroundStyle(
-                  .secondary)
-              }
-            }
-          }
-        }
-      }.padding(8)
-    }.frame(maxHeight: 300)
+      }, open: workspace.openConversationLink)
+    if rows.contains(where: { $0["inputs"].array.isEmpty }) {
+      Text("Rows without individual sources aggregate over the declared table scopes.")
+        .readingFont(.caption).foregroundStyle(.secondary)
+    }
     if rows.isEmpty { Text("No rows match this query.").foregroundStyle(.secondary) }
     Text(
       "Page \(results.pageNumber) · \(rows.count) rows"
         + (results.hasNext ? " · More rows available" : " · End of results")
     )
-    .font(.caption).foregroundStyle(.secondary)
+    .readingFont(.caption).foregroundStyle(.secondary)
     if component.evaluationSnapshot != nil && result["hasMore"] == .bool(true) {
       Text("Saved first page only. Additional rows were not captured.")
-        .font(.callout).foregroundStyle(.secondary)
+        .readingFont(.callout).foregroundStyle(.secondary)
     }
     if component.evaluationSnapshot == nil {
       HStack {
@@ -184,7 +166,7 @@ struct DefinitionComponentView: View {
         Text(
           "This page is partial. Pinning the space saves its first page with this coverage note."
         )
-        .font(.caption).foregroundStyle(.secondary)
+        .readingFont(.caption).foregroundStyle(.secondary)
       }
     }
     ForEach(result["sourceScopes"].array.indices, id: \.self) { index in
@@ -197,7 +179,7 @@ struct DefinitionComponentView: View {
           : (component.evaluationSnapshot == nil ? "Current scope: " : "Scope at capture: ")
             + scope.keys.sorted().map { $0 + ": " + scope[$0]!.text }.joined(separator: " · ")
       )
-      .font(.caption).foregroundStyle(.secondary)
+      .readingFont(.caption).foregroundStyle(.secondary)
     }
   }
   private func load(direction: Int = 0, force: Bool = false) async {
@@ -225,38 +207,45 @@ private struct DefinitionPublicationSheet: View {
   @State private var token = identifier()
   @State private var failure: String?
   var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
-      Text("Save this result").font(.title2)
-      Text(
-        "Keep these values and their exact inputs as a draft. Later changes will leave this saved result intact."
-      )
-      .foregroundStyle(.secondary)
-      TextField("Result title", text: $title)
-      Picker("Meaning", selection: $meaning) {
-        ForEach(["actual", "estimate", "plan", "commitment", "assumption", "rule"], id: \.self) {
-          Text($0.capitalized).tag($0)
-        }
-      }
-      TextField("Scenario", text: $scenario)
-      Text("Accepting a result later keeps its meaning. An accepted estimate remains an estimate.")
-        .font(.caption).foregroundStyle(.secondary)
-      if let failure {
-        Text(failure).foregroundStyle(.red).textSelection(.enabled)
+    ScrollView {
+      VStack(alignment: .leading, spacing: 16) {
+        Text("Save this result").readingFont(.title2).accessibilityAddTraits(.isHeader)
         Text(
-          "Your entries are kept here. If inputs changed, close this sheet and refresh the result."
+          "Keep these values and their exact inputs as a draft. Later changes will leave this saved result intact."
         )
-        .font(.caption).foregroundStyle(.secondary)
-      }
-      HStack {
-        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
-        Spacer()
-        Button("Save draft") { save() }.keyboardShortcut(.defaultAction)
-          .disabled(
-            title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || scenario.isEmpty)
-      }
-    }.padding(24).frame(width: 480)
-      .disabled(workspace.busy).interactiveDismissDisabled(workspace.busy)
-      .onAppear { title = component.title }
+        .foregroundStyle(.secondary)
+        TextField("Result title", text: $title)
+        Picker("Meaning", selection: $meaning) {
+          ForEach(["actual", "estimate", "plan", "commitment", "assumption", "rule"], id: \.self) {
+            Text($0.capitalized).tag($0)
+          }
+        }
+        TextField("Scenario", text: $scenario)
+        Text(
+          "Accepting a result later keeps its meaning. An accepted estimate remains an estimate."
+        )
+        .readingFont(.caption).foregroundStyle(.secondary)
+        if let failure {
+          Text(failure).foregroundStyle(.red).textSelection(.enabled)
+          Text(
+            "Your entries are kept here. If inputs changed, close this sheet and refresh the result."
+          )
+          .readingFont(.caption).foregroundStyle(.secondary)
+        }
+        HStack {
+          Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+          Spacer()
+          Button("Save draft") { save() }.keyboardShortcut(.defaultAction)
+            .disabled(
+              title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || scenario.isEmpty)
+        }
+      }.padding(24)
+    }.readingFont(.body).frame(
+      minWidth: 320, idealWidth: 520, minHeight: 240, idealHeight: 520, maxHeight: 700
+    )
+    .disabled(workspace.busy).interactiveDismissDisabled(workspace.busy)
+    .announceStatus(failure)
+    .onAppear { title = component.title }
   }
   private func save() {
     let title = title

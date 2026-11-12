@@ -3,6 +3,7 @@ import SevraCore
 import SevraDocumentUI
 import SevraPreviewUI
 import SevraSearchUI
+import SevraTableUI
 import SwiftUI
 
 enum ReferenceModal: Identifiable {
@@ -53,11 +54,13 @@ struct ReferenceReadingText: View {
   }
   var body: some View {
     if isLong {
-      LongReadingText(identity: identity, text: { longText }) { url in
-        if let occurrence = presentation.occurrences.first(where: { $0.url == url }) {
-          open(occurrence)
-        }
-      }
+      LongReadingText(
+        identity: identity, text: { longText },
+        open: { url in
+          if let occurrence = presentation.occurrences.first(where: { $0.url == url }) {
+            open(occurrence)
+          }
+        })
     } else {
       shortText
     }
@@ -127,7 +130,8 @@ struct ReferencesPanel: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       HStack {
-        Text(item.title).font(.headline).lineLimit(2).truncationMode(.middle).help(item.title)
+        Text(item.title).readingFont(.headline).accessibilityAddTraits(.isHeader).lineLimit(2)
+          .truncationMode(.middle).help(item.title)
         Spacer()
         Button("Done") { dismiss() }.keyboardShortcut(.cancelAction).fixedSize()
       }
@@ -159,7 +163,7 @@ struct ReferencesPanel: View {
                 Text(
                   "\(hit["mentionCount"].int ?? 0) mentions · " + hit["evidence"]["meaning"].text
                     + " · " + hit["evidence"]["status"].text
-                ).font(.caption).foregroundStyle(.secondary)
+                ).readingFont(.caption).foregroundStyle(.secondary)
                 Text(hit["label"].text).lineLimit(2).foregroundStyle(.secondary)
               }.multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
@@ -185,7 +189,7 @@ struct ReferencesPanel: View {
           if incoming.canGoBack || incoming.nextCursor != nil {
             Button("Previous") { Task { await incoming.load(query, workbook: workbook, step: -1) } }
               .disabled(!incoming.canGoBack || incoming.loading)
-            Text("Page \(incoming.page)").font(.caption)
+            Text("Page \(incoming.page)").readingFont(.caption)
             Button("Next") { Task { await incoming.load(query, workbook: workbook, step: 1) } }
               .disabled(incoming.nextCursor == nil || incoming.loading)
           }
@@ -211,13 +215,13 @@ struct ReferencesPanel: View {
                       ? "In document text"
                       : (DisplayText.location(occurrence.locator) ?? "In extracted file text")
                   )
-                  .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                  .readingFont(.caption).foregroundStyle(.secondary).lineLimit(2)
                   if occurrence.reference.resolution != .bound {
                     Text(
                       occurrence.reference.resolution == .external
                         ? "Another workbook" : "Choose a destination"
                     )
-                    .font(.caption).foregroundStyle(.secondary)
+                    .readingFont(.caption).foregroundStyle(.secondary)
                   }
                 }.multilineTextAlignment(.leading)
                   .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
@@ -292,14 +296,14 @@ struct ReferencesPanel: View {
             || (item.assetID != nil && document.file["coverage"].text != "ready")
           {
             Text("Some text has not been checked for links. The original remains available.")
-              .font(.caption).foregroundStyle(.secondary)
+              .readingFont(.caption).foregroundStyle(.secondary)
           }
         }
       }
       Text(
         "Mentions help you navigate. They do not establish a business relationship. Saved links cover indexed text; embedded file links and unextracted content may be missing."
       )
-      .font(.caption).foregroundStyle(.secondary)
+      .readingFont(.caption).foregroundStyle(.secondary)
     }.padding(20).frame(
       minWidth: 360, idealWidth: 520, maxWidth: 680, minHeight: 400, idealHeight: 560
     )
@@ -339,10 +343,10 @@ struct ReferenceTargetPicker: View {
   private var hits: [SearchHit] { search.loadedQuery == query ? search.hits : [] }
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
-      Text("Choose a destination").font(.title3)
+      Text("Choose a destination").readingFont(.title3).accessibilityAddTraits(.isHeader)
       Text(occurrence.reference.label).textSelection(.enabled)
       Text("Choose the item this passage refers to. A matching title alone does not create a link.")
-        .font(.callout).foregroundStyle(.secondary)
+        .readingFont(.callout).foregroundStyle(.secondary)
       DestinationSearchField(text: $queryText, enabled: !working) {
         guard !working, let first = hits.first else { return false }
         selectedTarget = first.itemID
@@ -355,7 +359,7 @@ struct ReferenceTargetPicker: View {
           ? "This link will keep the chosen version."
           : "This link will follow the item's latest version."
       )
-      .font(.caption).foregroundStyle(.secondary)
+      .readingFont(.caption).foregroundStyle(.secondary)
       if search.loading || working { ProgressView(working ? "Saving link" : "Searching") }
       List(selection: $selectedTarget) {
         ForEach(hits) { hit in
@@ -365,7 +369,7 @@ struct ReferenceTargetPicker: View {
             VStack(alignment: .leading, spacing: 4) {
               Text(hit.title).foregroundStyle(.primary)
               Text(StructuredPresentation.searchExcerpt(hit.snippet, title: hit.title))
-                .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                .readingFont(.caption).foregroundStyle(.secondary).lineLimit(2)
             }.multilineTextAlignment(.leading)
               .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
           }.buttonStyle(.plain).disabled(working)

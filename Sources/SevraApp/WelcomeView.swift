@@ -1,3 +1,4 @@
+import SevraTableUI
 import SwiftUI
 
 struct WelcomeView: View {
@@ -18,7 +19,8 @@ struct WelcomeView: View {
               ObserverMark().fill(.primary).frame(width: 70, height: 70)
               SevraWordmark().fill(.primary).frame(width: 189, height: 40)
             }.accessibilityElement(children: .ignore).accessibilityLabel("Sevra")
-            Text("A workbook for the work in front of you.").font(.title2)
+            Text("A workbook for the work in front of you.").readingFont(.title2)
+              .accessibilityAddTraits(.isHeader)
             Text(
               "Bring your files together. Ask questions, compare options, and build tables with the evidence at hand."
             )
@@ -37,7 +39,7 @@ struct WelcomeView: View {
           }
           if !recents.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
-              Text("Recent workbooks").font(.headline)
+              Text("Recent workbooks").readingFont(.headline).accessibilityAddTraits(.isHeader)
               VStack(alignment: .leading, spacing: 2) {
                 ForEach(Array(recents.prefix(showingAll ? 10 : 5)), id: \.self) { path in
                   Button {
@@ -61,7 +63,7 @@ struct WelcomeView: View {
             }.frame(maxWidth: 360)
           }
           VStack(spacing: 10) {
-            Text("Your work stays on this Mac.").font(.callout).foregroundStyle(.secondary)
+            Text("Your work stays on this Mac.").readingFont(.callout).foregroundStyle(.secondary)
             SettingsLink { Text("Local AI settings…") }
           }
         }.frame(maxWidth: 520).padding(32)

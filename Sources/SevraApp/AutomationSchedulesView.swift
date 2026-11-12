@@ -1,6 +1,7 @@
 import SevraAutomationUI
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 struct AutomationSchedulesView: View {
@@ -20,11 +21,11 @@ struct AutomationSchedulesView: View {
         Button("Import template…", action: importTemplate).disabled(workspace.busy)
         Button("Runs") { workspace.navigate(.activity) }
       }
-      Text(owner.gate).font(.callout).foregroundStyle(.secondary)
+      Text(owner.gate).readingFont(.callout).foregroundStyle(.secondary)
       Text(
         "Saved automations travel with this workbook. Enable each exact version on this Mac to run it here."
       )
-      .font(.caption).foregroundStyle(.secondary)
+      .readingFont(.caption).foregroundStyle(.secondary)
       if let failure = failure ?? pages.failure ?? owner.failure ?? owner.notice {
         Text(failure).foregroundStyle(.red).textSelection(.enabled)
       }
@@ -36,7 +37,7 @@ struct AutomationSchedulesView: View {
               open(row["id"].text)
             } label: {
               VStack(alignment: .leading, spacing: 5) {
-                Text(row["title"].text).font(.headline)
+                Text(row["title"].text).readingFont(.headline).accessibilityAddTraits(.isHeader)
                 Text("Version \(row["version"].int ?? 0) · " + row["description"].text)
                   .foregroundStyle(.secondary)
               }.multilineTextAlignment(.leading)
@@ -61,7 +62,7 @@ struct AutomationSchedulesView: View {
         if pages.hasPrevious || pages.hasNext {
           Button("Previous") { Task { await load(direction: -1) } }
             .disabled(!pages.hasPrevious || pages.loading)
-          Text("Page \(pages.pageNumber)").font(.caption)
+          Text("Page \(pages.pageNumber)").readingFont(.caption)
           Button("Next") { Task { await load(direction: 1) } }
             .disabled(!pages.hasNext || pages.loading)
         }
@@ -82,7 +83,7 @@ struct AutomationSchedulesView: View {
                   VStack(alignment: .leading) {
                     Text(grant.workbookTitle + " · " + grant.title)
                     Text(owner.statuses[grant.id] ?? "Registered on this Mac.")
-                      .font(.caption).foregroundStyle(.secondary)
+                      .readingFont(.caption).foregroundStyle(.secondary)
                   }
                   Spacer()
                   Button("Open workbook") {
@@ -112,6 +113,7 @@ struct AutomationSchedulesView: View {
         }
       }
     }.padding(22)
+      .announceStatus(failure ?? pages.failure ?? owner.failure ?? owner.notice)
       .task(id: workspace.interactionIdentity.uuidString + String(workspace.revision) + query) {
         await load()
         await owner.reload()
@@ -182,6 +184,7 @@ struct AutomationScheduleDetail: View {
   @State private var grant: AutomationDeviceGrant?
   @State private var allowAI = false
   @State private var working = false
+  @State private var changeNotice: String?
   @State private var editing = false
   @State private var failure: String?
   @State private var updatedDefinition: ApplicationDefinition?
@@ -194,13 +197,14 @@ struct AutomationScheduleDetail: View {
   private var waitingCount: Int { conditionState["pendingCandidates"].int ?? 0 }
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Text(shown.title).font(.title2)
-      Text("Saved version \(shown.version)").font(.caption).foregroundStyle(.secondary)
+      Text(shown.title).readingFont(.title2).accessibilityAddTraits(.isHeader)
+      Text("Saved version \(shown.version)").readingFont(.caption).foregroundStyle(.secondary)
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
           Text(shown.description)
           if let workflow {
-            Text("Workflow: " + workflow.title).font(.headline)
+            Text("Workflow: " + workflow.title).readingFont(.headline).accessibilityAddTraits(
+              .isHeader)
             WorkflowInputsView(
               parameters: workflow.parameters.array,
               arguments: shown.payload["arguments"], workspace: workspace)
@@ -209,11 +213,11 @@ struct AutomationScheduleDetail: View {
             let condition = shown.payload["condition"]
             Text(
               "When \(condition["subject"].text) stock becomes \(condition["rule"]["operator"].text) \(condition["rule"]["threshold"].text)"
-            ).font(.headline)
+            ).readingFont(.headline)
             Text(
               "Initial enable establishes current stock. Already-true stock waits for a new crossing. Resume keeps every saved transition and checks missed changes."
             )
-            .font(.caption).foregroundStyle(.secondary)
+            .readingFont(.caption).foregroundStyle(.secondary)
             if conditionState["lastCompleteObservation"]["quantity"].string != nil {
               Text(
                 "Last observed stock: " + conditionState["lastCompleteObservation"]["quantity"].text
@@ -222,7 +226,8 @@ struct AutomationScheduleDetail: View {
                     conditionState["lastCompleteObservation"]["effectiveThrough"].text))
             }
             if waitingCount > 0 {
-              Text("\(waitingCount) saved transitions waiting").font(.headline)
+              Text("\(waitingCount) saved transitions waiting").readingFont(.headline)
+                .accessibilityAddTraits(.isHeader)
               DisclosureGroup("Review waiting transitions") {
                 ForEach(conditionQueue["candidates"].array, id: \.text) { candidate in
                   HStack {
@@ -239,7 +244,7 @@ struct AutomationScheduleDetail: View {
                 if conditionQueue["hasMore"] == .bool(true) {
                   Text(
                     "More transitions remain saved. Dismissed entries leave room to inspect the next ones."
-                  ).font(.caption)
+                  ).readingFont(.caption)
                 }
               }
             }
@@ -264,7 +269,7 @@ struct AutomationScheduleDetail: View {
           Text(
             "Automatic work creates drafts and stops for review. Runs while Sevra is active; quit or inactive periods catch up when eligible. No background helper is installed."
           )
-          .font(.caption).foregroundStyle(.secondary)
+          .readingFont(.caption).foregroundStyle(.secondary)
           ViewThatFits(in: .horizontal) {
             HStack { automationActions }.fixedSize(horizontal: true, vertical: false)
             VStack(alignment: .leading, spacing: 8) { automationActions }
@@ -285,6 +290,7 @@ struct AutomationScheduleDetail: View {
       }
     }.padding(24).frame(minWidth: 540, idealWidth: 620, minHeight: 440, idealHeight: 660)
       .disabled(working || workspace.busy).interactiveDismissDisabled(working)
+      .announceStatus(failure ?? changeNotice)
       .task(id: workspace.interactionIdentity.uuidString + shown.id + String(workspace.revision)) {
         await load()
       }
@@ -305,11 +311,11 @@ struct AutomationScheduleDetail: View {
       .sheet(isPresented: Binding(get: { dismissing != nil }, set: { if !$0 { dismissing = nil } }))
     {
       VStack(alignment: .leading, spacing: 16) {
-        Text("Dismiss this transition").font(.title2)
+        Text("Dismiss this transition").readingFont(.title2).accessibilityAddTraits(.isHeader)
         TextField("Reason", text: $dismissalReason, axis: .vertical)
         Text(
           "The transition and your reason remain in history. No workflow or business change is created."
-        ).font(.caption)
+        ).readingFont(.caption)
         HStack {
           Button("Cancel") { dismissing = nil }
           Spacer()
@@ -433,6 +439,7 @@ struct AutomationScheduleDetail: View {
   private func perform(_ operation: @escaping @MainActor () async throws -> Void) {
     working = true
     failure = nil
+    changeNotice = nil
     // Automatic work waits for this change only. It must not wait for the page to close.
     let owner = inspectionOwner
     NativeAutomationHost.shared.setBusy(owner, true)
@@ -443,6 +450,9 @@ struct AutomationScheduleDetail: View {
       NativeAutomationHost.shared.setBusy(owner, false)
       await load()
       workspace.refresh()
+      if failure == nil {
+        changeNotice = "Automation updated. Review its current permission and status below."
+      }
       working = false
     }
   }
@@ -486,14 +496,15 @@ struct ScheduleOccurrencePreview: View {
   let calendar: Value?
   var body: some View {
     if let calendar {
-      Text("Upcoming times · " + calendar["schedule"]["timeZone"].text).font(.headline)
+      Text("Upcoming times · " + calendar["schedule"]["timeZone"].text).readingFont(.headline)
+        .accessibilityAddTraits(.isHeader)
       ForEach(calendar["occurrences"].array, id: \.text) { slot in
-        Text(description(slot)).font(.callout).textSelection(.enabled)
+        Text(description(slot)).readingFont(.callout).textSelection(.enabled)
           .help("Exact UTC time: " + slot["due"].text)
       }
       if calendar["countReached"] != .bool(true) {
         Text("Preview reached its calendar horizon; only the times above were found.")
-          .font(.caption).foregroundStyle(.secondary)
+          .readingFont(.caption).foregroundStyle(.secondary)
       }
     }
   }

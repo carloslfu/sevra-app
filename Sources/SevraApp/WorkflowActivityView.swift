@@ -1,5 +1,6 @@
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 private func workflowStateTitle(_ state: String) -> String {
@@ -49,15 +50,15 @@ struct WorkflowActivityView: View {
               workspace.navigate(.workflow(run["id"].text))
             } label: {
               VStack(alignment: .leading, spacing: 5) {
-                Text(run["title"].text).font(.headline)
+                Text(run["title"].text).readingFont(.headline).accessibilityAddTraits(.isHeader)
                 Text(
                   (run["policy"] == .string("automation-drafts-v1") ? "Automatic · " : "Manual · ")
                     + workflowStateTitle(run["state"].text)
-                ).font(.callout)
+                ).readingFont(.callout)
                 Text("Updated " + DisplayText.date(run["updated"].text))
-                  .font(.caption).foregroundStyle(.secondary)
+                  .readingFont(.caption).foregroundStyle(.secondary)
                 if !run["detail"].text.isEmpty {
-                  Text(run["detail"].text).font(.callout).foregroundStyle(.secondary)
+                  Text(run["detail"].text).readingFont(.callout).foregroundStyle(.secondary)
                 }
               }.multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
@@ -76,7 +77,7 @@ struct WorkflowActivityView: View {
         HStack {
           Button("Previous") { Task { await load(direction: -1) } }
             .disabled(!pages.hasPrevious || pages.loading)
-          Text("Page \(pages.pageNumber)").font(.callout).foregroundStyle(.secondary)
+          Text("Page \(pages.pageNumber)").readingFont(.callout).foregroundStyle(.secondary)
           Button("Next") { Task { await load(direction: 1) } }
             .disabled(!pages.hasNext || pages.loading)
         }
@@ -111,12 +112,14 @@ struct WorkflowRunView: View {
       VStack(alignment: .leading, spacing: 18) {
         if let saved = inspection.evaluation {
           let run = saved["run"]
-          Text(saved["definition"]["title"].text).font(.title2)
-          Text(workflowStateTitle(run["state"].text)).font(.headline)
+          Text(saved["definition"]["title"].text).readingFont(.title2).accessibilityAddTraits(
+            .isHeader)
+          Text(workflowStateTitle(run["state"].text)).readingFont(.headline).accessibilityAddTraits(
+            .isHeader)
           Text(
             "Started " + DisplayText.date(run["created"].text) + " · " + saved["actorLabel"].text
           )
-          .font(.callout).foregroundStyle(.secondary)
+          .readingFont(.callout).foregroundStyle(.secondary)
           Text(
             run["policy"] == .string("automation-drafts-v1")
               ? "Automatic draft workflow. Continue is a separate manual request for this run; it does not enable future automations. Business changes require review."
@@ -128,8 +131,9 @@ struct WorkflowRunView: View {
             Text(
               "Stock at the trigger: " + origin["trigger"]["quantity"].text + " · "
                 + DisplayText.date(origin["trigger"]["effectiveThrough"].text))
-            Text("Each later step shows its own saved inputs.").font(.caption).foregroundStyle(
-              .secondary)
+            Text("Each later step shows its own saved inputs.").readingFont(.caption)
+              .foregroundStyle(
+                .secondary)
             Button("Trigger and evidence") {
               workspace.navigate(.item(origin["dispatchSourceID"].text))
             }
@@ -157,10 +161,12 @@ struct WorkflowRunView: View {
           ForEach(saved["steps"].array, id: \.text) { step in
             Divider()
             VStack(alignment: .leading, spacing: 8) {
-              Text("\((step["ordinal"].int ?? 0) + 1). " + step["title"].text).font(.headline)
-              Text(workflowStateTitle(step["state"].text)).font(.callout)
+              Text("\((step["ordinal"].int ?? 0) + 1). " + step["title"].text).readingFont(
+                .headline
+              ).accessibilityAddTraits(.isHeader)
+              Text(workflowStateTitle(step["state"].text)).readingFont(.callout)
               Text("Updated " + DisplayText.date(step["updated"].text))
-                .font(.caption).foregroundStyle(.secondary)
+                .readingFont(.caption).foregroundStyle(.secondary)
               let output = step["output"]["value"]
               if !step["detail"].text.isEmpty,
                 !["interpretation", "extraction"].contains(output["kind"].text)
@@ -169,35 +175,35 @@ struct WorkflowRunView: View {
               }
               if output["kind"] == .string("function") {
                 Text(output["result"].text + (output["unit"].string.map { " " + $0 } ?? ""))
-                  .font(.title3).textSelection(.enabled)
+                  .readingFont(.title3).textSelection(.enabled)
               } else if output["kind"] == .string("extraction") {
                 Text(
                   output["complete"] == .bool(true)
                     ? "Document prepared" : "Document needs attention"
                 )
-                .font(.callout)
+                .readingFont(.callout)
                 Text(output["detail"].text).foregroundStyle(.secondary)
-                Text(output["coverage"].text).font(.caption).foregroundStyle(.secondary)
+                Text(output["coverage"].text).readingFont(.caption).foregroundStyle(.secondary)
                 Button("Open original document") {
                   workspace.navigate(.item(output["itemID"].text))
                 }
               } else if output["kind"] == .string("intake") {
                 let summary = output["summary"]
                 if output["proposals"].array.isEmpty {
-                  Text("No table changes").font(.callout)
+                  Text("No table changes").readingFont(.callout)
                 } else {
-                  Text("Table update prepared for review").font(.callout)
+                  Text("Table update prepared for review").readingFont(.callout)
                   Text(
                     "\(summary["added"].int ?? 0) added · \(summary["changed"].int ?? 0) changed · \(summary["removed"].int ?? 0) removed"
                   )
                   Text(
                     "New rows: " + summary["newRowMeaning"].text + ", scenario "
                       + summary["newRowScenario"].text
-                  ).font(.caption).foregroundStyle(.secondary)
+                  ).readingFont(.caption).foregroundStyle(.secondary)
                 }
-                Text(output["notice"].text).font(.caption).foregroundStyle(.secondary)
+                Text(output["notice"].text).readingFont(.caption).foregroundStyle(.secondary)
               } else if output["kind"] == .string("interpretation") {
-                Text("Local AI interpretation · Review before business use").font(.callout)
+                Text("Local AI interpretation · Review before business use").readingFont(.callout)
                 WorkflowInputsView(
                   parameters: step["outputFields"].array, arguments: output["response"]["values"],
                   workspace: workspace)
@@ -208,7 +214,7 @@ struct WorkflowRunView: View {
                   workspace.navigate(.item(output["recordID"].text))
                 }
                 DisclosureGroup("Model and exact evidence quotations") {
-                  Text(output["model"].text).font(.caption).textSelection(.enabled)
+                  Text(output["model"].text).readingFont(.caption).textSelection(.enabled)
                   ForEach(output["response"]["citations"].array, id: \.text) { citation in
                     Text(citation["field"].text + ": “" + citation["quote"].text + "”")
                       .textSelection(.enabled)
@@ -223,11 +229,11 @@ struct WorkflowRunView: View {
                     supplied["actor"]["kind"] == .string("human")
                       ? "Information supplied by you"
                       : "Information supplied by the calling program"
-                  ).font(.headline)
+                  ).readingFont(.headline)
                   Text(
                     "The original model response is preserved above. Business review is separate."
                   )
-                  .font(.caption).foregroundStyle(.secondary)
+                  .readingFont(.caption).foregroundStyle(.secondary)
                   WorkflowInputsView(
                     parameters: step["outputFields"].array, arguments: supplied["values"],
                     workspace: workspace)
@@ -248,13 +254,13 @@ struct WorkflowRunView: View {
                 VStack(alignment: .leading, spacing: 4) {
                   Button(proposal["title"].text) { workspace.navigate(.item(proposal["id"].text)) }
                   Text(proposal["meaning"].text.capitalized + " · " + proposal["scenario"].text)
-                    .font(.caption).foregroundStyle(.secondary)
+                    .readingFont(.caption).foregroundStyle(.secondary)
                   if proposal["changed"] == .bool(true) {
                     Button("Open current \(proposal["status"].text) version") {
                       workspace.navigate(.item(proposal["currentID"].text))
-                    }.font(.callout)
+                    }.readingFont(.callout)
                   } else {
-                    Text("Awaiting review").font(.caption).foregroundStyle(.secondary)
+                    Text("Awaiting review").readingFont(.caption).foregroundStyle(.secondary)
                   }
                 }
               }
@@ -265,17 +271,18 @@ struct WorkflowRunView: View {
                 .foregroundStyle(.secondary)
               }
               if let source = step["definitionSource"].string {
-                Button("Step definition") { workspace.navigate(.item(source)) }.font(.callout)
+                Button("Step definition") { workspace.navigate(.item(source)) }.readingFont(
+                  .callout)
               }
               if let generation = step["attempt"]["generation"].int {
-                Text("Attempt \(generation)").font(.caption).foregroundStyle(.secondary)
+                Text("Attempt \(generation)").readingFont(.caption).foregroundStyle(.secondary)
                 if step["output"] == .null, step["attempt"]["modelResponse"] != .null {
                   DisclosureGroup("Unvalidated model response") {
                     Text(
                       "This response did not complete the step. Treat it as a diagnostic, not an established fact."
                     )
                     .foregroundStyle(.secondary)
-                    Text(step["attempt"]["model"].text).font(.caption)
+                    Text(step["attempt"]["model"].text).readingFont(.caption)
                     StructuredValueView(value: step["attempt"]["modelResponse"])
                   }
                 }
@@ -287,7 +294,7 @@ struct WorkflowRunView: View {
                       + Date(timeIntervalSince1970: deadline).formatted(
                         date: .omitted, time: .standard) + ". An expired step can be resumed."
                   )
-                  .font(.caption).foregroundStyle(.secondary)
+                  .readingFont(.caption).foregroundStyle(.secondary)
                 }
               }
             }
@@ -383,7 +390,7 @@ struct WorkflowInputsView: View {
           if parameter["type"] == .string("item") {
             Button("Open " + parameter["label"].text) { workspace.navigate(.item(value.text)) }
           } else if parameter["type"] == .string("entries") {
-            Text(parameter["label"].text).font(.callout.weight(.medium))
+            Text(parameter["label"].text).readingFont(.callout, weight: .medium)
             ForEach(value.array.indices, id: \.self) { index in
               AnyView(
                 WorkflowInputsView(

@@ -1,5 +1,6 @@
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 struct SpacePickerView: View {
@@ -36,12 +37,15 @@ struct SpacePickerView: View {
         state.composerFocusRequest = UUID()
         dismiss()
       }
-    }.padding(16).frame(width: 320, height: min(400, 130 + CGFloat(state.spaces.count) * 60))
-      .onAppear { searchFocused = true }
+    }.padding(16).frame(
+      minWidth: 320, idealWidth: 420, minHeight: 180, idealHeight: 400, maxHeight: 520
+    )
+    .onAppear { searchFocused = true }
   }
   @ViewBuilder private func section(_ title: String, _ spaces: [Space]) -> some View {
     if !spaces.isEmpty {
-      Text(title).font(.caption.weight(.medium)).foregroundStyle(.secondary).padding(.top, 8)
+      Text(title).readingFont(.caption, weight: .medium).foregroundStyle(.secondary).padding(
+        .top, 8)
       rows(spaces)
     }
   }
@@ -70,15 +74,16 @@ struct SpaceShortcutRow: View {
           VStack(alignment: .leading, spacing: 2) {
             Text(space.title).lineLimit(2)
             if let captured = space.definition.pinnedAt {
-              Text("Snapshot · " + DisplayText.date(captured)).font(.caption).foregroundStyle(
-                .secondary)
+              Text("Snapshot · " + DisplayText.date(captured)).readingFont(.caption)
+                .foregroundStyle(
+                  .secondary)
             } else if space.id != "home" {
-              Text("Live view").font(.caption).foregroundStyle(.secondary)
+              Text("Live view").readingFont(.caption).foregroundStyle(.secondary)
             }
           }.multilineTextAlignment(.leading)
           Spacer(minLength: 0)
           if state.route == .space(space.id) {
-            Image(systemName: "checkmark").font(.caption).accessibilityLabel("Current space")
+            Image(systemName: "checkmark").readingFont(.caption).accessibilityLabel("Current space")
           }
         }.contentShape(Rectangle()).padding(.vertical, 7)
       }.buttonStyle(.plain)

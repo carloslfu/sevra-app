@@ -12,6 +12,11 @@ import SevraVoice
 import SwiftUI
 import os
 
+enum WorkbookReadingTarget: Hashable {
+  case workspace, conversation, composer, status
+  case message(String)
+}
+
 @MainActor private final class AssetCopySaveDelegate: NSObject, NSOpenSavePanelDelegate {
   let workbook: Workbook
   init(workbook: Workbook) { self.workbook = workbook }
@@ -85,6 +90,22 @@ struct FolderReview {
     didSet { if route != oldValue { clarificationDrafts.invalidateConversationPreviews() } }
   }
   @Published var navigation: [Route] = []
+  private var navigationReturns: [WorkbookReadingTarget] = []
+  weak var readingWindow: NSWindow?
+  @Published var readingFocusRequest = UUID()
+  var readingFocusPending = false
+  private(set) var readingFocusTarget: WorkbookReadingTarget = .workspace
+  @Published var terminalStatus: String?
+  private var operationTitle = ""
+  func requestReadingFocus(_ target: WorkbookReadingTarget) {
+    if target == .conversation || target == .composer { focus = false }
+    if case .message = target { focus = false }
+    readingFocusTarget = target
+    readingFocusPending =
+      NSApp.isActive
+      && (readingWindow?.isKeyWindow == true || readingWindow?.attachedSheet?.isKeyWindow == true)
+    readingFocusRequest = UUID()
+  }
   @Published var viewedItemVersion: String?
   /// Known once the viewer has the item, so no view reads the workbook to draw its title.
   var viewedItemTitle: String? {
@@ -222,6 +243,8 @@ struct FolderReview {
     conversation = conversationSession.conversation
     route = .space("home")
     navigation = []
+    navigationReturns = []
+    terminalStatus = nil
     itemPreviewIdentity = UUID()
     viewedItemVersion = nil
     activeDocument = nil
@@ -324,7 +347,13 @@ struct FolderReview {
         self.revision = snapshot.revision
         self.spaces = snapshot.spaces
         self.spaceNavigation.receive(snapshot.spaceNavigation, generation: navigationGeneration)
+        let oldReviews = self.pendingReview.map { Set($0.items.map(\.id)) }
         self.pendingReview = snapshot.reviewQueue
+        if let oldReviews,
+          snapshot.reviewQueue.items.contains(where: { !oldReviews.contains($0.id) })
+        {
+          self.terminalStatus = "Drafts are available for review. Open Drafts to review."
+        }
         self.items = snapshot.items
         self.datasets = snapshot.datasets
         self.archivedDatasets = snapshot.archivedDatasets
@@ -348,24 +377,35 @@ struct FolderReview {
       }
     }
   }
-  @discardableResult func navigate(_ new: Route, replacing: Bool = false) -> Bool {
+  @discardableResult func navigate(
+    _ new: Route, replacing: Bool = false, returningTo: WorkbookReadingTarget = .workspace
+  ) -> Bool {
     guard documentDrafts.flush() else { return false }
     let shown: Route
     if case .item(let id) = route { shown = .item(viewedItemVersion ?? id) } else { shown = route }
     if shown != new {
-      if !replacing { navigation.append(shown) }
-      if navigation.count > 20 { navigation.removeFirst() }
+      if !replacing {
+        navigation.append(shown)
+        navigationReturns.append(returningTo)
+      }
+      if navigation.count > 20 {
+        navigation.removeFirst()
+        navigationReturns.removeFirst()
+      }
       route = new
       referenceModal = nil
       viewedItemVersion = nil
       itemPreviewIdentity = UUID()
       selectedContext = ""
       if case .space(let id) = new { spaceNavigation.visit(id) }
+      requestReadingFocus(.workspace)
     }
     return true
   }
-  func openEvidence(_ id: String, locator: String? = nil) {
-    guard navigate(.item(id)) else { return }
+  func openEvidence(
+    _ id: String, locator: String? = nil, returningTo: WorkbookReadingTarget = .workspace
+  ) {
+    guard navigate(.item(id), returningTo: returningTo) else { return }
     if let locator {
       itemLocators[id] = locator
       locatorRequest = UUID()
@@ -386,6 +426,7 @@ struct FolderReview {
       itemPreviewIdentity = UUID()
       selectedContext = ""
       if case .space(let id) = prior { spaceNavigation.visit(id) }
+      requestReadingFocus(navigationReturns.popLast() ?? .workspace)
     }
   }
   func continueWorkflow(_ runID: String, retry: Bool = false) {
@@ -446,6 +487,8 @@ struct FolderReview {
     }
     busy = true
     status = title
+    operationTitle = title
+    terminalStatus = nil
     error = nil
     return (book, ticket)
   }
@@ -454,6 +497,13 @@ struct FolderReview {
   }
   private func finishOperation(_ ticket: WorkspaceOperation, in book: Workbook) {
     guard owns(ticket, in: book), operations.finish(ticket) else { return }
+    terminalStatus =
+      error == nil
+      ? (ticket.cancellation.isCancelled
+        ? "Stopped. Saved work is kept."
+        : "Operation ended: " + operationTitle
+          + ". Read the result or conversation for its outcome.")
+      : nil
     busy = false
     status = ""
     liveActivity = nil
@@ -1365,9 +1415,11 @@ struct FolderReview {
       }
     } catch { self.error = error.localizedDescription }
   }
-  func openConversationLink(_ url: URL) {
+  func openConversationLink(_ url: URL) { openConversationLink(url, returningTo: .workspace) }
+  func openConversationLink(_ url: URL, returningTo: WorkbookReadingTarget) {
     switch ConversationLinkTarget(url) {
-    case .evidence(let id, let locator): openEvidence(id, locator: locator)
+    case .evidence(let id, let locator):
+      openEvidence(id, locator: locator, returningTo: returningTo)
     case .message(let id): jumpToMessage(id)
     case .external: NSWorkspace.shared.open(url)
     case nil: break

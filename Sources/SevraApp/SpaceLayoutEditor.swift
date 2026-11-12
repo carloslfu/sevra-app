@@ -1,4 +1,5 @@
 import SevraCore
+import SevraTableUI
 import SwiftUI
 
 /// Local editing is deliberate and reviewable. Submission uses the exact opened
@@ -16,7 +17,7 @@ struct SpaceLayoutEditor: View {
   @State private var nextHistory: Int?
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Text("Edit layout").font(.title2)
+      Text("Edit layout").readingFont(.title2).accessibilityAddTraits(.isHeader)
       Text(
         "Change what this space shows. Your documents, tables and pending work stay in the workbook."
       )
@@ -36,8 +37,8 @@ struct SpaceLayoutEditor: View {
                 HStack {
                   TextField("Component label", text: $component.title)
                     .accessibilityLabel("Label for " + component.type)
-                  Text(component.type.capitalized).font(.caption).foregroundStyle(.secondary)
-                    .frame(width: 76, alignment: .leading)
+                  Text(component.type.capitalized).readingFont(.caption).foregroundStyle(.secondary)
+                    .frame(minWidth: 76, alignment: .leading)
                   Button {
                     move(component.id, direction: -1)
                   } label: {
@@ -71,13 +72,13 @@ struct SpaceLayoutEditor: View {
                 }
                 if let id = component.datasetID {
                   Text(state.datasets.first { $0.id == id }?.title ?? "Missing table binding")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .readingFont(.caption).foregroundStyle(.secondary)
                 }
                 if !(component.children ?? []).isEmpty {
                   Text(
                     "Grouped components retain their bindings. Describe individual group edits in the conversation."
                   )
-                  .font(.caption).foregroundStyle(.secondary)
+                  .readingFont(.caption).foregroundStyle(.secondary)
                 }
               }.padding(12).background(
                 .quaternary.opacity(0.25), in: RoundedRectangle(cornerRadius: 8))
@@ -133,9 +134,10 @@ struct SpaceLayoutEditor: View {
             VStack(alignment: .leading, spacing: 4) {
               Text("Version \(saved.version): \(saved.title)").fontWeight(.medium)
               Text(saved.definition.components.map(\.title).joined(separator: ", "))
-                .font(.caption).foregroundStyle(.secondary)
+                .readingFont(.caption).foregroundStyle(.secondary)
               if !saved.recorded.isEmpty {
-                Text(DisplayText.date(saved.recorded)).font(.caption).foregroundStyle(.secondary)
+                Text(DisplayText.date(saved.recorded)).readingFont(.caption).foregroundStyle(
+                  .secondary)
               }
             }
             Spacer()
@@ -143,7 +145,7 @@ struct SpaceLayoutEditor: View {
               Button("Restore") { restore(saved.version) }
                 .accessibilityLabel("Restore layout version \(saved.version) as a new version")
             } else {
-              Text("Opened version").font(.caption)
+              Text("Opened version").readingFont(.caption)
             }
           }
         }

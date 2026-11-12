@@ -1,4 +1,5 @@
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 struct CapturedRequestContextView: View {
@@ -7,7 +8,7 @@ struct CapturedRequestContextView: View {
   var body: some View {
     let captured = RequestContextPresentation(context)
     VStack(alignment: .leading, spacing: 8) {
-      Text("Context when requested").font(.caption).foregroundStyle(.secondary)
+      Text("Context when requested").readingFont(.caption).foregroundStyle(.secondary)
       if let kind = captured.location, let id = captured.id, let title = captured.title {
         HStack {
           Text(kind.rawValue).foregroundStyle(.secondary)
@@ -20,15 +21,15 @@ struct CapturedRequestContextView: View {
           }.buttonStyle(.link)
         }
         if let selection = captured.selection {
-          Text("Selected text").font(.caption).foregroundStyle(.secondary)
+          Text("Selected text").readingFont(.caption).foregroundStyle(.secondary)
           Text(selection).textSelection(.enabled)
         }
         DisclosureGroup("Original context") {
-          Text(captured.original).textSelection(.enabled).font(.caption)
+          Text(captured.original).textSelection(.enabled).readingFont(.caption)
         }
       } else {
         Text(captured.original).textSelection(.enabled)
       }
-    }.font(.callout).frame(maxWidth: .infinity, alignment: .leading)
+    }.readingFont(.callout).frame(maxWidth: .infinity, alignment: .leading)
   }
 }

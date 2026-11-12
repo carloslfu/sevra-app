@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-12T16:35:58.574042Z
+updated: 2026-11-12T17:09:52.267580Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/accessibility-code-fixes-and-pause]] — Owner authorizes all ten accessibility fixes in code, static review and compilation, then commit, push and pause; UI interaction and accessibility testing remain prohibited.
 - [[sources/notes/2026/11/accessibility-review-and-pause]] — Owner skips accessibility testing, requests an adversarial code review and known-limit closure plans, then commit, push and pause without touching the UI.
 - [[sources/notes/2026/11/minimum-features-completion-resume]] — Carlos resumes the paused minimum-feature work and requests end-to-end completion, refinement and verification.
 - [[sources/notes/2026/10/ship-with-enough-testing]] — Owner keeps the full queue and asks for the smallest reliable version of each item, with fewer tests.

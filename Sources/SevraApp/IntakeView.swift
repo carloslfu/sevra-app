@@ -1,4 +1,5 @@
 import SevraCore
+import SevraTableUI
 import SwiftUI
 
 struct IntakeChoice: Sendable, Identifiable {
@@ -40,7 +41,8 @@ struct IntakeView: View {
   let prompt: IntakePrompt
   var body: some View {
     VStack(alignment: .leading, spacing: 18) {
-      Text("Use saved files").font(.title2.weight(.medium))
+      Text("Use saved files").readingFont(.title2, weight: .medium).accessibilityAddTraits(
+        .isHeader)
       Text(
         "Tell Sevra what you need in the conversation, or choose a use below. Your originals stay available."
       )
@@ -49,13 +51,13 @@ struct IntakeView: View {
         VStack(alignment: .leading, spacing: 24) {
           ForEach(prompt.choices) { choice in
             VStack(alignment: .leading, spacing: 10) {
-              Text(choice.title).font(.headline)
+              Text(choice.title).readingFont(.headline).accessibilityAddTraits(.isHeader)
               if let job = choice.job {
                 DisclosureGroup("File details") {
-                  Text(job.detail).font(.callout).foregroundStyle(.secondary)
+                  Text(job.detail).readingFont(.callout).foregroundStyle(.secondary)
                   if let index = job.report["index"]["state"].string {
                     Text("Indexing: " + index + ". " + job.report["index"]["detail"].text)
-                      .font(.caption).foregroundStyle(.secondary)
+                      .readingFont(.caption).foregroundStyle(.secondary)
                   }
                 }
               }
@@ -94,7 +96,7 @@ struct IntakeView: View {
                       ? "Imports saved Excel values. Simple formulas recalculate after edits. Others keep their saved value and say so."
                       : "The first row becomes column headings. Check the resulting table before using it."
                   )
-                  .font(.caption).foregroundStyle(.secondary)
+                  .readingFont(.caption).foregroundStyle(.secondary)
                 }
               }
             }.disabled(state.busy)
@@ -116,6 +118,6 @@ struct IntakeView: View {
           state.composerFocusRequest = UUID()
         }.keyboardShortcut(.cancelAction)
       }
-    }.padding(24).frame(width: 630, height: prompt.choices.count == 1 ? 360 : 430)
+    }.padding(24).frame(minWidth: 420, idealWidth: 630, minHeight: 300, idealHeight: 480)
   }
 }

@@ -48,7 +48,9 @@ package struct ActionConfirmations {
       task = "preparing the proposal"
     case "include_archive_members": task = "including the archive files"
     case "prepare_workflow_answer": task = "preparing the answer"
-    case "conversation_action", _ where WorkbookTools.conversationTools[tool] != nil:
+    case "conversation_action":
+      task = "changing the thread"
+    case _ where WorkbookTools.conversationTools[tool] != nil:
       task = "changing the thread"
     default:
       guard !WorkbookTools.readOnlyTools.contains(tool) else { return }

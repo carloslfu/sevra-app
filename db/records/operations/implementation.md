@@ -3,11 +3,25 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-12T16:39:22.289649+00:00
+updated: 2026-11-12T17:16:43.400343+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Accessibility code closures and pause, November 12
+
+The follow-up [[sources/notes/2026/11/accessibility-code-fixes-and-pause]] explicitly authorizes code fixes for all ten static accessibility findings, compilation and records work, followed by commit/push and pause. It prohibits computer UI interaction and accessibility tests. The owner intends to test runtime behavior later. This section supersedes the earlier records-only/open-findings checkpoint below without changing its historical evidence.
+
+**Implemented A1–A10.** Editable table focus and paste share logical cell identity; snapshot/query/saved-result data share native readonly semantics and source actions; form controls include required/unit/line/error context; originals expose bounded exact-version extracted text and images support explicit human descriptions; charts have meaningful axes and exact-value/source alternatives; terminal notices use a restrained own-window announcement policy; panes/headings and explicit navigation/return focus are connected; an app-only 100–200 percent reading size reaches native text/table bridges and flexible sheets; readonly links have direct actions and keyboard routes; PDF match animation respects Reduce Motion. [[records/reviews/accessibility-static-review-2026-11-12]] records each closure, counterexample reasoning and the unexecuted owner follow-up list.
+
+**Additional static corrections.** Reused or obsolete cell/menu actions cannot open a new page's target; deferred selection and focus requests recheck their source identity/window; initial empty table selection starts at the correct edge; an action from a sheet can return focus after the owner window becomes key; status commands observe current state; oversized extracted passages disclose truncation; long expanded row values use the existing native reading bridge; concurrently changed image descriptions refuse an unseen overwrite. Description writes use existing versioned annotation/lineage/operation machinery, size/revision guards and idempotent request validation. No schema, automatic AI grant or background scheduling expansion was introduced. A pre-existing ambiguous switch-pattern compiler warning and trailing-closure lint issue were corrected without changing their behavior.
+
+**Executed verification, code/static only.** The exact final source remained unchanged throughout `SEVRA_NATIVE_CANDIDATE=1 swift build --scratch-path .build/native-product -c release --product SevraDesktop -j 4`, which exited 0 without warnings. Strict `swift format lint --strict` passed for all 40 changed Swift files. The [code-fix receipt](../../../integration/evidence/2026-11-12-accessibility-code-fixes.json.gz), SHA-256 `87786ecb5bc39e57b789f81d1d0185c8d2c226048e83c0dd7c6445fa4008ff73`, retains the command/output and hashes for 405 package/source/resource/script files, including 293 Swift files across Sources and scripts. The earlier broader inventory remains historical. This is compiler/static evidence, not functional execution of the new code.
+
+**Not executed.** No app launch/install, VoiceOver or other accessibility test, native UI automation, keyboard/appearance/contrast check, other product test, model run, fixture mutation or macOS preference change. The standard hosted workflow includes native UI/accessibility checks, so this code checkpoint uses `[skip ci]` to respect the owner instruction. The earlier successful hosted run belongs to `831b7f3b1181b0fa8218f5d77e08cd992fd17246`, not this new code. Actual assistive-technology behavior, enlarged layout and PDFKit/Quick Look/AVKit integration remain for owner follow-up; no accessibility conformance is claimed.
+
+**Records and completion.** `dbmd index rebuild --dir db --json`, `dbmd validate --all db --json`, `python3 scripts/check_links.py` and `git diff --check` pass with zero record errors/warnings. Pre-existing source evidence and integration receipts remain byte-identical. The handoff, review, closure plan and bootstrap pointers agree on implemented code, skipped testing and paused work. No app/model/test/helper process was started, existing grants and installed app were not operated, and compiler/check processes completed before delivery. Broad AI coverage, the Excel subset, foreground scheduling, external use, signing and other hardware remain unchanged. [[records/operations/agent-handoff]] is the concise restart boundary.
 
 ## Final automation observations and static review, November 12
 

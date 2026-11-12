@@ -7,7 +7,7 @@ struct PaneHeader<Content: View>: View {
   var body: some View {
     HStack(spacing: 8) {
       content
-    }.padding(.horizontal, 20).frame(height: 56)
+    }.padding(.horizontal, 20).padding(.vertical, 12).frame(minHeight: 56)
       .controlSize(.regular)
   }
 }

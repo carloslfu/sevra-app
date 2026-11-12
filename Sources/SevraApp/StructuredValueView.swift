@@ -1,5 +1,6 @@
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 /// Native fields and progressive disclosure, never a serialized JSON dump.
@@ -34,7 +35,7 @@ struct StructuredValueView: View {
       Text(
         "\(value["count"].int ?? 0) \(value["type"] == .string("string") ? "characters" : "entries") saved"
       )
-      .font(.caption).foregroundStyle(.secondary)
+      .readingFont(.caption).foregroundStyle(.secondary)
     } else {
       switch value {
       case .object(let fields):
@@ -92,7 +93,7 @@ struct StructuredValueView: View {
     let presented = StructuredPresentation.embedded(value)
     if StructuredPresentation.scalar(presented) != nil {
       VStack(alignment: .leading, spacing: 3) {
-        Text(StructuredPresentation.label(key)).font(.caption).foregroundStyle(.secondary)
+        Text(StructuredPresentation.label(key)).readingFont(.caption).foregroundStyle(.secondary)
         AnyView(StructuredValueView(value: presented, inspect: inspect, depth: depth + 1))
       }
     } else {
@@ -113,17 +114,17 @@ struct ActivityResultView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       if let title = value["item"]["title"].string {
-        Label(title, systemImage: "doc.text").font(.callout.weight(.medium))
+        Label(title, systemImage: "doc.text").readingFont(.callout, weight: .medium)
         if let meaning = value["item"]["meaning"].string,
           let status = value["item"]["status"].string
         {
           Text(meaning.capitalized + " · " + status.capitalized)
-            .font(.caption).foregroundStyle(.secondary)
+            .readingFont(.caption).foregroundStyle(.secondary)
         }
         ForEach(Array(value["chunks"].array.enumerated()), id: \.offset) { _, chunk in
           VStack(alignment: .leading, spacing: 6) {
             if let location = chunk["locator"].string {
-              Text(location).font(.caption).foregroundStyle(.secondary)
+              Text(location).readingFont(.caption).foregroundStyle(.secondary)
             }
             StructuredValueView(value: chunk["body"])
           }
@@ -152,22 +153,22 @@ struct ActivityResultView: View {
       } else if case .array(let rows) = value["rows"], !rows.isEmpty {
         let columns = value["dataset"]["columns"].array
         if !columns.isEmpty {
-          ScrollView(.horizontal) {
-            Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 10) {
-              GridRow {
-                ForEach(Array(columns.enumerated()), id: \.offset) { _, column in
-                  Text(column["title"].text).fontWeight(.medium)
-                }
+          EvidenceTable(
+            title: "Saved result rows",
+            headings: columns.map {
+              $0["title"].text + ($0["unit"].string.map { " (" + $0 + ")" } ?? "")
+            },
+            rows: rows.map { row in columns.map { row["values"][$0["id"].text] } },
+            rowIDs: rows.map(\.text),
+            sources: rows.enumerated().map { index, row in
+              guard let id = row["id"].string else { return [] }
+              return [EvidenceTable.source(id, title: "Original row \(index + 1)")].compactMap {
+                $0
               }
-              ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                GridRow {
-                  ForEach(Array(columns.enumerated()), id: \.offset) { _, column in
-                    StructuredValueView(value: row["values"][column["id"].text])
-                  }
-                }
-              }
-            }.textSelection(.enabled)
-          }
+            },
+            open: { url in
+              if case .evidence(let id, _) = ConversationLinkTarget(url) { openOriginal(id) }
+            })
           details
         } else {
           StructuredValueView(value: value, inspect: inspect)
@@ -187,7 +188,7 @@ struct ActivityResultView: View {
             }
           }
         }
-        Text("Matches do not establish complete coverage.").font(.caption).foregroundStyle(
+        Text("Matches do not establish complete coverage.").readingFont(.caption).foregroundStyle(
           .secondary)
         details
       } else {
@@ -199,6 +200,6 @@ struct ActivityResultView: View {
   private var details: some View {
     DisclosureGroup("All saved fields") {
       StructuredValueView(value: value, inspect: inspect).padding(.top, 6)
-    }.font(.caption)
+    }.readingFont(.caption)
   }
 }

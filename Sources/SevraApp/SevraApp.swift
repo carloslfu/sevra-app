@@ -4,6 +4,7 @@ import SevraCore
 import SevraDocumentUI
 import SevraPreviewUI
 import SevraProduct
+import SevraTableUI
 import SwiftUI
 
 @main struct SevraApp: App {
@@ -30,15 +31,22 @@ import SwiftUI
   @FocusedValue(\.conversationWorkspace) private var workspace
   var body: some Scene {
     WindowGroup("Sevra", for: String.self) { $path in
-      WorkspaceWindow(path: $path, inbox: documentDelegate)
+      WorkspaceWindow(path: $path, inbox: documentDelegate).readingFont(.body)
         .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
     }
     .defaultSize(width: 1200, height: 800)
     .commands {
       CommandGroup(replacing: .appTermination) {
-        Button("Quit \(Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Sevra")") {
+        Button(
+          "Quit \(Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Sevra")"
+        ) {
           documentDelegate.quit()
         }.keyboardShortcut("q")
+      }
+      CommandMenu("Reading") {
+        ReadingSizeCommands()
+        Divider()
+        if let workspace { ReadingWorkspaceCommands(state: workspace) }
       }
       ConversationCommands()
       WorkbookFileCommands()
@@ -67,7 +75,7 @@ import SwiftUI
         }.keyboardShortcut("e", modifiers: [.command, .shift])
       }
     }
-    Settings { ModelSettingsView() }
+    Settings { ModelSettingsView().readingFont(.body) }
   }
 }
 
@@ -267,6 +275,7 @@ struct WorkspaceWindow: View {
       WindowAccessor { window in
         guard !retired else { return }
         if ownWindow !== window { ownWindow = window }
+        state.readingWindow = window
         if let window, let path, claimed != path {
           guard WorkbookWindows.claim(path, by: window) else {
             retired = true

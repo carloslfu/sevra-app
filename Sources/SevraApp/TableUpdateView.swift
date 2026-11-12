@@ -31,12 +31,12 @@ struct TableUpdateView: View {
     VStack(alignment: .leading, spacing: 14) {
       ScrollView {
         VStack(alignment: .leading, spacing: 18) {
-          Text("Update a working table").font(.title2)
+          Text("Update a working table").readingFont(.title2).accessibilityAddTraits(.isHeader)
           Text(
             "Choose how the saved file should change a table. This creates a draft first; your original stays available. Your choices are kept if you leave this page."
           )
           .foregroundStyle(.secondary)
-          if let notice { Text(notice).font(.callout) }
+          if let notice { Text(notice).readingFont(.callout) }
           if sheetNames.count > 1 {
             Picker(
               "Worksheet",
@@ -61,19 +61,19 @@ struct TableUpdateView: View {
               ? "Use the worksheet row number of the headings. Empty rows are skipped."
               : "Header record is counted from 1. Quoted fields may span several lines."
           )
-          .font(.caption).foregroundStyle(.secondary)
+          .readingFont(.caption).foregroundStyle(.secondary)
           if Int(form.header).map({ $0 > 0 }) != true {
             Text("Enter a whole header record number of 1 or more.")
-              .font(.caption).foregroundStyle(.secondary)
+              .readingFont(.caption).foregroundStyle(.secondary)
           }
           if let source = session.source, !source.needsSheet {
             Text(
               "\(source.incoming) incoming rows · "
                 + (source.sheets.isEmpty
                   ? "CSV/TSV values only" : "saved Excel values; formulas are not recalculated")
-            ).font(.callout)
+            ).readingFont(.callout)
             ForEach(source.notes, id: \.self) {
-              Text($0).font(.caption).foregroundStyle(.secondary)
+              Text($0).readingFont(.caption).foregroundStyle(.secondary)
             }
             configuration(source)
             if let preview = session.preview {
@@ -99,7 +99,7 @@ struct TableUpdateView: View {
           Button("Preview changes") { Task { await inspectChanges() } }
             .disabled(blocker != nil || session.source == nil || state.busy)
           if let blocker {
-            Text(blocker).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            Text(blocker).readingFont(.caption).foregroundStyle(.secondary).lineLimit(2)
           }
           Spacer()
           Button("Start over") { Task { await startOver() } }.disabled(state.busy)
@@ -109,6 +109,7 @@ struct TableUpdateView: View {
         }
       }.padding(18)
     }
+    .announceStatus(session.failure ?? session.draftFailure)
     .task { await open() }
     .onDisappear {
       session.stop()
@@ -164,15 +165,15 @@ struct TableUpdateView: View {
               ? "Remove every current row from this table, then add the incoming rows. Undo preserves history."
               : "Update matching rows and add new keys. Empty or duplicate keys require correction first."
       )
-      .font(.callout).foregroundStyle(form.mode == .replace ? .primary : .secondary)
+      .readingFont(.callout).foregroundStyle(form.mode == .replace ? .primary : .secondary)
       if table != nil {
-        Text("Map incoming columns").font(.headline)
+        Text("Map incoming columns").readingFont(.headline).accessibilityAddTraits(.isHeader)
         Text(
           "Map each stored table column exactly once. Calculated columns are kept. Choose Ignore explicitly for unused input."
         )
-        .font(.caption).foregroundStyle(.secondary)
+        .readingFont(.caption).foregroundStyle(.secondary)
         ForEach(form.suggestionNotes, id: \.self) {
-          Text($0).font(.caption).foregroundStyle(.secondary)
+          Text($0).readingFont(.caption).foregroundStyle(.secondary)
         }
         if form.canIgnoreRest(session.source, columns: columns) {
           Button("Ignore the other incoming columns") { form.ignoreRest(session.source) }
@@ -193,15 +194,15 @@ struct TableUpdateView: View {
                 + source.examples.prefix(3).map { index < $0.count ? $0[index] : "(empty)" }.joined(
                   separator: " · ")
             )
-            .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            .readingFont(.caption).foregroundStyle(.secondary).lineLimit(2)
             if form.isSuggested(index) {
               Label("Suggested from the same heading", systemImage: "checkmark")
-                .font(.caption).foregroundStyle(.secondary)
+                .readingFont(.caption).foregroundStyle(.secondary)
             }
           }
         }
         if form.mode == .merge {
-          Text("Match rows using").font(.headline)
+          Text("Match rows using").readingFont(.headline).accessibilityAddTraits(.isHeader)
           ForEach(columns) { column in
             Toggle(
               column.title,
@@ -215,7 +216,7 @@ struct TableUpdateView: View {
           Text(
             "Keys match exact values. Leading zeros, case and whitespace are preserved. A key that only nearly matches stops the review."
           )
-          .font(.caption).foregroundStyle(.secondary)
+          .readingFont(.caption).foregroundStyle(.secondary)
         }
         Picker("New rows describe", selection: $form.meaning) {
           Text("Choose meaning").tag("")
@@ -227,7 +228,7 @@ struct TableUpdateView: View {
         Text(
           "Matching rows keep their current meaning and scenario. Updating values does not post inventory or financial transactions."
         )
-        .font(.caption).foregroundStyle(.secondary)
+        .readingFont(.caption).foregroundStyle(.secondary)
       } else if state.datasets.isEmpty {
         Text(
           "There are no working tables yet. Create a table from the saved file or start one in the conversation."
@@ -359,32 +360,32 @@ struct TableUpdateSummary: View {
       Text(
         "\(preview.added) added · \(preview.changed) changed · \(preview.removed) removed · \(preview.unchanged) unchanged"
       )
-      .font(.headline)
+      .readingFont(.headline)
       if preview.repeatedIncomingRows > 0 {
-        Text("Repeated incoming rows: \(preview.repeatedIncomingRows)").font(.callout)
+        Text("Repeated incoming rows: \(preview.repeatedIncomingRows)").readingFont(.callout)
       }
       if preview.rowsMatchingTarget > 0 {
         Text("Incoming rows that exactly match existing values: \(preview.rowsMatchingTarget)")
-          .font(.callout)
+          .readingFont(.callout)
       }
       ForEach(preview.limitations, id: \.self) {
-        Text($0).font(.caption).foregroundStyle(.secondary)
+        Text($0).readingFont(.caption).foregroundStyle(.secondary)
       }
       if !preview.examples.isEmpty {
-        Text("Examples (up to 20)").font(.headline)
+        Text("Examples (up to 20)").readingFont(.headline).accessibilityAddTraits(.isHeader)
         ForEach(Array(preview.examples.enumerated()), id: \.offset) { _, example in
           VStack(alignment: .leading, spacing: 4) {
             Text(
               example["operation"].text.capitalized
                 + (preview.sheet == nil ? " · Source record " : " · Worksheet row ")
                 + (example["sourceRecord"].int.map(String.init) ?? "unknown")
-            ).font(.subheadline.weight(.medium))
+            ).readingFont(.subheadline, weight: .medium)
             ForEach(preview.columns.filter { $0.formula == nil }) { column in
               let after = example["after"][column.id]
               let before = example["before"][column.id]
               let moved = example["operation"].text == "change" && before != after
               Text(column.title + ": " + (moved ? shown(before) + " → " : "") + shown(after))
-              .font(.callout).textSelection(.enabled)
+                .readingFont(.callout).textSelection(.enabled)
             }
           }.padding(.vertical, 6)
         }

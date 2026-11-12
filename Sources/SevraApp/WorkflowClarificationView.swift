@@ -1,5 +1,6 @@
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 struct WorkflowClarificationView: View {
@@ -9,20 +10,20 @@ struct WorkflowClarificationView: View {
     VStack(alignment: .leading, spacing: 14) {
       if let state = session.state {
         let target = state.entry.target
-        Text("Supply missing information").font(.headline)
+        Text("Supply missing information").readingFont(.headline).accessibilityAddTraits(.isHeader)
         Text("Your answer is saved separately from the original AI interpretation.")
           .foregroundStyle(.secondary)
-        Text(target["title"].text).font(.callout.weight(.medium))
+        Text(target["title"].text).readingFont(.callout, weight: .medium)
         Text("Meaning: " + target["meaning"].text + " · Scenario: " + target["scenario"].text)
-          .font(.caption).foregroundStyle(.secondary)
+          .readingFont(.caption).foregroundStyle(.secondary)
         if let preparation = state.entry.preparation {
           Text("AI prepared these inputs from your message. Check every value before saving.")
-            .font(.callout).foregroundStyle(.secondary)
+            .readingFont(.callout).foregroundStyle(.secondary)
           ForEach(preparation["quotes"].object.keys.sorted(), id: \.self) { field in
             let label =
               target["fields"].array.first { $0["id"].text == field }?["label"].text ?? field
             Text(label + ": “" + preparation["quotes"][field].text + "”")
-              .font(.caption).textSelection(.enabled)
+              .readingFont(.caption).textSelection(.enabled)
           }
           DisclosureGroup("Original prepared answer") {
             WorkflowInputsView(
@@ -39,10 +40,10 @@ struct WorkflowClarificationView: View {
           Text(
             "You can also say or type “Preview my answer” in the conversation, then “Save my answer”."
           )
-          .font(.callout).foregroundStyle(.secondary)
+          .readingFont(.callout).foregroundStyle(.secondary)
           if session.failure == nil {
             Text(session.dirty ? "Saving inputs…" : "Inputs saved on this device.")
-              .font(.caption).foregroundStyle(.secondary)
+              .readingFont(.caption).foregroundStyle(.secondary)
           }
           if target != session.currentTarget {
             Text("This answer belongs to an earlier request. Your inputs are kept.")
@@ -65,7 +66,7 @@ struct WorkflowClarificationView: View {
             .accessibilityLabel("Explanation for supplied information")
             .disabled(session.busy)
           if let preview = session.preview {
-            Text(preview["notice"].text).font(.callout)
+            Text(preview["notice"].text).readingFont(.callout)
             WorkflowInputsView(
               parameters: target["fields"].array, arguments: preview["values"], workspace: workspace
             )
@@ -89,7 +90,7 @@ struct WorkflowClarificationView: View {
           if session.currentTarget != nil, target != session.currentTarget {
             Button("Use current request and keep these inputs") {
               Task { await session.useCurrent() }
-            }.font(.callout).disabled(session.busy || workspace.busy || session.conflict)
+            }.readingFont(.callout).disabled(session.busy || workspace.busy || session.conflict)
           }
         }
         if !state.alternatives.isEmpty {
@@ -100,7 +101,9 @@ struct WorkflowClarificationView: View {
                 Text(
                   "Saved answer \(index + 1)" + (alternative.receipt == nil ? "" : " · Submitted"))
                 Button("Open") { Task { await session.restoreAlternative(alternative.id) } }
+                  .accessibilityLabel("Open saved answer \(index + 1)")
                 Button("Remove") { Task { await session.discardAlternative(alternative.id) } }
+                  .accessibilityLabel("Remove saved answer \(index + 1)")
               }.disabled(session.busy || session.conflict)
             }
           }
@@ -117,7 +120,10 @@ struct WorkflowClarificationView: View {
             session.busy)
         }
       }
-    }
+    }.announceStatus(
+      session.failure
+        ?? (session.state?.entry.receipt == nil
+          ? nil : "Your information was saved. Continue the workflow when ready."))
   }
   private func binding(_ field: Value) -> Binding<Value> {
     .init(

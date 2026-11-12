@@ -10,6 +10,10 @@ import SwiftUI
   let open: (URL) -> Void
   let pasteboard: NSPasteboard
   @State private var error: String?
+  @State private var selection: Int?
+  @State private var detail: Int?
+  @State private var copied: String?
+  @AppStorage(ReadingStyle.preference) private var textScale = 1.0
   public init(
     content: PreviewTableContent, label: String, inline: Bool = false,
     open: @escaping (URL) -> Void = { _ in }, pasteboard: NSPasteboard = .general
@@ -21,10 +25,61 @@ import SwiftUI
     self.pasteboard = pasteboard
   }
   public var body: some View {
-    ReadOnlyGrid(
-      content: content, label: label, inline: inline, open: open, pasteboard: pasteboard,
-      failure: { error = $0 }
-    )
+    VStack(alignment: .leading, spacing: 6) {
+      ReadOnlyGrid(
+        content: content, label: label, inline: inline, open: open, pasteboard: pasteboard,
+        failure: { error = $0 }, selected: { selection = $0 }, inspect: { detail = $0 },
+        copied: { copied = $0 }, textScale: textScale)
+      HStack {
+        Button("Read selected row") { detail = selection }
+          .disabled(selection == nil)
+          .accessibilityLabel("Read full values in the selected row of " + label)
+        if let copied { Text(copied).readingFont(.caption).foregroundStyle(.secondary) }
+      }
+    }
+    .announceStatus(copied)
+    .sheet(isPresented: Binding(get: { detail != nil }, set: { if !$0 { detail = nil } })) {
+      VStack(alignment: .leading, spacing: 14) {
+        Text(label).readingFont(.title2).accessibilityAddTraits(.isHeader)
+        if let row = detail, content.rows.indices.contains(row) {
+          Text("Row \(row + 1)").readingFont(.headline).accessibilityAddTraits(.isHeader)
+          ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+              ForEach(content.headings.indices, id: \.self) { column in
+                if content.rows[row].indices.contains(column) {
+                  VStack(alignment: .leading, spacing: 4) {
+                    Text(content.plain(content.headings[column])).readingFont(.headline)
+                      .accessibilityAddTraits(.isHeader)
+                    let value = content.plain(content.rows[row][column])
+                    if value.utf8.count > LongReadingText.thresholdBytes {
+                      LongReadingText(
+                        identity: content.rowIDs[row] + String(column) + value,
+                        text: { LongReadingText.plain(value) })
+                    } else {
+                      Text(value).textSelection(.enabled)
+                    }
+                    ForEach(
+                      Array(content.links(row: row, column: column).enumerated()), id: \.offset
+                    ) { _, link in
+                      Button("Open " + link.title) {
+                        detail = nil
+                        open(link.url)
+                      }.buttonStyle(.link)
+                    }
+                  }.accessibilityElement(children: .contain)
+                }
+              }
+            }.frame(maxWidth: .infinity, alignment: .leading)
+          }
+        } else {
+          Text("This row is no longer displayed. Close and select a current row.")
+        }
+        Button("Done") { detail = nil }.keyboardShortcut(.cancelAction)
+      }.padding(20).readingFont(.body)
+        .frame(minWidth: 360, idealWidth: 560, minHeight: 300, idealHeight: 500)
+    }
+    .onChange(of: content) { _, _ in detail = nil }
+
     .frame(
       minHeight: inline ? nil : 160,
       maxHeight: inline ? 320 : .infinity
@@ -46,11 +101,56 @@ import SwiftUI
 private final class PreviewGrid: NSTableView {
   var copyRows: ((Bool, Bool) -> Void)?
   var menuRows: (() -> NSMenu)?
+  var openCell: ((Int, Int) -> Void)?
+  var activeColumn = 0
+  override func mouseDown(with event: NSEvent) {
+    let column = column(at: convert(event.locationInWindow, from: nil))
+    if column >= 0 { activeColumn = column }
+    super.mouseDown(with: event)
+    needsDisplay = true
+  }
+  override func draw(_ dirtyRect: NSRect) {
+    super.draw(dirtyRect)
+    guard window?.firstResponder === self, selectedRow >= 0, numberOfColumns > 0 else { return }
+    NSColor.keyboardFocusIndicatorColor.setStroke()
+    let ring = NSBezierPath(
+      rect: frameOfCell(atColumn: activeColumn, row: selectedRow).insetBy(dx: 1, dy: 1))
+    ring.lineWidth = 2
+    ring.stroke()
+  }
+  override func becomeFirstResponder() -> Bool {
+    let accepted = super.becomeFirstResponder()
+    needsDisplay = true
+    return accepted
+  }
+  override func resignFirstResponder() -> Bool {
+    needsDisplay = true
+    return super.resignFirstResponder()
+  }
   @objc func copy(_ sender: Any?) { copyRows?(false, false) }
   override func keyDown(with event: NSEvent) {
     if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers == "c" {
       copy(nil)
       return
+    }
+    if event.modifierFlags.intersection([.command, .control, .option]).isEmpty {
+      if event.keyCode == 123 || event.keyCode == 124 {
+        activeColumn = min(
+          max(0, activeColumn + (event.keyCode == 123 ? -1 : 1)), max(0, numberOfColumns - 1))
+        scrollColumnToVisible(activeColumn)
+        if selectedRow >= 0,
+          let cell = view(atColumn: activeColumn, row: selectedRow, makeIfNecessary: true)
+            as? NSTableCellView
+        {
+          cell.textField?.setAccessibilityFocused(true)
+        }
+        needsDisplay = true
+        return
+      }
+      if event.keyCode == 36 || event.keyCode == 76 {
+        openCell?(selectedRow, activeColumn)
+        return
+      }
     }
     super.keyDown(with: event)
   }
@@ -65,8 +165,18 @@ private final class PreviewGrid: NSTableView {
 
 /// Equal vertical padding; text that exceeds the row limit ends in an ellipsis.
 /// The leading inset lines values up with their column headings.
+private final class PreviewLinkField: NSTextField {
+  var press: (() -> Bool)?
+  var focusChanged: (() -> Void)?
+  override func accessibilityPerformPress() -> Bool { press?() ?? false }
+  override func setAccessibilityFocused(_ focused: Bool) {
+    super.setAccessibilityFocused(focused)
+    if focused { focusChanged?() }
+  }
+}
+
 private final class PreviewCell: NSTableCellView {
-  let field = NSTextField(wrappingLabelWithString: "")
+  let field = PreviewLinkField(wrappingLabelWithString: "")
   private var links: [NSRange] = []
   init() {
     super.init(frame: .zero)
@@ -109,7 +219,9 @@ private final class PreviewCell: NSTableCellView {
       .foregroundColor, value: selected ? NSColor.alternateSelectedControlTextColor : .labelColor,
       range: NSRange(location: 0, length: text.length))
     if !selected {
-      for link in links { text.addAttribute(.foregroundColor, value: NSColor.linkColor, range: link) }
+      for link in links {
+        text.addAttribute(.foregroundColor, value: NSColor.linkColor, range: link)
+      }
     }
     field.attributedStringValue = text
   }
@@ -156,6 +268,10 @@ private struct ReadOnlyGrid: NSViewRepresentable {
   let open: (URL) -> Void
   let pasteboard: NSPasteboard
   let failure: (String) -> Void
+  let selected: (Int?) -> Void
+  let inspect: (Int) -> Void
+  let copied: (String) -> Void
+  let textScale: Double
   func makeCoordinator() -> Coordinator { Coordinator(self) }
   func makeNSView(context: Context) -> NSScrollView {
     let grid = PreviewGrid()
@@ -163,6 +279,7 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     grid.dataSource = context.coordinator
     grid.target = context.coordinator
     grid.action = #selector(Coordinator.openClickedLink)
+    grid.doubleAction = #selector(Coordinator.openClickedLink)
     grid.allowsMultipleSelection = true
     // Links, widths and copied rows follow the data's column order.
     grid.allowsColumnReordering = false
@@ -190,17 +307,25 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     let coordinator = context.coordinator
     let changed =
       coordinator.parent.content != content || grid.tableColumns.count != content.headings.count
+      || coordinator.parent.textScale != textScale
+    let oldIDs = Set(
+      grid.selectedRowIndexes.compactMap { index in
+        coordinator.parent.content.rowIDs.indices.contains(index)
+          ? coordinator.parent.content.rowIDs[index] : nil
+      })
     coordinator.parent = self
     grid.setAccessibilityLabel(label)
     grid.setAccessibilityHelp(
-      "Read only. Select rows with Shift or Command. Command-C copies selected rows as cells. Click a link in a cell to open it, or right-click for headings, CSV or source links. With no selection, Copy includes the whole displayed table."
+      "Read only. Select rows with Shift or Command. Command-C copies selected rows as cells. Left and Right choose a column. Return opens its source or full row values. Read selected row shows all values and source buttons. Source actions are also available on each linked cell. With no selection, Copy includes the whole displayed table."
     )
     grid.copyRows = { [weak coordinator] headings, csv in
       coordinator?.copy(headings: headings, csv: csv)
     }
     grid.menuRows = { [weak coordinator] in coordinator?.menu() ?? NSMenu() }
+    grid.openCell = { [weak coordinator] row, column in coordinator?.open(row: row, column: column)
+    }
     guard changed else { return }
-    let oldSelection = grid.selectedRowIndexes
+    grid.activeColumn = min(grid.activeColumn, max(0, content.headings.count - 1))
     if grid.tableColumns.count != content.headings.count || coordinator.headings != content.headings
     {
       for column in grid.tableColumns { grid.removeTableColumn(column) }
@@ -214,11 +339,17 @@ private struct ReadOnlyGrid: NSViewRepresentable {
       }
       coordinator.headings = content.headings
     }
+    grid.headerView?.frame.size.height = 24 * ReadingStyle.scale(textScale)
+    for column in grid.tableColumns {
+      column.headerCell.font = .systemFont(ofSize: 11 * ReadingStyle.scale(textScale))
+    }
     coordinator.measure()
     if scroll.window != nil { coordinator.fit(scroll.contentView.bounds.width) }
     grid.reloadData()
     grid.selectRowIndexes(
-      oldSelection.intersection(IndexSet(content.rows.indices)), byExtendingSelection: false)
+      IndexSet(content.rowIDs.indices.filter { oldIDs.contains(content.rowIDs[$0]) }),
+      byExtendingSelection: false)
+    coordinator.publishSelection()
   }
   func sizeThatFits(_ proposal: ProposedViewSize, nsView scroll: NSScrollView, context: Context)
     -> CGSize?
@@ -258,7 +389,7 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     private var userResized = false
     private var heights: [Int: CGFloat] = [:]
     private let measuring = NSTextField(wrappingLabelWithString: "")
-    static let font = NSFont.systemFont(ofSize: 13)
+    var font: NSFont { .systemFont(ofSize: 13 * ReadingStyle.scale(parent.textScale)) }
     static let maximumLines = 6
     init(_ parent: ReadOnlyGrid) { self.parent = parent }
     /// Natural widths avoid wrapping short values; minimum widths keep whole
@@ -279,10 +410,10 @@ private struct ReadOnlyGrid: NSViewRepresentable {
         for row in content.rows.prefix(300) where row.indices.contains(index) {
           let text = content.plain(row[index]).prefix(1000)
           for line in text.split(whereSeparator: \.isNewline) {
-            natural = max(natural, width(line, Self.font))
+            natural = max(natural, width(line, font))
           }
           for token in text.split(whereSeparator: \.isWhitespace) {
-            word = max(word, width(token, Self.font))
+            word = max(word, width(token, font))
           }
         }
         let title = width(Substring(content.plain(heading)), headingFont) + 18
@@ -352,7 +483,7 @@ private struct ReadOnlyGrid: NSViewRepresentable {
     func rowHeight(_ row: Int, widths: [CGFloat]) -> CGFloat {
       guard parent.content.rows.indices.contains(row) else { return 30 }
       var height: CGFloat = 0
-      measuring.font = Self.font
+      measuring.font = font
       for (index, value) in parent.content.rows[row].enumerated() where index < widths.count {
         measuring.stringValue = String(parent.content.plain(value).prefix(1024))
         let size = measuring.cell!.cellSize(
@@ -360,7 +491,7 @@ private struct ReadOnlyGrid: NSViewRepresentable {
             x: 0, y: 0, width: floor(widths[index]) - PreviewCell.leading, height: 10_000))
         height = max(height, size.height)
       }
-      let line = ceil(Self.font.ascender - Self.font.descender + Self.font.leading)
+      let line = ceil(font.ascender - font.descender + font.leading)
       let text = ceil(min(height, line * CGFloat(Self.maximumLines) + 4))
       return max(30, text + 2 * PreviewCell.padding)
     }
@@ -377,15 +508,48 @@ private struct ReadOnlyGrid: NSViewRepresentable {
         ?? PreviewCell()
       cell.identifier = identifier
       let field = cell.field
-      field.font = Self.font
-      let value = parent.content.rows[row][column]
+      field.font = font
+      let content = parent.content
+      let value = content.rows[row][column]
+      let destinations = content.links(row: row, column: column)
       let links = parent.content.linkRanges(value)
       cell.show(parent.content.plain(value), links: links)
       field.toolTip = String(parent.content.plain(value).prefix(4000))
       field.setAccessibilityLabel(
         (tableColumn?.title.isEmpty == false ? tableColumn!.title : "Value") + ", row \(row + 1)"
-          + (links.isEmpty ? "" : ", source link"))
+          + (destinations.isEmpty ? "" : ", source link"))
       field.setAccessibilityValue(parent.content.plain(value))
+      let context = ", row \(row + 1), " + (tableColumn?.title ?? "Value")
+      field.setAccessibilityRole(destinations.count == 1 ? .link : .staticText)
+      field.setAccessibilityCustomActions(
+        destinations.map { link in
+          NSAccessibilityCustomAction(name: "Open " + link.title + context) { [weak self] in
+            guard let self, self.parent.content == content else { return false }
+            self.parent.open(link.url)
+            return true
+          }
+        } + [
+          NSAccessibilityCustomAction(name: "Read full row \(row + 1)") { [weak self] in
+            guard let self, self.parent.content == content else { return false }
+            self.parent.inspect(row)
+            return true
+          }
+        ])
+      field.press =
+        destinations.count == 1
+        ? { [weak self] in
+          guard let self, self.parent.content == content else { return false }
+          self.parent.open(destinations[0].url)
+          return true
+        } : nil
+      field.focusChanged = { [weak self] in
+        guard let self, self.parent.content == content, let grid = self.grid else { return }
+        grid.activeColumn = column
+        grid.needsDisplay = true
+        if !grid.isRowSelected(row) {
+          grid.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+        }
+      }
       return cell
     }
     func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
@@ -393,6 +557,24 @@ private struct ReadOnlyGrid: NSViewRepresentable {
       let height = rowHeight(row, widths: tableView.tableColumns.map(\.width))
       heights[row] = height
       return height
+    }
+    func tableViewSelectionDidChange(_ notification: Notification) { publishSelection() }
+    func publishSelection() {
+      grid?.needsDisplay = true
+      let snapshot = parent.content
+      let selected = grid?.selectedRow ?? -1
+      let value = parent.content.rows.indices.contains(selected) ? selected : nil
+      // Selection notifications also occur inside SwiftUI updates.
+      DispatchQueue.main.async { [weak self] in
+        guard let self, self.parent.content == snapshot, (self.grid?.selectedRow ?? -1) == selected
+        else { return }
+        self.parent.selected(value)
+      }
+    }
+    func open(row: Int, column: Int) {
+      guard parent.content.rows.indices.contains(row) else { return }
+      let links = parent.content.links(row: row, column: column)
+      if links.count == 1 { parent.open(links[0].url) } else { parent.inspect(row) }
     }
     func tableViewColumnDidResize(_ notification: Notification) {
       guard !applyingWidths else { return }
@@ -419,6 +601,9 @@ private struct ReadOnlyGrid: NSViewRepresentable {
         } else {
           try copied.write(to: parent.pasteboard)
         }
+        parent.copied(
+          "Copied \(grid.selectedRowIndexes.isEmpty ? parent.content.rows.count : grid.selectedRowIndexes.count) rows"
+        )
       } catch { parent.failure(error.localizedDescription) }
     }
     /// A cell's one link opens on click. Several stay in the context menu, and
@@ -427,34 +612,42 @@ private struct ReadOnlyGrid: NSViewRepresentable {
       guard let grid, parent.content.rows.indices.contains(grid.clickedRow),
         parent.content.rows[grid.clickedRow].indices.contains(grid.clickedColumn),
         NSApp.currentEvent?.modifierFlags.intersection([.shift, .command]).isEmpty ?? true,
-        parent.content.markdown
+        parent.content.markdown || (NSApp.currentEvent?.clickCount ?? 0) >= 2
       else { return }
-      let links = ConversationPresentation(parent.content.rows[grid.clickedRow][grid.clickedColumn])
-        .links
+      let links = parent.content.links(row: grid.clickedRow, column: grid.clickedColumn)
       if links.count == 1 { parent.open(links[0].url) }
     }
     @objc func performMenu(_ item: NSMenuItem) { actions[item.tag]?() }
     func menu() -> NSMenu {
       actions = [:]
+      let snapshot = parent.content
       let menu = NSMenu()
       func add(_ title: String, _ action: @escaping () -> Void) {
         let item = NSMenuItem(title: title, action: #selector(performMenu), keyEquivalent: "")
         item.tag = actions.count
         item.target = self
-        actions[item.tag] = action
+        actions[item.tag] = { [weak self] in
+          guard self?.parent.content == snapshot else { return }
+          action()
+        }
         menu.addItem(item)
+      }
+      if let row = grid?.selectedRow, parent.content.rows.indices.contains(row) {
+        add("Read full row \(row + 1)") { [weak self] in self?.parent.inspect(row) }
       }
       add("Copy") { [weak self] in self?.copy(headings: false, csv: false) }
       add("Copy with headings") { [weak self] in self?.copy(headings: true, csv: false) }
       add("Copy as CSV") { [weak self] in self?.copy(headings: false, csv: true) }
-      if parent.content.markdown, let selected = grid?.selectedRowIndexes, !selected.isEmpty {
+      if let selected = grid?.selectedRowIndexes, !selected.isEmpty {
         let cells = parent.content.cells(selected: selected, headings: false)
         // Discover links from original markup rather than the copied plain labels.
-        let raw = selected.filter { parent.content.rows.indices.contains($0) }
-          .flatMap { parent.content.rows[$0] }.joined(separator: "\n")
-        let links = ConversationPresentation(raw).links
+        let links = selected.filter { parent.content.rows.indices.contains($0) }.flatMap { row in
+          parent.content.rows[row].indices.flatMap { parent.content.links(row: row, column: $0) }
+        }
         if !cells.isEmpty && !links.isEmpty { menu.addItem(.separator()) }
-        for link in links { add(link.actionTitle) { [weak self] in self?.parent.open(link.url) } }
+        for link in links {
+          add("Open " + link.title) { [weak self] in self?.parent.open(link.url) }
+        }
       }
       return menu
     }

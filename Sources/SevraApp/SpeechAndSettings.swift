@@ -1,10 +1,12 @@
 import SevraAI
 import SevraCore
 import SevraProduct
+import SevraTableUI
 import SevraVoice
 import SwiftUI
 
 struct ModelSettingsView: View {
+  @AppStorage(ReadingStyle.preference) private var textScale = 1.0
   @AppStorage("appearance") private var appearance = "system"
   @AppStorage(ProductAI.preferenceKey) private var modelDirectory = ProductAI.defaultDirectory.path
   @State private var busy = false
@@ -19,14 +21,24 @@ struct ModelSettingsView: View {
         Text("Light").tag("light")
         Text("Dark").tag("dark")
       }
+      Section("Reading") {
+        Picker("Text size", selection: $textScale) {
+          ForEach([1.0, 1.25, 1.5, 1.75, 2.0], id: \.self) { value in
+            Text("\(Int(value * 100)) percent").tag(value)
+          }
+        }
+        Text(
+          "Changes Sevra text, including tables and document text. Original PDFs and images keep their own zoom controls."
+        ).foregroundStyle(.secondary)
+      }
       Section("Local AI") {
-        Text(ProductAI.name).font(.headline)
+        Text(ProductAI.name).readingFont(.headline).accessibilityAddTraits(.isHeader)
         Text(ProductAI.detail).foregroundStyle(.secondary)
         Label(
           filesFound ? "Model files found" : "Set up local AI to start asking questions",
           systemImage: filesFound ? "checkmark.circle" : "arrow.down.circle")
         if filesFound {
-          Text("Sevra verifies the files before using them.").font(.caption).foregroundStyle(
+          Text("Sevra verifies the files before using them.").readingFont(.caption).foregroundStyle(
             .secondary)
         }
         Text(
@@ -59,7 +71,7 @@ struct ModelSettingsView: View {
             Text(
               "Existing weights are verified and reused in place. Keep their original folder available."
             )
-            .font(.caption).foregroundStyle(.secondary)
+            .readingFont(.caption).foregroundStyle(.secondary)
           }
           Button("Unload model from memory") {
             Task {
@@ -75,7 +87,7 @@ struct ModelSettingsView: View {
           ProgressView()
           Button("Cancel") { cancellation.cancel() }
         }
-        if !status.isEmpty { Text(status).font(.caption).textSelection(.enabled) }
+        if !status.isEmpty { Text(status).readingFont(.caption).textSelection(.enabled) }
         if let error { Text(error).foregroundStyle(.red).textSelection(.enabled) }
       }
       Section("Voice") {
@@ -83,14 +95,17 @@ struct ModelSettingsView: View {
           "Dictation uses on-device speech recognition. Microphone permission is requested when you first use it. Review dictated text before sending."
         ).foregroundStyle(.secondary)
       }
-    }.formStyle(.grouped).padding(12).frame(width: 600, height: 580)
-      .task(id: modelDirectory) {
-        filesFound = false
-        let found = await ProductAI.shared.installed(at: URL(fileURLWithPath: modelDirectory))
-        guard !Task.isCancelled else { return }
-        filesFound = found
-      }
-      .onDisappear { cancellation.cancel() }
+    }.formStyle(.grouped).padding(12).frame(
+      minWidth: 420, idealWidth: 600, minHeight: 400, idealHeight: 580
+    )
+    .announceStatus(error ?? (busy || status.isEmpty ? nil : status))
+    .task(id: modelDirectory) {
+      filesFound = false
+      let found = await ProductAI.shared.installed(at: URL(fileURLWithPath: modelDirectory))
+      guard !Task.isCancelled else { return }
+      filesFound = found
+    }
+    .onDisappear { cancellation.cancel() }
   }
   func setup(reusing source: URL? = nil) {
     busy = true
@@ -138,7 +153,7 @@ struct VoiceButton: View {
 struct VoiceStatus: View {
   @ObservedObject var speech: SpeechInput
   var body: some View {
-    Text(speech.status).font(.caption).foregroundStyle(.secondary)
+    Text(speech.status).readingFont(.caption).foregroundStyle(.secondary)
       .fixedSize(horizontal: false, vertical: true)
   }
 }

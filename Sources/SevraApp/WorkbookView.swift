@@ -2,6 +2,7 @@ import AVKit
 import AppKit
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SevraVoice
 import SwiftUI
 
@@ -11,22 +12,27 @@ struct WorkbookView: View {
   @State private var editingSpace: Space?
   @State private var conversationFrames: [String: CGRect] = [:]
   @FocusState private var composerFocused: Bool
+  @AccessibilityFocusState private var readingFocus: WorkbookReadingTarget?
+  @FocusState private var keyboardPane: WorkbookReadingTarget?
   let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
   var body: some View {
     VStack(spacing: 0) {
       HStack {
         Button {
           state.focus.toggle()
+          state.requestReadingFocus(state.focus ? .workspace : .conversation)
         } label: {
           Image(systemName: "sidebar.left")
         }.help(state.focus ? "Show conversation" : "Focus workspace")
           .accessibilityLabel(state.focus ? "Show conversation" : "Focus workspace")
         ObserverMark().fill(.primary).frame(width: 28, height: 28).accessibilityHidden(true)
-        Text(state.workbook?.title ?? "Sevra").font(.headline).lineLimit(1)
+        Text(state.workbook?.title ?? "Sevra").readingFont(.headline).accessibilityAddTraits(
+          .isHeader
+        ).lineLimit(1)
         Spacer()
         if state.busy {
           ProgressView().controlSize(.small)
-          Text(state.status).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+          Text(state.status).readingFont(.caption).foregroundStyle(.secondary).lineLimit(1)
             .frame(maxWidth: 160).help(state.status)
           Button("Stop", action: state.stop)
         }
@@ -63,7 +69,11 @@ struct WorkbookView: View {
                 Image(systemName: "house")
               }.help("Home").accessibilityLabel("Home")
             }
-            Text(routeTitle).font(.title3.weight(.medium)).lineLimit(1).help(routeTitle)
+            Text(routeTitle).readingFont(.title3, weight: .medium).accessibilityAddTraits(.isHeader)
+              .lineLimit(1).help(routeTitle)
+              .accessibilityAddTraits(.isHeader)
+              .focusable().focused($keyboardPane, equals: .workspace)
+              .accessibilityFocused($readingFocus, equals: .workspace)
               .layoutPriority(1)
             Spacer()
             ViewThatFits(in: .horizontal) {
@@ -112,18 +122,42 @@ struct WorkbookView: View {
             conversationHeader
             composer.padding(14)
           }
-        }.frame(minWidth: 450, maxWidth: .infinity)
+        }.accessibilityElement(children: .contain).accessibilityLabel("Workspace")
+          .frame(minWidth: 450, maxWidth: .infinity)
+      }
+      if state.error == nil, let status = state.terminalStatus {
+        HStack(alignment: .top) {
+          Text(status).textSelection(.enabled)
+            .accessibilityFocused($readingFocus, equals: .status)
+            .focusable().focused($keyboardPane, equals: .status)
+          Spacer()
+          Button("Review drafts") { state.navigate(.reviews) }
+          Button("Read conversation") { state.requestReadingFocus(.conversation) }
+          Button("Dismiss status") { state.terminalStatus = nil }
+        }.padding(12)
       }
       if let error = state.error {
         Divider()
         HStack(alignment: .top) {
           Image(systemName: "exclamationmark.circle")
           Text(error).textSelection(.enabled)
+            .accessibilityFocused($readingFocus, equals: .status)
+            .focusable().focused($keyboardPane, equals: .status)
           Spacer()
           Button("Dismiss") { state.error = nil }
-        }.font(.callout).padding(12).background(Color.red.opacity(0.07))
+        }.readingFont(.callout).padding(12).background(Color.red.opacity(0.07))
       }
     }.background(Color(nsColor: .windowBackgroundColor))
+      .announceStatus(state.error ?? state.terminalStatus)
+      .onChange(of: state.readingFocusRequest) { _, request in applyReadingFocus(request) }
+      .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) {
+        event in
+        if let window = event.object as? NSWindow, window === state.readingWindow,
+          state.readingFocusPending
+        {
+          applyReadingFocus(state.readingFocusRequest)
+        }
+      }
       .focusedSceneValue(\.conversationWorkspace, state)
       .sheet(item: $state.conversationDraft) { draft in
         ConversationNameSheet(draft: draft) { name in
@@ -233,6 +267,36 @@ struct WorkbookView: View {
         }
     }
   }
+  private func applyReadingFocus(_ request: UUID) {
+    guard state.readingFocusPending, state.interactionActive,
+      state.readingWindow?.isKeyWindow == true, NSApp.isActive
+    else { return }
+    let target = state.readingFocusTarget
+    readingFocus = nil
+    keyboardPane = nil
+    if case .message(let id) = target, state.messages.contains(where: { $0.id == id }) {
+      state.conversationSession.updateReading(.init(message: id))
+      state.readingRequest = UUID()
+    }
+    Task { @MainActor in
+      await Task.yield()
+      guard state.readingFocusRequest == request, state.readingFocusPending,
+        state.interactionActive,
+        state.readingWindow?.isKeyWindow == true, NSApp.isActive
+      else { return }
+      state.readingFocusPending = false
+      if target == .composer {
+        composerFocused = true
+      } else if case .message(let id) = target {
+        let present = state.messages.contains { $0.id == id && $0.role != "tool" }
+        keyboardPane = present ? target : .conversation
+        readingFocus = present ? target : .conversation
+      } else {
+        keyboardPane = target
+        readingFocus = target
+      }
+    }
+  }
   var conversationHeader: some View {
     PaneHeader {
       if state.conversation != "main" {
@@ -244,7 +308,7 @@ struct WorkbookView: View {
       }
       let threads = state.conversations.filter { $0["id"].text != "main" }
       if threads.isEmpty {
-        Text(state.conversationTitle).font(.subheadline.weight(.medium)).lineLimit(1)
+        Text(state.conversationTitle).readingFont(.subheadline, weight: .medium).lineLimit(1)
       } else {
         Menu {
           Button("Conversation") { state.changeConversation("main") }
@@ -254,7 +318,7 @@ struct WorkbookView: View {
             }
           }
         } label: {
-          Text(state.conversationTitle).font(.subheadline.weight(.medium)).lineLimit(1)
+          Text(state.conversationTitle).readingFont(.subheadline, weight: .medium).lineLimit(1)
         }
         .help("Switch between the main conversation and its threads")
         .accessibilityLabel("Switch conversation: " + state.conversationTitle)
@@ -294,6 +358,11 @@ struct WorkbookView: View {
         }
       }
     }.disabled(state.changingConversation)
+      .accessibilityElement(children: .contain).accessibilityLabel(
+        "Conversation: " + state.conversationTitle
+      )
+      .focusable().focused($keyboardPane, equals: .conversation)
+      .accessibilityFocused($readingFocus, equals: .conversation)
   }
   var conversation: some View {
     VStack(spacing: 0) {
@@ -310,7 +379,8 @@ struct WorkbookView: View {
             }
             if state.messages.isEmpty {
               VStack(alignment: .leading, spacing: 12) {
-                Text("What are we working on?").font(.title2.weight(.medium))
+                Text("What are we working on?").readingFont(.title2, weight: .medium)
+                  .accessibilityAddTraits(.isHeader)
                 Text("Add a file, ask a question, or describe what you want to organize.")
                   .foregroundStyle(.secondary)
               }.padding(.top, 30)
@@ -333,6 +403,9 @@ struct WorkbookView: View {
                   AgentActivityView(workspace: state, activity: nil, live: live)
                 }
               }.id(message.id)
+                .accessibilityElement(children: .contain)
+                .focusable().focused($keyboardPane, equals: .message(message.id))
+                .accessibilityFocused($readingFocus, equals: .message(message.id))
                 .background(
                   GeometryReader { geometry in
                     Color.clear.preference(
@@ -350,7 +423,7 @@ struct WorkbookView: View {
             } else if state.busy && state.liveActivity == nil {
               HStack {
                 ProgressView().controlSize(.small)
-                Text(state.status).font(.callout).foregroundStyle(.secondary)
+                Text(state.status).readingFont(.callout).foregroundStyle(.secondary)
               }.id("working")
             }
           }.padding(20)
@@ -375,15 +448,15 @@ struct WorkbookView: View {
       }
       Divider()
       composer.padding(14)
-    }
+    }.accessibilityElement(children: .contain).accessibilityLabel("Conversation")
   }
   var composer: some View {
     VStack(alignment: .leading, spacing: 8) {
       if state.changingConversation {
-        Text("Opening conversation…").font(.caption).foregroundStyle(.secondary)
+        Text("Opening conversation…").readingFont(.caption).foregroundStyle(.secondary)
       }
       if let failure = state.conversationSession.failure {
-        Text(failure).font(.caption).foregroundStyle(.red).textSelection(.enabled)
+        Text(failure).readingFont(.caption).foregroundStyle(.red).textSelection(.enabled)
         HStack {
           if state.conversationSession.conflict {
             Button("Keep both drafts") { Task { _ = await state.conversationSession.keepBoth() } }
@@ -407,7 +480,7 @@ struct WorkbookView: View {
       if !state.selectedContext.isEmpty {
         HStack(alignment: .top) {
           Text("About: " + (state.selectionLabel ?? String(state.selectedContext.prefix(100))))
-            .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            .readingFont(.caption).foregroundStyle(.secondary).lineLimit(2)
           Spacer(minLength: 0)
           Button {
             state.selectedContext = ""
@@ -484,31 +557,36 @@ private struct ConversationNameSheet: View {
   @FocusState private var focused: Bool
   private var title: String { draft.threadID != nil ? "Rename thread" : "Start a chapter" }
   var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
-      Text(title).font(.title2.weight(.medium))
-      Text(
-        draft.threadID != nil
-          ? "Choose a title that helps you recognize this discussion."
-          : "Name this point so you can find it later in the conversation."
-      )
-      .foregroundStyle(.secondary)
-      TextField("Name", text: $name).textFieldStyle(.roundedBorder).focused($focused)
-      if let failure { Text(failure).foregroundStyle(.red).font(.callout) }
-      HStack {
-        Spacer()
-        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
-        Button(draft.threadID != nil ? "Save title" : "Create chapter") {
-          saving = true
-          Task {
-            defer { saving = false }
-            do { try await create(name.trimmingCharacters(in: .whitespacesAndNewlines)) } catch {
-              failure = error.localizedDescription
+    ScrollView {
+      VStack(alignment: .leading, spacing: 16) {
+        Text(title).readingFont(.title2, weight: .medium).accessibilityAddTraits(.isHeader)
+        Text(
+          draft.threadID != nil
+            ? "Choose a title that helps you recognize this discussion."
+            : "Name this point so you can find it later in the conversation."
+        )
+        .foregroundStyle(.secondary)
+        TextField("Name", text: $name).textFieldStyle(.roundedBorder).focused($focused)
+        if let failure { Text(failure).foregroundStyle(.red).readingFont(.callout) }
+        HStack {
+          Spacer()
+          Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+          Button(draft.threadID != nil ? "Save title" : "Create chapter") {
+            saving = true
+            Task {
+              defer { saving = false }
+              do { try await create(name.trimmingCharacters(in: .whitespacesAndNewlines)) } catch {
+                failure = error.localizedDescription
+              }
             }
-          }
-        }.keyboardShortcut(.defaultAction)
-          .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-      }
-    }.padding(24).frame(width: 400).disabled(saving).onAppear {
+          }.keyboardShortcut(.defaultAction)
+            .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+      }.padding(24)
+    }.readingFont(.body).frame(
+      minWidth: 320, idealWidth: 440, minHeight: 240, idealHeight: 320, maxHeight: 700
+    )
+    .disabled(saving).interactiveDismissDisabled(saving).announceStatus(failure).onAppear {
       name = draft.title
       focused = true
     }
@@ -527,23 +605,29 @@ private struct ConversationSummarySheet: View {
   @State private var text = ""
   @State private var failure: String?
   var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
-      Text("Share summary with conversation").font(.title2.weight(.medium))
-      Text("Edit the findings you want to bring back. The original exchange stays linked.")
-        .foregroundStyle(.secondary)
-      TextEditor(text: $text).font(.body).frame(minHeight: 180)
-        .accessibilityLabel("Summary to share")
-        .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
-      if let failure { Text(failure).foregroundStyle(.red) }
-      HStack {
-        Spacer()
-        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
-        Button("Share summary") {
-          do { try share(text) } catch { failure = error.localizedDescription }
-        }.keyboardShortcut(.defaultAction)
-          .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-      }
-    }.padding(24).frame(width: 480)
-      .onAppear { text = draft.text }
+    ScrollView {
+      VStack(alignment: .leading, spacing: 16) {
+        Text("Share summary with conversation").readingFont(.title2, weight: .medium)
+          .accessibilityAddTraits(.isHeader)
+        Text("Edit the findings you want to bring back. The original exchange stays linked.")
+          .foregroundStyle(.secondary)
+        TextEditor(text: $text).readingFont(.body).frame(minHeight: 180)
+          .accessibilityLabel("Summary to share")
+          .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
+        if let failure { Text(failure).foregroundStyle(.red) }
+        HStack {
+          Spacer()
+          Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+          Button("Share summary") {
+            do { try share(text) } catch { failure = error.localizedDescription }
+          }.keyboardShortcut(.defaultAction)
+            .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+      }.padding(24)
+    }.readingFont(.body).frame(
+      minWidth: 320, idealWidth: 520, minHeight: 240, idealHeight: 520, maxHeight: 700
+    )
+    .announceStatus(failure)
+    .onAppear { text = draft.text }
   }
 }

@@ -1,5 +1,6 @@
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 struct FormComponentView: View {
@@ -40,12 +41,13 @@ private struct NativeFormEditor: View {
   @ObservedObject var session: FormDraftSession
   let currentFormID: String?
   @ObservedObject var workspace: WorkspaceState
+  @AccessibilityFocusState private var validationFocused: Bool
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       if let definition = session.definition, let state = session.state {
         if state.definitionID != currentFormID {
           Text("This draft keeps the form version you opened. A newer form is available.")
-            .font(.callout).foregroundStyle(.secondary)
+            .readingFont(.callout).foregroundStyle(.secondary)
         }
         if let receipt = state.lastReceipt {
           if let runID = receipt["workflowRunID"].string {
@@ -65,27 +67,29 @@ private struct NativeFormEditor: View {
             }
           }
         } else {
+          if !session.issues.isEmpty {
+            Text(
+              "Check \(session.issues.count) input issues. "
+                + session.issues.map { $0["message"].text }.joined(separator: " ")
+            )
+            .foregroundStyle(.red).textSelection(.enabled)
+            .accessibilityFocused($validationFocused)
+          }
           ForEach(definition.payload["fields"].array, id: \.text) { presentation in
             let id = presentation["parameter"].text
             if let parameter = definition.parameters.array.first(where: { $0["id"].text == id }) {
               FormParameterField(
                 parameter: parameter, label: presentation["label"].string,
                 help: presentation["help"].string, value: parameterBinding(parameter),
-                workbook: workspace.workbook)
-              ForEach(
-                Array(session.issues.filter { $0["path"].array.first == .string(id) }.enumerated()),
-                id: \.offset
-              ) { _, issue in
-                Text(issue["message"].text).font(.caption).foregroundStyle(.red)
-              }
+                workbook: workspace.workbook, issues: session.issues)
             }
           }
           .disabled(session.busy)
           if let preview = session.preview {
             Divider()
-            Text(preview["effect"].text).font(.callout)
+            Text(preview["effect"].text).readingFont(.callout)
             ForEach(Array(preview["documents"].array.enumerated()), id: \.offset) { _, document in
-              Text(document["title"].text).font(.headline)
+              Text(document["title"].text).readingFont(.headline).accessibilityAddTraits(.isHeader)
               Text(document["body"].text).textSelection(.enabled)
             }
             ForEach(Array(preview["movements"].array.enumerated()), id: \.offset) { _, movement in
@@ -93,7 +97,7 @@ private struct NativeFormEditor: View {
                 .textSelection(.enabled)
             }
             ForEach(Array(preview["steps"].array.enumerated()), id: \.offset) { index, step in
-              Text("\(index + 1). " + step["title"].text).font(.callout)
+              Text("\(index + 1). " + step["title"].text).readingFont(.callout)
             }
             Button(
               preview["kind"] == .string("workflow") ? "Start workflow" : "Save draft proposals"
@@ -114,12 +118,25 @@ private struct NativeFormEditor: View {
               }
             }.disabled(session.busy || workspace.busy)
           } else {
-            Button("Preview") { Task { await session.prepare() } }.disabled(session.busy)
+            Button("Preview") {
+              validationFocused = false
+              let origin = workspace.route
+              let owner = workspace.interactionIdentity
+              Task {
+                await session.prepare()
+                if !session.issues.isEmpty, workspace.route == origin,
+                  workspace.interactionIdentity == owner,
+                  workspace.readingWindow?.isKeyWindow == true
+                {
+                  validationFocused = true
+                }
+              }
+            }.disabled(session.busy)
           }
           if let currentFormID, currentFormID != state.definitionID || session.stale {
             Button("Use current form and keep these inputs") {
               Task { await session.useCurrent(currentFormID, carryInputs: true) }
-            }.font(.callout).disabled(session.busy)
+            }.readingFont(.callout).disabled(session.busy)
           }
         }
         if !state.alternatives.isEmpty {
@@ -128,7 +145,9 @@ private struct NativeFormEditor: View {
               HStack {
                 Text("Saved draft \(index + 1)")
                 Button("Open") { Task { await session.restoreAlternative(saved.id) } }
+                  .accessibilityLabel("Open saved draft \(index + 1)")
                 Button("Remove") { Task { await session.discardAlternative(saved.id) } }
+                  .accessibilityLabel("Remove saved draft \(index + 1)")
               }.disabled(session.busy)
             }
           }
@@ -143,7 +162,10 @@ private struct NativeFormEditor: View {
           Button("Retry saving inputs") { Task { _ = await session.flush() } }
         }
       }
-    }
+    }.announceStatus(
+      session.failure
+        ?? (session.state?.lastReceipt == nil
+          ? nil : "Saved. Review the result before business use."))
   }
   private func parameterBinding(_ parameter: Value) -> Binding<Value> {
     let key = parameter["id"].text
@@ -166,19 +188,43 @@ struct FormParameterField: View {
   @Binding var value: Value
   let workbook: Workbook?
   var evidenceIDs: [String]?
+  var context: String?
+  var issues: [Value] = []
+  var path: [Value] = []
   @State private var choosingEvidence = false
   @State private var evidenceTitle: String?
   private var title: String { label ?? parameter["label"].text }
+  private var fieldPath: [Value] { path.isEmpty ? [.string(parameter["id"].text)] : path }
+  private var fieldIssues: [String] {
+    issues.filter { $0["path"].array == fieldPath }.map { $0["message"].text }
+  }
+  private var accessibleTitle: String {
+    ([
+      context, title, parameter["required"] == .bool(true) ? "Required" : nil,
+      parameter["unit"].string,
+    ].compactMap { $0 }).joined(separator: ", ")
+  }
+  private var fieldHelp: String {
+    var parts = [help].compactMap { $0 }.filter { !$0.isEmpty }
+    if parameter["type"] == .string("date") {
+      parts.append("Date in year-month-day format, YYYY-MM-DD.")
+    }
+    if parameter["min"] != .null { parts.append("Minimum: " + parameter["min"].text) }
+    if parameter["max"] != .null { parts.append("Maximum: " + parameter["max"].text) }
+    if let limit = parameter["maxEntries"].int { parts.append("Up to \(limit) lines.") }
+    parts += fieldIssues.map { "Error: " + $0 }
+    return parts.joined(separator: " ")
+  }
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      Text(title + (parameter["required"] == .bool(true) ? " *" : "")).font(
-        .callout.weight(.medium))
+      Text(title + (parameter["required"] == .bool(true) ? " *" : "")).readingFont(
+        .callout, weight: .medium)
       switch parameter["type"].text {
       case "entries":
         ForEach(value.array.indices, id: \.self) { index in
           VStack(alignment: .leading, spacing: 10) {
             HStack {
-              Text("Line \(index + 1)").font(.caption)
+              Text("Line \(index + 1)").readingFont(.caption)
               Spacer()
               Button("Remove line") {
                 var rows = value.array
@@ -186,17 +232,25 @@ struct FormParameterField: View {
                 rows.remove(at: index)
                 value = .array(rows)
               }
-              .accessibilityLabel("Remove delivery line \(index + 1)")
+              .accessibilityLabel("Remove " + title + ", line \(index + 1)")
             }
             ForEach(parameter["fields"].array, id: \.text) { field in
               AnyView(
                 FormParameterField(
                   parameter: field, value: entryBinding(index, field: field), workbook: workbook,
-                  evidenceIDs: evidenceIDs))
+                  evidenceIDs: evidenceIDs,
+                  context: [context, title, "Line \(index + 1)"].compactMap { $0 }.joined(
+                    separator: ", "),
+                  issues: issues,
+                  path: fieldPath + [.number(Double(index)), .string(field["id"].text)]))
             }
-          }.padding(12).background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 8))
+          }.accessibilityElement(children: .contain)
+            .accessibilityLabel(title + ", line \(index + 1)")
+            .padding(12).background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 8))
         }
         Button("Add delivery line") { value = .array(value.array + [.object([:])]) }
+          .accessibilityLabel("Add line to " + accessibleTitle)
+          .accessibilityHint(fieldHelp)
           .disabled(value.array.count >= (parameter["maxEntries"].int ?? 0))
       case "choice", "boolean":
         Picker(
@@ -216,24 +270,27 @@ struct FormParameterField: View {
           } else {
             ForEach(parameter["choices"].array, id: \.text) { Text($0.text).tag($0.text) }
           }
-        }.labelsHidden().accessibilityLabel(title)
+        }.labelsHidden().accessibilityLabel(accessibleTitle).accessibilityHint(fieldHelp)
       case "item":
         if let evidenceIDs {
           ClarificationEvidenceField(
-            title: title, evidenceIDs: evidenceIDs, value: $value, workbook: workbook)
+            title: accessibleTitle, evidenceIDs: evidenceIDs, value: $value, workbook: workbook
+          ).accessibilityHint(fieldHelp)
         } else {
           HStack {
             Button(
               value == .null || value.text.isEmpty
                 ? "Choose evidence…" : evidenceTitle ?? "Selected evidence"
             ) { choosingEvidence = true }
-            .accessibilityLabel(title + ": " + (evidenceTitle ?? "Choose evidence"))
+            .accessibilityLabel(accessibleTitle + ": " + (evidenceTitle ?? "Choose evidence"))
+            .accessibilityHint(fieldHelp)
             if value != .null {
               Button("Open") {
                 NotificationCenter.default.post(name: .sevraOpenEvidence, object: value.text)
-              }.accessibilityLabel("Open " + title)
+              }.accessibilityLabel(
+                "Open " + accessibleTitle + ": " + (evidenceTitle ?? "Selected evidence"))
               if parameter["required"] != .bool(true) {
-                Button("Clear") { value = .null }.accessibilityLabel("Clear " + title)
+                Button("Clear") { value = .null }.accessibilityLabel("Clear " + accessibleTitle)
               }
             }
           }
@@ -262,13 +319,17 @@ struct FormParameterField: View {
             set: { value = formFieldValue($0, parameter: parameter) }),
           axis: parameter["type"].text == "text" ? .vertical : .horizontal
         )
-        .lineLimit(1...12).textFieldStyle(.roundedBorder).accessibilityLabel(title)
+        .lineLimit(1...12).textFieldStyle(.roundedBorder).accessibilityLabel(accessibleTitle)
+        .accessibilityHint(fieldHelp)
         if let unit = parameter["unit"].string {
-          Text(unit).font(.caption).foregroundStyle(.secondary)
+          Text(unit).readingFont(.caption).foregroundStyle(.secondary)
         }
       }
-      if let help, !help.isEmpty { Text(help).font(.caption).foregroundStyle(.secondary) }
-    }
+      if let help, !help.isEmpty { Text(help).readingFont(.caption).foregroundStyle(.secondary) }
+      ForEach(Array(fieldIssues.enumerated()), id: \.offset) { _, message in
+        Text(message).readingFont(.caption).foregroundStyle(.red).textSelection(.enabled)
+      }
+    }.accessibilityElement(children: .contain)
   }
   private func entryBinding(_ index: Int, field: Value) -> Binding<Value> {
     let key = field["id"].text
@@ -299,7 +360,7 @@ private struct FormEvidencePicker: View {
   @State private var failure: String?
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
-      Text("Delivery evidence").font(.title2)
+      Text("Delivery evidence").readingFont(.title2).accessibilityAddTraits(.isHeader)
       TextField("Search documents and records", text: $query).textFieldStyle(.roundedBorder)
       List(selection: $selectedID) {
         ForEach(Array(items.enumerated()), id: \.element.0) { _, item in
@@ -322,7 +383,7 @@ private struct FormEvidencePicker: View {
         }
       if let failure { Text(failure).foregroundStyle(.red) }
       HStack {
-        Text("Choose the original information supporting this delivery.").font(.caption)
+        Text("Choose the original information supporting this delivery.").readingFont(.caption)
           .foregroundStyle(.secondary)
         Spacer()
         Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
@@ -336,7 +397,7 @@ private struct FormEvidencePicker: View {
         .keyboardShortcut(.defaultAction)
         .disabled(loadedQuery != query || !items.contains { $0.0 == selectedID })
       }
-    }.padding(24).frame(width: 560, height: 400)
+    }.padding(24).frame(minWidth: 380, idealWidth: 560, minHeight: 300, idealHeight: 480)
       .task(id: query) {
         let text = query
         let control = Cancellation()

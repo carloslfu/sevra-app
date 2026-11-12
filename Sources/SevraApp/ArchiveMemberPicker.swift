@@ -1,4 +1,5 @@
 import SevraCore
+import SevraTableUI
 import SwiftUI
 
 struct ArchiveMemberPicker: View {
@@ -17,7 +18,7 @@ struct ArchiveMemberPicker: View {
   }
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
-      Text("Choose files from ZIP").font(.title2)
+      Text("Choose files from ZIP").readingFont(.title2).accessibilityAddTraits(.isHeader)
       Text(source.title).lineLimit(2).truncationMode(.middle).help(source.title)
         .textSelection(.enabled)
       Text("The ZIP stays in your workbook. Include up to 50 files and 1 GB per selection.")
@@ -55,7 +56,7 @@ struct ArchiveMemberPicker: View {
           Text(
             "\(selected.count) selected · "
               + ByteCountFormatter.string(fromByteCount: Int64(clamping: total), countStyle: .file)
-          ).font(.caption)
+          ).readingFont(.caption)
         }
         Spacer()
         Button(!loading && members.isEmpty ? "Done" : "Cancel") { dismiss() }
@@ -71,7 +72,7 @@ struct ArchiveMemberPicker: View {
             selected.isEmpty || selected.count > 50 || total > 1_000_000_000 || state.busy)
         }
       }
-    }.padding(22).frame(width: 620, height: !loading && members.isEmpty ? 260 : 460).task {
+    }.padding(22).frame(minWidth: 420, idealWidth: 620, minHeight: 260, idealHeight: 460).task {
       do {
         if let book = state.workbook {
           members = try await Task.detached { try book.archiveMembers(source.id) }.value

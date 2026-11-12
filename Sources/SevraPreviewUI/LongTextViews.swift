@@ -1,4 +1,5 @@
 import AppKit
+import SevraTableUI
 import SwiftUI
 
 /// SwiftUI `Text` measures its whole string on the main thread: 64 KB took 0.75 s, 200 KB 6.5 s
@@ -16,10 +17,14 @@ private func prepareReadingView(_ view: NSTextView) {
 
 /// A text file: one scrolling view that lays out only what is on screen.
 public struct TextFileView: NSViewRepresentable {
+  @AppStorage(ReadingStyle.preference) private var textScale = 1.0
   public let text: String
   public init(text: String) { self.text = text }
 
-  public final class Coordinator { fileprivate var shown: String? }
+  public final class Coordinator {
+    fileprivate var shown: String?
+    fileprivate var scale: CGFloat = 0
+  }
   public func makeCoordinator() -> Coordinator { Coordinator() }
 
   public func makeNSView(context: Context) -> NSScrollView {
@@ -43,11 +48,17 @@ public struct TextFileView: NSViewRepresentable {
   }
 
   public func updateNSView(_ scroll: NSScrollView, context: Context) {
-    guard context.coordinator.shown != text, let view = scroll.documentView as? NSTextView
-    else { return }
-    context.coordinator.shown = text
-    view.string = text
-    view.scroll(.zero)
+    guard let view = scroll.documentView as? NSTextView else { return }
+    let scale = ReadingStyle.scale(textScale)
+    if context.coordinator.scale != scale {
+      context.coordinator.scale = scale
+      view.font = .monospacedSystemFont(ofSize: NSFont.systemFontSize * scale, weight: .regular)
+    }
+    if context.coordinator.shown != text {
+      context.coordinator.shown = text
+      view.string = text
+      view.scroll(.zero)
+    }
   }
 }
 
@@ -56,6 +67,7 @@ public struct TextFileView: NSViewRepresentable {
 public struct LongReadingText: NSViewRepresentable {
   /// Up to here `Text` stays quick, about 0.1 s, and keeps its native link handling.
   public static let thresholdBytes = 16_000
+  @AppStorage(ReadingStyle.preference) private var textScale = 1.0
   public let identity: String
   public let text: () -> NSAttributedString
   public let open: (URL) -> Void
@@ -71,6 +83,7 @@ public struct LongReadingText: NSViewRepresentable {
   public final class Coordinator: NSObject, NSTextViewDelegate {
     fileprivate var open: (URL) -> Void = { _ in }
     fileprivate var shown: String?
+    fileprivate var scale: CGFloat = 0
     fileprivate var width: CGFloat = -1
     fileprivate var height: CGFloat = 0
     public func textView(_ textView: NSTextView, clickedOnLink link: Any, at charIndex: Int) -> Bool
@@ -108,10 +121,27 @@ public struct LongReadingText: NSViewRepresentable {
 
   public func updateNSView(_ view: NSTextView, context: Context) {
     context.coordinator.open = open
-    guard context.coordinator.shown != identity else { return }
+    let scale = ReadingStyle.scale(textScale)
+    guard context.coordinator.shown != identity || context.coordinator.scale != scale else {
+      return
+    }
+    let selection = view.selectedRanges
+    let sameText = context.coordinator.shown == identity
     context.coordinator.shown = identity
+    context.coordinator.scale = scale
     context.coordinator.width = -1
-    view.textStorage?.setAttributedString(text())
+    let original = text()
+    let scaled = NSMutableAttributedString(attributedString: original)
+    original.enumerateAttribute(.font, in: NSRange(location: 0, length: original.length)) {
+      value, range, _ in
+      let font = value as? NSFont ?? .systemFont(ofSize: NSFont.systemFontSize)
+      scaled.addAttribute(
+        .font, value: NSFont(descriptor: font.fontDescriptor, size: font.pointSize * scale) ?? font,
+        range: range)
+    }
+    view.textStorage?.setAttributedString(scaled)
+    if sameText { view.selectedRanges = selection }
+    view.invalidateIntrinsicContentSize()
   }
 
   public func sizeThatFits(

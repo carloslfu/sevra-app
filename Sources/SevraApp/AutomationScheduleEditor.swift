@@ -1,5 +1,6 @@
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 struct AutomationScheduleEditor: View {
@@ -36,12 +37,15 @@ struct AutomationScheduleEditor: View {
   @State private var saveToken = identifier()
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Text(existing == nil ? "New automation" : "Edit automation").font(.title2)
+      Text(existing == nil ? "New automation" : "Edit automation").readingFont(.title2)
+        .accessibilityAddTraits(.isHeader)
       ScrollView {
         VStack(alignment: .leading, spacing: 16) {
           TextField("Automation title", text: $title)
           if let workflow {
-            Text("Workflow: " + workflow.title + " · version \(workflow.version)").font(.headline)
+            Text("Workflow: " + workflow.title + " · version \(workflow.version)").readingFont(
+              .headline
+            ).accessibilityAddTraits(.isHeader)
             Text(workflow.description).foregroundStyle(.secondary)
           }
           DisclosureGroup(
@@ -109,7 +113,7 @@ struct AutomationScheduleEditor: View {
             Text(
               "Enabling starts from the current stock. An already-true rule does not run until it becomes false and crosses again. Unknown stock waits for evidence."
             )
-            .font(.caption).foregroundStyle(.secondary)
+            .readingFont(.caption).foregroundStyle(.secondary)
           } else {
             LabeledContent("Repeat") {
               Picker("Repeat", selection: $recurrence) {
@@ -166,7 +170,7 @@ struct AutomationScheduleEditor: View {
             Text(
               "Missing dates are skipped. Repeated clock times run once; skipped clock times use the next valid time. The explicit time zone stays fixed when you travel."
             )
-            .font(.caption).foregroundStyle(.secondary)
+            .readingFont(.caption).foregroundStyle(.secondary)
           }
           if previewContent == content {
             if trigger == "inventory" {
@@ -180,7 +184,7 @@ struct AutomationScheduleEditor: View {
           Text(
             "Save keeps this automation in the workbook. Enable on this Mac is a separate step. Business changes still require review."
           )
-          .font(.callout).foregroundStyle(.secondary)
+          .readingFont(.callout).foregroundStyle(.secondary)
         }.labeledContentStyle(ScheduleFieldStyle())
       }
       if working { ProgressView("Checking automation") }
@@ -194,6 +198,11 @@ struct AutomationScheduleEditor: View {
       }
     }.padding(24).frame(minWidth: 560, idealWidth: 640, minHeight: 480, idealHeight: 720)
       .disabled(working || workspace.busy).interactiveDismissDisabled(working)
+      .announceStatus(
+        failure
+          ?? (!working && preview != nil
+            ? "Automation preview is ready. Review it before saving." : nil)
+      )
       .onAppear { NativeAutomationHost.shared.setBusy(editingOwner, true) }
       .onDisappear {
         NativeAutomationHost.shared.setBusy(editingOwner, false)
@@ -401,7 +410,7 @@ struct AutomationScheduleEditor: View {
 private struct ScheduleFieldStyle: LabeledContentStyle {
   func makeBody(configuration: Configuration) -> some View {
     HStack(alignment: .firstTextBaseline, spacing: 12) {
-      configuration.label.frame(width: 96, alignment: .leading)
+      configuration.label.frame(minWidth: 96, alignment: .leading)
       configuration.content.frame(maxWidth: .infinity, alignment: .leading)
     }
   }

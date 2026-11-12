@@ -4,13 +4,48 @@ import SevraCore
 
 /// A native read-only presentation. No displayed row becomes a saved Record.
 public struct PreviewTableContent: Equatable, Sendable {
+  public struct Link: Equatable, Sendable {
+    public let title: String
+    public let url: URL
+    public init(title: String, url: URL) {
+      self.title = title
+      self.url = url
+    }
+  }
+  public let rowIDs: [String]
+  public let rowSources: [[Link]]
+  public let sourceColumn: Int?
   public let headings: [String]
   public let rows: [[String]]
   public let markdown: Bool
-  public init(headings: [String], rows: [[String]], markdown: Bool = false) {
+  public init(
+    headings: [String], rows: [[String]], markdown: Bool = false,
+    rowIDs: [String]? = nil, rowSources: [[Link]] = [], sourceColumn: Int? = nil
+  ) {
+    if let rowIDs, rowIDs.count == rows.count, Set(rowIDs).count == rows.count {
+      self.rowIDs = rowIDs
+    } else {
+      var occurrences: [String: Int] = [:]
+      self.rowIDs = rows.map { row in
+        let key = row.map { "\($0.utf8.count):" + $0 }.joined()
+        let occurrence = occurrences[key, default: 0]
+        occurrences[key] = occurrence + 1
+        return "\(occurrence):" + key
+      }
+    }
+    self.rowSources = rowSources
+    self.sourceColumn = sourceColumn
     self.headings = headings
     self.rows = rows
     self.markdown = markdown
+  }
+  public func links(row: Int, column: Int) -> [Link] {
+    guard rows.indices.contains(row), rows[row].indices.contains(column) else { return [] }
+    if column == sourceColumn, rowSources.indices.contains(row) { return rowSources[row] }
+    return markdown
+      ? ConversationPresentation(rows[row][column]).links.map {
+        Link(title: $0.title, url: $0.url)
+      } : []
   }
   public func plain(_ cell: String) -> String {
     markdown ? String(ConversationPresentation(cell).text.characters) : cell

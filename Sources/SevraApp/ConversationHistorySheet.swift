@@ -1,5 +1,6 @@
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 struct ConversationHistorySheet: View {
@@ -11,7 +12,8 @@ struct ConversationHistorySheet: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       HStack {
-        Text("Search " + state.conversationTitle).font(.title3.weight(.medium)).lineLimit(2)
+        Text("Search " + state.conversationTitle).readingFont(.title3, weight: .medium)
+          .accessibilityAddTraits(.isHeader).lineLimit(2)
         Spacer()
         Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
       }
@@ -48,9 +50,9 @@ struct ConversationHistorySheet: View {
                     hit["role"].text == "user"
                       ? "You" : hit["role"].text == "event" ? "Activity" : "Sevra"
                   )
-                  .font(.caption.weight(.semibold))
+                  .readingFont(.caption, weight: .semibold)
                   Spacer()
-                  Text(DisplayText.date(hit["created"].text)).font(.caption).foregroundStyle(
+                  Text(DisplayText.date(hit["created"].text)).readingFont(.caption).foregroundStyle(
                     .secondary)
                 }
                 Text(excerpt).lineLimit(5).multilineTextAlignment(.leading)
@@ -66,13 +68,13 @@ struct ConversationHistorySheet: View {
           Button("Previous matches") { Task { await load(direction: -1) } }.disabled(
             !search.hasPrevious || search.loading)
           Spacer()
-          Text("Page \(search.pageNumber)").font(.caption).foregroundStyle(.secondary)
+          Text("Page \(search.pageNumber)").readingFont(.caption).foregroundStyle(.secondary)
           Spacer()
           Button("Next matches") { Task { await load(direction: 1) } }.disabled(
             search.nextCursor == nil || search.loading)
         }
       }
-    }.padding(22).frame(width: 560, height: 520)
+    }.padding(22).frame(minWidth: 380, idealWidth: 560, minHeight: 320, idealHeight: 520)
       .onAppear {
         query = search.query
         focused = true

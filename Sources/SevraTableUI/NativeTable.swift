@@ -5,36 +5,105 @@ import SwiftUI
 final class GridTable: NSTableView {
   var copyAction: (() -> Void)?, pasteAction: (() -> Void)?, selectionAction: (() -> Void)?
   var undoAction: (() -> Void)?, redoAction: (() -> Void)?
-  var activeColumn = 0
+  var rowIdentities: [String] = []
+  var activeRowID: String?
+  var activeColumnID: String?
+  var activeColumn: Int {
+    get { tableColumns.firstIndex { $0.identifier.rawValue == activeColumnID } ?? 0 }
+    set {
+      activeColumnID =
+        tableColumns.indices.contains(newValue)
+        ? tableColumns[newValue].identifier.rawValue : nil
+      needsDisplay = true
+    }
+  }
+  var activeRow: Int {
+    if let id = activeRowID, let row = rowIdentities.firstIndex(of: id), isRowSelected(row) {
+      return row
+    }
+    return selectedRow
+  }
+  func focusCell(row: Int, column: Int) {
+    guard rowIdentities.indices.contains(row), tableColumns.indices.contains(column) else { return }
+    activeRowID = rowIdentities[row]
+    activeColumn = column
+    if !isRowSelected(row) { selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false) }
+    selectionAction?()
+    scrollRowToVisible(row)
+    scrollColumnToVisible(column)
+    needsDisplay = true
+  }
   override func mouseDown(with event: NSEvent) {
-    let c = column(at: convert(event.locationInWindow, from: nil))
+    let point = convert(event.locationInWindow, from: nil)
+    let r = row(at: point)
+    let c = column(at: point)
     if c >= 0 { activeColumn = c }
+    if rowIdentities.indices.contains(r) { activeRowID = rowIdentities[r] }
     super.mouseDown(with: event)
     selectionAction?()
+    needsDisplay = true
     if event.clickCount == 2 { beginCellEditing() }
   }
-  /// A click on a read-only cell's text in a selected row goes to the cell, not `mouseDown`.
-  override func validateProposedFirstResponder(_ responder: NSResponder, for event: NSEvent?)
-    -> Bool
-  {
-    if let event, event.type == .leftMouseDown {
-      let point = convert(event.locationInWindow, from: nil)
-      let c = column(at: point)
-      if c >= 0, c != activeColumn, isRowSelected(row(at: point)) {
-        activeColumn = c
-        selectionAction?()
-      }
-    }
-    return super.validateProposedFirstResponder(responder, for: event)
-  }
   func beginCellEditing() {
-    guard selectedRow >= 0,
-      let field = view(atColumn: activeColumn, row: selectedRow, makeIfNecessary: true)
-        as? NSTextField,
+    let row = activeRow
+    guard row >= 0,
+      let field = view(atColumn: activeColumn, row: row, makeIfNecessary: true) as? NSTextField,
       field.isEditable
     else { return }
+    focusCell(row: row, column: activeColumn)
     window?.makeFirstResponder(field)
     field.selectText(nil)
+  }
+  /// Arrows choose a column; Tab visits editable cells and leaves the grid at its boundary.
+  @discardableResult func moveCell(_ delta: Int, editableOnly: Bool) -> Bool {
+    guard numberOfRows > 0, numberOfColumns > 0 else { return false }
+    let row = max(0, activeRow)
+    if !editableOnly {
+      if activeRow < 0 {
+        focusCell(row: 0, column: activeColumn)
+        return true
+      }
+      let column = activeColumn + delta
+      guard tableColumns.indices.contains(column) else { return false }
+      focusCell(row: row, column: column)
+      return true
+    }
+    var next =
+      activeRow < 0
+      ? (delta > 0 ? 0 : numberOfRows * numberOfColumns - 1)
+      : row * numberOfColumns + activeColumn + delta
+    while (0..<(numberOfRows * numberOfColumns)).contains(next) {
+      let r = next / numberOfColumns
+      let c = next % numberOfColumns
+      if let field = view(atColumn: c, row: r, makeIfNecessary: true) as? NSTextField,
+        field.isEditable
+      {
+        selectRowIndexes(IndexSet(integer: r), byExtendingSelection: false)
+        focusCell(row: r, column: c)
+        beginCellEditing()
+        return true
+      }
+      next += delta
+    }
+    return false
+  }
+  override func draw(_ dirtyRect: NSRect) {
+    super.draw(dirtyRect)
+    guard window?.firstResponder === self, activeRow >= 0, numberOfColumns > 0 else { return }
+    NSColor.keyboardFocusIndicatorColor.setStroke()
+    let ring = NSBezierPath(
+      rect: frameOfCell(atColumn: activeColumn, row: activeRow).insetBy(dx: 1, dy: 1))
+    ring.lineWidth = 2
+    ring.stroke()
+  }
+  override func becomeFirstResponder() -> Bool {
+    let accepted = super.becomeFirstResponder()
+    needsDisplay = true
+    return accepted
+  }
+  override func resignFirstResponder() -> Bool {
+    needsDisplay = true
+    return super.resignFirstResponder()
   }
   @objc func copy(_ sender: Any?) { copyAction?() }
   @objc func paste(_ sender: Any?) { pasteAction?() }
@@ -57,6 +126,18 @@ final class GridTable: NSTableView {
       beginCellEditing()
       return
     }
+    let modifiers = event.modifierFlags.intersection([.command, .control, .option])
+    if modifiers.isEmpty {
+      if event.keyCode == 123 || event.keyCode == 124 {
+        _ = moveCell(event.keyCode == 123 ? -1 : 1, editableOnly: false)
+        return
+      }
+      if event.keyCode == 48,
+        moveCell(event.modifierFlags.contains(.shift) ? -1 : 1, editableOnly: true)
+      {
+        return
+      }
+    }
     super.keyDown(with: event)
   }
 }
@@ -68,6 +149,7 @@ public struct NativeTable: NSViewRepresentable {
   let onCopy: () -> Void, onPaste: () -> Void
   let onUndo: (() -> Void)?, onRedo: (() -> Void)?
   let editable: Bool
+  @AppStorage(ReadingStyle.preference) private var textScale = 1.0
 
   public init(
     page: TablePage, onEdit: @escaping (RowEdit, Int) -> Void,
@@ -90,7 +172,7 @@ public struct NativeTable: NSViewRepresentable {
     let table = GridTable()
     table.delegate = context.coordinator
     table.dataSource = context.coordinator
-    table.rowHeight = 30
+    table.rowHeight = 30 * ReadingStyle.scale(textScale)
     // Empty space must not resemble additional records in a full-height table.
     table.usesAlternatingRowBackgroundColors = false
     table.allowsMultipleSelection = true
@@ -101,7 +183,7 @@ public struct NativeTable: NSViewRepresentable {
     table.gridStyleMask = [.solidHorizontalGridLineMask]
     table.setAccessibilityLabel("Working table")
     table.setAccessibilityHelp(
-      "Select rows with Shift or Command. Command-C copies selected rows on this page. Double-click an editable cell or press Return to edit. Paste starts in the last clicked column."
+      "Select rows with Shift or Command. Command-C copies selected rows on this page. Left and Right choose a column. Return edits that cell. Tab and Shift-Tab visit editable cells. Paste starts in the active column shown below the table."
     )
     let scroll = NSScrollView()
     scroll.hasVerticalScroller = true
@@ -127,8 +209,10 @@ public struct NativeTable: NSViewRepresentable {
     let rowsChanged = coordinator.rowIDs != page.rows.map(\.id)
     let changed =
       columnsChanged || rowsChanged || coordinator.revision != page.revision
-      || coordinator.parent.editable != editable
+      || coordinator.parent.editable != editable || coordinator.textScale != textScale
     coordinator.parent = self
+    coordinator.textScale = textScale
+    table.rowHeight = 30 * ReadingStyle.scale(textScale)
     table.copyAction = onCopy
     table.pasteAction = onPaste
     table.undoAction = onUndo
@@ -145,6 +229,7 @@ public struct NativeTable: NSViewRepresentable {
       for c in columns {
         let column = NSTableColumn(identifier: .init(c.id))
         column.title = c.title
+        column.headerToolTip = c.title
         column.isEditable = editable && c.formula == nil && !page.dataset.archived
         column.width = 160
         column.minWidth = 80
@@ -156,9 +241,13 @@ public struct NativeTable: NSViewRepresentable {
       table.activeColumn = columns.firstIndex { $0.id == activeColumnID } ?? 0
       coordinator.columns = columns
     }
+    table.headerView?.frame.size.height = 24 * ReadingStyle.scale(textScale)
     for (index, column) in table.tableColumns.enumerated() {
+      column.headerCell.font = .systemFont(ofSize: 11 * ReadingStyle.scale(textScale))
       column.isEditable = editable && columns[index].formula == nil && !page.dataset.archived
     }
+    table.rowIdentities = page.rows.map(\.logicalID)
+    if !table.rowIdentities.contains(table.activeRowID ?? "") { table.activeRowID = nil }
     coordinator.rowIDs = page.rows.map(\.id)
     coordinator.revision = page.revision
     table.reloadData()
@@ -176,6 +265,7 @@ public struct NativeTable: NSViewRepresentable {
     var columns: [Column] = []
     var rowIDs: [String] = []
     var revision: Int?
+    var textScale = 1.0
     var updating = false
     var selectionGeneration = 0
     init(_ parent: NativeTable) { self.parent = parent }
@@ -193,9 +283,17 @@ public struct NativeTable: NSViewRepresentable {
       let cell = BoundTableCell(
         row: parent.page.rows[row], column: c.id,
         revision: parent.page.revision, value: value)
+      cell.focusChanged = { [weak self, weak tableView, weak cell] in
+        guard let self, !self.updating, let table = tableView as? GridTable, let cell,
+          let current = self.parent.page.rows.firstIndex(where: { $0.id == cell.row.id }),
+          self.parent.page.revision == cell.revision,
+          let column = self.parent.page.dataset.columns.firstIndex(where: { $0.id == cell.column })
+        else { return }
+        table.focusCell(row: current, column: column)
+      }
       cell.isBordered = false
       cell.backgroundColor = .clear
-      cell.font = .systemFont(ofSize: 13)
+      cell.font = .systemFont(ofSize: 13 * ReadingStyle.scale(textScale))
       cell.isEditable =
         parent.editable && c.formula == nil && !parent.page.dataset.archived && !recalculates
       cell.isSelectable = true
@@ -203,7 +301,7 @@ public struct NativeTable: NSViewRepresentable {
       cell.identifier = .init(c.id)
       cell.stringValue = value
       cell.setAccessibilityLabel(
-        c.title + ", row \(parent.page.offset+row+1)"
+        c.title + (c.unit.map { " (" + $0 + ")" } ?? "") + ", row \(parent.page.offset+row+1)"
           + (c.formula == nil ? "" : ": " + cell.stringValue))
       cell.setAccessibilityElement(true)
       if c.formula != nil {
@@ -236,8 +334,32 @@ public struct NativeTable: NSViewRepresentable {
       guard let cell = notification.object as? BoundTableCell,
         let c = parent.page.dataset.columns.firstIndex(where: { $0.id == cell.column })
       else { return }
-      selectionGeneration += 1
-      parent.onSelect([cell.row], c)
+      guard let table = cell.enclosingScrollView?.documentView as? GridTable,
+        let row = parent.page.rows.firstIndex(where: { $0.id == cell.row.id }),
+        parent.page.revision == cell.revision
+      else { return }
+      table.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+      table.focusCell(row: row, column: c)
+    }
+    public func control(
+      _ control: NSControl, textView: NSTextView, doCommandBy command: Selector
+    ) -> Bool {
+      guard
+        command == #selector(NSResponder.insertTab(_:))
+          || command == #selector(NSResponder.insertBacktab(_:)),
+        let cell = control as? BoundTableCell,
+        let table = cell.enclosingScrollView?.documentView as? GridTable
+      else { return false }
+      let backwards = command == #selector(NSResponder.insertBacktab(_:))
+      guard table.window?.makeFirstResponder(table) == true else { return true }
+      if !table.moveCell(backwards ? -1 : 1, editableOnly: true) {
+        if backwards {
+          table.window?.selectPreviousKeyView(table)
+        } else {
+          table.window?.selectNextKeyView(table)
+        }
+      }
+      return true
     }
     public func controlTextDidEndEditing(_ notification: Notification) {
       guard let cell = notification.object as? BoundTableCell else { return }
@@ -261,15 +383,21 @@ public struct NativeTable: NSViewRepresentable {
       }
     }
     func publishSelection(_ table: GridTable, deferred: Bool = false) {
+      guard !updating || deferred else { return }
+      table.needsDisplay = true
       selectionGeneration += 1
       let generation = selectionGeneration
       let selected = table.selectedRowIndexes.compactMap { index in
         parent.page.rows.indices.contains(index) ? parent.page.rows[index] : nil
       }
       let column = table.activeColumn
+      let revision = parent.page.revision
+      let rowIDs = parent.page.rows.map(\.id)
       if deferred {
         Task { @MainActor [weak self] in
-          guard let self, self.selectionGeneration == generation else { return }
+          guard let self, self.selectionGeneration == generation,
+            self.parent.page.revision == revision, self.parent.page.rows.map(\.id) == rowIDs
+          else { return }
           self.parent.onSelect(selected, column)
         }
       } else {
@@ -300,6 +428,16 @@ final class BoundTableCell: NSTextField {
   let revision: Int
   let originalValue: String
   var submissionSent = false
+  var focusChanged: (() -> Void)?
+  override func becomeFirstResponder() -> Bool {
+    let accepted = super.becomeFirstResponder()
+    if accepted { focusChanged?() }
+    return accepted
+  }
+  override func setAccessibilityFocused(_ focused: Bool) {
+    super.setAccessibilityFocused(focused)
+    if focused { focusChanged?() }
+  }
   init(row: Item, column: String, revision: Int, value: String) {
     self.row = row
     self.column = column

@@ -1,5 +1,6 @@
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 /// A compact disclosure in the conversation. The answer and activity have
@@ -31,9 +32,9 @@ struct AgentActivityView: View {
         } label: {
           HStack(alignment: .firstTextBaseline, spacing: 6) {
             Image(systemName: expanded ? "chevron.down" : "chevron.right")
-              .font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
+              .readingFont(size: 9, weight: .semibold).foregroundStyle(.secondary)
             ActivityShimmer(text: title, active: live != nil && live?.stopping == false)
-              .font(.callout)
+              .readingFont(.callout)
               .multilineTextAlignment(.leading)
           }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
         }.buttonStyle(.plain)
@@ -43,12 +44,12 @@ struct AgentActivityView: View {
         TimelineView(.animation(minimumInterval: 1, paused: live == nil)) { context in
           let end = live == nil ? activity?.updated ?? start : context.date
           Text(Self.duration(max(0, end.timeIntervalSince(start))))
-            .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+            .readingFont(.caption).monospacedDigit().foregroundStyle(.secondary)
             .accessibilityLabel(
               "Elapsed time: " + Self.duration(max(0, end.timeIntervalSince(start))))
         }
         if let live {
-          Button("Stop", action: workspace.stop).buttonStyle(.plain).font(.caption)
+          Button("Stop", action: workspace.stop).buttonStyle(.plain).readingFont(.caption)
             .disabled(live.stopping).accessibilityLabel("Stop this request")
         }
       }
@@ -61,26 +62,26 @@ struct AgentActivityView: View {
             }
             if activity.hasMoreSteps {
               Text("Showing the first 64 steps. Full results remain in the workbook journal.")
-                .font(.caption).foregroundStyle(.secondary)
+                .readingFont(.caption).foregroundStyle(.secondary)
             }
             if activity.steps.isEmpty {
               Text(live == nil ? "No tool calls were saved." : "No tool calls yet.")
-                .font(.caption).foregroundStyle(.secondary)
+                .readingFont(.caption).foregroundStyle(.secondary)
             }
           }
           if let live {
             HStack(alignment: .top, spacing: 8) {
               Image(systemName: live.stopping ? "stop.circle" : "ellipsis")
                 .frame(width: 14).accessibilityHidden(true)
-              Text(live.status).font(.caption).textSelection(.enabled)
+              Text(live.status).readingFont(.caption).textSelection(.enabled)
             }.foregroundStyle(.secondary)
           }
           if let model = activity?.model {
             DisclosureGroup("Model details") {
-              Text(model).font(.caption).textSelection(.enabled)
+              Text(model).readingFont(.caption).textSelection(.enabled)
               Text("Tool results describe saved execution. Search coverage may be partial.")
-                .font(.caption).foregroundStyle(.secondary)
-            }.font(.caption)
+                .readingFont(.caption).foregroundStyle(.secondary)
+            }.readingFont(.caption)
           }
         }.padding(.leading, 15)
           .overlay(alignment: .leading) { Rectangle().fill(.quaternary).frame(width: 1) }
@@ -112,14 +113,15 @@ private struct ActivityStepView: View {
   }
   var body: some View {
     HStack(alignment: .top, spacing: 8) {
-      Image(systemName: icon).font(.caption).frame(width: 14)
+      Image(systemName: icon).readingFont(.caption).frame(width: 14)
         .foregroundStyle(step.state == "failed" ? Color.orange : .secondary)
         .accessibilityLabel(step.state == "prepared" ? "No final receipt" : step.state)
       VStack(alignment: .leading, spacing: 4) {
-        Text(step.title).font(.caption.weight(.medium)).textSelection(.enabled)
-        Text(step.detail).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+        Text(step.title).readingFont(.caption, weight: .medium).textSelection(.enabled)
+        Text(step.detail).readingFont(.caption).foregroundStyle(.secondary).textSelection(.enabled)
         if step.state == "completed", let id = step.originalID {
-          Button("Open original") { workspace.openEvidence(id) }.buttonStyle(.link).font(.caption)
+          Button("Open original") { workspace.openEvidence(id) }.buttonStyle(.link).readingFont(
+            .caption)
         }
         DisclosureGroup("Saved details", isExpanded: $showReceipt) {
           VStack(alignment: .leading, spacing: 6) {
@@ -129,7 +131,7 @@ private struct ActivityStepView: View {
               }
             }
             if loading { ProgressView("Reading saved receipt").controlSize(.small) }
-            if let failure { Text(failure).font(.caption).foregroundStyle(.red) }
+            if let failure { Text(failure).readingFont(.caption).foregroundStyle(.red) }
             if let inspection {
               if !resultPath.isEmpty {
                 Button("Back to result") {
@@ -137,7 +139,7 @@ private struct ActivityStepView: View {
                   offset = 0
                 }
                 Text(resultPath.map(StructuredPresentation.label).joined(separator: " › "))
-                  .font(.caption).foregroundStyle(.secondary)
+                  .readingFont(.caption).foregroundStyle(.secondary)
               }
               ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
@@ -158,21 +160,21 @@ private struct ActivityStepView: View {
                           entry["key"].string.map(StructuredPresentation.label)
                             ?? "Entry \((entry["index"].int ?? 0) + 1)"
                         )
-                        .font(.caption.weight(.medium))
+                        .readingFont(.caption, weight: .medium)
                         StructuredValueView(value: entry["value"], inspect: explore)
                       }
                     }
                     Text("Showing part of the saved result.").foregroundStyle(.secondary)
                   }
-                }.font(.caption).padding(.vertical, 4)
+                }.readingFont(.caption).padding(.vertical, 4)
               }.frame(maxHeight: 300).id(resultPath.joined(separator: "/") + String(offset))
               if let next = inspection["nextOffset"].int {
-                Button("Next result page") { offset = next }.font(.caption)
+                Button("Next result page") { offset = next }.readingFont(.caption)
               }
-              if offset > 0 { Button("First result page") { offset = 0 }.font(.caption) }
+              if offset > 0 { Button("First result page") { offset = 0 }.readingFont(.caption) }
             }
           }.padding(.top, 4)
-        }.font(.caption).task(id: "\(showReceipt)-\(offset)-\(resultPath)-\(step.state)") {
+        }.readingFont(.caption).task(id: "\(showReceipt)-\(offset)-\(resultPath)-\(step.state)") {
           guard showReceipt, let book = workspace.workbook else { return }
           let owner = workspace.interactionIdentity
           let requestedOffset = offset

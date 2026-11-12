@@ -1,6 +1,7 @@
 import AppKit
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 /// Takes plain values, so only a changed message or review draws this row again.
@@ -31,15 +32,17 @@ struct ConversationMessageRow: View, Equatable {
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       HStack {
-        Text(speaker).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+        Text(speaker).readingFont(.caption, weight: .semibold).foregroundStyle(.secondary)
         if message.state != "complete" {
           if let review {
-            Button(status) { state.navigate(.item(review.currentVersionID)) }
-              .buttonStyle(.plain).font(.caption)
-              .foregroundStyle(review.status == "draft" ? Color.orange : Color.secondary)
-              .help("Open the current proposal, version \(review.currentVersion)")
+            Button(status) {
+              state.navigate(.item(review.currentVersionID), returningTo: .message(message.id))
+            }
+            .buttonStyle(.plain).readingFont(.caption)
+            .foregroundStyle(review.status == "draft" ? Color.orange : Color.secondary)
+            .help("Open the current proposal, version \(review.currentVersion)")
           } else {
-            Text(status).font(.caption).foregroundStyle(.secondary)
+            Text(status).readingFont(.caption).foregroundStyle(.secondary)
           }
         }
         Spacer()
@@ -59,16 +62,24 @@ struct ConversationMessageRow: View, Equatable {
           case .table(let table):
             ReadOnlyTableView(
               content: table, label: "Comparison table", inline: true,
-              open: state.openConversationLink)
+              open: { state.openConversationLink($0, returningTo: .message(message.id)) })
           }
         }
       }
       .accessibilityActions {
         ForEach(content.presentation.links) { link in
-          Button(link.actionTitle) { state.openConversationLink(link.url) }
+          Button(link.actionTitle) {
+            state.openConversationLink(link.url, returningTo: .message(message.id))
+          }
         }
       }
-    }.accessibilityElement(children: .contain)
+    }.environment(
+      \.openURL,
+      OpenURLAction { url in
+        state.openConversationLink(url, returningTo: .message(message.id))
+        return .handled
+      }
+    ).accessibilityElement(children: .contain)
       .accessibilityLabel(speaker + " message" + (message.state == "complete" ? "" : ", " + status))
       .accessibilityIdentifier("message-" + message.id)
       .contextMenu {
@@ -89,7 +100,9 @@ struct ConversationMessageActions: View {
     if !content.links.isEmpty {
       Section("Links") {
         ForEach(content.links) { link in
-          Button(link.actionTitle) { state.openConversationLink(link.url) }
+          Button(link.actionTitle) {
+            state.openConversationLink(link.url, returningTo: .message(message.id))
+          }
         }
       }
     }

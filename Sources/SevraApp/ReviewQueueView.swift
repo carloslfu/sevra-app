@@ -1,5 +1,6 @@
 import SevraCore
 import SevraPreviewUI
+import SevraTableUI
 import SwiftUI
 
 struct DraftReviewRow: View {
@@ -8,12 +9,12 @@ struct DraftReviewRow: View {
   var body: some View {
     Button(action: open) {
       VStack(alignment: .leading, spacing: 4) {
-        Text(item.title).font(.headline)
+        Text(item.title).readingFont(.headline).accessibilityAddTraits(.isHeader)
         Text(
           item.kind.replacingOccurrences(of: "-", with: " ").capitalized
             + " · " + item.meaning.capitalized
         )
-        .font(.caption).foregroundStyle(.secondary)
+        .readingFont(.caption).foregroundStyle(.secondary)
       }.multilineTextAlignment(.leading)
         .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 8)
     }.buttonStyle(.plain)
@@ -37,7 +38,7 @@ struct ReviewQueueView: View {
         HStack {
           Button("Previous") { Task { await load(direction: -1) } }
             .disabled(!results.hasPrevious || results.loading)
-          Text("Page \(results.pageNumber)").font(.callout).foregroundStyle(.secondary)
+          Text("Page \(results.pageNumber)").readingFont(.callout).foregroundStyle(.secondary)
           Button("Next") { Task { await load(direction: 1) } }
             .disabled(results.nextCursor == nil || results.loading)
         }

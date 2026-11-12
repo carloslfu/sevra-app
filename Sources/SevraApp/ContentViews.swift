@@ -61,7 +61,7 @@ struct SearchView: View {
             alignment: .leading, spacing: 10
           ) { filters }
           Toggle("Include earlier versions", isOn: $state.searchHistorical)
-            .toggleStyle(.checkbox).font(.callout)
+            .toggleStyle(.checkbox).readingFont(.callout)
           if activeFilters > 0 {
             Button("Clear filters") {
               state.searchKind = ""
@@ -79,7 +79,7 @@ struct SearchView: View {
             ? "1 source has an incomplete content index."
             : "\(incomplete) sources have incomplete content indexes.")
             + " Filename search is still available."
-        ).font(.caption).foregroundStyle(.secondary)
+        ).readingFont(.caption).foregroundStyle(.secondary)
       }
       ScrollViewReader { proxy in
         ScrollView {
@@ -90,11 +90,11 @@ struct SearchView: View {
                 state.openEvidence(hit.itemID, locator: hit.locator)
               } label: {
                 VStack(alignment: .leading, spacing: 6) {
-                  Text(hit.title).font(.headline)
+                  Text(hit.title).readingFont(.headline).accessibilityAddTraits(.isHeader)
                   Text(StructuredPresentation.searchExcerpt(hit.snippet, title: hit.title))
                     .lineLimit(4).foregroundStyle(.secondary)
                   if let location = DisplayText.location(hit.locator) {
-                    Text(location).font(.caption).foregroundStyle(.tertiary)
+                    Text(location).readingFont(.caption).foregroundStyle(.tertiary)
                   }
                 }.multilineTextAlignment(.leading)
                   .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 14)
@@ -156,14 +156,14 @@ struct SearchView: View {
   }
   func facet(_ title: String, key: String, selection: Binding<String>) -> some View {
     HStack(spacing: 10) {
-      Text(title).frame(width: 60, alignment: .trailing).accessibilityHidden(true)
+      Text(title).frame(minWidth: 60, alignment: .trailing).accessibilityHidden(true)
       Picker(title, selection: selection) {
         Text("All").tag("")
         ForEach(facets[key].array.compactMap(\.string), id: \.self) {
           Text(StructuredPresentation.label($0)).tag($0)
         }
-      }.labelsHidden().accessibilityLabel(title).frame(width: 120, alignment: .leading)
-    }.font(.caption).frame(width: 190)
+      }.labelsHidden().accessibilityLabel(title).frame(minWidth: 120, alignment: .leading)
+    }.readingFont(.caption).frame(minWidth: 190)
   }
   func search(more: Bool) async {
     guard let book = state.workbook else { return }
@@ -185,11 +185,11 @@ struct SpaceView: View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 28) {
         if let captured = space.definition.pinnedAt {
-          Text("Snapshot from " + DisplayText.date(captured)).font(.caption).foregroundStyle(
+          Text("Snapshot from " + DisplayText.date(captured)).readingFont(.caption).foregroundStyle(
             .secondary)
         }
         if space.definition.components.isEmpty {
-          Text("Make room for your work").font(.system(size: 28, weight: .medium))
+          Text("Make room for your work").readingFont(size: 28, weight: .medium)
           Text(
             "Describe what you want here, or edit the layout. Removing sections keeps your information in the workbook."
           )
@@ -246,7 +246,7 @@ struct WorkbookSection: View {
     case "reviews":
       if let pending = state.pendingReview, !pending.items.isEmpty {
         HStack {
-          Text("\(pending.items.count) pending").font(.caption).foregroundStyle(.secondary)
+          Text("\(pending.items.count) pending").readingFont(.caption).foregroundStyle(.secondary)
           Spacer()
           Button("Show all drafts") { state.navigate(.reviews) }
         }
@@ -310,7 +310,7 @@ struct WorkbookSection: View {
           HStack {
             VStack(alignment: .leading) {
               Text(job["title"].text)
-              Text(state.intakeDetail(job)).font(.caption).foregroundStyle(.secondary)
+              Text(state.intakeDetail(job)).readingFont(.caption).foregroundStyle(.secondary)
             }
             Spacer()
             if let id = job["job_id"].string {
@@ -351,10 +351,10 @@ struct WorkbookSection: View {
                   ? "Draft · \(item.meaning)"
                   : item.kind == "table-intake-update" ? "Table update" : item.kind.capitalized
               )
-              .font(.caption).foregroundStyle(.secondary)
+              .readingFont(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+            Image(systemName: "chevron.right").readingFont(.caption).foregroundStyle(.tertiary)
           }.padding(.vertical, 6).contentShape(Rectangle())
         }.buttonStyle(.plain)
       }
@@ -363,7 +363,7 @@ struct WorkbookSection: View {
     }
   }
   func sectionTitle(_ title: String) -> some View {
-    Text(title).font(.headline).padding(.top, 6)
+    Text(title).readingFont(.headline).accessibilityAddTraits(.isHeader).padding(.top, 6)
   }
 }
 struct NativeComponent: View {
@@ -372,12 +372,23 @@ struct NativeComponent: View {
   @State private var data: ComponentSnapshot?
   @State private var metric: String?
   @State private var failure: String?
+  private func snapshotTable(_ data: ComponentSnapshot) -> some View {
+    EvidenceTable(
+      title: component.title + " values",
+      headings: data.columns.map { $0.title + ($0.unit.map { " (" + $0 + ")" } ?? "") },
+      rows: data.rows.map { row in data.columns.map { row.values[$0.id] ?? .null } },
+      rowIDs: data.rows.map(\.id),
+      sources: data.rows.enumerated().map { index, row in
+        [EvidenceTable.source(row.id, title: "Original row \(index + 1)")].compactMap { $0 }
+      }, open: state.openConversationLink)
+  }
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text(component.title).font(.title3.weight(.medium))
+      Text(component.title).readingFont(.title3, weight: .medium).accessibilityAddTraits(.isHeader)
       if let snapshot = component.snapshot {
-        Text("Pinned as of " + DisplayText.date(snapshot.captured)).font(.caption).foregroundStyle(
-          .secondary)
+        Text("Pinned as of " + DisplayText.date(snapshot.captured)).readingFont(.caption)
+          .foregroundStyle(
+            .secondary)
       }
       switch component.type {
       case "input", "reviews", "shortcuts", "tables", "intake", "recent":
@@ -403,27 +414,16 @@ struct NativeComponent: View {
         }
       case "metric":
         if let metric {
-          Text(metric + unitSuffix).font(.system(size: 32, weight: .medium, design: .rounded))
+          Text(metric + unitSuffix).readingFont(size: 32, weight: .medium, design: .rounded)
         }
       case "table":
         if component.snapshot == nil, let id = component.datasetID,
           let table = state.dataset(id)
         {
           DatasetView(table: table, state: state, compact: true)
-            .frame(height: min(280, CGFloat(max(1, table.rowCount)) * 32 + 108))
+            .frame(minHeight: 180, idealHeight: 280, maxHeight: 380)
         } else if let data {
-          ScrollView([.horizontal, .vertical]) {
-            Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 10) {
-              GridRow { ForEach(data.columns) { Text($0.title).fontWeight(.semibold) } }
-              ForEach(data.rows) { row in
-                GridRow {
-                  ForEach(data.columns) { c in
-                    Text(row.values[c.id]?.text ?? "Unknown").textSelection(.enabled)
-                  }
-                }
-              }
-            }.padding(8)
-          }.frame(maxHeight: 280)
+          snapshotTable(data)
         }
       case "chart":
         if let data {
@@ -433,27 +433,41 @@ struct NativeComponent: View {
             }
             return PlotPoint(id: row.id, label: row.values[component.x ?? ""]?.text ?? "", value: y)
           }
+          let xTitle = data.columns.first { $0.id == component.x }?.title ?? "Category"
+          let yTitle = data.columns.first { $0.id == component.y }?.title ?? "Value"
           Chart(points) { point in
             if component.chartStyle == "line" {
-              LineMark(x: .value("Category", point.label), y: .value("Value", point.value))
+              LineMark(x: .value(xTitle, point.label), y: .value(yTitle + unitSuffix, point.value))
                 .foregroundStyle(Color.accentColor)
-              PointMark(x: .value("Category", point.label), y: .value("Value", point.value))
+              PointMark(x: .value(xTitle, point.label), y: .value(yTitle + unitSuffix, point.value))
                 .foregroundStyle(Color.accentColor)
             } else {
-              BarMark(x: .value("Category", point.label), y: .value("Value", point.value))
+              BarMark(x: .value(xTitle, point.label), y: .value(yTitle + unitSuffix, point.value))
                 .foregroundStyle(Color.accentColor)
             }
-          }.frame(height: 220)
+          }
+          .chartXAxisLabel(xTitle)
+          .chartYAxisLabel(yTitle + unitSuffix)
+          .accessibilityLabel(component.title)
+          .accessibilityValue(
+            "\(points.count) plotted rows of \(data.totalRows). " + yTitle + unitSuffix
+          )
+          .frame(height: 220)
+          DisclosureGroup("Exact values and sources") {
+            snapshotTable(data)
+          }
           if points.count < data.rows.count {
             Text(
               "\(data.rows.count - points.count) rows have unknown or invalid values and are not plotted."
-            ).font(.caption).foregroundStyle(.secondary)
+            ).readingFont(.caption).foregroundStyle(.secondary)
           }
           if data.rows.count < data.totalRows {
-            Text("Showing \(data.rows.count) of \(data.totalRows) rows.").font(.caption)
+            Text("Showing \(data.rows.count) of \(data.totalRows) rows.").readingFont(.caption)
               .foregroundStyle(.secondary)
           }
-          if !unitSuffix.isEmpty { Text(unitSuffix).font(.caption).foregroundStyle(.secondary) }
+          if !unitSuffix.isEmpty {
+            Text(unitSuffix).readingFont(.caption).foregroundStyle(.secondary)
+          }
         }
       case "document", "asset":
         if let id = component.itemID {
@@ -465,7 +479,7 @@ struct NativeComponent: View {
         SearchComponentView(component: component, state: state)
       default: Text("This component is unavailable.").foregroundStyle(.secondary)
       }
-      if let failure { Text(failure).font(.callout).foregroundStyle(.red) }
+      if let failure { Text(failure).readingFont(.callout).foregroundStyle(.red) }
     }.frame(maxWidth: .infinity, alignment: .leading)
       .task(id: component.id + String(state.revision)) {
         guard component.datasetID != nil, let book = state.workbook else { return }
@@ -504,7 +518,7 @@ struct SearchComponentView: View {
     VStack(alignment: .leading, spacing: 8) {
       if let snapshot = component.searchSnapshot {
         Text("Search results from " + DisplayText.date(snapshot.captured))
-          .font(.caption).foregroundStyle(.secondary)
+          .readingFont(.caption).foregroundStyle(.secondary)
         content(snapshot.hits, incomplete: snapshot.incomplete, hasMore: snapshot.hasMore)
       } else if results.loadedQuery == query {
         content(results.hits, incomplete: results.incomplete, hasMore: results.nextCursor != nil)
@@ -532,7 +546,8 @@ struct SearchComponentView: View {
     }
     if hits.isEmpty { Text("No matches for this search.").foregroundStyle(.secondary) }
     if hasMore {
-      Text("Showing the first \(hits.count) results.").font(.caption).foregroundStyle(.secondary)
+      Text("Showing the first \(hits.count) results.").readingFont(.caption).foregroundStyle(
+        .secondary)
     }
     if incomplete > 0 {
       Text(
@@ -540,7 +555,7 @@ struct SearchComponentView: View {
           ? "1 source had an incomplete content index when searched."
           : "\(incomplete) sources had incomplete content indexes when searched."
       )
-      .font(.caption).foregroundStyle(.secondary)
+      .readingFont(.caption).foregroundStyle(.secondary)
     }
   }
 }
@@ -619,7 +634,7 @@ struct DatasetView: View {
         Text(
           "Archived table. Its data and history are preserved. Restore it in Table definition to edit."
         )
-        .font(.callout).foregroundStyle(.secondary).padding(8)
+        .readingFont(.callout).foregroundStyle(.secondary).padding(8)
       }
       if let page = loader.page {
         NativeTable(
@@ -689,38 +704,43 @@ struct DatasetView: View {
             ? "0 rows on this page of \(total.formatted())"
             : "\((displayedOffset+1).formatted())–\(min(displayedOffset+rows.count,total).formatted()) of \(total.formatted())"
         )
-        .font(.caption)
+        .readingFont(.caption)
         Button("Next") {
           state.tableOffsets[table.id] = offset + 200
         }.disabled(offset + rows.count >= total)
       } else {
-        Text(total == 1 ? "1 row" : "\(total) rows").font(.caption).foregroundStyle(.secondary)
+        Text(total == 1 ? "1 row" : "\(total) rows").readingFont(.caption).foregroundStyle(
+          .secondary)
       }
       if let saved = state.savedRows(table) {
-        Text("Import unfinished: " + saved).font(.caption).foregroundStyle(.secondary)
+        Text("Import unfinished: " + saved).readingFont(.caption).foregroundStyle(.secondary)
       }
       if let report = loader.page?.formulaReport {
         Button(report.summary) { showingFormulas = true }
-          .buttonStyle(.link).font(.caption)
+          .buttonStyle(.link).readingFont(.caption)
           .popover(isPresented: $showingFormulas, arrowEdge: .top) {
             ExcelFormulaReportView(report: report)
           }
       }
       if !selection.isEmpty {
-        Text("\(selection.count) selected on this page").font(.caption).foregroundStyle(.secondary)
+        Text(
+          "\(selection.count) selected on this page. Paste starts in "
+            + (table.columns.indices.contains(column)
+              ? table.columns[column].title : "the selected column")
+        ).readingFont(.caption).foregroundStyle(.secondary)
       }
     }
   }
   private var tableFeedback: some View {
     HStack {
       if !clipboardStatus.isEmpty {
-        Text(clipboardStatus).font(.caption).foregroundStyle(.secondary)
+        Text(clipboardStatus).readingFont(.caption).foregroundStyle(.secondary)
       }
       if state.tableUndo[table.id] != nil {
         Button("Undo") { undo(false) }.disabled(state.busy)
       }
       if compact { Button("Open table") { state.navigate(.table(table.id)) } }
-    }
+    }.announceStatus(clipboardStatus.isEmpty ? nil : clipboardStatus)
   }
   func loadTable() async {
     let request = query
@@ -815,7 +835,7 @@ struct ColumnEditor: View {
   @State private var failure: String?
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Text("Table definition").font(.title2)
+      Text("Table definition").readingFont(.title2).accessibilityAddTraits(.isHeader)
       TextField("Table title", text: $title).accessibilityLabel("Table title")
       Text("Open a column’s options to set units, formulas or validation.")
         .foregroundStyle(.secondary)
@@ -852,7 +872,7 @@ struct ColumnEditor: View {
               ) {
                 VStack(alignment: .leading, spacing: 10) {
                   LabeledContent("Column ID") {
-                    Text(c.id).font(.callout.monospaced()).textSelection(.enabled)
+                    Text(c.id).readingFont(.callout, design: .monospaced).textSelection(.enabled)
                   }
                   TextField(
                     "Unit (optional)",
@@ -890,12 +910,12 @@ struct ColumnEditor: View {
         Text(
           "Removing a column preserves its saved values. Restore a definition from History to recover it."
         )
-      }.font(.caption).foregroundStyle(.secondary)
+      }.readingFont(.caption).foregroundStyle(.secondary)
       Toggle("Archive table", isOn: $archived)
       Text(
         "Archive hides this table from the working list and prevents row edits. Saved views and history remain available."
       )
-      .font(.caption).foregroundStyle(.secondary)
+      .readingFont(.caption).foregroundStyle(.secondary)
       HStack {
         Menu("History") {
           ForEach(history) { record in
@@ -932,15 +952,17 @@ struct ColumnEditor: View {
           save()
         }.keyboardShortcut(.defaultAction).buttonStyle(.borderedProminent)
       }
-    }.padding(24).frame(width: 780, height: 540).disabled(saving)
-      .interactiveDismissDisabled(saving).onAppear {
-        columns = table.columns
-        title = table.title
-        archived = table.archived
-        do { history = try state.workbook?.datasetDefinitions(table.id) ?? [] } catch {
-          failure = error.localizedDescription
-        }
+    }.padding(24).frame(minWidth: 520, idealWidth: 780, minHeight: 380, idealHeight: 600).disabled(
+      saving
+    )
+    .interactiveDismissDisabled(saving).onAppear {
+      columns = table.columns
+      title = table.title
+      archived = table.archived
+      do { history = try state.workbook?.datasetDefinitions(table.id) ?? [] } catch {
+        failure = error.localizedDescription
       }
+    }
   }
   private func columnOptions(_ column: Column) -> String {
     var details: [String] = []

@@ -5,6 +5,7 @@ import QuickLookUI
 import SevraCore
 import SevraDocumentUI
 import SevraPreviewUI
+import SevraTableUI
 import SevraVoice
 import SwiftUI
 
@@ -68,6 +69,7 @@ private struct ItemDetails: Sendable {
   @State private var keepPlaying = false
   @State private var asset: Asset?
   @State private var choosingArchiveMembers = false
+  @State private var showingExtractedText = false
   @State private var details = ItemDetails()
   private var classification: String {
     let status = item.status == "rejected" ? "Withdrawn" : item.status.capitalized
@@ -89,7 +91,7 @@ private struct ItemDetails: Sendable {
   var body: some View {
     VStack(spacing: 0) {
       HStack {
-        Text(classification).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+        Text(classification).readingFont(.caption).foregroundStyle(.secondary).lineLimit(2)
         Spacer()
         Button("Links", systemImage: "link") { state.referencePanel = .outgoing }
           .help("Links in this document and documents that mention it")
@@ -112,6 +114,7 @@ private struct ItemDetails: Sendable {
           }.disabled(state.busy)
         }
         if item.assetID != nil {
+          Button("Read extracted text…") { showingExtractedText = true }
           Menu("File actions") {
             if file != nil {
               Button("Open a copy…") { state.openAssetCopy() }.disabled(state.busy)
@@ -169,14 +172,14 @@ private struct ItemDetails: Sendable {
               VStack(alignment: .leading, spacing: 8) { recoveryActions }
             }
           }
-        }.font(.callout).padding(12).frame(maxWidth: .infinity, alignment: .leading)
+        }.readingFont(.callout).padding(12).frame(maxWidth: .infinity, alignment: .leading)
         Divider()
       }
       if let newer = document.newerVersionID, !document.dirty {
         HStack {
           Text("Viewing an earlier version.").foregroundStyle(.secondary)
           Button("Open newer version") { state.navigate(.item(newer)) }
-        }.font(.callout).padding(10)
+        }.readingFont(.callout).padding(10)
         Divider()
       }
       if preview.loading {
@@ -192,7 +195,7 @@ private struct ItemDetails: Sendable {
               ByteCountFormatter.string(fromByteCount: preview.checkedBytes, countStyle: .file)
                 + " checked"
             )
-            .font(.caption).foregroundStyle(.secondary)
+            .readingFont(.caption).foregroundStyle(.secondary)
           } else {
             ProgressView("Opening file")
           }
@@ -240,7 +243,7 @@ private struct ItemDetails: Sendable {
             }
           }
         } else if ["png", "jpg", "jpeg", "heic", "tiff", "webp"].contains(ext) {
-          ImageFileViewer(file: file)
+          ImageFileViewer(file: file, title: item.title, item: item, workbook: workbook)
         } else if [
           "html", "htm", "svg", "xml", "js", "swift", "py", "json", "txt", "md", "csv", "tsv",
         ].contains(ext) {
@@ -253,17 +256,19 @@ private struct ItemDetails: Sendable {
           QuickLookViewer(url: file)
         }
       } else if document.editing {
-        TextEditor(text: Binding(get: { document.text }, set: { document.update($0) })).font(.body)
-          .padding(
-            16
-          )
-          .accessibilityLabel("Document draft")
+        TextEditor(text: Binding(get: { document.text }, set: { document.update($0) })).readingFont(
+          .body
+        )
+        .padding(
+          16
+        )
+        .accessibilityLabel("Document draft")
       } else {
         ScrollView {
           VStack(alignment: .leading, spacing: 18) {
-            Text(item.title).font(.title2)
+            Text(item.title).readingFont(.title2).accessibilityAddTraits(.isHeader)
             if let movementDirection {
-              Text(movementDirection).font(.headline)
+              Text(movementDirection).readingFont(.headline).accessibilityAddTraits(.isHeader)
               if item.status == "draft" {
                 Text("Check whether these units entered or left your stock before accepting.")
                   .foregroundStyle(.secondary)
@@ -283,7 +288,7 @@ private struct ItemDetails: Sendable {
               SavedDefinitionResultView(item: item, workbook: workbook, workspace: state)
             }
             if let failure = references.failure {
-              Text("Saved links are unavailable: " + failure).font(.caption).foregroundStyle(
+              Text("Saved links are unavailable: " + failure).readingFont(.caption).foregroundStyle(
                 .secondary)
             }
             if item.kind == "link", let target = URL(string: item.data["url"].text) {
@@ -304,7 +309,7 @@ private struct ItemDetails: Sendable {
                       ? "This update was undone. The preview below describes its original changes."
                       : "This draft was withdrawn without applying it."
               )
-              .font(.callout).foregroundStyle(.secondary)
+              .readingFont(.callout).foregroundStyle(.secondary)
               if let preview = try? JSONDecoder().decode(
                 TableUpdatePreview.self, from: Data(item.data["preview"].json().utf8))
               {
@@ -337,7 +342,7 @@ private struct ItemDetails: Sendable {
                     }
                   }
                 }
-              }.font(.callout)
+              }.readingFont(.callout)
             }
             copiedPassages
             lineage
@@ -351,107 +356,116 @@ private struct ItemDetails: Sendable {
       }
       if !details.extraction.isEmpty {
         Divider()
-        Text(details.extraction).font(.caption).foregroundStyle(.secondary).padding(10).frame(
-          maxWidth: .infinity, alignment: .leading)
+        Text(details.extraction).readingFont(.caption).foregroundStyle(.secondary).padding(10)
+          .frame(
+            maxWidth: .infinity, alignment: .leading)
       }
-    }.sheet(isPresented: $choosingArchiveMembers) {
-      ArchiveMemberPicker(source: item, state: state)
-    }
-    .sheet(item: $state.referenceModal) { modal in
-      switch modal {
-      case .browser:
-        ReferencesPanel(
-          item: item, workbook: workbook, session: references, state: state, open: openReference)
-      case .choice(let occurrence):
-        ReferenceTargetPicker(
-          item: item, occurrence: occurrence, workbook: workbook,
-          revision: state.revision
-        ) { target, token in
-          guard let saved = references.document, saved.body.originVersionID == item.id,
-            state.workbook === workbook,
-            state.interactionActive, !state.busy, document.current.id == occurrence.origin,
-            !document.dirty
-          else {
-            throw SevraError("workspace_changed", "Refresh this document before changing a link.")
-          }
-          let original = item
-          let updated = try await Task.detached(priority: .userInitiated) {
-            try saved.choose(
-              occurrence, target: target, item: original, workbook: workbook,
-              token: token, cancellation: Cancellation(deadlineAfterSeconds: 3))
-          }.value
-          guard state.workbook === workbook, state.interactionActive else { return }
-          state.refresh()
-          if document.current.id == original.id && state.viewedItemVersion == original.id {
-            if updated.id != original.id {
-              state.navigate(.item(updated.id))
-            } else {
-              await references.load(original, workbook: workbook)
+    }.announceStatus(document.failure ?? preview.failure)
+      .sheet(isPresented: $showingExtractedText) {
+        ExtractedTextView(item: item, workbook: workbook) { locator in
+          guard state.workbook === workbook, state.viewedItemVersion == item.id else { return }
+          state.itemLocators[item.id] = locator
+          state.locatorRequest = UUID()
+        }
+      }
+      .sheet(isPresented: $choosingArchiveMembers) {
+        ArchiveMemberPicker(source: item, state: state)
+      }
+      .sheet(item: $state.referenceModal) { modal in
+        switch modal {
+        case .browser:
+          ReferencesPanel(
+            item: item, workbook: workbook, session: references, state: state, open: openReference)
+        case .choice(let occurrence):
+          ReferenceTargetPicker(
+            item: item, occurrence: occurrence, workbook: workbook,
+            revision: state.revision
+          ) { target, token in
+            guard let saved = references.document, saved.body.originVersionID == item.id,
+              state.workbook === workbook,
+              state.interactionActive, !state.busy, document.current.id == occurrence.origin,
+              !document.dirty
+            else {
+              throw SevraError("workspace_changed", "Refresh this document before changing a link.")
+            }
+            let original = item
+            let updated = try await Task.detached(priority: .userInitiated) {
+              try saved.choose(
+                occurrence, target: target, item: original, workbook: workbook,
+                token: token, cancellation: Cancellation(deadlineAfterSeconds: 3))
+            }.value
+            guard state.workbook === workbook, state.interactionActive else { return }
+            state.refresh()
+            if document.current.id == original.id && state.viewedItemVersion == original.id {
+              if updated.id != original.id {
+                state.navigate(.item(updated.id))
+              } else {
+                await references.load(original, workbook: workbook)
+              }
             }
           }
         }
       }
-    }
-    .task(id: "\(item.id):\(state.revision)") {
-      await loadDetails()
-      await references.load(item, workbook: workbook)
-    }
-    .onAppear {
-      if item.assetID != nil { state.activePreview = preview }
-      state.documentDrafts.register(document)
-      state.activeDocument = document
-      state.viewedItemVersion = item.id
-      document.changed = { [weak state, weak document] in
-        guard let state, let document else { return }
-        state.viewedItemVersion = document.current.id
-        state.refresh()
+      .task(id: "\(item.id):\(state.revision)") {
+        await loadDetails()
+        await references.load(item, workbook: workbook)
       }
-      Task { await document.refreshHead() }
-    }
-    .onChange(of: state.revision) { _, _ in Task { await document.refreshHead() } }
-    .onDisappear {
-      references.cancel()
-      linkNavigation?.cancel()
-      preview.cancel()
-      if state.activePreview === preview { state.activePreview = nil }
-      document.flush()
-      document.changed = nil
-      if state.activeDocument === document { state.activeDocument = nil }
-      if state.viewedItemVersion == item.id { state.viewedItemVersion = nil }
-    }
-    .task(id: "\(item.id):\(preview.reloadID)") {
-      guard !Task.isCancelled, let assetID = item.assetID,
-        state.workbook === workbook, state.interactionActive
-      else { return }
-      // Retry/relink must not retain or continue playing the previously verified
-      // file while a new verification is pending or has failed.
-      player?.releasePlayback()
-      player = nil
-      keepPlaying = false
-      // Keep external-file recovery available even when the original is missing.
-      let book = workbook
-      let saved = await Task.detached(priority: .userInitiated) { try? book.asset(assetID) }.value
-      guard !Task.isCancelled else { return }
-      asset = saved
-      preview.isExternal = asset?.mode == "linked"
-      let chosen = preview.originalURL
-      let identity = preview.reloadID
-      let resolved = await preview.load { cancel, progress in
-        try await Task.detached {
-          if let chosen {
-            return try book.relinkAsset(
-              assetID, to: chosen, cancellation: cancel, progress: progress)
-          }
-          return try book.assetURL(assetID, cancellation: cancel, progress: progress)
-        }.value
+      .onAppear {
+        if item.assetID != nil { state.activePreview = preview }
+        state.documentDrafts.register(document)
+        state.activeDocument = document
+        state.viewedItemVersion = item.id
+        document.changed = { [weak state, weak document] in
+          guard let state, let document else { return }
+          state.viewedItemVersion = document.current.id
+          state.refresh()
+        }
+        Task { await document.refreshHead() }
       }
-      if resolved, preview.reloadID == identity, chosen != nil,
-        state.workbook === workbook, state.interactionActive
-      {
-        preview.didResolve(identity)
-        state.refresh()
+      .onChange(of: state.revision) { _, _ in Task { await document.refreshHead() } }
+      .onDisappear {
+        references.cancel()
+        linkNavigation?.cancel()
+        preview.cancel()
+        if state.activePreview === preview { state.activePreview = nil }
+        document.flush()
+        document.changed = nil
+        if state.activeDocument === document { state.activeDocument = nil }
+        if state.viewedItemVersion == item.id { state.viewedItemVersion = nil }
       }
-    }
+      .task(id: "\(item.id):\(preview.reloadID)") {
+        guard !Task.isCancelled, let assetID = item.assetID,
+          state.workbook === workbook, state.interactionActive
+        else { return }
+        // Retry/relink must not retain or continue playing the previously verified
+        // file while a new verification is pending or has failed.
+        player?.releasePlayback()
+        player = nil
+        keepPlaying = false
+        // Keep external-file recovery available even when the original is missing.
+        let book = workbook
+        let saved = await Task.detached(priority: .userInitiated) { try? book.asset(assetID) }.value
+        guard !Task.isCancelled else { return }
+        asset = saved
+        preview.isExternal = asset?.mode == "linked"
+        let chosen = preview.originalURL
+        let identity = preview.reloadID
+        let resolved = await preview.load { cancel, progress in
+          try await Task.detached {
+            if let chosen {
+              return try book.relinkAsset(
+                assetID, to: chosen, cancellation: cancel, progress: progress)
+            }
+            return try book.assetURL(assetID, cancellation: cancel, progress: progress)
+          }.value
+        }
+        if resolved, preview.reloadID == identity, chosen != nil,
+          state.workbook === workbook, state.interactionActive
+        {
+          preview.didResolve(identity)
+          state.refresh()
+        }
+      }
   }
   private func seek(_ seconds: Double) {
     player?.seek(
@@ -483,7 +497,7 @@ private struct ItemDetails: Sendable {
   @ViewBuilder var lineage: some View {
     if !details.links.isEmpty {
       Divider()
-      Text("Evidence and history").font(.headline)
+      Text("Evidence and history").readingFont(.headline).accessibilityAddTraits(.isHeader)
       ForEach(details.links) { link in
         Button(link.title) { state.navigate(.item(link.target)) }.buttonStyle(.link)
       }
@@ -493,7 +507,7 @@ private struct ItemDetails: Sendable {
     let provenance = DocumentProvenance.make(item)
     if provenance.unavailable {
       Text("Copy information is unavailable. Earlier versions remain in Evidence and history.")
-        .font(.callout).foregroundStyle(.secondary)
+        .readingFont(.callout).foregroundStyle(.secondary)
     } else if !provenance.passages.isEmpty {
       Divider()
       DisclosureGroup("Copied passages (\(provenance.passages.count))") {
@@ -501,12 +515,12 @@ private struct ItemDetails: Sendable {
           Text(
             "Each link opens the exact version used in this document. It may be an earlier version."
           )
-          .font(.caption).foregroundStyle(.secondary)
+          .readingFont(.caption).foregroundStyle(.secondary)
           ForEach(provenance.passages) { passage in
             VStack(alignment: .leading, spacing: 6) {
               Text(verbatim: passage.text).lineLimit(3).textSelection(.enabled)
               if !passage.locator.isEmpty {
-                Text(passage.locator).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                Text(passage.locator).readingFont(.caption).foregroundStyle(.secondary).lineLimit(2)
               }
               Button("Open original passage") {
                 state.openEvidence(passage.sourceVersionID, locator: passage.locator)
@@ -582,7 +596,7 @@ private struct ItemDetails: Sendable {
     pages = view?.document?.pageCount ?? 0
     page = (view?.currentPage.flatMap { view?.document?.index(for: $0) } ?? 0) + 1
   }
-  func nextMatch() {
+  func nextMatch(animate: Bool = false) {
     guard let view, let document = view.document, document.pageCount > 0 else { return }
     guard !query.isEmpty && query.utf8.count <= 2048 else {
       status = "Enter up to 2,048 bytes of search text."
@@ -603,7 +617,7 @@ private struct ItemDetails: Sendable {
         of: query, options: .caseInsensitive,
         range: NSRange(location: start, length: text.length - start))
       if match.location != NSNotFound, let selection = pdfPage.selection(for: match) {
-        view.setCurrentSelection(selection, animate: true)
+        view.setCurrentSelection(selection, animate: animate)
         view.go(to: selection)
         lastPage = index
         lastEnd = NSMaxRange(match)
@@ -622,6 +636,7 @@ struct PDFWorkspace: View {
   let onSelection: (String) -> Void
   let onLink: (URL) -> Void
   @StateObject private var controls = PDFControls()
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   var body: some View {
     VStack(spacing: 0) {
       if !controls.unavailable {
@@ -642,34 +657,38 @@ struct PDFWorkspace: View {
           }
           if controls.pages > 0 {
             Text(controls.pages == 1 ? "1 page" : "\(controls.page) / \(controls.pages)")
-              .font(.caption).monospacedDigit()
+              .readingFont(.caption).monospacedDigit()
               .accessibilityLabel("Page \(controls.page) of \(controls.pages)")
           }
           Spacer()
           TextField("Search this PDF", text: $controls.query).textFieldStyle(.roundedBorder).frame(
             maxWidth: 220
-          ).onSubmit { controls.nextMatch() }
-          Button("Next match") { controls.nextMatch() }.disabled(controls.query.isEmpty)
+          ).onSubmit { controls.nextMatch(animate: !reduceMotion) }
+          Button("Next match") { controls.nextMatch(animate: !reduceMotion) }.disabled(
+            controls.query.isEmpty)
         }.padding(10)
         if !controls.status.isEmpty {
-          Text(controls.status).font(.caption).foregroundStyle(.secondary).padding(.horizontal, 10)
+          Text(controls.status).readingFont(.caption).foregroundStyle(.secondary).padding(
+            .horizontal, 10)
         }
         Divider()
       }
       PDFViewer(
-        url: url, locator: locator, onSelection: onSelection, onLink: onLink, controls: controls)
-        .overlay {
-          if controls.unavailable {
-            ContentUnavailableView(
-              "PDF preview unavailable", systemImage: "doc.badge.ellipsis",
-              description: Text(
-                "This file could not be opened as a PDF. Use File actions to open a copy in another app."
-              )
-            ).frame(maxWidth: .infinity, maxHeight: .infinity)
-              .background(Color(nsColor: .windowBackgroundColor))
-          }
+        url: url, locator: locator, onSelection: onSelection, onLink: onLink, controls: controls
+      )
+      .overlay {
+        if controls.unavailable {
+          ContentUnavailableView(
+            "PDF preview unavailable", systemImage: "doc.badge.ellipsis",
+            description: Text(
+              "This file could not be opened as a PDF. Use File actions to open a copy in another app."
+            )
+          ).frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(nsColor: .windowBackgroundColor))
         }
+      }
     }
+    .announceStatus(controls.status.isEmpty ? nil : controls.status)
     .onChange(of: controls.page) { _, page in onPage(page) }
   }
 }
@@ -680,7 +699,8 @@ struct TranscriptLine: Identifiable, Sendable {
   /// Only a transcript's chunks carry a time.
   init?(_ chunk: Value) {
     let locator = chunk["locator"].text
-    guard let id = chunk["id"].int, let range = locator.range(of: "^time=[0-9.]+", options: .regularExpression),
+    guard let id = chunk["id"].int,
+      let range = locator.range(of: "^time=[0-9.]+", options: .regularExpression),
       let seconds = Double(locator[range].dropFirst(5))
     else { return nil }
     self.id = id
@@ -717,7 +737,7 @@ struct TranscriptView: View {
       if !lines.isEmpty {
         Divider()
         HStack {
-          Text("Transcript").font(.headline)
+          Text("Transcript").readingFont(.headline).accessibilityAddTraits(.isHeader)
           Spacer()
           Button("Copy") {
             NSPasteboard.general.clearContents()
@@ -831,17 +851,23 @@ struct QuickLookViewer: NSViewRepresentable {
 /// Decodes off the main thread. A file ImageIO cannot read still gets Quick Look.
 struct ImageFileViewer: View {
   let file: URL
+  let title: String
+  let item: Item
+  let workbook: Workbook
   @State private var image: NSImage?
   @State private var unreadable = false
   var body: some View {
-    Group {
-      if let image {
-        ImageViewer(image: image)
-      } else if unreadable {
-        QuickLookViewer(url: file)
-      } else {
-        ProgressView("Opening image").frame(maxWidth: .infinity, maxHeight: .infinity)
+    VStack(spacing: 0) {
+      Group {
+        if let image {
+          ImageViewer(image: image, title: title)
+        } else if unreadable {
+          QuickLookViewer(url: file).accessibilityLabel("Image: " + title)
+        } else {
+          ProgressView("Opening image").frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
       }
+      ImageDescriptionView(item: item, workbook: workbook)
     }.task(id: file) {
       image = nil
       unreadable = false
@@ -859,6 +885,7 @@ struct ImageFileViewer: View {
 }
 struct ImageViewer: View {
   let image: NSImage
+  let title: String
   @State private var scale = 1.0
   var body: some View {
     VStack {
@@ -875,7 +902,9 @@ struct ImageViewer: View {
       ScrollView([.horizontal, .vertical]) {
         Image(nsImage: image).resizable().scaledToFit().frame(
           width: min(1000, image.size.width) * scale
-        ).padding(20)
+        ).padding(20).accessibilityLabel("Image: " + title)
+          .accessibilityHint(
+            "Read extracted text for recognized words. An optional description can be saved below.")
       }
     }
   }
@@ -887,7 +916,7 @@ struct DelimitedFileViewer: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       if let preview {
-        Text(preview.detail).font(.caption).foregroundStyle(.secondary)
+        Text(preview.detail).readingFont(.caption).foregroundStyle(.secondary)
         if preview.table.headings.isEmpty {
           ContentUnavailableView(
             "Empty table", systemImage: "tablecells",
@@ -928,7 +957,9 @@ struct SafeTextViewer: View {
   @State private var structured: Value?
   private var note: some View {
     Group {
-      if !detail.isEmpty { Text(detail).font(.caption).foregroundStyle(.secondary).padding(10) }
+      if !detail.isEmpty {
+        Text(detail).readingFont(.caption).foregroundStyle(.secondary).padding(10)
+      }
     }
   }
   var body: some View {
