@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m78qhn7q81ha6w72smnkerxt
 created: 2026-11-12T20:35:19.415048+00:00
-updated: 2026-11-12T21:55:30.053778+00:00
+updated: 2026-11-12T22:31:00.882043+00:00
 summary: Reviewed architecture and implementation gates for sandboxed JavaScript, reactive native UI, scoped workbook data, packaging and end-to-end verification.
 title: Programmable native app engine implementation
 ---
@@ -74,3 +74,21 @@ Installed history now loads and restores correctly: two restores create new vers
 Final measurements through the current packaged harness: 30 label events through XPC, median 2.061 ms and p95 2.100 ms at a 1 ms observation interval. The unchanged 10,000-record paging measurement remains median 16.453 ms and p95 17.692 ms. These are one-host scoped checks. Full assistive technology, other hardware, external use and production signing remain unqualified.
 
 All local P7 work is complete. Commit/push and the hosted run are the remaining acceptance steps; append their result here.
+
+### Hosted packaging finding and repair, November 12
+
+[Checks run 43315081956](https://github.com/carloslfu/sevra-app/actions/runs/43315081956)
+on implementation commit `e518fef19b6fbcfabb846faace6b5be856bd9d6e` passed the new
+engine/sandbox, core invariant suite and all other functional steps through store
+validation. The baseline release compiled, then its signature verification failed:
+`Contents/MacOS/mlx.metallib` was unsigned. Removing parent deep signing to preserve
+the sandboxed helper exposed that unsigned baseline leaf.
+
+The baseline build now signs its Metal library explicitly before the parent; the
+baseline installer does the same for the embedded CLI copy. Native runtime bytes
+and helper signing remain unchanged. Installer regression checks now verify the
+worker retains its exact packaged SHA and only its sandbox entitlement in both
+variants. The baseline release/signature, both isolated installers and baseline
+packaged extraction pass locally. The preserved installed baseline was not touched.
+See the [signing repair receipt](../../../integration/evidence/2026-11-12-native-app-signing.json.gz).
+This repairs the failing gate; the follow-up hosted run remains required.

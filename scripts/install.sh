@@ -75,6 +75,9 @@ if [ "$NATIVE" = 1 ]; then
   # Upstream helpers are already signed. --deep would change pinned engine bytes.
   codesign --force --sign - "$STAGE/Sevra.app"
 else
+  # The baseline CLI copy also embeds an unsigned Metal library. Native preview
+  # runtime bytes are pinned, so only the baseline takes this explicit leaf step.
+  codesign --force --sign - "$STAGE/Sevra.app/Contents/CLI/mlx.metallib"
   codesign --force --sign - "$STAGE/Sevra.app"
 fi
 codesign --verify --deep --strict "$STAGE/Sevra.app"

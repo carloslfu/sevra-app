@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m78sah1afmhpr6vzfbkrg1r2
 created: 2026-11-12T21:06:22.890879+00:00
-updated: 2026-11-12T21:55:30.104060+00:00
+updated: 2026-11-12T21:58:14.368362+00:00
 summary: 'Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.'
 title: Programmable native spaces SDK 1
 status: implemented
@@ -82,3 +82,33 @@ The planner deliberately shows the first 100 cards and discloses its total; its 
 scrolling document grows to include those cards. Source/CLI/package import is the
 programmable authoring path. Existing local-AI tools still compose ordinary fixed
 spaces; this increment does not add an AI tool that generates JavaScript packages.
+
+
+## Manual product walkthrough
+
+Use a disposable workbook and the bundled `examples/apps/*/app.sevraapp` packages.
+Choose **Workbook > Add Native App…**, select a package, open its space and review
+its table access before **Enable app**.
+
+1. **Inventory:** add an item and quantity, select its row, change the quantity,
+   save, then use the native **Undo last change** action. Search for part of its
+   name, try a name with no matches and clear search. Check centered row labels,
+   right-aligned quantities and readable form labels.
+2. **Jobs:** add a job and owner, select it, change its stage with the native picker
+   and save. The grouped status count and table should agree. Use Tab to move
+   through fields and controls; enter another job without touching the mouse.
+3. **Planner:** add a card, drag it, select it and use arrow keys. Switch spaces
+   and return; the saved position should remain. Enough cards to exceed the
+   window should remain reachable by scrolling.
+4. **Persistence and draft:** leave an unfinished inventory name, disable the
+   app and enable it again. Its draft should return. Close and reopen the
+   workbook; saved records and app source should remain.
+5. **Code lifecycle:** export an app template from **App**, import it into another
+   disposable workbook, and verify that it needs enabling and starts with its
+   own tables. Updating an existing space keeps its bindings. Restoring code
+   from the workspace action menu creates a new version, preserves business
+   records and requires reviewing access again.
+6. **Layout:** compare the split conversation/workspace layout with focused
+   workspace, then make the window smaller. Check field labels, action grouping,
+   row alignment, empty results and the table footer. Content must stay reachable
+   through native scrolling while trusted app controls remain available.

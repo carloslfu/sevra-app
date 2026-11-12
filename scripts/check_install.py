@@ -23,6 +23,12 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     (folder/"bin/sevra").symlink_to(other/"Contents/CLI/sevra")
     script("install.sh",*mode,"--no-build")
     app = folder/"Applications"/(name+".app")/"Contents"
+    service = Path("XPCServices/com.sevra.workbooks.app-worker.xpc")
+    worker = service / "Contents/MacOS/sevra-app-worker"
+    product = root / ("output/native" if options.native else "output") / (name + ".app") / "Contents"
+    assert hashlib.sha256((app / worker).read_bytes()).digest() == hashlib.sha256((product / worker).read_bytes()).digest()
+    entitlements = subprocess.check_output(["codesign", "-d", "--entitlements", ":-", str(app / service)], stderr=subprocess.DEVNULL)
+    assert plistlib.loads(entitlements) == {"com.apple.security.app-sandbox": True}
     info = plistlib.loads((app/"Info.plist").read_bytes())
     assert info["CFBundleIconFile"] == "Sevra.icns"
     assert hashlib.sha256((app/"Resources/Sevra.icns").read_bytes()).hexdigest() == "b28f2df8e40cafc2e89fb3ae5a0e361b5470851d833495df9b3dd4ca0395471d"
@@ -74,4 +80,4 @@ with tempfile.TemporaryDirectory(prefix="sevra-install-check-") as path:
     skill=(folder/"skills/sevra/SKILL.md").read_bytes()
     conflict=subprocess.run([str(root/"scripts/install_skill.sh"),"claude"],env=skill_env,capture_output=True,text=True)
     assert conflict.returncode!=0 and (folder/"skills/sevra/SKILL.md").read_bytes()==skill
-    print(json.dumps({"native":options.native,"ownedCLITransition":True,"skillInstallAndConflict":True,"installed":True,"updated":True,"standaloneCLI":True,"uninstalled":True,"workbookPreserved":True,"unrelatedCLIProtected":True}))
+    print(json.dumps({"native":options.native,"appWorkerSandbox":True,"ownedCLITransition":True,"skillInstallAndConflict":True,"installed":True,"updated":True,"standaloneCLI":True,"uninstalled":True,"workbookPreserved":True,"unrelatedCLIProtected":True}))

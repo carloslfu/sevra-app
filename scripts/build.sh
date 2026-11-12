@@ -40,6 +40,9 @@ for resource in swift-transformers_Hub ZIPFoundation_ZIPFoundation swift-crypto_
 done
 python3 "$ROOT/scripts/licenses.py"
 python3 scripts/package_app_worker.py "$APP" "$BIN"
+# The baseline Metal library is unsigned upstream. Sign this copied leaf explicitly
+# so signing the parent never replaces the app worker's sandbox entitlements.
+codesign --force --sign - "$APP/Contents/MacOS/mlx.metallib"
 codesign --force --sign - "$APP"
 codesign --verify --deep --strict "$APP"
 echo "Built $APP"
