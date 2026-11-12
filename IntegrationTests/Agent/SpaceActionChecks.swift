@@ -1,5 +1,6 @@
 import Foundation
 import SevraAI
+
 @testable import SevraCore
 
 private actor SpaceActionModel: WorkbookInference {
@@ -173,13 +174,32 @@ private actor SpaceActionModel: WorkbookInference {
   try expectEqual(twoNamed.answer.contains("More than one automation"), true)
   try expectEqual(twoNamed.focus == nil, true)
 
+  // Exact history is reviewable even after its head changes. Names and logical IDs
+  // still resolve current versions, and a title cannot shadow an explicit ID.
+  var renamedContent = weekly.content.object
+  renamedContent["title"] = .string("Current weekly check")
+  let renamed = try book.saveApplicationDefinition(
+    logicalID: weekly.logicalID, content: .object(renamedContent),
+    expectedDefinitionID: weekly.id)
+  _ = try automation(weekly.id)
+  let historical = try await opening(weekly.id)
+  try expectEqual(historical.focus?.id, weekly.id)
+  try expectEqual(historical.answer.contains("Nothing was enabled"), true)
+  try expectEqual(try book.automationTarget(weekly.logicalID).id, renamed.id)
+  try expectEqual(try book.automationTarget("Current weekly check").id, renamed.id)
+  try expectEqual(try book.automationTarget("Weekly stock check").id != weekly.id, true)
+  try expectEqual(try book.automationTarget(renamed.id).id, renamed.id)
+  try expectEqual(try book.workflowRuns().isEmpty, true)
+  try expectEqual(try book.automationActivations()["activations"].array.isEmpty, true)
+
   // A plain request for a draft gets one correction if the model only answers in chat.
   try expectEqual(DraftRequest.asks("Draft a brief summary of the report."), true)
   try expectEqual(DraftRequest.asks("Please write me a short draft of it."), true)
   try expectEqual(DraftRequest.asks("Redacta un borrador breve en español."), true)
   try expectEqual(DraftRequest.asks("What does the draft say?"), false)
   try expectEqual(DraftRequest.asks("Can you write a short draft of it?"), true)
-  try expectEqual(DraftRequest.asks("Should I make a draft order for Brio or wait for tax terms?"), false)
+  try expectEqual(
+    DraftRequest.asks("Should I make a draft order for Brio or wait for tax terms?"), false)
   try expectEqual(DraftRequest.asks("Did you make a draft yet?"), false)
   try expectEqual(DraftRequest.asks("How do I create a draft?"), false)
   try expectEqual(DraftRequest.asks("¿Cómo hago un borrador?"), false)

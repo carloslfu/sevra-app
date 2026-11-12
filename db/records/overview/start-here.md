@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-10-31T14:52:00+00:00
+updated: 2026-11-12T03:15:12.945363+00:00
 summary: Independent context, goals, specification, architecture and implementation order for the Sevra app.
 title: Start here
 ---
@@ -31,9 +31,10 @@ comparison and original-table grids, increment 3, less manual reviewed updates,
 increment 4, bounded bulk intake, and increment 5, an explicit Excel formula subset, are
 accepted for their scope. So are increment 6, bounded conversation continuation, now on for the
 native 32K profile, increment 7, reaching automation review by text or voice, increment 8, folder
-comparison and job templates, and increment 9, longer audio. Increment 10 has its real-model
-journey, install, suite and window pass; signing and the hardware matrix remain open. Main carries
-this work.
+comparison and job templates, and increment 9, longer audio. Increment 10 has fresh real-model, install, suite and window evidence through November 11.
+Three observed defects were corrected; the final live automation result-link check was interrupted
+by a locked screen. Actual VoiceOver, external use, production signing and other hardware remain
+open. Main carries this work; [[records/operations/agent-handoff]] identifies the remaining checks.
 
 The October 29 follow-up authorizes sequential minimum usable features, testing
 and polish: [[records/operations/minimum-feature-delivery]]. That queue supersedes

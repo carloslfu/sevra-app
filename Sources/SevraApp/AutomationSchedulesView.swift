@@ -186,6 +186,7 @@ struct AutomationScheduleDetail: View {
   @State private var failure: String?
   @State private var updatedDefinition: ApplicationDefinition?
   @State private var enabledVersion: Int?
+  @State private var loadedDefinitionID: String?
   private var shown: ApplicationDefinition { updatedDefinition ?? definition }
   private var isCondition: Bool {
     shown.payload["policy"] == .string("inventory-condition-drafts-v1")
@@ -284,7 +285,9 @@ struct AutomationScheduleDetail: View {
       }
     }.padding(24).frame(minWidth: 540, idealWidth: 620, minHeight: 440, idealHeight: 660)
       .disabled(working || workspace.busy).interactiveDismissDisabled(working)
-      .task(id: shown.id) { await load() }
+      .task(id: workspace.interactionIdentity.uuidString + shown.id + String(workspace.revision)) {
+        await load()
+      }
       .confirmationDialog("Start only from now?", isPresented: $confirmingFromNow) {
         Button("Skip earlier transitions and start from now") {
           guard let book = workspace.workbook else { return }
@@ -375,7 +378,9 @@ struct AutomationScheduleDetail: View {
           try book.applicationDefinition(definition.payload["workflow"]["versionID"].text)
         )
       }.value
-      guard !Task.isCancelled, workspace.workbook === book else { return }
+      guard !Task.isCancelled, workspace.workbook === book, shown.id == definition.id else {
+        return
+      }
       preview = saved.0
       state = saved.1
       workflow = saved.2
@@ -383,7 +388,9 @@ struct AutomationScheduleDetail: View {
         let status = try await Task.detached {
           (try book.inventoryCondition(id), try book.inventoryConditionQueue(id))
         }.value
-        guard !Task.isCancelled, workspace.workbook === book else { return }
+        guard !Task.isCancelled, workspace.workbook === book, shown.id == definition.id else {
+          return
+        }
         conditionState = status.0
         conditionQueue = status.1
       } else {
@@ -393,17 +400,35 @@ struct AutomationScheduleDetail: View {
       await owner.reload()
       let registry = owner.registry
       let candidates = owner.grants.filter { $0.id == state["id"].text }
-      grant = try await Task.detached {
+      let currentGrant = try await Task.detached {
         try candidates.first { try registry.matches($0, workbook: book) }
       }.value
-      if let grant {
-        allowAI = grant.allowAI
-        let id = grant.definitionID
-        enabledVersion = try? await Task.detached {
+      var currentEnabledVersion: Int?
+      if let currentGrant {
+        let id = currentGrant.definitionID
+        currentEnabledVersion = try? await Task.detached {
           try book.applicationDefinition(id).version
         }.value
       }
-    } catch { failure = error.localizedDescription }
+      guard !Task.isCancelled, workspace.workbook === book, shown.id == definition.id else {
+        return
+      }
+      // Live run updates must not undo an unsaved permission choice in this page.
+      if let currentGrant,
+        loadedDefinitionID != definition.id || grant?.id != currentGrant.id
+          || grant?.generation != currentGrant.generation
+      {
+        allowAI = currentGrant.allowAI
+      }
+      grant = currentGrant
+      enabledVersion = currentEnabledVersion
+      loadedDefinitionID = definition.id
+    } catch {
+      guard !Task.isCancelled, workspace.workbook === book, shown.id == definition.id else {
+        return
+      }
+      failure = error.localizedDescription
+    }
   }
   private func perform(_ operation: @escaping @MainActor () async throws -> Void) {
     working = true

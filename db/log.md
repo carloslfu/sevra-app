@@ -103,3 +103,9 @@ Automation cases: fixed a stale next time shown while paused (U5); a hand-writte
 ## [2026-11-02 18:49] implementation | records/operations/agent-handoff
 Paused by the owner; resume note lists the window checks that need full-screen control
 
+## [2026-11-12 03:15] implementation | records/operations/implementation.md
+Resumed minimum features: fixed historical automation lookup, indexed pasted originals before optional conversion, and refreshed live automation details; retained observed failures and current limits.
+
+## [2026-11-12 03:17] verification | records/operations/implementation.md
+Full suite exit 0 (901 PASS lines), 50 agent groups, four real-model cases, explicit native package/install/extraction checks, visible lifecycle regressions and portable copy passed. Final live automation link observation and VoiceOver remain blocked by screen/approval; test activations paused.
+

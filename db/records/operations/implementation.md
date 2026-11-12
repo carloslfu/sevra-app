@@ -3,11 +3,69 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-02T17:20:00+00:00
+updated: 2026-11-12T03:17:10.161966+00:00
 summary: Ordered work and honest requirement status for the first Sevra release.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
+
+## Continuation and final window checks, November 11
+
+The owner resumed the paused checkpoint and requested end-to-end refinement and verification:
+[[sources/notes/2026/11/minimum-features-completion-resume]]. Work stays on main. The prior final
+handoff commit `4cb1d07` and its preceding code commit both have successful hosted Checks runs.
+
+**Three observed defects.** A real local-model request supplied the correct historical automation
+version ID, but `automationTarget` joined only current heads and reported it missing. Exact IDs
+now resolve retained versions first, logical IDs resolve current heads next, and case-insensitive
+names search current heads with ambiguity refusal. Another automation's title cannot shadow an
+exact ID. The regression failed before the fix and passed afterward. Opening history creates no
+activation or workflow. In the installed app the same request now opens version 1 and correctly
+says that a newer version is enabled, without changing that grant.
+
+Pasting a two-row TSV and choosing Done left its original at `Content extraction pending`. The
+paste path now completes bounded extraction before showing optional conversion choices. A fresh
+installed-app workbook has no unfinished intake after Done; the original is searchable, and later
+explicit conversion creates the expected Bolt/2 and Washer/3 rows. Export and reopening preserve
+both rows, pass integrity, and create no activation.
+
+The scheduled workflow ran at exactly 03:06:00 UTC (10:06 PM Bogotá) with its detail page open.
+The status advanced to the next day, but Open saved run incorrectly opened the 10:01 PM run.
+The detail now reloads on workbook revision as well as definition/window identity, refreshing the
+saved run, queue and schedule preview. Cancellation and identity guards prevent obsolete reads
+from publishing. Refresh preserves an unsaved local-AI checkbox while the same registration and
+generation remain current. An unrelated saved note left the checkbox checked and the persisted
+grant's `allowAI` false. **The final installed due-time/result-link check remains unverified:**
+the Mac locked before the 10:12 PM occurrence. The new view code builds and passes the relevant
+suite, but that is not a substitute for seeing its final result link on screen.
+
+**Other checks seen in the installed app.** Command-N, Command-O, Command-I and Shift-Command-E
+opened the correct file panels; Cancel returned safely, and Open also opened a fresh synthetic
+workbook. File actions > Transcribe started on an 85-minute synthetic recording. Command-period
+cancelled promptly; retry completed with timestamped text. Recognition misheard some words,
+including bolts as volts, so this is lifecycle/timestamp proof, not transcript accuracy.
+Switching calendar automations to inventory triggers preserved custom prose and changed stock
+prose to the inventory wording. The previous claim that the model could not fit memory no longer
+blocks this Mac: the historical-version test and fresh model regression ran successfully.
+
+**Automated verification.** `bash scripts/check.sh` exited 0 with 901 PASS lines and zero record
+errors/warnings. Its conservative timestamp gate skipped packaged journeys after UI-only edits;
+those package, isolated native install and extraction checks all passed explicitly on the rebuilt
+candidate, including 1,888 Metal kernels, ten missing-resource refusals and altered-resource refusal. `swift run -j 4 sevra-agent-checks` passed all 50 groups. The actual installed CLI passed
+supplier comparison with a saved table/chart, hostile-document handling, missing/incomplete evidence,
+and cancellation, persistence and restart. These are scoped functional cases, not a general accuracy
+rate. Strict Swift formatting and diff checks pass. The
+[final window-check receipt](../../../integration/evidence/2026-11-11-final-window-checks.json.gz)
+(SHA-256 `72bec3a2991207818c744307907291b3327dc476676daa7e47282d23685bdc09`)
+binds raw logs, retained failures, source/binary hashes and synthetic results. The test activations
+were paused through the CLI after the screen locked; they will not keep creating daily runs. The
+workbooks remain intact for the final observation. No real workbook was modified.
+
+**Remaining qualification.** VoiceOver itself still awaits explicit approval and an unlocked Mac.
+The final automation live-link observation also needs the screen. No code-signing identity is
+available on this Mac. Production signing/notarization, the broader hardware matrix and an
+uncoached external user remain open. No production-ready release is claimed. The earlier detailed
+results below remain historical evidence, not current blockers where this section supersedes them.
 
 ## Window pass, November 2
 

@@ -267,6 +267,10 @@ func expectValue<T>(_ value: T?) throws -> T {
   return value
 }
 do {
+  if CommandLine.arguments.dropFirst() == ["--space-action-checks"] {
+    try await checkSpaceActions()
+    exit(0)
+  }
   if CommandLine.arguments.dropFirst() == ["--related-original-checks"] {
     try await checkRelatedOriginals()
     exit(0)
@@ -431,7 +435,8 @@ do {
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
       engine: CommandLine.arguments[4], output: CommandLine.arguments[5],
       maintainedOnly: CommandLine.arguments[1] == "--active-context-maintained")
-  } else if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--active-context-recovery"
+  } else if CommandLine.arguments.count == 6
+    && CommandLine.arguments[1] == "--active-context-recovery"
   {
     try await runActiveContextRecoveryProbe(
       modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],

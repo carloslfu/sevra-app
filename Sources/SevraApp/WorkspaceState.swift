@@ -599,7 +599,9 @@ struct FolderReview {
     run(
       "Preparing " + choice.title,
       operation: { book, cancel in
-        if choice.job == nil { _ = try book.beginIntake(sourceID: choice.sourceID, token: choice.id) }
+        if choice.job == nil {
+          _ = try book.beginIntake(sourceID: choice.sourceID, token: choice.id)
+        }
         do {
           let current = try book.intakeJob(choice.id)
           if current.role == nil {
@@ -693,6 +695,9 @@ struct FolderReview {
         try Data(text.utf8).write(to: file, options: .atomic)
         let source = try book.importFile(
           file, origin: "clipboard:values-only", cancellation: cancel, independentInput: true)
+        // Done keeps this original as evidence without selecting a conversion.
+        // Complete its queued indexing before presenting those optional choices.
+        try book.extract(source.id, cancellation: cancel)
         return IntakeChoice(
           sourceID: source.id, title: "Copied table range (values only)", supportsTable: true,
           supportsUpdate: true)
@@ -923,7 +928,8 @@ struct FolderReview {
     if interactionActive, workbook === unsent.book, conversation == unsent.chat {
       returnInput(unsent.input)
     } else {
-      do { try ComposerInput.keep(unsent.input, conversation: unsent.chat, in: unsent.book) } catch {
+      do { try ComposerInput.keep(unsent.input, conversation: unsent.chat, in: unsent.book) } catch
+      {
         if interactionActive { returnInput(unsent.input) }
       }
     }

@@ -2,7 +2,7 @@
 type: operational
 id: 01m6578ccnp83zedvmr7gpp45q
 created: 2026-10-30T01:37:13.109871+00:00
-updated: 2026-11-02T15:45:00+00:00
+updated: 2026-11-12T03:15:12.929895+00:00
 summary: Ordered bounded implementation, test and polish increments for the audited Sevra feature gaps.
 title: Minimum usable feature sequence
 ---
@@ -74,3 +74,13 @@ fixed on main, and its follow-up fixed the open list. The November 2 window pass
 reopening a closed workbook and an empty window left by each opened file, leaving the window cases
 that need an unlocked screen. VoiceOver itself, signing and the hardware matrix remain open. Next is an external
 user, as [[records/specs/mvp-delivery]] requires.
+
+## November 11 continuation
+
+The owner resumed again in [[sources/notes/2026/11/minimum-features-completion-resume]]. The remaining
+file shortcuts, transcription menu/Stop/retry, trigger-description cases, historical automation
+review and paste-table lifecycle were exercised. Three observed defects were corrected. The final
+automation result-link observation was interrupted by the locked screen and remains open, along
+with actual VoiceOver, external use, production signing and additional hardware. The exact evidence
+and final build/check status are in [[records/operations/implementation]]; the concise restart point
+is [[records/operations/agent-handoff]]. Do not repeat the accepted earlier increments by default.

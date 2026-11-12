@@ -44,8 +44,10 @@ increment, test and polish it, then advance; later rows remain queued. Preserve
 the existing integrity and authority boundaries and report qualification limits.
 The current checkpoint is documented in the
 [agent handoff](db/records/operations/agent-handoff.md). Increments 1 through 9 are
-accepted for their scope. Increment 10's window checks are done except VoiceOver itself and five
-menu shortcuts that were read from the menu but not pressed, and an external user is next.
+accepted for their scope. The November 11 pass exercised the remaining menu shortcuts,
+transcription, paste and trigger-description paths and fixed three observed defects. The
+final live automation result-link observation was interrupted by a locked screen; it and
+VoiceOver itself remain open, followed by an external user and release qualification.
 Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
 failure and one counterexample, with the suite and install once on the candidate.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before

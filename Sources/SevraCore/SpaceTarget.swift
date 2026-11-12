@@ -6,16 +6,28 @@ public struct SpaceTarget: Codable, Equatable, Sendable {
 }
 
 extension Workbook {
-  /// The same rule for a saved automation. Naming one opens its review and enables nothing.
+  /// Exact IDs can review history; logical IDs and names select current versions.
+  /// Resolving a target grants no execution permission.
   public func automationTarget(_ nameOrID: String) throws -> ApplicationDefinition {
     let target = nameOrID.trimmingCharacters(in: .whitespacesAndNewlines)
     try require(
       !target.isEmpty && target.utf8.count <= 512, "automation_target",
       "Which automation do you mean?")
     return try synchronized {
+      if let row = try db.execute(
+        "SELECT * FROM app_definitions WHERE kind='automation' AND id=?", [.string(target)]
+      ).first {
+        return try ApplicationDefinition(row)
+      }
+      if let row = try db.execute(
+        "SELECT d.* FROM app_definitions d JOIN app_definition_heads h ON h.definition_id=d.id WHERE d.kind='automation' AND h.logical_id=?",
+        [.string(target)]
+      ).first {
+        return try ApplicationDefinition(row)
+      }
       let rows = try db.execute(
-        "SELECT d.* FROM app_definitions d JOIN app_definition_heads h ON h.definition_id=d.id WHERE d.kind='automation' AND (d.id=? OR h.logical_id=? OR d.title=? COLLATE NOCASE) ORDER BY d.id LIMIT 2",
-        [.string(target), .string(target), .string(target)])
+        "SELECT d.* FROM app_definitions d JOIN app_definition_heads h ON h.definition_id=d.id WHERE d.kind='automation' AND d.title=? COLLATE NOCASE ORDER BY d.id LIMIT 2",
+        [.string(target)])
       try require(
         !rows.isEmpty, "automation_not_found",
         "No saved automation has that exact name. Which one do you mean?")
