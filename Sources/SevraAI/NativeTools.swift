@@ -96,7 +96,7 @@ package enum NativeTools {
     "items": withoutDescriptions(componentSchema(depth: 1)),
   ])
   package static let definitions: [WorkbookToolDefinition] =
-    [
+    nativeAppDefinitions + [
       .init(
         name: "start_thread_and_continue",
         description:
@@ -112,7 +112,7 @@ package enum NativeTools {
               "type": .string("string"),
               "enum": .array(
                 [
-                  "answer", "draft", "save_space", "edit_space", "restore_space",
+                  "answer", "draft", "save_space", "save_native_app", "edit_space", "restore_space",
                   "propose_movement",
                   "propose_record",
                   "propose_table", "propose_table_edit",

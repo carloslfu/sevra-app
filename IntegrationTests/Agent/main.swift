@@ -267,6 +267,16 @@ func expectValue<T>(_ value: T?) throws -> T {
   return value
 }
 do {
+  if CommandLine.arguments.dropFirst() == ["--native-app-authoring-checks"] {
+    try await checkNativeAppAuthoring()
+    exit(0)
+  }
+  if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--native-app-authoring" {
+    try await runNativeAppAuthoringProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+    exit(0)
+  }
   if CommandLine.arguments.dropFirst() == ["--space-action-checks"] {
     try await checkSpaceActions()
     exit(0)

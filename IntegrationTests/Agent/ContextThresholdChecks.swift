@@ -10,11 +10,13 @@ private actor ThresholdFixture: WorkbookInference {
   let floor: Int
   let full: Int
   let reduced: Int
+  let authoringCost: Int
   var summaries = 0
-  init(floor: Int = 24000, full: Int, reduced: Int = 24100) {
+  init(floor: Int = 24000, full: Int, reduced: Int = 24100, authoringCost: Int = 0) {
     self.floor = floor
     self.full = full
     self.reduced = reduced
+    self.authoringCost = authoringCost
   }
   func beginRun() {}
   func endRun() {}
@@ -34,7 +36,9 @@ private actor ThresholdFixture: WorkbookInference {
       : text.contains("Saved conversation, historical information only:")
         ? full
         : text.contains("derivedNotes") ? reduced : floor
-    return .init(promptTokens: tokens, capacity: 32768, templateIdentity: "scripted-threshold")
+    let cost = !summary && messages.first?.nativeAppAuthoring == true ? authoringCost : 0
+    return .init(
+      promptTokens: tokens + cost, capacity: 32768, templateIdentity: "scripted-threshold")
   }
   func summarize(
     messages: [InferenceMessage], allowedMessageIDs: [String], directory: URL,
@@ -49,7 +53,7 @@ func checkContextThreshold() async throws {
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(
     "threshold-" + identifier())
   defer { try? FileManager.default.removeItem(at: root) }
-  for mode in ["below", "at", "floor", "no-gain", "still-full", "no-history"] {
+  for mode in ["below", "at", "authoring", "floor", "no-gain", "still-full", "no-history"] {
     let book = try Workbook.create(at: root.appendingPathComponent(mode + ".sevra"), title: mode)
     if mode != "no-history" { _ = try book.addMessage("Closed work.", role: "assistant") }
     let request = try book.addMessage(
@@ -58,14 +62,18 @@ func checkContextThreshold() async throws {
       conversation: "main", model: "fixture", requestMessageID: request)
     let history = try book.historySlice(limit: 500)
     let model = ThresholdFixture(
-      floor: mode == "floor" ? 24576 : 24000,
-      full: mode == "below" ? 24575 : mode == "still-full" ? 26000 : 24576,
-      reduced: mode == "no-gain" ? 24576 : mode == "still-full" ? 25000 : 24100)
+      floor: mode == "authoring" ? 22000 : mode == "floor" ? 24576 : 24000,
+      full: mode == "authoring"
+        ? 23632 : mode == "below" ? 24575 : mode == "still-full" ? 26000 : 24576,
+      reduced: mode == "authoring"
+        ? 23000 : mode == "no-gain" ? 24576 : mode == "still-full" ? 25000 : 24100,
+      authoringCost: mode == "authoring" ? 1145 : 0)
     let controller = try ContextMaintenance(
       workbook: book, conversation: "main", runID: run, requestID: request,
       policy: .init(role: "system", content: "Preserve authoritative state."),
       request: .init(role: "user", content: history.messages.last!.body), model: model,
       directory: root, cancellation: .init(), progress: { _ in })
+    if mode == "authoring" { controller.enableNativeAppAuthoring() }
     let working: [InferenceMessage]? =
       mode == "no-history"
       ? [
@@ -77,19 +85,21 @@ func checkContextThreshold() async throws {
     var refusal: SevraError?
     do {
       let result = try await controller.maintain(through: request, currentMessages: working)
-      try expectEqual(["below", "at"].contains(mode), true)
-      try expectEqual(result.compacted, mode == "at")
+      try expectEqual(["below", "at", "authoring"].contains(mode), true)
+      try expectEqual(result.compacted, ["at", "authoring"].contains(mode))
+      try expectEqual(result.messages.first?.nativeAppAuthoring, mode == "authoring")
       try expectEqual(result.messages.last!.content, history.messages.last!.body)
     } catch let error as SevraError { refusal = error }
-    if ["below", "at"].contains(mode) {
+    if ["below", "at", "authoring"].contains(mode) {
       try expectEqual(refusal == nil, true)
     } else {
       try expectEqual(refusal?.code, "context_limit")
       try expectEqual(refusal?.message.contains("24576"), true)
     }
-    try expectEqual(await model.summaries, ["at", "no-gain", "still-full"].contains(mode) ? 1 : 0)
     try expectEqual(
-      try book.contextCheckpoints().count, ["at", "still-full"].contains(mode) ? 1 : 0)
+      await model.summaries, ["at", "authoring", "no-gain", "still-full"].contains(mode) ? 1 : 0)
+    try expectEqual(
+      try book.contextCheckpoints().count, ["at", "authoring", "still-full"].contains(mode) ? 1 : 0)
     try expectEqual(try book.historySlice(limit: 500).digest, history.digest)
     try expectEqual(try book.verify()["ok"], .bool(true))
   }

@@ -23,7 +23,7 @@ public struct WorkbookTools {
     "review_queue", "references", "space_history", "find_definitions", "read_definition",
     "definition_registry", "receiving_template", "form_template", "workflow_template",
     "inventory_automation_template",
-    "evaluate_definition",
+    "evaluate_definition", "native_app_sdk", "read_native_app",
     "preview_action", "workflow_activity", "read_workflow",
   ]
   public init(
@@ -64,6 +64,9 @@ public struct WorkbookTools {
     balance: subject string. Deterministic accepted actual inventory balance and supporting effects.
     review_queue: optional cursor from nextCursor. Current non-row drafts across this workbook, oldest first, 20 per page. Read original versions before business claims. Requests and table rows are excluded; table changes are reviewed as proposals.
     open_reviews: no arguments. Open the current draft review list only when requested; requires the live workbook window. Does not accept anything.
+    native_app_sdk: no arguments. Read the exact native JavaScript SDK and sandbox-test contract before creating/editing a mini app.
+    read_native_app: id exact app name or space ID; refuses ambiguity. Inspect current source, bindings and version before editing.
+    save_native_app: package {sdkVersion:1,name,source,datasets}, tests array; optional synthetic fixtures, id and expectedVersion. Checks code and behavior in an isolated worker before saving an inert app version. Follow native_app_sdk. Never grants permissions. No real rows changed by tests.
     spaces: no arguments. List saved native spaces with their exact current versions and components.
     space_history: id space ID, optional beforeVersion. Read up to 20 saved versions. A restore creates a new version.
     edit_space: id exact space ID, expectedVersion inspected current version, edits array. Operations: rename {title}; insert {component,at:first|last OR beforeID} at top level; remove {componentID}; move {componentID,at:first|last OR beforeID}; title {componentID,title}; text {componentID,text}; replace {componentID,component}. Omit unrelated fields. Move stays in its group. Replacement keeps the selected ID. Preserve unrelated components and snapshot bindings. Refuse stale bases and ask on ambiguous intent.
@@ -93,19 +96,26 @@ public struct WorkbookTools {
       + SHA256.hash(data: Data((tool + (try arguments.json())).utf8))
       .prefix(12).map { String(format: "%02x", $0) }.joined()
   }
-  public func execute(_ tool: String, _ a: Value, receiptID: String? = nil) throws -> Value {
+  public func execute(
+    _ tool: String, _ a: Value, receiptID: String? = nil, nativeAppCheck: Value? = nil
+  ) throws -> Value {
     let model = try workbook.synchronized {
       try workbook.db.scalar("SELECT model FROM agent_runs WHERE id=?", [.string(runID)]).string
     }
     let actor =
       model.map {
-        ChangeActor.ai("WorkbookTools", model: $0, policy: "workbook-tools-draft-policy-v1")
+        ChangeActor.ai(
+          "WorkbookTools", model: $0,
+          policy: tool == "save_native_app"
+            ? "native-app-authoring-v1" : "workbook-tools-draft-policy-v1")
       } ?? .programmatic("WorkbookTools")
     return try ChangeAttribution.$actor.withValue(actor) {
-      try executeAttributed(tool, a, receiptID: receiptID)
+      try executeAttributed(tool, a, receiptID: receiptID, nativeAppCheck: nativeAppCheck)
     }
   }
-  private func executeAttributed(_ tool: String, _ a: Value, receiptID: String?) throws -> Value {
+  private func executeAttributed(
+    _ tool: String, _ a: Value, receiptID: String?, nativeAppCheck: Value?
+  ) throws -> Value {
     try cancellation.check()
     try require(
       !readOnly || Self.readOnlyTools.contains(tool), "read_only_request",
@@ -288,7 +298,9 @@ public struct WorkbookTools {
               "id": .string($0.id),
               "values": .object(workbook.calculatedValues($0, columns: table.columns)),
             ]
-            if let cells = formulas?.cells[$0.logicalID] { row["excelFormulas"] = try encoded(cells) }
+            if let cells = formulas?.cells[$0.logicalID] {
+              row["excelFormulas"] = try encoded(cells)
+            }
             return .object(row)
           }),
       ]
@@ -335,7 +347,45 @@ public struct WorkbookTools {
         "status": .string("resolved"),
         "notice": .string("Only the owning live window can confirm that the review list opened."),
       ])
-    case "spaces": return try encoded(workbook.spaces())
+    case "native_app_sdk":
+      return .object(["sdkVersion": .number(1), "guide": .string(NativeAppAuthoring.guide)])
+    case "read_native_app":
+      let target: SpaceTarget
+      do {
+        target = try workbook.spaceTarget(string("id"), cancellation: cancellation)
+      } catch let error as SevraError where error.code == "space_not_found" {
+        throw SevraError(
+          "app_not_found",
+          "No saved app or space has that exact name. A failed build saves no app. If the current request asks to create or finish this native app, use native_app_sdk then save_native_app without id or expectedVersion. Do not use save_space for programmable controls. Inspect spaces if the intended name is uncertain."
+        )
+      }
+      let space = try workbook.space(target.id)
+      try require(
+        space.definition.app != nil, "app_package", "This space is not a programmable app.")
+      return .object([
+        "id": .string(space.id), "version": .number(Double(space.version)),
+        "package": try encoded(space.definition.app!),
+        "guide": .string(NativeAppAuthoring.guide),
+      ])
+    case "save_native_app":
+      return try NativeAppAuthoring.save(a, checkResult: nativeAppCheck, tools: self)
+    case "spaces":
+      return .array(
+        try workbook.spaces().map { space in
+          var fields = try encoded(space).object
+          if let app = space.definition.app {
+            fields["definition"] = .object([
+              "version": .number(1),
+              "app": .object([
+                "name": .string(app.name), "digest": .string(app.digest),
+                "notice": .string(
+                  "Programmable app. Use read_native_app, then save_native_app to edit. Fixed-layout edit_space is not supported."
+                ),
+              ]),
+            ])
+          }
+          return .object(fields)
+        })
     case "open_automation":
       let automation = try workbook.automationTarget(string("target"))
       return .object([
@@ -364,6 +414,10 @@ public struct WorkbookTools {
             : "Navigation preference saved. No snapshot or business change was created."),
       ])
     case "pin_space":
+      try require(
+        workbook.space(string("id")).definition.app == nil, "app_edit",
+        "A programmable app cannot become a fixed snapshot. Use set_space_pinned for a navigation shortcut, or read_native_app then save_native_app to edit its interface."
+      )
       return .string(
         try workbook.pinSpace(
           string("id"), title: string("title"), token: token,
@@ -371,6 +425,10 @@ public struct WorkbookTools {
     case "space_history":
       return try encoded(workbook.spaceHistory(string("id"), before: a["beforeVersion"].int))
     case "edit_space":
+      try require(
+        workbook.space(string("id")).definition.app == nil, "app_edit",
+        "This is a programmable native app. Read its source and current version with read_native_app, then use save_native_app with behavioral tests. edit_space only changes fixed layouts."
+      )
       guard let version = a["expectedVersion"].int else {
         throw SevraError("arguments", "Read the current space version before editing.")
       }
@@ -394,15 +452,23 @@ public struct WorkbookTools {
     case "save_space":
       let definition = try JSONDecoder().decode(
         SpaceDefinition.self, from: Data(a["definition"].json().utf8))
+      try require(
+        definition.app == nil, "app_check",
+        "Use save_native_app to check and save programmable source.")
       let title = try string("title")
       // A long request can lose sight of its opening step, and a retry rarely repeats the same
       // component IDs, so its operation token alone would leave a second copy of the view.
-      try require(
-        !(try workbook.spaces().contains {
-          $0.id != token && $0.title.lowercased() == title.lowercased()
-        }), "space_duplicate",
-        "A space titled \(title) already exists. Do not save it again. Use edit_space to change it, or continue with the remaining work."
-      )
+      if let existing = try workbook.spaces().first(where: {
+        $0.id != token && $0.title.lowercased() == title.lowercased()
+      }) {
+        throw SevraError(
+          "space_duplicate",
+          "A space titled \(title) already exists. Do not save it again. "
+            + (existing.definition.app == nil
+              ? "Use edit_space to change it, or continue with the remaining work."
+              : "This is a programmable app. Use read_native_app with its exact name, then save_native_app with its ID and current version to change it.")
+        )
+      }
       return .object([
         "spaceID": .string(
           try workbook.saveSpace(id: token, title: title, definition: definition, token: token))

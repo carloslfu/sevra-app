@@ -1039,7 +1039,12 @@ struct FolderReview {
   }
   var agentContext: String {
     switch route {
-    case .space(let id): return routeContext + "\nActive space ID: " + id
+    case .space(let id):
+      let native = spaces.first { $0.id == id }?.definition.app != nil
+      return routeContext + "\nActive space ID: " + id
+        + (native
+          ? "\nActive space is a programmable native app. For interface edits, use read_native_app with this exact ID, then save_native_app with its current version and tests."
+          : "")
     case .item(let id):
       return routeContext + "\nActive item version ID: " + (viewedItemVersion ?? id)
     case .table(let id): return routeContext + "\nActive dataset ID: " + id

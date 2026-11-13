@@ -21,16 +21,21 @@ and progress. Cloud/sync and the expanded roadmap are outside this next MVP slic
 
 ## Build a native mini app
 
-Import one of the [example app packages](examples/apps) using **Workbook > Add Native App…**,
-then review its table access and choose **Enable app**. Inventory, Jobs and Visual Planner
-exercise native forms, tables, live counts and a draggable canvas. JavaScript runs in a
+Ask the local model to build a named mini app with the fields, actions and tables you need.
+It writes the app, runs synthetic checks in isolation, and reviews the result against your
+request before saving. Review its table access and choose **Enable app**. Ask for changes
+by the app's name; each new version needs approval again. See the
+[authoring workflow and limits](db/records/specs/local-model-native-apps.md).
+
+You can also import [example app packages](examples/apps) using **Workbook > Add Native App…**.
+Inventory, Jobs and Visual Planner exercise native forms, tables, live counts and a draggable canvas. JavaScript runs in a
 sandboxed worker; the interface is AppKit, with no web view. App code and business records
-travel with the workbook, while execution permissions stay on this Mac.
+travel with the workbook, while execution permissions stay on this Mac. Enabled apps run
+without the inference model. Generated apps still need your own testing before business use.
 
 The [SDK and architecture](db/records/specs/programmable-native-engine.md) explain
 TypeScript/JSX authoring, signals, native components, scoped data access and current limits.
-Existing local-AI tools still compose the original fixed spaces; programmable app authoring
-currently uses source packages and the CLI. This is SDK 1, not full Excel compatibility.
+The local model can also compose simpler fixed spaces. This is SDK 1, not full Excel compatibility.
 
 ## Try the native MVP preview
 

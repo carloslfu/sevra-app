@@ -60,6 +60,9 @@ does not revoke it. The later [native-engine request and explicit installation/U
 supersede the pause and no-app restriction for the [native engine implementation](db/records/plans/programmable-native-engine.md).
 Installation and UI tests are authorized for that task; VoiceOver and system-setting
 changes remain outside scope. External use, signing and hardware qualification remain open.
+The subsequent [local-model mini-app request](db/sources/notes/2026/11/local-model-native-apps.md)
+continues that installation/UI authorization for the
+[native authoring integration](db/records/plans/local-model-native-apps.md), with the same boundaries.
 Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
 failure and one counterexample, with the suite and install once on the candidate.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before

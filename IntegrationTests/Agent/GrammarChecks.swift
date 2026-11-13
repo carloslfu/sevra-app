@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import SevraAI
 import SevraSplash
 import SevraSplashGrammar
 import SevraSplashText
@@ -35,6 +36,18 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
   }
   var masks = 0
   var largestPrompt = 0
+  // Only SDK/source discovery is offered in ordinary chat. The detailed save/test
+  // schema becomes available after the host enters authoring mode.
+  let ordinary = try SplashToolPolicy(
+    toolsJSON: NativeTools.serializedDefinitions(nativeAppAuthoring: false), choice: .required,
+    thinking: false)
+  let ordinaryPrompt = try frontend.prepare(
+    messages: [["role": "user", "content": "Read the workbook."]], tools: ordinary.promptTools(),
+    thinking: false, contextLimit: 32768)
+  try expectEqual(ordinaryPrompt.tokens.count <= 8448, true)
+  let ordinaryNames = try NativeTools.referenceDefinitions(nativeAppAuthoring: false).map(\.name)
+  try expectEqual(ordinaryNames.contains("save_native_app"), false)
+  try expectEqual(ordinaryNames.contains("native_app_sdk"), true)
   for item in fixture.cases {
     let choice: SplashToolPolicy.Choice =
       item.choice == "named_finish" ? .named("finish") : item.choice == "auto" ? .auto : .required
@@ -62,15 +75,15 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
     for call in output.calls { try policy.validate(call) }
     let prompt = try frontend.prepare(
       messages: [["role": "user", "content": "Read the workbook."]], tools: policy.promptTools(),
-      thinking: item.thinking, contextLimit: 65536)
+      thinking: item.thinking, contextLimit: 32768)
     largestPrompt = max(largestPrompt, prompt.tokens.count)
-    guard prompt.tokens.count <= 8192 else {
+    guard prompt.tokens.count <= 10240 else {
       throw SplashError(
-        "Workbook tool prompt uses \(prompt.tokens.count) tokens, over its 8192-token check")
+        "Authoring tool prompt uses \(prompt.tokens.count) tokens, over its 10240-token check")
     }
     guard !prompt.tokens.isEmpty else { throw SplashError("Workbook tool prompt is empty") }
   }
   print(
-    "PASS \(fixture.cases.count) actual-tool grammars, \(masks) exact reference masks, completed argument validation; largest tool prompt \(largestPrompt)/8192 tokens"
+    "PASS \(fixture.cases.count) actual-tool grammars, \(masks) exact reference masks, completed argument validation; ordinary prompt \(ordinaryPrompt.tokens.count)/8448, authoring \(largestPrompt)/10240 tokens"
   )
 }

@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-12T21:44:08.667334Z
+updated: 2026-11-13T02:39:19.242682Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/local-model-native-apps]] — Local model native-app authoring request
 - [[sources/notes/2026/11/native-interface-quality]] — Owner requires deep visual and functional interface review, including spacing, placement and appearance, as a standing expectation.
 - [[sources/notes/2026/11/programmable-native-engine]] — Owner requests full native programmable app-engine implementation and verification, explicitly permitting installation and UI testing.
 - [[sources/notes/2026/11/accessibility-headless-tests-and-pause]] — Owner authorizes headless tests and failure fixes for all ten accessibility changes, then handoff, commit, push and pause; app launch, UI and VoiceOver remain prohibited.

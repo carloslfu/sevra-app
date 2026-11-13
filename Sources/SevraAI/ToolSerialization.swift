@@ -5,12 +5,13 @@ extension NativeTools {
   package static func referenceDefinitions(
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
     toolScope: InferenceToolScope = .all, documentCopyIDs: [String]? = nil,
-    historyReferenceIDs: [String]? = nil
+    historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true
   ) throws
     -> [WorkbookToolDefinition]
   {
     if toolScope == .movementDirection { return [MovementDirectionReview.definition] }
     if toolScope == .actionDirection { return [ActionDirectionReview.definition] }
+    if toolScope == .nativeAppReview { return [NativeAppReview.definition] }
     let ids = try ItemReferenceCandidates.normalized(itemReferenceIDs)
     let copies = try documentCopyIDs.map(DocumentCopyCandidates.normalized)
     if let conversationActions {
@@ -19,6 +20,7 @@ extension NativeTools {
         "tool_schema", "Invalid conversation capability.")
     }
     return try definitions.compactMap { definition in
+      if definition.name == "save_native_app", !nativeAppAuthoring { return nil }
       if let action = WorkbookTools.conversationTools[definition.name], let conversationActions {
         guard conversationActions.contains(action) else { return nil }
       }
@@ -73,12 +75,12 @@ extension NativeTools {
   package static func serializedDefinitions(
     toolScope: InferenceToolScope = .all, itemReferenceIDs: [String] = [],
     conversationActions: [String]? = nil, documentCopyIDs: [String]? = nil,
-    historyReferenceIDs: [String]? = nil
+    historyReferenceIDs: [String]? = nil, nativeAppAuthoring: Bool = true
   ) throws -> Data {
     let definitions = try referenceDefinitions(
       itemReferenceIDs: itemReferenceIDs, conversationActions: conversationActions,
       toolScope: toolScope, documentCopyIDs: documentCopyIDs,
-      historyReferenceIDs: historyReferenceIDs
+      historyReferenceIDs: historyReferenceIDs, nativeAppAuthoring: nativeAppAuthoring
     )
     .filter { toolScope.allows($0.name) }
     let values: [[String: Any]] = try definitions.map {

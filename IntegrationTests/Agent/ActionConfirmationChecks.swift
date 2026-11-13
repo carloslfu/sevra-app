@@ -65,14 +65,16 @@ private actor ConfirmationModel: WorkbookInference {
 
 private func checkRefusedRepeats() throws {
   let memo: Value = .object(["title": .string("Memo")])
-  let refusal = "A draft titled Memo was already saved for this work. Do not save it again. Finish, and say plainly what it still needs."
+  let refusal =
+    "A draft titled Memo was already saved for this work. Do not save it again. Finish, and say plainly what it still needs."
   var repeated = ActionConfirmations()
   repeated.record(
     tool: "draft", arguments: memo,
     result: .object(["id": .string("d"), "status": .string("draft"), "title": .string("Memo")]),
     receiptID: "first")
   repeated.recordFailure(
-    tool: "draft", arguments: memo, result: .object(["error": .string(refusal)]), receiptID: "second")
+    tool: "draft", arguments: memo, result: .object(["error": .string(refusal)]),
+    receiptID: "second")
   try expectEqual(repeated.hasUnresolvedFailure, false)
   try expectEqual(repeated.rendered, "Saved draft [Memo](sevra://item/d).")
   // With no earlier save in this request the refusal stands, in words meant for a person.
@@ -81,7 +83,8 @@ private func checkRefusedRepeats() throws {
     tool: "save_space", arguments: .object(["title": .string("Overview")]),
     result: .object([
       "error": .string(
-        "A space titled Overview already exists. Do not save it again. Use edit_space to change it.")
+        "A space titled Overview already exists. Do not save it again. Use edit_space to change it."
+      )
     ]), receiptID: "only")
   try expectEqual(elsewhere.hasUnresolvedFailure, true)
   try expectEqual(
@@ -121,6 +124,41 @@ private func checkRefusedRepeats() throws {
   try expectEqual(layout.hasUnresolvedFailure, false)
   try expectEqual(layout.rendered, "Updated space “Home”.")
   try expectEqual(layout.rendered(excluding: "h"), nil)
+  var app = ActionConfirmations()
+  for (tool, args) in [
+    ("edit_space", Value.object(["id": .string("stock-id")])),
+    ("save_space", .object(["title": .string("Stock")])),
+    (
+      "save_native_app",
+      .object([
+        "id": .string("incorrect-id"), "package": .object(["name": .string("Stock")]),
+      ])
+    ),
+  ] {
+    app.recordFailure(tool: tool, arguments: args, result: bad, receiptID: identifier())
+  }
+  let saved: Value = .object([
+    "spaceID": .string("stock-id"), "title": .string("Stock"),
+    "check": .object(["assertions": .number(3)]),
+  ])
+  app.record(
+    tool: "save_native_app", arguments: .object(["id": .string("stock-id")]),
+    result: saved, receiptID: "app")
+  try expectEqual(app.hasUnresolvedFailure, false)
+  try expectEqual(app.rendered?.contains("Couldn’t"), false)
+  // Another app and an explicitly requested snapshot are not settled by this edit.
+  for (tool, args) in [
+    ("save_native_app", Value.object(["package": .object(["name": .string("Other")])])),
+    ("pin_space", .object(["id": .string("stock-id")])),
+  ] {
+    var separate = ActionConfirmations()
+    separate.recordFailure(tool: tool, arguments: args, result: bad, receiptID: "failed")
+    separate.record(
+      tool: "save_native_app", arguments: .object(["id": .string("stock-id")]),
+      result: saved, receiptID: "saved")
+    try expectEqual(separate.hasUnresolvedFailure, true)
+    try expectEqual(separate.rendered?.contains("Couldn’t"), true)
+  }
 }
 
 func checkActionConfirmations() async throws {

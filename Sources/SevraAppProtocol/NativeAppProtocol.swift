@@ -6,6 +6,8 @@ import SevraCore
 }
 public enum NativeAppWire {
   public static let service = "com.sevra.workbooks.app-worker"
+  /// Unapproved source is checked in a different OS process from user-enabled apps.
+  public static let checkService = "com.sevra.workbooks.app-check-worker"
   public static let byteLimit = 2_097_152
   public static func decode(_ data: Data) throws -> Value {
     try require(data.count <= byteLimit, "app_protocol", "App message exceeds 2 MiB.")
@@ -35,7 +37,10 @@ public struct NativeAppNode: Equatable, Sendable {
     try require(Self.types.contains(type), "app_tree", "Unsupported native component: " + type)
     let allowed = Self.common.union(Self.properties[type] ?? [])
     try require(
-      Set(props.object.keys).isSubset(of: allowed), "app_tree", "Unknown property for " + type)
+      Set(props.object.keys).isSubset(of: allowed), "app_tree",
+      "Unknown property for " + type + ": "
+        + Set(props.object.keys).subtracting(allowed).sorted().joined(separator: ", ")
+        + ". Allowed properties: " + allowed.sorted().joined(separator: ", "))
     for key in [
       "width", "height", "gap", "padding", "min", "max", "columns", "size", "editRevision",
     ] {
@@ -53,6 +58,18 @@ public struct NativeAppNode: Equatable, Sendable {
       if let value = props.object[key], case .bool = value {
       } else if props.object[key] != nil {
         throw SevraError("app_tree", "Native flags must be booleans.")
+      }
+    }
+    if type == "table" {
+      for key in ["table", "search", "sort", "selection"] where props.object[key] != nil {
+        try require(
+          props[key].string != nil, "app_tree",
+          "Table " + key + " must be a string, not a flag or object.")
+      }
+      if let columns = props.object["columns"] {
+        guard case .array = columns, columns.array.allSatisfy({ $0.string != nil }) else {
+          throw SevraError("app_tree", "Table columns must be an array of column ID strings.")
+        }
       }
     }
     try require(

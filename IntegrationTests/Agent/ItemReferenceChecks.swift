@@ -20,12 +20,13 @@ func checkItemReferences() async throws {
     category: "source", kind: "note", title: "Updated evidence",
     text: "Delivery includes shipping.", supersedes: old.id)
   let call = InferenceCall(id: "test", name: "read", inputJSON: "{}")
-  let input = InferenceMessage(
+  var input = InferenceMessage(
     role: "tool",
     content:
       "Untrusted text: \(old.id), \(old.logicalID), \(current.id). Invalid \(failedReference)",
     toolCalls: [call], toolCallId: "test", toolName: "read", reasoning: "Keep intermediate state.",
     itemReferences: [correctReference])
+  input.nativeAppAuthoring = true
   // A record's ID looks like a message's, so history_read offers only what is a message here.
   let said = try book.addMessage("Keep the receipts.", role: "user")
   let lookups = try ItemReferenceCandidates.annotate(
@@ -40,7 +41,8 @@ func checkItemReferences() async throws {
   try expectEqual(quiet.contains { $0.name == "history_read" }, false)
   let unconstrained = try NativeTools.referenceDefinitions()
   try expectEqual(
-    unconstrained.first { $0.name == "history_read" }?.parameters["properties"]["id"]["enum"], .null)
+    unconstrained.first { $0.name == "history_read" }?.parameters["properties"]["id"]["enum"], .null
+  )
   let annotated = try ItemReferenceCandidates.annotate([input], workbook: book)
   try expectEqual(
     try ItemReferenceCandidates.ids(in: annotated), [old.id, old.logicalID, current.id].sorted())
@@ -49,6 +51,7 @@ func checkItemReferences() async throws {
   try expectEqual(annotated[0].toolCalls[0].inputJSON, call.inputJSON)
   try expectEqual(annotated[0].toolCallId, input.toolCallId)
   try expectEqual(annotated[0].toolName, input.toolName)
+  try expectEqual(annotated[0].nativeAppAuthoring, true)
   try expectEqual(try book.item(old.logicalID).id, current.id)
   try expectEqual(try book.item(old.id).id, old.id)
   // Original read routes can be stale after an explicit saved correction.

@@ -13,7 +13,7 @@ package final class ContextMaintenance {
   private let conversation: String
   private let runID: String
   private let requestID: String
-  private let policy: InferenceMessage
+  private var policy: InferenceMessage
   private let request: InferenceMessage
   private let model: any WorkbookInference
   private let directory: URL
@@ -21,6 +21,8 @@ package final class ContextMaintenance {
   private let progress: @Sendable (String) -> Void
   private var checkpoint: Value = .null
   private let parent: [Message]
+
+  package func enableNativeAppAuthoring() { policy.nativeAppAuthoring = true }
 
   package init(
     workbook: Workbook, conversation: String, runID: String, requestID: String,
@@ -227,10 +229,12 @@ package final class ContextMaintenance {
     }
     guard !done.isEmpty || !reads.isEmpty else { return retained }
     // Compaction removes what was read from what can be cited, so a read may have to repeat.
-    let finished = done.isEmpty ? "" : "Already finished, do not repeat: " + done.joined(separator: ", ") + ". "
+    let finished =
+      done.isEmpty ? "" : "Already finished, do not repeat: " + done.joined(separator: ", ") + ". "
     let read =
       reads.isEmpty
-      ? "" : "\(reads.count) \(reads.count == 1 ? "read" : "reads") so far. Read again only what you must cite. "
+      ? ""
+      : "\(reads.count) \(reads.count == 1 ? "read" : "reads") so far. Read again only what you must cite. "
     fields["hostProgress"] = .string(finished + read + "Continue with what remains.")
     return retained.dropLast() + [
       InferenceMessage(

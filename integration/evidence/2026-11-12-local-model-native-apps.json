@@ -1,0 +1,191 @@
+{
+  "date": "2026-11-12",
+  "model": "Qwen3.6-35B-A3B-4bit + DFlash2, local Splash 1.4.1, 32K context, reasoning budget 512",
+  "scope": "Actual local-model prompts and independent synthetic execution through signed XPC. All data synthetic. Installed UI results recorded separately.",
+  "cases": [
+    {
+      "answer": "Saved native app \u201cQuote calculator\u201d after 5 synthetic checks. Review table access and enable this version to use it.",
+      "independentCheck": {
+        "assertions": 1,
+        "digest": "94e0138db72a0fabd2f9173809b2e68e51892ffacc9cff48f41809a1b3dd2ed3",
+        "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+        "status": "passed",
+        "steps": 4,
+        "transactions": 0
+      },
+      "name": "Quote calculator",
+      "passed": true,
+      "prompt": "Build a native mini app called Quote calculator. Two decimal inputs labeled Quantity and Unit price, a Calculate button, and a visible total using exact decimal arithmetic. Start both at 0. Show an error for invalid input. No table needed.",
+      "seconds": 136.3332920074463,
+      "state": "complete",
+      "steps": 7,
+      "iteration": "live-5"
+    },
+    {
+      "answer": "Saved native app \u201cStock desk\u201d after 2 synthetic checks. Review table access and enable this version to use it.",
+      "editAnswer": "Saved native app \u201cStock desk\u201d after 5 synthetic checks. Review table access and enable this version to use it.",
+      "editCheck": {
+        "assertions": 3,
+        "digest": "057a72763b8fbefc35a78932f89b9a1ba4b0b9815b952c6d82b00c2b056f0d8a",
+        "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+        "status": "passed",
+        "steps": 8,
+        "transactions": 1
+      },
+      "independentCheck": {
+        "assertions": 1,
+        "digest": "082b4126ed58f57b0efebffe085818b2e41bb70cb6f4e3c7c0d6b3fb921b256a",
+        "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+        "status": "passed",
+        "steps": 4,
+        "transactions": 1
+      },
+      "name": "Stock desk",
+      "passed": true,
+      "prompt": "Build a native mini app called Stock desk. Store inventory in a new table using alias stock, columns name (text required), quantity (decimal required). Form labels Item and Quantity; Add item button. Refuse blank names, show status/errors, clear the form only after successful saving, and show a searchable native table labeled Stock records. Do not add actual records now.",
+      "seconds": 135.16169095039368,
+      "state": "complete",
+      "steps": 3,
+      "iteration": "live-5"
+    },
+    {
+      "answer": "Saved native app \u201cJob board\u201d after 3 synthetic checks. Review table access and enable this version to use it.",
+      "independentCheck": {
+        "assertions": 1,
+        "digest": "e79f5040d47d024c14d9ab7cf71b5807f770b0eb2b092e0ee1245b0aff36dabe",
+        "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+        "status": "passed",
+        "steps": 5,
+        "transactions": 1
+      },
+      "name": "Job board",
+      "passed": true,
+      "prompt": "Build a native mini app called Job board. A new jobs table with title, owner, stage (all text), Job and Owner input labels, Stage picker with Todo/Doing/Done, Add job button and native table labeled Jobs. Refuse blank Job. Save only, with no actual jobs added now.",
+      "seconds": 51.82006597518921,
+      "state": "complete",
+      "steps": 3,
+      "iteration": "live-5"
+    },
+    {
+      "answer": "Saved native app \u201cOrder entry\u201d after 6 synthetic checks. Review table access and enable this version to use it.",
+      "independentCheck": {
+        "assertions": 1,
+        "digest": "6732df179fb612002bef3a7887aca226c9fe969adf2ad24c5bdcdf21e9c9fa6e",
+        "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+        "status": "passed",
+        "steps": 5,
+        "transactions": 1
+      },
+      "name": "Order entry",
+      "passed": true,
+      "prompt": "Build a native mini app called Order entry with a new orders table: item text, quantity decimal, price decimal, total decimal formula quantity*price. Inputs labeled Item, Quantity, Price and Add order button. Show a native table. Don't store precomputed totals or add actual orders. Validate inputs and display errors.",
+      "seconds": 67.41313195228577,
+      "state": "complete",
+      "steps": 3,
+      "iteration": "live-5"
+    },
+    {
+      "answer": "Saved native app \u201cSales view\u201d after 2 synthetic checks. Review table access and enable this version to use it.",
+      "independentCheck": {
+        "assertions": 2,
+        "digest": "fb55f0949f2a58a05b75c2c1f0fb144d631f68041bbc4e560319ce29e8931502",
+        "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+        "status": "passed",
+        "steps": 2,
+        "transactions": 0
+      },
+      "name": "Sales view",
+      "passed": true,
+      "prompt": "Build a read-only native mini app called Sales view over the existing Sales table. Bind its exact columns and ID under alias sales, with no write access. Show a native table labeled Sales records and a reactive count labeled Record count. Do not duplicate or change the table.",
+      "seconds": 83.69213891029358,
+      "state": "complete",
+      "steps": 7,
+      "iteration": "live-6"
+    },
+    {
+      "answer": "Saved native app \u201cRepair calculator\u201d after 3 synthetic checks. Review table access and enable this version to use it.",
+      "independentCheck": {
+        "assertions": 1,
+        "digest": "bd0eb0d98779f889f2eddf36526f54b468bb4bb1444b8994781b17af7d7d4922",
+        "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+        "status": "passed",
+        "steps": 3,
+        "transactions": 0
+      },
+      "name": "Repair calculator",
+      "passed": true,
+      "prompt": "Fix the existing Repair calculator native app. Its Calculate button currently adds the numbers instead of multiplying them. Keep the two fields and their labels First and Second, and the Calculate button. Use exact decimal multiplication and display errors. Update this same app; do not create a duplicate.",
+      "seconds": 83.45049297809601,
+      "state": "complete",
+      "steps": 7,
+      "iteration": "live-6"
+    },
+    {
+      "answer": "Saved native app \u201cSeating plan\u201d after 5 synthetic checks. Review table access and enable this version to use it.",
+      "independentCheck": {
+        "assertions": 4,
+        "digest": "138a7ef5ef2eecc4a1a90b37aeca4b610f2059044ae5f20cd6183ecb9217fdac",
+        "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+        "status": "passed",
+        "steps": 6,
+        "transactions": 0
+      },
+      "name": "Seating plan",
+      "passed": true,
+      "prompt": "Build a native mini app called Seating plan. Use a native Canvas labeled Floor plan with two draggable blue rectangles and visible text labels Table A and Table B, with matching accessible region labels. Dragging moves the selected table. Keep their positions in draftSignal so reopening restores the layout. Start A at x:20,y:20 and B at x:160,y:20. Use a 400 by 300 canvas, each table 80 by 60; clamp moves inside it. No business table needed.",
+      "seconds": 83.49984991550446,
+      "state": "complete",
+      "steps": 3,
+      "iteration": "live-7"
+    }
+  ],
+  "retainedFailures": [
+    {
+      "name": "Stock desk",
+      "error": "The model repeated an unsuccessful action. Completed changes and receipts are saved; inspect them before continuing.",
+      "seconds": 222.97964298725128,
+      "iteration": "live-2"
+    },
+    {
+      "name": "Stock desk",
+      "error": "The model repeated an unsuccessful action. Completed changes and receipts are saved; inspect them before continuing.",
+      "seconds": 167.94410800933838,
+      "iteration": "live-3"
+    },
+    {
+      "name": "Stock desk",
+      "error": "Tool policy assertion failed at SevraAgentChecks/NativeAppAuthoringChecks.swift:310: 1 != 2",
+      "seconds": 74.63897502422333,
+      "iteration": "live-4"
+    },
+    {
+      "name": "Sales view",
+      "error": "Test step 2: Expected visible text: 2 Controls/text: Sales view; Record count; Sales records",
+      "seconds": 65.26337802410126,
+      "iteration": "live-4"
+    },
+    {
+      "name": "Sales view",
+      "error": "This request reached its step limit. Completed changes are saved. Ask to continue, or narrow the question.",
+      "seconds": 164.76223802566528,
+      "iteration": "live-5"
+    },
+    {
+      "name": "Repair calculator",
+      "error": "Test step 3: Expected visible text: 12 Controls/text: Multiply; First = 4; Second; Calculate; No value for b.",
+      "seconds": 43.691993951797485,
+      "iteration": "live-5"
+    },
+    {
+      "name": "Seating plan",
+      "error": "Test step 3: Canvas region position did not match. Controls/text: Floor plan",
+      "seconds": 163.95413303375244,
+      "iteration": "live-6"
+    }
+  ],
+  "limits": [
+    "Passing sampled scenarios do not establish all generated programs are correct.",
+    "Separate model review can miss errors or request unnecessary repairs.",
+    "These runs used the available 48 GB Mac; other hardware and production signing remain unqualified."
+  ]
+}

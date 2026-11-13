@@ -3,13 +3,23 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-13T02:19:00.399487+00:00
-summary: Programmable native spaces SDK 1 accepted with installed UI, focused tests and hosted integration evidence; broader release qualifications remain.
+updated: 2026-11-13T04:51:08.173613+00:00
+summary: Local-model native app creation and editing accepted as a source preview with isolated checks, independent review, actual UI tests and explicit generation limits.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
-## Current checkpoint: native app engine accepted, November 12
+## Current checkpoint: local-model native authoring accepted, November 12
+
+The owner-requested [[records/plans/local-model-native-apps]] is implemented and verified as a source preview. Ordinary local chat can create and edit native mini apps using the shipped SDK. Generated source runs in a separate sandbox check process, receives a separate local-model review, and saves only after both pass. Each source version remains disabled until the person reviews actual table access and enables it. Apps run independently of the inference model once enabled.
+
+Seven actual-model scenarios plus an inventory edit have independent checks. Installed UI exercised chat creation, edits preserving data, per-version enable, validation, exact decimals, search, live counts, Undo, narrow layout and canvas drag/keyboard/reopen. A final fresh-thread calculator generation repaired refused attempts and passed actual 0, 7.2 and invalid-input checks. The long-conversation retry still repeated syntax errors and stopped safely; successful examples do not establish universal generation reliability. [[records/reviews/local-model-native-apps]] preserves findings, repairs and remaining limits.
+
+The [final acceptance receipt](../../../integration/evidence/2026-11-12-local-model-native-app-final.json) records source hashes and installed identities. Main UUID `6F410451-9213-3901-AE05-925898D789BA` matches the packaged candidate; both isolated worker identities use UUID `1AFBF675-2DF8-3840-B235-BDE64AF75671` and match their exact packaged bytes. Native resource/signature, installation and extraction checks pass. The broad functional suite passed through desktop compilation; a model-busy packaging interruption was closed by rerunning that tail with inference idle. Final local fixes passed all 10 authoring groups and the full agent/grammar suite. Hosted CI for this source is not yet claimed.
+
+The synthetic workbook is left open on Price check with invalid-input feedback visible. Existing workbooks and the old baseline app were not modified. No VoiceOver or system settings were used. External user testing, security assessment, additional hardware and production signing/notarization remain open. The accepted native-engine checkpoint below is historical and does not supersede this authoring evidence.
+
+## Earlier checkpoint: native app engine accepted, November 12
 
 The owner-authorized [[records/plans/programmable-native-engine]] is complete through
 P7 for the bounded SDK 1. The contract and manual walkthrough are in
@@ -83,3 +93,6 @@ If later work needs the CLI, use `output/native/bin/sevra` or the installed `~/.
 ## Native engine implementation, November 12
 
 The owner explicitly requests complete native programmable app-engine implementation and verification, and explicitly permits installation and UI testing for this task: [[sources/notes/2026/11/programmable-native-engine]]. The earlier no-launch/UI restriction is superseded for this work; VoiceOver and system-setting changes remain outside it. The bounded implementation is accepted on main under [[records/plans/programmable-native-engine]]. The architecture and SDK contract are [[records/specs/programmable-native-engine]]. Existing accepted features and historical test receipts remain unchanged.
+## Earlier local model authoring checkpoint
+
+The owner now explicitly requests [[records/plans/local-model-native-apps]], continuing the accepted engine's installation/UI authorization. Local SDK discovery, source inspection and sandbox-checked save/update are implemented and have focused production-path tests. Real local-model use cases, adversarial review, installed visual verification and release checks remain in progress. [[records/reviews/local-model-native-apps]] records observed failures and repairs. The accepted SDK 1 checkpoint below remains historical evidence, not completion of this new authoring task.

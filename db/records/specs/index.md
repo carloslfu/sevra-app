@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-11-13T02:19:00.368080Z
+updated: 2026-11-13T04:48:32.033716Z
 ---
 
 # records/specs
 
+- [[records/specs/local-model-native-apps]] — Local-model native app authoring, isolated checks, independent review and exact-version access.
 - [[records/specs/programmable-native-engine]] — Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.
 - [[records/specs/native-automation-owner]] — Native schedule controls and persistent physical-workbook device grants with a conservative active-app owner; scoped synthetic, process-death and installed-package proof, full lifecycle/release open.
 - [[records/specs/product]] — Native two-pane workbook UX, conversation, viewers, contextual intake and customizable application engine with actions, workflows and automations.

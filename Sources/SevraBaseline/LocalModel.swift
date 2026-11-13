@@ -162,7 +162,9 @@ public actor LocalModel: WorkbookInference {
         : try Self.baselineDefinitions(
           itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
           conversationActions: messages.first?.conversationActions,
-          documentCopyIDs: DocumentCopyCandidates.ids(in: messages)), thinking: false, effort: nil
+          documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
+          nativeAppAuthoring: messages.first?.nativeAppAuthoring == true), thinking: false,
+      effort: nil
     )
     try cancellation.check()
     guard let capacity = engine.contextPolicyJSON["configured_window"] as? Int else {
@@ -227,14 +229,17 @@ public actor LocalModel: WorkbookInference {
       try Self.baselineDefinitions(
         itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
         conversationActions: messages.first?.conversationActions, toolScope: toolScope,
-        documentCopyIDs: DocumentCopyCandidates.ids(in: messages)
+        documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
+        nativeAppAuthoring: messages.first?.nativeAppAuthoring == true
       )
       .filter { toolScope.allows($0.name) }
     let tokens = try engine.encodeChat(
       try Self.baselineMessages(messages), tools: available, thinking: false, effort: nil)
     // The engine window includes the reply. Keep this hard bound independent
     // of conversation maintenance, including when maintenance is disabled.
-    if let problem = engine.contextError(promptTokens: tokens.count + 1800) {
+    let outputTokens =
+      messages.first?.nativeAppAuthoring == true ? 8192 : 1800
+    if let problem = engine.contextError(promptTokens: tokens.count + outputTokens) {
       throw SevraError("context_limit", problem)
     }
     guard let capacity = engine.contextPolicyJSON["configured_window"] as? Int else {
@@ -245,7 +250,7 @@ public actor LocalModel: WorkbookInference {
       templateIdentity: "slotstream-" + Self.revision + ";encodeChat;thinking=false;effort=nil")
     var params = SampleParams()
     params.temperature = 0
-    params.maxTokens = 1800
+    params.maxTokens = outputTokens
     params.presencePenalty = 0
     params.seed = 42
     progress("Preparing a response")

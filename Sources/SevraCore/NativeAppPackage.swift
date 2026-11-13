@@ -7,6 +7,13 @@ public struct NativeAppDataset: Codable, Equatable, Sendable {
   public var columns: [Column]
   public var writable: Bool
   public var datasetID: String?
+  public init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    title = try values.decode(String.self, forKey: .title)
+    columns = try values.decode([Column].self, forKey: .columns)
+    writable = try values.decodeIfPresent(Bool.self, forKey: .writable) ?? false
+    datasetID = try values.decodeIfPresent(String.self, forKey: .datasetID)
+  }
   public init(title: String, columns: [Column], writable: Bool = false, datasetID: String? = nil) {
     self.title = title
     self.columns = columns
@@ -151,7 +158,7 @@ extension Workbook {
   /// Installs code without evaluating it. Tables and space are captured in one existing transaction.
   @discardableResult public func installNativeApp(
     _ package: NativeAppPackage, spaceID: String = identifier(), expectedVersion: Int? = nil,
-    token: String = identifier()
+    token: String = identifier(), cancellation: Cancellation = .init()
   ) throws -> Space {
     try package.validate()
     let result = try mutation(
@@ -159,7 +166,8 @@ extension Workbook {
       request: .object([
         "package": try encoded(package), "spaceID": .string(spaceID),
         "expectedVersion": expectedVersion.map { .number(Double($0)) } ?? .null,
-      ]), actor: .programmatic("Sevra.nativeApp.install")
+      ]), cancellation: cancellation,
+      actor: ChangeAttribution.actor ?? .programmatic("Sevra.nativeApp.install")
     ) {
       let current = try spaceIfPresent(spaceID)
       try checkSpaceBase(current, expectedVersion: expectedVersion)

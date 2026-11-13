@@ -1,18 +1,18 @@
 ---
 type: index
 scope: root
-updated: 2026-11-13T02:19:00.417490Z
+updated: 2026-11-13T04:51:08.213642Z
 ---
 
 # Knowledge base index
 
-## Sources (27)
-- [[sources/notes/index|Notes]] (27)
+## Sources (28)
+- [[sources/notes/index|Notes]] (28)
 
-## Records (46)
+## Records (49)
 - [[records/operations/index|Operations]] (5)
 - [[records/overview/index|Overview]] (1)
-- [[records/plans/index|Plans]] (2)
+- [[records/plans/index|Plans]] (3)
 - [[records/research/index|Research]] (1)
-- [[records/reviews/index|Reviews]] (4)
-- [[records/specs/index|Specs]] (33)
+- [[records/reviews/index|Reviews]] (5)
+- [[records/specs/index|Specs]] (34)

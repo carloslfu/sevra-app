@@ -5,9 +5,10 @@ import SevraCore
 package enum InferenceToolScope: String, Sendable {
   // Tool scopes retain the public tool names as their raw values.
   // swift-format-ignore: AlwaysUseLowerCamelCase
-  case all, finish, inspection, movementDirection, actionDirection, workflowAnswer, answer,
+  case all, finish, inspection, movementDirection, actionDirection, nativeAppReview, workflowAnswer,
+    answer,
     boundedAnswer, draft,
-    save_space,
+    save_space, save_native_app,
     edit_space,
     restore_space, propose_movement,
     propose_record,
@@ -19,11 +20,12 @@ package enum InferenceToolScope: String, Sendable {
       // The host commits a preview itself, after prepare_action reviews every direction.
       return ![
         "review_movement_direction", "review_action_directions", "prepare_workflow_answer",
-        "commit_action_preview",
+        "commit_action_preview", "review_native_app",
       ].contains(tool)
     case .workflowAnswer: return Self.answer.allows(tool) || tool == "prepare_workflow_answer"
     case .movementDirection: return tool == "review_movement_direction"
     case .actionDirection: return tool == "review_action_directions"
+    case .nativeAppReview: return tool == "review_native_app"
     case .finish: return tool == "finish"
     case .inspection: return WorkbookTools.readOnlyTools.contains(tool)
     case .answer: return tool == "finish" || WorkbookTools.readOnlyTools.contains(tool)
@@ -35,7 +37,7 @@ package enum InferenceToolScope: String, Sendable {
       return Self.answer.allows(tool) || tool == rawValue || tool == "prepare_action"
     case .propose_record:
       return Self.answer.allows(tool) || tool == rawValue || tool == "publish_result"
-    case .draft, .save_space, .edit_space, .restore_space,
+    case .draft, .save_space, .save_native_app, .edit_space, .restore_space,
       .propose_table,
       .propose_table_edit:
       return Self.answer.allows(tool) || tool == rawValue
@@ -57,6 +59,8 @@ package struct InferenceCall: Sendable {
 }
 
 package struct InferenceMessage: Sendable {
+  /// Host state, reattached after context maintenance; never inferred from model prose.
+  package var nativeAppAuthoring = false
   package let role: String
   package let content: String
   /// Ephemeral model state within this request, never evidence or saved history.

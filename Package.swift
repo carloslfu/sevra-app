@@ -164,7 +164,7 @@ let package = Package(
       name: "SevraExtractionChecks", dependencies: ["SevraCore"],
       path: "IntegrationTests/Extraction", swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
-      name: "SevraAI", dependencies: ["SevraCore"],
+      name: "SevraAI", dependencies: ["SevraCore", "SevraAppProtocol"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .target(
       name: "SevraBaseline",

@@ -63,11 +63,11 @@ package struct ContextBudget: Sendable {
     }
   }
 
-  package func allowance(promptTokens: Int) throws -> Allowance {
+  package func allowance(promptTokens: Int, nativeAppAuthoring: Bool = false) throws -> Allowance {
     try require(
       promptTokens > 0 && promptTokens <= contextTokens, "context_limit",
       "The rendered prompt is outside the configured context budget.")
-    let output = min(maximumOutputTokens, contextTokens - promptTokens)
+    let output = min(nativeAppAuthoring ? 8192 : maximumOutputTokens, contextTokens - promptTokens)
     try require(
       output >= minimumOutputTokens, "context_limit",
       "This exploration reached its context budget. Completed changes are saved.")

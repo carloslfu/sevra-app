@@ -3,8 +3,8 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-11-13T02:19:00.417490+00:00
-summary: Programmable native spaces SDK 1 accepted with installed UI, focused tests and hosted integration evidence; broader release qualifications remain.
+updated: 2026-11-13T04:51:08.213642+00:00
+summary: Local-model native app creation and editing accepted as a source preview with isolated checks, independent review, actual UI tests and explicit generation limits.
 title: Start here
 ---
 # Sevra app
@@ -24,7 +24,9 @@ Slotstream remains independent.
 
 ## Current preview and delivery order
 
-**Native app engine accepted, November 12:** the owner-authorized SDK 1 implementation,
+**Local-model native authoring accepted, November 12:** local chat now creates and edits programmable mini apps, runs isolated synthetic checks and separate model review, and saves an inert version for native access approval. Seven representative actual-model scenarios and an edit have independent checks; installed UI covers creation, editing, data preservation, exact calculation, search, Undo, narrow layout and canvas persistence. Long conversations can still repeat code errors; a fresh focused thread recovered the final calculator case. See [[records/specs/local-model-native-apps]], [[records/plans/local-model-native-apps]] and [[records/reviews/local-model-native-apps]] for the implementation and exact limits. [[records/operations/agent-handoff]] records current installed identity. This remains a source preview.
+
+**Earlier native app engine checkpoint, November 12:** the owner-authorized SDK 1 implementation,
 installation and UI verification are complete. See [[records/plans/programmable-native-engine]]
 and [[records/specs/programmable-native-engine]] for the native components, authoring,
 scoped access, reactive data and manual walkthrough. [[records/operations/agent-handoff]]

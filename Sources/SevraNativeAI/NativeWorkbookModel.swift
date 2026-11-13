@@ -421,7 +421,8 @@ private final class NativeWorker: @unchecked Sendable {
           itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
           conversationActions: messages.first?.conversationActions,
           documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
-          historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages)
+          historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages),
+          nativeAppAuthoring: messages.first?.nativeAppAuthoring == true
         ).promptTools()
       let prompt = try session.frontend.prepare(
         messages: messages.map(nativeTemplateMessage),
@@ -509,13 +510,17 @@ private final class NativeWorker: @unchecked Sendable {
         itemReferenceIDs: ItemReferenceCandidates.ids(in: messages),
         conversationActions: messages.first?.conversationActions,
         documentCopyIDs: DocumentCopyCandidates.ids(in: messages),
-        historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages))
+        historyReferenceIDs: ItemReferenceCandidates.historyIDs(in: messages),
+        nativeAppAuthoring: messages.first?.nativeAppAuthoring == true)
     }
     let budget = configuration.contextBudget
     let prompt = try session.frontend.prepare(
       messages: messages.map(nativeTemplateMessage), tools: policy.promptTools(),
       thinking: reasoning.enabled, contextLimit: budget.contextTokens)
-    let allowance = try budget.allowance(promptTokens: prompt.tokens.count)
+    let allowance = try budget.allowance(
+      promptTokens: prompt.tokens.count,
+      nativeAppAuthoring: interpretation == nil
+        && messages.first?.nativeAppAuthoring == true)
     let outputBudget = min(
       allowance.outputTokens, interpretation?["maxOutputTokens"].int ?? allowance.outputTokens)
     let constraint = try session.factory.create(grammar: policy.grammar)

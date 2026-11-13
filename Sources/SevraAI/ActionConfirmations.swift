@@ -12,14 +12,32 @@ package struct ActionConfirmations {
     // Refusing a repeat means the first save stands, so an earlier success settles it too.
     let later = entries.dropFirst(index + 1)
     return (entry["error"].text.contains(Self.repeatRefused) ? entries[...] : later).contains {
-      $0["tool"] == entry["tool"] && $0["kind"].text != "failure"
-        && $0["attempt"] == entry["attempt"]
+      saved in
+      if saved["tool"] == entry["tool"] && saved["kind"].text != "failure"
+        && saved["attempt"] == entry["attempt"]
+      {
+        return true
+      }
+      // A model can first choose the fixed-layout tool for a programmable app, or
+      // repair an incorrect ID using its exact name. A later checked save settles
+      // only those same-app edits. A failed snapshot/restore remains a different action.
+      guard saved["kind"].text == "native_app",
+        ["save_space", "edit_space", "save_native_app"].contains(entry["tool"].text)
+      else { return false }
+      return [entry["attempt"].text, entry["appName"].text].contains { target in
+        !target.isEmpty
+          && (target == saved["targetID"].text
+            || target.caseInsensitiveCompare(saved["title"].text) == .orderedSame)
+      }
     }
   }
   /// What a call acted on, so a later success can settle the failure before it. A thread tool
   /// acts on the current conversation whatever its arguments say.
   private static func attempt(_ tool: String, _ arguments: Value) -> String {
     if WorkbookTools.conversationTools[tool] != nil { return "" }
+    if tool == "save_native_app" {
+      return arguments["id"].string ?? arguments["package"]["name"].text
+    }
     return arguments["content"]["title"].string
       ?? ["id", "title", "target", "subject", "datasetID", "templateReceiptID"].lazy
       .compactMap { arguments[$0].string }.first ?? ""
@@ -40,7 +58,8 @@ package struct ActionConfirmations {
     case "draft": task = "saving the draft"
     case "save_definition", "save_template": task = "saving reusable behavior"
     case "start_workflow": task = "queueing the workflow"
-    case "save_space", "edit_space", "restore_space", "pin_space": task = "saving the space"
+    case "save_space", "edit_space", "restore_space", "pin_space", "save_native_app":
+      task = "saving the space"
     case "set_space_pinned": task = "changing the shortcut"
     case "open_space", "open_reviews", "open_automation": task = "opening the view"
     case "propose_table", "propose_table_edit", "propose_movement", "propose_record",
@@ -61,6 +80,7 @@ package struct ActionConfirmations {
         "receiptID": .string(receiptID), "tool": .string(tool), "kind": .string("failure"),
         "targetID": .string(receiptID), "title": .string(task), "error": result["error"],
         "attempt": .string(Self.attempt(tool, arguments)),
+        "appName": .string(tool == "save_native_app" ? arguments["package"]["name"].text : ""),
       ]))
   }
 
@@ -81,6 +101,12 @@ package struct ActionConfirmations {
       kind = "draft"
       id = value
       title = result["title"].text
+    case "save_native_app":
+      guard let value = result["spaceID"].string else { return }
+      kind = "native_app"
+      id = value
+      title = result["title"].text
+      qualifier = String(result["check"]["assertions"].int ?? 0)
     case "save_space", "edit_space", "restore_space", "pin_space":
       guard let value = result["spaceID"].string ?? result.string else { return }
       kind =
@@ -144,6 +170,10 @@ package struct ActionConfirmations {
         let reason = entry["error"].text.components(separatedBy: Self.repeatRefused)[0]
         return "Couldn’t finish " + title + ". " + reason
       case "draft": return "Saved draft [" + title + "](sevra://item/" + id + ")."
+      case "native_app":
+        return "Saved native app “" + title + "” after " + qualifier
+          + (qualifier == "1" ? " synthetic check." : " synthetic checks.")
+          + " Review table access and enable this version to use it."
       case "space": return "Saved space “" + title + "”."
       case "space_edit": return "Updated space “" + title + "”."
       case "space_restore": return "Restored a saved layout for “" + title + "”."

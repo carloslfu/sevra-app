@@ -311,6 +311,25 @@ func exchange(
     try expect(
       [1, 13].contains(probe["networkErrno"].int ?? -1),
       "Sandbox did not deny networking: " + probe.text)
+    let checkConnection = NSXPCConnection(serviceName: NativeAppWire.checkService)
+    checkConnection.remoteObjectInterface = NSXPCInterface(with: NativeAppWorkerProtocol.self)
+    checkConnection.resume()
+    defer { checkConnection.invalidate() }
+    let checkReply: Data = try await withCheckedThrowingContinuation { continuation in
+      let proxy =
+        checkConnection.remoteObjectProxyWithErrorHandler { continuation.resume(throwing: $0) }
+        as! NativeAppWorkerProtocol
+      proxy.exchange(probeData) { continuation.resume(returning: $0) }
+    }
+    let isolated = try NativeAppWire.decode(checkReply)
+    try expect(
+      isolated["processID"].int != nil && probe["processID"].int != nil
+        && isolated["processID"] != probe["processID"],
+      "Unapproved source shared the enabled-app process.")
+    try expect(
+      [1, 13].contains(isolated["fileErrno"].int ?? -1)
+        && [1, 13].contains(isolated["networkErrno"].int ?? -1),
+      "Authoring service did not enforce the same sandbox.")
     let book = try Workbook.create(at: root.appendingPathComponent("XPC.sevra"), title: "XPC check")
     let example = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
       .appendingPathComponent("examples/apps/inventory/app.sevraapp")

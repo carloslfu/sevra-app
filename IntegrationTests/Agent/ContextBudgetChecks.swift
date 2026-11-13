@@ -3,6 +3,11 @@ import SevraAI
 func checkContextBudget() throws {
   for profile: ContextBudget.Profile in [.development8K, .evaluation32K, .evaluation64K] {
     let budget = ContextBudget(profile: profile)
+    let authoring = try budget.allowance(promptTokens: 1000, nativeAppAuthoring: true)
+    try expectEqual(authoring.outputTokens, min(8192, budget.contextTokens - 1000))
+    try expectEqual(
+      try budget.allowance(promptTokens: budget.contextTokens - 256, nativeAppAuthoring: true)
+        .outputTokens, 256)
     let ready = try budget.allowance(promptTokens: budget.maintenanceThreshold - 1)
     try expectEqual(ready.outputTokens, 1800)
     try expectEqual(ready.maintenanceRecommended, false)

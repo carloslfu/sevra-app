@@ -10,7 +10,8 @@ package enum NativeCitationPolicy {
   package static func make(
     _ citationIDs: [String], toolScope: InferenceToolScope = .all, thinking: Bool = false,
     itemReferenceIDs: [String] = [], conversationActions: [String]? = nil,
-    documentCopyIDs: [String] = [], historyReferenceIDs: [String]? = nil
+    documentCopyIDs: [String] = [], historyReferenceIDs: [String]? = nil,
+    nativeAppAuthoring: Bool = true
   ) throws
     -> SplashToolPolicy
   {
@@ -22,7 +23,7 @@ package enum NativeCitationPolicy {
     let serialized = try NativeTools.serializedDefinitions(
       toolScope: toolScope, itemReferenceIDs: itemReferenceIDs,
       conversationActions: conversationActions, documentCopyIDs: documentCopyIDs,
-      historyReferenceIDs: historyReferenceIDs)
+      historyReferenceIDs: historyReferenceIDs, nativeAppAuthoring: nativeAppAuthoring)
     if !toolScope.allows("finish") {
       return try SplashToolPolicy(toolsJSON: serialized, choice: .required, thinking: thinking)
     }

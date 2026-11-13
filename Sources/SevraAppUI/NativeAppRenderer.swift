@@ -249,13 +249,14 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
       label.stringValue = props["text"].text
       label.font = .systemFont(
         ofSize: CGFloat(min(72, max(9, props["size"].int ?? 13))),
-        weight: props["weight"].text == "bold" ? .bold : .regular)
+        weight: props["weight"].text == "bold"
+          ? .bold : props["weight"].text == "semibold" ? .semibold : .regular)
       label.isSelectable = props["selectable"] != .bool(false)
       label.textColor = AppCanvas.color(props["color"].text)
     case "button": (content as! NSButton).title = props["title"].text
     case "textField":
       let field = content as! NSTextField
-      field.placeholderString = props["placeholder"].string
+      field.placeholderString = props["placeholder"].string ?? props["label"].string
       if accepted, field.stringValue != props["value"].text,
         (field.currentEditor() as? NSTextView)?.hasMarkedText() != true
       {
@@ -340,7 +341,8 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
         view.removeFromSuperview()
       }
       if stack.orientation == .vertical {
-        for child in children where child.node.props["width"] == .null {
+        for child in children
+        where child.node.props["width"] == .null && child.node.type != "button" {
           let constraint = child.widthAnchor.constraint(
             equalTo: stack.widthAnchor,
             constant: -CGFloat(max(0, node.props["padding"].int ?? 0) * 2))

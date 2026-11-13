@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m78sah1afmhpr6vzfbkrg1r2
 created: 2026-11-12T21:06:22.890879+00:00
-updated: 2026-11-13T02:19:00.368080+00:00
+updated: 2026-11-13T03:42:38.600324+00:00
 summary: 'Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.'
 title: Programmable native spaces SDK 1
 status: implemented
@@ -113,3 +113,7 @@ its table access before **Enable app**.
    workspace, then make the window smaller. Check field labels, action grouping,
    row alignment, empty results and the table footer. Content must stay reachable
    through native scrolling while trusted app controls remain available.
+
+## Local model authoring
+
+The local workbook conversation now uses SDK discovery, exact source inspection and an isolated behavioral check followed by a separate local-model review before saving inert app source. See [[records/specs/local-model-native-apps]] for the authoring flow, authority and limits, and [[records/plans/local-model-native-apps]] for current acceptance. Unapproved programs use a distinct sandboxed check process; enabled apps retain the existing runtime process. Unhandled promise rejections are bounded failures. Canvas drop x/y values are movement deltas to add to the selected region's current position, not absolute destination coordinates. Shape IDs matching their region enable native drag feedback.

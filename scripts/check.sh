@@ -97,6 +97,7 @@ python3 scripts/check_splash_text.py
 python3 scripts/build_guidance.py
 swift build --product sevra-splash-grammar-checks -j "${SEVRA_BUILD_JOBS:-4}"
 swift build --product sevra-agent-checks -j "${SEVRA_BUILD_JOBS:-4}"
+python3 scripts/check_native_app_authoring.py
 python3 scripts/check_splash_grammar.py
 python3 scripts/check_performance_harness.py
 swift build --product sevra-workflow-performance -j "${SEVRA_BUILD_JOBS:-4}"

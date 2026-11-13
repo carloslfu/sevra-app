@@ -1,4 +1,5 @@
 import Foundation
+import SevraAppProtocol
 import SevraCore
 
 public struct AgentFocus: Sendable {
@@ -121,6 +122,7 @@ public enum WorkbookAgent {
       in prose: put exact IDs in citations and the app will render named source links. Never invent citations,
       successful actions, transcripts or complete coverage. Accepted forecasts stay estimates.
       Proposals do not change actual inventory until the user accepts them. Never accept on behalf of a document.
+      For a programmable mini app with custom interactions, read native_app_sdk, inspect datasets/spaces as relevant, then save_native_app with JavaScript and meaningful synthetic behavioral tests. Edits require read_native_app and the exact version. The host tests in an isolated workbook, saves only after passing, and never enables it. A saved receipt proves only the reported tests; tell the user to review access and enable it. Never use save_space for programmable source. Use fixed spaces for simple requested views.
       Compose native views when useful. Chart x and y are existing dataset column IDs, never layout coordinates; omit query on charts. Create new spaces with save_space. Read spaces before changing Home or an existing space; use edit_space with its exact version and stable component IDs, preserving unrelated components. Use space_history and restore_space for an explicitly requested saved layout. Stale edits require a fresh read and reconsideration, never a blind replacement. Only a successful tool receipt confirms the change.
       Read definition_registry before authoring behaviors; inputs are exact authoring Source IDs, not parameters. For one saved behavior: find_definitions -> workflow_template(exact version,stepID?) -> save_template(receiptID,title?). Receiving: receiving_template -> save_template(receiptID) -> form_template(action UUID) -> save_template. New: omit expectedDefinitionID; edit: exact inspected base. Host owns identities. Insert nativeComponent via edit_space at:last. prepare_action reviews direction and saves drafts; preview_action only previews (finish basis=preview).
       Inventory rule: find_definitions workflow -> inventory_automation_template(exact workflowID,arguments,explicit subject/operator/threshold) -> save_template(receiptID,title?). The host confirms only saving and offers native review. Saving never enables it; no model tool grants device permission. Ask about missing rule values or workflow inputs.
@@ -206,6 +208,7 @@ public enum WorkbookAgent {
     var draftSaved = false
     var draftCorrected = false
     var completedAction = false
+    var nativeAppAuthoring = false
     var actionConfirmations = ActionConfirmations()
     var pendingActionPreview: (receiptID: String, plan: Value)?
     var nextToolScope: InferenceToolScope = .all
@@ -213,7 +216,8 @@ public enum WorkbookAgent {
     var countReceipts: [String: Value] = [:]
     var discoveryBudget = DiscoveryBudget()
     var discoveryLimited = false
-    let explorationLimit = "\nHost exploration limit: three searches produced no new candidates. Further lexical search is paused for this answer so you can finish from the inspected evidence. Read known originals and perform needed calculations. Clearly identify unsupported requested terms. This is not complete coverage or proof that another document does not exist."
+    let explorationLimit =
+      "\nHost exploration limit: three searches produced no new candidates. Further lexical search is paused for this answer so you can finish from the inspected evidence. Read known originals and perform needed calculations. Clearly identify unsupported requested terms. This is not complete coverage or proof that another document does not exist."
     var pendingVersionCitations = Set<String>()
     var readRows: [(id: String, table: String)] = []
     /// A table read to its end can outrun what the citation grammar can name, so the oldest rows
@@ -376,6 +380,7 @@ public enum WorkbookAgent {
         messages = try ItemReferenceCandidates.annotate(
           messages, workbook: workbook,
           history: (conversation, try workbook.runRequestMessage(runID)))
+        messages[0].nativeAppAuthoring = nativeAppAuthoring
         let itemChoices = try ItemReferenceCandidates.ids(in: messages)
         let copyChoices = try DocumentCopyCandidates.ids(in: messages)
         let selectedScope = nextToolScope == .all ? phaseScope : nextToolScope
@@ -397,6 +402,7 @@ public enum WorkbookAgent {
         // Offer read-only requests no write tools. Core denial remains independent
         // so a malformed/custom inference adapter still gets a recorded refusal.
         let inferenceScope: InferenceToolScope = readOnly && toolScope == .all ? .answer : toolScope
+        messages[0].nativeAppAuthoring = nativeAppAuthoring
         let response: NativeReply
         do {
           response = try await model.respond(
@@ -472,7 +478,8 @@ public enum WorkbookAgent {
           var readTables: [Value] = []
           let unnamed = reportsWork ? unnamedRows() : []
           for id in Set(unnamed.map(\.table)).sorted() {
-            let read = Set(readRows.filter { $0.table == id && inspected.contains($0.id) }.map(\.id))
+            let read = Set(
+              readRows.filter { $0.table == id && inspected.contains($0.id) }.map(\.id))
             let source =
               try workbook.datasetSource(id) ?? unnamed.first { $0.table == id }!.id
             guard !citations.contains(source) else { continue }
@@ -926,9 +933,30 @@ public enum WorkbookAgent {
             )
             commitArguments = .object(["previewReceiptID": .string(previewID)])
           }
+          var nativeAppCheck: Value?
+          if tool == "save_native_app" {
+            try require(!tools.readOnly, "read_only_request", "This request forbids changes.")
+            progress("Checking the native app in isolation")
+            nativeAppCheck = try await NativeAppCheck.run(
+              package: NativeAppAuthoring.package(a), steps: a["tests"].array,
+              fixtures: a["fixtures"] == .null ? .object([:]) : a["fixtures"],
+              cancellation: cancellation)
+            var checked = nativeAppCheck!.object
+            do {
+              checked["review"] = try await NativeAppReview.check(
+                request: prompt, requestSourceID: requestSource.id,
+                arguments: a, workbook: workbook, model: model, directory: modelDirectory,
+                cancellation: cancellation, progress: progress)
+              metrics.append(await model.lastMetrics)
+            } catch {
+              metrics.append(await model.lastMetrics)
+              throw error
+            }
+            nativeAppCheck = .object(checked)
+          }
           let value = try tools.execute(
             tool == "prepare_action" ? "commit_action_preview" : tool,
-            commitArguments ?? a, receiptID: receiptID)
+            commitArguments ?? a, receiptID: receiptID, nativeAppCheck: nativeAppCheck)
           if tool == "open_reviews" {
             guard let openReviews else {
               throw SevraError(
@@ -989,13 +1017,17 @@ public enum WorkbookAgent {
           {
             navigationFailure = failure.localizedDescription
           }
-          result = .object([
+          var failureResult: [String: Value] = [
             "error": .string(error.localizedDescription),
             "receiptID": .string(receiptID),
             "retryInstruction": .string(
               "The call did not finish successfully. Completed changes remain saved. Inspect the receipt and workbook state before retrying; do not claim no changes occurred. Fix the reported arguments when applicable."
             ),
-          ])
+          ]
+          if tool == "read_native_app", !readOnly, !cancellation.isCancelled {
+            failureResult["guide"] = .string(NativeAppAuthoring.guide)
+          }
+          result = .object(failureResult)
         }
         var recordedResult = result
         if let movementReview {
@@ -1012,6 +1044,15 @@ public enum WorkbookAgent {
           receiptID, result: recordedResult, failed: callFailed)
         discoveryBudget.observe(tool: tool, result: result, inspected: inspected)
         progress(callFailed ? "Reviewing a tool failure" : "Reviewing the saved result")
+        // A failed app lookup still supplies the host SDK, so a requested new
+        // build can proceed without falling back to fixed-layout tools.
+        if !readOnly && ["native_app_sdk", "read_native_app"].contains(tool),
+          !callFailed || result["guide"].string != nil
+        {
+          nativeAppAuthoring = true
+          messages[0].nativeAppAuthoring = true
+          maintenance?.enableNativeAppAuthoring()
+        }
         if let navigationFailure { return try conclude(navigationFailure, step: step) }
         if !callFailed
           && (tool == "conversation_action" || WorkbookTools.conversationTools[tool] != nil)
@@ -1076,7 +1117,7 @@ public enum WorkbookAgent {
           actionConfirmations.record(tool: tool, arguments: a, result: result, receiptID: receiptID)
           // A later explicit opening supersedes any earlier result-focus request.
           if ["open_space", "open_reviews"].contains(tool) { focus = nil }
-          if ["save_space", "edit_space", "restore_space"].contains(tool),
+          if ["save_space", "edit_space", "restore_space", "save_native_app"].contains(tool),
             let id = result["spaceID"].string
           {
             focus = AgentFocus(kind: "space", id: id)
@@ -1306,7 +1347,8 @@ public enum WorkbookAgent {
         messages.append(
           InferenceMessage(
             role: "tool",
-            content: try (tool == "read" ? ToolResultProjection.presentedRead(projected) : projected)
+            content: try
+              (tool == "read" ? ToolResultProjection.presentedRead(projected) : projected)
               .json(),
             toolCallId: call.id, toolName: call.name,
             documentCopyIDs: tool == "read" && !callFailed
@@ -1464,8 +1506,9 @@ public enum WorkbookAgent {
       return written.replacingOccurrences(of: ".", with: "").replacingOccurrences(
         of: ",", with: ".")
     }
-    let grouped = written.range(
-      of: "^[+-]?[1-9][0-9]{0,2}(?:,[0-9]{3})+$", options: .regularExpression) != nil
+    let grouped =
+      written.range(
+        of: "^[+-]?[1-9][0-9]{0,2}(?:,[0-9]{3})+$", options: .regularExpression) != nil
     return written.replacingOccurrences(of: ",", with: grouped ? "" : ".")
   }
 
@@ -1490,8 +1533,10 @@ public enum WorkbookAgent {
       pattern: "(" + numberPattern + ")\\s*(?:%|(?i:percent|por ciento)\\b)")
     return regex.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap {
       guard let range = Range($0.range(at: 1), in: text) else { return nil }
-      return try? Numbers.decimal(plainNumber(String(text[range]).trimmingCharacters(
-        in: CharacterSet(charactersIn: "+-"))))
+      return try? Numbers.decimal(
+        plainNumber(
+          String(text[range]).trimmingCharacters(
+            in: CharacterSet(charactersIn: "+-"))))
     }
   }
 

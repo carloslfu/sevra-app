@@ -41,15 +41,23 @@ for tool in tools:
     for key in props: props[key] = required_first(props[key])
 functions = {tool['function']['name']: tool['function']['parameters'] for tool in tools}
 def ordered_value(value, schema):
+    if 'anyOf' in schema:
+        branches = schema['anyOf']
+        schema = next((branch for branch in branches if isinstance(value, dict) and
+                       all(key not in value or 'enum' not in prop or value[key] in prop['enum']
+                           for key, prop in branch.get('properties', {}).items())), branches[0])
     if isinstance(value, list): return [ordered_value(v, schema.get('items', {})) for v in value]
     if not isinstance(value, dict): return value
     props = schema.get('properties', {})
     names = [k for k in props if k in value] + sorted(k for k in value if k not in props)
     return {k: ordered_value(value[k], props.get(k, {})) for k in names}
 def example(schema):
+    if not schema: return None
+    if 'anyOf' in schema: return example(schema['anyOf'][0])
     if 'const' in schema: return schema['const']
     if 'enum' in schema: return schema['enum'][0]
     kind = schema.get('type')
+    if isinstance(kind, list): return example(dict(schema, type=kind[0]))
     if kind == 'object': return {key: example(schema['properties'][key]) for key in schema.get('required', [])}
     if kind == 'array': return [example(schema['items']) for _ in range(max(1, schema.get('minItems', 0)))]
     if kind == 'string': return 'example'
@@ -77,11 +85,19 @@ for tool in tools:
     elif name == 'calculate': values.update(expression='cost * 2', values={'cost':'12.40'})
     elif name == 'propose_record': values.update(data={'units':12,'note':None}, meaning='estimate')
     elif name == 'draft': values.update(text='A new prose summary.')
+    elif name == 'save_native_app':
+        values.update(package={'sdkVersion':1,'name':'Ready','source':"Sevra.mount(Sevra.h(Sevra.Text,{text:'Ready'}));",'datasets':{}},
+                      tests=[{'kind':'expect_text','value':'Ready'}])
     elif name == 'save_space':
         values.update(title='Overview', definition={'version':1,'components':[{'id':'table','type':'table','title':'Suppliers','datasetID':'table-1'}]})
     elif name == 'edit_space':
         values.update(id='home', expectedVersion=1, edits=[{'operation':'move','componentID':'tables','at':'first'}, {'operation':'remove','componentID':'recent'}])
     outputs.append((name, xml(name, values), values))
+    if name == 'save_native_app':
+        for step_schema in function['parameters']['properties']['tests']['items']['anyOf']:
+            step = example(step_schema)
+            composed = dict(values, tests=[step])
+            outputs.append((name + '_' + step['kind'], xml(name, composed), composed))
     if name == 'find_definitions':
         interpretations = {'query': '', 'kind': 'interpretation'}
         outputs.append(('find_definitions_interpretation', xml(name, interpretations), interpretations))

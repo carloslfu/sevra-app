@@ -1,0 +1,219 @@
+{
+  "date": "2026-11-12",
+  "recordedUTC": "2026-11-13T04:48:04.235736+00:00",
+  "scope": "Local model authoring integration source preview. Synthetic fixtures only. This is internal verification, not external security or production qualification.",
+  "baseCommit": "c4d867a1df9f4233171da653730646e23437bced",
+  "sourceSHA256": {
+    ".github/workflows/check.yml": "ac21b2d35d4c03cbd2791f6323a77fb812f133265b31e6fc9530acbce42ac954",
+    "IntegrationTests/Agent/ActionConfirmationChecks.swift": "ff87f2403feaef3c8eeb21e98f80bdae9742bed22838b3d24edf551f634db487",
+    "IntegrationTests/Agent/ContextBudgetChecks.swift": "a530f60a0b9c828bb64ec70d00884e50dff43e1b8df7928d271760267977a6ed",
+    "IntegrationTests/Agent/ContextThresholdChecks.swift": "cbafd176bd4e15c66ba264915d0c9d5e9bd0842b50f5249f146c113335936893",
+    "IntegrationTests/Agent/GrammarChecks.swift": "38cb397d862b47b500b6ff7b59111cd9c99ef771580b3d799fed5fd1f03c16c0",
+    "IntegrationTests/Agent/ItemReferenceChecks.swift": "0d7468792102a6eb0a3ca167c4450b4532e79a4705feefee57cf85e9ccc11f81",
+    "IntegrationTests/Agent/NativeAppAuthoringChecks.swift": "7a0cb53d6163af7c2759282854731a011c05ac28b6f97a6b02841783e588a41c",
+    "IntegrationTests/Agent/main.swift": "fb4709c8ffb127c01669961e6f65246ade40e3848ac84bb4755e4f0c0756ed6a",
+    "IntegrationTests/Agent/tool-grammar-fixtures.json": "19c86dc4e4d6d6264ddc95456e98148ada50026093d49201b1178199bd3a40db",
+    "IntegrationTests/Agent/workbook-tools.json": "2a630b8a97534eea00d2c7191303f42ca23196dac37172efd396b790df9f8e5c",
+    "IntegrationTests/NativeApps/Checks.swift": "92ee9da9b9a4fccb9d2e098801bfbba097692e48b0391f03461cd3c6642a637b",
+    "Package.swift": "c89459677f7eb7cb3a396bd36d1a361bf7ed88ca6c09bd512bd2cf83d73517d2",
+    "Sources/CQuickJS/SevraJS.c": "ac26a7081cc6e6427337ce7bb5127204f39ea872bd735eaf9771b27e3cac4220",
+    "Sources/SevraAI/ActionConfirmations.swift": "a4d40aa7ab2886fd2a132745a68d8e723cf1f31a7e9993f50dcf9804da301077",
+    "Sources/SevraAI/ContextBudget.swift": "b51e240db8e5333d275492eb6068930ecb5239d761843f0d6d6cd12c14bfcf1b",
+    "Sources/SevraAI/ContextMaintenance.swift": "f021ddcd8877c3f614bb540c12aa241f262fcc11ce378f561d14e71b9fe3aca1",
+    "Sources/SevraAI/ItemReferenceCandidates.swift": "0863255bc54da72c503b87610d5aa3dca4a99170e3cbab8d794a951744fd396f",
+    "Sources/SevraAI/NativeAppReview.swift": "07617eea6d521559d2954e3512bb29f9c839399989ecbf73bf7b80d7569a238e",
+    "Sources/SevraAI/NativeAppTools.swift": "91201614e3ceeddc76e9d6fb9bfaff4863737c8bd6cb8a6db5554d29dfcf9408",
+    "Sources/SevraAI/NativeTools.swift": "05588205139dc31c84ac44cda451f3389873b62384d6242be3698ac170c7b3d9",
+    "Sources/SevraAI/ToolSerialization.swift": "1265b7152532cb0533a6526dd752b78ea0c0851ee8b34f151ad39e97ed36b4f5",
+    "Sources/SevraAI/WorkbookAgent.swift": "ba6804d72c0f7c375be8299b4d04a2a82f5eea219d4d789058fe9fd0aa027258",
+    "Sources/SevraAI/WorkbookInference.swift": "623cb17708fda69259df8311a08b571c1565c7eb3bc69d6198ff1e29255f82a8",
+    "Sources/SevraApp/WorkspaceState.swift": "a2551221d972902b16553456b7e605ac2b58f77915fcdb3e192de11c545f434f",
+    "Sources/SevraAppProtocol/NativeAppCheck.swift": "1b6b0bdc6fd60efc4ff4505b36c83593cbb0e15a1ecbfbcdc930800c43ae16dc",
+    "Sources/SevraAppProtocol/NativeAppProtocol.swift": "3e2541a11abc22797b10a6c805504527eca8e0ec3249744b95e8f33f11473ed7",
+    "Sources/SevraAppUI/NativeAppRenderer.swift": "c7d2529232ca7749f8832bc615df3ffbef2d87ac1a3678745900666a1b025b1b",
+    "Sources/SevraAppWorker/main.swift": "a0e01af9eab5444b2b4e062ee4d0ad3f84ca3d3aa65ee4f6d6f526ade80f438a",
+    "Sources/SevraBaseline/BaselineMessages.swift": "0c1a8000e45473865550306981c896729d1a6af0a19173ecbbcae9f13c5afeec",
+    "Sources/SevraBaseline/LocalModel.swift": "bfed6aa5771ce146b588eb786e33603bd1f9dd2335112a1f06e8ef12d9df24bb",
+    "Sources/SevraCore/NativeAppAuthoring.swift": "dd422a326b62ce63d9b6abaff2b4d5eb7e1b878bff329d32fa4ac1e44dc03f28",
+    "Sources/SevraCore/NativeAppPackage.swift": "7f890e57f4fb221fcd580dd1a1a2537a554020470183dcebc83b5f3a97f12b29",
+    "Sources/SevraCore/RequestHandoff.swift": "5651f729845df61afa4cee4501b68d6295ecdef51440b9d96dd1e63ed7b2a1e2",
+    "Sources/SevraCore/Tools.swift": "4deb3e42a219a9edaf85d3395c9baa6e14e1714e10a602bb31219227c45c82e5",
+    "Sources/SevraNativeAI/NativeCitationPolicy.swift": "2bfc18c9a123f73fa7deebc0010669bfb6dc3b814aeafa93318673230ae9bc9f",
+    "Sources/SevraNativeAI/NativeWorkbookModel.swift": "8dc0ed3414a84177e1fd73f500c204f616f2010bcf36198876d3e9d2873b9e24",
+    "scripts/check.sh": "90dd011a678ab57b6ba7c1e6dd1928d501e0d2bb63b05938e8bc3a3a73e240fd",
+    "scripts/check_install.py": "51e4d3738b626ae6d0dee8888d9aab356f278194ce9825e1a021eaddd1d3aa5e",
+    "scripts/check_native_app_authoring.py": "cf8f76c860bf8d1a997541a3158f48553fc3cdcdfddf4ffb75913f5f515223a5",
+    "scripts/generate_splash_tool_fixtures.py": "83bebee60a8b98ba63871ae7ba90c8fe206af66fa9abc1c86ddecd606a5326ac",
+    "scripts/package_app_worker.py": "2c8283d6388f14a53b25857aa0705644dbeed789909ae6d81ca02bc7a2747d99"
+  },
+  "installedBuild": [
+    {
+      "component": "Contents/MacOS/Sevra",
+      "installedSHA256": "6bb01fcd0eee411ca12b89b1d868a422130a0d6d1bfd282cf5cf453c09ae0e2e",
+      "packagedSHA256": "b662a75ef32cc276eb997aa8e8944268e044198d627535d1cb0cb54234bb4152",
+      "uuid": "UUID: 6F410451-9213-3901-AE05-925898D789BA"
+    },
+    {
+      "component": "Contents/XPCServices/com.sevra.workbooks.app-worker.xpc/Contents/MacOS/sevra-app-worker",
+      "installedSHA256": "966cc9b8e3774c307a72ac9837775b210189cac4bcd9cc0b8abf993eded81366",
+      "packagedSHA256": "966cc9b8e3774c307a72ac9837775b210189cac4bcd9cc0b8abf993eded81366",
+      "uuid": "UUID: 1AFBF675-2DF8-3840-B235-BDE64AF75671"
+    },
+    {
+      "component": "Contents/XPCServices/com.sevra.workbooks.app-check-worker.xpc/Contents/MacOS/sevra-app-worker",
+      "installedSHA256": "e4e725692405800ef5adbbc05e1faae49a32f062f3dab72cb7b933aec4b63aae",
+      "packagedSHA256": "e4e725692405800ef5adbbc05e1faae49a32f062f3dab72cb7b933aec4b63aae",
+      "uuid": "UUID: 1AFBF675-2DF8-3840-B235-BDE64AF75671"
+    }
+  ],
+  "identityNote": "Installed main Mach-O UUID matches packaged main. Installer adds the CLI then signs the complete bundle, so signed main bytes differ. Both separately signed worker bundles match exact packaged bytes and have only the sandbox entitlement. Strict verification passed.",
+  "checks": {
+    "sdkTests": 5,
+    "nativeRuntimeGroups": 14,
+    "coreChecks": 650,
+    "authoringGroups": 10,
+    "grammarCases": 80,
+    "referenceMasks": 744,
+    "ordinaryToolTokens": 8361,
+    "authoringToolTokens": 9506,
+    "maximumAuthoringOutputTokens": 8192,
+    "contextCapacity": 32768,
+    "nativeEventObservation": {
+      "samples": 30,
+      "p50ms": 2.1120309829711914,
+      "p95ms": 2.6270151138305664,
+      "samplingIntervalMs": 1,
+      "scope": "Simple native label event through XPC; not a general UI performance claim."
+    },
+    "broadSuite": "scripts/check.sh completed functional checks through desktop compilation. Its packaging stage refused model_busy while UI inference was active. After stopping inference and rebuilding final fixes, all three native packaging/install/extraction commands passed. Final localized fixes also passed authoring and complete agent/grammar checks. Baseline packaged journeys were skipped as stale; preserved baseline unchanged.",
+    "nativePackage": true,
+    "installUpdateUninstall": true,
+    "packagedExtraction": true,
+    "releaseBuild": true,
+    "signatureAndResources": true,
+    "strictSwiftFormatFiles": 32,
+    "changedPythonCompilationFiles": 4,
+    "documentationLinks": true,
+    "dbmdValidation": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "diffWhitespace": true
+  },
+  "logSHA256": {
+    "native-app-authoring-full-check-final": "af23cf7fc80d0a755d656d866260a20f89bfdb1d77bd694e2c73765e65a9583e",
+    "native-app-authoring-checks": "1311331ad46de6f13d31bd7d64ef2133c9f783311985bf39121b9ee7d0fa86f7",
+    "native-app-authoring-grammar-check": "037f81162064bf3c3c73c665a02e35e75718c459d0856db59ccb93f22b49093c",
+    "native-app-authoring-release": "2eb6e2add43d636931e47a85b9bf92d8204031df7f84e3a86b4c301aaeff2057",
+    "native-app-authoring-package-check": "4de5a7c1e5a9d48f88a9dffb1c61943c4f901d290b8ad550c0ca504af7c0012e",
+    "native-app-authoring-install-check": "a63a876d81f8c07fe255c9c20ca83a80c9f8df302299f1e5f111ef35cd4e0925",
+    "native-app-authoring-extraction-check": "d28a3a716dd495c7d7fabdd3bb60cd66d30dde70023d1c6e942456c157be2e65",
+    "native-app-authoring-install": "836ce5fd7a818d4fe793b9d90a5615793999d5ecc6e868b14d0044b375db3026"
+  },
+  "actualModelCases": "2026-11-12-local-model-native-apps.json",
+  "ui": {
+    "stock": [
+      "Chat-created app saved only after refused synthetic attempts were repaired.",
+      "Native review names actual Stock table and scope; source changes require Enable again.",
+      "Empty name and invalid decimal refused; decimal 12.5 persisted.",
+      "Keyboard Tab, Save item/Clear form, searchable table and live count exercised.",
+      "Follow-up edit retained bindings and saved rows; final receipt accurately reports repaired success.",
+      "Second row inserted and Undo restored original, also with no inference server running.",
+      "Normal and constrained-width window inspected: centered table text, right-aligned decimals, visible placeholders and intrinsic native button widths."
+    ],
+    "canvas": [
+      "Actual model-generated package imported and enabled with no business data access.",
+      "Dragged Table A by (60,70); Right and Down added (10,10), resulting at (90,100). Table B stayed at (160,20).",
+      "Final installed build reopening preserved both region positions, inspected visually."
+    ],
+    "calculator": [
+      "Final build, fresh focused thread, ordinary request with no tool names or source-code hints.",
+      "Two syntax refusals and one wrong invalid-input assertion repaired within the same request; saved after 5 synthetic checks and separate local review in 1m48s.",
+      "Enable screen states no business-data access; both visible inputs initially 0.",
+      "Calculate at defaults shows Total 0. Native keyboard Tab moves Quantity to Unit price.",
+      "Quantity 3 and Unit price 2.40 render exact Total 7.2.",
+      "Quantity abc renders the native decimal-validation error; inspected full error text, native field focus, visible labels, spacing and intrinsic button size."
+    ]
+  },
+  "retainedFailures": [
+    "Local generation sometimes needs repeated attempts; selected successful use cases are not first-attempt claims.",
+    "A long-conversation request exposed and led to fixing dropped authoring metadata in context maintenance. Actual installed retry then compacted correctly.",
+    "Missing-app lookup now supplies actionable native routing and the SDK; final installed retry correctly used native save rather than fixed-layout tools.",
+    "That final long-conversation retry still repeated a JavaScript closing-delimiter error three times and stopped without publishing an app. Better compiler excerpts do not guarantee model repair."
+  ],
+  "limits": [
+    "Finite SDK, not complete Excel replacement or arbitrary native/OS APIs.",
+    "Generated source needs human behavioral and visual inspection. Separate model review can miss layout requirements or overreject.",
+    "Production signing/notarization, external security review, VoiceOver and additional hardware unqualified.",
+    "Hosted CI for this change not yet claimed."
+  ],
+  "uiRuns": [
+    {
+      "runID": "235f1c3f-3912-4f96-9f27-7d97cb223f21",
+      "status": "complete",
+      "steps": 4,
+      "createdUTC": "2026-11-13T04:21:38Z",
+      "updatedUTC": "2026-11-13T04:23:35Z"
+    },
+    {
+      "runID": "9a0b2dc9-7bd5-431c-865b-67dc34d86149",
+      "status": "failed",
+      "steps": 2,
+      "createdUTC": "2026-11-13T04:24:49Z",
+      "updatedUTC": "2026-11-13T04:25:48Z"
+    },
+    {
+      "runID": "5b662bee-0156-4e1d-81e6-e66c07d3d8b6",
+      "status": "failed",
+      "steps": 4,
+      "createdUTC": "2026-11-13T04:29:12Z",
+      "updatedUTC": "2026-11-13T04:30:49Z"
+    },
+    {
+      "runID": "c00ff2ee-73bf-4d6f-af2f-dcc79807e8ee",
+      "status": "failed",
+      "steps": 4,
+      "createdUTC": "2026-11-13T04:34:19Z",
+      "updatedUTC": "2026-11-13T04:35:19Z"
+    },
+    {
+      "runID": "194a828a-795e-4191-980b-8b58d99a8970",
+      "status": "failed",
+      "steps": 4,
+      "createdUTC": "2026-11-13T04:45:21Z",
+      "updatedUTC": "2026-11-13T04:47:01Z"
+    },
+    {
+      "runID": "566bee22-4878-49c5-a6d0-f4ab98a33c2f",
+      "status": "complete",
+      "steps": 6,
+      "createdUTC": "2026-11-13T04:47:23Z",
+      "updatedUTC": "2026-11-13T04:49:11Z"
+    }
+  ],
+  "finalCalculatorSave": {
+    "packageSourceSHA256": "0f58a34ff73c7d5c7aeaf7c47dd214fe5763811e388852583cb3c5379ddeb6a6",
+    "result": {
+      "check": {
+        "assertions": 5,
+        "digest": "b08f30a416e7ae945c26e67306d162856ce2f9433ee42298a11bbdbf4eae96a9",
+        "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+        "review": {
+          "decision": "ready",
+          "digest": "b08f30a416e7ae945c26e67306d162856ce2f9433ee42298a11bbdbf4eae96a9",
+          "model": "Splash 1.4.1; 1744cfafee415fb463b289449cec59a864e768e9; Qwen3.6-35B-A3B-4bit + DFlash2; native Swift candidate; reasoning budget 512; within-request reasoning retained",
+          "notice": "Separate local-model review of this request, source and synthetic tests; not a guarantee of all behavior.",
+          "requestSourceID": "1f81bc46-14e7-40bb-a96f-e32162a38702"
+        },
+        "status": "passed",
+        "steps": 13,
+        "transactions": 0
+      },
+      "notice": "Saved app source and empty new tables only. Test fixtures were discarded. Review table access and enable this version to use it. No device permission was granted.",
+      "spaceID": "566bee22-4878-49c5-a6d0-f4ab98a33c2f-229e5e2a8d92ce3884642d77",
+      "status": "saved_disabled",
+      "title": "Price check",
+      "version": 1
+    }
+  }
+}

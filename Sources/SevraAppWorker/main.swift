@@ -42,6 +42,7 @@ final class Worker: NSObject, NativeAppWorkerProtocol {
         (try? NativeAppWire.encode(
           .object([
             "fileErrno": .number(Double(fileError)), "networkErrno": .number(Double(networkError)),
+            "processID": .number(Double(getpid())),
           ]))) ?? Data())
       return
     }

@@ -165,6 +165,7 @@ jobs:
           python3 scripts/build_guidance.py
           swift build --product sevra-splash-grammar-checks -j 3
           swift build --product sevra-agent-checks -j 3
+          python3 scripts/check_native_app_authoring.py
           python3 scripts/check_splash_grammar.py
       - name: Validate independent knowledge store
         env:
