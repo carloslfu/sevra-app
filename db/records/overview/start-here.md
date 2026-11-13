@@ -3,8 +3,8 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-11-12T21:20:58.674258+00:00
-summary: Native programmable app engine implementation and authorized installed verification; earlier accepted checkpoints and qualification limits remain documented.
+updated: 2026-11-13T02:19:00.417490+00:00
+summary: Programmable native spaces SDK 1 accepted with installed UI, focused tests and hosted integration evidence; broader release qualifications remain.
 title: Start here
 ---
 # Sevra app
@@ -24,11 +24,12 @@ Slotstream remains independent.
 
 ## Current preview and delivery order
 
-**Native app engine implementation, November 12:** the later owner request explicitly
-authorizes implementation, installation and UI verification, superseding the earlier
-pause for this task. See [[records/plans/programmable-native-engine]] and
-[[records/specs/programmable-native-engine]]; [[records/operations/agent-handoff]] owns
-the current checkpoint. VoiceOver and system-setting changes remain outside scope.
+**Native app engine accepted, November 12:** the owner-authorized SDK 1 implementation,
+installation and UI verification are complete. See [[records/plans/programmable-native-engine]]
+and [[records/specs/programmable-native-engine]] for the native components, authoring,
+scoped access, reactive data and manual walkthrough. [[records/operations/agent-handoff]]
+records exact installed identity and test scopes. The earlier pause was superseded
+for this task; VoiceOver and system-setting changes remained outside scope.
 
 **Earlier accepted work:** Increments 1 through 9 are accepted for their bounded scope: multi-original evidence, native tables, reviewed updates, bulk intake, an Excel formula subset, conversation continuation, text/voice automation review, folder/templates and longer audio. The November 11 fixes and November 12 live automation observations passed their scoped functional checks; the exact code commit also passed hosted CI.
 

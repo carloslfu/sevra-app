@@ -3,41 +3,41 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-12T23:35:19.153430+00:00
-summary: Native programmable app engine implementation and authorized installed verification; earlier accepted checkpoints and qualification limits remain documented.
+updated: 2026-11-13T02:19:00.399487+00:00
+summary: Programmable native spaces SDK 1 accepted with installed UI, focused tests and hosted integration evidence; broader release qualifications remain.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
-## Current checkpoint: native app engine, November 12
+## Current checkpoint: native app engine accepted, November 12
 
-The subsequent owner request and explicit installation/UI authorization in
-[[sources/notes/2026/11/programmable-native-engine]] supersede the earlier pause for
-this task. The reviewed plan is [[records/plans/programmable-native-engine]] and the
-SDK contract is [[records/specs/programmable-native-engine]]. The bounded SDK 1 is implemented and passes local acceptance: 13 production-path
-engine groups, 5 SDK tests, the broad suite after a repaired table gate, and native
-release/package/install checks. The installed synthetic inventory, job tracker and
-planner journeys pass, including draft/stale-write protection, Undo, code restore,
-crash recovery and compact-window layout. The [acceptance receipt](../../../integration/evidence/2026-11-12-native-app-engine.json.gz)
-preserves exact evidence and limits. The implementation and packaging repair are committed and pushed. [Hosted Checks](https://github.com/carloslfu/sevra-app/actions/runs/43320623027)
+The owner-authorized [[records/plans/programmable-native-engine]] is complete through
+P7 for the bounded SDK 1. The contract and manual walkthrough are in
+[[records/specs/programmable-native-engine]]. Native programmable spaces, shared-data
+transactions, reactive controls, permission/recovery flows and three example apps
+are implemented and accepted for their scope.
+
+The engine passes 14 production-path native groups and 5 SDK tests. The broad local
+suite passed after repairing its table gate. [Hosted Checks](https://github.com/carloslfu/sevra-app/actions/runs/43320623027)
 passed all 40 steps for `628bd36780bdd45f82cb22f1053a3f7d9d3e0395`, including both
-packaging paths. The [hosted receipt](../../../integration/evidence/2026-11-12-native-app-ci.json.gz)
-records that exact scope.
+packaging paths. The later localized permission-label correction at
+`2fb90822a20ac83bda852177db90414586520722` has focused native/package tests and actual
+installed UI verification; the older CI run is not claimed to cover newer source.
+The [initial acceptance](../../../integration/evidence/2026-11-12-native-app-engine.json.gz),
+[hosted receipt](../../../integration/evidence/2026-11-12-native-app-ci.json.gz),
+[focused correction](../../../integration/evidence/2026-11-12-native-app-access-review.json.gz)
+and [final installed receipt](../../../integration/evidence/2026-11-12-native-app-final-ui.json.gz)
+preserve exact evidence, failures, repairs and limits.
 
-A subsequent permission-dialog correction resolves table names from workbook data
-instead of trusting package labels. Its [focused receipt](../../../integration/evidence/2026-11-12-native-app-access-review.json.gz)
-records 14 passing native groups, strict formatting, native release/package and
-isolated installer checks. The new packaged main UUID is
+The unlock blocker is closed. The installed main UUID is
 `15F450B0-8377-3D40-9211-F041DCE10EF0`, helper `86B9EB3E-68F7-3121-9426-DBF974EC92F4`.
-It is not yet installed in the real Applications destination or visually verified.
-The Mac locked; an unlock request is pending. P7 remains open only for installing
-this exact newer candidate and inspecting its access dialog, then restoring the
-standard synthetic inventory package. See the plan for the resume steps. Reuse
-unchanged proof under the focused-verification policy; the prior full CI run does
-not claim coverage of this newer localized correction.
-The installed main UUID is `F6DAAB08-A438-3317-A0F4-BC2AE21EE8B7`.
-The synthetic workshop is left open on Inventory; no real workbook was modified.
-This work does not authorize VoiceOver or system-setting changes and does not qualify a production release.
+Both match the latest packaged product. The permission dialog displayed the actual
+Stock table despite a misleading package title. The standard inventory package was
+restored as version 6, required a fresh Enable action and rendered the saved quantity
+32 with the reviewed spacing. The synthetic workshop is left open on Inventory.
+No real workbook or preserved baseline app was changed. No required work remains
+for this engine increment; broader production, hardware and accessibility
+qualification remains as documented below. No VoiceOver or system setting was used.
 
 ## Earlier accessibility checkpoint: paused November 12
 
@@ -82,4 +82,4 @@ Disposable fixtures remain under `.build/acceptance-2026-11-11/`, including `Win
 If later work needs the CLI, use `output/native/bin/sevra` or the installed `~/.local/bin/sevra`; a bare `sevra` can resolve an unrelated retired CLI. Recreate selected disposable fixtures with `create` and `demo` when needed, with no pre-1.0 migrations. The model, engine, Slotstream and website repositories are unchanged.
 ## Native engine implementation, November 12
 
-The owner explicitly requests complete native programmable app-engine implementation and verification, and explicitly permits installation and UI testing for this task: [[sources/notes/2026/11/programmable-native-engine]]. The earlier no-launch/UI restriction is superseded for this work; VoiceOver and system-setting changes remain outside it. Work continues on main under [[records/plans/programmable-native-engine]]. The architecture and SDK contract are [[records/specs/programmable-native-engine]]. Existing accepted features and historical test receipts remain unchanged.
+The owner explicitly requests complete native programmable app-engine implementation and verification, and explicitly permits installation and UI testing for this task: [[sources/notes/2026/11/programmable-native-engine]]. The earlier no-launch/UI restriction is superseded for this work; VoiceOver and system-setting changes remain outside it. The bounded implementation is accepted on main under [[records/plans/programmable-native-engine]]. The architecture and SDK contract are [[records/specs/programmable-native-engine]]. Existing accepted features and historical test receipts remain unchanged.

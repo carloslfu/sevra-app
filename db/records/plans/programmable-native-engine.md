@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m78qhn7q81ha6w72smnkerxt
 created: 2026-11-12T20:35:19.415048+00:00
-updated: 2026-11-12T23:35:19.137211+00:00
+updated: 2026-11-13T02:19:00.321057+00:00
 summary: Reviewed architecture and implementation gates for sandboxed JavaScript, reactive native UI, scoped workbook data, packaging and end-to-end verification.
 title: Programmable native app engine implementation
 ---
@@ -32,7 +32,7 @@ Deliver a usable v1 of programmable spaces: ordinary bundled JavaScript/TypeScri
 - [x] P4: retained keyed AppKit renderer, bounded dynamic primitives, native control semantics/input revisions, native query-backed tables, canvas hit regions/accessibility, cleanup.
 - [x] P5: native import/enable/revoke/restart/export flows and space routing, CLI package lifecycle, exact-version history, updated packaging/install.
 - [x] P6: three materially different synthetic apps (inventory, job tracker, visual planner), executable SDK/storage/runtime/renderer/IPC tests and adjacent refusal cases. Verify data reuse, edits and reactivity, stale write refusal, source updates, malformed payloads, permission denial, infinite loops, queue bounds, reopen and portable copy.
-- [ ] P7: review integrated diff for authority, state/identity races, resource lifecycle and usability; fix findings. Run focused checks during iteration, then required suite and packaged sandbox/installation checks. Install exact candidate once, verify identity, exercise native journeys. Preserve measured evidence, limits and failures. Commit/push on main and inspect hosted checks.
+- [x] P7: review integrated diff for authority, state/identity races, resource lifecycle and usability; fix findings. Run focused checks during iteration, then required suite and packaged sandbox/installation checks. Install exact candidate once, verify identity, exercise native journeys. Preserve measured evidence, limits and failures. Commit/push on main and inspect hosted checks.
 
 ## Verification contract
 
@@ -146,3 +146,32 @@ quitting the existing preview normally, installing the latest exact bundle, matc
 its main/helper UUIDs, then inspecting the real Stock label with the synthetic
 misnamed-binding package and restoring/enabling the standard inventory example.
 Do not redo accepted unrelated workflows or operate any real workbook.
+
+### Final installed acceptance completed, November 12
+
+After the owner unlocked the Mac, the prior preview was quit normally and the
+latest packaged candidate was installed with `bash scripts/install.sh --native
+--no-build`. The installed main UUID `15F450B0-8377-3D40-9211-F041DCE10EF0` and helper
+UUID `86B9EB3E-68F7-3121-9426-DBF974EC92F4` match the packaged product. The worker SHA
+also matches exactly; parent signing changes the installed main SHA as expected.
+The exact verified Native Preview bundle was then opened.
+
+The installed access dialog showed **Stock · Read and change records** while the
+synthetic package claimed **Harmless settings**. Enabling succeeded and displayed
+the original Brass screws record with quantity 32. Restoring the standard inventory
+package created version 6, revoked execution for the replaced version, presented the
+correct Stock access again and required a fresh Enable action. The normal inventory
+then rendered with the same saved row. Permission wrapping/alignment, field/action
+grouping, centered table text, right-aligned numbers and footer were inspected in
+the native split-workspace layout. Workbook verification reports no asset or database
+issues. The standard inventory example is left enabled and open; no real workbook
+or preserved baseline app was modified.
+
+The [final installed receipt](../../../integration/evidence/2026-11-12-native-app-final-ui.json.gz)
+preserves the exact source hashes, installed identities, visible observations and
+saved synthetic data. It closes the unlock blocker and P7. **P1 through P7 are
+complete for SDK 1.** The 14-group localized native verification and 40-step hosted
+integration run retain their exact separate scopes. This final records-only update
+uses fresh store/link/whitespace checks and reuses unchanged implementation proof.
+Production signing, other hardware, broad assistive technology and AI JavaScript
+package-authoring remain the separately documented product limits.

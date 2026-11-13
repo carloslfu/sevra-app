@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m78sah1afmhpr6vzfbkrg1r2
 created: 2026-11-12T21:06:22.890879+00:00
-updated: 2026-11-12T23:35:19.169221+00:00
+updated: 2026-11-13T02:19:00.368080+00:00
 summary: 'Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.'
 title: Programmable native spaces SDK 1
 status: implemented
@@ -75,9 +75,9 @@ The owner's standing direction in [[sources/notes/2026/11/native-interface-quali
 
 ## Accepted delivery and authoring limits
 
-SDK 1 is implemented; see the plan and its portable receipts for exact local and
-hosted verification. The final authoritative-name permission dialog has passing
-automated checks and still awaits installed visual inspection after a Mac unlock. The three bundled examples are an
+SDK 1 is implemented and accepted; see the plan and its portable receipts for exact
+local, hosted and installed visual verification. The final authoritative-name
+permission dialog and standard app re-enable flow both passed in the installed build. The three bundled examples are an
 inventory editor, job tracker with grouped status counts, and visual card planner.
 The planner deliberately shows the first 100 cards and discloses its total; its native
 scrolling document grows to include those cards. Source/CLI/package import is the
