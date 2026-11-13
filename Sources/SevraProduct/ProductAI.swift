@@ -250,7 +250,8 @@ public actor ProductAI {
     progress: @escaping @Sendable (String) -> Void = { _ in },
     requestStarted: @escaping @Sendable (AgentRequest, String) -> Void = { _, _ in },
     openSpace: SpaceOpener? = nil,
-    openReviews: ReviewQueueOpener? = nil
+    openReviews: ReviewQueueOpener? = nil,
+    excelConversion: ExcelConversionBuild? = nil
   ) async throws -> AgentResult {
     try await perform(cancellation: cancellation) {
       #if SEVRA_NATIVE_CANDIDATE
@@ -265,8 +266,22 @@ public actor ProductAI {
         prompt, workbook: workbook, conversation: conversation, context: context,
         modelDirectory: modelDirectory, cancellation: cancellation, progress: progress,
         model: model, requestStarted: requestStarted,
-        openSpace: openSpace, openReviews: openReviews
+        openSpace: openSpace, openReviews: openReviews, excelConversion: excelConversion
       )
+    }
+  }
+
+  public func analyzeExcel(
+    _ conversion: ExcelConversion, workbook: Workbook,
+    modelDirectory: URL = ProductAI.defaultDirectory,
+    cancellation: Cancellation = .init(), progress: @escaping @Sendable (String) -> Void = { _ in }
+  ) async throws -> Value {
+    try await perform(cancellation: cancellation) {
+      let model = try self.workflowModel(directory: modelDirectory)
+      let plan = try await ExcelConversionAgent.analyze(
+        conversion, workbook: workbook, model: model,
+        directory: modelDirectory, cancellation: cancellation, progress: progress)
+      return .object(["plan": plan, "model": .string(await model.identity)])
     }
   }
 

@@ -33,6 +33,7 @@ struct FolderReview {
     case item(String)
     case table(String)
     case tableUpdate(String, String?)
+    case excelImport(String)
     case search
     case reviews
     case activity
@@ -49,6 +50,8 @@ struct FolderReview {
   @Published var items: [ItemSummary] = []
   @Published var datasets: [Dataset] = []
   @Published var archivedDatasets: [Dataset] = []
+  @Published var excelImports: [Value] = []
+  @Published var excelPurposeDrafts: [String: String] = [:]
   func dataset(_ id: String) -> Dataset? {
     (datasets + archivedDatasets).first { $0.id == id }
   }
@@ -228,6 +231,8 @@ struct FolderReview {
     reviewResults.reset()
     datasets = []
     archivedDatasets = []
+    excelImports = []
+    excelPurposeDrafts = [:]
     messages = []
     proposalReviews = [:]
     conversations = []
@@ -355,6 +360,7 @@ struct FolderReview {
         self.items = snapshot.items
         self.datasets = snapshot.datasets
         self.archivedDatasets = snapshot.archivedDatasets
+        self.excelImports = snapshot.excelImports
         self.messages = snapshot.messages
         self.contents.retain(snapshot.messages)
         self.requestActivities = snapshot.requestActivities
@@ -479,7 +485,7 @@ struct FolderReview {
       } catch { report(error, for: ticket, in: book) }
     }
   }
-  private func beginOperation(_ title: String) -> (Workbook, WorkspaceOperation)? {
+  func beginOperation(_ title: String) -> (Workbook, WorkspaceOperation)? {
     guard interactionActive, let book = workbook, !busy, let ticket = operations.begin() else {
       return nil
     }
@@ -490,10 +496,10 @@ struct FolderReview {
     error = nil
     return (book, ticket)
   }
-  private func owns(_ ticket: WorkspaceOperation, in book: Workbook) -> Bool {
+  func owns(_ ticket: WorkspaceOperation, in book: Workbook) -> Bool {
     interactionActive && workbook === book && operations.owns(ticket)
   }
-  private func finishOperation(_ ticket: WorkspaceOperation, in book: Workbook) {
+  func finishOperation(_ ticket: WorkspaceOperation, in book: Workbook) {
     guard owns(ticket, in: book), operations.finish(ticket) else { return }
     terminalStatus =
       error == nil
@@ -508,7 +514,7 @@ struct FolderReview {
     activeIntake = nil
     refresh()
   }
-  private func report(_ failure: Error, for ticket: WorkspaceOperation, in book: Workbook) {
+  func report(_ failure: Error, for ticket: WorkspaceOperation, in book: Workbook) {
     guard owns(ticket, in: book) else { return }
     error = failure.localizedDescription
   }
@@ -566,10 +572,12 @@ struct FolderReview {
     _ urls: [URL], linked: Bool = false, tokens: [URL: String] = [:], finished: String? = nil
   ) {
     let chat = conversation
+    let navigation = itemPreviewIdentity
     run(
       linked ? "Linking files" : "Including files",
       operation: { book, cancel in
         var failures: [String] = []
+        var excel: [String] = []
         for url in urls {
           try cancel.check()
           do {
@@ -583,6 +591,10 @@ struct FolderReview {
               (linked ? "Linked " : "Included ") + item.referenceMarkdown, role: "event",
               conversation: chat)
             _ = try book.runIntake(job.id, cancellation: cancel)
+            if url.pathExtension.lowercased() == "xlsx" {
+              excel.append(
+                try book.beginExcelConversion(sourceID: job.sourceID, cancellation: cancel).id)
+            }
           } catch {
             if cancel.isCancelled { throw error }
             failures.append(url.lastPathComponent + ": " + error.localizedDescription)
@@ -592,13 +604,35 @@ struct FolderReview {
           throw SevraError("import_partial", failures.joined(separator: "\n"))
         }
         if let finished { _ = try book.addMessage(finished, role: "event", conversation: chat) }
-        return urls.count
+        return excel
       },
-      completion: { _ in
+      completion: { excel in
+        guard self.itemPreviewIdentity == navigation else { return }
         self.composerFocusRequest = UUID()
+        if let id = excel.first {
+          self.navigate(.excelImport(id))
+          Task {
+            let path = self.excelModelDirectory
+            if await ProductAI.shared.installed(at: path), self.route == .excelImport(id),
+              let book = self.workbook, let draft = try? book.excelConversion(id),
+              draft.plan == .null,
+              draft.inspection["sheets"].array.contains(where: { ($0["rows"].int ?? 0) > 0 })
+            {
+              self.analyzeExcelImport(id)
+            }
+          }
+        }
       })
   }
   func presentIntake(_ id: String) {
+    if let book = workbook, let job = try? book.intakeJob(id), job.role != .update,
+      let source = try? book.item(job.sourceID), let assetID = source.assetID,
+      let asset = try? book.asset(assetID),
+      URL(fileURLWithPath: asset.name).pathExtension.lowercased() == "xlsx"
+    {
+      useSavedFile(job.sourceID)
+      return
+    }
     run(
       "Reading saved intake",
       operation: { book, _ in
@@ -625,6 +659,21 @@ struct FolderReview {
       })
   }
   func useSavedFile(_ sourceID: String) {
+    let navigation = itemPreviewIdentity
+    if let book = workbook, let source = try? book.item(sourceID), let assetID = source.assetID,
+      let asset = try? book.asset(assetID),
+      URL(fileURLWithPath: asset.name).pathExtension.lowercased() == "xlsx"
+    {
+      run(
+        "Inspecting Excel workbook",
+        operation: { book, cancel in
+          try book.beginExcelConversion(sourceID: sourceID, cancellation: cancel).id
+        },
+        completion: {
+          if self.itemPreviewIdentity == navigation { self.navigate(.excelImport($0)) }
+        })
+      return
+    }
     run(
       "Preparing saved file",
       operation: { book, _ in
@@ -1050,6 +1099,7 @@ struct FolderReview {
     case .table(let id): return routeContext + "\nActive dataset ID: " + id
     case .tableUpdate(let source, _):
       return routeContext + "\nTable-update review for source ID: " + source
+    case .excelImport: return routeContext
     case .automation(let id): return routeContext + "\nActive exact automation version ID: " + id
     case .workflow(let id): return routeContext + "\nActive workflow run ID: " + id
     case .search, .reviews, .activity, .automations: return routeContext
@@ -1062,6 +1112,9 @@ struct FolderReview {
       return "Item: " + (viewedItemTitle ?? id)
     case .table(let id): return "Table: " + (dataset(id)?.title ?? id)
     case .tableUpdate: return "Review table update"
+    case .excelImport:
+      return
+        "Excel import review. Use its native controls to understand the workbook, clarify the workflow, use tables or build a checked native workspace."
     case .search: return "Workbook search"
     case .reviews: return "Drafts to review"
     case .activity: return "Workflow activity"
@@ -1565,6 +1618,8 @@ struct FolderReview {
     items = []
     datasets = []
     archivedDatasets = []
+    excelImports = []
+    excelPurposeDrafts = [:]
     messages = []
   }
   func restoreSavedConversationDraft(_ id: String) {

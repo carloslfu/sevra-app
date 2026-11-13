@@ -12,6 +12,9 @@ extension NativeTools {
     if toolScope == .movementDirection { return [MovementDirectionReview.definition] }
     if toolScope == .actionDirection { return [ActionDirectionReview.definition] }
     if toolScope == .nativeAppReview { return [NativeAppReview.definition] }
+    if toolScope == .excelPlan {
+      return [ExcelConversionAgent.readDefinition, ExcelConversionAgent.definition]
+    }
     let ids = try ItemReferenceCandidates.normalized(itemReferenceIDs)
     let copies = try documentCopyIDs.map(DocumentCopyCandidates.normalized)
     if let conversationActions {
@@ -21,6 +24,30 @@ extension NativeTools {
     }
     return try definitions.compactMap { definition in
       if definition.name == "save_native_app", !nativeAppAuthoring { return nil }
+      if definition.name == "save_native_app", toolScope == .excelBuild {
+        var parameters = definition.parameters.object
+        var properties = definition.parameters["properties"].object
+        properties.removeValue(forKey: "id")
+        properties.removeValue(forKey: "expectedVersion")
+        var package = properties["package"]!.object
+        var fields = package["properties"]!.object
+        fields["datasets"] = .object([
+          "type": .string("object"),
+          "additionalProperties": NativeTools.object(
+            ["writable": .object(["type": .string("boolean")])], required: ["writable"]),
+          "description": .string(
+            "Use every supplied short alias (sheet1, sheet2, …), each with only writable:true or false. The HOST fills in datasetID, title and exact columns. Do not supply them."
+          ),
+        ])
+        package["properties"] = .object(fields)
+        properties["package"] = .object(package)
+        parameters["properties"] = .object(properties)
+        return .init(
+          name: definition.name,
+          description:
+            "Save this Excel conversion's native workspace. The host supplies app identity, version and exact table bindings. package.datasets is only {sheet1:{writable:true/false},...}. Use all supplied aliases; do not supply datasetID/title/columns inside bindings or id/expectedVersion. Tests use synthetic fixtures, never imported rows. Include fixture rows before selecting/editing them. Failed checks save no app; fix the error and resubmit.",
+          parameters: .object(parameters))
+      }
       if let action = WorkbookTools.conversationTools[definition.name], let conversationActions {
         guard conversationActions.contains(action) else { return nil }
       }

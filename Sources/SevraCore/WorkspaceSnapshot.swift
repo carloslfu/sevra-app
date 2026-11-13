@@ -20,6 +20,7 @@ public struct WorkspaceSnapshot: Sendable {
   public let bookmarks: [Value]
   public let pendingExtractions: [Value]
   public let intakeStatus: [Value]
+  public let excelImports: [Value]
 }
 
 extension Workbook {
@@ -61,7 +62,8 @@ extension Workbook {
             hasLaterMessages: history.hasLater,
             conversations: conversations(), chapters: chapters(),
             bookmarks: chapters(bookmarks: true),
-            pendingExtractions: pendingExtractions(), intakeStatus: intakeStatus())
+            pendingExtractions: pendingExtractions(), intakeStatus: intakeStatus(),
+            excelImports: excelConversionSummaries())
         }
       }
     }

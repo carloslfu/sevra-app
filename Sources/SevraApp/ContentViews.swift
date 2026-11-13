@@ -184,7 +184,10 @@ struct SpaceView: View {
   @ObservedObject var state: WorkspaceState
   var body: some View {
     if space.definition.app != nil, let book = state.workbook {
-      NativeAppSpaceView(book: book, space: space).id(space.id + ":" + String(space.version))
+      VStack(spacing: 0) {
+        ExcelAppOriginView(spaceID: space.id, state: state)
+        NativeAppSpaceView(book: book, space: space).id(space.id + ":" + String(space.version))
+      }
     } else {
       ordinarySpace
     }
@@ -202,6 +205,24 @@ struct SpaceView: View {
             "Describe what you want here, or edit the layout. Removing sections keeps your information in the workbook."
           )
           .foregroundStyle(.secondary).frame(maxWidth: 520, alignment: .leading)
+        }
+        if space.id == "home", !state.excelImports.isEmpty {
+          VStack(alignment: .leading, spacing: 12) {
+            Text("Excel workbooks").readingFont(.headline)
+            ForEach(Array(state.excelImports.enumerated()), id: \.offset) { _, entry in
+              Button {
+                state.navigate(.excelImport(entry["id"].text))
+              } label: {
+                HStack(spacing: 12) {
+                  Image(systemName: "tablecells")
+                  Text(entry["title"].text)
+                  Spacer()
+                  Text(entry["state"].text == "ready" ? "Workspace ready" : "Continue import")
+                    .readingFont(.caption).foregroundStyle(.secondary)
+                }.padding(.vertical, 7).contentShape(Rectangle())
+              }.buttonStyle(.plain)
+            }
+          }
         }
         ForEach(visibleComponents) { component in
           NativeComponent(component: component, state: state).id(component.id)

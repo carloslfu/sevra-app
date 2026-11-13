@@ -472,6 +472,17 @@ func exchange(
     try expect(
       abs(viewport.documentVisibleRect.maxY - document.frame.height) < 2,
       "Bottom controls are unreachable in a compact window")
+    guard let editor = fieldBefore as? NSTextField else {
+      throw SevraError("test", "Missing editor")
+    }
+    try expect(
+      !viewport.documentVisibleRect.contains(editor.convert(editor.bounds, to: document)),
+      "Fixture field must start offscreen")
+    try expect(window.makeFirstResponder(editor), "Native keyboard focus refused the editor")
+    try expect(
+      viewport.documentVisibleRect.contains(editor.convert(editor.bounds, to: document)),
+      "Keyboard focus did not reveal the offscreen editor")
+    try expect(editor.stringValue == "Retained draft", "Revealing focus changed an unsaved draft")
     window.setContentSize(NSSize(width: 850, height: 680))
     session.stop()
     session.start()

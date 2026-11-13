@@ -21,6 +21,15 @@ and progress. Cloud/sync and the expanded roadmap are outside this next MVP slic
 
 ## Build a native mini app
 
+For existing Excel work, add or drop an **.xlsx** file. Sevra preserves the original,
+uses the local model to describe the likely workflow, and lets you clarify it before
+choosing **Build workspace**. The checked native app uses the imported tables and
+supported spreadsheet calculations. Review access before enabling it. **Just use
+the tables** also works without a model. Reopening or retrying resumes the same
+import; updating an existing table remains a separate reviewed action within it.
+See the [Excel flow and limits](db/records/specs/single-excel-import.md).
+Macros, external refresh, Excel layout and every Excel function are not reproduced.
+
 Ask the local model to build a named mini app with the fields, actions and tables you need.
 It writes the app, runs synthetic checks in isolation, and reviews the result against your
 request before saving. Review its table access and choose **Enable app**. Ask for changes

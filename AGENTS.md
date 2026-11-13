@@ -63,6 +63,10 @@ changes remain outside scope. External use, signing and hardware qualification r
 The subsequent [local-model mini-app request](db/sources/notes/2026/11/local-model-native-apps.md)
 continues that installation/UI authorization for the
 [native authoring integration](db/records/plans/local-model-native-apps.md), with the same boundaries.
+The November 13 [single Excel import request](db/sources/notes/2026/11/single-excel-import.md)
+continues those boundaries for [workflow conversion](db/records/plans/single-excel-import.md),
+including native visual testing, business cases and adversarial review. The current
+handoff distinguishes this work from the historical pause and earlier authoring trials.
 Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
 failure and one counterexample, with the suite and install once on the candidate.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before

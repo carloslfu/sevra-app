@@ -166,9 +166,16 @@ extension Workbook {
                   table.id, edits: [.init(id: old.id, values: values)], request: request)
                 let id = result["items"].array[0]
                 output.append(.object(["id": id]))
+                // Undo the edited inputs, then let the same formula engine recalculate.
+                // Restoring a full old row would try to overwrite protected formula outputs.
+                let computed = Set(table.columns.filter { $0.formula != nil }.map(\.id))
+                  .union(try recalculatingColumns(table.id)[old.logicalID] ?? [])
+                let previous = operation["values"].object.keys.filter { !computed.contains($0) }
+                  .reduce(into: [String: Value]()) { $0[$1] = old.data[$1] }
                 inverse.insert(
                   .object([
-                    "op": .string("update"), "table": .string(alias), "id": id, "values": old.data,
+                    "op": .string("update"), "table": .string(alias), "id": id,
+                    "values": .object(previous),
                   ]), at: 0)
               } else {
                 let restore = kind == "restore"

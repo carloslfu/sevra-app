@@ -2,7 +2,7 @@
 type: spec
 id: 01m61c4z13j3paexnc7xvyyqhs
 created: 2026-10-28T13:45:46.275195+00:00
-updated: 2026-11-01T08:40:00+00:00
+updated: 2026-11-13T18:08:15.326377+00:00
 summary: One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 title: Contextual import and Excel continuity
 status: reviewed
@@ -510,3 +510,7 @@ the folder stays in the workbook and is reported. Replaying a stopped pass saves
 One pass adds at most 200 new or changed files and 2 GB; past that it refuses and adds nothing.
 Files already saved are counted and passed over, so a folder can outgrow those limits one pass at
 a time. Two folders with the same name count as one. Each added file goes through normal intake.
+
+## November 13 single Excel entry
+
+The owner-directed [[records/plans/single-excel-import]] supersedes the older Excel-specific initial role choice above. Add/drop `.xlsx` and saved-Excel use open one native conversion workspace after preserving the source. The model may infer and describe the workflow, but working-table import, native app generation and existing-table updates retain explicit native actions. Table-only use remains available without a model; updates still require mapping/review. Non-Excel intake retains its existing behavior. [[records/specs/single-excel-import]] defines the current implementation and its explicit continuity limits; [[records/reviews/single-excel-import]] records measured verification separately from this broader historical specification.

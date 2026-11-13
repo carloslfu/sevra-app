@@ -151,7 +151,35 @@ public enum XLSX {
           unsettled: sheet.unsettled, formulaKinds: sheet.formulaKinds))
     }
     if !unread.isEmpty, !result.isEmpty {
-      result[0].notes.append("Not read, because it holds no cells: " + unread.joined(separator: ", ") + ".")
+      result[0].notes.append(
+        "Not read, because it holds no cells: " + unread.joined(separator: ", ") + ".")
+    }
+    if !result.isEmpty {
+      let features: [(String, String)] = [
+        ("vbaProject", "Embedded VBA is present and is not executed or converted."),
+        (
+          "xl/externalLinks/", "External workbook links are present; outside data is not refreshed."
+        ),
+        ("xl/connections", "External data connections are present and are not run."),
+        (
+          "xl/pivot",
+          "Pivot tables/caches are present; pivot behavior needs separate reconstruction."
+        ),
+        ("xl/charts/", "Charts are present; their appearance and interactions are not imported."),
+        ("xl/activeX/", "ActiveX controls are present and are not executed."),
+        ("xl/embeddings/", "Embedded objects are present and are not executed."),
+      ]
+      let featureNotes = features.filter { path, _ in
+        entries.keys.contains(where: { $0.lowercased().contains(path.lowercased()) })
+      }.map { $0.1 }
+      result[0].notes = featureNotes + result[0].notes
+      result[0].notes += metadata.notes
+      if result[0].notes.count > 96 {
+        result[0].notes =
+          Array(result[0].notes.prefix(96)) + [
+            "Additional workbook structure details were omitted from this bounded inspection."
+          ]
+      }
     }
     try StructuredResult(sheets: result).validate()
     return result
@@ -159,12 +187,38 @@ public enum XLSX {
 }
 private final class WorkbookXML: NSObject, XMLParserDelegate {
   var sheets: [(String, String)] = [], epoch1904 = false
+  var notes: [String] = [], definedName: String?, definition = ""
   func parser(
     _ parser: XMLParser, didStartElement name: String, namespaceURI: String?,
     qualifiedName: String?, attributes a: [String: String]
   ) {
-    if name == "sheet", let title = a["name"], let rid = a["r:id"] { sheets.append((title, rid)) }
+    if name == "sheet", let title = a["name"], let rid = a["r:id"] {
+      sheets.append((title, rid))
+      if let state = a["state"], state != "visible" {
+        notes.append(
+          "Hidden worksheet: " + String(title.prefix(200)) + ". It is included in inspection.")
+      }
+    }
     if name == "workbookPr" { epoch1904 = ["true", "1"].contains(a["date1904"] ?? "") }
+    if name == "definedName" {
+      definedName = a["name"]
+      definition = ""
+    }
+  }
+  func parser(_ parser: XMLParser, foundCharacters text: String) {
+    if definedName != nil, definition.utf8.count < 600 { definition += String(text.prefix(600)) }
+  }
+  func parser(
+    _ parser: XMLParser, didEndElement name: String, namespaceURI: String?, qualifiedName: String?
+  ) {
+    if name == "definedName", let key = definedName {
+      if notes.count < 120 {
+        notes.append(
+          "Named range " + String(key.prefix(160)) + ": " + String(definition.prefix(600))
+            + ". Named-range behavior requires review.")
+      }
+      definedName = nil
+    }
   }
 }
 private final class RelationshipsXML: NSObject, XMLParserDelegate {
@@ -244,7 +298,9 @@ private final class StylesXML: NSObject, XMLParserDelegate {
     }
     let plain = removing("\"[^\"]*\"|\\\\.|_.|\\*.", from: format.lowercased())
     let section = String(plain.split(separator: ";", omittingEmptySubsequences: false)[0])
-    if section.range(of: "\\[(h+|m+|s+)\\]", options: .regularExpression) != nil { return .duration }
+    if section.range(of: "\\[(h+|m+|s+)\\]", options: .regularExpression) != nil {
+      return .duration
+    }
     let tokens = removing(
       "\\[[^\\]]*\\]|am/pm|a/p|general",
       from: section.replacingOccurrences(
@@ -278,8 +334,10 @@ private final class SheetXML: NSObject, XMLParserDelegate {
   var formulaType = "", formulaGroup = "", formulaRange = "", inPhonetic = false
   var sharedFormulas: [String: (text: String, column: Int, row: Int)] = [:]
   var fillBudget: Int, filledCells = 0
+  var validation: String?, validationRule = ""
   init(
-    shared: [String], styles: StylesXML, epoch1904: Bool, fillBudget: Int, cancellation: Cancellation
+    shared: [String], styles: StylesXML, epoch1904: Bool, fillBudget: Int,
+    cancellation: Cancellation
   ) {
     self.shared = shared
     self.styles = styles
@@ -295,6 +353,27 @@ private final class SheetXML: NSObject, XMLParserDelegate {
       failure = SevraError("cancelled", "Worksheet import cancelled.")
       parser.abortParsing()
       return
+    }
+    if name == "dataValidation", notes.count < 40 {
+      validation =
+        "Validation " + String((a["type"] ?? "custom").prefix(40)) + " at "
+        + String((a["sqref"] ?? "unknown cells").prefix(160))
+      validationRule = ""
+    }
+    if validation != nil, ["formula1", "formula2"].contains(name) {
+      validationRule += name + "="
+    }
+    if name == "mergeCell", notes.count < 40 {
+      notes.insert(
+        "Merged cells " + String((a["ref"] ?? "").prefix(100)) + "; layout is not preserved.")
+    }
+    if ["conditionalFormatting", "sheetProtection", "tableParts"].contains(name) {
+      notes.insert(
+        name == "sheetProtection"
+          ? "Sheet protection is present; Excel protection settings are not reproduced."
+          : name == "tableParts"
+            ? "Excel table definitions are present; structured-reference behavior needs review."
+            : "Conditional formatting is present; visual rules need review.")
     }
     if name == "row" {
       current = [:]
@@ -346,11 +425,22 @@ private final class SheetXML: NSObject, XMLParserDelegate {
     }
   }
   func parser(_ parser: XMLParser, foundCharacters text: String) {
+    if validation != nil, validationRule.utf8.count < 600 {
+      validationRule += String(text.prefix(600))
+    }
     if reading == "f" { formula += text } else if reading == "v" || reading == "t" { value += text }
   }
   func parser(
     _ parser: XMLParser, didEndElement name: String, namespaceURI: String?, qualifiedName: String?
   ) {
+    if name == "dataValidation", let validation {
+      notes.insert(
+        validation + ": "
+          + String(validationRule.trimmingCharacters(in: .whitespacesAndNewlines).prefix(600))
+          + ". Validation behavior requires reconstruction.")
+      self.validation = nil
+    }
+    if validation != nil, ["formula1", "formula2"].contains(name) { validationRule += "; " }
     if ["v", "t", "f"].contains(name) { reading = "" }
     if name == "rPh" { inPhonetic = false }
     if name == "c" {
@@ -453,7 +543,9 @@ private final class SheetXML: NSObject, XMLParserDelegate {
     }
   }
   private func recordFilledCells() {
-    let ends = formulaRange.split(separator: ":").compactMap { SheetFormulaToken.address(String($0)) }
+    let ends = formulaRange.split(separator: ":").compactMap {
+      SheetFormulaToken.address(String($0))
+    }
     guard let first = ends.first, let last = ends.last, first.row <= last.row,
       first.column <= last.column
     else {

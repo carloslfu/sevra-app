@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-13T15:44:35.482964Z
+updated: 2026-11-13T16:49:52.659086Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/single-excel-import]] — Single Excel import implementation request
 - [[sources/notes/2026/11/mini-app-fresh-start]] — Owner confirms fresh development baseline: clear obsolete mini-app fixtures and avoid migration or legacy compatibility burdens.
 - [[sources/notes/2026/11/native-app-adversarial-review]] — Owner requests an adversarial review of the complete new native mini-app feature.
 - [[sources/notes/2026/11/local-model-native-apps]] — Local model native-app authoring request

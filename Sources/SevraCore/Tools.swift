@@ -12,6 +12,7 @@ public struct WorkbookTools {
   public let conversation: String
   public let readOnly: Bool
   public let conversationTitle: String?
+  public let excelConversion: ExcelConversionBuild?
   public static let conversationTools: [String: String] = [
     "start_thread": "start_thread", "start_thread_and_continue": "start_thread_and_continue",
     "rename_current_thread": "rename_thread",
@@ -29,7 +30,7 @@ public struct WorkbookTools {
   public init(
     _ workbook: Workbook, runID: String = identifier(), cancellation: Cancellation = .init(),
     requestSourceID: String? = nil, conversation: String = "main", readOnly: Bool = false,
-    conversationTitle: String? = nil
+    conversationTitle: String? = nil, excelConversion: ExcelConversionBuild? = nil
   ) {
     self.workbook = workbook
     self.runID = runID
@@ -38,6 +39,7 @@ public struct WorkbookTools {
     self.conversation = conversation
     self.readOnly = readOnly
     self.conversationTitle = conversationTitle
+    self.excelConversion = excelConversion
   }
   public static let instructions = """
     Return one JSON object per turn, no markdown fences:
@@ -117,6 +119,24 @@ public struct WorkbookTools {
     _ tool: String, _ a: Value, receiptID: String?, nativeAppCheck: Value?
   ) throws -> Value {
     try cancellation.check()
+    if let build = excelConversion {
+      try workbook.validateExcelConversionBuild(build)
+      try require(
+        ["native_app_sdk", "read_native_app", "datasets", "rows", "calculate", "save_native_app"]
+          .contains(tool),
+        "excel_scope",
+        "This build can only inspect its imported tables and save its checked native workspace.")
+      if tool == "rows" {
+        try require(
+          build.tables.contains { $0.id == (a["datasetID"].string ?? a["id"].text) },
+          "excel_scope", "Only this import's tables can be read during conversion.")
+      }
+      if tool == "read_native_app" {
+        try require(
+          workbook.spaceTarget(a["id"].text, cancellation: cancellation).id == build.conversionID,
+          "excel_scope", "Only this conversion's existing app can be read.")
+      }
+    }
     try require(
       !readOnly || Self.readOnlyTools.contains(tool), "read_only_request",
       "The current request explicitly forbids changes. Read evidence and answer; do not create a draft, proposal, space, copy or import."
@@ -283,7 +303,10 @@ public struct WorkbookTools {
         }
       }
     case "lineage": return try scopedLineage(string("id"))
-    case "datasets": return try encoded(workbook.datasets())
+    case "datasets":
+      return try encoded(
+        excelConversion.map { try $0.tables.map { try workbook.dataset($0.id) } }
+          ?? workbook.datasets())
     case "rows":
       let table = try workbook.dataset(a["datasetID"].string ?? string("id"))
       let rows = try workbook.rows(table.id, offset: a["offset"].int ?? 0, limit: 100)
@@ -348,7 +371,13 @@ public struct WorkbookTools {
         "notice": .string("Only the owning live window can confirm that the review list opened."),
       ])
     case "native_app_sdk":
-      return .object(["sdkVersion": .number(1), "guide": .string(NativeAppAuthoring.guide)])
+      return .object([
+        "sdkVersion": .number(1),
+        "guide": .string(
+          excelConversion == nil
+            ? NativeAppAuthoring.guide
+            : NativeAppAuthoring.excelEditingGuide + "\n" + NativeAppAuthoring.componentGuide),
+      ])
     case "read_native_app":
       let target: SpaceTarget
       do {

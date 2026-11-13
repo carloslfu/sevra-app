@@ -5,7 +5,8 @@ import SevraCore
 package enum InferenceToolScope: String, Sendable {
   // Tool scopes retain the public tool names as their raw values.
   // swift-format-ignore: AlwaysUseLowerCamelCase
-  case all, finish, inspection, movementDirection, actionDirection, nativeAppReview, workflowAnswer,
+  case all, finish, inspection, movementDirection, actionDirection, nativeAppReview, excelPlan,
+    excelBuild, workflowAnswer,
     answer,
     boundedAnswer, draft,
     save_space, save_native_app,
@@ -20,12 +21,19 @@ package enum InferenceToolScope: String, Sendable {
       // The host commits a preview itself, after prepare_action reviews every direction.
       return ![
         "review_movement_direction", "review_action_directions", "prepare_workflow_answer",
-        "commit_action_preview", "review_native_app",
+        "commit_action_preview", "review_native_app", "describe_excel_workflow",
+        "inspect_excel_rows",
       ].contains(tool)
     case .workflowAnswer: return Self.answer.allows(tool) || tool == "prepare_workflow_answer"
     case .movementDirection: return tool == "review_movement_direction"
     case .actionDirection: return tool == "review_action_directions"
     case .nativeAppReview: return tool == "review_native_app"
+    case .excelPlan: return ["describe_excel_workflow", "inspect_excel_rows"].contains(tool)
+    case .excelBuild:
+      return [
+        "native_app_sdk", "read_native_app", "datasets", "rows", "calculate", "save_native_app",
+        "finish",
+      ].contains(tool)
     case .finish: return tool == "finish"
     case .inspection: return WorkbookTools.readOnlyTools.contains(tool)
     case .answer: return tool == "finish" || WorkbookTools.readOnlyTools.contains(tool)

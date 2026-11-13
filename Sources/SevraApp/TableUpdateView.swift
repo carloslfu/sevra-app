@@ -68,7 +68,7 @@ struct TableUpdateView: View {
           }
           if let source = session.source, !source.needsSheet {
             Text(
-              "\(source.incoming) incoming rows · "
+              "\(source.incoming) incoming \(source.incoming == 1 ? "row" : "rows") · "
                 + (source.sheets.isEmpty
                   ? "CSV/TSV values only" : "saved Excel values; formulas are not recalculated")
             ).readingFont(.callout)

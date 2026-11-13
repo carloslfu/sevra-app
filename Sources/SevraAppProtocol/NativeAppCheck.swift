@@ -74,6 +74,15 @@ public enum NativeAppCheck {
     var tree = NativeAppTree()
     var subscriptions: [String: Value] = [:]
     var draft: Value = .object([:])
+    func available(_ node: NativeAppNode) -> Bool {
+      if node.props["hidden"] == .bool(true) { return false }
+      var child = node.id
+      while let parent = tree.nodes.values.first(where: { $0.children.contains(child) }) {
+        if parent.props["hidden"] == .bool(true) { return false }
+        child = parent.id
+      }
+      return true
+    }
     func visible(_ node: NativeAppNode) -> Bool {
       if node.props["hidden"] == .bool(true) { return false }
       var child = node.id
@@ -397,6 +406,12 @@ public enum NativeAppCheck {
       "status": .string("passed"), "assertions": .number(Double(assertions)),
       "steps": .number(Double(steps.count)), "transactions": .number(Double(transactions)),
       "digest": .string(package.digest),
+      "tables": .array(
+        Array(
+          Set(
+            tree.nodes.values.filter { $0.type == "table" && available($0) }
+              .compactMap { $0.props["table"].string })
+        ).sorted().map(Value.string)),
       "notice": .string(
         "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality."
       ),

@@ -122,7 +122,7 @@ private struct ItemDetails: Sendable {
               Divider()
             }
             Button("Use saved file…") { state.useSavedFile(item.id) }.disabled(state.busy)
-            if let ext = file?.pathExtension.lowercased(), ["csv", "tsv", "xlsx"].contains(ext) {
+            if let ext = file?.pathExtension.lowercased(), ["csv", "tsv"].contains(ext) {
               Button("Update a working table…") { state.navigate(.tableUpdate(item.id, nil)) }
                 .disabled(state.busy)
             }

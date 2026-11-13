@@ -1,0 +1,414 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-13",
+  "scope": "Single native Excel import and local-model workflow reconstruction",
+  "baselineCommit": "12fa14ef612360ba115f65fb1eedda99cdb658d5",
+  "sourceSHA256": {
+    "IntegrationTests/Agent/ExcelConversionChecks.swift": "99da6b6232f9bdfa172ca7b06a94d70dda683a01f6554a792c08a4ae0e253180",
+    "IntegrationTests/Agent/main.swift": "c727859b2a2d8e1bed665586e0aedeada6f9beb53587978944c658bacf6608bf",
+    "IntegrationTests/NativeApps/Checks.swift": "25bef1f921fc6c9c4334acdeff1a62b6875914bf920a433292f87973cf875f02",
+    "Sources/SevraAI/ExcelConversionAgent.swift": "685b142987afd0be183ac751a4736f5bfdbd217d6fceea8d72a07d738a75a1b8",
+    "Sources/SevraAI/NativeAppReview.swift": "04f0f27f678c6f8efbcf37fe70d61d70552d8e5525b363dfb7763fc0b8d301a5",
+    "Sources/SevraAI/ToolSerialization.swift": "d26e6f85c7b787a35f19f4faaed494a33d995dc6d25ecda0f351613d3782528c",
+    "Sources/SevraAI/WorkbookAgent.swift": "5b6183cb2655c853568c84bd3ee02af786fdca1fa69195a569324b0ed46d9a7d",
+    "Sources/SevraAI/WorkbookInference.swift": "47ea68917ad62476d8756d58ead9488feb3dd2ea69227df770fb5fd265d60606",
+    "Sources/SevraApp/ContentViews.swift": "ae7f81e14808d0f3c75e9ba0ad3d36e76e147e7020f07f3fed1387e393b0a9d8",
+    "Sources/SevraApp/ExcelConversionView.swift": "3d04d613d1fea45b1d973f332e52a766e05cb8c767170be43edaf127b734a436",
+    "Sources/SevraApp/TableUpdateView.swift": "d95a2fa75a10586e1a39c3348c705ef7c1adc4b2b5bf9b08c7d63344343734e8",
+    "Sources/SevraApp/Viewers.swift": "efafd0c1f1fa7500fd4d4a7e6435222bdad7c4b20812f09233e9c33918816bac",
+    "Sources/SevraApp/WorkbookView.swift": "b20d177a9db2870360cfcfa6d7e8cc01a078b930ee3796aafe2f2723d7be5db9",
+    "Sources/SevraApp/WorkspaceState.swift": "84569e8d639e88254468a667a043244916432224efdb4afe6e07f0a0d9aa98ca",
+    "Sources/SevraAppProtocol/NativeAppCheck.swift": "44c9f9c34454dde9ac0781dc4d42ea8d8367fae56fe5dd636900235e168b927e",
+    "Sources/SevraAppUI/NativeAppRenderer.swift": "ff84358c97afbd3a61ae18db8e3db5aa6813291534921b90ad58aa409aa39f8d",
+    "Sources/SevraCore/ExcelConversion.swift": "771c4d2e0df33ee7bd26a314d79ea0df689fdbc21dcb73610bdabd27995550d8",
+    "Sources/SevraCore/NativeAppAuthoring.swift": "24c4a6c6ddd9884537d73bc8c851bcbe7962956c8463929aa653f5303cbbd11c",
+    "Sources/SevraCore/NativeAppData.swift": "f51ce29e28437fd3e253a30b94a18d01c864a5bcdcfb61994bcc3bcb47599aca",
+    "Sources/SevraCore/NativeAppPackage.swift": "5715f3b2183143560f9f6743bc5ae6e05dccc1215037ee13289e52d54090f2ba",
+    "Sources/SevraCore/Tools.swift": "e1c311025fee6430277520eddd483b6dafe7b7f952d7c0809aaf9a45dc1e9a64",
+    "Sources/SevraCore/Types.swift": "a0cfb1ed5b3586d81b88bbe5d330d895e0f8f14a0563fe369338cda4e9e794bc",
+    "Sources/SevraCore/WorkspaceSnapshot.swift": "b9ce4b6a54d9cd8868118a0d87f923afa9a549f923e56d04f389f7405374b3db",
+    "Sources/SevraCore/XLSX.swift": "6ec45280c8f44c713bf81725c29a6a25110e6f291b2e936050659a4373f93091",
+    "Sources/SevraProduct/ProductAI.swift": "a7dbaf3e15322b3d9ba77af8b810e1ab6eb0b3f8533fc723137d45f6912b4874",
+    "scripts/check_native_app_authoring.py": "527f99de3afdd455eeb91b422d47ec1b13fedef367f671e60515ad75a9a9f574"
+  },
+  "architecture": [
+    "One Add/start/drop/saved-Excel entry, host-owned durable conversion",
+    "Existing isolated parser/intake, tables and deterministic formula engine",
+    "Read-only bounded planning; scoped native authoring; host-selected table/app identity",
+    "Synthetic execution and separate local-model review before atomic app/conversion publication",
+    "Existing sandboxed JavaScript worker, AppKit UI and per-version device table approval"
+  ],
+  "checks": {
+    "fullIntegratedSuite": {
+      "command": "bash scripts/check.sh",
+      "exitCode": 0,
+      "corePassed": 650,
+      "coreFailed": 0,
+      "log": "full-check-1.log",
+      "scope": "Integrated candidate before final bounded focus/empty/error/menu repairs; final repairs verified separately below."
+    },
+    "finalNativeGroups": {
+      "passed": 17,
+      "failed": 0,
+      "log": "native-final.log",
+      "reproducedFailure": "focus-repro-2.log",
+      "counterexample": "Offscreen input scrolls into view and retains draft; refocusing visible input leaves scroll stable."
+    },
+    "finalAuthoringConversionGroups": {
+      "passed": 21,
+      "failed": 0,
+      "existing": 11,
+      "excel": 10,
+      "log": "authoring-final.log"
+    },
+    "businessCases": [
+      "Inventory",
+      "Invoices",
+      "Timesheets",
+      "Cash flow",
+      "Quotes",
+      "Production",
+      "Bookings",
+      "Projects"
+    ],
+    "edgeCoverage": [
+      "empty/hidden worksheets",
+      "cross-sheet recalculation",
+      "unsupported cached formulas",
+      "malformed worksheet indexes",
+      "bounded read/context",
+      "cancellation recovery",
+      "duplicate retries and stable table IDs",
+      "changed purpose invalidates previous app",
+      "stale conversion/build capability",
+      "foreign/copy workbook scope",
+      "generic conversion forgery",
+      "checked publication/rebuild",
+      "portable integrity",
+      "real edit and formula-safe Undo"
+    ],
+    "strictSwiftFormat": {
+      "passed": true,
+      "files": 25
+    },
+    "releaseBuild": {
+      "passed": true,
+      "log": "native-build-final.log"
+    },
+    "packagedResourcesAndSignatures": {
+      "passed": true,
+      "log": "package-final.log"
+    },
+    "isolatedInstallUpdateUninstall": {
+      "passed": true,
+      "log": "installer-final.log"
+    },
+    "packagedExtraction": {
+      "passed": true,
+      "log": "extraction-package-final.log"
+    },
+    "actualLocalModel": {
+      "model": "Splash 1.4.1, Qwen3.6-35B-A3B-4bit + DFlash2, native Swift adapter, reasoning budget 512",
+      "results": [
+        {
+          "answer": "Saved native app “Inventory Review” after 5 synthetic checks. Review table access and enable this version to use it.",
+          "independentCheck": {
+            "assertions": 6,
+            "digest": "c9f3f2e5c88917df53cac33ee47c46c55d3637e4e0b88320eb26a31a2e761ca3",
+            "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+            "status": "passed",
+            "steps": 14,
+            "tables": [
+              "sheet1"
+            ],
+            "transactions": 2
+          },
+          "name": "Inventory",
+          "passed": true,
+          "plan": {
+            "name": "Inventory Review",
+            "purpose": "Manage stock levels by editing 'On hand' quantities and automatically calculating 'To order' amounts based on a 'Reorder at' threshold.",
+            "questions": [],
+            "workflows": [
+              "Display inventory items in a 'Records' table.",
+              "Allow selecting a row to edit 'On hand'.",
+              "Update 'On hand' and save changes.",
+              "Automatically calculate 'To order' using MAX(Reorder at - On hand, 0)."
+            ]
+          },
+          "seconds": 150.60147905349731,
+          "state": "complete"
+        },
+        {
+          "adversarialReview": "The isolated checks passed, but the app needs these corrections before saving: Missing 'Quantity' input field and 'Save changes' button required by the user request. No logic implemented to handle row selection or bind the selected row's data to the input. No save handler exists to update the Quantity in the Excel sheet via data.transaction. The source code ignores the user's workflow requirements and only renders a Table.",
+          "answer": "Saved native app “Invoice Review” after 5 synthetic checks. Review table access and enable this version to use it.",
+          "independentCheck": {
+            "assertions": 6,
+            "digest": "16dc9a54f204b3d39d449001ac913e25c0fac0b8f168682b8753b1dd83421371",
+            "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+            "status": "passed",
+            "steps": 14,
+            "tables": [
+              "sheet1"
+            ],
+            "transactions": 2
+          },
+          "name": "Invoices",
+          "passed": true,
+          "plan": {
+            "name": "Invoices",
+            "purpose": "Review invoices and edit the Quantity for a selected record. The Total is calculated (Quantity * Unit price) and should be preserved/updated automatically. The interface uses a 'Records' table, a 'Quantity' input, and a 'Save changes' button.",
+            "questions": [],
+            "workflows": [
+              "Display 'Records' table with Invoice, Quantity, Unit price, and Total columns.",
+              "Select a data row to edit.",
+              "Update the 'Quantity' input field.",
+              "Click 'Save changes' to update the Total based on the formula."
+            ]
+          },
+          "seconds": 190.0338190793991,
+          "state": "complete"
+        },
+        {
+          "answer": "Saved native app “Timesheet Review” after 5 synthetic checks. Review table access and enable this version to use it.",
+          "independentCheck": {
+            "assertions": 6,
+            "digest": "1327b20f53f6b000c7ee944d077d290d7685b29a7e4f5e11dbbc2f5a23e14e94",
+            "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+            "status": "passed",
+            "steps": 14,
+            "tables": [
+              "sheet1"
+            ],
+            "transactions": 2
+          },
+          "name": "Timesheets",
+          "passed": true,
+          "plan": {
+            "name": "Timesheet Review",
+            "purpose": "Review and edit hours for employees, automatically calculating pay based on a fixed rate.",
+            "questions": [],
+            "workflows": [
+              "Display 'Records' table with Person, Hours, Rate, Pay.",
+              "User selects a row in 'Records'.",
+              "'Hours' input field populates with the selected row's hours.",
+              "User edits 'Hours'.",
+              "User clicks 'Save changes'.",
+              "The 'Records' table updates the 'Hours' and recalculates 'Pay' (Hours * Rate)."
+            ]
+          },
+          "seconds": 134.8542869091034,
+          "state": "complete"
+        }
+      ],
+      "note": "Final three-case trial uses independent 14-step, six-assertion, two-write checks. Final focused native_app_sdk response additionally qualified by the fresh installed UI build."
+    },
+    "knowledgeValidation": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "documentationLinks": "passed",
+    "diffWhitespace": "passed"
+  },
+  "installed": {
+    "MacOS/Sevra": {
+      "packagedSHA256": "911cf8fad1d941b073d3925486aba9c2e2a6610af71c5fa0faaae1bbe8481ac7",
+      "installedSHA256": "dfe235ba61184006ff0b8d555a5483673273ea4fe85af0f5ade4a63e8f34464f",
+      "uuid": "B5E2EA5A-48DA-35F1-BB95-685E69B130D0",
+      "packagedInstalledUUIDEqual": true,
+      "bytesEqual": false
+    },
+    "XPCServices/com.sevra.workbooks.app-worker.xpc/Contents/MacOS/sevra-app-worker": {
+      "packagedSHA256": "77b0ec12c416839638e83c5b1ee546f2990c8d4775c49b55197b22f4ccd6500a",
+      "installedSHA256": "77b0ec12c416839638e83c5b1ee546f2990c8d4775c49b55197b22f4ccd6500a",
+      "uuid": "BF55355D-6CE6-3FB2-9FD7-9CD0F1A39DAD",
+      "packagedInstalledUUIDEqual": true,
+      "bytesEqual": true
+    },
+    "XPCServices/com.sevra.workbooks.app-check-worker.xpc/Contents/MacOS/sevra-app-worker": {
+      "packagedSHA256": "7fb7d50e48c00f59b1f3b16fd8be48180adee9679a114150419d19cd06fc879b",
+      "installedSHA256": "7fb7d50e48c00f59b1f3b16fd8be48180adee9679a114150419d19cd06fc879b",
+      "uuid": "BF55355D-6CE6-3FB2-9FD7-9CD0F1A39DAD",
+      "packagedInstalledUUIDEqual": true,
+      "bytesEqual": true
+    },
+    "note": "Installer adds CLI and re-signs the main bundle, changing main signature bytes; main Mach-O UUID matches. Worker signed bytes match exactly."
+  },
+  "nativeUI": {
+    "freshCustomerFlow": "Start from files → stop → Just use tables → clarify → infer → build → actual table access review → enable",
+    "freshModelBuild": "1m 2s; five reported synthetic checks; completed in installed ProductAI path",
+    "edits": [
+      {
+        "On hand": 8,
+        "To order": 4
+      },
+      {
+        "On hand": 20,
+        "To order": 0
+      },
+      {
+        "On hand": 7,
+        "To order": 5
+      },
+      {
+        "action": "Undo",
+        "On hand": 20,
+        "To order": 0
+      }
+    ],
+    "verified": [
+      "saved app and data reopen",
+      "clear input/selection after successful save",
+      "header clears editing",
+      "search/clear",
+      "empty-input validation retains data",
+      "host origin banner and import-details link",
+      "correct singular formula count",
+      "empty-file state",
+      "cancelled invoice planning to useful table-only data clears old error",
+      "original-file preview and single saved-file entry",
+      "explicit existing-table target/mapping; no mismatched update applied",
+      "normal and 922×682 point layout",
+      "centered table text and aligned form spacing",
+      "offscreen keyboard input now revealed; visible input refocus stable"
+    ],
+    "limits": "No VoiceOver or changed macOS keyboard/settings. Tab follows the existing OS settings; all-control keyboard navigation not qualified. Drop route shares implementation but was not separately exercised by UI drag in this pass.",
+    "finalState": "App disabled for the disposable workbook; cleaned owned fixtures/recents; verified Welcome."
+  },
+  "adversarialReview": {
+    "performedBy": "Implementation agent, separate adversarial source/behavior pass; no independent security audit implied",
+    "repairedFindings": 14,
+    "negativeActualModelReview": "The isolated checks passed, but the app needs these corrections before saving: Missing 'Quantity' input field and 'Save changes' button required by the user request. No logic implemented to handle row selection or bind the selected row's data to the input. No save handler exists to update the Quantity in the Excel sheet via data.transaction. The source code ignores the user's workflow requirements and only renders a Table.",
+    "outcome": "All actionable findings from this bounded review repaired and checked. Remaining product limitations are explicit."
+  },
+  "retainedFailures": [
+    "Early alias/schema/app-ID copying and missing synthetic fixture failures",
+    "Unsupported grammar minProperties/maxProperties",
+    "Reviewer misunderstood host formula/Table behavior",
+    "Repeated JavaScript syntax errors",
+    "Stale row selection/draft after edits exposed by installed UI",
+    "Friendly message/provenance mismatch refused by authority gate",
+    "Release compiler input changed during build; corrected sequencing",
+    "Wrong baseline compile attempt stopped",
+    "SwiftUI expression type-check timeout; split count formatting",
+    "Offscreen focus reproducer; original visibleRect assertion was insufficient and was corrected",
+    "Main executable byte-equality diagnostic failed because installation re-signs it; UUID and exact worker bytes verified instead"
+  ],
+  "cleanup": {
+    "ownedWorkbooksRemoved": [
+      "live-3/Inventory.sevra",
+      "live-3/Invoices.sevra",
+      "live-3/Timesheets.sevra",
+      "live-4/Inventory.sevra",
+      "live-5/Inventory.sevra",
+      "live-2/Inventory.sevra",
+      "live-2/Invoices.sevra",
+      "live-9/Inventory.sevra",
+      "live-9/Invoices.sevra",
+      "live-9/Timesheets.sevra",
+      "live-7/Inventory.sevra",
+      "live-7/Invoices.sevra",
+      "live-7/Timesheets.sevra",
+      "live-1/Inventory.sevra",
+      "live-1/Invoices.sevra",
+      "live-6/Invoices.sevra",
+      "live-6/Timesheets.sevra",
+      "live-8/Inventory.sevra",
+      "ui/Inventory.sevra",
+      "ui/Excel UI Check.sevra"
+    ],
+    "ownedRecentEntriesRemoved": 2,
+    "nativeAppGrantsRemaining": 0,
+    "allOtherPreferencesUnchanged": true,
+    "logsResultsAndGeneratedSourcesRetained": true,
+    "modelBaselineAndUnrelatedWorkbooksUntouched": true
+  },
+  "limits": [
+    "Synthetic small-business files, not every real customer workbook",
+    "Bounded inspection and 1–12 nonempty sheets for native build",
+    "Supported deterministic formula subset; unsupported formulas retain declared saved results",
+    "No VBA, external refresh, Excel layout/protection recreation or automatic formula extension on new rows",
+    "Model generation can fail or infer the wrong workflow",
+    "Generic calculator generation failures remain historical unqualified cases",
+    "No production notarization, external security certification or other-hardware/VoiceOver qualification"
+  ],
+  "logSHA256": {
+    "authoring-final.log": "e384d0482968aaf5289b6edbe2d9ca37f14b84f26a94f6fa57864f9b4dc43071",
+    "core-build.log": "39a80de15d87e27c0b7483e41c4cb4eb7439b396bc3781230def00b2f9d72799",
+    "desktop-build.log": "a9a860220cec57414fbb2d7edf1d6b6fd3549c8cad5c3ecafeb7489281b3b634",
+    "deterministic-1.log": "7707302dd907a931feb8d492a69921a8d4ac5ff346a6875f14f7a0b58bd6db12",
+    "deterministic-10.log": "35f41e9ed3ed71965d8348f853945e0742288af6f8512e6e9038815b88991c28",
+    "deterministic-12.log": "fcc749cf01aa389d5a09c2bfff13c34ed08980f754facf4d129e50fc81af8f67",
+    "deterministic-13.log": "b3202d68aa142d582f621ccede3ab7cb1a1d93e04bc892df34649d5143b23977",
+    "deterministic-15.log": "c81ffc95fae09692ce75b1c732a17b0da68b93aed4d80f4553495841b8093420",
+    "deterministic-16.log": "2df78cd95c799f76c8b60c3d804e301c6cbf0852fe161b27aef0bca680cd6b41",
+    "deterministic-18.log": "a7cc7ee73c9eaecf64b0b2b9bbd3083a6896a8d4d2e8961ac4217479f94bd21b",
+    "deterministic-2.log": "d5d0f73b08b4883c1f697e83c32bcbea8f482922bc618865f42fc1c3065c7289",
+    "deterministic-3.log": "ec3af0353b19e50c6292c75ae8cbd3fe456582e64314cd38f3ee0ddb56c60992",
+    "deterministic-4.log": "dd3edc3f8550242549feb21274a7a02122c539170419b7be5c65ae24fa84b00e",
+    "deterministic-5.log": "0e1b20eb0e8034ea17e965f336dbc746b2671dab2f213fbb1edea3dfa44ed446",
+    "deterministic-6.log": "1870abd036bcaa7b4281bd7936316c184359d4ff4bc137d7ef01a0a4efa8ca46",
+    "deterministic-7.log": "639cf96d68963bb9dfe90439234442ace95e5495b79c8083f3692237402e0abb",
+    "deterministic-8.log": "5a3fbaf3b8936536d7bd76627aba7dc0fab2d8d50a1df5a4c0a521ecb30b4729",
+    "deterministic-9.log": "6905513dfd0e3dbaf5b25a4c498e4b81e7022b2490d9da03369bbff77138e056",
+    "extract-build.log": "1f08357b75fc8b2b6bb9f3ec79e9a63e47d62aab389847c6b50675fc99f9ba3c",
+    "extraction-package-final.log": "d28a3a716dd495c7d7fabdd3bb60cd66d30dde70023d1c6e942456c157be2e65",
+    "final-focused-build.log": "7579dd21a3c706d448b8ca293a2d94b6ca616e81bd0844cf8c84cd70fefc596c",
+    "focus-repro-2.log": "603a781300f4a05692feea880059ed32975e2c739a9949fa2ce240252d4cf7a3",
+    "focus-repro-build-2.log": "047b6c029561e45ac399a474d998316dd2c6932d29185c01a052b76f438a247f",
+    "focus-repro-build.log": "b0d3ff63ef462c38ade7754f788832efe01c6f85d3d12f10d4c5077652e14085",
+    "focus-repro.log": "bab242bb7254ca540b903491ba884a8efe71d7a4695de4ede915b1473f97c58a",
+    "full-check-1.log": "a1ac4d6891a8fe32a0804b4ac9e401d2616996c4ae5369b4594106cf1864cad4",
+    "install-1.log": "f107e8f1093fad1bb43353f363d8614f43809048568c1eab5521b12ad22c63f7",
+    "install-2.log": "2a0882f9eb415f34e769ba6d7812700e6324042cc5cf356db0c523f83d3760fc",
+    "install-final.log": "1d359791ccef6197e08cb4ae5d53933aaec2ab28c1af0ff5eb7ed400ac92792b",
+    "installer-final.log": "a63a876d81f8c07fe255c9c20ca83a80c9f8df302299f1e5f111ef35cd4e0925",
+    "links-preflight.log": "f96ad4957e7f4753704ea19e33387daffd39d25457e3fd01721dc11124afd68a",
+    "lint-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "live-1.log": "01b7b68a0cea73e06f20ba38496d0976696d5461c8b84830e6bea50ec1041e2e",
+    "live-2.log": "614aeb2785cb5c353a2c963f3d01096f69f5f378f22648bc41a0aced822e84e4",
+    "live-3.log": "6a607e13485fdea35fece305473e90f1a67381657914cdd6fd4bf1ccf95f7988",
+    "live-4.log": "cb14b0f1dbcae1a9518ed78a1edd7fa2b85b854d50794cb8f539eab8c8002150",
+    "live-5.log": "57a5ddc290490c4661e6fdf6ce06230c771d6c6a1022f01d74d256155f1ad918",
+    "live-6.log": "253d71f1ac3fb956d449a0cb9269f0973749dcdec6094182aefbf72041d21f1d",
+    "live-7.log": "40e56b4192c949df703668dbe5a21c7cb8a793a81df80d1ce4c2546a3a1f4d69",
+    "live-8.log": "1520298dc0492502800e7abef031d4072cfeca294cfcda30d369a1649ce51572",
+    "live-9.log": "def20d33df590329eeec61c4372529cf0bd49a3def4998eec63e4c9b79cfbd96",
+    "native-build-1.log": "107eb96a33606e1d01ad85004c45341f6390e343c3fca7661a3065df1d02c0a3",
+    "native-build-2.log": "120d4772fc397ccf7729425412452ed4880acead45a83f3e538feac9c400e13f",
+    "native-build-3.log": "fead1833e8e4c111212c10bb4e07f92eb03a2498fed8edd69089659317ab3360",
+    "native-build-final.log": "2f2da6d82644e50c84137be9062277d23c19f1ca893d99ef1c777696e2778ca9",
+    "native-compile-3.log": "d9706111f0bcb6c6b003faa5f4815b63be4df72e53a127068f934f8ed119d17b",
+    "native-compile-4.log": "29979abcc14d25161218c2d2c75b3a1426a3eb4c1ea54adb0cd9391ea3ba957b",
+    "native-compile-5.log": "91a20df8739463a6cc4fe9ceff3f7677bc2901becefbceaece7277f2c76f4c69",
+    "native-final.log": "e2054e7577f9ba3f9a875129a330acc93dbcb6e501b299e902b69ef4e2eee047",
+    "package-final.log": "4de5a7c1e5a9d48f88a9dffb1c61943c4f901d290b8ad550c0ca504af7c0012e",
+    "swift-lint-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "test-build-10.log": "13bb0119f3e5ec65b8a8e920c6fcf5134f240200bb11690249055b9ec22dc8a3",
+    "test-build-11.log": "c2e3356ea297ab73111b8c56f33a444b2571fe9f0e3a97962a3efb01ea17e4e5",
+    "test-build-12.log": "094fddead052824f9b9b412edce492dfdd52c6b3fef957b7f893816a145b71e0",
+    "test-build-13.log": "ed7861bf97e1863b44536b0e4c7c97a650cc3d4304d4af6116294bf235525cad",
+    "test-build-14.log": "1c4eddd8c0cf9803161ceafa79a04a01261a31bc03000eeb587b6e55113aa7d1",
+    "test-build-15.log": "a48a5178e8203ec7bdc1d5cf0cfb1f718d5027efd93a551658a21cf512ada506",
+    "test-build-16.log": "82746fa8f02ba0f659c527b23a5672bf90855b694e776529ea002a76f5e19df1",
+    "test-build-17.log": "ae0d668dc934fe4381d5c602b5a9306218adf632a232087fd197ce158649303d",
+    "test-build-18.log": "01b0de9e488338c978251810e9ab562780ccee7b4073d531c3e838bf604163e2",
+    "test-build-2.log": "90dfaca2dd6f653baa5e9e8a05eb84c84b27a6060ea35275cab149c8682edfa7",
+    "test-build-3.log": "7a7c6b467140edcc88e0a2c0bca58ad81c52161460a84c414f2445de15b64c8c",
+    "test-build-4.log": "6bf8c07e74b0dfded59e8230c6c4ddf041140f2346ca6d82354dd06e28d5b308",
+    "test-build-5.log": "e30fd0185f1150720d28fc81afd64402b385722dda4c84858ada54fdb6e1eed3",
+    "test-build-6.log": "2e4142ff6721c9ca47a5ee8a6f4a82bf48ac2a6cb14bfc4642da34c0a51b0fe6",
+    "test-build-7.log": "64b765486210d02c719096390a343d24d49d06b1b43c1480e8663fc3be8e0df6",
+    "test-build-8.log": "c03b6734fd4acb1606b2cb8695148cd820d648fd33075c2eaaaa6bd309f73e6b",
+    "test-build-9.log": "20d4ba42ade48a342142a74eb7f7a671b34a1939435afda1435a68e2bae786d1",
+    "test-build.log": "50b885350e81e2f37106a1b1ff200a7ceada7749e3aae837c146b0d36791f755",
+    "links-final.log": "f96ad4957e7f4753704ea19e33387daffd39d25457e3fd01721dc11124afd68a",
+    "knowledge-final.json": "cf3bae3d8abc7a1236121829a375f6b29110c807d552728c75aa962ee42a100b",
+    "cleanup-final.json": "8fc22eef8be7bb0818b780ff04fbf7ff102bc0345822d81a44913276c7f5b372"
+  },
+  "detailedEvidence": {
+    "path": "integration/evidence/2026-11-13-single-excel-import-details.json.gz",
+    "sha256": "d727d5d6ce1fbed509d2627eba9db0779ec9d58766468d9d59a3a0cb096bd1ab",
+    "notice": "Includes failed/interrupted and successful attempts. Private local paths redacted, with original-content hashes."
+  }
+}

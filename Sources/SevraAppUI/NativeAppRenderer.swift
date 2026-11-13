@@ -3,6 +3,22 @@ import SevraAppProtocol
 import SevraCore
 import SwiftUI
 
+/// Keyboard traversal must reveal the focused control inside the native app viewport.
+@MainActor private final class AppTextField: NSTextField {
+  override func becomeFirstResponder() -> Bool {
+    let accepted = super.becomeFirstResponder()
+    if accepted { scrollToVisible(bounds.insetBy(dx: 0, dy: -8)) }
+    return accepted
+  }
+}
+@MainActor private final class AppButton: NSButton {
+  override func becomeFirstResponder() -> Bool {
+    let accepted = super.becomeFirstResponder()
+    if accepted { scrollToVisible(bounds.insetBy(dx: 0, dy: -8)) }
+    return accepted
+  }
+}
+
 public struct NativeAppSurface: NSViewRepresentable {
   public let session: NativeAppSession
   public init(session: NativeAppSession) { self.session = session }
@@ -116,8 +132,8 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
     self.session = session
     switch node.type {
     case "text": content = NSTextField(wrappingLabelWithString: "")
-    case "button": content = NSButton(title: "", target: nil, action: nil)
-    case "textField": content = NSTextField(string: "")
+    case "button": content = AppButton(title: "", target: nil, action: nil)
+    case "textField": content = AppTextField(string: "")
     case "textEditor":
       let scroll = NSScrollView()
       scroll.hasVerticalScroller = true

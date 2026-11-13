@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/reviews
-updated: 2026-11-13T15:59:14.840580Z
+updated: 2026-11-13T18:48:10.587197Z
 ---
 
 # records/reviews
 
+- [[records/reviews/single-excel-import]] — Single Excel import accepted for the bounded preview: full suite, 38 focused groups, three actual-model workflows and installed UI pass; 14 findings repaired
 - [[records/reviews/native-app-fresh-start-2026-11-13]] — Fresh mini-app test state retired; 28 focused groups and imported-app UI pass, but both new local-model calculator attempts fail.
 - [[records/reviews/native-app-adversarial-review-2026-11-13]] — Native-app adversarial review completed: two permission repairs, four UI repairs, full local checks and installed visual verification; source-preview limits remain.
 - [[records/reviews/local-model-native-apps]] — Adversarial review of local-model native app authoring

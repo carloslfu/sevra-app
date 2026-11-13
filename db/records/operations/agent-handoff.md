@@ -3,13 +3,23 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-13T15:59:14.883842+00:00
-summary: Fresh mini-app baseline cleaned and tested; 28 focused groups and imported-app UI pass. Fresh local-model calculator creation and guided recovery failed; authoring reliability remains open.
+updated: 2026-11-13T18:48:10.651328+00:00
+summary: 'Single Excel import implemented and locally verified: eight business workflows, three actual-model cases, native UI and full suite; bounded Excel compatibility'
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
-## Current checkpoint: fresh mini-app baseline, November 13
+## Current checkpoint: single Excel import, November 13
+
+The owner-approved [[records/plans/single-excel-import]] is implemented as one native Add files/start/drop/saved-Excel flow. A local model infers a reviewable workflow, then builds a checked native app over the same imported tables and supported formulas. Table-only use requires no model; existing-table updates remain a secondary reviewed action. Stable conversions preserve originals and avoid duplicated data on retry. Host-owned capabilities, sandbox checks, separate model review and exact-version device access remain enforced.
+
+The [[records/reviews/single-excel-import]] and [acceptance receipt](../../../integration/evidence/2026-11-13-single-excel-import.json) qualify the result. The full integrated suite passed, followed by 17 native and 21 authoring/conversion groups for final repairs. Eight deterministic business workflows and two edge groups pass; actual-model Inventory, Invoices and Timesheets pass independent 14-step repeated-edit/header checks. A fresh installed UI build also completed in 1m 2s and passed real edits, formula recalculation, Undo, search, header protection, validation, reopen, table-only fallback and normal/narrow layout inspection. Fourteen review findings were repaired, including offscreen keyboard focus. Earlier failed trials are retained.
+
+Installed main UUID `B5E2EA5A-48DA-35F1-BB95-685E69B130D0` matches the current packaged build. Both workers use UUID `BF55355D-6CE6-3FB2-9FD7-9CD0F1A39DAD` and match exact signed bytes. Package/install/extraction checks pass. The owned UI app was disabled; 20 test workbooks and two task-owned recents were removed after retaining evidence. No native grants remain. The app is left on Welcome; unrelated workbooks/preferences, model files and preserved baseline are unchanged. No VoiceOver or system settings were changed.
+
+This qualifies a bounded source preview, not all Excel applications. Unsupported formulas keep declared saved results; VBA, external refresh, original layout/protection and automatic formula extension to new rows are not implemented. Generation can still fail or misunderstand business rules. The earlier generic calculator failure below is not retroactively qualified by the narrower Excel authoring successes. No external security certification, additional hardware or production notarization is claimed.
+
+## Earlier checkpoint: fresh mini-app baseline, November 13
 
 The owner-approved [[sources/notes/2026/11/mini-app-fresh-start]] is implemented for the selected development artifacts: obsolete mini-app workbooks/packages, 20 approvals and their recent entries are retired, with unrelated workbooks, model files, canonical examples and historical evidence preserved. Test runners now dispose of temporary host bundles; native tests return before process exit so their workbook cleanup runs, and test preference domains clear. No migration or compatibility path was added. Normal initial review and per-version approval remain required.
 

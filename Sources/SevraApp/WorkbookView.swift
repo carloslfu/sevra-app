@@ -258,6 +258,7 @@ struct WorkbookView: View {
     case .item: return state.viewedItemTitle ?? "Document"
     case .table(let id): return state.dataset(id)?.title ?? "Table"
     case .tableUpdate: return "Review table update"
+    case .excelImport: return "Bring Excel into Sevra"
     case .search: return "Search workbook"
     case .reviews: return "Drafts to review"
     case .activity: return "Workflow runs"
@@ -547,6 +548,7 @@ struct WorkbookView: View {
         TableUpdateView(book: book, sourceID: source, intakeID: job, state: state)
           .id(source + (job ?? ""))
       case .reviews: ReviewQueueView(state: state, results: state.reviewResults)
+      case .excelImport(let id): ExcelConversionView(id: id, state: state).id(id)
       case .activity: WorkflowActivityView(workspace: state)
       case .automations: AutomationSchedulesView(workspace: state)
       case .automation(let id): AutomationFocusedView(definitionID: id, workspace: state)

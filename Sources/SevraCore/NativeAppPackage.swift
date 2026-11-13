@@ -173,43 +173,49 @@ extension Workbook {
       ]), cancellation: cancellation,
       actor: ChangeAttribution.actor ?? .programmatic("Sevra.nativeApp.install")
     ) {
-      let current = try spaceIfPresent(spaceID)
-      try checkSpaceBase(current, expectedVersion: expectedVersion)
-      try require(
-        current == nil || current?.definition.app != nil, "app_package",
-        "Choose an app space to update.")
-      var installed = package
-      for alias in package.datasets.keys.sorted() {
-        var binding = package.datasets[alias]!
-        if binding.datasetID == nil {
-          binding.datasetID = current?.definition.app?.datasets[alias]?.datasetID
-        }
-        if let id = binding.datasetID {
-          let existing = try dataset(id)
-          try require(
-            !existing.archived && existing.columns == binding.columns,
-            "app_schema", "The bound table does not match the app's declared columns.")
-        } else {
-          let source = try insertItem(
-            category: "source", kind: "observation", title: package.name + ": " + binding.title,
-            text: "An empty table created while installing this app.",
-            data: .object(["appDigest": .string(package.digest)]),
-            meaning: "actual", status: "accepted", scenario: "actual", inputs: [],
-            transformation: "native-app-table-v1")
-          let id = identifier()
-          try insertDataset(
-            id: id, title: binding.title, columns: binding.columns, rows: [],
-            sourceID: source, inputs: [source], meaning: "actual")
-          binding.datasetID = id
-        }
-        installed.datasets[alias] = binding
-      }
-      var definition = SpaceDefinition(components: [])
-      definition.app = installed
-      try publishSpace(id: spaceID, title: package.name, definition: definition, current: current)
+      try insertNativeApp(package, spaceID: spaceID, expectedVersion: expectedVersion)
       return try encoded(space(spaceID))
     }
     return try JSONDecoder().decode(Space.self, from: Data(result.json().utf8))
+  }
+
+  /// Shared publication inside an existing captured transaction.
+  func insertNativeApp(_ package: NativeAppPackage, spaceID: String, expectedVersion: Int?) throws {
+    try package.validate()
+    let current = try spaceIfPresent(spaceID)
+    try checkSpaceBase(current, expectedVersion: expectedVersion)
+    try require(
+      current == nil || current?.definition.app != nil, "app_package",
+      "Choose an app space to update.")
+    var installed = package
+    for alias in package.datasets.keys.sorted() {
+      var binding = package.datasets[alias]!
+      if binding.datasetID == nil {
+        binding.datasetID = current?.definition.app?.datasets[alias]?.datasetID
+      }
+      if let id = binding.datasetID {
+        let existing = try dataset(id)
+        try require(
+          !existing.archived && existing.columns == binding.columns,
+          "app_schema", "The bound table does not match the app's declared columns.")
+      } else {
+        let source = try insertItem(
+          category: "source", kind: "observation", title: package.name + ": " + binding.title,
+          text: "An empty table created while installing this app.",
+          data: .object(["appDigest": .string(package.digest)]),
+          meaning: "actual", status: "accepted", scenario: "actual", inputs: [],
+          transformation: "native-app-table-v1")
+        let id = identifier()
+        try insertDataset(
+          id: id, title: binding.title, columns: binding.columns, rows: [],
+          sourceID: source, inputs: [source], meaning: "actual")
+        binding.datasetID = id
+      }
+      installed.datasets[alias] = binding
+    }
+    var definition = SpaceDefinition(components: [])
+    definition.app = installed
+    try publishSpace(id: spaceID, title: package.name, definition: definition, current: current)
   }
 
   func validateNativeApp(_ app: NativeAppPackage) throws {
