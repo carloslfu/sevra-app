@@ -21,10 +21,14 @@ import SevraCore
   private var reloadPending = false
   private var sorting: String?
   private var descending = false
+  private var interactionEnabled = true
   init(session: NativeAppSession, node: NativeAppNode) {
     self.session = session
     self.node = node
     super.init(frame: .zero)
+    sorting = node.props["sort"].string
+    descending = node.props["descending"] == .bool(true)
+    selected = node.props["selection"].string.flatMap { $0.isEmpty ? nil : $0 }
     grid.delegate = self
     grid.dataSource = self
     grid.usesAlternatingRowBackgroundColors = true
@@ -63,6 +67,13 @@ import SevraCore
     reload()
   }
   required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+  func setInteractionEnabled(_ enabled: Bool) {
+    interactionEnabled = enabled
+    grid.isEnabled = enabled
+    previous.isEnabled = enabled && offset > 0
+    next.isEnabled = enabled && offset + rows.count < total
+  }
+  func selectionShouldChange(in tableView: NSTableView) -> Bool { applying || interactionEnabled }
   override func layout() {
     super.layout()
     let available = scroll.contentSize.width
@@ -82,6 +93,7 @@ import SevraCore
     }
     let selectionChanged = node.props["selection"] != next.props["selection"]
     node = next
+    grid.setAccessibilityLabel(next.props["label"].string ?? "App table")
     if selectionChanged {
       selected = next.props["selection"].string
       if selected == "" { selected = nil }
@@ -154,13 +166,13 @@ import SevraCore
       return
     }
     applying = true
+    grid.sortDescriptors = sorting.map { [NSSortDescriptor(key: $0, ascending: !descending)] } ?? []
     grid.reloadData()
     applying = false
     restoreSelection()
     label.stringValue =
       total == 0 ? "No matching records" : "\(offset + 1)–\(offset + rows.count) of \(total)"
-    previous.isEnabled = offset > 0
-    next.isEnabled = offset + rows.count < total
+    setInteractionEnabled(interactionEnabled)
   }
   private func restoreSelection() {
     applying = true
@@ -191,7 +203,7 @@ import SevraCore
     publishSelection(grid.clickedRow)
   }
   private func publishSelection(_ index: Int) {
-    guard !applying, rows.indices.contains(index) else { return }
+    guard !applying, interactionEnabled, rows.indices.contains(index) else { return }
     selected = rows[index]["key"].text
     let version = rows[index]["id"].text
     guard lastPublishedID != version else { return }
@@ -201,6 +213,7 @@ import SevraCore
   func tableView(
     _ tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]
   ) {
+    guard !applying, interactionEnabled else { return }
     sorting = grid.sortDescriptors.first?.key
     descending = grid.sortDescriptors.first?.ascending == false
     offset = 0
@@ -215,7 +228,7 @@ import SevraCore
     reload()
   }
   @objc private func activate() {
-    guard rows.indices.contains(grid.clickedRow) else { return }
+    guard interactionEnabled, rows.indices.contains(grid.clickedRow) else { return }
     session.event(node: node.id, handler: "onActivate", value: rows[grid.clickedRow])
   }
 }

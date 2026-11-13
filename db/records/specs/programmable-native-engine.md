@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m78sah1afmhpr6vzfbkrg1r2
 created: 2026-11-12T21:06:22.890879+00:00
-updated: 2026-11-13T03:42:38.600324+00:00
+updated: 2026-11-13T15:14:47.532811+00:00
 summary: 'Native programmable spaces: scoped QuickJS/XPC execution, reactive AppKit rendering, shared transactional data, SDK authoring, recovery and bounded capabilities.'
 title: Programmable native spaces SDK 1
 status: implemented
@@ -40,7 +40,7 @@ A package contains `sdkVersion: 1`, `name`, bundled `source`, and `datasets` key
 
 The installed package is part of SpaceDefinition and space_versions. Installation, revision and restoration use the existing captured transaction path. Removing/changing interface code never deletes business data. Exported app templates clear dataset IDs; portable workbooks retain exact app code, bindings, originals and data. Saving/importing/reconstructing does not execute scripts or grant access. Existing fixed spaces and app spaces coexist.
 
-`liveQuery({table: 'stock', search, limit})` returns a signal with loading/error/rows/total/revision. `liveQuery(query, 'query')` uses the existing typed dataset query grammar with source aliases `{table:'stock'}` in place of physical dataset/definition identifiers. The native broker resolves current schema IDs and checks every alias. `data.page` and `data.query` return one result. The existing deterministic Decimal query/aggregate and `calculate` paths remain authoritative for precision; JS Number is not a replacement for financial Decimal arithmetic.
+`liveQuery({table: 'stock', search, limit})` returns a signal with loading/error/rows/total/revision. `liveQuery(query, 'query')` uses the existing typed dataset query grammar with source aliases `{table:'stock'}` in place of physical dataset/definition identifiers. The native broker resolves current schema IDs and checks every alias. Each page, typed query and fingerprint read validates the exact approved columns and active table state in the same read transaction; added, removed or changed columns require an updated binding and fresh approval. A table rename alone does not expand access. `data.page` and `data.query` return one result. The existing deterministic Decimal query/aggregate and `calculate` paths remain authoritative for precision; JS Number is not a replacement for financial Decimal arithmetic.
 
 Workbook revision polling is read-only and runs every 500 ms while the space is mounted. On a revision change the host compares bound-table schema and current immutable row fingerprints, then refreshes subscriptions dependent on changed aliases. It is deliberately invalidation plus bounded re-querying, not an incremental SQL engine. Native mutations also trigger an immediate revision check. Read snapshots identify their revision and exact row versions. Irrelevant workbook revisions update the revision signal without rebuilding unchanged query results.
 
@@ -50,7 +50,7 @@ Receipts contain the operation token, resulting revision and exact row IDs. Reus
 
 ## Permissions, recovery and limits
 
-The native Enable surface lists requested table read/write access using names resolved from the bound workbook tables, not package-authored labels. Enable remains disabled until the native host validates those bindings. The device-local grant key includes the physical SQLite file identity, workbook ID, space ID/version and package digest. Changing code/bindings/version or copying/replacing the database requires a fresh grant. Disable/navigation close the connection and revoke its in-memory capability. Draft checkpoints may finish after closing because they carry no business-write authority. Draft writes are serialized and restart waits for them. Native fields protect newer unsent values against older script frames.
+The native Enable surface lists requested table read/write access using names resolved from the bound workbook tables, not package-authored labels. Enable remains disabled until the native host validates those bindings. The device-local grant key includes the physical SQLite file identity, workbook ID, space ID/version and package digest. Changing code/bindings/version or copying/replacing the database requires a fresh grant. Each approval stores a fresh device-local generation. Data admission and the final write guard compare the captured generation, so Disable also fences other live sessions using that grant and reapproval cannot revive their old access. Revision polling removes stale UI even when no workbook data changed. Disable/navigation close the connection and revoke its in-memory capability; navigation alone does not erase the saved device approval. Earlier development boolean approvals require Enable again, without changing source or records. Draft checkpoints may finish after closing because they carry no business-write authority. Draft writes are serialized and restart waits for them. Native fields protect newer unsent values against older script frames.
 
 Trusted chrome retains error/disable/restart controls outside the generated tree. A failed script poisons its runtime; it is not resumed in a partially evaluated state. Restart mounts saved source and retained drafts; it does not replay recorded database transactions. Authors must avoid unconditional business side effects during mount and retain operation tokens for explicit retry of uncertain requests. JavaScript source is portable but grants and OS privileges are not.
 
@@ -117,3 +117,7 @@ its table access before **Enable app**.
 ## Local model authoring
 
 The local workbook conversation now uses SDK discovery, exact source inspection and an isolated behavioral check followed by a separate local-model review before saving inert app source. See [[records/specs/local-model-native-apps]] for the authoring flow, authority and limits, and [[records/plans/local-model-native-apps]] for current acceptance. Unapproved programs use a distinct sandboxed check process; enabled apps retain the existing runtime process. Unhandled promise rejections are bounded failures. Canvas drop x/y values are movement deltas to add to the selected region's current position, not absolute destination coordinates. Shape IDs matching their region enable native drag feedback.
+
+## November 13 adversarial follow-up
+
+[[records/reviews/native-app-adversarial-review-2026-11-13]] records two permission findings and three native-state findings with failing probes and fixes. Disabled or hidden containers fence descendant interactions in the native renderer, host event dispatcher and authoring checker. Controlled table sort/selection and tab selection apply on the initial frame; tab title changes preserve current selection. These are bounded behavior guarantees, not general security certification.

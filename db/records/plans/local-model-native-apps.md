@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m79cc57776g0jbnzxjd021bs
 created: 2026-11-13T02:39:19.271938+00:00
-updated: 2026-11-13T04:51:08.137127+00:00
+updated: 2026-11-13T15:14:47.580589+00:00
 summary: Local model native-app authoring
 title: Local model native-app authoring
 ---
@@ -37,3 +37,7 @@ Actual model acceptance now covers seven independent scenarios plus an inventory
 Gates E and F are closed for this bounded source-preview integration. The [final installed receipt](../../../integration/evidence/2026-11-12-local-model-native-app-final.json) and [[records/reviews/local-model-native-apps]] record exact candidate identity, scoped tests, native creation/edit/approval/use, compact layout, persistence and failures. The broad suite's model-busy packaging interruption was resolved by rerunning the native package/install/extraction tail with inference idle; final localized fixes passed focused authoring and full agent/grammar checks. The main UUID is `6F410451-9213-3901-AE05-925898D789BA`.
 
 The final calculator was generated in a fresh focused thread, then enabled and tested through actual native controls. A preceding long-conversation retry still repeated a syntax error and safely stopped; model reliability is explicitly limited. Seven broader scenarios and an edit pass their independent checks. Human inspection remains necessary for generated behavior and layout. Commit/push carries this checkpoint on main; historical hosted CI is not evidence for newer source. This is not a notarized production release or universal Excel replacement.
+
+## November 13 owner-requested adversarial follow-up
+
+The broader [[records/reviews/native-app-adversarial-review-2026-11-13]] found schema-read permission expansion, stale grants in another live session, initial table/tab state errors and disabled-control mismatches. Reproducing probes and fixes are recorded there. The previous authoring commit `9c59650d56260c75c4662a87ccd8c6224462208f` subsequently passed [hosted CI](https://github.com/carloslfu/sevra-app/actions/runs/43368224770); that historical result does not qualify the new fixes. This review keeps the same source-preview and generation-reliability limits.

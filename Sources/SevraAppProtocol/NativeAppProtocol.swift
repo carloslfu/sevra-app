@@ -117,6 +117,19 @@ public struct NativeAppTree: Sendable {
   public private(set) var nodes: [String: NativeAppNode] = [:]
   public private(set) var root: String?
   public init() {}
+  /// Disabled/hidden containers fence their descendants as well as their own controls.
+  public var interactionEnabled: [String: Bool] {
+    var result: [String: Bool] = [:]
+    func walk(_ id: String, parent: Bool) {
+      guard let node = nodes[id] else { return }
+      let enabled =
+        parent && node.props["enabled"] != .bool(false) && node.props["hidden"] != .bool(true)
+      result[id] = enabled
+      for child in node.children { walk(child, parent: enabled) }
+    }
+    if let root { walk(root, parent: true) }
+    return result
+  }
   public mutating func apply(_ frame: Value) throws -> Set<String> {
     try require(
       frame["version"] == .number(1) && frame["patches"].array.count <= 1024

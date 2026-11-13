@@ -36,6 +36,7 @@ import SwiftUI
   private var budgetBytes = 0
   private var budgetCommands = 0
   private let defaults: UserDefaults
+  private var grant: NativeAppDeviceGrant?
   public init(book: Workbook, space: Space, defaults: UserDefaults = .standard) {
     self.book = book
     self.space = space
@@ -48,9 +49,9 @@ import SwiftUI
     return "native-app-grant:"
       + SHA256.hash(data: Data(identity.utf8)).map { String(format: "%02x", $0) }.joined()
   }
-  public var isGranted: Bool { defaults.bool(forKey: grantKey) }
+  public var isGranted: Bool { NativeAppDeviceGrant(defaults: defaults, key: grantKey) != nil }
   public func enable() {
-    defaults.set(true, forKey: grantKey)
+    defaults.set(UUID().uuidString, forKey: grantKey)
     start()
   }
   public func revoke() {
@@ -61,6 +62,7 @@ import SwiftUI
   public func stop() {
     access?.revoke()
     access = nil
+    grant = nil
     poll?.cancel()
     poll = nil
     connection?.invalidationHandler = nil
@@ -77,8 +79,9 @@ import SwiftUI
     activeRequests = []
   }
   public func start() {
-    guard isGranted else { return }
+    guard let grant = NativeAppDeviceGrant(defaults: defaults, key: grantKey) else { return }
     stop()
+    self.grant = grant
     error = nil
     status = "starting"
     tree = NativeAppTree()
@@ -93,7 +96,8 @@ import SwiftUI
     Task {
       do {
         await previousSave?.value
-        let access = try NativeAppAccess(workbook: book, space: space)
+        let access = try NativeAppAccess(
+          workbook: book, space: space, permission: { grant.isCurrent })
         let state = try await Task.detached { [book] in
           (
             try book.nativeAppDraft(access), try book.revision(),
@@ -198,7 +202,7 @@ import SwiftUI
     node: String, handler: String, value: Value = .null, editRevision: Int = 0,
     extra: [String: Value] = [:]
   ) {
-    guard status == "running", tree.nodes[node] != nil else { return }
+    guard status == "running", tree.interactionEnabled[node] == true else { return }
     nativeEdits[node] = editRevision
     if handler == "onChange", let key = tree.nodes[node]?.props["draftKey"].string {
       draftValues[key] = value
@@ -402,6 +406,11 @@ import SwiftUI
   }
   public func checkRevision() async {
     guard let access else { return }
+    guard grant?.isCurrent == true else {
+      stop()
+      status = "disabled"
+      return
+    }
     let current = epoch
     do {
       let next = try await Task.detached { [book] in try book.revision() }.value
@@ -423,4 +432,21 @@ import SwiftUI
       onData?(changed)
     } catch { fail(error.localizedDescription, epoch: current) }
   }
+}
+
+/// UserDefaults supports concurrent reads/writes. The captured generation is immutable;
+/// checking it at data admission and commit fences every session after revoke or reapproval.
+private final class NativeAppDeviceGrant: @unchecked Sendable {
+  private let defaults: UserDefaults
+  private let key: String
+  private let generation: String
+  init?(defaults: UserDefaults, key: String) {
+    guard let value = defaults.string(forKey: key), UUID(uuidString: value) != nil else {
+      return nil
+    }
+    self.defaults = defaults
+    self.key = key
+    generation = value
+  }
+  var isCurrent: Bool { defaults.string(forKey: key) == generation }
 }

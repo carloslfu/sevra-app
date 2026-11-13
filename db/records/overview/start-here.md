@@ -3,8 +3,8 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-11-13T04:51:08.213642+00:00
-summary: Local-model native app creation and editing accepted as a source preview with isolated checks, independent review, actual UI tests and explicit generation limits.
+updated: 2026-11-13T15:30:55.913844+00:00
+summary: 'Native-app adversarial review completed: two permission repairs, four UI repairs, full local checks and installed visual verification; source-preview limits remain.'
 title: Start here
 ---
 # Sevra app
@@ -23,6 +23,8 @@ for the secondary service. Website pricing/support does not apply to this app.
 Slotstream remains independent.
 
 ## Current preview and delivery order
+
+**Adversarial native-app review completed, November 13:** six reproduced or visually observed findings are repaired, including two permission gaps. Full local checks, final focused native checks, fresh package verification and installed wide/compact UI inspection pass. See [[records/reviews/native-app-adversarial-review-2026-11-13]] and [[records/operations/agent-handoff]] for exact build identity, evidence and limits. Development approvals require Enable again; saved source/data are preserved. This remains a source preview.
 
 **Local-model native authoring accepted, November 12:** local chat now creates and edits programmable mini apps, runs isolated synthetic checks and separate model review, and saves an inert version for native access approval. Seven representative actual-model scenarios and an edit have independent checks; installed UI covers creation, editing, data preservation, exact calculation, search, Undo, narrow layout and canvas persistence. Long conversations can still repeat code errors; a fresh focused thread recovered the final calculator case. See [[records/specs/local-model-native-apps]], [[records/plans/local-model-native-apps]] and [[records/reviews/local-model-native-apps]] for the implementation and exact limits. [[records/operations/agent-handoff]] records current installed identity. This remains a source preview.
 

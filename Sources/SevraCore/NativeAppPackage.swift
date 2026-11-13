@@ -85,9 +85,12 @@ public final class NativeAppAccess: @unchecked Sendable {
   public let package: NativeAppPackage
   public let workbookID: String
   private let physicalID: String
+  private let permission: @Sendable () -> Bool
   private let lock = NSRecursiveLock()
   private var enabled = true
-  public init(workbook: Workbook, space: Space) throws {
+  public init(
+    workbook: Workbook, space: Space, permission: @escaping @Sendable () -> Bool = { true }
+  ) throws {
     guard let package = space.definition.app else {
       throw SevraError("app", "This space is not an app.")
     }
@@ -97,6 +100,7 @@ public final class NativeAppAccess: @unchecked Sendable {
     self.package = package
     self.workbookID = workbook.id
     self.physicalID = try Self.physicalIdentity(workbook)
+    self.permission = permission
   }
   public static func physicalIdentity(_ book: Workbook) throws -> String {
     let url = book.url.appendingPathComponent("workbook.sqlite").resolvingSymlinksInPath()
@@ -115,7 +119,7 @@ public final class NativeAppAccess: @unchecked Sendable {
     let permitted = enabled || allowRevokedDraft
     lock.unlock()
     try require(
-      permitted && book.id == workbookID
+      permitted && (allowRevokedDraft || permission()) && book.id == workbookID
         && Self.physicalIdentity(book) == physicalID, "app_permission", "App access was revoked.")
     let current = try book.space(spaceID)
     try require(

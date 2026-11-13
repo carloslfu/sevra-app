@@ -8,6 +8,16 @@ import SevraCore
   private var selected: String?
   private var origin: NSPoint?
   private var delta = NSPoint.zero
+  private var interactionEnabled = true
+  func setInteractionEnabled(_ enabled: Bool) {
+    interactionEnabled = enabled
+    for region in regions.values { region.setAccessibilityEnabled(enabled) }
+    if !enabled {
+      origin = nil
+      delta = .zero
+      needsDisplay = true
+    }
+  }
   override var isFlipped: Bool { true }
   override var acceptsFirstResponder: Bool { true }
   func update(_ value: Value) {
@@ -27,7 +37,9 @@ import SevraCore
       child.setAccessibilityLabel(region["label"].string ?? region["id"].text)
       child.setAccessibilityFrameInParentSpace(rect(region))
       child.press = { [weak self] in
-        guard let self, self.props["enabled"] != .bool(false) else { return }
+        guard let self, self.interactionEnabled, self.props["enabled"] != .bool(false) else {
+          return
+        }
         self.selected = id
         self.window?.makeFirstResponder(self)
         self.event?(id, .zero, "click")
@@ -92,7 +104,7 @@ import SevraCore
     }
   }
   override func mouseDown(with event: NSEvent) {
-    guard props["enabled"] != .bool(false) else { return }
+    guard interactionEnabled, props["enabled"] != .bool(false) else { return }
     window?.makeFirstResponder(self)
     let point = convert(event.locationInWindow, from: nil)
     selected =
@@ -108,7 +120,7 @@ import SevraCore
     needsDisplay = true
   }
   override func mouseUp(with event: NSEvent) {
-    if props["enabled"] != .bool(false), let selected {
+    if interactionEnabled, props["enabled"] != .bool(false), let selected {
       self.event?(selected, delta, delta == .zero ? "click" : "end")
     }
     origin = nil
@@ -116,7 +128,7 @@ import SevraCore
     needsDisplay = true
   }
   override func keyDown(with event: NSEvent) {
-    guard props["enabled"] != .bool(false) else { return }
+    guard interactionEnabled, props["enabled"] != .bool(false) else { return }
     guard let selected = selected ?? props["regions"].array.first?["id"].string else { return }
     switch event.keyCode {
     case 36, 49: self.event?(selected, .zero, "click")

@@ -63,8 +63,10 @@ public struct NativeAppSurface: NSViewRepresentable {
       if elements[id] == nil { elements[id] = AppElement(node: node, session: session) }
       elements[id]?.update(node)
     }
+    let enabled = tree.interactionEnabled
     for element in elements.values {
       element.arrange(element.node.children.compactMap { elements[$0] })
+      element.setInteractionEnabled(enabled[element.node.id] == true)
     }
     if rootID != tree.root || scroll.documentView !== tree.root.flatMap({ elements[$0] }) {
       documentWidth?.isActive = false
@@ -104,8 +106,11 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
   private var dimensions: [NSLayoutConstraint] = []
   private var inputRevision = 0
   private var applying = false
+  private var interactionEnabled = true
   private var disclosureOpen = true
   private var disclosureBody: NSStackView?
+  private var disclosureButton: NSButton?
+  private var disclosureTitle: NSTextField?
   init(node: NativeAppNode, session: NativeAppSession) {
     self.node = node
     self.session = session
@@ -184,19 +189,49 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
       }
     }
     if node.type == "disclosure", let stack = content as? NSStackView {
-      let header = NSButton(title: "", target: self, action: #selector(disclose))
-      header.bezelStyle = .disclosure
+      let button = NSButton(title: "", target: self, action: #selector(disclose))
+      button.bezelStyle = .disclosure
+      button.setButtonType(.pushOnPushOff)
+      let title = NSTextField(wrappingLabelWithString: "")
+      let header = NSStackView(views: [button, title])
+      header.spacing = 6
+      header.alignment = .centerY
       let body = NSStackView()
       body.orientation = .vertical
       body.alignment = .leading
       stack.addArrangedSubview(header)
       stack.addArrangedSubview(body)
       disclosureBody = body
+      disclosureButton = button
+      disclosureTitle = title
     }
     update(node)
   }
   required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
   override var isFlipped: Bool { true }
+  func setInteractionEnabled(_ enabled: Bool) {
+    interactionEnabled = enabled
+    if let control = content as? NSControl { control.isEnabled = enabled }
+    if let editor = (content as? NSScrollView)?.documentView as? NSTextView {
+      editor.isEditable = enabled
+    }
+    disclosureButton?.isEnabled = enabled
+    disclosureTitle?.textColor = enabled ? .labelColor : .disabledControlTextColor
+    if let tabs = content as? NSTabView {
+      tabs.setAccessibilityEnabled(enabled)
+      tabs.alphaValue = enabled ? 1 : 0.5
+      // Newer AppKit draws the header using a separate native control. Disable that
+      // control too, so a refused switch cannot leave its pressed segment highlighted.
+      func updateHeader(_ view: NSView) {
+        guard !tabs.tabViewItems.contains(where: { $0.view === view }) else { return }
+        if let control = view as? NSControl { control.isEnabled = enabled }
+        for child in view.subviews { updateHeader(child) }
+      }
+      for child in tabs.subviews { updateHeader(child) }
+    }
+    table?.setInteractionEnabled(enabled)
+    (content as? AppCanvas)?.setInteractionEnabled(enabled)
+  }
   func update(_ next: NativeAppNode) {
     let previous = node.props
     node = next
@@ -310,11 +345,11 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
         tabs.selectTabViewItem(at: index)
       }
     case "disclosure":
-      let header = (content as! NSStackView).arrangedSubviews.first as! NSButton
-      header.title = props["title"].text
+      disclosureTitle?.stringValue = props["title"].text
+      disclosureButton?.setAccessibilityLabel(props["title"].text)
       if accepted, props["value"] != .null { disclosureOpen = props["value"] == .bool(true) }
       disclosureBody?.isHidden = !disclosureOpen
-      header.state = disclosureOpen ? .on : .off
+      disclosureButton?.state = disclosureOpen ? .on : .off
     case "canvas": (content as! AppCanvas).update(props)
     case "image":
       (content as! NSImageView).image = NSImage(
@@ -327,6 +362,7 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
     let ids = children.map { $0.node.id }
     let signature =
       ids.joined(separator: ":") + node.props["padding"].text + node.props["columns"].text
+      + node.props["titles"].text
       + children.map { $0.node.type + $0.node.props["width"].text }.joined(separator: ":")
     guard signature != arrangement else { return }
     arrangement = signature
@@ -363,6 +399,7 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
       for child in children { split.addArrangedSubview(child) }
       split.adjustSubviews()
     } else if let tabs = content as? NSTabView {
+      let previous = tabs.selectedTabViewItem?.identifier as? String
       for item in tabs.tabViewItems { tabs.removeTabViewItem(item) }
       for (index, child) in children.enumerated() {
         let item = NSTabViewItem(identifier: child.node.id)
@@ -371,6 +408,14 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
           ? node.props["titles"].array[index].text : "Tab \(index + 1)"
         item.view = child
         tabs.addTabViewItem(item)
+      }
+      // Children must exist before applying the controlled initial selection.
+      if let index = node.props["value"].int, tabs.tabViewItems.indices.contains(index) {
+        tabs.selectTabViewItem(at: index)
+      } else if let previous,
+        let item = tabs.tabViewItems.first(where: { $0.identifier as? String == previous })
+      {
+        tabs.selectTabViewItem(item)
       }
     } else if let scroll = content as? NSScrollView, node.type == "scroll" {
       let stack = NSStackView(views: children)
@@ -392,7 +437,7 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
     }
   }
   private func changed(_ value: Value) {
-    guard !applying else { return }
+    guard !applying, interactionEnabled else { return }
     inputRevision += 1
     session.event(node: node.id, handler: "onChange", value: value, editRevision: inputRevision)
   }
@@ -408,6 +453,7 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
     }
   }
   @objc private func disclose() {
+    guard interactionEnabled else { return }
     disclosureOpen.toggle()
     disclosureBody?.isHidden = !disclosureOpen
     changed(.bool(disclosureOpen))
@@ -424,5 +470,15 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
   func tabView(_ tabView: NSTabView, didSelect tabViewItem: NSTabViewItem?) {
     guard let tabViewItem else { return }
     changed(.number(Double(tabView.indexOfTabViewItem(tabViewItem))))
+  }
+  func tabView(_ tabView: NSTabView, shouldSelect tabViewItem: NSTabViewItem?) -> Bool {
+    guard applying || interactionEnabled else {
+      // Accessibility can attempt a press on a disabled tab's native proxy.
+      // Refresh AppKit's header from the retained selection after refusing it.
+      tabView.needsLayout = true
+      tabView.needsDisplay = true
+      return false
+    }
+    return true
   }
 }

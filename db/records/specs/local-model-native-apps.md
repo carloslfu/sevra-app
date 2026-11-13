@@ -2,7 +2,7 @@
 type: spec
 id: 01m79fs6ac5qjrxm82yqwa255e
 created: 2026-11-13T03:38:52.108343+00:00
-updated: 2026-11-13T04:48:32.033716+00:00
+updated: 2026-11-13T15:14:47.558574+00:00
 summary: Local-model native app authoring, isolated checks, independent review and exact-version access.
 title: Local-model native app authoring
 status: implemented
@@ -27,7 +27,7 @@ Unapproved source runs in the separately signed `app-check-worker` XPC service; 
 
 ## Checks and authority
 
-The checker supports native inputs, buttons, picker/tab/table selection, row activation, canvas actions, visible text/control/value assertions, region positions and persisted row counts/values. Hidden ancestors and inactive panels cannot satisfy visibility checks. Every step settles asynchronous replies and reactive subscriptions. Decimal math uses the core calculator; formula columns remain derived values. Read-only bindings default to no write permission.
+The checker supports native inputs, buttons, picker/tab/table selection, row activation, canvas actions, visible text/control/value assertions, region positions and persisted row counts/values. Hidden ancestors and inactive panels cannot satisfy visibility checks. Action steps also refuse disabled ancestors, matching native host dispatch; inspecting an inert canvas region remains allowed. Every step settles asynchronous replies and reactive subscriptions. Decimal math uses the core calculator; formula columns remain derived values. Read-only bindings default to no write permission.
 
 Budgets bound source/package size, fixtures, test steps, runtime, XPC replies, bridge requests, transactions, subscriptions and frames. Unhandled promise failures stop the worker instead of leaving an apparently healthy app. Cancellation refuses publication. Temporary files and access objects are cleaned up.
 

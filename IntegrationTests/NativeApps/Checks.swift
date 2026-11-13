@@ -122,6 +122,9 @@ func exchange(
       misleading.datasets["rows"]!.datasetID = "missing-table"
       try refuses { _ = try book.nativeAppTableTitles(misleading) }
     }
+    check("Bound reads refuse changed or archived schemas; rename and reapproval remain valid") {
+      try schemaAccessCheck(root: root)
+    }
     let insert: Value = .object([
       "op": .string("insert"), "table": .string("rows"),
       "values": .object(["name": .string("Brass fitting"), "amount": .string("19.99")]),
@@ -274,6 +277,22 @@ func exchange(
       }
     }
     if CommandLine.arguments.contains("--xpc") {
+      do {
+        try await sharedRevocationCheck(root: root)
+        passed += 1
+        print("PASS Device revocation fences other sessions and cannot revive stale grants")
+      } catch {
+        failed += 1
+        print("FAIL Shared device revocation: \(error)")
+      }
+      do {
+        try await controlledWidgetsCheck(root: root)
+        passed += 1
+        print("PASS Native controlled table and tab initialization and reactive updates")
+      } catch {
+        failed += 1
+        print("FAIL Controlled native widgets: \(error)")
+      }
       do {
         try await xpcCheck(root: root)
         passed += 1

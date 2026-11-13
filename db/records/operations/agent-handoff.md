@@ -3,13 +3,23 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-13T04:51:08.173613+00:00
-summary: Local-model native app creation and editing accepted as a source preview with isolated checks, independent review, actual UI tests and explicit generation limits.
+updated: 2026-11-13T15:30:55.792619+00:00
+summary: 'Native-app adversarial review completed: two permission repairs, four UI repairs, full local checks and installed visual verification; source-preview limits remain.'
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
-## Current checkpoint: local-model native authoring accepted, November 12
+## Current checkpoint: native-app adversarial review completed, November 13
+
+The owner-requested [[records/reviews/native-app-adversarial-review-2026-11-13]] is complete for the native engine and local-model authoring scope. Six findings are repaired: two P1 permission issues (schema read expansion and stale live-session grants), plus four P2 native-state/presentation issues (initial table state, tab state/titles, disabled interactions and disclosure labels/state). Reproducing failures were retained; no known finding from this bounded review is left open. Earlier boolean development approvals require **Enable app** again; source and business records are unchanged.
+
+The [review receipt](../../../integration/evidence/2026-11-13-native-app-adversarial-review.json) records source and log hashes, actual failures, repairs and limits. `scripts/check.sh` completed successfully, including 650 core checks, native groups and full agent/grammar checks. Final presentation-only changes passed all 17 native groups, strict Swift lint, a fresh native release build and package/resource/signature checks. Installer/extraction checks also pass, with unchanged evidence reused for the last header-only change. The 11 authoring groups pass. No new actual-model inference is claimed; the seven actual-model cases and retained generation failures below remain relevant.
+
+Installed main UUID **`C1206D73-F023-3CB9-8A3B-C052F9A93B38`** matches the current packaged candidate. Both worker UUIDs are **`CB5298EB-B04D-3387-99B0-A220BF0DCF35`** and their exact signed bytes match their packaged products. The installed UI passed approval, disable/re-enable, saved-data preservation, initial/reverse sort and selection, tabs/titles, disabled and re-enabled actions, disclosures, centered rows and a narrowed scrollable layout. The disposable review workbook is left open with the working disclosure expanded. No real workbook, preserved baseline app, VoiceOver or system setting was changed.
+
+The baseline `9c59650d56260c75c4662a87ccd8c6224462208f` passed [hosted CI](https://github.com/carloslfu/sevra-app/actions/runs/43368224770). That run does not qualify these newer fixes; new hosted CI is not claimed here. This remains an internally reviewed source preview, not a production-notarized or independently security-certified release. Generated apps still need human testing. No further implementation is implied by the historical sections below.
+
+## Earlier checkpoint: local-model native authoring accepted, November 12
 
 The owner-requested [[records/plans/local-model-native-apps]] is implemented and verified as a source preview. Ordinary local chat can create and edit native mini apps using the shipped SDK. Generated source runs in a separate sandbox check process, receives a separate local-model review, and saves only after both pass. Each source version remains disabled until the person reviews actual table access and enables it. Apps run independently of the inference model once enabled.
 

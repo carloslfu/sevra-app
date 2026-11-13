@@ -103,6 +103,27 @@ func checkNativeAppAuthoring() async throws {
     ), steps: [.object(["kind": .string("expect_text"), "value": .string("Ready")])])
   try expectEqual(report["assertions"], .number(2))
   print("PASS isolated native calculator, decimal arithmetic and displayed error")
+  let controlSource = """
+    const S=Sevra,h=S.h,n=S.signal(0);
+    S.mount(h(S.Column,{},h(S.Column,{enabled:false},h(S.Button,{title:'Blocked',onClick:()=>n.value++})),h(S.Text,{text:()=>String(n.value)})));
+    """
+  let controlSteps = try steps(
+    """
+    [{"kind":"click","target":"Blocked"},{"kind":"expect_text","value":"1"}]
+    """)
+  do {
+    _ = try await NativeAppCheck.run(
+      package: .init(name: "Disabled", source: controlSource), steps: controlSteps)
+    throw SevraError("test", "Disabled ancestor accepted a simulated action")
+  } catch {
+    try expectEqual(error.localizedDescription.contains("Target is disabled"), true)
+  }
+  _ = try await NativeAppCheck.run(
+    package: .init(
+      name: "Enabled",
+      source: controlSource.replacingOccurrences(of: "enabled:false", with: "enabled:true")),
+    steps: controlSteps)
+  print("PASS checker and native host enforce disabled ancestry without blocking enabled actions")
   for source in [
     "Sevra.mount(Sevra.h(Sevra.Column,{hidden:true},Sevra.h(Sevra.Text,{text:'Ready'})));",
     "Sevra.mount(Sevra.h(Sevra.Table,{table:'rows',search:true}));",

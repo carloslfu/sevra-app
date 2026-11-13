@@ -1,19 +1,31 @@
 import Foundation
 
 extension Workbook {
+  /// Approval covers these exact columns, not future additions to the same table.
+  private func nativeAppBoundTable(_ binding: NativeAppDataset) throws -> Dataset {
+    guard let id = binding.datasetID else {
+      throw SevraError("app_permission", "This app has an unbound table.")
+    }
+    let table = try dataset(id)
+    try require(
+      !table.archived && table.columns == binding.columns, "app_schema",
+      "The table schema changed; update this app binding and review access again.")
+    return table
+  }
   /// Page data stays in native memory when used by a native table. JS queries use the same scope.
   public func nativeAppPage(_ access: NativeAppAccess, request: Value) throws -> Value {
     try synchronized {
-      try access.authorized(self) {
-        try db.readTransaction {
+      try db.readTransaction {
+        try access.authorized(self) {
           let binding = try access.binding(request["table"].text)
+          let table = try nativeAppBoundTable(binding)
           let offset = request["offset"].int ?? 0
           let limit = request["limit"].int ?? 100
           try require(
             (0...100_000).contains(offset) && (1...200).contains(limit), "app_query",
             "Invalid page bounds.")
           let page = try tablePage(
-            binding.datasetID!, offset: offset, limit: limit,
+            table.id, offset: offset, limit: limit,
             query: request["search"].string ?? "", sort: request["sort"].string,
             descending: request["descending"] == .bool(true))
           let result: Value = .object([
@@ -39,22 +51,24 @@ extension Workbook {
   /// Typed query sources name aliases, never raw SQL or an ungranted workbook/table.
   public func nativeAppQuery(_ access: NativeAppAccess, request: Value) throws -> Value {
     try synchronized {
-      try access.authorized(self) {
-        var object = request.object
-        object["sources"] = .array(
-          try request["sources"].array.map { source in
-            let binding = try access.binding(source["table"].text)
-            let table = try dataset(binding.datasetID!)
-            return .object([
-              "datasetID": .string(table.id), "definitionID": .string(table.definitionID),
-              "scope": source["scope"] == .null ? .object([:]) : source["scope"],
-            ])
-          })
-        let result = try queryDataset(.object(object))
-        try require(
-          result.json().utf8.count <= 1_048_576, "app_query",
-          "Query exceeds 1 MiB; narrow its result.")
-        return result
+      try db.readTransaction {
+        try access.authorized(self) {
+          var object = request.object
+          object["sources"] = .array(
+            try request["sources"].array.map { source in
+              let binding = try access.binding(source["table"].text)
+              let table = try nativeAppBoundTable(binding)
+              return .object([
+                "datasetID": .string(table.id), "definitionID": .string(table.definitionID),
+                "scope": source["scope"] == .null ? .object([:]) : source["scope"],
+              ])
+            })
+          let result = try queryDataset(.object(object))
+          try require(
+            result.json().utf8.count <= 1_048_576, "app_query",
+            "Query exceeds 1 MiB; narrow its result.")
+          return result
+        }
       }
     }
   }
@@ -110,10 +124,7 @@ extension Workbook {
           for operation in requested {
             let alias = operation["table"].text
             let binding = try access.binding(alias, write: true)
-            let table = try dataset(binding.datasetID!)
-            try require(
-              !table.archived && table.columns == binding.columns, "app_schema",
-              "The table schema changed; update this app binding.")
+            let table = try nativeAppBoundTable(binding)
             let kind = operation["op"].text
             switch kind {
             case "insert":
@@ -207,11 +218,11 @@ extension Workbook {
   /// max(rowid); removals change count. Schema versions cover calculated-column changes.
   public func nativeAppFingerprints(_ access: NativeAppAccess) throws -> [String: String] {
     try synchronized {
-      try access.authorized(self) {
-        try db.readTransaction {
+      try db.readTransaction {
+        try access.authorized(self) {
           var result: [String: String] = [:]
           for (alias, binding) in access.package.datasets {
-            let table = try dataset(binding.datasetID!)
+            let table = try nativeAppBoundTable(binding)
             let row = try db.execute(
               "SELECT COUNT(*) AS n,MAX(i.rowid) AS last FROM dataset_rows d JOIN heads h ON h.logical_id=d.logical_id JOIN items i ON i.id=h.item_id WHERE d.dataset_id=?",
               [.string(table.id)]

@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-13T02:39:19.242682Z
+updated: 2026-11-13T15:09:29.660853Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/native-app-adversarial-review]] — Owner requests an adversarial review of the complete new native mini-app feature.
 - [[sources/notes/2026/11/local-model-native-apps]] — Local model native-app authoring request
 - [[sources/notes/2026/11/native-interface-quality]] — Owner requires deep visual and functional interface review, including spacing, placement and appearance, as a standing expectation.
 - [[sources/notes/2026/11/programmable-native-engine]] — Owner requests full native programmable app-engine implementation and verification, explicitly permitting installation and UI testing.

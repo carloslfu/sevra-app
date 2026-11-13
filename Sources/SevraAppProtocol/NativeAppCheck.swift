@@ -253,7 +253,8 @@ public enum NativeAppCheck {
         case "drop", "expect_region", "press_region":
           let node = try control()
           try require(
-            node.type == "canvas" && node.props["enabled"] != .bool(false), "app_check",
+            node.type == "canvas"
+              && (kind == "expect_region" || tree.interactionEnabled[node.id] == true), "app_check",
             "This step targets an enabled canvas.")
           let target = step["value"].text
           let regions = node.props["regions"].array.filter {
@@ -312,7 +313,7 @@ public enum NativeAppCheck {
           assertions += 1
         case "change", "click", "select", "activate":
           let node = try control()
-          try require(node.props["enabled"] != .bool(false), "app_check", "Target is disabled.")
+          try require(tree.interactionEnabled[node.id] == true, "app_check", "Target is disabled.")
           var value = step["value"]
           let handler: String
           if kind == "click" {

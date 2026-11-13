@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-13",
+  "scope": "Native mini-app engine and local-model authoring adversarial review",
+  "reviewedBaseline": "9c59650d56260c75c4662a87ccd8c6224462208f",
+  "baselineCI": {
+    "conclusion": "success",
+    "url": "https://github.com/carloslfu/sevra-app/actions/runs/43368224770",
+    "qualifiesNewFixes": false
+  },
+  "findings": [
+    {
+      "severity": "P1",
+      "issue": "Schema additions silently expanded approved reads",
+      "status": "fixed",
+      "regression": "Changed/archived schemas refuse pages, typed queries and fingerprints; rename and new binding succeed"
+    },
+    {
+      "severity": "P1",
+      "issue": "Disable did not fence another live session",
+      "status": "fixed",
+      "regression": "Captured generation refuses stale reads/writes and reapproval; final commit revocation rolls back"
+    },
+    {
+      "severity": "P2",
+      "issue": "Initial table sort, indicator and selection ignored",
+      "status": "fixed",
+      "regression": "Reversed fixture order, selected logical row and reverse-sort selection retention"
+    },
+    {
+      "severity": "P2",
+      "issue": "Initial tab selection and reactive titles ignored",
+      "status": "fixed",
+      "regression": "Second-tab initial selection and reactive title update"
+    },
+    {
+      "severity": "P2",
+      "issue": "Disabled ancestors and composite controls remained actionable",
+      "status": "fixed",
+      "regression": "Native host and checker deny actions; reenable restores action; native disabled header state refreshed"
+    },
+    {
+      "severity": "P2",
+      "issue": "Disclosure titles and expander state were not presented correctly",
+      "status": "fixed",
+      "regression": "Visible label, accessible name, disabled state and enabled open/close counterexample"
+    }
+  ],
+  "checks": {
+    "fullLocalSuite": {
+      "exitCode": 0,
+      "corePassed": 650,
+      "coreFailed": 0,
+      "packagedJourneys": "Skipped stale products; fresh native product checked separately",
+      "finalUIRefinements": "Later presentation-only changes passed focused native checks and release/package/UI verification"
+    },
+    "nativeGroups": {
+      "passed": 17,
+      "failed": 0
+    },
+    "authoringGroups": {
+      "passed": 11,
+      "failed": 0
+    },
+    "swiftFormatStrict": "passed",
+    "diffWhitespace": "passed",
+    "nativePackage": "passed",
+    "installer": "passed",
+    "extractionPackage": "passed",
+    "reusedEvidence": "Authoring/core/SDK and installer/extraction evidence unchanged by final native-header presentation refinements; no new model inference claimed"
+  },
+  "installed": {
+    "mainUUID": "C1206D73-F023-3CB9-8A3B-C052F9A93B38",
+    "mainSHA256": "dcd3ffc20a17422e43dea903c9ed0c09835198b0ab5b11f9c18d624bc4d924cc",
+    "worker": {
+      "app-worker": {
+        "uuid": "CB5298EB-B04D-3387-99B0-A220BF0DCF35",
+        "sha256": "7166fa200cdb239668a7a287ab63422916a43409db077ef8b0ea91592cdbeeee"
+      },
+      "app-check-worker": {
+        "uuid": "CB5298EB-B04D-3387-99B0-A220BF0DCF35",
+        "sha256": "aa836d2266c6c819beb1013b75da647f66f6358896ca91e1ef1f87f8419fbe7c"
+      }
+    },
+    "exactPackageMatch": true,
+    "strictSignature": true
+  },
+  "visibleUI": {
+    "passed": true,
+    "data": "Disposable synthetic workbook only",
+    "flows": [
+      "Read-only actual-table approval",
+      "New app version requires Enable",
+      "Disable removes runtime and fresh approval restores it",
+      "Three saved rows including exact 12.5 persist through app reopen and approval",
+      "Initial alphabetical sort, indicator and selected Alpha row",
+      "Reverse sort retains selected Alpha",
+      "Initial second tab, rename and enabled tab navigation",
+      "Disabled action and tabs refuse; enabled action increments counter",
+      "Disclosure labels, disabled state and expand/collapse",
+      "Wide and compact layout, centered table rows, full-width columns, readable footer and access to last control by scrolling"
+    ],
+    "voiceOver": false,
+    "systemSettingChanges": false,
+    "leftOpen": "Synthetic Native controls review app, narrowed window with disclosure expanded"
+  },
+  "sourceSHA256": {
+    "IntegrationTests/Agent/NativeAppAuthoringChecks.swift": "556015ca99afa1c7a47e8c6cb162a63723b2914e9c2618c7ffb33436d3c5114a",
+    "IntegrationTests/NativeApps/AdversarialChecks.swift": "af7fc4863fcf2c33b040b1a087ece6b465dd1b8a1e2d10dc710ed62c4908c441",
+    "IntegrationTests/NativeApps/Checks.swift": "da324169d16db5ea55afd4175afd6263de7663914cc1b78ac5dc961583ef7b93",
+    "Sources/SevraAppProtocol/NativeAppCheck.swift": "d9a9489fb82e544f25c9def8e0029a2f24223964992ac5b2c48b28a311effb9e",
+    "Sources/SevraAppProtocol/NativeAppProtocol.swift": "d5e04bff7c1ee6daf3f493dfd2965e4dba385e2515aad9987b326a34db1aae2e",
+    "Sources/SevraAppUI/NativeAppCanvas.swift": "20445ee1ede91ea467df6e78f5e1f0ed0cbafbcf9c2849c665a321a2fcea8629",
+    "Sources/SevraAppUI/NativeAppRenderer.swift": "8d14cfd637057aae13ea361f661bb8721c0b1ced5c28742afc8cb4b17d06267d",
+    "Sources/SevraAppUI/NativeAppSession.swift": "9ccd339a60f95ace918e322dc34bb85b75cf7043713b6793931a00b4c0d49c9d",
+    "Sources/SevraAppUI/NativeAppTable.swift": "b11a2b823e23fa78f778dcd1b33f3b8751e9fb69a0d417bc64883c2b65c28bc3",
+    "Sources/SevraCore/NativeAppData.swift": "d3304c24813a7b7c19032aa0d5cbe97f39da97d8d622dae5c0388555cd6ec3c9",
+    "Sources/SevraCore/NativeAppPackage.swift": "d8ce4b556d4e67ebfb357ff5f5b9f977543b44c920c9dd91c044846c5dafc77e"
+  },
+  "logSHA256": {
+    "native-app-adversarial-before.log": "a83e6b7433b93993944709afcdd53899eda8147f89fbd62db66871f566a1d2e3",
+    "native-app-disabled-before.log": "d1f94958f0d85898e0b460e47e0c97ea7b622b81b58c7399857d166d31bbf0b5",
+    "native-app-adversarial-after.log": "df9cd9c20ef5e12450a370394a1e9382640843839069d081e87eaf9714793981",
+    "native-app-review-authoring.log": "7c4009adc8bca81c25fd11422542ccb3e4edb1b784905e5a4bb9c200fd6ddc98",
+    "native-app-review-full-check.log": "63df2f1960dca4d41f7b3a4b94a44b0a38348f2bd082fabf6a523c5f15be52d9",
+    "native-app-review-verified-focused.log": "4f9b3b2822b988df8c1e932c04a9c76dc51f1c6583a41d618a6a4ce5d32b0fc0",
+    "native-app-review-release-final.log": "9a32db4f3caf76dcc92b4a255adc4ab78dba4d010d0e5786beffe0a42dcd5203",
+    "native-app-review-package-final.log": "4de5a7c1e5a9d48f88a9dffb1c61943c4f901d290b8ad550c0ca504af7c0012e",
+    "native-app-review-final-install-check.log": "a63a876d81f8c07fe255c9c20ca83a80c9f8df302299f1e5f111ef35cd4e0925",
+    "native-app-review-final-extraction.log": "d28a3a716dd495c7d7fabdd3bb60cd66d30dde70023d1c6e942456c157be2e65",
+    "native-app-review-install-final.log": "a3e66c9a488603ed0a507b360fe9fe04c48cf889dbfe3f1332aba31bd8a45a25"
+  },
+  "limits": [
+    "Internal adversarial review, not independent security certification",
+    "No line-by-line audit of vendored QuickJS or inference engine",
+    "Generated programs still require behavioral and visual inspection; retained long-conversation failures remain",
+    "Same-host session revocation tested; hostile-local-account/process access is not a supported threat boundary",
+    "Source preview; no production notarization, external-user, broader-hardware or VoiceOver qualification"
+  ]
+}
