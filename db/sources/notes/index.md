@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-13T15:09:29.660853Z
+updated: 2026-11-13T15:44:35.482964Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/mini-app-fresh-start]] — Owner confirms fresh development baseline: clear obsolete mini-app fixtures and avoid migration or legacy compatibility burdens.
 - [[sources/notes/2026/11/native-app-adversarial-review]] — Owner requests an adversarial review of the complete new native mini-app feature.
 - [[sources/notes/2026/11/local-model-native-apps]] — Local model native-app authoring request
 - [[sources/notes/2026/11/native-interface-quality]] — Owner requires deep visual and functional interface review, including spacing, placement and appearance, as a standing expectation.

@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5rbxzbe4pdmde0k72e3j6n6
 created: 2026-10-25T01:48:47.342811+00:00
-updated: 2026-11-01T08:40:00.000000+00:00
+updated: 2026-11-13T15:44:35.556896+00:00
 summary: Independent source build, native bundle, CLI skill, portable format and end-to-end release gates.
 title: Distribution and verification
 status: reviewed
@@ -197,3 +197,7 @@ and regression fixtures for later supported production releases. This policy doe
 not claim that production release or notarization has happened.
 
 Source: [[sources/notes/2026/10/pre-1-production-compatibility-policy]].
+
+## November 13 fresh-development reaffirmation
+
+[[sources/notes/2026/11/mini-app-fresh-start]] confirms there are no existing customers whose mini-app development formats need preserving. Keep a single current contract, retire obsolete code when present, and reset selected disposable prototypes instead of requiring migration or reapproval steps for old test installations. Verify a newly created workbook/app through normal review, initial approval and use. Current security, integrity, history and recovery requirements above remain in force. Test runners clean their temporary app bundles, workbook roots and test preference state; retained explicit live-model evidence remains separately identified.

@@ -2,7 +2,7 @@
 type: spec
 id: 01m79fs6ac5qjrxm82yqwa255e
 created: 2026-11-13T03:38:52.108343+00:00
-updated: 2026-11-13T15:14:47.558574+00:00
+updated: 2026-11-13T15:59:38.299138+00:00
 summary: Local-model native app authoring, isolated checks, independent review and exact-version access.
 title: Local-model native app authoring
 status: implemented
@@ -35,7 +35,7 @@ The separate review model has only `review_native_app`, no write or enable tools
 
 ## Limits
 
-Synthetic assertions and a separate model review reduce mistakes; neither proves every behavior or visual quality. Generated apps require human inspection and ordinary testing before real business use. Requests may exhaust the bounded repair/context budget, including repeated syntax mistakes in long conversations. Starting a fresh focused thread is a practical recovery path, not a guarantee. The SDK is extensible but finite, and does not promise full Excel fidelity, arbitrary OS access or custom compiled native controls. Native layout, assistive technology, external security assessment and scale require evidence appropriate to the actual app. This remains a locally signed source preview.
+Synthetic assertions and a separate model review reduce mistakes; neither proves every behavior or visual quality. Generated apps require human inspection and ordinary testing before real business use. Requests may exhaust the bounded repair/context budget or repeatedly select the wrong tool. The November 13 fresh-baseline check failed even in a new workbook, and a guided follow-up did not recover; see [[records/reviews/native-app-fresh-start-2026-11-13]]. A fresh focused thread has helped in other observed cases but does not guarantee creation. The SDK is extensible but finite, and does not promise full Excel fidelity, arbitrary OS access or custom compiled native controls. Native layout, assistive technology, external security assessment and scale require evidence appropriate to the actual app. This remains a locally signed source preview.
 
 ## Measured authoring context
 

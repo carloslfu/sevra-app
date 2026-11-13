@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m79cc57776g0jbnzxjd021bs
 created: 2026-11-13T02:39:19.271938+00:00
-updated: 2026-11-13T15:14:47.580589+00:00
+updated: 2026-11-13T15:59:15.022882+00:00
 summary: Local model native-app authoring
 title: Local model native-app authoring
 ---
@@ -41,3 +41,13 @@ The final calculator was generated in a fresh focused thread, then enabled and t
 ## November 13 owner-requested adversarial follow-up
 
 The broader [[records/reviews/native-app-adversarial-review-2026-11-13]] found schema-read permission expansion, stale grants in another live session, initial table/tab state errors and disabled-control mismatches. Reproducing probes and fixes are recorded there. The previous authoring commit `9c59650d56260c75c4662a87ccd8c6224462208f` subsequently passed [hosted CI](https://github.com/carloslfu/sevra-app/actions/runs/43368224770); that historical result does not qualify the new fixes. This review keeps the same source-preview and generation-reliability limits.
+
+## November 13 fresh-baseline follow-up
+
+The owner clarified [[sources/notes/2026/11/mini-app-fresh-start]]: no existing users or development-format migration support. [[records/reviews/native-app-fresh-start-2026-11-13]] records the scoped cleanup and new verification.
+
+- [x] Retire selected old mini-app fixtures, device approvals and recents while preserving unrelated data and historical evidence.
+- [x] Fix test-host/workbook/preference cleanup and prove fresh inert startup before first approval.
+- [x] Pass 17 native and 11 authoring groups; inspect a newly imported app's approval, validation, save, Undo and spacing.
+- [x] Remove final temporary workbook/approval/recent and return to Welcome.
+- [ ] Resolve actual-model fresh calculator creation and recovery reliability. The new first request stopped on repeated syntax/test errors; guided recovery selected the wrong fixed-space tool. Both saved no app. Earlier successful scenarios remain evidence for their cases, not universal or unassisted creation. No model or runtime change was made in this cleanup checkpoint.

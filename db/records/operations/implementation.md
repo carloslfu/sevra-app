@@ -3,15 +3,23 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-13T15:30:55.838910+00:00
-summary: 'Native-app adversarial review completed: two permission repairs, four UI repairs, full local checks and installed visual verification; source-preview limits remain.'
+updated: 2026-11-13T15:59:14.921159+00:00
+summary: Fresh mini-app baseline cleaned and tested; 28 focused groups and imported-app UI pass. Fresh local-model calculator creation and guided recovery failed; authoring reliability remains open.
 title: Implementation and acceptance
 ---
 # Implementation and acceptance
 
-## Current checkpoint: native-app adversarial review completed, November 13
+## Current checkpoint: fresh mini-app baseline, November 13
 
-The owner-requested [[records/reviews/native-app-adversarial-review-2026-11-13]] is complete for the native engine and local-model authoring scope. Six findings are repaired: two P1 permission issues (schema read expansion and stale live-session grants), plus four P2 native-state/presentation issues (initial table state, tab state/titles, disabled interactions and disclosure labels/state). Reproducing failures were retained; no known finding from this bounded review is left open. Earlier boolean development approvals require **Enable app** again; source and business records are unchanged.
+The owner-approved [[sources/notes/2026/11/mini-app-fresh-start]] is implemented for the selected development artifacts: obsolete mini-app workbooks/packages, 20 approvals and their recent entries are retired, with unrelated workbooks, model files, canonical examples and historical evidence preserved. Test runners now dispose of temporary host bundles; native tests return before process exit so their workbook cleanup runs, and test preference domains clear. No migration or compatibility path was added. Normal initial review and per-version approval remain required.
+
+The [[records/reviews/native-app-fresh-start-2026-11-13]] and [receipt](../../../integration/evidence/2026-11-13-native-app-fresh-start.json) separate the outcomes. All 17 native and 11 authoring groups pass. A fresh canonical Inventory app passed native import, initial access review/enable, validation, save/reactive row count, Undo and normal/narrow spacing inspection. Its workbook, grant and recent entry were then removed; the installed app is on Welcome. Installed main UUID `C1206D73-F023-3CB9-8A3B-C052F9A93B38` matches the packaged product; runtime source is unchanged.
+
+**Open authoring reliability issue:** a new local-model calculator request exhausted its steps on repeated syntax/test errors; a guided follow-up selected the wrong fixed-layout tool and stopped. Neither saved an app; integrity and permissions held. This occurred in a fresh workbook, so failures are not limited to long prior conversations. The imported example's success does not qualify this model request. No broad generation-reliability claim is warranted.
+
+## Earlier checkpoint: native-app adversarial review completed, November 13
+
+The owner-requested [[records/reviews/native-app-adversarial-review-2026-11-13]] is complete for the native engine and local-model authoring scope. Six findings are repaired: two P1 permission issues (schema read expansion and stale live-session grants), plus four P2 native-state/presentation issues (initial table state, tab state/titles, disabled interactions and disclosure labels/state). Reproducing failures were retained; no known finding from this bounded review is left open. The old approvals belonged to disposable development fixtures. The later [[sources/notes/2026/11/mini-app-fresh-start]] retires that test state instead of defining a user upgrade task.
 
 The [review receipt](../../../integration/evidence/2026-11-13-native-app-adversarial-review.json) records source and log hashes, actual failures, repairs and limits. `scripts/check.sh` completed successfully, including 650 core checks, native groups and full agent/grammar checks. Final presentation-only changes passed all 17 native groups, strict Swift lint, a fresh native release build and package/resource/signature checks. Installer/extraction checks also pass, with unchanged evidence reused for the last header-only change. The 11 authoring groups pass. No new actual-model inference is claimed; the seven actual-model cases and retained generation failures below remain relevant.
 

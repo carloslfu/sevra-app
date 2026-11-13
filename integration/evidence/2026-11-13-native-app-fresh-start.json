@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-13",
+  "scope": "Fresh native mini-app development baseline and cleanup",
+  "productBaseline": "d72c4a4393386a31d218824b78a6148f32aa0f6e",
+  "productSourceChanged": false,
+  "ownerDirection": "Discard selected obsolete development mini-app state; maintain one current contract without migrations or compatibility adapters.",
+  "cleanup": {
+    "oldMiniAppWorkbooksAndBundlesRemoved": true,
+    "oldApprovalCount": 20,
+    "oldBooleanApprovalCount": 18,
+    "oldRecentEntriesRemoved": 3,
+    "emptyTestPreferenceFilesRemoved": 56,
+    "temporaryWorkbookRootsRemain": 0,
+    "temporaryAppBundlesRemain": 0,
+    "bundleCleanupOnSuccessAndFailure": true,
+    "otherPreferencesUnchangedBeforeDomainCleanup": true,
+    "historicalLogsAndReceiptsPreserved": true,
+    "modelAndPreservedBaselineUntouched": true,
+    "cleanupNote": "defaults refuses an already empty test domain; its empty plist was verified before removal",
+    "finalTestWorkbookRemoved": true,
+    "finalTestGrantRemoved": true,
+    "finalTestRecentRemoved": true,
+    "unrelatedPreferencesPreservedDuringFinalCleanup": true,
+    "nativeAppGrantsRemaining": 0,
+    "canonicalExamplesPreserved": true,
+    "freshWorkbookIntegrityAfterTests": "passed"
+  },
+  "checks": {
+    "nativeGroups": {
+      "passed": 17,
+      "failed": 0
+    },
+    "authoringGroups": {
+      "passed": 11,
+      "failed": 0
+    },
+    "temporaryBundles": "Absent after success and deliberately missing-binary failure for both runner scripts",
+    "nativeTemporaryWorkbook": "Removed after the normal test runner returns; former exit-before-defer bug fixed",
+    "freshPermission": "Before enable: no grant, no access, no tree, no rows. After enable: scoped approval and reactive/data/restart journey pass.",
+    "fullSuite": "Unchanged product evidence reused from preceding adversarial review; no new full-suite claim.",
+    "swiftFormatStrict": "passed",
+    "pythonSyntax": "passed",
+    "documentationLinks": "passed",
+    "knowledgeValidation": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "diffWhitespace": "passed"
+  },
+  "installed": {
+    "mainUUID": "C1206D73-F023-3CB9-8A3B-C052F9A93B38",
+    "matchesPackagedProduct": true,
+    "evidenceReused": "Package/signature/worker identity and full local suite from 2026-11-13-native-app-adversarial-review.json; unchanged product source."
+  },
+  "freshImportedAppUI": {
+    "package": "examples/apps/inventory/app.sevraapp",
+    "initialApproval": "Stock: Read and change records; app inert until Enable",
+    "cases": [
+      "empty start",
+      "required name refusal",
+      "save Test bolts quantity 3",
+      "reactive total 1",
+      "visible centered row",
+      "Undo to zero rows",
+      "normal and narrow layout"
+    ],
+    "workbookIntegrity": "passed",
+    "finalState": "Welcome screen; this test workbook, its approval and recent entry removed; unrelated recents preserved"
+  },
+  "actualModelCreation": {
+    "status": "failed",
+    "request": "Fresh calculator: Quantity and Unit price initially 0; exact decimal multiply; invalid-input feedback; no tables",
+    "initialRun": {
+      "id": "8c26429c-d302-4bc8-9df1-3e2c2da452d4",
+      "durationSeconds": 277,
+      "outcome": "step limit",
+      "failures": [
+        "repeated extra closing parentheses",
+        "incorrect expected decimal trailing zero",
+        "incorrect expected error substring",
+        "update IDs invented before an app was saved"
+      ]
+    },
+    "guidedFollowup": {
+      "id": "d7afc709-a678-4b37-944e-058564716d70",
+      "durationSeconds": 107,
+      "outcome": "repeated unsuccessful action",
+      "failures": [
+        "selected save_space instead of native authoring after reading stopped request",
+        "repeated Item binding is required"
+      ]
+    },
+    "savedAppsBeforeImport": 0,
+    "permissionsGrantedByModel": 0,
+    "integrityAfterFailure": "passed",
+    "resolved": false,
+    "interpretation": "Retained generation reliability limit. The successful canonical-package UI test is not evidence that this model-generated calculator succeeded."
+  },
+  "changedFileSHA256": {
+    "IntegrationTests/NativeApps/Checks.swift": "5f701f7b69ed71388c740e793ba6715d48b07220f024de106f8ddd525eb75d73",
+    "IntegrationTests/NativeApps/AdversarialChecks.swift": "094aeb25f48a6ce2ccc5c862ed8f7ea94e7119461ae2be2ab516feea2393188e",
+    "scripts/check_native_apps.py": "d59125d56b46881dc8192ccbd1047c4978756e7a74384e069709e17a9d8558c9",
+    "scripts/check_native_app_authoring.py": "fa7cda50e2a3fce15abc88099604d6688fad7dcd51030272078cd6590b6be3b4"
+  },
+  "localEvidenceSHA256": {
+    "native-checks.log": "e3815c4b5c851d6ca0608b1420fc77b7023a6d29e7d3d886a1b50e48bf2a7d61",
+    "authoring-checks.log": "0b09b756f8b11223c23dadac606348c416bb78abe659cf16c44081315754ac2f",
+    "generation-history-final.json": "7e670336adee6bf3b9393b4e97ef10d0d8500d60a71f3d9041f15dfa7fecbe9e",
+    "final-spaces.json": "484572b4b3e40084b91959f23ee5c366b7985e3f210f2abc9215606528a3e6c9",
+    "fresh-import-space.json": "ba6c870b267d52b19455105eeb99641bb68fc3bef0dc3c92af507cbccfd38030",
+    "fresh-import-rows.json": "72c68f121b7b6b9ab4239e80ef80b4777d1ea3e41f24ef3bada64731b0bf054e",
+    "workbook-verification-final.json": "c0469948faeb492e996cde4809b074545210067e2808f5ead2c284134d58d469",
+    "cleanup.json": "2f3f2234727fc5be59fe71f76a8fe49466a0f219cc1f826cce4bef939ae8dd46"
+  },
+  "limits": [
+    "Local-model creation and recovery are not reliable for every request; both fresh calculator attempts failed.",
+    "No blanket security certification, production signing/notarization, hardware or VoiceOver qualification.",
+    "Current-format history, sandboxing, per-version approval and schema/revocation checks remain intact."
+  ]
+}

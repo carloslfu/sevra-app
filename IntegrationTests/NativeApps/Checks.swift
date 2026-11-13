@@ -31,6 +31,9 @@ func exchange(
 }
 @main struct Checks {
   @MainActor static func main() async {
+    exit(await run())
+  }
+  @MainActor static func run() async -> Int32 {
     setbuf(stdout, nil)
     var passed = 0
     var failed = 0
@@ -88,7 +91,7 @@ func exchange(
         )
       }
       print("\(passed) passed, \(failed) failed")
-      exit(failed == 0 ? 0 : 1)
+      return failed == 0 ? 0 : 1
     }
     var package = NativeAppPackage(
       name: "Records", source: "Sevra.mount(Sevra.h(Sevra.Text,{text:'Ready'}));",
@@ -303,7 +306,7 @@ func exchange(
       }
     }
     print("\(passed) passed, \(failed) failed")
-    exit(failed == 0 ? 0 : 1)
+    return failed == 0 ? 0 : 1
   }
   @MainActor static func xpcCheck(root: URL) async throws {
     _ = NSApplication.shared
@@ -354,8 +357,15 @@ func exchange(
       .appendingPathComponent("examples/apps/inventory/app.sevraapp")
     let package = try NativeAppPackage.decode(Data(contentsOf: example))
     let space = try book.installNativeApp(package)
-    let defaults = UserDefaults(suiteName: "sevra.native-app-checks." + identifier())!
+    let domain = "sevra.native-app-checks." + identifier()
+    let defaults = UserDefaults(suiteName: domain)!
+    defer { defaults.removePersistentDomain(forName: domain) }
     let session = NativeAppSession(book: book, space: space, defaults: defaults)
+    session.start()
+    try expect(!session.isGranted && session.status == "disabled" && session.access == nil)
+    try expect(session.tree.nodes.isEmpty, "A fresh app executed before approval")
+    try expect(book.rows(space.definition.app!.datasets["stock"]!.datasetID!).isEmpty)
+    try expect(book.nativeAppTableTitles(space.definition.app!)["stock"] == "Stock")
     let renderer = NativeAppRenderer(session: session)
     let window = NSWindow(
       contentRect: NSRect(x: 0, y: 0, width: 850, height: 680),
@@ -368,6 +378,7 @@ func exchange(
     }
     try await wait { session.status == "running" || session.status == "failed" }
     try expect(session.status == "running", session.error ?? session.status)
+    try expect(session.isGranted, "Fresh approval was not retained")
     try await wait {
       session.tree.nodes.values.contains { $0.props["text"].text == "0 items in stock" }
     }

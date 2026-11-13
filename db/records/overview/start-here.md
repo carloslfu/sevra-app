@@ -3,8 +3,8 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-11-13T15:30:55.913844+00:00
-summary: 'Native-app adversarial review completed: two permission repairs, four UI repairs, full local checks and installed visual verification; source-preview limits remain.'
+updated: 2026-11-13T15:59:14.995866+00:00
+summary: Fresh mini-app baseline cleaned and tested; 28 focused groups and imported-app UI pass. Fresh local-model calculator creation and guided recovery failed; authoring reliability remains open.
 title: Start here
 ---
 # Sevra app
@@ -24,7 +24,9 @@ Slotstream remains independent.
 
 ## Current preview and delivery order
 
-**Adversarial native-app review completed, November 13:** six reproduced or visually observed findings are repaired, including two permission gaps. Full local checks, final focused native checks, fresh package verification and installed wide/compact UI inspection pass. See [[records/reviews/native-app-adversarial-review-2026-11-13]] and [[records/operations/agent-handoff]] for exact build identity, evidence and limits. Development approvals require Enable again; saved source/data are preserved. This remains a source preview.
+**Fresh mini-app baseline, November 13:** selected obsolete development workbooks, packages, approvals and recents are removed; no user migration or compatibility layer is maintained. Test cleanup and all 28 focused groups pass. A new imported Inventory app passed review/enable, validation, save, Undo and spacing inspection. **A fresh local-model calculator request and its guided retry both failed without saving an app.** Generation reliability remains open, including fresh requests. See [[records/reviews/native-app-fresh-start-2026-11-13]] and [[records/operations/agent-handoff]].
+
+**Adversarial native-app review completed, November 13:** six reproduced or visually observed findings are repaired, including two permission gaps. Full local checks, final focused native checks, fresh package verification and installed wide/compact UI inspection pass. See [[records/reviews/native-app-adversarial-review-2026-11-13]] and [[records/operations/agent-handoff]] for exact build identity, evidence and limits. The obsolete test approvals are retired by [[sources/notes/2026/11/mini-app-fresh-start]]; no user migration is required. This remains a source preview.
 
 **Local-model native authoring accepted, November 12:** local chat now creates and edits programmable mini apps, runs isolated synthetic checks and separate model review, and saves an inert version for native access approval. Seven representative actual-model scenarios and an edit have independent checks; installed UI covers creation, editing, data preservation, exact calculation, search, Undo, narrow layout and canvas persistence. Long conversations can still repeat code errors; a fresh focused thread recovered the final calculator case. See [[records/specs/local-model-native-apps]], [[records/plans/local-model-native-apps]] and [[records/reviews/local-model-native-apps]] for the implementation and exact limits. [[records/operations/agent-handoff]] records current installed identity. This remains a source preview.
 

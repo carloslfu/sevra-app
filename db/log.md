@@ -145,3 +145,6 @@ Final exact-source native release build and 40-file strict lint passed; dbmd val
 ## [2026-11-12 18:03] verification | records/operations/implementation
 Owner-authorized A1-A10 headless checkpoint: 22 behavior groups and 10 static adapter groups pass, 19 Swift files lint and native build pass; reader metadata/NUL and PDF document reset corrected; no UI or VoiceOver; handoff updated and work returns to paused after commit/push.
 
+## [2026-11-13 15:59] verification | records/reviews/native-app-fresh-start-2026-11-13
+Retired obsolete native-app development fixtures; fixed cleanup; 17 native and 11 authoring groups pass. Fresh imported UI flow passes. Actual-model fresh calculator and guided retry failed safely and remain open.
+

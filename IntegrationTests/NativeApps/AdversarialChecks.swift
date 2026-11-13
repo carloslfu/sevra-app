@@ -81,7 +81,9 @@ extension Checks {
         h(S.Disclosure,{title:'Working details',value:false},h(S.Text,{text:'Visible details'}))));
         """, datasets: ["rows": .init(title: "Rows", columns: columns, datasetID: table.id)])
     let space = try book.installNativeApp(package)
-    let defaults = UserDefaults(suiteName: "sevra.adversarial." + identifier())!
+    let domain = "sevra.adversarial." + identifier()
+    let defaults = UserDefaults(suiteName: domain)!
+    defer { defaults.removePersistentDomain(forName: domain) }
     let session = NativeAppSession(book: book, space: space, defaults: defaults)
     let renderer = NativeAppRenderer(session: session)
     let window = NSWindow(
@@ -179,7 +181,9 @@ extension Checks {
         "rows": .init(title: "Rows", columns: [.init(id: "name", title: "Name")], writable: true)
       ])
     let space = try book.installNativeApp(package)
-    let defaults = UserDefaults(suiteName: "sevra.adversarial." + identifier())!
+    let domain = "sevra.adversarial." + identifier()
+    let defaults = UserDefaults(suiteName: domain)!
+    defer { defaults.removePersistentDomain(forName: domain) }
     let first = NativeAppSession(book: book, space: space, defaults: defaults)
     let second = NativeAppSession(book: book, space: space, defaults: defaults)
     first.enable()
