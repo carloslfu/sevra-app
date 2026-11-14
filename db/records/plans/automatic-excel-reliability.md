@@ -2,7 +2,7 @@
 type: operational
 id: 01m7d2cc2ahngzgpw3nakfnwsd
 created: 2026-11-14T13:01:38.250838+00:00
-updated: 2026-11-14T17:12:16.823953+00:00
+updated: 2026-11-14T17:22:25.293044+00:00
 summary: Repair local-model Excel conversion failures and verify fresh unassisted apps across business cases
 title: Automatic Excel conversion reliability
 status: in-progress
@@ -122,3 +122,10 @@ Fresh generation is still in qualification; do not treat the code changes or det
 - A successful checked Excel workspace save now concludes its single-workspace request immediately with a host receipt and the correct space focus. It preserves the saved receipt/comparison/version and per-version disabled state. Generic multi-action app authoring is unchanged. The regression deliberately offers a duplicate second save; before the fix the agent used three turns instead of one, and after it the second action remains unconsumed. All 36 focused authoring/conversion groups pass, including failed-then-repaired saves, review refusals and generic authoring.
 - Actual Reference codes UI preserves surrounding spaces and accented text, recalculates the exact reference, clears successful edits, protects original headers and supports Undo. Six task-owned recent shortcuts were removed after all test apps were disabled. The existing ten-item limit evicted the old Demo shortcut while opening test copies; no workbook file was removed or changed. Four other unrelated current recents and all other preference keys were preserved. The preview is on Welcome.
 - Fresh Invoices must be retried under the terminal-save fix. Due dates continues on the frozen earlier builder with the corrected syntax diagnostics. The new code still needs packaging and its exact hosted CI result.
+
+
+## Deterministic date helper and final fresh retry
+
+- Qualification 5 completed: fresh Loan and Due dates pass their expanded original-result, independent UI, saved-edit/reopen/Undo and portable-copy checks. Due dates recovered from syntax and leap-year errors by itself in 666 seconds. Inventory's unchanged saved candidate passes the corrected label-discovery replay. Invoices retains its failed run caused by the post-save duplicate action, despite its successfully saved app.
+- The repeated handwritten-calendar mistakes justify a small shared `calendar.addDays` helper in the isolated pure runtime. It accepts explicit ISO dates and finite day offsets, including negative/fractional values, checks Gregorian dates and years 0001..9999, and returns only a string. Native Date remains closure-private; no clock or local-timezone access is restored. This does not promise Excel serial-date or locale equivalence.
+- Helper tests cover leap years/centuries, year boundaries, negative/fractional offsets, invalid dates/types/ranges and attempts to access a Date constructor or mutate the frozen helper. The first test run stopped because its own output-cell fixture was omitted; the test fixture was corrected without changing runtime validation. Final focused checks and a fresh Invoices/Due dates run follow before qualification closure.

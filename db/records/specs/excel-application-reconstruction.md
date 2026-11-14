@@ -2,7 +2,7 @@
 type: spec
 id: 01m7bd3448sec8weav20n1fyht
 created: 2026-11-13T21:30:20.679849+00:00
-updated: 2026-11-14T01:12:42.232974+00:00
+updated: 2026-11-14T17:22:25.276055+00:00
 summary: Native Excel behavior translation, original-result comparison and constrained calculation/action contract
 title: Excel application reconstruction
 status: implemented
@@ -34,6 +34,8 @@ Publication repeats original comparison and atomically saves the app, comparison
 ## Isolation and limits
 
 The existing `sevra-extract` helper also runs pure behavior through the pinned QuickJS engine. Core and desktop do not link QuickJS. The helper reads its single private request, then enters a deny-default macOS sandbox before running code. Failure to enter refuses evaluation. No files, network, clocks, randomness, native APIs, timers or SDK are exposed. Native app UI code remains in its separate existing sandboxed XPC worker. Normal file extraction is process-isolated; only the arbitrary behavior mode enters this additional deny-default sandbox.
+
+The pure runtime provides `calendar.addDays(isoDate, dayOffset)` for explicit Gregorian date arithmetic. It accepts a strict `YYYY-MM-DD` string in years 0001 through 9999 and finite numeric offsets within 3,660,000 days, including negative and fractional days. UTC arithmetic returns the resulting calendar date; invalid input and out-of-range results throw. The native Date constructor remains private to a closure, and only a string leaves the helper. Generated code has no Date, current-time or local-timezone API. This is not Excel serial-date/locale parsing or its fictional 1900 leap day; original-result comparison still decides whether a translation matches the source behavior.
 
 Current bounds: 128 KiB program source, 2,000 formula outputs, 24 actions with at most 64 written cells and 16 named inputs each, 100,000 calculation cells/2 MB input text, 4 MB request, 1 MB serialized output, 32 KB per returned value, 64 MB JS heap, 512 KB JS stack, 500 ms JS interrupt budget, 4-second host deadline and 256 MB helper memory allowance. Native reconstruction is limited to twelve nonempty worksheets, existing 50-column app bindings, 64 KB prepared context and 2,000 isolated-check row positions. These are enforced resource boundaries, not claims of unlimited Excel compatibility.
 

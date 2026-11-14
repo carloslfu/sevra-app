@@ -12,6 +12,28 @@ private func enterSandbox(
 private func freeSandboxError(_ error: UnsafeMutablePointer<CChar>)
 
 enum ExcelBehaviorRuntime {
+  // Keep native Date private. Only a primitive ISO date leaves this closure; generated
+  // code cannot obtain a Date instance/constructor or read the clock or local timezone.
+  private static let calendarPrelude = #"""
+    globalThis.calendar=(()=>{
+      const NativeDate=Date;
+      return Object.freeze({addDays(iso,days){
+        if(typeof iso!=='string'||iso.length!==10||!/^\d{4}-\d{2}-\d{2}$/.test(iso)
+          ||typeof days!=='number'||!Number.isFinite(days)||Math.abs(days)>3660000)
+          throw Error('calendar.addDays needs an ISO date and a finite day offset within 3660000 days');
+        const [year,month,day]=iso.split('-').map(Number);
+        const value=new NativeDate(0);
+        value.setUTCFullYear(year,month-1,day);
+        if(year<1||year>9999||value.getUTCFullYear()!==year
+          ||value.getUTCMonth()!==month-1||value.getUTCDate()!==day)
+          throw Error('calendar.addDays needs a valid Gregorian date from 0001-01-01 through 9999-12-31');
+        value.setTime(value.getTime()+days*86400000);
+        if(!Number.isFinite(value.getTime())||value.getUTCFullYear()<1||value.getUTCFullYear()>9999)
+          throw Error('calendar.addDays result is outside 0001-01-01 through 9999-12-31');
+        return value.toISOString().slice(0,10);
+      }});
+    })();
+    """#
   static func evaluate(_ url: URL) throws -> Value {
     let file = try FileHandle(forReadingFrom: url)
     let bytes = try file.read(upToCount: 4_000_001) ?? Data()
@@ -60,6 +82,7 @@ enum ExcelBehaviorRuntime {
           + String(source.suffix(700)))
     }
     let script = """
+      \(calendarPrelude)
       globalThis.Date=undefined;globalThis.Atomics=undefined;globalThis.SharedArrayBuffer=undefined;
       Math.random=()=>{throw Error('Randomness needs an explicit input');};Object.freeze(Math);
       const __rawInput=\(try request["input"].json()),__hidden=new Set(\(try Value.array(request["hiddenOutputs"].array).json()));

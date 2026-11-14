@@ -376,6 +376,52 @@ func checkExcelBehaviorReconstruction() async throws {
     )
   }
 
+  let dateProgram = ExcelBehavior(
+    source:
+      "function recreate(input){return {'sheet1!D2':calendar.addDays(input.cells['sheet1!B2'],Number(input.cells['sheet1!C2']))}}",
+    outputs: ["sheet1!D2"])
+  let dateCases: [(String, String, String)] = [
+    ("2024-02-28", "1", "2024-02-29"), ("1900-02-28", "1", "1900-03-01"),
+    ("2000-02-28", "1", "2000-02-29"), ("2100-02-28", "1", "2100-03-01"),
+    ("2024-12-31", "1", "2025-01-01"), ("2024-03-01", "-1", "2024-02-29"),
+    ("2026-11-13", "1", "2026-11-14"), ("0001-01-01", "0", "0001-01-01"),
+    ("0099-12-31", "1", "0100-01-01"), ("9999-12-31", "0", "9999-12-31"),
+    ("2024-02-28", "0.5", "2024-02-28"), ("2024-02-28", "-0.5", "2024-02-27"),
+  ]
+  for (date, days, expected) in dateCases {
+    try expectEqual(
+      try dateProgram.evaluate(cells: ["sheet1!B2": date, "sheet1!C2": days, "sheet1!D2": ""])[
+        "sheet1!D2"],
+      expected)
+  }
+  for arguments in [
+    "'',1", "'2024-02-30',1", "'1900-02-29',1", "'2024-13-01',1",
+    "'0000-01-01',1", "'10000-01-01',1", "'2024-01-01\\n',1", "'2024-01-01','1'",
+    "'2024-01-01',Infinity", "'2024-01-01',NaN", "'2024-01-01',3660001",
+    "'9999-12-31',1", "'0001-01-01',-1", "null,1", "", "{toString(){return '2024-01-01'}},1",
+  ] {
+    try expectThrows(
+      try ExcelBehavior(
+        source: "function recreate(){return {'sheet1!D2':calendar.addDays(\(arguments))}}",
+        outputs: ["sheet1!D2"]
+      ).evaluate(cells: ["sheet1!D2": ""]))
+  }
+  let hiddenClock = ExcelBehavior(
+    source:
+      "function recreate(){calendar.addDays('2024-01-01',1);return {'sheet1!D2':String(Object.isFrozen(calendar))+','+typeof Date+','+typeof NativeDate+','+typeof calendar.addDays.constructor('return globalThis.Date')()}}",
+    outputs: ["sheet1!D2"])
+  try expectEqual(
+    try hiddenClock.evaluate(cells: ["sheet1!D2": ""])["sheet1!D2"],
+    "true,undefined,undefined,undefined")
+  try expectThrows(
+    try ExcelBehavior(
+      source: "function recreate(){calendar.addDays=()=>'';return {'sheet1!D2':''}}",
+      outputs: ["sheet1!D2"]
+    ).evaluate(cells: ["sheet1!D2": ""]))
+  print(
+    "PASS deterministic calendar: leap/century/year/fraction boundaries, input limits and no exposed clock"
+  )
+
   let cells = ["sheet1!B2": "3", "sheet1!C2": "4", "sheet1!D2": "12"]
   let probe = root.appendingPathComponent("sandbox-sentinel.txt")
   try Data("synthetic sentinel".utf8).write(to: probe)
