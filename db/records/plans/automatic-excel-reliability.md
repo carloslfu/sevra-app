@@ -2,7 +2,7 @@
 type: operational
 id: 01m7d2cc2ahngzgpw3nakfnwsd
 created: 2026-11-14T13:01:38.250838+00:00
-updated: 2026-11-14T17:22:25.293044+00:00
+updated: 2026-11-14T17:24:49.961299+00:00
 summary: Repair local-model Excel conversion failures and verify fresh unassisted apps across business cases
 title: Automatic Excel conversion reliability
 status: in-progress
@@ -129,3 +129,9 @@ Fresh generation is still in qualification; do not treat the code changes or det
 - Qualification 5 completed: fresh Loan and Due dates pass their expanded original-result, independent UI, saved-edit/reopen/Undo and portable-copy checks. Due dates recovered from syntax and leap-year errors by itself in 666 seconds. Inventory's unchanged saved candidate passes the corrected label-discovery replay. Invoices retains its failed run caused by the post-save duplicate action, despite its successfully saved app.
 - The repeated handwritten-calendar mistakes justify a small shared `calendar.addDays` helper in the isolated pure runtime. It accepts explicit ISO dates and finite day offsets, including negative/fractional values, checks Gregorian dates and years 0001..9999, and returns only a string. Native Date remains closure-private; no clock or local-timezone access is restored. This does not promise Excel serial-date or locale equivalence.
 - Helper tests cover leap years/centuries, year boundaries, negative/fractional offsets, invalid dates/types/ranges and attempts to access a Date constructor or mutate the frozen helper. The first test run stopped because its own output-cell fixture was omitted; the test fixture was corrected without changing runtime validation. Final focused checks and a fresh Invoices/Due dates run follow before qualification closure.
+
+
+## Signed half-cent Loan counterexample
+
+- Reading the unchanged qualification-5 Loan translation exposed rounding after sign inversion instead of the original formula's order. Independent LibreOffice examples with principal ±1.005, zero interest and one period save ±1.01; that generated app returns ±1. The existing host comparison refuses publication of the retained candidate against those examples. This is a real generated-calculation defect outside the earlier nine Loan states, not a test-label issue.
+- Two original files extend the corpus to 74; all preceding 72 bytes are preserved. A new unassisted Loan conversion must pass all eleven original states. No generated source is changed. The earlier Loan passes remain scoped to their original nine-state corpus and are superseded for final acceptance.
