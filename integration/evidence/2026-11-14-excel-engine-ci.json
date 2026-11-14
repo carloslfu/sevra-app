@@ -1,0 +1,341 @@
+{
+  "conclusion": "success",
+  "createdAt": "2026-11-14T01:13:35Z",
+  "headSha": "34f1f006ef02e883411ded6aaff33067d97c1296",
+  "jobs": [
+    {
+      "completedAt": "2026-11-14T01:56:24Z",
+      "conclusion": "success",
+      "databaseId": 132275748251,
+      "name": "native",
+      "startedAt": "2026-11-14T01:13:39Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-14T01:13:40Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-14T01:13:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:13:44Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-11-14T01:13:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:13:44Z",
+          "conclusion": "success",
+          "name": "Select current Xcode",
+          "number": 3,
+          "startedAt": "2026-11-14T01:13:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:16:22Z",
+          "conclusion": "success",
+          "name": "Check programmable native app engine and sandbox",
+          "number": 4,
+          "startedAt": "2026-11-14T01:13:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:16:22Z",
+          "conclusion": "success",
+          "name": "Check documentation links",
+          "number": 5,
+          "startedAt": "2026-11-14T01:16:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:16:34Z",
+          "conclusion": "success",
+          "name": "Check dictation ownership and delayed callbacks",
+          "number": 6,
+          "startedAt": "2026-11-14T01:16:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:16:53Z",
+          "conclusion": "success",
+          "name": "Check device-local scheduling and physical workbook identity",
+          "number": 7,
+          "startedAt": "2026-11-14T01:16:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:17:18Z",
+          "conclusion": "success",
+          "name": "Build core checks",
+          "number": 8,
+          "startedAt": "2026-11-14T01:16:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:17:32Z",
+          "conclusion": "success",
+          "name": "Check isolated extraction and parser failure recovery",
+          "number": 9,
+          "startedAt": "2026-11-14T01:17:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:21:14Z",
+          "conclusion": "success",
+          "name": "Run invariant and integration checks",
+          "number": 10,
+          "startedAt": "2026-11-14T01:17:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:21:30Z",
+          "conclusion": "success",
+          "name": "Check exact historical inventory bounds",
+          "number": 11,
+          "startedAt": "2026-11-14T01:21:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:21:55Z",
+          "conclusion": "success",
+          "name": "Check incremental inventory projection bounds",
+          "number": 12,
+          "startedAt": "2026-11-14T01:21:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:22:48Z",
+          "conclusion": "success",
+          "name": "Check real condition change-input bounds",
+          "number": 13,
+          "startedAt": "2026-11-14T01:21:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:23:01Z",
+          "conclusion": "success",
+          "name": "Check search-scale fixture recall, paging and reports",
+          "number": 14,
+          "startedAt": "2026-11-14T01:22:48Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:23:03Z",
+          "conclusion": "success",
+          "name": "Retain search-scale fixture evidence",
+          "number": 15,
+          "startedAt": "2026-11-14T01:23:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:23:20Z",
+          "conclusion": "success",
+          "name": "Check document draft durability and native close guards",
+          "number": 16,
+          "startedAt": "2026-11-14T01:23:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:23:51Z",
+          "conclusion": "success",
+          "name": "Check file-preview cancellation and stale reads",
+          "number": 17,
+          "startedAt": "2026-11-14T01:23:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:23:55Z",
+          "conclusion": "success",
+          "name": "Check large linked-file verification and memory bound",
+          "number": 18,
+          "startedAt": "2026-11-14T01:23:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:23:56Z",
+          "conclusion": "success",
+          "name": "Retain large-file verification evidence",
+          "number": 19,
+          "startedAt": "2026-11-14T01:23:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:24:07Z",
+          "conclusion": "success",
+          "name": "Check checkpoint publication across process death",
+          "number": 20,
+          "startedAt": "2026-11-14T01:23:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:24:09Z",
+          "conclusion": "success",
+          "name": "Retain checkpoint process-death evidence",
+          "number": 21,
+          "startedAt": "2026-11-14T01:24:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:24:21Z",
+          "conclusion": "success",
+          "name": "Check native table identity and refresh races",
+          "number": 22,
+          "startedAt": "2026-11-14T01:24:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:24:31Z",
+          "conclusion": "success",
+          "name": "Check foreground automation dispatch across process death",
+          "number": 23,
+          "startedAt": "2026-11-14T01:24:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:24:33Z",
+          "conclusion": "success",
+          "name": "Retain automation process-death evidence",
+          "number": 24,
+          "startedAt": "2026-11-14T01:24:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:27:51Z",
+          "conclusion": "success",
+          "name": "Check manual workflow recovery across process death",
+          "number": 25,
+          "startedAt": "2026-11-14T01:24:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:27:54Z",
+          "conclusion": "success",
+          "name": "Retain manual workflow recovery evidence",
+          "number": 26,
+          "startedAt": "2026-11-14T01:27:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:28:03Z",
+          "conclusion": "success",
+          "name": "Check native search navigation and stale reads",
+          "number": 27,
+          "startedAt": "2026-11-14T01:27:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:28:25Z",
+          "conclusion": "success",
+          "name": "Check active model memory-pressure lifecycle",
+          "number": 28,
+          "startedAt": "2026-11-14T01:28:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:28:39Z",
+          "conclusion": "success",
+          "name": "Check the native Splash adapter",
+          "number": 29,
+          "startedAt": "2026-11-14T01:28:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:28:51Z",
+          "conclusion": "success",
+          "name": "Check pinned native prompts and streamed outputs",
+          "number": 30,
+          "startedAt": "2026-11-14T01:28:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:29:02Z",
+          "conclusion": "success",
+          "name": "Check complete-workbook performance fixtures and evidence gate",
+          "number": 31,
+          "startedAt": "2026-11-14T01:28:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:31:22Z",
+          "conclusion": "success",
+          "name": "Check native speculative grammar masks",
+          "number": 32,
+          "startedAt": "2026-11-14T01:29:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:31:23Z",
+          "conclusion": "success",
+          "name": "Validate independent knowledge store",
+          "number": 33,
+          "startedAt": "2026-11-14T01:31:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:39:17Z",
+          "conclusion": "success",
+          "name": "Build native app and CLI",
+          "number": 34,
+          "startedAt": "2026-11-14T01:31:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:45:18Z",
+          "conclusion": "success",
+          "name": "Exercise packaged CLI and installation",
+          "number": 35,
+          "startedAt": "2026-11-14T01:39:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:56:16Z",
+          "conclusion": "success",
+          "name": "Build and check the isolated Splash preview",
+          "number": 36,
+          "startedAt": "2026-11-14T01:45:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:56:18Z",
+          "conclusion": "success",
+          "name": "Retain automatic admission race evidence",
+          "number": 37,
+          "startedAt": "2026-11-14T01:56:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:56:19Z",
+          "conclusion": "success",
+          "name": "Retain condition change-input evidence",
+          "number": 38,
+          "startedAt": "2026-11-14T01:56:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:56:19Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 76,
+          "startedAt": "2026-11-14T01:56:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-14T01:56:22Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 77,
+          "startedAt": "2026-11-14T01:56:19Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/carloslfu/sevra-app/actions/runs/43539274889/job/132275748251"
+    }
+  ],
+  "status": "completed",
+  "updatedAt": "2026-11-14T01:56:25Z",
+  "url": "https://github.com/carloslfu/sevra-app/actions/runs/43539274889"
+}

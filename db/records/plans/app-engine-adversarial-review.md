@@ -2,7 +2,7 @@
 type: operational
 id: 01m7bp9xnvfpsa888nq0t5q1rb
 created: 2026-11-14T00:11:20.635993+00:00
-updated: 2026-11-14T01:12:42.217155+00:00
+updated: 2026-11-14T01:57:19.523531+00:00
 summary: Multiple-pass review and fixes verified; explicit coverage and unresolved model-generation reliability
 title: App and engine adversarial review
 status: reviewed
@@ -17,7 +17,7 @@ Inventory owned Swift/TypeScript/C glue, bundled runtime, extraction, local infe
 
 Pass 1 traces untrusted inputs, execution isolation, resource bounds, native events, dataset access, transaction/Undo authority, copies and source comparison. Pass 2 uses counterexamples for state changes, stale events, invalid records, model errors and failure recovery; repair observed defects. Pass 3 integrates the candidate, runs relevant regressions and the full milestone suite, verifies exact installed identity and native visual behavior, records evidence and commits/pushes main.
 
-## Active findings
+## Initial findings, superseded by the final review
 
 - Reproduced: remounting a same-type field at the same path retained its old native edit revision and text. Added mount identity across SDK/wire/native renderer and stale-event fencing. Native regression and six SDK groups pass.
 - Reproduced: ordinary multi-worksheet updates calculated intermediate states despite one atomic transaction. Deferred calculations to the final batch and normalize returned/Undo row versions. Focused verification running.
@@ -28,8 +28,12 @@ Pass 1 traces untrusted inputs, execution isolation, resource bounds, native eve
 - [x] Boundary and subsystem review, with explicit coverage and remaining limits.
 - [x] Reproduced defects repaired and counterexamples passing.
 - [x] Native reconstruction UI, examples, actions, Undo, reopen and compact layout verified.
-- [ ] Final full suite, packaging/installation identity, records, commit/push and CI result.
+- [x] Final full suite, packaging/installation identity, records, commit/push and CI result.
 
 ## Final review findings, November 14
 
 The [[records/reviews/excel-reconstruction-and-engine-review]] supersedes the initial active-finding progress above. The integrated suite passes 653 core checks and all 17 native groups; final authoring checks pass 36 groups. Native package/install/extraction and actual UI checks pass. New corruption/layout/canvas/reviewer-context/error-message counterexamples are retained with source/log hashes. Original examples now include zero interest, renamed lookup keys and invalid numeric input; reviewed derivatives pass while earlier candidates fail the expanded checks. The review is complete for its stated direct-source and automated coverage, not literally every vendor line. Local-model generation/review reliability remains open. Publication and hosted CI are tracked on the containing revision, separately from the local evidence.
+
+## Publication verification, November 14
+
+The implementation was committed and pushed as `34f1f00`. [Hosted Checks run 43539274889](https://github.com/carloslfu/sevra-app/actions/runs/43539274889) passed on exact commit `34f1f006ef02e883411ded6aaff33067d97c1296`, including the baseline and native packaged products. All recorded code hashes match that tested revision. This publication receipt changes only documentation/evidence; its db.md and link checks are separate from the unchanged code's full CI result. Autonomous model-generation reliability remains open.

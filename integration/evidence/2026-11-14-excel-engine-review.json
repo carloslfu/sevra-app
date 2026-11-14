@@ -183,7 +183,24 @@
     "freshModelTrial10": "Inventory and Loan both failed safely; retained separately",
     "reviewedCandidates": "manually repaired derivatives, not fresh inference",
     "baseline": "preserved; stale baseline packaged journey skipped locally",
-    "hostedCI": "check the pushed commit; not inferred from local verification"
+    "hostedCI": {
+      "commit": "34f1f006ef02e883411ded6aaff33067d97c1296",
+      "runID": 43539274889,
+      "url": "https://github.com/carloslfu/sevra-app/actions/runs/43539274889",
+      "conclusion": "success",
+      "completedAt": "2026-11-14T01:56:24Z",
+      "snapshot": "integration/evidence/2026-11-14-excel-engine-ci.json",
+      "snapshotSHA256": "f92fcd8e78efb565f8e71c25a32bc0f6e102267dd75e21dbaf74d9120a90740e",
+      "scope": "Complete hosted Checks workflow, including baseline and native product packaging; later receipt-only changes use focused documentation validation."
+    },
+    "quickjsProvenance": {
+      "version": "2026-06-04",
+      "releasePage": "https://bellard.org/quickjs/",
+      "archiveURL": "https://bellard.org/quickjs/quickjs-2026-06-04.tar.xz",
+      "archiveSHA256": "b376e839b322978313d929fd20663b11ba58b75df5a46c126dd19ea2fa70ad2a",
+      "vendoredFilesMatched": 16,
+      "scope": "Downloaded official archive and compared its bytes and each vendored file to the committed pin; provenance verification is not absence-of-vulnerabilities proof."
+    }
   },
   "cleanup": {
     "taskRecentEntriesRemoved": 5,

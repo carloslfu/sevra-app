@@ -2,8 +2,8 @@
 type: review
 id: 01m7bq0edchzvpjc6ts2nw0ny1
 created: 2026-11-14T00:23:38.668417+00:00
-updated: 2026-11-14T01:10:55.279161+00:00
-summary: Multiple-pass boundary review, repaired defects, independent business references and explicit qualification limits; final integration in progress
+updated: 2026-11-14T01:57:19.484172+00:00
+summary: Multiple-pass review, fixes, local and hosted checks and installed UI verified; autonomous model-generation reliability remains open
 title: Excel reconstruction and app-engine review
 ---
 # Excel reconstruction and app-engine adversarial review
@@ -70,3 +70,9 @@ All task app grants were disabled. Five task-owned recent entries were removed w
 - Native apps use the shipped components and scoped SDK. They have no arbitrary native/filesystem/network API; resource limits can refuse large or slow programs.
 - Inspection covers bounded .xlsx/.xlsm evidence. Legacy binary/encrypted formats, unreadable embedded parts and unavailable external dependencies remain explicit gaps. Recreated programs use fixed original cell coordinates; automatic row extension and pixel-identical Excel layout are not implemented.
 - The pure behavior helper has deny-default OS sandboxing plus JavaScript bounds. General file extraction has separate process/resource isolation and must not be described as using that same sandbox profile.
+
+## Publication verification, November 14
+
+The implementation was committed and pushed as `34f1f00`. [Hosted Checks run 43539274889](https://github.com/carloslfu/sevra-app/actions/runs/43539274889) passed on exact commit `34f1f006ef02e883411ded6aaff33067d97c1296`, including the baseline and native packaged products. All recorded code hashes match that tested revision. This publication receipt changes only documentation/evidence; its db.md and link checks are separate from the unchanged code's full CI result. Autonomous model-generation reliability remains open.
+
+The [official QuickJS release page](https://bellard.org/quickjs/) listed the pinned 2026-06-04 release when checked. The separately downloaded official archive matches the committed SHA-256, and all 16 vendored files match both that archive and the pin. This verifies dependency provenance; it does not establish that upstream engine code has no vulnerabilities.

@@ -3,11 +3,15 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-14T01:12:42.009518+00:00
+updated: 2026-11-14T01:57:19.539630+00:00
 summary: Reconstruction engine and reviewed workflows verified; 653 core checks, 36 authoring groups, 43 originals and installed UI. Unassisted local-model reliability remains open.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## Publication verification, November 14
+
+The implementation was committed and pushed as `34f1f00`. [Hosted Checks run 43539274889](https://github.com/carloslfu/sevra-app/actions/runs/43539274889) passed on exact commit `34f1f006ef02e883411ded6aaff33067d97c1296`, including the baseline and native packaged products. All recorded code hashes match that tested revision. This publication receipt changes only documentation/evidence; its db.md and link checks are separate from the unchanged code's full CI result. Autonomous model-generation reliability remains open.
 
 ## Current checkpoint: reconstruction and adversarial review, November 14
 

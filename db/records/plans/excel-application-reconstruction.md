@@ -2,7 +2,7 @@
 type: operational
 id: 01m7b73ynhcnygb4w4jvzqjfy8
 created: 2026-11-13T19:45:56.401181+00:00
-updated: 2026-11-14T01:12:42.170869+00:00
+updated: 2026-11-14T01:57:19.506765+00:00
 summary: Engine and native reconstruction flow verified; autonomous local-model reliability remains open
 title: Excel application reconstruction
 status: implemented-with-limitations
@@ -33,7 +33,7 @@ Verification distinguishes original saved-result matches, comparisons with addit
 - [x] E. Synthetic business matrix including lookup pricing, conditional totals, dates/text, cross-sheet calculations, commission, loans, inventory shipment actions, cross-sheet atomic actions and external-data/manual gaps. Independent spreadsheet-engine reference results plus adversarial wrong/constant programs, missing outputs, injection, loops, stale/foreign access and copies.
 - [x] F. Actual local-model runs on several different reconstructed applications, with retained failed trials and independent behavior checks.
 - [x] G. Native UI review of understanding, verification, differences, examples, errors/loading/cancel, access, real changes/Undo/reopen and wide/narrow spacing. Fix and reinspect findings.
-- [ ] H. Adversarial source review, full suite once on integrated candidate, focused final repairs, packaged/install identity, evidence, current records, main commit/push.
+- [x] H. Adversarial source review, full suite once on integrated candidate, focused final repairs, packaged/install identity, evidence, current records, main commit/push.
 
 ## Verification boundaries
 
@@ -57,3 +57,7 @@ Live trial Inventory passed before the pause; repeated Loan failures were refuse
 ## Final bounded checkpoint, November 14
 
 The full local suite and final focused checks pass; final packaging/install/extraction and installed UI verification pass. Coverage now includes 43 original files and ten business cases. The owning [[records/reviews/excel-reconstruction-and-engine-review]] records all repairs and exact evidence. F records completed actual trials, not a claim they all succeeded. The latest fresh Inventory and Loan trials failed safely; the three final sample apps are explicitly reviewed derivatives. Autonomous conversion reliability remains an open acceptance limit. G includes new examples/action inputs, stale comparisons, duplicate refusal, labels, errors, actual edits/Undo/reopen and compact spacing, plus explicitly reused unchanged single-import observations. H's local gates are complete; the containing commit and its hosted checks record publication. Do not re-label reviewed examples as fresh-model success.
+
+## Publication verification, November 14
+
+The implementation was committed and pushed as `34f1f00`. [Hosted Checks run 43539274889](https://github.com/carloslfu/sevra-app/actions/runs/43539274889) passed on exact commit `34f1f006ef02e883411ded6aaff33067d97c1296`, including the baseline and native packaged products. All recorded code hashes match that tested revision. This publication receipt changes only documentation/evidence; its db.md and link checks are separate from the unchanged code's full CI result. Autonomous model-generation reliability remains open.
