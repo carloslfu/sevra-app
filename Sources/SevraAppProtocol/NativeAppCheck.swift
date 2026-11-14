@@ -211,7 +211,9 @@ public enum NativeAppCheck {
             case "transaction":
               try require(kind == "request", "app_check", "Writes cannot be subscriptions.")
               transactions += 1
-              try require(transactions <= 16, "app_check", "Too many test transactions.")
+              // A behavior can declare 24 actions. The 32-step suite must be able
+              // to exercise each once; request, frame and time budgets still apply.
+              try require(transactions <= 32, "app_check", "Too many test transactions.")
               let args = message["args"]
               reply["value"] = try book.nativeAppTransaction(
                 access, operations: args["operations"].array,

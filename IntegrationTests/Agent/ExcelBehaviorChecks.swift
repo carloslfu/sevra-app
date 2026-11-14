@@ -713,8 +713,30 @@ private func checkExcelActionCoverage(
     ] + steps,
     fixtures: fixtures, excelCoordinates: coordinates, requireUnselectedExcelActions: true)
   try expectEqual(navigated["unselectedExcelActions"], .array([.string("ship")]))
+  // The action declaration limit must fit the preflight transaction budget.
+  // These synthetic actions share one input cell but each has its own UI event.
+  var many = package
+  let actions = (0..<24).map { "action\($0)" }
+  many.excelBehavior = .init(
+    source: """
+      function recreate(input){const value=Number(input.cells['sheet1!B2']);return input.event==='recalculate'?{'sheet1!D2':String(value)}:{'sheet1!B2':String(value+1)};}
+      """, outputs: ["sheet1!D2"],
+    actions: actions.map { .init(id: $0, title: $0, writes: ["sheet1!B2"]) })
+  let actionJSON = try Value.array(actions.map(Value.string)).json()
+  many.source = """
+    const S=Sevra;const buttons=\(actionJSON).map(action=>S.h(S.Button,{title:action,onClick:async()=>{await S.data.transaction([{op:'excel_action',action,arguments:{}}]);}}));S.mount(S.h(S.Column,{},...buttons));
+    """
+  let allActions = try await NativeAppCheck.run(
+    package: many,
+    steps: actions.map { .object(["kind": .string("click"), "target": .string($0)]) } + [
+      .object([
+        "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
+        "values": .object(["c2": .string("32"), "c4": .string("32")]),
+      ])
+    ], fixtures: fixtures, excelCoordinates: coordinates, requireUnselectedExcelActions: true)
+  try expectEqual(allActions["unselectedExcelActions"], .array(actions.sorted().map(Value.string)))
   print(
-    "PASS fixed-cell action coverage: initial interaction, selection gap, rejected/mount writes, picker navigation and automatic repair feedback"
+    "PASS fixed-cell action coverage: initial interaction, selection gap, rejected/mount writes, picker navigation, 24 actions and automatic repair feedback"
   )
 }
 

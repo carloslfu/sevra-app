@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7dz3m6wjyxx4w9nvbf6e783
 created: 2026-11-14T21:23:40.380890+00:00
-updated: 2026-11-14T21:40:26.676561+00:00
+updated: 2026-11-14T21:53:14.920492+00:00
 summary: Fresh ten-workflow local-model batches with two consecutive complete passes required; no reused apps or manual source repairs.
 title: Fresh Excel conversion batches
 status: in-progress
@@ -40,3 +40,6 @@ Starting from code 8c8d014 and documentation checkpoint 83f05e0. No new batch re
 - Inventory failed independent initial-readiness verification: its generated Quantity input and action handler incorrectly require a selected row. Its own tests selected a row first and the separate reviewer returned ready. No generated source is repaired. A generic publication gate is being added to require successful user-triggered fixed-cell action coverage before table selection; rejected transactions and mount-time writes cannot count. Regressions and the next full fresh batch remain pending.
 
 - The fixed-cell action coverage change compiles and passes 38 authoring/conversion groups, including refusal after table selection, refusal of validation-only or mount-time coverage, allowed picker navigation, and a mocked builder recovery that retains the compared calculation draft. Strict Swift formatting passes. This is a product regression result, not a fresh-model batch pass. The focused build/check ran alongside part of batch 1; elapsed generation times are observations, not performance claims. The batch runtime had already been copied and remains unchanged.
+
+- Lookup quotes passed original-result comparison but failed the independent UI probe because it renamed explicitly requested SKU/Quantity labels to Selected SKU/Selected Quantity. The builder template is being corrected to avoid this prefix, and the builder/reviewer instructions now require exact requested labels. Independent probe labels are unchanged.
+- Adversarial inspection of the new coverage gate found that its 24 declared-action limit exceeded the old 16-transaction test limit. The transaction bound is now 32, matching the step limit while preserving request/frame/time bounds. A 24-action synthetic integration case and the full 38-group authoring/conversion check pass. Exact-label guidance also compiles and passes those checks; fresh-model qualification remains pending.
