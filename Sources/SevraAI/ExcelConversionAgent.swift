@@ -74,24 +74,36 @@ package enum ExcelConversionAgent {
           return value
         }
         let result: Value
-        if call.name == NativeTools.excelEvidenceDefinition.name {
-          try require(
-            Set(value.object.keys).isSubset(of: ["part", "offset"])
-              && (value["part"] == .null || value["part"].string != nil)
-              && (value["offset"] == .null || value["offset"].int != nil), "excel_scope",
-            "Invalid evidence request.")
-          result = try workbook.readExcelEvidence(
-            conversion.id, part: value["part"].string,
-            offset: value["offset"].int ?? 0, cancellation: cancellation)
-        } else {
-          try require(
-            call.name == readDefinition.name
-              && Set(value.object.keys) == ["sheet", "offset", "limit"] && value["sheet"].int != nil
-              && value["offset"].int != nil && value["limit"].int != nil, "excel_scope",
-            "The workbook inspection requested an unavailable operation.")
-          result = try workbook.readExcelConversionRange(
-            conversion.id, sheet: value["sheet"].int!,
-            offset: value["offset"].int!, limit: value["limit"].int!, cancellation: cancellation)
+        do {
+          if call.name == NativeTools.excelEvidenceDefinition.name {
+            try require(
+              Set(value.object.keys).isSubset(of: ["part", "offset"])
+                && (value["part"] == .null || value["part"].string != nil)
+                && (value["offset"] == .null || value["offset"].int != nil), "excel_scope",
+              "Invalid evidence request.")
+            result = try workbook.readExcelEvidence(
+              conversion.id, part: value["part"].string,
+              offset: value["offset"].int ?? 0, cancellation: cancellation)
+          } else {
+            try require(
+              call.name == readDefinition.name
+                && Set(value.object.keys) == ["sheet", "offset", "limit"] && value["sheet"].int != nil
+                && value["offset"].int != nil && value["limit"].int != nil, "excel_scope",
+              "The workbook inspection requested an unavailable operation.")
+            result = try workbook.readExcelConversionRange(
+              conversion.id, sheet: value["sheet"].int!,
+              offset: value["offset"].int!, limit: value["limit"].int!, cancellation: cancellation)
+          }
+        } catch let error as SevraError where ["excel_evidence", "excel_range"].contains(error.code) {
+          try cancellation.check()
+          result = .object([
+            "error": .string(error.message), "code": .string(error.code),
+            "retryInstruction": .string(
+              call.name == NativeTools.excelEvidenceDefinition.name
+                ? "List this original's catalog by calling inspect_excel_evidence without part. Use an exact returned ID and a valid offset; do not invent module names or paths."
+                : "Use a zero-based sheet index from inspection, a nonnegative row offset and a limit from 1 to 30. Correct the arguments and retry."
+            ),
+          ])
         }
         // Keep bounded evidence across reads so the model can relate modules and worksheets.
         while messages.count > 4 && messages.reduce(0, { $0 + $1.content.utf8.count }) > 72_000 {

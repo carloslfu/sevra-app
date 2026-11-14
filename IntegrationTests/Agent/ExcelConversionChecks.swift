@@ -436,6 +436,44 @@ func checkExcelConversions() async throws {
       draft.id, expectedVersion: draft.version, state: "review",
       plan: excelPlan(excelBusinessCases[0])))
   try expectThrows(try book.addItem(category: "record", kind: "excel-conversion", title: "Forged"))
+  let catalog = try book.readExcelEvidence(data.id)
+  let part = try expectValue(catalog.array.first?["id"].string)
+  let recovery = ExcelTestModel([
+    ("inspect_excel_evidence", .object(["part": .string("invented-module")])),
+    ("inspect_excel_evidence", .object([:])),
+    ("inspect_excel_evidence", .object(["part": .string(part), "offset": .number(-1)])),
+    ("inspect_excel_evidence", .object(["part": .string(part)])),
+    ("inspect_excel_rows", .object(["sheet": .number(99), "offset": .number(0), "limit": .number(1)])),
+    ("inspect_excel_rows", .object(["sheet": .number(1), "offset": .number(0), "limit": .number(1)])),
+    ("describe_excel_workflow", excelPlan(excelBusinessCases[0])),
+  ])
+  let planningRevision = try book.revision()
+  let recoveredPlan = try await ExcelConversionAgent.analyze(
+    data, workbook: book, model: recovery, directory: root, cancellation: .init(), progress: { _ in })
+  try expectEqual(recoveredPlan, excelPlan(excelBusinessCases[0]))
+  let recoveryResults = await recovery.toolResults
+  try expectEqual(recoveryResults[0]["code"], .string("excel_evidence"))
+  try expectEqual(recoveryResults[1], catalog)
+  try expectEqual(recoveryResults[2]["code"], .string("excel_evidence"))
+  try expectEqual(recoveryResults[3]["id"], .string(part))
+  try expectEqual(recoveryResults[4]["code"], .string("excel_range"))
+  try expectEqual(try book.revision(), planningRevision)
+  let repeated = ExcelTestModel(Array(repeating:
+    ("inspect_excel_evidence", .object(["part": .string("invented-module")])), count: 12))
+  do {
+    _ = try await ExcelConversionAgent.analyze(
+      data, workbook: book, model: repeated, directory: root, cancellation: .init(), progress: { _ in })
+    throw SevraError("test", "Repeated invalid reads exceeded planning bounds.")
+  } catch let error as SevraError { try expectEqual(error.code, "excel_plan") }
+  try expectEqual(await repeated.scopes.count, 12)
+  let cancelledPlanner = ExcelTestModel([])
+  do {
+    _ = try await ExcelConversionAgent.analyze(
+      data, workbook: book, model: cancelledPlanner, directory: root,
+      cancellation: cancelled, progress: { _ in })
+    throw SevraError("test", "Cancelled planning continued.")
+  } catch { if (error as? SevraError)?.code == "test" { throw error } }
+  try expectEqual(await cancelledPlanner.scopes.count, 0)
   do {
     _ = try await ExcelConversionAgent.analyze(
       data, workbook: book, model: ExcelTestModel([("save_native_app", .object([:]))]),
