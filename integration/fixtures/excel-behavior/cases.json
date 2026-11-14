@@ -150,7 +150,11 @@
       "commission-3.xlsx",
       "commission-4.xlsx",
       "commission-5.xlsx",
-      "commission-6.xlsx"
+      "commission-6.xlsx",
+      "commission-7.xlsx",
+      "commission-8.xlsx",
+      "commission-9.xlsx",
+      "commission-10.xlsx"
     ],
     "behavior": {
       "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String(Number.isFinite(b)&&Number.isFinite(c)?round(b*c):\"#VALUE!\")};}",
@@ -171,7 +175,8 @@
       "commission-5.xlsx",
       "commission-6.xlsx"
     ],
-    "variedCases": 6
+    "holdoutFiles": [],
+    "variedCases": 10
   },
   {
     "name": "Loan",
@@ -247,6 +252,38 @@
     "variedCases": 6
   },
   {
+    "name": "Lookup quotes",
+    "files": [
+      "lookup-quotes-0.xlsx",
+      "lookup-quotes-1.xlsx",
+      "lookup-quotes-2.xlsx",
+      "lookup-quotes-3.xlsx",
+      "lookup-quotes-4.xlsx",
+      "lookup-quotes-5.xlsx",
+      "lookup-quotes-6.xlsx",
+      "lookup-quotes-7.xlsx",
+      "lookup-quotes-8.xlsx"
+    ],
+    "behavior": {
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String((()=>{const key=v[\"sheet1!B2\"].toLowerCase();let price;if(key===v[\"sheet1!F2\"].toLowerCase())price=Number(v[\"sheet1!G2\"]);else if(key===v[\"sheet1!F3\"].toLowerCase())price=Number(v[\"sheet1!G3\"]);else return \"#N/A\";return Number.isFinite(price)&&Number.isFinite(c)?price*c:\"#VALUE!\"})())};}",
+      "outputs": [
+        "sheet1!D2"
+      ],
+      "actions": [],
+      "gaps": []
+    },
+    "changedInputs": [
+      "A",
+      "B",
+      "A"
+    ],
+    "inputColumn": "c2",
+    "uiBoundaryFiles": [
+      "lookup-quotes-6.xlsx"
+    ],
+    "variedCases": 7
+  },
+  {
     "name": "Due dates",
     "files": [
       "due-dates-0.xlsx",
@@ -312,37 +349,5 @@
       "reference-codes-5.xlsx"
     ],
     "variedCases": 8
-  },
-  {
-    "name": "Lookup quotes",
-    "files": [
-      "lookup-quotes-0.xlsx",
-      "lookup-quotes-1.xlsx",
-      "lookup-quotes-2.xlsx",
-      "lookup-quotes-3.xlsx",
-      "lookup-quotes-4.xlsx",
-      "lookup-quotes-5.xlsx",
-      "lookup-quotes-6.xlsx",
-      "lookup-quotes-7.xlsx",
-      "lookup-quotes-8.xlsx"
-    ],
-    "behavior": {
-      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String((()=>{const key=v[\"sheet1!B2\"].toLowerCase();let price;if(key===v[\"sheet1!F2\"].toLowerCase())price=Number(v[\"sheet1!G2\"]);else if(key===v[\"sheet1!F3\"].toLowerCase())price=Number(v[\"sheet1!G3\"]);else return \"#N/A\";return Number.isFinite(price)&&Number.isFinite(c)?price*c:\"#VALUE!\"})())};}",
-      "outputs": [
-        "sheet1!D2"
-      ],
-      "actions": [],
-      "gaps": []
-    },
-    "changedInputs": [
-      "A",
-      "B",
-      "A"
-    ],
-    "inputColumn": "c2",
-    "uiBoundaryFiles": [
-      "lookup-quotes-6.xlsx"
-    ],
-    "variedCases": 7
   }
 ]

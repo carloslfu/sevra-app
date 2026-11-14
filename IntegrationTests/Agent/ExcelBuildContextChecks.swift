@@ -37,4 +37,41 @@ func checkExcelBuildContext() throws {
     role: "tool", content: try error.json(), toolCallId: "unrelated", toolName: "save_native_app")
   let guarded = ExcelBuildContext.refresh(input + incomplete + [malformed])
   try expectEqual(guarded.suffix(2).map(\.content), (incomplete + [malformed]).map(\.content))
+
+  func comparison(_ count: Int, version: String = "original-v1") -> Value {
+    .object([
+      "status": .string(count == 0 ? "matched" : "mismatch"),
+      "conversionVersion": .string(version), "compared": .number(13),
+      "differences": .array(Array(repeating: .object(["actual": .string("wrong")]), count: count)),
+    ])
+  }
+  let first = try pair("first", "compare_excel_behavior", comparison(5))
+  let best = try pair("best", "compare_excel_behavior", comparison(2))
+  let regressed = try pair("regressed", "compare_excel_behavior", comparison(7))
+  let anchored = ExcelBuildContext.refresh([system, request] + first + best + regressed)
+  try expectEqual(anchored.compactMap(\.toolCallId), ["best", "regressed"])
+  let projected = try Value.parse(anchored.last!.content)
+  try expectEqual(projected["repairAnchor"]["toolCallID"], .string("best"))
+  try expectEqual(projected["repairAnchor"]["reportedDifferences"], .number(2))
+  try expectEqual(projected["status"], .string("mismatch"))
+  try expectEqual(projected["differences"].array.count, 7)
+  try expectEqual(ExcelBuildContext.refresh(anchored).map(\.content), anchored.map(\.content))
+  let lostAnchor = ExcelBuildContext.refresh([system, request] + Array(anchored.suffix(2)))
+  try expectEqual(try Value.parse(lostAnchor.last!.content)["repairAnchor"], .null)
+  let improved = try pair("improved", "compare_excel_behavior", comparison(1))
+  try expectEqual(
+    ExcelBuildContext.refresh(anchored + improved).compactMap(\.toolCallId), ["improved"])
+  let matched = try pair("matched", "compare_excel_behavior", comparison(0))
+  try expectEqual(
+    ExcelBuildContext.refresh(anchored + matched + regressed).compactMap(\.toolCallId),
+    ["regressed"])
+  let replacement = try pair("replacement", "compare_excel_behavior", comparison(8, version: "new"))
+  try expectEqual(
+    ExcelBuildContext.refresh(anchored + replacement).compactMap(\.toolCallId), ["replacement"])
+  var large = comparison(1).object
+  large["diagnostic"] = .string(String(repeating: "x", count: 24_001))
+  let oversized = try pair("oversized", "compare_excel_behavior", .object(large))
+  try expectEqual(
+    ExcelBuildContext.refresh([system, request] + oversized + regressed).compactMap(\.toolCallId),
+    ["regressed"])
 }
