@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-14T13:01:38.227069Z
+updated: 2026-11-14T21:23:40.249635Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/fresh-excel-batches]] — Owner requests fresh local-model conversion of all ten workflows, fixing failures and repeating without reused apps or manual repairs.
 - [[sources/notes/2026/11/automatic-excel-reliability]] — Owner requests automatic Excel conversion without manually repaired apps and fresh business-case verification
 - [[sources/notes/2026/11/app-engine-adversarial-review]] — Owner expands active work to an adversarial review of app, engine and mini apps
 - [[sources/notes/2026/11/excel-application-reconstruction]] — Owner requests model-driven Excel application reconstruction and verification against original behavior

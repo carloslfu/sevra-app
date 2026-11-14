@@ -992,7 +992,7 @@ public enum WorkbookAgent {
               cancellation: cancellation,
               excelCoordinates: try excelConversion.map {
                 try workbook.excelCheckCoordinates($0.conversionID)
-              })
+              }, requireUnselectedExcelActions: excelConversion != nil)
             var checked = nativeAppCheck!.object
             checked["originalComparison"] = comparison
             if let behaviorDraftReceiptID {

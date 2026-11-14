@@ -49,7 +49,8 @@ func checkExcelBehaviorReconstruction() async throws {
         throw SevraError("test", "Overlapping action writes must be refused.")
       } catch let error as SevraError {
         try expectEqual(error.code, "excel_behavior")
-        try expectEqual(error.message.contains("Action writes overlap calculated outputs: sheet1!B2"), true)
+        try expectEqual(
+          error.message.contains("Action writes overlap calculated outputs: sheet1!B2"), true)
         try expectEqual(error.message.contains("only original formula cells"), true)
       }
       try behavior.validate()
@@ -174,6 +175,9 @@ func checkExcelBehaviorReconstruction() async throws {
       ]
     }
     if name == "Inventory" {
+      try await checkExcelActionCoverage(
+        package: package, steps: steps, fixtures: fixtures,
+        coordinates: book.excelCheckCoordinates(draft.id))
       var namedLikeMacro = behavior
       namedLikeMacro.actions[0].id = "ShipStock"
       namedLikeMacro.actions[0].inputs?[0].id = "Quantity"
@@ -274,6 +278,17 @@ func checkExcelBehaviorReconstruction() async throws {
       ("compare_excel_behavior", .object(["behavior": try encoded(behavior)])),
       ("save_native_app", args),
     ]
+    if name == "Inventory" {
+      // A reviewer cannot bless a suite that only tries fixed-cell actions after
+      // selecting a row. Return the coverage failure to the same builder request;
+      // its corrected tests can reuse the independently verified calculation draft.
+      var selectedOnly = args.object
+      selectedOnly["tests"] = .array(
+        [
+          .object(["kind": .string("select"), "target": .string("Records"), "value": .number(1)])
+        ] + steps)
+      buildActions.insert(("save_native_app", .object(selectedOnly)), at: 1)
+    }
     if name == "Loan" {
       let mismatch: (String, Value) = (
         "compare_excel_behavior", .object(["behavior": try encoded(constant)])
@@ -306,6 +321,13 @@ func checkExcelBehaviorReconstruction() async throws {
     _ = try await WorkbookAgent.run(
       build.request, workbook: book, context: build.context,
       model: builder, excelConversion: build)
+    if name == "Inventory" {
+      try expectEqual(
+        await builder.toolResults.contains {
+          $0["error"].text.contains("No successful user-triggered test before table selection")
+        }, true)
+      try expectEqual(await builder.reviewInputs.count, 1)
+    }
     if name == "Loan" {
       let failures = await builder.toolResults.filter { $0["status"] == .string("mismatch") }
       try expectEqual(failures.map { $0["candidateFailureCount"] }, [.number(1), .number(2)])
@@ -637,6 +659,62 @@ func checkExcelBehaviorReconstruction() async throws {
   try expectThrows(try examplesBook.prepareExcelConversionBuild(exampleDraft.id))
   print(
     "PASS example corrections: content duplicate refusal, captured removal, stale refusal, original retention and changed-row rebuild refusal"
+  )
+}
+
+private func checkExcelActionCoverage(
+  package: NativeAppPackage, steps: [Value], fixtures: Value, coordinates: [[Int]]
+) async throws {
+  let successful = try await NativeAppCheck.run(
+    package: package, steps: steps, fixtures: fixtures, excelCoordinates: coordinates,
+    requireUnselectedExcelActions: true)
+  try expectEqual(successful["unselectedExcelActions"], .array([.string("ship")]))
+  let selected: Value = .object([
+    "kind": .string("select"), "target": .string("Records"), "value": .number(1),
+  ])
+  let rejected: [Value] = [
+    .object(["kind": .string("change"), "target": .string("Quantity"), "value": .string("999")]),
+    .object(["kind": .string("click"), "target": .string("Ship stock")]),
+    .object(["kind": .string("expect_text"), "value": .string("available quantity")]),
+  ]
+  for missingCoverage in [[selected] + steps, rejected] {
+    do {
+      _ = try await NativeAppCheck.run(
+        package: package, steps: missingCoverage, fixtures: fixtures, excelCoordinates: coordinates,
+        requireUnselectedExcelActions: true)
+      throw SevraError("test", "Uncovered fixed-cell action was accepted")
+    } catch let error as SevraError {
+      try expectEqual(error.code, "app_check")
+      try expectEqual(
+        error.message.contains("No successful user-triggered test before table selection"), true)
+    }
+  }
+  var automatic = package
+  automatic.source += "\nq.value='2';ship();"
+  do {
+    _ = try await NativeAppCheck.run(
+      package: automatic,
+      steps: [.object(["kind": .string("expect_text"), "value": .string("Shipped")])],
+      fixtures: fixtures, excelCoordinates: coordinates, requireUnselectedExcelActions: true)
+    throw SevraError("test", "Mount-time action counted as user interaction")
+  } catch let error as SevraError {
+    try expectEqual(error.code, "app_check")
+    try expectEqual(
+      error.message.contains("No successful user-triggered test before table selection"), true)
+  }
+  var navigation = package
+  navigation.source = navigation.source.replacingOccurrences(
+    of: "S.h(S.Text,{text:'Stock'}),",
+    with: "S.h(S.Picker,{label:'Mode',options:['Ship','Review'],value:S.signal('Review')}),")
+  let navigated = try await NativeAppCheck.run(
+    package: navigation,
+    steps: [
+      .object(["kind": .string("select"), "target": .string("Mode"), "value": .string("Ship")])
+    ] + steps,
+    fixtures: fixtures, excelCoordinates: coordinates, requireUnselectedExcelActions: true)
+  try expectEqual(navigated["unselectedExcelActions"], .array([.string("ship")]))
+  print(
+    "PASS fixed-cell action coverage: initial interaction, selection gap, rejected/mount writes, picker navigation and automatic repair feedback"
   )
 }
 

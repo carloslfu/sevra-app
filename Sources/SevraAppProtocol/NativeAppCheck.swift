@@ -6,7 +6,8 @@ import SevraCore
 public enum NativeAppCheck {
   public static func run(
     package: NativeAppPackage, steps: [Value], fixtures: Value = .object([:]),
-    cancellation: Cancellation = .init(), excelCoordinates: [[Int]]? = nil
+    cancellation: Cancellation = .init(), excelCoordinates: [[Int]]? = nil,
+    requireUnselectedExcelActions: Bool = false
   ) async throws -> Value {
     try cancellation.check()
     try package.validate()
@@ -98,6 +99,9 @@ public enum NativeAppCheck {
     var requests = 0
     var transactions = 0
     var assertions = 0
+    var tableRowWasSelected = false
+    var checkingInteraction = false
+    var unselectedExcelActions = Set<String>()
     let deadline = ProcessInfo.processInfo.systemUptime + 20
     var tree = NativeAppTree()
     var subscriptions: [String: Value] = [:]
@@ -213,6 +217,15 @@ public enum NativeAppCheck {
                 access, operations: args["operations"].array,
                 expectedRevision: args["revision"].int ?? -1, token: args["token"].text,
                 undo: args["undo"].string)
+              // Fixed-cell actions do not receive a selected table row. Publication
+              // must exercise them through an interaction before any table selection,
+              // rather than trusting a model's readiness verdict or self-selected tests.
+              // Failed transactions and mount-time writes cannot satisfy this coverage.
+              if checkingInteraction && !tableRowWasSelected && args["undo"] == .null {
+                unselectedExcelActions.formUnion(
+                  args["operations"].array.filter { $0["op"] == .string("excel_action") }
+                    .map { $0["action"].text })
+              }
               changed = true
             default:
               throw SevraError("app_check", "Unsupported SDK request: " + message["method"].text)
@@ -324,6 +337,8 @@ public enum NativeAppCheck {
               "Canvas region position did not match.")
             assertions += 1
           } else {
+            checkingInteraction = true
+            defer { checkingInteraction = false }
             try await settle(
               exchange([
                 .object([
@@ -401,6 +416,7 @@ public enum NativeAppCheck {
               throw SevraError("app_check", "Select a valid zero-based row.")
             }
             value = rows[offset]
+            tableRowWasSelected = true
             lastSelection =
               "Last table selection: " + step["target"].text + " row \(offset), values "
               + String(try value["values"].json().prefix(1800))
@@ -447,6 +463,8 @@ public enum NativeAppCheck {
             }
             handler = "onChange"
           }
+          checkingInteraction = true
+          defer { checkingInteraction = false }
           try await settle(
             exchange([
               .object([
@@ -474,11 +492,22 @@ public enum NativeAppCheck {
       }
     }
     try cancellation.check()
+    if requireUnselectedExcelActions {
+      let missing = (package.excelBehavior?.actions ?? []).map(\.id)
+        .filter { !unselectedExcelActions.contains($0) }
+      try require(
+        missing.isEmpty, "app_check",
+        "No successful user-triggered test before table selection for fixed-cell Excel actions: "
+          + missing.joined(separator: ", ")
+          + ". Start the tests by entering valid action arguments, clicking its button and asserting saved values WITHOUT selecting or activating a table row first. Remove copied row-selection guards from fixed-cell action inputs and handlers. Test row editors afterward. Picker/tab navigation is allowed; mount-time writes and rejected transactions do not count."
+      )
+    }
     return .object([
       "status": .string("passed"), "assertions": .number(Double(assertions)),
       "paddedSyntheticRows": .number(Double(paddedRows)),
       "steps": .number(Double(steps.count)), "transactions": .number(Double(transactions)),
       "digest": .string(package.digest),
+      "unselectedExcelActions": .array(unselectedExcelActions.sorted().map(Value.string)),
       "tables": .array(
         Array(
           Set(
