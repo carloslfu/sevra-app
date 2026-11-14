@@ -47,7 +47,9 @@
       "invoices-3.xlsx",
       "invoices-4.xlsx",
       "invoices-5.xlsx",
-      "invoices-6.xlsx"
+      "invoices-6.xlsx",
+      "invoices-7.xlsx",
+      "invoices-8.xlsx"
     ],
     "behavior": {
       "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String(Number.isFinite(b)&&Number.isFinite(c)?round(b*(1+c)):\"#VALUE!\")};}",
@@ -66,9 +68,10 @@
     "uiBoundaryFiles": [
       "invoices-4.xlsx",
       "invoices-5.xlsx",
-      "invoices-6.xlsx"
+      "invoices-6.xlsx",
+      "invoices-7.xlsx"
     ],
-    "variedCases": 6
+    "variedCases": 8
   },
   {
     "name": "Timesheets",
@@ -179,7 +182,8 @@
       "loan-7.xlsx",
       "loan-8.xlsx",
       "loan-9.xlsx",
-      "loan-10.xlsx"
+      "loan-10.xlsx",
+      "loan-11.xlsx"
     ],
     "behavior": {
       "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String((()=>{const n=Number(v[\"sheet1!E2\"]);if(!Number.isFinite(b)||!Number.isFinite(c)||!Number.isFinite(n))return \"#VALUE!\";if(n===0)return \"#NUM!\";return round(c===0?b/n:b*c/(1-Math.pow(1+c,-n)))})())};}",
@@ -197,9 +201,10 @@
     "inputColumn": "c2",
     "uiBoundaryFiles": [
       "loan-5.xlsx",
-      "loan-6.xlsx"
+      "loan-6.xlsx",
+      "loan-11.xlsx"
     ],
-    "variedCases": 10
+    "variedCases": 11
   },
   {
     "name": "Production",

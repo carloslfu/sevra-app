@@ -96,12 +96,13 @@ def main():
     # independent saved examples expose invented form guards and numeric edge mistakes.
     boundary = {
         'Inventory': [],
-        'Invoices': [{1: None}, {1: 'invalid'}, {1: -2.5}],
+        'Invoices': [{1: None}, {1: 'invalid'}, {1: -2.5},
+                     {1: '2abc'}, {1: None, 2: 'invalid'}],
         'Timesheets': [{1: None}, {1: 'invalid'}, {1: -2.5}],
         'Cash flow': [{1: None}, {1: 'invalid'}, {1: -25}],
         'Commission': [{1: None}, {1: 'invalid'}, {1: -0.2}],
         'Loan': [{1: None}, {1: 'invalid'}, {2: 0, 4: 0}, {4: 0},
-                 {1: 1.005, 2: 0, 4: 1}, {1: -1.005, 2: 0, 4: 1}],
+                 {1: 1.005, 2: 0, 4: 1}, {1: -1.005, 2: 0, 4: 1}, {1: '2abc'}],
         'Production': [{1: None}, {1: 'invalid'}, {2: 0}],
         'Lookup quotes': [{1: None}, {2: None}, {1: 'A', 6: 'invalid'}],
         'Due dates': [{1: None}, {1: 'invalid'}],

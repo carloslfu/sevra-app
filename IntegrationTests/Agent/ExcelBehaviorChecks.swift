@@ -444,6 +444,20 @@ func checkExcelBehaviorReconstruction() async throws {
       "Expected calculation syntax feedback; received: " + error.localizedDescription)
     try expectEqual(error.localizedDescription.contains("excel-behavior.js:1"), true)
   }
+  for source in [
+    "function recreate(){return {'sheet1!D2':'#VALUE!';}}",
+    "function recreate(){const text='café 🦓';return {'sheet1!D2':text;}}",
+    "function recreate(){\ntry{return {'sheet1!D2':'1'};}catch(e){return {'sheet1!D2':'#VALUE!';}}\n}",
+  ] {
+    do {
+      _ = try ExcelBehavior(source: source, outputs: ["sheet1!D2"])
+        .evaluate(cells: ["sheet1!D2": ""])
+      throw SevraError("test", "Invalid object terminator accepted")
+    } catch {
+      try expectEqual(error.localizedDescription.contains("⟦HERE⟧;"), true)
+      try expectEqual(error.localizedDescription.contains("semicolon belongs after"), true)
+    }
+  }
   let programs = [
     "function recreate(input){return {'sheet1!D2':String(Number(input.cells['c2'])||0)}}",
     "function recreate(input){return {'sheet1!D2':String(Number(input.c2)||0)}}",
@@ -471,7 +485,7 @@ func checkExcelBehaviorReconstruction() async throws {
       _ = try ExcelBehavior(source: source, outputs: ["sheet1!D2"]).evaluate(cells: cells)
     } catch { diagnostic = error.localizedDescription }
     try expectEqual(diagnostic.contains("excel-behavior.js:1"), true)
-    try expectEqual(diagnostic.contains("extra as well as missing"), true)
+    try expectEqual(diagnostic.contains("Parser stopped at ⟦HERE⟧"), true)
   }
   let compileOnly = try ExcelBehavior(
     source:

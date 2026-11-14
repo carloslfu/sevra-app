@@ -2,7 +2,7 @@
 type: operational
 id: 01m7d2cc2ahngzgpw3nakfnwsd
 created: 2026-11-14T13:01:38.250838+00:00
-updated: 2026-11-14T17:24:49.961299+00:00
+updated: 2026-11-14T17:38:20.947673+00:00
 summary: Repair local-model Excel conversion failures and verify fresh unassisted apps across business cases
 title: Automatic Excel conversion reliability
 status: in-progress
@@ -135,3 +135,10 @@ Fresh generation is still in qualification; do not treat the code changes or det
 
 - Reading the unchanged qualification-5 Loan translation exposed rounding after sign inversion instead of the original formula's order. Independent LibreOffice examples with principal ±1.005, zero interest and one period save ±1.01; that generated app returns ±1. The existing host comparison refuses publication of the retained candidate against those examples. This is a real generated-calculation defect outside the earlier nine Loan states, not a test-label issue.
 - Two original files extend the corpus to 74; all preceding 72 bytes are preserved. A new unassisted Loan conversion must pass all eleven original states. No generated source is changed. The earlier Loan passes remain scoped to their original nine-state corpus and are superseded for final acceptance.
+
+
+## Final numeric and syntax-diagnostic boundaries
+
+- Qualification 6 Invoices completes automatically under the terminal-save fix in 568 seconds, passing seven original states, independent UI, saved edits/reopen/Undo and portable copy. Later adversarial source inspection found partial numeric text and combined blank/invalid-rate inputs outside those seven states. Two independently recalculated originals reproduce incorrect `2.38` and blank outputs where the original returns `#VALUE!`. The host refuses that unchanged candidate against the expanded originals. A partial-numeric Loan case is also added. The final corpus has 77 files; all previous 74 retain their exact bytes.
+- Qualification 6 Due dates used the new calendar helper but repeated the same invalid semicolon inside a returned object three times and stopped safely. The calendar itself was never reached. Syntax diagnostics now show a bounded source excerpt with an exact parser-position marker, rather than emphasizing missing braces. A narrow hint explains an unexpected semicolon when the parser expected an object-closing brace. This is diagnostic feedback, not source rewriting. Unicode-scalar positions follow the pinned QuickJS parser; regression cases include accented text, emoji and multiple lines.
+- Final fresh retries must pass all twelve Loan, nine Invoices and six Due dates originals without manual source changes. Earlier narrower passes and all failures remain distinct. The full suite is in progress; final diagnostics receive focused authoring/runtime checks and a rebuilt package before completion.

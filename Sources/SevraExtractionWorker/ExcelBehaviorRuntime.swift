@@ -34,6 +34,31 @@ enum ExcelBehaviorRuntime {
       }});
     })();
     """#
+  private static func syntaxContext(_ diagnostic: String, source: String) -> String {
+    guard let location = diagnostic.range(of: "excel-behavior.js:") else { return "" }
+    let parts = diagnostic[location.upperBound...].split(separator: ":", maxSplits: 2)
+    guard parts.count >= 2, let line = Int(parts[0]),
+      let column = Int(parts[1].prefix(while: { $0.isNumber })), line > 0, column > 0
+    else { return "" }
+    let lines = source.split(separator: "\n", omittingEmptySubsequences: false)
+    guard line <= lines.count else { return "" }
+    // QuickJS counts Unicode scalars, not UTF-16 units or Swift grapheme clusters.
+    let scalars = Array(lines[line - 1].unicodeScalars)
+    guard column <= scalars.count + 1 else { return "" }
+    let offset = column - 1
+    let before = String(String.UnicodeScalarView(scalars[max(0, offset - 100)..<offset]))
+    let after = String(String.UnicodeScalarView(scalars[offset..<min(scalars.count, offset + 100)]))
+    var result =
+      "\nParser stopped at ⟦HERE⟧ on source line \(line), column \(column):\n"
+      + before + "⟦HERE⟧" + after
+      + "\nAn expecting-token error can indicate an unexpected token here, not a missing delimiter."
+    if offset < scalars.count, scalars[offset] == ";", diagnostic.contains("expecting '}'") {
+      result +=
+        " An object literal uses commas between entries; a statement semicolon belongs after its closing brace."
+    }
+    return result
+  }
+
   static func evaluate(_ url: URL) throws -> Value {
     let file = try FileHandle(forReadingFrom: url)
     let bytes = try file.read(upToCount: 4_000_001) ?? Data()
@@ -78,7 +103,8 @@ enum ExcelBehaviorRuntime {
       throw SevraError(
         "excel_behavior",
         "Invalid excelBehavior.source: " + String(diagnostic.dropFirst().prefix(1800))
-          + "\nThe location refers to your source, not a wrapper. Check for extra as well as missing braces or parentheses. Reformat the function into clear blocks and correct that syntax before resubmitting. Do not repeat unchanged source. Source ending:\n"
+          + syntaxContext(diagnostic, source: source)
+          + "\nThe location refers to your source, not a wrapper. Reformat the function into clear blocks and correct the unexpected token or delimiter before resubmitting. Do not repeat unchanged source. Source ending:\n"
           + String(source.suffix(700)))
     }
     let script = """
