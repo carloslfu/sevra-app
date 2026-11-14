@@ -297,11 +297,17 @@ func checkExcelConversions() async throws {
       try expectEqual(reproduced.contains("Observed failure:"), true)
       try expectEqual(try book.spaces().filter { $0.definition.app != nil }.count, 0)
     }
-    let buildModel = ExcelTestModel([("save_native_app", args)])
+    // A successful conversion is terminal. A model must not get another turn to
+    // repeat its now-stale save, misreport failure, or change the accepted app.
+    let buildModel = ExcelTestModel([("save_native_app", args), ("save_native_app", args)])
     let result = try await WorkbookAgent.run(
       build.request, workbook: book, context: build.context,
       model: buildModel, excelConversion: build)
     try expectEqual(result.state, "complete")
+    try expectEqual(result.steps, 1)
+    try expectEqual(await buildModel.actions.count, 1)
+    try expectEqual(result.focus?.id, draft.id)
+    try expectEqual(result.answer.contains("Review table access"), true)
     let reviewInputs = await buildModel.reviewInputs
     let reviewed = try expectValue(reviewInputs.last)
     try expectEqual(

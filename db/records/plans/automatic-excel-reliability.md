@@ -2,7 +2,7 @@
 type: operational
 id: 01m7d2cc2ahngzgpw3nakfnwsd
 created: 2026-11-14T13:01:38.250838+00:00
-updated: 2026-11-14T16:53:39.284718+00:00
+updated: 2026-11-14T17:12:16.823953+00:00
 summary: Repair local-model Excel conversion failures and verify fresh unassisted apps across business cases
 title: Automatic Excel conversion reliability
 status: in-progress
@@ -113,3 +113,12 @@ Fresh generation is still in qualification; do not treat the code changes or det
 - Current-runtime replays of unchanged Commission, Lookup quotes and Reference codes pass after the compile-only syntax preflight. Cash flow, Production and Timesheets already passed that runtime in the preceding replay. Replays are recorded distinctly from the original fresh generation requests.
 - The final packaged preview is installed. Main UUID `AE3EAD23-2451-324D-B0D5-03CBFA89C1C5`, helper UUID `BF7F0C09-46CC-3AF7-9250-A032E22B0387` and worker UUID `2CCF142B-6134-341F-9210-BC70A047E36A` match packaged identities; helpers/workers retain identical signed bytes and both embedded SDK resources match current canonical bytes. Isolated install/update/conflict/uninstall and extraction checks pass.
 - Actual installed fresh Inventory passes initial input readiness without selection, ship 2, reject `2abc` with unchanged stock/draft, a second ship 2 and Undo. Wide and compact layouts retain centered rows and reachable controls; scrolling over the short table reaches the form. The disposable app was disabled afterward. Loan, Invoices and Due dates fresh retries, final UI and hosted verification remain in progress.
+
+
+## Successful-save completion repair
+
+- Fresh Loan completed all nine originals, repeated-edit/blank/text UI checks, saved edits/reopen/Undo and portable-copy verification without source repair. Installed UI confirms blank principal to zero, invalid text to `#VALUE!`, recovery to principal 20000/payment 1776.98, original-header protection and Undo. Compact forms remain reachable.
+- Fresh Invoices repaired blank and negative-rounding comparisons, passed seven originals and synthetic UI checks, and saved a version. The builder then called save again using the consumed conversion state, repeated the resulting stale-build refusal, and reported run failure despite the ready app. This is a production completion defect, not a generated calculation repair.
+- A successful checked Excel workspace save now concludes its single-workspace request immediately with a host receipt and the correct space focus. It preserves the saved receipt/comparison/version and per-version disabled state. Generic multi-action app authoring is unchanged. The regression deliberately offers a duplicate second save; before the fix the agent used three turns instead of one, and after it the second action remains unconsumed. All 36 focused authoring/conversion groups pass, including failed-then-repaired saves, review refusals and generic authoring.
+- Actual Reference codes UI preserves surrounding spaces and accented text, recalculates the exact reference, clears successful edits, protects original headers and supports Undo. Six task-owned recent shortcuts were removed after all test apps were disabled. The existing ten-item limit evicted the old Demo shortcut while opening test copies; no workbook file was removed or changed. Four other unrelated current recents and all other preference keys were preserved. The preview is on Welcome.
+- Fresh Invoices must be retried under the terminal-save fix. Due dates continues on the frozen earlier builder with the corrected syntax diagnostics. The new code still needs packaging and its exact hosted CI result.
