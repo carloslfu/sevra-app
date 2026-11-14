@@ -359,7 +359,11 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
       let access = try NativeAppAccess(workbook: book, space: book.space(draft.id))
       defer { access.revoke() }
       var savedChecks = 0
-      for file in example["files"].array.dropFirst() {
+      // Held-out originals never enter the model's workbook or comparison examples.
+      // Exercise them only after publication through actual saved edits and Undo.
+      let holdouts = example["holdoutFiles"].array
+      result["heldOutOriginalFiles"] = .array(holdouts)
+      for file in Array(example["files"].array.dropFirst()) + holdouts {
         let sheets = try ExtractionWorker().readTable(
           fixtures.appendingPathComponent(file.text), format: .xlsx
         ).sheets
@@ -383,9 +387,11 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
               "values": .object(inputs),
             ])
           ], expectedRevision: book.revision(), token: token)
-        try expectEqual(
-          Workbook.sameExcelResult(
-            try book.tablePage(table).values[1]["c4"]!.text, expected["sheet1!D2"]!), true)
+        let actual = try book.tablePage(table).values[1]["c4"]!.text
+        try require(
+          Workbook.sameExcelResult(actual, expected["sheet1!D2"]!), "probe",
+          "Saved calculation differs from original " + file.text + ": original “"
+            + expected["sheet1!D2"]! + "”; recreated “" + actual + "”.")
         let reopened = try Workbook(book.url)
         try expectEqual(try reopened.tablePage(table).values, try book.tablePage(table).values)
         _ = try book.nativeAppTransaction(

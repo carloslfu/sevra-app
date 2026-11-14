@@ -5,10 +5,11 @@
       "inventory-0.xlsm",
       "inventory-1.xlsm",
       "inventory-2.xlsm",
-      "inventory-3.xlsm"
+      "inventory-3.xlsm",
+      "inventory-4.xlsm"
     ],
     "behavior": {
-      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;if(input.event===\"ship\"){const q=Number(input.arguments.quantity);if(!Number.isFinite(q)||q<=0||q>b)throw Error(\"Enter an available quantity\");return {\"sheet1!B2\":String(b-q)};}return {\"sheet1!D2\":String(Math.max(c-b,0))};}",
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;if(input.event===\"ship\"){const q=Number(input.arguments.quantity);if(!Number.isFinite(q)||q<=0||q>b)throw Error(\"Enter an available quantity\");return {\"sheet1!B2\":String(b-q)};}return {\"sheet1!D2\":String(Number.isFinite(b)&&Number.isFinite(c)?Math.max(c-b,0):\"#VALUE!\")};}",
       "outputs": [
         "sheet1!D2"
       ],
@@ -36,7 +37,10 @@
     ],
     "inputColumn": "c2",
     "uiBoundaryFiles": [],
-    "variedCases": 3
+    "holdoutFiles": [
+      "inventory-5.xlsm"
+    ],
+    "variedCases": 4
   },
   {
     "name": "Invoices",
@@ -183,7 +187,8 @@
       "loan-8.xlsx",
       "loan-9.xlsx",
       "loan-10.xlsx",
-      "loan-11.xlsx"
+      "loan-11.xlsx",
+      "loan-12.xlsx"
     ],
     "behavior": {
       "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String((()=>{const n=Number(v[\"sheet1!E2\"]);if(!Number.isFinite(b)||!Number.isFinite(c)||!Number.isFinite(n))return \"#VALUE!\";if(n===0)return \"#NUM!\";return round(c===0?b/n:b*c/(1-Math.pow(1+c,-n)))})())};}",
@@ -204,7 +209,11 @@
       "loan-6.xlsx",
       "loan-11.xlsx"
     ],
-    "variedCases": 11
+    "holdoutFiles": [
+      "loan-13.xlsx",
+      "loan-14.xlsx"
+    ],
+    "variedCases": 12
   },
   {
     "name": "Production",
@@ -245,10 +254,11 @@
       "due-dates-2.xlsx",
       "due-dates-3.xlsx",
       "due-dates-4.xlsx",
-      "due-dates-5.xlsx"
+      "due-dates-5.xlsx",
+      "due-dates-6.xlsx"
     ],
     "behavior": {
-      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String((()=>{if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(v[\"sheet1!B2\"]))return \"#VALUE!\";let [y,m,d]=v[\"sheet1!B2\"].split(\"-\").map(Number),n=Math.trunc(c);const days=()=>[31,(y%4===0&&(y%100!==0||y%400===0)?29:28),31,30,31,30,31,31,30,31,30,31][m-1];while(n>0){d++;if(d>days()){d=1;m++;if(m>12){m=1;y++;}}n--;}while(n<0){d--;if(d<1){m--;if(m<1){m=12;y--;}d=days();}n++;}return String(y).padStart(4,\"0\")+\"-\"+String(m).padStart(2,\"0\")+\"-\"+String(d).padStart(2,\"0\")})())};}",
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String((()=>{if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(v[\"sheet1!B2\"])||!Number.isFinite(c))return \"#VALUE!\";let [y,m,d]=v[\"sheet1!B2\"].split(\"-\").map(Number),n=Math.trunc(c);const days=()=>[31,(y%4===0&&(y%100!==0||y%400===0)?29:28),31,30,31,30,31,31,30,31,30,31][m-1];while(n>0){d++;if(d>days()){d=1;m++;if(m>12){m=1;y++;}}n--;}while(n<0){d--;if(d<1){m--;if(m<1){m=12;y--;}d=days();}n++;}return String(y).padStart(4,\"0\")+\"-\"+String(m).padStart(2,\"0\")+\"-\"+String(d).padStart(2,\"0\")})())};}",
       "outputs": [
         "sheet1!D2"
       ],
@@ -265,7 +275,10 @@
       "due-dates-4.xlsx",
       "due-dates-5.xlsx"
     ],
-    "variedCases": 5
+    "holdoutFiles": [
+      "due-dates-7.xlsx"
+    ],
+    "variedCases": 6
   },
   {
     "name": "Reference codes",

@@ -65,6 +65,16 @@ func checkExcelBehaviorReconstruction() async throws {
     try expectEqual(
       report["variedCases"], example["variedCases"])
     try expectEqual(report["actionsWithoutExamples"], .array([]))
+    for file in example["holdoutFiles"].array {
+      let sheets = try ExtractionWorker().readTable(
+        fixtureRoot.appendingPathComponent(file.text), format: .xlsx
+      ).sheets
+      let cells = try Workbook.excelCells(sheets)
+      let actual = try behavior.evaluate(cells: cells)["sheet1!D2"] ?? ""
+      try require(
+        Workbook.sameExcelResult(actual, cells["sheet1!D2"] ?? ""), "fixture",
+        "Reference behavior differs from held-out original " + file.text)
+    }
     // A constant can match the starting file; varied independent examples must catch it.
     let original = try book.excelOriginalSheets(source.id)
     let baseline = try Workbook.excelCells(original)
