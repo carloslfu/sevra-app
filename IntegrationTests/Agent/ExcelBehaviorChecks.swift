@@ -251,6 +251,23 @@ func checkExcelBehaviorReconstruction() async throws {
       ("compare_excel_behavior", .object(["behavior": try encoded(behavior)])),
       ("save_native_app", args),
     ]
+    if name == "Loan" {
+      let mismatch: (String, Value) = (
+        "compare_excel_behavior", .object(["behavior": try encoded(constant)])
+      )
+      let repeated = ExcelTestModel([mismatch, mismatch, mismatch, buildActions[0]])
+      do {
+        _ = try await WorkbookAgent.run(
+          build.request, workbook: book, context: build.context,
+          model: repeated, excelConversion: build)
+        throw SevraError("test", "Repeated mismatches bypassed the failure guard")
+      } catch {
+        try expectEqual((error as? SevraError)?.code, "repeated_action")
+      }
+      try expectEqual(await repeated.actions.count, 1)
+      try expectEqual(try book.spaces().filter { $0.definition.app != nil }.count, 0)
+      buildActions = [mismatch, mismatch] + buildActions
+    }
     if name == "Reference codes" {
       var firstPackage = minimal
       firstPackage["excelBehavior"] = try encoded(behavior)
@@ -266,6 +283,13 @@ func checkExcelBehaviorReconstruction() async throws {
     _ = try await WorkbookAgent.run(
       build.request, workbook: book, context: build.context,
       model: builder, excelConversion: build)
+    if name == "Loan" {
+      let failures = await builder.toolResults.filter { $0["status"] == .string("mismatch") }
+      try expectEqual(failures.map { $0["candidateFailureCount"] }, [.number(1), .number(2)])
+      try expectEqual(
+        failures.allSatisfy { $0["error"].text.contains("differ from the original") }, true)
+      try expectEqual(failures.allSatisfy { !$0["differences"].array.isEmpty }, true)
+    }
     let reviewInput = try expectValue(await builder.reviewInputs.last)
     try expectEqual(reviewInput["proposedPackage"]["excelBehavior"], .null)
     try expectEqual(

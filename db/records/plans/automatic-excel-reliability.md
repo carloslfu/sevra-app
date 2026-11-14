@@ -2,7 +2,7 @@
 type: operational
 id: 01m7d2cc2ahngzgpw3nakfnwsd
 created: 2026-11-14T13:01:38.250838+00:00
-updated: 2026-11-14T17:38:20.947673+00:00
+updated: 2026-11-14T17:56:21.684413+00:00
 summary: Repair local-model Excel conversion failures and verify fresh unassisted apps across business cases
 title: Automatic Excel conversion reliability
 status: in-progress
@@ -142,3 +142,11 @@ Fresh generation is still in qualification; do not treat the code changes or det
 - Qualification 6 Invoices completes automatically under the terminal-save fix in 568 seconds, passing seven original states, independent UI, saved edits/reopen/Undo and portable copy. Later adversarial source inspection found partial numeric text and combined blank/invalid-rate inputs outside those seven states. Two independently recalculated originals reproduce incorrect `2.38` and blank outputs where the original returns `#VALUE!`. The host refuses that unchanged candidate against the expanded originals. A partial-numeric Loan case is also added. The final corpus has 77 files; all previous 74 retain their exact bytes.
 - Qualification 6 Due dates used the new calendar helper but repeated the same invalid semicolon inside a returned object three times and stopped safely. The calendar itself was never reached. Syntax diagnostics now show a bounded source excerpt with an exact parser-position marker, rather than emphasizing missing braces. A narrow hint explains an unexpected semicolon when the parser expected an object-closing brace. This is diagnostic feedback, not source rewriting. Unicode-scalar positions follow the pinned QuickJS parser; regression cases include accented text, emoji and multiple lines.
 - Final fresh retries must pass all twelve Loan, nine Invoices and six Due dates originals without manual source changes. Earlier narrower passes and all failures remain distinct. The full suite is in progress; final diagnostics receive focused authoring/runtime checks and a rebuilt package before completion.
+
+
+## Comparison-failure loop repair
+
+- Qualification 7 fresh Due dates passes in 267 seconds with the shared date helper. It repaired an offset type error and original-result mismatch, then saved successfully. Fresh Invoices passes all nine originals, including the new partial-number and combined blank/invalid-rate cases, in 274 seconds. Neither source was manually edited.
+- Loan repeated an identical mismatched candidate ten times and exhausted twelve steps. Its comparison tool calls were recorded as completed successes despite mismatches, bypassing the existing identical-failure guard. Context refresh therefore repeatedly supplied essentially the same comparison. Increasing the step budget would only prolong this failure.
+- A mismatched candidate is now recorded as a failed comparison attempt, with concise human-readable differences and an explicit repeat count. The complete original report remains in the receipt. Existing same-action refusal stops a third identical failure; the request budget is unchanged. Focused tests prove both three-attempt refusal and bad/bad/corrected/save recovery, retained difference evidence, disabled publication and existing draft invalidation. All 37 authoring/conversion groups pass.
+- The full local suite passed before this final agent-classification repair; its affected paths are covered again by the focused checks. The native 01e7ba9 build is installed and byte/UUID verified, with installation/extraction checks passing. Actual generated Due dates UI passes leap-day recalculation, invalid text, Undo, header protection, initial guards, save clearing and wide/compact spacing/scrolling. That renderer/runtime is unchanged by the agent-classification repair; final packaging will include the latter before closure. The date app is disabled and its disposable workbook closed.

@@ -147,6 +147,7 @@ actor ExcelTestModel: WorkbookInference {
   var actions: [(String, Value)]
   var scopes: [InferenceToolScope] = []
   var reviewInputs: [Value] = []
+  var toolResults: [Value] = []
   var reviews: [Value]
   init(_ actions: [(String, Value)], reviews: [Value] = []) {
     self.actions = actions
@@ -160,6 +161,9 @@ actor ExcelTestModel: WorkbookInference {
     citationIDs: [String]
   ) async throws -> NativeReply {
     scopes.append(toolScope)
+    if let last = messages.last, last.role == "tool" {
+      toolResults.append(try Value.parse(last.content))
+    }
     let action: (String, Value)
     if toolScope == .nativeAppReview {
       reviewInputs.append(try Value.parse(messages.first { $0.role == "user" }!.content))

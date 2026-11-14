@@ -1046,6 +1046,17 @@ public enum WorkbookAgent {
                 ? "This exact behavior is retained for the current build. Now save the UI with synthetic fixtures and tests; omit package.excelBehavior to reuse this verified draft. The host compares it again before publication."
                 : "No behavior draft is retained. Repair the function using the original expressions, exact input.cells addresses and reported differences, then compare again. Do not replace variable calculations with constants or repeat unchanged source."
             )
+            if value["status"] != .string("matched") {
+              // A completed comparison can still reject the candidate. Count it as
+              // a repair failure so identical bad programs cannot spin as successes.
+              callFailed = true
+              let attempt = rejectedActions[try action.json(), default: 0] + 1
+              fields["error"] = .string(String(Workbook.excelComparisonFailure(value).prefix(1800)))
+              fields["candidateFailureCount"] = .number(Double(attempt))
+              fields["retryInstruction"] = .string(
+                "This exact candidate has failed comparison \(attempt) time(s). Change the calculation source before comparing again. Read the original expressions, differences and failingScenarios below. A mismatched comparison is not progress and cannot be saved. Do not repeat unchanged source or paste expected answers as constants."
+              )
+            }
             result = .object(fields)
           } else if tool == "count_records" {
             var fields = value.object
