@@ -65,8 +65,7 @@ extension Workbook {
       throw SevraError("excel_example", "Action inputs must be an object.")
     }
     try require(
-      action == "recalculate"
-        || action.range(of: "^[a-z][a-zA-Z0-9_]{0,63}$", options: .regularExpression) != nil,
+      ExcelBehavior.validIdentifier(action),
       "excel_example", "Choose a declared action or a recalculation example.")
     try require(
       arguments.object.count <= 32 && arguments.json().utf8.count <= 8192,

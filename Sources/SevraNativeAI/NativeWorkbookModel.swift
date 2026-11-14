@@ -499,7 +499,13 @@ private final class NativeWorker: @unchecked Sendable {
     _ cancellation: Cancellation, _ progress: @escaping @Sendable (String) -> Void,
     _ toolScope: InferenceToolScope, _ citationIDs: [String], _ interpretation: Value? = nil
   ) throws -> (NativeReply, Value) {
-    let reasoning = configuration.reasoning
+    let excelReview = toolScope == .nativeAppReview && messages.first?.nativeAppAuthoring == true
+    // Translation must reason through formulas and failing original scenarios before
+    // emitting code. The ordinary 512-token budget repeatedly cut those repairs short.
+    let excelReasoning = toolScope == .excelBuild || excelReview
+    let reasoning =
+      excelReasoning && configuration.reasoning.enabled
+      ? NativeReasoning.bounded2048 : configuration.reasoning
     let policy: SplashToolPolicy
     if let interpretation {
       policy = try SplashToolPolicy.interpretationResult(
@@ -522,7 +528,8 @@ private final class NativeWorker: @unchecked Sendable {
       nativeAppAuthoring: interpretation == nil
         && messages.first?.nativeAppAuthoring == true)
     let outputBudget = min(
-      allowance.outputTokens, interpretation?["maxOutputTokens"].int ?? allowance.outputTokens)
+      allowance.outputTokens,
+      interpretation?["maxOutputTokens"].int ?? (excelReview ? 4096 : allowance.outputTokens))
     let constraint = try session.factory.create(grammar: policy.grammar)
     let output = try SplashOutputStream(
       frontend: session.frontend, tools: policy.outputTools, thinking: reasoning.enabled)

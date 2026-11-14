@@ -8,7 +8,7 @@
       "inventory-3.xlsm"
     ],
     "behavior": {
-      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]);if(input.event===\"ship\"){const q=Number(input.arguments.quantity);if(!Number.isFinite(q)||q<=0||q>b)throw Error(\"Enter an available quantity\");return {\"sheet1!B2\":String(b-q)};}return {\"sheet1!D2\":String(Math.max(c-b,0))};}",
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;if(input.event===\"ship\"){const q=Number(input.arguments.quantity);if(!Number.isFinite(q)||q<=0||q>b)throw Error(\"Enter an available quantity\");return {\"sheet1!B2\":String(b-q)};}return {\"sheet1!D2\":String(Math.max(c-b,0))};}",
       "outputs": [
         "sheet1!D2"
       ],
@@ -34,7 +34,9 @@
       20,
       0
     ],
-    "inputColumn": "c2"
+    "inputColumn": "c2",
+    "uiBoundaryFiles": [],
+    "variedCases": 3
   },
   {
     "name": "Invoices",
@@ -42,10 +44,13 @@
       "invoices-0.xlsx",
       "invoices-1.xlsx",
       "invoices-2.xlsx",
-      "invoices-3.xlsx"
+      "invoices-3.xlsx",
+      "invoices-4.xlsx",
+      "invoices-5.xlsx",
+      "invoices-6.xlsx"
     ],
     "behavior": {
-      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]);return {\"sheet1!D2\":String(Math.round(b*(1+c)*100)/100)};}",
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String(Number.isFinite(b)&&Number.isFinite(c)?round(b*(1+c)):\"#VALUE!\")};}",
       "outputs": [
         "sheet1!D2"
       ],
@@ -57,7 +62,13 @@
       40.25,
       100
     ],
-    "inputColumn": "c2"
+    "inputColumn": "c2",
+    "uiBoundaryFiles": [
+      "invoices-4.xlsx",
+      "invoices-5.xlsx",
+      "invoices-6.xlsx"
+    ],
+    "variedCases": 6
   },
   {
     "name": "Timesheets",
@@ -65,10 +76,13 @@
       "timesheets-0.xlsx",
       "timesheets-1.xlsx",
       "timesheets-2.xlsx",
-      "timesheets-3.xlsx"
+      "timesheets-3.xlsx",
+      "timesheets-4.xlsx",
+      "timesheets-5.xlsx",
+      "timesheets-6.xlsx"
     ],
     "behavior": {
-      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]);return {\"sheet1!D2\":String(b*c)};}",
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String(Number.isFinite(b)&&Number.isFinite(c)?b*c:\"#VALUE!\")};}",
       "outputs": [
         "sheet1!D2"
       ],
@@ -80,7 +94,13 @@
       3.5,
       40
     ],
-    "inputColumn": "c2"
+    "inputColumn": "c2",
+    "uiBoundaryFiles": [
+      "timesheets-4.xlsx",
+      "timesheets-5.xlsx",
+      "timesheets-6.xlsx"
+    ],
+    "variedCases": 6
   },
   {
     "name": "Cash flow",
@@ -88,10 +108,13 @@
       "cash-flow-0.xlsx",
       "cash-flow-1.xlsx",
       "cash-flow-2.xlsx",
-      "cash-flow-3.xlsx"
+      "cash-flow-3.xlsx",
+      "cash-flow-4.xlsx",
+      "cash-flow-5.xlsx",
+      "cash-flow-6.xlsx"
     ],
     "behavior": {
-      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]);return {\"sheet1!D2\":String(b-c)};}",
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String(Number.isFinite(b)&&Number.isFinite(c)?b-c:\"#VALUE!\")};}",
       "outputs": [
         "sheet1!D2"
       ],
@@ -103,7 +126,13 @@
       250,
       75
     ],
-    "inputColumn": "c2"
+    "inputColumn": "c2",
+    "uiBoundaryFiles": [
+      "cash-flow-4.xlsx",
+      "cash-flow-5.xlsx",
+      "cash-flow-6.xlsx"
+    ],
+    "variedCases": 6
   },
   {
     "name": "Commission",
@@ -111,10 +140,13 @@
       "commission-0.xlsx",
       "commission-1.xlsx",
       "commission-2.xlsx",
-      "commission-3.xlsx"
+      "commission-3.xlsx",
+      "commission-4.xlsx",
+      "commission-5.xlsx",
+      "commission-6.xlsx"
     ],
     "behavior": {
-      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]);return {\"sheet1!D2\":String(Math.round(b*c*100)/100)};}",
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String(Number.isFinite(b)&&Number.isFinite(c)?round(b*c):\"#VALUE!\")};}",
       "outputs": [
         "sheet1!D2"
       ],
@@ -126,7 +158,13 @@
       1357.2,
       10000
     ],
-    "inputColumn": "c2"
+    "inputColumn": "c2",
+    "uiBoundaryFiles": [
+      "commission-4.xlsx",
+      "commission-5.xlsx",
+      "commission-6.xlsx"
+    ],
+    "variedCases": 6
   },
   {
     "name": "Loan",
@@ -135,10 +173,14 @@
       "loan-1.xlsx",
       "loan-2.xlsx",
       "loan-3.xlsx",
-      "loan-4.xlsx"
+      "loan-4.xlsx",
+      "loan-5.xlsx",
+      "loan-6.xlsx",
+      "loan-7.xlsx",
+      "loan-8.xlsx"
     ],
     "behavior": {
-      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]);return {\"sheet1!D2\":String(Math.round((c===0?b/Number(v[\"sheet1!E2\"]):b*c/(1-Math.pow(1+c,-Number(v[\"sheet1!E2\"]))))*100)/100)};}",
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String((()=>{const n=Number(v[\"sheet1!E2\"]);if(!Number.isFinite(b)||!Number.isFinite(c)||!Number.isFinite(n))return \"#VALUE!\";if(n===0)return \"#NUM!\";return round(c===0?b/n:b*c/(1-Math.pow(1+c,-n)))})())};}",
       "outputs": [
         "sheet1!D2"
       ],
@@ -150,7 +192,12 @@
       20000,
       1234
     ],
-    "inputColumn": "c2"
+    "inputColumn": "c2",
+    "uiBoundaryFiles": [
+      "loan-5.xlsx",
+      "loan-6.xlsx"
+    ],
+    "variedCases": 8
   },
   {
     "name": "Production",
@@ -158,10 +205,13 @@
       "production-0.xlsx",
       "production-1.xlsx",
       "production-2.xlsx",
-      "production-3.xlsx"
+      "production-3.xlsx",
+      "production-4.xlsx",
+      "production-5.xlsx",
+      "production-6.xlsx"
     ],
     "behavior": {
-      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]);return {\"sheet1!D2\":String(c===0?0:b/c)};}",
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String(c===0||!Number.isFinite(b)||!Number.isFinite(c)?0:b/c)};}",
       "outputs": [
         "sheet1!D2"
       ],
@@ -173,32 +223,12 @@
       90,
       100
     ],
-    "inputColumn": "c2"
-  },
-  {
-    "name": "Lookup quotes",
-    "files": [
-      "lookup-quotes-0.xlsx",
-      "lookup-quotes-1.xlsx",
-      "lookup-quotes-2.xlsx",
-      "lookup-quotes-3.xlsx",
-      "lookup-quotes-4.xlsx",
-      "lookup-quotes-5.xlsx"
+    "inputColumn": "c2",
+    "uiBoundaryFiles": [
+      "production-4.xlsx",
+      "production-5.xlsx"
     ],
-    "behavior": {
-      "source": "function recreate(input){const c=input.cells,sku=c['sheet1!B2'].toLowerCase();let price;if(sku===c['sheet1!F2'].toLowerCase())price=c['sheet1!G2'];else if(sku===c['sheet1!F3'].toLowerCase())price=c['sheet1!G3'];else return {'sheet1!D2':'#N/A'};const p=Number(price),q=Number(c['sheet1!C2']);return {'sheet1!D2':Number.isFinite(p)&&Number.isFinite(q)?String(p*q):'#VALUE!'};}",
-      "outputs": [
-        "sheet1!D2"
-      ],
-      "actions": [],
-      "gaps": []
-    },
-    "changedInputs": [
-      "A",
-      "B",
-      "A"
-    ],
-    "inputColumn": "c2"
+    "variedCases": 6
   },
   {
     "name": "Due dates",
@@ -206,10 +236,12 @@
       "due-dates-0.xlsx",
       "due-dates-1.xlsx",
       "due-dates-2.xlsx",
-      "due-dates-3.xlsx"
+      "due-dates-3.xlsx",
+      "due-dates-4.xlsx",
+      "due-dates-5.xlsx"
     ],
     "behavior": {
-      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]);return {\"sheet1!D2\":String((()=>{let [y,m,d]=v[\"sheet1!B2\"].split(\"-\").map(Number),n=Math.trunc(c);const days=()=>[31,(y%4===0&&(y%100!==0||y%400===0)?29:28),31,30,31,30,31,31,30,31,30,31][m-1];while(n>0){d++;if(d>days()){d=1;m++;if(m>12){m=1;y++;}}n--;}while(n<0){d--;if(d<1){m--;if(m<1){m=12;y--;}d=days();}n++;}return String(y).padStart(4,\"0\")+\"-\"+String(m).padStart(2,\"0\")+\"-\"+String(d).padStart(2,\"0\")})())};}",
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String((()=>{if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(v[\"sheet1!B2\"]))return \"#VALUE!\";let [y,m,d]=v[\"sheet1!B2\"].split(\"-\").map(Number),n=Math.trunc(c);const days=()=>[31,(y%4===0&&(y%100!==0||y%400===0)?29:28),31,30,31,30,31,31,30,31,30,31][m-1];while(n>0){d++;if(d>days()){d=1;m++;if(m>12){m=1;y++;}}n--;}while(n<0){d--;if(d<1){m--;if(m<1){m=12;y--;}d=days();}n++;}return String(y).padStart(4,\"0\")+\"-\"+String(m).padStart(2,\"0\")+\"-\"+String(d).padStart(2,\"0\")})())};}",
       "outputs": [
         "sheet1!D2"
       ],
@@ -221,7 +253,12 @@
       "2024-12-31",
       "2026-11-13"
     ],
-    "inputColumn": "c2"
+    "inputColumn": "c2",
+    "uiBoundaryFiles": [
+      "due-dates-4.xlsx",
+      "due-dates-5.xlsx"
+    ],
+    "variedCases": 5
   },
   {
     "name": "Reference codes",
@@ -229,10 +266,15 @@
       "reference-codes-0.xlsx",
       "reference-codes-1.xlsx",
       "reference-codes-2.xlsx",
-      "reference-codes-3.xlsx"
+      "reference-codes-3.xlsx",
+      "reference-codes-4.xlsx",
+      "reference-codes-5.xlsx",
+      "reference-codes-6.xlsx",
+      "reference-codes-7.xlsx",
+      "reference-codes-8.xlsx"
     ],
     "behavior": {
-      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]);return {\"sheet1!D2\":String(v[\"sheet1!B2\"].toUpperCase()+\"-\"+String(Math.trunc(c)).padStart(4,\"0\"))};}",
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String(v[\"sheet1!B2\"].toUpperCase()+\"-\"+(Number.isFinite(c)?(c<0?\"-\":\"\")+String(Math.round(Math.abs(c))).padStart(4,\"0\"):v[\"sheet1!C2\"]))};}",
       "outputs": [
         "sheet1!D2"
       ],
@@ -244,6 +286,43 @@
       "a b",
       "caf\u00e9"
     ],
-    "inputColumn": "c2"
+    "inputColumn": "c2",
+    "uiBoundaryFiles": [
+      "reference-codes-4.xlsx",
+      "reference-codes-5.xlsx"
+    ],
+    "variedCases": 8
+  },
+  {
+    "name": "Lookup quotes",
+    "files": [
+      "lookup-quotes-0.xlsx",
+      "lookup-quotes-1.xlsx",
+      "lookup-quotes-2.xlsx",
+      "lookup-quotes-3.xlsx",
+      "lookup-quotes-4.xlsx",
+      "lookup-quotes-5.xlsx",
+      "lookup-quotes-6.xlsx",
+      "lookup-quotes-7.xlsx",
+      "lookup-quotes-8.xlsx"
+    ],
+    "behavior": {
+      "source": "function recreate(input){const v=input.cells,b=Number(v[\"sheet1!B2\"]),c=Number(v[\"sheet1!C2\"]),round=x=>Math.sign(x)*Math.round(Number((Math.abs(x)*100).toPrecision(15)))/100;return {\"sheet1!D2\":String((()=>{const key=v[\"sheet1!B2\"].toLowerCase();let price;if(key===v[\"sheet1!F2\"].toLowerCase())price=Number(v[\"sheet1!G2\"]);else if(key===v[\"sheet1!F3\"].toLowerCase())price=Number(v[\"sheet1!G3\"]);else return \"#N/A\";return Number.isFinite(price)&&Number.isFinite(c)?price*c:\"#VALUE!\"})())};}",
+      "outputs": [
+        "sheet1!D2"
+      ],
+      "actions": [],
+      "gaps": []
+    },
+    "changedInputs": [
+      "A",
+      "B",
+      "A"
+    ],
+    "inputColumn": "c2",
+    "uiBoundaryFiles": [
+      "lookup-quotes-6.xlsx"
+    ],
+    "variedCases": 7
   }
 ]

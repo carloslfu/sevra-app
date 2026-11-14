@@ -48,10 +48,10 @@ enum ExcelBehaviorRuntime {
       Math.random=()=>{throw Error('Randomness needs an explicit input');};Object.freeze(Math);
       const __rawInput=\(try request["input"].json()),__hidden=new Set(\(try Value.array(request["hiddenOutputs"].array).json()));
       const __address=/^sheet[1-9][0-9]*![A-Z]+[1-9][0-9]*$/;
-      __rawInput.cells=new Proxy(__rawInput.cells,{get(target,key){if(Object.prototype.hasOwnProperty.call(target,key))return target[key];if(__hidden.has(key))throw Error('Compute derived cell '+key+' from input cells; its saved answer is hidden');if(typeof key==='string'&&__address.test(key))return '';return Reflect.get(target,key);}});
-      const __input=new Proxy(__rawInput,{get(target,key){if(typeof key==='string'&&__address.test(key))throw Error('Read '+key+' from input.cells, not directly from input');return Reflect.get(target,key);}});
+      __rawInput.cells=new Proxy(__rawInput.cells,{get(target,key){if(Object.prototype.hasOwnProperty.call(target,key))return target[key];if(__hidden.has(key))throw Error('Compute derived cell '+key+' from input cells; its saved answer is hidden');if(typeof key==='string'&&__address.test(key))return '';if(typeof key==='string'&&key!=='toJSON'&&!Reflect.has(target,key))throw Error('Invalid Excel cell key '+JSON.stringify(key.slice(0,80))+'. Read input.cells["sheet1!B2"], never input.cells.c2 or input.cells["c2"]. Available input addresses: '+Object.keys(target).slice(0,16).join(', '));return Reflect.get(target,key);}});
+      const __input=new Proxy(__rawInput,{get(target,key){if(typeof key==='string'&&key!=='toJSON'&&!Reflect.has(target,key))throw Error('Invalid recreate input property '+JSON.stringify(key.slice(0,80))+'. Input has event, cells and arguments. Read Excel values from input.cells["sheet1!B2"], not input.c2 or input["sheet1!B2"].');return Reflect.get(target,key);}});
       const __result=(()=>{'use strict';\n\(source)\nreturn recreate(__input);})();
-      if(!__result||typeof __result!=='object'||Array.isArray(__result)||typeof __result.then==='function')throw Error('Return a cell-value object synchronously');
+      if(!__result||typeof __result!=='object'||Array.isArray(__result)||typeof __result.then==='function'){const e=Error('Return a cell-value object synchronously');e.name='SevraResultError';throw e;}
       globalThis.Sevra=Object.freeze({__flush:()=>__result});
       """
     guard let output = script.withCString({ sevra_js_eval(engine, $0, script.utf8.count, 500) })
@@ -64,7 +64,17 @@ enum ExcelBehaviorRuntime {
       // A user validation error is also shown in the native form. Keep the message,
       // not QuickJS's internal stack frames, which are not useful recovery guidance.
       var message = String(text.dropFirst().split(separator: "\n", maxSplits: 1).first ?? "")
+      if message.hasPrefix("SevraResultError: ") {
+        throw SevraError("excel_behavior_result", String(message.dropFirst(18).prefix(2000)))
+      }
       if message.hasPrefix("Error: ") { message.removeFirst(7) }
+      if message.hasPrefix("SyntaxError:") {
+        throw SevraError(
+          "excel_behavior",
+          "Invalid excelBehavior.source: " + String(message.prefix(500))
+            + ". Supply the complete function recreate(input), including its closing brace after the returned object. Check delimiter balance and do not repeat unchanged source. Source ending:\n"
+            + String(source.suffix(700)))
+      }
       throw SevraError(
         "excel_behavior", message.isEmpty ? "Calculation failed." : String(message.prefix(2000)))
     }

@@ -8,7 +8,10 @@ import SevraCore
 func expect(_ condition: @autoclosure () throws -> Bool, _ message: String = "Expectation failed")
   throws
 {
-  if try !condition() { throw SevraError("test", message) }
+  if try !condition() {
+    print("ASSERTION FAILED: " + message)
+    throw SevraError("test", message)
+  }
 }
 func refuses(_ body: () throws -> Void) throws {
   do { try body() } catch { return }
@@ -35,6 +38,7 @@ func exchange(
   }
   @MainActor static func run() async -> Int32 {
     setbuf(stdout, nil)
+    if CommandLine.arguments.contains("--xpc") { _ = NSApplication.shared }
     var passed = 0
     var failed = 0
     func check(_ title: String, _ work: () throws -> Void) {

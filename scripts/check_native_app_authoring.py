@@ -1,6 +1,7 @@
 """Package the authoring checks with the actual signed isolated app worker."""
 import argparse
 import hashlib
+import json
 import pathlib
 import plistlib
 import shutil
@@ -40,7 +41,27 @@ def main():
         options = ['--excel-conversion-live', *args.excel_live] if args.excel_live else ['--native-app-authoring', *args.live] if args.live else ['--excel-conversion-checks'] if args.excel_only else ['--native-app-authoring-checks']
         if args.excel_behavior_live:
             options = ['--excel-behavior-live', *args.excel_behavior_live]
-        subprocess.run([str(app / 'Contents/MacOS/checks'), *options], cwd=ROOT, check=True, timeout=3600 if live else 240)
+        identity = None
+        if live:
+            def digest(path):
+                return hashlib.sha256(path.read_bytes()).hexdigest()
+            identity = {
+                'gitHead': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+                'binaries': {str(path.relative_to(app)): digest(path) for path in [
+                    app / 'Contents/MacOS/checks', app / 'Contents/MacOS/sevra-extract',
+                    *sorted(app.glob('Contents/XPCServices/*.xpc/Contents/MacOS/sevra-app-worker'))]},
+                'engineSHA256': digest(pathlib.Path(live[2])),
+                'fixtures': {str(path.relative_to(ROOT)): digest(path) for path in sorted(
+                    (ROOT / 'integration/fixtures/excel-behavior').glob('*')) if path.is_file()},
+                'sources': {str(path.relative_to(ROOT)): digest(path) for path in sorted([
+                    ROOT / 'Package.swift', *ROOT.glob('Sources/**/*.swift'),
+                    *ROOT.glob('IntegrationTests/Agent/*.swift')])},
+            }
+        try:
+            subprocess.run([str(app / 'Contents/MacOS/checks'), *options], cwd=ROOT, check=True, timeout=3600 if live else 240)
+        finally:
+            if identity is not None and pathlib.Path(live[3]).is_dir():
+                (pathlib.Path(live[3]) / 'runtime.json').write_text(json.dumps(identity, indent=2) + '\n')
 
 
 if __name__ == '__main__':

@@ -33,9 +33,9 @@ See the [Excel flow and limits](db/records/specs/single-excel-import.md).
 Original macros never execute. Saved-result matches cover only the tested examples;
 external services, unreadable sources, exact Excel rendering and automatic formulas
 for inserted rows remain limits. See the [reconstruction contract](db/records/specs/excel-application-reconstruction.md).
-Automatic conversion is still inconsistent: the latest unassisted model trials repeated
-mistakes and stopped safely. The [review and evidence](db/records/reviews/excel-reconstruction-and-engine-review.md)
-distinguish model output from manually reviewed examples. Test your business workflow before relying on it.
+Automatic conversion is undergoing broader business-case and edge-case qualification.
+The [reliability plan](db/records/plans/automatic-excel-reliability.md) records fresh local-model
+trials, fixes and retained failures. Test your business workflow before relying on it.
 
 Ask the local model to build a named mini app with the fields, actions and tables you need.
 It writes the app, runs synthetic checks in isolation, and reviews the result against your

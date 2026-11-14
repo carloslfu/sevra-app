@@ -63,14 +63,21 @@ public struct NativeAppNode: Equatable, Sendable {
     for key in ["enabled", "hidden", "selectable", "vertical", "indeterminate", "descending"] {
       if let value = props.object[key], case .bool = value {
       } else if props.object[key] != nil {
-        throw SevraError("app_tree", "Native flags must be booleans.")
+        throw SevraError(
+          "app_tree",
+          "Property " + key + " on " + type + " (" + String(props["label"].text.prefix(120))
+            + ") must be true or false. Use !!value or an explicit comparison, such as value.trim().length > 0, in a boolean predicate. Do not return a string or row object."
+        )
       }
     }
     if type == "table" {
       for key in ["table", "search", "sort", "selection"] where props.object[key] != nil {
         try require(
           props[key].string != nil, "app_tree",
-          "Table " + key + " must be a string, not a flag or object.")
+          "Table " + key + " must be a string, not a flag or object."
+            + (key == "selection"
+              ? " Use a separate signal('') containing row.key, or selection:()=>selected.value?.key||''. Never bind the whole selected row object or signal(null). Omit selection when the workflow does not select rows."
+              : " Use a string or signal(''); omit the property when unused."))
       }
       if let columns = props.object["columns"] {
         guard case .array = columns, columns.array.allSatisfy({ $0.string != nil }) else {

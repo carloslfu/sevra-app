@@ -37,6 +37,13 @@ public struct ExcelBehavior: Codable, Equatable, Sendable {
     SHA256.hash(data: Data(((try? encoded(self).json()) ?? "").utf8))
       .map { String(format: "%02x", $0) }.joined()
   }
+  static let identifierPattern = "^[A-Za-z][A-Za-z0-9_]{0,63}$"
+  static func validIdentifier(_ value: String) -> Bool {
+    value.utf8.count <= 64
+      && value.range(of: identifierPattern, options: .regularExpression) == value
+        .startIndex..<value.endIndex
+  }
+
   public func validate() throws {
     try require(
       !source.isEmpty && source.utf8.count <= 131_072 && !source.contains("\0"),
@@ -51,13 +58,20 @@ public struct ExcelBehavior: Codable, Equatable, Sendable {
       try require(
         inputs.count <= 16 && Set(inputs.map(\.id)).count == inputs.count
           && inputs.allSatisfy {
-            $0.id.range(of: "^[a-z][a-zA-Z0-9_]{0,63}$", options: .regularExpression) != nil
+            Self.validIdentifier($0.id)
               && !$0.title.isEmpty && $0.title.utf8.count <= 160
-          }, "excel_action", "Declare bounded, named action inputs.")
+          }, "excel_action",
+        "Use up to 16 unique named inputs. IDs start with an ASCII letter, contain only letters, digits or underscores, and have at most 64 characters; titles need 1 to 160 UTF-8 bytes."
+      )
       try require(
         action.id != "recalculate"
-          && action.id.range(of: "^[a-z][a-zA-Z0-9_]{0,63}$", options: .regularExpression) != nil
-          && !action.title.isEmpty && action.title.utf8.count <= 160
+          && Self.validIdentifier(action.id),
+        "excel_behavior",
+        "Action ID '" + String(action.id.prefix(80))
+          + "' must start with an ASCII letter, contain only letters, digits or underscores, and have at most 64 characters. The ID recalculate is reserved."
+      )
+      try require(
+        !action.title.isEmpty && action.title.utf8.count <= 160
           && (1...64).contains(action.writes.count)
           && Set(action.writes).count == action.writes.count
           && Set(action.writes).isDisjoint(with: outputs),
@@ -124,11 +138,11 @@ public struct ExcelBehavior: Codable, Equatable, Sendable {
           ]),
         ]), cancellation: cancellation)
     guard case .object(let values) = result else {
-      throw SevraError("excel_behavior", "The behavior must return a cell-value object.")
+      throw SevraError("excel_behavior_result", "The behavior must return a cell-value object.")
     }
     try require(
       action == "recalculate" ? Set(values.keys) == writes : Set(values.keys).isSubset(of: writes),
-      "excel_behavior",
+      "excel_behavior_result",
       "Fix excelBehavior.source, inside recreate(input), for event '" + action
         + "'. Its return object contains undeclared or missing cell keys. Allowed keys: "
         + writes.sorted().prefix(12).joined(separator: ", ") + "; received: "
@@ -140,7 +154,7 @@ public struct ExcelBehavior: Codable, Equatable, Sendable {
     )
     try require(
       values.allSatisfy { $0.value.string != nil && $0.value.text.utf8.count <= 32_000 },
-      "excel_behavior",
+      "excel_behavior_result",
       "Return string values for every cell, each at most 32 KB. Wrap numeric results in String(...)."
     )
     var changes = values.mapValues(\.text)

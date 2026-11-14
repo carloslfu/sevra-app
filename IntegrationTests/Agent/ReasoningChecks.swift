@@ -19,6 +19,8 @@ func checkReasoningBudget() throws {
   try expectEqual(budget.end, [248069])
   try expectEqual(budget.alsoEnds, 248058)
   try expectThrows(try NativeReasoning.bounded512.budget(outputTokens: 771))
+  try expectEqual(try NativeReasoning.bounded2048.budget(outputTokens: 4096)?.tokens, 2048)
+  try expectThrows(try NativeReasoning.bounded2048.budget(outputTokens: 1800))
   _ = try NativeReasoning.bounded512.budget(outputTokens: 772)
   try expectEqual(try NativeReasoning.bounded512.generatedTokens([12, 34, 248069, 248058]), 2)
   try expectThrows(try NativeReasoning.bounded512.generatedTokens([12, 34]))

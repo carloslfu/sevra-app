@@ -180,6 +180,7 @@ extension Checks {
     }
     let grid = findTable(renderer)!
     try await wait { grid.numberOfRows == 2 }
+    try expect(!grid.usesAlternatingRowBackgroundColors, "Empty table space resembles extra rows")
     var failures: [String] = []
     if tabs.selectedTabViewItem?.identifier as? String != "root/0/1" {
       failures.append("Initial tab selection ignored")

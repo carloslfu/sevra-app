@@ -57,9 +57,13 @@ func checkExcelBehaviorReconstruction() async throws {
     }
     try expectThrows(try book.validateExcelConversionBuild(initialBuild))
     let report = try book.compareExcelBehavior(behavior, conversionID: draft.id)
+    if report["status"] != .string("matched") {
+      print(
+        "Reference behavior mismatch for " + name + ": " + Workbook.excelComparisonFailure(report))
+    }
     try expectEqual(report["status"], .string("matched"))
     try expectEqual(
-      report["variedCases"], .number(["Lookup quotes", "Loan"].contains(name) ? 4 : 3))
+      report["variedCases"], example["variedCases"])
     try expectEqual(report["actionsWithoutExamples"], .array([]))
     // A constant can match the starting file; varied independent examples must catch it.
     let original = try book.excelOriginalSheets(source.id)
@@ -73,6 +77,17 @@ func checkExcelBehaviorReconstruction() async throws {
       try expectEqual(
         try book.compareExcelBehavior(constant, conversionID: draft.id)["status"],
         .string("mismatch"))
+    }
+    if name == "Loan" {
+      var nonzeroOnly = behavior
+      nonzeroOnly.source =
+        "function recreate(input){const c=input.cells,b=Number(c['sheet1!B2']),r=Number(c['sheet1!C2']),n=Number(c['sheet1!E2']);return {'sheet1!D2':String(Math.round(b*r/(1-Math.pow(1+r,-n))*100)/100)}}"
+      let failed = try book.compareExcelBehavior(nonzeroOnly, conversionID: draft.id)
+      try expectEqual(failed["status"], .string("mismatch"))
+      try expectEqual(
+        failed["failingScenarios"].array[0]["inputChanges"]["sheet1!C2"], .string("0"))
+      try expectEqual(failed["failingScenarios"].array[0]["inputChanges"]["sheet1!D2"], .null)
+      try expectEqual(Workbook.excelComparisonFailure(failed).contains("sheet1!C2"), true)
     }
     let build = try book.prepareExcelConversionBuild(draft.id)
     var package = NativeAppPackage(
@@ -137,16 +152,130 @@ func checkExcelBehaviorReconstruction() async throws {
         ]),
       ]
     }
+    if name == "Inventory" {
+      var namedLikeMacro = behavior
+      namedLikeMacro.actions[0].id = "ShipStock"
+      namedLikeMacro.actions[0].inputs?[0].id = "Quantity"
+      namedLikeMacro.source = behavior.source.replacingOccurrences(
+        of: "input.event===\"ship\"", with: "input.event===\"ShipStock\""
+      )
+      .replacingOccurrences(of: "input.arguments.quantity", with: "input.arguments.Quantity")
+      let namedResult = try namedLikeMacro.evaluate(
+        cells: Workbook.excelCells(book.excelOriginalSheets(source.id)), action: "ShipStock",
+        arguments: .object(["Quantity": .string("2")]))
+      try expectEqual(namedResult["sheet1!B2"], "6")
+      for invalidID in [
+        "../ship", "Ship Stock", "ShipStock\n", "recalculate", String(repeating: "a", count: 65),
+      ] {
+        var invalid = namedLikeMacro
+        invalid.actions[0].id = invalidID
+        try expectThrows(try invalid.validate())
+      }
+      var broken = package
+      broken.source = """
+        const S=Sevra,status=S.signal('');S.mount(S.h(S.Column,{},S.h(S.Button,{title:'Ship',onClick:async()=>{try{await S.data.transaction([{op:'excel_action',action:'ship',arguments:{quantity:'2'}}]);}catch(e){status.value='Handled failure';}}}),S.h(S.Text,{text:status})));
+        """
+      for returned in [
+        "return {\"sheet1!B2\":String(b-q),\"sheet1!D2\":\"0\"}", "return 'invalid'",
+      ] {
+        broken.excelBehavior?.source = behavior.source.replacingOccurrences(
+          of: "return {\"sheet1!B2\":String(b-q)}", with: returned)
+        try expectEqual(broken.excelBehavior?.source != behavior.source, true)
+        do {
+          _ = try await NativeAppCheck.run(
+            package: broken,
+            steps: [
+              .object(["kind": .string("click"), "target": .string("Ship")]),
+              .object(["kind": .string("expect_text"), "value": .string("Handled failure")]),
+            ], fixtures: fixtures, excelCoordinates: book.excelCheckCoordinates(draft.id))
+          throw SevraError("test", "A caught malformed action result passed preflight")
+        } catch {
+          try expectEqual((error as? SevraError)?.code, "excel_behavior_result")
+        }
+      }
+    }
+    // A successfully compared behavior is retained by this request. UI authoring need not
+    // retransmit it, but a subsequent bad comparison must invalidate that exact draft.
+    minimal.removeValue(forKey: "excelBehavior")
     let args: Value = .object([
       "package": .object(minimal), "fixtures": fixtures, "tests": .array(steps),
     ])
+    if name == "Loan" {
+      let bad = ExcelBehavior(
+        source: "function recreate(){return {'sheet1!D2':'wrong'}}", outputs: ["sheet1!D2"])
+      var badPackage = minimal
+      badPackage["excelBehavior"] = try encoded(bad)
+      var badSave = args.object
+      badSave["package"] = .object(badPackage)
+      var malformedAction = behavior
+      malformedAction.actions = [.init(id: "bad", title: "Bad action", writes: ["sheet1!B2"])]
+      malformedAction.source = behavior.source.replacingOccurrences(
+        of: "function recreate(input){",
+        with: "function recreate(input){if(input.event==='bad')return {'sheet1!D2':'0'};")
+      try expectEqual(
+        try book.compareExcelBehavior(malformedAction, conversionID: draft.id)["status"],
+        .string("matched"))
+      var actionPackage = minimal
+      actionPackage["excelBehavior"] = try encoded(malformedAction)
+      actionPackage["source"] = .string(
+        "const S=Sevra,status=S.signal('');S.mount(S.h(S.Column,{},S.h(S.Table,{table:'sheet1',label:'Records'}),S.h(S.Button,{title:'Bad',onClick:async()=>{try{await S.data.transaction([{op:'excel_action',action:'bad',arguments:{}}]);}catch(e){status.value='Handled failure';}}}),S.h(S.Text,{text:status})));"
+      )
+      let actionSave: Value = .object([
+        "package": .object(actionPackage), "fixtures": fixtures,
+        "tests": .array([
+          .object(["kind": .string("click"), "target": .string("Bad")]),
+          .object(["kind": .string("expect_text"), "value": .string("Handled failure")]),
+        ]),
+      ])
+      for invalidation: (String, Value) in [
+        ("compare_excel_behavior", .object(["behavior": try encoded(bad)])),
+        ("save_native_app", .object(badSave)),
+        ("save_native_app", actionSave),
+      ] {
+        let failureModel = ExcelTestModel([
+          ("compare_excel_behavior", .object(["behavior": try encoded(behavior)])),
+          invalidation,
+          ("save_native_app", args), ("save_native_app", args), ("save_native_app", args),
+        ])
+        var refused = false
+        do {
+          _ = try await WorkbookAgent.run(
+            build.request, workbook: book, context: build.context,
+            model: failureModel, excelConversion: build)
+        } catch { refused = true }
+        try expectEqual(refused, true)
+        try expectEqual(try book.excelConversion(draft.id).appID, nil)
+      }
+    }
+    var buildActions: [(String, Value)] = [
+      ("compare_excel_behavior", .object(["behavior": try encoded(behavior)])),
+      ("save_native_app", args),
+    ]
+    if name == "Reference codes" {
+      var firstPackage = minimal
+      firstPackage["excelBehavior"] = try encoded(behavior)
+      let failedUI: Value = .object([
+        "package": .object(firstPackage), "fixtures": fixtures,
+        "tests": .array([.object(["kind": .string("expect_text"), "value": .string("Missing")])]),
+      ])
+      // A save that passes original comparison but fails its UI checks retains only the
+      // exact verified calculation draft. The next UI repair need not regenerate it.
+      buildActions = [("save_native_app", failedUI), ("save_native_app", args)]
+    }
+    let builder = ExcelTestModel(buildActions)
     _ = try await WorkbookAgent.run(
       build.request, workbook: book, context: build.context,
-      model: ExcelTestModel([("save_native_app", args)]), excelConversion: build)
+      model: builder, excelConversion: build)
+    let reviewInput = try expectValue(await builder.reviewInputs.last)
+    try expectEqual(reviewInput["proposedPackage"]["excelBehavior"], .null)
+    try expectEqual(
+      reviewInput["hostValidatedActionProgram"],
+      behavior.actions.isEmpty ? .null : .string(behavior.source))
     let ready = try book.excelConversion(draft.id)
     if ready.state != "ready" { print(try encoded(book.messages()).json()) }
     try expectEqual(ready.state, "ready")
     try expectEqual(ready.record.data["comparison"]["status"], .string("matched"))
+    try expectEqual(try book.space(draft.id).definition.app?.excelBehavior, behavior)
     var stripped = package
     stripped.excelBehavior = nil
     try expectThrows(
@@ -163,6 +292,7 @@ func checkExcelBehaviorReconstruction() async throws {
       var inputValues: [String: Value] = [
         "c2": .string(expected["sheet1!B2"]!), "c3": .string(expected["sheet1!C2"]!),
       ]
+      if name == "Loan" { inputValues["c5"] = .string(expected["sheet1!E2"]!) }
       if name == "Lookup quotes" {
         inputValues["c6"] = .string(expected["sheet1!F2"]!)
         inputValues["c7"] = .string(expected["sheet1!G2"]!)
@@ -257,7 +387,20 @@ func checkExcelBehaviorReconstruction() async throws {
   try expectEqual(sandbox["deniedRead"], .bool(true))
   try expectEqual(sandbox["deniedWrite"], .bool(true))
   try expectEqual(FileManager.default.fileExists(atPath: probe.path + ".probe"), false)
+  do {
+    _ = try ExcelBehavior(
+      source: "function recreate(input){return {'sheet1!D2':'1'};", outputs: ["sheet1!D2"]
+    ).evaluate(cells: ["sheet1!D2": "1"])
+    throw SevraError("test", "Incomplete calculation function accepted")
+  } catch {
+    try require(
+      error.localizedDescription.contains("Invalid excelBehavior.source"), "test",
+      "Expected calculation syntax feedback; received: " + error.localizedDescription)
+    try expectEqual(error.localizedDescription.contains("closing brace"), true)
+  }
   let programs = [
+    "function recreate(input){return {'sheet1!D2':String(Number(input.cells['c2'])||0)}}",
+    "function recreate(input){return {'sheet1!D2':String(Number(input.c2)||0)}}",
     "function recreate(input){return {'sheet1!D2':String(input['sheet1!B2'])}}",
     "function recreate(){while(true){}}",
     "function recreate(){return {'sheet1!A1':'overreach'}}",

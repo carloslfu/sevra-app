@@ -217,7 +217,12 @@ public enum NativeAppCheck {
             default:
               throw SevraError("app_check", "Unsupported SDK request: " + message["method"].text)
             }
-          } catch { reply["error"] = .string(error.localizedDescription) }
+          } catch {
+            // Invalid action write sets/result types are broken programs, not expected
+            // business validation. Catching them in UI code must not hide that defect.
+            if (error as? SevraError)?.code == "excel_behavior_result" { throw error }
+            reply["error"] = .string(error.localizedDescription)
+          }
           replies.append(.object(reply))
         }
         if changed {
@@ -257,6 +262,7 @@ public enum NativeAppCheck {
       }
       throw error
     }
+    var lastSelection = ""
     for (index, step) in steps.enumerated() {
       do {
         try cancellation.check()
@@ -277,15 +283,19 @@ public enum NativeAppCheck {
         switch kind {
         case "expect_text":
           let text = step["value"].text
+          try require(!text.isEmpty, "app_check", "Supply a nonempty text expectation.")
           try require(
-            !text.isEmpty
-              && tree.nodes.values.contains {
-                $0.type == "text" && visible($0) && $0.props["text"].text.contains(text)
-              },
-            "app_check", "Expected visible text: " + text)
+            tree.nodes.values.contains {
+              $0.type == "text" && visible($0) && $0.props["text"].text.contains(text)
+            },
+            "app_check_assertion", "Expected visible text: " + text)
           assertions += 1
         case "expect_control":
-          _ = try control()
+          try require(
+            !step["target"].text.isEmpty, "app_check", "Supply a control label to expect.")
+          do { _ = try control() } catch {
+            throw SevraError("app_check_assertion", error.localizedDescription)
+          }
           assertions += 1
         case "drop", "expect_region", "press_region":
           let node = try control()
@@ -310,7 +320,7 @@ public enum NativeAppCheck {
           }
           if kind == "expect_region" {
             try require(
-              region["x"] == x && region["y"] == y, "app_check",
+              region["x"] == x && region["y"] == y, "app_check_assertion",
               "Canvas region position did not match.")
             assertions += 1
           } else {
@@ -324,9 +334,19 @@ public enum NativeAppCheck {
                 ])
               ]))
           }
+        case "expect_enabled":
+          guard case .bool(let expected) = step["value"] else {
+            throw SevraError("app_check", "Supply a boolean enabled expectation.")
+          }
+          let node = try control()
+          try require(
+            tree.interactionEnabled[node.id] == expected, "app_check_assertion",
+            "Expected " + step["target"].text + (expected ? " to be enabled." : " to be disabled."))
+          assertions += 1
         case "expect_value":
           try require(
-            control().props["value"] == step["value"], "app_check", "Control value did not match.")
+            control().props["value"] == step["value"], "app_check_assertion",
+            "Control value did not match.")
           assertions += 1
         case "expect_rows":
           try require(
@@ -345,13 +365,23 @@ public enum NativeAppCheck {
               values.allSatisfy { row["values"][$0.key] == $0.value }
             }.count
           try require(
-            count == step["count"].int, "app_check",
+            count == step["count"].int, "app_check_assertion",
             "Expected \(step["count"].int!) matching rows; found \(count ?? 0). This table started with \(fixtures[step["table"].text].array.count) fixture rows before any test actions. Fixtures are starting data, not expected outputs. Check the saved values and column types."
+              + " Observed row values: "
+              + String(
+                try Value.array(
+                  page["rows"].array.prefix(4).map { row in
+                    .object(row["values"].object.filter { values.isEmpty || values[$0.key] != nil })
+                  }
+                ).json().prefix(2000))
           )
           assertions += 1
         case "change", "click", "select", "activate":
           let node = try control()
-          try require(tree.interactionEnabled[node.id] == true, "app_check", "Target is disabled.")
+          try require(
+            tree.interactionEnabled[node.id] == true, "app_check",
+            "Target is disabled: " + step["target"].text
+              + ". Check its enabled predicate and the prior selection/input steps.")
           var value = step["value"]
           let handler: String
           if kind == "click" {
@@ -365,6 +395,10 @@ public enum NativeAppCheck {
               throw SevraError("app_check", "Select a valid zero-based row.")
             }
             value = rows[offset]
+            lastSelection =
+              "Last table selection: " + step["target"].text + " row \(offset), values "
+              + String(try value["values"].json().prefix(1800))
+              + ". Fixture positions include headers; select an editable data row for input changes."
             handler = kind == "activate" ? "onActivate" : "onSelect"
           } else {
             try require(
@@ -419,6 +453,7 @@ public enum NativeAppCheck {
         default: throw SevraError("app_check", "Unknown test step: " + kind)
         }
       } catch {
+        let code = (error as? SevraError)?.code ?? "app_check"
         let labels = tree.nodes.values.sorted { $0.id < $1.id }.filter(visible).map { node in
           [
             node.props["label"].string, node.props["title"].string, node.props["text"].string,
@@ -426,9 +461,10 @@ public enum NativeAppCheck {
           ].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " = ")
         }.filter { !$0.isEmpty }.joined(separator: "; ")
         throw SevraError(
-          "app_check",
+          ["app_check_assertion", "excel_behavior_result"].contains(code) ? code : "app_check",
           "Test step \(index + 1): \(error.localizedDescription) Controls/text: "
-            + String(labels.prefix(1500)))
+            + String(labels.prefix(1500))
+            + (lastSelection.isEmpty ? "" : "\n" + lastSelection))
       }
     }
     try cancellation.check()

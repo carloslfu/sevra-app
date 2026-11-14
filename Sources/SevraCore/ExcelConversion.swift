@@ -98,8 +98,7 @@ extension Workbook {
             guard case .object = reference["arguments"] else { return false }
             return reference["sourceID"].string?.isEmpty == false
               && reference["sourceID"].text.utf8.count <= 256
-              && reference["action"].text.range(
-                of: "^[a-z][a-zA-Z0-9_]{0,63}$", options: .regularExpression) != nil
+              && ExcelBehavior.validIdentifier(reference["action"].text)
               && reference["arguments"].object.count <= 32
               && (try? reference["arguments"].json().utf8.count <= 8192) == true
           }, "excel_example", "The saved comparison examples are malformed.")
@@ -443,7 +442,7 @@ extension Workbook {
         "originalResultExamples": conversion.record.data["examples"],
         "packageDatasetTemplate": try encoded(bindings),
         "dataLayout": .string(
-          "Rows preserve Excel coordinates, including header rows. Columns c1,c2,… correspond to A,B,…; infer visible field labels from the original cells, but keep the binding schema unchanged. packageDatasetTemplate contains only short aliases with writable flags. Copy it and set writable:true only where requested controls edit inputs. The host fills exact datasetIDs, titles and columns; do not supply these binding fields. Table.table and data.page/transaction use the short sheet1/sheet2 aliases, not dataset IDs. Editing existing input cells recalculates supported formulas; adding rows does not automatically extend Excel formulas."
+          "Rows preserve Excel coordinates, including header rows. Columns c1,c2,… correspond to A,B,…; infer visible field labels from the original cells, but keep the binding schema unchanged. packageDatasetTemplate contains only short aliases with writable flags. Copy it and set writable:true where requested controls OR business actions write to that sheet, including action-only forms. The host fills exact datasetIDs, titles and columns; do not supply these binding fields. Table.table and data.page/transaction use the short sheet1/sheet2 aliases, not dataset IDs. Editing existing input cells recalculates supported formulas; adding rows does not automatically extend Excel formulas."
         ),
         "appID": current.map { .string($0.id) } ?? .null,
         "appVersion": current.map { .number(Double($0.version)) } ?? .null,
@@ -458,10 +457,9 @@ extension Workbook {
         sourceID: conversion.sourceID, tables: tables, appVersion: current?.version,
         context: try context.json(),
         request:
-          "Create a native workspace for this imported Excel workbook. Copy the supplied packageDatasetTemplate into package.datasets, using short aliases such as sheet1 with ONLY writable flags. The host supplies each exact datasetID, title and columns, so do not supply those fields yourself. Enable writable only for requested input editing. Provide a searchable native table for each sheet, clear workflow labels, and useful controls for the described workflow. Understand and recreate the business application: inputs, calculations, buttons/macros, validations and useful native views. Reuse working built-in formulas; inspect original evidence and translate missing calculations/actions into package.excelBehavior using native_app_sdk. Compare with the original using compare_excel_behavior and repair differences. Do not embed business values or original answers in code. List concrete unresolved behavior in gaps. Do not offer row insertion/deletion on formula worksheets: new rows do not automatically inherit Excel formulas. The native host displays the original and conversion limitations outside the generated interface; do not duplicate that notice in the app. Do not create new datasets, duplicate rows, execute macros or claim full Excel equivalence. Save a checked app for my review. Reviewed inferred workflow: "
-          + conversion.plan["purpose"].text + " "
-          + conversion.plan["workflows"].array.map(\.text).joined(separator: "; ")
-          + ". My clarification: " + conversion.purpose,
+          "Create a native workspace for this imported Excel workbook. Copy the supplied packageDatasetTemplate into package.datasets, using short aliases such as sheet1 with ONLY writable flags. The host supplies each exact datasetID, title and columns, so do not supply those fields yourself. Enable writable for requested input editing AND for business actions that write to that sheet, even when there is no row editor. Display-only sheets stay read-only. Provide a searchable native table for each sheet, clear workflow labels, and useful controls for the described workflow. Understand and recreate the business application: inputs, calculations, buttons/macros, validations and useful native views. Reuse working built-in formulas; inspect original evidence and translate missing calculations/actions into package.excelBehavior using native_app_sdk. Compare with the original using compare_excel_behavior and repair differences. Do not embed business values or original answers in code. List concrete unresolved behavior in gaps. Do not offer row insertion/deletion on formula worksheets: new rows do not automatically inherit Excel formulas. The native host displays the original and conversion limitations outside the generated interface; do not duplicate that notice in the app. Do not create new datasets, duplicate rows, execute macros or claim full Excel equivalence. Save a checked app for my review. "
+          + "The reviewed inferred plan is supplied separately in context. Use it to choose useful workflows, but use original calculationEvidence for literal header labels, cell addresses and expressions. An inferred friendly column name is not the original header string. My clarification: "
+          + conversion.purpose,
         displayRequest: "Build a native workspace from " + conversion.record.title + ".\n"
           + conversion.plan["purpose"].text
           + "\n" + conversion.plan["workflows"].array.map { "• " + $0.text }.joined(separator: "\n")

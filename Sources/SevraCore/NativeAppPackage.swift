@@ -130,11 +130,14 @@ public final class NativeAppAccess: @unchecked Sendable {
     return try body()
   }
   func binding(_ alias: String, write: Bool = false) throws -> NativeAppDataset {
-    guard let binding = package.datasets[alias], binding.datasetID != nil,
-      !write || binding.writable
-    else {
-      throw SevraError("app_permission", "The app has no access to this table or operation.")
+    guard let binding = package.datasets[alias], binding.datasetID != nil else {
+      throw SevraError("app_permission", "Use a declared table alias: " + String(alias.prefix(120)))
     }
+    try require(
+      !write || binding.writable, "app_permission",
+      "The app declares " + String(alias.prefix(120))
+        + " as read-only (writable:false). This update or action needs writable:true in that table binding. Saving a corrected version still requires access review."
+    )
     return binding
   }
 }

@@ -1,5 +1,5 @@
 """Exercise the real signed XPC service and native renderer in an isolated host bundle."""
-import argparse, pathlib, plistlib, shutil, subprocess, tempfile
+import argparse, pathlib, plistlib, re, shutil, subprocess, tempfile
 from package_app_worker import package
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 def main():
@@ -14,5 +14,9 @@ def main():
         package(app,binary)
         subprocess.run(['codesign','--force','--sign','-',str(app)],check=True)
         subprocess.run(['codesign','--verify','--deep','--strict',str(app)],check=True)
-        subprocess.run([str(app/'Contents/MacOS/checks'),'--xpc'],cwd=ROOT,check=True,timeout=90)
+        result=subprocess.run([str(app/'Contents/MacOS/checks'),'--xpc'],cwd=ROOT,timeout=90,stdout=subprocess.PIPE,text=True)
+        print(result.stdout,end='')
+        result.check_returncode()
+        if not re.search(r'(?m)^\d+ passed, 0 failed$',result.stdout):
+            raise RuntimeError('Native app checks exited without completing the suite.')
 if __name__=='__main__':main()

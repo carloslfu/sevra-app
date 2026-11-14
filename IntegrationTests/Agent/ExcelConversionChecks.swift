@@ -147,7 +147,11 @@ actor ExcelTestModel: WorkbookInference {
   var actions: [(String, Value)]
   var scopes: [InferenceToolScope] = []
   var reviewInputs: [Value] = []
-  init(_ actions: [(String, Value)]) { self.actions = actions }
+  var reviews: [Value]
+  init(_ actions: [(String, Value)], reviews: [Value] = []) {
+    self.actions = actions
+    self.reviews = reviews
+  }
   func beginRun() {}
   func endRun() {}
   func respond(
@@ -158,8 +162,12 @@ actor ExcelTestModel: WorkbookInference {
     scopes.append(toolScope)
     let action: (String, Value)
     if toolScope == .nativeAppReview {
-      reviewInputs.append(try Value.parse(messages.last!.content))
-      action = ("review_native_app", .object(["decision": .string("ready"), "issues": .array([])]))
+      reviewInputs.append(try Value.parse(messages.first { $0.role == "user" }!.content))
+      action = (
+        "review_native_app",
+        reviews.isEmpty
+          ? .object(["decision": .string("ready"), "issues": .array([])]) : reviews.removeFirst()
+      )
     } else if !actions.isEmpty {
       action = actions.removeFirst()
     } else {
@@ -184,6 +192,7 @@ func excelPlan(_ business: ExcelBusinessCase) -> Value {
 }
 
 func checkExcelConversions() async throws {
+  try checkExcelBuildContext()
   try await checkExcelBehaviorReconstruction()
   for scope: InferenceToolScope in [.excelPlan, .excelBuild] {
     _ = try NativeCitationPolicy.make([], toolScope: scope, thinking: false)
@@ -214,6 +223,9 @@ func checkExcelConversions() async throws {
       progress: { _ in })
     draft = try book.saveExcelConversionPlan(
       draft.id, expectedVersion: draft.version, plan: plan, model: "synthetic Excel conversion")
+    let clarification = business.name == "Projects" ? "" : business.goal
+    draft = try book.updateExcelConversion(
+      draft.id, expectedVersion: draft.version, state: draft.state, purpose: clarification)
     try expectEqual(try book.datasets().count, 0)
     draft = try book.importExcelConversionTables(draft.id)
     let tableID = try expectValue(draft.datasetIDs.first)
@@ -240,6 +252,51 @@ func checkExcelConversions() async throws {
     var minimal = try encoded(package).object
     minimal["datasets"] = .object(["sheet1": .object(["writable": .bool(true)])])
     let args: Value = .object(["package": .object(minimal), "tests": .array(tests)])
+    if business.name == "Inventory" {
+      let checkedArguments: Value = .object([
+        "package": try encoded(package), "tests": .array(tests),
+      ])
+      func review(_ target: String) -> Value {
+        .object([
+          "decision": .string("revise"), "issues": .array([.string("Missing control: " + target)]),
+          "tests": .array([.object(["kind": .string("expect_control"), "target": .string(target)])]
+          ),
+        ])
+      }
+      let invalidSetup: Value = .object([
+        "decision": .string("revise"), "issues": .array([.string("Unproved button failure")]),
+        "tests": .array([
+          .object(["kind": .string("click"), "target": .string("Missing")]),
+          .object(["kind": .string("expect_control"), "target": .string("Records")]),
+        ]),
+      ])
+      let ready: Value = .object([
+        "decision": .string("ready"), "issues": .array([]),
+        "tests": .array([.object(["kind": .string("expect_control"), "target": .string("Unused")])]
+        ),
+      ])
+      let falseConcern = ExcelTestModel([], reviews: [review("Records"), invalidSetup, ready])
+      let confirmed = try await NativeAppReview.check(
+        request: build.request, requestSourceID: source.id, arguments: checkedArguments,
+        workbook: book, model: falseConcern, directory: root, cancellation: .init(),
+        progress: { _ in }, excelConversion: build)
+      try expectEqual(confirmed["attempts"], .number(3))
+      try expectEqual(confirmed["unusedTests"], ready["tests"])
+      try expectEqual(
+        confirmed["checkedCounterexamples"].array[0]["result"]["status"], .string("passed"))
+      try expectEqual(
+        confirmed["checkedCounterexamples"].array[1]["result"]["status"],
+        .string("invalid_counterexample"))
+      var reproduced = ""
+      do {
+        _ = try await NativeAppReview.check(
+          request: build.request, requestSourceID: source.id, arguments: checkedArguments,
+          workbook: book, model: ExcelTestModel([], reviews: [review("Save changes")]),
+          directory: root, cancellation: .init(), progress: { _ in }, excelConversion: build)
+      } catch { reproduced = error.localizedDescription }
+      try expectEqual(reproduced.contains("Observed failure:"), true)
+      try expectEqual(try book.spaces().filter { $0.definition.app != nil }.count, 0)
+    }
     let buildModel = ExcelTestModel([("save_native_app", args)])
     let result = try await WorkbookAgent.run(
       build.request, workbook: book, context: build.context,
@@ -248,10 +305,15 @@ func checkExcelConversions() async throws {
     let reviewInputs = await buildModel.reviewInputs
     let reviewed = try expectValue(reviewInputs.last)
     try expectEqual(
+      reviewed["originalUserRequest"],
+      .string(clarification.isEmpty ? build.request : clarification))
+    try expectEqual(reviewed["inferredPlan"], .null)
+    try expectEqual(reviewed["proposedPackage"]["excelBehavior"], .null)
+    try expectEqual(
       reviewed["calculationEvidence"]["inputCells"]["sheet1!A1"], .string(business.headers[0]))
     try expectEqual(reviewed["calculationEvidence"]["inputCells"]["sheet1!D2"], .null)
     try expectEqual(
-      reviewed["calculationEvidence"]["formulas"]["sheet1!D2"], .string(business.formula))
+      reviewed["calculationEvidence"]["formulas"], .null)
     let completed = try book.excelConversion(draft.id)
     if completed.state != "ready" { print(try encoded(book.messages()).json()) }
     try expectEqual(completed.state, "ready")

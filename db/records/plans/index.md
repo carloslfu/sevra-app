@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-14T01:57:19.523531Z
+updated: 2026-11-14T15:47:17.936701Z
 ---
 
 # records/plans
 
+- [[records/plans/automatic-excel-reliability]] — Repair local-model Excel conversion failures and verify fresh unassisted apps across business cases
 - [[records/plans/app-engine-adversarial-review]] — Multiple-pass review and fixes verified; explicit coverage and unresolved model-generation reliability
 - [[records/plans/excel-application-reconstruction]] — Engine and native reconstruction flow verified; autonomous local-model reliability remains open
 - [[records/plans/single-excel-import]] — Single Excel import and native workflow reconstruction

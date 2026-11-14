@@ -1,10 +1,11 @@
 import SevraCore
 import SevraSplash
 
-/// Internal comparison profiles. Not a user preference or an adopted default.
+/// Bounded request policies, not a user preference. Excel translation/review have a separate allowance.
 package enum NativeReasoning: Int, Sendable {
   case off = 0
   case bounded512 = 512
+  case bounded2048 = 2048
 
   package var enabled: Bool { self != .off }
   package func budget(outputTokens: Int) throws -> SplashWire.Thinking? {

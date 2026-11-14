@@ -51,13 +51,26 @@ extension NativeTools {
         ["target": schema("string", "Unique visible control label/title or node ID.")],
         required: ["target"]),
       appStep(
+        "expect_enabled",
+        [
+          "target": schema("string", "Unique control label."),
+          "value": schema(
+            "boolean", "Expected effective enabled state, including ancestor guards."),
+        ],
+        required: ["target", "value"]),
+      appStep(
         "expect_value", ["target": schema("string", "Input label."), "value": .object([:])],
         required: ["target", "value"]),
       appStep(
         "expect_rows",
         [
           "table": schema("string", "Table alias."),
-          "count": .object(["type": .string("integer"), "minimum": .number(0)]),
+          "count": .object([
+            "type": .string("integer"), "minimum": .number(0),
+            "description": .string(
+              "Exact number of rows MATCHING values, not the total table size. With a header plus one matching business row, use count:1. Without values, counts all rows."
+            ),
+          ]),
           "values": .object([
             "type": .string("object"),
             "description": .string("Optional exact column/value matching; decimals are strings."),

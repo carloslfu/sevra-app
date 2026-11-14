@@ -2,11 +2,25 @@ import AppKit
 import SevraAppProtocol
 import SevraCore
 
+/// A short table must not consume vertical gestures intended for the surrounding form.
+@MainActor private final class AppTableScrollView: NSScrollView {
+  override func scrollWheel(with event: NSEvent) {
+    if abs(event.scrollingDeltaY) > abs(event.scrollingDeltaX),
+      let documentView, documentView.bounds.height <= contentSize.height + 1,
+      let outer = superview?.enclosingScrollView
+    {
+      outer.scrollWheel(with: event)
+    } else {
+      super.scrollWheel(with: event)
+    }
+  }
+}
+
 @MainActor final class AppTable: NSView, NSTableViewDataSource, NSTableViewDelegate {
   private let session: NativeAppSession
   private var node: NativeAppNode
   private let grid = NSTableView()
-  private let scroll = NSScrollView()
+  private let scroll = AppTableScrollView()
   private let label = NSTextField(labelWithString: "Loading…")
   private let previous = NSButton(title: "Previous", target: nil, action: nil)
   private let next = NSButton(title: "Next", target: nil, action: nil)
@@ -31,7 +45,8 @@ import SevraCore
     selected = node.props["selection"].string.flatMap { $0.isEmpty ? nil : $0 }
     grid.delegate = self
     grid.dataSource = self
-    grid.usesAlternatingRowBackgroundColors = true
+    // AppKit stripes the unused viewport too, which resembles nonexistent records.
+    grid.usesAlternatingRowBackgroundColors = false
     grid.allowsMultipleSelection = false
     grid.style = .plain
     grid.rowHeight = 28

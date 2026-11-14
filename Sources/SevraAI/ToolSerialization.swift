@@ -52,7 +52,7 @@ extension NativeTools {
         return .init(
           name: definition.name,
           description:
-            "Save this Excel conversion's native workspace. The host supplies app identity, version and exact table bindings. package.datasets is only {sheet1:{writable:true/false},...}. Use all supplied aliases; do not supply datasetID/title/columns inside bindings or id/expectedVersion. Tests use synthetic fixtures, never imported rows. Include fixture rows before selecting/editing them. Failed checks save no app; fix the error and resubmit.",
+            "Save this Excel conversion's native workspace. Omit package.excelBehavior to reuse the last host-matched calculation draft from this request, or supply a replacement explicitly. Calculation drafts survive later UI/test/review failures; failed compare_excel_behavior calls clear them. The host supplies app identity, version and exact table bindings. package.datasets is only {sheet1:{writable:true/false},...}. Use all supplied aliases; do not supply datasetID/title/columns inside bindings or id/expectedVersion. Tests use synthetic fixtures, never imported rows. Include fixture rows before selecting/editing them. Failed checks save no app; fix the error and resubmit.",
           parameters: .object(parameters))
       }
       if let action = WorkbookTools.conversationTools[definition.name], let conversationActions {

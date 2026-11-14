@@ -154,8 +154,10 @@ extension Workbook {
           })
       }
     }
+    let outputSet = Set(outputs)
     var cases: [Value] = []
     var differences: [Value] = []
+    var failingScenarios: [Value] = []
     var unverified: [String] = []
     var total = 0
     var varied = 0
@@ -191,7 +193,7 @@ extension Workbook {
       try Self.requireMatchingExcelStructure(sheets, original)
       let expected = try Self.excelCells(sheets)
       var inputs = expected
-      var caseOutputs = Set(outputs)
+      var caseOutputs = outputSet
       if action != "recalculate" {
         guard let definition = actions.first(where: { $0.id == action }) else {
           throw SevraError(
@@ -201,13 +203,36 @@ extension Workbook {
         caseOutputs.formUnion(definition.writes)
         exercisedActions.insert(action)
       }
-      let changedInputs = inputs.filter {
-        !Set(outputs).contains($0.key) && $0.value != baseline[$0.key]
-      }.count
+      let changedInputValues = inputs.filter {
+        !outputSet.contains($0.key) && $0.value != baseline[$0.key]
+      }
+      let changedInputs = changedInputValues.count
+      let shownInputs = changedInputValues.sorted { $0.key < $1.key }.prefix(32)
+      let scenario: Value = .object([
+        "sourceID": .string(sourceID), "action": .string(action),
+        "inputChanges": .object(
+          Dictionary(
+            uniqueKeysWithValues: shownInputs.map {
+              ($0.key, .string(String($0.value.prefix(500))))
+            })),
+        "arguments": reference["arguments"] == .null ? .object([:]) : reference["arguments"],
+        "truncated": .bool(changedInputs > 32 || shownInputs.contains { $0.value.count > 500 }),
+      ])
       if changedInputs > 0 { varied += 1 }
-      let actual = try evaluate(
-        inputs, action, reference["arguments"] == .null ? .object([:]) : reference["arguments"])
+      let actual: [String: String]
+      do {
+        actual = try evaluate(
+          inputs, action, reference["arguments"] == .null ? .object([:]) : reference["arguments"])
+      } catch {
+        try cancellation.check()
+        throw SevraError(
+          "excel_comparison",
+          error.localizedDescription
+            + "\nFailing original scenario (input changes relative to the original): "
+            + (try scenario.json()))
+      }
       var compared = 0
+      var differs = false
       for key in caseOutputs.sorted() {
         let address = try ExcelBehavior.address(key)
         let cell = String(key.split(separator: "!")[1])
@@ -218,7 +243,8 @@ extension Workbook {
         let value = actual[key] ?? inputs[key] ?? ""
         let saved = expected[key] ?? ""
         compared += 1
-        if !(Set(outputs).contains(key) ? Self.sameExcelResult(value, saved) : value == saved) {
+        if !(outputSet.contains(key) ? Self.sameExcelResult(value, saved) : value == saved) {
+          differs = true
           if differences.count < 100 {
             differences.append(
               .object([
@@ -229,6 +255,7 @@ extension Workbook {
           }
         }
       }
+      if differs && failingScenarios.count < 3 { failingScenarios.append(scenario) }
       total += compared
       let asset = try item(sourceID).assetID.flatMap { try self.asset($0) }
       cases.append(
@@ -245,6 +272,7 @@ extension Workbook {
       "cases": .array(cases), "compared": .number(Double(total)),
       "variedCases": .number(Double(varied)),
       "differences": .array(differences),
+      "failingScenarios": .array(failingScenarios),
       "calculationEvidence": differences.isEmpty
         ? .null : try Self.excelCalculationEvidence(original),
       "unverified": .array(Array(Set(unverified)).sorted().map(Value.string)),
@@ -280,6 +308,10 @@ extension Workbook {
     return
       "Recreated results differ from the original. Nothing was published. Repair the calculation and compare again.\n"
       + examples
+      + (report["failingScenarios"].array.isEmpty
+        ? ""
+        : "\nFailing scenarios, with input changes relative to the original (evidence, never constants to copy into code): "
+          + String((try? report["failingScenarios"].json())?.prefix(12_000) ?? ""))
       + (!includeEvidence || report["calculationEvidence"] == .null
         ? ""
         : "\nCheck the original addresses and expressions before retrying: "

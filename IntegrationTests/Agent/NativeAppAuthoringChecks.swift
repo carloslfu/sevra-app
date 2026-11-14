@@ -123,7 +123,42 @@ func checkNativeAppAuthoring() async throws {
       name: "Enabled",
       source: controlSource.replacingOccurrences(of: "enabled:false", with: "enabled:true")),
     steps: controlSteps)
+  _ = try await NativeAppCheck.run(
+    package: .init(name: "Disabled assertion", source: controlSource),
+    steps: try steps(#"[{"kind":"expect_enabled","target":"Blocked","value":false}]"#))
+  do {
+    _ = try await NativeAppCheck.run(
+      package: .init(name: "Wrong enabled expectation", source: controlSource),
+      steps: try steps(#"[{"kind":"expect_enabled","target":"Blocked","value":true}]"#))
+    throw SevraError("test", "Disabled control passed an enabled assertion")
+  } catch {
+    try expectEqual((error as? SevraError)?.code, "app_check_assertion")
+  }
   print("PASS checker and native host enforce disabled ancestry without blocking enabled actions")
+  let selectionSource = """
+    const S=Sevra,h=S.h,ready=S.signal(false),value=S.signal('');
+    S.mount(h(S.Column,{},h(S.Table,{table:'sheet',label:'Records',height:300,onSelect:e=>{ready.value=e.value.values.c1!=='Item';}}),h(S.TextField,{label:'Quantity',value,enabled:ready})));
+    """
+  let selectionPackage = NativeAppPackage(
+    name: "Selection feedback", source: selectionSource,
+    datasets: ["sheet": .init(title: "Sheet", columns: [.init(id: "c1", title: "A", type: "text")])]
+  )
+  let selectionFixtures = try Value.parse(#"{"sheet":[{"c1":"Item"},{"c1":"Synthetic bolts"}]}"#)
+  let selectionSteps = try steps(
+    #"[{"kind":"select","target":"Records","value":0},{"kind":"change","target":"Quantity","value":"2"},{"kind":"expect_value","target":"Quantity","value":"2"}]"#
+  )
+  var selectionFailure = ""
+  do {
+    _ = try await NativeAppCheck.run(
+      package: selectionPackage, steps: selectionSteps, fixtures: selectionFixtures)
+  } catch { selectionFailure = error.localizedDescription }
+  try expectEqual(selectionFailure.contains("Quantity"), true)
+  try expectEqual(selectionFailure.contains("Last table selection"), true)
+  try expectEqual(selectionFailure.contains(#""c1":"Item""#), true)
+  var enabledSelection = selectionSteps
+  enabledSelection[0] = try Value.parse(#"{"kind":"select","target":"Records","value":1}"#)
+  _ = try await NativeAppCheck.run(
+    package: selectionPackage, steps: enabledSelection, fixtures: selectionFixtures)
   for source in [
     "Sevra.mount(Sevra.h(Sevra.Column,{hidden:true},Sevra.h(Sevra.Text,{text:'Ready'})));",
     "Sevra.mount(Sevra.h(Sevra.Table,{table:'rows',search:true}));",
