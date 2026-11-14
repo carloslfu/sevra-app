@@ -2,7 +2,7 @@
 type: operational
 id: 01m7d2cc2ahngzgpw3nakfnwsd
 created: 2026-11-14T13:01:38.250838+00:00
-updated: 2026-11-14T15:47:17.936701+00:00
+updated: 2026-11-14T15:56:29.891512+00:00
 summary: Repair local-model Excel conversion failures and verify fresh unassisted apps across business cases
 title: Automatic Excel conversion reliability
 status: in-progress
@@ -79,3 +79,9 @@ Fresh generation is still in qualification; do not treat the code changes or det
 - The integrated suite passed through its authoring stage after the earlier core/CLI/UI checks, then refused stale normalized tool-schema fixtures. Those fixtures and 759 independent grammar masks across 81 scenarios were regenerated with the pinned reference environment. The repaired suite tail passes grammar, performance-harness, desktop, links and db.md checks. Automatic packaged journeys were skipped as stale; explicit current native package, missing-model refusal, signature, install and extraction checks pass separately. Hosted clean CI remains required.
 - The final native table pass removes viewport-wide striping/separators that resembled extra records. All 17 native groups pass. Actual installed compact-window scrolling over a short table reaches the form and returns to the records; the diagnostic grant was disabled and the preview closed. Synthetic wheel events caused an incomplete headless run, so real installed input is the scroll proof. The harness now requires a completion summary and retains failure output.
 - Qualification 4 is a fresh complete ten-workflow run against all 72 originals and the stronger UI boundaries. It has no replayed or manually repaired candidate source. Final results, installed checks of those fresh apps and publication closure remain pending.
+
+## Expanded run and installed Inventory follow-up
+
+- Qualification 4 generated Inventory from scratch and passed its four original saved states, 20 independent UI steps, real saved edits/reopen/Undo and portable-copy verification. No row selection is needed for its Quantity form. The installed byte-verified preview also passed ship 2, reject 999 and nonnumeric text with draft preservation, Undo, centered rows, clean empty-table space and compact-window wheel scrolling to the form. Its disposable UI copy was disabled and closed.
+- Inspection of the live qualification harness found its saved-edit phase did not update Loan's period input when exercising the new zero-period originals. The deterministic reference check already updates that input. The live probe now updates E2 as well; qualification 4 keeps its frozen older binary, and a fresh corrected Loan run is required. This is a test-harness correction, not a repair to generated source.
+- Implementation checkpoint `af14f25df08792719717a0e579bb4958e232c053` is pushed. Hosted run 43612094593 and expanded model qualification remain in progress.

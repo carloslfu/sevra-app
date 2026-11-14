@@ -307,6 +307,7 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
         var inputs: [String: Value] = [
           "c2": .string(expected["sheet1!B2"]!), "c3": .string(expected["sheet1!C2"]!),
         ]
+        if name == "Loan" { inputs["c5"] = .string(expected["sheet1!E2"]!) }
         if name == "Lookup quotes" {
           inputs["c6"] = .string(expected["sheet1!F2"]!)
           inputs["c7"] = .string(expected["sheet1!G2"]!)
