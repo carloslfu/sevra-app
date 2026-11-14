@@ -2,7 +2,7 @@
 type: spec
 id: 01m61c4z13j3paexnc7xvyyqhs
 created: 2026-10-28T13:45:46.275195+00:00
-updated: 2026-11-13T18:08:15.326377+00:00
+updated: 2026-11-14T19:19:07.726931+00:00
 summary: One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 title: Contextual import and Excel continuity
 status: reviewed
@@ -514,3 +514,10 @@ a time. Two folders with the same name count as one. Each added file goes throug
 ## November 13 single Excel entry
 
 The owner-directed [[records/plans/single-excel-import]] supersedes the older Excel-specific initial role choice above. Add/drop `.xlsx` and saved-Excel use open one native conversion workspace after preserving the source. The model may infer and describe the workflow, but working-table import, native app generation and existing-table updates retain explicit native actions. Table-only use remains available without a model; updates still require mapping/review. Non-Excel intake retains its existing behavior. [[records/specs/single-excel-import]] defines the current implementation and its explicit continuity limits; [[records/reviews/single-excel-import]] records measured verification separately from this broader historical specification.
+
+
+## Native constant-payment calculations, November 14
+
+The declared formula subset now includes `PMT(rate, periods, present[, future[, type]])`, with three to five explicit arguments. Omitted trailing future value and payment timing default to zero; a blank referenced numeric cell is zero. Payments preserve cash-flow sign, optional future balance and beginning/end timing. Zero-interest division remains decimal, so a subsequent ROUND preserves signed half-cent ties. Nonzero-rate calculation uses bounded, stable logarithmic arithmetic with 15-significant-digit output; invalid numeric text and propagated cell errors remain errors, not invented zero results. Zero periods, invalid rate domains and overflow produce `#NUM!`.
+
+This lets the local model reuse the native loan calculation instead of regenerating standard financial arithmetic. Import still compares initial results with the original cache; mismatches retain saved values and require reconstruction. Missing interior arguments, other financial functions and universal Excel equivalence are not newly promised. The [24 independent payment references](../../../integration/fixtures/excel-pmt/README.md) qualify the stated cases and their dependent rounding. The [automatic conversion plan](../plans/automatic-excel-reliability.md) records fresh model trials separately.

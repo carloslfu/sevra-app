@@ -2,8 +2,8 @@
 type: spec
 id: 01m7bd3448sec8weav20n1fyht
 created: 2026-11-13T21:30:20.679849+00:00
-updated: 2026-11-14T17:22:25.276055+00:00
-summary: Native Excel behavior translation, original-result comparison and constrained calculation/action contract
+updated: 2026-11-14T20:42:57.554267+00:00
+summary: Constrained Excel application reconstruction with original-result comparison; ten automatic workflows qualified against 89 independent originals within explicit limits.
 title: Excel application reconstruction
 status: implemented
 ---
@@ -57,4 +57,4 @@ The parser follows Microsoft's [MS-OVBA compression](https://learn.microsoft.com
 
 ## Qualification checkpoint, November 14
 
-The engine contract is implemented and verified; see [[records/reviews/excel-reconstruction-and-engine-review]]. Automatic model conversion is not consistently reliable. Latest unassisted Inventory and Loan trials failed safely. Reviewed example programs are explicitly distinguished from fresh model output. Forty-three independent original files and finite synthetic tests establish bounded behavior, not universal business equivalence.
+Automatic conversion is qualified for ten finite business workflows under [[records/plans/automatic-excel-reliability]]. Ten unchanged local-model-generated candidates from successive runs pass 89 independently recalculated originals (84 comparison cases and five held-out states), 302 independent UI steps, 79 saved-edit/reopen/Undo cases and ten portable copies on the final code. Loan and Commission use native formula evaluation; Inventory uses a constrained translated business action. No generated source is manually repaired. Native UI checks include spacing, compact layouts, initial/input guards, invalid values, repeated edits and Undo. The [acceptance receipt](../../../integration/evidence/2026-11-14-automatic-excel-reliability.json) records exact-code hosted checks, package identity and retained failures. Finite examples cannot prove every business rule or first-attempt generation reliability; generation can still fail or take minutes. Original action-execution equivalence remains unverified. Earlier reviewed derivatives are historical and are not counted as automatic generation.

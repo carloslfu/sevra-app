@@ -2,14 +2,24 @@
 type: operational
 id: 01m7d2cc2ahngzgpw3nakfnwsd
 created: 2026-11-14T13:01:38.250838+00:00
-updated: 2026-11-14T17:56:21.684413+00:00
-summary: Repair local-model Excel conversion failures and verify fresh unassisted apps across business cases
+updated: 2026-11-14T20:42:57.602691+00:00
+summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
 title: Automatic Excel conversion reliability
-status: in-progress
+status: completed
 ---
 # Automatic Excel conversion reliability
 
 Authority: [[sources/notes/2026/11/automatic-excel-reliability]]. Continues [[records/plans/excel-application-reconstruction]] and its retained failures in [[records/reviews/excel-reconstruction-and-engine-review]].
+
+## Current result
+
+Ten automatically generated native apps pass the expanded 89-original corpus on the final runtime: 84 model-visible comparisons and five held-out states. No generated UI or behavior source was manually repaired. The [acceptance receipt](../../../integration/evidence/2026-11-14-automatic-excel-reliability.json) identifies the exact candidates, runtime and retained attempts.
+
+- **Inventory:** fixed-cell action guidance, strict numeric validation, precise declaration/write errors and independent initial/repeated-action checks address the observed failures. The accepted generated app ships twice, rejects malformed quantities without writes, preserves drafts, recalculates, supports Undo and displays neutral feedback.
+- **Loan and Commission:** supported formulas are reused natively. PMT now preserves zero-rate decimal rounding and stable nonzero-rate payments under the original-result qualification gate. The local model creates their native interfaces; no custom financial program is needed. Thirteen Loan and eleven Commission comparison originals plus three held-out states pass.
+- **Other workflows:** Invoices, Timesheets, Cash flow, Production, Due dates, Reference codes and Lookup quotes pass alongside them. Shared recovery, draft lifetime, reviewer, syntax, date and native layout/scrolling defects are repaired.
+
+The final replay passes 302 independent UI steps, 79 saved-edit/reopen/Undo cases and ten portable copies. Final installed UI, local packaging and exact-code hosted checks pass. This is bounded acceptance across successive fresh runs, not a single ten-of-ten cohort, first-attempt success rate or universal Excel compatibility. Original VBA never executes. Failed attempts and superseded narrower passes remain in the append-only findings below.
 
 ## Acceptance
 
@@ -18,10 +28,10 @@ Fresh local-model generation must save working native apps without manual repair
 ## Work
 
 - [x] Trace retained Inventory and Loan failures and reproduce integration defects with focused regressions.
-- [ ] Improve generic conversion contracts and recovery; do not special-case fixture names, hardcode reference solutions, weaken comparisons or manually patch generated packages.
-- [ ] Extend independent fresh-generation coverage to the ten business cases, multiple difficult-case attempts and boundary inputs; repair observed product and harness defects.
-- [ ] Adversarial pass, full integrated checks, final native packaging/install and actual UI inspection of fresh generated apps.
-- [ ] Record exact outcomes, remaining limits, commit/push main and hosted verification.
+- [x] Improve generic conversion contracts and recovery; do not special-case fixture names, hardcode reference solutions, weaken comparisons or manually patch generated packages.
+- [x] Extend independent fresh-generation coverage to the ten business cases, multiple difficult-case attempts and boundary inputs; repair observed product and harness defects.
+- [x] Adversarial pass, full integrated checks, final native packaging/install and actual UI inspection of fresh generated apps.
+- [x] Record exact outcomes, remaining limits, commit/push main and hosted verification.
 
 ## Initial findings
 
@@ -150,3 +160,83 @@ Fresh generation is still in qualification; do not treat the code changes or det
 - Loan repeated an identical mismatched candidate ten times and exhausted twelve steps. Its comparison tool calls were recorded as completed successes despite mismatches, bypassing the existing identical-failure guard. Context refresh therefore repeatedly supplied essentially the same comparison. Increasing the step budget would only prolong this failure.
 - A mismatched candidate is now recorded as a failed comparison attempt, with concise human-readable differences and an explicit repeat count. The complete original report remains in the receipt. Existing same-action refusal stops a third identical failure; the request budget is unchanged. Focused tests prove both three-attempt refusal and bad/bad/corrected/save recovery, retained difference evidence, disabled publication and existing draft invalidation. All 37 authoring/conversion groups pass.
 - The full local suite passed before this final agent-classification repair; its affected paths are covered again by the focused checks. The native 01e7ba9 build is installed and byte/UUID verified, with installation/extraction checks passing. Actual generated Due dates UI passes leap-day recalculation, invalid text, Undo, header protection, initial guards, save clearing and wide/compact spacing/scrolling. That renderer/runtime is unchanged by the agent-classification repair; final packaging will include the latter before closure. The date app is disabled and its disposable workbook closed.
+
+## Final local acceptance, November 14
+
+- Final fresh Loan (`qualification-8`) passes all twelve independently recalculated originals in 554 seconds, including signed half-cent values, zero interest/periods, blank and partial numeric input. The model repaired its own function after comparison failures. Final fresh Inventory (`qualification-9`) passes in 501 seconds, including initial input readiness without selection, two shipments, partial numeric rejection and draft preservation. No generated UI or behavior source was manually edited.
+- Fresh Due dates and Invoices (`qualification-7`) pass their six and nine originals in 267 and 274 seconds. Due dates uses the clock-free generic calendar helper. Commission, Lookup quotes, Reference codes, Cash flow, Production and Timesheets retain their automatically generated qualification-4 sources, independently rechecked against the stricter final runtime.
+- `final-runtime-replay` passes all ten unchanged generated candidates against all 77 originals: 302 independent native-runtime UI steps, 67 actual saved-edit/reopen/Undo cases and ten portable copies. This combines successive fresh runs, not one fresh ten-of-ten cohort or a first-attempt reliability rate. Earlier failed flags, interrupted runs, invalidated narrower passes and harness defects remain retained.
+- The full local suite passes 653 core checks, 17 native groups, seven SDK groups, 37 authoring/conversion groups and 81 grammar cases/759 masks. The final comparison-failure change separately passes all 37 focused groups. Explicit final native build, resource/signature/GPU package, installation/update/conflict/uninstall and extraction checks pass. Packaged checks skipped by the earlier full local suite are qualified by these final package checks and the pending clean hosted run.
+- Installed preview main UUID `AF922BA4-3AF8-3C24-98EE-274B01847F67` matches code `3dd750a411bf6386b5458ab8515273cab7e824d3`. Helper and both worker signed bytes match their package; both SDK resources match canonical source hash `b5048ec0f156cedb192235d9aea4939ef327760c210c74cf32a75c744d89c06b`. The main executable is installation-resigned, so its Mach-O UUID rather than signed bytes establishes identity.
+- Native screenshots and accessibility states confirm the final Inventory and Loan apps: initial guards, shipment validation, repeated changes, signed half-cent rounding, exact `2abc` error semantics, Undo, centered rows and complete scrolling forms at wide and 900-by-632 logical window sizes. Final Due dates and Invoices UI also pass leap-day, invalid/blank/negative values and header guards. Unchanged Reference codes passes exact accented text/whitespace and Undo. Screenshot observations are recorded; no screenshot image files were exported.
+- All test app grants are disabled. Four final task shortcuts were removed while preserving all four current unrelated recents and other preferences; no workbook files were deleted. The preview is left on Welcome. An earlier round's ten-entry recent limit evicted an older unrelated shortcut, as retained in the earlier cleanup receipt; its workbook was not modified or deleted. Model files and the preserved baseline app remain untouched.
+- The [acceptance receipt](../../../integration/evidence/2026-11-14-automatic-excel-reliability.json) and [generated packages plus complete retained trial/check evidence](../../../integration/evidence/2026-11-14-automatic-excel-apps/README.md) provide exact provenance. Hosted verification for final code is still pending; the final publication receipt below will record its result.
+
+## Adversarial closure and limits
+
+The repair passes exercised wrong addresses, hidden derived outputs, malformed syntax, repeated identical mismatches, verified-draft invalidation, false reviewer claims, unsupported handlers, fixed-cell action guards, partial numeric input, signed rounding, blank/error propagation, original headers, stale writes and portable reopening. Model instructions do not grant authority. Host-owned comparisons, isolated execution, strict action write sets, atomic persistence and per-version native access remain enforced. The final source review found no additional blocker in this scoped conversion path.
+
+Finite fixtures do not establish universal spreadsheet semantics or future-input correctness. Inventory's report still lists its action as lacking an original execution example: original VBA is never run, and action checks compare explicit changed states and independent UI assertions. External services, missing dependencies, binary/encrypted originals, exact Excel rendering, inserted-row formula extension, external security review, production notarization, VoiceOver and additional hardware/customer qualification remain outside this acceptance. Automatic generation can still fail or take minutes; preserve visible failure and coverage reports.
+
+## Secondary operands and held-out checks
+
+The final source pass found that qualification-8 Loan returns zero if *any* operand is blank, incorrectly collapsing a blank interest rate to zero payment. Qualification-7 Due dates uses `parseFloat` for the offset and accepts partial numeric text. These are additional common-input defects outside the earlier 77 examples, not grounds to edit generated code. The earlier passing set is retained as a narrower checkpoint.
+
+The corpus now adds blank-rate Loan and partial-numeric date-offset comparison examples, plus three independently recalculated held-out originals for blank Loan periods, blank principal combined with invalid interest, and blank date offsets. The three held-out files never enter the model's workbook, prompt or original-comparison examples; only the independent post-publication saved-edit/reopen/Undo probe reads them. The original 77 bytes are preserved. Generic guidance now requires per-operand blank coercion, complete numeric parsing and original error precedence. No reference function is supplied to the model. Fresh Loan and Due dates requests and final acceptance remain pending.
+
+- The same final pass reproduced Inventory `NaN` instead of original `#VALUE!` for invalid stock input. It adds an invalid-stock comparison plus a held-out invalid-reorder case. There are four held-out originals, never supplied to the model.
+- Commission's first new signed half-cent pair (201 at 0.5%) passes and remains retained as a nearby counterexample. A second pair (67 at 1.5%) reproduces incorrect ±1 instead of original ±1.01. Four added commission originals bring the corpus to 88 files: 84 model-visible comparison cases and four held-out post-publication cases. Every preceding file's bytes are preserved. The unchanged earlier Commission is refused against the expanded originals.
+- The generic guide now explains decimal-aware rounding and removes a contradictory unconditional instruction to call `compare_excel_behavior`: when all original formulas already recalculate and no translated action is needed, it explicitly skips custom behavior and builds the UI over the native formula engine. The host still compares originals before publication. No generated package is rewritten.
+
+- Qualification 10 Loan safely exhausted twelve steps after 652 seconds, alternating sign/zero-period/rounding mistakes. Its failed result is retained. Latest-only repair context was discarding earlier better partial calculations. Context refresh now retains one strictly better earlier mismatch on the same original version and compared-cell count, plus the latest attempt, within a 24 KB additional context bound. Explicit feedback identifies the partial repair anchor and says it is unverified; publication/draft invalidation and all step/repetition limits remain unchanged. It never crosses a matched comparison boundary, drops stale anchor annotations and replaces the anchor when the latest candidate improves. Focused tests cover regression recovery, idempotence, matched/replaced boundaries, oversized anchors and stale annotations.
+
+## Expanded operand and visual follow-up
+
+- Qualification 10 retained Loan's failed 12-step attempt without publishing. Due dates passed seven model-visible original comparisons and a held-out blank-offset case. Inventory passed five visible comparisons and a held-out invalid reorder threshold, plus independent shipment validation and saved-edit/reopen/Undo checks. These held-out originals never entered model context.
+- The independent Commission rounding reproduction used two pairs. Revenue 201 at rate 0.005 happened to pass the old generated program; revenue 67 at rate 0.015 reproduced its real binary-half-cent error (1 instead of 1.01), with the negative counterpart also failing. All four independently recalculated originals remain in the 88-file corpus. The passing nearby reproduction is retained, not relabeled as a failure.
+- The repair context now retains one strictly better partial comparison alongside the latest complete failed comparison, bounded to the same conversion version and compared-cell count. A matched comparison ends that history; no old verified draft is revived. Focused tests exercise regression, improvement, idempotence, matched boundaries, oversized anchors and stale annotation removal.
+- A fresh native check of qualification 10 Due dates passed leap day, exact invalid text, Undo, header protection, centered rows and compact-window scrolling. Inventory passed two shipments, partial-numeric rejection, draft preservation and Undo, but its success message remained red because its color property captured the initial signal value. The general authoring guide now prefers neutral feedback and explicitly requires reactive outcome color when used. A fresh Inventory generation is required for visual acceptance; no generated source was manually patched.
+- Implementation 3dd750a passed its exact full hosted CI run. Later implementation and fresh-generation results remain in progress and are recorded separately.
+
+
+## Deterministic payment reuse and final request correction
+
+- Qualification 11's fresh Loan eventually passed all 13 supplied original examples, both held-out cases, independent UI actions, saved edits/reopen/Undo and portable copy. It took 720 seconds and repeated sign/rounding regressions before succeeding. This passed candidate remains retained; it is not presented as a first-attempt success or a reason to keep regenerating standard financial arithmetic.
+- PMT is now part of the native formula subset. It accepts three to five explicit arguments, retains decimal zero-interest division and uses stable bounded nonzero-rate arithmetic. The original import comparison still decides whether a formula can recalculate. A separate 24-case LibreOffice workbook checks optional future balance and payment timing, negative/fractional periods and rates, tiny rates, blanks, invalid operands, error results and signed half-cent rounding. Those references are not added to model-conversion success counts.
+- Final request inspection found another unconditional instruction to call compare_excel_behavior in prepareExcelConversionBuild, even after the guide correctly said to reuse native formulas. The request now explicitly distinguishes native-only UI authoring from missing-calculation/action translation. Fresh generation must verify this path; the original-result host gate remains in both cases.
+- The draft-invalidation regression now uses Lookup quotes, whose formula still requires custom behavior. PMT's native support means omitting a discarded custom Loan draft can legitimately use the original native formula. The test continues to prove that an unsupported formula cannot publish by silently borrowing an invalidated draft.
+
+## Action declaration diagnostic, November 14
+
+- Qualification 12 passed fresh Loan in 106 seconds and Commission in 198 seconds, reusing native formulas with no custom calculation attachment. Both passed expanded comparison and held-out originals; installed native edits, signed half-cent rounding, invalid/blank input, Undo, header protection and compact scrolling were also observed.
+- Inventory stopped after repeating an overlapping declaration: the same stock input appeared in `outputs` and `actions[].writes`. The existing guard correctly refused it, but a combined title/write error failed to identify the actual conflict. The guard now reports the exact bounded cell names and separate action/recalculation return contracts; the tool schema also distinguishes formula outputs from editable inputs. Bounds and authority are unchanged. A focused regression reproduces this declaration and confirms the precise refusal alongside the valid original action.
+- All 37 authoring/conversion groups and the speculative grammar checks pass after this diagnostic change. A fresh Inventory retry, final native build and exact-code hosted checks are running. Failed qualification 12 flags remain unchanged.
+
+## Existing-state and planning follow-up, November 14
+
+- Qualification 13 repaired initial address, syntax and calculation mismatches automatically, then saved an app after six tool calls. The independent initial-readiness check rejected it because Quantity still depended on selecting a row. The inferred plan had invented a selected-item step for an original fixed-cell macro. Planning guidance now explicitly derives targets from original addresses and avoids adding selection unless the person requests it.
+- Source inspection and a direct isolated-worker reproduction found that this candidate could change existing invalid stock into the string NaN. Numeric action guidance now covers current saved cells actually read by the action as well as arguments, preserving original failure-before-write and allowing unrelated formula errors. Independent acceptance now requires an invalid-stock transaction to fail with unchanged rows/revision, and checks that an unrelated reorder formula error still permits the valid isolated shipment calculation.
+- The new harness initially tried to undo an earlier edit after a later action and its Undo; immutable-version guards correctly refused that stale undo. The corrected counterexample evaluates the isolated action without additional saved writes, so the original saved-edit/Undo check remains valid. The first failed harness result remains retained. The unchanged qualification-10 candidate passes the expanded functional check; its previously observed red success message still prevents visual acceptance.
+- Fresh qualification 14, the final native build and hosted checks are running. No generated source was repaired by hand.
+
+## Planning read recovery, November 14
+
+- Qualification 14 stopped before app generation because the planner invented an evidence-part ID. The read guard correctly refused the unknown ID, but planning propagated that recoverable argument error and abandoned the whole conversion. The original was preserved.
+- Planning now returns bounded evidence/range read errors as tool feedback. It directs the model to the exact evidence catalog or valid worksheet indexes so it can correct its request within the existing twelve-call limit. Cancellation, invalid tool scope, integrity failures and write attempts still terminate. Parser refusals remain failures; continued planning cannot turn refused evidence into a successful read.
+- Regression checks exercise unknown IDs, bad offsets and worksheet indexes followed by valid reads and a plan, unchanged workbook revision, repeated invalid reads exhausting the limit, and cancellation before inference. All 37 authoring/conversion groups pass. Qualification 15 is a fresh original-file attempt; all earlier false flags remain unchanged.
+- Hosted runs for superseded 885d570 and ae7a460 were canceled after the newer planning recovery commit entered CI. This does not bypass the exact final-code gate.
+
+## Final local acceptance, November 14
+
+- Qualification 15 passed fresh Inventory in 317 seconds without manual source changes. The model repaired syntax, missing behavior/test setup, overlapping declarations and invalid-input calculations within the normal build loop. The generated form is immediately enabled, uses neutral feedback, rejects malformed quantities and invalid existing stock, and handles repeated shipments and unrelated formula errors correctly. Its runtime began before the already-built planning repair was committed; all 392 recorded source digests match the final 8c8d014 commit, as the retained source checkpoint records.
+- All ten unchanged candidates pass final runtime replay: 84 original comparison states, five held-out originals, 302 independent UI steps, 79 saved-edit/reopen/Undo cases and ten portable copies. The Inventory additions include unchanged-row/revision refusal for invalid stock and a valid isolated action with an unrelated reorder error.
+- The exact installed 8c8d014 build passed native Inventory visual and functional checks: initial form readiness, shipment 8→6→4, partial numeric rejection, draft preservation, Undo, neutral success/error text, centered rows, wide/compact layout and wheel forwarding. Further UI checks refuse invalid existing stock without a saved change, and permit stock 8→6 while an unrelated formula error remains; Undo restores stock 8. App source and behavior remain unchanged.
+- Local package/GPU/resource/signature, installation/update/uninstall and isolated extraction checks pass. Five task recents were removed, all task grants are disabled, four current unrelated recents/preferences are preserved, and the verified preview is on Welcome. Full CI passed the earlier 3da5a7f checkpoint; exact final-code CI remains in progress.
+
+## Final bounded acceptance, November 14
+
+- Accepted candidates and exact source hashes are in the published receipt. All ten unchanged apps pass 84 comparison originals, five held-out states, 302 UI steps, 79 saved-edit/reopen/Undo cases and ten portable copies. The original 43 fixture bytes remain unchanged; the separate 24-case PMT corpus is not added to conversion totals.
+- Inventory's final generated app passes original/boundary/action checks and native visual inspection, including initial form readiness, repeated shipments, malformed input, Undo and neutral feedback. Final Loan and Commission reuse native calculations; actual signed-rounding, blank and malformed-input edits passed. Earlier successful candidates remain accepted only after replay against the expanded corpus.
+- Final code `8c8d0140bb4198112b8731330b366b0f425113f3` passes [hosted CI](https://github.com/carloslfu/sevra-app/actions/runs/43634947457). Focused final authoring checks pass 37 groups; PMT core/CLI, grammar and local native build/package/install/extraction checks pass. Installed main UUID `B713C26D-4750-32D3-BCE5-5FE5EC7BE608` matches the package. Every failed/interrupted generation and failed build/check attempt remains retained rather than relabeled.
+- Test apps are disabled, task recents removed, unrelated current recents/preferences and real workbooks preserved, and the verified preview is on Welcome. This final documentation/evidence publication changes no production code; db.md, links and receipt/source consistency are validated separately.
+- The remaining limits are explicit: finite originals, nonzero fresh-generation failure risk, missing original action-execution evidence, no arbitrary external integration or automatic formula extension, and no production notarization or external/hardware/VoiceOver qualification.

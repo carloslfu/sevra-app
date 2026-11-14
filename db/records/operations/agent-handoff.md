@@ -3,17 +3,29 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-14T01:57:19.539630+00:00
-summary: Reconstruction engine and reviewed workflows verified; 653 core checks, 36 authoring groups, 43 originals and installed UI. Unassisted local-model reliability remains open.
+updated: 2026-11-14T20:42:57.399837+00:00
+summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
-## Publication verification, November 14
+## Current checkpoint: automatic Excel conversion, November 14
+
+The owner-requested [[records/plans/automatic-excel-reliability]] qualifies ten local-model-generated native business apps without manual UI or calculation-source repairs. The accepted candidates come from successive fresh runs. All ten pass a final replay on `8c8d0140bb4198112b8731330b366b0f425113f3` against 89 independently LibreOffice-recalculated originals: 84 comparison cases available during generation and five held-out states never supplied to the model. See the [acceptance receipt](../../../integration/evidence/2026-11-14-automatic-excel-reliability.json) and [retained trials and generated apps](../../../integration/evidence/2026-11-14-automatic-excel-apps/README.md).
+
+Inventory now ships twice from current saved stock, rejects malformed/overdrawn quantities and invalid current stock without writes, preserves failed drafts, recalculates and supports Undo. Loan and Commission reuse native formulas; the model creates the interface rather than reimplementing supported financial arithmetic. A separate 24-scenario PMT corpus checks 48 saved payment/rounding results and is not counted as generated-app coverage. Other repaired failures include recoverable planning read failures, invented selection requirements, stale/contradictory authoring instructions, calculation-draft invalidation, repeated mismatch handling, ambiguous syntax/action diagnostics, incorrect reviewer objections, deterministic date arithmetic and native table spacing/scrolling.
+
+The final replay passes 302 independent UI steps, 79 saved-edit/reopen/Undo cases and ten portable copies. Final focused checks pass 37 authoring/conversion groups; core PMT and CLI import/edit checks pass. Earlier full local suites and subsequent regressions are retained with their exact versions. [Hosted Checks](https://github.com/carloslfu/sevra-app/actions/runs/43634947457) passes the exact final code, including full core/agent/grammar and baseline/native packaging checks. Final local package/resource, installation and extraction checks also pass.
+
+Installed native UI was inspected for Inventory, Loan, Commission, Invoices, Due dates and unchanged Reference codes, including actual input edits, errors, Undo, original-header guards, row alignment and constrained-window scrolling. Candidate origins and the exact build used for each observation are recorded separately; unchanged UI evidence is reused. The final installed main UUID is `B713C26D-4750-32D3-BCE5-5FE5EC7BE608`, matching the current package; helper/workers and SDK resources are verified. The preview is left on Welcome. All task app grants are disabled, task recent entries removed, current unrelated recents/preferences preserved, and synthetic workbooks retained as ignored evidence. Earlier recent-limit eviction is documented; no unrelated workbook, model file or preserved baseline app was modified.
+
+This is finite coverage across successive runs, not a single ten-of-ten cohort, a first-attempt success rate or universal Excel equivalence. Fresh generation can still fail or take minutes; failed attempts, superseded narrower passes and harness corrections remain recorded. Original VBA never executes; Inventory original action-execution equivalence remains unverified despite independent shipment checks. Exact Excel rendering, missing dependencies, external services, row-insertion formula extension, production notarization, external security/customer testing, VoiceOver and additional hardware remain unqualified. Earlier sections below are historical.
+
+## Earlier publication verification, November 14
 
 The implementation was committed and pushed as `34f1f00`. [Hosted Checks run 43539274889](https://github.com/carloslfu/sevra-app/actions/runs/43539274889) passed on exact commit `34f1f006ef02e883411ded6aaff33067d97c1296`, including the baseline and native packaged products. All recorded code hashes match that tested revision. This publication receipt changes only documentation/evidence; its db.md and link checks are separate from the unchanged code's full CI result. Autonomous model-generation reliability remains open.
 
-## Current checkpoint: reconstruction and adversarial review, November 14
+## Earlier checkpoint: reconstruction and adversarial review, November 14
 
 The Excel reconstruction engine is implemented with inert original/VBA evidence, bounded pure behavior programs, scoped native actions and host-owned original-result comparisons. The multi-pass review repaired calculation/write-scope, row identity, atomic transactions, native remount/event state, canvas actions, corrupt metadata, reviewer context and interface defects. See [[records/reviews/excel-reconstruction-and-engine-review]] and the [acceptance receipt](../../../integration/evidence/2026-11-14-excel-engine-review.json).
 

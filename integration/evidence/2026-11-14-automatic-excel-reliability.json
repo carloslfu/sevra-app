@@ -1,0 +1,598 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-14",
+  "status": "qualified-bounded-local-and-hosted",
+  "codeCommit": "8c8d0140bb4198112b8731330b366b0f425113f3",
+  "purpose": "Automatic local-model Excel conversion without manual generated-code repair",
+  "method": {
+    "model": "Local Qwen3.6 35B A3B 4-bit with DFlash 2; no hosted inference",
+    "inputs": "Original spreadsheet files, bounded extracted evidence and plain-language workflow instructions. No reference JavaScript supplied.",
+    "nativePaymentReferences": "24 separate independently recalculated PMT scenarios (48 payment/ROUND cells), plus focused domain/error/precision assertions; these are formula-engine checks, not additional generated-app successes.",
+    "sourcePolicy": "Generated UI and calculation/action source unchanged after model output. Only workbook-specific dataset binding IDs removed for portable evidence.",
+    "acceptance": "Ten automatically generated candidates from successive diagnostic runs, all independently replayed on final code. This is not one fresh ten-of-ten cohort or a statistical first-attempt success rate.",
+    "originals": "89 independently LibreOffice-recalculated synthetic XLSX/XLSM files: 84 model-visible comparison cases and five held-out originals never supplied during generation; original 43 preserved byte-for-byte. Not Microsoft Excel execution qualification.",
+    "reasoningBudget": "Actual Excel builder and reviewer requests use 2048 reasoning tokens. Older model identity labels may still describe the default 512-token policy; per-request metrics are retained."
+  },
+  "totals": {
+    "workflows": 10,
+    "originalCases": 84,
+    "heldOutOriginals": 5,
+    "totalOriginals": 89,
+    "independentUISteps": 302,
+    "savedEditReopenUndoCases": 79,
+    "portableCopies": 10
+  },
+  "cases": [
+    {
+      "name": "Inventory",
+      "origin": {
+        "freshRun": "qualification-15",
+        "originalPackageSHA256": "a164c895808cb9d10ec8754ffadb5eb35f82e6eb3facf825518847525cd335f6",
+        "sourceSHA256": "a2b0f57a7b980d77bdc38ead3debc9f578b5a6c0f8c462d75f15c26946ffab52",
+        "packageSHA256": "56e97b3863a300d5dd7c809dc8b45d6e94baa5702e230f2b44b070642338009f",
+        "note": "Only workbook-specific binding IDs stripped; generated UI and behavior unchanged.",
+        "behaviorSourceSHA256": "f8a624510dbb207bbee32e2171624ea105ddb89abaa7002fd5e3d5aa0442683c"
+      },
+      "freshSeconds": 316.76,
+      "originalCases": 5,
+      "heldOutOriginalFiles": [
+        "inventory-5.xlsm"
+      ],
+      "comparedCells": 5,
+      "independentUISteps": 28,
+      "savedEditReopenUndoCases": 5,
+      "portableCopyVerified": true,
+      "actionsWithoutOriginalExamples": [
+        "Ship stock"
+      ],
+      "invalidStockActionRefusals": 1,
+      "unrelatedFormulaErrorActions": 1,
+      "calculationEngine": "translated",
+      "package": "2026-11-14-automatic-excel-apps/Inventory.sevraapp"
+    },
+    {
+      "name": "Invoices",
+      "origin": {
+        "freshRun": "qualification-7",
+        "originalPackageSHA256": "fac50d9be8fa6abb7c00213eb95a9095e48e74dcaf92ff0cb774a89646a179d1",
+        "sourceSHA256": "4933f68fdb86f27d460846a491453053a5d1db772ebf9cb58a2caad4ec0e4208",
+        "packageSHA256": "bb4a581c62c5d329897a4de0b09fc7213db52128bec2cfd71c4df550bd6a51d9",
+        "note": "Only workbook-specific binding IDs stripped; generated UI and behavior unchanged.",
+        "behaviorSourceSHA256": "f42a6d3113b1644cfc58efaa93e376f6b22c42042f68555222ba9eaa02244e69"
+      },
+      "freshSeconds": 274.17,
+      "originalCases": 9,
+      "heldOutOriginalFiles": [],
+      "comparedCells": 9,
+      "independentUISteps": 38,
+      "savedEditReopenUndoCases": 8,
+      "portableCopyVerified": true,
+      "actionsWithoutOriginalExamples": [],
+      "invalidStockActionRefusals": 0,
+      "unrelatedFormulaErrorActions": 0,
+      "calculationEngine": "translated",
+      "package": "2026-11-14-automatic-excel-apps/Invoices.sevraapp"
+    },
+    {
+      "name": "Timesheets",
+      "origin": {
+        "freshRun": "qualification-4",
+        "originalPackageSHA256": "41c045be6948022c0adf1f206af0fb449dbd1d7460c0e28f909033862ad0b201",
+        "sourceSHA256": "51d8f93a9f232d8de3627daa720e475cd4ea0f64ed4e2bc0034d8d6ec23c631d",
+        "packageSHA256": "30f03ddd37c183435dcf3aefca7e1b9237279a81f8ab84d39f5910b32748e0f1",
+        "note": "Only workbook-specific binding IDs stripped; generated UI and behavior unchanged.",
+        "behaviorSourceSHA256": "a65510d60948e75665eaf38164662d9eae8e287a46f218569cc6baa3e33fec51"
+      },
+      "freshSeconds": 233.38,
+      "originalCases": 7,
+      "heldOutOriginalFiles": [],
+      "comparedCells": 7,
+      "independentUISteps": 33,
+      "savedEditReopenUndoCases": 6,
+      "portableCopyVerified": true,
+      "actionsWithoutOriginalExamples": [],
+      "invalidStockActionRefusals": 0,
+      "unrelatedFormulaErrorActions": 0,
+      "calculationEngine": "translated",
+      "package": "2026-11-14-automatic-excel-apps/Timesheets.sevraapp"
+    },
+    {
+      "name": "Cash flow",
+      "origin": {
+        "freshRun": "qualification-4",
+        "originalPackageSHA256": "c56dfc96c9ff6c9a41a8dd20c73b3c20fefba5329ad001a838fea574f96f615a",
+        "sourceSHA256": "9d970429f4328971df565a67331a8fd1c36a89d5aedf73737eb755c65770204e",
+        "packageSHA256": "8ed9b9cd0564212b885f59dc8b73936d06d752576f0fd700e9673f417a6f0a44",
+        "note": "Only workbook-specific binding IDs stripped; generated UI and behavior unchanged.",
+        "behaviorSourceSHA256": null
+      },
+      "freshSeconds": 180.93,
+      "originalCases": 7,
+      "heldOutOriginalFiles": [],
+      "comparedCells": 7,
+      "independentUISteps": 33,
+      "savedEditReopenUndoCases": 6,
+      "portableCopyVerified": true,
+      "actionsWithoutOriginalExamples": [],
+      "invalidStockActionRefusals": 0,
+      "unrelatedFormulaErrorActions": 0,
+      "calculationEngine": "native",
+      "package": "2026-11-14-automatic-excel-apps/Cash flow.sevraapp"
+    },
+    {
+      "name": "Commission",
+      "origin": {
+        "freshRun": "qualification-12",
+        "originalPackageSHA256": "2eaf2f848de508d51d0798132bee0c71c597739eb4e92da9d0d23bf0444f7bea",
+        "sourceSHA256": "22cfe2bbd24e376f211988436bf0129991e60bc4780b8010d5d32b95134511b6",
+        "packageSHA256": "fc191093bf27a27d5c3e146b172fc6b1414ee9876e64c96ae5c7496102671e83",
+        "note": "Only workbook-specific binding IDs stripped; generated UI and behavior unchanged.",
+        "behaviorSourceSHA256": null
+      },
+      "freshSeconds": 198.05,
+      "originalCases": 11,
+      "heldOutOriginalFiles": [
+        "commission-11.xlsx"
+      ],
+      "comparedCells": 11,
+      "independentUISteps": 33,
+      "savedEditReopenUndoCases": 11,
+      "portableCopyVerified": true,
+      "actionsWithoutOriginalExamples": [],
+      "invalidStockActionRefusals": 0,
+      "unrelatedFormulaErrorActions": 0,
+      "calculationEngine": "native",
+      "package": "2026-11-14-automatic-excel-apps/Commission.sevraapp"
+    },
+    {
+      "name": "Loan",
+      "origin": {
+        "freshRun": "qualification-12",
+        "originalPackageSHA256": "8ea1c930098a09a625b582d0ff4b6f6783749902dc5a3d057f2d38abbb59f432",
+        "sourceSHA256": "d7c70d94770b8a771b9c62c0540cf75eeb05120ed0b31508833606c8a668b3a4",
+        "packageSHA256": "e1ad6ac5448738ed29e6ab64b008bf1b9c73b937200c24f4323f369a3aa18191",
+        "note": "Only workbook-specific binding IDs stripped; generated UI and behavior unchanged.",
+        "behaviorSourceSHA256": null
+      },
+      "freshSeconds": 105.69,
+      "originalCases": 13,
+      "heldOutOriginalFiles": [
+        "loan-13.xlsx",
+        "loan-14.xlsx"
+      ],
+      "comparedCells": 13,
+      "independentUISteps": 33,
+      "savedEditReopenUndoCases": 14,
+      "portableCopyVerified": true,
+      "actionsWithoutOriginalExamples": [],
+      "invalidStockActionRefusals": 0,
+      "unrelatedFormulaErrorActions": 0,
+      "calculationEngine": "native",
+      "package": "2026-11-14-automatic-excel-apps/Loan.sevraapp"
+    },
+    {
+      "name": "Production",
+      "origin": {
+        "freshRun": "qualification-4",
+        "originalPackageSHA256": "e94c8ec73825fa37ec44e3ab181dc0310969ed663e1ea3491637b37e80d4b59c",
+        "sourceSHA256": "ed1e5c0a3ca204b69db33261e229cf2bfb3afdfbb64527a92c89a9c370c4e935",
+        "packageSHA256": "d5ff178d4dfed12d525775cedafa132b6203e8bad8a77bdc92f059d0fd85c791",
+        "note": "Only workbook-specific binding IDs stripped; generated UI and behavior unchanged.",
+        "behaviorSourceSHA256": "278e4ae44732176a21bc17eacf1a5368b98aed6d8641082fa88c3a4a342ba147"
+      },
+      "freshSeconds": 319.81,
+      "originalCases": 7,
+      "heldOutOriginalFiles": [],
+      "comparedCells": 7,
+      "independentUISteps": 28,
+      "savedEditReopenUndoCases": 6,
+      "portableCopyVerified": true,
+      "actionsWithoutOriginalExamples": [],
+      "invalidStockActionRefusals": 0,
+      "unrelatedFormulaErrorActions": 0,
+      "calculationEngine": "translated",
+      "package": "2026-11-14-automatic-excel-apps/Production.sevraapp"
+    },
+    {
+      "name": "Lookup quotes",
+      "origin": {
+        "freshRun": "qualification-4",
+        "originalPackageSHA256": "3ebfc3e635aaa008f9d24f01230218bae7bbc840fdcf24f06782491ddff7a10a",
+        "sourceSHA256": "4fa1bee46a979b83f5b9255c3447f4249c2dac1750c3a35c8cca1cd47f55e60e",
+        "packageSHA256": "2c3480d7e8b3d03cf7138d49aac642c8dbf4cd837768780c377876af10255c15",
+        "note": "Only workbook-specific binding IDs stripped; generated UI and behavior unchanged.",
+        "behaviorSourceSHA256": "0e6013989bc4bf06dd2221f846811eedcfdd88bb2ade5dd70062b79a7414a292"
+      },
+      "freshSeconds": 300.87,
+      "originalCases": 9,
+      "heldOutOriginalFiles": [],
+      "comparedCells": 9,
+      "independentUISteps": 20,
+      "savedEditReopenUndoCases": 8,
+      "portableCopyVerified": true,
+      "actionsWithoutOriginalExamples": [],
+      "invalidStockActionRefusals": 0,
+      "unrelatedFormulaErrorActions": 0,
+      "calculationEngine": "translated",
+      "package": "2026-11-14-automatic-excel-apps/Lookup quotes.sevraapp"
+    },
+    {
+      "name": "Due dates",
+      "origin": {
+        "freshRun": "qualification-10",
+        "originalPackageSHA256": "1aa8a643c56838b59ddf723d131d542767dea5fcfe8b3458117f24059ad2faaf",
+        "sourceSHA256": "dfcfa58f7ee38cf4d6f5e06161858bb8952b027759802c30fb5f040d99dad413",
+        "packageSHA256": "2b8bb580216bdac9a90a516e6c460ac5ecce5f1eed5922d5a100de87135533fc",
+        "note": "Only workbook-specific binding IDs stripped; generated UI and behavior unchanged.",
+        "behaviorSourceSHA256": "7f188b2a7e65cd5149420c6a405fdc446028d48aa02a8a6d5053ff66c34ab9d1"
+      },
+      "freshSeconds": 299.87,
+      "originalCases": 7,
+      "heldOutOriginalFiles": [
+        "due-dates-7.xlsx"
+      ],
+      "comparedCells": 7,
+      "independentUISteps": 28,
+      "savedEditReopenUndoCases": 7,
+      "portableCopyVerified": true,
+      "actionsWithoutOriginalExamples": [],
+      "invalidStockActionRefusals": 0,
+      "unrelatedFormulaErrorActions": 0,
+      "calculationEngine": "translated",
+      "package": "2026-11-14-automatic-excel-apps/Due dates.sevraapp"
+    },
+    {
+      "name": "Reference codes",
+      "origin": {
+        "freshRun": "qualification-4",
+        "originalPackageSHA256": "3fe10bc6ccc017026746be1a99e9adc3b8ec1c68deb8975fc9a6345c4622abbf",
+        "sourceSHA256": "1e4230398736c20522c306a16c9bcc7c0ef032e6582bdb13d10d9511b4dacf66",
+        "packageSHA256": "c569ca0d39b5b759205beb7e67df947deef61fbdda50a51a8ecb69f9214c4c42",
+        "note": "Only workbook-specific binding IDs stripped; generated UI and behavior unchanged.",
+        "behaviorSourceSHA256": "6ed8579c7408918bbdf6627bfe2aa75f72aca34e28fbc93cb4460c09e3c2c84e"
+      },
+      "freshSeconds": 575.81,
+      "originalCases": 9,
+      "heldOutOriginalFiles": [],
+      "comparedCells": 9,
+      "independentUISteps": 28,
+      "savedEditReopenUndoCases": 8,
+      "portableCopyVerified": true,
+      "actionsWithoutOriginalExamples": [],
+      "invalidStockActionRefusals": 0,
+      "unrelatedFormulaErrorActions": 0,
+      "calculationEngine": "translated",
+      "package": "2026-11-14-automatic-excel-apps/Reference codes.sevraapp"
+    }
+  ],
+  "fixed": [
+    "Planning returns bounded evidence/range read errors to the model while preserving parser/integrity guards, cancellation, read-only scope and the twelve-call bound.",
+    "Planning preserves fixed-cell action targets instead of inventing selected-row workflows; action programs validate existing numeric state as well as arguments.",
+    "Conflicting action-write and formula-output declarations identify exact conflicting cells and the repair contract without weakening authority.",
+    "Precise Excel cell-address errors and hidden derived outputs prevent misleading undefined/NaN repairs.",
+    "Request-scoped verified calculation drafts survive UI repair; failed/replaced comparisons invalidate them and publication rechecks them.",
+    "Repair context keeps the latest candidate and one strictly better partial calculation from the same conversion; obsolete verified drafts never confer authority, and all retry limits remain enforced.",
+    "Blank and invalid secondary operands, error precedence and decimal halfway rounding are exercised against independent originals plus held-out saved edits.",
+    "Native-supported formulas are reused without contradictory guide or build-request instructions; feedback uses neutral styling unless an explicit reactive outcome state is provided.",
+    "Native PMT supports signed constant-period payments, future balance and timing, with decimal zero-rate arithmetic and bounded stable nonzero-rate evaluation; original-cache qualification remains mandatory.",
+    "Mismatched comparisons count as failed attempts; unchanged bad programs cannot loop as successful progress.",
+    "Independent reviewers must reproduce an interface defect before asking for a revision; passing or invalid probes cannot force false repairs.",
+    "Compile-only QuickJS preflight reports exact syntax location and bounded token context without executing or rewriting source.",
+    "Deterministic calendar.addDays provides Gregorian date arithmetic without exposing clock, timezone or Date constructor.",
+    "A successful checked Excel save immediately finishes the request instead of letting the model repeat a consumed build.",
+    "Native SDK rejects unsupported event handlers. Native rows are vertically centered and short tables forward vertical scrolling to the form.",
+    "Generic authoring guidance preserves original blank/text/error/rounding semantics and fully validates numeric action arguments.",
+    "Independent harness fixes preserve exact input text, compare canonical numeric outputs correctly, update all Loan input cells and locate one unambiguous shipment control."
+  ],
+  "validation": {
+    "fullLocalSuite": {
+      "log": "calendar-full-check.log",
+      "coreChecks": 653,
+      "laterCoreChecks": 654,
+      "laterCoreLog": "pmt-core-checks.log",
+      "nativeGroups": 17,
+      "sdkGroups": 7,
+      "authoringGroups": 37,
+      "grammarCases": 81,
+      "grammarMasks": 759,
+      "note": "Full earlier integrated suite plus final focused 37-group regressions; exact final-code full coverage is established by the hosted CI receipt. Local full suite skipped stale packaged journeys; final package/install/extraction checks were run separately."
+    },
+    "focusedFinal": "planning-recovery-checks.log",
+    "nativePaymentCore": "pmt-focused-final-checks.log",
+    "nativePaymentImportEdits": "pmt-cli-checks.log",
+    "nativePackage": "native-recovery-final-package.log",
+    "nativeInstallation": "native-recovery-final-install-check.log",
+    "nativeExtraction": "native-recovery-final-extraction-check.log",
+    "finalReplay": "final-runtime-replay-2",
+    "hostedCI": {
+      "url": "https://github.com/carloslfu/sevra-app/actions/runs/43634947457",
+      "headSha": "8c8d0140bb4198112b8731330b366b0f425113f3",
+      "conclusion": "success"
+    }
+  },
+  "installedBuild": {
+    "codeCommit": "8c8d0140bb4198112b8731330b366b0f425113f3",
+    "MacOS/Sevra": {
+      "packagedUUID": "B713C26D-4750-32D3-BCE5-5FE5EC7BE608",
+      "installedUUID": "B713C26D-4750-32D3-BCE5-5FE5EC7BE608",
+      "exactSignedBytes": false,
+      "sha256": "415023afe14fbacae6c777191b5825e47f0d8196dfe0dcdd160c02630be397a7"
+    },
+    "MacOS/sevra-extract": {
+      "packagedUUID": "DD56DB11-85D3-3FE7-B678-27E5DD774377",
+      "installedUUID": "DD56DB11-85D3-3FE7-B678-27E5DD774377",
+      "exactSignedBytes": true,
+      "sha256": "ca85738050d6082557cb5dfc380939de48564dff4536a8070e74e7cbaf723b2c"
+    },
+    "XPCServices/com.sevra.workbooks.app-check-worker.xpc/Contents/MacOS/sevra-app-worker": {
+      "packagedUUID": "4E4BD896-0963-395D-9059-5A8681E4B54E",
+      "installedUUID": "4E4BD896-0963-395D-9059-5A8681E4B54E",
+      "exactSignedBytes": true,
+      "sha256": "87fc090b51d8e99afc1c2c9d7113598ec07a378e040858b295b852e15099b169"
+    },
+    "XPCServices/com.sevra.workbooks.app-worker.xpc/Contents/MacOS/sevra-app-worker": {
+      "packagedUUID": "4E4BD896-0963-395D-9059-5A8681E4B54E",
+      "installedUUID": "4E4BD896-0963-395D-9059-5A8681E4B54E",
+      "exactSignedBytes": true,
+      "sha256": "70700c50e0d37120725f350b9482206956e3b8ae6e14a03fff90bbb8e9fae703"
+    },
+    "sdkResources": {
+      "XPCServices/com.sevra.workbooks.app-check-worker.xpc/Contents/Resources/Sevra_SevraAppRuntime.bundle/sdk.js": "b5048ec0f156cedb192235d9aea4939ef327760c210c74cf32a75c744d89c06b",
+      "XPCServices/com.sevra.workbooks.app-worker.xpc/Contents/Resources/Sevra_SevraAppRuntime.bundle/sdk.js": "b5048ec0f156cedb192235d9aea4939ef327760c210c74cf32a75c744d89c06b"
+    }
+  },
+  "nativeUI": {
+    "method": "Observed native CUA screenshots and accessibility state; no screenshot files exported. Synthetic disposable workbook copies only.",
+    "Due dates": {
+      "origin": "qualification-10",
+      "identityFile": "installed-identity-3da.json",
+      "sourceSHA256": "dfcfa58f7ee38cf4d6f5e06161858bb8952b027759802c30fb5f040d99dad413",
+      "observed": [
+        "Conversion displays ready workspace and seven original-result matches",
+        "Exact-version table-access review, enable and disable work",
+        "Editor initially disabled until selecting a data row",
+        "Invoice date 2024-02-28 recalculates to leap day 2024-02-29",
+        "Invalid text persists exactly and yields #VALUE!",
+        "Successful saves clear the editor and selection",
+        "Undo restores 2024-02-28 and 2024-02-29",
+        "Data selection then original header clears/disables the editor",
+        "Centered table rows and readable wide layout",
+        "Compact 900 by 632 logical window: wheel over short table reaches complete form",
+        "App disabled and workbook closed after verification"
+      ]
+    },
+    "Invoices": {
+      "origin": "qualification-7",
+      "identityFile": "installed-identity-ui-dates.json",
+      "sourceSHA256": "4933f68fdb86f27d460846a491453053a5d1db772ebf9cb58a2caad4ec0e4208",
+      "observed": [
+        "Conversion displays nine original-result matches and ready workspace",
+        "Exact-version enable review, initial disabled editor and row selection work",
+        "Input 2abc persists exactly and yields #VALUE!",
+        "Subtotal -2.5 yields -2.98",
+        "Blank subtotal persists exactly and yields 0",
+        "Successive saves clear editor and selection",
+        "Undo restores -2.5 and -2.98",
+        "Data selection followed by original header clears/disables editor",
+        "Centered rows and readable wide layout",
+        "Compact 900 by 632 logical window retains complete scrollable form",
+        "App disabled and workbook closed after verification"
+      ]
+    },
+    "Loan": {
+      "origin": "qualification-12",
+      "identityFile": "installed-identity-f6.json",
+      "sourceSHA256": "d7c70d94770b8a771b9c62c0540cf75eeb05120ed0b31508833606c8a668b3a4",
+      "observed": [
+        "Conversion displays 13 saved-result matches and one formula recalculating natively",
+        "Exact-version table access review, enable and disable work",
+        "Editor initially disabled until data-row selection",
+        "Blank monthly rate and one period: principal 1.005 displays payment 1.01",
+        "Saving principal -1.005 produces -1.01",
+        "2abc persists exactly and produces #VALUE!",
+        "Blank principal persists and produces 0",
+        "Successful saves clear selection and editor",
+        "Undo restores the preceding 2abc input and #VALUE! result",
+        "Data selection followed by the original header clears/disables editor",
+        "Centered rows and readable wide layout",
+        "Compact 900 by 632 logical window: wheel over short table reaches complete form",
+        "App disabled and workbook closed after verification"
+      ]
+    },
+    "Inventory": {
+      "origin": "qualification-15",
+      "identityFile": "installed-identity-final.json",
+      "sourceSHA256": "a2b0f57a7b980d77bdc38ead3debc9f578b5a6c0f8c462d75f15c26946ffab52",
+      "observed": [
+        "Conversion shows ready workspace and five saved-result matches",
+        "Exact-version access review, enable and disable work",
+        "Quantity enabled immediately without row selection; blank shipment disabled",
+        "Ship 2 changes stock 8 to 6 and to-order 4 to 6",
+        "2abc rejected with explicit error, draft preserved and no stock change",
+        "Second ship 2 changes stock 6 to 4 and to-order 6 to 8",
+        "Successful shipments clear input",
+        "Undo restores stock 6 and to-order 6",
+        "Success and error feedback are neutral and legible; success no longer appears red",
+        "Centered rows and readable wide layout",
+        "Compact 900 by 632 logical window: wheel over short table reaches complete form",
+        "App disabled and workbook closed after verification",
+        "Invalid existing stock refuses shipment with explicit error, preserves Quantity 2, and leaves saved row unchanged",
+        "Unrelated invalid reorder input still permits shipment 8 to 6 while #VALUE! stays visible",
+        "Undo restores stock 8 while preserving invalid reorder input and formula error",
+        "Final app disabled, workbook closed and preview quit before cleanup"
+      ]
+    },
+    "Commission": {
+      "origin": "qualification-12",
+      "identityFile": "installed-identity-f6.json",
+      "sourceSHA256": "22cfe2bbd24e376f211988436bf0129991e60bc4780b8010d5d32b95134511b6",
+      "observed": [
+        "Conversion displays 11 saved-result matches and one formula recalculating natively",
+        "Exact-version access review, enable and disable work",
+        "Editor disabled until data-row selection",
+        "Revenue 67 and rate 0.015 produce 1.01; saving -67 produces -1.01",
+        "2abc persists exactly and produces #VALUE!",
+        "Blank revenue persists and produces 0",
+        "Successful saves clear selection and editor",
+        "Undo restores preceding 2abc input and #VALUE! result",
+        "Data selection followed by original header clears/disables editor",
+        "Centered rows and readable wide layout",
+        "Compact 900 by 632 logical window: wheel over short table reaches complete form",
+        "App disabled and workbook closed after verification"
+      ]
+    }
+  },
+  "additionalNativeUI": {
+    "Reference codes": "Unchanged qualification-4 candidate verified earlier: exact whitespace/Unicode, save clearing, header protection and Undo; full receipt retained in ui-observations.json."
+  },
+  "cleanup": {
+    "removedTaskRecents": [
+      "Inventory-neutral.sevra",
+      "Commission-native.sevra",
+      "Loan-native.sevra",
+      "Inventory-operands.sevra",
+      "Dates-operand.sevra"
+    ],
+    "preservedCurrentUnrelatedRecents": [
+      "Window-checks.sevra",
+      "Clipboard-checks.sevra",
+      "T.sevra",
+      "Window pass.sevra"
+    ],
+    "beforeCount": 9,
+    "afterCount": 4,
+    "remainingNativeAppGrants": 0,
+    "unrelatedPreferencesPreserved": true,
+    "workbooksPreserved": true,
+    "baselineAppAndModelsPreserved": true,
+    "note": "Only this task UI-prefix recent entries removed. Current unrelated recents preserved; the earlier recent-limit eviction is recorded separately. Private plist backup remains ignored and is not published.",
+    "welcomeVerifiedAfterCleanup": true,
+    "observedRecentCount": 4,
+    "finalPreviewState": "Welcome, with no task workbooks open"
+  },
+  "priorCleanup": {
+    "removedTaskShortcuts": [
+      "Loan-qualified.sevra",
+      "Reference-qualified.sevra",
+      "Inventory-qualified.sevra",
+      "Inventory-accepted.sevra",
+      "Loan-final.sevra",
+      "Inventory.sevra"
+    ],
+    "preservedCurrentUnrelatedCount": 4,
+    "otherPreferenceKeysUnchanged": true,
+    "notice": "Only task-owned recent shortcuts removed. Workbook files remain retained. The app caps recent history at ten; opening test copies can evict older entries."
+  },
+  "limits": [
+    "Finite examples cannot prove universal spreadsheet semantics, every input or every business rule. Fresh generation can still fail or take minutes.",
+    "Accepted candidates combine multiple fresh runs. All raw failures, interruptions, weaker passes later invalidated, and test-harness corrections remain retained.",
+    "Inventory original VBA never executes. Shipment behavior is tested against independent saved states and UI assertions; its report still lists the missing original action-execution example.",
+    "Exact Excel layout, binary XLS/XLSB, encrypted sources, external services, unavailable dependencies and automatic formula extension to inserted rows remain unqualified.",
+    "Local sandbox and native UI checks do not constitute external security certification, production notarization, VoiceOver qualification or additional-hardware/customer validation."
+  ],
+  "evidence": {
+    "details": "2026-11-14-automatic-excel-apps/trials-and-checks.json.gz",
+    "gzipSHA256": "fdd75272afc1e299d027707c9efa461c551cd1300fad8728255f570528e362af",
+    "uncompressedSHA256": "50130530699798bcf20f4c468611a9aacc43991d47e8c9f40ba02d0e00464df4",
+    "trialResultSets": 36,
+    "retainedLogs": 305,
+    "fixtureHashes": {
+      "cash-flow-0.xlsx": "9dd857a80dea961e35f388ca74aa0a06d57e9ac063517862298ce26446e1f03f",
+      "cash-flow-1.xlsx": "e04ea278088ecacd026fedd0a32adb7886a0df2420621d454ff79229bb0c66a5",
+      "cash-flow-2.xlsx": "755e71ef29213e3e57c4b8ebff4499815543565bd09c649a9e7dd2ce1b46db10",
+      "cash-flow-3.xlsx": "5848868a3c67bd9f327f24bd56c9c7eb924d62d88ed68bf509dfcb6544836f3b",
+      "cash-flow-4.xlsx": "80bdc01422ea9a1f7a74fa83c0402b9e1fbc8acb8eebf017b9527a432b57e6b5",
+      "cash-flow-5.xlsx": "ef3e2cf1e83f94e0e99f95c9b013262e738acf06bd36101cbb5241f6fe8dc5d2",
+      "cash-flow-6.xlsx": "d2069c38d661f217eba65b7100667e946d2ef75be90c111c3df445c9ec8092de",
+      "commission-0.xlsx": "909efdb058d663cbba734e8eaaba01d0b4007fb40c68661485d8417e7f1f55b3",
+      "commission-1.xlsx": "ec3f1eec1c7e7f8a61dc27e491ac02021b410756bfb324dc44ad57e5e11646ac",
+      "commission-10.xlsx": "d802f5f13691475417b50f3cdae732dbb89dbca68b8cfb8d3df0fc2451f4eec8",
+      "commission-11.xlsx": "3c3204958f8e7ecfe32d6af15508ffebcb6714734f0503be6e1882453b09a669",
+      "commission-2.xlsx": "29c4a0c4735d47d3ec936905bb72e62441b1d2fcc0b1f83f7486d63fc17b5e04",
+      "commission-3.xlsx": "bb0062766335328fa1feb3a924591e62485cd80ad23cc92dc795839037eb2ba2",
+      "commission-4.xlsx": "4ee7439efc65f198a9d305d76bc824e6aefac2a76072dd9c539c1aad605b14ff",
+      "commission-5.xlsx": "7814da114a70d629e2a9dbc8b888b12754a53045ca2cf9b522040bcfa80ed115",
+      "commission-6.xlsx": "c6636ddbc3938edd0e2d68fb674fe2ebf49140aab5c37080f840c4848983ef3c",
+      "commission-7.xlsx": "fce66dee2072db6b43f0f758d41b1c3489bf21e365301106426c4543bffc428f",
+      "commission-8.xlsx": "cda51d89398a908a5fdd873619f64fdfcf2379a2b90dff9aa6e03a6e511a90a8",
+      "commission-9.xlsx": "393632b1b7afe1baeaf671f43119b41fd9e51641932f1feaa673454a14f2da4d",
+      "due-dates-0.xlsx": "a7c4f18522f66402ef181dbc8e08270a37db13e1c11c1bc9d7db007458052f49",
+      "due-dates-1.xlsx": "d9c5af9dcfc0aaab5d00cdead08127bd09ffdc4c2a9f63bb2608a25d1635876a",
+      "due-dates-2.xlsx": "18fa28d710eaf73d65bbbdb569e493603f5533fe3512bbdfd9436aca1d886991",
+      "due-dates-3.xlsx": "6b35a5e5da6ab140d468ff1dca19af2d65d593207642bec99f4effbe5358f0a8",
+      "due-dates-4.xlsx": "2b4d223d57ffef11b1f44fb9dfb9b3f435fb3ee543fbde9eef94b591536f48f5",
+      "due-dates-5.xlsx": "c49106b60d69ec6eb67923b96dfce68c9797dd792280eb4f617291e0a294efba",
+      "due-dates-6.xlsx": "eb3eb75c1490d4b05b8537cc7434ce96683454392c18ec6430e3b01861b58f42",
+      "due-dates-7.xlsx": "7540559ecac06407b3d521d5775707289708aa4d56bae84cc849728a8ec7e538",
+      "inventory-0.xlsm": "a3d7f73c6a33200c4035793437e7a593bf5f6f9f88513eadf0d93cc051d68584",
+      "inventory-1.xlsm": "cc0cde8019af68bcf467ea53bc740f2ef8aee55c63c1ae135d8539fe03876e7f",
+      "inventory-2.xlsm": "e587c70e8f430a6646610858b7b285e6f8622c2ccbce7f1cc851747dacd635de",
+      "inventory-3.xlsm": "98f7f246eef7cd3fb061060d0dd3deebf2eda9b77112b5809840f478e1dde4bb",
+      "inventory-4.xlsm": "06938a74bbc19b86d1a985d19ea98638b23e9a6593aecbe80d6bca0a6af41152",
+      "inventory-5.xlsm": "525e224011da96256ef27884d0aa6000a51984d66866c2add5a127170293e504",
+      "invoices-0.xlsx": "1d1364db72927ff11e7d7375165d1d6515afe1e907241431d927ea94b8ea024d",
+      "invoices-1.xlsx": "53d7879fe5f42cb29c1d4535fd1195381ff6e22b18f3e58e5e2cb521359feb1e",
+      "invoices-2.xlsx": "14bd200fc6698e1d95333c4f7eba5010802bd07df2bb12d547b76d53fed43955",
+      "invoices-3.xlsx": "bb268895c2d99838c268664561e1ba160996637eec5c371515a443cee1844627",
+      "invoices-4.xlsx": "9c9ab75b66f7340f416bf594ee2367018c7d154a605c6eb4574576d53f684856",
+      "invoices-5.xlsx": "58331798b904bc5a89d4b4ace1601bb2ae368815c16a6a9b7ba6afab01c47089",
+      "invoices-6.xlsx": "5e4ca4a011b199f5de2bac0de911619347a7e77e85bfebf684bf7acf4bb6849d",
+      "invoices-7.xlsx": "15fad71629dc0fceba757cd3e92f9c4e6a73650b37084e9cf089866eeda20d99",
+      "invoices-8.xlsx": "c240c8b50072fce0c1df37350f3dae84070273df0db2c380c50f1213171e4974",
+      "loan-0.xlsx": "398cb0faa4be0409ee52e4a1c4dc97e1733bf8d6eeabe79326c4c8010d3406be",
+      "loan-1.xlsx": "d75d0d1f73fb248afeac01a3078404074676fe610bf56287b823ead868f532c6",
+      "loan-10.xlsx": "a542847ef79b8f9fc7a8002185f5027972a30c1a2dbb37939e49b9f96e48bdf8",
+      "loan-11.xlsx": "f5cf274f0b5a3ae269f0c61f91edc04bc39ffd1f52c6282c21be7dff9c1155c6",
+      "loan-12.xlsx": "918baff430cf12a9e2dba1cc3a02c3d2c88509d456b912dd423d5a1ffcd4984b",
+      "loan-13.xlsx": "e64b01b52b1f7fbfe93c281307af366a76849a9d79f1283236f9c7bc17f73236",
+      "loan-14.xlsx": "4d923ca57286524908963f023d2bcf32dec2e7dd910ac22c0531f583d8908983",
+      "loan-2.xlsx": "df3bbc3cf29ea7df53d5f7af71870e0df252e081223cd727cb85c94bb7d22453",
+      "loan-3.xlsx": "1cb3fee491a59b9cd0c5c8894596a69258f12f58d28a4d88dc6d8adf814c45f3",
+      "loan-4.xlsx": "d06509c544878010693611bf20fc3818d1d1ba4ac19c06568c7f8c0369468633",
+      "loan-5.xlsx": "6281a2f30cd0efeca7c7ab09aa62724c554c3f0bf3cd19bf2af34fbf13e1988a",
+      "loan-6.xlsx": "68d052c7cd55efd1cc74afcd470628ca4e6a5cf8efd7472c9659191349f48d97",
+      "loan-7.xlsx": "b9caf7823df90996dc845f84ba4b74e41ee41abd6a95fd14fb0359387a714715",
+      "loan-8.xlsx": "af5b43d7d139c796e908f00262139b55d950b41a23c350f9b10b71ab0bddd19a",
+      "loan-9.xlsx": "06dff3c8224eabe4b43e79359f57cd2891176ef74c4c1560a32112d8090cfe30",
+      "lookup-quotes-0.xlsx": "fcb1fe72e5376447155260628e3f4579c9c526d7e9a0d28888ff5ad1694fd2ff",
+      "lookup-quotes-1.xlsx": "be3d1d001d772141b6ba01c83051fe54af2d2ef8cbf9fa6f54c64d4ab0be4ade",
+      "lookup-quotes-2.xlsx": "beda6ca210d50fc7f37a406150c58bdcc1ca6cb26cd87801a96423a9af15088b",
+      "lookup-quotes-3.xlsx": "be5dc5ab7f05be0ff2f97114bd8cf23e6320886510f7d527d77c20da2972f172",
+      "lookup-quotes-4.xlsx": "ecfa70b1320ba6cddca74dc21965007dbe503afdeb844d3f5de34a311170387d",
+      "lookup-quotes-5.xlsx": "d838ad651468a9096ada0663ca75763e3a8bb6b8a3b8f197904b7b7fa475b275",
+      "lookup-quotes-6.xlsx": "dc578f2eeadd2d1aeb8171251adfcb0671c52f02762a4ef51efa69325d96a2a6",
+      "lookup-quotes-7.xlsx": "11d65b7d694e83be7aab9d1ab3c8dc3134e4afddaaa0e47a598331b98f5899f7",
+      "lookup-quotes-8.xlsx": "37f87516f9d934ad2cc241fe073754eda436394f74936f3a83afab4593baa26c",
+      "production-0.xlsx": "f6d15d7af381210f2ab6298c2175752dbb5f85d9a5b31e0081bb9fc219bffd32",
+      "production-1.xlsx": "58be299ca2b0c2f890c63f2bc8b32bb3ae021ce7f3b2f12cd6019e6127004afc",
+      "production-2.xlsx": "3a4a9d7d9909abb10d0f2282598d6bbee126a36cc3fad68e6591dc6c9ab0242c",
+      "production-3.xlsx": "b4d2aedbe6e974e6a0bd68725bc6b4d705766f78e56ae017e26a36f69d877d9f",
+      "production-4.xlsx": "de4c85904dd898916de3a80bc5c8fa9d0e9891b5ea0a47790b8cbd85e65a946d",
+      "production-5.xlsx": "91ec6a8dcd7870836dfe8139d7d2bdf1ca3e81b4f008763d7f60e8157f5282c3",
+      "production-6.xlsx": "9ffda12fff77a3a949f5bad93c4a01510d098f488520ffd14c8b7781b060b48a",
+      "reference-codes-0.xlsx": "5e428e35a5323f9f76959068f3c8f2f54b3af7850132a5caf33aa8f2f944d2b1",
+      "reference-codes-1.xlsx": "69d5251a5c8ac612863e938bca2d88092b6c03e5c5561ce7b2fb14569dbc1b15",
+      "reference-codes-2.xlsx": "e70f84c68867d2b70179cd634e6a9b674118c93d1605c6625274d2ead802ed60",
+      "reference-codes-3.xlsx": "7eaa57f1d7ed25e8bc7f5f2ba00bd540ba42849d90426c931757b7cf8780b4b5",
+      "reference-codes-4.xlsx": "2ef363cc936e946561f096b2cc74a9f1ebded9c9d8bc3d5584e120fb5c286981",
+      "reference-codes-5.xlsx": "b408cd20cf84b9263a94b3755ed493ea1517586ea8efae3c5a16e56874a36a6d",
+      "reference-codes-6.xlsx": "7caac68d61df511dc3dea5d605d9009934dcf8788da812e4b31cc4ab48c6310e",
+      "reference-codes-7.xlsx": "96de9c4f67d9340979456d35dd389ad0313b3e034d3ebe571a21e450ca3a404a",
+      "reference-codes-8.xlsx": "845e0cc7ade0d57526b528126952f0e8e42c7fbb18e745a6fc35f339361f39e4",
+      "timesheets-0.xlsx": "d84183f714ccd17d6988b7aac1718ac4b4d160cc62a9c4ce768e11250c369218",
+      "timesheets-1.xlsx": "0111a949a68cccbbe3b61021291a868370524d4e04fc18d6d99f5e8a906077d8",
+      "timesheets-2.xlsx": "6a2a860acbe57389b628b696f11106389371de3b7bfa018f868ad9f97bd97811",
+      "timesheets-3.xlsx": "e930bf15157bae8d18d1921162533a2ba58789d3d0614ee72ddc692da2a5852e",
+      "timesheets-4.xlsx": "c01b22c57180142a756bdc59bd9f044b38fe773a6f42c2fff14ef42399c2d8c9",
+      "timesheets-5.xlsx": "6bc045a980bc335579ab0f2dd3594bc5c7cc13d716dd99bf74112c32e64a7bb2",
+      "timesheets-6.xlsx": "882e38930ecd187e8b326419b19f4b8309dc88e177783fd3b6223a6364ad7480"
+    },
+    "financialFixtureHashes": {
+      "results.json": "057e9f6dcf397df50592a418023d7f6bff637a57230b6eaf448c3aa310f51f4d",
+      "README.md": "8f2956457f87173f9b476bf770ed23dfe55b01a1d6bd19d95c29165013ee1861",
+      "pmt.xlsx": "2c329a8a1538be1e0605c405453b27a3a19ef7a1287b9b4f32f4bcbfd9897219"
+    },
+    "failedTrialFlagsUnchanged": true,
+    "sanitizedPaths": true
+  }
+}
