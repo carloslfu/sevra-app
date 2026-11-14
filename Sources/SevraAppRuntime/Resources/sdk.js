@@ -463,6 +463,7 @@ var Sevra = (() => {
   var patches = /* @__PURE__ */ new Map();
   var outbox = [];
   var requestID = 0;
+  var mountID = 0;
   var root = null;
   var initialized = false;
   var draft = {};
@@ -534,7 +535,7 @@ var Sevra = (() => {
       description = description.type({ ...description.props, children: description.children });
     }
     if (!description || typeof description.type !== "string") throw Error("Expected a native component");
-    const node = { id, type: description.type, props: {}, children: [] };
+    const node = { id, mountID: ++mountID, type: description.type, props: {}, children: [] };
     nodes.set(id, node);
     disposers.set(id, owned);
     const scopes = disposers.get(id);
@@ -670,7 +671,7 @@ var Sevra = (() => {
     n(() => {
       for (const message of messages) {
         if (message.kind === "event") {
-          if (!nodes.has(message.node)) continue;
+          if (!nodes.has(message.node) || nodes.get(message.node).mountID !== message.mountID) continue;
           edits.set(message.node, message.editRevision || 0);
           const bound = handlers.get(message.node + ":bind");
           if (bound && message.event === "change") bound(message);

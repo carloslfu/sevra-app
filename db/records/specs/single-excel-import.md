@@ -2,7 +2,7 @@
 type: spec
 id: 01m7b1b0m1hsrhhgtybew4xqqa
 created: 2026-11-13T18:04:56.321049+00:00
-updated: 2026-11-13T18:48:10.619023+00:00
+updated: 2026-11-13T21:31:38.069669+00:00
 summary: One native Excel import with reviewed local workflow inference, shared tables and constrained app generation
 title: Single Excel import
 status: implemented
@@ -13,7 +13,7 @@ Owner direction: [[sources/notes/2026/11/single-excel-import]]. Implementation p
 
 ## Customer path
 
-Add or drop an `.xlsx` file into a workbook. The original is included/indexed through the existing intake pipeline, and one Excel workspace opens. With an installed local model, inspection starts automatically. The model describes the likely work, inputs, calculations and daily tasks; any material questions and the optional workflow field let the person correct that interpretation. The proposal is an inference, not a claim of complete reconstruction.
+Add or drop an `.xlsx` or `.xlsm` file into a workbook. The original is included/indexed through the existing intake pipeline, and one Excel workspace opens. With an installed local model, inspection starts automatically. The model describes the likely work, inputs, calculations and daily tasks; any material questions and the optional workflow field let the person correct that interpretation. The proposal is an inference, not a claim of complete reconstruction.
 
 Choose **Build workspace** after reviewing the plan. Sevra imports working tables once, preserves supported spreadsheet calculations, and asks the local model to build native controls over those same tables. Isolated behavioral checks and a separate local-model review must pass before the app and its conversion record publish atomically. Choose **Open workspace**, review actual table access, then enable that version. A host-owned origin banner links back to import details and states the conversion limits.
 
@@ -24,8 +24,8 @@ Saved Excel files also enter this workspace through **Use saved file**. Other fo
 ## Reused architecture and authority
 
 - A host-owned, immutable-version `excel-conversion` record ties the preserved source hash, bounded inspection, reviewed plan/clarification, stable dataset IDs, worksheet mapping, formula report and checked app version together. It uses normal captured history and portable workbooks. Generic model writes cannot forge this kind.
-- Planning gets only bounded reads of this original and a structured description tool. At most six calls, 30 rows per requested range, 24 columns per range, bounded cells/formulas/notes. No write, execution, network or device authority comes from an imported cell or inferred plan.
-- Building uses the existing native authoring loop with a host-created capability tied to the physical workbook, conversion version and exact imported table definitions. Only scoped table reads, SDK/source inspection, calculations and checked app publication are available. It cannot create duplicate datasets, choose foreign bindings or write business records during generation.
+- Planning gets only bounded reads of this original and a structured description tool. At most twelve calls, 30 rows per requested range, 24 columns per range, bounded cells/formulas/notes. No write, execution, network or device authority comes from an imported cell or inferred plan.
+- Building uses the existing native authoring loop with a host-created capability tied to the physical workbook, conversion version and exact imported table definitions. Only scoped table reads, SDK/source inspection, calculations and checked app publication are available. It cannot create duplicate datasets, choose foreign bindings or edit input records during generation. The later reconstruction contract permits attaching checked calculation rules and recalculating original formula cells from current inputs.
 - The model supplies code, name, short aliases with write flags, fixtures and tests. The host fills exact dataset identities, titles, columns and app identity/version. Every imported nonempty worksheet must remain accessible through a native Table. This is one narrowed contract on the existing save tool, not another app runtime.
 - Native app code runs in the existing sandboxed JavaScript worker; UI is AppKit. All business writes go through the broker and checked current row versions. Per-version enable/access review stays on the device. Copying a workbook carries the app and records, not grants.
 - Existing-row editors use controlled selection, disable edits while saving, retain failed drafts and clear selection/input after success. Header selection clears the previous editable row. Repeated-save and header counterexamples are required in authoring guidance and independent model verification.
@@ -33,9 +33,9 @@ Saved Excel files also enter this workspace through **Use saved file**. Other fo
 
 ## Continuity and limits
 
-Data retains Excel coordinates, including header rows. Supported formulas stay in the shared deterministic engine and recalculate on input edits, including supported cross-sheet dependencies. Native app Undo restores edited input fields and recalculates outputs; it does not overwrite formula cells. No generated JavaScript formula implementation becomes a second source of truth.
+Data retains Excel coordinates, including header rows. Supported formulas stay in the shared deterministic engine and recalculate on input edits, including supported cross-sheet dependencies. Native app Undo restores edited input fields and recalculates outputs; it does not overwrite formula cells. Missing formulas can now be translated into one pure program attached to the same saved formula plan, replacing its calculation implementation rather than creating a parallel ledger. See [[records/specs/excel-application-reconstruction]].
 
-Inspection reports hidden sheets, named ranges, merged cells, validations, sheet protection, conditional formatting, Excel table definitions, charts/pivots, macros, embedded objects and outside links/connections when detected. These notes indicate work to review, not fully converted features. Original files remain available. Unsupported formulas keep saved results where available, with explicit counts; missing saved results retain existing importer diagnostics. Excel layout, protection settings, VBA, external refresh, every Excel function and automatic formula extension into newly inserted rows are not implemented. Formula worksheets therefore do not receive generated insert/delete controls by default.
+Inspection reports hidden sheets, named ranges, merged cells, validations, sheet protection, conditional formatting, Excel table definitions, charts/pivots, macros, embedded objects and outside links/connections when detected. These notes indicate work to review, not fully converted features. Original files remain available. Table-only imports preserve unsupported formulas as saved results with explicit counts; app reconstruction now requires their translation and original-result comparison; missing saved results retain existing importer diagnostics. The reconstruction extension reads available VBA source and recreates business actions without executing original macros. Exact Excel layout/protection, external refresh, every Excel function and automatic formula extension into newly inserted rows are not qualified. Formula worksheets therefore do not receive generated insert/delete controls by default.
 
 Native builds are bounded to 1–12 nonempty worksheets and 64 KB of prepared context; larger imports can still be used as tables within existing parser/import bounds. Empty files preserve the original without inventing a working table. The model can fail or misunderstand a workflow; a saved app proves only its reported checks. An uncoached user and real business workbook qualification remain separate from synthetic acceptance. No universal Excel replacement or production security certification is claimed.
 

@@ -22,11 +22,17 @@ public enum NativeAppWire {
 
 public struct NativeAppNode: Equatable, Sendable {
   public let id: String
+  public let mountID: Int
   public let type: String
   public let props: Value
   public let children: [String]
   public init(_ value: Value) throws {
     id = value["id"].text
+    mountID = value["mountID"].int ?? 0
+    try require(
+      mountID >= 0 && mountID <= 1_000_000_000
+        && (value["mountID"] == .null || value["mountID"] == .number(Double(mountID))),
+      "app_tree", "Invalid native mount identity.")
     type = value["type"].text
     props = value["props"]
     children = value["children"].array.map(\.text)

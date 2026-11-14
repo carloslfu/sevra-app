@@ -591,7 +591,7 @@ struct FolderReview {
               (linked ? "Linked " : "Included ") + item.referenceMarkdown, role: "event",
               conversation: chat)
             _ = try book.runIntake(job.id, cancellation: cancel)
-            if url.pathExtension.lowercased() == "xlsx" {
+            if ["xlsx", "xlsm"].contains(url.pathExtension.lowercased()) {
               excel.append(
                 try book.beginExcelConversion(sourceID: job.sourceID, cancellation: cancel).id)
             }
@@ -628,7 +628,7 @@ struct FolderReview {
     if let book = workbook, let job = try? book.intakeJob(id), job.role != .update,
       let source = try? book.item(job.sourceID), let assetID = source.assetID,
       let asset = try? book.asset(assetID),
-      URL(fileURLWithPath: asset.name).pathExtension.lowercased() == "xlsx"
+      ["xlsx", "xlsm"].contains(URL(fileURLWithPath: asset.name).pathExtension.lowercased())
     {
       useSavedFile(job.sourceID)
       return
@@ -641,9 +641,9 @@ struct FolderReview {
         let asset = try book.asset(source.assetID!)
         return IntakeChoice(
           job: job, title: source.title,
-          supportsTable: ["csv", "tsv", "xlsx"].contains(
+          supportsTable: ["csv", "tsv", "xlsx", "xlsm"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()),
-          supportsUpdate: ["csv", "tsv", "xlsx"].contains(
+          supportsUpdate: ["csv", "tsv", "xlsx", "xlsm"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()))
       },
       completion: { choice in
@@ -662,7 +662,7 @@ struct FolderReview {
     let navigation = itemPreviewIdentity
     if let book = workbook, let source = try? book.item(sourceID), let assetID = source.assetID,
       let asset = try? book.asset(assetID),
-      URL(fileURLWithPath: asset.name).pathExtension.lowercased() == "xlsx"
+      ["xlsx", "xlsm"].contains(URL(fileURLWithPath: asset.name).pathExtension.lowercased())
     {
       run(
         "Inspecting Excel workbook",
@@ -681,9 +681,9 @@ struct FolderReview {
         let asset = try book.asset(source.assetID!)
         return IntakeChoice(
           sourceID: source.id, title: source.title,
-          supportsTable: ["csv", "tsv", "xlsx"].contains(
+          supportsTable: ["csv", "tsv", "xlsx", "xlsm"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()),
-          supportsUpdate: ["csv", "tsv", "xlsx"].contains(
+          supportsUpdate: ["csv", "tsv", "xlsx", "xlsm"].contains(
             URL(fileURLWithPath: asset.name).pathExtension.lowercased()))
       }, completion: { choice in self.intakePrompt = .init(choices: [choice]) })
   }

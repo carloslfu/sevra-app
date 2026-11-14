@@ -141,11 +141,12 @@ func excelFixture(
   }
 }
 
-private actor ExcelTestModel: WorkbookInference {
+actor ExcelTestModel: WorkbookInference {
   let identity = "synthetic Excel conversion"
   let lastMetrics: Value = .object([:])
   var actions: [(String, Value)]
   var scopes: [InferenceToolScope] = []
+  var reviewInputs: [Value] = []
   init(_ actions: [(String, Value)]) { self.actions = actions }
   func beginRun() {}
   func endRun() {}
@@ -157,6 +158,7 @@ private actor ExcelTestModel: WorkbookInference {
     scopes.append(toolScope)
     let action: (String, Value)
     if toolScope == .nativeAppReview {
+      reviewInputs.append(try Value.parse(messages.last!.content))
       action = ("review_native_app", .object(["decision": .string("ready"), "issues": .array([])]))
     } else if !actions.isEmpty {
       action = actions.removeFirst()
@@ -182,6 +184,7 @@ func excelPlan(_ business: ExcelBusinessCase) -> Value {
 }
 
 func checkExcelConversions() async throws {
+  try await checkExcelBehaviorReconstruction()
   for scope: InferenceToolScope in [.excelPlan, .excelBuild] {
     _ = try NativeCitationPolicy.make([], toolScope: scope, thinking: false)
     _ = try NativeCitationPolicy.make([], toolScope: scope, thinking: true)
@@ -237,10 +240,18 @@ func checkExcelConversions() async throws {
     var minimal = try encoded(package).object
     minimal["datasets"] = .object(["sheet1": .object(["writable": .bool(true)])])
     let args: Value = .object(["package": .object(minimal), "tests": .array(tests)])
+    let buildModel = ExcelTestModel([("save_native_app", args)])
     let result = try await WorkbookAgent.run(
       build.request, workbook: book, context: build.context,
-      model: ExcelTestModel([("save_native_app", args)]), excelConversion: build)
+      model: buildModel, excelConversion: build)
     try expectEqual(result.state, "complete")
+    let reviewInputs = await buildModel.reviewInputs
+    let reviewed = try expectValue(reviewInputs.last)
+    try expectEqual(
+      reviewed["calculationEvidence"]["inputCells"]["sheet1!A1"], .string(business.headers[0]))
+    try expectEqual(reviewed["calculationEvidence"]["inputCells"]["sheet1!D2"], .null)
+    try expectEqual(
+      reviewed["calculationEvidence"]["formulas"]["sheet1!D2"], .string(business.formula))
     let completed = try book.excelConversion(draft.id)
     if completed.state != "ready" { print(try encoded(book.messages()).json()) }
     try expectEqual(completed.state, "ready")

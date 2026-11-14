@@ -13,7 +13,10 @@ extension NativeTools {
     if toolScope == .actionDirection { return [ActionDirectionReview.definition] }
     if toolScope == .nativeAppReview { return [NativeAppReview.definition] }
     if toolScope == .excelPlan {
-      return [ExcelConversionAgent.readDefinition, ExcelConversionAgent.definition]
+      return [
+        ExcelConversionAgent.readDefinition, NativeTools.excelEvidenceDefinition,
+        ExcelConversionAgent.definition,
+      ]
     }
     let ids = try ItemReferenceCandidates.normalized(itemReferenceIDs)
     let copies = try documentCopyIDs.map(DocumentCopyCandidates.normalized)
@@ -22,7 +25,10 @@ extension NativeTools {
         Set(conversationActions).isSubset(of: Set(WorkbookTools.conversationTools.values)),
         "tool_schema", "Invalid conversation capability.")
     }
-    return try definitions.compactMap { definition in
+    let available =
+      definitions
+      + (toolScope == .excelBuild ? [excelEvidenceDefinition, excelBehaviorDefinition] : [])
+    return try available.compactMap { definition in
       if definition.name == "save_native_app", !nativeAppAuthoring { return nil }
       if definition.name == "save_native_app", toolScope == .excelBuild {
         var parameters = definition.parameters.object
@@ -31,6 +37,7 @@ extension NativeTools {
         properties.removeValue(forKey: "expectedVersion")
         var package = properties["package"]!.object
         var fields = package["properties"]!.object
+        fields["excelBehavior"] = excelBehaviorSchema
         fields["datasets"] = .object([
           "type": .string("object"),
           "additionalProperties": NativeTools.object(

@@ -16,10 +16,12 @@ def main():
     parser.add_argument('--bin', default='.build/debug')
     parser.add_argument('--live', nargs=4, metavar=('MODELS', 'GUIDANCE', 'ENGINE', 'OUTPUT'))
     parser.add_argument('--excel-live', nargs=4, metavar=('MODELS', 'GUIDANCE', 'ENGINE', 'OUTPUT'))
+    parser.add_argument('--excel-behavior-live', nargs=4, metavar=('MODELS', 'GUIDANCE', 'ENGINE', 'OUTPUT'))
     parser.add_argument('--excel-only', action='store_true')
     args = parser.parse_args()
     binary = (ROOT / args.bin).resolve()
-    suffix = hashlib.sha256(str(args.live or args.excel_live).encode()).hexdigest()[:8] if args.live or args.excel_live else 'validation'
+    live = args.live or args.excel_live or args.excel_behavior_live
+    suffix = hashlib.sha256(str(live).encode()).hexdigest()[:8] if live else 'validation'
     with tempfile.TemporaryDirectory(prefix='native-app-authoring-', dir=ROOT / '.build') as temporary:
         app = pathlib.Path(temporary) / 'Authoring Checks.app'
         (app / 'Contents/MacOS').mkdir(parents=True)
@@ -36,7 +38,9 @@ def main():
         subprocess.run(['codesign', '--force', '--sign', '-', str(app)], check=True)
         subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
         options = ['--excel-conversion-live', *args.excel_live] if args.excel_live else ['--native-app-authoring', *args.live] if args.live else ['--excel-conversion-checks'] if args.excel_only else ['--native-app-authoring-checks']
-        subprocess.run([str(app / 'Contents/MacOS/checks'), *options], cwd=ROOT, check=True, timeout=3600 if args.live or args.excel_live else 240)
+        if args.excel_behavior_live:
+            options = ['--excel-behavior-live', *args.excel_behavior_live]
+        subprocess.run([str(app / 'Contents/MacOS/checks'), *options], cwd=ROOT, check=True, timeout=3600 if live else 240)
 
 
 if __name__ == '__main__':

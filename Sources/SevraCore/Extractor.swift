@@ -131,7 +131,7 @@ public enum Extractor {
         detail: "On-device OCR; check the original for accuracy."
           + (pages > 1 ? " Only the first of \(pages) pages was read." : ""))
     }
-    if ext == "xlsx" {
+    if ["xlsx", "xlsm"].contains(ext) {
       let sheets = try XLSX.readInProcess(url, cancellation: cancellation)
       let chunks = sheets.flatMap { sheet in
         zip(sheet.rows, sheet.rowNumbers).map { row, n in
@@ -161,7 +161,8 @@ public enum Extractor {
         ? try? NSAttributedString(
           data: data, options: [.documentType: NSAttributedString.DocumentType.rtf],
           documentAttributes: nil) : nil
-      guard let decoded = rtf.map({ (text: $0.string, guessed: false) }) ?? decodedText(data, cut: cut)
+      guard
+        let decoded = rtf.map({ (text: $0.string, guessed: false) }) ?? decodedText(data, cut: cut)
       else { throw SevraError("encoding", "Text encoding could not be read.") }
       var text = decoded.text
       if ext == "html" || ext == "htm" {

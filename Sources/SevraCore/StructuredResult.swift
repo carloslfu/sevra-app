@@ -1,6 +1,11 @@
 import Foundation
 
-public enum StructuredFormat: String, Sendable { case csv, tsv, xlsx }
+public enum StructuredFormat: String, Sendable {
+  case csv, tsv, xlsx
+  static func fileExtension(_ text: String) -> Self? {
+    text.lowercased() == "xlsm" ? .xlsx : Self(rawValue: text.lowercased())
+  }
+}
 
 /// Parser output only. Dataset creation, lineage and resumable commits stay in the host.
 public struct StructuredResult: Codable, Sendable {
@@ -50,7 +55,8 @@ public struct StructuredResult: Codable, Sendable {
         cells <= 1_000_000, "structured_output",
         "Worksheet import exceeds one million cells including blank positions.")
       try require(
-        sheet.rowNumbers.allSatisfy { (1...1_048_576).contains($0) },
+        Set(sheet.rowNumbers).count == sheet.rowNumbers.count
+          && sheet.rowNumbers.allSatisfy { (1...1_048_576).contains($0) },
         "structured_output", "Invalid worksheet row reference.")
       for row in sheet.rows {
         for value in row { bytes += value.utf8.count }

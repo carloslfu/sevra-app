@@ -3,7 +3,7 @@ export {signal, computed, batch};
 let owner:(()=>void)[]|null=null;
 export function effect(fn:()=>void|(()=>void)){const dispose=reactiveEffect(fn);owner?.push(dispose);return dispose;}
 type Descriptor = {type: any; props: any; children: any[]};
-type Node = {id:string; type:string; props:any; children:string[]};
+type Node = {id:string; mountID:number; type:string; props:any; children:string[]};
 const nodes = new Map<string,Node>();
 const descriptions = new Map<string,any>();
 const disposers = new Map<string,(()=>void)[]>();
@@ -13,7 +13,7 @@ const subscriptions = new Map<string,ReturnType<typeof signal>>();
 const edits = new Map<string,number>();
 const draftKeys = new WeakMap<object,string>();
 const patches = new Map<string,any>();
-let outbox:any[] = [], requestID=0, root:string|null=null, initialized=false;
+let outbox:any[] = [], requestID=0, mountID=0, root:string|null=null, initialized=false;
 let draft:any={}, revision=0;
 const reading=(value:any)=>value instanceof Signal ? value.value : typeof value==='function' ? value() : value;
 const changed=(a:any,b:any)=>JSON.stringify(a)!==JSON.stringify(b);
@@ -44,7 +44,7 @@ function mountNode(description:any,id:string,depth=0):string {
  if(typeof description==='string'||typeof description==='number')description=h(Text,{text:String(description)});
  let expansions=0;while(typeof description.type==='function'){if(++expansions>24)throw Error('Component nesting limit');description=description.type({...description.props,children:description.children});}
  if(!description || typeof description.type!=='string')throw Error('Expected a native component');
- const node:Node={id,type:description.type,props:{},children:[]};nodes.set(id,node);disposers.set(id,owned);
+ const node:Node={id,mountID:++mountID,type:description.type,props:{},children:[]};nodes.set(id,node);disposers.set(id,owned);
  const scopes=disposers.get(id)!;
  for(const [key,value] of Object.entries(description.props)) {
   if(key==='key')continue;
@@ -126,7 +126,7 @@ export function __initialize(state:any) {if(initialized)throw Error('Runtime alr
 export function __receive(messages:any[]) {
  batch(()=>{for(const message of messages){
   if(message.kind==='event') {
-   if(!nodes.has(message.node))continue;
+   if(!nodes.has(message.node)||nodes.get(message.node)!.mountID!==message.mountID)continue;
    edits.set(message.node,message.editRevision||0);
    const bound=handlers.get(message.node+':bind');if(bound && message.event==='change')bound(message);
    const handler=handlers.get(message.node+':'+message.handler);if(handler)handler(message);

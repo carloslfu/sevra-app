@@ -3,8 +3,8 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-11-13T15:59:14.995866+00:00
-summary: Fresh mini-app baseline cleaned and tested; 28 focused groups and imported-app UI pass. Fresh local-model calculator creation and guided recovery failed; authoring reliability remains open.
+updated: 2026-11-14T01:12:42.111613+00:00
+summary: Reconstruction engine and reviewed workflows verified; 653 core checks, 36 authoring groups, 43 originals and installed UI. Unassisted local-model reliability remains open.
 title: Start here
 ---
 # Sevra app
@@ -23,6 +23,8 @@ for the secondary service. Website pricing/support does not apply to this app.
 Slotstream remains independent.
 
 ## Current preview and delivery order
+
+**Latest bounded checkpoint, November 14:** the reconstruction engine and reviewed workflows pass full/focused checks and installed native UI verification. The latest unassisted Inventory and Loan generation trials failed safely; autonomous model reliability remains open. See [[records/reviews/excel-reconstruction-and-engine-review]] and [[records/operations/agent-handoff]] for repaired findings, exact build identity, failed trials and manually reviewed derivatives. Earlier checkpoint descriptions below are historical.
 
 **Fresh mini-app baseline, November 13:** selected obsolete development workbooks, packages, approvals and recents are removed; no user migration or compatibility layer is maintained. Test cleanup and all 28 focused groups pass. A new imported Inventory app passed review/enable, validation, save, Undo and spacing inspection. **A fresh local-model calculator request and its guided retry both failed without saving an app.** Generation reliability remains open, including fresh requests. See [[records/reviews/native-app-fresh-start-2026-11-13]] and [[records/operations/agent-handoff]].
 

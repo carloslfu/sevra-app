@@ -75,7 +75,7 @@ public final class Workbook: @unchecked Sendable {
         header = try db.shortWait {
           (try db.scalar("PRAGMA application_id").int, try db.scalar("PRAGMA user_version").int)
         }
-      } catch where db.isBusy {
+      } catch  where db.isBusy {
         try Self.keepWaiting(until: giveUp, cancellation)
       }
     }
@@ -141,7 +141,16 @@ public final class Workbook: @unchecked Sendable {
       "Another process is using this workbook. Try again when it finishes.")
   }
   public func revision() throws -> Int {
-    try synchronized { try db.scalar("SELECT value FROM meta WHERE key='revision'").int ?? 0 }
+    try synchronized {
+      let stored = try db.scalar("SELECT value FROM meta WHERE key='revision'").text
+      guard let revision = Int(stored), revision >= 0, revision <= 9_007_199_254_740_991,
+        stored == String(revision)
+      else {
+        throw SevraError(
+          "integrity", "The workbook revision is invalid or exceeds exact numeric limits.")
+      }
+      return revision
+    }
   }
   func synchronized<T>(_ body: () throws -> T) rethrows -> T {
     lock.lock()
@@ -201,6 +210,9 @@ public final class Workbook: @unchecked Sendable {
           return replayed
         }
         let rev = try revision()
+        try require(
+          rev < 9_007_199_254_740_991, "integrity",
+          "The workbook revision has reached the exact numeric limit.")
         if let expected {
           try require(
             rev == expected, "stale_revision", "The workbook changed. Refresh and try again.")
@@ -382,17 +394,17 @@ public final class Workbook: @unchecked Sendable {
     if let references { fields["references"] = try Self.referenceSelectionsValue(references) }
     return try mutation(
       "item", token: token, request: .object(fields), expected: expectedRevision,
-      reading: { try item($0.text) }
-    ) {
-      let saved = try insertItem(
-        category: category, kind: kind, title: title, text: text, data: data, meaning: meaning,
-        status: status, scenario: scenario, inputs: inputs, transformation: transformation,
-        assetID: assetID, supersedes: supersedes, inheritReferenceBindings: references == nil)
-      if let references {
-        try publishInitialReferences(saved, selections: references, inheritedOrigin: supersedes)
-      }
-      return .string(saved)
-    }
+      reading: { try item($0.text) },
+      {
+        let saved = try insertItem(
+          category: category, kind: kind, title: title, text: text, data: data, meaning: meaning,
+          status: status, scenario: scenario, inputs: inputs, transformation: transformation,
+          assetID: assetID, supersedes: supersedes, inheritReferenceBindings: references == nil)
+        if let references {
+          try publishInitialReferences(saved, selections: references, inheritedOrigin: supersedes)
+        }
+        return .string(saved)
+      })
   }
   func insertItem(
     category: String, kind: String, title: String, text: String, data: Value, meaning: String,

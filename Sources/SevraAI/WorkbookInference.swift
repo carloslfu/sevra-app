@@ -22,17 +22,19 @@ package enum InferenceToolScope: String, Sendable {
       return ![
         "review_movement_direction", "review_action_directions", "prepare_workflow_answer",
         "commit_action_preview", "review_native_app", "describe_excel_workflow",
-        "inspect_excel_rows",
+        "inspect_excel_rows", "inspect_excel_evidence", "compare_excel_behavior",
       ].contains(tool)
     case .workflowAnswer: return Self.answer.allows(tool) || tool == "prepare_workflow_answer"
     case .movementDirection: return tool == "review_movement_direction"
     case .actionDirection: return tool == "review_action_directions"
     case .nativeAppReview: return tool == "review_native_app"
-    case .excelPlan: return ["describe_excel_workflow", "inspect_excel_rows"].contains(tool)
+    case .excelPlan:
+      return ["describe_excel_workflow", "inspect_excel_rows", "inspect_excel_evidence"].contains(
+        tool)
     case .excelBuild:
       return [
         "native_app_sdk", "read_native_app", "datasets", "rows", "calculate", "save_native_app",
-        "finish",
+        "finish", "inspect_excel_evidence", "compare_excel_behavior",
       ].contains(tool)
     case .finish: return tool == "finish"
     case .inspection: return WorkbookTools.readOnlyTools.contains(tool)

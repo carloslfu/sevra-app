@@ -188,6 +188,9 @@ import SwiftUI
         "app_protocol", "The worker returned an invalid session or sequence.")
       var next = tree
       let changed = try next.apply(response["frame"])
+      for id in changed where tree.nodes[id]?.mountID != next.nodes[id]?.mountID {
+        nativeEdits.removeValue(forKey: id)
+      }
       tree = next
       onFrame?(next, changed)
       sequence += 1
@@ -212,6 +215,7 @@ import SwiftUI
       .object(
         extra.merging([
           "kind": .string("event"), "node": .string(node), "handler": .string(handler),
+          "mountID": .number(Double(tree.nodes[node]!.mountID)),
           "event": .string(handler == "onChange" ? "change" : "action"), "value": value,
           "editRevision": .number(Double(editRevision)),
         ]) { _, new in new }))

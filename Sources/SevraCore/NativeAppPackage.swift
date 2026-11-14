@@ -27,6 +27,7 @@ public struct NativeAppPackage: Codable, Equatable, Sendable {
   public var name: String
   public var source: String
   public var datasets: [String: NativeAppDataset]
+  public var excelBehavior: ExcelBehavior?
   public init(name: String, source: String, datasets: [String: NativeAppDataset] = [:]) {
     sdkVersion = 1
     self.name = name
@@ -38,6 +39,7 @@ public struct NativeAppPackage: Codable, Equatable, Sendable {
     return SHA256.hash(data: Data(data.utf8)).map { String(format: "%02x", $0) }.joined()
   }
   public func validate() throws {
+    try validateExcelBehaviorBindings()
     try require(sdkVersion == 1, "app_sdk", "This app requires an unsupported Sevra SDK.")
     try require(
       !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && name.utf8.count <= 200,
@@ -161,6 +163,27 @@ extension Workbook {
 
   /// Installs code without evaluating it. Tables and space are captured in one existing transaction.
   @discardableResult public func installNativeApp(
+    _ package: NativeAppPackage, spaceID: String = identifier(), expectedVersion: Int? = nil,
+    token: String = identifier(), cancellation: Cancellation = .init()
+  ) throws -> Space {
+    try require(
+      package.excelBehavior == nil, "excel_scope",
+      "This app includes workbook behavior. Open its portable Sevra workbook, or rebuild from its Excel original so the source and results can be checked."
+    )
+    return try synchronized {
+      try require(
+        try spaceIfPresent(spaceID)?.definition.app?.excelBehavior == nil,
+        "excel_scope",
+        "Rebuild this workspace from Import details so its calculation rules and original-result checks stay together."
+      )
+      return try installNativeAppContents(
+        package, spaceID: spaceID, expectedVersion: expectedVersion,
+        token: token, cancellation: cancellation)
+    }
+  }
+
+  /// Shared trusted storage for ordinary installs and disposable checks. Real Excel publication has its own original-comparison transaction.
+  @discardableResult package func installNativeAppContents(
     _ package: NativeAppPackage, spaceID: String = identifier(), expectedVersion: Int? = nil,
     token: String = identifier(), cancellation: Cancellation = .init()
   ) throws -> Space {

@@ -26,6 +26,11 @@ import SevraCore
     setAccessibilityElement(true)
     setAccessibilityRole(.group)
     let visible = Set(props["regions"].array.map { $0["id"].text })
+    if let selected, !visible.contains(selected) {
+      self.selected = nil
+      origin = nil
+      delta = .zero
+    }
     regions = regions.filter { visible.contains($0.key) }
     let children = props["regions"].array.map { region in
       let id = region["id"].text
@@ -36,13 +41,16 @@ import SevraCore
       child.setAccessibilityEnabled(props["enabled"] != .bool(false))
       child.setAccessibilityLabel(region["label"].string ?? region["id"].text)
       child.setAccessibilityFrameInParentSpace(rect(region))
-      child.press = { [weak self] in
-        guard let self, self.interactionEnabled, self.props["enabled"] != .bool(false) else {
-          return
+      child.press = { [weak self, weak child] in
+        guard let self, let child, self.regions[id] === child,
+          self.interactionEnabled, self.props["enabled"] != .bool(false)
+        else {
+          return false
         }
         self.selected = id
         self.window?.makeFirstResponder(self)
         self.event?(id, .zero, "click")
+        return true
       }
       return child
     }
@@ -141,9 +149,8 @@ import SevraCore
   }
 }
 private final class CanvasRegion: NSAccessibilityElement {
-  var press: (() -> Void)?
+  var press: (() -> Bool)?
   override func accessibilityPerformPress() -> Bool {
-    press?()
-    return true
+    press?() ?? false
   }
 }

@@ -63,6 +63,9 @@ extension Workbook {
     try Value.requireDepth(row["definition"]!.text)
     let saved = try JSONDecoder().decode(
       SpaceDefinition.self, from: Data(row["definition"]!.text.utf8))
+    do { try saved.validateStructure() } catch {
+      throw SevraError("integrity", "The saved layout has invalid component identities or bounds.")
+    }
     // The declared initial Home has no authored layout. Its stable default is a
     // projection; an explicitly emptied later version stays empty.
     if row["id"]?.text == "home", row["version"]?.int == 1, saved.components.isEmpty {
@@ -283,8 +286,11 @@ extension Workbook {
         return [.init(version: 1, title: "Home", definition: .defaultHome, recorded: "")]
       }
       return try rows.map {
-        .init(
-          version: $0["version"]!.int!, title: $0["title"]!.text,
+        guard let version = $0["version"]?.int, (1...1_000_000_000).contains(version) else {
+          throw SevraError("integrity", "Invalid saved space version.")
+        }
+        return .init(
+          version: version, title: $0["title"]!.text,
           definition: try decodedSpaceDefinition($0), recorded: $0["updated"]!.text)
       }
     }

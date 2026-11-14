@@ -65,8 +65,15 @@ continues that installation/UI authorization for the
 [native authoring integration](db/records/plans/local-model-native-apps.md), with the same boundaries.
 The November 13 [single Excel import request](db/sources/notes/2026/11/single-excel-import.md)
 continues those boundaries for [workflow conversion](db/records/plans/single-excel-import.md),
-including native visual testing, business cases and adversarial review. The current
+including native visual testing, business cases and adversarial review. The later
+[Excel application reconstruction request](db/sources/notes/2026/11/excel-application-reconstruction.md)
+authorizes deeper source understanding, constrained behavior translation and original-result
+comparison under its [plan](db/records/plans/excel-application-reconstruction.md). The owner
+resumed that work after its temporary stop; the same installation/UI boundaries apply. The current
 handoff distinguishes this work from the historical pause and earlier authoring trials.
+The owner's subsequent [whole-app adversarial review request](db/sources/notes/2026/11/app-engine-adversarial-review.md)
+extends the work through the [app and engine review](db/records/plans/app-engine-adversarial-review.md),
+with the same installation/UI authority and preserved VoiceOver/system-setting boundaries.
 Test enough, as the [owner asked](db/sources/notes/2026/10/ship-with-enough-testing.md): the real
 failure and one counterexample, with the suite and install once on the candidate.
 Work directly on `main`, with no feature branch or pull request. Run `dbmd index rebuild` before

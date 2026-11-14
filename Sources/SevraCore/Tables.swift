@@ -87,7 +87,8 @@ public enum CSV {
     // Tab-separated text comes from other programs, which quote a cell only when it holds a tab,
     // line break or quote. Any other quote is part of the cell, as in 5" pipe.
     let literalQuotes = separator == "\t"
-    var i = scalars.first == "\u{feff}" ? scalars.index(after: scalars.startIndex) : scalars.startIndex
+    var i =
+      scalars.first == "\u{feff}" ? scalars.index(after: scalars.startIndex) : scalars.startIndex
     var fieldBytes = 0
     var processed = 0
     var cells = 0
@@ -256,13 +257,14 @@ extension Workbook {
         "title": .string(title), "source": .string(sourceID), "columns": .string(columnsJSON),
         "rows": .string(try Self.rowDigest(rows)),
       ]),
-      reading: { try dataset($0.text) }
-    ) {
-      try insertDataset(
-        id: id, title: title, columns: columns, rows: rows, sourceID: sourceID, inputs: [sourceID],
-        meaning: "actual")
-      return .string(id)
-    }
+      reading: { try dataset($0.text) },
+      {
+        try insertDataset(
+          id: id, title: title, columns: columns, rows: rows, sourceID: sourceID,
+          inputs: [sourceID],
+          meaning: "actual")
+        return .string(id)
+      })
   }
   func insertDataset(
     id: String, title: String, columns: [Column], rows: [[String: Value]], sourceID: String,
@@ -406,7 +408,8 @@ extension Workbook {
   }
   /// The search index also holds each row's title and column IDs, which every row shares. It
   /// finds the candidates, and the row's own cells decide.
-  private func rowFilter(_ query: String, schema: ManagedDatasetSchema) throws -> (String, [Value]) {
+  private func rowFilter(_ query: String, schema: ManagedDatasetSchema) throws -> (String, [Value])
+  {
     if rememberedFilter == query + "\u{1f}" + schema.table {
       return ("(SELECT item FROM temp.filtered_rows)", [])
     }
@@ -423,13 +426,17 @@ extension Workbook {
   /// The same words the index reads: runs of letters and digits, without case or accents.
   private static func filterWords(_ text: String) -> [String] {
     text.components(separatedBy: CharacterSet.alphanumerics.inverted)
-      .filter { word in word.unicodeScalars.contains { !CharacterSet.nonBaseCharacters.contains($0) } }
+      .filter { word in
+        word.unicodeScalars.contains { !CharacterSet.nonBaseCharacters.contains($0) }
+      }
       .map { $0.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil) }
   }
   static func rowHolds(_ data: String, query: String, columns: String) -> Bool {
     guard let row = try? Value.parse(data) else { return false }
     let active = Set(columns.components(separatedBy: "\u{1f}"))
-    let words = row.object.filter { active.contains($0.key) }.values.flatMap { filterWords($0.text) }
+    let words = row.object.filter { active.contains($0.key) }.values.flatMap {
+      filterWords($0.text)
+    }
     return filterWords(query).prefix(24).allSatisfy { term in
       words.contains { isUnspaced(term) ? $0.contains(term) : $0.hasPrefix(term) }
     }
@@ -485,21 +492,21 @@ extension Workbook {
         return try Numbers.decimal(raw[column.id]?.text ?? "")
       }
       let result = try Numbers.calculate(
-        formula, values: raw, units: { Self.unit(of: $0, columns: columns) }
-      ) { name in
-        if let c = columns.first(where: { $0.id == name }) { return try resolve(c) }
-        if datasetID == nil {
-          datasetID = try self.synchronized {
-            try self.db.scalar(
-              "SELECT dataset_id FROM dataset_rows WHERE logical_id=?", [.string(row.logicalID)]
-            ).string
+        formula, values: raw, units: { Self.unit(of: $0, columns: columns) },
+        resolve: { name in
+          if let c = columns.first(where: { $0.id == name }) { return try resolve(c) }
+          if datasetID == nil {
+            datasetID = try self.synchronized {
+              try self.db.scalar(
+                "SELECT dataset_id FROM dataset_rows WHERE logical_id=?", [.string(row.logicalID)]
+              ).string
+            }
           }
-        }
-        guard let id = datasetID else {
-          throw SevraError("cell", "This row has no table for cell references.")
-        }
-        return try Numbers.decimal(self.cellValue(id, address: name))
-      }
+          guard let id = datasetID else {
+            throw SevraError("cell", "This row has no table for cell references.")
+          }
+          return try Numbers.decimal(self.cellValue(id, address: name))
+        })
       let decimal = try Numbers.decimal(result)
       cache[column.id] = decimal
       return decimal
@@ -560,12 +567,15 @@ extension Workbook {
       reading: { result in
         TableEdit(
           id: result["id"].text, items: try result["items"].array.map { try item($0.text) })
-      }
-    ) {
-      try applyRows(datasetID, edits: edits, request: request)
-    }
+      },
+      {
+        try applyRows(datasetID, edits: edits, request: request)
+      })
   }
-  func applyRows(_ datasetID: String, edits: [RowEdit], request: Value, proposalID: String? = nil)
+  func applyRows(
+    _ datasetID: String, edits: [RowEdit], request: Value, proposalID: String? = nil,
+    deferSheetCalculation: Bool = false
+  )
     throws -> Value
   {
     try validateDecisionActor(db.changes?.actor ?? .programmatic("SevraCore.editRows"))
@@ -587,7 +597,8 @@ extension Workbook {
     var edited: [String: [String: Value]] = [:]
     for edit in edits { edited[try item(edit.id).logicalID] = edit.values }
     // Recalculation reads the table, so it runs before a Unique column takes these rows out of it.
-    var formulas = try sheetFormulaChanges(after: datasetID, pending: edited)
+    var formulas =
+      deferSheetCalculation ? nil : try sheetFormulaChanges(after: datasetID, pending: edited)
     try prepareManagedRowEdits(datasetID, exactIDs: edits.map(\.id))
     for edit in edits {
       let old = try item(edit.id)
@@ -622,7 +633,7 @@ extension Workbook {
       ids.append(new)
     }
     try applySheetFormulaChanges(formulas)
-    tablesWithChangedRows = []
+    if !deferSheetCalculation { tablesWithChangedRows = [] }
     let change = identifier()
     try db.execute(
       "INSERT INTO table_changes VALUES(?,?,?,?,?)",
@@ -662,12 +673,15 @@ extension Workbook {
     }
     guard let change else { throw SevraError("undo", "No such table change.") }
     let edits = try restoringEdits(
-      change["dataset_id"]!.text, before: change["before_ids"]!.text, after: change["after_ids"]!.text)
+      change["dataset_id"]!.text, before: change["before_ids"]!.text,
+      after: change["after_ids"]!.text)
     return try editRows(change["dataset_id"]!.text, edits: edits, actor: actor)
   }
   /// The edits that put a table change back. Recalculation restores formula cells from the inputs
   /// these restore, so those cells stay as they are until then.
-  private func restoringEdits(_ datasetID: String, before: String, after: String) throws -> [RowEdit] {
+  private func restoringEdits(_ datasetID: String, before: String, after: String) throws
+    -> [RowEdit]
+  {
     let columns = try dataset(datasetID).columns
     let recalculating = try recalculatingColumns(datasetID)
     return try zip(try Value.parse(before).array, try Value.parse(after).array).map { old, new in
@@ -687,84 +701,84 @@ extension Workbook {
     return try mutation(
       "undo", token: token, request: .string(id), cancellation: cancellation, actor: actor,
       deadlineSeconds: 30,
-      reading: { try item($0.text) }
-    ) {
-      try validateDecisionActor(actor)
-      let current = try item(id)
-      guard let prior = current.supersedes else {
-        throw SevraError("undo", "No previous version exists.")
-      }
-      if current.kind == "row",
-        let table = try db.scalar(
-          "SELECT dataset_id FROM dataset_rows WHERE logical_id=?", [.string(current.logicalID)]
-        ).string
+      reading: { try item($0.text) },
       {
-        try require(
-          !(try dataset(table).archived), "archived_dataset",
-          "Restore this archived table before undoing an edit to its rows.")
-      }
-      var old = try item(prior)
-      var restoredStatus =
-        current.status == "accepted" && old.status == "draft" ? "rejected" : old.status
-      if current.status == "accepted", old.status == "draft" {
-        let declinedCorrection =
-          try db.scalar(
-            "SELECT EXISTS(SELECT 1 FROM lineage WHERE child=? AND transformation='withdraw-draft-v1')",
-            [.string(current.id)]
-          ).int == 1
-        if declinedCorrection {
-          restoredStatus = "draft"
-        } else if let settled = try settledVersion(current.logicalID, before: old.version),
-          settled.status == "accepted"
-        {
-          old = settled
-          restoredStatus = "accepted"
+        try validateDecisionActor(actor)
+        let current = try item(id)
+        guard let prior = current.supersedes else {
+          throw SevraError("undo", "No previous version exists.")
         }
-      }
-      var restoredData = old.data
-      if current.kind == "table-intake-update", current.data["afterFingerprint"].string != nil {
-        restoredData = try restoreTableIntake(current, cancellation: cancellation)
-      }
-      if current.kind == "table-creation", let datasetID = current.data["datasetID"].string {
-        _ = try applyDatasetDefinition(
-          datasetID, title: nil, columns: nil,
-          archived: current.status == "accepted", request: .object(["undo": .string(current.id)]))
-        var values = old.data.object
-        values["datasetID"] = .string(datasetID)
-        restoredData = .object(values)
-      }
-      if current.kind == "table-change", let change = current.data["tableChangeID"].string {
-        guard
-          let row = try db.execute("SELECT * FROM table_changes WHERE id=?", [.string(change)])
-            .first
-        else { throw SevraError("undo", "The accepted table change is missing.") }
-        let edits = try restoringEdits(
-          row["dataset_id"]!.text, before: row["before_ids"]!.text, after: row["after_ids"]!.text)
-        let inverse = try applyRows(
-          row["dataset_id"]!.text, edits: edits, request: .object(["undo": .string(change)]),
-          proposalID: current.id)
-        var values = old.data.object
-        values["tableChangeID"] = inverse["id"]
-        restoredData = .object(values)
-      }
-      let evidence = try insertItem(
-        category: "source", kind: "decision", title: "Undo \(current.title)",
-        text: actor.label + " requested restoration of the prior version.",
-        data: try decisionData(id), meaning: "actual", status: "accepted",
-        scenario: "actual", inputs: [current.id], transformation: "decision-undo-v2",
-        controlInputs: decisionInputs())
-      let restored = try insertItem(
-        category: current.category, kind: current.kind, title: old.title, text: old.text,
-        data: restoredData, meaning: old.meaning,
-        status: restoredStatus,
-        scenario: old.scenario, inputs: [current.id, prior, old.id, evidence],
-        transformation: "undo-v1",
-        assetID: old.assetID, supersedes: current.id, referenceOrigin: old.id)
-      try db.execute(
-        "INSERT INTO effects SELECT occurrence,subject,kind,?,quantity,effective FROM effects WHERE item_id=?",
-        [.string(restored), .string(old.id)])
-      return .string(restored)
-    }
+        if current.kind == "row",
+          let table = try db.scalar(
+            "SELECT dataset_id FROM dataset_rows WHERE logical_id=?", [.string(current.logicalID)]
+          ).string
+        {
+          try require(
+            !(try dataset(table).archived), "archived_dataset",
+            "Restore this archived table before undoing an edit to its rows.")
+        }
+        var old = try item(prior)
+        var restoredStatus =
+          current.status == "accepted" && old.status == "draft" ? "rejected" : old.status
+        if current.status == "accepted", old.status == "draft" {
+          let declinedCorrection =
+            try db.scalar(
+              "SELECT EXISTS(SELECT 1 FROM lineage WHERE child=? AND transformation='withdraw-draft-v1')",
+              [.string(current.id)]
+            ).int == 1
+          if declinedCorrection {
+            restoredStatus = "draft"
+          } else if let settled = try settledVersion(current.logicalID, before: old.version),
+            settled.status == "accepted"
+          {
+            old = settled
+            restoredStatus = "accepted"
+          }
+        }
+        var restoredData = old.data
+        if current.kind == "table-intake-update", current.data["afterFingerprint"].string != nil {
+          restoredData = try restoreTableIntake(current, cancellation: cancellation)
+        }
+        if current.kind == "table-creation", let datasetID = current.data["datasetID"].string {
+          _ = try applyDatasetDefinition(
+            datasetID, title: nil, columns: nil,
+            archived: current.status == "accepted", request: .object(["undo": .string(current.id)]))
+          var values = old.data.object
+          values["datasetID"] = .string(datasetID)
+          restoredData = .object(values)
+        }
+        if current.kind == "table-change", let change = current.data["tableChangeID"].string {
+          guard
+            let row = try db.execute("SELECT * FROM table_changes WHERE id=?", [.string(change)])
+              .first
+          else { throw SevraError("undo", "The accepted table change is missing.") }
+          let edits = try restoringEdits(
+            row["dataset_id"]!.text, before: row["before_ids"]!.text, after: row["after_ids"]!.text)
+          let inverse = try applyRows(
+            row["dataset_id"]!.text, edits: edits, request: .object(["undo": .string(change)]),
+            proposalID: current.id)
+          var values = old.data.object
+          values["tableChangeID"] = inverse["id"]
+          restoredData = .object(values)
+        }
+        let evidence = try insertItem(
+          category: "source", kind: "decision", title: "Undo \(current.title)",
+          text: actor.label + " requested restoration of the prior version.",
+          data: try decisionData(id), meaning: "actual", status: "accepted",
+          scenario: "actual", inputs: [current.id], transformation: "decision-undo-v2",
+          controlInputs: decisionInputs())
+        let restored = try insertItem(
+          category: current.category, kind: current.kind, title: old.title, text: old.text,
+          data: restoredData, meaning: old.meaning,
+          status: restoredStatus,
+          scenario: old.scenario, inputs: [current.id, prior, old.id, evidence],
+          transformation: "undo-v1",
+          assetID: old.assetID, supersedes: current.id, referenceOrigin: old.id)
+        try db.execute(
+          "INSERT INTO effects SELECT occurrence,subject,kind,?,quantity,effective FROM effects WHERE item_id=?",
+          [.string(restored), .string(old.id)])
+        return .string(restored)
+      })
   }
   public func setColumns(
     _ id: String, columns: [Column], expectedVersion: Int? = nil,

@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/specs
-updated: 2026-11-13T18:48:10.619023Z
+updated: 2026-11-14T01:12:42.232974Z
 ---
 
 # records/specs
 
+- [[records/specs/excel-application-reconstruction]] — Native Excel behavior translation, original-result comparison and constrained calculation/action contract
 - [[records/specs/single-excel-import]] — One native Excel import with reviewed local workflow inference, shared tables and constrained app generation
 - [[records/specs/contextual-import]] — One contextual intake for starting and ongoing work, role-aware CSV/data use and truthful Excel continuity gates.
 - [[records/specs/local-model-native-apps]] — Local-model native app authoring, isolated checks, independent review and exact-version access.

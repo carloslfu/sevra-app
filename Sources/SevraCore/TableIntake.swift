@@ -198,7 +198,7 @@ extension Workbook {
     }
     let asset = try self.asset(assetID)
     let file = try assetURL(assetID, verify: true, cancellation: cancellation)
-    guard let format = StructuredFormat(rawValue: file.pathExtension.lowercased()) else {
+    guard let format = StructuredFormat.fileExtension(file.pathExtension) else {
       throw SevraError("update_format", "Reviewed updates support CSV, TSV and XLSX saved values.")
     }
     let parsed = try worker.readTable(file, format: format, cancellation: cancellation)
@@ -457,17 +457,18 @@ extension Workbook {
           limitations: [
             (parsed.sheet == nil ? "CSV/TSV values only" : "Saved Excel cell values only")
               + "; full stored-column mapping; lexical merge keys."
-          ] + (formulaCells > 0
-            ? [
-              (formulaCells == 1
-                ? "1 mapped cell is a saved formula result"
-                : "\(formulaCells) mapped cells are saved formula results")
-                + "; formulas are not recalculated."
-            ]
-            : []) + [
-            "No business inventory or financial effects are accepted by updating table values.",
-            "Append keeps duplicates. Replacement removes every current target row.",
-          ])
+          ]
+            + (formulaCells > 0
+              ? [
+                (formulaCells == 1
+                  ? "1 mapped cell is a saved formula result"
+                  : "\(formulaCells) mapped cells are saved formula results")
+                  + "; formulas are not recalculated."
+              ]
+              : []) + [
+              "No business inventory or financial effects are accepted by updating table values.",
+              "Append keeps duplicates. Replacement removes every current target row.",
+            ])
         return .init(
           preview: preview, columns: table.columns, membership: membership,
           incoming: mapped, changes: changes, additions: additions,

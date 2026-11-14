@@ -1,0 +1,1747 @@
+[
+  {
+    "path": "Sources/CLLGuidance/LICENSE",
+    "lines": 21,
+    "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+  },
+  {
+    "path": "Sources/CLLGuidance/include/llguidance.h",
+    "lines": 943,
+    "sha256": "5b2aa56c04421c2f846ab742bd547f15079be98e280b1a7d89838421cc077978"
+  },
+  {
+    "path": "Sources/CLLGuidance/module.modulemap",
+    "lines": 4,
+    "sha256": "f8a7f11e8d14e63f158cb2c85fbd54ccd1084ad852c1583434e8706d3ca395e3"
+  },
+  {
+    "path": "Sources/CQuickJS/LICENSE",
+    "lines": 22,
+    "sha256": "598fd7fc928e4350abce36e337ba5a1346923c5c692f5be92c3d8e29ddd7c18d"
+  },
+  {
+    "path": "Sources/CQuickJS/SevraJS.c",
+    "lines": 91,
+    "sha256": "ac26a7081cc6e6427337ce7bb5127204f39ea872bd735eaf9771b27e3cac4220"
+  },
+  {
+    "path": "Sources/CQuickJS/cutils.c",
+    "lines": 641,
+    "sha256": "b73a403a59da30726257ddbdf5e399298941c1def997782ee0d4d33f796a80a2"
+  },
+  {
+    "path": "Sources/CQuickJS/cutils.h",
+    "lines": 457,
+    "sha256": "d2da6d06a75b9e6c116c82b7a41df6bcc170c8b1779f374fa953ecf688eda647"
+  },
+  {
+    "path": "Sources/CQuickJS/dtoa.c",
+    "lines": 1620,
+    "sha256": "af5abd68fa9806d1a19bdd5f2daef00d5fd0990ae56311382dfed4700343f074"
+  },
+  {
+    "path": "Sources/CQuickJS/dtoa.h",
+    "lines": 83,
+    "sha256": "462070f7678a894b9f3612422f280f4dce412eb360a5cc585a513f407fc23114"
+  },
+  {
+    "path": "Sources/CQuickJS/include/SevraJS.h",
+    "lines": 10,
+    "sha256": "22591512c07fc1f0b62ace187d05d7cb75731fcb3803ffe5b5b44a6f5e051d4a"
+  },
+  {
+    "path": "Sources/CQuickJS/libregexp-opcode.h",
+    "lines": 73,
+    "sha256": "2a98d646089f3a72f25480116297c5fdb5b28fd9f815447273951f4ade4a115e"
+  },
+  {
+    "path": "Sources/CQuickJS/libregexp.c",
+    "lines": 3448,
+    "sha256": "fdfcf86167029ab2c39c35730d4ae6875b7bbeb9406a0fcc886de4e9b1f5e2ac"
+  },
+  {
+    "path": "Sources/CQuickJS/libregexp.h",
+    "lines": 65,
+    "sha256": "f5c5ef1899f224dcc718422a22c789ef9d8b5b837b622818fcfaf681ae793446"
+  },
+  {
+    "path": "Sources/CQuickJS/libunicode-table.h",
+    "lines": 5206,
+    "sha256": "cf782bc7a07549e976f606bd3cb8555858482b279574554dcb8d46412986006c"
+  },
+  {
+    "path": "Sources/CQuickJS/libunicode.c",
+    "lines": 2124,
+    "sha256": "26203ae888c0582e7d0e2113f13db0c9b39dc7b0b3836d68fa308c54f7a0898c"
+  },
+  {
+    "path": "Sources/CQuickJS/libunicode.h",
+    "lines": 196,
+    "sha256": "ce310152bc80d7415dcb657e23abd9a40bf83e393c0d05d325dae384bb01d259"
+  },
+  {
+    "path": "Sources/CQuickJS/list.h",
+    "lines": 99,
+    "sha256": "181c6b25d9d0e4853315d36a6e6fab3b2c3554271693d898a439384ba0f67c2b"
+  },
+  {
+    "path": "Sources/CQuickJS/quickjs-atom.h",
+    "lines": 283,
+    "sha256": "342194359417664e652f54e7d682ee2ef91dd982e91f74decbde992a2c848236"
+  },
+  {
+    "path": "Sources/CQuickJS/quickjs-opcode.h",
+    "lines": 366,
+    "sha256": "a9c60a8c9366820733d9d2acbb805f48b2e9e2778df526e6bcb845fdb6b47834"
+  },
+  {
+    "path": "Sources/CQuickJS/quickjs.c",
+    "lines": 61197,
+    "sha256": "a00762d2eee42316cecbc9c15efc4549b715ec500461845cd91b2a6c38190d08"
+  },
+  {
+    "path": "Sources/CQuickJS/quickjs.h",
+    "lines": 1180,
+    "sha256": "2165f47772af9faee1798999a599fa9de850d1bf0259502dade1c25d4a588316"
+  },
+  {
+    "path": "Sources/CSQLite/module.modulemap",
+    "lines": 5,
+    "sha256": "67bac33754b447a28e62d315c37dbd1bcc0a363e94375de0834c55f56a49ee39"
+  },
+  {
+    "path": "Sources/CSQLite/shim.h",
+    "lines": 10,
+    "sha256": "b283869cc40f89f9983fbd8e48e9eb7c364ddcf029a658b853ec69f17b49268f"
+  },
+  {
+    "path": "Sources/SevraAI/ActionConfirmations.swift",
+    "lines": 192,
+    "sha256": "a4d40aa7ab2886fd2a132745a68d8e723cf1f31a7e9993f50dcf9804da301077"
+  },
+  {
+    "path": "Sources/SevraAI/ActionDirectionReview.swift",
+    "lines": 173,
+    "sha256": "92e3a4c15460affbab0916af4e8389cfffb0886675d80a7a8595e7708a41dd6b"
+  },
+  {
+    "path": "Sources/SevraAI/CalculationRequirement.swift",
+    "lines": 15,
+    "sha256": "40324cdc94e2b87d0f705fde3f687d2cf15441853c55a79958771069bde138f2"
+  },
+  {
+    "path": "Sources/SevraAI/ContextBudget.swift",
+    "lines": 77,
+    "sha256": "b51e240db8e5333d275492eb6068930ecb5239d761843f0d6d6cd12c14bfcf1b"
+  },
+  {
+    "path": "Sources/SevraAI/ContextDigest.swift",
+    "lines": 127,
+    "sha256": "2da619433a36e947992b203555fdc162c27f317406950034f72c700cef501bee"
+  },
+  {
+    "path": "Sources/SevraAI/ContextMaintenance.swift",
+    "lines": 519,
+    "sha256": "f021ddcd8877c3f614bb540c12aa241f262fcc11ce378f561d14e71b9fe3aca1"
+  },
+  {
+    "path": "Sources/SevraAI/ConversationHistory.swift",
+    "lines": 111,
+    "sha256": "050e2883eb7e37348215634c138e4080a9914296215417fa47cc03e40d17f2b1"
+  },
+  {
+    "path": "Sources/SevraAI/CostQualification.swift",
+    "lines": 56,
+    "sha256": "948a3884d3324457940719f2656e810802ef8c80b57aca143b04366d85d4812f"
+  },
+  {
+    "path": "Sources/SevraAI/DiscoveryBudget.swift",
+    "lines": 26,
+    "sha256": "5c52554d36d37859985dce5dc94bcdefdf3ca26cfc4476709fa3ed9e27c3eef8"
+  },
+  {
+    "path": "Sources/SevraAI/DocumentCopyCandidates.swift",
+    "lines": 31,
+    "sha256": "573f55b6a746808ce1941f524f746932639a30a6b1e45fd39ca3c3d310995b34"
+  },
+  {
+    "path": "Sources/SevraAI/DraftRequest.swift",
+    "lines": 16,
+    "sha256": "ccf16c22150f89a381361094c4bd7d661b8505103fec796158b362fa4f86da08"
+  },
+  {
+    "path": "Sources/SevraAI/ExcelBehaviorTools.swift",
+    "lines": 57,
+    "sha256": "2ff8488a15a6fa1caca22ebcb5b75e66401ee2d79c406b8371b34754afa8d17a"
+  },
+  {
+    "path": "Sources/SevraAI/ExcelConversionAgent.swift",
+    "lines": 113,
+    "sha256": "163042e3b93eddb984efea05288f08b10577341d5e9ab149d600438e8d15b41e"
+  },
+  {
+    "path": "Sources/SevraAI/ItemReferenceCandidates.swift",
+    "lines": 101,
+    "sha256": "0863255bc54da72c503b87610d5aa3dca4a99170e3cbab8d794a951744fd396f"
+  },
+  {
+    "path": "Sources/SevraAI/MovementDirectionReview.swift",
+    "lines": 107,
+    "sha256": "495172dc1ac7a75a0f1742cbe558ff08a59b06764be0e060a0496dd4ad18698b"
+  },
+  {
+    "path": "Sources/SevraAI/NativeAppReview.swift",
+    "lines": 131,
+    "sha256": "14856827cfc259ab5a6c53f5392629cc8f0ae856d736a0088861e36dfa4a8a23"
+  },
+  {
+    "path": "Sources/SevraAI/NativeAppTools.swift",
+    "lines": 118,
+    "sha256": "91201614e3ceeddc76e9d6fb9bfaff4863737c8bd6cb8a6db5554d29dfcf9408"
+  },
+  {
+    "path": "Sources/SevraAI/NativeApplicationTools.swift",
+    "lines": 201,
+    "sha256": "05b3fbe0a8217addb72484a2690630e20258f3f58c591158564e48cfc5be23ce"
+  },
+  {
+    "path": "Sources/SevraAI/NativeTools.swift",
+    "lines": 610,
+    "sha256": "05588205139dc31c84ac44cda451f3389873b62384d6242be3698ac170c7b3d9"
+  },
+  {
+    "path": "Sources/SevraAI/RequestRestrictions.swift",
+    "lines": 25,
+    "sha256": "9af66b5ab2691f95851b76c7c837e59f9c3703328113525bb731b7444cf8b279"
+  },
+  {
+    "path": "Sources/SevraAI/SearchCoverage.swift",
+    "lines": 64,
+    "sha256": "6fb1e577dbeb8f40cc7f7984faf33f4eca894ab53b4bd78a8eab8990fb22d331"
+  },
+  {
+    "path": "Sources/SevraAI/ToolActivityLabel.swift",
+    "lines": 21,
+    "sha256": "e291ab06c4016dd9c69e42f16073419b73e9f7dab617ce940e719b30a1587c57"
+  },
+  {
+    "path": "Sources/SevraAI/ToolSerialization.swift",
+    "lines": 132,
+    "sha256": "833ce6825609c62a0bf6ec0a83a93b53e980c0c74c49e87e9412333967b8777a"
+  },
+  {
+    "path": "Sources/SevraAI/WorkbookAgent.swift",
+    "lines": 1732,
+    "sha256": "c5aa24e1e75c4f5a3553dcf42ac8033d1cb72fddb368a1147cdda4b87c3428d0"
+  },
+  {
+    "path": "Sources/SevraAI/WorkbookInference.swift",
+    "lines": 175,
+    "sha256": "22362897937d6719018389bd4d66b1fdc5dc0a7bbfd11af3aaa5c063c4ef02e4"
+  },
+  {
+    "path": "Sources/SevraAI/WorkbookToolDefinition.swift",
+    "lines": 14,
+    "sha256": "8739e3b9d9656b706c6b1ea62f52e1aed30e720782fd09b228fef662a146cedd"
+  },
+  {
+    "path": "Sources/SevraAI/WorkflowCoordinator.swift",
+    "lines": 148,
+    "sha256": "1b4375910e069570b95d4184ce65eb24fe56c96052039c8e917d7375d084c9ca"
+  },
+  {
+    "path": "Sources/SevraApp/AgentActivityView.swift",
+    "lines": 253,
+    "sha256": "b8fb6091895bb9926661d6befdc9c49329b306856d06cb11c31dbc3b29bd1fad"
+  },
+  {
+    "path": "Sources/SevraApp/ArchiveMemberPicker.swift",
+    "lines": 84,
+    "sha256": "6c4d2c9c0e29b0b379bcb97d69765f778d064ef1db8590c338a9096fbe7e84cf"
+  },
+  {
+    "path": "Sources/SevraApp/AutomationFocusedView.swift",
+    "lines": 43,
+    "sha256": "dd6efb2595271275ef44bb55ae94673345b3440bb135109c5d02f2093f79b4ae"
+  },
+  {
+    "path": "Sources/SevraApp/AutomationScheduleEditor.swift",
+    "lines": 417,
+    "sha256": "8517cef0144c002cce1b8c4deab841f6b248e9eebce5f210787c4d2ee26ebfa6"
+  },
+  {
+    "path": "Sources/SevraApp/AutomationSchedulesView.swift",
+    "lines": 526,
+    "sha256": "55ef9c605ea11cfc0bccf6d75f823c5181dfccbdfa5d31be9670fbce481f15c1"
+  },
+  {
+    "path": "Sources/SevraApp/BrandShapes.swift",
+    "lines": 179,
+    "sha256": "cb42830cfbbefe09ebc8d0318869294f2feec3dfd9f9670d722f8cb590d4fa6d"
+  },
+  {
+    "path": "Sources/SevraApp/CapturedRequestContextView.swift",
+    "lines": 35,
+    "sha256": "798d56a007b4257b0ef16a3bf169090e20bb3033b490f95b51d20821802a38ba"
+  },
+  {
+    "path": "Sources/SevraApp/ContentViews.swift",
+    "lines": 1032,
+    "sha256": "ae7f81e14808d0f3c75e9ba0ad3d36e76e147e7020f07f3fed1387e393b0a9d8"
+  },
+  {
+    "path": "Sources/SevraApp/ConversationHistorySheet.swift",
+    "lines": 100,
+    "sha256": "d4fdf3d6c9f0989fb3c0c866dfcc55060d45ba72a1dcca60ca02d9a05308276c"
+  },
+  {
+    "path": "Sources/SevraApp/ConversationViews.swift",
+    "lines": 178,
+    "sha256": "f7a9d2a991630b260d49f7bcbaf5513c166fa0e15f5e7bcb14a6696bdbe0bb0b"
+  },
+  {
+    "path": "Sources/SevraApp/DefinitionComponentView.swift",
+    "lines": 274,
+    "sha256": "d67992b459b20d63aa0f6249a961350f7b5a1ea07811dd41515c029e28d54f3b"
+  },
+  {
+    "path": "Sources/SevraApp/DisplayText.swift",
+    "lines": 32,
+    "sha256": "7d3fe6cddd171ca547bfd2d1e9a4c20f1e1611f2c0245c022adc873c129f0925"
+  },
+  {
+    "path": "Sources/SevraApp/EvidenceTable.swift",
+    "lines": 24,
+    "sha256": "bf208b88b479805230c67772fa6045148a9022bd764ddc2e2230ed0a5cc0060e"
+  },
+  {
+    "path": "Sources/SevraApp/ExcelConversionView.swift",
+    "lines": 545,
+    "sha256": "62b1595277be1a6db587c256aa9c020abac40dfc276adae0e3ce84f1402cab00"
+  },
+  {
+    "path": "Sources/SevraApp/ExtractedTextView.swift",
+    "lines": 131,
+    "sha256": "158572fbae402ae9b0e05ab7b48b2d2db954e15afcce8c7cc08d5629907ac922"
+  },
+  {
+    "path": "Sources/SevraApp/FormComponentView.swift",
+    "lines": 419,
+    "sha256": "45a09c143afcf5223053429a4371ed79fdaef07cf4a37ea3e9831f781d4c4eae"
+  },
+  {
+    "path": "Sources/SevraApp/ImageDescriptionView.swift",
+    "lines": 102,
+    "sha256": "04ace38f2acc954251b0deaddce859eb86603a72bf2b4cb8468340b87304cf2d"
+  },
+  {
+    "path": "Sources/SevraApp/IntakeView.swift",
+    "lines": 123,
+    "sha256": "43e3841491ff5ddc27e898ea6012169c6b9f67a0d2248bf1b171d7ccade9b0da"
+  },
+  {
+    "path": "Sources/SevraApp/MoreActionsMenu.swift",
+    "lines": 34,
+    "sha256": "614ca0ab92076ecacff584122efa584cb38f6cbfa86b5e8f4544c41a4a7d1e3a"
+  },
+  {
+    "path": "Sources/SevraApp/NativeAppImport.swift",
+    "lines": 96,
+    "sha256": "d56efc03881ba3817680a485f605536395d03a890c92e93e4c00a7b20baa6916"
+  },
+  {
+    "path": "Sources/SevraApp/NativeAutomationHost.swift",
+    "lines": 140,
+    "sha256": "47e8de53986f86b547440131efb18d7895c4d7095552bfc5696ffb85417ca0c7"
+  },
+  {
+    "path": "Sources/SevraApp/NativeMediaPlayer.swift",
+    "lines": 27,
+    "sha256": "2939ffe2f53c83029984c948af3b2db022d9912b57e2db7aa7661720437964cc"
+  },
+  {
+    "path": "Sources/SevraApp/PaneHeader.swift",
+    "lines": 13,
+    "sha256": "74058555e0580b17eb7933194e245607acc1b7771da6dfddaf5a9d740e753f30"
+  },
+  {
+    "path": "Sources/SevraApp/ReadingSizeCommands.swift",
+    "lines": 27,
+    "sha256": "e9a5129196aa47ec938c29a572f5232c4314ecdab4021675d9101213056fdc06"
+  },
+  {
+    "path": "Sources/SevraApp/ReferenceViews.swift",
+    "lines": 508,
+    "sha256": "2cfc9bb7a2c7ce0414d91f5569df897c0457cf41934a3bd72c5c0fdb4304473b"
+  },
+  {
+    "path": "Sources/SevraApp/ReviewQueueView.swift",
+    "lines": 73,
+    "sha256": "bcdd8c2db84d3580cbc6b637dbaeb974b730698567bdc9da4f9e71f4abb50715"
+  },
+  {
+    "path": "Sources/SevraApp/SevraApp.swift",
+    "lines": 438,
+    "sha256": "866f616ad87eaba258bdb4f3bd1e093dbcadc41e63a2b248957dfbe867f7140a"
+  },
+  {
+    "path": "Sources/SevraApp/SpaceLayoutEditor.swift",
+    "lines": 266,
+    "sha256": "bc55e765037e73cd66d22ba559ccd608fc678408c08026295c61b56b8e75134f"
+  },
+  {
+    "path": "Sources/SevraApp/SpacePickerView.swift",
+    "lines": 107,
+    "sha256": "c3d91f40df534d1c88484da44ce57ce2ac66d7af0da09aaf60a38157c564f87d"
+  },
+  {
+    "path": "Sources/SevraApp/SpeechAndSettings.swift",
+    "lines": 159,
+    "sha256": "bb7e4bca5432738838b09b2135f637b3ed789956203b9ad922a54537706ac7fe"
+  },
+  {
+    "path": "Sources/SevraApp/StructuredValueView.swift",
+    "lines": 205,
+    "sha256": "1936f3065fd8455b49bb691e831b1937f1635799a997ba94a8c8465f6e3db985"
+  },
+  {
+    "path": "Sources/SevraApp/TableUpdateView.swift",
+    "lines": 396,
+    "sha256": "d95a2fa75a10586e1a39c3348c705ef7c1adc4b2b5bf9b08c7d63344343734e8"
+  },
+  {
+    "path": "Sources/SevraApp/Viewers.swift",
+    "lines": 1012,
+    "sha256": "efafd0c1f1fa7500fd4d4a7e6435222bdad7c4b20812f09233e9c33918816bac"
+  },
+  {
+    "path": "Sources/SevraApp/WelcomeView.swift",
+    "lines": 79,
+    "sha256": "75f1b0c7d75193e8682fef9d34948eaf87af1201320b8189bd84b782ab10a2aa"
+  },
+  {
+    "path": "Sources/SevraApp/WorkbookView.swift",
+    "lines": 651,
+    "sha256": "b20d177a9db2870360cfcfa6d7e8cc01a078b930ee3796aafe2f2723d7be5db9"
+  },
+  {
+    "path": "Sources/SevraApp/WorkflowActivityView.swift",
+    "lines": 414,
+    "sha256": "0198783873aa752d84488eaac647fecfbb5025e7e1b741ce8460b740d317c6ba"
+  },
+  {
+    "path": "Sources/SevraApp/WorkflowClarificationView.swift",
+    "lines": 166,
+    "sha256": "df6e77e054261e41b04ae206110d98d3493761fb657efd605c0839a072be5d20"
+  },
+  {
+    "path": "Sources/SevraApp/WorkspaceState.swift",
+    "lines": 1688,
+    "sha256": "fe8130b2baf1b6a813960e8de86b4959cac045e6c2ce8861ac6fdee57208551a"
+  },
+  {
+    "path": "Sources/SevraAppProtocol/NativeAppCheck.swift",
+    "lines": 489,
+    "sha256": "64dfebfbb918627ab29bfc41711166d84e00df81bf5973e3b3ea58d0123397a4"
+  },
+  {
+    "path": "Sources/SevraAppProtocol/NativeAppProtocol.swift",
+    "lines": 181,
+    "sha256": "ef42ea777e25620bf4a3a86062bf6a839f0d72686b18f852a3e0cd98a8297025"
+  },
+  {
+    "path": "Sources/SevraAppRuntime/NativeAppRuntime.swift",
+    "lines": 74,
+    "sha256": "d434e155cadf3877cd5088970ae71e9fc3e6280259bb3374a4e01e61a1c4eace"
+  },
+  {
+    "path": "Sources/SevraAppRuntime/Resources/Signals-LICENSE.txt",
+    "lines": 21,
+    "sha256": "a11fc89e4c6b118854c7a667734a0b2e6bf2af5e45c6686de31adbccc8f3ae8d"
+  },
+  {
+    "path": "Sources/SevraAppRuntime/Resources/sdk.js",
+    "lines": 702,
+    "sha256": "928fae3a1458391a643bb000a748bf7d7b11665965c39e0eb581f1e922aefba7"
+  },
+  {
+    "path": "Sources/SevraAppUI/NativeAppCanvas.swift",
+    "lines": 156,
+    "sha256": "9bf6b0c7e4f9aa6fef92330608cf8ea7fdda04b07867fbeefe08c66fc58230e2"
+  },
+  {
+    "path": "Sources/SevraAppUI/NativeAppRenderer.swift",
+    "lines": 501,
+    "sha256": "1107bac1bdd7a064f16a3cb03ea930467961af240a23b908b27848a57bfb2c84"
+  },
+  {
+    "path": "Sources/SevraAppUI/NativeAppSession.swift",
+    "lines": 456,
+    "sha256": "977f350bbbee5cff532ff80cfca1423dc59f3d91d38ec1c7e5fb452fb24637a7"
+  },
+  {
+    "path": "Sources/SevraAppUI/NativeAppSpaceView.swift",
+    "lines": 108,
+    "sha256": "ef9c2141357975e257e0fa698b44930183f7bec5b1f4bfb961c86b3af355cbb6"
+  },
+  {
+    "path": "Sources/SevraAppUI/NativeAppTable.swift",
+    "lines": 252,
+    "sha256": "b11a2b823e23fa78f778dcd1b33f3b8751e9fb69a0d417bc64883c2b65c28bc3"
+  },
+  {
+    "path": "Sources/SevraAppUI/NativeAppUI.swift",
+    "lines": 3,
+    "sha256": "d2233460efec3a485a0f0afbf05e1f38e7a2ee11c2728b9612b696ea35a5aaa3"
+  },
+  {
+    "path": "Sources/SevraAppWorker/main.swift",
+    "lines": 74,
+    "sha256": "a0e01af9eab5444b2b4e062ee4d0ad3f84ca3d3aa65ee4f6d6f526ade80f438a"
+  },
+  {
+    "path": "Sources/SevraAutomationUI/AutomationDeviceRegistry.swift",
+    "lines": 300,
+    "sha256": "4dbc4a2405eb7da23010605870c43ba68d72a3ee5ee533cd4066072db775a4a8"
+  },
+  {
+    "path": "Sources/SevraAutomationUI/NativeAutomationController.swift",
+    "lines": 290,
+    "sha256": "c3b18574eeef1489db2815b1825cd574b364b6194a553a1392be60b31a6662b1"
+  },
+  {
+    "path": "Sources/SevraBaseline/BaselineMessages.swift",
+    "lines": 96,
+    "sha256": "0c1a8000e45473865550306981c896729d1a6af0a19173ecbbcae9f13c5afeec"
+  },
+  {
+    "path": "Sources/SevraBaseline/LocalModel.swift",
+    "lines": 299,
+    "sha256": "bfed6aa5771ce146b588eb786e33603bd1f9dd2335112a1f06e8ef12d9df24bb"
+  },
+  {
+    "path": "Sources/SevraBaseline/PackageResources.swift",
+    "lines": 61,
+    "sha256": "d1e79b285426a845d9782556968428c4728a3ebb39d594cb925ca2a035f702cb"
+  },
+  {
+    "path": "Sources/SevraBaseline/WorkbookAgent.swift",
+    "lines": 17,
+    "sha256": "fddfbee941e70083ad52e05e4b0426497129e3e4b009621236b33a38b31e4d4b"
+  },
+  {
+    "path": "Sources/SevraCLI/CLI.swift",
+    "lines": 958,
+    "sha256": "68c0b238a16a67ca8edefaf14adc8c621a4540a129c262558ac1227de88d6929"
+  },
+  {
+    "path": "Sources/SevraCLI/CLIAutomationExecution.swift",
+    "lines": 61,
+    "sha256": "f88ca1f2b655e3d7961b0ad2d2f587515ecb7ea65b7acd970822bafa5c1ae21f"
+  },
+  {
+    "path": "Sources/SevraCLI/CLIAutomationInspection.swift",
+    "lines": 49,
+    "sha256": "6713b62c9ef51e2b1216ec7d3e6b9b4487e0e1bc37eb9ddf99e52e2e9b93b9c2"
+  },
+  {
+    "path": "Sources/SevraCLI/CLIBusinessEvents.swift",
+    "lines": 34,
+    "sha256": "7e66d1f9966e203b4fb39a1a7615d8407a451d677a42b5c218e268d632300359"
+  },
+  {
+    "path": "Sources/SevraCLI/CLIConditions.swift",
+    "lines": 44,
+    "sha256": "1cbe44bbd1a5b6500afed8e9582d8f7d3d0f942324554e9ca4c38572cb298031"
+  },
+  {
+    "path": "Sources/SevraCLI/CLIInventoryCondition.swift",
+    "lines": 52,
+    "sha256": "cbaba3416a2ef45e612e3075d0211cbd8ad8ca051a2b8a273b2c8f39b407b0a9"
+  },
+  {
+    "path": "Sources/SevraCLI/CLIReferences.swift",
+    "lines": 197,
+    "sha256": "e172dcf68593da6e5f95f671c8cf4c3e4c779e25cc525adbda51ebaab326f503"
+  },
+  {
+    "path": "Sources/SevraCLI/CLISchedules.swift",
+    "lines": 68,
+    "sha256": "fe1fb64b9e58c1d4e6016e807fbf9ce245bc0e026c2ad52b9366919d0b4302c8"
+  },
+  {
+    "path": "Sources/SevraCLI/CLITableIntake.swift",
+    "lines": 114,
+    "sha256": "47193eaf021a4e2dd0670286a7ece0a30a5ca399b80bec0ff94f26a944b7a047"
+  },
+  {
+    "path": "Sources/SevraCLI/CLIWorkflows.swift",
+    "lines": 92,
+    "sha256": "4b86410ff9346fbaf537c58ba3fd23dd37aac83b1784ce59c54592d8f5c90587"
+  },
+  {
+    "path": "Sources/SevraCore/ActionExecution.swift",
+    "lines": 274,
+    "sha256": "b8c7a59d22bd0ce268f1305634448ee8c9d99aa792ca1e91b012cd5d94d54373"
+  },
+  {
+    "path": "Sources/SevraCore/ActionRegistry.swift",
+    "lines": 338,
+    "sha256": "fdf53c70d904220227f94e70a6a13818506df900dc971dec175dd5180a67e696"
+  },
+  {
+    "path": "Sources/SevraCore/AgentReferences.swift",
+    "lines": 75,
+    "sha256": "e4c783de505122527b80f0aecd4e5719c1335e8c851be9b9cd315607467d4a70"
+  },
+  {
+    "path": "Sources/SevraCore/AgentSearch.swift",
+    "lines": 103,
+    "sha256": "b78956ed9de1744af77053fc49dcf8c5959a735870a757e77bdd7a2d2f5b40ad"
+  },
+  {
+    "path": "Sources/SevraCore/ApplicationDefinition.swift",
+    "lines": 276,
+    "sha256": "c74a17b51ae20880c42b4a52dde37b9a162845062c214684e0ea354cddd12f01"
+  },
+  {
+    "path": "Sources/SevraCore/ApplicationDefinitions.swift",
+    "lines": 233,
+    "sha256": "e5a7d8e1a4f3f1ca286abaaa77a77ef4cc6d23768412e170adc181e536123ea6"
+  },
+  {
+    "path": "Sources/SevraCore/Archive.swift",
+    "lines": 230,
+    "sha256": "9590ed590dfec8d28be551748e8f01d99006e7e4b8acb471abebc28366c40408"
+  },
+  {
+    "path": "Sources/SevraCore/ArchiveIntake.swift",
+    "lines": 260,
+    "sha256": "d73d21f60f3ad47a1f7986d101b41bc0599c53a140363a2d7e15bfa9c9aedac9"
+  },
+  {
+    "path": "Sources/SevraCore/AssetCopies.swift",
+    "lines": 123,
+    "sha256": "bdd6986310b9d8c06410f26df78945f1f0c90af5ed3354b11af2b40d228b69ba"
+  },
+  {
+    "path": "Sources/SevraCore/Assets.swift",
+    "lines": 308,
+    "sha256": "365d285d99f6111c6f98947502fc17dc6b15722dd22c191eb1047607346e314a"
+  },
+  {
+    "path": "Sources/SevraCore/AutomaticAncestry.swift",
+    "lines": 175,
+    "sha256": "e51c6b898c8ef71c8bbb164db635e3f99e14904e2af834f492833702795fc55d"
+  },
+  {
+    "path": "Sources/SevraCore/AutomaticBusinessRoots.swift",
+    "lines": 65,
+    "sha256": "0486691600cd90be44dbc751d734924084f5d85fd5eb4cf21a3da0916018e073"
+  },
+  {
+    "path": "Sources/SevraCore/AutomationAuthorization.swift",
+    "lines": 331,
+    "sha256": "fa8e1d567ecc0f8ae9da20788987963272497e58f8979ae185d9dba013f9b289"
+  },
+  {
+    "path": "Sources/SevraCore/AutomationCausalInspection.swift",
+    "lines": 265,
+    "sha256": "1d9c15b9eb9e1c25eae4a57332998f1d6bdf107db605ca8699240b2b006a6dc6"
+  },
+  {
+    "path": "Sources/SevraCore/AutomationCausality.swift",
+    "lines": 198,
+    "sha256": "c1f801f2a29e898a9cf92bdda31e99e5339a46a30461b08e11f6fc51ec61695b"
+  },
+  {
+    "path": "Sources/SevraCore/AutomationExecution.swift",
+    "lines": 258,
+    "sha256": "ac5a20c3173b77af21456ae2c267d053abe2b81439ff0ea8594bd6d3045fffb6"
+  },
+  {
+    "path": "Sources/SevraCore/AutomationExecutionIntegrity.swift",
+    "lines": 193,
+    "sha256": "7653779f440aa9ebc2c3e4f3b228ddd756fdf14ad0071bdb6495e4b4139d2041"
+  },
+  {
+    "path": "Sources/SevraCore/AutomationPlanning.swift",
+    "lines": 240,
+    "sha256": "c3cb47cd99f2e7fc4897f960004c7006f4233748c2cb8820ac976bd529c93a1a"
+  },
+  {
+    "path": "Sources/SevraCore/AutomationPlanningIntegrity.swift",
+    "lines": 176,
+    "sha256": "12bdac9e28d49d8d4ceb2562eabbbaa71c1adbdb373a57d99f5fe037f2adddbe"
+  },
+  {
+    "path": "Sources/SevraCore/BusinessCauseFrontier.swift",
+    "lines": 63,
+    "sha256": "0ae481bfebab4af6ff333b315f52e1188206b5406daf73314ecb77c1f85d2e24"
+  },
+  {
+    "path": "Sources/SevraCore/BusinessEventDelivery.swift",
+    "lines": 144,
+    "sha256": "b623006c1b99b1a5d33a27298b30bbb0e3b3034d9d2678c19a168fd0badcf326"
+  },
+  {
+    "path": "Sources/SevraCore/BusinessEventDerivation.swift",
+    "lines": 172,
+    "sha256": "a5ae6c09ef7247e47beff07680ad65bcfe480e9ebd8a01a0cdaaaa3da9f97c39"
+  },
+  {
+    "path": "Sources/SevraCore/BusinessEventPublication.swift",
+    "lines": 81,
+    "sha256": "964d984fa5a35d555eee83db1e4dfd925a605d0540857d81623ebf56b15c4169"
+  },
+  {
+    "path": "Sources/SevraCore/BusinessInputCapture.swift",
+    "lines": 165,
+    "sha256": "a6af8e9b87f7e58c0289b36568b982c2ca5dad15ed73bd5ab7eaa77a54cd7328"
+  },
+  {
+    "path": "Sources/SevraCore/BusinessOriginProducers.swift",
+    "lines": 195,
+    "sha256": "91f88241ef9283a577676ee15420d44e2e4e9e3384e7d2d106bfd8967e168145"
+  },
+  {
+    "path": "Sources/SevraCore/BusinessOrigins.swift",
+    "lines": 167,
+    "sha256": "3c7686770210ec3ce73bc9dba8752bf445ae30b5d0b89097a917e09fc4ec3944"
+  },
+  {
+    "path": "Sources/SevraCore/Calculations.swift",
+    "lines": 345,
+    "sha256": "725dc88968aee6a7fb000353c11ff30e114652d033287e1a99da0d9eee826ae7"
+  },
+  {
+    "path": "Sources/SevraCore/CalendarSchedule.swift",
+    "lines": 241,
+    "sha256": "9f077ec0abc9028da47327fecc3db57ab3aa75d94a04dd7296ec579dfb58d5be"
+  },
+  {
+    "path": "Sources/SevraCore/ChangeApply.swift",
+    "lines": 227,
+    "sha256": "dfd545b68c6834b9cd124e91ae5e3aed5e1f65c70b6f438039ed7e7d195ae217"
+  },
+  {
+    "path": "Sources/SevraCore/ChangeCapture.swift",
+    "lines": 278,
+    "sha256": "af606fbdeeb9346e6d25bc102f4bde72c75467bb58247607706392a0f75a06e3"
+  },
+  {
+    "path": "Sources/SevraCore/ChangeVerification.swift",
+    "lines": 62,
+    "sha256": "2b87c6bd05d29d9cc0093530a94b6a8690156e91ce49baaece0f873eedf270f1"
+  },
+  {
+    "path": "Sources/SevraCore/CheckpointPublicationProbe.swift",
+    "lines": 9,
+    "sha256": "c1c2fbb9118a0e52374bafd02ee7f5cd3212120147016bc95c56c6ca36a3b065"
+  },
+  {
+    "path": "Sources/SevraCore/CitationVersions.swift",
+    "lines": 46,
+    "sha256": "1ac5e8cd99cd3da85c8c24398c8fe934cbf2e40e64f82e471c0183a13e9a94eb"
+  },
+  {
+    "path": "Sources/SevraCore/CommittedChange.swift",
+    "lines": 127,
+    "sha256": "ce67db7e66b36da86eec4fbfab544c43d9c2d0cf4b5a2e956b45c20c39b8fb11"
+  },
+  {
+    "path": "Sources/SevraCore/Comparisons.swift",
+    "lines": 44,
+    "sha256": "2f907dc1387a6de33d1780f8aa93f53516549e3b52f526077dd379af40792e9a"
+  },
+  {
+    "path": "Sources/SevraCore/ComponentData.swift",
+    "lines": 164,
+    "sha256": "112655945233502fe133fbfe0913842052ce8f9dc672a94f60bb585ce3c9d845"
+  },
+  {
+    "path": "Sources/SevraCore/ConditionAutomationAuthorization.swift",
+    "lines": 172,
+    "sha256": "316a68c0ce378c800e7b8e31497064d42dd325590dc18fbfca820169ca416573"
+  },
+  {
+    "path": "Sources/SevraCore/ConditionAutomationDispatch.swift",
+    "lines": 159,
+    "sha256": "353eee8a3aa36a4ee3a8d99ccb3bd65884c25c4f046e6b6f78f294bc1f0eb401"
+  },
+  {
+    "path": "Sources/SevraCore/ConditionAutomationIntegrity.swift",
+    "lines": 143,
+    "sha256": "fcc0f76a336c2d488c809369ad68511923ea4ab4c4a8bca9f44883217d2534be"
+  },
+  {
+    "path": "Sources/SevraCore/ConditionAutomationPolling.swift",
+    "lines": 83,
+    "sha256": "dac27a84a0781dbfdb9a00974d8402e34a13a59b182135880967b508debf3583"
+  },
+  {
+    "path": "Sources/SevraCore/ConditionBusinessOrigins.swift",
+    "lines": 102,
+    "sha256": "795a8ebd2a3e81714e379612446b138f59bfcfbbfedfb6926618d72186d2cf9f"
+  },
+  {
+    "path": "Sources/SevraCore/ConditionCauses.swift",
+    "lines": 136,
+    "sha256": "d09ccb422dbf54f56f20c1826d1c31dedafb0c55e824752711096033fd90ddea"
+  },
+  {
+    "path": "Sources/SevraCore/ConditionInputCapture.swift",
+    "lines": 147,
+    "sha256": "9196fcf139652b06e5cb3f189f9156eb8e8cf2f680e21805c1321ca9ad0c4533"
+  },
+  {
+    "path": "Sources/SevraCore/ConditionInputInspection.swift",
+    "lines": 153,
+    "sha256": "0b40e84a0babe806e1e3fcac2ee7bb0baad400240e00e49bd646c6f11a959466"
+  },
+  {
+    "path": "Sources/SevraCore/ConditionTransitions.swift",
+    "lines": 165,
+    "sha256": "8bc8a770315e1bb2feb223d110936223d4d1312b29e2d4f861ade886f4915328"
+  },
+  {
+    "path": "Sources/SevraCore/ContextualIntake.swift",
+    "lines": 352,
+    "sha256": "58b7f641f4ed29992e72d8e27ad3169d402d7c184b99a1153b2177a7b8f68d56"
+  },
+  {
+    "path": "Sources/SevraCore/ContinuationEvidence.swift",
+    "lines": 129,
+    "sha256": "39382931fecb8826e08d55ba39aca4592b46c033e4ef86e103ba7bdc91b4c78b"
+  },
+  {
+    "path": "Sources/SevraCore/ContinuationState.swift",
+    "lines": 214,
+    "sha256": "8c8be87bfc7d978020587d7f0ddb195915bb5657d878a3e087eeb8a937be68bc"
+  },
+  {
+    "path": "Sources/SevraCore/ConversationActions.swift",
+    "lines": 179,
+    "sha256": "a3ce3947a9ec274dcec3be383bf29b649d0334a86439e2e40cbe43e02067c506"
+  },
+  {
+    "path": "Sources/SevraCore/ConversationCommand.swift",
+    "lines": 62,
+    "sha256": "14ab4ee4395c175dd8fd818cb429bd1afe551e852f0d26550f53afe4eec8b1d8"
+  },
+  {
+    "path": "Sources/SevraCore/ConversationContext.swift",
+    "lines": 407,
+    "sha256": "a823fcdae8733ddf82ff23d5449c4997ae3db2758d6a82e0b0bb0f5f6d2054d7"
+  },
+  {
+    "path": "Sources/SevraCore/ConversationNavigation.swift",
+    "lines": 195,
+    "sha256": "ae84b748088c9c2fdc0293d4dd4a9a206458beeac267f2594b301960001b9f78"
+  },
+  {
+    "path": "Sources/SevraCore/ConversationViewState.swift",
+    "lines": 123,
+    "sha256": "c0806e57ff8789920a4cce7e9d6dd42b214123bc314cbdc7ca207bfac9315731"
+  },
+  {
+    "path": "Sources/SevraCore/Database.swift",
+    "lines": 215,
+    "sha256": "163bc02edea67b4a07f3a921996c840f8bf79bccddf903d26f838cb7dd26a4d3"
+  },
+  {
+    "path": "Sources/SevraCore/DatasetDefinitions.swift",
+    "lines": 271,
+    "sha256": "c209922e867046e28e75574e70b6c7e8674ca8721641f62c8d55120263ea36e0"
+  },
+  {
+    "path": "Sources/SevraCore/DatasetPerformanceIndexes.swift",
+    "lines": 225,
+    "sha256": "7e5836eecc44a9eb16e3c3ca499023ed703c8b5ca2228dbe0e8a0fc5309e4ace"
+  },
+  {
+    "path": "Sources/SevraCore/DatasetQuery.swift",
+    "lines": 170,
+    "sha256": "bf2c11b1f31221f921af2d726c0321bddf13398e51dd052d0c86884860bb41ef"
+  },
+  {
+    "path": "Sources/SevraCore/DatasetQueryCompiler.swift",
+    "lines": 187,
+    "sha256": "18619abf06438fd30c7469e9d74648d6c256d4f1adb4603e3a321b48188749b8"
+  },
+  {
+    "path": "Sources/SevraCore/DatasetQueryExecution.swift",
+    "lines": 130,
+    "sha256": "2f6763c984679a13e104ca1e75b9ecb240fd959c1de1a2345f00b2eb3214629d"
+  },
+  {
+    "path": "Sources/SevraCore/DatasetQueryFunctions.swift",
+    "lines": 201,
+    "sha256": "78b8c69192542b5dd14e7110a7bd0854acfe75c10594ed0d6cb69dde6e56cc7b"
+  },
+  {
+    "path": "Sources/SevraCore/DecisionAttribution.swift",
+    "lines": 36,
+    "sha256": "2ba9457aeb097df512f27491bf54b1428e166c9062444f67c179c113cf356871"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionAutomation.swift",
+    "lines": 139,
+    "sha256": "4b7214eb63f864c748044c748086a35fdc8e6f422ea65baf20f52db093cb1b8b"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionComponents.swift",
+    "lines": 165,
+    "sha256": "6748e44fb7825c3273b393d1d9c8b9fe213fa4e8f064c2b83899598f3ce8001d"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionDiscovery.swift",
+    "lines": 269,
+    "sha256": "72ffc460dbe2dac2b9fa753965bce31042fed06e8ec2deb5685f0724cf8224a7"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionEvaluation.swift",
+    "lines": 75,
+    "sha256": "f7cd96a23d2897317f4aaa7b38d2402d825918d74119511f466da522f6b5b5a7"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionExtraction.swift",
+    "lines": 22,
+    "sha256": "3cf5feaa54e0a32fe26ef178cf92024acc4a37e49771c350e768084b8c41c4ec"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionFunctions.swift",
+    "lines": 267,
+    "sha256": "754e7cab80b11b128406ef1aa46af84dd2d94442af0f7365cf87498ed63e1569"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionInputIssues.swift",
+    "lines": 74,
+    "sha256": "c70f61334b3ea7645a3d58706a021d89a096af15ba45522f88a8ed3f043424c8"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionIntake.swift",
+    "lines": 90,
+    "sha256": "f133bcf11797f52af8c68913251fb1467c24ca802fef8d00d36bd9513ef4fdfd"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionInterpretation.swift",
+    "lines": 210,
+    "sha256": "fde0a833299e29ddda25129d2507a56112cd04c999f890eb326b10c2c945830f"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionPublication.swift",
+    "lines": 181,
+    "sha256": "1ac5d71afcd77a8a2d6aa6a650eda9d1a8ed69be190b536ba702f8823122e80d"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionQueries.swift",
+    "lines": 107,
+    "sha256": "9c9d4c0b068076c0efcb655ac60292c8c91521992c6f08eaaac50315836eb8eb"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionResultTools.swift",
+    "lines": 66,
+    "sha256": "f23f20de1323a8569e4325edf02a405e8f1a808b21e999f1b661c3c5b120efe7"
+  },
+  {
+    "path": "Sources/SevraCore/DefinitionTools.swift",
+    "lines": 510,
+    "sha256": "f0a2a5a6bf3534823a7aca79a00e03d50d1fe7b742a0a0d39cbcb37b88623975"
+  },
+  {
+    "path": "Sources/SevraCore/Demo.swift",
+    "lines": 60,
+    "sha256": "3fdf19dbc1e68dc64a00c4dcebcc5aa5db86c05bf4508fc4fee35659bd5a65b2"
+  },
+  {
+    "path": "Sources/SevraCore/DocumentComposition.swift",
+    "lines": 346,
+    "sha256": "ec33e496136d5afe15fc7c62d6322290b50a24479370502669ab7b2bea69a884"
+  },
+  {
+    "path": "Sources/SevraCore/DocumentCopyChoices.swift",
+    "lines": 138,
+    "sha256": "b8b034b32171ff4cbb4427eeb88a50ea0d51d26bf9b06c8d94db00f2edd7dab9"
+  },
+  {
+    "path": "Sources/SevraCore/Documents.swift",
+    "lines": 86,
+    "sha256": "681d3ae24d0e28fea68041dbb65bc8ae96ced8f840440b8276f85b275f0fc914"
+  },
+  {
+    "path": "Sources/SevraCore/DraftWithdrawal.swift",
+    "lines": 48,
+    "sha256": "5376115d57968a03c7f2a7fd4af4c90bd3be2dbf4c1607011830bd4d8149d6a4"
+  },
+  {
+    "path": "Sources/SevraCore/Events.swift",
+    "lines": 350,
+    "sha256": "6c23d4742eee834a7a9d6926a6aea166dc2e75230b4a4f9fb904be88ed9c4330"
+  },
+  {
+    "path": "Sources/SevraCore/ExcelBehavior.swift",
+    "lines": 173,
+    "sha256": "e55d789c3892edcf2fc6fc4f410bdaa916301ca95280d5c3722e5ecac454c539"
+  },
+  {
+    "path": "Sources/SevraCore/ExcelBehaviorData.swift",
+    "lines": 232,
+    "sha256": "9596600dd6742b2778078ab291a7fdc89e0fc847233b2662f1d3591a64b35eb8"
+  },
+  {
+    "path": "Sources/SevraCore/ExcelComparison.swift",
+    "lines": 288,
+    "sha256": "7f82e5be2be10a108e79fc0a1e1e0d274d56a09adf03e717ca888572e30010a8"
+  },
+  {
+    "path": "Sources/SevraCore/ExcelConversion.swift",
+    "lines": 552,
+    "sha256": "39c397c8dd6d3a7e55ffbbcb1425bbc325110c3ae3246a02a92649590967f821"
+  },
+  {
+    "path": "Sources/SevraCore/ExcelConversionEvidence.swift",
+    "lines": 152,
+    "sha256": "bcc562c9ae6771b956d6eb34aca8fe0268aa43306febbec0eae88ad1eb58043d"
+  },
+  {
+    "path": "Sources/SevraCore/ExcelEvidence.swift",
+    "lines": 98,
+    "sha256": "a1006d79a813c92b925dec19b66bf31d89e64e15051ec71bf0a617d81482a6d9"
+  },
+  {
+    "path": "Sources/SevraCore/ExtractedText.swift",
+    "lines": 56,
+    "sha256": "1709a608648debdbf81eb285d78f8fe8a56b079760cfeb3d03986575f0818a94"
+  },
+  {
+    "path": "Sources/SevraCore/ExtractionWorker.swift",
+    "lines": 386,
+    "sha256": "042b09eebb8b6d299cd9b5aa08ec4b6edfc9a4345ebe3a5b0247aa836562ce18"
+  },
+  {
+    "path": "Sources/SevraCore/Extractor.swift",
+    "lines": 422,
+    "sha256": "541c665896eaee6646af26199454a19507dfb9ea40b49e5395d436329beac265"
+  },
+  {
+    "path": "Sources/SevraCore/FileReferenceQueries.swift",
+    "lines": 127,
+    "sha256": "1163a0d902de55662ea8bdc96c1030a26dd19c21bd92c2ca0d0e1460b222d42c"
+  },
+  {
+    "path": "Sources/SevraCore/FileReferenceVerification.swift",
+    "lines": 235,
+    "sha256": "e73d93df1636da0b1df127b90d59cb1692a95d7d1152600d0bc6e193f80aabc5"
+  },
+  {
+    "path": "Sources/SevraCore/FileReferenceWrites.swift",
+    "lines": 225,
+    "sha256": "708d5bde703dd98f6aa386a7e5510dd6dff861605340df45e1b131a0354893a8"
+  },
+  {
+    "path": "Sources/SevraCore/FileReferences.swift",
+    "lines": 254,
+    "sha256": "d9beefc6b57fe2c5f10ecc7a3bfc58b775f2d06119d2a74352c8d1b8c24d780b"
+  },
+  {
+    "path": "Sources/SevraCore/FixtureContext.swift",
+    "lines": 27,
+    "sha256": "4dc1c4dd31bc903e84287026f06ef4200e69c7fb7202d52fd40b8555d89fd817"
+  },
+  {
+    "path": "Sources/SevraCore/FolderIntake.swift",
+    "lines": 100,
+    "sha256": "e4357d37d45036d9902c103907c7694d22c59ea2e7bf6b533e1e7970a45d5045"
+  },
+  {
+    "path": "Sources/SevraCore/FormDrafts.swift",
+    "lines": 266,
+    "sha256": "ca1e540a577e43fc8353535b83f9277bd9a9323182aa53f0634e3bc4832e7e54"
+  },
+  {
+    "path": "Sources/SevraCore/HandoffEvidence.swift",
+    "lines": 76,
+    "sha256": "7d07c8149fabd189fe84059f8ae8fe07e7c8735bbe5124168278e5e0d2dfc095"
+  },
+  {
+    "path": "Sources/SevraCore/ImageDescription.swift",
+    "lines": 59,
+    "sha256": "19abb46cf0186337c39ad2d405b3ff423146eb059bf2e960bdd1d2722f4d0069"
+  },
+  {
+    "path": "Sources/SevraCore/InlineReferenceParser.swift",
+    "lines": 536,
+    "sha256": "f8b00a9f70441fb31de6de0c455e09ae4ba49d43311ce08615fd2a2780e8495d"
+  },
+  {
+    "path": "Sources/SevraCore/Intake.swift",
+    "lines": 233,
+    "sha256": "4750c9f4401eb3750aa55029f45656979757f38c63364b39dadd7d511a14549d"
+  },
+  {
+    "path": "Sources/SevraCore/InventoryAutomationTemplate.swift",
+    "lines": 39,
+    "sha256": "fbe53ad7ce53c1b7695ac87e614b81c7190145d15308716382d4dce78905d3e8"
+  },
+  {
+    "path": "Sources/SevraCore/InventoryConditionConsumer.swift",
+    "lines": 276,
+    "sha256": "9bf693fedf56c68e4df53f24690239d40686431f30fad3177f3608a20baaa953"
+  },
+  {
+    "path": "Sources/SevraCore/InventoryConditionEffects.swift",
+    "lines": 80,
+    "sha256": "4df86ddb4cc2037cae403476fe8152451a1de1c293a9949eaf1ae80a52845d16"
+  },
+  {
+    "path": "Sources/SevraCore/InventoryConditionEngine.swift",
+    "lines": 284,
+    "sha256": "609f1c41f271046695cb30ccfe919aa2dee5fa9a5d0d87b2385c9f56d22487c6"
+  },
+  {
+    "path": "Sources/SevraCore/InventoryEventState.swift",
+    "lines": 132,
+    "sha256": "dd3e5aea5211b877c0a7367ffd6f08007d48cacbf6f6cd954d18268d3a68281b"
+  },
+  {
+    "path": "Sources/SevraCore/ItemDerivation.swift",
+    "lines": 188,
+    "sha256": "fb2e8bb444537aa59ffaeacdf069488a77cc80510f2edd97c38b13e441e43858"
+  },
+  {
+    "path": "Sources/SevraCore/JobTemplate.swift",
+    "lines": 90,
+    "sha256": "aa606e1e69812b37715fbeaf2e91ee2d39bd85d8ca192c731f66fb25608c0064"
+  },
+  {
+    "path": "Sources/SevraCore/ManagedDatasetRows.swift",
+    "lines": 278,
+    "sha256": "d2a31e9e8dcc8db2c73e498d0ad068269a620e0437ddef82e262077cccc63417"
+  },
+  {
+    "path": "Sources/SevraCore/ManagedDatasetSchema.swift",
+    "lines": 152,
+    "sha256": "984e5de231350ba8ebb946ddc2201c1bc3954435b85fe722537602528a03dfa3"
+  },
+  {
+    "path": "Sources/SevraCore/NativeAppAuthoring.swift",
+    "lines": 264,
+    "sha256": "7525c9516b7f0e868685c592cf8622d57c9753c2d51493fd2b1331b12b62f8d4"
+  },
+  {
+    "path": "Sources/SevraCore/NativeAppData.swift",
+    "lines": 277,
+    "sha256": "faca0b62d695446348b545da73ca02fb20bfd2856396fd96bc9ec294fcadec46"
+  },
+  {
+    "path": "Sources/SevraCore/NativeAppPackage.swift",
+    "lines": 276,
+    "sha256": "447e02ddf9d6f48b8bc312e8fbe3ead8fa2c2388a0f3fb23dfde1c936e943b61"
+  },
+  {
+    "path": "Sources/SevraCore/ProposalReview.swift",
+    "lines": 63,
+    "sha256": "99fb25ee8cc7252960b4ff2633ffbb8e48ab07afc553ea46a65d55ab240707e6"
+  },
+  {
+    "path": "Sources/SevraCore/ReadSnapshots.swift",
+    "lines": 15,
+    "sha256": "3329bfe504183ff269dacf4d4d3619e66bfae4d0f1299bafaebde2e3e49aba50"
+  },
+  {
+    "path": "Sources/SevraCore/Reconstruction.swift",
+    "lines": 103,
+    "sha256": "4ca7c3f1fb20a5aeaa875e581ede79e645b67383d53b3bc595aa0d394b41d5ad"
+  },
+  {
+    "path": "Sources/SevraCore/RecordCount.swift",
+    "lines": 57,
+    "sha256": "6da45afadc39484791027eaad0c8afb0dfee4b29ffcf507555d8b2fcff9878a8"
+  },
+  {
+    "path": "Sources/SevraCore/ReferenceIndex.swift",
+    "lines": 184,
+    "sha256": "d3d66345a8dcc4f27bee3d55f31c5a9c1629c7810389b703c74981d904f2f96f"
+  },
+  {
+    "path": "Sources/SevraCore/ReferenceQueries.swift",
+    "lines": 285,
+    "sha256": "0edaf4dbbf9b94d986f7758b134a7eb17438657cc76556d67c3627749e2480b1"
+  },
+  {
+    "path": "Sources/SevraCore/ReferenceWrites.swift",
+    "lines": 342,
+    "sha256": "e73009805f9847b8ca2efedfb5ea659fdceab1d4acfed76dc70f98f1762a37f0"
+  },
+  {
+    "path": "Sources/SevraCore/References.swift",
+    "lines": 276,
+    "sha256": "ba0e0bed2a07fce0470f214897c18230b6d4589e9855e3cd9faa8ec1e5a1a26d"
+  },
+  {
+    "path": "Sources/SevraCore/RequestActivity.swift",
+    "lines": 118,
+    "sha256": "590db349e8b38b07da53f41fa54a7e968a1b3f4faca2ddf732bbf79bb674f086"
+  },
+  {
+    "path": "Sources/SevraCore/RequestEvidence.swift",
+    "lines": 108,
+    "sha256": "cc21438494636a05d12952c28a45e3a88478e0986465df8a0a118cb857a520ff"
+  },
+  {
+    "path": "Sources/SevraCore/RequestHandoff.swift",
+    "lines": 187,
+    "sha256": "5651f729845df61afa4cee4501b68d6295ecdef51440b9d96dd1e63ed7b2a1e2"
+  },
+  {
+    "path": "Sources/SevraCore/ReviewQueue.swift",
+    "lines": 79,
+    "sha256": "0dc93a00cc6a01eae4873e8764141b1ca148205d40c3b8acb4b1b92d153b5dfd"
+  },
+  {
+    "path": "Sources/SevraCore/Runs.swift",
+    "lines": 139,
+    "sha256": "1288ec64d94aadb451b0e89de312a3f4dff52fbe6652b1a3322fe25a12005d4b"
+  },
+  {
+    "path": "Sources/SevraCore/Schema.swift",
+    "lines": 166,
+    "sha256": "77d4223bf4e00d8d9b0a937834aaa7679a29bbbc537b7277776aad6be5d3855c"
+  },
+  {
+    "path": "Sources/SevraCore/Search.swift",
+    "lines": 325,
+    "sha256": "46c7548f5722445d564f8d83abfdf3b49ccf7ed946aac6390e8f579d18be1b8b"
+  },
+  {
+    "path": "Sources/SevraCore/SheetFormula.swift",
+    "lines": 575,
+    "sha256": "802a42527a92a4fc6b3b09c41180d7657042e6181eaf3920208c892520262bd6"
+  },
+  {
+    "path": "Sources/SevraCore/SheetFormulaPlan.swift",
+    "lines": 631,
+    "sha256": "2049d42f30c4ce812d26a202b882a53d7de02b7acd24d93b06f8f77d39120f22"
+  },
+  {
+    "path": "Sources/SevraCore/SpaceEditing.swift",
+    "lines": 357,
+    "sha256": "1ddf490c9d9de6154d8f6a3a56de0bd46be2465e2028df6f2b39d9f6cae078f8"
+  },
+  {
+    "path": "Sources/SevraCore/SpaceNavigationState.swift",
+    "lines": 84,
+    "sha256": "bfbcb0ed552b0762059e648503d4649af499126864d84f3da4227069f58d42ce"
+  },
+  {
+    "path": "Sources/SevraCore/SpaceTarget.swift",
+    "lines": 70,
+    "sha256": "a383bcd6491fb57f31ee9d636e2fc04c0aeffe69d7634218464b0a612270c937"
+  },
+  {
+    "path": "Sources/SevraCore/Spaces.swift",
+    "lines": 419,
+    "sha256": "218f0e81c21c8d211f6e1fee556b8360e34333f0bb3cfee5c5fc3b5b6ce7a884"
+  },
+  {
+    "path": "Sources/SevraCore/StructuredResult.swift",
+    "lines": 85,
+    "sha256": "c7ea5566d9a0347a67bb8dd24cb2d8a39c94bc8f6132b6aa3c94db488714abf0"
+  },
+  {
+    "path": "Sources/SevraCore/TableIntake.swift",
+    "lines": 509,
+    "sha256": "9bfffb83bd2554624723e5d9cfec76f1c57e0e5b997cf880f97c5c522eb4046f"
+  },
+  {
+    "path": "Sources/SevraCore/TableIntakePublication.swift",
+    "lines": 251,
+    "sha256": "2674b5a948cf6c25236ee8c97893020285d54c76fd85125ce05e1657ea8fd19a"
+  },
+  {
+    "path": "Sources/SevraCore/TableIntakeUndo.swift",
+    "lines": 82,
+    "sha256": "262e4f3f837f062bcf6136fa3492dffe150058317e4b35dc0b45c8c471ff3081"
+  },
+  {
+    "path": "Sources/SevraCore/TableProposals.swift",
+    "lines": 77,
+    "sha256": "973b5413718ec0622e34354096e73f389b5b7c0ede8b0bf1880ee6fe1e9631a7"
+  },
+  {
+    "path": "Sources/SevraCore/TableUpdateReview.swift",
+    "lines": 162,
+    "sha256": "6dc27d970c070eef3aa409e15c105e9c5443711bde65aa263dedcd722e6c5190"
+  },
+  {
+    "path": "Sources/SevraCore/Tables.swift",
+    "lines": 896,
+    "sha256": "6c5084fe50da740686555cf8d147b378e1256060b4428fffde18734eaa37889f"
+  },
+  {
+    "path": "Sources/SevraCore/ToolReceipts.swift",
+    "lines": 391,
+    "sha256": "9e83e3de412bdce18f5717200555228310ea79350a2319a51eb47ce270971426"
+  },
+  {
+    "path": "Sources/SevraCore/Tools.swift",
+    "lines": 579,
+    "sha256": "3347b5305f9faa0ec6a5530f21c79e42a2d74ed3357b8603e22b26caa7378689"
+  },
+  {
+    "path": "Sources/SevraCore/Transcription.swift",
+    "lines": 267,
+    "sha256": "7d3dc2c730211cf6c8ba7071fcebb5f587adeadfef360fabab66b05c60538feb"
+  },
+  {
+    "path": "Sources/SevraCore/Types.swift",
+    "lines": 313,
+    "sha256": "a0cfb1ed5b3586d81b88bbe5d330d895e0f8f14a0563fe369338cda4e9e794bc"
+  },
+  {
+    "path": "Sources/SevraCore/URLCapture.swift",
+    "lines": 254,
+    "sha256": "a2fc98713dd2b5c3e260df2d991aa5e7850c3449c95dc1dfd3cc9b0d2322e480"
+  },
+  {
+    "path": "Sources/SevraCore/VBASource.swift",
+    "lines": 260,
+    "sha256": "f49c1a2c82437b0945f314014fc3904dddc0db75a695e8082d4cd17236e96eae"
+  },
+  {
+    "path": "Sources/SevraCore/Workbook.swift",
+    "lines": 510,
+    "sha256": "4e8681cf3145ad5a01f4fd20aaa7bf99f90d6c1a0c61dbaccf1dbb31a1a732a1"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowActivity.swift",
+    "lines": 172,
+    "sha256": "2733ded489ce678282289de939e55751e1282f25cf27187c6742f6d45177fb8c"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowAnswerConfirmation.swift",
+    "lines": 212,
+    "sha256": "31f1fb070c74eed939b5209facc45d7b88ae9bdf36870a7cb2ed2d956bebb9ca"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowAnswerPreparation.swift",
+    "lines": 143,
+    "sha256": "a98f7cfa148c73e013236361fcf101be14141ac5a2b221d6e3ca390ac9dfdff4"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowClaims.swift",
+    "lines": 289,
+    "sha256": "3dfbe815c0c7ef7503f761f58584d3c49f9ad2c3fee2cbb312b8d85aeb5d5f31"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowClarification.swift",
+    "lines": 276,
+    "sha256": "8d98f72a9d7ae447cb825e17944a73e743e3f3c324123ba77af799c21c5b8b20"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowClarificationDraft.swift",
+    "lines": 345,
+    "sha256": "b1a537e855c4a40047c1d1d476b5c5c415776320e8969f7c92e05b69694ba0d1"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowDefinition.swift",
+    "lines": 354,
+    "sha256": "9cd6f0978ef2056c7c2c0908fda860cc2883fb7d6979ad1a10fa6fcaf48a6def"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowExecution.swift",
+    "lines": 352,
+    "sha256": "17ba88bbbe7ab775894f8c140741665bf6a0e9c8d1911b3b8ada89f1b0ba2120"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowExtraction.swift",
+    "lines": 185,
+    "sha256": "10eb1f084453e42a9da1bf451311a430af98bca5e52083c2a70f048638b9035c"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowForms.swift",
+    "lines": 87,
+    "sha256": "44f7e397f56d4a4846d1c36a13ecaf1e0eb5cc8b4d81d74a62271818b458f576"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowIntake.swift",
+    "lines": 263,
+    "sha256": "5f483259b1ef935ede68f2717b5812bc23bd840f90a284b4b2cd2fac4f8b8df2"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowIntegrity.swift",
+    "lines": 157,
+    "sha256": "e48546314091ca19e68af8ffa9726f70c94a74956ee19af6b7fdd1185460b59e"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowInterpretation.swift",
+    "lines": 262,
+    "sha256": "3061193b36ad892a45d38c8f481df142c6705a119d88ff694f9b676e6c1ab2d4"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowLookup.swift",
+    "lines": 56,
+    "sha256": "d2a6d213749d8b900cabd8ae109c9404c1c8ecd1f3222f224414767533fe3714"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowPublicationProbe.swift",
+    "lines": 9,
+    "sha256": "2b0833aa70426e882cd183840d8c00bbff5d494fb3b868a6b43f3352da375e75"
+  },
+  {
+    "path": "Sources/SevraCore/WorkflowRuns.swift",
+    "lines": 268,
+    "sha256": "12bf5d7e5244085b34262811e03a116851ee2949dbe891c17fca3d0feb439fcb"
+  },
+  {
+    "path": "Sources/SevraCore/WorkspaceSnapshot.swift",
+    "lines": 71,
+    "sha256": "b9ce4b6a54d9cd8868118a0d87f923afa9a549f923e56d04f389f7405374b3db"
+  },
+  {
+    "path": "Sources/SevraCore/XLSX.swift",
+    "lines": 653,
+    "sha256": "54d6787fa357f3bc53ae7e329beaa47fba508375f0643eaee146704c9ea77a58"
+  },
+  {
+    "path": "Sources/SevraDocumentUI/DocumentCloseGuard.swift",
+    "lines": 65,
+    "sha256": "73db1c790276378b4ade0d5d4e53e2d9519ff52837c0e36dfbf47f398d319a6c"
+  },
+  {
+    "path": "Sources/SevraDocumentUI/DocumentDraft.swift",
+    "lines": 221,
+    "sha256": "c8b621e7116fd6ec568b67da677338be6083c60af8e04e1b78971122d9ee13b1"
+  },
+  {
+    "path": "Sources/SevraDocumentUI/DocumentProvenance.swift",
+    "lines": 49,
+    "sha256": "66fa55b4ca764869d012a9a9a50368da28f169ac1fb7e9ab3912ed83dddfbae1"
+  },
+  {
+    "path": "Sources/SevraDocumentUI/DocumentReadingPosition.swift",
+    "lines": 129,
+    "sha256": "e7e073d0ab547a32c0ffb9750861b00c501b4cfe1eb71fffeb87d692b2bd5aa4"
+  },
+  {
+    "path": "Sources/SevraDocumentUI/PDFMatchSearch.swift",
+    "lines": 49,
+    "sha256": "853c7ff28281c5705d853be9d9131d15c4c28a582448c658a0341ff89c5206ce"
+  },
+  {
+    "path": "Sources/SevraDocumentUI/PDFReadingNavigation.swift",
+    "lines": 32,
+    "sha256": "f9978fe68c6efccca326d69c33d4296cf927e2610f08689daa512713c6c96c56"
+  },
+  {
+    "path": "Sources/SevraDocumentUI/ReferenceBrowserSession.swift",
+    "lines": 109,
+    "sha256": "b4bb031dabb65bb5ba37a05cbab6947e8ae5695e03cefab4d4cf8a9bd8745708"
+  },
+  {
+    "path": "Sources/SevraDocumentUI/ReferenceDocument.swift",
+    "lines": 143,
+    "sha256": "62b23f33034a5dcbdc359f907f2151ff9fdd1f913508c2161fff5392a404dc7b"
+  },
+  {
+    "path": "Sources/SevraDocumentUI/ReferencePresentation.swift",
+    "lines": 92,
+    "sha256": "4e0eb407288071ed415e433c0593ea1ac6fcfa9bd3c938f5b7bd24606be16c83"
+  },
+  {
+    "path": "Sources/SevraExtractionWorker/ExcelBehaviorRuntime.swift",
+    "lines": 75,
+    "sha256": "c94fb1b505f9d082ed387edeb4a1144e3e1507e697ec85a1ed41dd64eb558b47"
+  },
+  {
+    "path": "Sources/SevraExtractionWorker/Worker.swift",
+    "lines": 5,
+    "sha256": "0463a1e731a5238f2d9fda8457edb7e5eeb4ceac9a1005f59995e7d93f2b475c"
+  },
+  {
+    "path": "Sources/SevraNativeAI/NativeCitationPolicy.swift",
+    "lines": 60,
+    "sha256": "2bfc18c9a123f73fa7deebc0010669bfb6dc3b814aeafa93318673230ae9bc9f"
+  },
+  {
+    "path": "Sources/SevraNativeAI/NativeReasoning.swift",
+    "lines": 29,
+    "sha256": "d6e3c4d75fca8e019d0c0378d025a6b944172b3117222713f3aefedbc8e9e48a"
+  },
+  {
+    "path": "Sources/SevraNativeAI/NativeWorkbookModel.swift",
+    "lines": 693,
+    "sha256": "8dc0ed3414a84177e1fd73f500c204f616f2010bcf36198876d3e9d2873b9e24"
+  },
+  {
+    "path": "Sources/SevraNativeSetup/main.swift",
+    "lines": 64,
+    "sha256": "168a79f812b08c355363e3b9d1bd4022e60661a457b14188da12d8c00ca01a8e"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/AccessiblePresentation.swift",
+    "lines": 125,
+    "sha256": "d24dc63b7d07627f8ebfb8ede08b6a5587d8796c43f6a9e30ef8aca7cde8385c"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/AssetPreviewSession.swift",
+    "lines": 161,
+    "sha256": "33b85cecd012c2cced6480c96e5edbf5bd67b89bd03d40acb886b54aeecd31b2"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/ComposerInput.swift",
+    "lines": 26,
+    "sha256": "82a7a2a3e3b3c9ee97d71394c12adc98654facb3e099111e91c4f38ff44a07ca"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/ConversationBlocks.swift",
+    "lines": 121,
+    "sha256": "935a1573e969ab0be52e3b7bb780d100658e822fbb984b0790f95604b1119d0c"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/ConversationHistorySearch.swift",
+    "lines": 118,
+    "sha256": "dddbc059eeb1bd50b073759cfe72b2252f2bed9801940dd3008d65396137fcf5"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/ConversationPresentation.swift",
+    "lines": 157,
+    "sha256": "4e413d772cdfc4ecf2f46406a4e04ac570bdd051f47198481ad8949483dedaf3"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/ConversationScrollObserver.swift",
+    "lines": 120,
+    "sha256": "71d6197e580c3b252efc5b6fb530b3c036ad0ac9be1a0dfca887d2cc259ce4f3"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/ConversationSession.swift",
+    "lines": 173,
+    "sha256": "0cabcd3d21e789d134842489da21b197d933c6b0c887b93b8cb8fd8c3000a08a"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/DefinitionResultSession.swift",
+    "lines": 91,
+    "sha256": "5043f45f846ba66b0e616e5714109bd9f0ff90d1a43befb0b4926db1ad747f88"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/DelimitedPreview.swift",
+    "lines": 63,
+    "sha256": "48c7deb30951bc8684fb16eaec9a6655cfdc2cd3f979c9b663bf01c3bff64283"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/FormDraftSession.swift",
+    "lines": 265,
+    "sha256": "6728a31d20e45050096e643cf2700a59e1cdf7975e2aef6abafb92e4c2adeb7d"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/LiveRequestActivity.swift",
+    "lines": 36,
+    "sha256": "4908377232530ba30fb0fc4ab572acff28be4c5c35ac53d4cf2099c67c1fee5c"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/LongTextViews.swift",
+    "lines": 173,
+    "sha256": "37262d2258fc18250252cb33d2e64d48e143b501f40b1c63677c61817d6db494"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/MediaFiles.swift",
+    "lines": 55,
+    "sha256": "e6d4783f361835bfe0a88f62cb974e1d5601e571e8c53421bdabcb0d2815d3e3"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/ReadOnlyTableView.swift",
+    "lines": 655,
+    "sha256": "d386c4bb1372b904dc57c4ecee639b6555d0639e168b986ad49d168908adb6bc"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/RequestContextPresentation.swift",
+    "lines": 48,
+    "sha256": "32932a27b3063fb253ac392a41ec405c47a3c17675def78f0ff5688d1ad1d36d"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/ReviewQueueSession.swift",
+    "lines": 109,
+    "sha256": "692f31de24048026e95c2fec4ff0e9aae647c0378648de331ac789faa35d89e6"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/SpaceNavigationSession.swift",
+    "lines": 98,
+    "sha256": "06e42c6a182b078c902ec28e6aa2c8f26e27c35762ec8d0cd4006b7397b67f74"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/SpacePickerSections.swift",
+    "lines": 29,
+    "sha256": "02eabe8d6ae85dfafff1672a966751fd778908fa16c897de0ac9e570777ae19b"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/StructuredPresentation.swift",
+    "lines": 126,
+    "sha256": "ddc067678b43cd18bb8e908ba84032b7a42b521744d1c57e8d780231b37c07ab"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/WorkflowClarificationSession.swift",
+    "lines": 333,
+    "sha256": "939e7d23862f6a4c1f8873c42c0d37a6adc7e1218f0c04837157c3f99bddc847"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/WorkspaceOperationScope.swift",
+    "lines": 40,
+    "sha256": "2c283e1bd9df0841e976ac69b5e19ad4617f913835fdc86cceb7fcd0f67b8237"
+  },
+  {
+    "path": "Sources/SevraPreviewUI/WorkspaceRefreshSession.swift",
+    "lines": 77,
+    "sha256": "c09c1de18db1e92f84e3b95cd1d65573d58012b494848dc9eb1500ada6d9838f"
+  },
+  {
+    "path": "Sources/SevraProduct/NativeProductResources.swift",
+    "lines": 123,
+    "sha256": "d1f2de0b0041e4cbcaf9066b8e97089c055399fb13e4e6175959869b7d0da32e"
+  },
+  {
+    "path": "Sources/SevraProduct/ProductAI.swift",
+    "lines": 322,
+    "sha256": "a7dbaf3e15322b3d9ba77af8b810e1ab6eb0b3f8533fc723137d45f6912b4874"
+  },
+  {
+    "path": "Sources/SevraSearchUI/SearchSession.swift",
+    "lines": 132,
+    "sha256": "a59f825ecef228886aa5cc432f7096eb242d370533cb80ec3733411236d99c96"
+  },
+  {
+    "path": "Sources/SevraSplash/ModelDownload.swift",
+    "lines": 183,
+    "sha256": "ba809d69b2be605fb60533c6b670daf9caed765d2db64527cea591b32293e195"
+  },
+  {
+    "path": "Sources/SevraSplash/ModelPreparation.swift",
+    "lines": 431,
+    "sha256": "4da6aa9545c0f8b350fb6664b59421fb22167b29155e02d5dc3a9abf861c47c0"
+  },
+  {
+    "path": "Sources/SevraSplash/ModelSetup.swift",
+    "lines": 186,
+    "sha256": "55fae105a73cb9bdbdd3a1f841e72d4319996528f2d5c37ad09155845b16ae52"
+  },
+  {
+    "path": "Sources/SevraSplash/NativeProcess.swift",
+    "lines": 283,
+    "sha256": "966a289f1398a3476da380957f6cc05af6e8a01416f53528d8a57181b80c79a0"
+  },
+  {
+    "path": "Sources/SevraSplash/Resources/selected-model.json",
+    "lines": 161,
+    "sha256": "ae579728d860e4f361e3976910690eb345a489f241e686e8f54d039bfc246b4d"
+  },
+  {
+    "path": "Sources/SevraSplash/RuntimeResources.swift",
+    "lines": 15,
+    "sha256": "0da6f0f40cf513de071ad18be3f23fff37a906485783822c513d27fdfbf8c8a7"
+  },
+  {
+    "path": "Sources/SevraSplash/StreamState.swift",
+    "lines": 82,
+    "sha256": "7b9bfefa306dac739fabcf0f8d316e15dc92315d3994b62a361acfe72416cf35"
+  },
+  {
+    "path": "Sources/SevraSplash/Wire.swift",
+    "lines": 406,
+    "sha256": "a168f401a3480f96dc925ec7e6050d33dbb719a64853826ba7260d153b7a6c52"
+  },
+  {
+    "path": "Sources/SevraSplashGrammar/NativeGrammar.swift",
+    "lines": 283,
+    "sha256": "2a1875d66c040c175808122e9a85feacdb346c45ba407d480a916e350b169767"
+  },
+  {
+    "path": "Sources/SevraSplashGrammar/Resources/json-slices.json",
+    "lines": 6,
+    "sha256": "f33478978e9e32bf4470cbbe9a732a75073cb81b0cf41ca8a420b3594bdc9b9e"
+  },
+  {
+    "path": "Sources/SevraSplashGrammar/ToolPolicy.swift",
+    "lines": 485,
+    "sha256": "2dd6f454de72a958e5108c5932d41fe0dce6cfad37ad953decb6da28eac12166"
+  },
+  {
+    "path": "Sources/SevraSplashText/OutputParser.swift",
+    "lines": 458,
+    "sha256": "b7125685210ac69fcf60d4e70d5a57e0aea4accb81781c484b49c96177d08530"
+  },
+  {
+    "path": "Sources/SevraSplashText/OutputStream.swift",
+    "lines": 48,
+    "sha256": "1a45b34ca0acc51b3ceb26ab4817933706fde23e6662b5513f300328761c137b"
+  },
+  {
+    "path": "Sources/SevraSplashText/Resources/template-patch.json",
+    "lines": 7,
+    "sha256": "6f3ffeb64931a1b3489f5c295cc59c4ce424951d0108baefd5d8454f3b34c395"
+  },
+  {
+    "path": "Sources/SevraSplashText/StreamingDecoder.swift",
+    "lines": 157,
+    "sha256": "e3c5ab02c295be8dbb8a51d79e168d3637e2091fa5d34a59ca75220d6adb0890"
+  },
+  {
+    "path": "Sources/SevraSplashText/TextFrontend.swift",
+    "lines": 403,
+    "sha256": "78acb5eaa98ec5eefde446524b3ba16ddb812706315728184a24ff12df4edb27"
+  },
+  {
+    "path": "Sources/SevraTableUI/ExcelFormulaReportView.swift",
+    "lines": 59,
+    "sha256": "4d9caab1fd56cb5b05ad175ff5fe645b40f0e4f56a8954531c47fced668f9db9"
+  },
+  {
+    "path": "Sources/SevraTableUI/NativeTable.swift",
+    "lines": 450,
+    "sha256": "68784a5e21a2a601fc1023af1e4d1019c664b24022ca08c28e152aea551fb28b"
+  },
+  {
+    "path": "Sources/SevraTableUI/ReadingDecisions.swift",
+    "lines": 101,
+    "sha256": "48e268d2ed6da640d2a67b7ecbb7b58a0b9392a1ff7fcbd8cb23f1b2a8c914b7"
+  },
+  {
+    "path": "Sources/SevraTableUI/ReadingStyle.swift",
+    "lines": 89,
+    "sha256": "040ae0827981835c6ab9d1570b18bdc1cfd50196dd84abda4981b3aaf63d3307"
+  },
+  {
+    "path": "Sources/SevraTableUI/TableClipboard.swift",
+    "lines": 203,
+    "sha256": "4bf21cdbd353c613eeecdf22bbeda6e17323c41f15b78609313442d48cde0518"
+  },
+  {
+    "path": "Sources/SevraTableUI/TablePageLoader.swift",
+    "lines": 79,
+    "sha256": "fb602bd98e31a5a739cff7a812e2b26355d7124e72cd73d6dd96183e51138036"
+  },
+  {
+    "path": "Sources/SevraTableUI/TableUpdateForm.swift",
+    "lines": 146,
+    "sha256": "9b3d4e97d6842bfd35901a97d9a7e6880f917a729f3fcf06c3698125adbc2c16"
+  },
+  {
+    "path": "Sources/SevraTableUI/TableUpdateSession.swift",
+    "lines": 127,
+    "sha256": "aecca4c1ebaabe28414116ab640f1ea86eae14ef6e6edab15ca4a65e8eeb1fa9"
+  },
+  {
+    "path": "Sources/SevraVoice/Dictation.swift",
+    "lines": 145,
+    "sha256": "746eced5f4843ce997dcd92491419e8e32f036245578d3c86b47e64f58243ccd"
+  },
+  {
+    "path": "Sources/SevraVoice/PlaybackRegistry.swift",
+    "lines": 38,
+    "sha256": "f574e94fe093360e1a6829270ea13db1ba5b28afd221cc09d113f48f9569debd"
+  },
+  {
+    "path": "Sources/SevraVoice/SystemDictationDriver.swift",
+    "lines": 78,
+    "sha256": "2586e8b0874d31e2a6a5a0363a1b1853b50531ff9bb42b01b8a51b7382f0b5bd"
+  }
+]

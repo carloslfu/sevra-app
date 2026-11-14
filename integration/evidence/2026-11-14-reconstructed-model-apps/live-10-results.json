@@ -1,0 +1,39 @@
+[
+  {
+    "error": "The model repeated an unsuccessful action. Completed changes and receipts are saved; inspect them before continuing.",
+    "freshModelTrial": true,
+    "name": "Inventory",
+    "passed": false,
+    "plan": {
+      "name": "Inventory Stock Manager",
+      "purpose": "A stock management tool that tracks items, calculates reorder needs, and allows deducting stock via a Ship Stock action. It replaces a VBA macro with a native table and a Ship Stock button that validates and updates quantities.",
+      "questions": [
+        "Should the Ship Stock action apply to the currently selected row in the Records table, or should it deduct from all items?"
+      ],
+      "workflows": [
+        "**Data Entry:** Users add items with 'On hand' and 'Reorder at' values.",
+        "**Calculation:** The system calculates 'To order' as `MAX(Reorder at - On hand, 0)`.",
+        "**Shipping Action:** A 'Ship stock' button prompts for a quantity. The system validates that the quantity is positive and does not exceed the 'On hand' amount. If valid, it deducts the quantity from 'On hand' and recalculates 'To order'."
+      ]
+    },
+    "seconds": 194.07978200912476
+  },
+  {
+    "error": "The model repeated an unsuccessful action. Completed changes and receipts are saved; inspect them before continuing.",
+    "freshModelTrial": true,
+    "name": "Loan",
+    "passed": false,
+    "plan": {
+      "name": "Loan Calculator",
+      "purpose": "A loan calculator that computes monthly payments based on principal, interest rate, and term. The user interacts with a 'Records' table to view and edit loan details, specifically the Principal amount. Calculations update automatically when values change.",
+      "questions": [],
+      "workflows": [
+        "Records Table: A table named 'Records' with columns for Loan Name, Principal, Monthly Rate, Payment, and Months. The user selects a row to edit.",
+        "Principal Input: A designated input cell labeled 'Principal' allows the user to enter or modify the loan amount. This value feeds into the calculation.",
+        "Payment Calculation: The Payment column uses the PMT function (rounded to 2 decimal places) to calculate the monthly payment based on the Principal, Monthly Rate, and Months.",
+        "Save Changes: The user can save the workbook to persist any edits made to the Principal or other fields."
+      ]
+    },
+    "seconds": 265.97230994701385
+  }
+]

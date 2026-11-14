@@ -48,6 +48,11 @@ func refuses(_ code: String? = nil, _ body: () throws -> Void) throws {
   }
   throw SevraError("test", "Expected refusal")
 }
+if CommandLine.arguments.dropFirst() == ["--corrupt-metadata"] {
+  checkCorruptMetadata(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--business-input-death-worker" {
   try businessInputDeathWorker(
     at: URL(fileURLWithPath: CommandLine.arguments[2]), stage: CommandLine.arguments[3])
@@ -1103,7 +1108,8 @@ check("structured import batches by value bytes and reports only committed rows"
     progress: { done, _ in seen.append(done) })
   try expect(seen == [374, 374, 748, 800] && resumed.rowCount == 800)
   try expect(resumed.unfinishedImportTotal == nil)
-  try expect(try book.rows(table.id, offset: 373, limit: 2).map { $0.data["n"].text } == ["373", "374"])
+  try expect(
+    try book.rows(table.id, offset: 373, limit: 2).map { $0.data["n"].text } == ["373", "374"])
 }
 check("multi-sheet XLSX import reports rows across every sheet") {
   let path = temp.appendingPathComponent("Two sheets.xlsx")
@@ -1528,6 +1534,7 @@ check("pinning retries return the original snapshot") {
 checkSpaceSnapshots(at: temp)
 checkAssetPreview(at: temp)
 checkAssetCopies(at: temp)
+checkCorruptMetadata(at: temp)
 checkRecentItems(at: temp)
 checkSearchSnippets(at: temp)
 checkConversationContext(at: temp)

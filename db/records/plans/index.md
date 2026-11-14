@@ -2,11 +2,13 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-13T18:48:10.604395Z
+updated: 2026-11-14T01:12:42.217155Z
 ---
 
 # records/plans
 
+- [[records/plans/app-engine-adversarial-review]] — Multiple-pass review and fixes verified; explicit coverage and unresolved model-generation reliability
+- [[records/plans/excel-application-reconstruction]] — Engine and native reconstruction flow verified; autonomous local-model reliability remains open
 - [[records/plans/single-excel-import]] — Single Excel import and native workflow reconstruction
 - [[records/plans/local-model-native-apps]] — Local model native-app authoring
 - [[records/plans/programmable-native-engine]] — Reviewed architecture and implementation gates for sandboxed JavaScript, reactive native UI, scoped workbook data, packaging and end-to-end verification.

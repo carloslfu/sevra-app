@@ -2,6 +2,7 @@ import Foundation
 import SevraCore
 import SevraProduct
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Conversion context belongs to the native host, so generated code cannot hide its limits.
 @MainActor
@@ -15,8 +16,12 @@ struct ExcelAppOriginView: View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
           VStack(alignment: .leading, spacing: 3) {
             Text("From " + conversion.record.title).readingFont(.caption).lineLimit(2)
-            Text("Macros, external refresh and some Excel behavior do not carry over.")
-              .readingFont(.caption).foregroundStyle(.secondary)
+            Text(
+              conversion.record.data["comparison"]["compared"].int.map {
+                "\($0) saved results compared. See import details for coverage."
+              } ?? "Review the original and the behavior recreated for this workspace."
+            )
+            .readingFont(.caption).foregroundStyle(.secondary)
           }
           Spacer(minLength: 8)
           Button("Import details") { state.navigate(.excelImport(conversion.id)) }.buttonStyle(
@@ -37,6 +42,9 @@ struct ExcelConversionView: View {
   @ObservedObject var state: WorkspaceState
   @State private var conversion: ExcelConversion?
   @State private var failure: String?
+  @State private var exampleAction = "recalculate"
+  @State private var exampleArguments: [String: String] = [:]
+  @State private var availableActions: [ExcelBehavior.Action] = []
 
   var body: some View {
     ScrollView {
@@ -99,6 +107,7 @@ struct ExcelConversionView: View {
             }
           }
           actions(draft)
+          comparison(draft)
           Divider()
           VStack(alignment: .leading, spacing: 12) {
             Text("Worksheets").readingFont(.headline)
@@ -213,7 +222,10 @@ struct ExcelConversionView: View {
         )
         .readingFont(.callout).foregroundStyle(.secondary)
       }
-      if let live = draft.record.data["formulaReport"]["recalculating"].int {
+      if draft.record.data["comparison"]["programDigest"] == .null
+        || draft.record.data["comparison"]["programDigest"] == .string("builtin"),
+        let live = draft.record.data["formulaReport"]["recalculating"].int
+      {
         let saved = draft.record.data["formulaReport"]["saved"].int ?? 0
         Text(formulaSummary(live: live, saved: saved))
           .readingFont(.callout)
@@ -221,7 +233,7 @@ struct ExcelConversionView: View {
       DisclosureGroup("What carries over") {
         VStack(alignment: .leading, spacing: 10) {
           Text(
-            "Data and supported calculations stay in your workbook. Native screens can organize that work; they do not reproduce every Excel feature."
+            "The original is preserved. Sevra reads its formulas, layout and available macro source, then recreates the workflow with native controls and local calculations. Comparison covers the saved examples shown here. External services and missing dependencies need explicit treatment."
           )
           ForEach(Array(notes.enumerated()), id: \.offset) { _, note in
             Text(note).textSelection(.enabled)
@@ -235,6 +247,124 @@ struct ExcelConversionView: View {
         }.readingFont(.callout).foregroundStyle(.secondary).padding(.top, 8)
       }
     }
+  }
+  private func comparison(_ draft: ExcelConversion) -> some View {
+    let result = draft.record.data["comparison"]
+    return VStack(alignment: .leading, spacing: 10) {
+      Text("Compare with the original").readingFont(.headline)
+      if let compared = result["compared"].int {
+        Label(
+          compared == 0
+            ? "No saved calculation results to compare" : "\(compared) saved results matched",
+          systemImage: compared == 0 ? "info.circle" : "checkmark.circle")
+        Text(
+          "\(result["cases"].array.count) comparison cases · \(result["variedCases"].int ?? 0) examples with changed inputs"
+        )
+        .readingFont(.caption).foregroundStyle(.secondary)
+        if !draft.appMatchesPlan {
+          Text("Rebuild to check the updated workflow and examples.").foregroundStyle(.secondary)
+        }
+        let gaps =
+          result["gaps"].array.map(\.text) + result["unverified"].array.map(\.text)
+          + result["notCompared"].array.map(\.text)
+          + result["actionsWithoutExamples"].array.map {
+            $0.text + ": no original action example yet."
+          }
+        if !gaps.isEmpty {
+          DisclosureGroup("Still to verify (\(gaps.count))") {
+            VStack(alignment: .leading, spacing: 8) {
+              ForEach(Array(gaps.enumerated()), id: \.offset) { _, gap in
+                Text(gap).textSelection(.enabled)
+              }
+            }.padding(.top, 8)
+          }
+        }
+      } else {
+        Text("The build checks recreated calculations against results saved in your Excel file.")
+          .foregroundStyle(.secondary)
+      }
+      Text(
+        "A saved-result match checks those examples. It does not prove every future input or business rule."
+      )
+      .readingFont(.caption).foregroundStyle(.secondary)
+      DisclosureGroup("Add an original-result example") {
+        VStack(alignment: .leading, spacing: 12) {
+          Text(
+            "In Excel, change inputs, recalculate and save a copy. Keep worksheet names, rows and formulas the same. Add that copy here, then rebuild to test its results too."
+          )
+          .readingFont(.callout).foregroundStyle(.secondary)
+          if !availableActions.isEmpty {
+            Picker("Example tests", selection: $exampleAction) {
+              Text("Changed inputs and calculations").tag("recalculate")
+              ForEach(availableActions, id: \.id) { Text($0.title).tag($0.id) }
+            }
+            if exampleAction != "recalculate" {
+              Text(
+                "For an action, save the result after running it in Excel from the original starting state. Enter the same action inputs below."
+              )
+              .readingFont(.caption).foregroundStyle(.secondary)
+              ForEach(
+                availableActions.first(where: { $0.id == exampleAction })?.inputs ?? [], id: \.id
+              ) { input in
+                VStack(alignment: .leading, spacing: 6) {
+                  Text(input.title).readingFont(.callout)
+                  TextField(
+                    input.title,
+                    text: Binding(
+                      get: { exampleArguments[input.id] ?? "" },
+                      set: { exampleArguments[input.id] = $0 })
+                  ).textFieldStyle(.roundedBorder)
+                }
+              }
+            }
+          }
+          HStack(spacing: 12) {
+            Button("Choose Excel example…") {
+              let keys = Set(
+                availableActions.first(where: { $0.id == exampleAction })?.inputs?.map(\.id) ?? [])
+              state.addExcelExample(
+                id, action: exampleAction,
+                arguments: .object(
+                  exampleArguments.filter { keys.contains($0.key) }.mapValues(Value.string)))
+            }
+            Text("\(draft.record.data["examples"].array.count) of 12 examples added")
+              .readingFont(.caption).foregroundStyle(.secondary)
+          }
+        }.padding(.top, 10).disabled(state.busy || draft.record.data["examples"].array.count >= 12)
+      }
+      if !draft.record.data["examples"].array.isEmpty {
+        DisclosureGroup("Included examples") {
+          VStack(alignment: .leading, spacing: 10) {
+            ForEach(Array(draft.record.data["examples"].array.enumerated()), id: \.offset) {
+              index, example in
+              VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                  Button(example["title"].string ?? "Original-result example") {
+                    state.navigate(.item(example["sourceID"].text))
+                  }
+                  .buttonStyle(.link).lineLimit(2)
+                  Spacer(minLength: 8)
+                  Button("Remove") {
+                    state.removeExcelExample(id, index: index, version: draft.version)
+                  }.buttonStyle(.link).accessibilityLabel("Remove example \(index + 1)")
+                }
+                Text(exampleSummary(example)).readingFont(.caption).foregroundStyle(.secondary)
+              }
+            }
+          }.padding(.top, 8).disabled(state.busy)
+        }
+      }
+    }
+  }
+  private func exampleSummary(_ example: Value) -> String {
+    let actionID = example["action"].string ?? "recalculate"
+    guard actionID != "recalculate" else { return "Changed inputs and calculations" }
+    let action = availableActions.first { $0.id == actionID }
+    let arguments = example["arguments"].object.sorted { $0.key < $1.key }.map { key, value in
+      let title = action?.inputs?.first { $0.id == key }?.title ?? key
+      return "\(title): \(value.text)"
+    }
+    return ([action?.title ?? actionID] + arguments).joined(separator: " · ")
   }
   private func count(_ value: Int, _ noun: String) -> String {
     "\(value) " + noun + (value == 1 ? "" : "s")
@@ -265,12 +395,47 @@ struct ExcelConversionView: View {
       let value = try await Task.detached { try book.excelConversion(id) }.value
       guard state.workbook === book else { return }
       conversion = value
+      availableActions = (try? book.space(id).definition.app?.excelBehavior?.actions) ?? []
       failure = nil
     } catch { failure = error.localizedDescription }
   }
 }
 
 extension WorkspaceState {
+  func removeExcelExample(_ id: String, index: Int, version: String) {
+    run(
+      "Updating comparison examples",
+      operation: { book, _ in
+        try book.removeExcelExample(id, index: index, expectedVersion: version).id
+      }, completion: { self.navigate(.excelImport($0)) })
+  }
+  func addExcelExample(_ id: String, action: String, arguments: Value) {
+    guard interactionActive, !busy, let book = workbook, let draft = try? book.excelConversion(id)
+    else { return }
+    let panel = NSOpenPanel()
+    panel.canChooseFiles = true
+    panel.canChooseDirectories = false
+    panel.allowsMultipleSelection = false
+    panel.allowedContentTypes = [
+      UTType(filenameExtension: "xlsx"), UTType(filenameExtension: "xlsm"),
+    ].compactMap { $0 }
+    panel.message =
+      "Choose a copy saved after recalculating in Excel. Its saved results become a comparison example."
+    guard panel.runModal() == .OK, let url = panel.url, workbook === book, interactionActive else {
+      return
+    }
+    run(
+      "Adding original-result example",
+      operation: { book, cancel in
+        let inputs = action == "recalculate" ? Value.object([:]) : arguments
+        let source = try book.captureIntake(
+          url, role: .reference, token: identifier(), cancellation: cancel)
+        return try book.addExcelExample(
+          id, sourceID: source.sourceID, action: action, arguments: inputs,
+          expectedVersion: draft.version, cancellation: cancel
+        ).id
+      }, completion: { self.navigate(.excelImport($0)) })
+  }
   var excelModelDirectory: URL {
     UserDefaults.standard.string(forKey: ProductAI.preferenceKey).map { URL(fileURLWithPath: $0) }
       ?? ProductAI.defaultDirectory

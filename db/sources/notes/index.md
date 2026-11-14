@@ -2,11 +2,13 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-13T16:49:52.659086Z
+updated: 2026-11-14T00:11:20.610184Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/app-engine-adversarial-review]] — Owner expands active work to an adversarial review of app, engine and mini apps
+- [[sources/notes/2026/11/excel-application-reconstruction]] — Owner requests model-driven Excel application reconstruction and verification against original behavior
 - [[sources/notes/2026/11/single-excel-import]] — Single Excel import implementation request
 - [[sources/notes/2026/11/mini-app-fresh-start]] — Owner confirms fresh development baseline: clear obsolete mini-app fixtures and avoid migration or legacy compatibility burdens.
 - [[sources/notes/2026/11/native-app-adversarial-review]] — Owner requests an adversarial review of the complete new native mini-app feature.

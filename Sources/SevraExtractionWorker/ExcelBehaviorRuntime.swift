@@ -1,0 +1,75 @@
+import CQuickJS
+import Darwin
+import Foundation
+import SevraCore
+
+@_silgen_name("sandbox_init")
+private func enterSandbox(
+  _ profile: UnsafePointer<CChar>, _ flags: UInt64,
+  _ error: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>
+) -> Int32
+@_silgen_name("sandbox_free_error")
+private func freeSandboxError(_ error: UnsafeMutablePointer<CChar>)
+
+enum ExcelBehaviorRuntime {
+  static func evaluate(_ url: URL) throws -> Value {
+    let file = try FileHandle(forReadingFrom: url)
+    let bytes = try file.read(upToCount: 4_000_001) ?? Data()
+    try file.close()
+    try require(bytes.count <= 4_000_000, "excel_behavior_limit", "Calculation input exceeds 4 MB.")
+    let request = try Value.parse(String(decoding: bytes, as: UTF8.self))
+    let source = request["source"].text
+    try require(
+      !source.isEmpty && source.utf8.count <= 131_072 && !source.contains("\0"),
+      "excel_behavior", "Use a bounded behavior function.")
+    // Read the sole input first, then irrevocably remove OS access before evaluating code.
+    // No unsandboxed fallback: an unavailable platform sandbox refuses the calculation.
+    var error: UnsafeMutablePointer<CChar>?
+    let profile = "(version 1)(deny default)(allow sysctl-read)(allow process-info*)"
+    let status = profile.withCString { enterSandbox($0, 0, &error) }
+    if let error { freeSandboxError(error) }
+    try require(status == 0, "excel_sandbox", "The isolated calculation sandbox could not start.")
+    // A bounded host-side audit uses the same production profile. No file is read or created.
+    if let probe = request["sandboxProbe"].string {
+      let descriptor = Darwin.open(probe, O_RDONLY)
+      let deniedRead = descriptor < 0 && errno == EPERM
+      if descriptor >= 0 { Darwin.close(descriptor) }
+      let write = Darwin.open(probe + ".probe", O_WRONLY | O_CREAT | O_EXCL, 0o600)
+      let deniedWrite = write < 0 && errno == EPERM
+      if write >= 0 { Darwin.close(write) }
+      return .object(["deniedRead": .bool(deniedRead), "deniedWrite": .bool(deniedWrite)])
+    }
+    guard let engine = sevra_js_create() else {
+      throw SevraError("excel_behavior", "Cannot allocate calculation runtime.")
+    }
+    defer { sevra_js_destroy(engine) }
+    let script = """
+      globalThis.Date=undefined;globalThis.Atomics=undefined;globalThis.SharedArrayBuffer=undefined;
+      Math.random=()=>{throw Error('Randomness needs an explicit input');};Object.freeze(Math);
+      const __rawInput=\(try request["input"].json()),__hidden=new Set(\(try Value.array(request["hiddenOutputs"].array).json()));
+      const __address=/^sheet[1-9][0-9]*![A-Z]+[1-9][0-9]*$/;
+      __rawInput.cells=new Proxy(__rawInput.cells,{get(target,key){if(Object.prototype.hasOwnProperty.call(target,key))return target[key];if(__hidden.has(key))throw Error('Compute derived cell '+key+' from input cells; its saved answer is hidden');if(typeof key==='string'&&__address.test(key))return '';return Reflect.get(target,key);}});
+      const __input=new Proxy(__rawInput,{get(target,key){if(typeof key==='string'&&__address.test(key))throw Error('Read '+key+' from input.cells, not directly from input');return Reflect.get(target,key);}});
+      const __result=(()=>{'use strict';\n\(source)\nreturn recreate(__input);})();
+      if(!__result||typeof __result!=='object'||Array.isArray(__result)||typeof __result.then==='function')throw Error('Return a cell-value object synchronously');
+      globalThis.Sevra=Object.freeze({__flush:()=>__result});
+      """
+    guard let output = script.withCString({ sevra_js_eval(engine, $0, script.utf8.count, 500) })
+    else {
+      throw SevraError("excel_behavior", "Calculation runtime failed.")
+    }
+    defer { sevra_js_free(output) }
+    let text = String(cString: output)
+    if text.hasPrefix("!") {
+      // A user validation error is also shown in the native form. Keep the message,
+      // not QuickJS's internal stack frames, which are not useful recovery guidance.
+      var message = String(text.dropFirst().split(separator: "\n", maxSplits: 1).first ?? "")
+      if message.hasPrefix("Error: ") { message.removeFirst(7) }
+      throw SevraError(
+        "excel_behavior", message.isEmpty ? "Calculation failed." : String(message.prefix(2000)))
+    }
+    try require(
+      text.utf8.count <= 1_000_000, "excel_behavior_limit", "Calculation output exceeds 1 MB.")
+    return try Value.parse(text)
+  }
+}

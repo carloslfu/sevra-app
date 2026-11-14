@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// One durable draft over an immutable Excel original. Working tables are shared with the
@@ -16,6 +17,7 @@ public struct ExcelConversion: Identifiable, Sendable {
   public var failure: String? { record.data["failure"].string }
   public var appMatchesPlan: Bool {
     appID != nil && record.data["appPlan"] == plan && record.data["appPurpose"].string == purpose
+      && record.data["appExamples"] == record.data["examples"]
   }
 }
 
@@ -35,6 +37,23 @@ public struct ExcelConversionBuild: Sendable {
 }
 
 extension Workbook {
+  private func excelRowIdentity(_ dataset: String) throws -> String {
+    let rows = try db.execute(
+      "SELECT logical_id FROM dataset_rows WHERE dataset_id=? ORDER BY ordinal",
+      [.string(dataset)]
+    ).map { $0["logical_id"]!.text }
+    return SHA256.hash(data: Data(try encoded(rows).json().utf8)).map { String(format: "%02x", $0) }
+      .joined()
+  }
+  private func validateExcelRows(_ conversion: ExcelConversion) throws {
+    for table in conversion.datasetIDs {
+      try require(
+        conversion.record.data["rowIdentities"][table] == .string(excelRowIdentity(table)),
+        "excel_rows",
+        "The original worksheet rows changed. Restore their structure or import a new original before rebuilding."
+      )
+    }
+  }
   public func excelConversionSummaries() throws -> [Value] {
     try synchronized {
       try db.execute(
@@ -69,6 +88,22 @@ extension Workbook {
       "excel_conversion",
       "This saved Excel import is malformed. Its original file is still available.")
     if data["plan"] != .null { try Self.validateExcelPlan(data["plan"]) }
+    if data["examples"] != .null {
+      guard case .array(let examples) = data["examples"] else {
+        throw SevraError("excel_example", "The saved comparison examples are malformed.")
+      }
+      try require(
+        examples.count <= 12
+          && examples.allSatisfy { reference in
+            guard case .object = reference["arguments"] else { return false }
+            return reference["sourceID"].string?.isEmpty == false
+              && reference["sourceID"].text.utf8.count <= 256
+              && reference["action"].text.range(
+                of: "^[a-z][a-zA-Z0-9_]{0,63}$", options: .regularExpression) != nil
+              && reference["arguments"].object.count <= 32
+              && (try? reference["arguments"].json().utf8.count <= 8192) == true
+          }, "excel_example", "The saved comparison examples are malformed.")
+    }
     return ExcelConversion(record: record)
   }
 
@@ -90,9 +125,9 @@ extension Workbook {
     }
     let original = try asset(assetID)
     try require(
-      URL(fileURLWithPath: original.name).pathExtension.lowercased() == "xlsx",
+      ["xlsx", "xlsm"].contains(URL(fileURLWithPath: original.name).pathExtension.lowercased()),
       "excel_format",
-      "Choose an .xlsx workbook. Save older or macro-enabled files as .xlsx first; macros are not executed."
+      "Choose an .xlsx or .xlsm workbook. Original macro source is inspected, never executed."
     )
     // Re-adding identical bytes resumes their conversion, even if capture created another
     // evidence Source. Changed files have a different hash and a separate review.
@@ -109,7 +144,16 @@ extension Workbook {
       cancellation: cancellation
     ).sheets
     _ = try assetURL(assetID, verify: true, cancellation: cancellation)
-    let inspection = Self.excelInspection(sheets)
+    var inspectionFields = Self.excelInspection(sheets).object
+    let evidence = try excelSourceEvidence(source.id, cancellation: cancellation)
+    inspectionFields["evidence"] = .array(
+      evidence.map {
+        .object([
+          "id": .string($0.id), "kind": .string($0.kind), "complete": .bool($0.complete),
+          "characters": .number(Double($0.text.count)),
+        ])
+      })
+    let inspection = Value.object(inspectionFields)
     try cancellation.check()
     let saved = try addHostOwnedItem(
       category: "record", kind: "excel-conversion", title: source.title,
@@ -165,7 +209,7 @@ extension Workbook {
     return .object([
       "sheets": .array(summaries), "sampled": .bool(true),
       "notice": .string(
-        "Samples are bounded; they do not describe every row or manual step. Formatting, macros, external services and unsupported formulas are not recreated automatically."
+        "Samples are bounded. The original includes deeper evidence of formulas, layout, validation, charts and macro source when readable. Recreated behavior is compared with saved original results; untested rules and external services need explicit review."
       ),
     ])
   }
@@ -342,6 +386,11 @@ extension Workbook {
             (String($0.0.offset), .string($0.1))
           }))
       data["formulaReport"] = result.report["formulas"]
+      data["rowIdentities"] = .object(
+        try Dictionary(
+          uniqueKeysWithValues: result.datasetIDs.map {
+            ($0, .string(try excelRowIdentity($0)))
+          }))
       data["state"] = .string("tables")
       let saved = try addHostOwnedItem(
         category: "record", kind: "excel-conversion", title: current.record.title,
@@ -357,12 +406,23 @@ extension Workbook {
     try synchronized {
       let conversion = try excelConversion(id)
       try Self.validateExcelPlan(conversion.plan)
+      try validateExcelRows(conversion)
       let tables = try conversion.datasetIDs.map { try dataset($0) }
       try require(
         !tables.isEmpty && tables.count <= 12 && tables.allSatisfy { !$0.archived }, "excel_build",
         "Import 1 to 12 nonempty worksheets before building. Larger files remain available as tables."
       )
       let current = try spaceIfPresent(conversion.id)
+      var logicBudget = 16_000
+      let logic: [Value] = try excelSourceEvidence(conversion.sourceID, cancellation: .init())
+        .filter { $0.kind == "vba" || !$0.complete }.map { part in
+          let text = String(part.text.prefix(max(0, logicBudget)))
+          logicBudget -= text.utf8.count
+          return .object([
+            "id": .string(part.id), "text": .string(text),
+            "complete": .bool(part.complete && text == part.text),
+          ])
+        }
       let bindings = Value.object(
         Dictionary(
           uniqueKeysWithValues: tables.indices.map {
@@ -370,8 +430,17 @@ extension Workbook {
           }))
       let context: Value = .object([
         "original": conversion.inspection, "inferredPlan": conversion.plan,
+        "originalLogic": .array(logic),
+        "calculationEvidence": try Self.excelCalculationEvidence(
+          excelOriginalSheets(conversion.sourceID)),
+        "fixtureRowCounts": .object(
+          Dictionary(
+            uniqueKeysWithValues: tables.enumerated().map {
+              ("sheet\($0.offset + 1)", .number(Double($0.element.rowCount)))
+            })),
         "userClarification": .string(conversion.purpose),
         "tables": try encoded(tables), "formulaReport": conversion.record.data["formulaReport"],
+        "originalResultExamples": conversion.record.data["examples"],
         "packageDatasetTemplate": try encoded(bindings),
         "dataLayout": .string(
           "Rows preserve Excel coordinates, including header rows. Columns c1,c2,… correspond to A,B,…; infer visible field labels from the original cells, but keep the binding schema unchanged. packageDatasetTemplate contains only short aliases with writable flags. Copy it and set writable:true only where requested controls edit inputs. The host fills exact datasetIDs, titles and columns; do not supply these binding fields. Table.table and data.page/transaction use the short sheet1/sheet2 aliases, not dataset IDs. Editing existing input cells recalculates supported formulas; adding rows does not automatically extend Excel formulas."
@@ -389,7 +458,7 @@ extension Workbook {
         sourceID: conversion.sourceID, tables: tables, appVersion: current?.version,
         context: try context.json(),
         request:
-          "Create a native workspace for this imported Excel workbook. Copy the supplied packageDatasetTemplate into package.datasets, using short aliases such as sheet1 with ONLY writable flags. The host supplies each exact datasetID, title and columns, so do not supply those fields yourself. Enable writable only for requested input editing. Provide a searchable native table for each sheet, clear workflow labels, and useful controls for the described workflow. Preserve the workbook's existing calculations by reading their saved/recalculated cells and editing input cells through data.transaction; do not reimplement formulas or embed business values in code. Do not offer row insertion/deletion on formula worksheets: new rows do not automatically inherit Excel formulas. The native host displays the original and conversion limitations outside the generated interface; do not duplicate that notice in the app. Do not create new datasets, duplicate rows, execute macros or claim full Excel equivalence. Save a checked app for my review. Reviewed inferred workflow: "
+          "Create a native workspace for this imported Excel workbook. Copy the supplied packageDatasetTemplate into package.datasets, using short aliases such as sheet1 with ONLY writable flags. The host supplies each exact datasetID, title and columns, so do not supply those fields yourself. Enable writable only for requested input editing. Provide a searchable native table for each sheet, clear workflow labels, and useful controls for the described workflow. Understand and recreate the business application: inputs, calculations, buttons/macros, validations and useful native views. Reuse working built-in formulas; inspect original evidence and translate missing calculations/actions into package.excelBehavior using native_app_sdk. Compare with the original using compare_excel_behavior and repair differences. Do not embed business values or original answers in code. List concrete unresolved behavior in gaps. Do not offer row insertion/deletion on formula worksheets: new rows do not automatically inherit Excel formulas. The native host displays the original and conversion limitations outside the generated interface; do not duplicate that notice in the app. Do not create new datasets, duplicate rows, execute macros or claim full Excel equivalence. Save a checked app for my review. Reviewed inferred workflow: "
           + conversion.plan["purpose"].text + " "
           + conversion.plan["workflows"].array.map(\.text).joined(separator: "; ")
           + ". My clarification: " + conversion.purpose,
@@ -418,6 +487,11 @@ extension Workbook {
           && bindings.first { $0.datasetID == table.id }?.columns == table.columns, "excel_binding",
         "An imported table schema changed. Refresh the conversion before building.")
     }
+    for (index, table) in build.tables.enumerated() {
+      try require(
+        package.datasets["sheet\(index + 1)"]?.datasetID == table.id,
+        "excel_binding", "Preserve the exact worksheet alias order from the host.")
+    }
   }
 
   func validateExcelConversionBuild(_ build: ExcelConversionBuild) throws {
@@ -426,6 +500,7 @@ extension Workbook {
       "excel_workbook",
       "This build belongs to a different workbook. Start a build in this workbook.")
     let current = try excelConversion(build.conversionID)
+    try validateExcelRows(current)
     try require(
       current.version == build.conversionVersion && current.sourceID == build.sourceID,
       "stale_revision", "The Excel conversion changed. Start a fresh build from its current plan.")
@@ -435,7 +510,12 @@ extension Workbook {
     _ package: NativeAppPackage, build: ExcelConversionBuild, check: Value,
     token: String, cancellation: Cancellation
   ) throws -> Space {
-    try mutation(
+    let comparison = try compareExcelApplication(
+      package, conversionID: build.conversionID, cancellation: cancellation)
+    try require(
+      comparison["status"] == .string("matched"), "excel_comparison",
+      Self.excelComparisonFailure(comparison))
+    return try mutation(
       "excel_conversion_app", token: token + ":conversion",
       request: .object([
         "conversion": .string(build.conversionVersion), "package": try encoded(package),
@@ -446,6 +526,9 @@ extension Workbook {
         try insertNativeApp(package, spaceID: build.conversionID, expectedVersion: build.appVersion)
         let saved = try space(build.conversionID)
         let old = try excelConversion(build.conversionID)
+        if let behavior = package.excelBehavior {
+          try attachExcelBehavior(behavior, conversion: old)
+        }
         var data = old.record.data.object
         data["state"] = .string("ready")
         data["appID"] = .string(saved.id)
@@ -453,6 +536,8 @@ extension Workbook {
         data["appDigest"] = .string(package.digest)
         data["appPlan"] = old.plan
         data["appPurpose"] = .string(old.purpose)
+        data["appExamples"] = old.record.data["examples"]
+        data["comparison"] = comparison
         data["check"] = check
         data["failure"] = .null
         _ = try insertItem(

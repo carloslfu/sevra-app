@@ -3,13 +3,21 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-13T18:48:10.651328+00:00
-summary: 'Single Excel import implemented and locally verified: eight business workflows, three actual-model cases, native UI and full suite; bounded Excel compatibility'
+updated: 2026-11-14T01:12:42.009518+00:00
+summary: Reconstruction engine and reviewed workflows verified; 653 core checks, 36 authoring groups, 43 originals and installed UI. Unassisted local-model reliability remains open.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
-## Current checkpoint: single Excel import, November 13
+## Current checkpoint: reconstruction and adversarial review, November 14
+
+The Excel reconstruction engine is implemented with inert original/VBA evidence, bounded pure behavior programs, scoped native actions and host-owned original-result comparisons. The multi-pass review repaired calculation/write-scope, row identity, atomic transactions, native remount/event state, canvas actions, corrupt metadata, reviewer context and interface defects. See [[records/reviews/excel-reconstruction-and-engine-review]] and the [acceptance receipt](../../../integration/evidence/2026-11-14-excel-engine-review.json).
+
+The integrated full suite passes: 653 core checks, 17 native groups and six SDK tests. Final focused authoring checks pass all 36 groups across ten business cases and 43 independently recalculated originals. Explicitly reviewed Inventory, Loan and Lookup derivatives pass 42 independent UI steps plus 15 original comparisons. Installed native permission/edit/validation/Undo/reopen/example flows and wide/821-point compact layouts were inspected. Final main UUID is `CA63042B-C1BD-3DD5-8D37-684046FD3AB1`; package/install/extraction checks pass. All task grants are disabled, five task recent entries are removed, and the installed preview is closed. Scratch evidence stays under ignored build folders. The baseline app, real workbooks and model files are preserved.
+
+**Autonomous authoring reliability remains open.** Stronger checks exposed wrong zero-interest logic, missing numeric validation and copied lookup constants in earlier model outputs. Latest fresh Inventory and Loan builds both stopped after repeated mistakes. Manually repaired samples are labeled separately; their success is not fresh-model acceptance. This is a bounded source preview, not a universally correct Excel replacement, a security certification or a production-notarized release. VoiceOver, external customers and additional hardware remain unqualified. Commit checks on GitHub qualify the containing pushed revision separately from local evidence.
+
+## Earlier checkpoint: single Excel import, November 13
 
 The owner-approved [[records/plans/single-excel-import]] is implemented as one native Add files/start/drop/saved-Excel flow. A local model infers a reviewable workflow, then builds a checked native app over the same imported tables and supported formulas. Table-only use requires no model; existing-table updates remain a secondary reviewed action. Stable conversions preserve originals and avoid duplicated data on retry. Host-owned capabilities, sandbox checks, separate model review and exact-version device access remain enforced.
 

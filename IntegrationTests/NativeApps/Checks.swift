@@ -230,6 +230,7 @@ func exchange(
         messages: [
           .object([
             "kind": .string("event"), "node": .string("root/1"), "handler": .string("onClick"),
+            "mountID": .number(3),
           ])
         ], sequence: 1)
       try expect(result["frame"]["patches"].array.count == 1)
@@ -289,7 +290,9 @@ func exchange(
         print("FAIL Shared device revocation: \(error)")
       }
       do {
+        try await remountedInputCheck(root: root)
         try await controlledWidgetsCheck(root: root)
+        try await removedCanvasRegionCheck(root: root)
         passed += 1
         print("PASS Native controlled table and tab initialization and reactive updates")
       } catch {

@@ -5,6 +5,82 @@ import SevraAppUI
 import SevraCore
 
 extension Checks {
+  @MainActor static func removedCanvasRegionCheck(root: URL) async throws {
+    let book = try Workbook.create(at: root.appendingPathComponent("Canvas.sevra"), title: "Canvas")
+    let package = NativeAppPackage(
+      name: "Changing canvas",
+      source: """
+        const S=Sevra,h=S.h;
+        const regions=S.signal([{id:'first',label:'First',x:0,y:0,width:30,height:30},{id:'second',label:'Second',x:40,y:0,width:30,height:30}]);
+        const status=S.signal('Ready');let count=0;
+        function action(e){status.value=e.value+':'+(++count);}
+        S.mount(h(S.Column,{},h(S.Canvas,{regions,shapes:[],height:80,onClick:action,onDrop:action}),
+          h(S.Button,{title:'Remove selected',onClick:()=>regions.value=regions.value.filter(r=>r.id!=='first')}),h(S.Text,{text:status})));
+        """)
+    let space = try book.installNativeApp(package)
+    let domain = "sevra.canvas-removal." + identifier()
+    let defaults = UserDefaults(suiteName: domain)!
+    defer { defaults.removePersistentDomain(forName: domain) }
+    let session = NativeAppSession(book: book, space: space, defaults: defaults)
+    let renderer = NativeAppRenderer(session: session)
+    session.enable()
+    defer { session.revoke() }
+    try await wait { session.status == "running" || session.status == "failed" }
+    try expect(session.status == "running", session.error ?? session.status)
+    let canvas = renderer.view(for: "root/0")!
+    let old = canvas.accessibilityChildren()!.first as! NSAccessibilityElement
+    try expect(old.accessibilityPerformPress())
+    try await wait { session.tree.nodes["root/2"]?.props["text"] == .string("first:1") }
+    session.event(node: "root/1", handler: "onClick")
+    try await wait { session.tree.nodes["root/0"]?.props["regions"].array.count == 1 }
+    let right = NSEvent.keyEvent(
+      with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+      windowNumber: 0, context: nil, characters: "", charactersIgnoringModifiers: "",
+      isARepeat: false, keyCode: 124)!
+    canvas.keyDown(with: right)
+    try await wait { session.tree.nodes["root/2"]?.props["text"].text.hasSuffix(":2") == true }
+    try expect(
+      session.tree.nodes["root/2"]?.props["text"] == .string("second:2"),
+      "Keyboard action reached a removed canvas region")
+    try expect(!old.accessibilityPerformPress(), "Removed accessibility region remained actionable")
+    let current = canvas.accessibilityChildren()!.first as! NSAccessibilityElement
+    try expect(current.accessibilityPerformPress())
+    try await wait { session.tree.nodes["root/2"]?.props["text"] == .string("second:3") }
+  }
+
+  @MainActor static func remountedInputCheck(root: URL) async throws {
+    let book = try Workbook.create(
+      at: root.appendingPathComponent("Remount.sevra"), title: "Remount")
+    let package = NativeAppPackage(
+      name: "Remounted form",
+      source: """
+        const S=Sevra,h=S.h,switched=S.signal(false);
+        function Field({initial}) { const value=S.signal(initial); return h(S.TextField,{label:'Editor',value}); }
+        S.mount(h(S.Column,{},()=>h(Field,{initial:switched.value?'Second':'First'}),
+          h(S.Button,{title:'Switch form',onClick:()=>switched.value=!switched.value})));
+        """)
+    let space = try book.installNativeApp(package)
+    let domain = "sevra.remount." + identifier()
+    let defaults = UserDefaults(suiteName: domain)!
+    defer { defaults.removePersistentDomain(forName: domain) }
+    let session = NativeAppSession(book: book, space: space, defaults: defaults)
+    let renderer = NativeAppRenderer(session: session)
+    session.enable()
+    defer { session.revoke() }
+    try await wait { session.status == "running" || session.status == "failed" }
+    try expect(session.status == "running", session.error ?? session.status)
+    let field = renderer.view(for: "root/0") as! NSTextField
+    field.stringValue = "Typed first"
+    field.delegate?.controlTextDidChange?(
+      Notification(name: NSControl.textDidChangeNotification, object: field))
+    try await wait { session.tree.nodes["root/0"]?.props["value"] == .string("Typed first") }
+    session.event(node: "root/1", handler: "onClick")
+    try await wait { session.tree.nodes["root/0"]?.props["value"] == .string("Second") }
+    try expect(
+      (renderer.view(for: "root/0") as? NSTextField)?.stringValue == "Second",
+      "Remounted input retained the prior control's text/revision")
+  }
+
   static func schemaAccessCheck(root: URL) throws {
     let book = try Workbook.create(at: root.appendingPathComponent("Schema.sevra"), title: "Schema")
     let source = try book.addItem(category: "source", kind: "note", title: "Synthetic fixture")

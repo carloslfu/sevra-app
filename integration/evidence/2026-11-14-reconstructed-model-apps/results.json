@@ -1,0 +1,249 @@
+[
+  {
+    "name": "Inventory",
+    "trial": "live-2",
+    "candidateSHA256": "cef8627e8cfd7229d980beb48b5fcba958d0ea8a1db4332c52cd51a5d83a4d38",
+    "freshModelTrial": true,
+    "result": {
+      "answer": "Saved native app \u201cInventory Stock Manager\u201d after 5 synthetic checks. Review table access and enable this version to use it.",
+      "comparison": {
+        "actionsWithoutExamples": [
+          "Ship stock"
+        ],
+        "cases": [
+          {
+            "action": "recalculate",
+            "changedInputs": 0,
+            "compared": 1,
+            "sourceHash": "a3d7f73c6a33200c4035793437e7a593bf5f6f9f88513eadf0d93cc051d68584",
+            "sourceID": "89fa53dc-7cbf-499c-8b05-a6da54a59d01"
+          },
+          {
+            "action": "recalculate",
+            "changedInputs": 1,
+            "compared": 1,
+            "sourceHash": "cc0cde8019af68bcf467ea53bc740f2ef8aee55c63c1ae135d8539fe03876e7f",
+            "sourceID": "b279d6b3-ba22-43f0-8f29-6341d4513f33"
+          },
+          {
+            "action": "recalculate",
+            "changedInputs": 1,
+            "compared": 1,
+            "sourceHash": "e587c70e8f430a6646610858b7b285e6f8622c2ccbce7f1cc851747dacd635de",
+            "sourceID": "7a3881d4-74f3-4dec-9600-4926a337bb16"
+          },
+          {
+            "action": "recalculate",
+            "changedInputs": 1,
+            "compared": 1,
+            "sourceHash": "98f7f246eef7cd3fb061060d0dd3deebf2eda9b77112b5809840f478e1dde4bb",
+            "sourceID": "f1746c50-387e-40e9-a9ac-d074dc964c51"
+          }
+        ],
+        "compared": 4,
+        "conversionVersion": "891baaf8-1be8-4089-8758-3e4a08667b21",
+        "differences": [],
+        "gaps": [],
+        "notCompared": [
+          "Visual layout, manual steps and external service behavior are not established by cell-result comparisons."
+        ],
+        "notice": "Compared only the saved original results listed here. Saved-state matches do not prove changed-input behavior or every business rule.",
+        "programDigest": "84aa902842bdb7e927de58892dd1ea9702cb1f6fdeb9907b800ba9aeb3f6c2ac",
+        "status": "matched",
+        "unverified": [],
+        "variedCases": 3
+      },
+      "independentUI": {
+        "assertions": 2,
+        "digest": "cef8627e8cfd7229d980beb48b5fcba958d0ea8a1db4332c52cd51a5d83a4d38",
+        "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+        "status": "passed",
+        "steps": 8,
+        "tables": [
+          "sheet1"
+        ],
+        "transactions": 2
+      },
+      "name": "Inventory",
+      "passed": true,
+      "plan": {
+        "name": "Inventory Stock Manager",
+        "purpose": "A stock management tool that tracks items, calculates reorder needs, and allows deducting stock via a Ship Stock action. It replaces a VBA macro with a native table and a Ship Stock button that validates and updates quantities.",
+        "questions": [
+          "Should the Ship Stock action apply to the currently selected row in the Records table, or should it deduct from all items?"
+        ],
+        "workflows": [
+          "**Data Entry:** Users add items with 'On hand' and 'Reorder at' values.",
+          "**Calculation:** The system calculates 'To order' as `MAX(Reorder at - On hand, 0)`.",
+          "**Shipping Action:** A 'Ship stock' button prompts for a quantity. The system validates that the quantity is positive and does not exceed the 'On hand' amount. If valid, it deducts the quantity from 'On hand' and recalculates 'To order'."
+        ]
+      },
+      "seconds": 131.21277606487274
+    }
+  },
+  {
+    "name": "Loan",
+    "trial": "live-7",
+    "candidateSHA256": "35adef45d6901726ce624f63ef36944bf088310cdf934f92f6cfcf479457bc89",
+    "freshModelTrial": true,
+    "result": {
+      "answer": "Saved native app \u201cLoan Calculator\u201d after 5 synthetic checks. Review table access and enable this version to use it.",
+      "comparison": {
+        "actionsWithoutExamples": [],
+        "calculationEvidence": null,
+        "cases": [
+          {
+            "action": "recalculate",
+            "changedInputs": 0,
+            "compared": 1,
+            "sourceHash": "398cb0faa4be0409ee52e4a1c4dc97e1733bf8d6eeabe79326c4c8010d3406be",
+            "sourceID": "4433ad54-1894-40d2-a355-d1d118138ff1"
+          },
+          {
+            "action": "recalculate",
+            "changedInputs": 1,
+            "compared": 1,
+            "sourceHash": "d75d0d1f73fb248afeac01a3078404074676fe610bf56287b823ead868f532c6",
+            "sourceID": "5e69ea9c-adf7-42f3-be44-b47b5190ff7d"
+          },
+          {
+            "action": "recalculate",
+            "changedInputs": 1,
+            "compared": 1,
+            "sourceHash": "df3bbc3cf29ea7df53d5f7af71870e0df252e081223cd727cb85c94bb7d22453",
+            "sourceID": "624b132b-0827-437e-80a4-b20174d62412"
+          },
+          {
+            "action": "recalculate",
+            "changedInputs": 1,
+            "compared": 1,
+            "sourceHash": "1cb3fee491a59b9cd0c5c8894596a69258f12f58d28a4d88dc6d8adf814c45f3",
+            "sourceID": "b90a382e-c4c0-4016-9656-39c5934538cb"
+          }
+        ],
+        "compared": 4,
+        "conversionVersion": "0ed20446-3e77-4996-b251-ccbaaebcc694",
+        "differences": [],
+        "gaps": [],
+        "notCompared": [
+          "Visual layout, manual steps and external service behavior are not established by cell-result comparisons."
+        ],
+        "notice": "Compared only the saved original results listed here. Saved-state matches do not prove changed-input behavior or every business rule.",
+        "programDigest": "7148b0ec6e7824607c31d39f1e39117382bbb112fcd02415360587fa9b3177e4",
+        "status": "matched",
+        "unverified": [],
+        "variedCases": 3
+      },
+      "freshModelTrial": true,
+      "independentUI": {
+        "assertions": 2,
+        "digest": "35adef45d6901726ce624f63ef36944bf088310cdf934f92f6cfcf479457bc89",
+        "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+        "paddedSyntheticRows": 0,
+        "status": "passed",
+        "steps": 7,
+        "tables": [
+          "sheet1"
+        ],
+        "transactions": 1
+      },
+      "inputControl": "Input",
+      "name": "Loan",
+      "passed": true,
+      "plan": {
+        "name": "Loan Calculator",
+        "purpose": "A simple loan payment calculator where users can input loan details (Principal, Monthly rate, Months) and see the calculated monthly payment. The system keeps calculations live and allows editing specific records.",
+        "questions": [],
+        "workflows": [
+          "Loan Calculation: The system calculates the monthly payment based on the principal, monthly interest rate, and loan term (months) using the PMT function.",
+          "Data Management: Users can view loan records in a table, select a specific record, edit the principal amount in an input field, and save the changes."
+        ]
+      },
+      "seconds": 170.88635993003845
+    }
+  },
+  {
+    "name": "Lookup quotes",
+    "trial": "live-7",
+    "candidateSHA256": "cc9ba904bbbe8153fe02b153818ad16a042cbac7daa349ee1902ebe6e6859281",
+    "freshModelTrial": true,
+    "result": {
+      "answer": "Saved native app \u201cLookup quotes\u201d after 5 synthetic checks. Review table access and enable this version to use it.",
+      "comparison": {
+        "actionsWithoutExamples": [],
+        "calculationEvidence": null,
+        "cases": [
+          {
+            "action": "recalculate",
+            "changedInputs": 0,
+            "compared": 1,
+            "sourceHash": "fcb1fe72e5376447155260628e3f4579c9c526d7e9a0d28888ff5ad1694fd2ff",
+            "sourceID": "93eb7072-49da-42e2-b2b1-439c5c0a25da"
+          },
+          {
+            "action": "recalculate",
+            "changedInputs": 1,
+            "compared": 1,
+            "sourceHash": "be3d1d001d772141b6ba01c83051fe54af2d2ef8cbf9fa6f54c64d4ab0be4ade",
+            "sourceID": "40d73591-77af-4052-9e52-44f6e4b154c3"
+          },
+          {
+            "action": "recalculate",
+            "changedInputs": 0,
+            "compared": 1,
+            "sourceHash": "beda6ca210d50fc7f37a406150c58bdcc1ca6cb26cd87801a96423a9af15088b",
+            "sourceID": "58a490e3-c9be-4708-9f0a-a597d2e9e91c"
+          },
+          {
+            "action": "recalculate",
+            "changedInputs": 1,
+            "compared": 1,
+            "sourceHash": "be5dc5ab7f05be0ff2f97114bd8cf23e6320886510f7d527d77c20da2972f172",
+            "sourceID": "dc49d518-5408-4602-9179-3fd63e26fa98"
+          }
+        ],
+        "compared": 4,
+        "conversionVersion": "d4910a5a-55b2-4094-8c17-49314173b159",
+        "differences": [],
+        "gaps": [],
+        "notCompared": [
+          "Visual layout, manual steps and external service behavior are not established by cell-result comparisons."
+        ],
+        "notice": "Compared only the saved original results listed here. Saved-state matches do not prove changed-input behavior or every business rule.",
+        "programDigest": "ce77c50aca57284519e1cd658598d8c61131473192338e7c6bc414e8961d1533",
+        "status": "matched",
+        "unverified": [],
+        "variedCases": 2
+      },
+      "freshModelTrial": true,
+      "independentUI": {
+        "assertions": 4,
+        "digest": "cc9ba904bbbe8153fe02b153818ad16a042cbac7daa349ee1902ebe6e6859281",
+        "notice": "Checked only these synthetic cases in an isolated workbook. No real rows were read or changed. This does not prove every behavior or visual quality.",
+        "paddedSyntheticRows": 0,
+        "status": "passed",
+        "steps": 15,
+        "tables": [
+          "sheet1"
+        ],
+        "transactions": 3
+      },
+      "inputControl": "SKU",
+      "name": "Lookup quotes",
+      "passed": true,
+      "plan": {
+        "name": "Lookup quotes",
+        "purpose": "The user manages quotes by selecting a quote ID, editing its SKU and Quantity, and viewing the calculated Total. The system looks up the Unit Price based on the SKU and multiplies it by the Quantity. The user wants a native table labeled \"Records\" for data entry and a simple input interface for Quote, SKU, and Quantity, with live calculations.",
+        "questions": [],
+        "workflows": [
+          "Records Table: A native table named 'Records' containing columns for Quote, SKU, Quantity, and Total.",
+          "Input Form: Input fields labeled 'Quote', 'SKU', and 'Quantity' for data entry.",
+          "Calculation: The Total is calculated as Unit Price * Quantity. The Unit Price is looked up from a lookup table (SKU, Unit Price) using the VLOOKUP function.",
+          "Live Updates: Calculations update immediately when SKU or Quantity changes, handling zero quantities and unknown SKUs (likely resulting in 0 or error values).",
+          "Save: Standard save functionality to persist changes."
+        ]
+      },
+      "seconds": 183.83362996578217
+    }
+  }
+]

@@ -83,22 +83,22 @@ extension Workbook {
       request: .object([
         "source": .string(sourceID), "role": role.map { .string($0.rawValue) } ?? .null,
       ]),
-      reading: { _ in try intakeJob(token) }
-    ) {
-      let source = try item(sourceID)
-      try require(
-        source.category == "source" && source.assetID != nil, "intake_source",
-        "Choose a captured original file.")
-      let now = timestamp()
-      try db.execute(
-        "INSERT INTO intake_jobs VALUES(?,?,?,'captured',NULL,'{}','[]',?,?,?)",
-        [
-          .string(token), .string(source.id), role.map { .string($0.rawValue) } ?? .null,
-          .string("Original saved. Indexing and use have not completed."), .string(now),
-          .string(now),
-        ])
-      return .string(token)
-    }
+      reading: { _ in try intakeJob(token) },
+      {
+        let source = try item(sourceID)
+        try require(
+          source.category == "source" && source.assetID != nil, "intake_source",
+          "Choose a captured original file.")
+        let now = timestamp()
+        try db.execute(
+          "INSERT INTO intake_jobs VALUES(?,?,?,'captured',NULL,'{}','[]',?,?,?)",
+          [
+            .string(token), .string(source.id), role.map { .string($0.rawValue) } ?? .null,
+            .string("Original saved. Indexing and use have not completed."), .string(now),
+            .string(now),
+          ])
+        return .string(token)
+      })
   }
 
   public func intakeJob(_ id: String) throws -> IntakeJob {
@@ -137,21 +137,21 @@ extension Workbook {
     return try mutation(
       "intake_role", token: token,
       request: .object(["id": .string(id), "role": .string(role.rawValue)]),
-      reading: { _ in try intakeJob(id) }
-    ) {
-      let job = try intakeJob(id)
-      // A worker still reading is fenced out below, and one that was killed never reports back.
-      try require(
-        job.role == nil, "intake_role",
-        "This intake already has a use. Start another use from the saved original.")
-      try db.execute(
-        "UPDATE intake_jobs SET role=?,state='captured',attempt=NULL,detail=?,updated=? WHERE id=?",
-        [
-          .string(role.rawValue), .string("Use selected. Ready to continue."),
-          .string(timestamp()), .string(id),
-        ])
-      return .string(id)
-    }
+      reading: { _ in try intakeJob(id) },
+      {
+        let job = try intakeJob(id)
+        // A worker still reading is fenced out below, and one that was killed never reports back.
+        try require(
+          job.role == nil, "intake_role",
+          "This intake already has a use. Start another use from the saved original.")
+        try db.execute(
+          "UPDATE intake_jobs SET role=?,state='captured',attempt=NULL,detail=?,updated=? WHERE id=?",
+          [
+            .string(role.rawValue), .string("Use selected. Ready to continue."),
+            .string(timestamp()), .string(id),
+          ])
+        return .string(id)
+      })
   }
 
   /// No workbook lock is held during file extraction/inspection. Attempt fencing prevents a
@@ -170,7 +170,8 @@ extension Workbook {
           "Excel formulas keep their saved values and do not recalculate.")
     }
     return created + " "
-      + count(live, "Excel formula recalculates after edits.", "Excel formulas recalculate after edits.")
+      + count(
+        live, "Excel formula recalculates after edits.", "Excel formulas recalculate after edits.")
       + (saved == 0
         ? "" : " " + count(saved, "keeps its saved value.", "keep their saved values."))
   }
@@ -220,7 +221,8 @@ extension Workbook {
     do {
       // Reindexing counts the old text and the new against the saved-change limit, so a file
       // that was accepted once could stop every later use and Continue. Each use reuses its index.
-      let reused = ["ready", "partial"].contains(try extractionStatus(initial.sourceID)["state"].text)
+      let reused = ["ready", "partial"].contains(
+        try extractionStatus(initial.sourceID)["state"].text)
       if !reused {
         do { try extract(initial.sourceID, cancellation: cancellation) } catch {
           // A table is read from the original, so a file too large to index still converts.
@@ -253,7 +255,7 @@ extension Workbook {
       }
       let source = try item(initial.sourceID)
       let file = try assetURL(source.assetID!, verify: true, cancellation: cancellation)
-      let format = StructuredFormat(rawValue: file.pathExtension.lowercased())
+      let format = StructuredFormat.fileExtension(file.pathExtension)
       if let format {
         let parsed = try ExtractionWorker().readTable(
           file, format: format, cancellation: cancellation)

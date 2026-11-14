@@ -72,7 +72,7 @@ public struct NativeAppSurface: NSViewRepresentable {
     }
     for id in changed {
       guard let node = tree.nodes[id] else { continue }
-      if let old = elements[id], old.node.type != node.type {
+      if let old = elements[id], old.node.type != node.type || old.node.mountID != node.mountID {
         old.removeFromSuperview()
         elements[id] = nil
       }
@@ -379,7 +379,8 @@ final class AppElement: NSView, NSTextFieldDelegate, NSTextViewDelegate, NSTabVi
     let signature =
       ids.joined(separator: ":") + node.props["padding"].text + node.props["columns"].text
       + node.props["titles"].text
-      + children.map { $0.node.type + $0.node.props["width"].text }.joined(separator: ":")
+      + children.map { $0.node.type + String($0.node.mountID) + $0.node.props["width"].text }
+      .joined(separator: ":")
     guard signature != arrangement else { return }
     arrangement = signature
     arranged = ids

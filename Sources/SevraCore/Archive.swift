@@ -92,10 +92,21 @@ extension Workbook {
     let fm = FileManager.default
     let included = assets.filter { $0["mode"]?.text == "included" }
     var needed = Int64(try database.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0)
-    for row in included { needed += Int64(row["bytes"]?.int ?? 0) }
+    for row in included {
+      guard let bytes = row["bytes"]?.int, bytes >= 0 else {
+        throw SevraError("export_size", "An included asset has invalid size metadata.")
+      }
+      let addition = needed.addingReportingOverflow(Int64(bytes))
+      try require(!addition.overflow, "export_size", "The workbook's declared size is too large.")
+      needed = addition.partialValue
+    }
     let volumes = Set(
       try folders.map { try fm.attributesOfItem(atPath: $0.path)[.systemNumber] as? Int ?? 0 })
-    if volumes.count == 1 { needed *= 2 }
+    if volumes.count == 1 {
+      let doubled = needed.multipliedReportingOverflow(by: 2)
+      try require(!doubled.overflow, "export_size", "The workbook's declared size is too large.")
+      needed = doubled.partialValue
+    }
     for folder in folders {
       let free =
         try folder.resourceValues(forKeys: [.volumeAvailableCapacityKey]).volumeAvailableCapacity

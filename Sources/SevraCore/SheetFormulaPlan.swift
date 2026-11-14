@@ -23,6 +23,7 @@ struct SheetFormulaPlan: Codable, Sendable {
   var cells: [Cell]
   /// Saved-value formulas left unlisted per sheet, so a huge file fits in one saved change.
   var unlisted: [Int] = []
+  var behavior: ExcelBehavior?
 
   /// The plan keeps a row map, so its size follows the file's rows as well as its formulas.
   static let rowLimit = 20_000
@@ -74,7 +75,9 @@ struct SheetFormulaEngine {
     var sheet: Int
     var column: Int
     var row: Int
-    static func < (a: Key, b: Key) -> Bool { (a.sheet, a.row, a.column) < (b.sheet, b.row, b.column) }
+    static func < (a: Key, b: Key) -> Bool {
+      (a.sheet, a.row, a.column) < (b.sheet, b.row, b.column)
+    }
   }
   let plan: SheetFormulaPlan
   private let sheetIndex: [String: Int]
@@ -105,7 +108,8 @@ struct SheetFormulaEngine {
         var reads = Set<Key>()
         for cell in expression.references {
           guard let target = self.key(cell, from: entry.sheet) else {
-            throw SheetFormulaGap(reason: "Reads the sheet \(cell.sheet ?? ""), which was not imported.")
+            throw SheetFormulaGap(
+              reason: "Reads the sheet \(cell.sheet ?? ""), which was not imported.")
           }
           reads.insert(target)
         }
@@ -119,7 +123,9 @@ struct SheetFormulaEngine {
       }
     }
     if references > SheetFormulaPlan.referenceLimit {
-      for key in expressions.keys { reasons[key] = "The file has too many formulas to recalculate." }
+      for key in expressions.keys {
+        reasons[key] = "The file has too many formulas to recalculate."
+      }
       expressions = [:]
       dependencies = [:]
     }
@@ -141,7 +147,9 @@ struct SheetFormulaEngine {
   /// A formula that reads a cell Sevra cannot keep current cannot be current either.
   private mutating func settle() {
     var readers: [Key: [Key]] = [:]
-    for (key, reads) in dependencies { for read in reads { readers[read, default: []].append(key) } }
+    for (key, reads) in dependencies {
+      for read in reads { readers[read, default: []].append(key) }
+    }
     // Sorted, so one file always states the same reason.
     var queue = reasons.keys.sorted()
     while let blocked = queue.popLast() {
@@ -240,7 +248,7 @@ extension SheetValue {
 extension Workbook {
   static let sheetFormulaKind = "excel-formulas"
 
-  private func sheetFormulaPlan(_ datasetID: String) throws -> (id: String, plan: SheetFormulaPlan)? {
+  func sheetFormulaPlan(_ datasetID: String) throws -> (id: String, plan: SheetFormulaPlan)? {
     try synchronized {
       guard
         let logical = try db.scalar(
@@ -248,15 +256,41 @@ extension Workbook {
         ).string
       else { return nil }
       let record = try item(logical)
+      let plan = try JSONDecoder().decode(
+        SheetFormulaPlan.self, from: Data(record.data["plan"].text.utf8))
+      if let behavior = plan.behavior {
+        try behavior.validate()
+        try require(
+          (1...12).contains(plan.sheets.count)
+            && Set(plan.sheets.map(\.dataset)).count == plan.sheets.count
+            && plan.sheets.allSatisfy {
+              $0.rows.count == $0.logical.count
+                && $0.rows.count <= SheetFormulaPlan.rowLimit && Set($0.rows).count == $0.rows.count
+                && Set($0.logical).count == $0.logical.count && (1...500).contains($0.width)
+                && $0.rows.allSatisfy { (1...1_048_576).contains($0) }
+            }
+            && Set(plan.cells.map { "sheet\($0.sheet + 1)!" + $0.cell }) == Set(behavior.outputs)
+            && plan.cells.count == behavior.outputs.count
+            && plan.cells.allSatisfy { $0.reason == nil },
+          "excel_behavior", "The saved recreated calculation plan is malformed.")
+        for cell in behavior.outputs + behavior.actions.flatMap(\.writes) {
+          let address = try ExcelBehavior.address(cell)
+          try require(
+            plan.sheets.indices.contains(address.sheet)
+              && plan.sheets[address.sheet].width > address.column
+              && plan.sheets[address.sheet].rows.contains(address.row),
+            "excel_behavior", "A declared behavior cell is outside its saved worksheet map.")
+        }
+      }
       return (
-        record.id,
-        try JSONDecoder().decode(SheetFormulaPlan.self, from: Data(record.data["plan"].text.utf8))
+        record.id, plan
       )
     }
   }
 
   func verifySheetFormulaPlans() throws {
-    for row in try db.execute("SELECT key FROM meta WHERE key LIKE 'sheet-formulas:%' ORDER BY key") {
+    for row in try db.execute("SELECT key FROM meta WHERE key LIKE 'sheet-formulas:%' ORDER BY key")
+    {
       let dataset = String(row["key"]!.text.dropFirst("sheet-formulas:".count))
       guard let (_, plan) = try sheetFormulaPlan(dataset) else { continue }
       try require(
@@ -321,7 +355,9 @@ extension Workbook {
           name: sheet.name, dataset: tables[index].id, width: tables[index].columns.count,
           rows: oversized ? [] : sheet.rowNumbers, logical: logical))
       positions.append(
-        Dictionary(sheet.rowNumbers.enumerated().map { ($0.element, $0.offset) }) { first, _ in first })
+        Dictionary(sheet.rowNumbers.enumerated().map { ($0.element, $0.offset) }) { first, _ in
+          first
+        })
       func reason(_ reference: String) -> String? {
         if oversized { return "The file has too many rows to recalculate." }
         if unfollowed { return "An Excel fill in this file is too large to follow." }
@@ -367,7 +403,8 @@ extension Workbook {
 
   private func isSheetDate(_ text: String) -> Bool {
     text.range(
-      of: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\\z|^-?[0-9]{2,}:[0-9]{2}:[0-9]{2}\\z|Excel-only date",
+      of:
+        "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\\z|^-?[0-9]{2,}:[0-9]{2}:[0-9]{2}\\z|Excel-only date",
       options: .regularExpression
     ) != nil
   }
@@ -392,6 +429,10 @@ extension Workbook {
     after datasetID: String, pending: [String: [String: Value]] = [:], importing: Bool = false
   ) throws -> (plan: String, cells: [String: [String: String]])? {
     guard let (planID, plan) = try sheetFormulaPlan(datasetID) else { return nil }
+    if let behavior = plan.behavior {
+      return try excelBehaviorChanges(
+        planID: planID, plan: plan, behavior: behavior, pending: pending)
+    }
     let engine = SheetFormulaEngine(plan: plan)
     guard !engine.order.isEmpty else { return nil }
     typealias Key = SheetFormulaEngine.Key
@@ -421,27 +462,34 @@ extension Workbook {
         rows[Key(sheet: index, column: -1, row: number)] = logical
         for column in active {
           texts[Key(sheet: index, column: column, row: number)] =
-            pending[logical].map { $0["c\(column + 1)"]?.text ?? "" } ?? row["c\(column)"]?.text ?? ""
+            pending[logical].map { $0["c\(column + 1)"]?.text ?? "" } ?? row["c\(column)"]?.text
+            ?? ""
         }
       }
     }
     // A formula in a removed column writes nothing, and what reads it sees the broken reference.
-    let results = engine.values(skipping: { columns[$0.sheet]?.contains($0.column) != true }) { key in
-      // Rows and columns Excel left empty read as blank. Ones since removed are a broken reference.
-      guard mapped[key.sheet]?.contains(key.row) == true else { return .blank }
-      guard rows[Key(sheet: key.sheet, column: -1, row: key.row)] != nil else { return .error("#REF!") }
-      guard columns[key.sheet]?.contains(key.column) == true else {
-        return key.column < plan.sheets[key.sheet].width ? .error("#REF!") : .blank
-      }
-      return SheetValue(stored: texts[key] ?? "")
-    }
+    let results = engine.values(
+      skipping: { columns[$0.sheet]?.contains($0.column) != true },
+      stored: {
+        key in
+        // Rows and columns Excel left empty read as blank. Ones since removed are a broken reference.
+        guard mapped[key.sheet]?.contains(key.row) == true else { return .blank }
+        guard rows[Key(sheet: key.sheet, column: -1, row: key.row)] != nil else {
+          return .error("#REF!")
+        }
+        guard columns[key.sheet]?.contains(key.column) == true else {
+          return key.column < plan.sheets[key.sheet].width ? .error("#REF!") : .blank
+        }
+        return SheetValue(stored: texts[key] ?? "")
+      })
     var changes: [String: [String: String]] = [:]
     for (key, value) in results {
       let saved = texts[key] ?? ""
       guard let logical = rows[Key(sheet: key.sheet, column: -1, row: key.row)],
         importing ? !SheetFormula.same(value, as: saved) : SheetFormula.moved(value, from: saved)
       else { continue }
-      let id = "c\(key.column + 1)", text = SheetFormula.text(value)
+      let id = "c\(key.column + 1)"
+      let text = SheetFormula.text(value)
       if let column = typed[key.sheet]?.first(where: { $0.id == id }) {
         do {
           try validateValues([id: .string(text)], columns: [column])
@@ -461,7 +509,9 @@ extension Workbook {
     return (planID, changes)
   }
 
-  func applySheetFormulaChanges(_ changes: (plan: String, cells: [String: [String: String]])?) throws {
+  func applySheetFormulaChanges(_ changes: (plan: String, cells: [String: [String: String]])?)
+    throws
+  {
     guard let changes else { return }
     for (logical, cells) in changes.cells.sorted(by: { $0.key < $1.key }) {
       let old = try item(logical)
@@ -512,7 +562,9 @@ extension Workbook {
   private func sheetFormulaCells(_ plan: SheetFormulaPlan, sheet: Int, shown: Set<String>?)
     -> [String: [String: SheetFormulaCell]]
   {
-    let logical = Dictionary(zip(plan.sheets[sheet].rows, plan.sheets[sheet].logical)) { first, _ in first }
+    let logical = Dictionary(zip(plan.sheets[sheet].rows, plan.sheets[sheet].logical)) { first, _ in
+      first
+    }
     var result: [String: [String: SheetFormulaCell]] = [:]
     for cell in plan.cells where cell.sheet == sheet {
       guard let address = SheetFormulaToken.address(cell.cell), let row = logical[address.row],
@@ -524,7 +576,8 @@ extension Workbook {
     return result
   }
 
-  private func sheetFormulaReport(_ plan: SheetFormulaPlan, sheet: Int) throws -> SheetFormulaReport {
+  private func sheetFormulaReport(_ plan: SheetFormulaPlan, sheet: Int) throws -> SheetFormulaReport
+  {
     let own = plan.cells.filter { $0.sheet == sheet }
     let saved = own.filter { $0.reason != nil }
     let unlisted = sheet < plan.unlisted.count ? plan.unlisted[sheet] : 0

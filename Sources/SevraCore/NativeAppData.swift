@@ -98,6 +98,7 @@ extension Workbook {
           commitGuard: { try access.authorized(self) {} }
         ) {
           var requested = operations
+          var behaviorCommand = false
           if let undo {
             guard
               let original = try db.execute(
@@ -112,7 +113,21 @@ extension Workbook {
               priorRequest["space"] == .string(access.spaceID)
                 && priorRequest["digest"] == .string(access.package.digest),
               "app_undo", "This receipt belongs to another app version.")
-            requested = try Value.parse(original["result"]!.text)["inverse"].array
+            let priorResult = try Value.parse(original["result"]!.text)
+            requested = priorResult["inverse"].array
+            behaviorCommand = priorResult["excelAction"] == .bool(true)
+          } else if operations.contains(where: { $0["op"] == .string("excel_action") }) {
+            try require(
+              operations.count == 1
+                && Set(operations[0].object.keys).isSubset(of: ["op", "action", "arguments"]),
+              "excel_action",
+              "Submit one excel_action operation with only op, action and arguments. Remove writes, table, id and values; write permissions come from the saved action declaration."
+            )
+            requested = try excelActionOperations(
+              access, action: operations[0]["action"].text,
+              arguments: operations[0]["arguments"] == .null
+                ? .object([:]) : operations[0]["arguments"])
+            behaviorCommand = true
           }
           let evidence = try insertItem(
             category: "source", kind: "observation", title: access.package.name + " update",
@@ -151,7 +166,8 @@ extension Workbook {
                 "Restore is available only through a saved undo receipt.")
               let old = try item(operation["id"].text)
               try require(
-                old.id == operation["id"].text && item(old.logicalID).id == old.id,
+                (behaviorCommand && undo == nil || old.id == operation["id"].text)
+                  && item(old.logicalID).id == old.id,
                 "stale_revision", "This row changed. Refresh before editing.")
               let member = try db.execute(
                 "SELECT ordinal FROM dataset_rows WHERE dataset_id=? AND logical_id=?",
@@ -163,7 +179,8 @@ extension Workbook {
               if kind == "update" {
                 let values = old.data.object.merging(operation["values"].object) { _, new in new }
                 let result = try applyRows(
-                  table.id, edits: [.init(id: old.id, values: values)], request: request)
+                  table.id, edits: [.init(id: old.id, values: values)], request: request,
+                  deferSheetCalculation: true)
                 let id = result["items"].array[0]
                 output.append(.object(["id": id]))
                 // Undo the edited inputs, then let the same formula engine recalculate.
@@ -210,9 +227,25 @@ extension Workbook {
             default: throw SevraError("app_command", "Unknown app command: " + kind)
             }
           }
+          // Every native transaction is atomic, including ordinary multi-table edits and Undo.
+          // Calculate only the final input state, then return its final immutable row versions.
+          try recalculateChangedSheets()
+          if !inverse.isEmpty {
+            // Derived writes may supersede an edited row. Undo must target its final head.
+            inverse = try inverse.map { operation in
+              var fields = operation.object
+              fields["id"] = .string(try item(operation["id"].text).logicalID)
+              fields["id"] = .string(try item(fields["id"]!.text).id)
+              return .object(fields)
+            }
+            output = try output.map { result in
+              .object(["id": .string(try item(item(result["id"].text).logicalID).id)])
+            }
+          }
           return .object([
             "token": .string(token), "revision": .number(Double(expectedRevision + 1)),
             "results": .array(output), "inverse": .array(inverse),
+            "excelAction": .bool(behaviorCommand),
           ])
         }
       }

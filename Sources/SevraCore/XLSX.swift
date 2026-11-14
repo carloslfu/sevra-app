@@ -156,7 +156,10 @@ public enum XLSX {
     }
     if !result.isEmpty {
       let features: [(String, String)] = [
-        ("vbaProject", "Embedded VBA is present and is not executed or converted."),
+        (
+          "vbaProject",
+          "Embedded VBA is present. Available source can guide recreated actions; the original VBA never executes."
+        ),
         (
           "xl/externalLinks/", "External workbook links are present; outside data is not refreshed."
         ),

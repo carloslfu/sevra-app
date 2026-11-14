@@ -56,6 +56,23 @@ public struct SpaceDefinition: Codable, Equatable, Sendable {
     self.components = components
     self.pinnedAt = pinnedAt
   }
+  /// Check persisted identities before renderers or editors build keyed collections.
+  /// Live bindings can become unavailable without making the layout unreadable.
+  func validateStructure() throws {
+    try require(version == 1, "view", "Unsupported view version.")
+    var ids = Set<String>()
+    func visit(_ component: Component, depth: Int) throws {
+      try require(
+        depth <= 3 && ids.count < 16 && ids.insert(component.id).inserted,
+        "view", "Use at most 16 uniquely named components and three levels.")
+      try require(
+        !component.id.isEmpty && component.id.utf8.count <= 256
+          && component.title.utf8.count <= 500,
+        "view", "Use bounded component IDs and labels.")
+      for child in component.children ?? [] { try visit(child, depth: depth + 1) }
+    }
+    for component in components { try visit(component, depth: 1) }
+  }
 }
 public struct Space: Codable, Identifiable, Sendable {
   public let id: String
@@ -75,7 +92,7 @@ extension Workbook {
     try synchronized {
       try db.execute("SELECT * FROM spaces ORDER BY CASE WHEN id='home' THEN 0 ELSE 1 END,title")
         .map { row in
-          guard let version = row["version"]?.int, version > 0 else {
+          guard let version = row["version"]?.int, (1...1_000_000_000).contains(version) else {
             throw SevraError("integrity", "Invalid space version.")
           }
           return Space(
@@ -112,6 +129,7 @@ extension Workbook {
   func validateSpaceDefinition(_ definition: SpaceDefinition, replacing saved: [Component] = [])
     throws
   {
+    try definition.validateStructure()
     func flatten(_ components: [Component]) -> [Component] {
       components.flatMap { [$0] + flatten($0.children ?? []) }
     }
@@ -122,23 +140,11 @@ extension Workbook {
       try validateNativeApp(app)
     }
     let unchanged = flatten(saved)
-    try require(
-      definition.version == 1 && definition.components.count <= 16, "view",
-      "Unsupported view version or too many components.")
-    try require(
-      Set(definition.components.map(\.id)).count == definition.components.count, "view",
-      "Component identifiers must be unique.")
     if let captured = definition.pinnedAt {
       try require(
         ISO8601DateFormatter().date(from: captured) != nil, "view", "Invalid pinned time.")
     }
-    var componentCount = 0
-    var ids = Set<String>()
     func validate(_ c: Component, depth: Int) throws {
-      componentCount += 1
-      try require(
-        componentCount <= 16 && depth <= 3 && ids.insert(c.id).inserted, "view",
-        "Use at most 16 uniquely named components and three levels.")
       try require(
         Set([
           "table", "chart", "metric", "comparison", "document", "asset", "search", "text", "form",
@@ -146,9 +152,6 @@ extension Workbook {
         ])
         .union(SpaceDefinition.sectionTypes).contains(c.type), "view",
         "Unknown native component: \(c.type)")
-      try require(
-        !c.id.isEmpty && c.id.utf8.count <= 256 && c.title.utf8.count <= 500, "view",
-        "Use bounded component IDs and labels.")
       if ["calculation", "query"].contains(c.type) {
         try validateDefinitionComponent(
           c, pinned: definition.pinnedAt != nil, checkArguments: !unchanged.contains(c))

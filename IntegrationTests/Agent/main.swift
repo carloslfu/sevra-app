@@ -267,6 +267,12 @@ func expectValue<T>(_ value: T?) throws -> T {
   return value
 }
 do {
+  if CommandLine.arguments.count == 6 && CommandLine.arguments[1] == "--excel-behavior-live" {
+    try await runExcelBehaviorProbe(
+      modelsRoot: CommandLine.arguments[2], library: CommandLine.arguments[3],
+      engine: CommandLine.arguments[4], output: CommandLine.arguments[5])
+    exit(0)
+  }
   if CommandLine.arguments.dropFirst() == ["--excel-conversion-checks"] {
     try await checkExcelConversions()
     exit(0)

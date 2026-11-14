@@ -6,7 +6,7 @@ import SevraCore
 public enum NativeAppCheck {
   public static func run(
     package: NativeAppPackage, steps: [Value], fixtures: Value = .object([:]),
-    cancellation: Cancellation = .init()
+    cancellation: Cancellation = .init(), excelCoordinates: [[Int]]? = nil
   ) async throws -> Value {
     try cancellation.check()
     try package.validate()
@@ -33,8 +33,9 @@ public enum NativeAppCheck {
       isolated.datasets[alias]!.datasetID = nil
       isolated.datasets[alias]!.writable = true
     }
-    var space = try book.installNativeApp(isolated)
+    var space = try book.installNativeAppContents(isolated)
     var access = try NativeAppAccess(workbook: book, space: space)
+    var paddedRows = 0
     var seeds: [Value] = []
     for (alias, rows) in fixtures.object {
       guard case .array = rows,
@@ -51,16 +52,43 @@ public enum NativeAppCheck {
       }
     }
     try require(seeds.count <= 64, "app_check", "Use up to 64 synthetic fixture rows.")
-    if !seeds.isEmpty {
+    if package.excelBehavior != nil, let coordinates = excelCoordinates {
+      try require(
+        coordinates.reduce(0) { $0 + $1.count } <= 2000,
+        "app_check", "Reconstructed app checks support up to 2,000 stored worksheet rows.")
+      for (index, numbers) in coordinates.enumerated() {
+        let alias = "sheet\(index + 1)"
+        let supplied = fixtures[alias].array.count
+        try require(
+          supplied <= numbers.count, "app_check",
+          "\(alias) has \(numbers.count) original stored rows, but \(supplied) fixture rows were supplied. Keep the original row order and remove extra fixture rows."
+        )
+        guard let binding = isolated.datasets[alias] else {
+          throw SevraError("app_check", "Missing worksheet alias.")
+        }
+        let blank = Value.object(
+          Dictionary(uniqueKeysWithValues: binding.columns.map { ($0.id, Value.string("")) }))
+        // Invented test rows never copy business values. Untested original positions remain blank.
+        for _ in supplied..<numbers.count {
+          seeds.append(
+            .object(["op": .string("insert"), "table": .string(alias), "values": blank]))
+          paddedRows += 1
+        }
+      }
+    }
+    for start in stride(from: 0, to: seeds.count, by: 64) {
       _ = try book.nativeAppTransaction(
-        access, operations: seeds, expectedRevision: book.revision(), token: identifier())
+        access, operations: Array(seeds[start..<min(start + 64, seeds.count)]),
+        expectedRevision: book.revision(), token: identifier())
     }
     access.revoke()
     isolated = space.definition.app!
     for alias in isolated.datasets.keys {
       isolated.datasets[alias]!.writable = package.datasets[alias]!.writable
     }
-    space = try book.installNativeApp(isolated, spaceID: space.id, expectedVersion: space.version)
+    space = try book.installNativeAppContents(
+      isolated, spaceID: space.id, expectedVersion: space.version)
+    try book.attachSyntheticExcelBehavior(space.definition.app!, coordinates: excelCoordinates)
     access = try NativeAppAccess(workbook: book, space: space)
     defer { access.revoke() }
     let connection = NativeAppCheckConnection()
@@ -290,6 +318,7 @@ public enum NativeAppCheck {
               exchange([
                 .object([
                   "kind": .string("event"), "node": .string(node.id), "event": .string("action"),
+                  "mountID": .number(Double(node.mountID)),
                   "handler": .string(kind == "drop" ? "onDrop" : "onClick"), "value": region["id"],
                   "x": x, "y": y,
                 ])
@@ -382,6 +411,7 @@ public enum NativeAppCheck {
             exchange([
               .object([
                 "kind": .string("event"), "node": .string(node.id), "handler": .string(handler),
+                "mountID": .number(Double(node.mountID)),
                 "event": .string(handler == "onChange" ? "change" : "action"), "value": value,
                 "editRevision": .number(Double(index + 1)),
               ])
@@ -404,6 +434,7 @@ public enum NativeAppCheck {
     try cancellation.check()
     return .object([
       "status": .string("passed"), "assertions": .number(Double(assertions)),
+      "paddedSyntheticRows": .number(Double(paddedRows)),
       "steps": .number(Double(steps.count)), "transactions": .number(Double(transactions)),
       "digest": .string(package.digest),
       "tables": .array(

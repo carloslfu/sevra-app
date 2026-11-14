@@ -122,8 +122,11 @@ public struct WorkbookTools {
     if let build = excelConversion {
       try workbook.validateExcelConversionBuild(build)
       try require(
-        ["native_app_sdk", "read_native_app", "datasets", "rows", "calculate", "save_native_app"]
-          .contains(tool),
+        [
+          "native_app_sdk", "read_native_app", "datasets", "rows", "calculate", "save_native_app",
+          "inspect_excel_evidence", "compare_excel_behavior",
+        ]
+        .contains(tool),
         "excel_scope",
         "This build can only inspect its imported tables and save its checked native workspace.")
       if tool == "rows" {
@@ -370,13 +373,32 @@ public struct WorkbookTools {
         "status": .string("resolved"),
         "notice": .string("Only the owning live window can confirm that the review list opened."),
       ])
+    case "inspect_excel_evidence", "compare_excel_behavior":
+      guard let build = excelConversion else {
+        throw SevraError("excel_scope", "Use the active Excel import.")
+      }
+      if tool == "inspect_excel_evidence" {
+        try require(
+          Set(a.object.keys).isSubset(of: ["part", "offset"])
+            && (a["part"] == .null || a["part"].string != nil)
+            && (a["offset"] == .null || a["offset"].int != nil), "excel_evidence",
+          "Invalid evidence arguments.")
+        return try workbook.readExcelEvidence(
+          build.conversionID, part: a["part"].string,
+          offset: a["offset"].int ?? 0, cancellation: cancellation)
+      }
+      let behavior = try JSONDecoder().decode(
+        ExcelBehavior.self, from: Data(a["behavior"].json().utf8))
+      return try workbook.compareExcelBehavior(
+        behavior, conversionID: build.conversionID, cancellation: cancellation)
     case "native_app_sdk":
       return .object([
         "sdkVersion": .number(1),
         "guide": .string(
           excelConversion == nil
             ? NativeAppAuthoring.guide
-            : NativeAppAuthoring.excelEditingGuide + "\n" + NativeAppAuthoring.componentGuide),
+            : NativeAppAuthoring.excelEditingGuide + "\n" + NativeAppAuthoring.excelBehaviorGuide
+              + "\n" + NativeAppAuthoring.componentGuide),
       ])
     case "read_native_app":
       let target: SpaceTarget

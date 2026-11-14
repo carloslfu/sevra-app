@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "dateUTC": "2026-11-14",
+  "baseCommit": "230876bd66811d7884db5ccfa7f1d702c80e6925",
+  "status": "engine and reviewed examples verified; autonomous model reliability remains open",
+  "changedCodeSHA256": {
+    "IntegrationTests/Agent/ExcelBehaviorChecks.swift": "c3c9847d9bef2ae95a9ae69a85773358f30ae07801c7a005263b943337b2f01b",
+    "IntegrationTests/Agent/ExcelBehaviorProbe.swift": "bdf2209c294d9716e1cb63f9886c7afc4876db990866159ebd5d6e60a7bd9f3a",
+    "IntegrationTests/Agent/ExcelConversionChecks.swift": "635a0b967e2413e24691fd3ad5bde34137e6e029cbcb24eef6c23c1173330dac",
+    "IntegrationTests/Agent/main.swift": "ddebf152406f97bec705232cd1d1ef9bf5844d4de87f0f6d37bf3c4bb40c7547",
+    "IntegrationTests/NativeApps/AdversarialChecks.swift": "c53652205e4170f9f2eeca2e6b2ff9480c284ec9433d31ab81137a37c2a2c7f6",
+    "IntegrationTests/NativeApps/Checks.swift": "d17f074326310cbd3cc4090bd3bba9ddec2627a0a3273177fe222b9acafa8f2b",
+    "Package.swift": "b2bef88f3fc54e832e05c77a2627d1b97958f31d32edec4091e0d7e8e8baa829",
+    "Sources/SevraAI/ExcelBehaviorTools.swift": "2ff8488a15a6fa1caca22ebcb5b75e66401ee2d79c406b8371b34754afa8d17a",
+    "Sources/SevraAI/ExcelConversionAgent.swift": "163042e3b93eddb984efea05288f08b10577341d5e9ab149d600438e8d15b41e",
+    "Sources/SevraAI/NativeAppReview.swift": "14856827cfc259ab5a6c53f5392629cc8f0ae856d736a0088861e36dfa4a8a23",
+    "Sources/SevraAI/ToolSerialization.swift": "833ce6825609c62a0bf6ec0a83a93b53e980c0c74c49e87e9412333967b8777a",
+    "Sources/SevraAI/WorkbookAgent.swift": "c5aa24e1e75c4f5a3553dcf42ac8033d1cb72fddb368a1147cdda4b87c3428d0",
+    "Sources/SevraAI/WorkbookInference.swift": "22362897937d6719018389bd4d66b1fdc5dc0a7bbfd11af3aaa5c063c4ef02e4",
+    "Sources/SevraApp/ExcelConversionView.swift": "62b1595277be1a6db587c256aa9c020abac40dfc276adae0e3ce84f1402cab00",
+    "Sources/SevraApp/WorkspaceState.swift": "fe8130b2baf1b6a813960e8de86b4959cac045e6c2ce8861ac6fdee57208551a",
+    "Sources/SevraAppProtocol/NativeAppCheck.swift": "64dfebfbb918627ab29bfc41711166d84e00df81bf5973e3b3ea58d0123397a4",
+    "Sources/SevraAppProtocol/NativeAppProtocol.swift": "ef42ea777e25620bf4a3a86062bf6a839f0d72686b18f852a3e0cd98a8297025",
+    "Sources/SevraAppRuntime/Resources/sdk.js": "928fae3a1458391a643bb000a748bf7d7b11665965c39e0eb581f1e922aefba7",
+    "Sources/SevraAppUI/NativeAppCanvas.swift": "9bf6b0c7e4f9aa6fef92330608cf8ea7fdda04b07867fbeefe08c66fc58230e2",
+    "Sources/SevraAppUI/NativeAppRenderer.swift": "1107bac1bdd7a064f16a3cb03ea930467961af240a23b908b27848a57bfb2c84",
+    "Sources/SevraAppUI/NativeAppSession.swift": "977f350bbbee5cff532ff80cfca1423dc59f3d91d38ec1c7e5fb452fb24637a7",
+    "Sources/SevraCore/Archive.swift": "9590ed590dfec8d28be551748e8f01d99006e7e4b8acb471abebc28366c40408",
+    "Sources/SevraCore/ContextualIntake.swift": "58b7f641f4ed29992e72d8e27ad3169d402d7c184b99a1153b2177a7b8f68d56",
+    "Sources/SevraCore/ExcelBehavior.swift": "e55d789c3892edcf2fc6fc4f410bdaa916301ca95280d5c3722e5ecac454c539",
+    "Sources/SevraCore/ExcelBehaviorData.swift": "9596600dd6742b2778078ab291a7fdc89e0fc847233b2662f1d3591a64b35eb8",
+    "Sources/SevraCore/ExcelComparison.swift": "7f82e5be2be10a108e79fc0a1e1e0d274d56a09adf03e717ca888572e30010a8",
+    "Sources/SevraCore/ExcelConversion.swift": "39c397c8dd6d3a7e55ffbbcb1425bbc325110c3ae3246a02a92649590967f821",
+    "Sources/SevraCore/ExcelConversionEvidence.swift": "bcc562c9ae6771b956d6eb34aca8fe0268aa43306febbec0eae88ad1eb58043d",
+    "Sources/SevraCore/ExcelEvidence.swift": "a1006d79a813c92b925dec19b66bf31d89e64e15051ec71bf0a617d81482a6d9",
+    "Sources/SevraCore/ExtractionWorker.swift": "042b09eebb8b6d299cd9b5aa08ec4b6edfc9a4345ebe3a5b0247aa836562ce18",
+    "Sources/SevraCore/Extractor.swift": "541c665896eaee6646af26199454a19507dfb9ea40b49e5395d436329beac265",
+    "Sources/SevraCore/NativeAppAuthoring.swift": "7525c9516b7f0e868685c592cf8622d57c9753c2d51493fd2b1331b12b62f8d4",
+    "Sources/SevraCore/NativeAppData.swift": "faca0b62d695446348b545da73ca02fb20bfd2856396fd96bc9ec294fcadec46",
+    "Sources/SevraCore/NativeAppPackage.swift": "447e02ddf9d6f48b8bc312e8fbe3ead8fa2c2388a0f3fb23dfde1c936e943b61",
+    "Sources/SevraCore/SheetFormulaPlan.swift": "2049d42f30c4ce812d26a202b882a53d7de02b7acd24d93b06f8f77d39120f22",
+    "Sources/SevraCore/SpaceEditing.swift": "1ddf490c9d9de6154d8f6a3a56de0bd46be2465e2028df6f2b39d9f6cae078f8",
+    "Sources/SevraCore/Spaces.swift": "218f0e81c21c8d211f6e1fee556b8360e34333f0bb3cfee5c5fc3b5b6ce7a884",
+    "Sources/SevraCore/StructuredResult.swift": "c7ea5566d9a0347a67bb8dd24cb2d8a39c94bc8f6132b6aa3c94db488714abf0",
+    "Sources/SevraCore/TableIntake.swift": "9bfffb83bd2554624723e5d9cfec76f1c57e0e5b997cf880f97c5c522eb4046f",
+    "Sources/SevraCore/Tables.swift": "6c5084fe50da740686555cf8d147b378e1256060b4428fffde18734eaa37889f",
+    "Sources/SevraCore/Tools.swift": "3347b5305f9faa0ec6a5530f21c79e42a2d74ed3357b8603e22b26caa7378689",
+    "Sources/SevraCore/VBASource.swift": "f49c1a2c82437b0945f314014fc3904dddc0db75a695e8082d4cd17236e96eae",
+    "Sources/SevraCore/Workbook.swift": "4e8681cf3145ad5a01f4fd20aaa7bf99f90d6c1a0c61dbaccf1dbb31a1a732a1",
+    "Sources/SevraCore/XLSX.swift": "54d6787fa357f3bc53ae7e329beaa47fba508375f0643eaee146704c9ea77a58",
+    "Sources/SevraExtractionWorker/ExcelBehaviorRuntime.swift": "c94fb1b505f9d082ed387edeb4a1144e3e1507e697ec85a1ed41dd64eb558b47",
+    "Sources/SevraExtractionWorker/Worker.swift": "0463a1e731a5238f2d9fda8457edb7e5eeb4ceac9a1005f59995e7d93f2b475c",
+    "Tests/CorruptMetadataChecks.swift": "057756f6327298e81170d7631eba5201759978e56c8125bc72e00e1c6713e9db",
+    "Tests/main.swift": "d11337fc2ba69d1cc3dde429a9e4262cbd1ba716242df1918aac480fdd0a33d7",
+    "scripts/check_native_app_authoring.py": "d402d6c06e1d2b29b51b26011d0ac07053f8a6d2071605bd0aeac1155f97943a",
+    "scripts/make_excel_behavior_fixtures.py": "fb198cc0c2e6b9704549015b293632c552f2398d579f8ff461f5295f572a9c1c",
+    "sdk/src/runtime.ts": "90a20bf5b0fe528f1d2bc9a4b7b8f04a750f267dbe09526e31fdfcce40d421b1",
+    "sdk/test/runtime.test.mjs": "96d688e76db9581cab012419beff1cb2aef6b83cb63759b8c27d0cc302de9561"
+  },
+  "logs": {
+    "full-suite-final-3": {
+      "originalSHA256": "78b15e67811117638043e090d0adbc77cbc15ac0049cc0f7eb8eaaf4a93e832b",
+      "sanitizedSHA256": "3d32959001585f8508a7294f150f15d4079dcb2f803e66524e064c9181993015",
+      "bytes": 169585
+    },
+    "canvas-before": {
+      "originalSHA256": "b72b9dc4c2a34f905013d17ff127ed258ae301229d1e64e9082126e39ed65b82",
+      "sanitizedSHA256": "fb026430c854455daa3b4baebe05328fab7ca5ed2e330fbd942cfc879dacdf70",
+      "bytes": 2515
+    },
+    "canvas-after": {
+      "originalSHA256": "0a119414284e01357c798b9d18e299856ed8eb8bab2c3e9457fadebd6e2ab3bf",
+      "sanitizedSHA256": "dd73844831263d8d7a08150910a1f1d7fe1067c0d819aabd5dbf1abf57cde1d3",
+      "bytes": 1735
+    },
+    "layout-before": {
+      "originalSHA256": "dfb06f16e4731aa62e286cbef22e2699d4f4acb34d389946b919262ae6d7db8d",
+      "sanitizedSHA256": "dfb06f16e4731aa62e286cbef22e2699d4f4acb34d389946b919262ae6d7db8d",
+      "bytes": 335
+    },
+    "layout-after": {
+      "originalSHA256": "1d0dd399d176490975bb4318cdd8047e7964cab34af76dbd312dfe7c3e3c0204",
+      "sanitizedSHA256": "1d0dd399d176490975bb4318cdd8047e7964cab34af76dbd312dfe7c3e3c0204",
+      "bytes": 280
+    },
+    "reviewer-evidence-before": {
+      "originalSHA256": "53f8c2cfcbd11ca2eec39e7d72a29b290a2666bf01c97f7bb0f97bfb74a7ba27",
+      "sanitizedSHA256": "bcfb7b4a5638a9f65e4a36d38fc674bac7c1a724149824f1d9a1c317a39ef010",
+      "bytes": 4333
+    },
+    "reviewer-evidence-after": {
+      "originalSHA256": "d482c1e7da5ec49be7134b0e3e5899de3b59091b394a0953d3c57830bf5bb7ff",
+      "sanitizedSHA256": "14f159fcb1a9996d72977f96cf2ac5b1631eb2452c47c602b42c33aca8a35628",
+      "bytes": 4710
+    },
+    "error-message-before": {
+      "originalSHA256": "0c5ea9d37faf58b5feb1e56e565acda94be8c1e54735f03b203d0608c6974753",
+      "sanitizedSHA256": "28a0408eea551021e0ad1dafbe91e84460ff2a70c99c0b14d394f5b3a0d7c101",
+      "bytes": 3829
+    },
+    "error-message-after": {
+      "originalSHA256": "373a512b39f059d80a4c54074691623b0d30e7f73d59d201413d9935e94a8a3c",
+      "sanitizedSHA256": "8dd66c95f8ca8593347fd3f5bd670631b8a024b3775bf75859ef45a1e2a910d7",
+      "bytes": 4710
+    },
+    "final-cases-checks": {
+      "originalSHA256": "8dbd9c1c3f9fed6327c9f5d1cca126850b8be1fdcdc50e80d2eb6c1c1d6bf290",
+      "sanitizedSHA256": "c984cc0ae60607562d0a0ccb5959e748073b53d41cca09f9f808ec0f2123d21d",
+      "bytes": 4710
+    },
+    "example-label-build": {
+      "originalSHA256": "f7a40717196486228c031268347754a0f16630859f0bf6120dcafff3d6b8bb01",
+      "sanitizedSHA256": "f7a40717196486228c031268347754a0f16630859f0bf6120dcafff3d6b8bb01",
+      "bytes": 276
+    },
+    "package-last": {
+      "originalSHA256": "4de5a7c1e5a9d48f88a9dffb1c61943c4f901d290b8ad550c0ca504af7c0012e",
+      "sanitizedSHA256": "4de5a7c1e5a9d48f88a9dffb1c61943c4f901d290b8ad550c0ca504af7c0012e",
+      "bytes": 979
+    },
+    "installation-last": {
+      "originalSHA256": "a63a876d81f8c07fe255c9c20ca83a80c9f8df302299f1e5f111ef35cd4e0925",
+      "sanitizedSHA256": "a63a876d81f8c07fe255c9c20ca83a80c9f8df302299f1e5f111ef35cd4e0925",
+      "bytes": 242
+    },
+    "extraction-last": {
+      "originalSHA256": "d28a3a716dd495c7d7fabdd3bb60cd66d30dde70023d1c6e942456c157be2e65",
+      "sanitizedSHA256": "d28a3a716dd495c7d7fabdd3bb60cd66d30dde70023d1c6e942456c157be2e65",
+      "bytes": 456
+    },
+    "swift-format-last": {
+      "originalSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitizedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cleanup": {
+      "originalSHA256": "d050ffc51dc96898373967f1c44dcf96830c9965c962c752cb914cccc9327259",
+      "sanitizedSHA256": "d050ffc51dc96898373967f1c44dcf96830c9965c962c752cb914cccc9327259",
+      "bytes": 88
+    }
+  },
+  "logArchiveSHA256": "da4ecedcb96614f83af0b6b5634a074b26029412b69e9e19ce045c4fe32e9191",
+  "installed": [
+    {
+      "path": "Contents/MacOS/Sevra",
+      "installedUUID": "CA63042B-C1BD-3DD5-8D37-684046FD3AB1",
+      "packagedUUID": "CA63042B-C1BD-3DD5-8D37-684046FD3AB1",
+      "installedSHA256": "903021edae31da564c35c0b23a5361db5277bc0f4f511dedcbed96451d547739",
+      "packagedSHA256": "664e415abc5038f11e196c83005aaf8bb19ddbf7ba552627f739c6f14a90c166"
+    },
+    {
+      "path": "Contents/MacOS/sevra-extract",
+      "installedUUID": "66FBCFAA-0043-3806-B26D-255FA08DCC96",
+      "packagedUUID": "66FBCFAA-0043-3806-B26D-255FA08DCC96",
+      "installedSHA256": "56ed4aa33973c4b035cda51abefc039405c8237d261a0956a31bf5f1a8f22264",
+      "packagedSHA256": "56ed4aa33973c4b035cda51abefc039405c8237d261a0956a31bf5f1a8f22264"
+    },
+    {
+      "path": "Contents/XPCServices/com.sevra.workbooks.app-check-worker.xpc/Contents/MacOS/sevra-app-worker",
+      "installedUUID": "0E54A3DC-5CEE-31E8-8AC7-17F8B237C884",
+      "packagedUUID": "0E54A3DC-5CEE-31E8-8AC7-17F8B237C884",
+      "installedSHA256": "b4e5756d963f9dcd4c1023ae52b9fec2d610db78b826e248813088f5405f4c18",
+      "packagedSHA256": "b4e5756d963f9dcd4c1023ae52b9fec2d610db78b826e248813088f5405f4c18"
+    },
+    {
+      "path": "Contents/XPCServices/com.sevra.workbooks.app-worker.xpc/Contents/MacOS/sevra-app-worker",
+      "installedUUID": "0E54A3DC-5CEE-31E8-8AC7-17F8B237C884",
+      "packagedUUID": "0E54A3DC-5CEE-31E8-8AC7-17F8B237C884",
+      "installedSHA256": "172ab28d96250000933ed850ef2110ed3c8f9804b4abc2e05d753c60b3b9f83e",
+      "packagedSHA256": "172ab28d96250000933ed850ef2110ed3c8f9804b4abc2e05d753c60b3b9f83e"
+    }
+  ],
+  "verification": {
+    "fullSuite": "passed; 653 core checks, 17 native groups, six SDK tests; later focused checks cover final changes",
+    "finalAuthoringGroups": 36,
+    "businessCases": 10,
+    "independentOriginalFiles": 43,
+    "reviewedCandidateUISteps": 42,
+    "reviewedCandidateAssertions": 10,
+    "reviewedCandidateOriginalComparisons": 15,
+    "packageInstallationExtraction": "passed",
+    "nativeUI": "actual permission, edit, validation, Undo, reopen, example and wide/821-point compact observations recorded in review",
+    "freshModelTrial10": "Inventory and Loan both failed safely; retained separately",
+    "reviewedCandidates": "manually repaired derivatives, not fresh inference",
+    "baseline": "preserved; stale baseline packaged journey skipped locally",
+    "hostedCI": "check the pushed commit; not inferred from local verification"
+  },
+  "cleanup": {
+    "taskRecentEntriesRemoved": 5,
+    "otherCurrentRecentEntriesPreserved": 5,
+    "nativeAppGrantsRemaining": 0,
+    "preview": "installed and closed",
+    "scratchWorkbooks": "retained only under ignored build folders"
+  },
+  "limits": [
+    "No universal security or all-lines correctness claim",
+    "Unassisted model generation and review remain unreliable",
+    "Fixed original cell coordinates and bounded XLSX/XLSM inspection",
+    "No original VBA or external services executed",
+    "No production notarization, independent audit, additional hardware or VoiceOver qualification"
+  ]
+}

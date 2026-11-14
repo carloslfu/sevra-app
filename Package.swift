@@ -158,7 +158,7 @@ let package = Package(
       ],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
-      name: "SevraExtractionWorker", dependencies: ["SevraCore"],
+      name: "SevraExtractionWorker", dependencies: ["SevraCore", "CQuickJS"],
       swiftSettings: [.swiftLanguageMode(.v5)]),
     .executableTarget(
       name: "SevraExtractionChecks", dependencies: ["SevraCore"],

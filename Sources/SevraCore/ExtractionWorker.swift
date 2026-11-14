@@ -69,6 +69,35 @@ public struct ExtractionWorker: Sendable {
     return result
   }
 
+  public func excelEvidence(_ url: URL, cancellation: Cancellation = .init()) throws
+    -> [ExcelEvidence]
+  {
+    let result: [ExcelEvidence] = try run(
+      url, mode: ["--excel-evidence"], cancellation: cancellation)
+    try require(
+      result.count <= 256 && Set(result.map(\.id)).count == result.count
+        && result.allSatisfy { !$0.id.isEmpty && $0.id.utf8.count <= 1024 && $0.sha256.count == 64 }
+        && result.reduce(0) { $0 + $1.text.utf8.count } <= 32_000_000,
+      "excel_evidence_limit", "Invalid or excessive workbook evidence.")
+    return result
+  }
+
+  public func excelBehavior(_ request: Value, cancellation: Cancellation = .init()) throws -> Value
+  {
+    let bytes = Data(try request.json().utf8)
+    try require(
+      bytes.count <= 4_000_000, "excel_behavior_limit", "Workbook calculation input exceeds 4 MB.")
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "sevra-excel-" + identifier())
+    try FileManager.default.createDirectory(
+      at: root, withIntermediateDirectories: false,
+      attributes: [.posixPermissions: 0o700])
+    defer { try? FileManager.default.removeItem(at: root) }
+    let input = root.appendingPathComponent("request.json")
+    try bytes.write(to: input, options: .atomic)
+    return try run(input, mode: ["--excel-behavior"], cancellation: cancellation)
+  }
+
   /// A ZIP library that traps on a hostile file stops this helper, which is a refused file.
   public func zipMembers(_ url: URL, cancellation: Cancellation = .init()) throws -> [ZIPMember] {
     do {
@@ -230,11 +259,13 @@ public struct ExtractionWorker: Sendable {
   }
 
   /// Dedicated helper entry point. No workbook or network service is opened.
-  public static func runMain() -> Never {
+  public static func runMain(behavior: ((URL) throws -> Value)? = nil) -> Never {
     let arguments = Array(CommandLine.arguments.dropFirst())
     let format: StructuredFormat?
     let listing = arguments.count == 2 && arguments[0] == "--zip-members"
-    if arguments.count == 1 || listing {
+    let evidence = arguments.count == 2 && arguments[0] == "--excel-evidence"
+    let calculating = arguments.count == 2 && arguments[0] == "--excel-behavior"
+    if arguments.count == 1 || listing || evidence || calculating {
       format = nil
     } else if arguments.count == 2, arguments[0].hasPrefix("--structured="),
       let selected = StructuredFormat(rawValue: String(arguments[0].dropFirst(13)))
@@ -254,6 +285,19 @@ public struct ExtractionWorker: Sendable {
     }
     watchdog.resume()
     let status: Int32 = withExtendedLifetime(watchdog) {
+      if calculating {
+        return writeReply {
+          guard let behavior else {
+            throw SevraError("excel_behavior", "Calculation helper is unavailable.")
+          }
+          return try behavior(url)
+        }
+      }
+      if evidence {
+        return writeReply {
+          try ExcelEvidence.readInProcess(url, cancellation: Cancellation(deadlineAfterSeconds: 60))
+        }
+      }
       if listing {
         return writeReply {
           try ZIPDirectory.members(url, cancellation: Cancellation(deadlineAfterSeconds: 60))

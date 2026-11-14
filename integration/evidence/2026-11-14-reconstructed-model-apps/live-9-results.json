@@ -1,0 +1,87 @@
+[
+  {
+    "error": "The model repeated an unsuccessful action. Completed changes and receipts are saved; inspect them before continuing.",
+    "freshModelTrial": true,
+    "name": "Inventory",
+    "passed": false,
+    "plan": {
+      "name": "Inventory Stock Manager",
+      "purpose": "A stock management tool that tracks items, calculates reorder needs, and allows deducting stock via a Ship Stock action. It replaces a VBA macro with a native table and a Ship Stock button that validates and updates quantities.",
+      "questions": [
+        "Should the Ship Stock action apply to the currently selected row in the Records table, or should it deduct from all items?"
+      ],
+      "workflows": [
+        "**Data Entry:** Users add items with 'On hand' and 'Reorder at' values.",
+        "**Calculation:** The system calculates 'To order' as `MAX(Reorder at - On hand, 0)`.",
+        "**Shipping Action:** A 'Ship stock' button prompts for a quantity. The system validates that the quantity is positive and does not exceed the 'On hand' amount. If valid, it deducts the quantity from 'On hand' and recalculates 'To order'."
+      ]
+    },
+    "seconds": 189.71712398529053
+  },
+  {
+    "answer": "Saved native app \u201cLoan Calculator\u201d after 5 synthetic checks. Review table access and enable this version to use it.",
+    "comparison": {
+      "actionsWithoutExamples": [],
+      "calculationEvidence": null,
+      "cases": [
+        {
+          "action": "recalculate",
+          "changedInputs": 0,
+          "compared": 1,
+          "sourceHash": "398cb0faa4be0409ee52e4a1c4dc97e1733bf8d6eeabe79326c4c8010d3406be",
+          "sourceID": "f1ae0730-00f3-452d-acd5-84d997403b64"
+        },
+        {
+          "action": "recalculate",
+          "changedInputs": 1,
+          "compared": 1,
+          "sourceHash": "d75d0d1f73fb248afeac01a3078404074676fe610bf56287b823ead868f532c6",
+          "sourceID": "8cb589bd-a28f-4b67-9581-982b69957318"
+        },
+        {
+          "action": "recalculate",
+          "changedInputs": 1,
+          "compared": 1,
+          "sourceHash": "df3bbc3cf29ea7df53d5f7af71870e0df252e081223cd727cb85c94bb7d22453",
+          "sourceID": "983c7f75-c4a1-497b-9002-8e8f17369164"
+        },
+        {
+          "action": "recalculate",
+          "changedInputs": 1,
+          "compared": 1,
+          "sourceHash": "1cb3fee491a59b9cd0c5c8894596a69258f12f58d28a4d88dc6d8adf814c45f3",
+          "sourceID": "287634d2-7839-49ec-882b-5984b44cddff"
+        }
+      ],
+      "compared": 4,
+      "conversionVersion": "155655d1-fcb9-4a6f-a479-819d72babcd2",
+      "differences": [],
+      "gaps": [],
+      "notCompared": [
+        "Visual layout, manual steps and external service behavior are not established by cell-result comparisons."
+      ],
+      "notice": "Compared only the saved original results listed here. Saved-state matches do not prove changed-input behavior or every business rule.",
+      "programDigest": "fcebbf62e4ede8df23265be32ea78a257af35d42f34a1066fbfea600424635b8",
+      "status": "matched",
+      "unverified": [],
+      "variedCases": 3
+    },
+    "error": "Test step 7: Target must match one control label/title or node ID: Input Controls/text: Loan Calculator; Search; Records; Principal; Principal; Save changes",
+    "freshModelTrial": true,
+    "inputControl": "Principal",
+    "name": "Loan",
+    "passed": false,
+    "plan": {
+      "name": "Loan Calculator",
+      "purpose": "A loan calculator that computes monthly payments based on principal, interest rate, and term. The user interacts with a 'Records' table to view and edit loan details, specifically the Principal amount. Calculations update automatically when values change.",
+      "questions": [],
+      "workflows": [
+        "Records Table: A table named 'Records' with columns for Loan Name, Principal, Monthly Rate, Payment, and Months. The user selects a row to edit.",
+        "Principal Input: A designated input cell labeled 'Principal' allows the user to enter or modify the loan amount. This value feeds into the calculation.",
+        "Payment Calculation: The Payment column uses the PMT function (rounded to 2 decimal places) to calculate the monthly payment based on the Principal, Monthly Rate, and Months.",
+        "Save Changes: The user can save the workbook to persist any edits made to the Principal or other fields."
+      ]
+    },
+    "seconds": 250.99643003940582
+  }
+]
