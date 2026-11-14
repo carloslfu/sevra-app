@@ -63,6 +63,15 @@ static char *failure(SevraJS *e) {
   if (text) JS_FreeCString(e->context, text);
   JS_FreeValue(e->context, exception); return out;
 }
+char *sevra_js_check_syntax(SevraJS *e, const char *source, size_t length, int milliseconds) {
+  e->deadline = now() + milliseconds / 1000.0;
+  JS_UpdateStackTop(e->runtime);
+  JSValue value = JS_Eval(e->context, source, length, "excel-behavior.js",
+      JS_EVAL_TYPE_GLOBAL | JS_EVAL_FLAG_STRICT | JS_EVAL_FLAG_COMPILE_ONLY);
+  if (JS_IsException(value)) return failure(e);
+  JS_FreeValue(e->context, value);
+  return strdup("null");
+}
 char *sevra_js_eval(SevraJS *e, const char *source, size_t length, int milliseconds) {
   e->deadline = now() + milliseconds / 1000.0;
   JS_UpdateStackTop(e->runtime);

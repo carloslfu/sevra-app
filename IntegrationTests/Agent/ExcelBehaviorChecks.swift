@@ -335,7 +335,7 @@ func checkExcelBehaviorReconstruction() async throws {
         undo: undoToken)
       try expectEqual(try book.tablePage(table).values[1]["c2"], .string("6"))
       let revision = try book.revision()
-      for quantity in ["-1", "999", "oops"] {
+      for quantity in ["-1", "999", "oops", "2abc", "Infinity"] {
         try expectThrows(
           try book.nativeAppTransaction(
             access,
@@ -396,7 +396,7 @@ func checkExcelBehaviorReconstruction() async throws {
     try require(
       error.localizedDescription.contains("Invalid excelBehavior.source"), "test",
       "Expected calculation syntax feedback; received: " + error.localizedDescription)
-    try expectEqual(error.localizedDescription.contains("closing brace"), true)
+    try expectEqual(error.localizedDescription.contains("excel-behavior.js:1"), true)
   }
   let programs = [
     "function recreate(input){return {'sheet1!D2':String(Number(input.cells['c2'])||0)}}",
@@ -416,6 +416,23 @@ func checkExcelBehaviorReconstruction() async throws {
     let program = ExcelBehavior(source: source, outputs: ["sheet1!D2"])
     try expectThrows(try program.evaluate(cells: cells))
   }
+  for source in [
+    "function recreate(){return {'sheet1!D2':'1'};}}return{};",
+    "function recreate(){return {'sheet1!D2':'1'};",
+  ] {
+    var diagnostic = ""
+    do {
+      _ = try ExcelBehavior(source: source, outputs: ["sheet1!D2"]).evaluate(cells: cells)
+    } catch { diagnostic = error.localizedDescription }
+    try expectEqual(diagnostic.contains("excel-behavior.js:1"), true)
+    try expectEqual(diagnostic.contains("extra as well as missing"), true)
+  }
+  let compileOnly = try ExcelBehavior(
+    source:
+      "globalThis.runs=(globalThis.runs||0)+1;function recreate(){return {'sheet1!D2':String(globalThis.runs)}}",
+    outputs: ["sheet1!D2"]
+  ).evaluate(cells: cells)
+  try expectEqual(compileOnly["sheet1!D2"], "1")
   var validationMessage = ""
   do {
     _ = try ExcelBehavior(

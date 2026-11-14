@@ -43,6 +43,22 @@ enum ExcelBehaviorRuntime {
       throw SevraError("excel_behavior", "Cannot allocate calculation runtime.")
     }
     defer { sevra_js_destroy(engine) }
+    // Parse the candidate on its own, without executing it. Otherwise a stray closing
+    // brace can escape the wrapper syntactically and produce a misleading wrapper error.
+    guard
+      let syntax = source.withCString({
+        sevra_js_check_syntax(engine, $0, source.utf8.count, 500)
+      })
+    else { throw SevraError("excel_behavior", "Cannot check calculation syntax.") }
+    let diagnostic = String(cString: syntax)
+    sevra_js_free(syntax)
+    if diagnostic.hasPrefix("!") {
+      throw SevraError(
+        "excel_behavior",
+        "Invalid excelBehavior.source: " + String(diagnostic.dropFirst().prefix(1800))
+          + "\nThe location refers to your source, not a wrapper. Check for extra as well as missing braces or parentheses. Reformat the function into clear blocks and correct that syntax before resubmitting. Do not repeat unchanged source. Source ending:\n"
+          + String(source.suffix(700)))
+    }
     let script = """
       globalThis.Date=undefined;globalThis.Atomics=undefined;globalThis.SharedArrayBuffer=undefined;
       Math.random=()=>{throw Error('Randomness needs an explicit input');};Object.freeze(Math);
@@ -72,7 +88,7 @@ enum ExcelBehaviorRuntime {
         throw SevraError(
           "excel_behavior",
           "Invalid excelBehavior.source: " + String(message.prefix(500))
-            + ". Supply the complete function recreate(input), including its closing brace after the returned object. Check delimiter balance and do not repeat unchanged source. Source ending:\n"
+            + ". Check for extra or missing delimiters and reserved host-name conflicts. Do not repeat unchanged source. Source ending:\n"
             + String(source.suffix(700)))
       }
       throw SevraError(

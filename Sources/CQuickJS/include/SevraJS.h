@@ -6,5 +6,7 @@ SevraJS *sevra_js_create(void);
 void sevra_js_destroy(SevraJS *engine);
 // Result is JSON returned by the evaluated expression; failure text is prefixed with !.
 char *sevra_js_eval(SevraJS *engine, const char *source, size_t length, int milliseconds);
+// Compile strict source without executing it. Returns "null" or a !-prefixed diagnostic.
+char *sevra_js_check_syntax(SevraJS *engine, const char *source, size_t length, int milliseconds);
 void sevra_js_free(char *text);
 #endif

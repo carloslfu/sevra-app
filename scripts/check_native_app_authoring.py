@@ -58,7 +58,9 @@ def main():
                 'sources': {str(path.relative_to(ROOT)): digest(path) for path in sorted([
                     ROOT / 'Package.swift', *ROOT.glob('Sources/**/*.swift'),
                     *ROOT.glob('IntegrationTests/Agent/*.swift'), ROOT / 'sdk/src/runtime.ts',
-                    ROOT / 'Sources/SevraAppRuntime/Resources/sdk.js'])},
+                    ROOT / 'Sources/SevraAppRuntime/Resources/sdk.js',
+                    ROOT / 'Sources/CQuickJS/SevraJS.c', ROOT / 'Sources/CQuickJS/include/SevraJS.h',
+                    ROOT / 'integration/quickjs.json'])},
             }
         try:
             subprocess.run([str(app / 'Contents/MacOS/checks'), *options], cwd=ROOT, check=True, timeout=3600 if live else 240)

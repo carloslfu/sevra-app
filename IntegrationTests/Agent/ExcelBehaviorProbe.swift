@@ -174,7 +174,7 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
           .object([
             "kind": .string("expect_value"), "target": .string("Quantity"), "value": .string("999"),
           ]))
-        for invalid in ["0", "-1", "not a number"] {
+        for invalid in ["0", "-1", "not a number", "2abc"] {
           steps += [
             .object(["kind": .string("select"), "target": .string("Records"), "value": .number(1)]),
             .object([
@@ -193,6 +193,23 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
             ]),
           ]
         }
+        var secondShipment = expected
+        secondShipment["sheet1!B2"] = "4"
+        secondShipment["sheet1!D2"] = "8"
+        steps += [
+          .object(["kind": .string("change"), "target": .string("Quantity"), "value": .string("2")]
+          ),
+          .object(["kind": .string("click"), "target": .string("Ship stock")]),
+          .object([
+            "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
+            "values": .object([
+              "c2": .string("4"), "c4": .string(try expectedOutput(secondShipment)),
+            ]),
+          ]),
+          .object([
+            "kind": .string("expect_value"), "target": .string("Quantity"), "value": .string(""),
+          ]),
+        ]
       }
       if name == "Lookup quotes" {
         var zeroQuantity = expected

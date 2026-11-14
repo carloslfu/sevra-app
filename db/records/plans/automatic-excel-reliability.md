@@ -2,7 +2,7 @@
 type: operational
 id: 01m7d2cc2ahngzgpw3nakfnwsd
 created: 2026-11-14T13:01:38.250838+00:00
-updated: 2026-11-14T16:16:56.182341+00:00
+updated: 2026-11-14T16:39:00.175582+00:00
 summary: Repair local-model Excel conversion failures and verify fresh unassisted apps across business cases
 title: Automatic Excel conversion reliability
 status: in-progress
@@ -97,3 +97,11 @@ Fresh generation is still in qualification; do not treat the code changes or det
 
 - Numeric output equivalence now requires the entire cell string to be canonical numeric text. Regression checks retain `0.00`/`0` equivalence and reject blank/zero, leading-zero identifiers and trailing-newline text mismatches. The 36 focused authoring/conversion groups pass on this candidate.
 - The byte-unchanged generated Commission and Lookup packages from qualification 4 also pass independent original/UI/persistence/portable-copy checks under the stricter current SDK in `strict-runtime-replay-1`. These are compatibility rechecks of automatically generated source, explicitly labeled replay rather than new inference trials.
+
+## Completed expanded batch and final adversarial findings
+
+- Qualification 4 completed all ten fresh requests. Its raw flags are 7/10: Inventory, Commission, Lookup quotes, Reference codes, Cash flow, Production and Timesheets passed; Loan and Invoices failed the documented harness issues, and Due dates repeated malformed source until safely stopping. Reference codes automatically repaired negative-number and nonnumeric TEXT handling before passing nine originals. These flags retain the exact older scope and are not the final acceptance claim.
+- Corrected-harness replays of unchanged saved Loan and Invoices source pass with all original/UI/saved-edit/Undo/reopen checks. The first replay's Loan passed while Invoices was absent because an export assertion mistakenly expected workbook-specific dataset IDs to survive portable export. The second replay contains both verified exports and passes. This setup failure is retained separately from model behavior.
+- Adversarial inspection invalidated Inventory's earlier acceptance for a stronger boundary: its unchanged generated action accepts `2abc` as quantity 2. A direct isolated runtime reproduction returned stock 6 from stock 8. No app source was patched. Guidance now requires full-string finite numeric validation where the original uses a numeric rule, and independent checks add partial numeric text plus a second successful shipment. A fresh Inventory is required.
+- Due dates repeated an extra-brace error under misleading wrapper syntax feedback. A compile-only strict QuickJS preflight now parses the candidate independently, without executing it, and returns its real source location. The retained malformed source now reports `return not in a function` at its offending location. Tests cover extra/missing braces, no preflight side effects, sandbox/resource limits and unchanged valid programs. The pinned upstream QuickJS files are unchanged.
+- The integrated suite completed successfully through its db.md/link checks on the preceding candidate. Its current 7 SDK and 17 native groups pass, as do core/CLI, agent, grammar and desktop checks. Packaged journeys were correctly skipped as stale and require explicit final packaging verification. Final syntax/numeric-action refinements have focused checks in flight; four fresh generation reruns, installed UI and exact hosted CI remain pending.
