@@ -127,6 +127,29 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
       let seeded: Value = .object([
         "sheet1": .array(try book.tablePage(table).values.map(Value.object))
       ])
+      // Accept the two ordinary labels for this action, then run the same independent
+      // saved-state assertions. Discover controls from the rendered app, not its tests
+      // or source, and never retry a failing action with a different button.
+      var shipTarget = "Ship stock"
+      if name == "Inventory" {
+        var matches: [String] = []
+        for title in ["Ship stock", "Ship"] {
+          do {
+            _ = try await NativeAppCheck.run(
+              package: package,
+              steps: [.object(["kind": .string("expect_control"), "target": .string(title)])],
+              fixtures: seeded, excelCoordinates: book.excelCheckCoordinates(draft.id))
+            matches.append(title)
+          } catch {
+            guard (error as? SevraError)?.code == "app_check_assertion",
+              error.localizedDescription.contains("Target must match one control")
+            else { throw error }
+          }
+        }
+        try require(matches.count == 1, "probe", "Expected one unambiguous shipping control.")
+        shipTarget = matches[0]
+        result["actionControl"] = .string(shipTarget)
+      }
       let changed = try ExtractionWorker().readTable(
         fixtures.appendingPathComponent(example["files"].array[1].text), format: .xlsx
       ).sheets
@@ -137,7 +160,7 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
           .object(["kind": .string("select"), "target": .string("Records"), "value": .number(1)]),
           .object(["kind": .string("change"), "target": .string("Quantity"), "value": .string("2")]
           ),
-          .object(["kind": .string("click"), "target": .string("Ship stock")]),
+          .object(["kind": .string("click"), "target": .string(shipTarget)]),
           .object([
             "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
             "values": .object(["c2": .string("6"), "c4": .string(try expectedOutput(expected))]),
@@ -146,7 +169,7 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
           .object([
             "kind": .string("change"), "target": .string("Quantity"), "value": .string("999"),
           ]),
-          .object(["kind": .string("click"), "target": .string("Ship stock")]),
+          .object(["kind": .string("click"), "target": .string(shipTarget)]),
           .object([
             "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
             "values": .object(["c2": .string("6"), "c4": .string(try expectedOutput(expected))]),
@@ -180,7 +203,7 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
             .object([
               "kind": .string("change"), "target": .string("Quantity"), "value": .string(invalid),
             ]),
-            .object(["kind": .string("click"), "target": .string("Ship stock")]),
+            .object(["kind": .string("click"), "target": .string(shipTarget)]),
             .object([
               "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
               "values": .object([
@@ -199,7 +222,7 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
         steps += [
           .object(["kind": .string("change"), "target": .string("Quantity"), "value": .string("2")]
           ),
-          .object(["kind": .string("click"), "target": .string("Ship stock")]),
+          .object(["kind": .string("click"), "target": .string(shipTarget)]),
           .object([
             "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
             "values": .object([

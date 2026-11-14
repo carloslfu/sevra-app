@@ -2,7 +2,7 @@
 type: operational
 id: 01m7d2cc2ahngzgpw3nakfnwsd
 created: 2026-11-14T13:01:38.250838+00:00
-updated: 2026-11-14T16:39:00.175582+00:00
+updated: 2026-11-14T16:53:39.284718+00:00
 summary: Repair local-model Excel conversion failures and verify fresh unassisted apps across business cases
 title: Automatic Excel conversion reliability
 status: in-progress
@@ -105,3 +105,11 @@ Fresh generation is still in qualification; do not treat the code changes or det
 - Adversarial inspection invalidated Inventory's earlier acceptance for a stronger boundary: its unchanged generated action accepts `2abc` as quantity 2. A direct isolated runtime reproduction returned stock 6 from stock 8. No app source was patched. Guidance now requires full-string finite numeric validation where the original uses a numeric rule, and independent checks add partial numeric text plus a second successful shipment. A fresh Inventory is required.
 - Due dates repeated an extra-brace error under misleading wrapper syntax feedback. A compile-only strict QuickJS preflight now parses the candidate independently, without executing it, and returns its real source location. The retained malformed source now reports `return not in a function` at its offending location. Tests cover extra/missing braces, no preflight side effects, sandbox/resource limits and unchanged valid programs. The pinned upstream QuickJS files are unchanged.
 - The integrated suite completed successfully through its db.md/link checks on the preceding candidate. Its current 7 SDK and 17 native groups pass, as do core/CLI, agent, grammar and desktop checks. Packaged journeys were correctly skipped as stale and require explicit final packaging verification. Final syntax/numeric-action refinements have focused checks in flight; four fresh generation reruns, installed UI and exact hosted CI remain pending.
+
+
+## Final generated-app verification
+
+- The new Inventory request automatically repaired fixture coordinates and saved a program that rejects partial numeric text. Its raw independent result stopped on a UI label mismatch: the generated button says `Ship` below a `Ship stock` heading. The probe now discovers exactly one of those two rendered controls before running unchanged independent saved-state assertions; it never retries a failing action under another label. A replay of the byte-unchanged fresh package passes all 28 UI steps, four original comparisons, saved edits/reopen/Undo and portable copy. This is a corrected-harness replay, not a second inference trial.
+- Current-runtime replays of unchanged Commission, Lookup quotes and Reference codes pass after the compile-only syntax preflight. Cash flow, Production and Timesheets already passed that runtime in the preceding replay. Replays are recorded distinctly from the original fresh generation requests.
+- The final packaged preview is installed. Main UUID `AE3EAD23-2451-324D-B0D5-03CBFA89C1C5`, helper UUID `BF7F0C09-46CC-3AF7-9250-A032E22B0387` and worker UUID `2CCF142B-6134-341F-9210-BC70A047E36A` match packaged identities; helpers/workers retain identical signed bytes and both embedded SDK resources match current canonical bytes. Isolated install/update/conflict/uninstall and extraction checks pass.
+- Actual installed fresh Inventory passes initial input readiness without selection, ship 2, reject `2abc` with unchanged stock/draft, a second ship 2 and Undo. Wide and compact layouts retain centered rows and reachable controls; scrolling over the short table reaches the form. The disposable app was disabled afterward. Loan, Invoices and Due dates fresh retries, final UI and hosted verification remain in progress.
