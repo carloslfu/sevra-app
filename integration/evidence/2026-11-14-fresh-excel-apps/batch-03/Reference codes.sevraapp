@@ -1,0 +1,41 @@
+{
+  "datasets": {
+    "sheet1": {
+      "columns": [
+        {
+          "id": "c1",
+          "title": "A",
+          "type": "text"
+        },
+        {
+          "id": "c2",
+          "title": "B",
+          "type": "text"
+        },
+        {
+          "id": "c3",
+          "title": "C",
+          "type": "text"
+        },
+        {
+          "id": "c4",
+          "title": "D",
+          "type": "text"
+        }
+      ],
+      "title": "reference-codes-0.xlsx · Reference codes",
+      "writable": true
+    }
+  },
+  "excelBehavior": {
+    "actions": [],
+    "gaps": [],
+    "outputs": [
+      "sheet1!D2"
+    ],
+    "source": "function recreate(input){const c=input.cells;const b2=c['sheet1!B2'];const c2=c['sheet1!C2'];const prefix=(b2!==undefined&&b2!=='')?b2.toUpperCase():'';let seqStr='0000';if(c2!==undefined&&c2!==''){const num=Number(c2);if(!isNaN(num)){const rounded=Math.sign(num)*Math.round(Math.abs(num));const padded=String(Math.abs(rounded)).padStart(4,'0');seqStr=num<0?'-'+padded:padded}else{seqStr=c2}}return{'sheet1!D2':prefix+'-'+seqStr}}"
+  },
+  "name": "Reference codes",
+  "sdkVersion": 1,
+  "source": "const {h, mount, Column, Text, TextField, Button, Table, signal, data} = Sevra;\nconst selected = signal(null);\nconst selection = signal('');\nconst prefix = signal('');\nconst search = signal('');\nconst busy = signal(false);\nconst status = signal('');\n\nfunction clear() {\n  selected.value = null;\n  selection.value = '';\n  prefix.value = '';\n}\n\nfunction select(e) {\n  if (busy.value) return;\n  const r = e.value;\n  if (!r || r.values.c1 === 'Order') {\n    clear();\n    return;\n  }\n  selected.value = r;\n  selection.value = r.key;\n  prefix.value = r.values.c2 || '';\n  status.value = '';\n}\n\nasync function save() {\n  if (busy.value || !selected.value) return;\n  const row = selected.value;\n  const value = prefix.value;\n  busy.value = true;\n  try {\n    await data.transaction([{ op: 'update', table: 'sheet1', id: row.id, values: { c2: value } }]);\n    clear();\n    status.value = 'Saved';\n  } catch (e) {\n    status.value = e.message;\n  } finally {\n    busy.value = false;\n  }\n}\n\nconst root = h(Column, { gap: 16 },\n  h(Text, { text: 'Reference codes', size: 24, weight: 'bold' }),\n  h(TextField, { label: 'Search', value: search }),\n  h(Table, { table: 'sheet1', label: 'Records', search, selection, onSelect: select, height: 300, enabled: () => !busy.value }),\n  h(Text, { text: 'Customer prefix' }),\n  h(TextField, { label: 'Customer prefix', value: prefix, enabled: () => !busy.value && !!selected.value }),\n  h(Button, { title: 'Save changes', onClick: save, enabled: () => !busy.value && !!selected.value }),\n  h(Text, { text: status })\n);\nmount(root);"
+}

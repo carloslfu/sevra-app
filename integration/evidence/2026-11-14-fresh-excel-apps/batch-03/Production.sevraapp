@@ -1,0 +1,41 @@
+{
+  "datasets": {
+    "sheet1": {
+      "columns": [
+        {
+          "id": "c1",
+          "title": "A",
+          "type": "text"
+        },
+        {
+          "id": "c2",
+          "title": "B",
+          "type": "text"
+        },
+        {
+          "id": "c3",
+          "title": "C",
+          "type": "text"
+        },
+        {
+          "id": "c4",
+          "title": "D",
+          "type": "text"
+        }
+      ],
+      "title": "production-0.xlsx · Production",
+      "writable": true
+    }
+  },
+  "excelBehavior": {
+    "actions": [],
+    "gaps": [],
+    "outputs": [
+      "sheet1!D2"
+    ],
+    "source": "function recreate(input){const c=input.cells;const b2=c['sheet1!B2']||'0';const c2=c['sheet1!C2']||'0';const numB=parseFloat(b2);const numC=parseFloat(c2);if(isNaN(numB)||isNaN(numC)||numC===0){return{'sheet1!D2':'0'};}const yield_=numB/numC;return{'sheet1!D2':String(yield_)};}"
+  },
+  "name": "Production Yield Tracker",
+  "sdkVersion": 1,
+  "source": "const {h,mount,Column,Text,TextField,Button,Table,signal,data}=Sevra;\nconst selected=signal(null),selection=signal(''),input=signal(''),search=signal(''),busy=signal(false),status=signal('');\nfunction clear(){selected.value=null;selection.value='';input.value='';}\nfunction select(e){if(busy.value)return;const r=e.value;if(!r||r.values.c1==='Batch'){clear();return;}selected.value=r;selection.value=r.key;input.value=r.values.c2||'';status.value='';}\nasync function save(){if(busy.value||!selected.value)return;const row=selected.value,value=input.value;busy.value=true;try{await data.transaction([{op:'update',table:'sheet1',id:row.id,values:{c2:value}}]);clear();status.value='Saved';}catch(e){status.value=e.message;}finally{busy.value=false;}}\nconst root=h(Column,{gap:16},h(Text,{text:'Production Yield Tracker',size:24,weight:'bold'}),h(TextField,{label:'Search',value:search}),h(Table,{table:'sheet1',label:'Records',search,selection,onSelect:select,height:300,enabled:()=>!busy.value}),h(Text,{text:'Good units'}),h(TextField,{label:'Good units',value:input,enabled:()=>!busy.value&&!!selected.value}),h(Button,{title:'Save changes',onClick:save,enabled:()=>!busy.value&&!!selected.value}),h(Text,{text:status}));\nmount(root);"
+}

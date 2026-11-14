@@ -3,8 +3,8 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxz8vn3x44zb6n5k97y8q
 created: 2026-10-25T01:48:47.259629+00:00
-updated: 2026-11-14T20:42:57.509375+00:00
-summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
+updated: 2026-11-14T23:31:20.813665+00:00
+summary: Two consecutive fresh 10/10 local-model Excel batches pass on frozen da3c472; all ten native interfaces checked, with no reused apps or manual source repairs.
 title: Start here
 ---
 # Sevra app
@@ -24,7 +24,7 @@ Slotstream remains independent.
 
 ## Current preview and delivery order
 
-**Latest bounded checkpoint, November 14:** ten local-model-generated native business apps pass 89 independent originals (84 comparison cases plus five held-out states), 302 UI steps, 79 saved-edit/reopen/Undo cases and ten portable copies on the final runtime. Generated source is unchanged after model output. Inventory actions and native Loan/Commission calculations pass; installed spacing, controls and recovery paths were inspected. Exact-code hosted checks and final local package/install checks pass. See [[records/plans/automatic-excel-reliability]] and [[records/operations/agent-handoff]] for provenance, retained failures and limits. This is finite coverage across successive runs, not universal Excel compatibility or a first-attempt success rate. Earlier checkpoint descriptions below are historical.
+**Latest Excel checkpoint, November 14:** two consecutive fresh 10/10 local-model batches pass on owner-selected frozen commit `da3c4720e05033b5aaea620ebb01abde28123d9e`. Twenty new apps pass repeated original-result, independent UI, saved-edit/reopen/Undo and portable-copy checks without reused apps or manual generated-source repairs. All ten newly generated native interfaces were inspected at wide and compact sizes. Exact-code hosted CI and final native package/install checks pass; retained local-suite interruptions and their closure are documented. See [[records/plans/fresh-excel-batches]] and [[records/operations/agent-handoff]] for evidence and installed identity. This qualifies the frozen Excel checkpoint, not newer concurrent chat-operation changes, universal spreadsheet compatibility or first-attempt reliability. Earlier descriptions below are historical.
 
 **Fresh mini-app baseline, November 13:** selected obsolete development workbooks, packages, approvals and recents are removed; no user migration or compatibility layer is maintained. Test cleanup and all 28 focused groups pass. A new imported Inventory app passed review/enable, validation, save, Undo and spacing inspection. **A fresh local-model calculator request and its guided retry both failed without saving an app.** Generation reliability remains open, including fresh requests. See [[records/reviews/native-app-fresh-start-2026-11-13]] and [[records/operations/agent-handoff]].
 

@@ -33,13 +33,14 @@ See the [Excel flow and limits](db/records/specs/single-excel-import.md).
 Original macros never execute. Saved-result matches cover only the tested examples;
 external services, unreadable sources, exact Excel rendering and automatic formulas
 for inserted rows remain limits. See the [reconstruction contract](db/records/specs/excel-application-reconstruction.md).
-Ten business workflows now pass automatic local-model conversion without manual app-source repairs,
-including Inventory and Loan. The accepted apps match 89 independently recalculated originals
-(84 comparison cases plus five held-out states) and pass repeated edits, validation, Undo,
-reopening and portable-copy checks. Loan and Commission reuse native formulas. These candidates
-come from successive trials, not a first-attempt success-rate measurement. The
-[reliability record](db/records/plans/automatic-excel-reliability.md) retains failures and exact
-coverage. Generation can still fail or take minutes. Test your business workflow before relying on it.
+At frozen Excel checkpoint `da3c472`, all ten business workflows, including Inventory and Loan,
+passed two consecutive complete batches using the local model. All twenty apps were generated
+from scratch without replay or manual source repairs. Each batch passes 89 independent originals
+(84 comparison cases plus five held-out states), repeated edits, validation, Undo, reopening and
+portable-copy checks. All ten native interfaces were also inspected. The
+[fresh-batch record](db/records/plans/fresh-excel-batches.md) retains failures, automatic repairs
+and exact coverage. Newer chat-operation changes are outside that acceptance. Generation can
+still fail or take minutes; this is not a first-attempt or universal-compatibility guarantee.
 
 Ask the local model to build a named mini app with the fields, actions and tables you need.
 It writes the app, runs synthetic checks in isolation, and reviews the result against your

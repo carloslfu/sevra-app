@@ -1,0 +1,55 @@
+{
+  "datasets": {
+    "sheet1": {
+      "columns": [
+        {
+          "id": "c1",
+          "title": "A",
+          "type": "text"
+        },
+        {
+          "id": "c2",
+          "title": "B",
+          "type": "text"
+        },
+        {
+          "id": "c3",
+          "title": "C",
+          "type": "text"
+        },
+        {
+          "id": "c4",
+          "title": "D",
+          "type": "text"
+        }
+      ],
+      "title": "inventory-0.xlsm · Inventory",
+      "writable": true
+    }
+  },
+  "excelBehavior": {
+    "actions": [
+      {
+        "id": "ship",
+        "inputs": [
+          {
+            "id": "quantity",
+            "title": "Quantity"
+          }
+        ],
+        "title": "Ship stock",
+        "writes": [
+          "sheet1!B2"
+        ]
+      }
+    ],
+    "gaps": [],
+    "outputs": [
+      "sheet1!D2"
+    ],
+    "source": "function recreate(input){\n  const c=input.cells;\n  if(input.event==='ship'){\n    const q=Number(input.arguments.quantity);\n    if(!isFinite(q)||q<=0){throw new Error('Quantity must be positive and not exceed current stock.');}\n    const currentB2=Number(c['sheet1!B2']);\n    if(!isFinite(currentB2)){throw new Error('Current stock is invalid.');}\n    if(q>currentB2){throw new Error('Quantity must be positive and not exceed current stock.');}\n    return {'sheet1!B2':String(currentB2-q)};\n  }\n  const b2=Number(c['sheet1!B2']);\n  const c2=Number(c['sheet1!C2']);\n  if(!isFinite(b2)||!isFinite(c2)){return {'sheet1!D2':'#VALUE!'};}\n  const diff=c2-b2;\n  const result=diff>0?diff:0;\n  return {'sheet1!D2':String(result)};\n}"
+  },
+  "name": "Inventory Stock Manager",
+  "sdkVersion": 1,
+  "source": "const {h,mount,Column,Text,TextField,Button,Table,signal,data}=Sevra;\nconst selected=signal(null),selection=signal(''),quantity=signal(''),search=signal(''),busy=signal(false),status=signal('');\nfunction onSelect(e){\n  if(busy.value)return;\n  selected.value=e.value;\n  selection.value=e.value ? e.value.key : '';\n}\nasync function shipStock(){\n  if(busy.value)return;\n  const q=quantity.value.trim();\n  if(!q)return;\n  busy.value=true;\n  status.value='';\n  try{\n    await data.transaction([{op:'excel_action',action:'ship',arguments:{quantity:q}}]);\n    quantity.value='';\n    status.value='Stock shipped successfully.';\n  }catch(e){\n    status.value=e.message;\n  }finally{\n    busy.value=false;\n  }\n}\nconst root=h(Column,{gap:16},\n  h(Text,{text:'Inventory Stock Manager',size:24,weight:'bold'}),\n  h(Table,{table:'sheet1',label:'Records',search,selection,onSelect,height:300,enabled:()=>!busy.value}),\n  h(Column,{gap:8},\n    h(Text,{text:'Ship Stock Action',size:18,weight:'bold'}),\n    h(TextField,{label:'Quantity',value:quantity,enabled:()=>!busy.value}),\n    h(Button,{title:'Ship stock',onClick:shipStock,enabled:()=>!busy.value&&quantity.value.trim().length>0}),\n    h(Text,{text:status})\n  )\n);\nmount(root);"
+}

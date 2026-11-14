@@ -1,0 +1,33 @@
+{
+  "datasets": {
+    "sheet1": {
+      "columns": [
+        {
+          "id": "c1",
+          "title": "A",
+          "type": "text"
+        },
+        {
+          "id": "c2",
+          "title": "B",
+          "type": "text"
+        },
+        {
+          "id": "c3",
+          "title": "C",
+          "type": "text"
+        },
+        {
+          "id": "c4",
+          "title": "D",
+          "type": "text"
+        }
+      ],
+      "title": "invoices-0.xlsx · Invoices",
+      "writable": true
+    }
+  },
+  "name": "Invoices",
+  "sdkVersion": 1,
+  "source": "const {h, mount, Column, Text, TextField, Button, Table, signal, data} = Sevra;\n\nconst selected = signal(null);\nconst selection = signal('');\nconst subtotal = signal('');\nconst search = signal('');\nconst busy = signal(false);\nconst status = signal('');\n\nfunction clear() {\n    selected.value = null;\n    selection.value = '';\n    subtotal.value = '';\n}\n\nfunction select(e) {\n    if (busy.value) return;\n    const r = e.value;\n    if (!r || r.values.c1 === 'Invoice') {\n        clear();\n        return;\n    }\n    selected.value = r;\n    selection.value = r.key;\n    subtotal.value = r.values.c2 || '';\n    status.value = '';\n}\n\nasync function save() {\n    if (busy.value || !selected.value) return;\n    const row = selected.value;\n    const value = subtotal.value;\n    busy.value = true;\n    try {\n        await data.transaction([{op: 'update', table: 'sheet1', id: row.id, values: {c2: value}}]);\n        clear();\n        status.value = 'Saved';\n    } catch (e) {\n        status.value = e.message;\n    } finally {\n        busy.value = false;\n    }\n}\n\nconst root = h(Column, {gap: 16},\n    h(Text, {text: 'Invoices', size: 24, weight: 'bold'}),\n    h(TextField, {label: 'Search', value: search}),\n    h(Table, {table: 'sheet1', label: 'Records', search, selection, onSelect: select, height: 300, enabled: () => !busy.value}),\n    h(Text, {text: 'Subtotal'}),\n    h(TextField, {label: 'Subtotal', value: subtotal, enabled: () => !busy.value && !!selected.value}),\n    h(Button, {title: 'Save changes', onClick: save, enabled: () => !busy.value && !!selected.value}),\n    h(Text, {text: status})\n);\n\nmount(root);"
+}

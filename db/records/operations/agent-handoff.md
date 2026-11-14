@@ -3,13 +3,23 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-14T20:42:57.399837+00:00
-summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
+updated: 2026-11-14T23:31:20.779299+00:00
+summary: Two consecutive fresh 10/10 local-model Excel batches pass on frozen da3c472; all ten native interfaces checked, with no reused apps or manual source repairs.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
 
-## Current checkpoint: automatic Excel conversion, November 14
+## Current Excel checkpoint: two fresh complete batches, November 14
+
+The owner-requested [[records/plans/fresh-excel-batches]] is complete on the explicitly selected [[sources/notes/2026/11/frozen-excel-checkpoint]]: `da3c4720e05033b5aaea620ebb01abde28123d9e`. Two consecutive 10/10 batches created twenty new native apps using the local model, with no replayed apps, previous conversations, workflow reference JavaScript or manual source repairs. Each batch passes 89 independent originals (84 visible plus five held-out), 302 UI steps, 79 saved-edit/reopen/Undo cases and ten portable copies. The [receipt](../../../integration/evidence/2026-11-14-fresh-excel-batches.json) and [retained trials/packages](../../../integration/evidence/2026-11-14-fresh-excel-apps/README.md) preserve all failures, model repairs, source provenance and scope.
+
+The diagnostic batch failed Inventory's copied row-selection guard and Lookup quotes' renamed fields. Generic publication coverage now requires successful fixed-cell actions before Table selection, and authoring/review preserve requested labels. The action check accommodates all 24 declared actions within its bounded 32 transactions. All 38 focused groups pass. The frozen full suite passes through desktop compilation; a model-busy interruption at the package test is closed by rerunning that check with inference idle, and the remaining tail checks pass. Exact-code hosted CI, release build, native package/install/extraction, formatting, links and db validation pass. The concurrently edited shared checkout's compile failure is retained and is outside this acceptance.
+
+All ten fresh batch-2 interfaces pass observed native wide/compact layout, edit/recalculate/reset/Undo and access checks. Installed main UUID `F1FBB363-C04F-34D8-BDF0-67794F636F29` matches the frozen package; helpers/workers and SDK resources are verified. Test edits were undone, app grants disabled and task recents removed while preserving all four original recents. The baseline app, real workbooks and models are unchanged; the preview is on Welcome. Newer unbuilt source or chat-operation changes must not be described as verified by this build.
+
+This is bounded repeated-run evidence, not a first-attempt guarantee or a statistical production success rate. Some apps needed several automatic repairs. Original VBA never executes; original macro execution equivalence, exact Excel layout, unavailable dependencies, binary XLS/XLSB, inserted-row formula extension, VoiceOver, external security/hardware/customer qualification and production notarization remain unqualified. Earlier sections are historical.
+
+## Earlier checkpoint: automatic Excel conversion, November 14
 
 The owner-requested [[records/plans/automatic-excel-reliability]] qualifies ten local-model-generated native business apps without manual UI or calculation-source repairs. The accepted candidates come from successive fresh runs. All ten pass a final replay on `8c8d0140bb4198112b8731330b366b0f425113f3` against 89 independently LibreOffice-recalculated originals: 84 comparison cases available during generation and five held-out states never supplied to the model. See the [acceptance receipt](../../../integration/evidence/2026-11-14-automatic-excel-reliability.json) and [retained trials and generated apps](../../../integration/evidence/2026-11-14-automatic-excel-apps/README.md).
 

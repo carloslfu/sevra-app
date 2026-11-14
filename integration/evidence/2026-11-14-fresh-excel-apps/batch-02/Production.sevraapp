@@ -1,0 +1,41 @@
+{
+  "datasets": {
+    "sheet1": {
+      "columns": [
+        {
+          "id": "c1",
+          "title": "A",
+          "type": "text"
+        },
+        {
+          "id": "c2",
+          "title": "B",
+          "type": "text"
+        },
+        {
+          "id": "c3",
+          "title": "C",
+          "type": "text"
+        },
+        {
+          "id": "c4",
+          "title": "D",
+          "type": "text"
+        }
+      ],
+      "title": "production-0.xlsx · Production",
+      "writable": true
+    }
+  },
+  "excelBehavior": {
+    "actions": [],
+    "gaps": [],
+    "outputs": [
+      "sheet1!D2"
+    ],
+    "source": "function recreate(input) {\n        const c = input.cells;\n        const good = c['sheet1!B2'];\n        const total = c['sheet1!C2'];\n        let yieldVal = 0;\n        if (good !== undefined && total !== undefined) {\n            const g = parseFloat(good);\n            const t = parseFloat(total);\n            if (!isNaN(g) && !isNaN(t) && t !== 0) {\n                yieldVal = g / t;\n            }\n        }\n        return { 'sheet1!D2': String(yieldVal) };\n    }"
+  },
+  "name": "Production Tracker",
+  "sdkVersion": 1,
+  "source": "const {h, mount, Column, Text, TextField, Button, Table, signal, data} = Sevra;\n\nconst selected = signal(null), selection = signal(''), input = signal(''), search = signal(''), busy = signal(false), status = signal('');\n\nfunction clear() {\n    selected.value = null;\n    selection.value = '';\n    input.value = '';\n}\n\nfunction select(e) {\n    if (busy.value) return;\n    const r = e.value;\n    if (!r || r.values.c1 === 'Batch') {\n        clear();\n        return;\n    }\n    selected.value = r;\n    selection.value = r.key;\n    input.value = r.values.c2 || '';\n    status.value = '';\n}\n\nasync function save() {\n    if (busy.value || !selected.value) return;\n    const row = selected.value;\n    const value = input.value;\n    busy.value = true;\n    try {\n        await data.transaction([{ op: 'update', table: 'sheet1', id: row.id, values: { c2: value } }]);\n        clear();\n        status.value = 'Saved';\n    } catch (e) {\n        status.value = e.message;\n    } finally {\n        busy.value = false;\n    }\n}\n\nconst root = h(Column, { gap: 16 },\n    h(Text, { text: 'Production Tracker', size: 24, weight: 'bold' }),\n    h(TextField, { label: 'Search', value: search }),\n    h(Table, { table: 'sheet1', label: 'Records', search, selection, onSelect: select, height: 300, enabled: () => !busy.value }),\n    h(Text, { text: 'Good units' }),\n    h(TextField, { label: 'Good units', value: input, enabled: () => !busy.value && !!selected.value }),\n    h(Button, { title: 'Save changes', onClick: save, enabled: () => !busy.value && !!selected.value }),\n    h(Text, { text: status })\n);\n\nmount(root);"
+}

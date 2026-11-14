@@ -1,0 +1,692 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-14",
+  "status": "qualified-frozen-checkpoint",
+  "codeCommit": "da3c4720e05033b5aaea620ebb01abde28123d9e",
+  "scope": "Two consecutive complete fresh local-model batches on the owner-selected frozen Excel checkpoint. Concurrently developed chat-operation code is outside this acceptance.",
+  "method": {
+    "acceptancePredeclared": "Two consecutive complete 10/10 batches on unchanged production and acceptance code, with all failures retained. A product/check change resets the count.",
+    "model": "Local Qwen3.6 35B A3B 4-bit with DFlash 2; no hosted fallback. Excel builder/reviewer requests use 2048 reasoning tokens; per-request metrics are retained.",
+    "freshness": "New workbook, analysis and local-model generation for every workflow. No prior conversations, app replay, reference workflow JavaScript or manual generated-source repairs. Ordinary bounded automatic repairs are allowed.",
+    "originals": "89 independent LibreOffice-recalculated synthetic XLSX/XLSM originals: 84 visible comparison cases and five held-out states. Original VBA is never executed.",
+    "sourceProof": "Every final UI source equals its completed model save. Calculation/action source comes from that save or a compared draft in the same fresh request. Portable evidence removes only workbook-specific dataset IDs; the remaining package is asserted equal.",
+    "runtime": "Both batches have identical source, fixture, resource and native engine hashes. The second batch uses a read-only source checkpoint after concurrent shared-checkout edits. Engine binary reuse is normal runtime reuse, not generated-app reuse.",
+    "timing": "Elapsed times include concurrent builds and checks and are not performance claims."
+  },
+  "batches": [
+    {
+      "name": "batch-02",
+      "resultsSHA256": "e6813641c27390e4a5139e7e9a7046f9e219367bd425504e8e0b6f86d49057b6",
+      "runtimeSHA256": "80232199231564fd8a0dfba7a6c874012ddb9db3b524aa8857c99ae6ceeb5856",
+      "cases": [
+        {
+          "name": "Inventory",
+          "seconds": 597.8832030296326,
+          "originalCases": 5,
+          "heldOutOriginalFiles": [
+            "inventory-5.xlsm"
+          ],
+          "independentUISteps": 28,
+          "savedEditReopenUndoCases": 5,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "1520a33b3ddb60e0ebfdd9cd345fc86f625885327e927e7f35ba4e6b54483241",
+          "sourceSHA256": "f5697d365120a4c98a414d0a6ea68629feb9d71657d319c0445e0e25a25c6e56",
+          "behaviorSHA256": "77cc0109f585dcfa8f555d895fab611fbf58fbecf54df1807681f98e10a37e3f",
+          "builderToolCalls": 10,
+          "invalidStockActionRefusals": 1,
+          "unrelatedFormulaErrorActions": 1,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-02/Inventory.sevraapp",
+          "portablePackageSHA256": "a3ed0e3e10421249429191d1a036dd6803de470329857017a741dc9c62297d91"
+        },
+        {
+          "name": "Invoices",
+          "seconds": 186.54617702960968,
+          "originalCases": 9,
+          "heldOutOriginalFiles": [],
+          "independentUISteps": 38,
+          "savedEditReopenUndoCases": 8,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "1d8487865de6bf5454927e7b069b2ed89eddbe8650ca123ecd1a9b41fc71f43a",
+          "sourceSHA256": "b9083f1102daa1f31183f7e6e0c5f3ecc47f4f0015e1fae503f2c03c2acb7f8e",
+          "behaviorSHA256": null,
+          "builderToolCalls": 2,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-02/Invoices.sevraapp",
+          "portablePackageSHA256": "63f6f89b0a642929d312c2a782579ccc81c6be074849823ac00ca66d14f71606"
+        },
+        {
+          "name": "Timesheets",
+          "seconds": 149.07852804660797,
+          "originalCases": 7,
+          "heldOutOriginalFiles": [],
+          "independentUISteps": 33,
+          "savedEditReopenUndoCases": 6,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "3d0855059d380b745cad24d32441cefccbc258eb7115acc42cac10d57279064a",
+          "sourceSHA256": "51d8f93a9f232d8de3627daa720e475cd4ea0f64ed4e2bc0034d8d6ec23c631d",
+          "behaviorSHA256": null,
+          "builderToolCalls": 1,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-02/Timesheets.sevraapp",
+          "portablePackageSHA256": "5dcb2d61f196e996d8ffda04d77b66c43d7a684b750d67ce6476537a01c4269a"
+        },
+        {
+          "name": "Cash flow",
+          "seconds": 116.86419892311096,
+          "originalCases": 7,
+          "heldOutOriginalFiles": [],
+          "independentUISteps": 33,
+          "savedEditReopenUndoCases": 6,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "a4ba75b6d00169546e1aa0035f60e15a52e8e323b34b4846062ff9228a770a1c",
+          "sourceSHA256": "abe326ae64e7540216f0933bb2d0e8cc1e2ebf0457bf5a524593cf9d0ebc2b67",
+          "behaviorSHA256": null,
+          "builderToolCalls": 1,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-02/Cash flow.sevraapp",
+          "portablePackageSHA256": "5dd032884e72cffbae6e4a518eed7caeb51bf61ab97174e396bf00fbe181f3a2"
+        },
+        {
+          "name": "Commission",
+          "seconds": 217.21765398979187,
+          "originalCases": 11,
+          "heldOutOriginalFiles": [
+            "commission-11.xlsx"
+          ],
+          "independentUISteps": 33,
+          "savedEditReopenUndoCases": 11,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "71192c118b0c1ea455a1643bda5af3e8e1dd029a4c4fee2d8585cf77839a2f8f",
+          "sourceSHA256": "c073f198edfce02c472122913047676fd196b2d41b40c5f18605dccaaa12d45e",
+          "behaviorSHA256": null,
+          "builderToolCalls": 1,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-02/Commission.sevraapp",
+          "portablePackageSHA256": "118755e04b86ca2f4e684fdff9baf1dc4dbe33b2285d5263eea84ff68d219bf8"
+        },
+        {
+          "name": "Loan",
+          "seconds": 168.45393204689026,
+          "originalCases": 13,
+          "heldOutOriginalFiles": [
+            "loan-13.xlsx",
+            "loan-14.xlsx"
+          ],
+          "independentUISteps": 33,
+          "savedEditReopenUndoCases": 14,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "51f1368959fe8f6d1e22e2bdd8eff68333a65caacbcad026d1b19e7d9cbb7924",
+          "sourceSHA256": "60beaf3da69b532f18c38d10697936383a2379aba184bba9a3a186309db35ff8",
+          "behaviorSHA256": null,
+          "builderToolCalls": 1,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-02/Loan.sevraapp",
+          "portablePackageSHA256": "a75e7886079b2d55071c8fa7e8f21330efc001c12f19c0a98d700268741b8adf"
+        },
+        {
+          "name": "Production",
+          "seconds": 149.11791396141052,
+          "originalCases": 7,
+          "heldOutOriginalFiles": [],
+          "independentUISteps": 28,
+          "savedEditReopenUndoCases": 6,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "3bf9c02d17e9c85c2a069bf8fd4af944c6afaa104f41d0fe4bb7a8b6efa9187d",
+          "sourceSHA256": "4fafe943c762e79c7bb2b5a5e25f3667c5ee356167eda72554244cc1179c0725",
+          "behaviorSHA256": "77e8c737212f0c559fbcece5905da905dc3defe2c52fbe67daa7c07124a364fb",
+          "builderToolCalls": 1,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-02/Production.sevraapp",
+          "portablePackageSHA256": "28a175741506f2a65fdd4fbd6e10a0ef22e675e903f6c6294e4bcceb01b9c4f6"
+        },
+        {
+          "name": "Lookup quotes",
+          "seconds": 234.96073997020721,
+          "originalCases": 9,
+          "heldOutOriginalFiles": [],
+          "independentUISteps": 20,
+          "savedEditReopenUndoCases": 8,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "38dbba744bafc0831d9f8d69650a2fea25ea040b17837d25625b6b1f4c5063d6",
+          "sourceSHA256": "cfb44b0984f0f8e1f5e9e0a52b166bcf50d49fa8ebd581b9278f11141be8ae82",
+          "behaviorSHA256": "5693d2c9532fe39c48aadf99ed701dd3846aee262f776b9e85a67ab609f1466d",
+          "builderToolCalls": 3,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-02/Lookup quotes.sevraapp",
+          "portablePackageSHA256": "6f4cde4a7ecdadef0a9c3b7e7d3992153fae5650747aca4115c778f0107dbb19"
+        },
+        {
+          "name": "Due dates",
+          "seconds": 313.88602805137634,
+          "originalCases": 7,
+          "heldOutOriginalFiles": [
+            "due-dates-7.xlsx"
+          ],
+          "independentUISteps": 28,
+          "savedEditReopenUndoCases": 7,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "c46b2c9b9ddeb87d3b448258dbf4f86b49c11b0cfd564cf8c3f1487e67a75097",
+          "sourceSHA256": "c5ac1b4215efb2fca04a439a35f693b44901f50bfdf7a6c72e979ad168946297",
+          "behaviorSHA256": "ef302eb39ca8d2e498526be6a97b8bd4cd091ca96bdb9173ddeee2fd0b997368",
+          "builderToolCalls": 4,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-02/Due dates.sevraapp",
+          "portablePackageSHA256": "2740861c83732ab92809d964611457d90fc2fbf9dc2a3437484274281e6293c8"
+        },
+        {
+          "name": "Reference codes",
+          "seconds": 595.6430870294571,
+          "originalCases": 9,
+          "heldOutOriginalFiles": [],
+          "independentUISteps": 28,
+          "savedEditReopenUndoCases": 8,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "8fee23b778f12bb6264ea5d501d53b09f6a100feed619168066a30cb510b5dcb",
+          "sourceSHA256": "c2e6649b4ee7053f8bfd55ecff5cfb4e3df7e95aade6e449ef5185b634505de3",
+          "behaviorSHA256": "7f78232424c254bd1b213c52bb5d9942670e155e88f320b528903f728ce84dd2",
+          "builderToolCalls": 8,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-02/Reference codes.sevraapp",
+          "portablePackageSHA256": "56bd2da585e5de484aa5e61edb0272713efdaa61be954d1c9abfa4313dc023dd"
+        }
+      ]
+    },
+    {
+      "name": "batch-03",
+      "resultsSHA256": "8676363f5c78f07714b78981ea61d11c0846ffd09ce1c32b62d64072305f56c6",
+      "runtimeSHA256": "b89019235dfb2b93137ee0128703f5a4e7109f36305338533cc944b4396c7e5a",
+      "cases": [
+        {
+          "name": "Inventory",
+          "seconds": 373.3238409757614,
+          "originalCases": 5,
+          "heldOutOriginalFiles": [
+            "inventory-5.xlsm"
+          ],
+          "independentUISteps": 28,
+          "savedEditReopenUndoCases": 5,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "d360ad025d7e1801881677699a8a334d7e3fdf484cd464c8e4904a7d6035a15e",
+          "sourceSHA256": "05e4aa2e8b4f8d68e936cf9b8bda9c5bc4d971e0b99612d815a7be82c6909c45",
+          "behaviorSHA256": "a00d601687da908ec7b143e94ea2b85e316515341afdfc65f130532df50d85ea",
+          "builderToolCalls": 4,
+          "invalidStockActionRefusals": 1,
+          "unrelatedFormulaErrorActions": 1,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-03/Inventory.sevraapp",
+          "portablePackageSHA256": "f2e85809628202b5c92942fec95107b22d7801538ceefeb5a4a1e52d194ba1f4"
+        },
+        {
+          "name": "Invoices",
+          "seconds": 150.8530980348587,
+          "originalCases": 9,
+          "heldOutOriginalFiles": [],
+          "independentUISteps": 38,
+          "savedEditReopenUndoCases": 8,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "cde4c4b519c6c5339b55e89a8cdf93c454e7b44f64fd82cfb6a4d34785c2b22d",
+          "sourceSHA256": "6ad7b398e4b7bd1642fcb4b8cfa76aee5e06698510114b10e4f9abe1d9a521ec",
+          "behaviorSHA256": null,
+          "builderToolCalls": 1,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-03/Invoices.sevraapp",
+          "portablePackageSHA256": "d3e4f9d4ba355146177418cf3fc29f1f7d01236f54947c897045d5e166f7fbee"
+        },
+        {
+          "name": "Timesheets",
+          "seconds": 174.59739995002747,
+          "originalCases": 7,
+          "heldOutOriginalFiles": [],
+          "independentUISteps": 33,
+          "savedEditReopenUndoCases": 6,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "135a144dde6a0058ddfcd0dd90741fc7b9b009407fbb07b4ffbf8405272b6be5",
+          "sourceSHA256": "51d8f93a9f232d8de3627daa720e475cd4ea0f64ed4e2bc0034d8d6ec23c631d",
+          "behaviorSHA256": null,
+          "builderToolCalls": 2,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-03/Timesheets.sevraapp",
+          "portablePackageSHA256": "5dcb2d61f196e996d8ffda04d77b66c43d7a684b750d67ce6476537a01c4269a"
+        },
+        {
+          "name": "Cash flow",
+          "seconds": 154.25469195842743,
+          "originalCases": 7,
+          "heldOutOriginalFiles": [],
+          "independentUISteps": 33,
+          "savedEditReopenUndoCases": 6,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "ca1075370a846deb94e67cbd0e86f365f2384ecd56ee6b6c180b8ee7bbde564f",
+          "sourceSHA256": "abe326ae64e7540216f0933bb2d0e8cc1e2ebf0457bf5a524593cf9d0ebc2b67",
+          "behaviorSHA256": null,
+          "builderToolCalls": 1,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-03/Cash flow.sevraapp",
+          "portablePackageSHA256": "5dd032884e72cffbae6e4a518eed7caeb51bf61ab97174e396bf00fbe181f3a2"
+        },
+        {
+          "name": "Commission",
+          "seconds": 163.2904450893402,
+          "originalCases": 11,
+          "heldOutOriginalFiles": [
+            "commission-11.xlsx"
+          ],
+          "independentUISteps": 33,
+          "savedEditReopenUndoCases": 11,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "f8c7f19d0aff61bf56ceeabc232934242e3262cebd5f15c26dfbcd23227a528c",
+          "sourceSHA256": "b556c26348b8cb79a58788eb339d61cbc1434fb830000a97120fcffacef0490b",
+          "behaviorSHA256": null,
+          "builderToolCalls": 1,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-03/Commission.sevraapp",
+          "portablePackageSHA256": "7c18c3d69137e48fa27dc15a35f757c6ad69d2fe62ba7456f11f91fbef345f06"
+        },
+        {
+          "name": "Loan",
+          "seconds": 618.8887280225754,
+          "originalCases": 13,
+          "heldOutOriginalFiles": [
+            "loan-13.xlsx",
+            "loan-14.xlsx"
+          ],
+          "independentUISteps": 33,
+          "savedEditReopenUndoCases": 14,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "c6612b2be99a7f1a79336cf89fbe3da47dbc226c50babbd88e09b59abf175e12",
+          "sourceSHA256": "60beaf3da69b532f18c38d10697936383a2379aba184bba9a3a186309db35ff8",
+          "behaviorSHA256": "77230ebfa2a646a7c5eda69115d4e82aefb4a6049b19a5f8be92f53350d3d32f",
+          "builderToolCalls": 9,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-03/Loan.sevraapp",
+          "portablePackageSHA256": "cece393b30e58a4d8b517ad81c804ca13ec54375302f72b3a88b036b915f9612"
+        },
+        {
+          "name": "Production",
+          "seconds": 179.61684095859528,
+          "originalCases": 7,
+          "heldOutOriginalFiles": [],
+          "independentUISteps": 28,
+          "savedEditReopenUndoCases": 6,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "00d8db14b6dfc0e22d3c0b8acb27679d0644a82e155eef934c2d2fc6c819ca3a",
+          "sourceSHA256": "ed1e5c0a3ca204b69db33261e229cf2bfb3afdfbb64527a92c89a9c370c4e935",
+          "behaviorSHA256": "476dfb619079f3a9563707916f34ca4b7d0ab596564831babb39c639c08cdf58",
+          "builderToolCalls": 2,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-03/Production.sevraapp",
+          "portablePackageSHA256": "fdf477312eb2ea2a5b1aad1984ea89fc3aaeedb657e2e5119309f7a54f9d9ecc"
+        },
+        {
+          "name": "Lookup quotes",
+          "seconds": 286.55409598350525,
+          "originalCases": 9,
+          "heldOutOriginalFiles": [],
+          "independentUISteps": 20,
+          "savedEditReopenUndoCases": 8,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "ad5c26c0d8aeccfb00213f02fcfd4787564e989f2213f98a6b8216a7e9e2c35e",
+          "sourceSHA256": "cfb44b0984f0f8e1f5e9e0a52b166bcf50d49fa8ebd581b9278f11141be8ae82",
+          "behaviorSHA256": "1ab08b08f894914ca52d65f99a798aeca0f9c4c2bc48cfd8569b7fe488d5ef7c",
+          "builderToolCalls": 4,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-03/Lookup quotes.sevraapp",
+          "portablePackageSHA256": "e88c820c5b5be9ba91981e96edcf9fcefe9ab34709cb31e5c8b8fde82e1d2f6b"
+        },
+        {
+          "name": "Due dates",
+          "seconds": 249.35767006874084,
+          "originalCases": 7,
+          "heldOutOriginalFiles": [
+            "due-dates-7.xlsx"
+          ],
+          "independentUISteps": 28,
+          "savedEditReopenUndoCases": 7,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "c5ffa6eaa0dad81b46c2ff2ddc471be81f4792b452db6986bf12e678099a87cd",
+          "sourceSHA256": "bbaf558b292627c97c6319946a94049d00b3cc7da9a191acb82f3475bd7568f1",
+          "behaviorSHA256": "aa7ecd737ef49bbf1fc5d038bebe5f358590842e3a9b68494fdbcbdc2a3ee8da",
+          "builderToolCalls": 2,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-03/Due dates.sevraapp",
+          "portablePackageSHA256": "eb58946e28c097396d7d0401005aa0628b027ae705cf3941d8e77181176bf391"
+        },
+        {
+          "name": "Reference codes",
+          "seconds": 295.239914059639,
+          "originalCases": 9,
+          "heldOutOriginalFiles": [],
+          "independentUISteps": 28,
+          "savedEditReopenUndoCases": 8,
+          "portableCopyVerified": true,
+          "sourceMatchesCompletedModelSave": true,
+          "packageSHA256": "9d6829a9d4cf57d83199d8b8806ada6c026fc76acc4f13c83cf9d7c17cdf9bfa",
+          "sourceSHA256": "df837f70a8bb73f42354641caa17479c2bbfc9c0f734443b6a87a5bc02fbae94",
+          "behaviorSHA256": "a11d91460559d2f7ab86e46e87354ed0511becf7719719202a00e0908358d9f9",
+          "builderToolCalls": 3,
+          "invalidStockActionRefusals": 0,
+          "unrelatedFormulaErrorActions": 0,
+          "portablePackage": "2026-11-14-fresh-excel-apps/batch-03/Reference codes.sevraapp",
+          "portablePackageSHA256": "bee8b5a8c5340cefb35fb03c0dcebbde3854a52242e86c4adf9a204a3169b3ef"
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "completeConsecutiveBatches": 2,
+    "freshApps": 20,
+    "uniqueOriginals": 89,
+    "originalEvaluations": 178,
+    "independentUISteps": 604,
+    "savedEditReopenUndoCases": 158,
+    "portableCopies": 20
+  },
+  "fixes": [
+    "Require each fixed-cell Excel action to succeed through a user interaction before table-row selection during publication checks. Rejected or mount-time transactions do not count.",
+    "Allow all 24 declared actions to fit the bounded 32-step/32-transaction check while retaining request, frame and time limits.",
+    "Preserve explicitly requested input/button labels in authoring and review; remove misleading Selected prefixes from the generic editor template."
+  ],
+  "validation": {
+    "codeCommit": "da3c4720e05033b5aaea620ebb01abde28123d9e",
+    "required": [
+      {
+        "name": "38 focused authoring/conversion groups",
+        "log": "exact-label-checks.log",
+        "exitCode": 0
+      },
+      {
+        "name": "Frozen native release build",
+        "log": "frozen-native-build.log",
+        "exitCode": 0
+      },
+      {
+        "name": "Install frozen native preview",
+        "log": "frozen-native-install.log",
+        "exitCode": 0
+      },
+      {
+        "name": "Native installer, standalone CLI, conflict refusal and preservation",
+        "log": "frozen-native-install-check.log",
+        "exitCode": 0
+      },
+      {
+        "name": "Packaged extraction and denial checks",
+        "log": "frozen-native-extraction-check.log",
+        "exitCode": 0
+      },
+      {
+        "name": "Strict Swift formatting of task changes",
+        "log": "frozen-strict-format.log",
+        "exitCode": 0
+      },
+      {
+        "name": "Native package resources, refusal cases and signatures with model idle",
+        "log": "frozen-native-package.log",
+        "exitCode": 0
+      },
+      {
+        "name": "Frozen documentation links",
+        "log": "frozen-links.log",
+        "exitCode": 0
+      },
+      {
+        "name": "Frozen db.md validation",
+        "log": "frozen-db-validation.json",
+        "exitCode": 0
+      },
+      {
+        "name": "Two-batch freshness and exact generated-source provenance",
+        "log": "accepted-batches.json",
+        "exitCode": 0
+      }
+    ],
+    "fullSuite": {
+      "command": "bash scripts/check.sh",
+      "log": "frozen-full-check.log",
+      "exitCode": 1,
+      "completed": "654 core checks; native/SDK, extraction, persistence, UI/lifecycle, text, 38 authoring/conversion, agent/grammar, performance-harness checks and desktop compilation passed.",
+      "interruption": "The packaged missing-model test received model_busy because the live fresh batch still held the local model. Native package check and remaining tail must pass after inference is idle.",
+      "baselinePackaging": "Not built in the frozen local clone; exact-code hosted CI supplies unchanged baseline package coverage.",
+      "remainingTailPassedAfterInference": true,
+      "closure": "With live inference finished, check_native_package.py passed, including missing-model guidance, recorded failure and workbook preservation. Installer, extraction, links and db validation also passed separately. The original script exit remains 1 in the retained log."
+    },
+    "supersededSharedCheckout": {
+      "log": "full-check.log",
+      "exitCode": 1,
+      "cause": "Concurrent uncommitted chat-operation source failed compilation. Owner selected frozen-code verification; unrelated changes were preserved."
+    }
+  },
+  "hostedCI": {
+    "conclusion": "success",
+    "headSha": "da3c4720e05033b5aaea620ebb01abde28123d9e",
+    "status": "completed",
+    "url": "https://github.com/carloslfu/sevra-app/actions/runs/43645166748"
+  },
+  "installedBuild": {
+    "codeCommit": "da3c4720e05033b5aaea620ebb01abde28123d9e",
+    "MacOS/Sevra": {
+      "packagedUUID": "F1FBB363-C04F-34D8-BDF0-67794F636F29",
+      "installedUUID": "F1FBB363-C04F-34D8-BDF0-67794F636F29",
+      "exactSignedBytes": false,
+      "sha256": "9ed9eb4e0fe1022fb6072250e9e34ae8fc1481014d930e7679b4dc1babefd9a0"
+    },
+    "MacOS/sevra-extract": {
+      "packagedUUID": "9F13E350-5A72-3943-82FC-325BECBC07EA",
+      "installedUUID": "9F13E350-5A72-3943-82FC-325BECBC07EA",
+      "exactSignedBytes": true,
+      "sha256": "dd4326b15579103c64e7f52e74e9df1baa726ed791e3ae3cef0f50196574e694"
+    },
+    "Helpers/Splash/splash": {
+      "packagedUUID": "6D6D117E-4CA2-38BF-8951-056F497FA23D",
+      "installedUUID": "6D6D117E-4CA2-38BF-8951-056F497FA23D",
+      "exactSignedBytes": true,
+      "sha256": "532732b0fef256d08e683fc1b50d132e4946d25a8d4f878d0451bebba0385a9a"
+    },
+    "XPCServices/com.sevra.workbooks.app-check-worker.xpc/Contents/MacOS/sevra-app-worker": {
+      "packagedUUID": "A3D91C9E-3622-3C1E-80BC-3E25A607C03D",
+      "installedUUID": "A3D91C9E-3622-3C1E-80BC-3E25A607C03D",
+      "exactSignedBytes": true,
+      "sha256": "12293d885740ff7dfad99dafb6060794615fd25ba37bf19e212cc675ecd784b1"
+    },
+    "XPCServices/com.sevra.workbooks.app-worker.xpc/Contents/MacOS/sevra-app-worker": {
+      "packagedUUID": "A3D91C9E-3622-3C1E-80BC-3E25A607C03D",
+      "installedUUID": "A3D91C9E-3622-3C1E-80BC-3E25A607C03D",
+      "exactSignedBytes": true,
+      "sha256": "d1b8b8bc032b82184bbd696977e262ec06af21ecba1ad9d999d3cf6cccf79fee"
+    },
+    "sdkResources": {
+      "XPCServices/com.sevra.workbooks.app-check-worker.xpc/Contents/Resources/Sevra_SevraAppRuntime.bundle/sdk.js": "b5048ec0f156cedb192235d9aea4939ef327760c210c74cf32a75c744d89c06b",
+      "XPCServices/com.sevra.workbooks.app-worker.xpc/Contents/Resources/Sevra_SevraAppRuntime.bundle/sdk.js": "b5048ec0f156cedb192235d9aea4939ef327760c210c74cf32a75c744d89c06b"
+    }
+  },
+  "nativeUI": {
+    "codeCommit": "da3c4720e05033b5aaea620ebb01abde28123d9e",
+    "batch": "batch-02",
+    "method": "Observed native CUA screenshots and accessibility state; no screenshot files exported. Newly generated synthetic workbook apps only.",
+    "cases": {
+      "Inventory": {
+        "passed": true,
+        "sourceSHA256": "f5697d365120a4c98a414d0a6ea68629feb9d71657d319c0445e0e25a25c6e56",
+        "observations": [
+          "Ready conversion with five original results matched; exact-version access enable and disable work.",
+          "Quantity enabled immediately without row selection; blank Ship stock disabled.",
+          "Ship 2 changes stock 8 to 6 and to-order 4 to 6; successful save clears Quantity.",
+          "2abc rejected with clear neutral feedback; draft retained and stock unchanged.",
+          "Undo restores stock 8 and to-order 4.",
+          "Centered table rows, readable wide layout and compact 900 by 632 logical window; scrolling over short table reaches complete action form and feedback.",
+          "App disabled after verification."
+        ]
+      },
+      "Invoices": {
+        "passed": true,
+        "sourceSHA256": "b9083f1102daa1f31183f7e6e0c5f3ecc47f4f0015e1fae503f2c03c2acb7f8e",
+        "observations": [
+          "Ready conversion with nine matches; exact-version enable and disable work.",
+          "Subtotal and Save changes disabled until selecting the invoice row.",
+          "Saving -2.5 produces -2.98, clears editor and selection, and shows neutral Saved feedback.",
+          "Undo restores 19.95 and 23.74.",
+          "Centered rows and aligned visible Subtotal label; complete form reachable at wide and compact 900 by 632 logical window sizes.",
+          "App disabled and workbook closed."
+        ]
+      },
+      "Timesheets": {
+        "passed": true,
+        "sourceSHA256": "51d8f93a9f232d8de3627daa720e475cd4ea0f64ed4e2bc0034d8d6ec23c631d",
+        "observations": [
+          "Ready conversion with 7 original matches; exact-version enable and disable work.",
+          "Hours editor and Save changes require data-row selection.",
+          "Hours 0 saves and recalculates Pay to 0.",
+          "Successful save clears editor and selection with neutral Saved feedback.",
+          "Undo restores Hours 8 and Pay 124.",
+          "Centered table rows, aligned visible input label, readable wide layout; compact 900 by 632 logical window retains the full scrollable form.",
+          "App disabled and workbook closed."
+        ]
+      },
+      "Cash flow": {
+        "passed": true,
+        "sourceSHA256": "abe326ae64e7540216f0933bb2d0e8cc1e2ebf0457bf5a524593cf9d0ebc2b67",
+        "observations": [
+          "Ready conversion with 7 original matches; exact-version enable and disable work.",
+          "Income editor and Save changes require data-row selection.",
+          "Income 250 saves and recalculates Net to 100.",
+          "Successful save clears editor and selection with neutral Saved feedback.",
+          "Undo restores Income 100 and Net -50.",
+          "Centered table rows, aligned visible input label, readable wide layout; compact 900 by 632 logical window retains the full scrollable form.",
+          "App disabled and workbook closed."
+        ]
+      },
+      "Commission": {
+        "passed": true,
+        "sourceSHA256": "c073f198edfce02c472122913047676fd196b2d41b40c5f18605dccaaa12d45e",
+        "observations": [
+          "Native original comparison shows 11 matches.",
+          "Revenue and Save changes remain disabled until a row is selected.",
+          "Editing Revenue to -67 calculates Commission -5.03 at rate 0.075; form and selection reset with neutral Saved feedback.",
+          "Wide and compact layouts retain visible Revenue label, complete editor and centered table rows.",
+          "Undo restores Revenue 2000 and Commission 150; app disabled and workbook closed."
+        ]
+      },
+      "Loan": {
+        "passed": true,
+        "sourceSHA256": "60beaf3da69b532f18c38d10697936383a2379aba184bba9a3a186309db35ff8",
+        "observations": [
+          "13 saved original results compared.",
+          "Native Principal edit 10000 to 0 recalculates payment 888.49 to 0.",
+          "Undo restores Principal 10000 and Payment 888.49.",
+          "Wide table has aligned, vertically centered rows. Compact window exposes the complete labeled editor by scrolling.",
+          "Save clears selection/input, disables the editor and shows neutral Saved feedback. App disabled and workbook closed."
+        ]
+      },
+      "Production": {
+        "passed": true,
+        "sourceSHA256": "4fafe943c762e79c7bb2b5a5e25f3667c5ee356167eda72554244cc1179c0725",
+        "observations": [
+          "7 saved original results compared.",
+          "Native Good units edit 80 to 100 recalculates Yield 0.8 to 1.",
+          "Undo restores Good units 80 and Yield 0.8.",
+          "Wide table has aligned, vertically centered rows. Compact window exposes the complete labeled editor by scrolling.",
+          "Save clears selection/input, disables the editor and shows neutral Saved feedback. App disabled and workbook closed."
+        ]
+      },
+      "Lookup quotes": {
+        "passed": true,
+        "sourceSHA256": "cfb44b0984f0f8e1f5e9e0a52b166bcf50d49fa8ebd581b9278f11141be8ae82",
+        "observations": [
+          "9 original saved results compared.",
+          "Editing SKU B to A while preserving Quantity 3 changes Total 60 to 37.5.",
+          "Undo restores SKU B and Total 60. Both SKU and Quantity labels match the request.",
+          "Wide table has aligned, vertically centered rows. Compact window exposes the complete labeled editor by scrolling.",
+          "Save clears selection/input, disables the editor and shows neutral Saved feedback. App disabled and workbook closed."
+        ]
+      },
+      "Due dates": {
+        "passed": true,
+        "sourceSHA256": "c5ac1b4215efb2fca04a439a35f693b44901f50bfdf7a6c72e979ad168946297",
+        "observations": [
+          "7 original saved results compared.",
+          "Editing Invoice date 2024-02-27 to 2024-02-28 with one-day terms correctly produces leap day 2024-02-29.",
+          "Undo restores Invoice date 2024-02-27 and Due date 2024-02-28.",
+          "Wide table has aligned, vertically centered rows. Compact window exposes the complete labeled editor by scrolling.",
+          "Save clears selection/input, disables the editor and shows neutral Saved feedback. App disabled and workbook closed."
+        ]
+      },
+      "Reference codes": {
+        "passed": true,
+        "sourceSHA256": "c2e6649b4ee7053f8bfd55ecff5cfb4e3df7e95aade6e449ef5185b634505de3",
+        "observations": [
+          "9 original saved results compared.",
+          "Native paste of customer prefix ño preserves exact text and generates ÑO-0042. The automation keystroke method dropped the accent before submission, so native paste was used.",
+          "Undo restores prefix acme and Reference ACME-0042.",
+          "Wide table has aligned, vertically centered rows. Compact window exposes the complete labeled editor by scrolling.",
+          "Save clears selection/input, disables the editor and shows neutral Saved feedback. App disabled and workbook closed."
+        ]
+      }
+    }
+  },
+  "cleanup": {
+    "removedTaskRecents": 10,
+    "unrelatedRecentsPreserved": true,
+    "unrelatedRecentCount": 4,
+    "taskGrantsRemaining": 0,
+    "testChangesUndone": true,
+    "baselineExecutableSHA256": "3fafefb87d1f1a175a750b2c7754b835ee05c18fe0c804cf1d644a76b9da526f",
+    "baselineUnchanged": true,
+    "modelsAndWorkbooksPreserved": true,
+    "welcomeRestoredAndObserved": true
+  },
+  "limits": [
+    "Two consecutive batches establish bounded repeated-run evidence, not a statistical production success rate, a first-attempt guarantee or universal Excel compatibility.",
+    "Some workflows needed several automatic repairs. Earlier failed batches and the shared-checkout compile failure remain in the archive.",
+    "Inventory actions are checked against independent saved states and UI assertions; original macro execution equivalence is not established.",
+    "Exact original Excel layout, unavailable external dependencies, encrypted sources, binary XLS/XLSB and automatic formula extension to inserted rows remain unqualified.",
+    "This verifies the frozen checkpoint, not newer chat-operation changes. Native visual observations cover one newly generated app per workflow, not every appearance of all twenty apps.",
+    "Local native/sandbox checks do not establish production notarization, external security certification, VoiceOver behavior or additional hardware/customer qualification."
+  ],
+  "evidence": {
+    "archive": "2026-11-14-fresh-excel-apps/trials-and-checks.json.gz",
+    "gzipSHA256": "ded086948f08fe99ddf53c428e98d45d3251f3a23875a2ef3b17590fdb29faff",
+    "uncompressedSHA256": "b1c824a1bdf279d5c81df1e09e6f47efde950745f8f4978eafd970135ac0c737",
+    "retainedBatches": [
+      "batch-01",
+      "batch-02",
+      "batch-03"
+    ],
+    "rawFailedFlagsPreserved": true,
+    "pathsSanitized": true
+  }
+}

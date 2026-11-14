@@ -1,0 +1,33 @@
+{
+  "datasets": {
+    "sheet1": {
+      "columns": [
+        {
+          "id": "c1",
+          "title": "A",
+          "type": "text"
+        },
+        {
+          "id": "c2",
+          "title": "B",
+          "type": "text"
+        },
+        {
+          "id": "c3",
+          "title": "C",
+          "type": "text"
+        },
+        {
+          "id": "c4",
+          "title": "D",
+          "type": "text"
+        }
+      ],
+      "title": "commission-0.xlsx · Commission",
+      "writable": true
+    }
+  },
+  "name": "Commission",
+  "sdkVersion": 1,
+  "source": "const {h,mount,Column,Text,TextField,Button,Table,signal,data}=Sevra;\nconst selected=signal(null),selection=signal(''),revenue=signal(''),search=signal(''),busy=signal(false),status=signal('');\nfunction clear(){selected.value=null;selection.value='';revenue.value='';}\nfunction select(e){if(busy.value)return;const r=e.value;if(!r||r.values.c1==='Seller'){clear();return;}selected.value=r;selection.value=r.key;revenue.value=r.values.c2??'';status.value='';}\nasync function save(){if(busy.value||!selected.value)return;const row=selected.value,value=revenue.value;busy.value=true;try{await data.transaction([{op:'update',table:'sheet1',id:row.id,values:{c2:value}}]);clear();status.value='Saved';}catch(e){status.value=e.message;}finally{busy.value=false;}}\nconst root=h(Column,{gap:16},h(Text,{text:'Commission Workspace',size:24,weight:'bold'}),h(TextField,{label:'Search',value:search}),h(Table,{table:'sheet1',label:'Records',search,selection,onSelect:select,height:300,enabled:()=>!busy.value}),h(Text,{text:'Revenue'}),h(TextField,{label:'Revenue',value:revenue,enabled:()=>!busy.value&&!!selected.value}),h(Button,{title:'Save changes',onClick:save,enabled:()=>!busy.value&&!!selected.value}),h(Text,{text:status}));\nmount(root);"
+}
