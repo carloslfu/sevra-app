@@ -7,6 +7,42 @@ func checkSheetFormulas(at root: URL) {
     try SheetFormula.parse(formula).evaluate { cells[$0.name] ?? .blank }
   }
   func number(_ text: String) -> SheetValue { .number(Decimal(string: text)!) }
+  check("native PMT agrees with independently saved payments and rounding") {
+    let cases = try Value.parse(
+      String(contentsOfFile: "integration/fixtures/excel-pmt/results.json", encoding: .utf8)
+    ).array
+    try expect(cases.count == 24)
+    for example in cases {
+      var cells: [String: SheetValue] = [:]
+      for (index, argument) in example["arguments"].array.enumerated() {
+        let key = ["A1", "B1", "C1", "D1", "E1"][index]
+        if argument == .null { cells[key] = .blank }
+        else if case .number = argument { cells[key] = number(argument.text) }
+        else { cells[key] = .text(argument.text) }
+      }
+      for (formula, expected) in [
+        ("PMT(A1,B1,C1,D1,E1)", example["payment"].text),
+        ("ROUND(-PMT(A1,B1,C1,D1,E1),2)", example["roundedNegated"].text),
+      ] {
+        let actual = try value(formula, cells)
+        try expect(SheetFormula.same(actual, as: expected),
+          example["name"].text + ": " + SheetFormula.text(actual) + " != " + expected)
+      }
+    }
+    try expect(try value("ROUND(-PMT(0.01,12,10000),2)") == number("888.49"))
+    try expect(try value("ROUND(-PMT(0.01,12,10000,500),2)") == number("927.91"))
+    try expect(try value("PMT(0,12,100,20,1)") == number("-10"))
+    try expect(try value("PMT(0,0,A1)", ["A1": .error("#REF!")]) == .error("#REF!"))
+    try expect(try value("PMT(0,12,0,A1)", ["A1": .text("bad")]) == .error("#VALUE!"))
+    try expect(try value("PMT(0,12,0,0,A1)", ["A1": .text("bad")]) == .error("#VALUE!"))
+    try expect(try value("PMT(1E127,1E127,1)") == .error("#NUM!"))
+    try expect(try SheetFormula.same(
+      value("PMT(-0.99999999999999999,1,10000,0,1)"), as: "-10000"))
+    for invalid in ["PMT(1,2)", "PMT(1,2,3,4,5,6)", "PMT(A1:A2,2,3)"] {
+      do { _ = try SheetFormula.parse(invalid); throw SevraError("test", "Accepted " + invalid) }
+      catch is SheetFormulaGap {}
+    }
+  }
   check("the declared Excel subset follows Excel's blank, text and error rules") {
     try expect(try value("1+2*3") == number("7") && value("(1+2)*3") == number("9"))
     try expect(try value("-2+5") == number("3") && value("50%*200") == number("100"))

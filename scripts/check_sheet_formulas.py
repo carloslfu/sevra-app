@@ -343,6 +343,20 @@ def main():
                 run('rows', book, sheets['Other']['id'])[0]['data']['c2'] == '3'
                 and run('verify', book)['ok'] is True)
 
+        payment_fixture = Path(__file__).resolve().parent.parent / 'integration/fixtures/excel-pmt/pmt.xlsx'
+        payment_book = root / 'Payments.sevra'
+        run('create', payment_book, 'Synthetic payments')
+        run('import', payment_book, payment_fixture, '--role', 'values')
+        payments = tables(payment_book)['Payments']
+        report = run('table-formulas', payment_book, payments['id'])
+        checked('all 24 independently calculated PMT and rounding cases recalculate natively',
+                report['recalculating'] == 48 and report['saved'] == 0)
+        original_payment = grid(payment_book, payments)['ordinary']
+        edit(payment_book, original_payment, c4='20000')
+        checked('native PMT recomputes a saved principal edit through its dependent ROUND',
+                grid(payment_book, payments)['ordinary']['data']['c8'] == '1776.98'
+                and run('verify', payment_book)['ok'] is True)
+
         # Another spreadsheet engine calculated and saved these two files. They hold the same
         # formulas over different inputs, so the second has what recalculating must reach.
         fixtures = Path(__file__).resolve().parent.parent / 'integration' / 'fixtures' / 'formulas'

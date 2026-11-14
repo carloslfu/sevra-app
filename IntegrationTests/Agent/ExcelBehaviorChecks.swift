@@ -210,7 +210,9 @@ func checkExcelBehaviorReconstruction() async throws {
     let args: Value = .object([
       "package": .object(minimal), "fixtures": fixtures, "tests": .array(steps),
     ])
-    if name == "Loan" {
+    // This guard must use a formula that still requires custom behavior. PMT is
+    // native now, so omitting an invalidated draft legitimately reuses the engine.
+    if name == "Lookup quotes" {
       let bad = ExcelBehavior(
         source: "function recreate(){return {'sheet1!D2':'wrong'}}", outputs: ["sheet1!D2"])
       var badPackage = minimal

@@ -116,7 +116,7 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
         try expectEqual(Workbook.sameExcelResult(output, saved), true)
         return output
       }
-      if ["Inventory", "Loan", "Lookup quotes"].contains(name) {
+      if ["Inventory", "Lookup quotes"].contains(name) {
         try require(
           package.excelBehavior != nil, "probe", "This workflow needs recreated behavior.")
       }

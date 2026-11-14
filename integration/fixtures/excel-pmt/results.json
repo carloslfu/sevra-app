@@ -1,0 +1,290 @@
+[
+  {
+    "name": "ordinary",
+    "arguments": [
+      0.01,
+      12,
+      10000,
+      0,
+      0
+    ],
+    "payment": "-888.487886783417",
+    "roundedNegated": "888.49"
+  },
+  {
+    "name": "due",
+    "arguments": [
+      0.01,
+      12,
+      10000,
+      0,
+      1
+    ],
+    "payment": "-879.690977013284",
+    "roundedNegated": "879.69"
+  },
+  {
+    "name": "future",
+    "arguments": [
+      0.01,
+      12,
+      10000,
+      500,
+      0
+    ],
+    "payment": "-927.912281122588",
+    "roundedNegated": "927.91"
+  },
+  {
+    "name": "fraction",
+    "arguments": [
+      0.01,
+      12.5,
+      10000,
+      500,
+      1
+    ],
+    "payment": "-883.941655161084",
+    "roundedNegated": "883.94"
+  },
+  {
+    "name": "negative periods",
+    "arguments": [
+      0.01,
+      -12,
+      10000,
+      0,
+      0
+    ],
+    "payment": "788.487886783417",
+    "roundedNegated": "-788.49"
+  },
+  {
+    "name": "negative rate",
+    "arguments": [
+      -0.01,
+      12,
+      10000,
+      0,
+      0
+    ],
+    "payment": "-780.164477305761",
+    "roundedNegated": "780.16"
+  },
+  {
+    "name": "rate minus one",
+    "arguments": [
+      -1,
+      12,
+      10000,
+      0,
+      0
+    ],
+    "payment": "-0",
+    "roundedNegated": "0"
+  },
+  {
+    "name": "rate minus one due",
+    "arguments": [
+      -1,
+      12,
+      10000,
+      0,
+      1
+    ],
+    "payment": "#NUM!",
+    "roundedNegated": "#NUM!"
+  },
+  {
+    "name": "lower rate",
+    "arguments": [
+      -2,
+      12,
+      10000,
+      0,
+      0
+    ],
+    "payment": "#NUM!",
+    "roundedNegated": "#NUM!"
+  },
+  {
+    "name": "lower rate odd",
+    "arguments": [
+      -2,
+      11,
+      10000,
+      0,
+      0
+    ],
+    "payment": "#NUM!",
+    "roundedNegated": "#NUM!"
+  },
+  {
+    "name": "zero both",
+    "arguments": [
+      0,
+      0,
+      10000,
+      0,
+      0
+    ],
+    "payment": "#NUM!",
+    "roundedNegated": "#NUM!"
+  },
+  {
+    "name": "zero periods",
+    "arguments": [
+      0.01,
+      0,
+      10000,
+      0,
+      0
+    ],
+    "payment": "#NUM!",
+    "roundedNegated": "#NUM!"
+  },
+  {
+    "name": "negative type",
+    "arguments": [
+      0.01,
+      12,
+      10000,
+      0,
+      -1
+    ],
+    "payment": "-879.690977013284",
+    "roundedNegated": "879.69"
+  },
+  {
+    "name": "type two",
+    "arguments": [
+      0.01,
+      12,
+      10000,
+      0,
+      2
+    ],
+    "payment": "-879.690977013284",
+    "roundedNegated": "879.69"
+  },
+  {
+    "name": "half type",
+    "arguments": [
+      0.01,
+      12,
+      10000,
+      0,
+      0.5
+    ],
+    "payment": "-879.690977013284",
+    "roundedNegated": "879.69"
+  },
+  {
+    "name": "half cent",
+    "arguments": [
+      0,
+      1,
+      1.005,
+      0,
+      0
+    ],
+    "payment": "-1.005",
+    "roundedNegated": "1.01"
+  },
+  {
+    "name": "negative half",
+    "arguments": [
+      0,
+      1,
+      -1.005,
+      0,
+      0
+    ],
+    "payment": "1.005",
+    "roundedNegated": "-1.01"
+  },
+  {
+    "name": "tiny rate",
+    "arguments": [
+      1e-12,
+      12,
+      10000,
+      0,
+      0
+    ],
+    "payment": "-833.33333333875",
+    "roundedNegated": "833.33"
+  },
+  {
+    "name": "huge periods",
+    "arguments": [
+      0.01,
+      100000000.0,
+      10000,
+      0,
+      0
+    ],
+    "payment": "#NUM!",
+    "roundedNegated": "#NUM!"
+  },
+  {
+    "name": "negative period low rate",
+    "arguments": [
+      -0.01,
+      -12,
+      10000,
+      0,
+      0
+    ],
+    "payment": "880.16447730576",
+    "roundedNegated": "-880.16"
+  },
+  {
+    "name": "blank rate",
+    "arguments": [
+      null,
+      12,
+      10000,
+      0,
+      0
+    ],
+    "payment": "-833.333333333333",
+    "roundedNegated": "833.33"
+  },
+  {
+    "name": "blank principal invalid rate",
+    "arguments": [
+      "invalid",
+      12,
+      null,
+      0,
+      0
+    ],
+    "payment": "#VALUE!",
+    "roundedNegated": "#VALUE!"
+  },
+  {
+    "name": "partial rate",
+    "arguments": [
+      "0.01abc",
+      12,
+      10000,
+      0,
+      0
+    ],
+    "payment": "#VALUE!",
+    "roundedNegated": "#VALUE!"
+  },
+  {
+    "name": "blank periods",
+    "arguments": [
+      0.01,
+      null,
+      10000,
+      0,
+      0
+    ],
+    "payment": "#NUM!",
+    "roundedNegated": "#NUM!"
+  }
+]

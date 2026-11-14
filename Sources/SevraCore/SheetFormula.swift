@@ -34,7 +34,7 @@ struct SheetFormulaGap: Error {
 }
 
 /// The declared Excel subset: numbers, percent, + - * /, cell and range references with
-/// an optional sheet, and SUM, AVERAGE, MIN, MAX, COUNT, ROUND and IF. Anything else keeps
+/// an optional sheet, and SUM, AVERAGE, MIN, MAX, COUNT, ROUND, IF and PMT. Anything else keeps
 /// its saved value. This is not an Excel engine and makes no claim to match one.
 enum SheetFormula {
   static let aggregates: Set<String> = ["SUM", "AVERAGE", "MIN", "MAX", "COUNT"]
@@ -291,7 +291,7 @@ enum SheetFormulaToken: Equatable {
         } else if next == "(" {
           // Name an unsupported function before anything inside it.
           let function = name.uppercased().replacingOccurrences(of: "_XLFN.", with: "")
-          guard SheetFormula.aggregates.contains(function) || ["ROUND", "IF"].contains(function)
+          guard SheetFormula.aggregates.contains(function) || ["ROUND", "IF", "PMT"].contains(function)
           else { throw SheetFormulaGap(uses: function) }
           output.append(.function(function))
           index = end
@@ -434,6 +434,9 @@ struct SheetFormulaParser {
       guard take([")"]) != nil else { throw SheetFormulaGap(uses: "syntax it cannot read") }
       if name == "IF", arguments.count != 3 { throw SheetFormulaGap(uses: "IF without both results") }
       if name == "ROUND", arguments.count != 2 { throw SheetFormulaGap(uses: "syntax it cannot read") }
+      if name == "PMT", !(3...5).contains(arguments.count) {
+        throw SheetFormulaGap(uses: "PMT without three to five arguments")
+      }
       return .call(name, arguments)
     case .symbol("("):
       let inner = try comparison(depth + 1)
@@ -507,6 +510,14 @@ extension SheetExpression {
       var output = Decimal()
       NSDecimalRound(&output, &number, NSDecimalNumber(decimal: whole).intValue, .plain)
       return .number(output)
+    case .call("PMT", let arguments):
+      var values: [Decimal] = []
+      for argument in arguments {
+        let value = try numeric(argument)
+        guard case .number(let number) = value else { return value }
+        values.append(number)
+      }
+      return SheetFinancial.payment(values)
     case .call(let name, let arguments):
       var numbers: [Decimal] = []
       for argument in arguments {

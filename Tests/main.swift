@@ -53,6 +53,11 @@ if CommandLine.arguments.dropFirst() == ["--corrupt-metadata"] {
   print("\(passed) passed; \(failed) failed")
   exit(failed == 0 ? 0 : 1)
 }
+if CommandLine.arguments.dropFirst() == ["--sheet-formulas"] {
+  checkSheetFormulas(at: temp)
+  print("\(passed) passed; \(failed) failed")
+  exit(failed == 0 ? 0 : 1)
+}
 if CommandLine.arguments.count == 4 && CommandLine.arguments[1] == "--business-input-death-worker" {
   try businessInputDeathWorker(
     at: URL(fileURLWithPath: CommandLine.arguments[2]), stage: CommandLine.arguments[3])

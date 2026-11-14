@@ -113,7 +113,7 @@ def main():
     # These originals are independently tested only after publication. They are never
     # imported as model-visible examples, so they check generalization to other operands.
     holdout = {'Loan': [{4: None}, {1: None, 2: 'invalid'}], 'Due dates': [{2: None}],
-               'Inventory': [{2: 'invalid'}]}
+               'Inventory': [{2: 'invalid'}], 'Commission': [{2: '0.075abc'}]}
     selected = set(sys.argv[1:])
     manifest = json.loads((OUT/'cases.json').read_text()) if selected and (OUT/'cases.json').exists() else []
     manifest = [c for c in manifest if c['name'] not in selected]
