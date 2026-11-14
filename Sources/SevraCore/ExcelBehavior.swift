@@ -71,11 +71,20 @@ public struct ExcelBehavior: Codable, Equatable, Sendable {
           + "' must start with an ASCII letter, contain only letters, digits or underscores, and have at most 64 characters. The ID recalculate is reserved."
       )
       try require(
-        !action.title.isEmpty && action.title.utf8.count <= 160
-          && (1...64).contains(action.writes.count)
-          && Set(action.writes).count == action.writes.count
-          && Set(action.writes).isDisjoint(with: outputs),
-        "excel_behavior", "Actions need a unique ID, title and explicit non-formula write cells.")
+        !action.title.isEmpty && action.title.utf8.count <= 160,
+        "excel_behavior", "Action titles need 1 to 160 UTF-8 bytes.")
+      try require(
+        (1...64).contains(action.writes.count)
+          && Set(action.writes).count == action.writes.count,
+        "excel_behavior", "Each action needs 1 to 64 distinct non-formula write cells.")
+      let overlap = Set(action.writes).intersection(outputs)
+      try require(
+        overlap.isEmpty, "excel_behavior",
+        "Action writes overlap calculated outputs: "
+          + overlap.sorted().prefix(12).map { String($0.prefix(100)) }.joined(separator: ", ")
+          + ". outputs must contain only original formula cells; keep editable input cells only in actions[].writes. "
+          + "For an action event, return only its changed write cells. For recalculate, return every formula output; the host recalculates after the action."
+      )
     }
     for cell in outputs + actions.flatMap(\.writes) { _ = try Self.address(cell) }
   }

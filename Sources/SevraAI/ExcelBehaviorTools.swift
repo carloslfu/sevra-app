@@ -10,7 +10,7 @@ extension NativeTools {
       "outputs": .object([
         "type": .string("array"), "maxItems": .number(2000),
         "items": schema(
-          "string", "Exact derived cell, e.g. sheet1!D2. Include every original formula."),
+          "string", "Exact derived cell, e.g. sheet1!D2. Include every original formula and no editable input cells. Must not overlap any actions[].writes."),
       ]),
       "actions": .object([
         "type": .string("array"), "maxItems": .number(24),

@@ -42,6 +42,17 @@ func checkExcelBehaviorReconstruction() async throws {
         draft.id, sourceID: reference.id, expectedVersion: draft.version)
     }
     if name == "Inventory" {
+      var overlapping = behavior
+      overlapping.outputs.append("sheet1!B2")
+      do {
+        try overlapping.validate()
+        throw SevraError("test", "Overlapping action writes must be refused.")
+      } catch let error as SevraError {
+        try expectEqual(error.code, "excel_behavior")
+        try expectEqual(error.message.contains("Action writes overlap calculated outputs: sheet1!B2"), true)
+        try expectEqual(error.message.contains("only original formula cells"), true)
+      }
+      try behavior.validate()
       let reference = try book.importFile(files[1])
       draft = try book.addExcelExample(
         draft.id, sourceID: reference.id, action: "ship",
