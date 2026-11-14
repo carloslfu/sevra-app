@@ -359,6 +359,8 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
       let access = try NativeAppAccess(workbook: book, space: book.space(draft.id))
       defer { access.revoke() }
       var savedChecks = 0
+      var invalidStockRefusals = 0
+      var unrelatedErrorActions = 0
       // Held-out originals never enter the model's workbook or comparison examples.
       // Exercise them only after publication through actual saved edits and Undo.
       let holdouts = example["holdoutFiles"].array
@@ -394,6 +396,35 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
             + expected["sheet1!D2"]! + "”; recreated “" + actual + "”.")
         let reopened = try Workbook(book.url)
         try expectEqual(try reopened.tablePage(table).values, try book.tablePage(table).values)
+        if name == "Inventory", let behavior = package.excelBehavior {
+          let action = try expectValue(behavior.actions.first)
+          let stock = expected["sheet1!B2"] ?? ""
+          let reorder = expected["sheet1!C2"] ?? ""
+          let operation: Value = .object([
+            "op": .string("excel_action"), "action": .string(action.id),
+            "arguments": .object(["quantity": .string("2")]),
+          ])
+          let state = try book.tablePage(table).values
+          if !stock.isEmpty, Double(stock) == nil {
+            let revision = try book.revision()
+            try expectThrows(
+              try book.nativeAppTransaction(
+                access, operations: [operation], expectedRevision: revision, token: identifier()))
+            try expectEqual(try book.revision(), revision)
+            try expectEqual(try book.tablePage(table).values, state)
+            invalidStockRefusals += 1
+          } else if !reorder.isEmpty, Double(reorder) == nil {
+            // The original action reads stock, not the reorder formula. An unrelated
+            // calculation error must not block a valid shipment or disappear afterward.
+            let changes = try behavior.evaluate(
+              cells: expected, action: action.id,
+              arguments: .object(["quantity": .string("2")]))
+            try expectEqual(changes["sheet1!B2"], "6")
+            try expectEqual(changes["sheet1!D2"], "#VALUE!")
+            try expectEqual(try book.tablePage(table).values, state)
+            unrelatedErrorActions += 1
+          }
+        }
         _ = try book.nativeAppTransaction(
           access, operations: [], expectedRevision: book.revision(), token: identifier(),
           undo: token)
@@ -407,6 +438,12 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
       try expectEqual(try copy.tablePage(table).values, try book.tablePage(table).values)
       try expectEqual(try copy.verify()["ok"], .bool(true))
       result["savedEditReopenUndoCases"] = .number(Double(savedChecks))
+      if name == "Inventory" {
+        try expectEqual(invalidStockRefusals, 1)
+        try expectEqual(unrelatedErrorActions, 1)
+        result["invalidStockActionRefusals"] = .number(Double(invalidStockRefusals))
+        result["unrelatedFormulaErrorActions"] = .number(Double(unrelatedErrorActions))
+      }
       result["portableCopyVerified"] = .bool(true)
       try expectEqual(try book.verify()["ok"], .bool(true))
       result["passed"] = .bool(true)
