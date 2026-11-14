@@ -144,6 +144,22 @@ func checkNativeAppAuthoring() async throws {
     datasets: ["sheet": .init(title: "Sheet", columns: [.init(id: "c1", title: "A", type: "text")])]
   )
   let selectionFixtures = try Value.parse(#"{"sheet":[{"c1":"Item"},{"c1":"Synthetic bolts"}]}"#)
+  _ = try await NativeAppCheck.run(
+    package: selectionPackage,
+    steps: try steps(
+      #"[{"kind":"expect_enabled","target":"Quantity","value":false},{"kind":"select","target":"Records","value":1},{"kind":"expect_enabled","target":"Quantity","value":true}]"#
+    ),
+    fixtures: selectionFixtures)
+  do {
+    _ = try await NativeAppCheck.run(
+      package: selectionPackage,
+      steps: try steps(#"[{"kind":"expect_enabled","target":"Quantity","value":true}]"#),
+      fixtures: selectionFixtures)
+    throw SevraError("test", "Unselected row editor passed an initial enabled assertion")
+  } catch {
+    try expectEqual((error as? SevraError)?.code, "app_check_assertion")
+    try expectEqual(error.localizedDescription.contains("No table row has been selected"), true)
+  }
   let selectionSteps = try steps(
     #"[{"kind":"select","target":"Records","value":0},{"kind":"change","target":"Quantity","value":"2"},{"kind":"expect_value","target":"Quantity","value":"2"}]"#
   )

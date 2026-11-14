@@ -4,6 +4,14 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 const source=readFileSync(new URL('../../Sources/SevraAppRuntime/Resources/sdk.js',import.meta.url),'utf8');
 function runtime(program){const context=vm.createContext({});vm.runInContext(source+';Sevra.__initialize({});'+program,context);return {run:code=>vm.runInContext(code,context),flush:()=>JSON.parse(vm.runInContext('JSON.stringify(Sevra.__flush())',context))};}
+test('unsupported native event handlers fail instead of silently losing interactions',()=>{
+ assert.throws(()=>runtime(`Sevra.mount(Sevra.h(Sevra.TextField,{onValueChange:()=>{}}));`),/Unknown event onValueChange for textField.*onChange/);
+ assert.throws(()=>runtime(`Sevra.mount(Sevra.h(Sevra.Text,{text:'Click',onClick:()=>{}}));`),/Unknown event onClick for text/);
+ assert.throws(()=>runtime(`Sevra.mount(Sevra.h(Sevra.Button,{onClick:'save'}));`),/Event handlers must be functions/);
+ const r=runtime(`var value=Sevra.signal(''),seen='';Sevra.mount(Sevra.h(Sevra.TextField,{value,onChange:e=>{seen=value.value+':'+e.value;}}));`);
+ r.flush();r.run(`Sevra.__receive([{kind:'event',node:'root',mountID:1,event:'change',handler:'onChange',value:'typed'}]);`);
+ assert.equal(r.run('seen'),'typed:typed');
+});
 test('a keyed row retains its private state when data reorders, and removed rows stop reacting',()=>{
  const r=runtime(`var rows=Sevra.signal([{id:'a',name:'First'},{id:'b',name:'Second'}]);var calls=0;
  function Item(row){calls++;let count=Sevra.signal(0);return Sevra.h(Sevra.Button,{title:()=>row.value.name+':'+count.value,onClick:()=>count.value++});}

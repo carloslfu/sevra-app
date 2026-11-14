@@ -51,11 +51,14 @@ def main():
                     app / 'Contents/MacOS/checks', app / 'Contents/MacOS/sevra-extract',
                     *sorted(app.glob('Contents/XPCServices/*.xpc/Contents/MacOS/sevra-app-worker'))]},
                 'engineSHA256': digest(pathlib.Path(live[2])),
+                'resources': {str(path.relative_to(app)): digest(path) for path in sorted(
+                    app.glob('Contents/**/Resources/**/*')) if path.is_file()},
                 'fixtures': {str(path.relative_to(ROOT)): digest(path) for path in sorted(
                     (ROOT / 'integration/fixtures/excel-behavior').glob('*')) if path.is_file()},
                 'sources': {str(path.relative_to(ROOT)): digest(path) for path in sorted([
                     ROOT / 'Package.swift', *ROOT.glob('Sources/**/*.swift'),
-                    *ROOT.glob('IntegrationTests/Agent/*.swift')])},
+                    *ROOT.glob('IntegrationTests/Agent/*.swift'), ROOT / 'sdk/src/runtime.ts',
+                    ROOT / 'Sources/SevraAppRuntime/Resources/sdk.js'])},
             }
         try:
             subprocess.run([str(app / 'Contents/MacOS/checks'), *options], cwd=ROOT, check=True, timeout=3600 if live else 240)

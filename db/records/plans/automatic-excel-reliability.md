@@ -2,7 +2,7 @@
 type: operational
 id: 01m7d2cc2ahngzgpw3nakfnwsd
 created: 2026-11-14T13:01:38.250838+00:00
-updated: 2026-11-14T15:56:29.891512+00:00
+updated: 2026-11-14T16:16:56.182341+00:00
 summary: Repair local-model Excel conversion failures and verify fresh unassisted apps across business cases
 title: Automatic Excel conversion reliability
 status: in-progress
@@ -85,3 +85,15 @@ Fresh generation is still in qualification; do not treat the code changes or det
 - Qualification 4 generated Inventory from scratch and passed its four original saved states, 20 independent UI steps, real saved edits/reopen/Undo and portable-copy verification. No row selection is needed for its Quantity form. The installed byte-verified preview also passed ship 2, reject 999 and nonnumeric text with draft preservation, Undo, centered rows, clean empty-table space and compact-window wheel scrolling to the form. Its disposable UI copy was disabled and closed.
 - Inspection of the live qualification harness found its saved-edit phase did not update Loan's period input when exercising the new zero-period originals. The deterministic reference check already updates that input. The live probe now updates E2 as well; qualification 4 keeps its frozen older binary, and a fresh corrected Loan run is required. This is a test-harness correction, not a repair to generated source.
 - Implementation checkpoint `af14f25df08792719717a0e579bb4958e232c053` is pushed. Hosted run 43612094593 and expanded model qualification remain in progress.
+
+## Repair-loop and SDK follow-up
+
+- Qualification 4 Loan matched all nine original states and passed its independent repeated-edit and blank/text UI checks, then failed at the known missing-period write in the live saved-edit harness. The run remains failed until the corrected fresh rerun.
+- Invoices matched seven originals but first repeated a misplaced initial enabled assertion copied from the action-form example. The generic guide now explicitly distinguishes initially disabled row editors from initially enabled fixed-cell action inputs. Enabled-assertion diagnostics report when no table row has been selected; regression checks cover both states without removing selection guards.
+- The saved Invoices app correctly produced `0.00`, but its independent UI probe expected the exact string `0`. The probe now verifies a translated output against the independent original using the existing Excel numeric comparison before using its presentation in exact UI assertions. Input text, whitespace, blanks and error strings remain exact. No generated source is changed.
+- The fresh Inventory source exposed an SDK bug: unknown event-handler names were silently discarded from the native tree. Native components now reject unsupported handlers with their supported event names; valid bound onChange handling still passes. Existing qualification-4 source is retained as an older-runtime diagnostic, and affected workflows require fresh generation under the stricter runtime. SDK tests pass seven groups.
+- SDK builds now set their working directory explicitly so npm and repository-root invocations produce identical generated bundles. Live runtime manifests additionally hash packaged resources and SDK source, closing the resource-identity gap in earlier manifests. Qualification 4's actual copied resources were separately hashed while its frozen bundle was still running.
+- Commission passed its seven-original, repeated-edit/boundary, saved edit/reopen/Undo and portable-copy checks. Remaining cases continue on the frozen qualification-4 candidate. A full suite is running after the event-contract and repair-guidance changes.
+
+- Numeric output equivalence now requires the entire cell string to be canonical numeric text. Regression checks retain `0.00`/`0` equivalence and reject blank/zero, leading-zero identifiers and trailing-newline text mismatches. The 36 focused authoring/conversion groups pass on this candidate.
+- The byte-unchanged generated Commission and Lookup packages from qualification 4 also pass independent original/UI/persistence/portable-copy checks under the stricter current SDK in `strict-runtime-replay-1`. These are compatibility rechecks of automatically generated source, explicitly labeled replay rather than new inference trials.

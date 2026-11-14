@@ -29,6 +29,7 @@ export const Column='column', Row='row', Grid='grid', Split='split', Scroll='scr
 export const Text='text', Button='button', TextField='textField', TextEditor='textEditor', Toggle='toggle';
 export const Picker='picker', Slider='slider', DatePicker='date', Progress='progress', Table='table';
 export const Tabs='tabs', Disclosure='disclosure', Canvas='canvas', Image='image', Spacer='spacer';
+const eventProps:Record<string,string[]>={button:['onClick'],textField:['onChange'],textEditor:['onChange'],toggle:['onChange'],picker:['onChange'],slider:['onChange'],date:['onChange'],tabs:['onChange'],disclosure:['onChange'],table:['onSelect','onActivate'],canvas:['onClick','onDrop']};
 function cleanup(id:string) {
  const node=nodes.get(id); if(!node)return;
  for(const dispose of disposers.get(id)||[])dispose();
@@ -48,7 +49,10 @@ function mountNode(description:any,id:string,depth=0):string {
  const scopes=disposers.get(id)!;
  for(const [key,value] of Object.entries(description.props)) {
   if(key==='key')continue;
-  if(key.startsWith('on')) { if(typeof value!=='function')throw Error('Event handlers must be functions');handlers.set(id+':'+key,value as any);continue; }
+  if(key.startsWith('on')) {
+   if(!eventProps[node.type]?.includes(key))throw Error('Unknown event '+key+' for '+node.type+'. Supported events: '+(eventProps[node.type]?.join(', ')||'none'));
+   if(typeof value!=='function')throw Error('Event handlers must be functions');handlers.set(id+':'+key,value as any);continue;
+  }
   scopes.push(reactiveEffect(()=>{
    const next=reading(value);
    if(changed(node.props[key],next)){node.props[key]=next;node.props.editRevision=edits.get(id)||0;update(node);}

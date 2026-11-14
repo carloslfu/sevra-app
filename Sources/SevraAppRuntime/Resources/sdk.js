@@ -510,6 +510,7 @@ var Sevra = (() => {
   var Canvas = "canvas";
   var Image = "image";
   var Spacer = "spacer";
+  var eventProps = { button: ["onClick"], textField: ["onChange"], textEditor: ["onChange"], toggle: ["onChange"], picker: ["onChange"], slider: ["onChange"], date: ["onChange"], tabs: ["onChange"], disclosure: ["onChange"], table: ["onSelect", "onActivate"], canvas: ["onClick", "onDrop"] };
   function cleanup(id) {
     const node = nodes.get(id);
     if (!node) return;
@@ -542,6 +543,7 @@ var Sevra = (() => {
     for (const [key, value] of Object.entries(description.props)) {
       if (key === "key") continue;
       if (key.startsWith("on")) {
+        if (!eventProps[node.type]?.includes(key)) throw Error("Unknown event " + key + " for " + node.type + ". Supported events: " + (eventProps[node.type]?.join(", ") || "none"));
         if (typeof value !== "function") throw Error("Event handlers must be functions");
         handlers.set(id + ":" + key, value);
         continue;

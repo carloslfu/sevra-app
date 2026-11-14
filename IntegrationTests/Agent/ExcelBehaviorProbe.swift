@@ -106,6 +106,16 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
       let ready = try book.excelConversion(draft.id)
       try expectEqual(ready.state, "ready")
       let package = try book.space(draft.id).definition.app!
+      // UI assertions use exact stored strings. A translation may preserve a different
+      // numeric format (0.00 versus 0); anchor its output to the independent original
+      // before using that presentation in the exact UI assertion. Inputs stay exact.
+      func expectedOutput(_ original: [String: String]) throws -> String {
+        let saved = original["sheet1!D2"] ?? ""
+        guard let behavior = package.excelBehavior else { return saved }
+        let output = try behavior.evaluate(cells: original)["sheet1!D2"] ?? ""
+        try expectEqual(Workbook.sameExcelResult(output, saved), true)
+        return output
+      }
       if ["Inventory", "Loan", "Lookup quotes"].contains(name) {
         try require(
           package.excelBehavior != nil, "probe", "This workflow needs recreated behavior.")
@@ -130,7 +140,7 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
           .object(["kind": .string("click"), "target": .string("Ship stock")]),
           .object([
             "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
-            "values": .object(["c2": .string("6"), "c4": .string("6")]),
+            "values": .object(["c2": .string("6"), "c4": .string(try expectedOutput(expected))]),
           ]),
           .object(["kind": .string("select"), "target": .string("Records"), "value": .number(1)]),
           .object([
@@ -139,7 +149,7 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
           .object(["kind": .string("click"), "target": .string("Ship stock")]),
           .object([
             "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
-            "values": .object(["c2": .string("6"), "c4": .string("6")]),
+            "values": .object(["c2": .string("6"), "c4": .string(try expectedOutput(expected))]),
           ]),
         ]
       } else {
@@ -154,7 +164,7 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
           .object([
             "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
             "values": .object([
-              "c2": .string(expected["sheet1!B2"]!), "c4": .string(expected["sheet1!D2"]!),
+              "c2": .string(expected["sheet1!B2"]!), "c4": .string(try expectedOutput(expected)),
             ]),
           ]),
         ]
@@ -173,7 +183,9 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
             .object(["kind": .string("click"), "target": .string("Ship stock")]),
             .object([
               "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
-              "values": .object(["c2": .string("6"), "c4": .string("6")]),
+              "values": .object([
+                "c2": .string("6"), "c4": .string(try expectedOutput(expected)),
+              ]),
             ]),
             .object([
               "kind": .string("expect_value"), "target": .string("Quantity"),
@@ -183,6 +195,12 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
         }
       }
       if name == "Lookup quotes" {
+        var zeroQuantity = expected
+        zeroQuantity["sheet1!C2"] = "0"
+        zeroQuantity["sheet1!D2"] = "0"
+        var missingSKU = zeroQuantity
+        missingSKU["sheet1!B2"] = "Missing"
+        missingSKU["sheet1!D2"] = "#N/A"
         steps += [
           .object(["kind": .string("select"), "target": .string("Records"), "value": .number(1)]),
           .object(["kind": .string("change"), "target": .string("Quantity"), "value": .string("0")]
@@ -190,7 +208,9 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
           .object(["kind": .string("click"), "target": .string("Save changes")]),
           .object([
             "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
-            "values": .object(["c3": .string("0"), "c4": .string("0")]),
+            "values": .object([
+              "c3": .string("0"), "c4": .string(try expectedOutput(zeroQuantity)),
+            ]),
           ]),
           .object(["kind": .string("select"), "target": .string("Records"), "value": .number(1)]),
           .object([
@@ -199,7 +219,9 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
           .object(["kind": .string("click"), "target": .string("Save changes")]),
           .object([
             "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
-            "values": .object(["c2": .string("Missing"), "c4": .string("#N/A")]),
+            "values": .object([
+              "c2": .string("Missing"), "c4": .string(try expectedOutput(missingSKU)),
+            ]),
           ]),
         ]
       }
@@ -223,7 +245,7 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
             .object([
               "kind": .string("expect_rows"), "table": .string("sheet1"), "count": .number(1),
               "values": .object([
-                "c2": .string(values["sheet1!B2"]!), "c4": .string(values["sheet1!D2"]!),
+                "c2": .string(values["sheet1!B2"]!), "c4": .string(try expectedOutput(values)),
               ]),
             ]),
             .object([
@@ -272,7 +294,7 @@ func runExcelBehaviorProbe(modelsRoot: String, library: String, engine: String, 
         ).sheets
         let values = try Workbook.excelCells(scenario)
         var savedValues: [String: Value] = ["c2": .string(values["sheet1!B2"] ?? "")]
-        if package.excelBehavior != nil { savedValues["c4"] = .string(values["sheet1!D2"] ?? "") }
+        if package.excelBehavior != nil { savedValues["c4"] = .string(try expectedOutput(values)) }
         boundarySteps += [
           .object(["kind": .string("select"), "target": .string("Records"), "value": .number(1)]),
           .object([

@@ -339,9 +339,15 @@ public enum NativeAppCheck {
             throw SevraError("app_check", "Supply a boolean enabled expectation.")
           }
           let node = try control()
+          let selectionHint =
+            expected && lastSelection.isEmpty
+              && tree.nodes.values.contains(where: { $0.type == "table" })
+            ? " No table row has been selected. For a row editor, select an editable data row before expecting its input to be enabled; an initially disabled editor is correct. A fixed-cell action form must instead work without selection. Match the test to the requested workflow."
+            : ""
           try require(
             tree.interactionEnabled[node.id] == expected, "app_check_assertion",
-            "Expected " + step["target"].text + (expected ? " to be enabled." : " to be disabled."))
+            "Expected " + step["target"].text + (expected ? " to be enabled." : " to be disabled.")
+              + selectionHint)
           assertions += 1
         case "expect_value":
           try require(

@@ -292,8 +292,10 @@ extension Workbook {
   static func sameExcelResult(_ actual: String, _ expected: String) -> Bool {
     if actual == expected { return true }
     let numeric = "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?$"
-    guard actual.range(of: numeric, options: .regularExpression) != nil,
-      expected.range(of: numeric, options: .regularExpression) != nil,
+    guard
+      actual.range(of: numeric, options: .regularExpression) == actual.startIndex..<actual.endIndex,
+      expected.range(of: numeric, options: .regularExpression)
+        == expected.startIndex..<expected.endIndex,
       let a = SheetFormula.number(actual), let b = SheetFormula.number(expected)
     else { return false }
     return abs(a - b) <= max(abs(a), abs(b)) * Decimal(string: "0.00000000000005")!
