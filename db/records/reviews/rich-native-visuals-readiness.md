@@ -3,8 +3,8 @@ type: review
 meta-type: conclusion
 id: 01m7g94edwdaw8wtc6v8ncmf2y
 created: 2026-11-15T18:57:21.852134+00:00
-updated: 2026-11-15T18:58:45.814266+00:00
-summary: Four full-plan review passes resolve architecture, chat lifecycle, scope and acceptance gaps; revision 12 is ready for staged implementation.
+updated: 2026-11-15T22:07:21.697101+00:00
+summary: Historical revision 9-12 readiness review; the revision 13 supplement corrects capture access and completes agent integration contracts.
 title: Rich native visuals implementation readiness
 ---
 # Rich native visuals: complete implementation-readiness review
@@ -102,3 +102,7 @@ Rechecked relevant code at `886edc861f702de85eeac89220677654a00794db`, after the
 ## Final planning verification
 
 Completed: `dbmd validate --all db --json` returned zero errors and warnings; `python3 scripts/check_links.py` passed; both proposed JSON examples parsed; section/stage/review-pass and selected contradiction checks passed; `git diff --check` passed. These are document checks only. They do not execute the proposed schema or prove runtime behavior. No product compilation, benchmark, app launch or model cohort is claimed. Unrelated concurrent Excel records are excluded from this documentation commit and their generated catalog entries are preserved separately.
+
+## Later whole-plan audit, revision 13
+
+The subsequent owner-requested [[records/reviews/rich-native-visuals-final-audit]] supersedes this review's current-readiness pointer and its pass-1 recommendation to hide saved app-derived answers after revocation. Verified immutable captures remain readable through the host; new app reads/actions still require current authority. It also closes concrete prompt/scope/grammar, capture-production, compaction, atomic-publication and window-state gaps. The findings above remain the record of revisions 9 through 12, not the current implementation contract.

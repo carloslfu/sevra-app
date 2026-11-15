@@ -2,14 +2,15 @@
 type: index
 scope: type-folder
 folder: records/reviews
-updated: 2026-11-15T21:51:34.604416Z
+updated: 2026-11-15T22:07:21.697101Z
 ---
 
 # records/reviews
 
+- [[records/reviews/rich-native-visuals-readiness]] — Historical revision 9-12 readiness review; the revision 13 supplement corrects capture access and completes agent integration contracts.
+- [[records/reviews/rich-native-visuals-final-audit]] — Full revision 13 audit closes agent integration, publication and context gaps and corrects historical capture access.
 - [[records/reviews/inference-context-plan-readiness]] — Three sequential plan reviews close architecture, recovery and evaluation gaps while retaining explicit implementation and qualification gates.
 - [[records/reviews/excel-business-applications-2026-11-15]] — Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
-- [[records/reviews/rich-native-visuals-readiness]] — Four full-plan review passes resolve architecture, chat lifecycle, scope and acceptance gaps; revision 12 is ready for staged implementation.
 - [[records/reviews/rich-native-visuals-plan-review]] — Original three visual-plan reviews plus three inline-chat revision passes covering UX, input lifecycle, authority and delivery acceptance.
 - [[records/reviews/excel-reconstruction-and-engine-review]] — Multiple-pass review, fixes, local and hosted checks and installed UI verified; autonomous model-generation reliability remains open
 - [[records/reviews/single-excel-import]] — Single Excel import accepted for the bounded preview: full suite, 38 focused groups, three actual-model workflows and installed UI pass; 14 findings repaired

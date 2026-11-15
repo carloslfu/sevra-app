@@ -3,8 +3,8 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-15T21:50:38.743237+00:00
-summary: Rich visuals and inline-chat plan revision 12 passes four complete readiness reviews; start with native chat inputs, then charts. Implementation remains proposed.
+updated: 2026-11-15T22:08:09.389399+00:00
+summary: Rich visuals and inline-chat revision 13 closes agent integration gaps; start with native chat inputs, then charts. Implementation remains proposed.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
@@ -16,6 +16,8 @@ The owner-requested [[records/plans/rich-native-visuals]] is researched and revi
 The subsequent owner request adds native inline chat interactions to the same plan, reaching revision 8. [[records/research/inline-chat-interactions]] records the code/primary-source audit; three further review passes cover questions, compact forms, exact action/review controls, captured visual answers and durable input handoff. P0a delivers useful chat controls before chart/diagram dependencies. Historical results stay distinct from current live views, and the existing text and business-operation paths remain authoritative.
 
 The owner then requested a complete implementation-readiness review. [[records/reviews/rich-native-visuals-readiness]] records four whole-plan passes and section-by-section coverage, producing revision 12. It resolves standalone chat/Home ownership, stable state versus result keys, captured historical provenance, exact receipt Undo/Redo, partial action outcomes, direct form dispatch and stage dependencies. Relevant code was rechecked at `886edc8` and the Redo grammar follow-up at `f90529a`. The plan is ready to start P0-chat/P0a, followed by the P0-visual/P1 chart workflow. Diagram selection and performance remain explicit stage gates; no proposed feature is marked implemented.
+
+The follow-up [[records/reviews/rich-native-visuals-final-audit]] rechecks every section against clean `5b05c5f` and advances the plan to revision 13. It adds a concrete agent prompt/scope/grammar/dispatch contract, visual evaluation/capture route, atomic input publication and compaction-safe continuation. It aligns with the inference/context plan and corrects the earlier restriction on reading immutable answers after app revocation. Transient visual state is explicitly window-scoped. P0-chat/P0a remains the first implementable increment; visual-specific contracts begin in P0-visual/P1.
 
 The plan distinguishes package capabilities from versioned presentation-only edits, reuses exact query/transaction authority and requires chat parity, native visual review and independent data acceptance. ELK/Graphviz selection and performance are explicit implementation gates. This checkpoint changes documentation only: no new component, dependency qualification, UI launch or installed-app change is claimed. The existing accepted Excel, Home and chat-operation checkpoints below retain their original scope.
 

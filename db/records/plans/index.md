@@ -2,14 +2,14 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-15T21:50:38.285646Z
+updated: 2026-11-15T22:06:01.311755Z
 ---
 
 # records/plans
 
+- [[records/plans/rich-native-visuals]] — Revision 13 staged visual and inline-chat plan with concrete agent integration, atomic input publication and immutable historical results.
 - [[records/plans/inference-context-upgrade]] — Staged plan to correct context accounting, upgrade Splash and qualify stable context and memory profiles.
 - [[records/plans/excel-business-applications]] — Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
-- [[records/plans/rich-native-visuals]] — Implementation-ready staged plan for shared native visuals and inline chat, with explicit ownership, durable actions, capture and acceptance gates.
 - [[records/plans/home-working-overview]] — Chat-customizable Home with live app views, a useful default, attention and recovery.
 - [[records/plans/chat-primary-operation]] — Implement chat as primary operator for workbook and mini-app actions, inputs, review and undo.
 - [[records/plans/fresh-excel-batches]] — Two consecutive fresh 10/10 local-model Excel batches pass on frozen da3c472; all ten native interfaces checked, with no reused apps or manual source repairs.
