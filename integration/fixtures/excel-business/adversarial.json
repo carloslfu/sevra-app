@@ -72,6 +72,21 @@
           ]
         }
       ]
+    },
+    {
+      "journey": 4,
+      "valid": {
+        "3.75": "0"
+      },
+      "invalid": []
+    },
+    {
+      "journey": 0,
+      "reference": "TEST-R1",
+      "valid": {
+        "7": "0.5"
+      },
+      "invalid": []
     }
   ],
   "invoices": [
@@ -219,6 +234,13 @@
           ]
         }
       ]
+    },
+    {
+      "journey": 1,
+      "valid": {
+        "35": "0"
+      },
+      "invalid": []
     }
   ],
   "production": [
@@ -298,6 +320,13 @@
           ]
         }
       ]
+    },
+    {
+      "journey": 1,
+      "valid": {
+        "12000": "0"
+      },
+      "invalid": []
     }
   ],
   "bookings": [
@@ -372,6 +401,14 @@
           ]
         }
       ]
+    },
+    {
+      "journey": 0,
+      "reference": "TEST-B1",
+      "valid": {
+        "2": "1.5"
+      },
+      "invalid": []
     }
   ]
 }

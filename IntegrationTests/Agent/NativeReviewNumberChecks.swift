@@ -142,8 +142,10 @@ func checkNativeReviewNumbers(
   let contracts = try await NativeAppCheck.run(package: candidate, steps: review["tests"].array)
   try expectEqual(contracts["actionInputs"]["chooseMonth"]["month"]["type"], .string("number"))
   try expectEqual(contracts["actionInputs"]["chooseMonth"]["month"]["valueType"], .string("number"))
-  func check(_ candidate: NativeAppPackage, verdict: Value = review) async throws -> Value {
-    let model = ExcelTestModel([], reviews: Array(repeating: verdict, count: 3))
+  func check(
+    _ candidate: NativeAppPackage, verdict: Value = review, model supplied: ExcelTestModel? = nil
+  ) async throws -> Value {
+    let model = supplied ?? ExcelTestModel([], reviews: Array(repeating: verdict, count: 3))
     let result = try await NativeAppReview.check(
       request: "Choose a month, a whole number from 1 to 3.", requestSourceID: requestSourceID,
       arguments: .object([
@@ -169,9 +171,95 @@ func checkNativeReviewNumbers(
     return result
   }
   var failure = ""
-  do { _ = try await check(candidate) } catch { failure = error.localizedDescription }
+  var failureCode = ""
+  do { _ = try await check(candidate) } catch {
+    failure = error.localizedDescription
+    failureCode = (error as? SevraError)?.code ?? ""
+  }
+  try expectEqual(failureCode, "app_review_inconclusive")
   try expectEqual(failure.contains("derived input-refusal probe failed"), true)
   try expectEqual(failure.contains("1.5"), true)
+  // A failed inferred rule is returned to its reviewer. A genuinely requested
+  // whole-number requirement still blocks publication once independently confirmed.
+  var confirmed = review.object
+  confirmed["decision"] = .string("revise")
+  confirmed["issues"] = .array([.string("The requested whole month accepts a fractional input.")])
+  confirmed["tests"] = .array([
+    .object([
+      "kind": .string("run_action"), "action": .string("chooseMonth"),
+      "inputs": .object(["month": .number(1.5)]), "reject": .bool(true),
+    ])
+  ])
+  let confirmingModel = ExcelTestModel([], reviews: [review, .object(confirmed)])
+  var confirmedCode = ""
+  do { _ = try await check(candidate, model: confirmingModel) } catch {
+    confirmedCode = (error as? SevraError)?.code ?? ""
+  }
+  try expectEqual(confirmedCode, "app_review")
+  try expectEqual(await confirmingModel.reviewInputs.count, 2)
+  try expectEqual(
+    await confirmingModel.toolResults.first?["status"], .string("unconfirmed_input_rule"))
+
+  // A price has no requested positivity rule. A review that invents nonzero
+  // must correct its own classification, without asking the author to reject zero.
+  var cost = package
+  cost.source = """
+    const result=Sevra.signal('Ready');
+    Sevra.action('updateCost',{title:'Update unit cost',inputs:{cost:{type:'decimal',required:true}}},input=>{
+      result.value='Cost '+input.cost;
+    });
+    Sevra.mount(Sevra.h(Sevra.Text,{text:result}));
+    """
+  var unconstrained = positive
+  unconstrained["minimum"] = .null
+  unconstrained["nonzero"] = .bool(false)
+  let costTests: Value = .array([
+    .object([
+      "kind": .string("run_action"), "action": .string("updateCost"),
+      "inputs": .object(["cost": .string("3.75")]),
+    ]),
+    .object(["kind": .string("expect_text"), "value": .string("Cost 3.75")]),
+  ])
+  let costContracts = try await NativeAppCheck.run(package: cost, steps: costTests.array)
+  // A lone nonzero rule reproduces the live failure without a second invented bound.
+  var wrongCostRole = unconstrained
+  wrongCostRole["nonzero"] = .bool(true)
+  let wrongCostReview: [String: Value] = [
+    "decision": .string("ready"), "issues": .array([]), "tests": costTests,
+    "inputRoles": .object(["updateCost": .object(["cost": .object(wrongCostRole)])]),
+  ]
+  var correctedCostReview = wrongCostReview
+  correctedCostReview["inputRoles"] = .object([
+    "updateCost": .object(["cost": .object(unconstrained)])
+  ])
+  correctedCostReview["tests"] = .array(costTests.array + [
+    .object([
+      "kind": .string("run_action"), "action": .string("updateCost"),
+      "inputs": .object(["cost": .string("0")]),
+    ]),
+    .object(["kind": .string("expect_text"), "value": .string("Cost 0")]),
+  ])
+  let correctingModel = ExcelTestModel(
+    [], reviews: [.object(wrongCostReview), .object(correctedCostReview)])
+  let costAccepted = try await NativeAppReview.check(
+    request: "Update unit cost using the explicit supplied price.",
+    requestSourceID: requestSourceID,
+    arguments: .object(["package": try encoded(cost), "tests": costTests, "fixtures": .object([:])]),
+    workbook: workbook, model: correctingModel, directory: directory, cancellation: .init(),
+    progress: { _ in }, excelConversion: build, checkedActions: ["updateCost"],
+    checkedActionInputs: costContracts["actionInputs"], checkedInterface: costContracts["initialInterface"])
+  try expectEqual(await correctingModel.reviewInputs.count, 2)
+  try expectEqual(await correctingModel.toolResults.first?["status"], .string("unconfirmed_input_rule"))
+  try expectEqual(costAccepted["digest"], .string(cost.digest))
+  try expectEqual(costAccepted["checkedCounterexamples"].array.count, 1)
+  try expectEqual(costAccepted["checkedCounterexamples"].array[0]["verdict"], .object(wrongCostReview))
+  try expectEqual(
+    costAccepted["checkedCounterexamples"].array[0]["result"]["status"],
+    .string("unconfirmed_input_rule"))
+  let costChecks = costAccepted["independentActionCheck"]["checks"].array
+  try expectEqual(costChecks.count, 1)
+  try expectEqual(costChecks[0]["tests"], correctedCostReview["tests"])
+  try expectEqual(costChecks[0]["inputChecks"], .array([]))
   candidate.source = candidate.source.replacingOccurrences(
     of: "parseInt(input.month,10)", with: "input.month")
   let accepted = try await check(candidate)

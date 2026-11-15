@@ -2,7 +2,7 @@
 type: review
 id: 01m7fb55rgf0b9rfxcfp0683tx
 created: 2026-11-15T10:13:28.464388+00:00
-updated: 2026-11-15T16:12:29.056633+00:00
+updated: 2026-11-15T16:49:58.547435+00:00
 summary: Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
 title: Excel business application adversarial review
 ---
@@ -251,3 +251,32 @@ Cohort 16 completed with three full passes (Cash, Invoices, Job Costing) and thr
 Named-action result presentation now foregrounds the host-recorded outcome, errors, returned result and saved changes instead of repeating unrelated visual drafts and the entire action catalog. The exact snapshot stays in the durable receipt. Bounded field omissions navigate original receipt paths, not offsets in a derived object. Guidance calls for reporting business refusals without retrying unchanged inputs or inventing replacements. Partial changes remain visible; no automatic success or early completion is introduced. Focused chat and confirmation checks pass for refusal with zero writes, failure after a saved change, successful writes, oversized results, untrusted replacement metadata and receipt retrieval.
 
 Candidate 131 signed authoring checks and candidate 132 signed Excel checks pass, including continued-review isolation, fixture-only false-diagnosis recovery, genuine wrong-result refusal and exact decimal/large-integer assertions. The candidate-132 signed checker matches the current build UUID; signing changes byte hashes as expected. Strict formatting and whitespace checks pass. The repository suite and candidate-133 release compilation are running. An explicitly labeled diagnostic replay of the untouched cohort-16 Bookings package is testing the conversation correction. It cannot qualify fresh generation. Zero final cohorts are accepted.
+
+
+### Candidate 133 verification and first fresh cohort
+
+The complete local repository suite passes on the combined candidate, including all signed native/Excel checks, 1,888 packaged kernels, ten missing-resource cases plus an altered resource, model-absence guidance with a retained failed run, isolated install/update/uninstall, unrelated-CLI protection and extraction without Python/model/build-tree access. Only the preserved stale baseline package is skipped. The suite started under the candidate-132 log name and its later agent/native stages compiled and checked candidate 133 after that focused change. Candidate 133 chat/confirmation checks also pass separately.
+
+Commit 1f7519d is pushed; exact-code hosted CI is running. The candidate-133 preview is installed and matches the packaged build: main UUID A9D161B9-5A2C-3933-B659-F15690035407, CLI B75CCE8E-BC5B-3442-910D-07B73E8DAE84, and both workers 5605BD53-B372-3D4E-801A-296977FA5514. Strict signatures pass and both installed SDK digests match source (443225eb66a98160bc2a3f91475aa0b634e4bd49414568cd0eab0f1bf20897bb). The preserved baseline app remains intact.
+
+The untouched cohort-16 Bookings app passes its full diagnostic replay in 209.5 seconds: ten retained states, 17 invalid-input checks with successful correction and Undo, conversational overlap refusal, rescheduling/cancellation, missing-input clarification, held-out values, portable reopen and unchanged-source checks. Independent recalculation matches 120 formula outputs across ten states. The overlap now receives the truthful answer Couldn’t finish that action. Overlaps an existing booking. This replay is explicitly not fresh generation.
+
+Native candidate-133 inspection passes the single Start from files entry with a new synthetic Production workbook, the table-only route, all three worksheet links, wide/compact layout, wrapped workflow draft, macro-source guidance, original-example selection/count, centered rows and a clear empty filter state. No model was invoked for that UI test, no execution grant was created, the filter was cleared and the preview quit. The workbook integrity check passes. Final model loading/cancellation and approval/chat/shared-state UI checks remain pending.
+
+Fresh cohort 17 is running on unchanged commit 1f7519d, with Stock, Production, Bookings, Cash, Invoices and Job Costing in that order. Every case starts from a new workbook, analysis and generation; no replay or manual generated-source repair is used. Zero final cohorts are accepted until the complete run and its independent verifier pass. A separate retained ten-app regression is running on the same code and does not count toward fresh acceptance.
+
+
+### Candidate 134: challenge unsupported numeric restrictions
+
+Cohort 17 Stock reached a passing independent action probe, but the review inferred `nonzero:true` for unit cost. The original request requires positive receipt/shipment quantities, not positive unit cost; its original worksheets contain no data validation imposing that restriction. The host previously forwarded this failed derived probe directly as a proven app defect. That could pressure the author to prohibit a valid zero-priced item. Cohort 17 remains diagnostic even when its earlier checks pass.
+
+Numeric probe failures now return to the same bounded independent review with `unconfirmed_input_rule`. The reviewer must ground the specific restriction in the original request/source, return a concrete reproducing revise verdict for a real defect, or correct its own input roles and rerun readiness. No action qualifies until its checks pass; no new inference budget, automatic publication or manual generated-source repair is introduced. Both policy and tool schema now use neutral numeric defaults and require authority for whole/nonzero as well as finite bounds. Header-key safeguards remain intact.
+
+The focused regression first failed against the former behavior because a genuinely required fractional-month defect bypassed review confirmation (one review instead of two). Added coverage also requires an unsupported price restriction to be corrected with the unchanged app accepting zero. The six-business acceptance corpus now independently exercises a valid zero-cost update and exact Undo. Existing refusal and correction checks remain unchanged. Focused green verification is in progress.
+
+The separately retained candidate-133 ten-workflow regression completed 10/10: 79 saved-edit/reopen/Undo cases, ten portable copies and 302 independent/boundary interface steps. This reused untouched generated packages and performed no fresh model generation; it is separate regression evidence.
+
+
+Candidate 134 verification: the focused Excel suite and full signed authoring suite pass. Final tests also require an unresolved repeated numeric rule to remain inconclusive, preserve the rejected inference in the accepted receipt, and match the unchanged app digest. Static pinned-source/generated-SDK checks and cohort-qualification adversarial checks pass. The boundary corpus additionally tests zero hourly cost, zero loan principal, fractional stock receipt and fractional booking duration, each followed by exact Undo; these inputs are permitted by their existing requests. No original invalid probe was removed.
+
+Candidate 134 is packaged and installed. Main executable UUID is `84F4980E-7094-3157-8DE7-BF592381D4EA`; CLI UUID is `B3B8BB5F-D92C-3738-BA46-9CA0F665BEDA`. Packaged and installed main/CLI/extractor/workers match their UUIDs, both worker SDK resources match current source, and strict signatures pass. The baseline app remains preserved. Full release checks and final native/local-model acceptance are still pending; the installation check only performed resource-path verification while the model cohort ran.
