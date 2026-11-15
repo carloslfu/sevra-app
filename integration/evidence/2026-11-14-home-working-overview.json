@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "b1557b6ac6e0ccd0ba8a19dc70dae740f7723fe6",
+  "scope": "Chat-customizable Home, shared live app runtime, explicit reset, native overview and recovery. Frozen Home-only candidate; concurrent Excel business work excluded.",
+  "codeIdentity": {
+    "sourceFilesCompared": 399,
+    "allMatchSourceCommit": true,
+    "sourceManifestSHA256": "ba8474254c1ba3f07fb00aa33be9ff3ff593fc9aa93e7f0526bc8039971c7f67",
+    "engineSHA256": "532732b0fef256d08e683fc1b50d132e4946d25a8d4f878d0451bebba0385a9a",
+    "probeBinaries": {
+      "Contents/MacOS/checks": "f3af5143f45ab76748b6cedf727a4241166794112da75e07047f8102d301e01d",
+      "Contents/MacOS/sevra-extract": "5f6874c8eb968a8d978aeb40d6630170e549f74e2694d66a76a145624f38c731",
+      "Contents/XPCServices/com.sevra.workbooks.app-check-worker.xpc/Contents/MacOS/sevra-app-worker": "4b26731423e8b22c637820fcd23794d8591ca3a10c2df5a9b5f54dd89b0c399f",
+      "Contents/XPCServices/com.sevra.workbooks.app-worker.xpc/Contents/MacOS/sevra-app-worker": "c1e9223b8c1b8325088639181d91a10a1ba410ab5d5b7838f15b23056c73878e"
+    }
+  },
+  "actualModel": {
+    "model": "qwen36-35b-a3b-4bit",
+    "newSyntheticWorkbook": true,
+    "scriptedNextToolOrArguments": false,
+    "manualGeneratedSourceRepair": false,
+    "cases": [
+      {
+        "answer": "Updated space \u201cHome\u201d.",
+        "case": "home-embed",
+        "request": "Put the Stock room app on Home as a live view. Keep the existing Home sections.",
+        "seconds": 75.77412700653076,
+        "state": "complete",
+        "steps": 7
+      },
+      {
+        "answer": "Added 3 Pencils to the Stock room inventory.",
+        "case": "home-operate",
+        "request": "Add Pencils with quantity 3 in Stock room, here in chat.",
+        "seconds": 39.110817074775696,
+        "state": "complete",
+        "steps": 4
+      },
+      {
+        "answer": "Updated space \u201cHome\u201d.",
+        "case": "home-move",
+        "request": "Move the Stock room live view to the top of Home. Keep the other sections.",
+        "seconds": 94.4387640953064,
+        "state": "complete",
+        "steps": 10
+      },
+      {
+        "answer": "Updated space \u201cHome\u201d.",
+        "case": "home-remove",
+        "request": "Remove the Stock room view from Home. Keep the app and all its data.",
+        "seconds": 40.84231793880463,
+        "state": "complete",
+        "steps": 4
+      },
+      {
+        "answer": "Updated space \u201cHome\u201d.",
+        "case": "home-reset",
+        "request": "Reset Home to its default layout.",
+        "seconds": 27.050322890281677,
+        "state": "complete",
+        "steps": 3
+      }
+    ],
+    "assertions": [
+      "Existing Home sections preserved in every saved version",
+      "Live app binding uses the original app ID",
+      "Named chat action saves Pencils quantity 3",
+      "Move places the live app first",
+      "Removing the view preserves the app and record",
+      "Reset restores the default layout",
+      "Reopen retains the saved result"
+    ],
+    "recoverableReadErrors": [
+      {
+        "tool": "tool_result",
+        "error": "A scalar has no nested fields."
+      },
+      {
+        "tool": "tool_result",
+        "error": "No such result field."
+      },
+      {
+        "tool": "tool_result",
+        "error": "No tool receipt exists in this conversation."
+      },
+      {
+        "tool": "tool_result",
+        "error": "No tool receipt exists in this conversation."
+      },
+      {
+        "tool": "tool_result",
+        "error": "No such result field."
+      },
+      {
+        "tool": "read_native_app",
+        "error": "This space is not a programmable app."
+      }
+    ],
+    "failedWrites": 0,
+    "finalStock": {
+      "name": "Pencils",
+      "quantity": "3"
+    },
+    "retainedProbeSHA256": {
+      "results.json": "21a6bb59cdb56e69e0e1e806ad53e02cc261f7bb1a4ab51df65afe6fbfa1278f",
+      "messages.json": "9ba53a7ebf75aef4d0c659f12ad896f400dd3e95124cd94e499d8212737fef73",
+      "runtime.json": "967cb1a98daf1fc948b69fbb2813c297dce78572100ee06b60ff0b4f0fc3abf1"
+    }
+  },
+  "nativeUI": {
+    "isolatedBundleIdentifier": "com.sevra.home-review",
+    "reviewedMainUUID": "31276427-F1B6-3868-A290-1E49AC9C2E5F",
+    "finalPackagedMainUUID": "F41F2AB4-DEBD-3CFA-908A-687E0EC0D602",
+    "finalChangesAfterVisualReview": "Only chat constraints/guidance, explicit read-only guard, precise layout errors and their verification; unchanged native UI evidence reused.",
+    "observed": [
+      "Empty Home and concrete chat entry point",
+      "Attention, recent actual documents and saved space",
+      "Live app data continuity between Home and full app, including Undo",
+      "Arrange Home focuses chat and preserves an existing draft",
+      "Wide and 821-point constrained layouts",
+      "Explicit disabled app access",
+      "Synthetic startup failure contained inside the app view",
+      "Default reset recovers Home and preserves its app"
+    ],
+    "activeInstalledAppReplaced": false,
+    "voiceOverOrSystemSettingsChanged": false
+  },
+  "checks": {
+    "core": {
+      "passed": 656,
+      "failed": 0
+    },
+    "signedNativeGroups": 18,
+    "sdkGroups": 10,
+    "actualToolGrammars": 84,
+    "exactReferenceMasks": 787,
+    "ordinaryPromptTokens": 8448,
+    "ordinaryPromptLimit": 8448,
+    "authoringPromptTokens": 9804,
+    "authoringPromptLimit": 10240,
+    "fullSuiteBoundary": "scripts/check.sh passed through core, CLI/integration, native app authoring and upstream grammar; stopped at the new explain-only regression. Repaired full agent/grammar rerun and all remaining performance/desktop/links/db checks passed. Final release package, isolated install and extraction checks passed separately.",
+    "releasePackage": "passed",
+    "installedResourcesAndMissingModelRefusal": "passed",
+    "isolatedInstallUpdateConflictAndUninstall": "passed",
+    "packagedExtraction": "passed",
+    "swiftFormat": "passed",
+    "hostedCI": {
+      "run": 43666871100,
+      "url": "https://github.com/carloslfu/sevra-app/actions/runs/43666871100",
+      "status": "success",
+      "headSHA": "b1557b6ac6e0ccd0ba8a19dc70dae740f7723fe6",
+      "completedAt": "2026-11-15T03:20:02Z",
+      "jobs": [
+        {
+          "name": "native",
+          "conclusion": "success",
+          "completedAt": "2026-11-15T03:20:02Z",
+          "stepsPassed": 40
+        }
+      ]
+    }
+  },
+  "retainedFailures": [
+    "Initial new-test token and causal-input fixture errors were corrected.",
+    "Concurrent unrelated source editing interrupted an early package build; qualification moved to a frozen candidate.",
+    "Copied compiler modules needed relocation-safe rebuilding.",
+    "Initial inference attempts refused model_busy or an incorrectly selected test model assembly; existing processes and model files were preserved.",
+    "An earlier walkthrough reached all five states but reset first targeted the app and was refused.",
+    "A fresh final-renderer trial repeated an invalid insert outer title and stopped without changing Home.",
+    "The explain-only topic request exposed the narrow host read-only phrase boundary; fixed and covered by the agent regression.",
+    "A broader operation schema exceeded the existing prompt-size gate; it was replaced with a compact title constraint and shorter equivalent tool guidance. No prompt gate was raised.",
+    "The first hosted run for the superseded implementation was cancelled after the local guard failure was found."
+  ],
+  "logSHA256": {
+    "sevra-home-frozen-check-2.log": "2306f2d54b45378533e99ef7a84833209d3ae85b0ead2dfc7347ada12d73cadc",
+    "sevra-home-final-grammar-3.log": "42ddbf79f4fff98089c30aad8fdb98c51ea9ec35b3e3e6bafcbddf8373500c69",
+    "sevra-home-shared-input-check.log": "eb9c25ed13b076db9c0e3e49ef8c0710e484f550190b3019ef8344bd6e95f255",
+    "sevra-home-final-package-2.log": "8c086dfda60b527950afbe045af987dfd7f0a9cb22cd615ac896599d1637724f",
+    "sevra-home-final-package-full.log": "4de5a7c1e5a9d48f88a9dffb1c61943c4f901d290b8ad550c0ca504af7c0012e",
+    "sevra-home-final-install.log": "a63a876d81f8c07fe255c9c20ca83a80c9f8df302299f1e5f111ef35cd4e0925",
+    "sevra-home-final-extraction.log": "d28a3a716dd495c7d7fabdd3bb60cd66d30dde70023d1c6e942456c157be2e65",
+    "sevra-home-live-final.log": "0ce0c45eb026a7988e140c3376dab90479804829a7d40348bae66d7d1bd47344"
+  },
+  "limits": [
+    "Finite five-request local-model walkthrough, not universal or first-attempt reliability.",
+    "The successful run recovered from 6 read-tool errors; individual requests took about 27 to 94 seconds.",
+    "The installed user app was not replaced; the final qualified package remains an isolated local build.",
+    "No VoiceOver, other hardware, external security certification or production notarization qualification."
+  ]
+}

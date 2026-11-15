@@ -3,11 +3,19 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-15T00:12:21.479789+00:00
-summary: Chat-primary workbook and mini-app operations pass a fresh real-model walkthrough, shared-runtime checks and packaged verification; active installed app remains untouched.
+updated: 2026-11-15T03:20:26.056022+00:00
+summary: Chat-customizable Home passes native review, five actual-model requests, package checks and exact-code hosted CI; the active installed app remains unchanged.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## Current Home checkpoint, November 14
+
+The owner-directed [[records/plans/home-working-overview]] implements a useful default Home with attention, continued work and pinned spaces, plus chat-customizable layouts and live mini-app bindings. Home, the full app and chat share app data, actions and input state. Removing a view preserves the app/data; explicit Reset Home and version history preserve recovery. Native conversation, navigation and access remain stable.
+
+The [Home acceptance evidence](../../../integration/evidence/2026-11-14-home-working-overview.json) qualifies exact code `b1557b6ac6e0ccd0ba8a19dc70dae740f7723fe6`. A fresh pinned local-model walkthrough passed all five requests: embed, chat-operate, move, remove and reset; all saved layouts preserve unrelated sections, and reopen retains Pencils quantity 3. Six read-tool recoveries and 27–94 second request times limit the result. Local regression, complete agent/grammar, native package/install/extraction and native visual checks pass under the plan's explicit rerun boundaries. [Exact-code hosted CI](https://github.com/carloslfu/sevra-app/actions/runs/43666871100) passed. This is finite coverage, not universal model reliability.
+
+Final packaged main UUID is `F41F2AB4-DEBD-3CFA-908A-687E0EC0D602`; the isolated visual-review main UUID is `31276427-F1B6-3868-A290-1E49AC9C2E5F`. Later chat-only repairs reuse unchanged visual evidence. The review app was closed, and the active installed app was not controlled or replaced. Verify the exact bundle before any future opening or installation. Concurrent Excel business changes are preserved and excluded from this frozen candidate. VoiceOver, other hardware and production distribution remain unqualified. Earlier checkpoints below retain their original scope.
 
 ## Current chat operation checkpoint, November 14
 
