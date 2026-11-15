@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-15T16:49:58.512711+00:00
+updated: 2026-11-15T16:57:31.492551+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -49,7 +49,7 @@ A finite corpus cannot establish universal Excel compatibility. Production signi
 
 ## Active blockers
 
-1. Cohort 17 is diagnostic: Stock exposed an unsupported nonzero unit-cost rule inferred by the reviewer, although neither the request nor source validation requires it. Candidate 134 challenges such numeric inferences before author repair and adds valid zero-cost acceptance. Two consecutive complete fresh six-app cohorts remain required; zero final cohorts are accepted.
+1. Cohort 17 is diagnostic: Stock exposed an unsupported nonzero unit-cost rule inferred by the reviewer, although neither the request nor source validation requires it. Candidate 134 challenges such numeric inferences before author repair and adds valid zero-cost acceptance; candidate 135 also clarifies Workspace action IDs after three repeated first-save mistakes. Two consecutive complete fresh six-app cohorts remain required; zero final cohorts are accepted.
 2. Candidate 134 is installed with exact package identity. The unchanged native single-import/table-only/original-example route passed wide/compact inspection on candidate 133, and earlier diagnostic app interfaces pass their scoped checks. All six final generated interfaces plus model loading/cancellation, approval and conversational/native shared-state UI checks remain pending on the final candidate.
 3. The complete candidate-133 local suite, native package/install/extraction, focused chat/confirmation checks and separately retained 10/10 regression pass. Exact-code hosted CI is running. Candidate 134 focused checks pass; final release checks and sanitized receipts/specs/handoff, commit/push and task-only recent/grant cleanup remain. This is ongoing qualification, not a completed product claim.
 
@@ -1111,3 +1111,13 @@ The separately retained candidate-133 ten-workflow regression completed 10/10: 7
 Candidate 134 verification: the focused Excel suite and full signed authoring suite pass. Final tests also require an unresolved repeated numeric rule to remain inconclusive, preserve the rejected inference in the accepted receipt, and match the unchanged app digest. Static pinned-source/generated-SDK checks and cohort-qualification adversarial checks pass. The boundary corpus additionally tests zero hourly cost, zero loan principal, fractional stock receipt and fractional booking duration, each followed by exact Undo; these inputs are permitted by their existing requests. No original invalid probe was removed.
 
 Candidate 134 is packaged and installed. Main executable UUID is `84F4980E-7094-3157-8DE7-BF592381D4EA`; CLI UUID is `B3B8BB5F-D92C-3738-BA46-9CA0F665BEDA`. Packaged and installed main/CLI/extractor/workers match their UUIDs, both worker SDK resources match current source, and strict signatures pass. The baseline app remains preserved. Full release checks and final native/local-model acceptance are still pending; the installation check only performed resource-path verification while the model cohort ran.
+
+
+### Candidate 135: explicit Workspace action identifiers
+
+Cohort 17 Stock, Production and Bookings each initially supplied display titles in Workspace action arrays. The runtime correctly refused unknown IDs and the author repaired them automatically, but this repeated an avoidable failed submission. The canonical short and shared component guides now explicitly say Workspace `sections[].actions` takes registered action IDs, just like ActionForm and named calls, while click tests use visible titles. No title aliasing, runtime fallback or business template was added. Candidate 134 numeric fixes and stronger allowed-boundary corpus are preserved. Full signed authoring verification is running; the next fresh model cohorts will measure whether this guidance reduces retries.
+
+Cohort 17 Production completed its full diagnostic business journey in about 508 seconds, with generation about 242 seconds and three save submissions. Stock also completed its earlier checks, but those checks had not yet included the newly added valid zero-cost control. Neither case qualifies as final acceptance; the entire cohort remains diagnostic and all source repairs were performed by the local model.
+
+
+Candidate 135 compiles and passes the complete signed native authoring and Excel suite. The guide change affects authoring context only; action resolution, permissions, source review and executable checks are unchanged. Cohort 17 Bookings published automatically after three submissions and is exercising its business journeys. Final fresh qualification remains pending.

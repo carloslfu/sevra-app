@@ -41,7 +41,7 @@ public enum NativeAppAuthoring {
   public static let excelBuildGuide = """
     Register the requested business operations only. Workspace tabs provide sheet navigation, and the host provides Undo last change. Do not register placeholder view-sheet or Undo actions, add duplicate buttons for them, or wrap Workspace merely to supply those host features.
 
-    Action IDs start with a lowercase letter and use only letters, digits, _, . or -, at most 64 characters, no spaces. Example ID 'logTime', title 'Log time': ActionForm.action and run_action.action use the ID; click uses the title. Omit action enabled unless a synchronous boolean or boolean signal/function is needed. It takes no action inputs and cannot await data. Put all input-dependent validation and asynchronous reads inside the async handler, which receives the arguments. ActionForm handles its own busy state.
+    Action IDs start with a lowercase letter and use only letters, digits, _, . or -, at most 64 characters, no spaces. Example ID 'logTime', title 'Log time': Workspace sections[].actions, ActionForm.action and run_action.action use the ID 'logTime'; click uses the title 'Log time'. Never put display titles in Workspace actions arrays. Omit action enabled unless a synchronous boolean or boolean signal/function is needed. It takes no action inputs and cannot await data. Put all input-dependent validation and asynchronous reads inside the async handler, which receives the arguments. ActionForm handles its own busy state.
 
     Write plain JavaScript. Sevra is the existing global API, never redeclare it or import modules. Start with const {h,mount,data,calculate}=Sevra; access other APIs as Sevra.Name. No JSX, TypeScript, HTML, CSS, files, network, timers or native APIs. Register actions before mounting their forms. Keep the source small and use one mount(root).
     Component arguments are API constants, not capitalized strings: h(Column,{gap:16},h(Text,{text:'Work',size:20,weight:'bold'}),h(Sevra.ActionForm,{action:'receive'})). Children are arguments after props, never props.children. Use the Workspace component below for multi-sheet tables and action forms; it supplies native tabs without nested layout code. Custom Tabs use numeric indices. No top-level await: read data inside async action handlers; native Table reads its own data. Do not read or copy rows merely to render a Table.
@@ -67,7 +67,7 @@ public enum NativeAppAuthoring {
     """
 
   public static let componentGuide = """
-    Workspace: sections:[{title:'Inputs',table:'alias',actions:['add']},...], 1..12 distinct titles. Composes searchable tables and ActionForms. Tab label 'Workspace sections', initial index 0. Register actions first.
+    Workspace: sections:[{title:'Inputs',table:'alias',actions:['registeredActionID']},...], 1..12 distinct titles. Every actions entry is an exact registered action ID, never its display title. Composes searchable tables and ActionForms. Tab label 'Workspace sections', initial index 0. Register actions first.
     ActionForm: h(Sevra.ActionForm,{action:'registeredActionID'}) supplies native inputs, busy/error feedback, failed-draft retention and successful reset for the SAME action as chat. Test input labels are 'Action title: Field title'; submit uses the action title. Business validation belongs in the action. The host supplies Undo for the latest write.
     Components (only these props in addition to common label/help/enabled/hidden/width/height/padding/gap):
     Column,Row: alignment; Grid: columns; Split: vertical; Scroll,Section: common props.
