@@ -164,6 +164,7 @@ private func checkRefusedRepeats() throws {
 func checkActionConfirmations() async throws {
   try checkRefusedRepeats()
   try checkNestedActionRecovery()
+  try checkMisplacedActionRecovery()
   // Repairing a malformed call can expose a genuine business refusal. Show the
   // refusal, retain both receipts, and never mark the requested action successful.
   for sameTarget in [true, false] {

@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m7ebv28bxsk6szwx72sbrcyp
 created: 2026-11-15T01:06:11.339074+00:00
-updated: 2026-11-15T17:26:33.950432+00:00
+updated: 2026-11-15T17:54:27.449785+00:00
 summary: Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 title: Realistic Excel business applications
 status: in-progress
@@ -49,9 +49,9 @@ A finite corpus cannot establish universal Excel compatibility. Production signi
 
 ## Active blockers
 
-1. Cohort 17 is diagnostic: Stock exposed an unsupported nonzero unit-cost rule inferred by the reviewer, although neither the request nor source validation requires it. Candidate 134 challenges such numeric inferences before author repair and adds valid zero-cost acceptance; candidate 135 also clarifies Workspace action IDs after three repeated first-save mistakes. Two consecutive complete fresh six-app cohorts remain required; zero final cohorts are accepted.
-2. Candidate 135 is installed with exact package identity. The unchanged native single-import/table-only/original-example route passed wide/compact inspection on candidate 133, and earlier diagnostic app interfaces pass their scoped checks. All six final generated interfaces plus model loading/cancellation, approval and conversational/native shared-state UI checks remain pending on the final candidate.
-3. The complete candidate-133 local suite, native package/install/extraction, focused chat/confirmation checks and separately retained 10/10 regression pass. Exact-code hosted CI is running. Candidate 135 focused checks and the retained 10/10 regression pass, as do revision 136 stricter saved-effect checks; final release checks and sanitized receipts/specs/handoff, commit/push and task-only recent/grant cleanup remain. This is ongoing qualification, not a completed product claim.
+1. Cohort 17 remains diagnostic: five cases passed their then-current checks; Jobs exposed stale failure reporting after a successful correction. Candidates 134–137 address numeric-rule inference, action-ID guidance, exact valid-control effects and truthful recovery. Two consecutive complete fresh six-app cohorts remain required; zero final cohorts are accepted.
+2. Candidate 137 is packaged; installation identity and final native verification are next. The unchanged single-import/table-only/original-example route passed wide/compact inspection on candidate 133. All six final generated interfaces plus model loading/cancellation, approval and conversational/native shared-state checks remain pending.
+3. The complete candidate-133 local suite and candidate-134 hosted suite pass; later focused checks and the retained 10/10 regression pass. Final release checks, hosted CI, sanitized receipts/specs/handoff and task-only recent/grant cleanup remain. This is ongoing qualification, not a completed product claim.
 
 ## Progress
 
@@ -1138,3 +1138,12 @@ The reproduced coercion test failed before this change and passes afterward. Exi
 
 
 Revision 136 focused Excel and full signed authoring checks pass, including the coercing-worker regression and strict saved-input/unrelated-input counterexamples. The independent Python qualifier tests also pass. A compile-only shadowed test-variable error was corrected before the successful run. Candidate 133 hosted CI completed successfully; candidate 135 exact-production-code CI is still running. Final native production code is unchanged by revision 136.
+
+
+### Candidate 137: truthful completion after corrected action envelopes
+
+Cohort 17 completed all six fresh diagnostic cases: five passed their then-current checks and Jobs failed reporting after successfully saving the requested hourly cost. Its local model first used arguments instead of inputs, then misplaced the action selector inside inputs, and finally made the correct call. The host retained the earlier format error and incorrectly overrode the successful completion. The failure is retained; cohort 17 is not acceptance. Independent cache-stripped spreadsheet recalculation matches 717 formula outputs across 61 retained states. Source changed during the cohort and Stock lacked the subsequently added allowed-boundary controls.
+
+Reporting now recognizes these two unambiguous envelope corrections only after a real subsequent invocation, matching exact app/action/version and every supplied business value. Removing a selector from inputs additionally requires the captured SDK contract to prove there is no legitimate business input named action. Malformed calls are never rewritten or executed. A genuine later business refusal replaces the stale format complaint and remains a failure. Different targets, versions, values, missing contracts and actual action-named inputs have counterexample coverage. The new regression failed before the change; focused confirmation/chat and full signed authoring checks pass afterward.
+
+A diagnostic replay of the untouched cohort-17 Jobs package passes all five conversational journeys, refusal/correction and zero-rate controls, saved effects, Undo, source rebuild and portable checks in 200.2 seconds. Independent spreadsheet recalculation matches 108 formulas across twelve retained states. It is not a fresh-generation trial. Production code remained unchanged during replay; one test file gained missing-contract coverage, so the broad runtime source-unchanged flag is false and that limit is retained. Candidate 137 release packaging passes. No generated source has been manually changed. Final fresh cohorts and native qualification remain pending.

@@ -14,6 +14,16 @@ package struct ActionConfirmations {
     let later = entries.dropFirst(index + 1)
     return (entry["error"].text.contains(Self.repeatRefused) ? entries[...] : later).contains {
       saved in
+      if entry["validationOnly"] == .bool(true), entry["envelopeRepair"] != .null {
+        let repair = entry["envelopeRepair"]
+        // An action selector is removable only when the actual pre-invocation
+        // SDK contract proves it is not a business input with the same name.
+        return saved["tool"] == entry["tool"] && saved["appTarget"] == repair["target"]
+          && (saved["kind"].text != "failure" || saved["validationOnly"] == .bool(false))
+          && (repair["removedActionInput"] != .bool(true)
+            || saved["contractExcludesActionInput"] == .bool(true))
+          && repair["inputs"].object.allSatisfy { saved["inputDigests"][$0.key] == $0.value }
+      }
       // A one-level misplaced envelope can omit the outer app ID entirely. Match
       // only an unambiguous exact invocation, including its version and inputs.
       // This repairs reporting; it never repairs or executes the refused call.
@@ -112,6 +122,51 @@ package struct ActionConfirmations {
       let json = try? value.json()
     else { return .null }
     return .string(digest(json))
+  }
+  private static func appTarget(_ tool: String, _ arguments: Value) -> Value {
+    let call = arguments["arguments"]
+    guard tool == "workspace_action", arguments["action"] == .string("app.run"),
+      (try? ChatOperations.validate("app.run", arguments: call, readOnly: false)) != nil,
+      let json = try? Value.array([call["id"], call["expectedVersion"], call["action"]]).json()
+    else { return .null }
+    return .string(digest(json))
+  }
+  /// Describe two unambiguous formatting repairs for outcome reporting only.
+  /// Never dispatch a rewritten call or discard a supplied business value.
+  private static func envelopeRepair(_ tool: String, _ arguments: Value) -> Value {
+    guard tool == "workspace_action", arguments["action"] == .string("app.run") else {
+      return .null
+    }
+    var fields = arguments["arguments"].object
+    let removedAction: Bool
+    if Set(fields.keys) == ["id", "expectedVersion", "inputs"],
+      case .object(var inputs) = fields["inputs"], let action = inputs["action"]?.string,
+      !action.isEmpty
+    {
+      fields["action"] = .string(action)
+      inputs.removeValue(forKey: "action")
+      fields["inputs"] = .object(inputs)
+      removedAction = true
+    } else if Set(fields.keys) == ["id", "expectedVersion", "action", "arguments"],
+      case .object(let inputs) = fields["arguments"],
+      Set(inputs.keys).isDisjoint(with: ["id", "expectedVersion", "action", "inputs"])
+    {
+      fields.removeValue(forKey: "arguments")
+      fields["inputs"] = .object(inputs)
+      removedAction = false
+    } else { return .null }
+    let target = appTarget(tool, .object([
+      "action": .string("app.run"), "arguments": .object(fields),
+    ]))
+    guard target != .null else { return .null }
+    return .object([
+      "target": target, "inputs": inputDigests(fields["inputs"]!),
+      "removedActionInput": .bool(removedAction),
+    ])
+  }
+  private static func contractExcludesActionInput(_ result: Value) -> Value {
+    guard case .object(let fields) = result["invocationInputContract"] else { return .null }
+    return .bool(fields["action"] == nil)
   }
   private static func digest(_ json: String) -> String {
     SHA256.hash(data: Data(json.utf8)).map { String(format: "%02x", $0) }.joined()
@@ -215,14 +270,15 @@ package struct ActionConfirmations {
         "attempt": .string(Self.attempt(tool, arguments)),
         "retryGroup": .string(Self.retryGroup(arguments)),
         "invocation": Self.invocation(tool, arguments),
+        "appTarget": Self.appTarget(tool, arguments),
+        "envelopeRepair": Self.envelopeRepair(tool, arguments),
+        "contractExcludesActionInput": Self.contractExcludesActionInput(result),
         "inputRepair": Self.repairableInputs(arguments, result),
         "inputDigests": Self.inputDigests(arguments["arguments"]["inputs"]),
         "appRun": .bool(tool == "workspace_action" && arguments["action"].text == "app.run"),
         "nestedAppEnvelope": .bool(
           tool == "workspace_action" && arguments["action"].text == "app.run"
-            && ["id", "expectedVersion", "action", "inputs"].contains {
-              arguments["arguments"]["arguments"].object[$0] != nil
-            }),
+            && arguments["arguments"]["arguments"] != .null),
         "validationOnly": .bool(
           tool == "workspace_action"
             && (try? ChatOperations.validate(
@@ -309,6 +365,8 @@ package struct ActionConfirmations {
         "attempt": .string(attempt),
         "retryGroup": .string(Self.retryGroup(arguments)),
         "invocation": Self.invocation(tool, arguments),
+        "appTarget": Self.appTarget(tool, arguments),
+        "contractExcludesActionInput": Self.contractExcludesActionInput(result),
         "inputDigests": Self.inputDigests(arguments["arguments"]["inputs"]),
       ]))
   }

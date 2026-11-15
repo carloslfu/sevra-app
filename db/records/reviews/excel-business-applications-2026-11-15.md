@@ -2,7 +2,7 @@
 type: review
 id: 01m7fb55rgf0b9rfxcfp0683tx
 created: 2026-11-15T10:13:28.464388+00:00
-updated: 2026-11-15T17:26:33.991834+00:00
+updated: 2026-11-15T17:54:27.474802+00:00
 summary: Shared formula, review, numeric validation, repair and authority fixes pass scoped checks; final fresh cohorts and native visual qualification remain pending.
 title: Excel business application adversarial review
 ---
@@ -307,3 +307,12 @@ The reproduced coercion test failed before this change and passes afterward. Exi
 
 
 Revision 136 focused Excel and full signed authoring checks pass, including the coercing-worker regression and strict saved-input/unrelated-input counterexamples. The independent Python qualifier tests also pass. A compile-only shadowed test-variable error was corrected before the successful run. Candidate 133 hosted CI completed successfully; candidate 135 exact-production-code CI is still running. Final native production code is unchanged by revision 136.
+
+
+### Candidate 137: truthful completion after corrected action envelopes
+
+Cohort 17 completed all six fresh diagnostic cases: five passed their then-current checks and Jobs failed reporting after successfully saving the requested hourly cost. Its local model first used arguments instead of inputs, then misplaced the action selector inside inputs, and finally made the correct call. The host retained the earlier format error and incorrectly overrode the successful completion. The failure is retained; cohort 17 is not acceptance. Independent cache-stripped spreadsheet recalculation matches 717 formula outputs across 61 retained states. Source changed during the cohort and Stock lacked the subsequently added allowed-boundary controls.
+
+Reporting now recognizes these two unambiguous envelope corrections only after a real subsequent invocation, matching exact app/action/version and every supplied business value. Removing a selector from inputs additionally requires the captured SDK contract to prove there is no legitimate business input named action. Malformed calls are never rewritten or executed. A genuine later business refusal replaces the stale format complaint and remains a failure. Different targets, versions, values, missing contracts and actual action-named inputs have counterexample coverage. The new regression failed before the change; focused confirmation/chat and full signed authoring checks pass afterward.
+
+A diagnostic replay of the untouched cohort-17 Jobs package passes all five conversational journeys, refusal/correction and zero-rate controls, saved effects, Undo, source rebuild and portable checks in 200.2 seconds. Independent spreadsheet recalculation matches 108 formulas across twelve retained states. It is not a fresh-generation trial. Production code remained unchanged during replay; one test file gained missing-contract coverage, so the broad runtime source-unchanged flag is false and that limit is retained. Candidate 137 release packaging passes. No generated source has been manually changed. Final fresh cohorts and native qualification remain pending.
