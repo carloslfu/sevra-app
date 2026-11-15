@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-15T14:47:34.511488Z
+updated: 2026-11-15T15:51:58.792707Z
 ---
 
 # records/plans
 
+- [[records/plans/rich-native-visuals]] — Proposed shared native visual system for Home and mini apps, with data correctness, chat operations, UX and staged acceptance.
 - [[records/plans/excel-business-applications]] — Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 - [[records/plans/home-working-overview]] — Chat-customizable Home with live app views, a useful default, attention and recovery.
 - [[records/plans/chat-primary-operation]] — Implement chat as primary operator for workbook and mini-app actions, inputs, review and undo.

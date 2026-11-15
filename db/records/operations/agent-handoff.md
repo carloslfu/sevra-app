@@ -3,11 +3,17 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-15T03:20:26.056022+00:00
-summary: Chat-customizable Home passes native review, five actual-model requests, package checks and exact-code hosted CI; the active installed app remains unchanged.
+updated: 2026-11-15T15:52:39.819692+00:00
+summary: Rich visual-system research and three-pass plan completed; implementation remains proposed. Existing Excel, Home and chat-operation acceptance is preserved.
 title: Minimum-feature continuation handoff
 ---
 # Minimum-feature continuation handoff
+
+## Rich visual-system planning checkpoint, November 15
+
+The owner-requested [[records/plans/rich-native-visuals]] is researched and reviewed through three revision passes. [[records/research/rich-native-visuals]] maps clean source `89c8ed70d8f5b18824cccf13932b035d0d424857` and primary technology references; [[records/reviews/rich-native-visuals-plan-review]] records concrete findings, revisions and remaining gates. The recommendation is a common typed native visual system for Home and mini apps, beginning with a complete charts/metrics/exceptions workflow, then richer analysis, boards/time views, diagrams and scoped media.
+
+The plan distinguishes package capabilities from versioned presentation-only edits, reuses exact query/transaction authority and requires chat parity, native visual review and independent data acceptance. ELK/Graphviz selection and performance are explicit implementation gates. This checkpoint changes documentation only: no new component, dependency qualification, UI launch or installed-app change is claimed. The existing accepted Excel, Home and chat-operation checkpoints below retain their original scope.
 
 ## Current Home checkpoint, November 14
 

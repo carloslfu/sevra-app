@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-15T01:23:50.439338Z
+updated: 2026-11-15T15:42:08.410183Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/rich-native-visuals-plan]] — Owner requests code research, a thorough rich-native-visuals plan, and several review/revision passes.
 - [[sources/notes/2026/11/home-working-overview]] — Carlos requests end-to-end implementation and verification of a useful chat-customizable Home with live mini-app capabilities.
 - [[sources/notes/2026/11/excel-business-applications]] — Carlos requests closing whole Excel application, autonomous reliability, and integrated chat product gaps with fresh local-model tests and adversarial review.
 - [[sources/notes/2026/11/frozen-excel-checkpoint]] — Owner selects continued Excel verification on exact frozen da3c472 checkpoint while another chat changes the shared engine.
