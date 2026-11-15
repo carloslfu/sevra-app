@@ -1,0 +1,58 @@
+{
+  "batch-01": {
+    "responses": 36,
+    "min": 3909,
+    "median": 9919.0,
+    "p95": 13035,
+    "max": 14852,
+    "over16K": 0,
+    "over24K": 0,
+    "maintenanceRecommended": 0,
+    "sumPrefillSeconds": 86.108196,
+    "sumDecodeSeconds": 1618.1868839999997,
+    "maxGeneratedTokens": 3457,
+    "maxOutputBudget": 8192
+  },
+  "batch-02": {
+    "responses": 44,
+    "min": 4026,
+    "median": 10394.0,
+    "p95": 12039,
+    "max": 12374,
+    "over16K": 0,
+    "over24K": 0,
+    "maintenanceRecommended": 0,
+    "sumPrefillSeconds": 112.22925099999998,
+    "sumDecodeSeconds": 2243.1840549999993,
+    "maxGeneratedTokens": 3579,
+    "maxOutputBudget": 8192
+  },
+  "batch-03": {
+    "responses": 39,
+    "min": 4073,
+    "median": 10051,
+    "p95": 14617,
+    "max": 15132,
+    "over16K": 0,
+    "over24K": 0,
+    "maintenanceRecommended": 0,
+    "sumPrefillSeconds": 108.836473,
+    "sumDecodeSeconds": 2151.114169,
+    "maxGeneratedTokens": 3210,
+    "maxOutputBudget": 8192
+  },
+  "accepted": {
+    "responses": 83,
+    "min": 4026,
+    "median": 10051,
+    "p95": 13268,
+    "max": 15132,
+    "over16K": 0,
+    "over24K": 0,
+    "maintenanceRecommended": 0,
+    "sumPrefillSeconds": 221.06572399999996,
+    "sumDecodeSeconds": 4394.298224,
+    "maxGeneratedTokens": 3579,
+    "maxOutputBudget": 8192
+  }
+}

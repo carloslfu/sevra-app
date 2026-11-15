@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5wps1qcharh0qv8vq40wbjr
 created: 2026-10-26T18:15:17.996137+00:00
-updated: 2026-11-01T08:40:00.000000+00:00
+updated: 2026-11-15T21:50:38.950334+00:00
 summary: Python-free Swift integration of pinned upstream Splash, explicit behavior mapping, differential verification and measured adoption gates.
 title: Native Splash integration and upgrades
 status: reviewed
@@ -416,3 +416,6 @@ must distinguish frontend request/tokenizer/grammar equivalence from upstream
 numerical repeatability before choosing another experiment or revising a gate.
 Do not blindly repeat the full cohort until one happens to pass. Complete replay
 and independent hash/process audit: integration/evidence/2026-10-27-prefix-d9-repeatability.json.gz.
+
+## Reviewed inference and context upgrade plan, November 15
+[[records/plans/inference-context-upgrade]] is the reviewed, planning-only proposal for exact-scope preparation, mode-specific output/result/recovery reservations, actual admitted capacity, the Splash 1.6.1 adapter and controlled context/memory experiments. [[records/reviews/inference-context-plan-readiness]] records three review passes. It does not change current implementation or promote a runtime/profile. Historical policy and qualification evidence above remain preserved; implementation must update the canonical contract and tests together, retaining the existing 75% policy and explicit adoption gates unless a separate reviewed decision changes them.

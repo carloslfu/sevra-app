@@ -3,7 +3,7 @@ type: operational
 meta-type: conclusion
 id: 01m5rbxzcsjnewm0pwmb9a06cj
 created: 2026-10-25T01:48:47.385772+00:00
-updated: 2026-11-14T20:42:57.439901+00:00
+updated: 2026-11-15T21:50:38.772829+00:00
 summary: Automatic local-model Excel conversion qualified across 10 generated apps and 89 independent originals, including five held-out states; no manual generated-code repairs.
 title: Implementation and acceptance
 ---
@@ -7729,3 +7729,10 @@ The full synthetic agent suite and current 52-tool/65-case/555-mask grammar pass
 One real installed native-model 32K/bounded512 case saves the exact rule in four calls/34.798 seconds under development load despite untrusted autoenable/threshold metadata. A separate actual packaged native UI request saves it in three calls and opens exact right-pane review with correct workflow/parts < 10, disabled state and local-AI permission off. Done returns Home. Close/verify/inert reconstruction retain zero activations/consumers/runs/admissions. These are two scoped functional cases, not a throughput or broad accuracy claim. No new microphone/OS permission was used. All 152 prior evidence artifacts remain byte-identical.
 
 [Scoped authoring evidence](../../../integration/evidence/2026-10-29-condition-authoring.json.gz ), 280,383 bytes, SHA-256 fae90c12d650f94072e1373fa32b3c41f3cea2ab7844e6b3c0bb5224c03b8eeb. Earlier schema30 dispatch/race/death proof remains unchanged and reused. Next: text/voice explicit Enable confirmation, a real local-model condition workflow through human business review/restart, then dataset-query conditions. E5-E6, full E3/contextual/Excel journeys, controlled voice/accessibility/appearance/media, physical hardware/native parity/performance and production signing/notarization/distribution remain unfinished. This checkpoint does not complete the app or active goal.
+
+## Inference and context upgrade plan, November 15
+The owner requested a thorough implementation plan for context-accounting fixes, Splash and related integration upgrades, and context/memory qualification. [[records/plans/inference-context-upgrade]] is revision 4 after three sequential readiness passes; [[records/reviews/inference-context-plan-readiness]] records findings and revisions, and [[records/research/inference-context-upgrade]] records source/evidence limits.
+
+Planning only. No engine/model/configuration change, candidate GPU benchmark, installation or UI work occurred in this checkpoint. The native preview remains at its existing 32K/12 GiB configuration and Splash 1.4.1 pin. Candidate 1.6.1 provenance is recorded from source/release metadata; archive/component verification and qualification remain implementation steps. The next implementation sequence is P0/P1 accounting and preparation, P2/P3 same-configuration engine integration and qualification, then P4/P5 controlled context/memory selection, followed by UX and release gates. No automatic mid-job capacity-growth ladder is planned for the first implementation.
+
+The current W1 exact-parity blocker and D9 repeatability evidence remain open; passing historical timings do not qualify promotion. Candidate context research may proceed only after behavioral/lifecycle/admission prerequisites, with promotion gated separately. This planning checkpoint does not alter other workstreams' status or restart cross-chat coordination.

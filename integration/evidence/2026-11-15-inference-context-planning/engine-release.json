@@ -1,0 +1,18 @@
+{
+  "observedOn": "2026-11-15",
+  "release": "1.6.1",
+  "publishedAt": "2026-11-11T11:50:28Z",
+  "sourceCommit": "d8af1054aab0f97de21d043e01aa98af3754f10e",
+  "tagObject": "f3ee53329926d53d42159fd40cad28cdd3080393",
+  "releaseURL": "https://github.com/incoai/splash/releases/tag/1.6.1",
+  "releaseImmutable": false,
+  "runtime": [
+    {
+      "name": "splash-1.6.1-arm64-macos26.tar.gz",
+      "url": "https://github.com/incoai/splash/releases/download/1.6.1/splash-1.6.1-arm64-macos26.tar.gz",
+      "bytes": 78670846,
+      "publishedDigest": "sha256:0ed408a781f951a13ff58bed95c9e8c1d1dc67ab9d649fcaf365972b6720ce6c"
+    }
+  ],
+  "verification": "Source commit and published asset metadata inspected; candidate archive not downloaded, extracted, executed or promoted by this planning task."
+}

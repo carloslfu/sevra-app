@@ -1,0 +1,9 @@
+{"promptTokens":25787,"rows":320,"scope":"all","sourceBytes":18560,"under32KMaintenanceThreshold":false}
+{"promptTokens":20633,"rows":320,"scope":"answer","sourceBytes":18560,"under32KMaintenanceThreshold":true}
+{"promptTokens":17737,"rows":320,"scope":"finish","sourceBytes":18560,"under32KMaintenanceThreshold":true}
+{"promptTokens":27947,"rows":360,"scope":"all","sourceBytes":20880,"under32KMaintenanceThreshold":false}
+{"promptTokens":22793,"rows":360,"scope":"answer","sourceBytes":20880,"under32KMaintenanceThreshold":true}
+{"promptTokens":19897,"rows":360,"scope":"finish","sourceBytes":20880,"under32KMaintenanceThreshold":true}
+{"promptTokens":30107,"rows":400,"scope":"all","sourceBytes":23200,"under32KMaintenanceThreshold":false}
+{"promptTokens":24953,"rows":400,"scope":"answer","sourceBytes":23200,"under32KMaintenanceThreshold":false}
+{"promptTokens":22057,"rows":400,"scope":"finish","sourceBytes":23200,"under32KMaintenanceThreshold":true}

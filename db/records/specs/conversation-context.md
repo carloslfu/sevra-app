@@ -3,7 +3,7 @@ type: spec
 meta-type: conclusion
 id: 01m5x2pp178p3a4ay7hbfx7wdg
 created: 2026-10-26T21:43:43.399273+00:00
-updated: 2026-11-02T00:20:00+00:00
+updated: 2026-11-15T21:50:39.164274+00:00
 summary: Automatic compaction, preserved conversation history, authoritative continuation state and measured larger-context qualification.
 title: Continuing conversation and context management
 status: reviewed
@@ -652,3 +652,6 @@ once in the real runs below and ended the request with a plain message and nothi
 Asking again continues.
 
 Evidence: [[records/operations/implementation]].
+
+## Reviewed inference and context upgrade plan, November 15
+[[records/plans/inference-context-upgrade]] is the reviewed, planning-only proposal for exact-scope preparation, mode-specific output/result/recovery reservations, actual admitted capacity, the Splash 1.6.1 adapter and controlled context/memory experiments. [[records/reviews/inference-context-plan-readiness]] records three review passes. It does not change current implementation or promote a runtime/profile. Historical policy and qualification evidence above remain preserved; implementation must update the canonical contract and tests together, retaining the existing 75% policy and explicit adoption gates unless a separate reviewed decision changes them.

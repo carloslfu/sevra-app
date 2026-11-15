@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: sources/notes
-updated: 2026-11-15T18:49:05.367155Z
+updated: 2026-11-15T21:46:26.807248Z
 ---
 
 # sources/notes
 
+- [[sources/notes/2026/11/inference-context-upgrade-plan]] — Owner requests a reviewed plan for context accounting fixes, Splash upgrade and context/memory qualification.
 - [[sources/notes/2026/11/rich-visual-plan-readiness]] — Owner requests several complete review passes to make the integrated visual and inline-chat plan ready for implementation.
 - [[sources/notes/2026/11/inline-chat-interactions]] — Owner extends the rich-native-visuals plan to useful inline questions, forms and interfaces in chat.
 - [[sources/notes/2026/11/rich-native-visuals-plan]] — Owner requests code research, a thorough rich-native-visuals plan, and several review/revision passes.

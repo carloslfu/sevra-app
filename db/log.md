@@ -148,3 +148,9 @@ Owner-authorized A1-A10 headless checkpoint: 22 behavior groups and 10 static ad
 ## [2026-11-13 15:59] verification | records/reviews/native-app-fresh-start-2026-11-13
 Retired obsolete native-app development fixtures; fixed cleanup; 17 native and 11 authoring groups pass. Fresh imported UI flow passes. Actual-model fresh calculator and guided retry failed safely and remain open.
 
+## [2026-11-15 21:51] design | records/plans/inference-context-upgrade.md
+Created revision 4 implementation plan after architecture/integration, recovery/UX and evaluation/release reviews. Covers accounting, Splash 1.6.1, bounded context/memory experiments and retained strict parity blocker; planning only.
+
+## [2026-11-15 21:51] verification | records/reviews/inference-context-plan-readiness.md
+Repository Markdown links, full dbmd validation, diff whitespace and retained synthetic evidence consistency pass. No runtime, GPU, installation or current-source model qualification claimed.
+

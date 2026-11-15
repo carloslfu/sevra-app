@@ -1,0 +1,54 @@
+PASS a run that never started a helper frees the inference lock at once
+PASS engine and transport failures reach the app typed, with the engine's last line
+PASS exact context budgets, proactive maintenance thresholds and exhausted-prompt refusal
+PASS 75% boundary, irreducible floor, no reclaim, preserved checkpoint and no false compaction success
+PASS added retry context is checked before generation without dropping the live request
+PASS bounded reasoning preserves a tool-output reserve and requires a closed thinking block
+PASS reasoning survives tool steps, counts toward context, and is absent from saved history and later requests
+PASS full inspected and cited item IDs render as safe native links without another model turn; unknown and ambiguous references remain refused
+PASS workbook actor lifecycle, history types, proposal states and deterministic search/index coverage limit
+PASS terminal conversation actions, exact parent, rename, review without sharing, scope/refusal and cancellation
+PASS chat Home composition, default reset, history, reopen and read-only refusal
+PASS scoped space opening, compound continuation, shortcut/snapshot separation, read-only denial and terminal ambiguity/window refusal
+PASS exact request handoff, one lease/Source, scoped child history, no repeats, cancellation, failure, shared step budget and reopen
+PASS handoff evidence: exact same-request reads/calculation, scoped history, changed heads, projection/failure refusal, byte/count bounds and replay
+PASS conceptual differences finish directly; numeric comparisons stay checked; threads share accepted workbook data
+PASS intact user request, separate host metadata, scoped continuation and automatic request lineage without redundant reads
+{"abandonedRunClosedBeforeProjection":true,"activeOtherRunPreserved":true,"check":"request_admission","failedLeaseHasLinkedTerminalRequest":true,"liveRun":"208eb46c-3751-4b1d-aaa0-2eed007fe3d5","oldRun":"3a5c9a79-4b8c-4408-97ef-16774ab6c9d3"}
+PASS abandoned-run projection and terminal lease-refusal history preserve originals and active work
+PASS atomic request/run writes roll back together, release acquired leases on failure and bound earlier history
+PASS isolated inventory direction, exact quotes, wrong-sign refusal, original history, draft-only success and terminal duplicate refusal
+PASS document action preview identifies meaning and new prose; unreviewed direct preparation stays closed and routes to conversational form submission
+PASS saved form discovery/inspection/preview/submission, isolated complete batch directions, exact quotes, malformed/wrong-sign/read-only refusal, AI lineage and draft-only review
+PASS inventory-rule authoring: exact template/custom save, host handoff, request lineage, read-only/authority/foreign/stale refusal and inert reconstruction; no execution permission
+PASS workflow queue host confirmation, current request lineage, read-only and handoff refusal; no steps executed
+PASS chat agent: discovered host actions, typed inputs, duplicate replay, read-only guard, actual workflow execution and model lifecycle
+PASS conversation workflow answer: contextual scope, exact current-message preparation, host unsent confirmation, original output and no business submission
+PASS model-visible evaluation receipts publish exact estimate drafts with optional review
+PASS stale citation refusal, current-version refresh, citation-drop bypass refusal and preserved historical evidence
+PASS misplaced action recovery preserves app, action, version, business values and real refusals
+PASS receipt-based saved-artifact confirmations, idempotent rendering, failed-write exclusion and intact cited answers
+PASS failed definition receipts cannot become success by relabeling finish basis; cited facts retain explicit failure outcomes
+PASS decimal commas, joined units and stated percentages ground; wrong ones refused
+PASS calculation inputs attach from receipts as one link; grounding rules stay
+PASS metadata-only files, receipts and request Sources stay out of evidence and counts
+PASS every run ending keeps what else it saved, and every write failure is reported
+PASS refused or cut-off responses reach the model for correction, three times at most
+PASS a table can be paged past the citation limit; read rows stay evidence, unread refused
+PASS exact passage drafting, paraphrase compatibility, untrusted instructions, copy visibility and scoped generation choices
+PASS exhausted correction retains all four rejected candidates and a failed run
+PASS unknown opaque references are rejected before publication; corrected prose preserves citation navigation
+PASS invented currency is rejected before assistant publication; corrected answer retains exact citations and unchanged business data
+PASS shared agent retrieves old originals and pages oversized saved results
+PASS inherited parent evidence is readable and correctly linked without widening history search or branch scope
+PASS scoped search spans business evidence and earlier conversation without mixing citations, filters, cursors or branches
+PASS exact item candidates, separate citation authority, context rebuild, shared refusal receipts and baseline/native schema parity
+PASS bounded body/extracted agent traversal, corrected pins, original-read citation gating, scoped keyset receipts and portable reopening
+PASS reference/direct-read/history bypass refusal and immutable current-request ceiling without private head disclosure
+PASS scoped current-record counts, hidden lexical matches, validation, stale/forged receipts and overclaim recovery
+PASS current-request citations cannot replace missing external evidence; supplied and independently cited facts remain available
+PASS request-wide original excerpts, exact citations, historical/unrelated/partial exclusion, cancellation, missing-cost qualification and unchanged business state
+PASS repeated context maintenance, exact original references, current acceptance, cancellation, invalid summaries and portable continuation
+PASS compacted chapters and tangent scope preserve only the explicit parent excerpt and return provenance
+PASS active jobs repeatedly compact without duplicate drafts, split tool groups or reused omitted calculations
+PASS actual workbook schemas, open row/record data, full argument validation and schema refusals

@@ -1,0 +1,530 @@
+[
+  {
+    "sha": "27f729a526c246f238bb2d3899e063382d1d62e4",
+    "subject": "Serve custom (freeform) Responses tools"
+  },
+  {
+    "sha": "3a44e40b068b806979374dcaf5ba1c091adf3a5e",
+    "subject": "Report thinking tokens and timings in Messages and Responses"
+  },
+  {
+    "sha": "e2fef62d9577efc07ba87b8920dfaa281a269a8c",
+    "subject": "feat: serve local models through the public preparation API"
+  },
+  {
+    "sha": "8a497d9cd2a6f6bbdcc7f3a7b54251651dba8032",
+    "subject": "test: isolate local model preparation from GPU prerequisites"
+  },
+  {
+    "sha": "fe39d7f0bddd5eb6e68991b9f8897b85981c2e3c",
+    "subject": "Let the float projection read a quantized format's rows"
+  },
+  {
+    "sha": "39ba72521d19b9e29a1357fb44241c7ccba90064",
+    "subject": "Keep the MoE router in its checkpoint's format"
+  },
+  {
+    "sha": "c342eaf0d545be4caa6c36f372f4c8db93ae99e0",
+    "subject": "Keep float segments in one layout and read them only as float segments"
+  },
+  {
+    "sha": "1ebb777dfb48e28ce355d3d578916eff209d34ca",
+    "subject": "Keep a GGUF's quantized MoE router as its native rows"
+  },
+  {
+    "sha": "045ade19e9c637702c7c71cfaf28609fbab51d79",
+    "subject": "Pick the float tile by how the accelerator stages the weight"
+  },
+  {
+    "sha": "0d82a5c50afcdae6ebe372fd88363d47f82253cd",
+    "subject": "Time float projections DRAM-cold whatever their size"
+  },
+  {
+    "sha": "4233bab41db288192b2b497b3b201b9255817349",
+    "subject": "Test native rows at a half-full last step, in pairs and as a router"
+  },
+  {
+    "sha": "19b1e89f603bc72b4eae58d846017fa5a0785d91",
+    "subject": "Tie the affine run's fetch to its block layout"
+  },
+  {
+    "sha": "dbe16c1bb4316d4f2a73537d6f29031acfe4acc8",
+    "subject": "Decode the register tile's coefficients once per coefficient group"
+  },
+  {
+    "sha": "e30bd163162dd43f63d6644d60be96ede1578f31",
+    "subject": "Add a min's term once per coefficient group on the register tile"
+  },
+  {
+    "sha": "ed79621da75b833c8d16826ca6b8a720b6a7cf98",
+    "subject": "Tune GGUF decode splits for Apple11 (M6) by format"
+  },
+  {
+    "sha": "bc50c6a123a9b2aa406bee5f1101130089c25db8",
+    "subject": "Time a gate/up pair in both pass modes in the projection benchmark"
+  },
+  {
+    "sha": "023cdfbec8d1ac09c6ddb1b364902d4658334e5a",
+    "subject": "Split Apple10 staged decode plans by a wave law of measured occupancy"
+  },
+  {
+    "sha": "260b9e00814ca294bd56f5c2f91cfe1ec0d0769c",
+    "subject": "Run the one-lane 16-row tile at any K split"
+  },
+  {
+    "sha": "0b0bf4054654b933db4391bfef6abde6dee5875a",
+    "subject": "Keep one bits-per-weight field on the projection shape"
+  },
+  {
+    "sha": "06588ba28377e59631c22865848743ba17836bb8",
+    "subject": "Check the staged split law's core laws in a sub-4.5-bit format and with a gate"
+  },
+  {
+    "sha": "91d7b3c29d4585c659fd66a0fe2999016ba6767b",
+    "subject": "Run the one-lane 16-row tile unsplit only"
+  },
+  {
+    "sha": "e1522d82e453ab102397d3016ce8dfe9046b3305",
+    "subject": "Describe the staged split law's fitted floors and pass ties as measured"
+  },
+  {
+    "sha": "7528014289ca8b019d28733488c769da354b00cf",
+    "subject": "Record the two staged split losses the wave law keeps"
+  },
+  {
+    "sha": "89e93dfc2376388c53a69993cb3dcf80947166ab",
+    "subject": "Record the wave law's 35B two-lane step and IQ4_XS pairs in whole cycles"
+  },
+  {
+    "sha": "18db9c39a682372947308ceb603f28255c950ba6",
+    "subject": "Encode a prefill command's images in a command of their own"
+  },
+  {
+    "sha": "86542b4da623d522bd6c4e927c028bc3c3857c57",
+    "subject": "Decode Q4_0 and Q5_0 with their zero point as a min on Apple9's register tile"
+  },
+  {
+    "sha": "c3a44865546764d92fc6fcc319cc8980b7f5ed9f",
+    "subject": "Decode Q6_K and Q3_K with their zero point in the operands on Apple9's register tile"
+  },
+  {
+    "sha": "fd7ea25c044bce94fdadb6c38b2a193298b9c810",
+    "subject": "Decode PQ2_0 with its zero point as a min on Apple9's register tile"
+  },
+  {
+    "sha": "870f07ddd91672dfa1e68b46c44a0d2e0ca7c3cf",
+    "subject": "Add a zero point's term once per coefficient group on every family's register tile"
+  },
+  {
+    "sha": "a3d070646242c6a323764b1c10f83dc3caf96a2c",
+    "subject": "Update filelock to 4.2.4"
+  },
+  {
+    "sha": "72c658bd43c91db06468ea859fc78fbbadc15638",
+    "subject": "Merge pull request #599 from jianc99/perf/router-native-format"
+  },
+  {
+    "sha": "3fce1ef0131a57caabed1dfc171535a3b7ea32ea",
+    "subject": "Merge pull request #600 from jianc99/perf/register-tile-groups"
+  },
+  {
+    "sha": "ca724b24012aaca208f60df6b1d9767692f35d3c",
+    "subject": "Merge pull request #601 from jianc99/fix/image-encode-command"
+  },
+  {
+    "sha": "c0d00e8268f6466022abfe730e001a5383067c6b",
+    "subject": "Merge pull request #602 from jianc99/perf/register-tile-zero-points"
+  },
+  {
+    "sha": "02acbd0c3e0842800a10262581d190f8f958abcf",
+    "subject": "Merge pull request #603 from jianc99/deps/filelock-4.2.4"
+  },
+  {
+    "sha": "29ce76d26d525b4b0547fbf1104cd9970024f105",
+    "subject": "Merge main"
+  },
+  {
+    "sha": "2b464e5a87fcd78e5460e7fafb98e7fae3fb157a",
+    "subject": "Merge pull request #235 from zaiyang-zhang/apple11-decode-splits"
+  },
+  {
+    "sha": "38d450868fadc524bfab2d4df46d3bac7aecd119",
+    "subject": "Explain Responses cache_write_tokens by the prefix cache"
+  },
+  {
+    "sha": "6e9dfe3f5dbcec4931917a5b0f8adac086760a88",
+    "subject": "Merge pull request #427 from zaiyang-zhang/pr/usage-timings"
+  },
+  {
+    "sha": "4895bf5ba8c68ba7e00e2d0db54ac0756217d404",
+    "subject": "Complete local paths in Bash after '=' without treating model IDs as files"
+  },
+  {
+    "sha": "f834ed474355c9147f26cf6929ea58c996e8405d",
+    "subject": "Keep a custom tool's input to its input argument"
+  },
+  {
+    "sha": "98fc836ff1a8c854148a6bb5594d90e8f312b763",
+    "subject": "Merge pull request #426 from zaiyang-zhang/pr/custom-tools"
+  },
+  {
+    "sha": "97c43fec04b6dbb2e434f75bcc20c73c6127f743",
+    "subject": "Merge pull request #338 from yannip1234/codex/local-models"
+  },
+  {
+    "sha": "39a97385f8560cf8a93972cec9b0a963c9195250",
+    "subject": "[INCORE-3565] Run Splash CI on Blacksmith Macs (#604)"
+  },
+  {
+    "sha": "17fddeb1301cd84352c538bc2aadf31ea297357e",
+    "subject": "Report download progress to front ends and remove abandoned partial downloads"
+  },
+  {
+    "sha": "f9b3823a386992f92a773603a979248413aa49ea",
+    "subject": "Keep the suggested models in one list for the Mac app and shell completion"
+  },
+  {
+    "sha": "39bc438ca628d3d55859239546987a10aa80a4a7",
+    "subject": "Stage one runtime tree for the release archive and the Mac app"
+  },
+  {
+    "sha": "ad3739630e49d2e1218e69682ea23c1d9bf278a1",
+    "subject": "Add Splash for Mac"
+  },
+  {
+    "sha": "89a7e9032dcffecbe47caf9e0d0a08b0cf4150bc",
+    "subject": "Stop downloads at once and keep bytecode out of packaged runtimes"
+  },
+  {
+    "sha": "5e9de157f5211b51a052f2870e521246d473d373",
+    "subject": "Show the chat page's API key field only when the server asks for a key"
+  },
+  {
+    "sha": "1a7e7c6914cb976aefe374c6cc8d31064a375627",
+    "subject": "Give each suggested model its download size and a few words"
+  },
+  {
+    "sha": "7f46cab3f45049fe426990a38815093dd8a2bfd1",
+    "subject": "Make Splash for Mac's chat native and its window simpler"
+  },
+  {
+    "sha": "f04044c0e1ab8baea2b2243b5fcaae4581d79211",
+    "subject": "Open Splash for Mac on its Server, with launch options instead of flags"
+  },
+  {
+    "sha": "8392ec97d595b7b8278dcc8e3c0188ab207e53a2",
+    "subject": "Report reasoning efforts, install the Hub cache's models, serve local files"
+  },
+  {
+    "sha": "f482d46622cf28bf2824fba660d6390952bc2903",
+    "subject": "Give Splash for Mac every launch option, cached and local models"
+  },
+  {
+    "sha": "bb5bd3f8686beb73d9eb43be23e084ed4648a8ec",
+    "subject": "Show Splash for Mac's activity, follow replies, tidy the Server"
+  },
+  {
+    "sha": "37bf71541d44997077e72503a04cbbe62de63d0d",
+    "subject": "Show the model and its effort together, as Claude's composer does"
+  },
+  {
+    "sha": "d38ccdc46ec55218f2d1cb465809a36934d46a57",
+    "subject": "Show Splash for Mac's totals and request log, tidy the composer"
+  },
+  {
+    "sha": "afd33cc12880cde7bc37e5e47b63ea8017482d29",
+    "subject": "Give Splash for Mac popups and a menu bar panel of its own style"
+  },
+  {
+    "sha": "b5a0b3c487e15eded81caee33b7ea10f8b42bca2",
+    "subject": "Scroll Advanced into view as AppKit does, one look for option fields"
+  },
+  {
+    "sha": "781443e09012768438f2af9c7a138a1b378b6b84",
+    "subject": "Give every control of Splash for Mac's own the same hover, lighter popups"
+  },
+  {
+    "sha": "64a416ac3af077fbeb6b9742494fc820398bca98",
+    "subject": "Record a default branch's commit as a download does; name cached GGUFs as the Hub does"
+  },
+  {
+    "sha": "827bdd5a32bba9baa5ced1abcaebdd96ac1cac80",
+    "subject": "Splash for Mac: a new mark, one way to move, and a full review's fixes"
+  },
+  {
+    "sha": "5fb54b30c694c4d6d4fe3f6688a224ea9cbb5203",
+    "subject": "Splash for Mac: no blank chat after a send; token totals, solid popups, model IDs"
+  },
+  {
+    "sha": "9ee8a06f69ef4b1d09176b4c33b1f67df9d26682",
+    "subject": "Splash for Mac: lay out every message, so a send from far up never goes blank"
+  },
+  {
+    "sha": "346f1ec6a79f5f0074e82cfd230f88dfca85d895",
+    "subject": "Splash for Mac: popups without a shadow"
+  },
+  {
+    "sha": "3a11822012ec7a24b07a6df05955988eb964aa14",
+    "subject": "Splash for Mac: smoother scrolling in a long chat"
+  },
+  {
+    "sha": "80aa96b75a20596c99b934ed30a8a8fb28e5b72a",
+    "subject": "Splash for Mac: a splash for the mark"
+  },
+  {
+    "sha": "902ce7825b2be4bc51671ba31ca44094f94d1971",
+    "subject": "Tell Pi when the server renders later system messages in place"
+  },
+  {
+    "sha": "50f015a440ca3ca5ea0cdf0323dead2e39f31275",
+    "subject": "Installer: download progress counts what the network has brought"
+  },
+  {
+    "sha": "a0da03fceb0a1b32e7988a69f315186488483413",
+    "subject": "Splash for Mac: Advanced inside its card, scrolled to as it opens"
+  },
+  {
+    "sha": "ff96d9c32568f1c7736296a8e1197bbb6711179a",
+    "subject": "Splash for Mac: the conversation as a web page; a smoother Server"
+  },
+  {
+    "sha": "e6663b60c05e441ce6fc35cc46c6e9ed364efba8",
+    "subject": "Splash for Mac: updates through Sparkle"
+  },
+  {
+    "sha": "847bc4bc6c9de2dc2a0210df4469e747afd545ad",
+    "subject": "Merge branch 'app/sparkle' into app/mac"
+  },
+  {
+    "sha": "2497e5f47478a17063e40656ac23c2074ff07eef",
+    "subject": "Splash for Mac: a release command, for one team now and another later"
+  },
+  {
+    "sha": "ab25de4766c730058ebae7f5f6aa3b0f542c8268",
+    "subject": "Splash for Mac: Advanced, a heading over a card for each part"
+  },
+  {
+    "sha": "03c0ee4b32a20cf9feb9f136146e2ff4824392ed",
+    "subject": "Splash for Mac: Advanced inside Launch Options, a band for each part"
+  },
+  {
+    "sha": "90f586a0026db293a64e82bba6e50bb305d3412a",
+    "subject": "Say what a start does: starting, loading weights, warming up"
+  },
+  {
+    "sha": "61c0a02a5b4b546ca873bc159e51c69fd7b1de04",
+    "subject": "Show the context, say when a chat outgrows it, and when the engine recovers"
+  },
+  {
+    "sha": "796f05a006c54b50e73de5fb98fb867bf1dc0f9a",
+    "subject": "Name the context figure Context limit, so that it doesn't read as the context in use"
+  },
+  {
+    "sha": "f178839b4b5aad5bf83b9748a81a917d3a1b0179",
+    "subject": "Merge main"
+  },
+  {
+    "sha": "b803227a272bdbf3a0dd6f5b4e65c702525298e3",
+    "subject": "Start model files on this Mac with --model-dir"
+  },
+  {
+    "sha": "4e816e79ec0dc435309e61946dc25cbe90c69433",
+    "subject": "Remove the Markdown renderer the web transcript left unused"
+  },
+  {
+    "sha": "5d08f7d8eb1aff2f3ef1f7a683b272e88c9ef645",
+    "subject": "Name the repository and the runtime's smoke imports once"
+  },
+  {
+    "sha": "55556388428707c06880e5f70841aa0667a37e62",
+    "subject": "Say that the checks run the app's tests, and how download progress counts"
+  },
+  {
+    "sha": "211b5e665b352096d697b4dc6bd6364cad4039d2",
+    "subject": "Test model files on this Mac end to end"
+  },
+  {
+    "sha": "f72c6039995654b47268e7a0bc8c8e71836761ec",
+    "subject": "Line the Chat's conversations up with the search field"
+  },
+  {
+    "sha": "e6730182282f17a5166a83f1896b630f30917c0a",
+    "subject": "Count --model-dir and --mmproj among the options of one model"
+  },
+  {
+    "sha": "7a0cf8d0830586a0323242227c61aa996e57817f",
+    "subject": "Say text only on the Ready line of a model served without vision"
+  },
+  {
+    "sha": "4b59453be5fe0f38b34fccf0b31995a59de3d2dd",
+    "subject": "Merge pull request #609 from jianc99/launcher/pi-system-messages"
+  },
+  {
+    "sha": "21d5392d6866c7f7ba2f83fb1f703c8a87250029",
+    "subject": "Merge main"
+  },
+  {
+    "sha": "5fee7a91fe016e5bffe02f59079343318d9664bd",
+    "subject": "Read whether Python writes bytecode from sys.dont_write_bytecode"
+  },
+  {
+    "sha": "d024778d5cf7cfd6770fb3c4d519a6a6a25308b7",
+    "subject": "Merge pull request #610 from jianc99/app/mac"
+  },
+  {
+    "sha": "ff5bfb38957bfaeee8015be7a48939ce19ac1bb9",
+    "subject": "Set the Sparkle release key"
+  },
+  {
+    "sha": "97603262a8536947fb61f28cf01893c53bb49138",
+    "subject": "Merge pull request #611 from jianc99/app/sparkle-key"
+  },
+  {
+    "sha": "49a3cf66d62e8f983bca8731dc156bf6d0e0e836",
+    "subject": "Call the app the desktop app"
+  },
+  {
+    "sha": "3f3bcdd1177b3cb08980e1f0ab94da846c7db62f",
+    "subject": "Move DEVELOPMENT.md into docs/, a file for each of its parts"
+  },
+  {
+    "sha": "cabbad2732b027540f5a141511544e0bb62224b7",
+    "subject": "Merge pull request #612 from jianc99/docs/split"
+  },
+  {
+    "sha": "a58047a9e184e1fd9f24ae6d8ab3830062e270fe",
+    "subject": "Launch a new engine only once the old one has exited"
+  },
+  {
+    "sha": "1ca1f76d5e5c2ed3c4238bf174f7f477c2f2aeae",
+    "subject": "Name the engine's reason on a resource failure's console line"
+  },
+  {
+    "sha": "f423659640594bef95d74ab8f9e33dc48641f229",
+    "subject": "Run 33- to 64-row prefill chunks on a 64-row staged tile on Apple10"
+  },
+  {
+    "sha": "f6a3a6565ce87370839f77a9fbe8a958a9ce1531",
+    "subject": "Let a lone Spill lane wait for its own copies at the memory wall"
+  },
+  {
+    "sha": "61f41beab160f938f35621e7c90fd204a1459d1a",
+    "subject": "Let the engine name the limits a capacity failure needs"
+  },
+  {
+    "sha": "bedd88915506b6bf241b83f3cf3b53e3d641f67f",
+    "subject": "Merge pull request #622 from jianc99/engine/lone-spill-lane-waits"
+  },
+  {
+    "sha": "33d5faef0a3381f0b5d772ef3369d8c1a3c9de2f",
+    "subject": "Merge pull request #620 from coco-alen/fix/log-engine-resource-reason"
+  },
+  {
+    "sha": "d166aa91cc72885d778261d59ba47131ffca9668",
+    "subject": "Wait for a stopped engine's exit in _stop_process"
+  },
+  {
+    "sha": "98c24dda890141c1e535191a1b3a1d30c00436ee",
+    "subject": "Merge pull request #616 from pcvelz/relaunch-waits-for-exit"
+  },
+  {
+    "sha": "6c59b6a0db4b542e849e46f454341c954ccbf382",
+    "subject": "Wait for the transcript page to draw in its scroll test"
+  },
+  {
+    "sha": "dbc46102317320a058809a7366b6c87f82725818",
+    "subject": "Merge pull request #624 from jianc99/test/transcript-scroll-waits"
+  },
+  {
+    "sha": "759a7b62bf4a4baedb407dde29fdbcd379a0d3e8",
+    "subject": "Run a fused projection's 33- to 64-row prefill chunk in one dispatch"
+  },
+  {
+    "sha": "28e1a073f9a092dcf3549e13daf73933195cb76f",
+    "subject": "Keep what the input method composes in the composer"
+  },
+  {
+    "sha": "9d9c577f8bb1157fc95f185af2cce6c314e4cf59",
+    "subject": "Read a tool call that names no function as its text"
+  },
+  {
+    "sha": "05da371428bde5c3b589a1f92560c12fce731112",
+    "subject": "Merge pull request #631 from jianc99/app/composer-input-method"
+  },
+  {
+    "sha": "7f2825ee61010070e045f607a81c02263585b4f5",
+    "subject": "Merge pull request #632 from jianc99/server/tool-call-without-name"
+  },
+  {
+    "sha": "d82d795ba13a1295e3fbb6479373d6f5511d412a",
+    "subject": "Describe and test the 64-row staged prefill tile"
+  },
+  {
+    "sha": "a56988e7af6a790b435781062ed8219902e23a57",
+    "subject": "Merge pull request #621 from coco-alen/perf/staged-prefill-split"
+  },
+  {
+    "sha": "25603f3d5d9989efcd98da22a0c87b254d5d66f2",
+    "subject": "Admit the benchmark's warmups as memory a request in service needs"
+  },
+  {
+    "sha": "ccd6b6d6f89e9c5d5df56ceeefbaed91c1e921d9",
+    "subject": "Keep streamed experts in chunks the kernels reach by address"
+  },
+  {
+    "sha": "712cfbe85fb861bfe7f4649d30a1cf85385fd50a",
+    "subject": "Add context awareness to native chat"
+  },
+  {
+    "sha": "9fb64f9ad1a11bf1e1e9c8bc271304aa1311b523",
+    "subject": "Show context use as a ring and block only prompts that cannot fit"
+  },
+  {
+    "sha": "e733194aa33ce99da8cccec82d286d7a911de5bd",
+    "subject": "Suggest Flash-Next IQ3_S on Macs with 96 GB or more"
+  },
+  {
+    "sha": "6c6ef4ec35c7f712387fc794b7bb28b6ef421e30",
+    "subject": "Merge pull request #643 from jianc99/install/flash-next-iq3s"
+  },
+  {
+    "sha": "1c17501bd78010f870d9dd0f10d6647e7af64102",
+    "subject": "Merge pull request #642 from linson007/codex/chat-context-awareness-641"
+  },
+  {
+    "sha": "21f1cf44fdeab1ad1a5bb6fd4e4a7a47401cb817",
+    "subject": "Let the expert store give memory back and take it again"
+  },
+  {
+    "sha": "ceb45357d34f674265fa367e5095634f7c9be1c4",
+    "subject": "Merge pull request #634 from jianc99/bench/warmup-serving"
+  },
+  {
+    "sha": "11e09ecb256a73525d073165900b02d9cd424b8d",
+    "subject": "Merge pull request #640 from jianc99/experts/chunked-store"
+  },
+  {
+    "sha": "031a25a6125af2d7acf7096580afe56eb33d65bc",
+    "subject": "Merge pull request #645 from jianc99/experts/elastic-store"
+  },
+  {
+    "sha": "df746b990200eee1fee4df733078fe2cf4db845a",
+    "subject": "Engine and server 1.6: one memory rule for every allocation, an elastic expert store, measured pass and kernel rules (#692)"
+  },
+  {
+    "sha": "6576084b1c9211cdeaa55d0ec501da200da4f92f",
+    "subject": "App: a terminal drawer, a web transcript, start failures from the serve record (#693)"
+  },
+  {
+    "sha": "9124ff2ce1e6d19dab6bb0f2aa94b214b1271ce2",
+    "subject": "Serving benchmark, pressure release gate and architecture rules (#694)"
+  },
+  {
+    "sha": "767c646ed91eb45a1e13a59525da7373123ac4cf",
+    "subject": "Engine and server 1.6.1: requests at the memory wall, warmed prefill kernels and a faster first start, int8 activations and server fixes (#733)"
+  },
+  {
+    "sha": "d8af1054aab0f97de21d043e01aa98af3754f10e",
+    "subject": "App 1.6.1: chat menus, PDFs, model menus with delete and updates, coding agents in the drawer (#734)"
+  }
+]

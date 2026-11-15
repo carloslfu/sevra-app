@@ -2,11 +2,12 @@
 type: index
 scope: type-folder
 folder: records/plans
-updated: 2026-11-15T21:30:37.469684Z
+updated: 2026-11-15T21:50:38.285646Z
 ---
 
 # records/plans
 
+- [[records/plans/inference-context-upgrade]] — Staged plan to correct context accounting, upgrade Splash and qualify stable context and memory profiles.
 - [[records/plans/excel-business-applications]] — Close realistic Excel business application reconstruction, reliable autonomous generation, and integrated chat/native qualification gaps.
 - [[records/plans/rich-native-visuals]] — Implementation-ready staged plan for shared native visuals and inline chat, with explicit ownership, durable actions, capture and acceptance gates.
 - [[records/plans/home-working-overview]] — Chat-customizable Home with live app views, a useful default, attention and recovery.

@@ -3,7 +3,7 @@ type: operational
 meta-type: operational
 id: 01m659x4nd2q89tkpzzsssd7yr
 created: 2026-10-30T02:23:30.477380+00:00
-updated: 2026-11-15T18:58:01.007507+00:00
+updated: 2026-11-15T21:50:38.743237+00:00
 summary: Rich visuals and inline-chat plan revision 12 passes four complete readiness reviews; start with native chat inputs, then charts. Implementation remains proposed.
 title: Minimum-feature continuation handoff
 ---
@@ -184,3 +184,10 @@ The owner explicitly requests complete native programmable app-engine implementa
 ## Earlier local model authoring checkpoint
 
 The owner now explicitly requests [[records/plans/local-model-native-apps]], continuing the accepted engine's installation/UI authorization. Local SDK discovery, source inspection and sandbox-checked save/update are implemented and have focused production-path tests. Real local-model use cases, adversarial review, installed visual verification and release checks remain in progress. [[records/reviews/local-model-native-apps]] records observed failures and repairs. The accepted SDK 1 checkpoint below remains historical evidence, not completion of this new authoring task.
+
+## Inference and context upgrade plan, November 15
+The owner requested a thorough implementation plan for context-accounting fixes, Splash and related integration upgrades, and context/memory qualification. [[records/plans/inference-context-upgrade]] is revision 4 after three sequential readiness passes; [[records/reviews/inference-context-plan-readiness]] records findings and revisions, and [[records/research/inference-context-upgrade]] records source/evidence limits.
+
+Planning only. No engine/model/configuration change, candidate GPU benchmark, installation or UI work occurred in this checkpoint. The native preview remains at its existing 32K/12 GiB configuration and Splash 1.4.1 pin. Candidate 1.6.1 provenance is recorded from source/release metadata; archive/component verification and qualification remain implementation steps. The next implementation sequence is P0/P1 accounting and preparation, P2/P3 same-configuration engine integration and qualification, then P4/P5 controlled context/memory selection, followed by UX and release gates. No automatic mid-job capacity-growth ladder is planned for the first implementation.
+
+The current W1 exact-parity blocker and D9 repeatability evidence remain open; passing historical timings do not qualify promotion. Candidate context research may proceed only after behavioral/lifecycle/admission prerequisites, with promotion gated separately. This planning checkpoint does not alter other workstreams' status or restart cross-chat coordination.

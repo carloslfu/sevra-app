@@ -1,0 +1,6 @@
+{"dispatched":false,"error":"context_limit","measurements":[{"promptTokens":27187,"threshold":24576},{"promptTokens":27187,"threshold":24576}],"measurementScope":"all","rows":280,"workbookIntegrity":true}
+{"dispatched":true,"error":"audit_dispatch_reached","measurements":[{"promptTokens":22558,"threshold":24576},{"promptTokens":22558,"threshold":24576},{"promptTokens":22558,"threshold":24576}],"measurementScope":"answer","rows":280,"workbookIntegrity":true}
+{"dispatched":false,"error":"context_limit","measurements":[{"promptTokens":29360,"threshold":24576},{"promptTokens":29360,"threshold":24576}],"measurementScope":"all","rows":320,"workbookIntegrity":true}
+{"dispatched":false,"error":"context_limit","measurements":[{"promptTokens":24717,"threshold":24576},{"promptTokens":24717,"threshold":24576}],"measurementScope":"answer","rows":320,"workbookIntegrity":true}
+{"dispatched":false,"error":"context_limit","measurements":[{"promptTokens":33685,"threshold":24576},{"promptTokens":33685,"threshold":24576}],"measurementScope":"all","rows":400,"workbookIntegrity":true}
+{"dispatched":false,"error":"context_limit","measurements":[{"promptTokens":29030,"threshold":24576},{"promptTokens":29030,"threshold":24576}],"measurementScope":"answer","rows":400,"workbookIntegrity":true}
