@@ -2,7 +2,7 @@
 type: spec
 id: 01m7ebth3kem18z80b38s5wraz
 created: 2026-11-15T01:05:53.779633+00:00
-updated: 2026-11-15T01:19:41.617770+00:00
+updated: 2026-11-15T02:14:01.249919+00:00
 summary: Chat-customizable Home with live app views, a useful default, attention and recovery.
 title: Home working overview
 status: reviewed
@@ -37,3 +37,9 @@ Implementation started. No completion claimed. Preserve the active user app; use
 - Native isolated candidate UUID 5E2B1CD1-29A8-33CF-BA22-C0A014150FE2: Home-to-app data continuity and Undo passed. Arrange Home in chat focused and filled the composer. Disabled access stayed explicit. The review exposed technical table-creation observations in Continue working; the next candidate filters that projection to actual documents/files and accepted notes.
 - The real local-model Home probe initially refused model_busy because another existing process owns inference. That process and the active user app remain untouched. Retain this failed attempt; retry only when inference is available. Scripted chat checks cover composition/reset/read-only refusal separately.
 - The first broad check stopped on a missing token argument in a new test. Corrected, and the required suite is running again.
+
+## Chat qualification repairs
+
+The fresh native probe exposed repeated insert attempts with an outer title instead of component.title. The tool grammar now refuses that combination, while ordinary rename/title edits remain legal. Invalid layout edits name the unexpected and allowed fields. A new scripted request also exposed that the explicit read-only guard recognized a whole sentence only; it now recognizes an instruction beginning with "Explain only" followed by its topic. The Home reset test confirms no mutation before the later explicit reset.
+
+The complete agent and reference-grammar checks pass after these repairs, including 84 actual-tool grammars and 787 reference masks. Shared tool prose was shortened without raising the existing prompt gates: ordinary 8448/8448 and authoring 9804/10240 tokens. Earlier wider schema attempts exceeded the prompt gate and were rejected; those are not the shipped schema. The final actual-model retry waits for an existing process to release inference. The active installed app remains untouched.

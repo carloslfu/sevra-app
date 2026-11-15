@@ -19,7 +19,8 @@ package enum RequestRestrictions {
     ]
     return prompt.lowercased().replacingOccurrences(of: "’", with: "'")
       .components(separatedBy: CharacterSet(charactersIn: ".!?;\n")).contains { sentence in
-        phrases.contains(sentence.split(whereSeparator: \.isWhitespace).joined(separator: " "))
+        let normalized = sentence.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        return phrases.contains(normalized) || normalized.hasPrefix("explain only ")
       }
   }
 }

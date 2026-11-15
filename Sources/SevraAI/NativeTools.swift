@@ -94,6 +94,29 @@ package enum NativeTools {
     let schema = object(fields, required: ["id", "type", "title"])
     return withoutDescriptions(schema)
   }
+  /// An inserted component owns its title; outer title is only for relabeling.
+  static func spaceEditSchema(_ base: Value) -> Value {
+    var schema = base.object
+    schema["anyOf"] = .array([
+      .object([
+        "type": .string("object"),
+        "properties": .object([
+          "operation": .object([
+            "enum": .array(
+              ["insert", "remove", "move", "text", "replace", "reset"].map(Value.string))
+          ]),
+          "title": .bool(false),
+        ]),
+      ]),
+      .object([
+        "type": .string("object"),
+        "properties": .object([
+          "operation": .object(["enum": .array([.string("rename"), .string("title")])])
+        ]),
+      ]),
+    ])
+    return .object(schema)
+  }
   static let components: Value = .object([
     "type": .string("array"), "maxItems": .number(16),
     "items": withoutDescriptions(componentSchema(depth: 1)),
@@ -104,7 +127,7 @@ package enum NativeTools {
     "start_thread_and_continue", "start_thread", "review_thread_summary", "tool_result",
     "read", "compare_rows", "propose_table", "edit_space", "draft", "finish",
     "workflow_template", "save_definition", "include_archive_members", "propose_table_edit",
-    "space_history",
+    "space_history", "references", "calculate",
   ]
   package static let definitions: [WorkbookToolDefinition] = fullDefinitions.map {
     guard compactParameterDescriptions.contains($0.name) else { return $0 }
@@ -289,7 +312,7 @@ package enum NativeTools {
       .init(
         name: "references",
         description:
-          "Mentions: incoming/outgoing, one hop,12/page. Read originals before citing. No authority, lineage or cross-scope access. Empty proves no absence.",
+          "Mentions: 1hop,12/page. Defaults: outgoing/logical/all content. Read originals to cite. No authority/lineage/cross-scope access. Empty proves no absence.",
         parameters: object(
           [
             "id": schema("string", "Exact item version ID from visible workbook evidence."),
@@ -325,7 +348,7 @@ package enum NativeTools {
       .init(
         name: "count_records",
         description:
-          "Count classified Sources/Records when asked; not units/document facts/events or citation checks. finish.counts renders exact scope.",
+          "Count classified Sources/Records only; no units/facts/events/citation checks. finish.counts renders scope.",
         parameters: object(
           [
             "category": .object([
@@ -401,7 +424,7 @@ package enum NativeTools {
       .init(
         name: "open_space",
         description:
-          "Open requested exact space name/ID; this space uses visible active ID. Clarify ambiguity. Host confirms; never create/explain.",
+          "Open exact name/ID; this space=active ID. Clarify ambiguity. Host confirms; never create/explain.",
         parameters: object(
           ["target": schema("string", "Exact space name or ID; Home opens the workbook home.")],
           required: ["target"])),
@@ -426,7 +449,7 @@ package enum NativeTools {
       .init(
         name: "propose_table_edit",
         description:
-          "Draft cell changes when the user asks for a proposal or review first. Accepted values stay unchanged. To operate a mini app or directly make requested changes, use workspace_action app.run or table.change_rows instead. Read exact rows first; supply their version IDs and changed fields only.",
+          "Draft requested proposals only; accepted data unchanged. Direct edits use app.run/table.change_rows. Read exact row versions; send changed fields only.",
         parameters: object(
           [
             "datasetID": schema("string", "Existing table ID."),
@@ -445,7 +468,8 @@ package enum NativeTools {
           ], required: ["datasetID", "edits"])),
       .init(
         name: "calculate",
-        description: "Deterministic decimal arithmetic. Use for arithmetic claims.",
+        description:
+          "Exact arithmetic/SUM/MIN/MAX/AVERAGE/COUNT/IF/ROUND; values are decimal strings.",
         parameters: object(
           [
             "expression": schema(
@@ -475,39 +499,36 @@ package enum NativeTools {
       .init(
         name: "edit_space",
         description:
-          "Edit Home/layout: app component {id,type:app,title,spaceID} embeds an existing live app. reset restores default Home only when requested. Read spaces for IDs/version; preserve unrelated components.",
+          "Home id=home. Live app: {id,type:app,title,spaceID}. Insert at:first/last or beforeID. Inspect exact version; preserve others. Reset on request.",
         parameters: object(
           [
             "id": schema("string", "Exact inspected space ID."),
             "expectedVersion": schema("integer", "Exact current version from spaces."),
             "edits": .object([
               "type": .string("array"), "minItems": .number(1), "maxItems": .number(64),
-              "items": object(
-                [
-                  "operation": .object([
-                    "type": .string("string"),
-                    "description": .string("insert/move MUST include at or beforeID."),
-                    "enum": .array(
-                      ["rename", "insert", "remove", "move", "title", "text", "replace", "reset"]
-                        .map(
-                          Value.string)),
-                  ]),
-                  "componentID": schema(
-                    "string",
-                    "Stable existing component ID except rename/insert."),
-                  "beforeID": schema(
-                    "string", "Before this same-group ID, instead of at."),
-                  "at": .object([
-                    "type": .string("string"),
-                    "enum": .array([.string("first"), .string("last")]),
-                    "description": .string(
-                      "Insert/move: required unless beforeID; last=append."),
-                  ]),
-                  "component": withoutDescriptions(componentSchema(depth: 1)),
-                  "title": schema(
-                    "string", "New space title for rename or component label for title."),
-                  "text": schema("string", "New content for a text component only."),
-                ], required: ["operation"]),
+              "items": spaceEditSchema(
+                object(
+                  [
+                    "operation": .object([
+                      "type": .string("string"),
+                      "description": .string("insert/move MUST include at or beforeID."),
+                    ]),
+                    "componentID": schema(
+                      "string",
+                      "Stable existing component ID except rename/insert."),
+                    "beforeID": schema(
+                      "string", "Before this same-group ID, instead of at."),
+                    "at": .object([
+                      "type": .string("string"),
+                      "enum": .array([.string("first"), .string("last")]),
+                      "description": .string(
+                        "Insert/move: required unless beforeID; last=append."),
+                    ]),
+                    "component": withoutDescriptions(componentSchema(depth: 1)),
+                    "title": schema(
+                      "string", "New space title for rename or component label for title."),
+                    "text": schema("string", "New content for a text component only."),
+                  ], required: ["operation"])),
             ]),
           ], required: ["id", "expectedVersion", "edits"])),
       .init(
@@ -523,7 +544,7 @@ package enum NativeTools {
       .init(
         name: "save_space",
         description:
-          "Create a NEW space; Home/existing changes use spaces then edit_space. Each table/chart requires datasetID. Chart x/y are column IDs, never positions; omit query.",
+          "NEW space only. Existing/Home: spaces then edit_space. Tables/charts need datasetID; chart x/y=column IDs, no query.",
         parameters: object(
           [
             "title": schema("string", "Name of the space."),
@@ -536,7 +557,7 @@ package enum NativeTools {
       .init(
         name: "draft",
         description:
-          "Save draft. Exact labels/quantities/wording: parts with documentCopies IDs, never retype. text=all new prose: summary, paraphrase, anything the request asks that no copy holds. Leave it empty only when copies alone satisfy the request. Saving proves no completeness.",
+          "Save draft: exact words use parts/documentCopies IDs. text is requested new prose; empty only if copies suffice. Saving proves no completeness.",
         parameters: object(
           [
             "title": schema("string", "Draft title."), "text": schema("string", "Draft text."),
@@ -572,7 +593,7 @@ package enum NativeTools {
       .init(
         name: "propose_movement",
         description:
-          "Draft inventory movement only when evidence/current request establishes direction relative to our stock. Receipt/delivery/handover alone is ambiguous: ask first. Acceptance is separate.",
+          "Draft direction relative to our stock only from evidence/request. Receipt/delivery/handover alone is ambiguous: ask. Acceptance separate.",
         parameters: object(
           [
             "subject": schema("string", "Inventory subject."),
@@ -592,7 +613,7 @@ package enum NativeTools {
       .init(
         name: "finish",
         description:
-          "Answer with basis. Business/history facts require inspected citations, including summary/host-state claims. Explain missing/partial evidence and failures.",
+          "Answer+basis. Cite inspected business/history facts, including host state/summaries. Explain missing evidence and failures.",
         parameters: object(
           [
             "answer": schema("string", "Plain-language answer. Do not print opaque IDs in prose."),

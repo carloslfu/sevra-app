@@ -238,7 +238,10 @@ extension Workbook {
     default: throw SevraError("view", "Unknown layout edit.")
     }
     try require(
-      fields.isSubset(of: allowed), "view", "Use only fields for the selected layout edit.")
+      fields.isSubset(of: allowed), "view",
+      "Unexpected " + edit.operation + " fields: "
+        + fields.subtracting(allowed).sorted().joined(separator: ", ")
+        + ". Allowed fields: " + allowed.sorted().joined(separator: ", ") + ".")
     if edit.operation == "move" || edit.operation == "insert" {
       try require(
         (edit.beforeID != nil && edit.at == nil)

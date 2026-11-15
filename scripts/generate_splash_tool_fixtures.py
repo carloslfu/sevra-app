@@ -43,9 +43,12 @@ functions = {tool['function']['name']: tool['function']['parameters'] for tool i
 def ordered_value(value, schema):
     if 'anyOf' in schema:
         branches = schema['anyOf']
-        schema = next((branch for branch in branches if isinstance(value, dict) and
-                       all(key not in value or 'enum' not in prop or value[key] in prop['enum']
+        branch = next((branch for branch in branches if isinstance(value, dict) and
+                       all(key not in value or (prop is not False and
+                           (prop is True or 'enum' not in prop or value[key] in prop['enum']))
                            for key, prop in branch.get('properties', {}).items())), branches[0])
+        schema = dict(schema, **{k: v for k, v in branch.items() if k != 'properties'},
+                      properties={**schema.get('properties', {}), **branch.get('properties', {})})
     if isinstance(value, list): return [ordered_value(v, schema.get('items', {})) for v in value]
     if not isinstance(value, dict): return value
     props = schema.get('properties', {})

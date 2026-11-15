@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "nestedPropertyOrder": "required-then-component-and-definition-selectors",
   "splashCommit": "1744cfafee415fb463b289449cec59a864e768e9",
-  "toolsSHA256": "7b904f460f8281a63bce8b52dbc1af04009d066fc7e684685410ac9f35ca5d45",
+  "toolsSHA256": "91efa2dcd3b274a7a9f3d371badb4e601fe0f8881ccb321035256c22c210d88b",
   "cases": [
     {
       "name": "required_native_app_sdk",
@@ -22517,7 +22517,7 @@
             8309,
             887
           ],
-          "maskSHA256": "724dbc8a18eccb505fb2e0691b3d50869c956e18512dbf01f5705456a54f65e3"
+          "maskSHA256": "15fc62ea20d8a8df7b7871d42b5fd0c007186e6c115caac110e1a17a02e2693a"
         },
         {
           "committed": [
@@ -22556,7 +22556,7 @@
             35303,
             8987
           ],
-          "maskSHA256": "ce79fc25cadba70766c76262dbc18c6412dbe6c95a4c6f43c68add9b1ecdf0c7"
+          "maskSHA256": "b2c0cc843c9cdcd86850cfe3c735ab2c72aa52b5cc2b9d412943cd9e131055a6"
         },
         {
           "committed": [
@@ -22603,7 +22603,7 @@
             45085,
             8934
           ],
-          "maskSHA256": "224a03bc54bd6e5fe56c381efbf990450fd1ae8222234da10439532f816471eb"
+          "maskSHA256": "8a84e9bd6f8294045ddeb6be479a26a1c04b7b040afd8bdd8808b6ea74e4d1fa"
         },
         {
           "committed": [
@@ -23264,7 +23264,7 @@
             266,
             3147
           ],
-          "maskSHA256": "1697d2194d6d8c163879dec02d969ef88bbeacf1a79ee51738d4f9719f694a98"
+          "maskSHA256": "3a41358a9b9a7107d33061357f31b7cfe7e08a3e329b7d5290d8108afa0f4dd6"
         },
         {
           "committed": [
@@ -23303,7 +23303,7 @@
             1334,
             2129
           ],
-          "maskSHA256": "296b368d01eeb1ab1bacf7add961258adaabf86421625729a6f16efea623ab11"
+          "maskSHA256": "e2cf7bd7aebde5271ae0ad0e3395578c1f20c9d560c6bfca66c203f69d446d12"
         },
         {
           "committed": [
@@ -23350,7 +23350,7 @@
             3147,
             34399
           ],
-          "maskSHA256": "7cfac2e9718d033128f8a9a11f1bf0500543e418f57cf4c8262e19007f47151f"
+          "maskSHA256": "2b4d42ef8c0bbb0cf84820d7d3a83852ff5a9c8fa0d37a9c178f77c0b259b431"
         },
         {
           "committed": [
@@ -23405,7 +23405,7 @@
             887,
             3147
           ],
-          "maskSHA256": "d55492c394d02769b6a424396f262277f641ac2210fa5d794a728b4188f14afc"
+          "maskSHA256": "29cd43d052e4334de527b4d7aa2dd4375b4f04e5e36e67484eb5088653f2b50c"
         },
         {
           "committed": [
@@ -23468,7 +23468,7 @@
             24037,
             56658
           ],
-          "maskSHA256": "f2d827db786fda21bc372640a51a9449e1dbb567ae2687633a397e3043f813c5"
+          "maskSHA256": "e47dbc20d14381bf6921db91e7b3064633ea78b0eefd919c8d3603449bfa3bce"
         },
         {
           "committed": [
@@ -23539,7 +23539,7 @@
             24634,
             198
           ],
-          "maskSHA256": "c4aa9690d8ba4e2ab6fb544c1af25e968efdc071175c0e44b604ef849ddc9212"
+          "maskSHA256": "87c5e7e6a60897a553908e3cf4016b0d3168f3eb9a3b056d6e38147676fb5697"
         },
         {
           "committed": [
@@ -24339,7 +24339,7 @@
             266,
             3147
           ],
-          "maskSHA256": "1697d2194d6d8c163879dec02d969ef88bbeacf1a79ee51738d4f9719f694a98"
+          "maskSHA256": "3a41358a9b9a7107d33061357f31b7cfe7e08a3e329b7d5290d8108afa0f4dd6"
         },
         {
           "committed": [
@@ -24378,7 +24378,7 @@
             1334,
             2129
           ],
-          "maskSHA256": "296b368d01eeb1ab1bacf7add961258adaabf86421625729a6f16efea623ab11"
+          "maskSHA256": "e2cf7bd7aebde5271ae0ad0e3395578c1f20c9d560c6bfca66c203f69d446d12"
         },
         {
           "committed": [
@@ -24425,7 +24425,7 @@
             34399,
             1067
           ],
-          "maskSHA256": "4625c7888c25bf812bf032647a083c842fc02a559fb70caa8f7ca5bf2d80e040"
+          "maskSHA256": "653488245bb8c4482e19ddaf397fc398d6acfee379dba5b39f0dade092944960"
         },
         {
           "committed": [
@@ -24480,7 +24480,7 @@
             3147,
             17829
           ],
-          "maskSHA256": "d8dbd9acedf5eda09fce3fa1f14dc9abcf0a01fbbc0320e48e9eecefcb9a9804"
+          "maskSHA256": "941cb4ebe554f247287cafc953217be7feaa92bd74fda922b67b723a9187d612"
         },
         {
           "committed": [
@@ -24543,7 +24543,7 @@
             56658,
             15889
           ],
-          "maskSHA256": "cb162abe3caa097cb3c466ceea16833cfbd342533e946ed9469c66e31bd93d2d"
+          "maskSHA256": "c69e02178841745a369c698b9dc96d8f70f00a99feac6abf92b9109419a2327f"
         },
         {
           "committed": [
@@ -25728,7 +25728,7 @@
             2034,
             3147
           ],
-          "maskSHA256": "774a95cdc9ac6cfe6493c51af67f42bf2e6435536a4bb6b29b4e4ab184e22145"
+          "maskSHA256": "dff2f831afa71bcfa5f6f12103c1f369ceb90f6938736f76b38d1a9a011631fb"
         },
         {
           "committed": [
@@ -25775,7 +25775,7 @@
             1938,
             12
           ],
-          "maskSHA256": "ca86e6b0bf2cb3af47cf0a736456e3cd3ff67b684ded4104b600948e18999e23"
+          "maskSHA256": "ec99c0decdc963d12f273b04d6e821c62d845c521c4a5e0eb60e99ed6acd76bc"
         },
         {
           "committed": [
@@ -26282,7 +26282,7 @@
             2129,
             2034
           ],
-          "maskSHA256": "5a1299af76d91cda277cc49d8ca009a251724f2c8a45eed34b348bd5a3d0615e"
+          "maskSHA256": "e1935bad8d36b5f8c078baddbbfeb2208d5ac4cebf4334f81d1672c880211d2a"
         },
         {
           "committed": [
@@ -26329,7 +26329,7 @@
             21624,
             29269
           ],
-          "maskSHA256": "70767dcac4d2763df8603f1dbebcb132b35503dec57fe521e25dca4fdde8f87c"
+          "maskSHA256": "31af37d3e131d9a883b4a3d5934823c562a418aef0fcf5cdf5b05ddc7075e013"
         },
         {
           "committed": [
@@ -26447,7 +26447,7 @@
             18,
             29958
           ],
-          "maskSHA256": "3f63bbe9261b196abeff1ecf8b33e685b3cd5fd18e207d2848d8f13cfe2a8edc"
+          "maskSHA256": "457d87e7ab5912373ba5864c88192a499159cd4f5f4a5f6a343e320ef2f8bea3"
         },
         {
           "committed": [
@@ -27013,7 +27013,7 @@
             2034,
             3147
           ],
-          "maskSHA256": "375d2a1e41ba3b7ab1e5ce821abd2a9dfc21b82740ed4cb1d95d1fbd5345b0b6"
+          "maskSHA256": "698e668771e89229c1672e4bcabc7d3fb9410d66aecf159ddc5ac796ddfc8829"
         },
         {
           "committed": [
@@ -27060,7 +27060,7 @@
             29269,
             887
           ],
-          "maskSHA256": "8ff38fbd9d92f5232e293087f193bd92ca27968f98dc7ef413a6f0decb539942"
+          "maskSHA256": "0db812857efe8538978eb26b34337945fb5ad1460245a32dffe2bf5514894579"
         },
         {
           "committed": [
@@ -27178,7 +27178,7 @@
             29958,
             13587
           ],
-          "maskSHA256": "8f7977bfa1214b0a5e8b0a81eafce8f9716a1e605d3bfa766fc7cfdeb62bdd8a"
+          "maskSHA256": "226adb946edbb1037a14b2830fa89ccc98067ed7dc99cd237126d8e371c48d53"
         },
         {
           "committed": [

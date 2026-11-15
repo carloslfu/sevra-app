@@ -51,6 +51,31 @@ func checkWorkbookGrammars(frontend: SplashTextFrontend, factory: SplashGrammarF
   let ordinaryNames = try NativeTools.referenceDefinitions(nativeAppAuthoring: false).map(\.name)
   try expectEqual(ordinaryNames.contains("save_native_app"), false)
   try expectEqual(ordinaryNames.contains("native_app_sdk"), true)
+  let layoutPolicy = try SplashToolPolicy(
+    toolsJSON: NativeTools.serializedDefinitions(nativeAppAuthoring: false),
+    choice: .named("edit_space"), thinking: false)
+  let component = #""component":{"id":"stock","type":"app","title":"Stock","spaceID":"app-id"}"#
+  for (edit, allowed) in [
+    (#"{"operation":"insert","at":"last","# + component + "}", true),
+    (#"{"operation":"insert","beforeID":"continue","# + component + "}", true),
+    (#"{"operation":"reset"}"#, true),
+    (#"{"operation":"title","componentID":"stock","title":"Renamed"}"#, true),
+    (#"{"operation":"insert","# + component + #", "title":"Stock"}"#, false),
+    (#"{"operation":"insert","at":"last","# + component + #", "title":"Stock"}"#, false),
+    (#"{"operation":"reset","title":"Stock"}"#, false),
+  ] {
+    let tokens = frontend.encode(
+      "<tool_call>\n<function=edit_space>\n<parameter=edits>\n[" + edit
+        + "]\n</parameter>\n<parameter=expectedVersion>\n1\n</parameter>\n"
+        + "<parameter=id>\nhome\n</parameter>\n</function>\n</tool_call>")
+    let grammar = try factory.create(grammar: layoutPolicy.grammar)
+    if allowed {
+      try grammar.finish(committed: tokens, requireComplete: true)
+    } else {
+      try expectThrows(try grammar.finish(committed: tokens, requireComplete: true))
+    }
+  }
+  print("PASS layout grammar keeps insert labels in components and refuses fields from other edits")
   for item in fixture.cases {
     let choice: SplashToolPolicy.Choice =
       item.choice == "named_finish" ? .named("finish") : item.choice == "auto" ? .auto : .required
